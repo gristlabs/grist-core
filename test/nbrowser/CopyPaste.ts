@@ -158,7 +158,7 @@ describe('CopyPaste', function() {
 
     // Change the document locale
     await gu.openDocumentSettings();
-    await driver.findWait('.test-locale-autocomplete', 500).click();
+    await driver.findWait('.test-settings-locale-autocomplete', 500).click();
     await driver.sendKeys("Germany", Key.ENTER);
     await gu.waitForServer();
     await driver.navigate().back();

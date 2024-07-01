@@ -1099,10 +1099,11 @@ export class DocWorkerApi {
       if (req.body.sourceDocId) {
         options.sourceDocId = await this._confirmDocIdForRead(req, String(req.body.sourceDocId));
         // Make sure that if we wanted to download the full source, we would be allowed.
-        const result = await fetch(this._grist.getHomeUrl(req, `/api/docs/${options.sourceDocId}/download?dryrun=1`), {
+        const homeUrl = this._grist.getHomeInternalUrl(`/api/docs/${options.sourceDocId}/download?dryrun=1`);
+        const result = await fetch(homeUrl, {
           method: 'GET',
           headers: {
-            ...getTransitiveHeaders(req),
+            ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
           }
         });
@@ -1112,10 +1113,10 @@ export class DocWorkerApi {
         }
         // We should make sure the source document has flushed recently.
         // It may not be served by the same worker, so work through the api.
-        await fetch(this._grist.getHomeUrl(req, `/api/docs/${options.sourceDocId}/flush`), {
+        await fetch(this._grist.getHomeInternalUrl(`/api/docs/${options.sourceDocId}/flush`), {
           method: 'POST',
           headers: {
-            ...getTransitiveHeaders(req),
+            ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
           }
         });
@@ -1171,12 +1172,16 @@ export class DocWorkerApi {
       const showDetails = isAffirmative(req.query.detail);
       const docSession = docSessionFromRequest(req);
       const {states} = await this._getStates(docSession, activeDoc);
-      const ref = await fetch(this._grist.getHomeUrl(req, `/api/docs/${req.params.docId2}/states`), {
+      const ref = await fetch(this._grist.getHomeInternalUrl(`/api/docs/${req.params.docId2}/states`), {
         headers: {
-          ...getTransitiveHeaders(req),
+          ...getTransitiveHeaders(req, { includeOrigin: false }),
           'Content-Type': 'application/json',
         }
       });
+      if (!ref.ok) {
+        res.status(ref.status).send(await ref.text());
+        return;
+      }
       const states2: DocState[] = (await ref.json()).states;
       const left = states[0];
       const right = states2[0];
@@ -1200,9 +1205,9 @@ export class DocWorkerApi {
 
         // Calculate changes from the (common) parent to the current version of the other document.
         const url = `/api/docs/${req.params.docId2}/compare?left=${parent.h}`;
-        const rightChangesReq = await fetch(this._grist.getHomeUrl(req, url), {
+        const rightChangesReq = await fetch(this._grist.getHomeInternalUrl(url), {
           headers: {
-            ...getTransitiveHeaders(req),
+            ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
           }
         });
@@ -1645,7 +1650,7 @@ export class DocWorkerApi {
     let uploadResult;
     try {
       const accessId = makeAccessId(req, getAuthorizedUserId(req));
-      uploadResult = await fetchDoc(this._grist, sourceDocumentId, req, accessId, asTemplate);
+      uploadResult = await fetchDoc(this._grist, this._docWorkerMap, sourceDocumentId, req, accessId, asTemplate);
       globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, `${documentName}.grist`);
     } catch (err) {
       if ((err as ApiError).status === 403) {
@@ -1894,7 +1899,7 @@ export class DocWorkerApi {
     // or to be wrongly rejected after upgrading.
     const doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
 
-    const max = doc.workspace.org.billingAccount?.product.features.baseMaxApiUnitsPerDocumentPerDay;
+    const max = doc.workspace.org.billingAccount?.getFeatures().baseMaxApiUnitsPerDocumentPerDay;
     if (!max) {
       // This doc has no associated product (happens to new unsaved docs)
       // or the product has no API limit. Allow the request through.

@@ -17,7 +17,7 @@ The schema for grist data is:
 """
 import logging
 import re
-import imp
+import types
 from collections import OrderedDict
 
 import six
@@ -207,7 +207,7 @@ def _is_special_table(table_id):
 
 
 def exec_module_text(module_text):
-  mod = imp.new_module(codebuilder.code_filename)
+  mod = types.ModuleType(codebuilder.code_filename)
   codebuilder.save_to_linecache(module_text)
   code_obj = compile(module_text, codebuilder.code_filename, "exec")
   # pylint: disable=exec-used

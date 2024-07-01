@@ -77,7 +77,7 @@ ChoiceEditor.prototype.getCellValue = function() {
   if (selectedItem) {
     return selectedItem.label;
   } else if (this.textInput.value.trim() === '') {
-    return null;
+    return '';
   } else {
     return TextEditor.prototype.getCellValue.call(this);
   }
@@ -129,7 +129,7 @@ ChoiceEditor.prototype.buildDropdownConditionFilter = function() {
 
   return buildDropdownConditionFilter({
     dropdownConditionCompiled: dropdownConditionCompiled.result,
-    docData: this.options.gristDoc.docData,
+    gristDoc: this.options.gristDoc,
     tableId: this.options.field.tableId(),
     rowId: this.options.rowId,
   });

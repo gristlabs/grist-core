@@ -341,6 +341,13 @@ describe('GridViewNewColumnMenu', function () {
 
   describe('create formula column', function(){
     revertThis();
+
+    before(async function() {
+      // Previous test runs in a smaller screen. It restores the window, but it's hard to know
+      // when all the resizing has taken effect, and easier to just reload the doc.
+      await gu.reloadDoc();
+    });
+
     it('should show "create formula column" option with tooltip', async function () {
       // open add new colum menu
       await clickAddColumn();

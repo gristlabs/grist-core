@@ -79,7 +79,8 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {Document as APIDocument, DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
+import {Document as APIDocument, DocReplacementOptions,
+        DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -440,6 +441,10 @@ export class ActiveDoc extends EventEmitter {
     docSession: OptDocSession
   ): Promise<FilteredDocUsageSummary> {
     return this._granularAccess.filterDocUsageSummary(docSession, this.getDocUsageSummary());
+  }
+
+  public getUser(docSession: OptDocSession) {
+    return this._granularAccess.getUser(docSession);
   }
 
   public async getUserOverride(docSession: OptDocSession) {
@@ -1574,17 +1579,22 @@ export class ActiveDoc extends EventEmitter {
     };
     const isShared = new Set<string>();
 
-    // Collect users the document is shared with.
     const userId = getDocSessionUserId(docSession);
     if (!userId) { throw new Error('Cannot determine user'); }
-    const db = this.getHomeDbManager();
-    if (db) {
-      const access = db.unwrapQueryResult(
-        await db.getDocAccess({userId, urlId: this.docName}, {
-          flatten: true, excludeUsersWithoutAccess: true,
-        }));
-      result.users = access.users;
-      result.users.forEach(user => isShared.add(normalizeEmail(user.email)));
+
+    const parsed = parseUrlId(this.docName);
+    // If this is not a temporary document (i.e. created by anonymous user).
+    if (parsed.trunkId !== NEW_DOCUMENT_CODE) {
+      // Collect users the document is shared with.
+      const db = this.getHomeDbManager();
+      if (db) {
+        const access = db.unwrapQueryResult(
+          await db.getDocAccess({userId, urlId: this.docName}, {
+            flatten: true, excludeUsersWithoutAccess: true,
+          }));
+        result.users = access.users;
+        result.users.forEach(user => isShared.add(normalizeEmail(user.email)));
+      }
     }
 
     // Collect users from user attribute tables. Omit duplicates with users the document is
@@ -1841,6 +1851,14 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
+  public async sendTimingsNotification() {
+    await this.docClients.broadcastDocMessage(null, 'docChatter', {
+      timing: {
+        status: this.isTimingOn ? 'active' : 'disabled'
+      },
+    });
+  }
+
   public logTelemetryEvent(
     docSession: OptDocSession | null,
     event: TelemetryEvent,
@@ -1883,6 +1901,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async startTiming(): Promise<void> {
+    await this.waitForInitialization();
+
     // Set the flag to indicate that timing is on.
     this.isTimingOn = true;
 
@@ -1896,9 +1916,12 @@ export class ActiveDoc extends EventEmitter {
 
     // Mark self as in timing mode, in case we get reloaded.
     this._docManager.restoreTimingOn(this.docName, true);
+    await this.sendTimingsNotification();
   }
 
   public async stopTiming(): Promise<FormulaTimingInfo[]> {
+    await this.waitForInitialization();
+
     // First call the data engine to stop timing, and gather results.
     const timingResults = await this._pyCall('stop_timing');
 
@@ -1906,10 +1929,14 @@ export class ActiveDoc extends EventEmitter {
     this.isTimingOn = false;
     this._docManager.restoreTimingOn(this.docName, false);
 
+    await this.sendTimingsNotification();
+
     return timingResults;
   }
 
   public async getTimings(): Promise<FormulaTimingInfo[]|void>  {
+    await this.waitForInitialization();
+
     if (this._modificationLock.isLocked()) {
       return;
     }

@@ -130,7 +130,10 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     dom.onDispose(() => cancel ? doCancel() : doSave()),
     dom.onKeyDown({
       Enter: () => onClose(),
-      Escape: () => onClose(),
+      Escape: () => {
+        cancel = true;
+        onClose();
+      },
     }),
 
     // Filter by range

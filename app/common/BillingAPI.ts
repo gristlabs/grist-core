@@ -1,4 +1,5 @@
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
+import {TEAM_FREE_PLAN} from 'app/common/Features';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {StringUnion} from 'app/common/StringUnion';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
@@ -24,23 +25,22 @@ export type BillingTask = typeof BillingTask.type;
 export interface IBillingPlan {
   id: string;                 // the Stripe plan id
   nickname: string;
-  currency: string;           // lowercase three-letter ISO currency code
-  interval: string;           // billing frequency - one of day, week, month or year
-  amount: number;             // amount in cents charged at each interval
+  interval: 'day'|'week'|'month'|'year';           // billing frequency - one of day, week, month or year
+  // Merged metadata from price and product.
   metadata: {
     family?: string;          // groups plans for filtering by GRIST_STRIPE_FAMILY env variable
     isStandard: boolean;      // indicates that the plan should be returned by the API to be offered.
-    supportAvailable: boolean;
     gristProduct: string;     // name of grist product that should be used with this plan.
-    unthrottledApi: boolean;
-    customSubdomain: boolean;
-    workspaces: boolean;
-    maxDocs?: number;         // if given, limit of docs that can be created
-    maxUsersPerDoc?: number;  // if given, limit of users each doc can be shared with
+    type: string;             // type of the plan (either plan or limit for now)
+    minimumUnits?: number;    // minimum number of units for the plan
+    gristLimit?: string;      // type of the limit (for limit type plans)
   };
-  trial_period_days: number|null;  // Number of days in the trial period, or null if there is none.
+  amount: number;             // amount in cents charged at each interval
+  trialPeriodDays: number|null;  // Number of days in the trial period, or null if there is none.
   product: string;         // the Stripe product id.
+  features: string[];       // list of features that are available with this plan
   active: boolean;
+  name: string;                    // the name of the product
 }
 
 export interface ILimitTier {
@@ -95,16 +95,22 @@ export interface IBillingSubscription {
   valueRemaining: number;
   // The effective tax rate of the customer for the given address.
   taxRate: number;
+  // The current number of seats paid for current billing period.
+  seatCount: number;
   // The current number of users with whom the paid org is shared.
   userCount: number;
   // The next total in cents that Stripe is going to charge (includes tax and discount).
   nextTotal: number;
+  // The next due date in milliseconds.
+  nextDueDate: number|null; // in milliseconds
   // Discount information, if any.
   discount: IBillingDiscount|null;
   // Last plan we had a subscription for, if any.
   lastPlanId: string|null;
   // Whether there is a valid plan in effect.
   isValidPlan: boolean;
+  // The time when the plan will be cancelled. (Not set when we are switching to a free plan)
+  cancelAt: number|null;
   // A flag for when all is well with the user's subscription.
   inGoodStanding: boolean;
   // Whether there is a paying valid account (even on free plan). It this is set
@@ -119,10 +125,19 @@ export interface IBillingSubscription {
   // Stripe status, documented at https://stripe.com/docs/api/subscriptions/object#subscription_object-status
   // such as "active", "trialing" (reflected in isInTrial), "incomplete", etc.
   status?: string;
-  lastInvoiceUrl?: string;    // URL of the Stripe-hosted page with the last invoice.
-  lastChargeError?: string;   // The last charge error, if any, to show in case of a bad status.
-  lastChargeTime?: number;    // The time of the last charge attempt.
+  lastInvoiceUrl?: string;     // URL of the Stripe-hosted page with the last invoice.
+  lastInvoiceOpen?: boolean;   // Whether the last invoice is not paid but it can be.
+  lastChargeError?: string;    // The last charge error, if any, to show in case of a bad status.
+  lastChargeTime?: number;     // The time of the last charge attempt.
   limit?: ILimit|null;
+  balance?: number;            // The balance of the account.
+
+  // Current product name. Even if not paid or not in good standing.
+  currentProductName?: string;
+
+  paymentLink?: string;       // A link to the payment page for the current plan.
+  paymentOffer?: string;      // Optional text to show for the offer.
+  paymentProduct?: string;    // The product to show for the offer.
 }
 
 export interface ILimit {
@@ -143,22 +158,72 @@ export interface FullBillingAccount extends BillingAccount {
   managers: FullUser[];
 }
 
+export interface SummaryLine {
+  description: string;
+  quantity?: number|null;
+  amount: number;
+}
+
+// Info to show to the user when he changes the plan.
+export interface ChangeSummary {
+  productName: string,
+  priceId: string,
+  interval: string,
+  quantity: number,
+  type: 'upgrade'|'downgrade',
+  regular: {
+    lines: SummaryLine[];
+    subTotal: number;
+    tax?: number;
+    total: number;
+    periodStart: number;
+  },
+  invoice?: {
+    lines: SummaryLine[];
+    subTotal: number;
+    tax?: number;
+    total: number;
+    appliedBalance: number;
+    amountDue: number;
+    dueDate: number;
+  }
+}
+
+export type UpgradeConfirmation = ChangeSummary|{checkoutUrl: string};
+
+export interface PlanSelection {
+  product?: string; // grist product name
+  priceId?: string; // stripe id of the price
+  offerId?: string; // stripe id of the offer
+  count?: number;   // number of units for the plan (suggested as it might be different).
+}
+
 export interface BillingAPI {
   isDomainAvailable(domain: string): Promise<boolean>;
-  getPlans(): Promise<IBillingPlan[]>;
+  getPlans(plan?: PlanSelection): Promise<IBillingPlan[]>;
   getSubscription(): Promise<IBillingSubscription>;
   getBillingAccount(): Promise<FullBillingAccount>;
   updateBillingManagers(delta: ManagerDelta): Promise<void>;
   updateSettings(settings: IBillingOrgSettings): Promise<void>;
   subscriptionStatus(planId: string): Promise<boolean>;
-  createFreeTeam(name: string, domain: string): Promise<string>;
-  createTeam(name: string, domain: string): Promise<string>;
-  upgrade(): Promise<string>;
+  createFreeTeam(name: string, domain: string): Promise<void>;
+  createTeam(name: string, domain: string, plan: PlanSelection, next?: string): Promise<{
+    checkoutUrl?: string,
+    orgUrl?: string,
+  }>;
+  confirmChange(plan: PlanSelection): Promise<UpgradeConfirmation>;
+  changePlan(plan: PlanSelection): Promise<void>;
+  renewPlan(plan: PlanSelection): Promise<{checkoutUrl: string}>;
   cancelCurrentPlan(): Promise<void>;
-  downgradePlan(planName: string): Promise<void>;
-  renewPlan(): string;
   customerPortal(): string;
   updateAssistantPlan(tier: number): Promise<void>;
+
+  changeProduct(product: string): Promise<void>;
+  attachSubscription(subscription: string): Promise<void>;
+  attachPayment(paymentLink: string): Promise<void>;
+  getPaymentLink(): Promise<UpgradeConfirmation>;
+  cancelPlanChange(): Promise<void>;
+  dontCancelPlan(): Promise<void>;
 }
 
 export class BillingAPIImpl extends BaseAPI implements BillingAPI {
@@ -172,8 +237,13 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
       body: JSON.stringify({ domain })
     });
   }
-  public async getPlans(): Promise<IBillingPlan[]> {
-    return this.requestJson(`${this._url}/api/billing/plans`, {method: 'GET'});
+  public async getPlans(plan?: PlanSelection): Promise<IBillingPlan[]> {
+    const url = new URL(`${this._url}/api/billing/plans`);
+    url.searchParams.set('product', plan?.product || '');
+    url.searchParams.set('priceId', plan?.priceId || '');
+    return this.requestJson(url.href, {
+      method: 'GET'
+    });
   }
 
   // Returns an IBillingSubscription
@@ -191,13 +261,6 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
-  public async downgradePlan(planName: string): Promise<void> {
-    await this.request(`${this._url}/api/billing/downgrade-plan`, {
-      method: 'POST',
-      body: JSON.stringify({ planName })
-    });
-  }
-
   public async updateSettings(settings?: IBillingOrgSettings): Promise<void> {
     await this.request(`${this._url}/api/billing/settings`, {
       method: 'POST',
@@ -212,43 +275,53 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
-  public async createFreeTeam(name: string, domain: string): Promise<string> {
-    const data = await this.requestJson(`${this._url}/api/billing/team-free`, {
-      method: 'POST',
-      body: JSON.stringify({
-        domain,
-        name
-      })
-    });
-    return data.orgUrl;
-  }
-
-  public async createTeam(name: string, domain: string): Promise<string> {
+  public async createTeam(name: string, domain: string, plan: {
+    product?: string, priceId?: string, count?: number
+  }, next?: string): Promise<{
+    checkoutUrl?: string,
+    orgUrl?: string,
+  }> {
     const data = await this.requestJson(`${this._url}/api/billing/team`, {
       method: 'POST',
       body: JSON.stringify({
         domain,
         name,
-        planType: 'team',
-        next: window.location.href
+        ...plan,
+        next
       })
     });
-    return data.checkoutUrl;
+    return data;
   }
 
-  public async upgrade(): Promise<string> {
-    const data = await this.requestJson(`${this._url}/api/billing/upgrade`, {
-      method: 'POST',
+  public async createFreeTeam(name: string, domain: string): Promise<void> {
+    await this.createTeam(name, domain, {
+      product: TEAM_FREE_PLAN,
     });
-    return data.checkoutUrl;
+  }
+
+  public async changePlan(plan: PlanSelection): Promise<void> {
+    await this.requestJson(`${this._url}/api/billing/change-plan`, {
+      method: 'POST',
+      body: JSON.stringify(plan)
+    });
+  }
+
+  public async confirmChange(plan: PlanSelection): Promise<ChangeSummary|{checkoutUrl: string}> {
+    return this.requestJson(`${this._url}/api/billing/confirm-change`, {
+      method: 'POST',
+      body: JSON.stringify(plan)
+    });
   }
 
   public customerPortal(): string {
     return `${this._url}/api/billing/customer-portal`;
   }
 
-  public renewPlan(): string {
-    return `${this._url}/api/billing/renew`;
+  public renewPlan(plan: PlanSelection): Promise<{checkoutUrl: string}> {
+    return this.requestJson(`${this._url}/api/billing/renew`, {
+      method: 'POST',
+      body: JSON.stringify(plan)
+    });
   }
 
   public async updateAssistantPlan(tier: number): Promise<void> {
@@ -267,6 +340,39 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
       body: JSON.stringify({planId})
     });
     return data.active;
+  }
+
+  public async changeProduct(product: string): Promise<void> {
+    await this.request(`${this._url}/api/billing/change-product`, {
+      method: 'POST',
+      body: JSON.stringify({ product })
+    });
+  }
+
+  public async attachSubscription(subscriptionId: string): Promise<void> {
+    await this.request(`${this._url}/api/billing/attach-subscription`, {
+      method: 'POST',
+      body: JSON.stringify({ subscriptionId })
+    });
+  }
+
+  public async attachPayment(paymentLink: string): Promise<void> {
+    await this.request(`${this._url}/api/billing/attach-payment`, {
+      method: 'POST',
+      body: JSON.stringify({ paymentLink })
+    });
+  }
+
+  public async getPaymentLink(): Promise<{checkoutUrl: string}> {
+    return await this.requestJson(`${this._url}/api/billing/payment-link`, {method: 'GET'});
+  }
+
+  public async cancelPlanChange(): Promise<void> {
+    await this.request(`${this._url}/api/billing/cancel-plan-change`, {method: 'POST'});
+  }
+
+  public async dontCancelPlan(): Promise<void> {
+    await this.request(`${this._url}/api/billing/dont-cancel-plan`, {method: 'POST'});
   }
 
   private get _url(): string {

@@ -181,7 +181,6 @@ export class FlexServer implements GristServer {
   private _getLoginSystem?: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
-  private _probes: BootProbes;
   private _updateManager: UpdateManager;
   private _sandboxInfo: SandboxInfo;
 
@@ -296,6 +295,13 @@ export class FlexServer implements GristServer {
   }
 
   /**
+   * Same as getDefaultHomeUrl, but for internal use.
+   */
+  public getDefaultHomeInternalUrl(): string {
+    return process.env.APP_HOME_INTERNAL_URL || this.getDefaultHomeUrl();
+  }
+
+  /**
    * Get a url for the home server api, adapting it to match the base domain in the
    * requested url.  This adaptation is important for cookie-based authentication.
    *
@@ -310,13 +316,21 @@ export class FlexServer implements GristServer {
   }
 
   /**
+   * Same as getHomeUrl, but for requesting internally.
+   */
+  public getHomeInternalUrl(relPath: string = ''): string {
+    const homeUrl = new URL(relPath, this.getDefaultHomeInternalUrl());
+    return homeUrl.href;
+  }
+
+  /**
    * Get a home url that is appropriate for the given document.  For now, this
    * returns a default that works for all documents.  That could change in future,
    * specifically with custom domains (perhaps we might limit which docs can be accessed
    * based on domain).
    */
   public async getHomeUrlByDocId(docId: string, relPath: string = ''): Promise<string> {
-    return new URL(relPath, this.getDefaultHomeUrl()).href;
+    return new URL(relPath, this.getDefaultHomeInternalUrl()).href;
   }
 
   // Get the port number the server listens on.  This may be different from the port
@@ -543,27 +557,17 @@ export class FlexServer implements GristServer {
    */
   public addBootPage() {
     if (this._check('boot')) { return; }
-    const bootKey = appSettings.section('boot').flag('key').readString({
-      envVar: 'GRIST_BOOT_KEY'
-    });
-    const base = `/boot/${bootKey}`;
-    this._probes = new BootProbes(this.app, this, base);
-    // Respond to /boot, /boot/, /boot/KEY, /boot/KEY/ to give
-    // a helpful message even if user gets KEY wrong or omits it.
     this.app.get('/boot(/(:bootKey/?)?)?$', async (req, res) => {
-      const goodKey = bootKey && req.params.bootKey === bootKey;
-      return this._sendAppPage(req, res, {
-        path: 'boot.html', status: 200, config: goodKey ? {
-        } : {
-          errMessage: 'not-the-key',
-        }, tag: 'boot',
-      });
+      // Doing a good redirect is actually pretty subtle and we might
+      // get it wrong, so just say /boot got moved.
+      res.send('The /boot/KEY page is now /admin?boot-key=KEY');
     });
-    this._probes.addEndpoints();
   }
 
-  public hasBoot(): boolean {
-    return Boolean(this._probes);
+  public getBootKey(): string|undefined {
+    return appSettings.section('boot').flag('key').readString({
+      envVar: 'GRIST_BOOT_KEY'
+    });
   }
 
   public denyRequestsIfNotReady() {
@@ -1092,7 +1096,7 @@ export class FlexServer implements GristServer {
           // If "welcomeNewUser" is ever added to billing pages, we'd need
           // to avoid a redirect loop.
 
-          if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.product.features.vanityDomain) {
+          if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.getFeatures().vanityDomain) {
             const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
             return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
           }
@@ -1119,6 +1123,7 @@ export class FlexServer implements GristServer {
         welcomeNewUser
       ],
       formMiddleware: [
+        this._userIdMiddleware,
         forcedLoginMiddleware,
       ],
       forceLogin: this._redirectToLoginUnconditionally,
@@ -1411,6 +1416,11 @@ export class FlexServer implements GristServer {
     return this._sandboxInfo;
   }
 
+  public getInfo(key: string): any {
+    const infoPair = this.info.find(([keyToCheck]) => key === keyToCheck);
+    return infoPair?.[1];
+  }
+
   public disableExternalStorage() {
     if (this.deps.has('doc')) {
       throw new Error('disableExternalStorage called too late');
@@ -1429,12 +1439,12 @@ export class FlexServer implements GristServer {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
 
-    const createDoom = async (req: express.Request) => {
+    const createDoom = async () => {
       const dbManager = this.getHomeDBManager();
       const permitStore = this.getPermitStore();
       const notifier = this.getNotifier();
       const loginSystem = await this.resolveLoginSystem();
-      const homeUrl = this.getHomeUrl(req).replace(/\/$/, '');
+      const homeUrl = this.getHomeInternalUrl().replace(/\/$/, '');
       return new Doom(dbManager, permitStore, notifier, loginSystem, homeUrl);
     };
 
@@ -1458,7 +1468,7 @@ export class FlexServer implements GristServer {
 
         // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
         // to other (not public) team sites.
-        const doom = await createDoom(req);
+        const doom = await createDoom();
         await doom.deleteUser(userId);
         this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedAccount');
         return resp.status(200).json(true);
@@ -1491,7 +1501,7 @@ export class FlexServer implements GristServer {
         }
 
         // Reuse Doom cli tool for org deletion. Note, this removes everything as a super user.
-        const doom = await createDoom(req);
+        const doom = await createDoom();
         await doom.deleteOrg(org.id);
 
         this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedSite', {
@@ -1859,22 +1869,37 @@ export class FlexServer implements GristServer {
 
     const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
 
-    const adminPageMiddleware = [
-      this._redirectToHostMiddleware,
-      this._userIdMiddleware,
-      this._redirectToLoginWithoutExceptionsMiddleware,
-      // In principle, it may be safe to show the Admin Panel to non-admins but let's protect it
-      // since it's intended for admins, and it's easier not to have to worry how it should behave
-      // for others.
-      requireInstallAdmin,
-    ];
-    this.app.get('/admin', ...adminPageMiddleware, expressWrap(async (req, resp) => {
+    // Admin endpoint needs to have very little middleware since each
+    // piece of middleware creates a new way to fail and leave the admin
+    // panel inaccessible. Generally the admin panel should report problems
+    // rather than failing entirely.
+    this.app.get('/admin', this._userIdMiddleware, expressWrap(async (req, resp) => {
       return this.sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
-    const probes = new BootProbes(this.app, this, '/admin', adminPageMiddleware);
+    const adminMiddleware = [
+      this._userIdMiddleware,
+      requireInstallAdmin,
+    ];
+    const probes = new BootProbes(this.app, this, '/api', adminMiddleware);
     probes.addEndpoints();
 
-    // Restrict this endpoint to install admins too, for the same reason as the /admin page.
+    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (req, resp) => {
+      const newConfig = req.body.newConfig;
+      resp.on('finish', () => {
+        // If we have IPC with parent process (e.g. when running under
+        // Docker) tell the parent that we have a new environment so it
+        // can restart us.
+        if (process.send) {
+          process.send({ action: 'restart', newConfig });
+        }
+      });
+      // On the topic of http response codes, thus spake MDN:
+      // "409: This response is sent when a request conflicts with the current state of the server."
+      const status = process.send ? 200 : 409;
+      return resp.status(status).send();
+    }));
+
+    // Restrict this endpoint to install admins
     this.app.get('/api/install/prefs', requireInstallAdmin, expressWrap(async (_req, resp) => {
       const activation = await this._activations.current();
 
@@ -1902,7 +1927,7 @@ export class FlexServer implements GristServer {
 
     // GET api/checkUpdates
     // Retrieves the latest version of the client from Grist SAAS endpoint.
-    this.app.get('/api/install/updates', adminPageMiddleware, expressWrap(async (req, res) => {
+    this.app.get('/api/install/updates', adminMiddleware, expressWrap(async (req, res) => {
       // Prepare data for the telemetry that endpoint might expect.
       const installationId = (await this.getActivations().current()).id;
       const deploymentType = this.getDeploymentType();
@@ -1980,7 +2005,7 @@ export class FlexServer implements GristServer {
     // Add the handling for the /upload route. Most uploads are meant for a DocWorker: they are put
     // in temporary files, and the DocWorker needs to be on the same machine to have access to them.
     // This doesn't check for doc access permissions because the request isn't tied to a document.
-    addUploadRoute(this, this.app, this._trustOriginsMiddleware, ...basicMiddleware);
+    addUploadRoute(this, this.app, this._docWorkerMap, this._trustOriginsMiddleware, ...basicMiddleware);
 
     this.app.get('/attachment', ...docAccessMiddleware,
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));
@@ -2418,10 +2443,10 @@ export class FlexServer implements GristServer {
     const workspace = workspaces.find(w => w.name === 'Home');
     if (!workspace) { throw new Error('Home workspace not found'); }
 
-    const copyDocUrl = this.getHomeUrl(req, '/api/docs');
+    const copyDocUrl = this.getHomeInternalUrl('/api/docs');
     const response = await fetch(copyDocUrl, {
       headers: {
-        ...getTransitiveHeaders(req),
+        ...getTransitiveHeaders(req, { includeOrigin: false }),
         'Content-Type': 'application/json',
       },
       method: 'POST',

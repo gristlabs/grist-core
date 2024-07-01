@@ -446,3 +446,73 @@ class TestRenames(test_engine.EngineTestCase):
       [13,    "New Haven",  people_rec(2),      "Alice"],
       [14,    "West Haven", people_rec(0),      ""],
     ])
+
+  def test_rename_lookup_kwargs(self):
+    # Renaming causes no errors for `Table.lookupOne(**kwargs)` and for `.lookupRecords`. We can't
+    # rename, but we test that this syntax does not cause errors.
+    self.load_sample(self.sample)
+    self.add_column("Address", "people", formula=(
+      "args={'addr': $id}\n" +
+      "People.lookupOne(city=$city, **args)"
+    ))
+    self.add_column("Address", "people2", formula="People.lookupRecords(**{'addr': $id})")
+
+    # Verify the data, to make sure we got these formulas right, and that they still work later.
+    people_table = self.engine.tables['People']
+    people_rec = people_table.Record
+    people_recset = people_table.RecordSet
+    expected_data = [
+      ["id",  "city",       "people",           "people2"],
+      [11,    "New York",   people_rec(4),      people_recset([4])],
+      [12,    "Colombia",   people_rec(1),      people_recset([1, 3])],
+      [13,    "New Haven",  people_rec(2),      people_recset([2])],
+      [14,    "West Haven", people_rec(0),      people_recset([])],
+    ]
+
+    self.assertTableData("Address", cols="all", data=expected_data)
+
+    out_actions = self.apply_user_action(["RenameColumn", "People", "addr", "ADDRESS"])
+    # The new formulas aren't affected but cause no errors on rename.
+    self.assertPartialOutActions(out_actions, { "stored": [
+      ["RenameColumn", "People", "addr", "ADDRESS"],
+      ["ModifyColumn", "People", "city", {"formula": "$ADDRESS.city"}],
+      ["BulkUpdateRecord", "_grist_Tables_column", [23, 24], {
+        "colId": ["ADDRESS", "city"],
+        "formula": ["", "$ADDRESS.city"]
+      }],
+      # But since the new formulas aren't affected, we get errors in the cells, as expected.
+      ["BulkUpdateRecord", "Address", [11, 12, 13, 14],
+        {"people": [["E", "KeyError"], ["E", "KeyError"], ["E", "KeyError"], ["E", "KeyError"]]}],
+      ["BulkUpdateRecord", "Address", [11, 12, 13, 14],
+        {"people2": [["E", "KeyError"], ["E", "KeyError"], ["E", "KeyError"], ["E", "KeyError"]]}],
+    ]})
+
+    # Let's fix the cell errors to make the next check more meaningful.
+    self.modify_column("Address", "people", formula=(
+      "args={'ADDRESS': $id}\n" +
+      "People.lookupOne(city=$city, **args)"
+    ))
+    self.modify_column("Address", "people2", formula="People.lookupRecords(**{'ADDRESS': $id})")
+
+    # Data should again be correct.
+    self.assertTableData("Address", cols="all", data=expected_data)
+
+    # Another rename that should affect the regular keyword argument.
+    out_actions = self.apply_user_action(["RenameColumn", "People", "city", "ciudad"])
+    self.assertPartialOutActions(out_actions, { "stored": [
+      ["RenameColumn", "People", "city", "ciudad"],
+      ["ModifyColumn", "Address", "people", {"formula": (
+        "args={'ADDRESS': $id}\n" +
+        "People.lookupOne(ciudad=$city, **args)"
+      )}],
+      ["BulkUpdateRecord", "_grist_Tables_column", [24, 25], {
+        "colId": ["ciudad", "people"],
+        "formula": ["$ADDRESS.city", (
+          "args={'ADDRESS': $id}\n" +
+          "People.lookupOne(ciudad=$city, **args)"
+          )]
+      }],
+    ]})
+
+    # Data should again be correct.
+    self.assertTableData("Address", cols="all", data=expected_data)

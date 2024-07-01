@@ -23,16 +23,17 @@ export namespace Sort {
    * Object base representation for column expression.
    */
   export interface ColSpecDetails {
-    colRef: number;
+    colRef: ColRef;
     direction: Direction;
     orderByChoice?: boolean;
     emptyLast?: boolean;
     naturalSort?: boolean;
   }
   /**
-   * Column expression type.
+   * Column expression type. Either number, an object, or virtual id string _vid\d+
    */
   export type ColSpec = number | string;
+  export type ColRef = number | string;
   /**
    * Sort expression type, for example [1,-2, '3:emptyLast', '-4:orderByChoice']
    */
@@ -75,7 +76,7 @@ export namespace Sort {
       tail.push("orderByChoice");
     }
     if (!tail.length) {
-      return +head;
+      return maybeNumber(head);
     }
     return head + (tail.length ? OPTION_SEPARATOR : "") + tail.join(FLAG_SEPARATOR);
   }
@@ -92,21 +93,33 @@ export namespace Sort {
       : parseColSpec(colSpec);
   }
 
+  function maybeNumber(colRef: string): ColRef {
+    const num = parseInt(colRef, 10);
+    return isNaN(num) ? colRef : num;
+  }
+
   function parseColSpec(colString: string): ColSpecDetails {
-    const REGEX = /^(-)?(\d+)(:([\w\d;]+))?$/;
+    if (!colString) {
+      throw new Error("Empty column expression");
+    }
+    const REGEX = /^(?<sign>-)?(?<colRef>(_vid)?(\d+))(:(?<flag>[\w\d;]+))?$/;
     const match = colString.match(REGEX);
     if (!match) {
       throw new Error("Error parsing sort expression " + colString);
     }
-    const [, sign, colRef, , flag] = match;
+    const {sign, colRef, flag} = match.groups || {};
     const flags = flag?.split(";");
-    return {
-      colRef: +colRef,
+    return onlyDefined({
+      colRef: maybeNumber(colRef),
       direction: sign === "-" ? DESC : ASC,
       orderByChoice: flags?.includes("orderByChoice"),
       emptyLast: flags?.includes("emptyLast"),
       naturalSort: flags?.includes("naturalSort"),
-    };
+    });
+  }
+
+  function onlyDefined<T extends Record<string, any>>(obj: T): T{
+    return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined)) as T;
   }
 
   /**
@@ -138,17 +151,26 @@ export namespace Sort {
    * Converts column expression order.
    */
   export function setColDirection(colSpec: ColSpec, dir: Direction): ColSpec {
-    if (typeof colSpec === "number") {
+    if (typeof colSpec == "number") {
       return Math.abs(colSpec) * dir;
+    } else if (colSpec.startsWith(VirtualId.PREFIX)) {
+      return dir === DESC ? `-${colSpec}` : colSpec;
+    } else if (colSpec.startsWith(`-${VirtualId.PREFIX}`)) {
+      return dir === ASC ? colSpec.slice(1) : colSpec;
+    }  else {
+      return detailsToSpec({ ...parseColSpec(colSpec), direction: dir });
     }
-    return detailsToSpec({ ...parseColSpec(colSpec), direction: dir });
   }
 
   /**
    * Creates simple column expression.
    */
-  export function createColSpec(colRef: number, dir: Direction): ColSpec {
-    return colRef * dir;
+  export function createColSpec(colRef: ColRef, dir: Direction): ColSpec {
+    if (typeof colRef === "number") {
+      return colRef * dir;
+    } else {
+      return dir === ASC ? colRef : `-${colRef}`;
+    }
   }
 
   /**
@@ -187,7 +209,7 @@ export namespace Sort {
   /**
    * Swaps column id in column expression. Primary use for display columns.
    */
-  export function swapColRef(colSpec: ColSpec, colRef: number): ColSpec {
+  export function swapColRef(colSpec: ColSpec, colRef: ColRef): ColSpec {
     if (typeof colSpec === "number") {
       return colSpec >= 0 ? colRef : -colRef;
     }
@@ -220,7 +242,7 @@ export namespace Sort {
    * @param colRef Column id to remove
    * @param newSpec New column sort options to put in place of the old one.
    */
-  export function replace(sortSpec: SortSpec, colRef: number, newSpec: ColSpec | ColSpecDetails): SortSpec {
+  export function replace(sortSpec: SortSpec, colRef: ColRef, newSpec: ColSpec | ColSpecDetails): SortSpec {
     const index = findColIndex(sortSpec, colRef);
     if (index >= 0) {
       const updated = sortSpec.slice();
@@ -322,3 +344,26 @@ export namespace Sort {
     });
   }
 }
+
+let _virtualIdCounter = 1;
+const _virtualSymbols = new Map<string, string>();
+/**
+ * Creates a virtual id for virtual tables. Can remember some generated ids if called with a
+ * name (this feature used only in tests for now).
+ *
+ * The resulting id looks like _vid\d+.
+ */
+export function VirtualId(symbol = '') {
+  if (symbol) {
+    if (!_virtualSymbols.has(symbol)) {
+      const generated = `${VirtualId.PREFIX}${_virtualIdCounter++}`;
+      _virtualSymbols.set(symbol, generated);
+      return generated;
+    } else {
+      return _virtualSymbols.get(symbol)!;
+    }
+  } else {
+    return `${VirtualId.PREFIX}${_virtualIdCounter++}`;
+  }
+}
+VirtualId.PREFIX = '_vid';

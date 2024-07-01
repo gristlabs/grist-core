@@ -23,7 +23,7 @@ import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, style
 
 const t = makeT('TopBar');
 
-export function createTopBarHome(appModel: AppModel) {
+export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean) => Promise<unknown>){
   const isAnonymous = !appModel.currentValidUser;
 
   return [
@@ -32,7 +32,7 @@ export function createTopBarHome(appModel: AppModel) {
       [
         basicButton(
           t("Manage Team"),
-          dom.on('click', () => manageTeamUsersApp(appModel)),
+          dom.on('click', () => manageTeamUsersApp({app: appModel, onSave})),
           testId('topbar-manage-team')
         ),
         cssSpacer()

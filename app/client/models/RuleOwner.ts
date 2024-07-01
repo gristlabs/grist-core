@@ -11,7 +11,7 @@ export interface RuleOwner {
   // If this field (or column) has a list of conditional styling rules.
   hasRules: ko.Computed<boolean>;
   // List of rules.
-  rulesList: ko.Computed<[GristObjCode.List, ...number[]] | null>;
+  rulesList: modelUtil.KoSaveableObservable<[GristObjCode.List, ...number[]] | null>;
   // List of columns that are used as rules for conditional styles.
   rulesCols: ko.Computed<ColumnRec[]>;
   // List of columns ids that are used as rules for conditional styles.

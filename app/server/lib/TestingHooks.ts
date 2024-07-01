@@ -68,11 +68,6 @@ export class TestingHooks implements ITestingHooks {
     private _workerServers: FlexServer[]
   ) {}
 
-  public async getOwnPort(): Promise<number> {
-    log.info("TestingHooks.getOwnPort called");
-    return this._server.getOwnPort();
-  }
-
   public async getPort(): Promise<number> {
     log.info("TestingHooks.getPort called");
     return this._port;

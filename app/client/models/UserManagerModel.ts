@@ -180,9 +180,9 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   ) {
     super();
     if (this._options.appModel) {
-      const product = this._options.appModel.currentProduct;
+      const features = this._options.appModel.currentFeatures;
       const {supportEmail} = getGristConfig();
-      this._shareAnnotator = new ShareAnnotator(product, initData, {supportEmail});
+      this._shareAnnotator = new ShareAnnotator(features, initData, {supportEmail});
     }
     this.annotate();
   }

@@ -7,7 +7,7 @@
 import {commonUrls} from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {TEAM_FREE_PLAN} from 'app/common/Features';
+import {fixSiteProducts} from 'app/gen-server/lib/Housekeeper';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -90,7 +90,6 @@ async function setupDb() {
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        planType: TEAM_FREE_PLAN
       }));
     }
   }
@@ -137,6 +136,12 @@ export async function main() {
   if (process.env.GRIST_SERVE_PLUGINS_PORT) {
     await server.startCopy('pluginServer', parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
   }
+
+  await fixSiteProducts({
+    deploymentType: server.getDeploymentType(),
+    db: server.getHomeDBManager()
+  });
+
   return server;
 }
 

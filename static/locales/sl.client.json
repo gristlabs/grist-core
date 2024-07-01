@@ -262,11 +262,13 @@
         "Access Details": "Podrobnosti o dostopu",
         "Workspaces": "Delovni prostori",
         "Workspace will be moved to Trash.": "Delovni prostor se bo premaknil v koš.",
-        "Examples & Templates": "Predloge"
+        "Examples & Templates": "Predloge",
+        "Terms of service": "Pogoji storitve"
     },
     "OnBoardingPopups": {
         "Finish": "Zaključek",
-        "Next": "Naslednji"
+        "Next": "Naslednji",
+        "Previous": "Prejšenj"
     },
     "Pages": {
         "Delete": "Izbriši",
@@ -356,7 +358,9 @@
         "Personal Site": "Osebna stran",
         "Team Site": "Spletna stran ekipe",
         "Grist Templates": "Grist predloge",
-        "Legacy": "Zapuščina"
+        "Legacy": "Zapuščina",
+        "Billing Account": "Račun za obračunavanje",
+        "Manage Team": "Upravljanje ekipe"
     },
     "ChartView": {
         "Pick a column": "Izberite stolpec",
@@ -497,7 +501,46 @@
         "Manage Webhooks": "Upravljanje spletnih kljuk",
         "Webhooks": "Spletne kljuke",
         "Engine (experimental {{span}} change at own risk):": "Pogon (eksperimentalno {{span}} spreminjanje na lastno odgovornost):",
-        "API Console": "API Konzola"
+        "API Console": "API Konzola",
+        "API console": "API konzola",
+        "API documentation.": "API dokumentacija.",
+        "Base doc URL: {{docApiUrl}}": "URL osnovnega dokumenta: {{docApiUrl}}",
+        "Coming soon": "Prihaja kmalu",
+        "Copy to clipboard": "Kopiraj v odložišče",
+        "Currency": "Valuta",
+        "Data Engine": "Podatkovna mašina",
+        "Document ID": "ID dokumenta",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID dokumenta, ki se uporabi vsakič, ko REST API  pokliče {{docId}}. Oglej si {{apiURL}}",
+        "Find slow formulas": "Poišči počasne formule",
+        "For currency columns": "Za valutne stolpce",
+        "For number and date formats": "Za format števila in datuma",
+        "Formula times": "Časi formule",
+        "API URL copied to clipboard": "URL API-ja kopiran v odložišče",
+        "Default for DateTime columns": "Privzeto za stolpce DateTime",
+        "ID for API use": "ID za uporabo API-ja",
+        "Locale": "Lokalizacija",
+        "Hard reset of data engine": "Ponastavitev podatkovnega mehanizma",
+        "Manage webhooks": "Upravljanje webhookov",
+        "Notify other services on doc changes": "Obvesti druge storitve o spremembah dokumenta",
+        "Python": "Python",
+        "Python version used": "Uporabljena različica Pythona",
+        "Reload": "Ponovno naloži",
+        "Time Zone": "Časovni pas",
+        "Try API calls from the browser": "Poskusi klice API-ja iz brskalnika",
+        "python3 (recommended)": "python3 (priporočeno)",
+        "python2 (legacy)": "python2 (odsvetovano)",
+        "Formula timer": "Časovnik formule",
+        "Reload data engine": "Ponovno naloži podatkovni mehanizem",
+        "Reload data engine?": "Ponovno naložiti podatkovni mehanizem?",
+        "Start timing": "Začni meriti čas",
+        "Stop timing...": "Ustavi merjenje časa ...",
+        "Time reload": "Ponovno nalaganje časa",
+        "Cancel": "Prekliči",
+        "Force reload the document while timing formulas, and show the result.": "Prisilno znova naloži dokument med časovnimi formulami in prikaži rezultat.",
+        "Timing is on": "Merjenje časa je vklopljeno",
+        "You can make changes to the document, then stop timing to see the results.": "Dokument lahko spremeniš in nato ustaviš merjenje časa, da vidiš rezultat.",
+        "Only available to document editors": "Na voljo samo urednikom dokumentov",
+        "Only available to document owners": "Na voljo samo lastnikom dokumentov"
     },
     "GridOptions": {
         "Horizontal Gridlines": "Vodoravne linije",
@@ -739,7 +782,9 @@
         "Forms are here!": "Obrazci so tukaj!",
         "Learn more": "Nauči se več",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Ustvari preproste obrazce neposredno v Gristu in jih deli z enim klikom z našim novim pripomočkom. {{learnMoreButton}}",
-        "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo."
+        "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo.",
+        "Filter displayed dropdown values with a condition.": "Filtriraj prikazane vrednosti .",
+        "Example: {{example}}": "Primer: {{example}}"
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -848,7 +893,8 @@
         "Contribute": "Prispevajte",
         "Support Grist page": "Grist podpora",
         "Opted In": "Prijavljeno",
-        "Admin Panel": "Skrbniški panel"
+        "Admin Panel": "Skrbniški panel",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Hvala ti! Tvoje zaupanje in podporo zelo cenimo. Kadar koli se odjavi na {{link}} v uporabniškem meniju."
     },
     "HomeIntro": {
         "personal site": "osebna stran",
@@ -875,7 +921,8 @@
         "Welcome to Grist!": "Dobrodošli v Gristu!",
         "Visit our {{link}} to learn more about Grist.": "Obiščite našo spletno stran {{link}} da izveste več o Grisstu.",
         "Sign in": "Prijavi se",
-        "To use Grist, please either sign up or sign in.": "Če želiš uporabljati Grist, se prijavi ali prvič prijavi."
+        "To use Grist, please either sign up or sign in.": "Če želiš uporabljati Grist, se prijavi ali prvič prijavi.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Izvedi več v našem {{helpCenterLink}} ali poišči strokovnjaka prek našega {{sproutsProgram}}."
     },
     "WelcomeSitePicker": {
         "You have access to the following Grist sites.": "Imate dostop do naslednjih Grist spletnih mest .",
@@ -1257,20 +1304,31 @@
         "Row Style": "Slog vrstice",
         "Add another rule": "Dodaj dodatno pravilo",
         "Add conditional style": "Dodaj pogojni slog",
-        "Error in style rule": "Napaka v slogovnem pravilu"
+        "Error in style rule": "Napaka v slogovnem pravilu",
+        "IF...": "ČE ...",
+        "Conditional Style": "Pogojni slog"
     },
     "EditorTooltip": {
         "Convert column to formula": "Pretvori stolpec v formulo"
     },
     "NTextBox": {
         "false": "napačno",
-        "true": "pravilno"
+        "true": "pravilno",
+        "Lines": "Ćrte",
+        "Field Format": "Oblika polja",
+        "Multi line": "Več vrstic",
+        "Single line": "Ena vrstica"
     },
     "NumericTextBox": {
         "Decimals": "Decimalke",
         "Currency": "Valuta",
         "Default currency ({{defaultCurrency}})": "Privzeta valuta ({{defaultCurrency}})",
-        "Number Format": "Format številke"
+        "Number Format": "Format številke",
+        "Field Format": "Oblika polja",
+        "Spinner": "Spinner",
+        "Text": "Tekst",
+        "max": "maks",
+        "min": "min"
     },
     "Reference": {
         "CELL FORMAT": "FORMAT CELICE",
@@ -1322,7 +1380,8 @@
         "Got it": "Razumem",
         "Don't show again": "Ne pokaži več",
         "Are you sure you want to delete these records?": "Ali si prepričan, da želiš izbrisati te zapise?",
-        "Delete": "Briši"
+        "Delete": "Briši",
+        "TIP": "NAMIG"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Pošiljanje datoteke v Google Drive"
@@ -1391,7 +1450,18 @@
     },
     "FormConfig": {
         "Required field": "Obvezno polje",
-        "Field rules": "Pravila polj"
+        "Field rules": "Pravila polj",
+        "Descending": "Padajoče",
+        "Field Format": "Format polja",
+        "Field Rules": "Pravila polja",
+        "Horizontal": "Vodoraven",
+        "Options Alignment": "Poravnava možnosti",
+        "Options Sort Order": "Vrstni red Možnosti",
+        "Radio": "Radio",
+        "Select": "Izberi",
+        "Vertical": "Navpičen",
+        "Ascending": "Naraščajoče",
+        "Default": "Privzeto"
     },
     "CustomView": {
         "To use this widget, please map all non-optional columns from the creator panel on the right.": "Če želite uporabiti ta pripomoček, preslikajte vse neobvezne stolpce na plošči za ustvarjanje na desni.",
@@ -1415,7 +1485,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Obrazec oddan",
-        "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen."
+        "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen.",
+        "Submit new response": "Predloži nov odgovor"
     },
     "DateRangeOptions": {
         "Last 30 days": "Zadnjih 30 dni",
@@ -1449,6 +1520,113 @@
         "Support Grist": "Podpora Gristu",
         "Telemetry": "Telemetrija",
         "Support Grist Labs on GitHub": "Podpri Grist Labs na GitHubu",
-        "Version": "Verzija"
+        "Version": "Verzija",
+        "Auto-check when this page loads": "Samodejno preveri, ko se ta stran naloži",
+        "Check now": "Preveri",
+        "Checking for updates...": "Iskanje posodobitev ...",
+        "Error": "Napaka",
+        "Error checking for updates": "Napaka pri preverjanju posodobitev",
+        "Grist is up to date": "Grist je posodobljen",
+        "Last checked {{time}}": "Nazadnje preverjeno {{time}}",
+        "Learn more.": "Nauči se več.",
+        "Newer version available": "Na voljo je novejša različica",
+        "No information available": "Podatki niso na voljo",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Nastavitve peskovnika za podatkovni mehanizem",
+        "Sandboxing": "Peskovnik",
+        "Security Settings": "Varnostne nastavitve",
+        "Updates": "Posodobitve",
+        "unconfigured": "nekonfigurirano",
+        "unknown": "neznano",
+        "Grist releases are at ": "Grist verzije so pri ",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist omogoča zelo zmogljive formule z uporabo Pythona. Priporočamo, da spremenljivko okolja GRIST_SANDBOX_FLAVOR nastavite na gvisor, če vaša strojna oprema to podpira (večina bo), da zaženete formule v vsakem dokumentu znotraj peskovnika, izoliranega od drugih dokumentov in izoliranega od omrežja.",
+        "Authentication": "Preverjanje pristnosti",
+        "Check succeeded.": "Preverjanje uspelo.",
+        "Current authentication method": "Trenutna metoda preverjanja pristnosti",
+        "Details": "Podrobnosti",
+        "No fault detected.": "Ni zaznane napake.",
+        "Notes": "Opombe",
+        "Check failed.": "Preverjanje ni uspelo.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist omogoča konfiguracijo različnih vrst avtentikacije, vključno s SAML in OIDC. Priporočamo, da omogočiš enega od teh, če je Grist dostopen prek omrežja ali je na voljo več osebam.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Lahko pa kot nadomestno možnost nastavite: {{bootKey}} v okolju in obiščete: {{url}}",
+        "Results": "Rezultati",
+        "Self Checks": "Samopregledi",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Nimaš dostopa do skrbniške plošče.\nPrijavi se kot skrbnik.",
+        "Administrator Panel Unavailable": "Skrbniška plošča ni na voljo",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist omogoča konfiguracijo različnih vrst avtentikacije, vključno s SAML in OIDC. Priporočamo, da omogočiš enega od teh, če je Grist dostopen prek omrežja ali je na voljo več osebam."
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Napaka v spustnem meniju",
+        "No choices matching condition": "Ni izbire, ki se ujema z pogojem",
+        "No choices to select": "Ni izbire"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Napaka v spustnem meniju",
+        "No choices matching condition": "Ni izbire za dane pogoje",
+        "No choices to select": "Ni izbire"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Prekliči",
+        "Billing is not supported in grist-core": "Zaračunavanje ni podprto v grist-core",
+        "Choose a name and url for your team site": "Izberi ime in url za spletno mesto tvoje ekipe",
+        "Create site": "Ustvari spletno mesto",
+        "Domain name is invalid": "Ime domene ni veljavno",
+        "Domain name is required": "Ime domene je obvezno",
+        "Go to your site": "Pojdi na svoje spletno mesto",
+        "Team name": "Ime ekipe",
+        "Team name is required": "Potrebno je ime ekipe",
+        "Team site created": "Spletno mesto ekipe je ustvarjeno",
+        "Team url": "URL ekipe",
+        "Work as a Team": "Delajte kot ekipa"
+    },
+    "Field": {
+        "No values in show column of referenced table": "Ni vrednosti v prikaznem stolpcu referenčne tabele",
+        "No choices configured": "Ni konfiguriranih izbir"
+    },
+    "Toggle": {
+        "Field Format": "Format Polja",
+        "Switch": "Stikalo",
+        "Checkbox": "Potrditveno polje"
+    },
+    "Columns": {
+        "Remove Column": "Odstrani stolpec"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Vnesi pogoj"
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Napaka v spustnem pogoju",
+        "No choices to select": "Ni izbire",
+        "No choices matching condition": "Ni izbora, ki ustreza pogoju"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Nastqavi dropdown pogoj",
+        "Dropdown Condition": "Pogoj za spustni menu",
+        "Invalid columns: {{colIds}}": "Neveljavni stolpci: {{colIds}}"
+    },
+    "FormRenderer": {
+        "Search": "Poišči",
+        "Select...": "Izberi",
+        "Submit": "Predloži",
+        "Reset": "Ponastavi"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Koledar",
+        "Card": "Kartica",
+        "Card List": "Seznam kartic",
+        "Chart": "grafikon",
+        "Custom": "Po meri",
+        "Form": "Forma",
+        "Table": "Tabela"
+    },
+    "TimingPage": {
+        "Loading timing data. Don't close this tab.": "Nalaganje časovnih podatkov. Ne zapri tega zavihka.",
+        "Max Time (s)": "Največji čas (i)",
+        "Number of Calls": "Število klicev",
+        "Table ID": "ID tabele",
+        "Total Time (s)": "Skupni čas",
+        "Average Time (s)": "Povprečni čas (i)",
+        "Column ID": "ID stolpca",
+        "Formula timer": "Časovnik formule"
     }
 }

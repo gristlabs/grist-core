@@ -2,29 +2,28 @@ import {buildHomeBanners} from 'app/client/components/Banners';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
+import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
-import {AdminChecks} from 'app/client/models/AdminChecks';
 import {urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {SupportGristPage} from 'app/client/ui/SupportGristPage';
 import {createTopBarHome} from 'app/client/ui/TopBar';
-import {transition} from 'app/client/ui/transitions';
 import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
-import {SandboxingBootProbeDetails} from 'app/common/BootProbe';
+import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
 import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl, LatestVersion} from 'app/common/InstallAPI';
 import {naturalCompare} from 'app/common/SortFunc';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
-import {Computed, Disposable, dom, DomContents, IDisposable,
+import {Computed, Disposable, dom, IDisposable,
         IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
+import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
 
 
 const t = makeT('AdminPanel');
@@ -42,7 +41,7 @@ export class AdminPanel extends Disposable {
   constructor(private _appModel: AppModel) {
     super();
     document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
-    this._checks = new AdminChecks(this);
+    this._checks = new AdminChecks(this, this._installAPI);
   }
 
   public buildDom() {
@@ -79,48 +78,108 @@ export class AdminPanel extends Disposable {
   }
 
   private _buildMainContent(owner: MultiHolder) {
+    // If probes are available, show the panel as normal.
+    // Otherwise say it is unavailable, and describe a fallback
+    // mechanism for access.
     return cssPageContainer(
       dom.cls('clipboard'),
       {tabIndex: "-1"},
-      cssSection(
-        cssSectionTitle(t('Support Grist')),
-        this._buildItem(owner, {
+      dom.maybe(this._checks.probes, probes => {
+        return probes.length > 0
+            ? this._buildMainContentForAdmin(owner)
+            : this._buildMainContentForOthers(owner);
+      }),
+      testId('admin-panel'),
+    );
+  }
+
+  /**
+   * Show something helpful to those without access to the panel,
+   * which could include a legit adminstrator if auth is misconfigured.
+   */
+  private _buildMainContentForOthers(owner: MultiHolder) {
+    const exampleKey = _longCodeForExample();
+    return dom.create(AdminSection, t('Administrator Panel Unavailable'), [
+      dom('p', t(`You do not have access to the administrator panel.
+Please log in as an administrator.`)),
+      dom(
+        'p',
+        t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
+          bootKey: dom('pre', `GRIST_BOOT_KEY=${exampleKey}`),
+          url: dom('pre', `/admin?boot-key=${exampleKey}`)
+        }),
+      ),
+      testId('admin-panel-error'),
+    ]);
+  }
+
+  private _buildMainContentForAdmin(owner: MultiHolder) {
+    return [
+      dom.create(AdminSection, t('Support Grist'), [
+        dom.create(AdminSectionItem, {
           id: 'telemetry',
           name: t('Telemetry'),
           description: t('Help us make Grist better'),
-          value: maybeSwitchToggle(this._supportGrist.getTelemetryOptInObservable()),
+          value: dom.create(HidableToggle, this._supportGrist.getTelemetryOptInObservable()),
           expandedContent: this._supportGrist.buildTelemetrySection(),
         }),
-        this._buildItem(owner, {
+        dom.create(AdminSectionItem, {
           id: 'sponsor',
           name: t('Sponsor'),
           description: t('Support Grist Labs on GitHub'),
           value: this._supportGrist.buildSponsorshipSmallButton(),
           expandedContent: this._supportGrist.buildSponsorshipSection(),
         }),
-      ),
-      cssSection(
-        cssSectionTitle(t('Security Settings')),
-        this._buildItem(owner, {
+      ]),
+      dom.create(AdminSection, t('Security Settings'), [
+        dom.create(AdminSectionItem, {
           id: 'sandboxing',
           name: t('Sandboxing'),
           description: t('Sandbox settings for data engine'),
           value: this._buildSandboxingDisplay(owner),
           expandedContent: this._buildSandboxingNotice(),
         }),
-      ),
-      cssSection(
-        cssSectionTitle(t('Version')),
-        this._buildItem(owner, {
+        dom.create(AdminSectionItem, {
+          id: 'authentication',
+          name: t('Authentication'),
+          description: t('Current authentication method'),
+          value: this._buildAuthenticationDisplay(owner),
+          expandedContent: this._buildAuthenticationNotice(owner),
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'session',
+          name: t('Session Secret'),
+          description: t('Key to sign sessions with'),
+          value: this._buildSessionSecretDisplay(owner),
+          expandedContent: this._buildSessionSecretNotice(owner),
+        })
+      ]),
+      dom.create(AdminSection, t('Version'), [
+        dom.create(AdminSectionItem, {
           id: 'version',
           name: t('Current'),
           description: t('Current version of Grist'),
           value: cssValueLabel(`Version ${version.version}`),
         }),
         this._buildUpdates(owner),
-      ),
-      testId('admin-panel'),
-    );
+      ]),
+      dom.create(AdminSection, t('Self Checks'), [
+        this._buildProbeItems(owner, {
+          showRedundant: false,
+          showNovel: true,
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'probe-other',
+          name: 'more...',
+          description: '',
+          value: '',
+          expandedContent: this._buildProbeItems(owner, {
+            showRedundant: true,
+            showNovel: false,
+          }),
+        }),
+      ]),
+    ];
   }
 
   private _buildSandboxingDisplay(owner: IDisposableOwner) {
@@ -128,7 +187,7 @@ export class AdminPanel extends Disposable {
       use => {
         const req = this._checks.requestCheckById(use, 'sandboxing');
         const result = req ? use(req.result) : undefined;
-        const success = result?.success;
+        const success = result?.status === 'success';
         const details = result?.details as SandboxingBootProbeDetails|undefined;
         if (!details) {
           return cssValueLabel(t('unknown'));
@@ -137,20 +196,18 @@ export class AdminPanel extends Disposable {
         const configured = details.configured;
         return cssValueLabel(
           configured ?
-              (success ? cssHappy(t('OK') + `: ${flavor}`) :
-                  cssError(t('Error') + `: ${flavor}`)) :
-              cssError(t('unconfigured')));
+              (success ? cssHappyText(t('OK') + `: ${flavor}`) :
+                  cssErrorText(t('Error') + `: ${flavor}`)) :
+              cssErrorText(t('unconfigured')));
       }
     );
   }
 
   private _buildSandboxingNotice() {
     return [
-      t('Grist allows for very powerful formulas, using Python. \
-We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor \
-if your hardware supports it (most will), \
-to run formulas in each document within a sandbox \
-isolated from other documents and isolated from the network.'),
+      // Use AdminChecks text for sandboxing, in order not to
+      // duplicate.
+      probeDetails['sandboxing'].info,
       dom(
         'div',
         {style: 'margin-top: 8px'},
@@ -159,47 +216,57 @@ isolated from other documents and isolated from the network.'),
     ];
   }
 
-  private _buildItem(owner: IDisposableOwner, options: {
-    id: string,
-    name: DomContents,
-    description: DomContents,
-    value: DomContents,
-    expandedContent?: DomContents,
-  }) {
-    const itemContent = [
-      cssItemName(options.name, testId(`admin-panel-item-name-${options.id}`)),
-      cssItemDescription(options.description),
-      cssItemValue(options.value,
-        testId(`admin-panel-item-value-${options.id}`),
-        dom.on('click', ev => ev.stopPropagation())),
-    ];
-    if (options.expandedContent) {
-      const isCollapsed = Observable.create(owner, true);
-      return cssItem(
-        cssItemShort(
-          dom.domComputed(isCollapsed, (c) => cssCollapseIcon(c ? 'Expand' : 'Collapse')),
-          itemContent,
-          cssItemShort.cls('-expandable'),
-          dom.on('click', () => isCollapsed.set(!isCollapsed.get())),
-        ),
-        cssExpandedContentWrap(
-          transition(isCollapsed, {
-            prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + 'px' : '0'; },
-            run(elem, close) { elem.style.maxHeight = close ? '0' : elem.scrollHeight + 'px'; },
-            finish(elem, close) { elem.style.maxHeight = close ? '0' : 'unset'; },
-          }),
-          cssExpandedContent(
-            options.expandedContent,
-          ),
-        ),
-        testId(`admin-panel-item-${options.id}`),
-      );
-    } else {
-      return cssItem(
-        cssItemShort(itemContent),
-        testId(`admin-panel-item-${options.id}`),
-      );
-    }
+  private _buildAuthenticationDisplay(owner: IDisposableOwner) {
+    return dom.domComputed(
+      use => {
+        const req = this._checks.requestCheckById(use, 'authentication');
+        const result = req ? use(req.result) : undefined;
+        if (!result) {
+          return cssValueLabel(cssErrorText('unavailable'));
+        }
+
+        const { status, details } = result;
+        const success = status === 'success';
+        const loginSystemId = details?.loginSystemId;
+
+        if (!success || !loginSystemId) {
+          return cssValueLabel(cssErrorText('auth error'));
+        }
+
+        if (loginSystemId === 'no-logins') {
+          return cssValueLabel(cssDangerText('no authentication'));
+        }
+
+        return cssValueLabel(cssHappyText(loginSystemId));
+      }
+    );
+  }
+
+  private _buildAuthenticationNotice(owner: IDisposableOwner) {
+    return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
+We recommend enabling one of these if Grist is accessible over the network or being made available \
+to multiple people.');
+  }
+
+  private _buildSessionSecretDisplay(owner: IDisposableOwner) {
+    return dom.domComputed(
+      use => {
+        const req = this._checks.requestCheckById(use, 'session-secret');
+        const result = req ? use(req.result) : undefined;
+
+        if (result?.status === 'warning') {
+          return cssValueLabel(cssDangerText('default'));
+        }
+
+        return cssValueLabel(cssHappyText('configured'));
+      }
+    );
+  }
+
+  private _buildSessionSecretNotice(owner: IDisposableOwner) {
+    return t('Grist signs user session cookies with a secret key. Please set this key via the environment variable \
+GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
+in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.');
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -365,7 +432,7 @@ isolated from other documents and isolated from the network.'),
       }
     });
 
-    return this._buildItem(owner, {
+    return dom.create(AdminSectionItem, {
       id: 'updates',
       name: t('Updates'),
       description: dom('span', testId('admin-panel-updates-message'), dom.text(description)),
@@ -420,11 +487,115 @@ isolated from other documents and isolated from the network.'),
       )
     });
   }
+
+  /**
+   * Show the results of various checks. Of the checks, some are considered
+   * "redundant" (already covered elsewhere in the Admin Panel) and the
+   * remainder are "novel".
+   */
+  private _buildProbeItems(owner: MultiHolder, options: {
+    showRedundant: boolean,
+    showNovel: boolean,
+  }) {
+    return dom.domComputed(
+      use => [
+        ...use(this._checks.probes).map(probe => {
+          const isRedundant = [
+            'sandboxing',
+            'authentication',
+            'session-secret'
+          ].includes(probe.id);
+          const show = isRedundant ? options.showRedundant : options.showNovel;
+          if (!show) { return null; }
+          const req = this._checks.requestCheck(probe);
+          return this._buildProbeItem(owner, req.probe, use(req.result), req.details);
+        }),
+      ]
+    );
+  }
+
+  /**
+   * Show the result of an individual check.
+   */
+  private _buildProbeItem(owner: MultiHolder,
+                          info: BootProbeInfo,
+                          result: BootProbeResult,
+                          details: ProbeDetails|undefined) {
+
+    const status = this._encodeSuccess(result);
+    return dom.create(AdminSectionItem, {
+      id: `probe-${info.id}`,
+      name: info.id,
+      description: info.name,
+      value: cssStatus(status),
+      expandedContent: [
+        cssCheckHeader(
+          t('Results'),
+          { style: 'margin-top: 0px; padding-top: 0px;' },
+        ),
+        result.verdict ? dom('pre', result.verdict) : null,
+        (result.status === 'none') ? null :
+            dom('p',
+                (result.status === 'success') ? t('Check succeeded.') : t('Check failed.')),
+        (result.status !== 'none') ? null :
+            dom('p', t('No fault detected.')),
+        (details?.info === undefined) ? null : [
+          cssCheckHeader(t('Notes')),
+          details.info,
+        ],
+        (result.details === undefined) ? null : [
+          cssCheckHeader(t('Details')),
+          ...Object.entries(result.details).map(([key, val]) => {
+            return dom(
+              'div',
+              cssLabel(key),
+              dom('input', dom.prop(
+                'value',
+                typeof val === 'string' ? val : JSON.stringify(val))));
+          }),
+        ],
+      ],
+    });
+  }
+
+  /**
+   * Give an icon summarizing success or failure. Factor in the
+   * severity of the result for failures. This is crude, the
+   * visualization of the results can be elaborated in future.
+   */
+  private _encodeSuccess(result: BootProbeResult) {
+    switch (result.status) {
+      case 'success':
+        return '✅';
+      case 'fault':
+        return '❌';
+      case 'warning':
+        return '❗';
+      case 'hmm':
+        return '?';
+      case 'none':
+        return '―';
+      default:
+        // should not arrive here
+        return '??';
+    }
+  }
 }
 
-function maybeSwitchToggle(value: Observable<boolean|null>): DomContents {
-  return toggle(value, dom.hide((use) => use(value) === null));
-}
+
+// Ugh I'm not a front end person. h5 small-caps, sure why not.
+// Hopefully someone with taste will edit someday!
+const cssCheckHeader = styled('h5', `
+  margin-bottom: 5px;
+  font-variant: small-caps;
+`);
+
+const cssStatus = styled('div', `
+  display: inline-block;
+  text-align: center;
+  width: 40px;
+  padding: 5px;
+`);
 
 const cssPageContainer = styled('div', `
   overflow: auto;
@@ -440,111 +611,12 @@ const cssPageContainer = styled('div', `
   }
 `);
 
-const cssSection = styled('div', `
-  padding: 24px;
-  max-width: 600px;
-  width: 100%;
-  margin: 16px auto;
-  border: 1px solid ${theme.widgetBorder};
-  border-radius: 4px;
 
-  @media ${mediaSmall} {
-    & {
-      width: auto;
-      padding: 12px;
-      margin: 8px;
-    }
-  }
-`);
-
-const cssSectionTitle = styled('div', `
-  height: 32px;
-  line-height: 32px;
-  margin-bottom: 16px;
-  font-size: ${vars.headerControlFontSize};
-  font-weight: ${vars.headerControlTextWeight};
-`);
-
-const cssItem = styled('div', `
-  margin-top: 8px;
-`);
-
-const cssItemShort = styled('div', `
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  padding: 8px;
-  margin: 0 -8px;
-  border-radius: 4px;
-  &-expandable {
-    cursor: pointer;
-  }
-  &-expandable:hover {
-    background-color: ${theme.lightHover};
-  }
-`);
-
-const cssItemName = styled('div', `
-  width: 112px;
-  font-weight: bold;
-  font-size: ${vars.largeFontSize};
-  &:first-child {
-    margin-left: 24px;
-  }
-  @media ${mediaSmall} {
-    & {
-      width: calc(100% - 28px);
-    }
-    &:first-child {
-      margin-left: 0;
-    }
-  }
-`);
-
-const cssItemDescription = styled('div', `
-  margin-right: auto;
-`);
-
-const cssItemValue = styled('div', `
-  flex: none;
-  margin: -16px;
-  padding: 16px;
-  cursor: auto;
-`);
-
-const cssCollapseIcon = styled(icon, `
-  width: 24px;
-  height: 24px;
-  margin-right: 4px;
-  margin-left: -4px;
-  --icon-color: ${theme.lightText};
-`);
-
-const cssExpandedContentWrap = styled('div', `
-  transition: max-height 0.3s ease-in-out;
-  overflow: hidden;
-  max-height: 0;
-`);
-
-const cssExpandedContent = styled('div', `
-  margin-left: 24px;
-  padding: 24px 0;
-  border-bottom: 1px solid ${theme.widgetBorder};
-  .${cssItem.className}:last-child & {
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-`);
-
-const cssValueLabel = styled('div', `
+export const cssValueLabel = styled('div', `
   padding: 4px 8px;
   color: ${theme.text};
   border: 1px solid ${theme.inputBorder};
   border-radius: ${vars.controlBorderRadius};
-  &-empty {
-    visibility: hidden;
-    content: " ";
-  }
 `);
 
 // A wrapper for the version details panel. Shows two columns.
@@ -591,10 +663,37 @@ const cssGrayed = styled('span', `
   color: ${theme.lightText};
 `);
 
-export const cssError = styled('div', `
+const cssErrorText = styled('span', `
   color: ${theme.errorText};
 `);
 
-export const cssHappy = styled('div', `
+export const cssDangerText = styled('div', `
+  color: ${theme.dangerText};
+`);
+
+const cssHappyText = styled('span', `
   color: ${theme.controlFg};
 `);
+
+export const cssLabel = styled('div', `
+  display: inline-block;
+  min-width: 100px;
+  text-align: right;
+  padding-right: 5px;
+`);
+
+
+/**
+ * Make a long code to use in the example, so that if people copy
+ * and paste it lazily, they end up decently secure, or at least a
+ * lot more secure than a key like "REPLACE_WITH_YOUR_SECRET"
+ */
+function _longCodeForExample() {
+  // Crypto in insecure contexts doesn't have randomUUID
+  if (window.isSecureContext) {
+    return 'example-a' + window.crypto.randomUUID();
+  }
+  return 'example-b' + 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/x/g, () => {
+    return Math.floor(Math.random() * 16).toString(16);
+  });
+}

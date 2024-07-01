@@ -71,8 +71,8 @@
         "Filter by Range": "按范围筛选",
         "No matching values": "没有匹配的值",
         "None": "None",
-        "Min": "Min",
-        "Max": "Max",
+        "Min": "最小值",
+        "Max": "最大值",
         "Start": "开始",
         "Other Matching": "其他匹配",
         "Other Non-Matching": "其他不匹配的",
@@ -146,7 +146,7 @@
         "Copy anchor link": "复制锚点链接",
         "Delete {{count}} columns_one": "删除列",
         "Delete {{count}} rows_other": "删除 {{count}} 行",
-        "Paste": "黏贴",
+        "Paste": "粘贴",
         "Comment": "评论",
         "Copy": "拷贝",
         "Cut": "剪切"
@@ -231,10 +231,10 @@
         "Move {{name}} to workspace": "将 {{name}} 移动到工作区",
         "Other Sites": "其他网站",
         "Permanently Delete \"{{name}}\"?": "永久删除“{{name}}”？",
-        "Pin Document": "Pin文档",
-        "Pinned Documents": "固定文件",
-        "Remove": "消除",
-        "Rename": "改名",
+        "Pin Document": "置顶文档",
+        "Pinned Documents": "置顶的文档",
+        "Remove": "移除",
+        "Rename": "重命名",
         "(The organization needs a paid plan)": "（该组织需要付费计划）",
         "Access Details": "访问详细信息",
         "All Documents": "所有文件",
@@ -245,14 +245,14 @@
         "Delete Forever": "永久删除",
         "Deleted {{at}}": "已删除 {{at}}",
         "Discover More Templates": "发现更多模板",
-        "Document will be moved to Trash.": "文档将被移至废纸篓。",
+        "Document will be moved to Trash.": "文档将被移至回收站。",
         "Requires edit permissions": "需要编辑权限",
         "Restore": "恢复",
         "This service is not available right now": "该服务目前不可用",
         "To restore this document, restore the workspace first.": "要恢复此文档，请先恢复工作区。",
         "Trash": "回收站",
         "Trash is empty.": "回收站是空的。",
-        "Unpin Document": "取消固定文档",
+        "Unpin Document": "取消置顶文档",
         "Workspace not found": "找不到工作区",
         "You are on the {{siteName}} site. You also have access to the following sites:": "您在 {{siteName}} 网站上。 您还可以访问以下站点：",
         "You may delete a workspace forever once it has no documents in it.": "一旦其中没有文档，您可以永远删除工作区。",
@@ -266,7 +266,7 @@
         "Error accessing document": "访问文档时出错",
         "Reload": "重新加载",
         "You do not have edit access to this document": "您没有对此文档的编辑权限",
-        "Sorry, access to this document has been denied. [{{error}}]": "对不起，该文件的访问已被拒绝。[{{error}}]",
+        "Sorry, access to this document has been denied. [{{error}}]": "对不起，该文档的访问已被拒绝。[{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "您可以尝试重新加载文档，或使用恢复模式。在恢复模式中打开文档时，所有者可以完全访问，其他人无法访问。它还会禁用公式。 [{{error}}]",
         "Document owners can attempt to recover the document. [{{error}}]": "文档所有者可以尝试恢复文档。 [{{error}}]"
     },
@@ -284,7 +284,8 @@
         "Compare to Current": "与当前比较",
         "Compare to Previous": "与以前相比",
         "Open Snapshot": "打开快照",
-        "Snapshots are unavailable.": "快照不可用。"
+        "Snapshots are unavailable.": "快照不可用。",
+        "Only owners have access to snapshots for documents with access rules.": "只有所有者才能访问有访问规则的文档快照。"
     },
     "WelcomeTour": {
         "Share": "分享",
@@ -328,7 +329,7 @@
         "Sprouts Program": "新芽计划",
         "This workspace is empty.": "这个工作区是空的。",
         "Visit our {{link}} to learn more.": "访问我们的{{link}}以了解更多信息。",
-        "Welcome to Grist!": "欢迎来到格里斯特！",
+        "Welcome to Grist!": "欢迎来到 Grist！",
         "Welcome to Grist, {{name}}!": "欢迎来到 Grist，{{name}}！",
         "Welcome to {{orgName}}": "欢迎来到{{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "您对该站点具有只读访问权限。 目前没有文件。",
@@ -343,14 +344,14 @@
         "Delete": "删除",
         "Trash": "回收站",
         "Access Details": "访问详细信息",
-        "All Documents": "所有文件",
+        "All Documents": "所有文档",
         "Create Empty Document": "创建空文档",
         "Create Workspace": "创建工作区",
         "Delete {{workspace}} and all included documents?": "删除 {{workspace}} 和所有包含的文档？",
         "Examples & Templates": "模板",
         "Import Document": "导入文档",
         "Manage Users": "管理用户",
-        "Rename": "改名",
+        "Rename": "重命名",
         "Workspace will be moved to Trash.": "工作区将移至回收站。",
         "Workspaces": "工作区",
         "Tutorial": "教程"
@@ -381,7 +382,9 @@
         "You do not have write access to this site": "您没有对此网站的写入权限",
         "Remove all data but keep the structure to use as a template": "删除所有数据，但保留结构以用作模板",
         "Remove document history (can significantly reduce file size)": "删除文件历史记录（可大幅减少文件大小）",
-        "Download full document and history": "下载完整文档和历史记录"
+        "Download full document and history": "下载完整文档和历史记录",
+        "Download": "下载",
+        "Download document": "下载文档"
     },
     "NotifyUI": {
         "Go to your free personal site": "转到您的免费个人网站",
@@ -396,7 +399,7 @@
         "Manage billing": "管理计费"
     },
     "OpenVideoTour": {
-        "Grist Video Tour": "格里斯特视频之旅",
+        "Grist Video Tour": "Grist 视频导览",
         "Video Tour": "视频导览",
         "YouTube video player": "YouTube 视频播放器"
     },
@@ -433,7 +436,23 @@
         "WIDGET TITLE": "小部件标题",
         "Widget": "小部件",
         "You do not have edit access to this document": "您没有对此文档的编辑权限",
-        "Add referenced columns": "添加引用列"
+        "Add referenced columns": "添加引用列",
+        "Configuration": "配置",
+        "Required field": "必填字段",
+        "Redirection": "重定向",
+        "Redirect automatically after submission": "提交后自动重定向",
+        "Success text": "提交成功后的文本",
+        "Submit button label": "提交按钮标签",
+        "Reset form": "重置表单",
+        "Hidden field": "隐藏的字段",
+        "No field selected": "未选中字段",
+        "Layout": "布局",
+        "Enter text": "输入文本",
+        "Field rules": "字段规则",
+        "Field title": "字段标题",
+        "Submission": "提交",
+        "Enter redirect URL": "输入重定向 URL",
+        "Select a field in the form widget to configure.": "在表单小部件中选中要配置的字段。"
     },
     "RowContextMenu": {
         "Insert row below": "在下方插入行",
@@ -449,8 +468,8 @@
         "In Full": "在全",
         "No Default Access": "没有默认访问权限",
         "None": "没有任何",
-        "Viewer": "查看器",
-        "Editor": "编辑",
+        "Viewer": "查看者",
+        "Editor": "编辑者",
         "Owner": "所有者",
         "View & Edit": "查看和编辑",
         "View Only": "只读"
@@ -485,7 +504,8 @@
         "Show raw data": "显示原始数据",
         "Widget options": "小部件选项",
         "Add to page": "添加至页面",
-        "Collapse widget": "折叠小部件"
+        "Collapse widget": "折叠小部件",
+        "Create a form": "创建表单"
     },
     "ViewSectionMenu": {
         "Save": "保存",
@@ -564,7 +584,7 @@
         "Revert field settings for {{colId}} to common": "将 {{colId}} 的字段设置恢复为通用",
         "Save field settings for {{colId}} as common": "将 {{colId}} 的字段设置保存为通用",
         "Apply Formula to Data": "将公式应用于数据",
-        "CELL FORMAT": "细胞格式",
+        "CELL FORMAT": "单元格格式",
         "DATA FROM TABLE": "表中数据",
         "Mixed format": "混合格式",
         "Mixed types": "混合类型",
@@ -600,7 +620,8 @@
         "Document ID copied to clipboard": "文档 ID 已复制到剪贴板",
         "Ok": "好的",
         "Manage Webhooks": "管理 Webhooks",
-        "Webhooks": "网络钩子"
+        "Webhooks": "Webhook",
+        "API Console": "API 控制台"
     },
     "DocumentUsage": {
         "Attachments Size": "附件大小",
@@ -638,7 +659,7 @@
     },
     "FieldConfig": {
         "COLUMN LABEL AND ID": "列标签和 ID",
-        "Clear and make into formula": "澄清并制成配方",
+        "Clear and make into formula": "清空并转为公式",
         "Clear and reset": "清除并重置",
         "Column options are limited in summary tables.": "列选项在汇总表中受到限制。",
         "Convert column to data": "将列转换为数据",
@@ -730,7 +751,14 @@
         "Timestamp": "时间戳",
         "no reference column": "无引用列",
         "Adding UUID column": "添加 UUID 列",
-        "Adding duplicates column": "添加重复列"
+        "Adding duplicates column": "添加重复列",
+        "Date": "日期",
+        "Integer": "整数",
+        "Text": "文本",
+        "Attachment": "附件",
+        "Add column": "添加列",
+        "Numeric": "数值",
+        "Detect duplicates in...": "在……中检测重复"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "添加了新的链接部分以查看 {{viewName}}",
@@ -806,7 +834,7 @@
         "Compare to {{termToUse}}": "与{{termToUse}}比较",
         "Current Version": "当前版本",
         "Download": "下载",
-        "Duplicate Document": "重复文件",
+        "Duplicate Document": "复制文档",
         "Edit without affecting the original": "在不影响原件的情况下编辑",
         "Export CSV": "导出 CSV",
         "Export XLSX": "导出 XLSX",
@@ -816,12 +844,16 @@
         "Return to {{termToUse}}": "返回{{termToUse}}",
         "Save Copy": "保存副本",
         "Save Document": "保存文档",
-        "Send to Google Drive": "发送到谷歌云端硬盘",
+        "Send to Google Drive": "发送到 Google 云端硬盘",
         "Show in folder": "展现在文件夹中",
         "Unsaved": "未保存",
         "Work on a Copy": "在副本上工作",
         "Share": "分享",
-        "Download...": "下载..."
+        "Download...": "下载...",
+        "Comma Separated Values (.csv)": "逗号分隔值 (.csv)",
+        "Tab Separated Values (.tsv)": "制表符分隔值 (.tsv)",
+        "Export as...": "导出为……",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)"
     },
     "SiteSwitcher": {
         "Create new team site": "创建新的团队网站",
@@ -844,14 +876,15 @@
         "Code View": "代码视图",
         "Delete": "删除",
         "Delete document tour?": "删除文档导览？",
-        "Document History": "文件历史",
+        "Document History": "文档历史",
         "How-to Tutorial": "操作指南",
         "Raw Data": "原始数据",
         "Return to viewing as yourself": "返回查看自己",
         "TOOLS": "工具",
         "Tour of this Document": "本文档导览",
         "Validate Data": "验证数据",
-        "Settings": "设置"
+        "Settings": "设置",
+        "API Console": "API 控制台"
     },
     "TopBar": {
         "Manage Team": "管理团队"
@@ -886,7 +919,7 @@
         "WIDGET DESCRIPTION": "小部件描述"
     },
     "duplicatePage": {
-        "Duplicate page {{pageName}}": "重复页面 {{pageName}}",
+        "Duplicate page {{pageName}}": "复制页面 {{pageName}}",
         "Note that this does not copy data, but creates another view of the same data.": "请注意，这不会复制数据，而是创建相同数据的另一个视图。"
     },
     "menus": {
@@ -927,16 +960,28 @@
         "Error{{suffix}}": "错误{{suffix}}",
         "Account deleted{{suffix}}": "账户已删除{{suffix}}",
         "Your account has been deleted.": "您的账户已被删除。",
-        "Sign up": "注册"
+        "Sign up": "注册",
+        "An unknown error occurred.": "发生未知错误。",
+        "Form not found": "未找到表单",
+        "Build your own form": "创建自己的表单"
     },
     "modals": {
         "Cancel": "取消",
         "Ok": "好的",
-        "Save": "保存"
+        "Save": "保存",
+        "Dismiss": "忽略",
+        "Are you sure you want to delete this record?": "确定要删除这条纪录吗？",
+        "Delete": "删除",
+        "Got it": "明白了",
+        "Don't ask again.": "不再询问。",
+        "Don't show again.": "不再显示。",
+        "Are you sure you want to delete these records?": "确定要删除这些纪录吗？",
+        "Don't show again": "不再显示",
+        "Don't show tips": "不要显示提示"
     },
     "pages": {
-        "Duplicate Page": "重复页面",
-        "Remove": "消除",
+        "Duplicate Page": "复制页面",
+        "Remove": "删除",
         "Rename": "改名",
         "You do not have edit access to this document": "您没有对此文档的编辑权限"
     },
@@ -948,11 +993,14 @@
         "Search": "搜索"
     },
     "sendToDrive": {
-        "Sending file to Google Drive": "发送文件到谷歌云端硬盘"
+        "Sending file to Google Drive": "发送文件到 Google 云端硬盘"
     },
     "NTextBox": {
         "false": "错误的",
-        "true": "真的"
+        "true": "真的",
+        "Field Format": "字段格式",
+        "Multi line": "多行",
+        "Single line": "单行"
     },
     "ACLUsers": {
         "Example Users": "示例用户",
@@ -974,7 +1022,7 @@
         "Save": "保存"
     },
     "CellStyle": {
-        "CELL STYLE": "细胞样式",
+        "CELL STYLE": "单元格样式",
         "Cell Style": "单元样式",
         "Default cell style": "默认单元格样式",
         "Mixed style": "混合风格",
@@ -1004,10 +1052,13 @@
         "Currency": "货币",
         "Decimals": "小数点",
         "Default currency ({{defaultCurrency}})": "默认货币 ({{defaultCurrency}})",
-        "Number Format": "数字格式"
+        "Number Format": "数字格式",
+        "Field Format": "字段格式",
+        "Text": "文本",
+        "Spinner": "下拉列表"
     },
     "Reference": {
-        "CELL FORMAT": "细胞格式",
+        "CELL FORMAT": "单元格格式",
         "Row ID": "行号",
         "SHOW COLUMN": "显示专栏"
     },
@@ -1066,7 +1117,10 @@
         "Lookups return data from related tables.": "查找会返回相关表中的数据。",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "您可以从下拉菜单中选择可用的小部件，也可以通过提供完整的 URL 嵌入自己的小部件。",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "找不到正确的列？点击 \"更改小部件\"，选择包含事件数据的表格。",
-        "Use reference columns to relate data in different tables.": "使用参考列来关联不同表格中的数据。"
+        "Use reference columns to relate data in different tables.": "使用参考列来关联不同表格中的数据。",
+        "Forms are here!": "表单来了！",
+        "Learn more": "了解更多",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "直接在 Grist 中构建简单的表单，并使用我们全新的小部件一键共享。{{learnMoreButton}}"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "描述"
@@ -1134,7 +1188,9 @@
     },
     "WebhookPage": {
         "Clear Queue": "清除队列",
-        "Webhook Settings": "Webhook设置"
+        "Webhook Settings": "Webhook设置",
+        "URL": "URL",
+        "Status": "状态"
     },
     "WelcomeSitePicker": {
         "Welcome back": "欢迎回来",
@@ -1202,7 +1258,8 @@
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "我们只收集使用统计数据，如我们的{{link}}中所述，从不搜集文档内容。",
         "You can opt out of telemetry at any time from this page.": "您可以随时从此页面选择退出遥测。",
         "You have opted in to telemetry. Thank you!": "您已选择使用遥测。谢谢你，谢谢！",
-        "You have opted out of telemetry.": "您已选择退出遥测。"
+        "You have opted out of telemetry.": "您已选择退出遥测。",
+        "Sponsor": "赞助"
     },
     "SupportGristNudge": {
         "Help Center": "帮助中心",
@@ -1211,7 +1268,9 @@
         "Contribute": "投稿",
         "Support Grist": "支持 Grist",
         "Opt in to Telemetry": "选择遥测",
-        "Opted In": "选择加入"
+        "Opted In": "选择加入",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "感谢您的信任和支持！您可以随时通过用户菜单中的 {{link}} 选择退出。",
+        "Admin Panel": "管理员面板"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "描述"
@@ -1249,5 +1308,103 @@
         "Delete card": "删除卡片",
         "Copy anchor link": "复制锚点链接",
         "Insert card": "插入卡片"
+    },
+    "FormView": {
+        "Anyone with the link below can see the empty form and submit a response.": "任何访问下方链接的人都可以看到空白表单并提交回复。",
+        "Copy link": "复制链接",
+        "Preview": "预览",
+        "Reset": "重置",
+        "Reset form": "重置表单",
+        "Share": "分享",
+        "Copy code": "复制代码",
+        "Link copied to clipboard": "链接已复制到剪贴板",
+        "Save your document to publish this form.": "保存此文档以便发布表单。",
+        "Are you sure you want to reset your form?": "您确定要重置表单吗？",
+        "Code copied to clipboard": "代码已复制到剪贴板",
+        "Share this form": "分享此表单",
+        "Unpublish your form?": "要取消发布表单吗？",
+        "Unpublish": "取消发布",
+        "Publish": "发布",
+        "Publish your form?": "要发布表单吗？"
+    },
+    "FormConfig": {
+        "Field Rules": "字段规则",
+        "Field Format": "字段格式",
+        "Field rules": "字段规则",
+        "Required field": "必填字段"
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "最近 30 天",
+        "This month": "本月",
+        "Last 7 days": "最近 7 天",
+        "This week": "本周",
+        "This year": "今年",
+        "Today": "今天"
+    },
+    "AdminPanel": {
+        "Support Grist Labs on GitHub": "在 GitHub 上支持 Grist Labs",
+        "Current": "当前",
+        "Help us make Grist better": "帮助我们改进 Grist",
+        "Home": "主页",
+        "Sponsor": "赞助",
+        "Version": "版本",
+        "Learn more.": "了解更多。",
+        "Checking for updates...": "检查更新中……",
+        "Check now": "立即检查",
+        "OK": "好的",
+        "Newer version available": "有新版本",
+        "Updates": "更新",
+        "unconfigured": "未配置",
+        "Admin Panel": "管理员面板",
+        "Grist is up to date": "Grist已为最新版本",
+        "Auto-check when this page loads": "加载此页面时自动检查",
+        "Grist releases are at ": "Grist在此处发布更新 ",
+        "Last checked {{time}}": "上一次检查时间为{{time}}",
+        "Error": "错误",
+        "Security Settings": "安全设置",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist可以利用Python支持非常强大的公式。如果您的硬件支持的话（大多数都支持），我们建议将环境变量 GRIST_SANDBOX_FLAVOR 设置为 gvisor，这样就可以在沙盒中运行文档中的公式，沙盒将与其他文档隔离、并与网络隔离。",
+        "unknown": "未知",
+        "Current version of Grist": "Grist的当前版本",
+        "Support Grist": "支持 Grist"
+    },
+    "Menu": {
+        "Copy": "拷贝",
+        "Header": "标题",
+        "Paste": "粘贴",
+        "Insert question below": "在下方插入问题",
+        "Paragraph": "段落",
+        "Cut": "剪切",
+        "Insert question above": "在上方插入问题",
+        "Separator": "分割线"
+    },
+    "Toggle": {
+        "Field Format": "字段格式"
+    },
+    "CreateTeamModal": {
+        "Cancel": "取消"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "隐藏的字段"
+    },
+    "Editor": {
+        "Delete": "删除"
+    },
+    "FormErrorPage": {
+        "Error": "错误"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "抱歉！您要找的表单不存在。",
+        "There was a problem loading the form.": "加载表格时出现问题。",
+        "You don't have access to this form.": "您无权访问此表单。"
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "提交表单时出现错误。请再试一次。"
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "表单已提交",
+        "Thank you! Your response has been recorded.": "谢谢！您的回复已被记录。"
+    },
+    "FormContainer": {
+        "Build your own form": "创建自己的表单"
     }
 }

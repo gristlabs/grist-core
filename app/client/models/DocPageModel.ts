@@ -19,10 +19,11 @@ import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, OpenDocOptions, UserOverride} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Product} from 'app/common/Features';
+import {Features, mergedFeatures, Product} from 'app/common/Features';
 import {buildUrlId, IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit, isOwner} from 'app/common/roles';
+import {UserInfo} from 'app/common/User';
 import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app/common/UserAPI';
 import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
@@ -38,6 +39,7 @@ export interface DocInfo extends Document {
   isPreFork: boolean;
   isFork: boolean;
   isRecoveryMode: boolean;
+  user: UserInfo|null;
   userOverride: UserOverride|null;
   isBareFork: boolean;  // a document created without logging in, which is treated as a
                         // fork without an original.
@@ -61,6 +63,10 @@ export interface DocPageModel {
    * changes, or a doc usage message is received from the server.
    */
   currentProduct: Observable<Product|null>;
+  /**
+   * Current features of the product
+   */
+  currentFeatures: Observable<Features|null>;
 
   // This block is to satisfy previous interface, but usable as this.currentDoc.get().id, etc.
   currentDocId: Observable<string|undefined>;
@@ -74,6 +80,7 @@ export interface DocPageModel {
   isPrefork: Observable<boolean>;
   isFork: Observable<boolean>;
   isRecoveryMode: Observable<boolean>;
+  user: Observable<UserInfo|null>;
   userOverride: Observable<UserOverride|null>;
   isBareFork: Observable<boolean>;
   isSnapshot: Observable<boolean>;
@@ -116,6 +123,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
    * changes, or a doc usage message is received from the server.
    */
   public readonly currentProduct = Observable.create<Product|null>(this, null);
+  public readonly currentFeatures: Computed<Features|null>;
 
   public readonly currentUrlId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.urlId : undefined);
   public readonly currentDocId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.id : undefined);
@@ -129,6 +137,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly isFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isFork : false);
   public readonly isRecoveryMode = Computed.create(this, this.currentDoc,
                                                    (use, doc) => doc ? doc.isRecoveryMode : false);
+  public readonly user = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.user : null);
   public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
   public readonly isSnapshot = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSnapshot : false);
@@ -168,6 +177,14 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   constructor(private _appObj: App, public readonly appModel: AppModel, private _api: UserAPI = appModel.api) {
     super();
+
+    this.currentFeatures = Computed.create(this, use => {
+      const product = use(this.currentProduct);
+      if (!product) { return null; }
+      const ba = use(this.currentOrg)?.billingAccount?.features ?? {};
+      const merged = mergedFeatures(product.features, ba);
+      return merged;
+    });
 
     this.autoDispose(subscribe(urlState().state, (use, state) => {
       const urlId = state.doc;
@@ -252,8 +269,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     // TODO It would be bad if a new doc gets opened while this getDoc() is pending...
     const newDoc = await getDoc(this._api, urlId);
     const isRecoveryMode = Boolean(this.currentDoc.get()?.isRecoveryMode);
+    const user = this.currentDoc.get()?.user || null;
     const userOverride = this.currentDoc.get()?.userOverride || null;
-    this.currentDoc.set({...buildDocInfo(newDoc, openMode), isRecoveryMode, userOverride});
+    this.currentDoc.set({...buildDocInfo(newDoc, openMode), isRecoveryMode, user, userOverride});
     return newDoc;
   }
 
@@ -394,11 +412,13 @@ It also disables formulas. [{{error}}]", {error: err.message})
       linkParameters,
       originalUrlId: options.originalUrlId,
     });
-    if (openDocResponse.recoveryMode || openDocResponse.userOverride) {
-      doc.isRecoveryMode = Boolean(openDocResponse.recoveryMode);
-      doc.userOverride = openDocResponse.userOverride || null;
-      this.currentDoc.set({...doc});
+    const {user, recoveryMode, userOverride} = openDocResponse;
+    doc.user = user;
+    if (recoveryMode || userOverride) {
+      doc.isRecoveryMode = Boolean(recoveryMode);
+      doc.userOverride = userOverride || null;
     }
+    this.currentDoc.set({...doc});
     if (openDocResponse.docUsage) {
       this.updateCurrentDocUsage(openDocResponse.docUsage);
     }
@@ -507,6 +527,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
     ...doc,
     isFork,
     isRecoveryMode: false,  // we don't know yet, will learn when doc is opened.
+    user: null,             // ditto.
     userOverride: null,     // ditto.
     isPreFork,
     isBareFork,

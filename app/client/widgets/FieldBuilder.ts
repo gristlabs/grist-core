@@ -499,7 +499,7 @@ export class FieldBuilder extends Disposable {
     // the dom created by the widgetImpl to get out of sync.
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
-        dom('div', widget.buildConfigDom())
+        dom('div', widget.buildConfigDom(this.gristDoc))
       )
     );
   }

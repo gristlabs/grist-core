@@ -23,8 +23,8 @@ export class ReferenceEditor extends NTextEditor {
   constructor(options: FieldOptions) {
     super(options);
 
-    const docData = options.gristDoc.docData;
-    this._utils = new ReferenceUtils(options.field, docData);
+    const gristDoc = options.gristDoc;
+    this._utils = new ReferenceUtils(options.field, gristDoc);
 
     const vcol = this._utils.visibleColModel;
     this._enableAddNew = (
@@ -47,7 +47,7 @@ export class ReferenceEditor extends NTextEditor {
 
     // The referenced table has probably already been fetched (because there must already be a
     // Reference widget instantiated), but it's better to avoid this assumption.
-    docData.fetchTable(this._utils.refTableId).then(() => {
+    gristDoc.docData.fetchTable(this._utils.refTableId).then(() => {
       if (this.isDisposed()) { return; }
       if (needReload && this.textInput.value === '') {
         this.textInput.value = undef(options.state, options.editValue, this._idToText());

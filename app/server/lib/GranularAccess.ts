@@ -26,12 +26,14 @@ import { UserOverride } from 'app/common/DocListAPI';
 import { DocUsageSummary, FilteredDocUsageSummary } from 'app/common/DocUsage';
 import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { InfoEditor, InfoView, UserInfo } from 'app/common/GranularAccessClause';
+import { InfoEditor } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
 import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
-import { compilePredicateFormula, EmptyRecordView, PredicateFormulaInput } from 'app/common/PredicateFormula';
+import { compilePredicateFormula, PredicateFormulaInput } from 'app/common/PredicateFormula';
 import { MetaRowRecord, SingleCell } from 'app/common/TableData';
+import { EmptyRecordView, InfoView, RecordView } from 'app/common/RecordView';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
+import { User } from 'app/common/User';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
@@ -330,11 +332,106 @@ export class GranularAccess implements GranularAccessForBundle {
     this._userAttributesMap = new WeakMap();
   }
 
-  public getUser(docSession: OptDocSession): Promise<UserInfo> {
-    return this._getUser(docSession);
+  /**
+   * Construct the UserInfo needed for evaluating rules. This also enriches the user with values
+   * created by user-attribute rules.
+   */
+  public async getUser(docSession: OptDocSession): Promise<User> {
+    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
+    let access: Role | null;
+    let fullUser: FullUser | null;
+    const attrs = this._getUserAttributes(docSession);
+    access = getDocSessionAccess(docSession);
+
+    const linkId = getDocSessionShare(docSession);
+    let shareRef: number = 0;
+    if (linkId) {
+      const rowIds = this._docData.getMetaTable('_grist_Shares').filterRowIds({
+        linkId,
+      });
+      if (rowIds.length > 1) {
+        throw new Error('Share identifier is not unique');
+      }
+      if (rowIds.length === 1) {
+        shareRef = rowIds[0];
+      }
+    }
+
+    if (docSession.forkingAsOwner) {
+      // For granular access purposes, we become an owner.
+      // It is a bit of a bluff, done on the understanding that this session will
+      // never be used to edit the document, and that any edits will be done on a
+      // fork.
+      access = 'owners';
+    }
+
+    // If aclAsUserId/aclAsUser is set, then override user for acl purposes.
+    if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
+      if (access !== 'owners') { throw new ErrorWithCode('ACL_DENY', 'only an owner can override user'); }
+      if (attrs.override) {
+        // Used cached properties.
+        access = attrs.override.access;
+        fullUser = attrs.override.user;
+      } else {
+        attrs.override = await this._getViewAsUser(linkParameters);
+        fullUser = attrs.override.user;
+      }
+    } else {
+      fullUser = getDocSessionUser(docSession);
+    }
+    const user = new User();
+    user.Access = access;
+    user.ShareRef = shareRef || null;
+    const isAnonymous = fullUser?.id === this._homeDbManager?.getAnonymousUserId() ||
+      fullUser?.id === null;
+    user.UserID = (!isAnonymous && fullUser?.id) || null;
+    user.Email = fullUser?.email || null;
+    user.Name = fullUser?.name || null;
+    // If viewed from a websocket, collect any link parameters included.
+    // TODO: could also get this from rest api access, just via a different route.
+    user.LinkKey = linkParameters;
+    // Include origin info if accessed via the rest api.
+    // TODO: could also get this for websocket access, just via a different route.
+    user.Origin = docSession.req?.get('origin') || null;
+    user.SessionID = isAnonymous ? `a${getDocSessionAltSessionId(docSession)}` : `u${user.UserID}`;
+    user.IsLoggedIn = !isAnonymous;
+    user.UserRef = fullUser?.ref || null; // Empty string should be treated as null.
+
+    if (this._ruler.ruleCollection.ruleError && !this._recoveryMode) {
+      // It is important to signal that the doc is in an unexpected state,
+      // and prevent it opening.
+      throw this._ruler.ruleCollection.ruleError;
+    }
+
+    for (const clause of this._ruler.ruleCollection.getUserAttributeRules().values()) {
+      if (clause.name in user) {
+        log.warn(`User attribute ${clause.name} ignored; conflicts with an existing one`);
+        continue;
+      }
+      if (attrs.rows[clause.name]) {
+        user[clause.name] = attrs.rows[clause.name];
+        continue;
+      }
+      let rec = new EmptyRecordView();
+      let rows: TableDataAction|undefined;
+      try {
+        // Use lodash's get() that supports paths, e.g. charId of 'a.b' would look up `user.a.b`.
+        // TODO: add indexes to db.
+        rows = await this._fetchQueryFromDB({
+          tableId: clause.tableId,
+          filters: { [clause.lookupColId]: [get(user, clause.charId)] }
+        });
+      } catch (e) {
+        log.warn(`User attribute ${clause.name} failed`, e);
+      }
+      if (rows && rows[2].length > 0) { rec = new RecordView(rows, 0); }
+      user[clause.name] = rec;
+      attrs.rows[clause.name] = rec;
+    }
+    return user;
   }
 
-  public async getCachedUser(docSession: OptDocSession): Promise<UserInfo> {
+  public async getCachedUser(docSession: OptDocSession): Promise<User> {
     const access = await this._getAccess(docSession);
     return access.getUser();
   }
@@ -345,7 +442,7 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   public async inputs(docSession: OptDocSession): Promise<PredicateFormulaInput> {
     return {
-      user: await this._getUser(docSession),
+      user: await this.getUser(docSession),
       docId: this._docId
     };
   }
@@ -479,7 +576,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async canApplyBundle() {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const {docActions, docSession, isDirect} = this._activeBundle;
-    const currentUser = await this._getUser(docSession);
+    const currentUser = await this.getUser(docSession);
     const userIsOwner = await this.isOwner(docSession);
     if (this._activeBundle.hasDeliberateRuleChange && !userIsOwner) {
       throw new ErrorWithCode('ACL_DENY', 'Only owners can modify access rules');
@@ -1004,7 +1101,7 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   public async getUserOverride(docSession: OptDocSession): Promise<UserOverride|undefined> {
-    await this._getUser(docSession);
+    await this.getUser(docSession);
     return this._getUserAttributes(docSession).override;
   }
 
@@ -1120,7 +1217,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const linkParameters = docSession.authorizer?.getLinkParameters() || {};
     const baseAccess = getDocSessionAccess(docSession);
     if ((linkParameters.aclAsUserId || linkParameters.aclAsUser) && baseAccess === 'owners') {
-      const info = await this._getUser(docSession);
+      const info = await this.getUser(docSession);
       return info.Access;
     }
     return baseAccess;
@@ -1839,105 +1936,6 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * Construct the UserInfo needed for evaluating rules. This also enriches the user with values
-   * created by user-attribute rules.
-   */
-  private async _getUser(docSession: OptDocSession): Promise<UserInfo> {
-    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
-    let access: Role | null;
-    let fullUser: FullUser | null;
-    const attrs = this._getUserAttributes(docSession);
-    access = getDocSessionAccess(docSession);
-
-    const linkId = getDocSessionShare(docSession);
-    let shareRef: number = 0;
-    if (linkId) {
-      const rowIds = this._docData.getMetaTable('_grist_Shares').filterRowIds({
-        linkId,
-      });
-      if (rowIds.length > 1) {
-        throw new Error('Share identifier is not unique');
-      }
-      if (rowIds.length === 1) {
-        shareRef = rowIds[0];
-      }
-    }
-
-    if (docSession.forkingAsOwner) {
-      // For granular access purposes, we become an owner.
-      // It is a bit of a bluff, done on the understanding that this session will
-      // never be used to edit the document, and that any edits will be done on a
-      // fork.
-      access = 'owners';
-    }
-
-    // If aclAsUserId/aclAsUser is set, then override user for acl purposes.
-    if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
-      if (access !== 'owners') { throw new ErrorWithCode('ACL_DENY', 'only an owner can override user'); }
-      if (attrs.override) {
-        // Used cached properties.
-        access = attrs.override.access;
-        fullUser = attrs.override.user;
-      } else {
-        attrs.override = await this._getViewAsUser(linkParameters);
-        fullUser = attrs.override.user;
-      }
-    } else {
-      fullUser = getDocSessionUser(docSession);
-    }
-    const user = new User();
-    user.Access = access;
-    user.ShareRef = shareRef || null;
-    const isAnonymous = fullUser?.id === this._homeDbManager?.getAnonymousUserId() ||
-      fullUser?.id === null;
-    user.UserID = (!isAnonymous && fullUser?.id) || null;
-    user.Email = fullUser?.email || null;
-    user.Name = fullUser?.name || null;
-    // If viewed from a websocket, collect any link parameters included.
-    // TODO: could also get this from rest api access, just via a different route.
-    user.LinkKey = linkParameters;
-    // Include origin info if accessed via the rest api.
-    // TODO: could also get this for websocket access, just via a different route.
-    user.Origin = docSession.req?.get('origin') || null;
-    user.SessionID = isAnonymous ? `a${getDocSessionAltSessionId(docSession)}` : `u${user.UserID}`;
-    user.IsLoggedIn = !isAnonymous;
-    user.UserRef = fullUser?.ref || null; // Empty string should be treated as null.
-
-    if (this._ruler.ruleCollection.ruleError && !this._recoveryMode) {
-      // It is important to signal that the doc is in an unexpected state,
-      // and prevent it opening.
-      throw this._ruler.ruleCollection.ruleError;
-    }
-
-    for (const clause of this._ruler.ruleCollection.getUserAttributeRules().values()) {
-      if (clause.name in user) {
-        log.warn(`User attribute ${clause.name} ignored; conflicts with an existing one`);
-        continue;
-      }
-      if (attrs.rows[clause.name]) {
-        user[clause.name] = attrs.rows[clause.name];
-        continue;
-      }
-      let rec = new EmptyRecordView();
-      let rows: TableDataAction|undefined;
-      try {
-        // Use lodash's get() that supports paths, e.g. charId of 'a.b' would look up `user.a.b`.
-        // TODO: add indexes to db.
-        rows = await this._fetchQueryFromDB({
-          tableId: clause.tableId,
-          filters: { [clause.lookupColId]: [get(user, clause.charId)] }
-        });
-      } catch (e) {
-        log.warn(`User attribute ${clause.name} failed`, e);
-      }
-      if (rows && rows[2].length > 0) { rec = new RecordView(rows, 0); }
-      user[clause.name] = rec;
-      attrs.rows[clause.name] = rec;
-    }
-    return user;
-  }
-
-  /**
    * Get the "View As" user specified in link parameters.
    * If aclAsUserId is set, we get the user with the specified id.
    * If aclAsUser is set, we get the user with the specified email,
@@ -2583,7 +2581,7 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Tests if the user can modify cell's data.
    */
-  private async _canApplyCellActions(currentUser: UserInfo, userIsOwner: boolean) {
+  private async _canApplyCellActions(currentUser: User, userIsOwner: boolean) {
     // Owner can modify all comments, without exceptions.
     if (userIsOwner) {
       return;
@@ -2654,7 +2652,7 @@ export class Ruler {
 }
 
 export interface RulerOwner {
-  getUser(docSession: OptDocSession): Promise<UserInfo>;
+  getUser(docSession: OptDocSession): Promise<User>;
   inputs(docSession: OptDocSession): Promise<PredicateFormulaInput>;
 }
 
@@ -2686,36 +2684,6 @@ interface ActionCursor {
                               // DocActions, for access control purposes.
                               // Used for referencing a cache of intermediate
                               // access control state.
-}
-
-/**
- * A row-like view of TableDataAction, which is columnar in nature.  If index value
- * is undefined, acts as an EmptyRecordRow.
- */
-export class RecordView implements InfoView {
-  public constructor(public data: TableDataAction, public index: number|undefined) {
-  }
-
-  public get(colId: string): CellValue {
-    if (this.index === undefined) { return null; }
-    if (colId === 'id') {
-      return this.data[2][this.index];
-    }
-    return this.data[3][colId]?.[this.index];
-  }
-
-  public has(colId: string) {
-    return colId === 'id' || colId in this.data[3];
-  }
-
-  public toJSON() {
-    if (this.index === undefined) { return {}; }
-    const results: {[key: string]: any} = {};
-    for (const key of Object.keys(this.data[3])) {
-      results[key] = this.data[3][key]?.[this.index];
-    }
-    return results;
-  }
 }
 
 /**
@@ -3220,47 +3188,6 @@ export function filterColValues(action: DataAction,
   }
   // Return all actions, in a consistent order for test purposes.
   return [action, ...[...parts.keys()].sort().map(key => parts.get(key)!)];
-}
-
-/**
- * Information about a user, including any user attributes.
- *
- * Serializes into a more compact JSON form that excludes full
- * row data, only keeping user info and table/row ids for any
- * user attributes.
- *
- * See `user.py` for the sandbox equivalent that deserializes objects of this class.
- */
-export class User implements UserInfo {
-  public Name: string | null = null;
-  public UserID: number | null = null;
-  public Access: Role | null = null;
-  public Origin: string | null = null;
-  public LinkKey: Record<string, string | undefined> = {};
-  public Email: string | null = null;
-  public SessionID: string | null = null;
-  public UserRef: string | null = null;
-  public ShareRef: number | null = null;
-  [attribute: string]: any;
-
-  constructor(_info: Record<string, unknown> = {}) {
-    Object.assign(this, _info);
-  }
-
-  public toJSON() {
-    const results: {[key: string]: any} = {};
-    for (const [key, value] of Object.entries(this)) {
-      if (value instanceof RecordView) {
-        // Only include the table id and first matching row id.
-        results[key] = [getTableId(value.data), value.get('id')];
-      } else if (value instanceof EmptyRecordView) {
-        results[key] = null;
-      } else {
-        results[key] = value;
-      }
-    }
-    return results;
-  }
 }
 
 export function validTableIdString(tableId: any): string {

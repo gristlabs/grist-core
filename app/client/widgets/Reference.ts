@@ -4,6 +4,7 @@ import {
   FormSelectConfig
 } from 'app/client/components/Forms/FormConfig';
 import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
+import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {TableRec} from 'app/client/models/DocModel';
@@ -53,12 +54,12 @@ export class Reference extends NTextBox {
     });
   }
 
-  public buildConfigDom() {
+  public buildConfigDom(gristDoc: GristDoc) {
     return [
       this.buildTransformConfigDom(),
-      dom.create(DropdownConditionConfig, this.field),
+      dom.create(DropdownConditionConfig, this.field, gristDoc),
       cssLabel(t('CELL FORMAT')),
-      super.buildConfigDom(),
+      super.buildConfigDom(gristDoc),
     ];
   }
 

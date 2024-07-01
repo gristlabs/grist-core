@@ -118,7 +118,9 @@
         "Legacy": "Legacy",
         "Personal Site": "Personal Site",
         "Team Site": "Team Site",
-        "Grist Templates": "Grist Templates"
+        "Grist Templates": "Grist Templates",
+        "Billing Account": "Billing Account",
+        "Manage Team": "Manage Team"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
@@ -300,7 +302,46 @@
         "Ok": "OK",
         "Manage Webhooks": "Manage Webhooks",
         "Webhooks": "Webhooks",
-        "API Console": "API Console"
+        "API Console": "API Console",
+        "API URL copied to clipboard": "API URL copied to clipboard",
+        "API console": "API console",
+        "API documentation.": "API documentation.",
+        "Base doc URL: {{docApiUrl}}": "Base doc URL: {{docApiUrl}}",
+        "Coming soon": "Coming soon",
+        "Copy to clipboard": "Copy to clipboard",
+        "Currency": "Currency",
+        "Data Engine": "Data Engine",
+        "Default for DateTime columns": "Default for DateTime columns",
+        "Document ID": "Document ID",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}",
+        "Find slow formulas": "Find slow formulas",
+        "For currency columns": "For currency columns",
+        "For number and date formats": "For number and date formats",
+        "Formula times": "Formula times",
+        "Hard reset of data engine": "Hard reset of data engine",
+        "ID for API use": "ID for API use",
+        "Locale": "Locale",
+        "Manage webhooks": "Manage webhooks",
+        "Notify other services on doc changes": "Notify other services on doc changes",
+        "Python": "Python",
+        "Python version used": "Python version used",
+        "Reload": "Reload",
+        "Time Zone": "Time Zone",
+        "Try API calls from the browser": "Try API calls from the browser",
+        "python2 (legacy)": "python2 (legacy)",
+        "python3 (recommended)": "python3 (recommended)",
+        "Cancel": "Cancel",
+        "Force reload the document while timing formulas, and show the result.": "Force reload the document while timing formulas, and show the result.",
+        "Formula timer": "Formula timer",
+        "Reload data engine": "Reload data engine",
+        "Reload data engine?": "Reload data engine?",
+        "Start timing": "Start timing",
+        "Stop timing...": "Stop timing...",
+        "Time reload": "Time reload",
+        "Timing is on": "Timing is on",
+        "You can make changes to the document, then stop timing to see the results.": "You can make changes to the document, then stop timing to see the results.",
+        "Only available to document editors": "Only available to document editors",
+        "Only available to document owners": "Only available to document owners"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -498,7 +539,8 @@
         "Trash": "Trash",
         "Workspace will be moved to Trash.": "Workspace will be moved to Trash.",
         "Workspaces": "Workspaces",
-        "Tutorial": "Tutorial"
+        "Tutorial": "Tutorial",
+        "Terms of service": "Terms of service"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -567,7 +609,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Finish",
-        "Next": "Next"
+        "Next": "Next",
+        "Previous": "Previous"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Grist Video Tour",
@@ -921,7 +964,8 @@
         "Don't show tips": "Don't show tips",
         "Undo to restore": "Undo to restore",
         "Got it": "Got it",
-        "Don't show again": "Don't show again"
+        "Don't show again": "Don't show again",
+        "TIP": "TIP"
     },
     "pages": {
         "Duplicate Page": "Duplicate Page",
@@ -988,7 +1032,9 @@
         "Add conditional style": "Add conditional style",
         "Error in style rule": "Error in style rule",
         "Row Style": "Row Style",
-        "Rule must return True or False": "Rule must return True or False"
+        "Rule must return True or False": "Rule must return True or False",
+        "Conditional Style": "Conditional Style",
+        "IF...": "IF..."
     },
     "CurrencyPicker": {
         "Invalid currency": "Invalid currency"
@@ -1489,7 +1535,44 @@
         "Support Grist": "Support Grist",
         "Support Grist Labs on GitHub": "Support Grist Labs on GitHub",
         "Telemetry": "Telemetry",
-        "Version": "Version"
+        "Version": "Version",
+        "Auto-check when this page loads": "Auto-check when this page loads",
+        "Check now": "Check now",
+        "Checking for updates...": "Checking for updates...",
+        "Error": "Error",
+        "Error checking for updates": "Error checking for updates",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
+        "Grist is up to date": "Grist is up to date",
+        "Grist releases are at ": "Grist releases are at ",
+        "Last checked {{time}}": "Last checked {{time}}",
+        "Learn more.": "Learn more.",
+        "Newer version available": "Newer version available",
+        "No information available": "No information available",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings",
+        "Updates": "Updates",
+        "unconfigured": "unconfigured",
+        "unknown": "unknown",
+        "Administrator Panel Unavailable": "Administrator Panel Unavailable",
+        "Authentication": "Authentication",
+        "Check failed.": "Check failed.",
+        "Check succeeded.": "Check succeeded.",
+        "Current authentication method": "Current authentication method",
+        "Details": "Details",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.",
+        "No fault detected.": "No fault detected.",
+        "Notes": "Notes",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}",
+        "Results": "Results",
+        "Self Checks": "Self Checks",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
+        "Key to sign sessions with": "Key to sign sessions with",
+        "Session Secret": "Session Secret"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1525,5 +1608,30 @@
         "Error in dropdown condition": "Error in dropdown condition",
         "No choices matching condition": "No choices matching condition",
         "No choices to select": "No choices to select"
+    },
+    "FormRenderer": {
+        "Reset": "Reset",
+        "Search": "Search",
+        "Select...": "Select...",
+        "Submit": "Submit"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Calendar",
+        "Card": "Card",
+        "Card List": "Card List",
+        "Chart": "Chart",
+        "Custom": "Custom",
+        "Form": "Form",
+        "Table": "Table"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Average Time (s)",
+        "Column ID": "Column ID",
+        "Formula timer": "Formula timer",
+        "Loading timing data. Don't close this tab.": "Loading timing data. Don't close this tab.",
+        "Max Time (s)": "Max Time (s)",
+        "Number of Calls": "Number of Calls",
+        "Table ID": "Table ID",
+        "Total Time (s)": "Total Time (s)"
     }
 }

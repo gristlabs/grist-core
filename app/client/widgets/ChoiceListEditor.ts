@@ -1,10 +1,10 @@
 import {createGroup} from 'app/client/components/commands';
+import {GristDoc} from 'app/client/components/GristDoc';
 import {ACIndexImpl, ACItem, ACResults,
         buildHighlightedDom, HighlightFunc, normalizeText} from 'app/client/lib/ACIndex';
 import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {makeT} from 'app/client/lib/localization';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
-import {DocData} from 'app/client/models/DocData';
 import {colors, testId, theme} from 'app/client/ui2018/cssVars';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
@@ -12,7 +12,8 @@ import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
 import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {csvEncodeRow} from 'app/common/csvFormat';
 import {CellValue} from "app/common/DocActions";
-import {CompiledPredicateFormula, EmptyRecordView} from 'app/common/PredicateFormula';
+import {CompiledPredicateFormula} from 'app/common/PredicateFormula';
+import {EmptyRecordView} from 'app/common/RecordView';
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
 import {ChoiceOptions, getRenderFillColor, getRenderTextColor} from 'app/client/widgets/ChoiceTextBox';
 import {choiceToken, cssChoiceACItem, cssChoiceToken} from 'app/client/widgets/ChoiceToken';
@@ -246,7 +247,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
     return buildDropdownConditionFilter({
       dropdownConditionCompiled: dropdownConditionCompiled.result,
-      docData: this.options.gristDoc.docData,
+      gristDoc: this.options.gristDoc,
       tableId: this.options.field.tableId(),
       rowId: this.options.rowId,
     });
@@ -311,7 +312,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
 export interface GetACFilterFuncParams {
   dropdownConditionCompiled: CompiledPredicateFormula;
-  docData: DocData;
+  gristDoc: GristDoc;
   tableId: string;
   rowId: number;
 }
@@ -319,12 +320,13 @@ export interface GetACFilterFuncParams {
 export function buildDropdownConditionFilter(
   params: GetACFilterFuncParams
 ): (item: ChoiceItem) => boolean {
-  const {dropdownConditionCompiled, docData, tableId, rowId} = params;
-  const table = docData.getTable(tableId);
+  const {dropdownConditionCompiled, gristDoc, tableId, rowId} = params;
+  const table = gristDoc.docData.getTable(tableId);
   if (!table) { throw new Error(`Table ${tableId} not found`); }
 
+  const user = gristDoc.docPageModel.user.get() ?? undefined;
   const rec = table.getRecord(rowId) || new EmptyRecordView();
-  return (item: ChoiceItem) => dropdownConditionCompiled({rec, choice: item.label});
+  return (item: ChoiceItem) => dropdownConditionCompiled({user, rec, choice: item.label});
 }
 
 const cssCellEditor = styled('div', `

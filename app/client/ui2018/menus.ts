@@ -166,6 +166,8 @@ const cssSubMenuElem = styled('div', `
   min-width: 200px;
 `);
 
+// TODO: menus are sometimes cut off in Safari.
+// Setting "overflow: visible fixes this, but breaks overflow elsewhere.
 export const cssMenuElem = styled('div', `
   font-family: ${vars.fontFamily};
   font-size: ${vars.mediumFontSize};

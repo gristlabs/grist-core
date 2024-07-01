@@ -97,7 +97,9 @@
         "Home Page": "Домашняя страница",
         "Legacy": "Устаревший",
         "Team Site": "Сайт группы",
-        "Grist Templates": "Шаблоны Grist"
+        "Grist Templates": "Шаблоны Grist",
+        "Billing Account": "Платежный аккаунт",
+        "Manage Team": "Управление командой"
     },
     "ApiKey": {
         "Remove API Key": "Удалить ключ API",
@@ -421,7 +423,43 @@
         "Document ID copied to clipboard": "Идентификатор документа скопирован в буфер обмена",
         "Manage Webhooks": "Управление вебхуками",
         "Webhooks": "Вебхуки",
-        "API Console": "API-консоль"
+        "API Console": "API-консоль",
+        "Default for DateTime columns": "По умолчанию для столбцов ДатаВремя",
+        "Document ID": "ID Документа",
+        "Notify other services on doc changes": "Уведомлять другие службы об изменениях в документе",
+        "python2 (legacy)": "python2 (устаревший)",
+        "Formula timer": "Таймер формулы",
+        "Reload data engine": "Перезагрузка механизма обработки данных",
+        "Start timing": "Старт тайминга",
+        "Stop timing...": "Остановка тайминга...",
+        "Currency": "Валюта",
+        "Data Engine": "Механизм обработки данных",
+        "Hard reset of data engine": "Жесткий сброс системы обработки данных",
+        "python3 (recommended)": "python3 (рекомендуется)",
+        "Cancel": "Отмена",
+        "Force reload the document while timing formulas, and show the result.": "Принудительно перезагрузите документ, синхронизируя формулы, и покажите результат.",
+        "Time reload": "Время перезагрузки",
+        "Reload data engine?": "Перезагрузить механизм обработки данных?",
+        "Timing is on": "Тайминг включен",
+        "You can make changes to the document, then stop timing to see the results.": "Вы можете внести изменения в документ, а затем остановить отсчет времени, чтобы увидеть результаты.",
+        "Coming soon": "Скоро будет",
+        "Copy to clipboard": "Скопировать в буфер обмена",
+        "API URL copied to clipboard": "API URL скопирован в буфер обмена",
+        "API console": "Консоль API",
+        "API documentation.": "Документация по API.",
+        "Base doc URL: {{docApiUrl}}": "Базовый URL документа: {{docApiUrl}}",
+        "Find slow formulas": "Найти медленные формулы",
+        "For currency columns": "Для столбцов валют",
+        "For number and date formats": "Для форматов чисел и дат",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID Документа, используется всегда при запросе REST API {{docId}}. Смотреть {{apiURL}}",
+        "ID for API use": "ID для использования API",
+        "Manage webhooks": "Управление webhook-ами",
+        "Locale": "Локализация",
+        "Reload": "Перезагрузить",
+        "Python": "Python",
+        "Python version used": "Python используемая версия",
+        "Time Zone": "Часовой пояс",
+        "Try API calls from the browser": "Попробуйте вызовы API из браузера"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -524,7 +562,8 @@
         "Trash": "Корзина",
         "Workspaces": "Рабочие пространства",
         "Workspace will be moved to Trash.": "Рабочее пространство будет перемещено в корзину.",
-        "Tutorial": "Обучение"
+        "Tutorial": "Обучение",
+        "Terms of service": "Условия использования"
     },
     "GridViewMenus": {
         "Add to sort": "Добавить в сортировку",
@@ -667,7 +706,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Закончить",
-        "Next": "Дальше"
+        "Next": "Дальше",
+        "Previous": "Предыдущий"
     },
     "PageWidgetPicker": {
         "Group by": "Группировать по",
@@ -1009,7 +1049,8 @@
         "Don't show tips": "Не показывать советы",
         "Undo to restore": "Отменить для восстановления",
         "Got it": "Принято",
-        "Don't show again": "Больше не показывать"
+        "Don't show again": "Больше не показывать",
+        "TIP": "Совет"
     },
     "search": {
         "Find Next ": "Найти далее ",
@@ -1059,7 +1100,9 @@
         "Add conditional style": "Добавить условное форматирование",
         "Error in style rule": "Ошибка в правиле форматирования",
         "Row Style": "Форматирование строки",
-        "Rule must return True or False": "Правило должно возвращать значение Истина или Ложь"
+        "Rule must return True or False": "Правило должно возвращать значение Истина или Ложь",
+        "IF...": "ЕСЛИ...",
+        "Conditional Style": "Условный стиль"
     },
     "CurrencyPicker": {
         "Invalid currency": "Неверная валюта"
@@ -1145,7 +1188,9 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Создавайте простые формы прямо в Grist и делитесь ими одним щелчком мыши с помощью нашего нового виджета.. {{learnMoreButton}}",
         "Forms are here!": "Формы уже здесь!",
         "Learn more": "Узнать больше",
-        "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо."
+        "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо.",
+        "Example: {{example}}": "Пример: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Отфильтровать выпадающие значения по условиям."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1313,7 +1358,7 @@
         "Opt out of Telemetry": "Отказаться от телеметрии",
         "Sponsor Grist Labs on GitHub": "Спонсор Grist Labs на GitHub",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "В этом экземпляре включена телеметрия. Только администратор сайта может изменить это.",
-        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Мы собираем только статистику использования, как описано в нашей {{link}}, никогда содержимое документов.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Мы собираем только статистику использования, как описано в {{link}} и никогда не собираем содержимое документов.",
         "Sponsor": "Спонсор"
     },
     "buildViewSectionDom": {
@@ -1472,7 +1517,40 @@
         "Support Grist Labs on GitHub": "Поддержите Grist Labs на GitHub",
         "Version": "Версия",
         "Admin Panel": "Панель администратора",
-        "Telemetry": "Телеметрия"
+        "Telemetry": "Телеметрия",
+        "Check now": "Проверь сейчас",
+        "Checking for updates...": "Проверка обновлений...",
+        "Error": "Ошибка",
+        "Grist is up to date": "Grist актуален",
+        "Grist releases are at ": "Релизы Grist находятся в ",
+        "Last checked {{time}}": "Последняя проверка {{time}}",
+        "Learn more.": "Узнать больше.",
+        "No information available": "Информация отсутствует",
+        "Sandbox settings for data engine": "Настройки песочницы для механизма обработки данных",
+        "Sandboxing": "Песочница",
+        "Updates": "Обновления",
+        "unknown": "неизвестный",
+        "Auto-check when this page loads": "Автоматическая проверка при загрузке этой страницы",
+        "Error checking for updates": "Ошибка проверки обновлений",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist позволяет создавать очень мощные формулы с использованием Python.. Мы рекомендуем установить переменную среды GRIST_SANDBOX_FLAVOR к gvisor если ваше оборудование поддерживает это (большинство поддерживает), позволит запускать формулы в каждом документе в изолированной от других документов и сети программной среде.",
+        "Newer version available": "Доступна более новая версия",
+        "OK": "OK",
+        "unconfigured": "несконфигурированно",
+        "Security Settings": "Настройки безопасности",
+        "Authentication": "Аутентификация",
+        "Check failed.": "Проверка не удалась.",
+        "Check succeeded.": "Проверка прошла успешно.",
+        "Details": "Подробности",
+        "No fault detected.": "Неисправностей не обнаружено.",
+        "Notes": "Примечания",
+        "Results": "Результаты",
+        "Self Checks": "Самопроверки",
+        "Administrator Panel Unavailable": "Панель администратора недоступна",
+        "Current authentication method": "Текущий метод аутентификации",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist позволяет настраивать различные типы аутентификации, включая SAML и OIDC.     Мы рекомендуем включить один из них, если Grist доступен по сети или доступен     нескольким пользователям.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Или, в качестве запасного варианта, вы можете установить: {{bootKey}} в окружающей среде и посетить: {{url}}",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist позволяет настраивать различные типы аутентификации, включая SAML и OIDC. Мы рекомендуем включить один из них, если Grist доступен по сети или доступен нескольким пользователям.",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "У вас нет доступа к панели администратора.\nПожалуйста, войдите в систему как администратор."
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1490,7 +1568,7 @@
     },
     "Field": {
         "No choices configured": "Опции отсутствуют",
-        "No values in show column of referenced table": "No values in show column of referenced table"
+        "No values in show column of referenced table": "Нет значений в столбце отображения ссылочной таблицы."
     },
     "Columns": {
         "Remove Column": "Удалить столбец"
@@ -1499,5 +1577,53 @@
         "Checkbox": "Флажок",
         "Field Format": "Формат поля",
         "Switch": "Тумблер"
+    },
+    "ChoiceEditor": {
+        "No choices to select": "Нет вариантов для выбора",
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка",
+        "No choices matching condition": "Нет вариантов, соответствующих условию"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка",
+        "No choices matching condition": "Нет вариантов, соответствующих условию",
+        "No choices to select": "Нет вариантов для выбора"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Установить условие выпадающего списка",
+        "Dropdown Condition": "Условие выпадающего списка",
+        "Invalid columns: {{colIds}}": "Неверные столбцы: {{colIds}}"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Введите условие."
+    },
+    "ReferenceUtils": {
+        "No choices matching condition": "Нет вариантов, соответствующих условию",
+        "No choices to select": "Нет вариантов для выбора",
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка"
+    },
+    "widgetTypesMap": {
+        "Custom": "Кастомный",
+        "Form": "Форма",
+        "Table": "Таблица",
+        "Calendar": "Календарь",
+        "Card": "Карточка",
+        "Card List": "Список карточек",
+        "Chart": "Диаграмма"
+    },
+    "TimingPage": {
+        "Table ID": "ID таблицы",
+        "Formula timer": "Таймер формулы",
+        "Average Time (s)": "Среднее время (с)",
+        "Loading timing data. Don't close this tab.": "Загрузка данных о времени. Не закрывайте эту вкладку.",
+        "Column ID": "ID столбца",
+        "Max Time (s)": "Макс. время (с)",
+        "Number of Calls": "Количество Вызовов",
+        "Total Time (s)": "Общее время (с)"
+    },
+    "FormRenderer": {
+        "Reset": "Сброс",
+        "Search": "Поиск",
+        "Select...": "Выбрать...",
+        "Submit": "Отправить"
     }
 }

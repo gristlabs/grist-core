@@ -12,9 +12,10 @@ import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrade
 import {SupportGristNudge} from 'app/client/ui/SupportGristNudge';
 import {gristThemePrefs} from 'app/client/ui2018/theme';
 import {AsyncCreate} from 'app/common/AsyncCreate';
+import {PlanSelection} from 'app/common/BillingAPI';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {OrgUsageSummary} from 'app/common/DocUsage';
-import {Features, isLegacyPlan, Product} from 'app/common/Features';
+import {Features, isFreePlan, isLegacyPlan, mergedFeatures, Product} from 'app/common/Features';
 import {GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
@@ -112,7 +113,8 @@ export interface AppModel {
   lastVisitedOrgDomain: Observable<string|null>;
 
   currentProduct: Product|null;         // The current org's product.
-  currentFeatures: Features;            // Features of the current org's product.
+  currentPriceId: string|null;          // The current org's stripe plan id.
+  currentFeatures: Features|null;            // Features of the current org's product.
 
   userPrefsObs: Observable<UserPrefs>;
   themePrefs: Observable<ThemePrefs>;
@@ -133,8 +135,8 @@ export interface AppModel {
   supportGristNudge: SupportGristNudge;
 
   refreshOrgUsage(): Promise<void>;
-  showUpgradeModal(): void;
-  showNewSiteModal(): void;
+  showUpgradeModal(): Promise<void>;
+  showNewSiteModal(): Promise<void>;
   isBillingManager(): boolean;          // If user is a billing manager for this org
   isSupport(): boolean;                 // If user is a Support user
   isOwner(): boolean;                   // If user is an owner of this org
@@ -142,6 +144,7 @@ export interface AppModel {
   isInstallAdmin(): boolean;            // Is user an admin of this installation
   dismissPopup(name: DismissedPopup, isSeen: boolean): void;  // Mark popup as dismissed or not.
   switchUser(user: FullUser, org?: string): Promise<void>;
+  isFreePlan(): boolean;
 }
 
 export interface TopAppModelOptions {
@@ -293,7 +296,11 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly lastVisitedOrgDomain = this.autoDispose(sessionStorageObs('grist-last-visited-org-domain'));
 
   public readonly currentProduct = this.currentOrg?.billingAccount?.product ?? null;
-  public readonly currentFeatures = this.currentProduct?.features ?? {};
+  public readonly currentPriceId = this.currentOrg?.billingAccount?.stripePlanId ?? null;
+  public readonly currentFeatures = mergedFeatures(
+    this.currentProduct?.features ?? null,
+    this.currentOrg?.billingAccount?.features ?? null
+  );
 
   public readonly isPersonal = Boolean(this.currentOrg?.owner);
   public readonly isTeamSite = Boolean(this.currentOrg) && !this.isPersonal;
@@ -367,7 +374,17 @@ export class AppModelImpl extends Disposable implements AppModel {
     if (state.createTeam) {
       // Remove params from the URL.
       urlState().pushUrl({createTeam: false, params: {}}, {avoidReload: true, replace: true}).catch(() => {});
-      this.showNewSiteModal(state.params?.planType);
+      this.showNewSiteModal({
+        priceId: state.params?.billingPlan,
+        product: state.params?.planType,
+      }).catch(reportError);
+    } else if (state.upgradeTeam) {
+        // Remove params from the URL.
+      urlState().pushUrl({upgradeTeam: false, params: {}}, {avoidReload: true, replace: true}).catch(() => {});
+      this.showUpgradeModal({
+        priceId: state.params?.billingPlan,
+        product: state.params?.planType,
+      }).catch(reportError);
     }
 
     G.window.resetDismissedPopups = (seen = false) => {
@@ -384,23 +401,28 @@ export class AppModelImpl extends Disposable implements AppModel {
     return this.currentProduct?.name ?? null;
   }
 
-  public async showUpgradeModal() {
+  public async showUpgradeModal(plan?: PlanSelection) {
     if (this.planName && this.currentOrg) {
       if (this.isPersonal) {
-        this.showNewSiteModal();
+        await this.showNewSiteModal(plan);
       } else if (this.isTeamSite) {
-        buildUpgradeModal(this, this.planName);
+        await buildUpgradeModal(this, {
+          appModel: this,
+          pickPlan: plan,
+          reason: 'upgrade'
+        });
       } else {
         throw new Error("Unexpected state");
       }
     }
   }
 
-  public showNewSiteModal(selectedPlan?: string) {
+
+  public async showNewSiteModal(plan?: PlanSelection) {
     if (this.planName) {
-      buildNewSiteModal(this, {
-        planName: this.planName,
-        selectedPlan,
+      await buildNewSiteModal(this, {
+        appModel: this,
+        plan,
         onCreate: () => this.topAppModel.fetchUsersAndOrgs().catch(reportError)
       });
     }
@@ -449,6 +471,10 @@ export class AppModelImpl extends Disposable implements AppModel {
   public async switchUser(user: FullUser, org?: string) {
     await this.api.setSessionActive(user.email, org);
     this.lastVisitedOrgDomain.set(null);
+  }
+
+  public isFreePlan() {
+    return isFreePlan(this.planName || '');
   }
 
   private _updateLastVisitedOrgDomain({doc, org}: IGristUrlState, availableOrgs: Organization[]) {
@@ -505,10 +531,52 @@ export function getOrgNameOrGuest(org: Organization|null, user: FullUser|null) {
   return getOrgName(org);
 }
 
-export function getHomeUrl(): string {
+/**
+ * If we don't know what the home URL is, the top level of the site
+ * we are on may work. This should always work for single-server installs
+ * that don't encode organization information in domains. Even for other
+ * cases, this should be a good enough home URL for many purposes, it
+ * just may still have some organization information encoded in it from
+ * the domain that could influence results that might be supposed to be
+ * organization-neutral.
+ */
+export function getFallbackHomeUrl(): string {
   const {host, protocol} = window.location;
+  return `${protocol}//${host}`;
+}
+
+/**
+ * Get the official home URL sent to us from the back end.
+ */
+export function getConfiguredHomeUrl(): string {
   const gristConfig: any = (window as any).gristConfig;
-  return (gristConfig && gristConfig.homeUrl) || `${protocol}//${host}`;
+  return (gristConfig && gristConfig.homeUrl) || getFallbackHomeUrl();
+}
+
+/**
+ * Get the home URL, using fallback if on admin page rather
+ * than trusting back end configuration.
+ */
+export function getPreferredHomeUrl(): string|undefined {
+  const gristUrl = urlState().state.get();
+  if (gristUrl.adminPanel) {
+    // On the admin panel, we should not trust configuration much,
+    // since we want the user to be able to access it to diagnose
+    // problems with configuration. So we access the API via the
+    // site we happen to be on rather than anything configured on
+    // the back end. Couldn't we just always do this? Maybe!
+    // It could require adjustments for calls that are meant
+    // to be site-neutral if the domain has an org encoded in it.
+    // But that's a small price to pay. Grist Labs uses a setup
+    // where api calls go to a dedicated domain distinct from all
+    // other sites, but there's no particular advantage to it.
+    return getFallbackHomeUrl();
+  }
+  return getConfiguredHomeUrl();
+}
+
+export function getHomeUrl(): string {
+  return getPreferredHomeUrl() || getConfiguredHomeUrl();
 }
 
 export function newUserAPIImpl(): UserAPIImpl {

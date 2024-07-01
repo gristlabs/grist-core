@@ -117,8 +117,8 @@ export class AppHeader extends Disposable {
 
           // Show 'Organization Settings' when on a home page of a valid org.
           (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
-            menuItem(() => manageTeamUsersApp(this._appModel),
-              'Manage Team', testId('orgmenu-manage-team'),
+            menuItem(() => manageTeamUsersApp({app: this._appModel}),
+              t('Manage Team'), testId('orgmenu-manage-team'),
               dom.cls('disabled', !roles.canEditAccess(this._currentOrg.access))) :
             // Don't show on doc pages, or for personal orgs.
             null),
@@ -153,12 +153,12 @@ export class AppHeader extends Disposable {
       (isBillingManager
         ? menuItemLink(
           urlState().setLinkUrl({billing: 'billing'}),
-          'Billing Account',
+          t('Billing Account'),
           testId('orgmenu-billing'),
         )
         : menuItem(
           () => null,
-          'Billing Account',
+          t('Billing Account'),
           dom.cls('disabled', true),
           testId('orgmenu-billing'),
         )

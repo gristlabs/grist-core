@@ -35,6 +35,12 @@ COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
 RUN yarn run build:prod
 
+# Prepare material for optional pyodide sandbox
+COPY sandbox/pyodide /grist/sandbox/pyodide
+COPY sandbox/requirements3.txt /grist/sandbox/requirements3.txt
+RUN \
+  cd /grist/sandbox/pyodide && make setup
+
 ################################################################################
 ## Python collection stage
 ################################################################################
@@ -73,7 +79,7 @@ FROM node:18-buster-slim
 # Install pgrep for managing gvisor processes.
 RUN \
   apt-get update && \
-  apt-get install -y --no-install-recommends libexpat1 libsqlite3-0 procps && \
+  apt-get install -y --no-install-recommends libexpat1 libsqlite3-0 procps tini && \
   rm -rf /var/lib/apt/lists/*
 
 # Keep all storage user may want to persist in a distinct directory
@@ -108,11 +114,23 @@ ADD sandbox /grist/sandbox
 ADD plugins /grist/plugins
 ADD static /grist/static
 
+# Make optional pyodide sandbox available
+COPY --from=builder /grist/sandbox/pyodide /grist/sandbox/pyodide
+
 # Finalize static directory
 RUN \
   mv /grist/static-built/* /grist/static && \
   rmdir /grist/static-built
 
+# To ensure non-root users can run grist, 'other' users need read access (and execute on directories)
+# This should be the case by default when copying files in.
+# Only uncomment this if running into permissions issues, as it takes a long time to execute on some systems.
+# RUN chmod -R o+rX /grist
+
+# Add a user to allow de-escalating from root on startup
+RUN useradd -ms /bin/bash grist
+ENV GRIST_DOCKER_USER=grist \
+    GRIST_DOCKER_GROUP=grist
 WORKDIR /grist
 
 # Set some default environment variables to give a setup that works out of the box when
@@ -142,4 +160,5 @@ ENV \
 
 EXPOSE 8484
 
-CMD ["./sandbox/run.sh"]
+ENTRYPOINT ["./sandbox/docker_entrypoint.sh"]
+CMD ["node", "./sandbox/supervisor.mjs"]

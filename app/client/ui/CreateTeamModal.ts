@@ -10,6 +10,7 @@ import {IModalControl, modal} from 'app/client/ui2018/modals';
 import {TEAM_PLAN} from 'app/common/Features';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {UserAPIImpl} from 'app/common/UserAPI';
+import {PlanSelection} from 'app/common/BillingAPI';
 import {
   Disposable, dom, DomArg, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
   Observable, styled
@@ -19,14 +20,14 @@ import { makeT } from '../lib/localization';
 const t = makeT('CreateTeamModal');
 const testId = makeTestId('test-create-team-');
 
-export function buildNewSiteModal(context: Disposable, options: {
-  planName: string,
-  selectedPlan?: string,
+export async function buildNewSiteModal(context: Disposable, options: {
+  appModel: AppModel,
+  plan?: PlanSelection,
   onCreate?: () => void
-}) {
+}): Promise<void> {
   const { onCreate } = options;
 
-  return showModal(
+  showModal(
     context,
     (_owner: Disposable, ctrl: IModalControl) => dom.create(NewSiteModalContent, ctrl, onCreate),
     dom.cls(cssModalIndex.className),
@@ -78,16 +79,20 @@ class NewSiteModalContent extends Disposable {
   }
 }
 
-export function buildUpgradeModal(owner: Disposable, planName: string): void {
+export function buildUpgradeModal(owner: Disposable, options: {
+  appModel: AppModel,
+  pickPlan?: PlanSelection,
+  reason?: 'upgrade' | 'renew',
+}): Promise<void> {
   throw new UserError(t(`Billing is not supported in grist-core`));
 }
 
-export interface UpgradeButton  {
+export interface IUpgradeButton {
   showUpgradeCard(...args: DomArg<HTMLElement>[]): DomContents;
   showUpgradeButton(...args: DomArg<HTMLElement>[]): DomContents;
 }
 
-export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): UpgradeButton {
+export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): IUpgradeButton {
   return {
     showUpgradeCard: () => null,
     showUpgradeButton: () => null,
@@ -131,7 +136,9 @@ function buildTeamPage({
       }
       await create();
     } finally {
-      disabled.set(false);
+      if (!disabled.isDisposed()) {
+        disabled.set(false);
+      }
     }
   }
   const clickOnEnter = dom.onKeyPress({

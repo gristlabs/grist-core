@@ -63,7 +63,7 @@ export class TypeTransform extends ColumnTransform {
         if (use(this._isFormWidget)) {
           return transformWidget.buildFormTransformConfigDom();
         } else {
-          return transformWidget.buildTransformConfigDom();
+          return transformWidget.buildTransformConfigDom(this.gristDoc);
         }
       }),
       dom.maybe(this._reviseTypeChange, () =>

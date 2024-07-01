@@ -1,4 +1,4 @@
-import { isTeamPlan, Product } from 'app/common/Features';
+import { Features } from 'app/common/Features';
 import { normalizeEmail } from 'app/common/emails';
 import { PermissionData, PermissionDelta } from 'app/common/UserAPI';
 
@@ -37,11 +37,10 @@ export interface ShareAnnotatorOptions {
  * current shares in place.
  */
 export class ShareAnnotator {
-  private _features = this._product?.features ?? {};
   private _supportEmail = this._options.supportEmail;
 
   constructor(
-    private _product: Product|null,
+    private _features: Features|null,
     private _state: PermissionData,
     private _options: ShareAnnotatorOptions = {}
   ) {
@@ -52,9 +51,9 @@ export class ShareAnnotator {
   }
 
   public annotateChanges(change: PermissionDelta): ShareAnnotations {
-    const features = this._features;
+    const features = this._features ?? {};
     const annotations: ShareAnnotations = {
-      hasTeam: !this._product || isTeamPlan(this._product.name),
+      hasTeam: !this._features || this._features.vanityDomain,
       users: new Map(),
     };
     if (features.maxSharesPerDocPerRole || features.maxSharesPerWorkspace) {

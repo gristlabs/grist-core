@@ -168,7 +168,7 @@ function buildButtons(homeModel: HomeModel, options: {
     !options.invite ? null :
     cssBtn(cssBtnIcon('Help'), t("Invite Team Members"), testId('intro-invite'),
       cssButton.cls('-primary'),
-      dom.on('click', () => manageTeamUsersApp(homeModel.app)),
+      dom.on('click', () => manageTeamUsersApp({app: homeModel.app})),
     ),
     !options.templates ? null :
     cssBtn(cssBtnIcon('FieldTable'), t("Browse Templates"), testId('intro-templates'),

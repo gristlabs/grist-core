@@ -381,7 +381,7 @@ export class FormulaAssistant extends Disposable {
       canUpgradeSite ? t('upgrade to the Pro Team plan') : t('upgrade your plan'),
       dom.on('click', async () => {
         if (canUpgradeSite) {
-          this._gristDoc.appModel.showUpgradeModal();
+          this._gristDoc.appModel.showUpgradeModal().catch(reportError);
         } else {
           await urlState().pushUrl({billing: 'billing'});
         }

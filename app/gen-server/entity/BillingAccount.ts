@@ -4,6 +4,7 @@ import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {Limit} from 'app/gen-server/entity/Limit';
+import {Features, mergedFeatures} from 'app/common/Features';
 
 // This type is for billing account status information.  Intended for stuff
 // like "free trial running out in N days".
@@ -35,6 +36,9 @@ export class BillingAccount extends BaseEntity {
   @JoinColumn({name: 'product_id'})
   public product: Product;
 
+  @Column({type: nativeValues.jsonEntityType, nullable: true})
+  public features: Features|null;
+
   @Column({type: Boolean})
   public individual: boolean;
 
@@ -57,6 +61,9 @@ export class BillingAccount extends BaseEntity {
   @Column({name: 'stripe_plan_id', type: String, nullable: true})
   public stripePlanId: string | null;
 
+  @Column({name: 'payment_link', type: String, nullable: true})
+  public paymentLink: string | null;
+
   @Column({name: 'external_id', type: String, nullable: true})
   public externalId: string | null;
 
@@ -66,6 +73,7 @@ export class BillingAccount extends BaseEntity {
   @OneToMany(type => BillingAccountManager, manager => manager.billingAccount)
   public managers: BillingAccountManager[];
 
+  // Only one billing account per organization.
   @OneToMany(type => Organization, org => org.billingAccount)
   public orgs: Organization[];
 
@@ -79,4 +87,8 @@ export class BillingAccount extends BaseEntity {
   // A calculated column summarizing whether active user is a manager of the billing account.
   // (No @Column needed since calculation is done in javascript not sql)
   public isManager?: boolean;
+
+  public getFeatures(): Features {
+    return mergedFeatures(this.features, this.product.features) ?? {};
+  }
 }

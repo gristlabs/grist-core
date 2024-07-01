@@ -295,7 +295,7 @@ export interface TimingInfo {
   /**
    * Total time spend evaluating a formula.
    */
-  total: number;
+  sum: number;
   /**
    * Number of times the formula was evaluated (for all rows).
    */
@@ -320,9 +320,10 @@ export interface FormulaTimingInfo extends TimingInfo {
  */
 export interface TimingStatus {
   /**
-   * If true, timing info is being collected.
+   * If disabled then 'disabled', else 'active' or 'pending'. Pending means that the engine is busy
+   * and can't respond to confirm the status (but it used to be active before that).
    */
-  status: boolean;
+  status: 'active'|'pending'|'disabled';
   /**
    * Will be undefined if we can't get the timing info (e.g. if the document is locked by other call).
    * Otherwise, contains the intermediate results gathered so far.

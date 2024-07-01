@@ -146,6 +146,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ) : null
         ),
         createHelpTools(home.app),
+        (commonUrls.termsOfService ?
+          cssPageEntry(
+            cssPageLink(cssPageIcon('Memo'), cssLinkText(t("Terms of service")),
+              { href: commonUrls.termsOfService, target: '_blank' },
+              testId('dm-tos'),
+            ),
+          ) : null
+        ),
       )
     )
   );
@@ -196,7 +204,7 @@ export async function importFromPluginAndOpen(home: HomeModel, source: ImportSou
 function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[] {
   const org = home.app.currentOrg;
   const orgAccess: roles.Role|null = org ? org.access : null;
-  const needUpgrade = home.app.currentFeatures.maxWorkspacesPerOrg === 1;
+  const needUpgrade = home.app.currentFeatures?.maxWorkspacesPerOrg === 1;
 
   return [
     menuItem(() => createDocAndOpen(home), menuIcon('Page'), t("Create Empty Document"),
@@ -261,7 +269,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     });
   }
 
-  const needUpgrade = home.app.currentFeatures.maxWorkspacesPerOrg === 1;
+  const needUpgrade = home.app.currentFeatures?.maxWorkspacesPerOrg === 1;
 
   return [
     upgradableMenuItem(needUpgrade, () => renaming.set(ws), t("Rename"),

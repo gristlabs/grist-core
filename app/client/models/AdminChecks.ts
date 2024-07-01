@@ -1,5 +1,6 @@
+import { reportError } from 'app/client/models/errors';
 import { BootProbeIds, BootProbeInfo, BootProbeResult } from 'app/common/BootProbe';
-import { removeTrailingSlash } from 'app/common/gutil';
+import { InstallAPI } from 'app/common/InstallAPI';
 import { getGristConfig } from 'app/common/urlUtils';
 import { Disposable, Observable, UseCBOwner } from 'grainjs';
 
@@ -19,7 +20,7 @@ export class AdminChecks {
   // Keep track of probe results we have received, by probe ID.
   private _results: Map<string, Observable<BootProbeResult>>;
 
-  constructor(private _parent: Disposable) {
+  constructor(private _parent: Disposable, private _installAPI: InstallAPI) {
     this.probes = Observable.create(_parent, []);
     this._results = new Map();
     this._requests = new Map();
@@ -32,18 +33,16 @@ export class AdminChecks {
     const config = getGristConfig();
     const errMessage = config.errMessage;
     if (!errMessage) {
-      // Probe tool URLs are relative to the current URL. Don't trust configuration,
-      // because it may be buggy if the user is here looking at the boot page
-      // to figure out some problem.
-      //
-      // We have been careful to make URLs available with appropriate
-      // middleware relative to both of the admin panel and the boot page.
-      const url = new URL(removeTrailingSlash(document.location.href));
-      url.pathname += '/probe';
-      const resp = await fetch(url.href);
-      const _probes = await resp.json();
-      this.probes.set(_probes.probes);
+      const _probes = await this._installAPI.getChecks().catch(reportError);
+      if (!this._parent.isDisposed()) {
+        // Currently, probes are forbidden if not admin.
+        // TODO: May want to relax this to allow some probes that help
+        // diagnose some initial auth problems.
+        this.probes.set(_probes ? _probes.probes : []);
+      }
+      return _probes;
     }
+    return [];
   }
 
   /**
@@ -54,12 +53,12 @@ export class AdminChecks {
     const {id} = probe;
     let result = this._results.get(id);
     if (!result) {
-      result = Observable.create(this._parent, {});
+      result = Observable.create(this._parent, {status: 'none'});
       this._results.set(id, result);
     }
     let request = this._requests.get(id);
     if (!request) {
-      request = new AdminCheckRunner(id, this._results, this._parent);
+      request = new AdminCheckRunner(this._installAPI, id, this._results, this._parent);
       this._requests.set(id, request);
     }
     request.start();
@@ -93,15 +92,15 @@ export interface AdminCheckRequest {
  * Manage a single check.
  */
 export class AdminCheckRunner {
-  constructor(public id: string, public results: Map<string, Observable<BootProbeResult>>,
+  constructor(private _installAPI: InstallAPI,
+              public id: string,
+              public results: Map<string, Observable<BootProbeResult>>,
               public parent: Disposable) {
-    const url = new URL(removeTrailingSlash(document.location.href));
-    url.pathname = url.pathname + '/probe/' + id;
-    fetch(url.href).then(async resp => {
-      const _probes: BootProbeResult = await resp.json();
+    this._installAPI.runCheck(id).then(result => {
+      if (parent.isDisposed()) { return; }
       const ob = results.get(id);
       if (ob) {
-        ob.set(_probes);
+        ob.set(result);
       }
     }).catch(e => console.error(e));
   }
@@ -109,7 +108,7 @@ export class AdminCheckRunner {
   public start() {
     let result = this.results.get(this.id);
     if (!result) {
-      result = Observable.create(this.parent, {});
+      result = Observable.create(this.parent, {status: 'none'});
       this.results.set(this.id, result);
     }
   }
@@ -120,7 +119,7 @@ export class AdminCheckRunner {
  * but it can be useful to show extra details and tips in the
  * client.
  */
-const probeDetails: Record<string, ProbeDetails> = {
+export const probeDetails: Record<string, ProbeDetails> = {
   'boot-page': {
     info: `
 This boot page should not be too easy to access. Either turn
@@ -144,6 +143,17 @@ is set.
 `,
   },
 
+  'sandboxing': {
+    info: `
+Grist allows for very powerful formulas, using Python.
+We recommend setting the environment variable
+GRIST_SANDBOX_FLAVOR to gvisor if your hardware
+supports it (most will), to run formulas in each document
+within a sandbox isolated from other documents and isolated
+from the network.
+`
+  },
+
   'system-user': {
     info: `
 It is good practice not to run Grist as the root user.
@@ -153,6 +163,15 @@ It is good practice not to run Grist as the root user.
   'reachable': {
     info: `
 The main page of Grist should be available.
+`
+  },
+
+  'websockets': {
+    // TODO: add a link to https://support.getgrist.com/self-managed/#how-do-i-run-grist-on-a-server
+    info: `
+Websocket connections need HTTP 1.1 and the ability to pass a few
+extra headers in order to work. Sometimes a reverse proxy can
+interfere with these requirements.
 `
   },
 };

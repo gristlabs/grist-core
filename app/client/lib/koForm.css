@@ -136,6 +136,15 @@ div:hover > .kf_tooltip {
 
 .kf_draggable {
   display: inline-block;
+}
+
+.kf_draggable--vertical {
+  display: block;
+}
+
+/* Style the handle as grabbable, or the draggable element itself (if there is no handle). */
+.ui-sortable-handle,
+.kf_draggable:not(:has(.ui-sortable-handle)) {
   cursor: grab;
 }
 
@@ -723,4 +732,8 @@ fieldset:disabled {
   padding-top: 1rem;
   width: 100%;
   position: relative;
+}
+
+.kf_drag_container.ui-sortable {
+  overflow: auto;
 }

@@ -232,7 +232,8 @@ describe('DocApi2', function() {
       // And check that we are still on.
       resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
       assert.equal(resp.status, 200, JSON.stringify(resp.data));
-      assert.deepEqual(resp.data, {status: 'active', timing: []});
+      assert.equal(resp.data.status, 'active');
+      assert.isNotEmpty(resp.data.timing);
     });
   });
 });

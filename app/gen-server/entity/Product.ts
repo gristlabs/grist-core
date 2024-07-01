@@ -1,4 +1,11 @@
-import {Features, Product as IProduct, PERSONAL_FREE_PLAN, PERSONAL_LEGACY_PLAN, TEAM_FREE_PLAN,
+import {Features, FREE_PLAN,
+        Product as IProduct,
+        isManagedPlan,
+        PERSONAL_FREE_PLAN,
+        PERSONAL_LEGACY_PLAN,
+        STUB_PLAN,
+        SUSPENDED_PLAN,
+        TEAM_FREE_PLAN,
         TEAM_PLAN} from 'app/common/Features';
 import {nativeValues} from 'app/gen-server/lib/values';
 import * as assert from 'assert';
@@ -21,7 +28,8 @@ export const personalLegacyFeatures: Features = {
 };
 
 /**
- * A summary of features used in 'team' plans.
+ * A summary of features used in 'team' plans. Grist ensures that this plan exists in the database, but it
+ * is treated as an external plan that came from Stripe, and is not modified by Grist.
  */
 export const teamFeatures: Features = {
   workspaces: true,
@@ -71,16 +79,11 @@ export const teamFreeFeatures: Features = {
   baseMaxAssistantCalls: 100,
 };
 
-export const testDailyApiLimitFeatures = {
-  ...teamFreeFeatures,
-  baseMaxApiUnitsPerDocumentPerDay: 3,
-};
-
 /**
  * A summary of features used in unrestricted grandfathered accounts, and also
  * in some test settings.
  */
-export const grandfatherFeatures: Features = {
+export const freeAllFeatures: Features = {
   workspaces: true,
   vanityDomain: true,
 };
@@ -98,61 +101,44 @@ export const suspendedFeatures: Features = {
 
 /**
  *
- * Products are a bundle of enabled features.  Most products in
- * Grist correspond to products in stripe.  The correspondence is
- * established by a gristProduct metadata field on stripe plans.
- *
- * In addition, there are the following products in Grist that don't
- * exist in stripe:
- *   - The product named 'Free'.  This is a product used for organizations
- *     created prior to the billing system being set up.
- *   - The product named 'stub'.  This is product assigned to new
- *     organizations that should not be usable until a paid plan
- *     is set up for them.
- *
- * TODO: change capitalization of name of grandfather product.
- *
+ * Products are a bundle of enabled features. Grist knows only
+ * about free products and creates them by default. Other products
+ * are created by the billing system (Stripe) and synchronized when used
+ * or via webhooks.
  */
 export const PRODUCTS: IProduct[] = [
-  // This is a product for grandfathered accounts/orgs.
-  {
-    name: 'Free',
-    features: grandfatherFeatures,
-  },
-
-  // This is a product for newly created accounts/orgs.
-  {
-    name: 'stub',
-    features: {},
-  },
-  // This is a product for legacy personal accounts/orgs.
   {
     name: PERSONAL_LEGACY_PLAN,
     features: personalLegacyFeatures,
   },
   {
-    name: 'professional',  // deprecated, can be removed once no longer referred to in stripe.
-    features: teamFeatures,
+    name: PERSONAL_FREE_PLAN,
+    features: personalFreeFeatures, // those features are read from database, here are only as a reference.
   },
+  {
+    name: TEAM_FREE_PLAN,
+    features: teamFreeFeatures,
+  },
+  // This is a product for a team site (used in tests mostly, as the real team plan is managed by Stripe).
   {
     name: TEAM_PLAN,
     features: teamFeatures
   },
-
   // This is a product for a team site that is no longer in good standing, but isn't yet
   // to be removed / deactivated entirely.
   {
-    name: 'suspended',
-    features: suspendedFeatures
+    name: SUSPENDED_PLAN,
+    features: suspendedFeatures,
   },
   {
-    name: TEAM_FREE_PLAN,
-    features: teamFreeFeatures
+    name: FREE_PLAN,
+    features: freeAllFeatures,
   },
+  // This is a product for newly created accounts/orgs.
   {
-    name: PERSONAL_FREE_PLAN,
-    features: personalFreeFeatures,
-  },
+    name: STUB_PLAN,
+    features: {},
+  }
 ];
 
 
@@ -161,13 +147,11 @@ export const PRODUCTS: IProduct[] = [
  */
 export function getDefaultProductNames() {
   const defaultProduct = process.env.GRIST_DEFAULT_PRODUCT;
-  // TODO: can be removed once new deal is released.
-  const personalFreePlan = PERSONAL_FREE_PLAN;
   return {
     // Personal site start off on a functional plan.
-    personal: defaultProduct || personalFreePlan,
+    personal: defaultProduct || PERSONAL_FREE_PLAN,
      // Team site starts off on a limited plan, requiring subscription.
-    teamInitial: defaultProduct || 'stub',
+    teamInitial: defaultProduct || STUB_PLAN,
     // Team site that has been 'turned off'.
     teamCancel: 'suspended',
     // Functional team site.
@@ -218,6 +202,12 @@ export async function synchronizeProducts(
                                      .map(p => [p.name, p]));
     for (const product of desiredProducts.values()) {
       if (existingProducts.has(product.name)) {
+
+        // Synchronize features only of known plans (team plan is not known).
+        if (!isManagedPlan(product.name)) {
+          continue;
+        }
+
         const p = existingProducts.get(product.name)!;
         try {
           assert.deepStrictEqual(p.features, product.features);

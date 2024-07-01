@@ -1,5 +1,6 @@
 import {ActionSummary} from 'app/common/ActionSummary';
-import {ApplyUAResult, ForkResult, PermissionDataWithExtraUsers, QueryFilters} from 'app/common/ActiveDocAPI';
+import {ApplyUAResult, ForkResult, FormulaTimingInfo,
+        PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
 import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
@@ -9,7 +10,7 @@ import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
         TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {OrgUsageSummary} from 'app/common/DocUsage';
-import {Product} from 'app/common/Features';
+import {Features, Product} from 'app/common/Features';
 import {isClient} from 'app/common/gristUrls';
 import {encodeQueryParams} from 'app/common/gutil';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
@@ -33,6 +34,9 @@ export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
 
 // Nominal email address of a user who, if you share with them, everyone gets access.
 export const EVERYONE_EMAIL = 'everyone@getgrist.com';
+
+// Nominal email address of a user who can view anything (for thumbnails).
+export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
 
 // A special 'docId' that means to create a new document.
 export const NEW_DOCUMENT_CODE = 'new';
@@ -75,8 +79,10 @@ export interface BillingAccount {
   id: number;
   individual: boolean;
   product: Product;
+  stripePlanId: string; // Stripe price id.
   isManager: boolean;
   inGoodStanding: boolean;
+  features: Features;
   externalOptions?: {
     invoiceId?: string;
   };
@@ -510,14 +516,18 @@ export interface DocAPI {
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
   /**
    * Check if the document is currently in timing mode.
+   * Status is either
+   * - 'active' if timings are enabled.
+   * - 'pending' if timings are enabled but we can't get the data yet (as engine is blocked)
+   * - 'disabled' if timings are disabled.
    */
-  timing(): Promise<{status: boolean}>;
+  timing(): Promise<TimingStatus>;
   /**
    * Starts recording timing information for the document. Throws exception if timing is already
    * in progress or you don't have permission to start timing.
    */
   startTiming(): Promise<void>;
-  stopTiming(): Promise<void>;
+  stopTiming(): Promise<FormulaTimingInfo[]>;
 }
 
 // Operations that are supported by a doc worker.
@@ -773,11 +783,11 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async getWorker(key: string): Promise<string> {
-    const json = await this.requestJson(`${this._url}/api/worker/${key}`, {
+    const json = (await this.requestJson(`${this._url}/api/worker/${key}`, {
       method: 'GET',
       credentials: 'include'
-    });
-    return getDocWorkerUrl(this._homeUrl, json);
+    })) as PublicDocWorkerUrlInfo;
+    return getPublicDocWorkerUrl(this._homeUrl, json);
   }
 
   public async getWorkerAPI(key: string): Promise<DocWorkerAPI> {
@@ -1132,7 +1142,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async timing(): Promise<{status: boolean}> {
+  public async timing(): Promise<TimingStatus> {
     return this.requestJson(`${this._url}/timing`);
   }
 
@@ -1140,8 +1150,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     await this.request(`${this._url}/timing/start`, {method: 'POST'});
   }
 
-  public async stopTiming(): Promise<void> {
-    await this.request(`${this._url}/timing/stop`, {method: 'POST'});
+  public async stopTiming(): Promise<FormulaTimingInfo[]> {
+    return await this.requestJson(`${this._url}/timing/stop`, {method: 'POST'});
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {
@@ -1157,6 +1167,27 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 }
 
 /**
+ * Represents information to build public doc worker url.
+ *
+ * Structure that may contain either **exclusively**:
+ *  - a selfPrefix when no pool of doc worker exist.
+ *  - a public doc worker url otherwise.
+ */
+export type PublicDocWorkerUrlInfo = {
+  selfPrefix: string;
+  docWorkerUrl: null;
+} | {
+  selfPrefix: null;
+  docWorkerUrl: string;
+}
+
+export function getUrlFromPrefix(homeUrl: string, prefix: string) {
+  const url = new URL(homeUrl);
+  url.pathname = prefix + url.pathname;
+  return url.href;
+}
+
+/**
  * Get a docWorkerUrl from information returned from backend. When the backend
  * is fully configured, and there is a pool of workers, this is straightforward,
  * just return the docWorkerUrl reported by the backend. For single-instance
@@ -1164,19 +1195,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
  * use the homeUrl of the backend, with extra path prefix information
  * given by selfPrefix. At the time of writing, the selfPrefix contains a
  * doc-worker id, and a tag for the codebase (used in consistency checks).
+ *
+ * @param {string} homeUrl
+ * @param {string} docWorkerInfo The information to build the public doc worker url
+ *                               (result of the call to /api/worker/:docId)
  */
-export function getDocWorkerUrl(homeUrl: string, docWorkerInfo: {
-  docWorkerUrl: string|null,
-  selfPrefix?: string,
-}): string {
-  if (!docWorkerInfo.docWorkerUrl) {
-    if (!docWorkerInfo.selfPrefix) {
-      // This should never happen.
-      throw new Error('missing selfPrefix for docWorkerUrl');
-    }
-    const url = new URL(homeUrl);
-    url.pathname = docWorkerInfo.selfPrefix + url.pathname;
-    return url.href;
-  }
-  return docWorkerInfo.docWorkerUrl;
+export function getPublicDocWorkerUrl(homeUrl: string, docWorkerInfo: PublicDocWorkerUrlInfo) {
+  return docWorkerInfo.selfPrefix !== null ?
+    getUrlFromPrefix(homeUrl, docWorkerInfo.selfPrefix) :
+    docWorkerInfo.docWorkerUrl;
 }

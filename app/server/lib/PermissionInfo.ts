@@ -3,8 +3,9 @@ import { ALL_PERMISSION_PROPS, emptyPermissionSet,
          MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
          toMixed } from 'app/common/ACLPermissions';
 import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
-import { RuleSet, UserInfo } from 'app/common/GranularAccessClause';
+import { RuleSet } from 'app/common/GranularAccessClause';
 import { PredicateFormulaInput } from 'app/common/PredicateFormula';
+import { User } from 'app/common/User';
 import { getSetMapValue } from 'app/common/gutil';
 import log from 'app/server/lib/log';
 import { mapValues } from 'lodash';
@@ -80,8 +81,8 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
     return this._mergeFullAccess(tableAccess);
   }
 
-  public getUser(): UserInfo {
-    return this._input.user!;
+  public getUser(): User {
+    return this._input.user! as User;
   }
 
   protected abstract _processRule(ruleSet: RuleSet, defaultAccess?: () => MixedT): MixedT;

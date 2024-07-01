@@ -3,6 +3,7 @@ import {TableDataAction} from 'app/common/DocActions';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Role} from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
+import {UserInfo} from 'app/common/User';
 import {FullUser} from 'app/common/UserAPI';
 
 // Possible flavors of items in a list of documents.
@@ -74,6 +75,8 @@ export interface OpenLocalDocResult {
   clientId: string;  // the docFD is meaningful only in the context of this session
   doc: {[tableId: string]: TableDataAction};
   log: MinimalActionGroup[];
+  isTimingOn: boolean;
+  user: UserInfo;
   recoveryMode?: boolean;
   userOverride?: UserOverride;
   docUsage?: FilteredDocUsageSummary;

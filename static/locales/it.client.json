@@ -41,7 +41,8 @@
         "Trash": "Cestino",
         "Workspace will be moved to Trash.": "Lo spazio di lavoro sarà spostato nel cestino.",
         "Workspaces": "Spazi di lavoro",
-        "Tutorial": "Tutorial"
+        "Tutorial": "Tutorial",
+        "Terms of service": "Condizioni di servizio"
     },
     "MakeCopyMenu": {
         "However, it appears to be already identical.": "Tuttavia, sembra essere già identico.",
@@ -549,7 +550,9 @@
         "Legacy": "Vecchia versione",
         "Personal Site": "Sito personale",
         "Team Site": "Sito del team",
-        "Grist Templates": "Template di Grist"
+        "Grist Templates": "Template di Grist",
+        "Billing Account": "Dati di fatturazione",
+        "Manage Team": "Gestisci il team"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Creare serie separate per ciascun valore delle colonne selezionate.",
@@ -699,7 +702,46 @@
         "Ok": "OK",
         "Manage Webhooks": "Gestisci web hook",
         "Webhooks": "Web hook",
-        "API Console": "Tavola delle API"
+        "API Console": "Tavola delle API",
+        "API console": "Console Api",
+        "Coming soon": "In arrivo",
+        "Copy to clipboard": "Copia negli appunti",
+        "Data Engine": "Motore dati",
+        "Default for DateTime columns": "Default per le colonne Data/Ora",
+        "Document ID": "ID documento",
+        "Find slow formulas": "Trova le formule lente",
+        "For currency columns": "Per le colonne di valuta",
+        "For number and date formats": "Per i formati di numeri e date",
+        "Formula times": "Tempi delle formule",
+        "Hard reset of data engine": "Reset forzato del motore dati",
+        "ID for API use": "ID per l'uso con le Api",
+        "Locale": "Locale",
+        "Manage webhooks": "Gestisci i webhooks",
+        "Notify other services on doc changes": "Notifica altri servizi dei cambiamenti nel documento",
+        "Python": "Python",
+        "Reload": "Ricarica",
+        "Time Zone": "Fuso orario",
+        "python2 (legacy)": "Python 2 (superato)",
+        "python3 (recommended)": "Python 3 (raccomandato)",
+        "API URL copied to clipboard": "Url della Api copiata negli appunti",
+        "API documentation.": "Documentazione Api.",
+        "Base doc URL: {{docApiUrl}}": "Url documento base: {{docApiUrl}}",
+        "Currency": "Valuta",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID Documento da usare quando le Api REST chiedono {{docId}}. Vedi {{apiURL}}",
+        "Python version used": "Versione di Python in uso",
+        "Try API calls from the browser": "Prova le chiamate Api nel browser",
+        "Stop timing...": "Ferma cronometro...",
+        "Timing is on": "Cronometro attivo",
+        "You can make changes to the document, then stop timing to see the results.": "Puoi fare modifiche al documento, quindi fermare il cronometro e vedere il risultato.",
+        "Cancel": "Annulla",
+        "Reload data engine?": "Ricarica il motore dati?",
+        "Force reload the document while timing formulas, and show the result.": "Ricarica il documenti cronometrando le formule, e mostra il risultato.",
+        "Formula timer": "Cronometro per le formule",
+        "Reload data engine": "Ricarica il motore dati",
+        "Start timing": "Avvia cronometro",
+        "Time reload": "Ricarica tempo",
+        "Only available to document editors": "Disponibile solo per gli editor del documento",
+        "Only available to document owners": "Disponibile solo per i proprietari del documento"
     },
     "DocumentUsage": {
         "Data Size": "Dimensione dei dati",
@@ -860,7 +902,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Termina",
-        "Next": "Prossimo"
+        "Next": "Prossimo",
+        "Previous": "Precedente"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Video tour di Grist",
@@ -1041,7 +1084,8 @@
         "Dismiss": "Ignora",
         "Don't ask again.": "Non chiedere più.",
         "Don't show again.": "Non mostrare più.",
-        "Don't show tips": "Non mostrare i suggerimenti"
+        "Don't show tips": "Non mostrare i suggerimenti",
+        "TIP": "TIP"
     },
     "pages": {
         "Duplicate Page": "Duplica pagina",
@@ -1077,7 +1121,9 @@
         "Add conditional style": "Aggiungi stile condizionale",
         "Error in style rule": "Errore nella regola di stile",
         "Row Style": "Stile riga",
-        "Rule must return True or False": "La regola deve restituire Vero o Falso"
+        "Rule must return True or False": "La regola deve restituire Vero o Falso",
+        "Conditional Style": "Stile condizionale",
+        "IF...": "SE..."
     },
     "CurrencyPicker": {
         "Invalid currency": "Valuta non valida"
@@ -1145,7 +1191,9 @@
         "These rules are applied after all column rules have been processed, if applicable.": "Queste regole sono applicate dopo che tutte le regole delle colonne sono state applicate, se possibile.",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Costruisci del semplici moduli e condividili rapidamente con il nostro nuovo widget. {{learnMoreButton}}",
         "Forms are here!": "Sono arrivati i moduli!",
-        "Learn more": "Approfondisci"
+        "Learn more": "Approfondisci",
+        "Example: {{example}}": "Esempio: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Il filtro mostrava i valori nella tendina con una condizione."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
@@ -1416,7 +1464,41 @@
         "Sponsor": "Sponsor",
         "Current": "Attuale",
         "Telemetry": "Telemetria",
-        "Version": "Versione"
+        "Version": "Versione",
+        "Auto-check when this page loads": "Controlla automaticamente quando questa pagina è caricata",
+        "Grist is up to date": "Grist è aggiornato",
+        "Error checking for updates": "Errore nel controllo degli aggiornamenti",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist supporta formule molto potenti, grazie a Python. Raccomandiamo di impostare la variabile d'ambiente GRIST_SANDBOX_FLAVOR a gvisor se il vostro hardware lo permette (in genere sì), così che le formule di un documento agiscano in una sandbox isolata dagli altri documenti e dalla rete.",
+        "Last checked {{time}}": "Ultimo controllo {{time}}",
+        "Learn more.": "Per saperne di più.",
+        "Newer version available": "Disponibile una versione più recente",
+        "No information available": "Nessuna informazione disponibile",
+        "OK": "OK",
+        "Sandboxing": "Uso della sandbox",
+        "Security Settings": "Impostazioni di sicurezza",
+        "Updates": "Aggiornamenti",
+        "unconfigured": "non configurato",
+        "unknown": "sconosciuto",
+        "Error": "Errore",
+        "Check now": "Controlla adesso",
+        "Checking for updates...": "Controllo gli aggiornamenti...",
+        "Grist releases are at ": "Le release di Grist sono a ",
+        "Sandbox settings for data engine": "Impostazione della sandbox per il motore dati",
+        "Current authentication method": "Metodo di autenticazione attuale",
+        "No fault detected.": "Nessun problema rilevato.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "O, come fallback, puoi impostare: {{bootKey}} nell'ambiente, e visitare: {{url}}",
+        "Results": "Risultati",
+        "Self Checks": "Auto-diagnostica",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Non hai accesso al pannello di amministrazione.\nAccedi come amministratore.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist consente di configurare diversi tipi di autenticazione, compresi SAML e OIDC. Raccomandiamo di attivarne uno, se Grist è dispobile in rete, o raggiungibile da più persone.",
+        "Details": "Dettagli",
+        "Notes": "Note",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist firma i cookie della sessione con una chiave segreta. Impostare questa chiave con la variabile d'ambiente GRIST_SESSION_SECRET. Se questa non è definita, Grist usa un default non modificabile. Potremmo rimuovere questo avviso in futuro, perché gli ID di sessione generati a partire dalla versione 1.1.16 sono intrinsecamente sicuri dal punto di vista crittografico.",
+        "Administrator Panel Unavailable": "Pannello di amministrazione non disponibile",
+        "Authentication": "Autenticazione",
+        "Check failed.": "Controllo fallito.",
+        "Check succeeded.": "Controllo riuscito.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist consente di configurare diversi tipi di autenticazione, compresi SAML e OIDC.     Raccomandiamo di attivarne uno, se Grist è dispobile in rete, o raggiungibile      da più persone."
     },
     "WelcomeCoachingCall": {
         "Maybe Later": "Forse più tardi",
@@ -1499,5 +1581,53 @@
     },
     "FormErrorPage": {
         "Error": "Errore"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Errore nella condizione della tendina",
+        "No choices matching condition": "Nessuna scelta soddisfa la condizione",
+        "No choices to select": "Nessuna scelta da selezionare"
+    },
+    "ReferenceUtils": {
+        "No choices to select": "Nessuna scelta da selezionare",
+        "Error in dropdown condition": "Errore nella condizione della tendina",
+        "No choices matching condition": "Nessuna scelta soddisfa la condizione"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Imposta la condizione della tendina",
+        "Dropdown Condition": "Condizione della tendina",
+        "Invalid columns: {{colIds}}": "Colonne non valide: {{colIds}}"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Inserisci la condizione."
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Errore nella condizione della tendina",
+        "No choices matching condition": "Nessuna scelta soddisfa la condizione",
+        "No choices to select": "Nessuna scelta da selezionare"
+    },
+    "FormRenderer": {
+        "Reset": "Reset",
+        "Search": "Cerca",
+        "Select...": "Seleziona...",
+        "Submit": "Invia"
+    },
+    "widgetTypesMap": {
+        "Card": "Scheda",
+        "Table": "Tabella",
+        "Calendar": "Calendario",
+        "Card List": "Lista di schede",
+        "Chart": "Grafico",
+        "Custom": "Personalizzato",
+        "Form": "Modulo"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Media tempi (sec)",
+        "Total Time (s)": "Tempo totale (sec)",
+        "Loading timing data. Don't close this tab.": "Caricamento dei dati cronometrici. Non chiudere questa scheda.",
+        "Max Time (s)": "Tempo massimo (sec)",
+        "Number of Calls": "Numero di chiamate",
+        "Table ID": "ID Tabella",
+        "Column ID": "ID colonna",
+        "Formula timer": "Cronometro formule"
     }
 }

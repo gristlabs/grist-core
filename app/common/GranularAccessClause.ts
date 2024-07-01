@@ -1,7 +1,6 @@
 import {PartialPermissionSet} from 'app/common/ACLPermissions';
 import {CellValue, RowRecord} from 'app/common/DocActions';
 import {CompiledPredicateFormula} from 'app/common/PredicateFormula';
-import {Role} from 'app/common/roles';
 import {MetaRowRecord} from 'app/common/TableData';
 
 export interface RuleSet {
@@ -25,32 +24,10 @@ export interface RulePart {
   memo?: string;
 }
 
-// Light wrapper for reading records or user attributes.
-export interface InfoView {
-  get(key: string): CellValue;
-  toJSON(): {[key: string]: any};
-}
-
 // As InfoView, but also supporting writing.
 export interface InfoEditor {
   get(key: string): CellValue;
   set(key: string, val: CellValue): this;
-  toJSON(): {[key: string]: any};
-}
-
-// Represents user info, which may include properties which are themselves RowRecords.
-export interface UserInfo {
-  Name: string | null;
-  Email: string | null;
-  Access: Role | null;
-  Origin: string | null;
-  LinkKey: Record<string, string | undefined>;
-  UserID: number | null;
-  UserRef: string | null;
-  SessionID: string | null;
-  ShareRef: number | null;   // This is a rowId in the _grist_Shares table, if the user
-                             // is accessing a document via a share. Otherwise null.
-  [attributes: string]: unknown;
   toJSON(): {[key: string]: any};
 }
 

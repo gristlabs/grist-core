@@ -1,4 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
+import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {getUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {User} from 'app/gen-server/entity/User';
@@ -40,13 +41,19 @@ export abstract class InstallAdmin {
 }
 
 // Considers the user whose email matches GRIST_DEFAULT_EMAIL env var, if given, to be the
-// installation admin. If not given, then there is no admin.
+// installation admin. The support user is also accepted.
+// Otherwise, there is no admin.
 export class SimpleInstallAdmin extends InstallAdmin {
   private _installAdminEmail = appSettings.section('access').flag('installAdminEmail').readString({
     envVar: 'GRIST_DEFAULT_EMAIL',
   });
 
+  public constructor(private _dbManager: HomeDBManager) {
+    super();
+  }
+
   public override async isAdminUser(user: User): Promise<boolean> {
+    if (user.id === this._dbManager.getSupportUserId()) { return true; }
     return this._installAdminEmail ? (user.loginEmail === this._installAdminEmail) : false;
   }
 }
