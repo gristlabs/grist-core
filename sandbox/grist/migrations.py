@@ -1317,17 +1317,3 @@ def migration42(tdset):
     add_column('_grist_Triggers', 'watchedColRefList', 'RefList:_grist_Tables_column'),
     add_column('_grist_Triggers', 'options', 'Text'),
   ])
-
-@migration(schema_version=43)
-def migration43(tdset):
-  """
-  Add a table for doc api keys.
-  """
-  doc_actions = [
-    actions.AddTable("_grist_doc_api_keys", [
-      schema.make_column("user", "Ref:users"),
-      schema.make_column("apiKey", "Text"),
-      schema.make_column("docId", "Ref:docs"),
-    ]),
-  ]
-  return tdset.apply_doc_actions(doc_actions)
