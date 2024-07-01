@@ -99,7 +99,8 @@ const testId = makeTestId('test-wselect-');
 
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
-function getCompatibleTypes(tableId: TableRef, {isNewPage, summarize}: {isNewPage: boolean|undefined, summarize: boolean}): IWidgetType[] {
+function getCompatibleTypes(tableId: TableRef,
+                            {isNewPage, summarize}: {isNewPage: boolean|undefined, summarize: boolean}): IWidgetType[] {
   let compatibleTypes: Array<IWidgetType> = [];
   if (tableId !== 'New Table') {
     compatibleTypes = ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
@@ -121,7 +122,9 @@ function isSummaryCompatible(tableId: IWidgetType): boolean{
 }
 
 // Whether table and type make for a valid selection whether the user is creating a new page or not.
-function isValidSelection(table: TableRef, type: IWidgetType, {isNewPage, summarize}: {isNewPage: boolean|undefined, summarize: boolean}) {
+function isValidSelection(table: TableRef,
+                          type: IWidgetType,
+                          {isNewPage, summarize}: {isNewPage: boolean|undefined, summarize: boolean}) {
   return table !== null && getCompatibleTypes(table, {isNewPage, summarize}).includes(type);
 }
 
@@ -222,7 +225,13 @@ export function buildPageWidgetPicker(
 
   // whether the current selection is valid
   function isValid() {
-    return isValidSelection(value.table.get(), value.type.get(), {isNewPage: options.isNewPage, summarize: value.summarize.get()});
+    return isValidSelection(
+      value.table.get(),
+      value.type.get(),
+      {
+        isNewPage: options.isNewPage,
+        summarize: value.summarize.get()
+      });
   }
 
   // Summarizing a table causes the 'Group By' panel to expand on the right. To prevent it from
@@ -424,7 +433,12 @@ export class PageWidgetSelect extends Disposable {
             // there are no changes.
             this._options.buttonLabel || t("Add to Page"),
             dom.prop('disabled', (use) => !isValidSelection(
-              use(this._value.table), use(this._value.type), { isNewPage: this._options.isNewPage, summarize: use(this._value.summarize)})
+              use(this._value.table),
+              use(this._value.type),
+              {
+                isNewPage: this._options.isNewPage,
+                summarize: use(this._value.summarize)
+              })
             ),
             dom.on('click', () => this._onSave().catch(reportError)),
             testId('addBtn'),
