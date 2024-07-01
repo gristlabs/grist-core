@@ -117,7 +117,7 @@ export function fileConfigAccessorFactory<FileContents>(
  */
 export function createConfigValue<ValueType>(
   defaultValue: ValueType,
-  persistence?: ConfigAccessors<ValueType>,
+  persistence?: ConfigAccessors<ValueType | undefined>,
 ): IWritableConfigValue<ValueType> {
   let inMemoryValue = (persistence && persistence.get()) ?? defaultValue;
   return {

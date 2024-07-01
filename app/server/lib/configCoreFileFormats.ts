@@ -11,7 +11,7 @@ export type IGristCoreConfigFileLatest = IGristCoreConfigFileV1;
  */
 export interface IGristCoreConfigFileV1 {
   version: "1"
-  edition: "core" | "enterprise"
+  edition?: "core" | "enterprise"
 }
 
 /**
@@ -32,7 +32,6 @@ function upgradeV0toV1(config: IGristCoreConfigFileV0): IGristCoreConfigFileV1 {
   return {
     ...config,
     version: "1",
-    edition: "core",
   };
 }
 
