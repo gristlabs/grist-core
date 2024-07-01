@@ -8,7 +8,7 @@ export const IGristCoreConfigFileLatest = t.name("IGristCoreConfigFileV1");
 
 export const IGristCoreConfigFileV1 = t.iface([], {
   "version": t.lit("1"),
-  "edition": t.union(t.lit("core"), t.lit("enterprise")),
+  "edition": t.opt(t.union(t.lit("core"), t.lit("enterprise"))),
 });
 
 export const IGristCoreConfigFileV0 = t.iface([], {

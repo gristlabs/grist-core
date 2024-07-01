@@ -23,6 +23,6 @@ export async function loadGristCoreConfigFile(configPath?: string): Promise<IGri
 export function loadGristCoreConfig(fileConfig?: FileConfig<IGristCoreConfigFileLatest>): IGristCoreConfig {
   const fileConfigValue = fileConfigAccessorFactory(fileConfig);
   return {
-    edition: createConfigValue("core", fileConfigValue("edition"))
+    edition: createConfigValue<Edition>("core", fileConfigValue("edition"))
   };
 }
