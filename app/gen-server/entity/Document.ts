@@ -92,9 +92,6 @@ export class Document extends Resource {
   @Column({name: 'type', type: 'text', nullable: true})
   public type: DocumentType|null;
 
-  //@Column({name: 'api_key', type: 'text', nullable: true})
-  //public apiKey: string|null;
-
   public checkProperties(props: any): props is Partial<DocumentProperties> {
     return super.checkProperties(props, documentPropertyKeys);
   }
