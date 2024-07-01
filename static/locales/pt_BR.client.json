@@ -347,7 +347,9 @@
         "Reload data engine": "Recarregar o motor de dados",
         "Reload data engine?": "Recarregar o motor de dados?",
         "Start timing": "Iniciar cronometragem",
-        "Stop timing...": "Pare de cronometrar..."
+        "Stop timing...": "Pare de cronometrar...",
+        "Only available to document editors": "Disponível apenas para editores de documentos",
+        "Only available to document owners": "Disponível apenas para proprietários de documentos"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -1615,7 +1617,11 @@
         "Check failed.": "A verificação falhou.",
         "Current authentication method": "Método de autenticação atual",
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC.     Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas.",
-        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC. Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas."
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC. Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas.",
+        "Key to sign sessions with": "Chave para assinar sessões com",
+        "Session Secret": "Segredo da sessão",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "O Grist assina os cookies de sessão do usuário com uma chave secreta. Defina essa chave por meio da variável de ambiente GRIST_SESSION_SECRET. O Grist retorna a um padrão codificado quando ele não está definido. Poderemos remover esse aviso no futuro, pois os IDs de sessão gerados desde a versão 1.1.16 são inerentemente seguros em termos de criptografia.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "O Grist assina os cookies de sessão do usuário com uma chave secreta. Defina essa chave por meio da variável de ambiente GRIST_SESSION_SECRET. O Grist retorna a um padrão codificado quando ele não está definido. Poderemos remover esse aviso no futuro, pois os IDs de sessão gerados desde a versão 1.1.16 são inerentemente seguros em termos de criptografia."
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",

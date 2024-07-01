@@ -145,6 +145,13 @@ Please log in as an administrator.`)),
           description: t('Current authentication method'),
           value: this._buildAuthenticationDisplay(owner),
           expandedContent: this._buildAuthenticationNotice(owner),
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'session',
+          name: t('Session Secret'),
+          description: t('Key to sign sessions with'),
+          value: this._buildSessionSecretDisplay(owner),
+          expandedContent: this._buildSessionSecretNotice(owner),
         })
       ]),
       dom.create(AdminSection, t('Version'), [
@@ -239,6 +246,27 @@ Please log in as an administrator.`)),
     return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
 We recommend enabling one of these if Grist is accessible over the network or being made available \
 to multiple people.');
+  }
+
+  private _buildSessionSecretDisplay(owner: IDisposableOwner) {
+    return dom.domComputed(
+      use => {
+        const req = this._checks.requestCheckById(use, 'session-secret');
+        const result = req ? use(req.result) : undefined;
+
+        if (result?.status === 'warning') {
+          return cssValueLabel(cssDangerText('default'));
+        }
+
+        return cssValueLabel(cssHappyText('configured'));
+      }
+    );
+  }
+
+  private _buildSessionSecretNotice(owner: IDisposableOwner) {
+    return t('Grist signs user session cookies with a secret key. Please set this key via the environment variable \
+GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
+in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.');
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -472,7 +500,11 @@ to multiple people.');
     return dom.domComputed(
       use => [
         ...use(this._checks.probes).map(probe => {
-          const isRedundant = probe.id === 'sandboxing';
+          const isRedundant = [
+            'sandboxing',
+            'authentication',
+            'session-secret'
+          ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
           const req = this._checks.requestCheck(probe);
