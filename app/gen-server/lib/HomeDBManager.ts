@@ -1937,7 +1937,7 @@ export class HomeDBManager extends EventEmitter {
       .where("id = :id AND doc_id = :docId", {id, docId})
       .execute();
     if (res.affected !== 1) {
-      throw new ApiError('secret with given id not found', 404);
+      throw new ApiError('secret with given id not found or nothing was updated', 404);
     }
   }
 
@@ -1953,8 +1953,18 @@ export class HomeDBManager extends EventEmitter {
   // Update the webhook url in the webhook's corresponding secret (note: the webhook identifier is
   // its secret identifier).
   public async updateWebhookUrlAndAuth(
-    id: string, docId: string, url: string | undefined, auth: string | undefined, outerManager?: EntityManager) {
+    props: {
+      id: string,
+      docId: string,
+      url: string | undefined,
+      auth: string | undefined,
+      outerManager?: EntityManager}
+    ) {
+    const {id, docId, url, auth, outerManager} = props;
     return await this._runInTransaction(outerManager, async manager => {
+      if (url === undefined && auth === undefined) {
+        throw new ApiError('None of the Webhook url and auth are defined', 404);
+      }
       const value = await this.getSecret(id, docId, manager);
       if (!value) {
         throw new ApiError('Webhook with given id not found', 404);
