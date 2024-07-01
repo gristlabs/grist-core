@@ -332,6 +332,15 @@ export class ApiServer {
 
     // POST /api/docs/:docId/apiKey
     this._app.post('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
+      const options = {
+        apikey: true,
+        access: "Editor"
+      }
+      const shareInfo = {
+        linkId: `DEV-KEY-${Date.now()}`,
+        options: JSON.stringify(options),
+      };
+      await this._dbManager.createDocApiKey(req.params.docId, shareInfo);
       res.status(201).json('Created api key');
     }));
 
