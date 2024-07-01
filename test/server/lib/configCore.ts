@@ -1,7 +1,7 @@
 import * as sinon from 'sinon';
 import { assert } from 'chai';
-import { loadGristCoreConfig, loadGristCoreConfigFile } from "app/server/lib/configCore";
-import { Deps } from "app/server/lib/config";
+import { IGristCoreConfig, loadGristCoreConfig, loadGristCoreConfigFile } from "app/server/lib/configCore";
+import { createConfigValue, Deps, IWritableConfigValue } from "app/server/lib/config";
 
 describe('loadGristCoreConfig', () => {
   afterEach(() => {
@@ -26,5 +26,23 @@ describe('loadGristCoreConfig', () => {
     await config.edition.set("enterprise");
     // Make sure that the change was written back to the file.
     assert.isTrue(writeFileFake.calledOnce);
+  });
+
+  it('can be extended', async () => {
+    // Extend the core config
+    type NewConfig = IGristCoreConfig & {
+      newThing: IWritableConfigValue<number>
+    };
+
+    const coreConfig = loadGristCoreConfig();
+
+    const newConfig: NewConfig = {
+      ...coreConfig,
+      newThing: createConfigValue(3)
+    };
+
+    // Ensure that it's backwards compatible.
+    const gristConfig: IGristCoreConfig = newConfig;
+    return gristConfig;
   });
 });
