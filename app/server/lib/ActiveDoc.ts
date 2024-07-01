@@ -69,6 +69,7 @@ import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
+import {normalizedDateTimeString} from 'app/common/normalizedDateTimeString';
 import {
   compilePredicateFormula,
   getPredicateFormulaProperties,
@@ -2496,6 +2497,23 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
+  private _logSnapshotProgress(docSession: OptDocSession) {
+    const snapshotProgress = this._docManager.storageManager.getSnapshotProgress(this.docName);
+    const lastWindowTime = (snapshotProgress.lastWindowStartedAt &&
+        snapshotProgress.lastWindowDoneAt &&
+        snapshotProgress.lastWindowDoneAt > snapshotProgress.lastWindowStartedAt) ?
+        snapshotProgress.lastWindowDoneAt : Date.now();
+    const delay = snapshotProgress.lastWindowStartedAt ?
+        lastWindowTime - snapshotProgress.lastWindowStartedAt : null;
+    this._log.debug(docSession, 'snapshot status', {
+      ...snapshotProgress,
+      lastChangeAt: normalizedDateTimeString(snapshotProgress.lastChangeAt),
+      lastWindowStartedAt: normalizedDateTimeString(snapshotProgress.lastWindowStartedAt),
+      lastWindowDoneAt: normalizedDateTimeString(snapshotProgress.lastWindowDoneAt),
+      delay,
+    });
+  }
+
   private _logDocMetrics(docSession: OptDocSession, triggeredBy: 'docOpen' | 'interval'| 'docClose') {
     this.logTelemetryEvent(docSession, 'documentUsage', {
       limited: {
@@ -2513,6 +2531,9 @@ export class ActiveDoc extends EventEmitter {
         ...this._getCustomWidgetMetrics(),
       },
     });
+    // Log progress on making snapshots periodically, to catch anything
+    // excessively slow.
+    this._logSnapshotProgress(docSession);
   }
 
   private _getAccessRuleMetrics() {
