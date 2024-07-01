@@ -21,8 +21,8 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 
 // Database fields that we permit in entities but don't want to cross the api.
 const INTERNAL_FIELDS = new Set([
-  'apiKey', 'billingAccountId', 'firstLoginAt', 'filteredOut', 'ownerId', 'gracePeriodStart', 'stripeCustomerId',
-  'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
+  'apiKey', 'billingAccountId', 'firstLoginAt', 'lastConnectionAt', 'filteredOut', 'ownerId', 'gracePeriodStart',
+  'stripeCustomerId', 'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
   'authSubject', 'usage', 'createdBy'
 ]);
 
