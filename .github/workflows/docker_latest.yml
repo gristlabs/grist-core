@@ -32,10 +32,6 @@ jobs:
             repo: "grist-core"
           - name: "grist"
             repo: "grist-ee"
-          # For now, we build it twice, with `grist-ee` being a
-          # backwards-compatible synonym for `grist`.
-          - name: "grist-ee"
-            repo: "grist-ee"
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -108,6 +104,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
+
+      - name: Push Enterprise to Docker Hub
+        if: ${{ matrix.image.name == 'grist' }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ext/Dockerfile
+          platforms: linux/amd64,linux/arm64/v8
+          push: true
+          tags: ${{ github.repository_owner }}/${{ matrix.image.name }}:experimental
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   update_latest_branch:
     name: Update latest branch
