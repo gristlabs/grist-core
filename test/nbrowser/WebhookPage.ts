@@ -86,7 +86,6 @@ describe('WebhookPage', function () {
     await setField(1, 'Name', 'Test Webhook');
     await setField(1, 'Memo', 'Test Memo');
     await setField(1, 'Filter for changes in these columns (semicolon-separated ids)', 'A; B');
-    await setField(1, 'Header Authorization', 'Bearer 1234');
     await gu.waitForServer();
     await driver.navigate().refresh();
     await waitForWebhookPage();
@@ -94,7 +93,6 @@ describe('WebhookPage', function () {
       assert.equal(await getField(1, 'Name'), 'Test Webhook');
       assert.equal(await getField(1, 'Memo'), 'Test Memo');
       assert.equal(await getField(1, 'Filter for changes in these columns (semicolon-separated ids)'), 'A;B');
-      assert.equal(await getField(1, 'Header Authorization'), 'Bearer 1234');
     });
     // Make sure the webhook is actually working.
     await docApi.addRows('Table1', {A: ['zig'], B: ['zag']});
@@ -116,6 +114,27 @@ describe('WebhookPage', function () {
     assert.equal(await gu.getCardListCount(), 1);
     await docApi.removeRows('Table2', [1]);
     assert.lengthOf((await docApi.getRows('Table2')).A, 0);
+  });
+
+  it('can create webhook with persistant header authorization', async function () {
+    // The webhook won't work because the header auth doesn't match the api key of the current test user.
+    await openWebhookPage();
+    await setField(1, 'Event Types', 'add\nupdate\n');
+    await setField(1, 'URL', `http://${host}/api/docs/${doc.id}/tables/Table2/records?flat=1`);
+    await setField(1, 'Table', 'Table1');
+    await gu.waitForServer();
+    await driver.navigate().refresh();
+    await waitForWebhookPage();
+    await setField(1, 'Header Authorization', 'Bearer 1234');
+    await gu.waitForServer();
+    await driver.navigate().refresh();
+    await waitForWebhookPage();
+    await gu.waitToPass(async () => {
+      assert.equal(await getField(1, 'Header Authorization'), 'Bearer 1234');
+    });
+    await gu.getDetailCell({col:'Header Authorization', rowNum: 1}).click();
+    await gu.enterCell(Key.DELETE, Key.ENTER);
+    await gu.waitForServer();
   });
 
   it('can create two webhooks', async function () {
