@@ -1,4 +1,4 @@
-import {DocumentMetadata, HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {DocumentMetadata, HomeDBManager} from 'app/gen-server/lib/homedb';
 import log from 'app/server/lib/log';
 
 /**
