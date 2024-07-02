@@ -56,7 +56,8 @@ export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false
     "ChoiceList",
     `Ref:${tableId}`,
     `RefList:${tableId}`,
-    "Attachments"];
+    "Attachments",
+    "User"];
   return typeNames.map(type => ({type, obj: UserType.typeDefs[type.split(':')[0]]}))
       .map((ct): {
         displayName: string,

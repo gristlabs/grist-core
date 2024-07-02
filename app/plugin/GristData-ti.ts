@@ -36,7 +36,7 @@ export const RowRecords = t.iface([], {
   [t.indexKey]: t.array("CellValue"),
 });
 
-export const GristType = t.union(t.lit('Any'), t.lit('Attachments'), t.lit('Blob'), t.lit('Bool'), t.lit('Choice'), t.lit('ChoiceList'), t.lit('Date'), t.lit('DateTime'), t.lit('Id'), t.lit('Int'), t.lit('ManualSortPos'), t.lit('Numeric'), t.lit('PositionNumber'), t.lit('Ref'), t.lit('RefList'), t.lit('Text'));
+export const GristType = t.union(t.lit('Any'), t.lit('Attachments'), t.lit('Blob'), t.lit('Bool'), t.lit('Choice'), t.lit('ChoiceList'), t.lit('Date'), t.lit('DateTime'), t.lit('Id'), t.lit('Int'), t.lit('ManualSortPos'), t.lit('Numeric'), t.lit('PositionNumber'), t.lit('Ref'), t.lit('RefList'), t.lit('Text'), t.lit('User'));
 
 const exportedTypeSuite: t.ITypeSuite = {
   GristObjCode,

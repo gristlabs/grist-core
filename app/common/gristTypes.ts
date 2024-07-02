@@ -39,6 +39,7 @@ const _defaultValues: {[key in GristType]: [CellValue, string]} = {
   'Ref':              [ 0,     "0"     ],
   'RefList':          [ null,  "NULL"  ],
   'Text':             [ '',    "''"    ],
+  'User':             [ '',    "''"    ],
 };
 
 
@@ -210,6 +211,7 @@ const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
   RefList:        isListOrNull,
   Choice:         isString,
   ChoiceList:     isListOrNull,
+  User:           isString,
 };
 
 export function isRightType(type: string): undefined | ((value: CellValue, options?: any) => boolean) {

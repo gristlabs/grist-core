@@ -581,6 +581,8 @@ class ReferenceListColumn(BaseReferenceColumn):
       val = result
     return super(ReferenceListColumn, self).convert(val)
 
+class UserColumn(BaseColumn):
+  pass
 
 # Set up the relationship between usertypes objects and column objects.
 usertypes.BaseColumnType.ColType = DataColumn
@@ -593,6 +595,7 @@ usertypes.Date.ColType = DateColumn
 usertypes.PositionNumber.ColType = PositionColumn
 usertypes.Bool.ColType = BoolColumn
 usertypes.Numeric.ColType = NumericColumn
+usertypes.User.ColType = UserColumn
 
 def create_column(table, col_id, col_info):
   return col_info.type_obj.ColType(table, col_id, col_info)

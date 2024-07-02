@@ -47,6 +47,7 @@ _type_defaults = {
   'Ref':          0,
   'RefList':      None,
   'Text':         u'',
+  'User':         u'',
 }
 
 def get_type_default(col_type):
@@ -468,3 +469,9 @@ class Attachments(ReferenceList):
   """
   def __init__(self):
     super(Attachments, self).__init__('_grist_Attachments')
+
+class User(Text):
+  """
+  User is the type for a field holding one member of team.
+  """
+  pass

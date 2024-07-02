@@ -23,6 +23,8 @@ import {ReferenceList} from 'app/client/widgets/ReferenceList';
 import {ReferenceListEditor} from 'app/client/widgets/ReferenceListEditor';
 import {Spinner} from 'app/client/widgets/Spinner';
 import {ToggleCheckBox, ToggleSwitch} from 'app/client/widgets/Toggle';
+import {User} from 'app/client/widgets/User';
+import {UserEditor} from 'app/client/widgets/UserEditor';
 import {getWidgetConfiguration} from 'app/client/widgets/UserType';
 import {GristType} from 'app/plugin/GristData';
 
@@ -54,6 +56,8 @@ export const nameToWidget = {
   'AttachmentsWidget': AttachmentsWidget,
   'AttachmentsEditor': AttachmentsEditor,
   'DateTimeEditor': DateTimeEditor,
+  'User': User,
+  'UserEditor': UserEditor
 };
 
 

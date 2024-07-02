@@ -295,5 +295,21 @@ export const typeDefs: any = {
       }
     },
     default: 'Attachments'
+  },
+  User: {
+    label: 'User',
+    icon: 'FieldUser',
+    widgets: {
+      User: {
+        cons: 'User',
+        editCons: 'UserEditor',
+        icon: 'FieldUser',
+        options: {
+          alignment: 'left',
+          wrap: undefined
+        }
+      }
+    },
+    default: 'User'
   }
 };

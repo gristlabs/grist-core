@@ -574,6 +574,14 @@ export class ApiServer {
       });
     }));
 
+    // GET /api/users
+    // Get all users.
+    this._app.get('/api/users', expressWrap(async (req, res) => {
+      const users = await this._dbManager.getUsers();
+
+      return sendReply(req, res, users);
+    }));
+
     // DELETE /users/:uid
     // Delete the specified user, their personal organization, removing them from all groups.
     // Not available to the anonymous user.

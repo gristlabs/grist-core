@@ -586,6 +586,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         return 'BOOLEAN';
       case 'Choice':
       case 'Text':
+      case 'User':
         return 'TEXT';
       case 'ChoiceList':
       case 'RefList':

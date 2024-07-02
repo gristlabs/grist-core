@@ -114,6 +114,7 @@ function buildTypeField(col: ExportColumn, locale: string) {
         constraints: {enum: widgetOptions?.choices},
       };
     case 'Reference':
+    case 'User':
       return {type: 'string'};
     case 'ReferenceList':
       return {type: 'array'};
