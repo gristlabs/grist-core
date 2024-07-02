@@ -16,11 +16,11 @@ on:
         type: string
         required: true
         default: latest_candidate
-      run_tests:
-        description: "Should the tests be run before building the image?"
+      disable_tests:
+        description: "Should the tests be skipped?"
         type: boolean
         required: True
-        default: True
+        default: False
       platforms:
         description: "Platforms to build"
         type: choice
@@ -58,7 +58,7 @@ jobs:
             repo: "grist-ee"
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.latest_branch }}
 
@@ -83,40 +83,39 @@ jobs:
           build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
 
       - name: Use Node.js ${{ matrix.node-version }} for testing
-        if: ${{ inputs.run_tests || inputs.run_tests == null }}
+        if: ${{ !inputs.disable_tests }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Set up Python ${{ matrix.python-version }} for testing - maybe not needed
-        if: ${{ inputs.run_tests || inputs.run_tests == null }}
+        if: ${{ !inputs.disable_tests }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Python packages
-        if: ${{ inputs.run_tests || inputs.run_tests == null }}
+        if: ${{ !inputs.disable_tests }}
         run: |
           pip install virtualenv
           yarn run install:python
 
       - name: Install Node.js packages
-        if: ${{ inputs.run_tests || inputs.run_tests == null }}
+        if: ${{ !inputs.disable_tests }}
         run: yarn install
 
       - name: Build Node.js code
-        if: ${{ inputs.run_tests || inputs.run_tests == null }}
+        if: ${{ !inputs.disable_tests }}
         run: |
           rm -rf ext
           yarn run build:prod
 
       - name: Run tests
-        if: ${{ inputs.run_tests || inputs.run_tests == null }}
+        if: ${{ !inputs.disable_tests }}
         run: TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }} VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
 
       - name: Restore the ext/ directory
-        if: ${{ matrix.image.name != 'grist-oss' && (inputs.run_tests || inputs.run_tests == null) }}
-
+        if: ${{ matrix.image.name != 'grist-oss' && !inputs.disable_tests }}
         run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
 
       - name: Log in to Docker Hub
