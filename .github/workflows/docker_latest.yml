@@ -58,6 +58,13 @@ jobs:
           - name: "grist"
             repo: "grist-ee"
     steps:
+      - name: Build settings
+        run: |
+          echo "Branch: $BRANCH"
+          echo "Platforms: $PLATFORMS"
+          echo "Docker Hub Owner: $DOCKER_HUB_OWNER"
+          echo "Tag: $TAG"
+
       - name: Check out the repo
         uses: actions/checkout@v4
         with:
