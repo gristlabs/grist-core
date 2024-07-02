@@ -245,7 +245,7 @@
         "Permanently Delete \"{{name}}\"?": "Natrvalo Odstrániť „{{name}}“?",
         "Pin Document": "Pripnúť Dokument",
         "Pinned Documents": "Pripnuté Dokumenty",
-        "Remove": "Odstrániť",
+        "Remove": "Odobrať",
         "Rename": "Premenovať",
         "Requires edit permissions": "Vyžaduje povolenia na úpravy",
         "To restore this document, restore the workspace first.": "Ak chcete tento dokument obnoviť, najskôr obnovte pracovný priestor.",
@@ -278,7 +278,7 @@
         "Add Empty Table": "Pridať Prázdnu Tabuľku",
         "Add Page": "Pridať Stránku",
         "Add Widget to Page": "Pridať Miniaplikáciu na Stránku",
-        "Document owners can attempt to recover the document. [{{error}}]": "Vlastníci dokumentu sa môžu pokúsiť dokument obnoviť. [{{chyba}}]",
+        "Document owners can attempt to recover the document. [{{error}}]": "Vlastníci dokumentu sa môžu pokúsiť dokument obnoviť. {{chyba}}",
         "Sorry, access to this document has been denied. [{{error}}]": "Ľutujeme, prístup k tomuto dokumentu bol odmietnutý. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Môžete skúsiť znova načítať dokument alebo použiť režim obnovenia. Režim obnovenia otvorí dokument tak, aby bol plne prístupný pre vlastníkov a neprístupný pre ostatných. Zakáže tiež vzorce. [{{error}}]",
         "You do not have edit access to this document": "Nemáte prístup k úpravám tohto dokumentu"
@@ -516,7 +516,7 @@
         "To use Grist, please either sign up or sign in.": "Ak chcete používať Grist, zaregistrujte sa alebo sa prihláste.",
         "Visit our {{link}} to learn more about Grist.": "Navštíviť náš {{link}} a dozvedieť sa viac o Grist.",
         "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Viac informácií nájdete v našom {{helpCenterLink}} alebo nájdite odborníka prostredníctvom nášho {{sproutsProgram}}.",
-        "Interested in using Grist outside of your team? Visit your free ": "Máte záujem používať Grist mimo váš tím?  Navštívte svoje bezplatné ",
+        "Interested in using Grist outside of your team? Visit your free ": "Máte záujem používať Grist mimo váš tím? Navštívte svoje bezplatné ",
         "Sign up": "Prihlásiť sa"
     },
     "Importer": {
@@ -1304,7 +1304,10 @@
         "Security Settings": "Bezpečnostné nastavenia",
         "Updates": "Aktualizácie",
         "unconfigured": "nekonfigurované",
-        "unknown": "neznáme"
+        "unknown": "neznáme",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podpisuje súbory cookie relácie používateľa tajným kľúčom. Nastavte tento kľúč prostredníctvom premennej prostredia GRIST_SESSION_SECRET. Grist sa vráti späť na pevne zakódované predvolené nastavenie, keď nie je nastavené. Toto upozornenie môžeme v budúcnosti odstrániť, pretože ID relácie generované od verzie 1.1.16 sú vo svojej podstate kryptograficky bezpečné.",
+        "Key to sign sessions with": "Kľúč na podpisovanie relácií",
+        "Session Secret": "Tajomstvo Relácie"
     },
     "TimingPage": {
         "Table ID": "ID Tabuľky",
