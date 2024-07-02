@@ -48,3 +48,8 @@ processes = []
 [mounts]
 source="{VOLUME_NAME}"
 destination="/persist"
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
