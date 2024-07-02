@@ -67,7 +67,6 @@ jobs:
         if: matrix.image.name != 'grist-oss'
         run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
 
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
