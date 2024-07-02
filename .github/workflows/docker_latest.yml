@@ -15,7 +15,31 @@ on:
         description: "Branch from which to create the latest Docker image (default: latest_candidate)"
         type: string
         required: true
-        default_value: latest_candidate
+        default: latest_candidate
+      run_tests:
+        description: "Should the tests be run before building the image?"
+        type: boolean
+        required: True
+        default: True
+      platforms:
+        description: "Platforms to build"
+        type: choice
+        required: True
+        options:
+          - linux/amd64
+          - linux/arm64/v8
+          - linux/amd64,linux/arm64/v8
+        default: linux/amd64,linux/arm64/v8
+      tag:
+        description: "Tag for the resulting images"
+        type: string
+        required: True
+        default: 'experimental'
+
+env:
+  PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64/v8' }}
+  TAG: ${{ inputs.tag || 'experimental' }}
+  DOCKER_HUB_OWNER: ${{ vars.docker_hub_owner || github.repository_owner }}
 
 jobs:
   push_to_registry:
@@ -54,38 +78,45 @@ jobs:
         with:
           context: .
           load: true
-          tags: ${{ github.repository_owner }}/${{ matrix.image.name }}:experimental
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
           cache-from: type=gha
           build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
 
       - name: Use Node.js ${{ matrix.node-version }} for testing
+        if: ${{ inputs.run_tests || inputs.run_tests == null }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Set up Python ${{ matrix.python-version }} for testing - maybe not needed
+        if: ${{ inputs.run_tests || inputs.run_tests == null }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Python packages
+        if: ${{ inputs.run_tests || inputs.run_tests == null }}
         run: |
           pip install virtualenv
           yarn run install:python
 
       - name: Install Node.js packages
+        if: ${{ inputs.run_tests || inputs.run_tests == null }}
         run: yarn install
 
       - name: Build Node.js code
+        if: ${{ inputs.run_tests || inputs.run_tests == null }}
         run: |
           rm -rf ext
           yarn run build:prod
 
       - name: Run tests
-        run: TEST_IMAGE=${{ github.repository_owner }}/${{ matrix.image.name }}:experimental VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
+        if: ${{ inputs.run_tests || inputs.run_tests == null }}
+        run: TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }} VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
 
       - name: Restore the ext/ directory
-        if: matrix.image.name != 'grist-oss'
+        if: ${{ matrix.image.name != 'grist-oss' && (inputs.run_tests || inputs.run_tests == null) }}
+
         run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
 
       - name: Log in to Docker Hub
@@ -98,9 +129,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: linux/amd64,linux/arm64/v8
+          platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ github.repository_owner }}/${{ matrix.image.name }}:experimental
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
@@ -111,9 +142,9 @@ jobs:
         with:
           context: .
           file: ext/Dockerfile
-          platforms: linux/amd64,linux/arm64/v8
+          platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ github.repository_owner }}/${{ matrix.image.name }}:experimental
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
