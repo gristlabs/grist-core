@@ -37,7 +37,7 @@ on:
         default: 'experimental'
 
 env:
-  BRANCH: ${{ github.repository_owner }}/${{ inputs.branch }}
+  BRANCH: ${{ inputs.branch || 'latest_candidate' }}
   PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64/v8' }}
   TAG: ${{ inputs.tag || 'experimental' }}
   DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
