@@ -147,9 +147,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          build-contexts: |
-            gristlabs/grist=docker-image://${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}
           build-args: |
+            BASE_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name}}
             BASE_VERSION=${{ env.TAG }}
           file: ext/Dockerfile
           platforms: ${{ env.PLATFORMS }}
