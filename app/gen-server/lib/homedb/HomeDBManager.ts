@@ -2497,12 +2497,12 @@ export class HomeDBManager extends EventEmitter {
       .getOne() || undefined;
   }
 
-  // TODO filter by linkId
-  public async getDocApiKey(docId: string): Promise<Share | undefined> {
+  // can be factorized with getShareByLinkId
+  public async getDocApiKeyByLinkId(docId: string, linkId: string): Promise<Share | undefined> {
     return await this._connection.createQueryBuilder()
       .select('key')
       .from(Share, 'shares')
-      .where('docId = :docId', {docId})
+      .where('docId = :docId and linkId = :linkId', {docId, linkId})
       .getOne() || undefined;
   }
 
@@ -2522,21 +2522,52 @@ export class HomeDBManager extends EventEmitter {
       .execute();
   }
 
-  // TODO test if exists docapikey yet
-  public async updateDocApiKey(docId: string, apiKey: string) {
+  // in parameters linkId is the linkId in db in case of update of this id in the share
+  public async updateDocApiKeyByLinkId(docId: string, linkId: string, share: ShareInfo) {
     return await this._connection.createQueryBuilder()
       .update(Share)
-      .set({key: apiKey})
-      .where('docId = :docId', {docId})
+      .set(share)
+      .where('docId = :docId and linkId = :linkId', {docId, linkId})
       .execute() || undefined;
   }
 
-  public async deleteDocApiKey(docId: string, apiKey: string) {
+  public async updateDocApiKeyByKey(docId: string, apiKey: string, share: ShareInfo) {
+    return await this._connection.createQueryBuilder()
+      .update(Share)
+      .set(share)
+      .where('docId = :docId and key = :apiKey', {docId, apiKey})
+      .execute() || undefined;
+  }
+
+  public async deleteDocApiKeyByKey(docId: string, apiKey: string) {
+    return await this.connection.createQueryBuilder()
+      .delete()
+      .from('shares')
+      .where('docId = :docId and key = :apiKey', {docId, apiKey})
+      .execute() || undefined;
+  }
+
+  public async getDocApiKeys(docId: string): Promise<Share[] | undefined> {
+    return await this._connection.createQueryBuilder()
+      .select('key')
+      .from(Share, 'shares')
+      .where('docId = :docId', {docId})
+      .getMany() || undefined;
+  }
+
+  public async deleteDocApiKeyByLinkId(docId: string, linkId: string) {
+    return await this.connection.createQueryBuilder()
+      .delete()
+      .from('shares')
+      .where('docId = :docId and linkId = :linkId', {docId, linkId})
+      .execute() || undefined;
+  }
+
+  public async deleteDocApiKeys(docId: string) {
     return await this.connection.createQueryBuilder()
       .delete()
       .from('shares')
       .where('docId = :docId', {docId})
-      .where('key = :apiKey', {apiKey})
       .execute() || undefined;
   }
 
