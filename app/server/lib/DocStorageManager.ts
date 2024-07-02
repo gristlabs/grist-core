@@ -258,7 +258,14 @@ export class DocStorageManager implements IDocStorageManager {
   }
 
   public getSnapshotProgress(): SnapshotProgress {
-    throw new Error('getSnapshotProgress not implemented');
+    return {
+      pushes: 0,
+      skippedPushes: 0,
+      errors: 0,
+      changes: 0,
+      windowsStarted: 0,
+      windowsDone: 0,
+    };
   }
 
   public async replace(docName: string, options: any): Promise<void> {
