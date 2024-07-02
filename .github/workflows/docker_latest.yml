@@ -11,11 +11,11 @@ on:
     - cron:  '41 5 * * *'
   workflow_dispatch:
     inputs:
-      latest_branch:
+      branch:
         description: "Branch from which to create the latest Docker image (default: latest_candidate)"
         type: string
         required: true
-        default: ${{ github.repository_owner }}/${{github.ref_name}}
+        default: latest_candidate
       disable_tests:
         description: "Should the tests be skipped?"
         type: boolean
@@ -37,6 +37,7 @@ on:
         default: 'experimental'
 
 env:
+  BRANCH: ${{ github.repository_owner }}/${{ inputs.branch }}
   PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64/v8' }}
   TAG: ${{ inputs.tag || 'experimental' }}
   DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
@@ -60,7 +61,7 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.latest_branch }}
+          ref: ${{ env.BRANCH }}
 
       - name: Check out the ext/ directory
         if: matrix.image.name != 'grist-oss'
