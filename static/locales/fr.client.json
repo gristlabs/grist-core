@@ -335,7 +335,9 @@
         "Formula timer": "Chronomètre de formule",
         "Timing is on": "Le chronomètre tourne",
         "You can make changes to the document, then stop timing to see the results.": "Vous pouvez apporter des modifications au document, puis arrêter le chronométrage pour voir les résultats.",
-        "Formula times": "Minuteur de formule"
+        "Formula times": "Minuteur de formule",
+        "Only available to document editors": "Seulement disponible aux éditeurs du document",
+        "Only available to document owners": "Seulement disponible aux propriétaires du document"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -1120,7 +1122,8 @@
         "min": "min",
         "Text": "Texte",
         "max": "max",
-        "Field Format": "Format du champ"
+        "Field Format": "Format du champ",
+        "Spinner": "Roue"
     },
     "LanguageMenu": {
         "Language": "Langue"
@@ -1547,7 +1550,15 @@
         "Details": "Détails",
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist permet de configurer différents types d'authentification, notamment SAML et OIDC. Nous recommandons d'activer l'un de ces types d'authentification si Grist est accessible via le réseau ou s'il est mis à la disposition de plusieurs personnes.",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Vous n'avez pas accès au panneau d'administrateur.\nVeuillez vous connecter en tant qu'administrateur.",
-        "Results": "Résultats"
+        "Results": "Résultats",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist signe les cookies des sessions utilisateurs avec une clé secrète. Merci de renseigner cette clé via la variable d'environnement GRIST_SESSION_SECRET. Grist se replie sur une clé codée en dur par défaut si la variable n'est pas renseignée. La présente remarque sera peut-être retirée dans le futur comme les identifiants de session générés depuis la version 1.1.16 sont cryptographiquement sûrs.",
+        "Key to sign sessions with": "Clé de signature des sessions",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist autorise la configuration de différents types d'authentifications, parmi lesquels SAML et OIDC. Nous recommandons d'activer l'une d'entre elles si Grist est accessible sur le réseau ou est rendu accessible à plusieurs personnes.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signe les cookies des sessions utilisateurs avec une clé secrète. Merci de renseigner cette clé via la variable d'environnement GRIST_SESSION_SECRET. Grist utilise par défaut une clé codée en dur si la variable n'est pas renseignée. Nous retirerons peut-être cet avertissement à l'avenir comme les identifiants de session générés depuis la version 1.1.16 sont intrinsèquement cryptographiquement sûrs.",
+        "Sandboxing": "Bac à sable",
+        "Self Checks": "Auto contrôles",
+        "Session Secret": "Secret de session",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Ou, comme plan B., vous pouvez renseigner : {{bootKey}} dans l'environnement et visiter : {{url}}"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",

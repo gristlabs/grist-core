@@ -1987,7 +1987,7 @@ export class FlexServer implements GristServer {
   }
 
   public addUpdatesCheck() {
-    if (this._check('update')) { return; }
+    if (this._check('update', 'json')) { return; }
 
     // For now we only are active for sass deployments.
     if (this._deploymentType !== 'saas') { return; }

@@ -4029,7 +4029,7 @@ function testDocApi() {
           ...pick(options, 'name', 'memo', 'enabled', 'watchedColIds'),
         }, chimpy
       );
-      assert.equal(status, 200);
+      assert.equal(status, 200, `Error during subscription: ` + JSON.stringify(data));
       return data as WebhookSubscription;
     }
 
