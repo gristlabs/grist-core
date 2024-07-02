@@ -72,6 +72,7 @@ type Trigger = MetaRowRecord<"_grist_Triggers">;
 export interface WebHookSecret {
   url: string;
   unsubscribeKey: string;
+  authorization?: string;
 }
 
 // Work to do after fetching values from the document
@@ -259,6 +260,7 @@ export class DocTriggers {
     const getTableId = docData.getMetaTable("_grist_Tables").getRowPropFunc("tableId");
     const getColId = docData.getMetaTable("_grist_Tables_column").getRowPropFunc("colId");
     const getUrl = async (id: string) => (await this._getWebHook(id))?.url ?? '';
+    const getAuthorization = async (id: string) => (await this._getWebHook(id))?.authorization ?? '';
     const getUnsubscribeKey = async (id: string) => (await this._getWebHook(id))?.unsubscribeKey ?? '';
     const resultTable: WebhookSummary[] = [];
 
@@ -271,6 +273,7 @@ export class DocTriggers {
       for (const act of webhookActions) {
         // Url, probably should be hidden for non-owners (but currently this API is owners only).
         const url = await getUrl(act.id);
+        const authorization = await getAuthorization(act.id);
         // Same story, should be hidden.
         const unsubscribeKey = await getUnsubscribeKey(act.id);
         if (!url || !unsubscribeKey) {
@@ -285,6 +288,7 @@ export class DocTriggers {
           fields: {
             // Url, probably should be hidden for non-owners (but currently this API is owners only).
             url,
+            authorization,
             unsubscribeKey,
             // Other fields used to register this webhook.
             eventTypes: decodeObject(t.eventTypes) as string[],
@@ -683,6 +687,7 @@ export class DocTriggers {
       const batch = _.takeWhile(this._webHookEventQueue.slice(0, 100), {id});
       const body = JSON.stringify(batch.map(e => e.payload));
       const url = await this._getWebHookUrl(id);
+      const authorization = (await this._getWebHook(id))?.authorization || "";
       if (this._loopAbort.signal.aborted) {
         continue;
       }
@@ -698,7 +703,8 @@ export class DocTriggers {
         this._activeDoc.logTelemetryEvent(null, 'sendingWebhooks', {
           limited: {numEvents: meta.numEvents},
         });
-        success = await this._sendWebhookWithRetries(id, url, body, batch.length, this._loopAbort.signal);
+        success = await this._sendWebhookWithRetries(
+          id, url, authorization, body, batch.length, this._loopAbort.signal);
         if (this._loopAbort.signal.aborted) {
           continue;
         }
@@ -770,7 +776,8 @@ export class DocTriggers {
     return this._drainingQueue ? Math.min(5, TRIGGER_MAX_ATTEMPTS) : TRIGGER_MAX_ATTEMPTS;
   }
 
-  private async _sendWebhookWithRetries(id: string, url: string, body: string, size: number, signal: AbortSignal) {
+  private async _sendWebhookWithRetries(
+    id: string, url: string, authorization: string, body: string, size: number, signal: AbortSignal) {
     const maxWait = 64;
     let wait = 1;
     for (let attempt = 0; attempt < this._maxWebhookAttempts; attempt++) {
@@ -786,6 +793,7 @@ export class DocTriggers {
           body,
           headers: {
             'Content-Type': 'application/json',
+            ...(authorization ? {'Authorization': authorization} : {}),
           },
           signal,
           agent: proxyAgent(new URL(url)),

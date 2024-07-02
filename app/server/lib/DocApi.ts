@@ -324,7 +324,7 @@ export class DocWorkerApi {
     );
 
     const registerWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, webhook: WebhookFields) => {
-      const {fields, url} = await getWebhookSettings(activeDoc, req, null, webhook);
+      const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, null, webhook);
       if (!fields.eventTypes?.length) {
         throw new ApiError(`eventTypes must be a non-empty array`, 400);
       }
@@ -336,7 +336,7 @@ export class DocWorkerApi {
       }
 
       const unsubscribeKey = uuidv4();
-      const webhookSecret: WebHookSecret = {unsubscribeKey, url};
+      const webhookSecret: WebHookSecret = {unsubscribeKey, url, authorization};
       const secretValue = JSON.stringify(webhookSecret);
       const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
 
@@ -392,7 +392,7 @@ export class DocWorkerApi {
       const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
       const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
       let currentTableId = trigger ? tablesTable.getValue(trigger.tableRef, 'tableId')! : undefined;
-      const {url, eventTypes, watchedColIds, isReadyColumn, name} = webhook;
+      const {url, authorization, eventTypes, watchedColIds, isReadyColumn, name} = webhook;
       const tableId = await getRealTableId(req.params.tableId || webhook.tableId, {metaTables});
 
       const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
@@ -454,6 +454,7 @@ export class DocWorkerApi {
       return {
         fields,
         url,
+        authorization,
       };
     }
 
@@ -926,16 +927,16 @@ export class DocWorkerApi {
 
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
-        const {fields, url} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
+        const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
         if (fields.enabled === false) {
           await activeDoc.triggers.clearSingleWebhookQueue(webhookId);
         }
 
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
 
-        // update url in homedb
-        if (url) {
-          await this._dbManager.updateWebhookUrl(webhookId, docId, url);
+        // update url and authorization header in homedb
+        if (url || authorization) {
+          await this._dbManager.updateWebhookUrlAndAuth({id: webhookId, docId, url, auth: authorization});
           activeDoc.triggers.webhookDeleted(webhookId); // clear cache
         }
 
