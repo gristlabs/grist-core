@@ -15,7 +15,7 @@ on:
         description: "Branch from which to create the latest Docker image (default: latest_candidate)"
         type: string
         required: true
-        default: latest_candidate
+        default: ${{ github.repository_owner }}/${{github.ref_name}}
       disable_tests:
         description: "Should the tests be skipped?"
         type: boolean
