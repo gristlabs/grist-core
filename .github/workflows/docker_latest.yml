@@ -39,7 +39,7 @@ on:
 env:
   PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64/v8' }}
   TAG: ${{ inputs.tag || 'experimental' }}
-  DOCKER_HUB_OWNER: ${{ vars.docker_hub_owner || github.repository_owner }}
+  DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
 
 jobs:
   push_to_registry:
