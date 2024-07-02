@@ -131,7 +131,7 @@ jobs:
           context: .
           platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ TAG }}
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
@@ -144,7 +144,7 @@ jobs:
           file: ext/Dockerfile
           platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ TAG }}
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
