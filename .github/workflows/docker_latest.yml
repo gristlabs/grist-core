@@ -141,10 +141,14 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          build-contexts: |
+            gristlabs/grist=docker-image://${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}
+          build-args: |
+            BASE_VERSION=${{ env.TAG }}
           file: ext/Dockerfile
           platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
+          tags: ${{ env.DOCKER_HUB_OWNER }}/grist-ee:${{ env.TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
