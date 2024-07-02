@@ -1,9 +1,78 @@
+import ast
+import asttokens
 import json
 import logging
+import textbuilder
 
-from predicate_formula import parse_predicate_formula_json
+from predicate_formula import NamedEntity, parse_predicate_formula_json, TreeConverter
+import predicate_formula
 
 log = logging.getLogger(__name__)
+
+class _DCEntityCollector(TreeConverter):
+  def __init__(self):
+    self.entities = []
+
+  def visit_Attribute(self, node):
+    parent = self.visit(node.value)
+
+    if parent == ["Name", "choice"]:
+      self.entities.append(NamedEntity("choiceAttr", node.last_token.startpos, node.attr, None))
+    elif parent == ["Name", "rec"]:
+      self.entities.append(NamedEntity("recCol", node.last_token.startpos, node.attr, None))
+
+    return ["Attr", parent, node.attr]
+
+
+def perform_dropdown_condition_renames(useractions, renames):
+  """
+  Given a dict of column renames of the form {(table_id, col_id): new_col_id}, applies updates
+  to the affected dropdown condition formulas.
+  """
+  updates = []
+
+  for col in useractions._docmodel.columns.all:
+
+    patches = []
+
+    # Find all columns in the document that have dropdown conditions.
+    try:
+      widget_options = json.loads(col.widgetOptions)
+      dc_formula = widget_options["dropdownCondition"]["text"]
+    except (json.JSONDecodeError, KeyError):
+      continue
+
+    # Find out what table this column refers to and belongs to.
+    if col.type.startswith("Ref:") :
+      ref_table_id = col.type[4:] 
+    elif col.type.startswith("RefList:"):
+      ref_table_id = col.type[8:] 
+    else:
+      # Unexpected situation. A column with dropdown condition should be of type reference
+      # or reference list. We leave this problematic column untouched.
+      continue
+    self_table_id = col.parentId.tableId
+
+    def renamer(subject):
+      table_id = ref_table_id if subject.type == "choiceAttr" else self_table_id
+      return renames.get((table_id, subject.name))
+      
+    new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
+
+    widget_options["dropdownCondition"] = {"text": new_dc_formula}
+    try:
+      # Parse the new dropdown condition formula if it is syntactically correct.
+      widget_options["dropdownCondition"]["parsed"] = parse_predicate_formula_json(new_dc_formula)
+    except SyntaxError:
+      pass
+    except ValueError as e:
+      if not str(e).startswith("Unsupported syntax"):
+        raise e
+    updates.append((col, {"widgetOptions": json.dumps(widget_options)}))
+
+  # Update the dropdown condition in the database.
+  useractions.doBulkUpdateFromPairs('_grist_Tables_column', updates)
+
 
 def parse_dropdown_conditions(col_values):
   """

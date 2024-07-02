@@ -3,10 +3,12 @@ import io
 import json
 import tokenize
 from collections import namedtuple
-
+import ast
+import asttokens
+import textbuilder
 import six
-
-from codebuilder import replace_dollar_attrs
+from codebuilder import get_dollar_replacer
+import re
 
 # Entities encountered in predicate formulas, which may get renamed.
 #   type : 'recCol'|'userAttr'|'userAttrCol',
@@ -38,7 +40,7 @@ def parse_predicate_formula(formula):
   if isinstance(formula, six.binary_type):
     formula = formula.decode('utf8')
   try:
-    formula = replace_dollar_attrs(formula)
+    formula = get_dollar_replacer(formula).get_text()
     tree = ast.parse(formula, mode='eval')
     result = TreeConverter().visit(tree)
     for part in tokenize.generate_tokens(io.StringIO(formula).readline):
@@ -46,9 +48,9 @@ def parse_predicate_formula(formula):
         result = ['Comment', result, part[1][1:].strip()]
         break
     return result
-  except SyntaxError as err:
+  except SyntaxError as e:
     # In case of an error, include line and offset.
-    raise SyntaxError("%s on line %s col %s" % (err.args[0], err.lineno, err.offset))
+    raise SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset))
 
 def parse_predicate_formula_json(formula):
   """
@@ -62,6 +64,60 @@ named_constants = {
   'False': False,
   'None': None,
 }
+
+
+def process_renames(formula, collector, renamer):
+
+  """
+  Given a predicate formula, a collector and a renamer, rename all references in the formula
+  that the renamer wants to rename. This is used to automatically update references in an ACL
+  or dropdown condition formula when a column it refers to has been renamed.
+
+  The collector should be a subclass of TreeConverter that collects related NamedEntity's and
+  stores them in the field "entities". See acl._ACLEntityCollector for an example.
+
+  The renamer should be a function taking a NamedEntity as its only argument. It should return 
+  a new name for this NamedEntity when it wants to rename this entity, or None otherwise.
+  """
+  patches = []
+  # "$" can be used to refer to "rec." in Grist formulas, but it is not valid Python.
+  # We need to replace it with "rec." before parsing the formula, and restore it back after
+  # the surgery.
+  # Keep the dollar replacer object, so that later we know how to restore properly.
+  dollar_replacer = get_dollar_replacer(formula)
+  formula_nodollar = dollar_replacer.get_text()
+  try:
+    atok = asttokens.ASTTokens(formula_nodollar, tree=ast.parse(formula_nodollar, mode='eval'))
+    collector.visit(atok.tree)
+  except SyntaxError:
+    # Don't do anything to a syntactically wrong formula.
+    return formula
+  except ValueError as e:
+    if str(e).startswith("Unsupported syntax"):
+      return formula
+
+  for subject in collector.entities:
+    new_name = renamer(subject)
+    if new_name is not None:
+      patches.append(textbuilder.make_patch(
+        dollar_replacer.get_text(), subject.start_pos, subject.start_pos + len(subject.name), new_name))
+
+  new_formula = textbuilder.Replacer(dollar_replacer, patches)
+  new_formula_text = new_formula.get_text()
+
+  # Find all "rec." in the processed formula.
+  rec_occurrences = (m.start() for m in re.finditer(r"rec\.", new_formula_text))
+
+  # Replace "rec." expanded from "$" back.
+  patches = (
+    textbuilder.make_patch(new_formula_text, rec_occurrence, rec_occurrence+4, "$")
+    for rec_occurrence in rec_occurrences
+    # Map all "rec." back to the original formula to check if it was a "$".
+    if formula[new_formula.map_back_offset(rec_occurrence)] == "$"
+  )
+
+  return textbuilder.Replacer(textbuilder.Text(new_formula_text), patches).get_text()
+
 
 class TreeConverter(ast.NodeVisitor):
   # AST nodes are documented here: https://docs.python.org/2/library/ast.html#abstract-grammar
