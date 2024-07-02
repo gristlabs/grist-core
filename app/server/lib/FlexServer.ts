@@ -54,7 +54,7 @@ import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
 import {getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
-import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
+import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
@@ -87,6 +87,7 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
+import {IGristCoreConfig} from "./configCore";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -105,6 +106,9 @@ export interface FlexServerOptions {
   baseDomain?: string;
   // Base URL for plugins, if permitted. Defaults to APP_UNTRUSTED_URL.
   pluginUrl?: string;
+
+  // Global grist config options
+  settings?: IGristCoreConfig;
 }
 
 const noop: express.RequestHandler = (req, res, next) => next();
@@ -122,7 +126,7 @@ export class FlexServer implements GristServer {
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public settings?: Readonly<Record<string, unknown>>;
+  public settings?: IGristCoreConfig;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
@@ -186,6 +190,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
+    this.settings = options.settings;
     this.app = express();
     this.app.set('port', port);
 
@@ -662,7 +667,7 @@ export class FlexServer implements GristServer {
 
   public get instanceRoot() {
     if (!this._instanceRoot) {
-      this._instanceRoot = path.resolve(process.env.GRIST_INST_DIR || this.appRoot);
+      this._instanceRoot = getInstanceRoot();
       this.info.push(['instanceRoot', this._instanceRoot]);
     }
     return this._instanceRoot;
@@ -774,7 +779,7 @@ export class FlexServer implements GristServer {
   // Set up the main express middleware used.  For a single user setup, without logins,
   // all this middleware is currently a no-op.
   public addAccessMiddleware() {
-    if (this._check('middleware', 'map', 'config', isSingleUserMode() ? null : 'hosts')) { return; }
+    if (this._check('middleware', 'map', 'loginMiddleware', isSingleUserMode() ? null : 'hosts')) { return; }
 
     if (!isSingleUserMode()) {
       const skipSession = appSettings.section('login').flag('skipSession').readBool({
@@ -938,7 +943,7 @@ export class FlexServer implements GristServer {
   }
 
   public addSessions() {
-    if (this._check('sessions', 'config')) { return; }
+    if (this._check('sessions', 'loginMiddleware')) { return; }
     this.addTagChecker();
     this.addOrg();
 
@@ -1135,25 +1140,8 @@ export class FlexServer implements GristServer {
     });
   }
 
-  /**
-   * Load user config file from standard location (if present).
-   *
-   * Note that the user config file doesn't do anything today, but may be useful in
-   * the future for configuring things that don't fit well into environment variables.
-   *
-   * TODO: Revisit this, and update `GristServer.settings` type to match the expected shape
-   * of config.json. (ts-interface-checker could be useful here for runtime validation.)
-   */
-  public async loadConfig() {
-    if (this._check('config')) { return; }
-    const settingsPath = path.join(this.instanceRoot, 'config.json');
-    if (await fse.pathExists(settingsPath)) {
-      log.info(`Loading config from ${settingsPath}`);
-      this.settings = JSON.parse(await fse.readFile(settingsPath, 'utf8'));
-    } else {
-      log.info(`Loading empty config because ${settingsPath} missing`);
-      this.settings = {};
-    }
+  public async addLoginMiddleware() {
+    if (this._check('loginMiddleware')) { return; }
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
@@ -1169,9 +1157,9 @@ export class FlexServer implements GristServer {
   }
 
   public addComm() {
-    if (this._check('comm', 'start', 'homedb', 'config')) { return; }
+    if (this._check('comm', 'start', 'homedb', 'loginMiddleware')) { return; }
     this._comm = new Comm(this.server, {
-      settings: this.settings,
+      settings: {},
       sessions: this._sessions,
       hosts: this._hosts,
       loginMiddleware: this._loginMiddleware,
@@ -1311,7 +1299,7 @@ export class FlexServer implements GristServer {
       null : 'homedb', 'api-mw', 'map', 'telemetry');
     // add handlers for cleanup, if we are in charge of the doc manager.
     if (!this._docManager) { this.addCleanup(); }
-    await this.loadConfig();
+    await this.addLoginMiddleware();
     this.addComm();
 
     await this.create.configure?.();
