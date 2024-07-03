@@ -48,13 +48,16 @@ def perform_dropdown_condition_renames(useractions, renames):
     elif col.type.startswith("RefList:"):
       ref_table_id = col.type[8:] 
     else:
-      # Unexpected situation. A column with dropdown condition should be of type reference
-      # or reference list. We leave this problematic column untouched.
-      continue
+      ref_table_id = None
     self_table_id = col.parentId.tableId
 
     def renamer(subject):
       table_id = ref_table_id if subject.type == "choiceAttr" else self_table_id
+      # Dropdown conditions stay in widgetOptions, even when the current column type can't make use of them.
+      # Attributes of "choice" do not make sense for columns that are not Ref and RefList.
+      # We set ref_table_id to None in this case, so table_id will be None for stray choiceAttrs, therefore
+      # the subject will not be renamed.
+      # Columns of "rec" are still renamed accordingly.
       return renames.get((table_id, subject.name))
       
     new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)

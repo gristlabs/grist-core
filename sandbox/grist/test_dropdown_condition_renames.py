@@ -6,6 +6,35 @@ import test_engine
 import testsamples
 import useractions
 
+# A sample dropdown condition formula for the column Schools.address and alike, of type Ref/RefList.
+def build_dc1_text(school_name, address_city):
+  return "'New' in choice.{address_city} and ${school_name} == rec.{school_name} + rec.choice.city or choice.rec.city != $name2".format(**locals())
+
+# Another sample formula for a new column of type ChoiceList (or actually, anything other than Ref/RefList).
+def build_dc2_text(school_name, school_address):
+  # We currently don't support layered attribute access, e.g. rec.address.city, so this is not tested.
+  # choice.city really is nonsense, as choice will not be an object.
+  # Just for testing purposes, to make sure nothing is renamed here.
+  return "choice + ${school_name} == choice.city or rec.{school_address} > 2".format(**locals())
+
+def build_dc1(school_name, address_city):
+  return json.dumps({
+    "dropdownCondition": {
+      "text": build_dc1_text(school_name, address_city),
+      # The ModifyColumn user action should trigger an auto parse.
+      # "parsed" is stored as dumped JSON, so we need to explicitly dump it here as well.
+      "parsed": json.dumps(["Or", ["And", ["In", ["Const", "New"], ["Attr", ["Name", "choice"], address_city]], ["Eq", ["Attr", ["Name", "rec"], school_name], ["Add", ["Attr", ["Name", "rec"], school_name], ["Attr", ["Attr", ["Name", "rec"], "choice"], "city"]]]], ["NotEq", ["Attr", ["Attr", ["Name", "choice"], "rec"], "city"], ["Attr", ["Name", "rec"], "name2"]]])
+    }
+  })
+
+def build_dc2(school_name, school_address):
+  return json.dumps({
+    "dropdownCondition": {
+      "text": build_dc2_text(school_name, school_address),
+      "parsed": json.dumps(["Or", ["Eq", ["Add", ["Name", "choice"], ["Attr", ["Name", "rec"], school_name]], ["Attr", ["Name", "choice"], "city"]], ["Gt", ["Attr", ["Name", "rec"], school_address], ["Const", 2]]])
+    }
+  })
+
 class TestDCRenames(test_engine.EngineTestCase):
 
   def setUp(self):
@@ -28,7 +57,7 @@ class TestDCRenames(test_engine.EngineTestCase):
       ["ModifyColumn", "Schools", "address", {
         "widgetOptions": json.dumps({
           "dropdownCondition": {
-            "text": "'New' in choice.city and $name == rec.name + rec.choice.city or choice.rec.city != $name2",
+            "text": build_dc1_text("name", "city"),
           }
         }),
       }],
@@ -53,26 +82,32 @@ class TestDCRenames(test_engine.EngineTestCase):
       ["ModifyColumn", "Schools", "addresses", {
         "widgetOptions": json.dumps({
           "dropdownCondition": {
-            "text": "'New' in choice.city and $name == rec.name + rec.choice.city or choice.rec.city != $name2",
+            "text": build_dc1_text("name", "city"),
+          }
+        }),
+      }],
+      # And another similar column, but of type ChoiceList.
+      # widgetOptions stay when the column type changes. We do our best to rename stuff in stray widgetOptions.
+      # This column will have the ID 27. 
+      ["AddColumn", "Schools", "features", {
+        "type": "ChoiceList",
+      }],
+      ["ModifyColumn", "Schools", "features", {
+        "widgetOptions": json.dumps({
+          "dropdownCondition": {
+            "text": build_dc2_text("name", "address"),
           }
         }),
       }],
     )])
 
-    initial_dropdown_condition = json.dumps({
-        "dropdownCondition": {
-          "text": "'New' in choice.city and $name == rec.name + rec.choice.city or choice.rec.city != $name2",
-          # The ModifyColumn user action should trigger an auto parse.
-          # "parsed" is stored as dumped JSON, so we need to explicitly dump it here as well.
-          "parsed": json.dumps(["Or", ["And", ["In", ["Const", "New"], ["Attr", ["Name", "choice"], "city"]], ["Eq", ["Attr", ["Name", "rec"], "name"], ["Add", ["Attr", ["Name", "rec"], "name"], ["Attr", ["Attr", ["Name", "rec"], "choice"], "city"]]]], ["NotEq", ["Attr", ["Attr", ["Name", "choice"], "rec"], "city"], ["Attr", ["Name", "rec"], "name2"]]])
-        }
-      })
     # This is what we'll have at the beginning, for later tests to refer to.
     # Table Schools is 2.
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
-      [12, 2, "address", initial_dropdown_condition],
-      [26, 2, "addresses", initial_dropdown_condition],
+      [12, 2, "address", build_dc1("name", "city")],
+      [26, 2, "addresses", build_dc1("name", "city")],
+      [27, 2, "features", build_dc2("name", "address")],
     ])
     self.assert_invalid_formula_untouched()
 
@@ -87,37 +122,26 @@ class TestDCRenames(test_engine.EngineTestCase):
     ])
 
   def test_referred_column_renames(self):
-    # Rename the column "city" in table "Address" to "area". Schools.address refers to it.
     self.apply_user_action(["RenameColumn", "Address", "city", "area"])
-    # Now choice.city should become choice.area. This should also be reflected in the parsed formula.
-    modified_dropdown_condition = json.dumps({
-        "dropdownCondition": {
-          "text": "'New' in choice.area and $name == rec.name + rec.choice.city or choice.rec.city != $name2",
-          "parsed": json.dumps(["Or", ["And", ["In", ["Const", "New"], ["Attr", ["Name", "choice"], "area"]], ["Eq", ["Attr", ["Name", "rec"], "name"], ["Add", ["Attr", ["Name", "rec"], "name"], ["Attr", ["Attr", ["Name", "rec"], "choice"], "city"]]]], ["NotEq", ["Attr", ["Attr", ["Name", "choice"], "rec"], "city"], ["Attr", ["Name", "rec"], "name2"]]])
-        }
-      })
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
-      [12, 2, "address", modified_dropdown_condition],
-      [26, 2, "addresses", modified_dropdown_condition],
+      [12, 2, "address", build_dc1("name", "area")],
+      [26, 2, "addresses", build_dc1("name", "area")],
+      # Nothing should be renamed here, as only column renames in the table "Schools" are relevant.
+      [27, 2, "features", build_dc2("name", "address")],
     ])
     self.assert_invalid_formula_untouched()
 
   def test_record_column_renames(self):
-    # Rename the column "name" in table "Schools" to "identifier". Schools.address refers to it in two ways -
-    # the dollar sign and "rec.".
     self.apply_user_action(["RenameColumn", "Schools", "name", "identifier"])
-    # Now "$name" should become "$identifier" while "rec.name" should become "rec.identifier".
-    modified_dropdown_condition = json.dumps({
-        "dropdownCondition": {
-          "text": "'New' in choice.city and $identifier == rec.identifier + rec.choice.city or choice.rec.city != $name2",
-          "parsed": json.dumps(["Or", ["And", ["In", ["Const", "New"], ["Attr", ["Name", "choice"], "city"]], ["Eq", ["Attr", ["Name", "rec"], "identifier"], ["Add", ["Attr", ["Name", "rec"], "identifier"], ["Attr", ["Attr", ["Name", "rec"], "choice"], "city"]]]], ["NotEq", ["Attr", ["Attr", ["Name", "choice"], "rec"], "city"], ["Attr", ["Name", "rec"], "name2"]]])
-        }
-      })
+    self.apply_user_action(["RenameColumn", "Schools", "address", "location"])
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
-      [12, 2, "address", modified_dropdown_condition],
-      [26, 2, "addresses", modified_dropdown_condition],
+      # Side effect: "address" becomes "location".
+      [12, 2, "location", build_dc1("identifier", "city")],
+      [26, 2, "addresses", build_dc1("identifier", "city")],
+      # Now "$name" should become "$identifier", just like in Ref/RefList columns. Nothing else should change.
+      [27, 2, "features", build_dc2("identifier", "location")],
     ])
     self.assert_invalid_formula_untouched()
 
@@ -125,15 +149,10 @@ class TestDCRenames(test_engine.EngineTestCase):
     # Put all renames together.
     self.apply_user_action(["RenameColumn", "Address", "city", "area"])
     self.apply_user_action(["RenameColumn", "Schools", "name", "identifier"])
-    modified_dropdown_conditions = json.dumps({
-        "dropdownCondition": {
-          "text": "'New' in choice.area and $identifier == rec.identifier + rec.choice.city or choice.rec.city != $name2",
-          "parsed": json.dumps(["Or", ["And", ["In", ["Const", "New"], ["Attr", ["Name", "choice"], "area"]], ["Eq", ["Attr", ["Name", "rec"], "identifier"], ["Add", ["Attr", ["Name", "rec"], "identifier"], ["Attr", ["Attr", ["Name", "rec"], "choice"], "city"]]]], ["NotEq", ["Attr", ["Attr", ["Name", "choice"], "rec"], "city"], ["Attr", ["Name", "rec"], "name2"]]])
-        }
-      })
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
-      [12, 2, "address", modified_dropdown_conditions],
-      [26, 2, "addresses", modified_dropdown_conditions],
+      [12, 2, "address", build_dc1("identifier", "area")],
+      [26, 2, "addresses", build_dc1("identifier", "area")],
+      [27, 2, "features", build_dc2("identifier", "address")],
     ])
     self.assert_invalid_formula_untouched()
