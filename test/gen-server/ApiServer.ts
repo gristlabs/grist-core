@@ -1472,7 +1472,7 @@ describe('ApiServer', function() {
   it('POST /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access:"Editor"};
-    const body = {"linkId": "Peace-And-Tranquility-2-Earth", "options":JSON.stringify(options)}
+    const body = {"linkId": "Peace-And-Tranquility-2-Earth", "options":JSON.stringify(options)};
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
     assert.equal(resp.status, 200);
     const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${body.linkId}`, chimpy);
