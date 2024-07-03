@@ -2505,7 +2505,8 @@ export class ActiveDoc extends EventEmitter {
         snapshotProgress.lastWindowDoneAt : Date.now();
     const delay = snapshotProgress.lastWindowStartedAt ?
         lastWindowTime - snapshotProgress.lastWindowStartedAt : null;
-    this._log.debug(docSession, 'snapshot status', {
+    log.rawInfo('snapshot status', {
+      ...this.getLogMeta(docSession),
       ...snapshotProgress,
       lastChangeAt: normalizedDateTimeString(snapshotProgress.lastChangeAt),
       lastWindowStartedAt: normalizedDateTimeString(snapshotProgress.lastWindowStartedAt),
