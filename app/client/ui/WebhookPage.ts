@@ -108,7 +108,7 @@ const WEBHOOK_COLUMNS = [
     label: t('Status'),
   },
   {
-    id: 'vt_webhook_fc11',
+    id: VirtualId(),
     colId: 'authorization',
     type: 'Text',
     label: t('Header Authorization'),
