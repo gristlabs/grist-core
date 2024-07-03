@@ -73,14 +73,15 @@ const appCreate = (name) => runAction(`flyctl launch --no-deploy --auto-confirm 
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
 const appDeploy = async (name) => {
-  await runAction("flyctl auth docker")
-    .then(() => runAction(`docker image tag grist-core:preview ${getDockerTag(name)}`))
-    .then(() => runAction(`docker push ${getDockerTag(name)}`))
-    .then(() => runAction(`flyctl deploy --app ${name} --image ${getDockerTag(name)}`))
-    .catch((e) => {
-      console.log(`Error occurred when deploying: ${e}`);
-      process.exit(1);
-    });
+  try {
+    await runAction("flyctl auth docker")
+    await runAction(`docker image tag grist-core:preview ${getDockerTag(name)}`);
+    await runAction(`docker push ${getDockerTag(name)}`);
+    await runAction(`flyctl deploy --app ${name} --image ${getDockerTag(name)}`);
+  } catch (e) {
+    console.log(`Error occurred when deploying: ${e}`);
+    process.exit(1);
+  }
 };
 
 async function appDestroy(name) {
