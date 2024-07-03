@@ -2500,9 +2500,10 @@ export class HomeDBManager extends EventEmitter {
   // can be factorized with getShareByLinkId
   public async getDocApiKeyByLinkId(docId: string, linkId: string): Promise<Share | undefined> {
     return await this._connection.createQueryBuilder()
-      .select('key')
+      .select('shares')
       .from(Share, 'shares')
-      .where('docId = :docId and linkId = :linkId', {docId, linkId})
+      .where('shares.doc_id = :docId', {docId})
+        .andWhere('shares.link_id = :linkId', {linkId})
       .getOne() || undefined;
   }
 
@@ -2515,11 +2516,11 @@ export class HomeDBManager extends EventEmitter {
       .into(Share)
       .values({
         linkId: share.linkId,
-        docId,
+        docId: docId,
         options: apiKey_options,
         key,
       })
-      .execute();
+      .execute() || undefined;
   }
 
   // in parameters linkId is the linkId in db in case of update of this id in the share
@@ -2527,7 +2528,7 @@ export class HomeDBManager extends EventEmitter {
     return await this._connection.createQueryBuilder()
       .update(Share)
       .set(share)
-      .where('docId = :docId and linkId = :linkId', {docId, linkId})
+      .where('doc_id = :docId and link_id = :linkId', {docId, linkId})
       .execute() || undefined;
   }
 
@@ -2535,7 +2536,7 @@ export class HomeDBManager extends EventEmitter {
     return await this._connection.createQueryBuilder()
       .update(Share)
       .set(share)
-      .where('docId = :docId and key = :apiKey', {docId, apiKey})
+      .where('doc_id = :docId and key = :apiKey', {docId, apiKey})
       .execute() || undefined;
   }
 
@@ -2543,7 +2544,7 @@ export class HomeDBManager extends EventEmitter {
     return await this.connection.createQueryBuilder()
       .delete()
       .from('shares')
-      .where('docId = :docId and key = :apiKey', {docId, apiKey})
+      .where('doc_id = :docId and key = :apiKey', {docId, apiKey})
       .execute() || undefined;
   }
 
@@ -2551,7 +2552,7 @@ export class HomeDBManager extends EventEmitter {
     return await this._connection.createQueryBuilder()
       .select('key')
       .from(Share, 'shares')
-      .where('docId = :docId', {docId})
+      .where('doc_id = :docId', {docId})
       .getMany() || undefined;
   }
 
@@ -2559,7 +2560,7 @@ export class HomeDBManager extends EventEmitter {
     return await this.connection.createQueryBuilder()
       .delete()
       .from('shares')
-      .where('docId = :docId and linkId = :linkId', {docId, linkId})
+      .where('doc_id = :docId and link_id = :linkId', {docId, linkId})
       .execute() || undefined;
   }
 
@@ -2567,7 +2568,7 @@ export class HomeDBManager extends EventEmitter {
     return await this.connection.createQueryBuilder()
       .delete()
       .from('shares')
-      .where('docId = :docId', {docId})
+      .where('doc_id = :docId', {docId})
       .execute() || undefined;
   }
 

@@ -324,40 +324,49 @@ export class ApiServer {
       return sendOkReply(req, res);
     }));
 
-    // GET /api/docs/:docId/apiKey/:LinkId
-    this._app.get('/api/docs/:docId/apiKey/:linkId', expressWrap(async (req, res) => {
-      const apiKey = this._dbManager.getDocApiKeyByLinkId(req.params.docId, req.params.linkId);
-      res.status(200).json(`${apiKey}`);
+    // POST /api/docs/:did/apiKey
+    this._app.post('/api/docs/:did/apiKey', expressWrap(async (req, res) => {
+      const did = req.params.did;
+      const query = await this._dbManager.createDocApiKey(did, req.body);
+      return sendOkReply(req, res, query);
     }));
 
-    // POST /api/docs/:docId/apiKey
-    this._app.post('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
-      await this._dbManager.createDocApiKey(req.params.docId, req.body);
-      res.status(201).json(`CREATED api key ${req.body.linkId}`);
+    // GET /api/docs/:did/apiKey/:LinkId
+    this._app.get('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
+      const did = req.params.did;
+      const linkId = req.params.linkId;
+      const query = await this._dbManager.getDocApiKeyByLinkId(did, linkId);
+      return query ? res.status(200).send(query.key) : res.status(400);
     }));
 
-    // PUT /api/docs/:docId/apiKey/:linkId
-    this._app.put('/api/docs/:docId/apiKey/:linkId', expressWrap(async (req, res) => {
-      await this._dbManager.updateDocApiKeyByLinkId(req.params.docId, req.params.linkId, req.body.options);
-      res.status(200).json(`UPDATED api key ${req.params.linkId}`);
+    // PATCH /api/docs/:did/apiKey/:linkId
+    this._app.patch('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
+      const did = req.params.did;
+      const linkId = req.params.linkId;
+      const query = await this._dbManager.updateDocApiKeyByLinkId(did, linkId, req.body.options);
+      return sendOkReply(req, res, query);
     }));
 
-    // DELETE /api/docs/:docId/apiKey/:linkId
-    this._app.delete('/api/docs/:docId/apiKey/:linkId', expressWrap(async (req, res) => {
-      await this._dbManager.deleteDocApiKeyByLinkId(req.params.docId, req.params.linkId);
-      res.status(200).json(`DELETED api key ${req.params.linkId}`);
+    // DELETE /api/docs/:did/apiKey/:linkId
+    this._app.delete('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
+      const did = req.params.did;
+      const linkId = req.params.linkId;
+      const query = await this._dbManager.deleteDocApiKeyByLinkId(did, linkId);
+      return sendOkReply(req, res, query);
     }));
 
-    // GET /api/docs/:docId/apiKeys
-    this._app.get('/api/docs/:docId/apiKeys', expressWrap(async (req, res) => {
-      const apiKeys = this._dbManager.getDocApiKeys(req.params.docId);
-      res.status(200).json(`${apiKeys}`);
+    // GET /api/docs/:did/apiKeys
+    this._app.get('/api/docs/:did/apiKeys', expressWrap(async (req, res) => {
+      const did = req.params.did;
+      const query = await this._dbManager.getDocApiKeys(did);
+      return sendOkReply(req, res, query);
     }));
 
-    // DELETE /api/docs/:docId/apiKeys
-    this._app.delete('/api/docs/:docId/apiKeys', expressWrap(async (req, res) => {
-      await this._dbManager.deleteDocApiKeys(req.params.docId);
-      res.status(200).json(`DELETED all doc api keys for document ${req.params.docId}`);
+    // DELETE /api/docs/:did/apiKeys
+    this._app.delete('/api/docs/:did/apiKeys', expressWrap(async (req, res) => {
+      const did = req.params.did;
+      const query = await this._dbManager.deleteDocApiKeys(did);
+      return sendOkReply(req, res, query);
     }));
 
     // PATCH /api/orgs/:oid/access

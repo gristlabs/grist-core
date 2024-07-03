@@ -1469,6 +1469,51 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 403);
   });
 
+  it('POST /api/docs/{did}/apikey/{linkId} is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access:"Editor"};
+    const body = {"linkId": "Peace-And-Tranquility-2-Earth", "options":JSON.stringify(options)}
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 200);
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${body.linkId}`, chimpy);
+    assert.equal(fetchResp.status, 200);
+    console.log(";;;;;;;;;;;", resp);
+    console.log("!!!!!!!!!!!", fetchResp.data);
+    //assert.deepEqual(fetchResp.data[0], {
+    //  key: resp.key,
+    //});
+  });
+
+  it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
+    assert.equal(resp.status, 666);
+  });
+
+  it('PUT /api/docs/{did}/apikey/{linkId} is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
+    assert.equal(resp.status, 666);
+  });
+
+  it('DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
+    assert.equal(resp.status, 666);
+  });
+
+  it('GET /api/docs/{did}/apikeys is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
+    assert.equal(resp.status, 666);
+  });
+
+  it('DELETE /api/docs/{did}/apikeys is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const resp = await axios.delete(`${homeUrl}/api/docs/${did}`, chimpy);
+    assert.equal(resp.status, 200);
+  });
+
   it('GET /api/zig is a 404', async function() {
     const resp = await axios.get(`${homeUrl}/api/zig`, chimpy);
     assert.equal(resp.status, 404);
