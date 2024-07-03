@@ -79,34 +79,40 @@ export class TrivialDocStorageManager implements IDocStorageManager {
  * All information is within the lifetime of a doc worker, not global.
  */
 export interface SnapshotProgress {
-  // The last time the document was marked as having changed.
+  /** The last time the document was marked as having changed. */
   lastChangeAt?: number;
 
-  // The last time a save window started for the document (checking to see
-  // if it needs to be pushed, and pushing it if so, possibly waiting
-  // quite some time to bundle any other changes).
+  /**
+   * The last time a save window started for the document (checking to see
+   * if it needs to be pushed, and pushing it if so, possibly waiting
+   * quite some time to bundle any other changes).
+   */
   lastWindowStartedAt?: number;
 
-  // The last time the document was either pushed or determined to not
-  // actually need to be pushed, after having been marked as changed.
+  /**
+   * The last time the document was either pushed or determined to not
+   * actually need to be pushed, after having been marked as changed.
+   */
   lastWindowDoneAt?: number;
 
-  // Number of times the document was pushed.
+  /** Number of times the document was pushed. */
   pushes: number;
 
-  // Number of times the document was not pushed because no change found.
+  /** Number of times the document was not pushed because no change found. */
   skippedPushes: number;
 
-  // Number of times there was an error trying to push.
+  /** Number of times there was an error trying to push. */
   errors: number;
 
-  // Number of times the document was marked as changed.
-  // Will generally be a lot greater than saves.
+  /**
+   * Number of times the document was marked as changed.
+   * Will generally be a lot greater than saves.
+   */
   changes: number;
 
-  // Number of times a save window was started.
+  /** Number of times a save window was started. */
   windowsStarted: number;
 
-  // Number of times a save window was completed.
+  /** Number of times a save window was completed. */
   windowsDone: number;
 }
