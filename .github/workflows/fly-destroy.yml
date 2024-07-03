@@ -1,3 +1,7 @@
+# This workflow runs in the target repo context, as it is triggered via pull_request_target.
+# It does not, and should not have access to code in the PR.
+# See https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
 name: fly.io Destroy
 on:
   pull_request_target:
@@ -23,13 +27,10 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
           version: 0.2.72
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
       - name: Destroy fly.io app
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           BRANCH_NAME: ${{ github.event.pull_request.head.repo.full_name }}-${{ github.event.pull_request.head.ref }}
+          # See fly-build for what BRANCH_NAME looks like.
         id: fly_destroy
         run: node buildtools/fly-deploy.js destroy

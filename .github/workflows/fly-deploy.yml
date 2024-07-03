@@ -1,3 +1,7 @@
+# Follow-up of fly-build, with access to secrets for making deployments.
+# This workflow runs in the target repo context. It does not, and should never execute user-supplied code.
+# See https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
 name: fly.io Deploy
 on:
   workflow_run:
@@ -18,7 +22,7 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
           version: 0.2.72
-      - name: Download artifact
+      - name: Download artifacts
         uses: actions/github-script@v7
         with:
           script: |
@@ -38,7 +42,7 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/docker-image.zip', Buffer.from(download.data));
-      - name: Extract artifact
+      - name: Extract artifacts
         id: extract_artifacts
         run: |
           unzip docker-image.zip
