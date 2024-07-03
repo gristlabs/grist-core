@@ -91,13 +91,13 @@ def prepare_acl_table_renames(useractions, table_renames_dict):
   """
   # If there are ACLResources that refer to the renamed table, prepare updates for those.
   resource_updates = []
-  for resource_rec in useractions._docmodel.aclResources.all:
+  for resource_rec in useractions.docmodel.aclResources.all:
     if resource_rec.tableId in table_renames_dict:
       resource_updates.append((resource_rec, {'tableId': table_renames_dict[resource_rec.tableId]}))
 
   # Collect updates for any ACLRules with UserAttributes that refer to the renamed table.
   rule_updates = []
-  for rule_rec in useractions._docmodel.aclRules.all:
+  for rule_rec in useractions.docmodel.aclRules.all:
     if rule_rec.userAttributes:
       try:
         rule_info = json.loads(rule_rec.userAttributes)
@@ -120,7 +120,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
   """
   # Collect updates for ACLResources that refer to the renamed columns.
   resource_updates = []
-  for resource_rec in useractions._docmodel.aclResources.all:
+  for resource_rec in useractions.docmodel.aclResources.all:
     t = resource_rec.tableId
     if resource_rec.colIds and resource_rec.colIds != '*':
       new_col_ids = ','.join((col_renames_dict.get((t, c)) or c)
@@ -131,7 +131,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
   # Collect updates for any ACLRules with UserAttributes that refer to the renamed column.
   rule_updates = []
   user_attr_tables = {}   # Maps name of user attribute to its lookup table
-  for rule_rec in useractions._docmodel.aclRules.all:
+  for rule_rec in useractions.docmodel.aclRules.all:
     if rule_rec.userAttributes:
       try:
         rule_info = json.loads(rule_rec.userAttributes)
@@ -144,7 +144,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
         log.warning("Error examining aclRule: %s", e)
 
   # Go through again checking if anything in ACL formulas is affected by the rename.
-  for rule_rec in useractions._docmodel.aclRules.all:
+  for rule_rec in useractions.docmodel.aclRules.all:
 
     if not rule_rec.aclFormula:
       continue
@@ -152,7 +152,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
 
     def renamer(subject):
       if subject.type == 'recCol':
-        table_id = useractions._docmodel.aclResources.table.get_record(int(rule_rec.resource)).tableId
+        table_id = useractions.docmodel.aclResources.table.get_record(int(rule_rec.resource)).tableId
       elif subject.type == 'userAttrCol':
         table_id = user_attr_tables.get(subject.extra)
       else:

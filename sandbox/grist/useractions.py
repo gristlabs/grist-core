@@ -218,9 +218,9 @@ def allowed_summary_change(key, updated, original):
 class UserActions(object):
   def __init__(self, eng):
     self._engine = eng
-    self._docmodel = eng.docmodel
-    self._summary = summary.SummaryActions(self, self._docmodel)
-    self._import_actions = import_actions.ImportActions(self, self._docmodel, eng)
+    self.docmodel = eng.docmodel
+    self._summary = summary.SummaryActions(self, self.docmodel)
+    self._import_actions = import_actions.ImportActions(self, self.docmodel, eng)
     self._allow_changes = False
     self._indirection_level = DIRECT_ACTION
 
@@ -277,7 +277,7 @@ class UserActions(object):
       table_obj = self._engine.tables[table_rec.tableId]
       for col in table_obj._back_references:
         if not col.is_private():
-          cols.extend(self._docmodel.columns.lookupRecords(tableId=col.table_id, colId=col.col_id))
+          cols.extend(self.docmodel.columns.lookupRecords(tableId=col.table_id, colId=col.col_id))
     cols.sort()
     return cols
 
@@ -428,7 +428,7 @@ class UserActions(object):
       if col_id in column_values:
         continue
       if not table_id.startswith('_grist_'):
-        col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
+        col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
         if col_rec.recalcWhen == RecalcWhen.NEVER:
           continue
       recalc_cols.add(col_id)
@@ -510,7 +510,7 @@ class UserActions(object):
       for col_id, col_obj in six.iteritems(table.all_columns):
         if col_obj.is_formula() or not col_obj.has_formula():
           continue
-        col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
+        col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
 
         # Schedule for recalculation those trigger-formulas that depend on any manual update.
         if col_rec.recalcWhen == RecalcWhen.MANUAL_UPDATES:
@@ -550,7 +550,7 @@ class UserActions(object):
       # Additionally check that we are not trying to modify group-by values in a summary column
       # (this check is only for updating records, not for adding). Note that col_rec will not be
       # found for metadata tables (since there is no metadata for the metadata tables).
-      col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
+      col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
       if col_rec and col_rec.summarySourceCol:
         raise ValueError("Cannot enter data into summary group-by column %s" % col_id)
 
@@ -561,16 +561,16 @@ class UserActions(object):
   def _updateValidationRecords(self, table_id, row_ids, col_values):
     for i, rec, values in self._bulk_action_iter(table_id, row_ids, col_values):
       vcolid = get_validation_func_name(rec.id)
-      col_rec = self._docmodel.columns.lookupOne(parentId=rec.tableRef, colId=vcolid)
+      col_rec = self.docmodel.columns.lookupOne(parentId=rec.tableRef, colId=vcolid)
       # TODO: Validations table's tableRef should be a Reference rather than an Int.
       if has_diff_value(values, 'tableRef', rec.tableRef):
-        self._docmodel.remove([col_rec])
-        new_table_id = self._docmodel.tables.table.get_record(values['tableRef']).tableId
+        self.docmodel.remove([col_rec])
+        new_table_id = self.docmodel.tables.table.get_record(values['tableRef']).tableId
         new_col_info = {"isFormula": True, "type": "Any",
                         "formula": values.get('formula', rec.formula)}
         self.doAddColumn(new_table_id, vcolid, new_col_info)
       elif has_diff_value(values, 'formula', rec.formula):
-        self._docmodel.update([col_rec], formula=values['formula'])
+        self.docmodel.update([col_rec], formula=values['formula'])
 
     self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
@@ -738,7 +738,7 @@ class UserActions(object):
 
     # If we change a column's type, we should ALSO unset each affected field's displayCol.
     type_changed = [c for c, values in update_pairs if has_diff_value(values, 'type', c.type)]
-    self._docmodel.update([f for c in type_changed for f in c.viewFields],
+    self.docmodel.update([f for c in type_changed for f in c.viewFields],
                           displayCol=0)
 
     self.doBulkUpdateFromPairs(table_id, update_pairs)
@@ -771,16 +771,16 @@ class UserActions(object):
           # table).
 
           # Get all sections with this table
-          sections = self._docmodel.view_sections.lookupRecords(tableRef=rec.tableRef)
+          sections = self.docmodel.view_sections.lookupRecords(tableRef=rec.tableRef)
           # Get the views of those sections
           views = {s.parentId for s in sections if s.parentId is not None and s.parentId.id != 0}
           # Filter them by the old table name (which may be empty - than by tableId)
           related_views = [v for v in views if v.name == (rec.title or rec.tableRef.tableId)]
           # Update the views immediately
           if related_views:
-            self._docmodel.update(related_views, name=[values['title']] * len(related_views))
+            self.docmodel.update(related_views, name=[values['title']] * len(related_views))
 
-      self._docmodel.update(rename_table_recs, tableId=rename_names)
+      self.docmodel.update(rename_table_recs, tableId=rename_names)
 
     self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
@@ -809,7 +809,7 @@ class UserActions(object):
       if new_name:
         # Get the record for the affected formula column.
         (formula_table, formula_col) = formula_info
-        col_rec = self._docmodel.get_column_rec(formula_table, formula_col)
+        col_rec = self.docmodel.get_column_rec(formula_table, formula_col)
         # Create a patch and append to the list for this col_rec.
         name = col_id or table_id
         formula = col_rec.formula
@@ -910,7 +910,7 @@ class UserActions(object):
     and excluding col from the returned list.
     """
     # The filter removes falsy columns, i.e. results from tables that don't have a match.
-    col_recs = [self._docmodel.columns.lookupOne(parentId=t, colId=col.colId, isFormula=True)
+    col_recs = [self.docmodel.columns.lookupOne(parentId=t, colId=col.colId, isFormula=True)
                 for t in source_table.summaryTables]
     return [c for c in col_recs if c and c != col]
 
@@ -940,12 +940,12 @@ class UserActions(object):
         # Guess the type when it starts out as Any. We unfortunately need to update the column
         # separately for type conversion, to recompute type-specific defaults
         # before they are used in formula->data conversion.
-        col_info, values = guess_col_info(values, self._docmodel)
+        col_info, values = guess_col_info(values, self.docmodel)
         # If the values are all blank (None or empty string) leave the column empty
         if not col_info:
           return values
-        col_rec = self._docmodel.get_column_rec(table_id, col_id)
-        self._docmodel.update([col_rec], **col_info)
+        col_rec = self.docmodel.get_column_rec(table_id, col_id)
+        self.docmodel.update([col_rec], **col_info)
       self.ModifyColumn(table_id, col_id, {'isFormula': False})
       return values
 
@@ -1095,7 +1095,7 @@ class UserActions(object):
   @useraction
   def BulkRemoveRecord(self, table_id, row_ids):
     # table_rec will not be found for metadata tables, but they are not summary tables anyway.
-    table_rec = self._docmodel.tables.lookupOne(tableId=table_id)
+    table_rec = self.docmodel.tables.lookupOne(tableId=table_id)
     # docmodel.setAutoRemove is used for empty summary table rows, but does so 'indirectly'
     if table_rec and table_rec.summarySourceTable and self._indirection_level == DIRECT_ACTION:
       raise ValueError("Cannot remove record from summary table")
@@ -1108,13 +1108,13 @@ class UserActions(object):
   def _removeValidationRecords(self, table_id, row_ids):
     # TODO: Validations should be redesigned to use helper columns.
     col_recs = [
-      self._docmodel.columns.lookupOne(parentId=v.tableRef, colId=get_validation_func_name(v.id))
+      self.docmodel.columns.lookupOne(parentId=v.tableRef, colId=get_validation_func_name(v.id))
       for i, v in self._bulk_action_iter(table_id, row_ids)
     ]
     self.doBulkRemoveRecord(table_id, row_ids)
 
     # Remove the associated validation columns.
-    self._docmodel.remove(col_recs)
+    self.docmodel.remove(col_recs)
 
 
   @override_action('BulkRemoveRecord', '_grist_Tables')
@@ -1141,9 +1141,9 @@ class UserActions(object):
     # it should have much simpler tests).
 
     # Remove any views that no longer have view sections.
-    views_to_remove = [view for view in self._docmodel.views.all
+    views_to_remove = [view for view in self.docmodel.views.all
                        if not view.viewSections]
-    self._docmodel.remove(views_to_remove)
+    self.docmodel.remove(views_to_remove)
 
     # Save table IDs, which will be inaccessible once we remove the metadata records.
     remove_table_ids = [t.tableId for t in remove_table_recs]
@@ -1242,7 +1242,7 @@ class UserActions(object):
       if sort != updated_sort:
         re_sort_sections.append(section)
         re_sort_specs.append(json.dumps(updated_sort))
-    self._docmodel.update(re_sort_sections, sortColRefs=re_sort_specs)
+    self.docmodel.update(re_sort_sections, sortColRefs=re_sort_specs)
 
     more_removals = set()
     # Remove all rules columns genereted for view fields for all removed columns.
@@ -1263,9 +1263,9 @@ class UserActions(object):
     # Also remove displayCol for any columns or fields that use this col as their visibleCol.
     more_removals.update([c.displayCol for c in col_recs],
                          [vc.displayCol for c in col_recs
-                          for vc in self._docmodel.columns.lookupRecords(visibleCol=c.id)],
+                          for vc in self.docmodel.columns.lookupRecords(visibleCol=c.id)],
                          [vf.displayCol for c in col_recs
-                          for vf in self._docmodel.view_fields.lookupRecords(visibleCol=c.id)])
+                          for vf in self.docmodel.view_fields.lookupRecords(visibleCol=c.id)])
 
     # Remove also all autogenereted formula columns for conditional styles.
     # But not from transform columns, as those columns borrow rules from original columns
@@ -1294,11 +1294,11 @@ class UserActions(object):
     view_recs = [rec for i, rec in self._bulk_action_iter(table_id, row_ids)]
 
     # Remove all the tabBar items, and the view sections.
-    self._docmodel.remove(t for v in view_recs for t in v.tabBarItems)
-    self._docmodel.remove(vs for v in view_recs for vs in v.viewSections)
+    self.docmodel.remove(t for v in view_recs for t in v.tabBarItems)
+    self.docmodel.remove(vs for v in view_recs for vs in v.viewSections)
 
     # Remove all the pages and fixes indentation
-    self._docmodel.remove([p for v in view_recs for p in v.pageItems])
+    self.docmodel.remove([p for v in view_recs for p in v.pageItems])
 
     # Remove the view records themselves.
     self.doBulkRemoveRecord(table_id, row_ids)
@@ -1361,7 +1361,7 @@ class UserActions(object):
 
   @useraction
   def AddColumn(self, table_id, col_id, col_info):
-    table_rec = self._docmodel.get_table_rec(table_id)
+    table_rec = self.docmodel.get_table_rec(table_id)
 
     # New columns by default are empty formula columns, but OnDemand tables require adding
     # new columns as data columns.
@@ -1387,7 +1387,7 @@ class UserActions(object):
         # TODO: the position of the inserted field or of the inserted column will often be
         # bogus, since fields and columns are not the same. This requires better coordination
         # with the client-side.
-        self._docmodel.insert(
+        self.docmodel.insert(
           table_rec.rawViewSectionRef.fields,
           col_info.get('_position'),
           colRef=ret['colRef']
@@ -1405,7 +1405,7 @@ class UserActions(object):
           any(f.widgetOptions for f in section.fields)
         )
         if not modified:
-          self._docmodel.insert(
+          self.docmodel.insert(
             table_rec.recordCardViewSectionRef.fields,
             col_info.get('_position'),
             colRef=ret['colRef']
@@ -1423,7 +1423,7 @@ class UserActions(object):
     '''Inserts column and adds it as a field to all 'record' views'''
 
     ret = self.AddColumn(table_id, col_id, col_info)
-    table_rec = self._docmodel.get_table_rec(table_id)
+    table_rec = self.docmodel.get_table_rec(table_id)
 
     transform = (
         col_id is not None and
@@ -1437,7 +1437,7 @@ class UserActions(object):
           # TODO: the position of the inserted field or of the inserted column will often be
           # bogus, since fields and columns are not the same. This requires better coordination
           # with the client-side.
-          self._docmodel.insert(section.fields, col_info.get('_position'), colRef=ret['colRef'])
+          self.docmodel.insert(section.fields, col_info.get('_position'), colRef=ret['colRef'])
     return ret
 
   @classmethod
@@ -1457,7 +1457,7 @@ class UserActions(object):
     return identifiers.pick_col_ident(col_id, avoid=avoid_set)
 
   def doAddColumn(self, table_id, col_id, col_info):
-    table_rec = self._docmodel.get_table_rec(table_id)
+    table_rec = self.docmodel.get_table_rec(table_id)
     col_id = self._pick_col_name(table_rec, col_id)
     clean_colinfo = _make_clean_col_info(col_info)
     self._do_doc_action(actions.AddColumn(table_id, col_id, clean_colinfo))
@@ -1479,7 +1479,7 @@ class UserActions(object):
     if visible_col:
       values['visibleCol'] = visible_col
     position = col_info.get('_position', None)
-    inserted = self._docmodel.insert(table_rec.columns, position, **values)
+    inserted = self.docmodel.insert(table_rec.columns, position, **values)
 
     return {
       'colRef': inserted[0].id,
@@ -1491,44 +1491,44 @@ class UserActions(object):
   def RemoveColumn(self, table_id, col_id):
     # We can remove a column via either a "RemoveColumn" useraction or by removing a column
     # metadata record. We implement the former interface by forwarding to the latter.
-    col = self._docmodel.get_column_rec(table_id, col_id)
-    self._docmodel.remove([col])
+    col = self.docmodel.get_column_rec(table_id, col_id)
+    self.docmodel.remove([col])
 
 
   @useraction
   def RenameColumn(self, table_id, old_col_id, new_col_id):
     # We can rename a column via either a "RenameColumn" useraction or by updating a column
     # metadata record. We implement the former interface by forwarding to the latter.
-    col = self._docmodel.get_column_rec(table_id, old_col_id)
-    self._docmodel.update([col], colId=new_col_id)
+    col = self.docmodel.get_column_rec(table_id, old_col_id)
+    self.docmodel.update([col], colId=new_col_id)
     return col.colId
 
   @useraction
   def SetDisplayFormula(self, table_id, field_ref, col_ref, formula):
     # Assert user is not setting both field and col formula, since it is likely unintentional.
     assert not field_ref or not col_ref, "Should set either field or column display formula"
-    table_rec = self._docmodel.get_table_rec(table_id)
+    table_rec = self.docmodel.get_table_rec(table_id)
 
     if field_ref:
-      field_rec = self._docmodel.view_fields.table.get_record(field_ref)
+      field_rec = self.docmodel.view_fields.table.get_record(field_ref)
       old_display_col_rec = field_rec.displayCol
       display_col_ref = self._add_or_update_helper_col(table_rec, old_display_col_rec, formula)
       if display_col_ref is not None:
         # Update the field's displayCol ref
-        self._docmodel.update([field_rec], displayCol=display_col_ref)
+        self.docmodel.update([field_rec], displayCol=display_col_ref)
 
     if col_ref:
-      col_rec = self._docmodel.columns.table.get_record(col_ref)
+      col_rec = self.docmodel.columns.table.get_record(col_ref)
       old_display_col_rec = col_rec.displayCol
       display_col_ref = self._add_or_update_helper_col(table_rec, old_display_col_rec, formula)
       if display_col_ref is not None:
         # Update the col's displayCol ref
-        self._docmodel.update([col_rec], displayCol=display_col_ref)
+        self.docmodel.update([col_rec], displayCol=display_col_ref)
 
   @useraction
   def RemoveTransformColumns(self):
-    self._docmodel.remove([
-      col for col in self._docmodel.columns.all if _is_transform_col(col.colId)
+    self.docmodel.remove([
+      col for col in self.docmodel.columns.all if _is_transform_col(col.colId)
     ])
 
   # Helper function to get a helper column with the given formula, or to add one if none
@@ -1537,10 +1537,10 @@ class UserActions(object):
     if formula:
       if display_col_rec.numDisplayColUsers == 1:
         # If this is the only user of the display column, use it as new display column
-        self._docmodel.update([display_col_rec], formula=formula)
+        self.docmodel.update([display_col_rec], formula=formula)
         return None
       else:
-        formula_cols = self._docmodel.columns.lookupRecords(parentId=table_rec.id, formula=formula)
+        formula_cols = self.docmodel.columns.lookupRecords(parentId=table_rec.id, formula=formula)
         # Get the first display column with the desired formula
         display_col_ref = next((c.id for c in formula_cols if
           c.colId.startswith('gristHelper_Display')), 0)
@@ -1560,12 +1560,12 @@ class UserActions(object):
   def ModifyColumn(self, table_id, col_id, col_info):
     # We can modify a column via either a "ModifyColumn" useraction or by updating a column
     # metadata record. We implement the former interface by forwarding to the latter.
-    col = self._docmodel.get_column_rec(table_id, col_id)
+    col = self.docmodel.get_column_rec(table_id, col_id)
 
     update_values = {k: v for k, v in six.iteritems(col_info) if k not in _unmodifiable_col_fields}
     if '_position' in col_info:
       update_values['parentPos'] = col_info['_position']
-    self._docmodel.update([col], **update_values)
+    self.docmodel.update([col], **update_values)
 
   def doModifyColumn(self, table_id, col_id, col_info):
     """
@@ -1647,7 +1647,7 @@ class UserActions(object):
   def ConvertFromColumn(self, table_id, src_col_id, dst_col_id, typ, widgetOptions, visibleColRef):
     from sandbox import call_external
     table = self._engine.tables[table_id]
-    src_col = self._docmodel.get_column_rec(table_id, src_col_id)
+    src_col = self.docmodel.get_column_rec(table_id, src_col_id)
     src_column = table.get_column(src_col_id)
     row_ids = list(table.row_ids)
     src_values = [encode_object(src_column.raw_get(r)) for r in row_ids]
@@ -1688,8 +1688,8 @@ class UserActions(object):
     source column's.
     """
     table = self._engine.tables[table_id]
-    src_col = self._docmodel.get_column_rec(table_id, src_col_id)
-    dst_col = self._docmodel.get_column_rec(table_id, dst_col_id)
+    src_col = self.docmodel.get_column_rec(table_id, src_col_id)
+    dst_col = self.docmodel.get_column_rec(table_id, dst_col_id)
     src_column = table.get_column(src_col_id)
 
     # Make sure the src column is up to date, in case anything was to be recomputed.
@@ -1709,7 +1709,7 @@ class UserActions(object):
 
     # Update the destination column to match the source's type and options. Also unset displayCol,
     # except if src_col has a displayCol, then keep it unchanged until SetDisplayFormula below.
-    self._docmodel.update([dst_col], type=src_col.type, widgetOptions=[widgetOptions],
+    self.docmodel.update([dst_col], type=src_col.type, widgetOptions=[widgetOptions],
                           visibleCol=[src_col.visibleCol if src_col.visibleCol else 0],
     # TypeConversion (in js) has decided if rules should be copied or not. If yes, rules were
     # copied to transforming column (it borrowed rules from us [us as dst_col]), in that case
@@ -1741,8 +1741,8 @@ class UserActions(object):
 
   @useraction
   def MaybeCopyDisplayFormula(self, src_col_ref, dst_col_ref):
-    src_col = self._docmodel.columns.table.get_record(src_col_ref)
-    dst_col = self._docmodel.columns.table.get_record(dst_col_ref)
+    src_col = self.docmodel.columns.table.get_record(src_col_ref)
+    dst_col = self.docmodel.columns.table.get_record(dst_col_ref)
     self.maybe_copy_display_formula(src_col, dst_col)
 
   def maybe_copy_display_formula(self, src_col, dst_col):
@@ -1777,7 +1777,7 @@ class UserActions(object):
 
     # Rename filters
     filters = self._engine.tables['_grist_Filters']
-    colRef = self._docmodel.get_column_rec(table_id, col_id).id
+    colRef = self.docmodel.get_column_rec(table_id, col_id).id
     col_filters = filters.filter_records(colRef=colRef)
     row_ids = []
     values = []
@@ -1813,12 +1813,12 @@ class UserActions(object):
     col_name = "gristHelper_ConditionalRule"
 
     if field_ref:
-      rule_owner = self._docmodel.view_fields.table.get_record(field_ref)
+      rule_owner = self.docmodel.view_fields.table.get_record(field_ref)
     elif col_ref:
-      rule_owner = self._docmodel.columns.table.get_record(col_ref)
+      rule_owner = self.docmodel.columns.table.get_record(col_ref)
     else:
       col_name = "gristHelper_RowConditionalRule"
-      rule_owner = self._docmodel.get_table_rec(table_id).rawViewSectionRef
+      rule_owner = self.docmodel.get_table_rec(table_id).rawViewSectionRef
 
     col_info = self.AddHiddenColumn(table_id, col_name, {
       "type": "Any",
@@ -1828,7 +1828,7 @@ class UserActions(object):
     new_rule = col_info['colRef']
     existing_rules = rule_owner.rules._get_encodable_row_ids() if rule_owner.rules else []
     updated_rules = existing_rules + [new_rule]
-    self._docmodel.update([rule_owner], rules=[encode_object(updated_rules)])
+    self.docmodel.update([rule_owner], rules=[encode_object(updated_rules)])
 
 
   #----------------------------------------
@@ -1903,9 +1903,9 @@ class UserActions(object):
 
     # Update the meta tables.
     extra = {'summarySourceTable': summarySourceTableRef} if summarySourceTableRef else {}
-    table_rec = self._docmodel.add(self._docmodel.tables, tableId=table_id, primaryViewId=0,
+    table_rec = self.docmodel.add(self.docmodel.tables, tableId=table_id, primaryViewId=0,
                                    **extra)[0]
-    self._docmodel.insert(
+    self.docmodel.insert(
       table_rec.columns, None,
       colId         = col_ids,
       type          = [c['type'] for c in clean_colinfo],
@@ -1930,7 +1930,7 @@ class UserActions(object):
       raw_section = self.create_plain_view_section(
         result["id"],
         table_id,
-        self._docmodel.view_sections,
+        self.docmodel.view_sections,
         "record",
         table_title if not summarySourceTableRef else ""
       )
@@ -1939,7 +1939,7 @@ class UserActions(object):
       record_card_section = self._create_record_card_view_section(
         result["id"],
         table_id,
-        self._docmodel.view_sections
+        self.docmodel.view_sections
       )
 
     if primary_view or raw_section:
@@ -1955,16 +1955,16 @@ class UserActions(object):
   def RemoveTable(self, table_id):
     # We can remove a table via either a "RemoveTable" useraction or by removing a table
     # metadata record. We implement the former interface by forwarding to the latter.
-    table_rec = self._docmodel.get_table_rec(table_id)
-    self._docmodel.remove([table_rec])
+    table_rec = self.docmodel.get_table_rec(table_id)
+    self.docmodel.remove([table_rec])
 
 
   @useraction
   def RenameTable(self, old_table_id, new_table_id):
     # We can rename a table via either a "RenameTable" useraction or by updating a table
     # metadata record. We implement the former interface by forwarding to the latter.
-    table_rec = self._docmodel.get_table_rec(old_table_id)
-    self._docmodel.update([table_rec], tableId=new_table_id)
+    table_rec = self.docmodel.get_table_rec(old_table_id)
+    self.docmodel.update([table_rec], tableId=new_table_id)
     return table_rec.tableId
 
 
@@ -1973,7 +1973,7 @@ class UserActions(object):
     if is_hidden_table(existing_table_id):
       raise ValueError('Cannot duplicate a hidden table')
 
-    existing_table = self._docmodel.get_table_rec(existing_table_id)
+    existing_table = self.docmodel.get_table_rec(existing_table_id)
     if existing_table.summarySourceTable:
       raise ValueError('Cannot duplicate a summary table')
 
@@ -1993,12 +1993,12 @@ class UserActions(object):
     )
 
     new_table_id = result['table_id']
-    new_table = self._docmodel.get_table_rec(new_table_id)
+    new_table = self.docmodel.get_table_rec(new_table_id)
     new_raw_section = new_table.rawViewSectionRef
     new_record_card_section = new_table.recordCardViewSectionRef
 
     # Copy view section description and options to the new raw view section.
-    self._docmodel.update([new_raw_section],
+    self.docmodel.update([new_raw_section],
       description=raw_section.description,
       options=raw_section.options,
     )
@@ -2028,7 +2028,7 @@ class UserActions(object):
           for colRef in new_recalc_deps])]
 
       # Copy column settings to the new columns.
-      self._docmodel.update(
+      self.docmodel.update(
         [new_column],
         type=new_type,
         visibleCol=new_visible_col,
@@ -2042,7 +2042,7 @@ class UserActions(object):
       self.maybe_copy_display_formula(existing_column, new_column)
 
       # Copy field settings to the new fields.
-      self._docmodel.update(
+      self.docmodel.update(
         [new_field],
         parentPos=existing_field.parentPos,
         width=existing_field.width,
@@ -2084,7 +2084,7 @@ class UserActions(object):
     for existing_field, new_field in zip(src_record_card_section.fields,
                                          dst_record_card_section.fields):
       # Copy field settings to the new fields.
-      self._docmodel.update(
+      self.docmodel.update(
         [new_field],
         displayCol=old_to_new_col_refs.get(existing_field.displayCol.id, 0),
         parentPos=existing_field.parentPos,
@@ -2114,7 +2114,7 @@ class UserActions(object):
       new_layout_spec = ''
 
     # Copy options, theme, and layout to the new record card view section.
-    self._docmodel.update([dst_record_card_section],
+    self.docmodel.update([dst_record_card_section],
       options=src_record_card_section.options,
       layoutSpec=new_layout_spec,
       theme=src_record_card_section.theme,
@@ -2123,7 +2123,7 @@ class UserActions(object):
   def _fetch_table_col_recs(self, table_ref, col_refs):
     """Helper that converts col_refs from table table_ref into column Records."""
     try:
-      cols = [self._docmodel.columns.table.get_record(c) for c in col_refs]
+      cols = [self.docmodel.columns.table.get_record(c) for c in col_refs]
     except KeyError:
       raise ValueError("Invalid column requested")
     if not all(c.parentId.id == table_ref for c in cols):
@@ -2143,11 +2143,11 @@ class UserActions(object):
 
     if not table_ref:
       table_ref = self.AddRawTable(table_id)['id']
-    table = self._docmodel.tables.table.get_record(table_ref)
+    table = self.docmodel.tables.table.get_record(table_ref)
 
     if not view_ref:
       view_ref = self.AddView(table.tableId, 'empty', 'New page')['id']
-    view = self._docmodel.views.table.get_record(view_ref)
+    view = self.docmodel.views.table.get_record(view_ref)
 
     if groupby_colrefs is not None:
       section = self._summary.create_new_summary_section(table, groupby_cols, view, section_type)
@@ -2169,13 +2169,13 @@ class UserActions(object):
     # If title is the same as tableId leave it empty
     if title == tableId:
       title = ''
-    section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey=section_type,
+    section = self.docmodel.add(view_sections, tableRef=tableRef, parentKey=section_type,
                                  title=title, borderWidth=1, defaultWidth=100)[0]
     self._RebuildViewFields(tableId, section.id)
     return section
 
   def _create_record_card_view_section(self, tableRef, tableId, view_sections):
-    section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey='single',
+    section = self.docmodel.add(view_sections, tableRef=tableRef, parentKey='single',
                                  title='', borderWidth=1, defaultWidth=100)[0]
     self.UpdateRecord('_grist_Tables', tableRef, {
       'recordCardViewSectionRef': section.id,
@@ -2189,7 +2189,7 @@ class UserActions(object):
     Update a summary section to be grouped by a different set of columns. This will update fields
     of the view section, setting their colRefs to similar columns in a different summary table.
     """
-    section = self._docmodel.view_sections.table.get_record(section_ref)
+    section = self.docmodel.view_sections.table.get_record(section_ref)
     source_table = section.tableRef.summarySourceTable
     groupby_cols = self._fetch_table_col_recs(source_table.id, groupby_colrefs)
     self._summary.update_summary_section(section, source_table, groupby_cols)
@@ -2200,7 +2200,7 @@ class UserActions(object):
     Create a real table equivalent to the given summary section, and update the section to show
     the new table instead of the summary.
     """
-    section = self._docmodel.view_sections.table.get_record(section_ref)
+    section = self.docmodel.view_sections.table.get_record(section_ref)
     if not section.tableRef.summarySourceTable:
       raise ValueError("Can't detach a non-summary section")
     self._summary.detach_summary_section(section)
@@ -2259,8 +2259,8 @@ class UserActions(object):
     """
     Removes records for view at view_id
     """
-    view_rec = self._docmodel.views.table.get_record(view_id)
-    self._docmodel.remove([view_rec])
+    view_rec = self.docmodel.views.table.get_record(view_id)
+    self.docmodel.remove([view_rec])
 
   #----------------------------------------
   # User actions on viewSections.
@@ -2273,9 +2273,9 @@ class UserActions(object):
     """
     Creates records for a viewsection
     """
-    table_rec = self._docmodel.get_table_rec(table_id)
-    view = self._docmodel.views.table.get_record(view_row_id)
-    section = self._docmodel.add(view.viewSections, tableRef=table_rec.id,
+    table_rec = self.docmodel.get_table_rec(table_id)
+    view = self.docmodel.views.table.get_record(view_row_id)
+    section = self.docmodel.add(view.viewSections, tableRef=table_rec.id,
                                  parentKey=view_section_type, title=title,
                                  borderWidth=1, defaultWidth=100,
                                  sortColRefs='[]')[0]
@@ -2288,8 +2288,8 @@ class UserActions(object):
     """
     Removes records for viewsection at viewsection_id
     """
-    section = self._docmodel.view_sections.table.get_record(view_section_id)
-    self._docmodel.remove([section])
+    section = self.docmodel.view_sections.table.get_record(view_section_id)
+    self.docmodel.remove([section])
 
   #--------------------------------------------------------------------------------
   # Methods for creating and maintaining default views. This is a work-in-progress.
@@ -2299,12 +2299,12 @@ class UserActions(object):
     """
     Does the actual work of rebuilding ViewFields to correspond to the table's columns.
     """
-    section_rec = self._docmodel.view_sections.table.get_record(section_row_id)
-    table_rec = self._docmodel.tables.lookupOne(tableId=table_id)
+    section_rec = self.docmodel.view_sections.table.get_record(section_row_id)
+    table_rec = self.docmodel.tables.lookupOne(tableId=table_id)
 
     # Maybe first remove all view fields
     if section_rec.fields:
-      self._docmodel.remove(section_rec.fields)
+      self.docmodel.remove(section_rec.fields)
 
     section_type = section_rec.parentKey
     is_card = section_type in ('single', 'detail')
@@ -2312,7 +2312,7 @@ class UserActions(object):
     if is_card and not is_record_card:
       # Copy settings from the table's record card section to the new section.
       record_card_section = table_rec.recordCardViewSectionRef
-      self._docmodel.add(section_rec.fields, colRef=[f.colRef for f in record_card_section.fields])
+      self.docmodel.add(section_rec.fields, colRef=[f.colRef for f in record_card_section.fields])
       self._copy_record_card_settings(record_card_section, section_rec)
     else :
       # Include all table columns that are intended to be visible to the user.
@@ -2330,7 +2330,7 @@ class UserActions(object):
       cols.sort(key=lambda c: c.parentPos)
       if limit is not None:
         cols = cols[:limit]
-      self._docmodel.add(section_rec.fields, colRef=[c.id for c in cols])
+      self.docmodel.add(section_rec.fields, colRef=[c.id for c in cols])
 
 
   #----------------------------------------------------------------------

@@ -31,7 +31,7 @@ def perform_dropdown_condition_renames(useractions, renames):
   """
   updates = []
 
-  for col in useractions._docmodel.columns.all:
+  for col in useractions.docmodel.columns.all:
 
     patches = []
 
