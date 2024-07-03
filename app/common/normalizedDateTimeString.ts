@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 /**
  * Output an ISO8601 format datetime string, with timezone.
