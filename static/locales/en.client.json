@@ -1633,5 +1633,9 @@
         "Number of Calls": "Number of Calls",
         "Table ID": "Table ID",
         "Total Time (s)": "Total Time (s)"
+    },
+    "UserEditor": {
+        "Error in dropdown condition": "Error in dropdown condition",
+        "No choices matching condition": "No choices matching condition"
     }
 }

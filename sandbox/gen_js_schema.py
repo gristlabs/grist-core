@@ -15,6 +15,7 @@ _ts_types = {
   "RefList":        "[GristObjCode.List, ...number[]]|null",  # Non-primitive values are encoded
   "ChoiceList":     "[GristObjCode.List, ...string[]]|null",
   "Text":           "string",
+  "User":           "string",
 }
 
 def get_ts_type(col_type):

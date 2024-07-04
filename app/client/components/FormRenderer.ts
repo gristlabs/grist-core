@@ -846,6 +846,10 @@ class RefRenderer extends BaseFieldRenderer {
   }
 }
 
+class UserRenderer extends TextRenderer {
+  protected inputType = 'text';
+}
+
 const FieldRenderers = {
   'Text': TextRenderer,
   'Numeric': NumericRenderer,
@@ -857,6 +861,7 @@ const FieldRenderers = {
   'DateTime': DateTimeRenderer,
   'Ref': RefRenderer,
   'RefList': RefListRenderer,
+  'User': UserRenderer,
 };
 
 const FormRenderers = {
