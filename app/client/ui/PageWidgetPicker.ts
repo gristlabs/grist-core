@@ -111,12 +111,12 @@ function getCompatibleTypes(tableId: TableRef,
     // The type 'chart' makes little sense when creating a new table.
     compatibleTypes = ['record', 'single', 'detail', 'form'];
   }
-  return summarize ? compatibleTypes.filter((el)=> !['form'].includes(el)) : compatibleTypes;
+  return summarize ? compatibleTypes.filter((el) => isSummaryCompatible(el)) : compatibleTypes;
 }
 
 // The Picker disables some choices that do not make much sense.
 // This function return a boolean telling if summary can be used with this type.
-function isSummaryCompatible(tableId: IWidgetType): boolean{
+function isSummaryCompatible(tableId: IWidgetType): boolean {
   const incompatibleTypes: Array<IWidgetType> = ['form'];
   return !incompatibleTypes.includes(tableId);
 }
