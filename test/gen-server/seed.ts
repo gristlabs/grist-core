@@ -40,7 +40,7 @@ import {Organization} from "app/gen-server/entity/Organization";
 import {Product, PRODUCTS, synchronizeProducts, teamFreeFeatures} from "app/gen-server/entity/Product";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
-import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/HomeDBManager';
+import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {getOrCreateConnection, runMigrations, undoLastMigration, updateDb} from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';

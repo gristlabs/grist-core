@@ -11,7 +11,7 @@ import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {SessionUserObj} from 'app/server/lib/BrowserSession';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import * as docUtils from 'app/server/lib/docUtils';
 import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
 import {main as mergedServerMain, ServerType} from 'app/server/mergedServerMain';

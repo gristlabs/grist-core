@@ -1,5 +1,5 @@
 import {delay} from 'app/common/delay';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import log from 'app/server/lib/log';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';

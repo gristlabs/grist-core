@@ -2,7 +2,7 @@ import {GristLoadConfig} from 'app/common/gristUrls';
 import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {INotifier} from 'app/server/lib/INotifier';
 import {AxiosRequestConfig} from "axios";
 import {delay} from 'bluebird';
