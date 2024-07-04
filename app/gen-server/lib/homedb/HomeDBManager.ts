@@ -2510,7 +2510,7 @@ export class HomeDBManager extends EventEmitter {
   public async createDocApiKey(docId: string, share: ShareInfo) {
     const key = makeId();
     const apiKey_options = {...JSON.parse(share.options), "apikey": true};
-    return await this._connection.createQueryBuilder()
+    const query = await this._connection.createQueryBuilder()
       .insert()
       .setParameter('options', share.options)
       .into(Share)
@@ -2521,6 +2521,7 @@ export class HomeDBManager extends EventEmitter {
         key,
       })
       .execute() || undefined;
+    return query ? key : query;
   }
 
   // in parameters linkId is the linkId in db in case of update of this id in the share

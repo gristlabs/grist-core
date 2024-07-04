@@ -19,4 +19,6 @@ export interface ShareOptions {
   // Half-baked, just here to exercise an aspect of homedb
   // syncing.
   access?: 'editors' | 'viewers';
+
+  apikey?: true;
 }

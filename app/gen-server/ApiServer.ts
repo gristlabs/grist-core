@@ -327,8 +327,8 @@ export class ApiServer {
     // POST /api/docs/:did/apiKey
     this._app.post('/api/docs/:did/apiKey', expressWrap(async (req, res) => {
       const did = req.params.did;
-      const query = await this._dbManager.createDocApiKey(did, req.body);
-      return sendOkReply(req, res, query);
+      const key = await this._dbManager.createDocApiKey(did, req.body);
+      return res.status(200).send(key);
     }));
 
     // GET /api/docs/:did/apiKey/:LinkId
@@ -336,14 +336,14 @@ export class ApiServer {
       const did = req.params.did;
       const linkId = req.params.linkId;
       const query = await this._dbManager.getDocApiKeyByLinkId(did, linkId);
-      return query ? res.status(200).send(query.key) : res.status(400);
+      return query ? res.status(200).send(query) : res.status(404).send();
     }));
 
     // PATCH /api/docs/:did/apiKey/:linkId
     this._app.patch('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
       const did = req.params.did;
       const linkId = req.params.linkId;
-      const query = await this._dbManager.updateDocApiKeyByLinkId(did, linkId, req.body.options);
+      const query = await this._dbManager.updateDocApiKeyByLinkId(did, linkId, req.body);
       return sendOkReply(req, res, query);
     }));
 

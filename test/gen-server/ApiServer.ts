@@ -1469,50 +1469,80 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 403);
   });
 
-  it('POST /api/docs/{did}/apikey/{linkId} is operational', async function() {
+  it('POST /api/docs/{did}/apikey is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access:"Editor"};
-    const body = {"linkId": "Peace-And-Tranquility-2-Earth", "options":JSON.stringify(options)};
+    const linkId = "Peace-And-Tranquility-2-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
     assert.equal(resp.status, 200);
-    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${body.linkId}`, chimpy);
-    assert.equal(fetchResp.status, 200);
-    console.log(";;;;;;;;;;;", resp);
-    console.log("!!!!!!!!!!!", fetchResp.data);
-    //assert.deepEqual(fetchResp.data[0], {
-    //  key: resp.key,
-    //});
+    // Testing that response matches a string in Flickr Base58 style
+    assert.match(resp.data, /^[1-9a-km-zA-HJ-MP-Z]{22}$/);
   });
 
   it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
-    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
-    assert.equal(resp.status, 666);
+    const options = {access:"Editor"};
+    const linkId = "Peace-And-Tranquility-2-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 200);
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${body.linkId}`, chimpy);
+    assert.equal(fetchResp.status, 200);
+    assert.deepEqual(
+      omit(fetchResp.data, 'id'),
+      {
+        key: resp.data,
+        linkId: linkId,
+        docId: did,
+        options: {
+          ... options,
+          apikey: true,
+        }
+      }
+    );
   });
 
-  it('PUT /api/docs/{did}/apikey/{linkId} is operational', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
-    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
-    assert.equal(resp.status, 666);
+    const options = {access:"Editor"};
+    const linkId = "Peace-And-Tranquility-2-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 200);
+    const newLinkId = "Ground-Control-To-Major-Tom";
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, {linkId: newLinkId}, chimpy);
+    assert.equal(patchResp.status, 200);
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${newLinkId}`, chimpy);
+    assert.equal(fetchResp.status, 200);
   });
 
   it('DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
-    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
-    assert.equal(resp.status, 666);
-  });
-
-  it('GET /api/docs/{did}/apikeys is operational', async function() {
-    const did = await dbManager.testGetId('Curiosity');
-    const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
-    assert.equal(resp.status, 666);
-  });
-
-  it('DELETE /api/docs/{did}/apikeys is operational', async function() {
-    const did = await dbManager.testGetId('Curiosity');
-    const resp = await axios.delete(`${homeUrl}/api/docs/${did}`, chimpy);
+    const options = {access:"Editor"};
+    const linkId = "Peace-And-Tranquility-2-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
     assert.equal(resp.status, 200);
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    assert.equal(fetchResp.status, 200);
+    const deleteResp = await axios.delete(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    assert.equal(deleteResp.status, 200);
+    const fetchResp2 = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    assert.equal(fetchResp2.status, 404);
   });
+
+  // it('GET /api/docs/{did}/apikeys is operational', async function() {
+  //   const did = await dbManager.testGetId('Curiosity');
+  //   const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
+  //   assert.equal(resp.status, 666);
+  // });
+
+  // it('DELETE /api/docs/{did}/apikeys is operational', async function() {
+  //   const did = await dbManager.testGetId('Curiosity');
+  //   const resp = await axios.delete(`${homeUrl}/api/docs/${did}`, chimpy);
+  //   assert.equal(resp.status, 200);
+  // });
 
   it('GET /api/zig is a 404', async function() {
     const resp = await axios.get(`${homeUrl}/api/zig`, chimpy);
