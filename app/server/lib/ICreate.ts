@@ -1,7 +1,7 @@
 import {GristDeploymentType} from 'app/common/gristUrls';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';

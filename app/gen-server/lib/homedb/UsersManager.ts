@@ -17,7 +17,7 @@ import { Group } from 'app/gen-server/entity/Group';
 import { Login } from 'app/gen-server/entity/Login';
 import { User } from 'app/gen-server/entity/User';
 import { appSettings } from 'app/server/lib/AppSettings';
-import { HomeDBManager, PermissionDeltaAnalysis, Scope } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager, PermissionDeltaAnalysis, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import {
   AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
 } from 'app/gen-server/lib/homedb/Interfaces';

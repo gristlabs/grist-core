@@ -9,7 +9,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
 import {OrganizationProperties, PermissionDelta} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
-import {BillingOptions, HomeDBManager, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
+import {BillingOptions, HomeDBManager, QueryResult, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';

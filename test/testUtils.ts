@@ -1,4 +1,4 @@
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 
 export async function getDatabase(typeormDb?: string): Promise<HomeDBManager> {
   const origTypeormDB = process.env.TYPEORM_DATABASE;
