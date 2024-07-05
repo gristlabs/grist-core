@@ -1480,6 +1480,16 @@ describe('ApiServer', function() {
     assert.match(resp.data, /^[1-9a-km-zA-HJ-MP-Z]{22}$/);
   });
 
+  // TODO test what happens in when having wrong did
+
+  // TODO test what happens when access not set or set to bad value
+
+  // TODO test what happens, when an arbitrary option is set
+
+  // TODO test what heppens when posting an already existing linkId (And choose behaviour)
+
+  // TODO test post on a did i dont own
+
   it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access:"Editor"};
@@ -1503,6 +1513,12 @@ describe('ApiServer', function() {
     );
   });
 
+  // TODO test getting not existing linkId
+
+  // TODO test getting linkid on non existing did
+
+  // TODO test get on a doc i dont own
+
   it('PATCH /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access:"Editor"};
@@ -1516,6 +1532,20 @@ describe('ApiServer', function() {
     const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${newLinkId}`, chimpy);
     assert.equal(fetchResp.status, 200);
   });
+
+  // TODO test patch access authorized
+
+  // TODO test patch options with other keys than wanted
+
+  // TODO patch options arbitrary string reject
+
+  // TODO test patch did reject
+
+  // TODO test patch key resject
+
+  // TODO test patch options.apikey reject
+
+  // TODO test patch on did i dont own
 
   it('DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
@@ -1532,17 +1562,35 @@ describe('ApiServer', function() {
     assert.equal(fetchResp2.status, 404);
   });
 
+  // TODO delete not existing linkId
+
+  // TODO delete on non existing did
+
+  // TODO delete on did i dont own
+
   // it('GET /api/docs/{did}/apikeys is operational', async function() {
   //   const did = await dbManager.testGetId('Curiosity');
   //   const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
   //   assert.equal(resp.status, 666);
   // });
 
+  // TODO Test on a did i dont own
+
+  // TODO Test on a did that dont exists
+
+  // TODO test on a did with no apikeys
+
   // it('DELETE /api/docs/{did}/apikeys is operational', async function() {
   //   const did = await dbManager.testGetId('Curiosity');
   //   const resp = await axios.delete(`${homeUrl}/api/docs/${did}`, chimpy);
   //   assert.equal(resp.status, 200);
   // });
+
+  // TODO Test on a did i dont own
+
+  // TODO Test on a did that dont exists
+
+  // TODO test on a did with no apikeys
 
   it('GET /api/zig is a 404', async function() {
     const resp = await axios.get(`${homeUrl}/api/zig`, chimpy);
