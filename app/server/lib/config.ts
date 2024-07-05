@@ -67,7 +67,16 @@ export class FileConfig<FileContents> {
       rawFileContents = JSON.parse(await Deps.readFile(configPath, 'utf8'));
     }
 
-    const fileContents = validator(rawFileContents);
+    let fileContents = null;
+
+    try {
+      fileContents = validator(rawFileContents);
+    } catch (error) {
+      const configError =
+        new ConfigValidationError(`Config at ${configPath} failed validation: ${error.message}`);
+      configError.cause = error;
+      throw configError;
+    }
 
     if (!fileContents) {
       throw new ConfigValidationError(`Config at ${configPath} failed validation - check the format?`);

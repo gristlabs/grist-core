@@ -7,7 +7,7 @@ describe('convertToCoreFileContents', () => {
       version: "This is a random version number that will never exist",
     };
 
-    assert.isNull(convertToCoreFileContents(badConfig));
+    assert.throws(() => convertToCoreFileContents(badConfig));
   });
 
   // This is necessary to handle users who don't have a config file yet.

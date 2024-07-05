@@ -46,9 +46,8 @@ export function convertToCoreFileContents(input: any): IGristCoreConfigFileLates
     configObject = upgradeV0toV1(configObject);
   }
 
-  if (checkers.IGristCoreConfigFileLatest.test(configObject)) {
-    return configObject;
-  }
+  // This will throw an exception if the config object is still not in the correct format.
+  checkers.IGristCoreConfigFileLatest.check(configObject);
 
-  return null;
+  return configObject;
 }
