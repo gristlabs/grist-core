@@ -5,7 +5,7 @@ import {AbortController} from 'node-abort-controller';
 import { ApiError } from 'app/common/ApiError';
 import { SHARE_KEY_PREFIX } from 'app/common/gristUrls';
 import { removeTrailingSlash } from 'app/common/gutil';
-import { HomeDBManager } from "app/gen-server/lib/HomeDBManager";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, RequestWithLogin } from 'app/server/lib/Authorizer';
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap } from "app/server/lib/expressWrap";

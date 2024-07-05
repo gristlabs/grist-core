@@ -4,7 +4,7 @@ import * as chai from 'chai';
 import {configForUser} from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 
 import {TestServer} from 'test/gen-server/apiUtils';
 

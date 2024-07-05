@@ -8,7 +8,7 @@ import {DocumentUsage} from 'app/common/DocUsage';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {KeyedOps} from 'app/common/KeyedOps';
 import {DocReplacementOptions, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {DocSnapshotInventory, DocSnapshotPruner} from 'app/server/lib/DocSnapshots';
 import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';

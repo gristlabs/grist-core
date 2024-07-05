@@ -1,7 +1,7 @@
 import { Level, TelemetryContracts } from 'app/common/Telemetry';
 import { version } from 'app/common/version';
 import { synchronizeProducts } from 'app/gen-server/entity/Product';
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
 import { getMigrations, getOrCreateConnection, getTypeORMSettings,
          undoLastMigration, updateDb } from 'app/server/lib/dbUtils';

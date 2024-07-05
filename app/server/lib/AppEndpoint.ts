@@ -11,7 +11,7 @@ import {LocalPlugin} from "app/common/plugin";
 import {TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME} from 'app/common/Telemetry';
 import {Document as APIDocument, PublicDocWorkerUrlInfo} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';

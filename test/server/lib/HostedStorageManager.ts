@@ -2,7 +2,7 @@ import {ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL} from 'app/common/Asy
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import {SCHEMA_VERSION} from 'app/common/schema';
 import {DocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
