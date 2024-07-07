@@ -93,6 +93,8 @@ export class OIDCConfig {
     });
     const httpTimeout = section.flag('httpTimeout').readInt({
       envVar: 'GRIST_OIDC_HTTP_TIMEOUT',
+      // Default value matching that of node-openid-client
+      // See https://github.com/panva/node-openid-client/blob/main/docs/README.md#customizing-http-requests for more details.
       defaultValue: 3500,
     });
     this._namePropertyKey = section.flag('namePropertyKey').readString({
