@@ -12,7 +12,7 @@ import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget} from "app/common/widgetTypes";
-import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
+import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';

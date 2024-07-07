@@ -8,7 +8,7 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { Activations } from 'app/gen-server/lib/Activations';
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';

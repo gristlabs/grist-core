@@ -85,14 +85,11 @@ export class UpdateManager {
       const payload = (name: string) => req.body?.[name] ?? req.query[name];
 
       // This is the most interesting part for us, to track installation ids and match them
-      // with the version of the client. Won't be send without telemetry opt in.
+      // with the version of the client.
       const deploymentId = optStringParam(
         payload("installationId"),
         "installationId"
       );
-
-      // Current version of grist-core part of the client. Currently not used and not
-      // passed from the client.
 
       // Deployment type of the client (we expect this to be 'core' for most of the cases).
       const deploymentType = optStringParam(

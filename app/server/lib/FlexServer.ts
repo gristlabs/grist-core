@@ -20,7 +20,7 @@ import {Activations} from 'app/gen-server/lib/Activations';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {Doom} from 'app/gen-server/lib/Doom';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
@@ -1987,7 +1987,7 @@ export class FlexServer implements GristServer {
   }
 
   public addUpdatesCheck() {
-    if (this._check('update')) { return; }
+    if (this._check('update', 'json')) { return; }
 
     // For now we only are active for sass deployments.
     if (this._deploymentType !== 'saas') { return; }

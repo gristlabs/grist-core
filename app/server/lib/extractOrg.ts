@@ -3,7 +3,7 @@ import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
 import { extractOrgParts, getHostType, getKnownOrg } from 'app/common/gristUrls';
 import { isAffirmative } from 'app/common/gutil';
 import { Organization } from 'app/gen-server/entity/Organization';
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristServer } from 'app/server/lib/GristServer';
 import { getOriginUrl } from 'app/server/lib/requestUtils';
 import { NextFunction, Request, RequestHandler, Response } from 'express';

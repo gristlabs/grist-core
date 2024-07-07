@@ -1,7 +1,7 @@
 import {QueryRunner} from "typeorm";
 import * as roles from "app/common/roles";
 import {Organization} from 'app/gen-server/entity/Organization';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {assert} from 'chai';
 import {addSeedData, createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
@@ -42,6 +42,8 @@ import {ActivationPrefs1682636695021 as ActivationPrefs} from 'app/gen-server/mi
 import {AssistantLimit1685343047786 as AssistantLimit} from 'app/gen-server/migration/1685343047786-AssistantLimit';
 import {Shares1701557445716 as Shares} from 'app/gen-server/migration/1701557445716-Shares';
 import {Billing1711557445716 as BillingFeatures} from 'app/gen-server/migration/1711557445716-Billing';
+import {UserLastConnection1713186031023
+        as UserLastConnection} from 'app/gen-server/migration/1713186031023-UserLastConnection';
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -50,7 +52,8 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
                     CustomerIndex, ExtraIndexes, OrgHost, DocRemovedAt, Prefs,
                     ExternalBilling, DocOptions, Secret, UserOptions, GracePeriodStart,
                     DocumentUsage, Activations, UserConnectId, UserUUID, UserUniqueRefUUID,
-                    Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures];
+                    Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures,
+                    UserLastConnection];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {
@@ -111,6 +114,33 @@ describe('migrations', function() {
     await addSeedData(home.connection);
     // if we made it this far without an exception, then the rollback scripts must
     // be doing something.
+  });
+
+  it('can migrate UserUUID and UserUniqueRefUUID with user in table', async function() {
+    this.timeout(60000);
+    const runner = home.connection.createQueryRunner();
+
+    // Create 400 users to test the chunk (each chunk is 300 users)
+    const nbUsersToCreate = 400;
+    for (const migration of migrations) {
+      if (migration === UserUUID) {
+        for (let i = 0; i < nbUsersToCreate; i++) {
+          await runner.query(`INSERT INTO users (id, name, is_first_time_user) VALUES (${i}, 'name${i}', true)`);
+        }
+      }
+
+      await (new migration()).up(runner);
+    }
+
+    // Check that all refs are unique
+    const userList = await runner.manager.createQueryBuilder()
+      .select(["users.id", "users.ref"])
+      .from("users", "users")
+      .getMany();
+    const setOfUserRefs = new Set(userList.map(u => u.ref));
+    assert.equal(nbUsersToCreate, userList.length);
+    assert.equal(setOfUserRefs.size, userList.length);
+    await addSeedData(home.connection);
   });
 
   it('can correctly switch display_email column to non-null with data', async function() {

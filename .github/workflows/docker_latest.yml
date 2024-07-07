@@ -82,13 +82,15 @@ jobs:
 
       - name: Build Node.js code
         run: |
-          pushd ext && \
-          { if [ -e package.json ] ; then yarn install --frozen-lockfile --modules-folder=../../node_modules; fi } && \
-          popd
+          rm -rf ext
           yarn run build:prod
 
       - name: Run tests
         run: TEST_IMAGE=${{ github.repository_owner }}/${{ matrix.image.name }}:experimental VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
+
+      - name: Restore the ext/ directory
+        if: matrix.image.name != 'grist-oss'
+        run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v1 

@@ -1,12 +1,13 @@
 import { ApiError } from 'app/common/ApiError';
 import { delay } from 'app/common/delay';
 import { buildUrlId } from 'app/common/gristUrls';
+import { normalizedDateTimeString } from 'app/common/normalizedDateTimeString';
 import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';
 import { Workspace } from 'app/gen-server/entity/Workspace';
-import { HomeDBManager, Scope } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { fromNow } from 'app/gen-server/sqlUtils';
 import { getAuthorizedUserId } from 'app/server/lib/Authorizer';
 import { expressWrap } from 'app/server/lib/expressWrap';
@@ -16,7 +17,6 @@ import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
-import moment from 'moment';
 import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
 import { EntityManager } from 'typeorm';
@@ -414,32 +414,6 @@ export class Housekeeper {
       }
     });
   }
-}
-
-/**
- * Output an ISO8601 format datetime string, with timezone.
- * Any string fed in without timezone is expected to be in UTC.
- *
- * When connected to postgres, dates will be extracted as Date objects,
- * with timezone information. The normalization done here is not
- * really needed in this case.
- *
- * Timestamps in SQLite are stored as UTC, and read as strings
- * (without timezone information). The normalization here is
- * pretty important in this case.
- */
-function normalizedDateTimeString(dateTime: any): string {
-  if (!dateTime) { return dateTime; }
-  if (dateTime instanceof Date) {
-    return moment(dateTime).toISOString();
-  }
-  if (typeof dateTime === 'string') {
-    // When SQLite returns a string, it will be in UTC.
-    // Need to make sure it actually have timezone info in it
-    // (will not by default).
-    return moment.utc(dateTime).toISOString();
-  }
-  throw new Error(`normalizedDateTimeString cannot handle ${dateTime}`);
 }
 
 /**

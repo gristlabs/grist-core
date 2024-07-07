@@ -1,5 +1,5 @@
 import {parseUrlId} from 'app/common/gristUrls';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {DocManager} from 'app/server/lib/DocManager';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import axios from 'axios';

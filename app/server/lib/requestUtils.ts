@@ -1,7 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
-import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
+import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {RequestWithGrist} from 'app/server/lib/GristServer';
@@ -21,8 +21,8 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 
 // Database fields that we permit in entities but don't want to cross the api.
 const INTERNAL_FIELDS = new Set([
-  'apiKey', 'billingAccountId', 'firstLoginAt', 'filteredOut', 'ownerId', 'gracePeriodStart', 'stripeCustomerId',
-  'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
+  'apiKey', 'billingAccountId', 'firstLoginAt', 'lastConnectionAt', 'filteredOut', 'ownerId', 'gracePeriodStart',
+  'stripeCustomerId', 'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
   'authSubject', 'usage', 'createdBy'
 ]);
 
