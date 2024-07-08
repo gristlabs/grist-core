@@ -63,6 +63,13 @@ def formulaType(grist_type):
     return method
   return wrapper
 
+def get_referenced_table_id(col_type):
+  if col_type.startswith("Ref:"):
+    return col_type[4:]
+  if col_type.startswith("RefList:"):
+    return col_type[8:]
+  return None
+
 
 def ifError(value, value_if_error):
   """

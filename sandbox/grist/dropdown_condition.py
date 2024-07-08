@@ -1,5 +1,6 @@
 import json
 import logging
+import usertypes
 
 from predicate_formula import NamedEntity, parse_predicate_formula_json, TreeConverter
 import predicate_formula
@@ -38,12 +39,7 @@ def perform_dropdown_condition_renames(useractions, renames):
       continue
 
     # Find out what table this column refers to and belongs to.
-    if col.type.startswith("Ref:"):
-      ref_table_id = col.type[4:]
-    elif col.type.startswith("RefList:"):
-      ref_table_id = col.type[8:]
-    else:
-      ref_table_id = None
+    ref_table_id = usertypes.get_referenced_table_id(col.type)
     self_table_id = col.parentId.tableId
 
     def renamer(subject):
