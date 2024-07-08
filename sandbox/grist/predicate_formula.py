@@ -49,7 +49,7 @@ def parse_predicate_formula(formula):
     return result
   except SyntaxError as e:
     # In case of an error, include line and offset.
-    raise SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset))
+    raise SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset)) from e
 
 def parse_predicate_formula_json(formula):
   """
@@ -90,9 +90,6 @@ def process_renames(formula, collector, renamer):
   except SyntaxError:
     # Don't do anything to a syntactically wrong formula.
     return formula
-  except ValueError as e:
-    if str(e).startswith("Unsupported syntax"):
-      return formula
 
   for subject in collector.entities:
     new_name = renamer(subject)
@@ -140,7 +137,7 @@ class TreeConverter(ast.NodeVisitor):
   def visit_Compare(self, node):
     # We don't try to support chained comparisons like "1 < 2 < 3" (though it wouldn't be hard).
     if len(node.ops) != 1 or len(node.comparators) != 1:
-      raise ValueError("Can't use chained comparisons")
+      raise SyntaxError("Can't use chained comparisons")
     return [node.ops[0].__class__.__name__, self.visit(node.left), self.visit(node.comparators[0])]
 
   def visit_Name(self, node):
@@ -169,4 +166,4 @@ class TreeConverter(ast.NodeVisitor):
     return self.visit_List(node)    # We don't distinguish tuples and lists
 
   def generic_visit(self, node):
-    raise ValueError("Unsupported syntax at %s:%s" % (node.lineno, node.col_offset + 1))
+    raise SyntaxError("Unsupported syntax at %s:%s" % (node.lineno, node.col_offset + 1))

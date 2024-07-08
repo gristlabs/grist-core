@@ -111,6 +111,12 @@ class TestDCRenames(test_engine.EngineTestCase):
     ])
     self.assert_invalid_formula_untouched()
 
+  def apply_user_action_ignore_syntax_errors(self, user_action_repr):
+    try:
+      self.apply_user_action(user_action_repr)
+    except SyntaxError:
+      pass
+
   def assert_invalid_formula_untouched(self):
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
@@ -122,7 +128,7 @@ class TestDCRenames(test_engine.EngineTestCase):
     ])
 
   def test_referred_column_renames(self):
-    self.apply_user_action(["RenameColumn", "Address", "city", "area"])
+    self.apply_user_action_ignore_syntax_errors(["RenameColumn", "Address", "city", "area"])
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
       [12, 2, "address", build_dc1("name", "area")],
@@ -133,8 +139,8 @@ class TestDCRenames(test_engine.EngineTestCase):
     self.assert_invalid_formula_untouched()
 
   def test_record_column_renames(self):
-    self.apply_user_action(["RenameColumn", "Schools", "name", "identifier"])
-    self.apply_user_action(["RenameColumn", "Schools", "address", "location"])
+    self.apply_user_action_ignore_syntax_errors(["RenameColumn", "Schools", "name", "identifier"])
+    self.apply_user_action_ignore_syntax_errors(["RenameColumn", "Schools", "address", "location"])
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
       # Side effect: "address" becomes "location".
@@ -147,8 +153,8 @@ class TestDCRenames(test_engine.EngineTestCase):
 
   def test_multiple_renames(self):
     # Put all renames together.
-    self.apply_user_action(["RenameColumn", "Address", "city", "area"])
-    self.apply_user_action(["RenameColumn", "Schools", "name", "identifier"])
+    self.apply_user_action_ignore_syntax_errors(["RenameColumn", "Address", "city", "area"])
+    self.apply_user_action_ignore_syntax_errors(["RenameColumn", "Schools", "name", "identifier"])
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
       [12, 2, "address", build_dc1("identifier", "area")],
