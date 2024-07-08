@@ -139,14 +139,14 @@ class TestPredicateFormula(unittest.TestCase):
     self.assertRaises(SyntaxError, parse_predicate_formula, "def foo(): pass")
 
     # Unsupported node type
-    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_predicate_formula, "max(rec)")
-    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_predicate_formula, "user.id in {1, 2, 3}")
-    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_predicate_formula, "1 if user.IsAnon else 2")
+    self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "max(rec)")
+    self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "user.id in {1, 2, 3}")
+    self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "1 if user.IsAnon else 2")
 
     # Unsupported operation
-    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_predicate_formula, "1 | 2")
-    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_predicate_formula, "1 << 2")
-    self.assertRaisesRegex(ValueError, r'Unsupported syntax', parse_predicate_formula, "~test")
+    self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "1 | 2")
+    self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "1 << 2")
+    self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "~test")
 
     # Syntax error
     self.assertRaises(SyntaxError, parse_predicate_formula, "[(]")

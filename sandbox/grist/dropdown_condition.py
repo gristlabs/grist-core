@@ -58,12 +58,18 @@ def perform_dropdown_condition_renames(useractions, renames):
 
     new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
 
-    widget_options["dropdownCondition"]["text"] = new_dc_formula
+    # The data engine stops processing remaining formulas when it hits an exception. Parsing a
+    # formula could potentially raise SyntaxErrors, so we must be careful not to invoke it on a
+    # possibly syntactically wrong formula.
     # Note that new_dc_formula was obtained from process_renames, where syntactically wrong formulas
-    # are left untouched. It is anticipated that renaming-induced changes will not introduce syntax
-    # errors, so we may assume that no syntax errors may occur here.
-    widget_options["dropdownCondition"]["parsed"] = parse_predicate_formula_json(new_dc_formula)
-    updates.append((col, {"widgetOptions": json.dumps(widget_options)}))
+    # are left untouched. It is anticipated that rename-induced changes will not introduce new
+    # SyntaxErrors, so if the formula text is updated, the new version must be valid, hence safe
+    # to parse without error handling.
+    # This also serves as an optimization to avoid unnecessary parsing operations.
+    if new_dc_formula != dc_formula:
+      widget_options["dropdownCondition"]["text"] = new_dc_formula
+      widget_options["dropdownCondition"]["parsed"] = parse_predicate_formula_json(new_dc_formula)
+      updates.append((col, {"widgetOptions": json.dumps(widget_options)}))
 
   # Update the dropdown condition in the database.
   useractions.doBulkUpdateFromPairs('_grist_Tables_column', updates)

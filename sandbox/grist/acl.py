@@ -145,7 +145,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
 
     if not rule_rec.aclFormula:
       continue
-    formula = rule_rec.aclFormula
+    acl_formula = rule_rec.aclFormula
 
     def renamer(subject):
       if subject.type == 'recCol':
@@ -157,11 +157,15 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
       col_id = subject.name
       return col_renames_dict.get((table_id, col_id))
 
-    new_acl_formula = predicate_formula.process_renames(formula, _ACLEntityCollector(), renamer)
-    new_rule_record = {"aclFormula": new_acl_formula}
-    # No need to check for syntax errors. See dropdown_condition.py for more info.
-    new_rule_record["aclFormulaParsed"] = parse_predicate_formula_json(new_acl_formula)
-    rule_updates.append((rule_rec, new_rule_record))
+    new_acl_formula = predicate_formula.process_renames(acl_formula, _ACLEntityCollector(), renamer)
+    # No need to check for syntax errors, but this "if" statement must be present.
+    # See perform_dropdown_condition_renames for more info.
+    if new_acl_formula != acl_formula:
+      new_rule_record = {
+        "aclFormula": new_acl_formula,
+        "aclFormulaParsed": parse_predicate_formula_json(new_acl_formula)
+      }
+      rule_updates.append((rule_rec, new_rule_record))
 
   useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)
   useractions.doBulkUpdateFromPairs('_grist_ACLRules', rule_updates)
