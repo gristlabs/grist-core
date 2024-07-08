@@ -87,7 +87,7 @@ jobs:
           load: true
           tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
           cache-from: type=gha
-          build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
+          build-contexts: ext=ext
 
       - name: Use Node.js ${{ matrix.node-version }} for testing
         if: ${{ !inputs.disable_tests }}
@@ -140,7 +140,7 @@ jobs:
           tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
+          build-contexts: ext=ext
 
       - name: Push Enterprise to Docker Hub
         if: ${{ matrix.image.name == 'grist' }}

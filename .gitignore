@@ -80,3 +80,6 @@ xunit.xml
 .clipboard.lock
 
 **/_build
+
+# ext directory can be overwritten
+ext/**
