@@ -25,6 +25,7 @@ import { Sessions } from 'app/server/lib/Sessions';
 import { ITelemetry } from 'app/server/lib/Telemetry';
 import * as express from 'express';
 import { IncomingMessage } from 'http';
+import { IGristCoreConfig, loadGristCoreConfig } from "./configCore";
 
 /**
  * Basic information about a Grist server.  Accessible in many
@@ -32,7 +33,7 @@ import { IncomingMessage } from 'http';
  */
 export interface GristServer {
   readonly create: ICreate;
-  settings?: Readonly<Record<string, unknown>>;
+  settings?: IGristCoreConfig;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeInternalUrl(relPath?: string): string;
@@ -126,7 +127,7 @@ export interface DocTemplate {
 export function createDummyGristServer(): GristServer {
   return {
     create,
-    settings: {},
+    settings: loadGristCoreConfig(),
     getHost() { return 'localhost:4242'; },
     getHomeUrl() { return 'http://localhost:4242'; },
     getHomeInternalUrl() { return 'http://localhost:4242'; },
