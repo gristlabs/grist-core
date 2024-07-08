@@ -1474,10 +1474,12 @@ describe('ApiServer', function() {
     const options = {access:"Editor"};
     const linkId = "Peace-And-Tranquility-2-Earth";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api is created
     assert.equal(resp.status, 200);
-    // Testing that response matches a string in Flickr Base58 style
-    assert.match(resp.data, /^[1-9a-km-zA-HJ-MP-Z]{22}$/);
+    // Assert that response matches a string in Flickr Base58 style
+    assert.match(resp.data, /^[1-9a-km-zA-HJ-NP-Z]{22}$/);
   });
 
   it('POST /api/docs/{did}/apikey returns 404 on non existing :did', async function() {
@@ -1485,16 +1487,19 @@ describe('ApiServer', function() {
     const options = {access:"Editor"};
     const linkId = "Peace-And-Tranquility-2-Earth";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc doesn't exist
     assert.equal(resp.status, 404);
   });
 
-  // TODO test what happens when access not set
   it('POST /api/docs/{did}/apikey returns 400 when no options', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const linkId = "Peace-And-Tranquility-2-Earth";
     const body = {"linkId": linkId};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key creation fails when no `options` set
     assert.equal(resp.status, 400);
   });
 
@@ -1503,7 +1508,9 @@ describe('ApiServer', function() {
     const options = {};
     const linkId = "Peace-And-Tranquility-3-Earth";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key creation fails when no `options.access` set
     assert.equal(resp.status, 400);
   });
 
@@ -1512,7 +1519,9 @@ describe('ApiServer', function() {
     const options = {access:"Root"};
     const linkId = "Peace-And-Tranquility-4-Earth";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that `options.access` value is illegal
     assert.equal(resp.status, 400);
   });
 
@@ -1521,7 +1530,9 @@ describe('ApiServer', function() {
     const options = {access: "Editor", injection: "It's a bad, bad, thing"};
     const linkId = "Peace-And-Tranquility-5-Earth";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that `options` keys are illegal
     assert.equal(resp.status, 400);
   });
 
@@ -1530,7 +1541,9 @@ describe('ApiServer', function() {
     const options = {access:"Editor"};
     const linkId = "Peace-And-Tranquility-2-Earth";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that linkId is not unique
     assert.equal(resp.status, 400);
   });
 
@@ -1541,12 +1554,17 @@ describe('ApiServer', function() {
   it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access:"Editor"};
-    const linkId = "Peace-And-Tranquility-2-Earth";
+    const linkId = "Small-step-for-man";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key is created
     assert.equal(resp.status, 200);
+
     const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${body.linkId}`, chimpy);
+    // Assert that doc api key can be read
     assert.equal(fetchResp.status, 200);
+    // Assert that doc api key is well formed
     assert.deepEqual(
       omit(fetchResp.data, 'id'),
       {
@@ -1561,120 +1579,213 @@ describe('ApiServer', function() {
     );
   });
 
-  // TODO test getting not existing linkId
+  it('GET /api/docs/{did}/apikey/{linkId} returns 404 on non existing linkId', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const linkId = "non-existing";
 
-  // TODO test getting linkid on non existing did
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    // Assert that :linkId doesn't exist
+    assert.equal(fetchResp.status, 404);
+  });
+
+  // TODO test getting linkId on non existing did
+  it('GET /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO test get on a doc i dont own
+  it('GET /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   it('PATCH /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access:"Editor"};
-    const linkId = "Peace-And-Tranquility-2-Earth";
+    const linkId = "Great-step-for-humanity";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key is created
     assert.equal(resp.status, 200);
+
     const newLinkId = "Ground-Control-To-Major-Tom";
     const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, {linkId: newLinkId}, chimpy);
+    // Assert that doc api key is modified
     assert.equal(patchResp.status, 200);
+
     const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${newLinkId}`, chimpy);
+    // Assert that doc api key can be read by its new linkId
     assert.equal(fetchResp.status, 200);
   });
 
   // TODO test patch access authorized
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO test patch options with other keys than wanted
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO patch options arbitrary string reject
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO test patch did reject
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO test patch key resject
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO test patch options.apikey reject
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO test patch on did i dont own
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   it('DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access:"Editor"};
-    const linkId = "Peace-And-Tranquility-2-Earth";
+    const linkId = "Houston-we-have-a-problem";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key is created
     assert.equal(resp.status, 200);
+
     const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    // Assert that doc api key can be read
     assert.equal(fetchResp.status, 200);
+
     const deleteResp = await axios.delete(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    // Assert that endpoint responds with SUCCESS
     assert.equal(deleteResp.status, 200);
+
     const fetchResp2 = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    // Assert that doc api key no longer exists
     assert.equal(fetchResp2.status, 404);
   });
 
   // TODO delete not existing linkId
+  it('DELETE /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO delete on non existing did
+  it('DELETE /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   // TODO delete on did i dont own
+  it('DELETE /api/docs/{did}/apikey/{linkId} returns', async function() {
+
+  });
 
   it('GET /api/docs/{did}/apikeys is operational', async function() {
-    const did = await dbManager.testGetId('Curiosity');
-    const options1 = {access:"Editor"};
+    const did = await dbManager.testGetId('Boredom');
+
     // Creation of the first doc-api-key
-    const linkId1 = "Peace-And-Tranquility-2-Earth";
+    const options1 = {access:"Editor"};
+    const linkId1 = "Major-Tom-To-Ground-Control";
     const body1 = {"linkId": linkId1, "options":JSON.stringify(options1)};
     const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
+    // Assert that first doc api key is created
     assert.equal(respPost1.status, 200);
+
     // Creation of the second doc-api-key
     const options2 = {access:"Viewer"};
     const linkId2 = "Ground-Control-To-Major-Tom";
     const body2 = {"linkId": linkId2, "options":JSON.stringify(options2)};
     const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
+    // Assert that second doc api key is created
     assert.equal(respPost2.status, 200);
+
     // Get doc-api-keys
     const resp = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    // Assert that endpoint reponds with SUCCESS
     assert.equal(resp.status, 200);
-    // check that there's two doc-api-keys
+
+    // Assert there's two doc api keys for this 'Boredom'
     assert.equal(resp.data.length, 2);
   });
 
   // TODO Test on a did i dont own
+  it('GET /api/docs/{did}/apikeys returns', async function() {
+
+  });
 
   // TODO Test on a did that dont exists
+  it('GET /api/docs/{did}/apikeys returns', async function() {
+
+  });
 
   // TODO test on a did with no apikeys
+  it('GET /api/docs/{did}/apikeys returns', async function() {
+
+  });
 
   it('DELETE /api/docs/{did}/apikeys is operational', async function() {
-    const did = await dbManager.testGetId('Curiosity');
-    const options1 = {access:"Editor"};
+    const did = await dbManager.testGetId('Apathy');
+
     // Creation of the first doc-api-key
-    const linkId1 = "Peace-And-Tranquility-3-Earth";
+    const options1 = {access:"Editor"};
+    const linkId1 = "Peace-And-Tranquility-2-Earth";
     const body1 = {"linkId": linkId1, "options":JSON.stringify(options1)};
     const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
+    // Assert that first doc api key is created
     assert.equal(respPost1.status, 200);
+
     // Creation of the second doc-api-key
     const options2 = {access:"Viewer"};
-    const linkId2 = "Ground-Control-To-Major-Tom";
+    const linkId2 = "Ground-Control-4-Major-Tom";
     const body2 = {"linkId": linkId2, "options":JSON.stringify(options2)};
     const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
+    // Assert that second doc api key is created
     assert.equal(respPost2.status, 200);
+
     // Get doc-api-keys
     const respFetch = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    // Assert that endpoint responds with SUCCESS
     assert.equal(respFetch.status, 200);
-    // check that there's two doc-api-keys
+    // Assert there's two doc api keys for this 'Apathy'
     assert.equal(respFetch.data.length, 2);
+
+    // Delete all doc api keys for 'Apathy'
     const resp = await axios.delete(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    // Assert that endpoint responds with SUCCESS
     assert.equal(resp.status, 200);
-    // check that there's no longer doc-api-keys
+
+    // check that there's no longer doc api keys
     const respFetch2 = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    // Assert that there is no longer doc api keys for 'Apathy'
     assert.equal(respFetch2.status, 200);
     assert.equal(respFetch2.data.length, 0);
   });
 
   // TODO Test on a did i dont own
+  it('DELETE /api/docs/{did}/apikeys returns', async function() {
+
+  });
 
   // TODO Test on a did that dont exists
+  it('DELETE /api/docs/{did}/apikeys returns', async function() {
+
+  });
 
   // TODO test on a did with no apikeys
+  it('DELETE /api/docs/{did}/apikeys returns', async function() {
+
+  });
 
   it('GET /api/zig is a 404', async function() {
     const resp = await axios.get(`${homeUrl}/api/zig`, chimpy);
