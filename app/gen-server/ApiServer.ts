@@ -327,11 +327,37 @@ export class ApiServer {
     // POST /api/docs/:did/apiKey
     this._app.post('/api/docs/:did/apiKey', expressWrap(async (req, res) => {
       const did = req.params.did;
+      const doc = await this._dbManager.getDoc(req);
+      if (!doc){
+        throw new ApiError(`No such doc: ${did}`, 404);
+      }
+      const linkId = req.body.linkId;
+      const query = await this._dbManager.getDocApiKeyByLinkId(did, linkId);
+      if (query){
+        throw new ApiError("LinkId must be unique", 400);
+      }
+      if (!req.body.options){
+        throw new ApiError("Missing body params: options", 400);
+      }
+      const options = JSON.parse(req.body.options);
+      if (!options.access){
+        throw new ApiError("Missing options: access", 400);
+      }
+      const legalOptions = ["access"];
+      Object.keys(options).forEach(element => {
+        if (!legalOptions.includes(element)){
+          throw new ApiError("Invalid option: ${element}", 400);
+        }
+      });
+      const legalAccessValues = ["Editor", "Viewer"];
+      if (!legalAccessValues.includes(options.access)){
+        throw new ApiError(`Invalid access value: ${options.access}`, 400);
+      }
       const key = await this._dbManager.createDocApiKey(did, req.body);
       return res.status(200).send(key);
     }));
 
-    // GET /api/docs/:did/apiKey/:LinkId
+    // GET /api/docs/:did/apiKey/:linkId
     this._app.get('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
       const did = req.params.did;
       const linkId = req.params.linkId;

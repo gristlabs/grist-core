@@ -1480,15 +1480,63 @@ describe('ApiServer', function() {
     assert.match(resp.data, /^[1-9a-km-zA-HJ-MP-Z]{22}$/);
   });
 
-  // TODO test what happens in when having wrong did
+  it('POST /api/docs/{did}/apikey returns 404 on non existing :did', async function() {
+    const did = 'falsedocid_12';
+    const options = {access:"Editor"};
+    const linkId = "Peace-And-Tranquility-2-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 404);
+  });
 
-  // TODO test what happens when access not set or set to bad value
+  // TODO test what happens when access not set
+  it('POST /api/docs/{did}/apikey returns 400 when no options', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const linkId = "Peace-And-Tranquility-2-Earth";
+    const body = {"linkId": linkId};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 400);
+  });
 
-  // TODO test what happens, when an arbitrary option is set
+  it('POST /api/docs/{did}/apikey returns 400 when options.access is missing', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {};
+    const linkId = "Peace-And-Tranquility-3-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 400);
+  });
 
-  // TODO test what heppens when posting an already existing linkId (And choose behaviour)
+  it('POST /api/docs/{did}/apikey returns 400 when options.access have bad value', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access:"Root"};
+    const linkId = "Peace-And-Tranquility-4-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 400);
+  });
+
+  it('POST /api/docs/{did}/apikey returns 400 on arbitrary options', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access: "Editor", injection: "It's a bad, bad, thing"};
+    const linkId = "Peace-And-Tranquility-5-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 400);
+  });
+
+  it('POST /api/docs/{did}/apikey status 400 when linkId already exists for given :did', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access:"Editor"};
+    const linkId = "Peace-And-Tranquility-2-Earth";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    assert.equal(resp.status, 400);
+  });
 
   // TODO test post on a did i dont own
+  it('POST /api/docs/{did}/apikey returns 404 when not owning doc', async function() {
+  });
 
   it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
@@ -1568,11 +1616,26 @@ describe('ApiServer', function() {
 
   // TODO delete on did i dont own
 
-  // it('GET /api/docs/{did}/apikeys is operational', async function() {
-  //   const did = await dbManager.testGetId('Curiosity');
-  //   const resp = await axios.post(`${homeUrl}/api/docs/${did}`, chimpy);
-  //   assert.equal(resp.status, 666);
-  // });
+  it('GET /api/docs/{did}/apikeys is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options1 = {access:"Editor"};
+    // Creation of the first doc-api-key
+    const linkId1 = "Peace-And-Tranquility-2-Earth";
+    const body1 = {"linkId": linkId1, "options":JSON.stringify(options1)};
+    const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
+    assert.equal(respPost1.status, 200);
+    // Creation of the second doc-api-key
+    const options2 = {access:"Viewer"};
+    const linkId2 = "Ground-Control-To-Major-Tom";
+    const body2 = {"linkId": linkId2, "options":JSON.stringify(options2)};
+    const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
+    assert.equal(respPost2.status, 200);
+    // Get doc-api-keys
+    const resp = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    assert.equal(resp.status, 200);
+    // check that there's two doc-api-keys
+    assert.equal(resp.data.length, 2);
+  });
 
   // TODO Test on a did i dont own
 
@@ -1580,11 +1643,32 @@ describe('ApiServer', function() {
 
   // TODO test on a did with no apikeys
 
-  // it('DELETE /api/docs/{did}/apikeys is operational', async function() {
-  //   const did = await dbManager.testGetId('Curiosity');
-  //   const resp = await axios.delete(`${homeUrl}/api/docs/${did}`, chimpy);
-  //   assert.equal(resp.status, 200);
-  // });
+  it('DELETE /api/docs/{did}/apikeys is operational', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options1 = {access:"Editor"};
+    // Creation of the first doc-api-key
+    const linkId1 = "Peace-And-Tranquility-3-Earth";
+    const body1 = {"linkId": linkId1, "options":JSON.stringify(options1)};
+    const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
+    assert.equal(respPost1.status, 200);
+    // Creation of the second doc-api-key
+    const options2 = {access:"Viewer"};
+    const linkId2 = "Ground-Control-To-Major-Tom";
+    const body2 = {"linkId": linkId2, "options":JSON.stringify(options2)};
+    const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
+    assert.equal(respPost2.status, 200);
+    // Get doc-api-keys
+    const respFetch = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    assert.equal(respFetch.status, 200);
+    // check that there's two doc-api-keys
+    assert.equal(respFetch.data.length, 2);
+    const resp = await axios.delete(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    assert.equal(resp.status, 200);
+    // check that there's no longer doc-api-keys
+    const respFetch2 = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    assert.equal(respFetch2.status, 200);
+    assert.equal(respFetch2.data.length, 0);
+  });
 
   // TODO Test on a did i dont own
 

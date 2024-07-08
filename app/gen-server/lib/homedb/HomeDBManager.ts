@@ -2551,7 +2551,7 @@ export class HomeDBManager extends EventEmitter {
 
   public async getDocApiKeys(docId: string): Promise<Share[] | undefined> {
     return await this._connection.createQueryBuilder()
-      .select('key')
+      .select('shares')
       .from(Share, 'shares')
       .where('doc_id = :docId', {docId})
       .getMany() || undefined;
