@@ -94,24 +94,13 @@ def process_renames(formula, collector, renamer):
   for subject in collector.entities:
     new_name = renamer(subject)
     if new_name is not None:
-      patches.append(textbuilder.make_patch(
-        dollar_replacer.get_text(), subject.start_pos, subject.start_pos + len(subject.name), new_name))
+      _, _, patch = dollar_replacer.map_back_patch(
+        textbuilder.make_patch(dollar_replacer.get_text(), subject.start_pos,
+                               subject.start_pos + len(subject.name), new_name)
+      )
+      patches.append(patch)
 
-  new_formula = textbuilder.Replacer(dollar_replacer, patches)
-  new_formula_text = new_formula.get_text()
-
-  # Find all "rec." in the processed formula.
-  rec_occurrences = (m.start() for m in re.finditer(r"rec\.", new_formula_text))
-
-  # Replace "rec." expanded from "$" back.
-  patches = (
-    textbuilder.make_patch(new_formula_text, rec_occurrence, rec_occurrence + 4, "$")
-    for rec_occurrence in rec_occurrences
-    # Map all "rec." back to the original formula to check if it was a "$".
-    if formula[new_formula.map_back_offset(rec_occurrence)] == "$"
-  )
-
-  return textbuilder.Replacer(textbuilder.Text(new_formula_text), patches).get_text()
+  return textbuilder.Replacer(textbuilder.Text(formula), patches).get_text()
 
 
 class TreeConverter(ast.NodeVisitor):
