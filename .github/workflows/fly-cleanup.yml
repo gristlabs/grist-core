@@ -1,4 +1,4 @@
-name: Fly Cleanup
+name: fly.io Cleanup
 on:
   schedule:
     # Once a day, clean up jobs marked as expired
@@ -12,12 +12,12 @@ env:
 
 jobs:
   clean:
-      name: Clean stale deployed apps
-      runs-on: ubuntu-latest
-      if: github.repository_owner == 'gristlabs'
-      steps:
-        - uses: actions/checkout@v3
-        - uses: superfly/flyctl-actions/setup-flyctl@master
-          with:
-            version: 0.1.66
-        - run: node buildtools/fly-deploy.js clean
+    name: Clean stale deployed apps
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'gristlabs'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.2.72
+      - run: node buildtools/fly-deploy.js clean

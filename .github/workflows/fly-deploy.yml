@@ -1,0 +1,70 @@
+# Follow-up of fly-build, with access to secrets for making deployments.
+# This workflow runs in the target repo context. It does not, and should never execute user-supplied code.
+# See https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
+name: fly.io Deploy
+on:
+  workflow_run:
+    workflows: ["fly.io Build"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy app to fly.io
+    runs-on: ubuntu-latest
+    if: |
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.2.72
+      - name: Download artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{ github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "docker-image"
+            })[0];
+            var download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/docker-image.zip', Buffer.from(download.data));
+      - name: Extract artifacts
+        id: extract_artifacts
+        run: |
+          unzip docker-image.zip
+          cat ./pr-info.txt >> $GITHUB_OUTPUT
+      - name: Load Docker image
+        run: docker load --input grist-core.tar
+      - name: Deploy to fly.io
+        id: fly_deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          BRANCH_NAME: ${{ steps.extract_artifacts.outputs.PR_SOURCE }}
+        run: |
+          node buildtools/fly-deploy.js deploy
+          flyctl config -c ./fly.toml env | awk '/APP_HOME_URL/{print "DEPLOY_URL=" $2}' >> $GITHUB_OUTPUT
+          flyctl config -c ./fly.toml env | awk '/FLY_DEPLOY_EXPIRATION/{print "EXPIRES=" $2}' >> $GITHUB_OUTPUT
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: ${{ steps.extract_artifacts.outputs.PR_NUMBER }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Deployed commit \`${{ steps.extract_artifacts.outputs.PR_SHASUM }}\` as ${{ steps.fly_deploy.outputs.DEPLOY_URL }} (until ${{ steps.fly_deploy.outputs.EXPIRES }})`
+            })

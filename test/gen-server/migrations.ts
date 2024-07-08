@@ -1,7 +1,7 @@
 import {QueryRunner} from "typeorm";
 import * as roles from "app/common/roles";
 import {Organization} from 'app/gen-server/entity/Organization';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {assert} from 'chai';
 import {addSeedData, createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';

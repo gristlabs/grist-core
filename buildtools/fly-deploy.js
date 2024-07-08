@@ -1,7 +1,6 @@
 const util = require('util');
 const childProcess = require('child_process');
 const fs = require('fs/promises');
-const {existsSync} = require('fs');
 
 const exec = util.promisify(childProcess.exec);
 
@@ -17,66 +16,81 @@ const getBranchName = () => {
 };
 
 async function main() {
-  if (process.argv[2] === 'deploy') {
-    const appRoot = process.argv[3] || ".";
-    if (!existsSync(`${appRoot}/Dockerfile`)) {
-      console.log(`Dockerfile not found in appRoot of ${appRoot}`);
-      process.exit(1);
-    }
-
-    const name = getAppName();
-    const volName = getVolumeName();
-    if (!await appExists(name)) {
-      await appCreate(name);
-      await volCreate(name, volName);
-    } else {
-      // Check if volume exists, and create it if not. This is needed because there was an API
-      // change in flyctl (mandatory -y flag) and some apps were created without a volume.
-      if (!(await volList(name)).length) {
+  switch (process.argv[2]) {
+    case "deploy": {
+      const name = getAppName();
+      const volName = getVolumeName();
+      if (!await appExists(name)) {
+        await appCreate(name);
         await volCreate(name, volName);
+      } else {
+        // Check if volume exists, and create it if not. This is needed because there was an API
+        // change in flyctl (mandatory -y flag) and some apps were created without a volume.
+        if (!(await volList(name)).length) {
+          await volCreate(name, volName);
+        }
       }
+      await prepConfig(name, volName);
+      await appDeploy(name);
+      break;
     }
-    await prepConfig(name, appRoot, volName);
-    await appDeploy(name, appRoot);
-  } else if (process.argv[2] === 'destroy') {
-    const name = getAppName();
-    if (await appExists(name)) {
-      await appDestroy(name);
+    case "destroy": {
+      const name = getAppName();
+      if (await appExists(name)) {
+        await appDestroy(name);
+      }
+      break;
     }
-  } else if (process.argv[2] === 'clean') {
-    const staleApps = await findStaleApps();
-    for (const appName of staleApps) {
-      await appDestroy(appName);
+    case "clean": {
+      const staleApps = await findStaleApps();
+      for (const appName of staleApps) {
+        await appDestroy(appName);
+      }
+      break;
     }
-  } else {
-    console.log(`Usage:
-  deploy [appRoot]:
-            create (if needed) and deploy fly app grist-{BRANCH_NAME}.
-            appRoot may specify the working directory that contains the Dockerfile to build.
+    default: {
+      console.log(`Usage:
+  deploy:   create (if needed) and deploy fly app grist-{BRANCH_NAME}.
   destroy:  destroy fly app grist-{BRANCH_NAME}
   clean:    destroy all grist-* fly apps whose time has come
             (according to FLY_DEPLOY_EXPIRATION env var set at deploy time)
 
   DRYRUN=1 in environment will show what would be done
 `);
-    process.exit(1);
+      process.exit(1);
+    }
   }
 }
 
+function getDockerTag(name) {
+  return `registry.fly.io/${name}:latest`;
+}
+
 const appExists = (name) => runFetch(`flyctl status -a ${name}`).then(() => true).catch(() => false);
-const appCreate = (name) => runAction(`flyctl launch --auto-confirm --name ${name} -r ewr -o ${org} --vm-memory 1024`);
+// We do not deploy at the create stage, since the Docker image isn't ready yet.
+// Assigning --image prevents flyctl from making inferences based on the codebase and provisioning unnecessary postgres/redis instances.
+const appCreate = (name) => runAction(`flyctl launch --no-deploy --auto-confirm --image ${getDockerTag(name)} --name ${name} -r ewr -o ${org}`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
-const appDeploy = (name, appRoot) => runAction(`flyctl deploy ${appRoot} --remote-only --region=ewr --vm-memory 1024`,
-  {shell: true, stdio: 'inherit'});
+const appDeploy = async (name) => {
+  try {
+    await runAction("flyctl auth docker")
+    await runAction(`docker image tag grist-core:preview ${getDockerTag(name)}`);
+    await runAction(`docker push ${getDockerTag(name)}`);
+    await runAction(`flyctl deploy --app ${name} --image ${getDockerTag(name)}`);
+  } catch (e) {
+    console.log(`Error occurred when deploying: ${e}`);
+    process.exit(1);
+  }
+};
 
 async function appDestroy(name) {
   await runAction(`flyctl apps destroy ${name} -y`);
 }
 
-async function prepConfig(name, appRoot, volName) {
-  const configPath = `${appRoot}/fly.toml`;
-  const configTemplatePath = `${appRoot}/buildtools/fly-template.toml`;
+async function prepConfig(name, volName) {
+  const configPath = "./fly.toml";
+  const configTemplatePath = "./buildtools/fly-template.toml";
   const template = await fs.readFile(configTemplatePath, {encoding: 'utf8'});
 
   // Calculate the time when we can destroy the app, used by findStaleApps.

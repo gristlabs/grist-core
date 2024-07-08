@@ -35,7 +35,7 @@ import { EmptyRecordView, InfoView, RecordView } from 'app/common/RecordView';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { User } from 'app/common/User';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionShare,

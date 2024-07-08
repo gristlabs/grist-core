@@ -1,4 +1,4 @@
-import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
+import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {Request} from 'express';
 

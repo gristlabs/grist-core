@@ -8,7 +8,7 @@ import {TelemetryMetadata} from 'app/common/Telemetry';
 import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
 import {normalizeEmail} from 'app/common/emails';
 import {User} from 'app/gen-server/entity/User';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {ScopedSession} from 'app/server/lib/BrowserSession';
