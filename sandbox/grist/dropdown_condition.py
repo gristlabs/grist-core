@@ -30,8 +30,6 @@ def perform_dropdown_condition_renames(useractions, renames):
 
   for col in useractions.docmodel.columns.all:
 
-    patches = []
-
     # Find all columns in the document that have dropdown conditions.
     try:
       widget_options = json.loads(col.widgetOptions)
@@ -50,24 +48,21 @@ def perform_dropdown_condition_renames(useractions, renames):
 
     def renamer(subject):
       table_id = ref_table_id if subject.type == "choiceAttr" else self_table_id
-      # Dropdown conditions stay in widgetOptions, even when the current column type can't make use of them.
-      # Attributes of "choice" do not make sense for columns that are not Ref and RefList.
-      # We set ref_table_id to None in this case, so table_id will be None for stray choiceAttrs, therefore
-      # the subject will not be renamed.
+      # Dropdown conditions stay in widgetOptions, even when the current column type can't make
+      # use of them. Thus, attributes of "choice" do not make sense for columns other than Ref and
+      # RefList, but they may exist.
+      # We set ref_table_id to None in this case, so table_id will be None for stray choiceAttrs,
+      # therefore the subject will not be renamed.
       # Columns of "rec" are still renamed accordingly.
       return renames.get((table_id, subject.name))
 
     new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
 
-    widget_options["dropdownCondition"] = {"text": new_dc_formula}
-    try:
-      # Parse the new dropdown condition formula if it is syntactically correct.
-      widget_options["dropdownCondition"]["parsed"] = parse_predicate_formula_json(new_dc_formula)
-    except SyntaxError:
-      pass
-    except ValueError as e:
-      if not str(e).startswith("Unsupported syntax"):
-        raise e
+    widget_options["dropdownCondition"]["text"] = new_dc_formula
+    # Note that new_dc_formula was obtained from process_renames, where syntactically wrong formulas
+    # are left untouched. It is anticipated that renaming-induced changes will not introduce syntax
+    # errors, so we may assume that no syntax errors may occur here.
+    widget_options["dropdownCondition"]["parsed"] = parse_predicate_formula_json(new_dc_formula)
     updates.append((col, {"widgetOptions": json.dumps(widget_options)}))
 
   # Update the dropdown condition in the database.

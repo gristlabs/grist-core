@@ -66,7 +66,6 @@ named_constants = {
 
 
 def process_renames(formula, collector, renamer):
-
   """
   Given a predicate formula, a collector and a renamer, rename all references in the formula
   that the renamer wants to rename. This is used to automatically update references in an ACL

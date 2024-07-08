@@ -159,13 +159,8 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
 
     new_acl_formula = predicate_formula.process_renames(formula, _ACLEntityCollector(), renamer)
     new_rule_record = {"aclFormula": new_acl_formula}
-    try:
-      new_rule_record["aclFormulaParsed"] = parse_predicate_formula_json(new_acl_formula)
-    except SyntaxError:
-      pass
-    except ValueError as e:
-      if not str(e).startswith("Unsupported syntax"):
-        raise
+    # No need to check for syntax errors. See dropdown_condition.py for more info.
+    new_rule_record["aclFormulaParsed"] = parse_predicate_formula_json(new_acl_formula)
     rule_updates.append((rule_rec, new_rule_record))
 
   useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)
