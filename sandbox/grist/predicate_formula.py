@@ -1,14 +1,13 @@
 import ast
 import io
+import re
 import json
 import tokenize
 from collections import namedtuple
-import ast
 import asttokens
 import textbuilder
 import six
 from codebuilder import get_dollar_replacer
-import re
 
 # Entities encountered in predicate formulas, which may get renamed.
 #   type : 'recCol'|'userAttr'|'userAttrCol',
@@ -76,7 +75,7 @@ def process_renames(formula, collector, renamer):
   The collector should be a subclass of TreeConverter that collects related NamedEntity's and
   stores them in the field "entities". See acl._ACLEntityCollector for an example.
 
-  The renamer should be a function taking a NamedEntity as its only argument. It should return 
+  The renamer should be a function taking a NamedEntity as its only argument. It should return
   a new name for this NamedEntity when it wants to rename this entity, or None otherwise.
   """
   patches = []
@@ -110,7 +109,7 @@ def process_renames(formula, collector, renamer):
 
   # Replace "rec." expanded from "$" back.
   patches = (
-    textbuilder.make_patch(new_formula_text, rec_occurrence, rec_occurrence+4, "$")
+    textbuilder.make_patch(new_formula_text, rec_occurrence, rec_occurrence + 4, "$")
     for rec_occurrence in rec_occurrences
     # Map all "rec." back to the original formula to check if it was a "$".
     if formula[new_formula.map_back_offset(rec_occurrence)] == "$"

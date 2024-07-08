@@ -2,13 +2,10 @@
 # It now retains only the minimum needed to keep new documents openable by old code,
 # and to produce the ActionBundles expected by other code.
 
-import ast
-import asttokens
 import json
 import logging
 
 import action_obj
-import textbuilder
 import predicate_formula
 from predicate_formula import NamedEntity, parse_predicate_formula_json, TreeConverter
 
@@ -169,7 +166,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
     except ValueError as e:
       if not str(e).startswith("Unsupported syntax"):
         raise
-    rule_updates.append((rule_rec, new_rule_record)) 
+    rule_updates.append((rule_rec, new_rule_record))
 
   useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)
   useractions.doBulkUpdateFromPairs('_grist_ACLRules', rule_updates)

@@ -73,7 +73,7 @@ class TestDCRenames(test_engine.EngineTestCase):
         }),
       }],
       # And another similar column, but of type RefList.
-      # This column will have the ID 26. 
+      # This column will have the ID 26.
       ["AddColumn", "Schools", "addresses", {
         "type": "RefList:Address",
       }],
@@ -88,7 +88,7 @@ class TestDCRenames(test_engine.EngineTestCase):
       }],
       # And another similar column, but of type ChoiceList.
       # widgetOptions stay when the column type changes. We do our best to rename stuff in stray widgetOptions.
-      # This column will have the ID 27. 
+      # This column will have the ID 27.
       ["AddColumn", "Schools", "features", {
         "type": "ChoiceList",
       }],

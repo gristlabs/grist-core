@@ -1,8 +1,5 @@
-import ast
-import asttokens
 import json
 import logging
-import textbuilder
 
 from predicate_formula import NamedEntity, parse_predicate_formula_json, TreeConverter
 import predicate_formula
@@ -43,10 +40,10 @@ def perform_dropdown_condition_renames(useractions, renames):
       continue
 
     # Find out what table this column refers to and belongs to.
-    if col.type.startswith("Ref:") :
-      ref_table_id = col.type[4:] 
+    if col.type.startswith("Ref:"):
+      ref_table_id = col.type[4:]
     elif col.type.startswith("RefList:"):
-      ref_table_id = col.type[8:] 
+      ref_table_id = col.type[8:]
     else:
       ref_table_id = None
     self_table_id = col.parentId.tableId
@@ -59,7 +56,7 @@ def perform_dropdown_condition_renames(useractions, renames):
       # the subject will not be renamed.
       # Columns of "rec" are still renamed accordingly.
       return renames.get((table_id, subject.name))
-      
+
     new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
 
     widget_options["dropdownCondition"] = {"text": new_dc_formula}

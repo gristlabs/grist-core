@@ -42,7 +42,7 @@ class TestACLRenames(test_engine.EngineTestCase):
       }],
       ['AddRecord', '_grist_ACLRules', None, {
         'resource': -2,
-        # Test whether both "$" and "rec." are preserved while renaming. 
+        # Test whether both "$" and "rec." are preserved while renaming.
         'aclFormula': '( $firstName not in rec.schoolName or $schoolName + $lastName == rec.firstName)',
         'permissionsText': 'all',
       }],
