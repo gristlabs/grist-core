@@ -43,6 +43,7 @@
  *        A space-separated list of ACR values to request from the IdP. Optional.
  *    env GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA
  *        A JSON object with extra client metadata to pass to openid-client. Optional.
+ *        Be aware that setting this object may override any other values passed to the openid client.
  *        More info: https://github.com/panva/node-openid-client/tree/main/docs#new-clientmetadata-jwks-options
  *
  *
@@ -73,6 +74,8 @@ import { UserProfile } from 'app/common/LoginSessionAPI';
 import { SendAppPage } from './sendAppPage';
 import { StringUnion } from 'app/common/StringUnion';
 
+const CALLBACK_URL = '/oauth2/callback';
+
 const EnabledProtection = StringUnion(
   "STATE",
   "NONCE",
@@ -85,29 +88,24 @@ EnabledProtection.setErrMessageBuilder(
 );
 
 type EnabledProtectionString = typeof EnabledProtection.type;
-type ProtectionPropertyName = 'nonce' | 'state' | 'codeVerifier';
-
-type CheckProtectionPropertyNames = 'nonce' | 'state' | 'code_verifier';
-const CALLBACK_CHECK_BY_PROTECTION_PROPERTY_NAME: Record<ProtectionPropertyName, CheckProtectionPropertyNames> = {
-  nonce: 'nonce',
-  state: 'state',
-  'codeVerifier': 'code_verifier'
-};
+type ProtectionPropertyName = 'nonce' | 'state' | 'code_verifier';
+type Protections = Partial<Record<ProtectionPropertyName, string>>;
 
 class SingleProtection {
+  private static _generationMethodsByPropertyName = {
+    state: () => generators.state(),
+    code_verifier: () => generators.codeVerifier(),
+    nonce: () => generators.nonce(),
+  };
+
   constructor(
     public readonly propertyName: ProtectionPropertyName,
     public readonly errMsgIfOmitted: string,
   ) {}
 
-  public get callbackCheckPropName() {
-    return CALLBACK_CHECK_BY_PROTECTION_PROPERTY_NAME[this.propertyName];
-  }
-
   public generate() {
-    // 'nonce', 'state' and 'codeVerifier' have a method dedicated in `generators`.
-    const generatorMethod = this.propertyName;
-    return generators[generatorMethod]();
+    const generationMethod = SingleProtection._generationMethodsByPropertyName[this.propertyName];
+    return generationMethod();
   }
 
   public assertExistsInSession(sessionInfo: Record<string, string>) {
@@ -119,6 +117,7 @@ class SingleProtection {
 
 class ProtectionsManager {
   private _protections: SingleProtection[] = [];
+
   constructor(private _enabledProtections: Set<EnabledProtectionString>) {
     if (this._enabledProtections.has('STATE')) {
       this._protections.push(new SingleProtection('state', 'Login or logout failed to complete'));
@@ -127,35 +126,34 @@ class ProtectionsManager {
       this._protections.push(new SingleProtection('nonce', 'Login is stale'));
     }
     if (this._enabledProtections.has('PKCE')) {
-      this._protections.push(new SingleProtection('codeVerifier', 'Login is stale'));
+      this._protections.push(new SingleProtection('code_verifier', 'Login is stale'));
     }
   }
 
-  public generate() {
-    const obj: Partial<Record<ProtectionPropertyName, string>> = {};
+  public generate(): Protections {
+    const protections: Protections = {};
     for (const singleProtection of this._protections) {
-      obj[singleProtection.propertyName] = singleProtection.generate();
+      protections[singleProtection.propertyName] = singleProtection.generate();
     }
-    return obj;
+    return protections;
   }
 
-  public forgeProtectionParamsForAuthUrl(protections: Partial<Record<ProtectionPropertyName, string>>) {
+  public forgeProtectionParamsForAuthUrl(protections: Protections) {
     return {
       state: protections.state,
       nonce: protections.nonce,
-      code_challenge: protections.codeVerifier ?
-        generators.codeChallenge(protections.codeVerifier) :
+      code_challenge: protections.code_verifier ?
+        generators.codeChallenge(protections.code_verifier) :
         undefined,
-      code_challenge_method: protections.codeVerifier ? 'S256' : undefined,
+      code_challenge_method: protections.code_verifier ? 'S256' : undefined,
     };
   }
 
-  public asObjForCallback(sessionInfo: Record<string, any>) {
-    const protectionPropertiesFromSession: Partial<Record<CheckProtectionPropertyNames, string>> = {};
+  public getCallbackChecksFromSessionInfo(sessionInfo: Record<string, any>) {
+    const protectionPropertiesFromSession: Partial<Record<ProtectionPropertyName, string>> = {};
     for (const singleProtection of this._protections) {
       singleProtection.assertExistsInSession(sessionInfo);
-      const valueFromSession = sessionInfo[singleProtection.propertyName];
-      protectionPropertiesFromSession[singleProtection.callbackCheckPropName] = valueFromSession;
+      protectionPropertiesFromSession[singleProtection.propertyName] = sessionInfo[singleProtection.propertyName];
     }
     return protectionPropertiesFromSession;
   }
@@ -164,9 +162,6 @@ class ProtectionsManager {
     return this._enabledProtections.has(protection);
   }
 }
-
-
-const CALLBACK_URL = '/oauth2/callback';
 
 function formatTokenForLogs(token: TokenSet) {
   const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'];
@@ -281,13 +276,12 @@ export class OIDCConfig {
   }
 
   public async handleCallback(sessions: Sessions, req: express.Request, res: express.Response): Promise<void> {
-    const mreq = req as RequestWithLogin;
     try {
-      if (!mreq.session) { throw new Error('no session available'); }
+      const mreq = this._getRequestWithSession(req);
       const params = this._client.callbackParams(req);
       const { targetUrl } = mreq.session.oidc ?? {};
 
-      const checks = this._protectionManager.asObjForCallback(mreq.session.oidc ?? {});
+      const checks = this._protectionManager.getCallbackChecksFromSessionInfo(mreq.session.oidc ?? {});
 
       // The callback function will compare the protections present in the params and the ones we retrieved
       // from the session. If they don't match, it will throw an error.
@@ -300,8 +294,7 @@ export class OIDCConfig {
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
         throw new ErrorWithUserFriendlyMessage(
           `OIDCConfig: email not verified for ${userInfo.email}`,
-          "Your email is not verified according to the identity provider, please take the neccessary steps for that " +
-            "and log in again."
+          "Please verify your email with the identity provider, and log in again."
         );
       }
 
@@ -322,11 +315,20 @@ export class OIDCConfig {
       if (Object.prototype.hasOwnProperty.call(err, 'response')) {
         log.error(`Response received: ${err.response?.body ?? err.response}`);
       }
+
       // Delete entirely the session data when the login failed.
       // This way, we prevent several login attempts.
       //
       // Also session deletion must be done before sending the response.
-      delete mreq.session.oidc;
+      try {
+        const mreq = this._getRequestWithSession(req);
+        delete mreq.session.oidc;
+      } catch (e) {
+        // _getRequestWithSession may fail because there is no session,
+        // in such a case, ignore the exception, just log some error.
+        log.warn('Could not retrieve session to delete the oidc protections');
+      }
+
       await this._sendAppPage(req, res, {
         path: 'error.html',
         status: 500,
@@ -340,18 +342,22 @@ export class OIDCConfig {
 
   public async getLoginRedirectUrl(req: express.Request, targetUrl: URL): Promise<string> {
     const protections = this._protectionManager.generate();
-    await this._storeConnectionInfo(req, targetUrl.href, protections);
+    const mreq = this._getRequestWithSession(req);
 
-    const authUrl = this._client.authorizationUrl({
+    mreq.session.oidc = {
+      targetUrl: targetUrl.href,
+      ...protections
+    };
+
+    return this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
-      acr_values: this._acrValues ?? undefined,
+      acr_values: this._acrValues,
       ...this._protectionManager.forgeProtectionParamsForAuthUrl(protections),
     });
-    return authUrl;
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
-    const mreq = req as RequestWithLogin;
+    const mreq = this._getRequestWithSession(req);
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
     if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
@@ -383,20 +389,11 @@ export class OIDCConfig {
     });
   }
 
-  private async _storeConnectionInfo(
-    req: express.Request,
-    targetUrl: string,
-    protections: Partial<Record<ProtectionPropertyName, string>>
-  ) {
+  private _getRequestWithSession(req: express.Request) {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
 
-    mreq.session.oidc = {
-      targetUrl,
-      ...protections
-    };
-
-    return protections;
+    return mreq;
   }
 
   private _buildEnabledProtections(section: AppSettings): Set<EnabledProtectionString> {

@@ -271,7 +271,7 @@ describe('OIDCConfig', () => {
         }],
         expectedSession: {
           oidc: {
-            codeVerifier: FAKE_CODE_VERIFIER,
+            code_verifier: FAKE_CODE_VERIFIER,
             state: FAKE_STATE,
             targetUrl: TARGET_URL,
           }
@@ -292,7 +292,7 @@ describe('OIDCConfig', () => {
         }],
         expectedSession: {
           oidc: {
-            codeVerifier: FAKE_CODE_VERIFIER,
+            code_verifier: FAKE_CODE_VERIFIER,
             state: FAKE_STATE,
             targetUrl: TARGET_URL,
           }
@@ -313,7 +313,7 @@ describe('OIDCConfig', () => {
         }],
         expectedSession: {
           oidc: {
-            codeVerifier: FAKE_CODE_VERIFIER,
+            code_verifier: FAKE_CODE_VERIFIER,
             nonce: FAKE_NONCE,
             state: FAKE_STATE,
             targetUrl: TARGET_URL,
@@ -371,7 +371,7 @@ describe('OIDCConfig', () => {
     };
     const DEFAULT_SESSION = {
       oidc: {
-        codeVerifier: FAKE_CODE_VERIFIER,
+        code_verifier: FAKE_CODE_VERIFIER,
         state: FAKE_STATE
       }
     } as SessionObj;
@@ -438,7 +438,7 @@ describe('OIDCConfig', () => {
         expectedCbChecks: {},
       },
       {
-        itMsg: 'should reject when the codeVerifier is missing from the session',
+        itMsg: 'should reject when the code_verifier is missing from the session',
         session: {
           oidc: {
             state: FAKE_STATE,
@@ -448,7 +448,7 @@ describe('OIDCConfig', () => {
         expectedErrorMsg: /Login is stale/,
       },
       {
-        itMsg: 'should resolve when the codeVerifier is missing and its check has been disabled',
+        itMsg: 'should resolve when the code_verifier is missing and its check has been disabled',
         session: {
           oidc: {
             state: FAKE_STATE,
@@ -496,7 +496,7 @@ describe('OIDCConfig', () => {
         },
         expectedErrorMsg: /email not verified for/,
         extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
-          assert.match(sendAppPageStub.firstCall.args[2].config.errMessage, /Your email is not verified/);
+          assert.match(sendAppPageStub.firstCall.args[2].config.errMessage, /Please verify your email/);
         }
       },
       {

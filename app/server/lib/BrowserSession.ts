@@ -70,11 +70,15 @@ export interface SessionObj {
                           // to edit other people's contributions).
 
   oidc?: {
-    // codeVerifier is used during OIDC authentication, to protect against attacks like CSRF.
-    codeVerifier?: string;
+    // more details on protections are available here: https://danielfett.de/2020/05/16/pkce-vs-nonce-equivalent-or-not/#special-case-error-responses
+    // code_verifier is used during OIDC authentication for PKCE protection, to protect against attacks like CSRF.
+    // PKCE + state are currently the best combination to protect against CSRF and code injection attacks.
+    code_verifier?: string;
+    // much like code_verifier, for OIDC providers that do not support PKCE.
+    nonce?: string;
+    // state is used to protect against Error Responses spoofs.
     state?: string;
     targetUrl?: string;
-    nonce?: string;
     idToken?: string;
   }
 }
