@@ -1,8 +1,8 @@
 import ast
 import io
-import re
 import json
 import tokenize
+import sys
 from collections import namedtuple
 import asttokens
 import textbuilder
@@ -49,7 +49,10 @@ def parse_predicate_formula(formula):
     return result
   except SyntaxError as e:
     # In case of an error, include line and offset.
-    raise SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset)) from e
+    _, _, exc_traceback = sys.exc_info()
+    six.reraise(SyntaxError,
+                SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset)),
+                exc_traceback)
 
 def parse_predicate_formula_json(formula):
   """

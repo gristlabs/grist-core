@@ -54,9 +54,9 @@ def perform_dropdown_condition_renames(useractions, renames):
 
     new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
 
-    # The data engine stops processing remaining formulas when it hits an exception. Parsing a
-    # formula could potentially raise SyntaxErrors, so we must be careful not to invoke it on a
-    # possibly syntactically wrong formula.
+    # The data engine stops processing remaining formulas when it hits an internal exception during
+    # this renaming procedure. Parsing could potentially raise SyntaxErrors, so we must be careful
+    # not to parse a possibly syntactically wrong formula. or handle SyntaxErrors explicitly.
     # Note that new_dc_formula was obtained from process_renames, where syntactically wrong formulas
     # are left untouched. It is anticipated that rename-induced changes will not introduce new
     # SyntaxErrors, so if the formula text is updated, the new version must be valid, hence safe
