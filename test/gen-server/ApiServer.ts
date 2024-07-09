@@ -1779,7 +1779,7 @@ describe('ApiServer', function() {
     const did = await dbManager.testGetId('Curiosity');
     const options = {access: "Editor"};
     const linkId = "Lucy-In-The-Sky";
-    const oupsLinkId = "Mary-In-The-Sky"
+    const oupsLinkId = "Mary-In-The-Sky";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
     const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
@@ -1874,7 +1874,7 @@ describe('ApiServer', function() {
     // Assert that READ is succeffull
     assert.equal(resp.status, 200);
     // Assertt that data is an empty list
-    assert.equal(resp.data.length, 0)
+    assert.equal(resp.data.length, 0);
   });
 
   it('DELETE /api/docs/{did}/apikeys is operational', async function() {
