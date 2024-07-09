@@ -11,7 +11,7 @@ import * as gutil from 'app/common/gutil';
 import {Comm} from 'app/server/lib/Comm';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
-import {IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
+import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {IShell} from 'app/server/lib/IShell';
 import log from 'app/server/lib/log';
 import uuidv4 from "uuid/v4";
@@ -258,14 +258,7 @@ export class DocStorageManager implements IDocStorageManager {
   }
 
   public getSnapshotProgress(): SnapshotProgress {
-    return {
-      pushes: 0,
-      skippedPushes: 0,
-      errors: 0,
-      changes: 0,
-      windowsStarted: 0,
-      windowsDone: 0,
-    };
+    return new EmptySnapshotProgress();
   }
 
   public async replace(docName: string, options: any): Promise<void> {
