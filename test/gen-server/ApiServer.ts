@@ -1547,8 +1547,15 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 400);
   });
 
-  // TODO test post on a did i dont own
-  it('POST /api/docs/{did}/apikey returns 404 when not owning doc', async function() {
+  it('POST /api/docs/{did}/apikey returns 403 when not owning doc', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access:"Editor"};
+    const linkId = "I-am-nobody";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
+
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, nobody);
+    // Assert that it needs to be owner of :did to create a doc api key
+    assert.equal(resp.status, 403);
   });
 
   it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
@@ -1579,6 +1586,15 @@ describe('ApiServer', function() {
     );
   });
 
+  it('GET /api/docs/{did}/apikey/{linkId} returns 404 on non existing did', async function() {
+    const did = 'falsedocid_12';
+    const linkId = "Peace-And-Tranquility-2-Earth";
+
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    // Assert that :did doesn't exist
+    assert.equal(fetchResp.status, 404);
+  });
+
   it('GET /api/docs/{did}/apikey/{linkId} returns 404 on non existing linkId', async function() {
     const did = await dbManager.testGetId('Curiosity');
     const linkId = "non-existing";
@@ -1588,19 +1604,24 @@ describe('ApiServer', function() {
     assert.equal(fetchResp.status, 404);
   });
 
-  // TODO test getting linkId on non existing did
-  it('GET /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('GET /api/docs/{did}/apikey/{linkId} returns 403 when not owning :did', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access:"Editor"};
+    const linkId = "Created-By-Owners-Only";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
-  });
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key is created
+    assert.equal(resp.status, 200);
 
-  // TODO test get on a doc i dont own
-  it('GET /api/docs/{did}/apikey/{linkId} returns', async function() {
-
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${body.linkId}`, nobody);
+    // Assert that doc api key can't be read if not owner
+    assert.equal(fetchResp.status, 403);
   });
 
   it('PATCH /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
-    const options = {access:"Editor"};
+    const options = {access: "Editor"};
     const linkId = "Great-step-for-humanity";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -1618,44 +1639,113 @@ describe('ApiServer', function() {
     assert.equal(fetchResp.status, 200);
   });
 
-  // TODO test patch access authorized
-  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 200 on options.access modification', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access: "Viewer"};
+    const linkId = "Ground-Control-To-Major-Tom";
 
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {options: JSON.stringify(options)}, chimpy);
+    // Assert that options.access is modified
+    assert.equal(patchResp.status, 200, "options.access is modified");
+
+    const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    // Assert that modified doc api key still can be read
+    assert.equal(fetchResp.status, 200, "doc api key can still be read");
+    assert.equal(JSON.parse(fetchResp.data.options).access, options.access);
   });
 
-  // TODO test patch options with other keys than wanted
-  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 when empty option', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = "";
+    const linkId = "Ground-Control-To-Major-Tom";
 
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {options}, chimpy);
+    // Assert that empty option is rejected
+    assert.equal(patchResp.status, 400);
   });
 
-  // TODO patch options arbitrary string reject
-  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on bad options key', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access: "Viewer", bad:"injection"};
+    const linkId = "Ground-Control-To-Major-Tom";
 
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {options: JSON.stringify(options)}, chimpy);
+    // Assert that bad options keys are rejected
+    assert.equal(patchResp.status, 400);
   });
 
-  // TODO test patch did reject
-  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on illegal value of options.access', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access: "injection"};
+    const linkId = "Ground-Control-To-Major-Tom";
 
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {options: JSON.stringify(options)}, chimpy);
+    // Assert that options.access illegal values are rejected
+    assert.equal(patchResp.status, 400);
   });
 
-  // TODO test patch key resject
-  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on did update', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const newdid = "Another-Document-Id";
+    const linkId = "Ground-Control-To-Major-Tom";
 
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {docId: newdid}, chimpy);
+    // Assert that options.access is modified
+    assert.equal(patchResp.status, 400);
   });
 
-  // TODO test patch options.apikey reject
-  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on key update', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const linkId = "Ground-Control-To-Major-Tom";
+    const key = "ViciousKeyInjection";
 
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {key}, chimpy);
+    // Assert that options.access is modified
+    assert.equal(patchResp.status, 400);
   });
 
-  // TODO test patch on did i dont own
-  it('PATCH /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on options.apikey update', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {apikey: "false"};
+    const linkId = "Ground-Control-To-Major-Tom";
 
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {options: JSON.stringify(options)}, chimpy);
+    // Assert that options.apikey update is rejected
+    assert.equal(patchResp.status, 400);
+  });
+
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 404 on did not owned', async function() {
+    const did = "not-a-document";
+    const linkId = "Ground-Control-To-Major-Tom";
+    const newLinkId = "Ground-Control-to-Major-Tim";
+
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {linkId: newLinkId}, chimpy);
+    // Assert that update of a doc api key of not :did is rejected
+    assert.equal(patchResp.status, 404);
+  });
+
+  it('PATCH /api/docs/{did}/apikey/{linkId} returns 403 on did not owned', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const linkId = "Ground-Control-To-Major-Tom";
+    const newLinkId = "Ground-Control-to-Major-Tim";
+
+    const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
+                                        {linkId: newLinkId}, nobody);
+    // Assert that update of a doc api key of not :did is rejected
+    assert.equal(patchResp.status, 403);
   });
 
   it('DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
     const did = await dbManager.testGetId('Curiosity');
-    const options = {access:"Editor"};
+    const options = {access: "Editor"};
     const linkId = "Houston-we-have-a-problem";
     const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -1676,36 +1766,61 @@ describe('ApiServer', function() {
     assert.equal(fetchResp2.status, 404);
   });
 
-  // TODO delete not existing linkId
-  it('DELETE /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('DELETE /api/docs/{did}/apikey/{linkId} returns 404 on non existing :did', async function() {
+    const did = "not-a-document";
+    const linkId = "Lucy-In-The-Sky";
 
+    const deleteResp = await axios.delete(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, chimpy);
+    // Assert that endpoint responds with SUCCESS
+    assert.equal(deleteResp.status, 404);
   });
 
-  // TODO delete on non existing did
-  it('DELETE /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('DELETE /api/docs/{did}/apikey/{linkId} returns 404 on non existing :linkId', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access: "Editor"};
+    const linkId = "Lucy-In-The-Sky";
+    const oupsLinkId = "Mary-In-The-Sky"
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key is created
+    assert.equal(resp.status, 200);
+
+    const deleteResp = await axios.delete(`${homeUrl}/api/docs/${did}/apikey/${oupsLinkId}`, chimpy);
+    // Assert that deletion FAILS on invalid LinkId
+    assert.equal(deleteResp.status, 404);
   });
 
-  // TODO delete on did i dont own
-  it('DELETE /api/docs/{did}/apikey/{linkId} returns', async function() {
+  it('DELETE /api/docs/{did}/apikey/{linkId} returns 403 when not owning doc', async function() {
+    const did = await dbManager.testGetId('Curiosity');
+    const options = {access: "Editor"};
+    const linkId = "With-Diamonds";
+    const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
+    const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+    // Assert that doc api key is created
+    assert.equal(resp.status, 200);
+
+    const deleteResp = await axios.delete(`${homeUrl}/api/docs/${did}/apikey/${linkId}`, nobody);
+    // Assert that deletion FAILS when not owning doc
+    assert.equal(deleteResp.status, 403);
   });
 
   it('GET /api/docs/{did}/apikeys is operational', async function() {
     const did = await dbManager.testGetId('Boredom');
 
     // Creation of the first doc-api-key
-    const options1 = {access:"Editor"};
+    const options1 = {access: "Editor"};
     const linkId1 = "Major-Tom-To-Ground-Control";
-    const body1 = {"linkId": linkId1, "options":JSON.stringify(options1)};
+    const body1 = {"linkId": linkId1, "options": JSON.stringify(options1)};
     const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
     // Assert that first doc api key is created
     assert.equal(respPost1.status, 200);
 
     // Creation of the second doc-api-key
-    const options2 = {access:"Viewer"};
+    const options2 = {access: "Viewer"};
     const linkId2 = "Ground-Control-To-Major-Tom";
-    const body2 = {"linkId": linkId2, "options":JSON.stringify(options2)};
+    const body2 = {"linkId": linkId2, "options": JSON.stringify(options2)};
     const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
     // Assert that second doc api key is created
     assert.equal(respPost2.status, 200);
@@ -1719,19 +1834,47 @@ describe('ApiServer', function() {
     assert.equal(resp.data.length, 2);
   });
 
-  // TODO Test on a did i dont own
-  it('GET /api/docs/{did}/apikeys returns', async function() {
+  it('GET /api/docs/{did}/apikeys returns 403 when not owning :did ', async function() {
+    const did = await dbManager.testGetId('Boredom');
 
+    // Creation of the first doc-api-key
+    const options1 = {access: "Editor"};
+    const linkId1 = "Major-TimE-To-Ground-Control";
+    const body1 = {"linkId": linkId1, "options": JSON.stringify(options1)};
+    const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
+    // Assert that first doc api key is created
+    assert.equal(respPost1.status, 200);
+
+    // Creation of the second doc-api-key
+    const options2 = {access: "Viewer"};
+    const linkId2 = "Ground-Control-To-Major-Tim";
+    const body2 = {"linkId": linkId2, "options": JSON.stringify(options2)};
+    const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
+    // Assert that second doc api key is created
+    assert.equal(respPost2.status, 200);
+
+    // Get doc-api-keys
+    const resp = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, nobody);
+    // Assert that READ fails when not owning :did
+    assert.equal(resp.status, 403);
   });
 
-  // TODO Test on a did that dont exists
-  it('GET /api/docs/{did}/apikeys returns', async function() {
+  it('GET /api/docs/{did}/apikeys returns 404 on not existing :did', async function() {
+    const did = "not-a-document";
 
+    const resp = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    // Assert that READ fails when :did not exists
+    assert.equal(resp.status, 404);
   });
 
-  // TODO test on a did with no apikeys
-  it('GET /api/docs/{did}/apikeys returns', async function() {
+  it('GET /api/docs/{did}/apikeys returns 200 and empty array when no keys', async function() {
+    const did = await dbManager.testGetId('Apathy');
 
+    const resp = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    // Assert that READ is succeffull
+    assert.equal(resp.status, 200);
+    // Assertt that data is an empty list
+    assert.equal(resp.data.length, 0)
   });
 
   it('DELETE /api/docs/{did}/apikeys is operational', async function() {
@@ -1772,19 +1915,20 @@ describe('ApiServer', function() {
     assert.equal(respFetch2.data.length, 0);
   });
 
-  // TODO Test on a did i dont own
-  it('DELETE /api/docs/{did}/apikeys returns', async function() {
+  it('DELETE /api/docs/{did}/apikeys returns 403 when not owning :did', async function() {
+    const did = await dbManager.testGetId('Curiosity');
 
+    const resp = await axios.delete(`${homeUrl}/api/docs/${did}/apikeys`, nobody);
+    // Assert that deletion FAILS when not owning document
+    assert.equal(resp.status, 403);
   });
 
-  // TODO Test on a did that dont exists
-  it('DELETE /api/docs/{did}/apikeys returns', async function() {
+  it('DELETE /api/docs/{did}/apikeys returns 404 when deleting on non existing :did', async function() {
+    const did = "not-a-document";
 
-  });
-
-  // TODO test on a did with no apikeys
-  it('DELETE /api/docs/{did}/apikeys returns', async function() {
-
+    const resp = await axios.delete(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
+    // Assert that READ fails when :did not exists
+    assert.equal(resp.status, 404);
   });
 
   it('GET /api/zig is a 404', async function() {

@@ -2509,7 +2509,6 @@ export class HomeDBManager extends EventEmitter {
 
   public async createDocApiKey(docId: string, share: ShareInfo) {
     const key = makeId();
-    const apiKey_options = {...JSON.parse(share.options), "apikey": true};
     const query = await this._connection.createQueryBuilder()
       .insert()
       .setParameter('options', share.options)
@@ -2517,7 +2516,7 @@ export class HomeDBManager extends EventEmitter {
       .values({
         linkId: share.linkId,
         docId: docId,
-        options: apiKey_options,
+        options: JSON.parse(share.options),
         key,
       })
       .execute() || undefined;

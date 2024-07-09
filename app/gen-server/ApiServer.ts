@@ -21,6 +21,7 @@ import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerPara
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
+import { ShareOptions } from 'app/common/ShareOptions';
 
 // exposed for testing purposes
 export const Deps = {
@@ -331,30 +332,18 @@ export class ApiServer {
       if (!doc){
         throw new ApiError(`No such doc: ${did}`, 404);
       }
+
       const linkId = req.body.linkId;
       const query = await this._dbManager.getDocApiKeyByLinkId(did, linkId);
       if (query){
         throw new ApiError("LinkId must be unique", 400);
       }
-      if (!req.body.options){
-        throw new ApiError("Missing body params: options", 400);
-      }
-      const options = JSON.parse(req.body.options);
-      if (!options.access){
-        throw new ApiError("Missing options: access", 400);
-      }
-      const legalOptions = ["access"];
-      Object.keys(options).forEach(element => {
-        if (!legalOptions.includes(element)){
-          throw new ApiError("Invalid option: ${element}", 400);
-        }
-      });
-      const legalAccessValues = ["Editor", "Viewer"];
-      if (!legalAccessValues.includes(options.access)){
-        throw new ApiError(`Invalid access value: ${options.access}`, 400);
-      }
+      const options = sanitizeDocApiKeyOptions(req.body.options);
+      req.body.options = JSON.stringify(options);
+
       const key = await this._dbManager.createDocApiKey(did, req.body);
-      return res.status(200).send(key);
+
+      return sendOkReply(req, res, key);
     }));
 
     // GET /api/docs/:did/apiKey/:linkId
@@ -362,13 +351,38 @@ export class ApiServer {
       const did = req.params.did;
       const linkId = req.params.linkId;
       const query = await this._dbManager.getDocApiKeyByLinkId(did, linkId);
-      return query ? res.status(200).send(query) : res.status(404).send();
+      return query ? sendOkReply(req, res, query) : res.status(404).send();
     }));
 
     // PATCH /api/docs/:did/apiKey/:linkId
     this._app.patch('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
       const did = req.params.did;
       const linkId = req.params.linkId;
+
+      const doc = await this._dbManager.getDoc(req);
+      if (!doc){
+        throw new ApiError(`No such doc: ${did}`, 404);
+      }
+
+      if (req.body.docId){
+        throw new ApiError("Can't update DocId", 400);
+      }
+
+      if (req.body.key){
+        throw new ApiError("Can't update key", 400);
+      }
+
+      const queryLinkId = await this._dbManager.getDocApiKeyByLinkId(did, req.body.linkId);
+      if (queryLinkId){
+        throw new ApiError("LinkId must be unique", 400);
+      }
+
+      // In order to catch {options: ""} case
+      if (Object.keys(req.body).includes("options")){
+        const options = sanitizeDocApiKeyOptions(req.body.options);
+        req.body.options = JSON.stringify(options);
+      }
+
       const query = await this._dbManager.updateDocApiKeyByLinkId(did, linkId, req.body);
       return sendOkReply(req, res, query);
     }));
@@ -377,6 +391,17 @@ export class ApiServer {
     this._app.delete('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
       const did = req.params.did;
       const linkId = req.params.linkId;
+
+      const doc = await this._dbManager.getDoc(req);
+      if (!doc){
+        throw new ApiError(`No such doc: ${did}`, 404);
+      }
+
+      const linkId4Did = await this._dbManager.getDocApiKeyByLinkId(did, linkId);
+      if (!linkId4Did){
+        throw new ApiError(`Invalid LinkId: ${linkId}`, 404);
+      }
+
       const query = await this._dbManager.deleteDocApiKeyByLinkId(did, linkId);
       return sendOkReply(req, res, query);
     }));
@@ -384,6 +409,12 @@ export class ApiServer {
     // GET /api/docs/:did/apiKeys
     this._app.get('/api/docs/:did/apiKeys', expressWrap(async (req, res) => {
       const did = req.params.did;
+
+      const doc = await this._dbManager.getDoc(req);
+      if (!doc){
+        throw new ApiError(`No such doc: ${did}`, 404);
+      }
+
       const query = await this._dbManager.getDocApiKeys(did);
       return sendOkReply(req, res, query);
     }));
@@ -391,6 +422,12 @@ export class ApiServer {
     // DELETE /api/docs/:did/apiKeys
     this._app.delete('/api/docs/:did/apiKeys', expressWrap(async (req, res) => {
       const did = req.params.did;
+
+      const doc = await this._dbManager.getDoc(req);
+      if (!doc){
+        throw new ApiError(`No such doc: ${did}`, 404);
+      }
+
       const query = await this._dbManager.deleteDocApiKeys(did);
       return sendOkReply(req, res, query);
     }));
@@ -769,4 +806,29 @@ async function updateApiKeyWithRetry(manager: EntityManager, user: User): Promis
     }
   }
   throw new Error('Could not generate a valid api key.');
+}
+
+function sanitizeDocApiKeyOptions(rawOptions: string): ShareOptions {
+  const legalOptions = ["access"];
+  const legalAccessValues = ["Editor", "Viewer"];
+
+  if (!rawOptions){
+    throw new ApiError("Missing body params: options", 400);
+  }
+
+  const options = JSON.parse(rawOptions);
+  if (!options.access){
+    throw new ApiError("Missing options: access", 400);
+  }
+
+  Object.keys(options).forEach(element => {
+    if (!legalOptions.includes(element)){
+      throw new ApiError("Invalid option: ${element}", 400);
+    }
+  });
+
+  if (!legalAccessValues.includes(options.access)){
+    throw new ApiError(`Invalid access value: ${options.access}`, 400);
+  }
+  return {...options, "apikey": true};
 }
