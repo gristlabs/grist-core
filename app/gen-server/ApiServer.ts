@@ -349,6 +349,11 @@ export class ApiServer {
     // GET /api/docs/:did/apiKey/:linkId
     this._app.get('/api/docs/:did/apiKey/:linkId', expressWrap(async (req, res) => {
       const did = req.params.did;
+
+      const doc = await this._dbManager.getDoc(req);
+      if (!doc){
+        throw new ApiError(`No such doc: ${did}`, 404);
+      }
       const linkId = req.params.linkId;
       const query = await this._dbManager.getDocApiKeyByLinkId(did, linkId);
       return query ? sendOkReply(req, res, query) : res.status(404).send();
