@@ -13,6 +13,41 @@ describe('ReferenceList', function() {
   });
 
   describe('other', function() {
+    it('fix: changing ref list with a new referenced row was not bundled', async function() {
+      // When user added a new referenced row through the RefList editor, the UI sent two separate
+      // actions. One for adding the new row, and another for updating the RefList column.
+      await session.tempNewDoc(cleanup);
+      await gu.sendActions([
+        ['ModifyColumn', 'Table1', 'B', {type: 'RefList:Table1'}],
+        ['AddRecord', 'Table1', null, {A: 'a'}],
+      ]);
+      await gu.openColumnPanel();
+      await gu.getCell('B', 1).doClick();
+      await gu.setRefShowColumn('A');
+
+      await gu.getCell('B', 1).click();
+      await gu.sendKeys(Key.ENTER, 'b');
+      await gu.waitToPass(async () => {
+        await driver.findWait('.test-ref-editor-new-item', 100).click();
+      });
+      await gu.sendKeys(Key.ENTER);
+      await gu.waitForServer();
+
+      // Check the data - use waitToPass helper, as previously it might have failed
+      // as 2 separate actions were sent.
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells('A', [1, 2]), ['a', 'b']);
+        assert.deepEqual(await gu.getVisibleGridCells('B', [1, 2]), ['b', '']);
+        assert.equal(await gu.getGridRowCount(), 3);
+      });
+
+      // Now press undo once, and check that the new row is removed and the RefList is updated.
+      await gu.undo();
+      assert.deepEqual(await gu.getVisibleGridCells('A', [1]), ['a']);
+      assert.deepEqual(await gu.getVisibleGridCells('B', [1]), ['']);
+      assert.equal(await gu.getGridRowCount(), 2);
+    });
+
     it('fix: doesnt break when table is renamed', async function() {
       // There was a bug in this scenario:
       // 1. Create a Ref column that targets itself

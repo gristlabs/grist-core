@@ -14,5 +14,6 @@ pushd $repo
 git sparse-checkout set ext
 git checkout
 popd
+rm -rf ./ext
 mv $repo/ext .
 rm -rf $repo

@@ -87,7 +87,7 @@ describe('HomeIntro', function() {
 
       // Check message specific to logged-in user and an empty team site.
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.orgName}`));
-      assert.match(await driver.find('.test-welcome-text').getText(), /Learn more.*find an expert/);
+      assert.match(await driver.find('.test-welcome-text').getText(), /Learn more/);
       assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/);
     });
 

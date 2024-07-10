@@ -15,7 +15,7 @@ import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {ChecksummedExternalStorage, DELETED_TOKEN, ExternalStorage, Unchanged} from 'app/server/lib/ExternalStorage';
 import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
 import {ICreate} from 'app/server/lib/ICreate';
-import {IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
+import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
 import * as fse from 'fs-extra';
@@ -232,14 +232,7 @@ export class HostedStorageManager implements IDocStorageManager {
   public getSnapshotProgress(docName: string): SnapshotProgress {
     let snapshotProgress = this._snapshotProgress.get(docName);
     if (!snapshotProgress) {
-      snapshotProgress = {
-        pushes: 0,
-        skippedPushes: 0,
-        errors: 0,
-        changes: 0,
-        windowsStarted: 0,
-        windowsDone: 0,
-      };
+      snapshotProgress = new EmptySnapshotProgress();
       this._snapshotProgress.set(docName, snapshotProgress);
     }
     return snapshotProgress;

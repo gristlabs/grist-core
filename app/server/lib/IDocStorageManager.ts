@@ -68,7 +68,7 @@ export class TrivialDocStorageManager implements IDocStorageManager {
   public async flushDoc() {}
   public async getSnapshots(): Promise<never> { throw new Error('no'); }
   public async removeSnapshots(): Promise<never> { throw new Error('no'); }
-  public getSnapshotProgress(): SnapshotProgress { throw new Error('no'); }
+  public getSnapshotProgress(): SnapshotProgress { return new EmptySnapshotProgress(); }
   public async replace(): Promise<never> { throw new Error('no'); }
 }
 
@@ -115,4 +115,13 @@ export interface SnapshotProgress {
 
   /** Number of times a save window was completed. */
   windowsDone: number;
+}
+
+export class EmptySnapshotProgress implements SnapshotProgress {
+  public pushes: number = 0;
+  public skippedPushes: number = 0;
+  public errors: number = 0;
+  public changes: number = 0;
+  public windowsStarted: number = 0;
+  public windowsDone: number = 0;
 }

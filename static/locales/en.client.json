@@ -523,7 +523,7 @@
         "Sign in": "Sign in",
         "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
         "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}.": "Learn more in our {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
