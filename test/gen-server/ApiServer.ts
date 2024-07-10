@@ -2456,7 +2456,6 @@ describe('ApiServer', function() {
 
       const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, nobody);
       // Assert that it needs to be owner of :did to create a doc api key
-      console.log(resp.data)
       assert.equal(resp.status, 403);
     });
 
@@ -2518,7 +2517,6 @@ describe('ApiServer', function() {
 
       const fetchResp = await axios.get(`${homeUrl}/api/docs/${did}/apikey/${body.linkId}`, nobody);
       // Assert that doc api key can't be read if not owner
-      console.log(fetchResp.data);
       assert.equal(fetchResp.status, 403);
     });
 
@@ -2840,7 +2838,7 @@ describe('ApiServer', function() {
       // Assert that READ fails when :did not exists
       assert.equal(resp.status, 404);
     });
-  })
+  });
 });
 
 
