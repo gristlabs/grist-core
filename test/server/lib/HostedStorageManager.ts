@@ -494,18 +494,12 @@ describe('HostedStorageManager', function() {
         await setRedisChecksum(docId, 'nobble');
         await store.removeAll();
 
-        // With GRIST_SKIP_REDIS_CHECKSUM_MISMATCH set, the fetch should work
-        process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH = 'true';
+        const warnSpy = sandbox.spy(log, 'warn');
         await store.run(async () => {
           await assert.isFulfilled(store.docManager.fetchDoc(docSession, docId));
+          assert.isTrue(warnSpy.calledWithMatch('has wrong checksum'), 'a warning should have been logged');
         });
-
-        // By default, the fetch should eventually errors.
-        delete process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH;
-        await store.run(async () => {
-          await assert.isRejected(store.docManager.fetchDoc(docSession, docId),
-                                  /operation failed to become consistent/);
-        });
+        warnSpy.restore();
 
         // Check we get the document back on fresh start if checksum is correct.
         await setRedisChecksum(docId, checksum);
