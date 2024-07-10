@@ -2,6 +2,12 @@
 
 set -x
 
+for arg in $@; do
+  if [[ $arg == "--no-nodemon" ]]; then
+    NO_NODEMON=true
+  fi
+done
+
 PROJECT=""
 if [[ -e ext/app ]]; then
   PROJECT="tsconfig-ext.json"
@@ -19,6 +25,6 @@ tsc --build -w --preserveWatchOutput $PROJECT &
 css_files="app/client/**/*.css"
 chokidar "${css_files}" -c "bash -O globstar -c 'cat ${css_files} > static/bundle.css'" &
 webpack --config $WEBPACK_CONFIG --mode development --watch &
-NODE_PATH=_build:_build/stubs:_build/ext nodemon ${NODE_INSPECT} --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js &
+! $NO_NODEMON && NODE_PATH=_build:_build/stubs:_build/ext nodemon ${NODE_INSPECT} --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js &
 
 wait

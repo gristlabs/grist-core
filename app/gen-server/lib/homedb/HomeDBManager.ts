@@ -68,12 +68,12 @@ import {Request} from "express";
 import {defaultsDeep, flatten, pick} from 'lodash';
 import {
   Brackets,
-  Connection,
   DatabaseType,
+  DataSource,
   EntityManager,
   ObjectLiteral,
   SelectQueryBuilder,
-  WhereExpression
+  WhereExpressionBuilder
 } from "typeorm";
 import uuidv4 from "uuid/v4";
 
@@ -247,7 +247,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  */
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
-  private _connection: Connection;
+  private _connection: DataSource;
   private _dbType: DatabaseType;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -983,6 +983,10 @@ export class HomeDBManager extends EventEmitter {
       throw new ApiError('document not found', 404);
     }
     return doc;
+  }
+
+  public async getAllDocs() {
+    return this.connection.getRepository(Document).find();
   }
 
   public async getRawDocById(docId: string, transaction?: EntityManager) {
@@ -3435,7 +3439,7 @@ export class HomeDBManager extends EventEmitter {
   // Adds a where clause to filter orgs by domain or id.
   // If org is null, filter for user's personal org.
   // if includeSupport is true, include the org of the support@ user (for the Samples workspace)
-  private _whereOrg<T extends WhereExpression>(qb: T, org: string|number, includeSupport = false): T {
+  private _whereOrg<T extends WhereExpressionBuilder>(qb: T, org: string|number, includeSupport = false): T {
     if (this.isMergedOrg(org)) {
       // Select from universe of personal orgs.
       // Don't panic though!  While this means that SQL can't use an organization id
@@ -3455,7 +3459,7 @@ export class HomeDBManager extends EventEmitter {
     }
   }
 
-  private _wherePlainOrg<T extends WhereExpression>(qb: T, org: string|number): T {
+  private _wherePlainOrg<T extends WhereExpressionBuilder>(qb: T, org: string|number): T {
     if (typeof org === 'number') {
       return qb.andWhere('orgs.id = :org', {org});
     }
