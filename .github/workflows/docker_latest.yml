@@ -111,19 +111,21 @@ jobs:
         if: ${{ !inputs.disable_tests }}
         run: yarn install
 
+      - name: Disable the ext/ directory
+        if: ${{ !inputs.disable_tests }}
+        run: mv ext/ ext-disabled/
+
       - name: Build Node.js code
         if: ${{ !inputs.disable_tests }}
-        run: |
-          rm -rf ext
-          yarn run build:prod
+        run: yarn run build:prod
 
       - name: Run tests
         if: ${{ !inputs.disable_tests }}
         run: TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }} VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
 
-      - name: Restore the ext/ directory
-        if: ${{ matrix.image.name != 'grist-oss' && !inputs.disable_tests }}
-        run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
+      - name: Re-enable the ext/ directory
+        if: ${{ !inputs.disable_tests }}
+        run: mv ext-disabled/ ext/
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v1 
