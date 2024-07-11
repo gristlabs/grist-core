@@ -2368,7 +2368,7 @@ describe('ApiServer', function() {
 
     it('POST /api/docs/{did}/apikey is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access:"Editor"};
+      const options = {access: "editors"};
       const linkId = "Peace-And-Tranquility-2-Earth";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2381,7 +2381,7 @@ describe('ApiServer', function() {
 
     it('POST /api/docs/{did}/apikey returns 404 on non existing :did', async function() {
       const did = 'falsedocid_12';
-      const options = {access:"Editor"};
+      const options = {access: "editors"};
       const linkId = "Peace-And-Tranquility-2-Earth";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2424,7 +2424,7 @@ describe('ApiServer', function() {
 
     it('POST /api/docs/{did}/apikey returns 400 on arbitrary options', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access: "Editor", injection: "It's a bad, bad, thing"};
+      const options = {access: "editors", injection: "It's a bad, bad, thing"};
       const linkId = "Peace-And-Tranquility-2-Earth";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2435,7 +2435,7 @@ describe('ApiServer', function() {
 
     it('POST /api/docs/{did}/apikey status 400 when linkId already exists for given :did', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access:"Editor"};
+      const options = {access: "editors"};
       const linkId = "Peace-And-Tranquility-2-Earth";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2450,7 +2450,7 @@ describe('ApiServer', function() {
 
     it('POST /api/docs/{did}/apikey returns 403 when not owning doc', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access:"Editor"};
+      const options = {access: "editors"};
       const linkId = "I-am-nobody";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2461,7 +2461,7 @@ describe('ApiServer', function() {
 
     it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access:"Editor"};
+      const options = {access: "editors"};
       const linkId = "Small-step-for-man";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2507,7 +2507,7 @@ describe('ApiServer', function() {
 
     it('GET /api/docs/{did}/apikey/{linkId} returns 403 when not owning :did', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access:"Editor"};
+      const options = {access: "editors"};
       const linkId = "For-Owners-Eyes-Only";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2522,7 +2522,7 @@ describe('ApiServer', function() {
 
     it('PATCH /api/docs/{did}/apikey/{linkId} is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access: "Editor"};
+      const options = {access: "editors"};
       const linkId = "Great-step-for-humanity";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2542,8 +2542,8 @@ describe('ApiServer', function() {
 
     it('PATCH /api/docs/{did}/apikey/{linkId} returns 200 on options.access modification', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access: "Viewer"};
-      const newOptions = {access: "Editor"};
+      const options = {access: "viewers"};
+      const newOptions = {access: "editors"};
       const linkId = "Ground-Control-To-Major-Tom";
 
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
@@ -2576,7 +2576,7 @@ describe('ApiServer', function() {
 
     it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on bad options key', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access: "Viewer", bad:"injection"};
+      const options = {access: "viewers", bad: "injection"};
       const linkId = "Ground-Control-To-Major-Tom";
 
       const patchResp = await axios.patch(`${homeUrl}/api/docs/${did}/apikey/${linkId}`,
@@ -2653,7 +2653,7 @@ describe('ApiServer', function() {
 
     it('DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access: "Editor"};
+      const options = {access: "editors"};
       const linkId = "Houston-we-have-a-problem";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2685,7 +2685,7 @@ describe('ApiServer', function() {
 
     it('DELETE /api/docs/{did}/apikey/{linkId} returns 404 on non existing :linkId', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access: "Editor"};
+      const options = {access: "editors"};
       const linkId = "Lucy-In-The-Sky";
       const oupsLinkId = "Mary-In-The-Sky";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
@@ -2701,7 +2701,7 @@ describe('ApiServer', function() {
 
     it('DELETE /api/docs/{did}/apikey/{linkId} returns 403 when not owning doc', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access: "Editor"};
+      const options = {access: "editors"};
       const linkId = "With-Diamonds";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
@@ -2718,7 +2718,7 @@ describe('ApiServer', function() {
       const did = await dbManager.testGetId('Curiosity');
 
       // Creation of the first doc-api-key
-      const options1 = {access: "Editor"};
+      const options1 = {access: "editors"};
       const linkId1 = "Major-Tom-To-Ground-Control";
       const body1 = {"linkId": linkId1, "options": JSON.stringify(options1)};
       const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
@@ -2726,7 +2726,7 @@ describe('ApiServer', function() {
       assert.equal(respPost1.status, 200, "First docApiKey created");
 
       // Creation of the second doc-api-key
-      const options2 = {access: "Viewer"};
+      const options2 = {access: "viewers"};
       const linkId2 = "Ground-Control-To-Major-Tom";
       const body2 = {"linkId": linkId2, "options": JSON.stringify(options2)};
       const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
@@ -2746,7 +2746,7 @@ describe('ApiServer', function() {
       const did = await dbManager.testGetId('Curiosity');
 
       // Creation of the first doc-api-key
-      const options1 = {access: "Editor"};
+      const options1 = {access: "editors"};
       const linkId1 = "Major-Tim-To-Ground-Control";
       const body1 = {"linkId": linkId1, "options": JSON.stringify(options1)};
       const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
@@ -2754,7 +2754,7 @@ describe('ApiServer', function() {
       assert.equal(respPost1.status, 200);
 
       // Creation of the second doc-api-key
-      const options2 = {access: "Viewer"};
+      const options2 = {access: "viewers"};
       const linkId2 = "Ground-Control-To-Major-Tim";
       const body2 = {"linkId": linkId2, "options": JSON.stringify(options2)};
       const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);
@@ -2789,7 +2789,7 @@ describe('ApiServer', function() {
       const did = await dbManager.testGetId('Apathy');
 
       // Creation of the first doc-api-key
-      const options1 = {access:"Editor"};
+      const options1 = {access: "editors"};
       const linkId1 = "Peace-And-Tranquility-2-Earth";
       const body1 = {"linkId": linkId1, "options":JSON.stringify(options1)};
       const respPost1 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body1, chimpy);
@@ -2797,7 +2797,7 @@ describe('ApiServer', function() {
       assert.equal(respPost1.status, 200);
 
       // Creation of the second doc-api-key
-      const options2 = {access:"Viewer"};
+      const options2 = {access: "viewers"};
       const linkId2 = "Ground-Control-4-Major-Tom";
       const body2 = {"linkId": linkId2, "options":JSON.stringify(options2)};
       const respPost2 = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body2, chimpy);

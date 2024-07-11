@@ -814,8 +814,8 @@ async function updateApiKeyWithRetry(manager: EntityManager, user: User): Promis
 }
 
 function sanitizeDocApiKeyOptions(rawOptions: string): ShareOptions {
-  const legalOptions = ["access"];
-  const legalAccessValues = ["Editor", "Viewer"];
+  const legalOptions: (keyof ShareOptions)[] = ["access"];
+  const legalAccessValues: ShareOptions["access"][] = ["editors", "viewers"];
 
   if (!rawOptions){
     throw new ApiError("Missing body params: options", 400);
@@ -827,8 +827,8 @@ function sanitizeDocApiKeyOptions(rawOptions: string): ShareOptions {
   }
 
   Object.keys(options).forEach(element => {
-    if (!legalOptions.includes(element)){
-      throw new ApiError("Invalid option: ${element}", 400);
+    if (!(legalOptions as string[]).includes(element)){
+      throw new ApiError(`Invalid option: ${element}`, 400);
     }
   });
 
