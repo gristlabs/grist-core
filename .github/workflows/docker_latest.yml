@@ -34,12 +34,12 @@ on:
         description: "Tag for the resulting images"
         type: string
         required: True
-        default: 'experimental'
+        default: 'latest'
 
 env:
   BRANCH: ${{ inputs.branch || 'latest_candidate' }}
   PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64/v8' }}
-  TAG: ${{ inputs.tag || 'experimental' }}
+  TAG: ${{ inputs.tag || 'latest' }}
   DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
 
 jobs:
