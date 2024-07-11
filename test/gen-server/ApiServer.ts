@@ -2333,7 +2333,7 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 404);
   });
 
-  describe('DocApiKey Endpoint', function(){
+  describe('DocApiKey Endpoint', function() {
     let oldEnv: testUtils.EnvironmentSnapshot;
 
     testUtils.setTmpLogLevel('error');
@@ -2404,7 +2404,7 @@ describe('ApiServer', function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {};
       const linkId = "Peace-And-Tranquility-2-Earth";
-      const body = {"linkId": linkId, "options":JSON.stringify(options)};
+      const body = {"linkId": linkId, "options": JSON.stringify(options)};
 
       const resp = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
       // Assert that doc api key creation fails when no `options.access` set
@@ -2413,7 +2413,7 @@ describe('ApiServer', function() {
 
     it('POST /api/docs/{did}/apikey returns 400 when options.access have bad value', async function() {
       const did = await dbManager.testGetId('Curiosity');
-      const options = {access:"Root"};
+      const options = {access: "Root"};
       const linkId = "Peace-And-Tranquility-2-Earth";
       const body = {"linkId": linkId, "options":JSON.stringify(options)};
 
