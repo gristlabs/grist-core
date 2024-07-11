@@ -5,6 +5,16 @@ on:
     types: [published]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag for the resulting images"
+        type: string
+        required: True
+        default: 'stable'
+
+env:
+  TAG: ${{ inputs.tag || 'stable' }}
+  DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
 
 jobs:
   push_to_registry:
@@ -47,7 +57,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            stable
+            ${{ env.TAG }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
