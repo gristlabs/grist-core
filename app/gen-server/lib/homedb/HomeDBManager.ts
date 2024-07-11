@@ -2507,6 +2507,10 @@ export class HomeDBManager extends EventEmitter {
       .getOne() || undefined;
   }
 
+  public async getDocApiKeyByKey(key: string): Promise<Share | null> {
+    return await this.getShareByKey(key);
+  }
+
   public async createDocApiKey(docId: string, share: ShareInfo) {
     const key = makeId();
     const query = await this._connection.createQueryBuilder()

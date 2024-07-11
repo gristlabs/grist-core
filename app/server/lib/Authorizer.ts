@@ -173,23 +173,53 @@ export async function addRequestUser(
 
   // Now, check for an apiKey
   if (!authDone && mreq.headers && mreq.headers.authorization) {
-    // header needs to be of form "Bearer XXXXXXXXX" to apply
     const parts = String(mreq.headers.authorization).split(' ');
+    // header needs to be of form "Bearer XXXXXXXXX" to apply
     if (parts[0] === "Bearer") {
-      const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
-      if (!user) {
-        return res.status(401).send('Bad request: invalid API key');
+      // Bearer needs to be form "DOC-YYYYYYYYY" to apply as Doc Api key
+      if (parts[1].match(/^DOC-.*/)) {
+        // Doc Api Key
+        const docApiKey = parts[1].split('-')[1];
+        const share = docApiKey ? await dbManager.getDocApiKeyByKey(docApiKey) : undefined;
+        // A share with key matching Bearer and having options.access set to true MUST exist
+        if (!share || !share.options.apikey) {
+          return res.status(401).send('Bad request: invalid Doc Api key');
+        }
+        const did = mreq.params.did;
+        // DocId in request parameters MUST match share.DocId
+        if (did !== share.docId){
+          return res.status(401).send('Bad request: invalid Doc Api key');
+        }
+        const url = new URL(mreq.url);
+        const regex = new RegExp(String.raw`\s^\/api\/docs\/${did}.*\s`, "g");
+        // Only API scope matching regex MUST be accessed with Doc Api keys
+        if (!url.pathname.match(regex)){
+          return res.status(401).send(`Access Denied: Scope limited to Document ${did}`);
+        }
+        // Viewers can only access with GET methods
+        if (share.options.access === "viewers" && "GET" !== mreq.method){
+          return res.send(401).send(`Access Denied: invalid method for viewers - ${mreq.method}`);
+        }
+        hasApiKey = true;
+        return next();
+      // If Bearer have another form it must be a User Api Key
+      } else {
+        // full scope Api Key
+        const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
+        if (!user) {
+          return res.status(401).send('Bad request: invalid API key');
+        }
+        if (user.id === dbManager.getAnonymousUserId()) {
+          // We forbid the anonymous user to present an api key.  That saves us
+          // having to think through the consequences of authorized access to the
+          // anonymous user's profile via the api (e.g. how should the api key be managed).
+          return res.status(401).send('Credentials cannot be presented for the anonymous user account via API key');
+        }
+        mreq.user = user;
+        mreq.userId = user.id;
+        mreq.userIsAuthorized = true;
+        hasApiKey = true;
       }
-      if (user.id === dbManager.getAnonymousUserId()) {
-        // We forbid the anonymous user to present an api key.  That saves us
-        // having to think through the consequences of authorized access to the
-        // anonymous user's profile via the api (e.g. how should the api key be managed).
-        return res.status(401).send('Credentials cannot be presented for the anonymous user account via API key');
-      }
-      mreq.user = user;
-      mreq.userId = user.id;
-      mreq.userIsAuthorized = true;
-      hasApiKey = true;
     }
   }
 
