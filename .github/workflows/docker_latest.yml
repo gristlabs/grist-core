@@ -70,6 +70,10 @@ jobs:
         with:
           ref: ${{ env.BRANCH }}
 
+      - name: Add a dummy ext/ directory
+        run:
+          mkdir ext && touch ext/dummy
+
       - name: Check out the ext/ directory
         if: matrix.image.name != 'grist-oss'
         run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
