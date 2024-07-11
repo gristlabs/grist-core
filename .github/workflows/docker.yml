@@ -27,6 +27,10 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
+      - name: Add a dummy ext/ directory
+        run:
+          mkdir ext && touch ext/dummy
+
       - name: Check out the ext/ directory
         if: matrix.image.name != 'grist-oss'
         run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
@@ -65,5 +69,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
+          build-contexts: ext=ext
 
