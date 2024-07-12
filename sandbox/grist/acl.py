@@ -140,6 +140,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
       except Exception as e:
         log.warning("Error examining aclRule: %s", e)
 
+  acl_resources_table = useractions.get_docmodel().aclResources.table
   # Go through again checking if anything in ACL formulas is affected by the rename.
   for rule_rec in useractions.get_docmodel().aclRules.all:
 
@@ -149,7 +150,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
 
     def renamer(subject):
       if subject.type == 'recCol':
-        table_id = useractions.get_docmodel().aclResources.table.get_record(int(rule_rec.resource)).tableId
+        table_id = acl_resources_table.get_record(int(rule_rec.resource)).tableId
       elif subject.type == 'userAttrCol':
         table_id = user_attr_tables.get(subject.extra)
       else:

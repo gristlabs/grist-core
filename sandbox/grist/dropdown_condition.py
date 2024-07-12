@@ -43,6 +43,7 @@ def perform_dropdown_condition_renames(useractions, renames):
     self_table_id = col.parentId.tableId
 
     def renamer(subject):
+      # subject.type is either choiceAttr or recCol, see _DCEntityCollector.
       table_id = ref_table_id if subject.type == "choiceAttr" else self_table_id
       # Dropdown conditions stay in widgetOptions, even when the current column type can't make
       # use of them. Thus, attributes of "choice" do not make sense for columns other than Ref and
@@ -56,7 +57,7 @@ def perform_dropdown_condition_renames(useractions, renames):
 
     # The data engine stops processing remaining formulas when it hits an internal exception during
     # this renaming procedure. Parsing could potentially raise SyntaxErrors, so we must be careful
-    # not to parse a possibly syntactically wrong formula. or handle SyntaxErrors explicitly.
+    # not to parse a possibly syntactically wrong formula, or handle SyntaxErrors explicitly.
     # Note that new_dc_formula was obtained from process_renames, where syntactically wrong formulas
     # are left untouched. It is anticipated that rename-induced changes will not introduce new
     # SyntaxErrors, so if the formula text is updated, the new version must be valid, hence safe
