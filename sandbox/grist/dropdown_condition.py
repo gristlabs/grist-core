@@ -29,7 +29,7 @@ def perform_dropdown_condition_renames(useractions, renames):
   """
   updates = []
 
-  for col in useractions.docmodel.columns.all:
+  for col in useractions.get_docmodel().columns.all:
 
     # Find all columns in the document that have dropdown conditions.
     try:
