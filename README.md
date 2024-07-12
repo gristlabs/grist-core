@@ -122,7 +122,7 @@ and running it on a public server in our
 
 The default Docker image is `gristlabs/grist`. This contains all of
 the standard Grist functionality, as well as extra source-available
-code for enterprise customers taken from the the
+code for enterprise customers taken from the
 [grist-ee](https://github.com/gristlabs/grist-ee) repository. This
 extra code is not under a free or open source license. By default,
 however, the code from the `grist-ee` repository is completely inert and
