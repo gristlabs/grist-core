@@ -42,6 +42,7 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
+import {GristJobs, IGristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
@@ -186,6 +187,7 @@ export class FlexServer implements GristServer {
   private _isReady: boolean = false;
   private _updateManager: UpdateManager;
   private _sandboxInfo: SandboxInfo;
+  private _jobs?: IGristJobs;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -337,6 +339,14 @@ export class FlexServer implements GristServer {
   public getOwnPort(): number {
     // Get the port from the server in case it was started with port 0.
     return this.server ? (this.server.address() as AddressInfo).port : this.port;
+  }
+
+  /**
+   * Get interface to job queues.
+   */
+  public getJobs(): IGristJobs {
+    const jobs = this._jobs || new GristJobs();
+    return jobs;
   }
 
   /**
