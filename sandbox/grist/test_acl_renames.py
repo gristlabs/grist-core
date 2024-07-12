@@ -41,6 +41,12 @@ class TestACLRenames(test_engine.EngineTestCase):
         'permissionsText': 'none',
       }],
       ['AddRecord', '_grist_ACLRules', None, {
+        'resource': -2,
+        # Test whether both "$" and "rec." are preserved while renaming.
+        'aclFormula': '( $firstName not in rec.schoolName or $schoolName + $lastName == rec.firstName)',
+        'permissionsText': 'all',
+      }],
+      ['AddRecord', '_grist_ACLRules', None, {
         'resource': -3,
         'permissionsText': 'all'
       }],
@@ -57,7 +63,8 @@ class TestACLRenames(test_engine.EngineTestCase):
       ['id',  'resource', 'aclFormula', 'permissionsText', 'userAttributes'],
       [1,     1,          '',           '',                json.dumps(user_attr1)],
       [2,     2,  '( rec.schoolName !=  # ünîcødé comment\n  user.School.name)', 'none', ''],
-      [3,     3,          '',           'all',              ''],
+      [3,     2,  '( $firstName not in rec.schoolName or $schoolName + $lastName == rec.firstName)', 'all', ''],
+      [4,     3,          '',           'all',              ''],
     ])
 
   def test_acl_table_renames(self):
@@ -78,7 +85,8 @@ class TestACLRenames(test_engine.EngineTestCase):
       ['id',  'resource', 'aclFormula', 'permissionsText', 'userAttributes'],
       [1,     1,          '',           '',                json.dumps(user_attr1_renamed)],
       [2,     2,  '( rec.schoolName !=  # ünîcødé comment\n  user.School.name)', 'none', ''],
-      [3,     3,          '',           'all',              ''],
+      [3,     2,  '( $firstName not in rec.schoolName or $schoolName + $lastName == rec.firstName)', 'all', ''],
+      [4,     3,          '',           'all',              ''],
     ])
 
   def test_acl_column_renames(self):
@@ -101,7 +109,8 @@ class TestACLRenames(test_engine.EngineTestCase):
       ['id',  'resource', 'aclFormula', 'permissionsText', 'userAttributes'],
       [1,     1,          '',           '',                json.dumps(user_attr1_renamed)],
       [2,     2,  '( rec.escuela !=  # ünîcødé comment\n  user.School.schoolName)', 'none', ''],
-      [3,     3,          '',           'all',              ''],
+      [3,     2,  '( $firstName not in rec.escuela or $escuela + $Family_Name == rec.firstName)', 'all', ''],
+      [4,     3,          '',           'all',              ''],
     ])
 
   def test_multiple_renames(self):
@@ -123,5 +132,6 @@ class TestACLRenames(test_engine.EngineTestCase):
       ['id',  'resource', 'aclFormula', 'permissionsText', 'userAttributes'],
       [1,     1,          '',           '',                json.dumps(user_attr1)],
       [2,     2,  '( rec.escuela !=  # ünîcødé comment\n  user.School.schoolName)', 'none', ''],
-      [3,     3,          '',           'all',              ''],
+      [3,     2,  '( $Given_Name not in rec.escuela or $escuela + $Family_Name == rec.Given_Name)', 'all', ''],
+      [4,     3,          '',           'all',              ''],
     ])

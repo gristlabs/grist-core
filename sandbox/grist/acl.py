@@ -5,10 +5,9 @@
 import json
 import logging
 
-from acl_formula import parse_acl_grist_entities
-from predicate_formula import parse_predicate_formula_json
 import action_obj
-import textbuilder
+import predicate_formula
+from predicate_formula import NamedEntity, parse_predicate_formula_json, TreeConverter
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +31,40 @@ ALL = '#ALL'
 ALL_SET = frozenset([ALL])
 
 
+def parse_acl_formulas(col_values):
+  """
+  Populates `aclFormulaParsed` by parsing `aclFormula` for all `col_values`.
+  """
+  if 'aclFormula' not in col_values:
+    return
+
+  col_values['aclFormulaParsed'] = [parse_predicate_formula_json(v)
+                                    for v
+                                    in col_values['aclFormula']]
+
+
+class _ACLEntityCollector(TreeConverter):
+  def __init__(self):
+    self.entities = []    # NamedEntity list
+
+  def visit_Attribute(self, node):
+    parent = self.visit(node.value)
+
+    # We recognize a couple of specific patterns for entities that may be affected by renames.
+    if parent == ['Name', 'rec'] or parent == ['Name', 'newRec']:
+      # rec.COL refers to the column from the table that the rule is on.
+      self.entities.append(NamedEntity('recCol', node.last_token.startpos, node.attr, None))
+    elif parent == ['Name', 'user']:
+      # user.ATTR is a user attribute.
+      self.entities.append(NamedEntity('userAttr', node.last_token.startpos, node.attr, None))
+    elif parent[0] == 'Attr' and parent[1] == ['Name', 'user']:
+      # user.ATTR.COL is a column from the lookup table of the UserAttribute ATTR.
+      self.entities.append(
+          NamedEntity('userAttrCol', node.last_token.startpos, node.attr, parent[2]))
+
+    return ["Attr", parent, node.attr]
+
+
 def acl_read_split(action_group):
   """
   Returns an ActionBundle containing actions from the given action_group, all in one envelope.
@@ -48,20 +81,20 @@ def acl_read_split(action_group):
   return bundle
 
 
-def prepare_acl_table_renames(docmodel, useractions, table_renames_dict):
+def prepare_acl_table_renames(useractions, table_renames_dict):
   """
   Given a dict of table renames of the form {table_id: new_table_id}, returns a callback
   that will apply updates to the affected ACL rules and resources.
   """
   # If there are ACLResources that refer to the renamed table, prepare updates for those.
   resource_updates = []
-  for resource_rec in docmodel.aclResources.all:
+  for resource_rec in useractions.get_docmodel().aclResources.all:
     if resource_rec.tableId in table_renames_dict:
       resource_updates.append((resource_rec, {'tableId': table_renames_dict[resource_rec.tableId]}))
 
   # Collect updates for any ACLRules with UserAttributes that refer to the renamed table.
   rule_updates = []
-  for rule_rec in docmodel.aclRules.all:
+  for rule_rec in useractions.get_docmodel().aclRules.all:
     if rule_rec.userAttributes:
       try:
         rule_info = json.loads(rule_rec.userAttributes)
@@ -77,14 +110,14 @@ def prepare_acl_table_renames(docmodel, useractions, table_renames_dict):
   return do_renames
 
 
-def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
+def perform_acl_rule_renames(useractions, col_renames_dict):
   """
   Given a dict of column renames of the form {(table_id, col_id): new_col_id}, returns a callback
   that will apply updates to the affected ACL rules and resources.
   """
   # Collect updates for ACLResources that refer to the renamed columns.
   resource_updates = []
-  for resource_rec in docmodel.aclResources.all:
+  for resource_rec in useractions.get_docmodel().aclResources.all:
     t = resource_rec.tableId
     if resource_rec.colIds and resource_rec.colIds != '*':
       new_col_ids = ','.join((col_renames_dict.get((t, c)) or c)
@@ -95,7 +128,7 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
   # Collect updates for any ACLRules with UserAttributes that refer to the renamed column.
   rule_updates = []
   user_attr_tables = {}   # Maps name of user attribute to its lookup table
-  for rule_rec in docmodel.aclRules.all:
+  for rule_rec in useractions.get_docmodel().aclRules.all:
     if rule_rec.userAttributes:
       try:
         rule_info = json.loads(rule_rec.userAttributes)
@@ -107,33 +140,33 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
       except Exception as e:
         log.warning("Error examining aclRule: %s", e)
 
+  acl_resources_table = useractions.get_docmodel().aclResources.table
   # Go through again checking if anything in ACL formulas is affected by the rename.
-  for rule_rec in docmodel.aclRules.all:
-    if rule_rec.aclFormula:
-      formula = rule_rec.aclFormula
-      patches = []
+  for rule_rec in useractions.get_docmodel().aclRules.all:
 
-      for entity in parse_acl_grist_entities(rule_rec.aclFormula):
-        if entity.type == 'recCol':
-          table_id = docmodel.aclResources.table.get_record(int(rule_rec.resource)).tableId
-        elif entity.type == 'userAttrCol':
-          table_id = user_attr_tables.get(entity.extra)
-        else:
-          continue
-        col_id = entity.name
-        new_col_id = col_renames_dict.get((table_id, col_id))
-        if not new_col_id:
-          continue
-        patch = textbuilder.make_patch(
-            formula, entity.start_pos, entity.start_pos + len(entity.name), new_col_id)
-        patches.append(patch)
+    if not rule_rec.aclFormula:
+      continue
+    acl_formula = rule_rec.aclFormula
 
-      replacer = textbuilder.Replacer(textbuilder.Text(formula), patches)
-      txt = replacer.get_text()
-      rule_updates.append((rule_rec, {'aclFormula': txt,
-                                      'aclFormulaParsed': parse_predicate_formula_json(txt)}))
+    def renamer(subject):
+      if subject.type == 'recCol':
+        table_id = acl_resources_table.get_record(int(rule_rec.resource)).tableId
+      elif subject.type == 'userAttrCol':
+        table_id = user_attr_tables.get(subject.extra)
+      else:
+        return None
+      col_id = subject.name
+      return col_renames_dict.get((table_id, col_id))
 
-  def do_renames():
-    useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)
-    useractions.doBulkUpdateFromPairs('_grist_ACLRules', rule_updates)
-  return do_renames
+    new_acl_formula = predicate_formula.process_renames(acl_formula, _ACLEntityCollector(), renamer)
+    # No need to check for syntax errors, but this "if" statement must be present.
+    # See perform_dropdown_condition_renames for more info.
+    if new_acl_formula != acl_formula:
+      new_rule_record = {
+        "aclFormula": new_acl_formula,
+        "aclFormulaParsed": parse_predicate_formula_json(new_acl_formula)
+      }
+      rule_updates.append((rule_rec, new_rule_record))
+
+  useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)
+  useractions.doBulkUpdateFromPairs('_grist_ACLRules', rule_updates)

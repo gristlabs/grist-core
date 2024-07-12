@@ -2,11 +2,12 @@ import ast
 import io
 import json
 import tokenize
+import sys
 from collections import namedtuple
-
+import asttokens
+import textbuilder
 import six
-
-from codebuilder import replace_dollar_attrs
+from codebuilder import get_dollar_replacer
 
 # Entities encountered in predicate formulas, which may get renamed.
 #   type : 'recCol'|'userAttr'|'userAttrCol',
@@ -38,7 +39,7 @@ def parse_predicate_formula(formula):
   if isinstance(formula, six.binary_type):
     formula = formula.decode('utf8')
   try:
-    formula = replace_dollar_attrs(formula)
+    formula = get_dollar_replacer(formula).get_text()
     tree = ast.parse(formula, mode='eval')
     result = TreeConverter().visit(tree)
     for part in tokenize.generate_tokens(io.StringIO(formula).readline):
@@ -46,9 +47,12 @@ def parse_predicate_formula(formula):
         result = ['Comment', result, part[1][1:].strip()]
         break
     return result
-  except SyntaxError as err:
+  except SyntaxError as e:
     # In case of an error, include line and offset.
-    raise SyntaxError("%s on line %s col %s" % (err.args[0], err.lineno, err.offset))
+    _, _, exc_traceback = sys.exc_info()
+    six.reraise(SyntaxError,
+                SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset)),
+                exc_traceback)
 
 def parse_predicate_formula_json(formula):
   """
@@ -62,6 +66,45 @@ named_constants = {
   'False': False,
   'None': None,
 }
+
+
+def process_renames(formula, collector, renamer):
+  """
+  Given a predicate formula, a collector and a renamer, rename all references in the formula
+  that the renamer wants to rename. This is used to automatically update references in an ACL
+  or dropdown condition formula when a column it refers to has been renamed.
+
+  The collector should be a subclass of TreeConverter that collects related NamedEntity's and
+  stores them in the field "entities". See acl._ACLEntityCollector for an example.
+
+  The renamer should be a function taking a NamedEntity as its only argument. It should return
+  a new name for this NamedEntity when it wants to rename this entity, or None otherwise.
+  """
+  patches = []
+  # "$" can be used to refer to "rec." in Grist formulas, but it is not valid Python.
+  # We need to replace it with "rec." before parsing the formula, and restore it back after
+  # the surgery.
+  # Keep the dollar replacer object, so that later we know how to restore properly.
+  dollar_replacer = get_dollar_replacer(formula)
+  formula_nodollar = dollar_replacer.get_text()
+  try:
+    atok = asttokens.ASTTokens(formula_nodollar, tree=ast.parse(formula_nodollar, mode='eval'))
+    collector.visit(atok.tree)
+  except SyntaxError:
+    # Don't do anything to a syntactically wrong formula.
+    return formula
+
+  for subject in collector.entities:
+    new_name = renamer(subject)
+    if new_name is not None:
+      _, _, patch = dollar_replacer.map_back_patch(
+        textbuilder.make_patch(dollar_replacer.get_text(), subject.start_pos,
+                               subject.start_pos + len(subject.name), new_name)
+      )
+      patches.append(patch)
+
+  return textbuilder.Replacer(textbuilder.Text(formula), patches).get_text()
+
 
 class TreeConverter(ast.NodeVisitor):
   # AST nodes are documented here: https://docs.python.org/2/library/ast.html#abstract-grammar
@@ -86,7 +129,7 @@ class TreeConverter(ast.NodeVisitor):
   def visit_Compare(self, node):
     # We don't try to support chained comparisons like "1 < 2 < 3" (though it wouldn't be hard).
     if len(node.ops) != 1 or len(node.comparators) != 1:
-      raise ValueError("Can't use chained comparisons")
+      raise SyntaxError("Can't use chained comparisons")
     return [node.ops[0].__class__.__name__, self.visit(node.left), self.visit(node.comparators[0])]
 
   def visit_Name(self, node):
@@ -115,4 +158,4 @@ class TreeConverter(ast.NodeVisitor):
     return self.visit_List(node)    # We don't distinguish tuples and lists
 
   def generic_visit(self, node):
-    raise ValueError("Unsupported syntax at %s:%s" % (node.lineno, node.col_offset + 1))
+    raise SyntaxError("Unsupported syntax at %s:%s" % (node.lineno, node.col_offset + 1))

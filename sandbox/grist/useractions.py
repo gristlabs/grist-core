@@ -12,8 +12,9 @@ from six.moves import xrange
 import acl
 import depend
 import gencode
-from acl_formula import parse_acl_formulas
+from acl import parse_acl_formulas
 from dropdown_condition import parse_dropdown_conditions
+import dropdown_condition
 import actions
 import column
 import sort_specs
@@ -227,6 +228,12 @@ class UserActions(object):
     # global _action_method_overrides, but with methods *bound* to this UserActions instance.
     self._overrides = {key: method.__get__(self, UserActions)
                        for key, method in six.iteritems(_action_method_overrides)}
+
+  def get_docmodel(self):
+    """
+    Getter for the docmodel.
+    """
+    return self._docmodel
 
   @contextmanager
   def indirect_actions(self):
@@ -635,7 +642,7 @@ class UserActions(object):
       if 'type' in values:
         self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'})
 
-    make_acl_updates = acl.prepare_acl_table_renames(self._docmodel, self, table_renames)
+    make_acl_updates = acl.prepare_acl_table_renames(self, table_renames)
 
     # Collect all the table renames, and do the actual schema actions to apply them.
     for tbl, values in update_pairs:
@@ -691,12 +698,18 @@ class UserActions(object):
                if has_diff_value(values, 'colId', c.colId)}
 
     if renames:
+      # When a column rename has occurred, we need to update the corresponding references in
+      # formula, ACL rules and dropdown conditions.
+
       # Build up a dictionary mapping col_ref of each affected formula to the new formula text.
       formula_updates = self._prepare_formula_renames(renames)
 
       # For any affected columns, include the formula into the update.
       for col_rec, new_formula in sorted(six.iteritems(formula_updates)):
         col_updates.setdefault(col_rec, {}).setdefault('formula', new_formula)
+
+      acl.perform_acl_rule_renames(self, renames)
+      dropdown_condition.perform_dropdown_condition_renames(self, renames)
 
     update_pairs = col_updates.items()
 
@@ -721,8 +734,6 @@ class UserActions(object):
           if not allowed_summary_change(key, value, expected):
             raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
-    make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
-
     rename_summary_tables = set()
     for c, values in update_pairs:
       # Trigger ModifyColumn and RenameColumn as necessary
@@ -744,8 +755,6 @@ class UserActions(object):
     for table_id in rebuild_summary_tables:
       table = self._engine.tables[table_id]
       self._engine._update_table_model(table, table.user_table)
-
-    make_acl_updates()
 
     for table in rename_summary_tables:
       groupby_col_ids = [c.colId for c in table.columns if c.summarySourceCol]
