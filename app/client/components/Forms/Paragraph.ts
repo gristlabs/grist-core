@@ -19,7 +19,6 @@ export class ParagraphModel extends BoxModel {
   public override render(): HTMLElement {
     const box = this;
     const editMode = box.edit;
-    let element: HTMLElement;
     const text = this.prop('text', this.defaultValue) as Observable<string|undefined>;
 
     // There is a spacial hack here. We might be created as a separator component, but the rendering
@@ -44,18 +43,21 @@ export class ParagraphModel extends BoxModel {
         this.cssClass ? dom.cls(this.cssClass, not(editMode)) : null,
         dom.maybe(editMode, () => {
           const draft = Observable.create(null, text.get() || '');
-          setTimeout(() => element?.focus(), 10);
-          return [
-            element = cssTextArea(draft, {autoGrow: true, onInput: true},
-              cssTextArea.cls('-edit', editMode),
-              css.saveControls(editMode, (ok) => {
-                if (ok && editMode.get()) {
-                  text.set(draft.get());
-                  this.save().catch(reportError);
-                }
-              })
-            ),
-          ];
+          return cssTextArea(draft, {autoGrow: true, onInput: true},
+            cssTextArea.cls('-edit', editMode),
+            (elem) => {
+              setTimeout(() => {
+                elem.focus();
+                elem.setSelectionRange(elem.value.length, elem.value.length);
+              }, 10);
+            },
+            css.saveControls(editMode, (ok) => {
+              if (ok && editMode.get()) {
+                text.set(draft.get());
+                this.save().catch(reportError);
+              }
+            })
+          );
         }),
       )
     });
