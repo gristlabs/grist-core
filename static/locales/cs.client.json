@@ -1,22 +1,22 @@
 {
     "AccessRules": {
-        "Add Column Rule": "Přidej Sloupcové Pravidlo",
+        "Add Column Rule": "Přidat pravidlo pro sloupec",
         "Lookup Column": "Vyhledávací Sloupec",
         "Enter Condition": "Napiš Podmínku",
         "Everyone Else": "Všichni Ostatní",
-        "Allow everyone to view Access Rules.": "Umožni všem zobrazit Přístupové Práva.",
+        "Allow everyone to view Access Rules.": "Umožnit všem zobrazit přístupová práva.",
         "Lookup Table": "Vyhledávací Tabulka",
-        "Add Table Rules": "Přidej Tabulkové Pravidlo",
+        "Add Table Rules": "Přidat pravidlo pro tabulku",
         "Invalid": "Neplatné",
         "Condition": "Podmínka",
         "Delete Table Rules": "Vymaž Tabulkové Pravidla",
         "Default Rules": "Základní Práva",
-        "Attribute name": "Jméno Atributu",
-        "Add User Attributes": "Přidej Uživatelské Atributy",
-        "Attribute to Look Up": "Atribut k Vyhledání",
+        "Attribute name": "Jméno atributu",
+        "Add User Attributes": "Přidat atribut pro uživatele",
+        "Attribute to Look Up": "Atribut k vyhledání",
         "Everyone": "Všichni",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Umožni všem kopírovat celý dokument, nebo zobrazit plně v \"fiddle\" režimu.\nUžiitečné pro ukázky a šablony, ale ne pro citlivá data.",
-        "Add Default Rule": "Přidej Základní Pravidlo",
+        "Add Default Rule": "Přidat výchozí pravidlo",
         "Checking...": "Kontroluji…",
         "Permissions": "Povolení",
         "Permission to view Access Rules": "Povolení na zobrazení Přistupových Pravidel",
@@ -37,7 +37,7 @@
         "Special Rules": "Speciální Pravidla"
     },
     "ACUserManager": {
-        "Invite new member": "Pozvi nového uživatele",
+        "Invite new member": "Pozvat nového uživatele",
         "We'll email an invite to {{email}}": "Zašleme pozvánku emailem na {{email}}",
         "Enter email address": "Napiš e-mailovou adresu"
     },
