@@ -2838,9 +2838,43 @@ describe('ApiServer', function() {
       // Assert that READ fails when :did not exists
       assert.equal(resp.status, 404);
     });
+
+    it('used as ApiKey is operational', async function() {
+      const did = await dbManager.testGetId('Curiosity');
+
+      // Creation of the first doc-api-key
+      const options = {access: "editors"};
+      const linkId = "Major-Tom-To-Ground-Control";
+      const body = {"linkId": linkId, "options": JSON.stringify(options)};
+      const respPost = await axios.post(`${homeUrl}/api/docs/${did}/apikey`, body, chimpy);
+      const docApiKey = respPost.data;
+      // Assert that first doc api key is created
+      assert.equal(respPost.status, 200, "docApiKey created");
+
+      // Make a call to GET /api/doc/:docId
+      const authorizationHeader = `Bearer DOC-${docApiKey}`;
+      const anonymous = {...nobody, authorizationHeader};
+      const fetch = await axios.get(`${homeUrl}/api/docs/${did}`, anonymous);
+      assert.equal(fetch.status, 200);
+    });
+
+    it('must fail when doApiKey is wrong', async function() {
+
+    });
+
+    it("can't access scopes outside /api/docs", async function() {
+
+    });
+
+    it('can use all HTTP verbs with editors access', async function() {
+
+    });
+
+    it('only can use GET HTTP verb with veiwers access', async function() {
+
+    });
   });
 });
-
 
 // Predict the next id that will be used for a table.
 // Only reliable if we haven't been deleting records in that table.
