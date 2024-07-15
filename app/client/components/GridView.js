@@ -96,8 +96,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
 
   this.cellSelector = selector.CellSelector.create(this, this);
 
-  if (!isPreview) {
-    // Disable summaries in import previews, for now.
+  if (!isPreview && !this.gristDoc.comparison) {
     this.selectionSummary = SelectionSummary.create(this,
       this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
   }
