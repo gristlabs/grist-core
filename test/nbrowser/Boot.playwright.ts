@@ -1,8 +1,8 @@
-import {assert, driver} from 'mocha-webdriver';
+import { assert } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/playwrightGristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/playwrightTestUtils';
+import { server, setupTestSuite } from 'test/nbrowser/playwrightTestUtils';
 import * as testUtils from 'test/server/testUtils';
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 /**
  * The boot page functionality has been merged with the Admin Panel.
@@ -21,16 +21,16 @@ test.describe('Boot', () => {
     expect(text).toContain('GRIST_BOOT_KEY=example-');
   }
 
-  test('tells user about /admin', async function() {
-    await driver.get(`${server.getHost()}/boot`);
-    assert.match(await driver.getPageSource(), /\/admin/);
+  test('tells user about /admin', async function({ page }) {
+    await page.goto(`${server.getHost()}/boot`);
+    assert.match(await page.content(), /\/admin/);
     // Switch to a regular place to that gu.checkForErrors won't panic -
     // it needs a Grist page.
-    await driver.get(`${server.getHost()}`);
+    await page.goto(`${server.getHost()}`);
   });
 
   test('gives prompt about how to enable boot page', async function({ page }) {
-    await driver.get(`${server.getHost()}/admin`);
+    await page.goto(`${server.getHost()}/admin`);
     await hasPrompt(page);
   });
 
@@ -47,18 +47,18 @@ test.describe('Boot', () => {
     });
 
     test('gives prompt when key is missing', async function({ page }) {
-      await driver.get(`${server.getHost()}/admin`);
+      await page.goto(`${server.getHost()}/admin`);
       await hasPrompt(page);
     });
 
     test('gives prompt when key is wrong', async function({ page }) {
-      await driver.get(`${server.getHost()}/admin?boot-key=bilbo`);
+      await page.goto(`${server.getHost()}/admin?boot-key=bilbo`);
       await hasPrompt(page);
     });
 
-    test('gives page when key is right', async function() {
-      await driver.get(`${server.getHost()}/admin?boot-key=lala`);
-      await driver.findContentWait('div', /Is home page available/, 2000);
+    test('gives page when key is right', async function({ page }) {
+      await page.goto(`${server.getHost()}/admin?boot-key=lala`);
+      await expect(page.getByText(/Is home page available/)).toBeVisible();
     });
   });
 });

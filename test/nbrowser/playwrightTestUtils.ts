@@ -57,7 +57,8 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   // Also, log out, to avoid logins interacting, unless NO_CLEANUP is requested (useful for
   // debugging tests).
   if (!process.env.NO_CLEANUP) {
-    test.afterAll(() => server.removeLogin());
+    // Don't think this is needed, each test runs in its own browser context.
+    //test.afterAll(() => server.removeLogin());
   }
 
   // If requested, clear user preferences for all test users after this suite.
@@ -153,7 +154,7 @@ export function setupRequirement(options: TestSuiteOptions) {
     }
   }
 
-  before(async function() {
+  test.beforeAll(async function() {
 
     if (new URL(server.getHost()).hostname !== 'localhost') {
       // Non-dev servers should already meet the requirements; in any case we should not

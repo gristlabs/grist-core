@@ -27,6 +27,7 @@ import * as path from 'path';
 import {removeConnection} from 'test/gen-server/seed';
 import {HomeUtil} from 'test/nbrowser/homeUtil';
 import {getDatabase} from 'test/testUtils';
+import { expect } from "@playwright/test";
 
 export class TestServerMerged extends EventEmitter implements IMochaServer {
   public testDir: string;
@@ -253,10 +254,10 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
    * Wait for the server to be up and responsitve, for up to `ms` milliseconds.
    */
   public async waitServerReady(ms: number): Promise<void> {
-    await this.driver.wait(() => Promise.race([
+    await expect.poll(() => Promise.race([
       this.isServerReady(),
       this._exitPromise.then(() => { throw new Error("Server exited while waiting for it"); }),
-    ]), ms);
+    ]), { timeout: ms }).toBe(true);
   }
 
   /**
