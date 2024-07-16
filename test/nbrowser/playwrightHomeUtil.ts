@@ -4,7 +4,7 @@
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { DocWorkerAPI, UserAPI, UserAPIImpl, UserProfile } from 'app/common/UserAPI';
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { TestingHooksClient } from 'app/server/lib/TestingHooks';
 import { BrowserContext, expect, Page } from "@playwright/test";
 import { UserPrefs } from "app/common/Prefs";
