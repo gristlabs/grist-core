@@ -17,7 +17,7 @@ if [[ $current_user_id == 0 ]]; then
   find $write_dir ! -user "$target_user" -exec chown "$target_user" "{}" +
 
   # Make a home directory for the target user, in case anything needs to access it.
-  export HOME="/tmp/users/${target_user}"
+  export HOME="/grist_user_homes/${target_user}"
   mkdir -p "$HOME"
   chown -R "$target_user":"$target_group" "$HOME"
 
