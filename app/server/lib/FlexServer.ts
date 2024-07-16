@@ -1294,7 +1294,7 @@ export class FlexServer implements GristServer {
   }
 
   // Add document-related endpoints and related support.
-  public async addDoc(docStorageManagerDecorator?: (original: IDocStorageManager) => void) {
+  public async addDoc() {
     this._check('doc', 'start', 'tag', 'json', isSingleUserMode() ?
       null : 'homedb', 'api-mw', 'map', 'telemetry');
     // add handlers for cleanup, if we are in charge of the doc manager.
@@ -1327,8 +1327,8 @@ export class FlexServer implements GristServer {
       this._storageManager = storageManager;
     }
 
-    if (docStorageManagerDecorator) {
-      docStorageManagerDecorator(this._storageManager);
+    if (this.create.docStorageManagerDecorator) {
+      this.create.docStorageManagerDecorator(this._storageManager);
     }
 
     const pluginManager = await this._addPluginManager();

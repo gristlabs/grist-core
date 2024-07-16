@@ -188,8 +188,7 @@ export class MergedServer {
       if (this.hasComponent("docs")) {
         this.flexServer.addJsonSupport();
         await this.flexServer.addTelemetry();
-        // storageManagerDecorator is used by Grist Desktop to override the getPath function.
-        await this.flexServer.addDoc(this._options.storageManagerDecorator);
+        await this.flexServer.addDoc();
       }
 
       if (this.hasComponent("home")) {

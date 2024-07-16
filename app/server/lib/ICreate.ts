@@ -12,6 +12,7 @@ import {IShell} from 'app/server/lib/IShell';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
+import {IDocStorageManager} from './IDocStorageManager';
 
 export interface ICreate {
 
@@ -44,6 +45,10 @@ export interface ICreate {
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
+
+  // Used by Grist Desktop to override the getPath function.
+  docStorageManagerDecorator? (original: IDocStorageManager): void;
+
 }
 
 export interface ICreateActiveDocOptions {
@@ -85,6 +90,7 @@ export function makeSimpleCreator(opts: {
   getSqliteVariant?: () => SqliteVariant,
   getSandboxVariants?: () => Record<string, SpawnFn>,
   createInstallAdmin?: (dbManager: HomeDBManager) => Promise<InstallAdmin>,
+  docStorageManagerDecorator?: (original: IDocStorageManager) => void,
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
   return {
@@ -159,5 +165,6 @@ export function makeSimpleCreator(opts: {
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,
     createInstallAdmin: opts.createInstallAdmin || (async (dbManager) => new SimpleInstallAdmin(dbManager)),
+    docStorageManagerDecorator: opts.docStorageManagerDecorator,
   };
 }
