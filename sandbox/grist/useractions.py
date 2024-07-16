@@ -708,9 +708,6 @@ class UserActions(object):
       for col_rec, new_formula in sorted(six.iteritems(formula_updates)):
         col_updates.setdefault(col_rec, {}).setdefault('formula', new_formula)
 
-      acl.perform_acl_rule_renames(self, renames)
-      dropdown_condition.perform_dropdown_condition_renames(self, renames)
-
     update_pairs = col_updates.items()
 
     # Disallow most changes to summary group-by columns, except to match the underlying column.
@@ -751,6 +748,10 @@ class UserActions(object):
                           displayCol=0)
 
     self.doBulkUpdateFromPairs(table_id, update_pairs)
+
+    if renames:
+      acl.perform_acl_rule_renames(self, renames)
+      dropdown_condition.perform_dropdown_condition_renames(self, renames)
 
     for table_id in rebuild_summary_tables:
       table = self._engine.tables[table_id]

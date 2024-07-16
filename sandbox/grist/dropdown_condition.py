@@ -35,7 +35,7 @@ def perform_dropdown_condition_renames(useractions, renames):
     try:
       widget_options = json.loads(col.widgetOptions)
       dc_formula = widget_options["dropdownCondition"]["text"]
-    except (json.JSONDecodeError, KeyError):
+    except (ValueError, KeyError):
       continue
 
     # Find out what table this column refers to and belongs to.
