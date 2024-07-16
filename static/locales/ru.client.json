@@ -549,7 +549,8 @@
         "Visit our {{link}} to learn more about Grist.": "Посетите наш {{link}} чтобы узнать больше о Grist.",
         "Sign in": "Вход",
         "To use Grist, please either sign up or sign in.": "Для использования Grist, зарегистрируйтесь или войдите в систему.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Узнайте больше в {{helpCenterLink}}, или найдите специалиста с {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Узнайте больше в {{helpCenterLink}}, или найдите специалиста с {{sproutsProgram}}.",
+        "Learn more in our {{helpCenterLink}}.": "Узнайте больше в нашем {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Import Document": "Импорт документа",
