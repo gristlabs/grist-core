@@ -26,7 +26,7 @@ export interface Server extends EventEmitter {
   isExternalServer(): boolean;
 }
 
-const ALL_TIPS_ENABLED = {
+export const ALL_TIPS_ENABLED = {
   behavioralPrompts: {
     dontShowTips: false,
     dismissedTips: [],
@@ -34,7 +34,7 @@ const ALL_TIPS_ENABLED = {
   dismissedWelcomePopups: [],
 };
 
-const ALL_TIPS_DISABLED = {
+export const ALL_TIPS_DISABLED = {
   behavioralPrompts: {
     dontShowTips: true,
     dismissedTips: BehavioralPrompt.values,
