@@ -15,12 +15,12 @@ describe('loadGristCoreConfig', () => {
   });
 
   it('will function correctly when no config file is present', async () => {
-    sinon.replace(Deps, 'pathExists', sinon.fake.resolves(false));
-    sinon.replace(Deps, 'readFile', sinon.fake.resolves(""));
+    sinon.replace(Deps, 'pathExists', sinon.fake.returns(false));
+    sinon.replace(Deps, 'readFile', sinon.fake.returns("" as any));
     const writeFileFake = sinon.fake.resolves(undefined);
     sinon.replace(Deps, 'writeFile', writeFileFake);
 
-    const config = await loadGristCoreConfigFile("doesntmatter.json");
+    const config = loadGristCoreConfigFile("doesntmatter.json");
     assert.exists(config.edition.get());
 
     await config.edition.set("enterprise");

@@ -9,10 +9,10 @@ let cachedGlobalConfig: IGristCoreConfig | undefined = undefined;
 /**
  * Retrieves the cached grist config, or loads it from the default global path.
  */
-export async function getGlobalConfig(): Promise<IGristCoreConfig> {
+export function getGlobalConfig(): IGristCoreConfig {
   if (!cachedGlobalConfig) {
     log.info(`Loading config file from ${globalConfigPath}`);
-    cachedGlobalConfig = await loadGristCoreConfigFile(globalConfigPath);
+    cachedGlobalConfig = loadGristCoreConfigFile(globalConfigPath);
   }
 
   return cachedGlobalConfig;
