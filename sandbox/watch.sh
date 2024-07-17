@@ -2,6 +2,7 @@
 
 set -x
 
+NO_NODEMON=false
 for arg in $@; do
   if [[ $arg == "--no-nodemon" ]]; then
     NO_NODEMON=true
