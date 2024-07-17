@@ -1327,8 +1327,8 @@ export class FlexServer implements GristServer {
       this._storageManager = storageManager;
     }
 
-    if (this.create.docStorageManagerDecorator) {
-      this.create.docStorageManagerDecorator(this._storageManager);
+    if (this.create.decorateDocStorageManager) {
+      this.create.decorateDocStorageManager(this._storageManager);
     }
 
     const pluginManager = await this._addPluginManager();
