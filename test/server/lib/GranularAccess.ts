@@ -457,6 +457,52 @@ describe('GranularAccess', function() {
     ]);
   });
 
+  it('respects SCHEMA_EDIT when converting a column', async () => {
+    // Initially, schema flag defaults to ON for editor.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ['AddTable', 'Table1', [{id: 'A', type: 'Int'},
+                              {id: 'B', type: 'Int'},
+                              {id: 'C', type: 'Int'}]],
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'C'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'user.Access == OWNER', permissionsText: '-R',
+      }],
+      ['AddRecord', 'Table1', null, {A: 1234, B: 1234}],
+    ]);
+
+    // Make a transformation as editor.
+    await editor.applyUserActions(docId, [
+      ['AddColumn', 'Table1', 'gristHelper_Converted', {type: 'Text', isFormula: false, visibleCol: 0, formula: ''}],
+      ['AddColumn', 'Table1', 'gristHelper_Transform',
+       {type: 'Text', isFormula: true, visibleCol: 0, formula: 'rec.gristHelper_Converted'}],
+      ["ConvertFromColumn", "Table1", "A", "gristHelper_Converted", "Text", "", 0],
+      ["CopyFromColumn", "Table1", "gristHelper_Transform", "A", "{}"],
+    ]);
+
+    // Now turn off schema flag for editor.
+    await owner.applyUserActions(docId, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*', colIds: '*'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'user.Access == EDITOR', permissionsText: '-S',
+      }],
+    ]);
+
+    // Now prepare another transformation.
+    const transformation = [
+      ['AddColumn', 'Table1', 'gristHelper_Converted2', {type: 'Text', isFormula: false, visibleCol: 0, formula: ''}],
+      ['AddColumn', 'Table1', 'gristHelper_Transform2',
+       {type: 'Text', isFormula: true, visibleCol: 0, formula: 'rec.gristHelper_Converted2'}],
+      ["ConvertFromColumn", "Table1", "B", "gristHelper_Converted2", "Text", "", 0],
+      ["CopyFromColumn", "Table1", "gristHelper_Transform", "B", "{}"],
+    ];
+    // Should fail for editor.
+    await assert.isRejected(editor.applyUserActions(docId, transformation),
+                            /Blocked by full structure access rules/);
+    // Should go through if run as owner.
+    await assert.isFulfilled(owner.applyUserActions(docId, transformation));
+  });
+
   async function applyTransformation(colToHide: string) {
     await freshDoc();
     await owner.applyUserActions(docId, [
@@ -906,12 +952,12 @@ describe('GranularAccess', function() {
 
     await assert.isRejected(editor.applyUserActions(docId, [
       ['CopyFromColumn', 'Data1', 'A', 'B', {}],
-    ]), /need uncomplicated access/);
+    ]), /Blocked by full structure access rules/);
 
     await assert.isRejected(editor.applyUserActions(docId, [
       ['RenameColumn', 'Data1', 'B', 'B'],
       ['CopyFromColumn', 'Data1', 'A', 'B', {}],
-    ]), /need uncomplicated access/);
+    ]), /Blocked by full structure access rules/);
 
     assert.deepEqual(await editor.getDocAPI(docId).getRows('Data1'), {
       id: [ 1, 2 ],
