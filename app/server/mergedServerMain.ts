@@ -71,7 +71,7 @@ export async function main(port: number, serverTypes: ServerType[],
   const includeStatic = serverTypes.includes("static");
   const includeApp = serverTypes.includes("app");
 
-  options.settings ??= await getGlobalConfig();
+  options.settings ??= getGlobalConfig();
 
   const server = new FlexServer(port, `server(${serverTypes.join(",")})`, options);
 

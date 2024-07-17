@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { convertToCoreFileContents, IGristCoreConfigFileLatest } from "app/server/lib/configCoreFileFormats";
 
 describe('convertToCoreFileContents', () => {
-  it('fails with a malformed config', async () => {
+  it('fails with a malformed config', () => {
     const badConfig = {
       version: "This is a random version number that will never exist",
     };

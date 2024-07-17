@@ -18,7 +18,7 @@ describe('FileConfig', () => {
   const useFakeConfigFile = (contents: string) => {
     const fakeFile = { contents };
     sinon.replace(Deps, 'pathExists', sinon.fake.resolves(true));
-    sinon.replace(Deps, 'readFile', sinon.fake((path, encoding: string) => Promise.resolve(fakeFile.contents)) as any);
+    sinon.replace(Deps, 'readFile', sinon.fake((path, encoding: string) => fakeFile.contents) as any);
     sinon.replace(Deps, 'writeFile', sinon.fake((path, newContents) => {
       fakeFile.contents = newContents;
       return Promise.resolve();
@@ -31,17 +31,17 @@ describe('FileConfig', () => {
     sinon.restore();
   });
 
-  it('throws an error from create if the validator does not return a value', async () => {
+  it('throws an error from create if the validator does not return a value', () => {
     useFakeConfigFile(testFileContentsJSON);
     const validator = () => null;
-    await assert.isRejected(FileConfig.create<TestFileContents>("anypath.json", validator));
+    assert.throws(() => FileConfig.create<TestFileContents>("anypath.json", validator));
   });
 
   it('persists changes when values are assigned', async () => {
     const fakeFile = useFakeConfigFile(testFileContentsJSON);
     // Don't validate - this is guaranteed to be valid above.
     const validator = (input: any) => input as TestFileContents;
-    const fileConfig = await FileConfig.create("anypath.json", validator);
+    const fileConfig = FileConfig.create("anypath.json", validator);
     await fileConfig.set("myNum", 999);
 
     assert.equal(fileConfig.get("myNum"), 999);
@@ -58,7 +58,7 @@ describe('FileConfig', () => {
     const fakeFile = useFakeConfigFile(JSON.stringify(configWithExtraProperties));
     // It's entirely possible the validator can damage the extra properties, but that's not in scope for this test.
     const validator = (input: any) => input as TestFileContents;
-    const fileConfig = await FileConfig.create("anypath.json", validator);
+    const fileConfig = FileConfig.create("anypath.json", validator);
     // Triggering a write to the file
     await fileConfig.set("myNum", 999);
     await fileConfig.set("myStr", "Something");
@@ -94,7 +94,7 @@ describe('createConfigValue', () => {
     assert.equal(accessors.get(), 2);
   });
 
-  it('initialises with the persistent value if available', async () => {
+  it('initialises with the persistent value if available', () => {
     const accessors = makeInMemoryAccessors(22);
     const configValue = createConfigValue(1, accessors);
     assert.equal(configValue.get(), 22);
