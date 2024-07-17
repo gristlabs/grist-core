@@ -2,9 +2,9 @@ import * as fse from "fs-extra";
 
 // Export dependencies for stubbing in tests.
 export const Deps = {
-  readFile: fse.readFile,
+  readFile: fse.readFileSync,
   writeFile: fse.writeFile,
-  pathExists: fse.pathExists,
+  pathExists: fse.pathExistsSync,
 };
 
 /**
