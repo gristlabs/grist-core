@@ -36,9 +36,10 @@
  *        If set to "true", the user will be allowed to login even if the email is not verified by the IDP.
  *        Defaults to false.
  *    env GRIST_OIDC_IDP_ENABLED_PROTECTIONS
- *        A comma-separated list of protections to enable. Supported values are "PKCE", "STATE", "NONCE".
+ *        A comma-separated list of protections to enable. Supported values are "PKCE", "STATE", "NONCE"
+ *        (or you may set it to "UNPROTECTED" alone, to disable any protections if you *really* know what you do!).
+ *        Defaults to "PKCE,STATE", which is the recommended settings.
  *        It's highly recommended that you enable STATE, and at least either PKCE or NONCE.
- *        Defaults to "PKCE,STATE".
  *    env GRIST_OIDC_IDP_ACR_VALUES
  *        A space-separated list of ACR values to request from the IdP. Optional.
  *    env GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA
@@ -64,104 +65,18 @@
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
 import {
-  Client, ClientMetadata, generators, Issuer, TokenSet, UserinfoResponse
+  Client, ClientMetadata, Issuer, TokenSet, UserinfoResponse
 } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
-import { SendAppPage } from './sendAppPage';
-import { StringUnion } from 'app/common/StringUnion';
+import { SendAppPage } from 'app/server/lib/sendAppPage';
+import { StringUnionError } from 'app/common/StringUnion';
+import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
 
 const CALLBACK_URL = '/oauth2/callback';
-
-const EnabledProtection = StringUnion(
-  "STATE",
-  "NONCE",
-  "PKCE",
-);
-EnabledProtection.setErrMessageBuilder(
-  (actual, _, expectedAsArray: string[]) =>
-    `OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${actual}.`+
-    ` Expected at least one of these values: "${expectedAsArray.join(",")}"`
-);
-
-type EnabledProtectionString = typeof EnabledProtection.type;
-type ProtectionPropertyName = 'nonce' | 'state' | 'code_verifier';
-type Protections = Partial<Record<ProtectionPropertyName, string>>;
-
-class SingleProtection {
-  private static _generationMethodsByPropertyName = {
-    state: () => generators.state(),
-    code_verifier: () => generators.codeVerifier(),
-    nonce: () => generators.nonce(),
-  };
-
-  constructor(
-    public readonly propertyName: ProtectionPropertyName,
-    public readonly errMsgIfOmitted: string,
-  ) {}
-
-  public generate() {
-    const generationMethod = SingleProtection._generationMethodsByPropertyName[this.propertyName];
-    return generationMethod();
-  }
-
-  public assertExistsInSession(sessionInfo: Record<string, string>) {
-    if (!sessionInfo[this.propertyName]) {
-      throw new Error(this.errMsgIfOmitted);
-    }
-  }
-}
-
-class ProtectionsManager {
-  private _protections: SingleProtection[] = [];
-
-  constructor(private _enabledProtections: Set<EnabledProtectionString>) {
-    if (this._enabledProtections.has('STATE')) {
-      this._protections.push(new SingleProtection('state', 'Login or logout failed to complete'));
-    }
-    if (this._enabledProtections.has('NONCE')) {
-      this._protections.push(new SingleProtection('nonce', 'Login is stale'));
-    }
-    if (this._enabledProtections.has('PKCE')) {
-      this._protections.push(new SingleProtection('code_verifier', 'Login is stale'));
-    }
-  }
-
-  public generate(): Protections {
-    const protections: Protections = {};
-    for (const singleProtection of this._protections) {
-      protections[singleProtection.propertyName] = singleProtection.generate();
-    }
-    return protections;
-  }
-
-  public forgeProtectionParamsForAuthUrl(protections: Protections) {
-    return {
-      state: protections.state,
-      nonce: protections.nonce,
-      code_challenge: protections.code_verifier ?
-        generators.codeChallenge(protections.code_verifier) :
-        undefined,
-      code_challenge_method: protections.code_verifier ? 'S256' : undefined,
-    };
-  }
-
-  public getCallbackChecksFromSessionInfo(sessionInfo: Record<string, any>) {
-    const protectionPropertiesFromSession: Partial<Record<ProtectionPropertyName, string>> = {};
-    for (const singleProtection of this._protections) {
-      singleProtection.assertExistsInSession(sessionInfo);
-      protectionPropertiesFromSession[singleProtection.propertyName] = sessionInfo[singleProtection.propertyName];
-    }
-    return protectionPropertiesFromSession;
-  }
-
-  public supportsProtection(protection: EnabledProtectionString) {
-    return this._enabledProtections.has(protection);
-  }
-}
 
 function formatTokenForLogs(token: TokenSet) {
   const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'];
@@ -254,7 +169,7 @@ export class OIDCConfig {
 
     const extraMetadata: Partial<ClientMetadata> = JSON.parse(section.flag('extraClientMetadata').readString({
       envVar: 'GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA',
-    })! || '{}');
+    }) || '{}');
 
     const enabledProtections = this._buildEnabledProtections(section);
     this._protectionManager = new ProtectionsManager(enabledProtections);
@@ -281,7 +196,7 @@ export class OIDCConfig {
       const params = this._client.callbackParams(req);
       const { targetUrl } = mreq.session.oidc ?? {};
 
-      const checks = this._protectionManager.getCallbackChecksFromSessionInfo(mreq.session.oidc ?? {});
+      const checks = this._protectionManager.getCallbackChecks(mreq.session.oidc ?? {});
 
       // The callback function will compare the protections present in the params and the ones we retrieved
       // from the session. If they don't match, it will throw an error.
@@ -341,23 +256,22 @@ export class OIDCConfig {
   }
 
   public async getLoginRedirectUrl(req: express.Request, targetUrl: URL): Promise<string> {
-    const protections = this._protectionManager.generate();
     const mreq = this._getRequestWithSession(req);
 
     mreq.session.oidc = {
       targetUrl: targetUrl.href,
-      ...protections
+      ...this._protectionManager.generate()
     };
 
     return this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
       acr_values: this._acrValues,
-      ...this._protectionManager.forgeProtectionParamsForAuthUrl(protections),
+      ...this._protectionManager.forgeAuthUrlParams(mreq.session.oidc),
     });
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
-    const mreq = this._getRequestWithSession(req);
+    const mreq = this._getRequestWithSession(req, { throwIfMissing: false });
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
     if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
@@ -368,7 +282,7 @@ export class OIDCConfig {
     }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href,
-      id_token_hint: mreq.session.oidc?.idToken,
+      id_token_hint: mreq.session?.oidc?.idToken,
     });
   }
 
@@ -389,9 +303,9 @@ export class OIDCConfig {
     });
   }
 
-  private _getRequestWithSession(req: express.Request) {
+  private _getRequestWithSession(req: express.Request, {throwIfMissing} = {throwIfMissing: true}) {
     const mreq = req as RequestWithLogin;
-    if (!mreq.session) { throw new Error('no session available'); }
+    if (!mreq.session && throwIfMissing) { throw new Error('no session available'); }
 
     return mreq;
   }
@@ -401,12 +315,21 @@ export class OIDCConfig {
       envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
       defaultValue: 'PKCE,STATE',
     })!.split(',');
-    if (enabledProtections[0] === 'UNPROTECTED') {
+    if (enabledProtections.length === 1 && enabledProtections[0] === 'UNPROTECTED') {
       log.warn("You chose to enable OIDC connection with no protection, you are exposed to vulnerabilities." +
         " Please never do that in production.");
       return new Set();
     }
-    return new Set(EnabledProtection.checkAll(enabledProtections));
+    try {
+      return new Set(EnabledProtection.checkAll(enabledProtections));
+    } catch (e) {
+      if (e instanceof StringUnionError) {
+        throw new TypeError(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${e.actual}.`+
+          ` Expected at least one of these values: "${e.values.join(",")}"`
+        );
+      }
+      throw e;
+    }
   }
 
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {

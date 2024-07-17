@@ -1,3 +1,9 @@
+export class StringUnionError extends TypeError {
+  constructor(errMessage: string, public readonly actual: string, public readonly values: string[]) {
+    super(errMessage);
+  }
+}
+
 /**
  * TypeScript will infer a string union type from the literal values passed to
  * this function. Without `extends string`, it would instead generalize them
@@ -24,26 +30,17 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return valueSet.has(value);
   };
 
-  let buildErrMessage = (actual: string, expected: string, _: string[]) => {
-    return `Value '${actual}' is not assignable to type '${expected}'.`;
-  };
   const check = (value: string): UnionType => {
     if (!guard(value)) {
       const actual = JSON.stringify(value);
       const expected = values.map(s => JSON.stringify(s)).join(' | ');
-      throw new TypeError(buildErrMessage(actual, expected, values));
+      throw new StringUnionError(`Value '${actual}' is not assignable to type '${expected}'.`, actual, values);
     }
     return value;
   };
 
   const checkAll = (arr: string[]): UnionType[] => {
     return arr.map(check);
-  };
-
-  const setErrMessageBuilder = (
-    newBuildErrMessage: (actual: string, expected: string, expectedAsArray: string[]) => string
-  ) => {
-    buildErrMessage = newBuildErrMessage;
   };
 
   /**
@@ -53,6 +50,6 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return value != null && guard(value) ? value : undefined;
   };
 
-  const unionNamespace = {guard, check, parse, values, checkAll, setErrMessageBuilder};
+  const unionNamespace = {guard, check, parse, values, checkAll };
   return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
 };

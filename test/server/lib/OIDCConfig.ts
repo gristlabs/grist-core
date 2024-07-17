@@ -235,6 +235,13 @@ describe('OIDCConfig', () => {
       assert.match(logWarnStub.firstCall.args[0], /with no protection/);
     });
 
+    it('should reject when set to "UNPROTECTED,PKCE"', async function () {
+      setEnvVars();
+      process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'UNPROTECTED,PKCE';
+      const promise = OIDCConfigStubbed.buildWithStub();
+      await checkRejection(promise, 'UNPROTECTED');
+    });
+
     it('if omitted, should default to "STATE,PKCE"', async function () {
       setEnvVars();
       const config = await OIDCConfigStubbed.buildWithStub();
@@ -267,7 +274,6 @@ describe('OIDCConfig', () => {
           code_challenge: FAKE_CODE_CHALLENGE,
           code_challenge_method: 'S256',
           state: FAKE_STATE,
-          nonce: undefined,
         }],
         expectedSession: {
           oidc: {
@@ -288,7 +294,6 @@ describe('OIDCConfig', () => {
           code_challenge: FAKE_CODE_CHALLENGE,
           code_challenge_method: 'S256',
           state: FAKE_STATE,
-          nonce: undefined,
         }],
         expectedSession: {
           oidc: {
@@ -330,8 +335,6 @@ describe('OIDCConfig', () => {
           acr_values: undefined,
           state: FAKE_STATE,
           nonce: FAKE_NONCE,
-          code_challenge: undefined,
-          code_challenge_method: undefined,
         }],
         expectedSession: {
           oidc: {
@@ -716,6 +719,14 @@ describe('OIDCConfig', () => {
           post_logout_redirect_uri: REDIRECT_URL.href,
           id_token_hint: FAKE_SESSION.oidc!.idToken,
         }
+      }, {
+        itMsg: 'should call the end session endpoint with no idToken if session is missing',
+        expectedUrl: URL_RETURNED_BY_CLIENT,
+        expectedLogoutParams: {
+          post_logout_redirect_uri: REDIRECT_URL.href,
+          id_token_hint: undefined,
+        },
+        session: null
       }
     ].forEach(ctx => {
       it(ctx.itMsg, async () => {
@@ -725,7 +736,7 @@ describe('OIDCConfig', () => {
         clientStub.endSessionUrl.returns(URL_RETURNED_BY_CLIENT);
         const config = await OIDCConfigStubbed.buildWithStub(clientStub.asClient());
         const req = {
-          session: FAKE_SESSION
+          session: 'session' in ctx ? ctx.session : FAKE_SESSION
         } as unknown as RequestWithLogin;
         const url = await config.getLogoutRedirectUrl(req, REDIRECT_URL);
         assert.equal(url, ctx.expectedUrl);
