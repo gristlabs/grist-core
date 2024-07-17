@@ -3,7 +3,7 @@ import {getLoginOrSignupUrl, getLoginUrl, getSignupUrl, urlState} from 'app/clie
 import {HomeModel} from 'app/client/models/HomeModel';
 import {productPill} from 'app/client/ui/AppHeader';
 import * as css from 'app/client/ui/DocMenuCss';
-import {createDocAndOpen, importDocAndOpen} from 'app/client/ui/HomeLeftPane';
+import {createDocAndOpen, importDocAndOpen} from 'app/client/ui/NewDocMethods';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
