@@ -379,10 +379,11 @@ class RecordList(list):
   Just like list but allows setting custom attributes, which we use for remembering _group_by and
   _sort_by attributes when storing RecordSet as usertypes.ReferenceList type.
   """
-  def __init__(self, row_ids, group_by=None, sort_by=None):
+  def __init__(self, row_ids, group_by=None, sort_by=None, sort_key=None):
     list.__init__(self, row_ids)
-    self._group_by = group_by
-    self._sort_by = sort_by
+    self._group_by = group_by       # None or a tuple of col_ids
+    self._sort_by = sort_by         # None or a tuple of col_ids, optionally prefixed with "-"
+    self._sort_key = sort_key       # Comparator function (see sort_key.py)
 
   def __repr__(self):
     return "RecordList(%s, group_by=%r, sort_by=%r)" % (

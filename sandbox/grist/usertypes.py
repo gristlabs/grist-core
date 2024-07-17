@@ -457,7 +457,8 @@ class ReferenceList(BaseColumnType):
 
     if isinstance(value, RecordSet):
       assert value._table.table_id == self.table_id
-      return objtypes.RecordList(value._row_ids, group_by=value._group_by, sort_by=value._sort_by)
+      return objtypes.RecordList(value._row_ids, group_by=value._group_by, sort_by=value._sort_by,
+          sort_key=value._sort_key)
     elif not value:
       # Represent an empty ReferenceList as None (also its default value). Formulas will see [].
       return None
@@ -465,8 +466,15 @@ class ReferenceList(BaseColumnType):
 
   @classmethod
   def is_right_type(cls, value):
-    return value is None or (isinstance(value, list) and
-                             all(Reference.is_right_type(val) for val in value))
+    # TODO: whenever is_right_type isn't trivial, get_cell_value should just remember the result
+    # rather than recompute it on every access. Actually this applies not only to is_right_type
+    # but to everything get_cell_value does. It should use minimal-memory minimal-overhead
+    # translations of raw->rich for valid values, and use what memory it needs but still guarantee
+    # constant time for invalid values.
+    return (value is None or
+        (isinstance(value, objtypes.RecordList)) or
+        (isinstance(value, list) and all(Reference.is_right_type(val) for val in value))
+    )
 
 
 class Attachments(ReferenceList):

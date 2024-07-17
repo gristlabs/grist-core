@@ -238,6 +238,28 @@ def _set_remove(container, value):
 
 register_container(set, _set_make, _set_add, _set_remove)
 
+# A version of `set` that maintains also sorted versions of the set. Used in lookups, to cache the
+# sorted lookup results.
+class LookupSet(set):
+  def __init__(self, iterable=[]):
+    super(LookupSet, self).__init__(list(iterable))
+    self.sorted_versions = {}
+
+def _LookupSet_make(value):
+  return LookupSet([value])
+def _LookupSet_add(container, value):
+  if value not in container:
+    container.add(value)
+    container.sorted_versions.clear()
+    return True
+  return False
+def _LookupSet_remove(container, value):
+  if value in container:
+    container.discard(value)
+    container.sorted_versions.clear()
+
+register_container(LookupSet, _LookupSet_make, _LookupSet_add, _LookupSet_remove)
+
 
 # Allow `list` to be used as a bin type.
 def _list_make(value):
