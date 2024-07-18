@@ -2333,7 +2333,7 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 404);
   });
 
-  describe('DocApiKey Endpoint', function() {
+  describe('DocApiKey', function() {
     let oldEnv: testUtils.EnvironmentSnapshot;
 
     testUtils.setTmpLogLevel('error');
@@ -2364,9 +2364,10 @@ describe('ApiServer', function() {
     });
 
     after(async function() {
+      await server.stop();
     });
 
-    it('POST /api/docs/{did}/apikey is operational', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "Peace-And-Tranquility-2-Earth";
@@ -2379,7 +2380,7 @@ describe('ApiServer', function() {
       assert.match(resp.data, /^[1-9a-km-zA-HJ-NP-Z]{22}$/);
     });
 
-    it('POST /api/docs/{did}/apikey returns 404 on non existing :did', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey returns 404 on non existing :did', async function() {
       const did = 'falsedocid_12';
       const options = {access: "editors"};
       const linkId = "Peace-And-Tranquility-2-Earth";
@@ -2390,7 +2391,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 404);
     });
 
-    it('POST /api/docs/{did}/apikey returns 400 when no options', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey returns 400 when no options', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const linkId = "Peace-And-Tranquility-2-Earth";
       const body = {"linkId": linkId};
@@ -2400,7 +2401,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 400);
     });
 
-    it('POST /api/docs/{did}/apikey returns 400 when options.access is missing', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey returns 400 when options.access is missing', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {};
       const linkId = "Peace-And-Tranquility-2-Earth";
@@ -2411,7 +2412,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 400);
     });
 
-    it('POST /api/docs/{did}/apikey returns 400 when options.access have bad value', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey returns 400 when options.access have bad value', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "Root"};
       const linkId = "Peace-And-Tranquility-2-Earth";
@@ -2422,7 +2423,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 400);
     });
 
-    it('POST /api/docs/{did}/apikey returns 400 on arbitrary options', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey returns 400 on arbitrary options', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors", injection: "It's a bad, bad, thing"};
       const linkId = "Peace-And-Tranquility-2-Earth";
@@ -2433,7 +2434,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 400);
     });
 
-    it('POST /api/docs/{did}/apikey status 400 when linkId already exists for given :did', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey status 400 when linkId already exists for given :did', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "Peace-And-Tranquility-2-Earth";
@@ -2448,7 +2449,7 @@ describe('ApiServer', function() {
       assert.equal(resp2.status, 400);
     });
 
-    it('POST /api/docs/{did}/apikey returns 403 when not owning doc', async function() {
+    it('Endpoint POST /api/docs/{did}/apikey returns 403 when not owning doc', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "I-am-nobody";
@@ -2459,7 +2460,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 403);
     });
 
-    it('GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
+    it('Endpoint GET /api/docs/{did}/apikey/{linkId} is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "Small-step-for-man";
@@ -2487,7 +2488,7 @@ describe('ApiServer', function() {
       );
     });
 
-    it('GET /api/docs/{did}/apikey/{linkId} returns 404 on non existing did', async function() {
+    it('Endpoint GET /api/docs/{did}/apikey/{linkId} returns 404 on non existing did', async function() {
       const did = 'falsedocid_12';
       const linkId = "Peace-And-Tranquility-2-Earth";
 
@@ -2496,7 +2497,7 @@ describe('ApiServer', function() {
       assert.equal(fetchResp.status, 404);
     });
 
-    it('GET /api/docs/{did}/apikey/{linkId} returns 404 on non existing linkId', async function() {
+    it('Endpoint GET /api/docs/{did}/apikey/{linkId} returns 404 on non existing linkId', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const linkId = "non-existing";
 
@@ -2505,7 +2506,7 @@ describe('ApiServer', function() {
       assert.equal(fetchResp.status, 404);
     });
 
-    it('GET /api/docs/{did}/apikey/{linkId} returns 403 when not owning :did', async function() {
+    it('Endpoint GET /api/docs/{did}/apikey/{linkId} returns 403 when not owning :did', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "For-Owners-Eyes-Only";
@@ -2520,7 +2521,7 @@ describe('ApiServer', function() {
       assert.equal(fetchResp.status, 403);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} is operational', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "Great-step-for-humanity";
@@ -2540,7 +2541,7 @@ describe('ApiServer', function() {
       assert.equal(fetchResp.status, 200);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 200 on options.access modification', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 200 on options.access modification', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "viewers"};
       const newOptions = {access: "editors"};
@@ -2563,7 +2564,7 @@ describe('ApiServer', function() {
       assert.equal(JSON.parse(fetchResp.data.options).access, newOptions.access);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 when empty option', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 400 when empty option', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = "";
       const linkId = "Ground-Control-To-Major-Tom";
@@ -2574,7 +2575,7 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 400);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on bad options key', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 400 on bad options key', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "viewers", bad: "injection"};
       const linkId = "Ground-Control-To-Major-Tom";
@@ -2585,8 +2586,8 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 400);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on illegal value of options.access', async function() {
-      const did = await dbManager.testGetId('Curiosity');
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 400 on illegal value of opts.access', async function() {
+        const did = await dbManager.testGetId('Curiosity');
       const options = {access: "injection"};
       const linkId = "Ground-Control-To-Major-Tom";
 
@@ -2596,7 +2597,7 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 400);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on did update', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 400 on did update', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const newdid = "Another-Document-Id";
       const linkId = "Ground-Control-To-Major-Tom";
@@ -2607,7 +2608,7 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 400);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on key update', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 400 on key update', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const linkId = "Ground-Control-To-Major-Tom";
       const key = "ViciousKeyInjection";
@@ -2618,7 +2619,7 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 400);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 400 on options.apikey update', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 400 on options.apikey update', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {apikey: "false"};
       const linkId = "Ground-Control-To-Major-Tom";
@@ -2629,7 +2630,7 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 400);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 404 on did not owned', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 404 on did not owned', async function() {
       const did = "not-a-document";
       const linkId = "Ground-Control-To-Major-Tom";
       const newLinkId = "Ground-Control-to-Major-Tim";
@@ -2640,7 +2641,7 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 404);
     });
 
-    it('PATCH /api/docs/{did}/apikey/{linkId} returns 403 on did not owned', async function() {
+    it('Endpoint PATCH /api/docs/{did}/apikey/{linkId} returns 403 on did not owned', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const linkId = "Ground-Control-To-Major-Tom";
       const newLinkId = "Ground-Control-to-Major-Tim";
@@ -2651,7 +2652,7 @@ describe('ApiServer', function() {
       assert.equal(patchResp.status, 403);
     });
 
-    it('DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
+    it('Endpoint DELETE /api/docs/{did}/apikey/{linkId} is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "Houston-we-have-a-problem";
@@ -2674,7 +2675,7 @@ describe('ApiServer', function() {
       assert.equal(fetchResp2.status, 404);
     });
 
-    it('DELETE /api/docs/{did}/apikey/{linkId} returns 404 on non existing :did', async function() {
+    it('Endpoint DELETE /api/docs/{did}/apikey/{linkId} returns 404 on non existing :did', async function() {
       const did = "not-a-document";
       const linkId = "Lucy-In-The-Sky";
 
@@ -2683,7 +2684,7 @@ describe('ApiServer', function() {
       assert.equal(deleteResp.status, 404);
     });
 
-    it('DELETE /api/docs/{did}/apikey/{linkId} returns 404 on non existing :linkId', async function() {
+    it('Endpoint DELETE /api/docs/{did}/apikey/{linkId} returns 404 on non existing :linkId', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "Lucy-In-The-Sky";
@@ -2699,7 +2700,7 @@ describe('ApiServer', function() {
       assert.equal(deleteResp.status, 404);
     });
 
-    it('DELETE /api/docs/{did}/apikey/{linkId} returns 403 when not owning doc', async function() {
+    it('Endpoint DELETE /api/docs/{did}/apikey/{linkId} returns 403 when not owning doc', async function() {
       const did = await dbManager.testGetId('Curiosity');
       const options = {access: "editors"};
       const linkId = "With-Diamonds";
@@ -2714,7 +2715,7 @@ describe('ApiServer', function() {
       assert.equal(deleteResp.status, 403);
     });
 
-    it('GET /api/docs/{did}/apikeys is operational', async function() {
+    it('Endpoint GET /api/docs/{did}/apikeys is operational', async function() {
       const did = await dbManager.testGetId('Curiosity');
 
       // Creation of the first doc-api-key
@@ -2742,7 +2743,7 @@ describe('ApiServer', function() {
       assert.equal(resp.data.length, 2, "There is two docApiKeys");
     });
 
-    it('GET /api/docs/{did}/apikeys returns 403 when not owning :did ', async function() {
+    it('Endpoint GET /api/docs/{did}/apikeys returns 403 when not owning :did ', async function() {
       const did = await dbManager.testGetId('Curiosity');
 
       // Creation of the first doc-api-key
@@ -2767,7 +2768,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 403);
     });
 
-    it('GET /api/docs/{did}/apikeys returns 404 on not existing :did', async function() {
+    it('Endpoint GET /api/docs/{did}/apikeys returns 404 on not existing :did', async function() {
       const did = "not-a-document";
 
       const resp = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
@@ -2775,7 +2776,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 404);
     });
 
-    it('GET /api/docs/{did}/apikeys returns 200 and empty array when no keys', async function() {
+    it('Endpoint GET /api/docs/{did}/apikeys returns 200 and empty array when no keys', async function() {
       const did = await dbManager.testGetId('Apathy');
 
       const resp = await axios.get(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
@@ -2785,7 +2786,7 @@ describe('ApiServer', function() {
       assert.equal(resp.data.length, 0);
     });
 
-    it('DELETE /api/docs/{did}/apikeys is operational', async function() {
+    it('Endpoint DELETE /api/docs/{did}/apikeys is operational', async function() {
       const did = await dbManager.testGetId('Apathy');
 
       // Creation of the first doc-api-key
@@ -2823,7 +2824,7 @@ describe('ApiServer', function() {
       assert.equal(respFetch2.data.length, 0);
     });
 
-    it('DELETE /api/docs/{did}/apikeys returns 403 when not owning :did', async function() {
+    it('Endpoint DELETE /api/docs/{did}/apikeys returns 403 when not owning :did', async function() {
       const did = await dbManager.testGetId('Curiosity');
 
       const resp = await axios.delete(`${homeUrl}/api/docs/${did}/apikeys`, nobody);
@@ -2831,7 +2832,7 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 403);
     });
 
-    it('DELETE /api/docs/{did}/apikeys returns 404 when deleting on non existing :did', async function() {
+    it('Endpoint DELETE /api/docs/{did}/apikeys returns 404 when deleting on non existing :did', async function() {
       const did = "not-a-document";
 
       const resp = await axios.delete(`${homeUrl}/api/docs/${did}/apikeys`, chimpy);
@@ -2853,7 +2854,7 @@ describe('ApiServer', function() {
 
       // Make a call to GET /api/doc/:docId
       const authorizationHeader = `Bearer DOC-${docApiKey}`;
-      const anonymous = {...nobody, authorizationHeader};
+      const anonymous = {...nobody, Authorization : authorizationHeader};
       const fetch = await axios.get(`${homeUrl}/api/docs/${did}`, anonymous);
       assert.equal(fetch.status, 200);
     });

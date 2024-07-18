@@ -23,6 +23,7 @@ import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';
 import onHeaders from 'on-headers';
+import { ShareOptions } from 'app/common/ShareOptions';
 
 export interface RequestWithLogin extends Request {
   sessionID: string;
@@ -178,29 +179,48 @@ export async function addRequestUser(
     if (parts[0] === "Bearer") {
       // Bearer needs to be form "DOC-YYYYYYYYY" to apply as Doc Api key
       if (parts[1].match(/^DOC-.*/)) {
+        const url = mreq.url;
+
+        const didRegex = /(?<=^\/docs\/).+?(?=\/|$)/g;
+        const did = url.match(didRegex);
+        // Only API scope matching regex MUST be accessed with Doc Api keys
+        if (!did || !did[0]){
+          return res.status(401).send(`Access Denied: Scope limited to Documents`);
+        }
         // Doc Api Key
         const docApiKey = parts[1].split('-')[1];
         const share = docApiKey ? await dbManager.getDocApiKeyByKey(docApiKey) : undefined;
+
         // A share with key matching Bearer and having options.access set to true MUST exist
         if (!share || !share.options.apikey) {
           return res.status(401).send('Bad request: invalid Doc Api key');
         }
-        const did = mreq.params.did;
         // DocId in request parameters MUST match share.DocId
-        if (did !== share.docId){
+        if (did[0] !== share.docId){
           return res.status(401).send('Bad request: invalid Doc Api key');
         }
-        const url = new URL(mreq.url);
-        const regex = new RegExp(String.raw`\s^\/api\/docs\/${did}.*\s`, "g");
-        // Only API scope matching regex MUST be accessed with Doc Api keys
-        if (!url.pathname.match(regex)){
-          return res.status(401).send(`Access Denied: Scope limited to Document ${did}`);
+        // access as two valid values
+        const legalAccessValues: ShareOptions["access"][] = ["editors", "viewers"];
+        if (!legalAccessValues.includes(share.options.access)){
+         return res.status(401).send(`Bad request: invalid option.access ${share.options.access}`);
         }
         // Viewers can only access with GET methods
         if (share.options.access === "viewers" && "GET" !== mreq.method){
           return res.send(401).send(`Access Denied: invalid method for viewers - ${mreq.method}`);
         }
+
+        // We setup the user as anonymous
+        // with access determined by share.options.access value
+        const anon = dbManager.getAnonymousUser();
+        mreq.user = anon;
+        const org = await dbManager.getOrgOwnerFromDocApiKey(share);
+        const userId = org?.ownerId;
+        mreq.userId = userId;
+        mreq.userIsAuthorized = true;
         hasApiKey = true;
+        const access = share.options.access ? share.options.access : "viewers";
+        mreq.docAuth = {access, docId:did[0], removed: null};
+
         return next();
       // If Bearer have another form it must be a User Api Key
       } else {

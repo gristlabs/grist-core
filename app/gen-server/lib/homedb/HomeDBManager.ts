@@ -968,6 +968,17 @@ export class HomeDBManager extends EventEmitter {
     return doc;
   }
 
+  public async getOrgOwnerFromDocApiKey(docApiKey: Share) {
+    return this._connection.createQueryBuilder()
+      .select('orgs')
+      .from(Organization, 'orgs')
+      .leftJoin(Workspace, 'workspaces', 'orgs.id = workspaces.org_id')
+      .leftJoin(Document, 'docs', 'workspaces.id = docs.workspace_id')
+      .leftJoin(Share, 'shares', 'docs.id = shares.doc_id')
+      .where('shares.key = :key', {key: 'uKXGYSc5pZ2muaQP9WKgpY'})
+      .getOne();
+  }
+
   // Calls getDocImpl() and returns the Document from that, caching a fresh DocAuthResult along
   // the way. Note that we only cache the access level, not Document itself.
   public async getDoc(reqOrScope: Request | Scope, transaction?: EntityManager): Promise<Document> {
