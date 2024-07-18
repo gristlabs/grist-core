@@ -191,8 +191,15 @@ export class OIDCConfig {
   }
 
   public async handleCallback(sessions: Sessions, req: express.Request, res: express.Response): Promise<void> {
+    let mreq;
     try {
-      const mreq = this._getRequestWithSession(req);
+      mreq = this._getRequestWithSession(req);
+    } catch(err) {
+      log.warn(err.message);
+      return this._sendErrorPage(req, res);
+    }
+
+    try {
       const params = this._client.callbackParams(req);
       const { targetUrl } = mreq.session.oidc ?? {};
 
@@ -209,7 +216,7 @@ export class OIDCConfig {
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
         throw new ErrorWithUserFriendlyMessage(
           `OIDCConfig: email not verified for ${userInfo.email}`,
-          "Please verify your email with the identity provider, and log in again."
+          req.t("oidc.emailNotVerifiedError")
         );
       }
 
@@ -235,23 +242,9 @@ export class OIDCConfig {
       // This way, we prevent several login attempts.
       //
       // Also session deletion must be done before sending the response.
-      try {
-        const mreq = this._getRequestWithSession(req);
-        delete mreq.session.oidc;
-      } catch (e) {
-        // _getRequestWithSession may fail because there is no session,
-        // in such a case, ignore the exception, just log some error.
-        log.warn('Could not retrieve session to delete the oidc protections');
-      }
+      delete mreq.session.oidc;
 
-      await this._sendAppPage(req, res, {
-        path: 'error.html',
-        status: 500,
-        config: {
-          errPage: 'signin-failed',
-          errMessage: err.userFriendlyMessage
-        },
-      });
+      await this._sendErrorPage(req, res, err.userFriendlyMessage);
     }
   }
 
@@ -300,6 +293,17 @@ export class OIDCConfig {
       redirect_uris: [this._redirectUrl],
       response_types: ['code'],
       ...extraMetadata,
+    });
+  }
+
+  private _sendErrorPage(req: express.Request, res: express.Response, userFriendlyMessage?: string) {
+    return this._sendAppPage(req, res, {
+      path: 'error.html',
+      status: 500,
+      config: {
+        errPage: 'signin-failed',
+        errMessage: userFriendlyMessage
+      },
     });
   }
 

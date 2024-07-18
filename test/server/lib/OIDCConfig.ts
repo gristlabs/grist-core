@@ -499,7 +499,7 @@ describe('OIDCConfig', () => {
         },
         expectedErrorMsg: /email not verified for/,
         extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
-          assert.match(sendAppPageStub.firstCall.args[2].config.errMessage, /Please verify your email/);
+          assert.equal(sendAppPageStub.firstCall.args[2].config.errMessage, 'oidc.emailNotVerifiedError');
         }
       },
       {
@@ -620,6 +620,7 @@ describe('OIDCConfig', () => {
         const session = _.clone(ctx.session); // session is modified, so clone it
         const req = {
           session,
+          t: (key: string) => key
         } as unknown as express.Request;
         clientStub.callbackParams.returns(fakeParams);
         const tokenSet = { id_token: 'id_token', ...ctx.tokenSet };
