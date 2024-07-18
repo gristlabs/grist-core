@@ -21,7 +21,7 @@ import {Workspace} from 'app/common/UserAPI';
 import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
 import {createHelpTools, cssLeftPanel, cssScrollPane,
         cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
-import {createDocAndOpen, importDocAndOpen, importFromPluginAndOpen} from "app/client/ui/NewDocMethods"
+import {createDocAndOpen, importDocAndOpen, importFromPluginAndOpen} from "app/client/ui/NewDocMethods";
 
 const t = makeT('HomeLeftPane');
 
