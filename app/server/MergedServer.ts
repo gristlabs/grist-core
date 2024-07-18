@@ -6,10 +6,8 @@
  */
 
 import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
-import {GristLoginSystem} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import {getGlobalConfig} from "app/server/lib/globalConfig";
-import {IDocStorageManager} from './lib/IDocStorageManager';
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
 // environment variable.
@@ -61,11 +59,6 @@ interface ServerOptions extends FlexServerOptions {
   // If set, documents saved to external storage such as s3 (default is to check environment variables,
   // which get set in various ways in dev/test entry points)
   externalStorage?: boolean;
-
-  loginSystem?: () => Promise<GristLoginSystem>;
-
-  // Invoked in addDoc if set. Grist Desktop uses this to override DocStorageManager's getPath function.
-  storageManagerDecorator?: (original: IDocStorageManager) => void;
 }
 
 export class MergedServer {
@@ -79,10 +72,6 @@ export class MergedServer {
       ms.flexServer.setServesPlugins(userPort !== undefined);
     } else {
       ms.flexServer.setServesPlugins(false);
-    }
-
-    if (ms._options.loginSystem) {
-      ms.flexServer.setLoginSystem(ms._options.loginSystem);
     }
 
     ms.flexServer.addCleanup();

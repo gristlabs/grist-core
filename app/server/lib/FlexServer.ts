@@ -52,7 +52,6 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
-import {getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
@@ -182,7 +181,7 @@ export class FlexServer implements GristServer {
   private _getSignUpRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
-  private _getLoginSystem?: () => Promise<GristLoginSystem>;
+  private _getLoginSystem: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
   private _updateManager: UpdateManager;
@@ -190,6 +189,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
+    this._getLoginSystem = create.getLoginSystem;
     this.settings = options.settings;
     this.app = express();
     this.app.set('port', port);
@@ -267,11 +267,6 @@ export class FlexServer implements GristServer {
       (req as RequestWithGrist).gristServer = this;
       next();
     });
-  }
-
-  // Allow overridding the login system.
-  public setLoginSystem(loginSystem: () => Promise<GristLoginSystem>) {
-    this._getLoginSystem = loginSystem;
   }
 
   public getHost(): string {
@@ -1975,7 +1970,7 @@ export class FlexServer implements GristServer {
   }
 
   public resolveLoginSystem() {
-    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
+    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem() );
   }
 
   public addUpdatesCheck() {

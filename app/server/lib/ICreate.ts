@@ -1,9 +1,10 @@
 import {GristDeploymentType} from 'app/common/gristUrls';
+import { getCoreLoginSystem } from "app/server/lib/coreLogins";
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
-import {createDummyTelemetry, GristServer} from 'app/server/lib/GristServer';
+import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -45,6 +46,8 @@ export interface ICreate {
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
+
+  getLoginSystem(): Promise<GristLoginSystem>;
 
   // Used by Grist Desktop to override the getPath function.
   decorateDocStorageManager? (original: IDocStorageManager): void;
@@ -89,6 +92,7 @@ export function makeSimpleCreator(opts: {
   getSqliteVariant?: () => SqliteVariant,
   getSandboxVariants?: () => Record<string, SpawnFn>,
   createInstallAdmin?: (dbManager: HomeDBManager) => Promise<InstallAdmin>,
+  getLoginSystem?: () => Promise<GristLoginSystem>,
   decorateDocStorageManager?: (original: IDocStorageManager) => void,
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
@@ -164,6 +168,7 @@ export function makeSimpleCreator(opts: {
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,
     createInstallAdmin: opts.createInstallAdmin || (async (dbManager) => new SimpleInstallAdmin(dbManager)),
+    getLoginSystem: opts.getLoginSystem || getCoreLoginSystem,
     decorateDocStorageManager: opts.decorateDocStorageManager,
   };
 }
