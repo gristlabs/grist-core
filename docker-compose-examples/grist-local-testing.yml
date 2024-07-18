@@ -1,0 +1,17 @@
+# This is the simplest example that runs Grist, suitable for local testing.
+
+# It is STRONGLY RECOMMENDED not to use this container in a way that makes it accessible to the internet.
+# This setup lacks basic security or authentication.
+# See https://support.getgrist.com for more information.
+
+services:
+  grist:
+    image: gristlabs/grist:latest
+    environment:
+      # Use Python 3 instead of 2.
+      PYTHON_VERSION: 3
+    volumes:
+      # Where to store persistent data, such as documents.
+      - ./grist_local_data:/persist
+    ports:
+      - 8484:8484
