@@ -79,6 +79,7 @@ export interface SessionObj {
     // state is used to protect against Error Responses spoofs.
     state?: string;
     targetUrl?: string;
+    // Stores user claims signed by the issuer, store it to allow loging out.
     idToken?: string;
   }
 }

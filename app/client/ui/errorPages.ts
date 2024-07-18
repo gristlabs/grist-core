@@ -15,6 +15,12 @@ const testId = makeTestId('test-');
 
 const t = makeT('errorPages');
 
+function signInAgainButton() {
+  return cssButtonWrap(bigPrimaryButtonLink(
+    t("Sign in again"), {href: getLoginUrl()}, testId('error-signin')
+  ));
+}
+
 export function createErrPage(appModel: AppModel) {
   const {errMessage, errPage} = getGristConfig();
   return errPage === 'signed-out' ? createSignedOutPage(appModel) :
@@ -62,9 +68,7 @@ export function createSignedOutPage(appModel: AppModel) {
 
   return pagePanelsError(appModel, t("Signed out{{suffix}}", {suffix: ''}), [
     cssErrorText(t("You are now signed out.")),
-    cssButtonWrap(bigPrimaryButtonLink(
-      t("Sign in again"), {href: getLoginUrl()}, testId('error-signin')
-    ))
+    signInAgainButton(),
   ]);
 }
 
@@ -106,8 +110,7 @@ export function createSigninFailedPage(appModel: AppModel, message?: string) {
       t("Failed to login.{{separator}}Please try again or contact support.", {
         separator: dom('br')
     })),
-    cssButtonWrap(bigPrimaryButtonLink(t("Login again"), testId('error-primary-btn'),
-      urlState().setLinkUrl({login: 'login', params: {}}))),
+    signInAgainButton(),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),
   ]);
 }
