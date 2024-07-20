@@ -1295,7 +1295,8 @@
         "Enabled": "Activado",
         "Event Types": "Tipos de eventos",
         "Memo": "Memorándum",
-        "Name": "Nombre"
+        "Name": "Nombre",
+        "Header Authorization": "Encabezado de autorización"
     },
     "FormulaAssistant": {
         "Regenerate": "Regenerar",
