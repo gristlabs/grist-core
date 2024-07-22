@@ -204,24 +204,20 @@ export async function addRequestUser(
         if (!legalAccessValues.includes(share.options.access)){
          return res.status(401).send(`Bad request: invalid option.access ${share.options.access}`);
         }
-        // Viewers can only access with GET methods
-        if (share.options.access === "viewers" && "GET" !== mreq.method){
-          return res.send(401).send(`Access Denied: invalid method for viewers - ${mreq.method}`);
-        }
 
         // We setup the user as anonymous
         // with access determined by share.options.access value
         const anon = dbManager.getAnonymousUser();
-        mreq.user = anon;
         const org = await dbManager.getOrgOwnerFromDocApiKey(share);
         const userId = org?.ownerId;
+        const docAuth = await getOrSetDocAuth(mreq, dbManager, options.gristServer, did[0]);
+        const access = share.options.access ? share.options.access : null;
+        mreq.user = anon;
         mreq.userId = userId;
         mreq.userIsAuthorized = true;
+        mreq.docAuth = {...docAuth, access};
         hasApiKey = true;
-        const access = share.options.access ? share.options.access : "viewers";
-        mreq.docAuth = {access, docId:did[0], removed: null};
 
-        return next();
       // If Bearer have another form it must be a User Api Key
       } else {
         // full scope Api Key
