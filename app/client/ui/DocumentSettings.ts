@@ -20,7 +20,6 @@ import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {DocApiKey} from 'app/client/ui/DocApiKey';
 import {select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'app/client/ui2018/modals';
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
@@ -39,7 +38,6 @@ const testId = makeTestId('test-settings-');
 export class DocSettingsPage extends Disposable {
   private _docInfo = this._gristDoc.docInfo;
 
-  private _docApiKey = Observable.create<string>(this, '');
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
@@ -188,12 +186,6 @@ export class DocSettingsPage extends Disposable {
             href: getApiConsoleLink(docPageModel),
           }),
         }),
-        dom.create(DocApiKey, {
-          docApiKey: this._docApiKey,
-          onCreate: () => this._createDocApiKey(),
-          onDelete: () => this._deleteDocApiKey(),
-          inputArgs: [{size: '5'}], // Lower size so that input can shrink below ~152px.
-        }),
         dom.create(AdminSectionItem, {
           id: 'webhooks',
           name: t('Webhooks'),
@@ -302,15 +294,6 @@ export class DocSettingsPage extends Disposable {
       await this._docInfo.documentSettingsJson.prop('engine').saveOnly(val);
       await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
     }
-  }
-
-  private async _createDocApiKey() {
-    // this._docApiKey.set(await this._appModel.api.createApiKey());
-  }
-
-  private async _deleteDocApiKey() {
-    // await this._appModel.api.deleteApiKey();
-    this._docApiKey.set('');
   }
 }
 
