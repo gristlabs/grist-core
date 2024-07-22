@@ -44,6 +44,7 @@ import {
   AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
+import {SharesManager} from 'app/gen-server/lib/homedb/SharesManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
@@ -247,6 +248,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  */
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
+  private _sharesManager = new SharesManager(this);
   private _connection: Connection;
   private _dbType: DatabaseType;
   private _exampleWorkspaceId: number;
@@ -2508,83 +2510,42 @@ export class HomeDBManager extends EventEmitter {
       .getOne() || undefined;
   }
 
-  // can be factorized with getShareByLinkId
-  public async getDocApiKeyByLinkId(docId: string, linkId: string): Promise<Share | undefined> {
-    return await this._connection.createQueryBuilder()
-      .select('shares')
-      .from(Share, 'shares')
-      .where('shares.doc_id = :docId', {docId})
-        .andWhere('shares.link_id = :linkId', {linkId})
-      .getOne() || undefined;
+  public getDocApiKeyByLinkId(docId: string, linkId: string): Promise<Share | null> {
+    return this._sharesManager.getShareByLinkId(docId, linkId);
   }
 
-  public async getDocApiKeyByKey(key: string): Promise<Share | null> {
-    return await this.getShareByKey(key);
+  public getDocApiKeyByKey(key: string): Promise<Share | null> {
+    return this._sharesManager.getShareByKey(key);
   }
 
   public async createDocApiKey(docId: string, share: ShareInfo) {
-    const key = makeId();
-    const query = await this._connection.createQueryBuilder()
-      .insert()
-      .setParameter('options', share.options)
-      .into(Share)
-      .values({
-        linkId: share.linkId,
-        docId: docId,
-        options: JSON.parse(share.options),
-        key,
-      })
-      .execute() || undefined;
-    return query ? key : query;
+    return this._sharesManager.createDocApiKey(docId, share);
   }
 
-  // in parameters linkId is the linkId in db in case of update of this id in the share
+  // nb. The linkId parameter corresponds to the one currently stored in the db.
+  // If we want to update it the new value must be passed through the share parameter
   public async updateDocApiKeyByLinkId(docId: string, linkId: string, share: ShareInfo) {
-    return await this._connection.createQueryBuilder()
-      .update(Share)
-      .set(share)
-      .where('doc_id = :docId and link_id = :linkId', {docId, linkId})
-      .execute() || undefined;
+    return this._sharesManager.updateDocApiKeyByLinkId(docId, linkId, share);
   }
 
   public async updateDocApiKeyByKey(docId: string, apiKey: string, share: ShareInfo) {
-    return await this._connection.createQueryBuilder()
-      .update(Share)
-      .set(share)
-      .where('doc_id = :docId and key = :apiKey', {docId, apiKey})
-      .execute() || undefined;
+    return this._sharesManager.updateDocApiKeyByKey(docId, apiKey, share);
   }
 
   public async deleteDocApiKeyByKey(docId: string, apiKey: string) {
-    return await this.connection.createQueryBuilder()
-      .delete()
-      .from('shares')
-      .where('doc_id = :docId and key = :apiKey', {docId, apiKey})
-      .execute() || undefined;
-  }
-
-  public async getDocApiKeys(docId: string): Promise<Share[] | undefined> {
-    return await this._connection.createQueryBuilder()
-      .select('shares')
-      .from(Share, 'shares')
-      .where('doc_id = :docId', {docId})
-      .getMany() || undefined;
+    return this._sharesManager.deleteDocApiKeyByKey(docId, apiKey);
   }
 
   public async deleteDocApiKeyByLinkId(docId: string, linkId: string) {
-    return await this.connection.createQueryBuilder()
-      .delete()
-      .from('shares')
-      .where('doc_id = :docId and link_id = :linkId', {docId, linkId})
-      .execute() || undefined;
+    return this._sharesManager.deleteDocApiKeyByLinkId(docId, linkId);
+  }
+
+  public async getDocApiKeys(docId: string): Promise<Share[] | undefined> {
+    return this._sharesManager.getDocApiKeys(docId);
   }
 
   public async deleteDocApiKeys(docId: string) {
-    return await this.connection.createQueryBuilder()
-      .delete()
-      .from('shares')
-      .where('doc_id = :docId', {docId})
-      .execute() || undefined;
+    return this._sharesManager.deleteDocApiKeys(docId);
   }
 
   public getAnonymousUser() {
@@ -2807,54 +2768,15 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async syncShares(docId: string, shares: ShareInfo[]) {
-    return this._connection.transaction(async manager => {
-      for (const share of shares) {
-        const key = makeId();
-        await manager.createQueryBuilder()
-          .insert()
-        // if urlId has been used before, update it
-          .onConflict(`(doc_id, link_id) DO UPDATE SET options = :options`)
-          .setParameter('options', share.options)
-          .into(Share)
-          .values({
-            linkId: share.linkId,
-            docId,
-            options: JSON.parse(share.options),
-            key,
-          })
-          .execute();
-      }
-      const dbShares = await manager.createQueryBuilder()
-        .select('shares')
-        .from(Share, 'shares')
-        .where('doc_id = :docId', {docId})
-        .getMany();
-      const activeLinkIds = new Set(shares.map(share => share.linkId));
-      const oldShares = dbShares.filter(share => !activeLinkIds.has(share.linkId));
-      if (oldShares.length > 0) {
-        await manager.createQueryBuilder()
-          .delete()
-          .from('shares')
-          .whereInIds(oldShares.map(share => share.id))
-          .execute();
-      }
-    });
+    return this._sharesManager.syncShares(docId, shares);
   }
 
   public async getShareByKey(key: string) {
-    return this._connection.createQueryBuilder()
-      .select('shares')
-      .from(Share, 'shares')
-      .where('shares.key = :key', {key})
-      .getOne();
+    return this._sharesManager.getShareByKey(key);
   }
 
   public async getShareByLinkId(docId: string, linkId: string) {
-    return this._connection.createQueryBuilder()
-      .select('shares')
-      .from(Share, 'shares')
-      .where('shares.doc_id = :docId and shares.link_id = :linkId', {docId, linkId})
-      .getOne();
+    return this._sharesManager.getShareByLinkId(docId, linkId);
   }
 
   private async _getOrgMembers(org: string|number|Organization) {

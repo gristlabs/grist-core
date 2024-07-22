@@ -210,12 +210,13 @@ export async function addRequestUser(
         const anon = dbManager.getAnonymousUser();
         const org = await dbManager.getOrgOwnerFromDocApiKey(share);
         const userId = org?.ownerId;
-        const docAuth = await getOrSetDocAuth(mreq, dbManager, options.gristServer, did[0]);
-        const access = share.options.access ? share.options.access : null;
         mreq.user = anon;
         mreq.userId = userId;
-        mreq.userIsAuthorized = true;
+
+        const docAuth = await getOrSetDocAuth(mreq, dbManager, options.gristServer, did[0]);
+        const access = share.options.access ? share.options.access : null;
         mreq.docAuth = {...docAuth, access};
+        mreq.userIsAuthorized = true;
         hasApiKey = true;
 
       // If Bearer have another form it must be a User Api Key
