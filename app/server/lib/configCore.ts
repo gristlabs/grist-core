@@ -4,7 +4,8 @@ import {
   fileConfigAccessorFactory,
   IWritableConfigValue
 } from "./config";
-import { convertToCoreFileContents, IGristCoreConfigFileLatest } from "./configCoreFileFormats";
+import {convertToCoreFileContents, IGristCoreConfigFileLatest} from "./configCoreFileFormats";
+import {isAffirmative} from 'app/common/gutil';
 
 export type Edition = "core" | "enterprise";
 
@@ -23,6 +24,9 @@ export function loadGristCoreConfigFile(configPath?: string): IGristCoreConfig {
 export function loadGristCoreConfig(fileConfig?: FileConfig<IGristCoreConfigFileLatest>): IGristCoreConfig {
   const fileConfigValue = fileConfigAccessorFactory(fileConfig);
   return {
-    edition: createConfigValue<Edition>("core", fileConfigValue("edition"))
+    edition: createConfigValue<Edition>(
+      isAffirmative(process.env.TEST_ENABLE_ACTIVATION) ? "enterprise" : "core",
+      fileConfigValue("edition")
+    )
   };
 }
