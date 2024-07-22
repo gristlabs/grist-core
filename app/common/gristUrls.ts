@@ -101,8 +101,6 @@ export const commonUrls = {
   formulas: 'https://support.getgrist.com/formulas',
   forms: 'https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer',
 
-  basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
-  basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
   gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',
   gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',
   githubGristCore: 'https://github.com/gristlabs/grist-core',
@@ -110,6 +108,8 @@ export const commonUrls = {
 
   versionCheck: 'https://api.getgrist.com/api/version',
 };
+
+export const ONBOARDING_VIDEO_YOUTUBE_EMBED_ID = '56AieR9rpww';
 
 /**
  * Values representable in a URL. The current state is available as urlState().state observable
@@ -810,6 +810,9 @@ export interface GristLoadConfig {
 
   // The org containing public templates and tutorials.
   templateOrg?: string|null;
+
+  // The doc id of the tutorial shown during onboarding.
+  onboardingTutorialDocId?: string;
 
   // Whether to show the "Delete Account" button in the account page.
   canCloseAccount?: boolean;

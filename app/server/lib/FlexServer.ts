@@ -1055,7 +1055,7 @@ export class FlexServer implements GristServer {
           // Reset isFirstTimeUser flag.
           await this._dbManager.updateUser(user.id, {isFirstTimeUser: false});
 
-          // This is a good time to set some other flags, for showing a popup with welcome question(s)
+          // This is a good time to set some other flags, for showing a page with welcome question(s)
           // to this new user and recording their sign-up with Google Tag Manager. These flags are also
           // scoped to the user, but isFirstTimeUser has a dedicated DB field because it predates userPrefs.
           // Note that the updateOrg() method handles all levels of prefs (for user, user+org, or org).
@@ -1586,20 +1586,25 @@ export class FlexServer implements GristServer {
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
       const userId = getUserId(req);
       const user = getUser(req);
+      const orgName = stringParam(req.body.org_name, 'org_name');
+      const orgRole = stringParam(req.body.org_role, 'org_role');
       const useCases = stringArrayParam(req.body.use_cases, 'use_cases');
       const useOther = stringParam(req.body.use_other, 'use_other');
       const row = {
         UserID: userId,
         Name: user.name,
         Email: user.loginEmail,
+        org_name: orgName,
+        org_role: orgRole,
         use_cases: ['L', ...useCases],
         use_other: useOther,
       };
-      this._recordNewUserInfo(row)
-      .catch(e => {
+      try {
+        await this._recordNewUserInfo(row);
+      } catch (e) {
         // If we failed to record, at least log the data, so we could potentially recover it.
         log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
-      });
+      }
       const nonOtherUseCases = useCases.filter(useCase => useCase !== 'Other');
       for (const useCase of [...nonOtherUseCases, ...(useOther ? [`Other - ${useOther}`] : [])]) {
         this.getTelemetry().logEvent(req as RequestWithLogin, 'answeredUseCaseQuestion', {

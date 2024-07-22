@@ -33,6 +33,7 @@ describe('Features', function () {
   it('can be disabled with the GRIST_HIDE_UI_ELEMENTS env variable', async function () {
     process.env.GRIST_UI_FEATURES = 'helpCenter,tutorials';
     process.env.GRIST_HIDE_UI_ELEMENTS = 'templates';
+    process.env.GRIST_ONBOARDING_TUTORIAL_DOC_ID = 'tutorialDocId';
     await server.restart();
     await session.loadDocMenu('/');
     assert.isTrue(await driver.find('.test-left-feedback').isDisplayed());

@@ -1124,7 +1124,7 @@ export class DocWorkerApi {
           const scope = getDocScope(req);
           const tutorialTrunkId = options.sourceDocId;
           await this._dbManager.connection.transaction(async (manager) => {
-            // Fetch the tutorial trunk doc so we can replace the tutorial doc's name.
+            // Fetch the tutorial trunk so we can replace the tutorial fork's name.
             const tutorialTrunk = await this._dbManager.getDoc({...scope, urlId: tutorialTrunkId}, manager);
             await this._dbManager.updateDocument(
               scope,
@@ -1132,9 +1132,8 @@ export class DocWorkerApi {
                 name: tutorialTrunk.name,
                 options: {
                   tutorial: {
-                    ...tutorialTrunk.options?.tutorial,
-                    // For now, the only state we need to reset is the slide position.
                     lastSlideIndex: 0,
+                    percentComplete: 0,
                   },
                 },
               },

@@ -302,6 +302,18 @@ export class ApiServer {
       return sendReply(req, res, query);
     }));
 
+    // GET /api/templates/:did
+    // Get information about a template.
+    this._app.get('/api/templates/:did', expressWrap(async (req, res) => {
+      const templateOrg = getTemplateOrg();
+      if (!templateOrg) {
+        throw new ApiError('Template org is not configured', 501);
+      }
+
+      const query = await this._dbManager.getDoc({...getScope(req), org: templateOrg});
+      return sendOkReply(req, res, query);
+    }));
+
     // GET /api/widgets/
     // Get all widget definitions from external source.
     this._app.get('/api/widgets/', expressWrap(async (req, res) => {

@@ -31,7 +31,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
   const creating = observable<boolean>(false);
   const renaming = observable<Workspace|null>(null);
   const isAnonymous = !home.app.currentValidUser;
-  const canCreate = !isAnonymous || getGristConfig().enableAnonPlayground;
+  const {enableAnonPlayground, templateOrg, onboardingTutorialDocId} = getGristConfig();
+  const canCreate = !isAnonymous || enableAnonPlayground;
 
   return cssContent(
     dom.autoDispose(creating),
@@ -114,7 +115,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       )),
       cssTools(
         cssPageEntry(
-          dom.show(isFeatureEnabled("templates") && Boolean(getGristConfig().templateOrg)),
+          dom.show(isFeatureEnabled("templates") && Boolean(templateOrg)),
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
           cssPageLink(cssPageIcon('Board'), cssLinkText(t("Examples & Templates")),
             urlState().setLinkUrl({homePage: "templates"}),
@@ -130,9 +131,9 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         ),
         cssSpacer(),
         cssPageEntry(
-          dom.show(isFeatureEnabled('tutorials')),
+          dom.show(isFeatureEnabled('tutorials') && Boolean(templateOrg && onboardingTutorialDocId)),
           cssPageLink(cssPageIcon('Bookmark'), cssLinkText(t("Tutorial")),
-            { href: commonUrls.basicTutorial, target: '_blank' },
+            urlState().setLinkUrl({org: templateOrg!, doc: onboardingTutorialDocId}),
             testId('dm-basic-tutorial'),
           ),
         ),

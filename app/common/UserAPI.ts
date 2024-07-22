@@ -144,7 +144,7 @@ export interface DocumentOptions {
 
 export interface TutorialMetadata {
   lastSlideIndex?: number;
-  numSlides?: number;
+  percentComplete?: number;
 }
 
 export interface DocumentProperties extends CommonProperties {
@@ -368,6 +368,7 @@ export interface UserAPI {
   getOrgWorkspaces(orgId: number|string, includeSupport?: boolean): Promise<Workspace[]>;
   getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary>;
   getTemplates(onlyFeatured?: boolean): Promise<Workspace[]>;
+  getTemplate(docId: string): Promise<Document>;
   getDoc(docId: string): Promise<Document>;
   newOrg(props: Partial<OrganizationProperties>): Promise<number>;
   newWorkspace(props: Partial<WorkspaceProperties>, orgId: number|string): Promise<number>;
@@ -585,6 +586,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async getTemplates(onlyFeatured: boolean = false): Promise<Workspace[]> {
     return this.requestJson(`${this._url}/api/templates?onlyFeatured=${onlyFeatured ? 1 : 0}`, { method: 'GET' });
+  }
+
+  public async getTemplate(docId: string): Promise<Document> {
+    return this.requestJson(`${this._url}/api/templates/${docId}`, { method: 'GET' });
   }
 
   public async getWidgets(): Promise<ICustomWidget[]> {
