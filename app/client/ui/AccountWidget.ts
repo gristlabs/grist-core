@@ -14,7 +14,6 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
-import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
 import {makeT} from 'app/client/lib/localization';
 import {getGristConfig} from 'app/common/urlUtils';
 
@@ -170,8 +169,6 @@ export class AccountWidget extends Disposable {
       ],
 
       menuItemLink({href: getLogoutUrl()}, t("Sign Out"), testId('dm-log-out')),
-
-      maybeAddSiteSwitcherSection(this._appModel),
     ];
   }
 
