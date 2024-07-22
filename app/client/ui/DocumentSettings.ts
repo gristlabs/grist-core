@@ -186,6 +186,7 @@ export class DocSettingsPage extends Disposable {
             href: getApiConsoleLink(docPageModel),
           }),
         }),
+
         dom.create(AdminSectionItem, {
           id: 'webhooks',
           name: t('Webhooks'),
