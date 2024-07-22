@@ -87,7 +87,8 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import {IGristCoreConfig} from "./configCore";
+import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
+import {IGristCoreConfig} from "app/server/lib/configCore";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -1946,6 +1947,14 @@ export class FlexServer implements GristServer {
         res.json(await response.json());
       }
     }));
+  }
+
+  public addConfigEndpoints() {
+    // Need to be an admin to change the Grist config
+    const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
+
+    const configBackendAPI = new ConfigBackendAPI();
+    configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
   }
 
   // Get the HTML template sent for document pages.

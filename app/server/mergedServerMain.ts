@@ -165,6 +165,7 @@ export async function main(port: number, serverTypes: ServerType[],
       server.addLogEndpoint();
       server.addGoogleAuthEndpoint();
       server.addInstallEndpoints();
+      server.addConfigEndpoints();
     }
 
     if (includeDocs) {
