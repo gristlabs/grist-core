@@ -80,17 +80,13 @@ const CALLBACK_URL = '/oauth2/callback';
 
 function formatTokenForLogs(token: TokenSet) {
   const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'];
-  const originalEntries = Object.entries(token);
-
-  return Object.fromEntries(
-    originalEntries.flatMap(([key, value]: [string, any]) => {
-      if (typeof value === 'function') {
-        return []; // Discard functions for logs
-      }
-      const newValue = showValueInClear.includes(key) ? value : 'REDACTED';
-      return [[key, newValue]];
-    })
-  );
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(token)) {
+    if (typeof value !== 'function') {
+      result[key] = showValueInClear.includes(key) ? value : 'REDACTED';
+    }
+  }
+  return result;
 }
 
 class ErrorWithUserFriendlyMessage extends Error {
