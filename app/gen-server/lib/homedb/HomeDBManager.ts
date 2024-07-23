@@ -977,7 +977,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoin(Workspace, 'workspaces', 'orgs.id = workspaces.org_id')
       .leftJoin(Document, 'docs', 'workspaces.id = docs.workspace_id')
       .leftJoin(Share, 'shares', 'docs.id = shares.doc_id')
-      .where('shares.key = :key', {key: 'uKXGYSc5pZ2muaQP9WKgpY'})
+      .where('shares.key = :key', {key: docApiKey.key})
       .getOne();
   }
 

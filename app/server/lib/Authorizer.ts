@@ -178,7 +178,7 @@ export async function addRequestUser(
     // header needs to be of form "Bearer XXXXXXXXX" to apply
     if (parts[0] === "Bearer") {
       // Bearer needs to be form "DOC-YYYYYYYYY" to apply as Doc Api key
-      if (parts[1].match(/^DOC-.*/)) {
+      if (parts[1]?.match(/^DOC-.*/)) {
         const url = mreq.url;
 
         const didRegex = /(?<=^\/docs\/).+?(?=\/|$)/g;
