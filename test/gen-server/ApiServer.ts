@@ -2854,9 +2854,11 @@ describe('ApiServer', function() {
 
       // Make a call to GET /api/doc/:docId
       const authorizationHeader = `Bearer DOC-${docApiKey}`;
-      const anonymous = {...nobody, Authorization : authorizationHeader};
+      const anonymous = {...nobody};
+      anonymous.headers!.Authorization = authorizationHeader;
+
       const fetch = await axios.get(`${homeUrl}/api/docs/${did}`, anonymous);
-      assert.equal(fetch.status, 200);
+      assert.equal(fetch.status, 200, "DocApiKey valid as Apikey");
     });
 
     it('must fail when doApiKey is wrong', async function() {
