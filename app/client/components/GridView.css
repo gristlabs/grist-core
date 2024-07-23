@@ -44,7 +44,7 @@
 }
 
 .gridview_corner_spacer { /* spacer in .gridview_data_header */
-  width: 4rem; /* matches row_num width */
+  width: 52px; /* matches row_num width */
   flex: none;
 }
 
@@ -68,7 +68,7 @@
   position: sticky;
   left: 0px;
   overflow: hidden;
-  width: 4rem; /* Also should match width for .gridview_header_corner, and the overlay elements */
+  width: 52px; /* Also should match width for .gridview_header_corner, and the overlay elements */
   flex: none;
 
   border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
@@ -131,7 +131,7 @@
     border-left: 1px solid var(--grist-color-dark-grey);
   }
   .print-widget .gridview_data_header {
-    padding-left: 4rem !important;
+    padding-left: 52px !important;
   }
   .print-widget .gridview_data_pane .print-all-rows {
     display: table-row-group;
@@ -155,7 +155,7 @@
 }
 
 .gridview_data_corner_overlay {
-  width: 4rem;
+  width: 52px;
   height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
   top: 1px; /* go under 1px border on scrollpane */
   border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
@@ -177,7 +177,7 @@
      - frozen-offset: when frozen columns are wider then the screen, we want them to move left initially,
                       this value is the position where this movement should stop.
    */
-  left: calc(4em + (var(--frozen-width, 0) - min(var(--frozen-scroll-offset, 0), var(--frozen-offset, 0))) * 1px);
+  left: calc(52px + (var(--frozen-width, 0) - min(var(--frozen-scroll-offset, 0), var(--frozen-offset, 0))) * 1px);
   box-shadow: -6px 0 6px 6px var(--grist-theme-table-scroll-shadow, #444);
   /* shadow should only show to the right of it (10px should be enough) */
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
@@ -189,7 +189,7 @@
 .scroll_shadow_frozen {
   height: 100%;
   width: 0px;
-  left: 4em;
+  left: 52px;
   box-shadow: -8px 0 14px 4px var(--grist-theme-table-scroll-shadow, #444);
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 28px 0, 24px 100%, 0 100%);
@@ -205,7 +205,7 @@
   /* this value is the same as for the left shadow - but doesn't need to really on the scroll offset
      as this component will be hidden when the scroll starts
    */
-  left: calc(4em + var(--frozen-width, 0) * 1px);
+  left: calc(52px + var(--frozen-width, 0) * 1px);
   background-color: var(--grist-theme-table-frozen-columns-border, #999999);
   z-index: 30;
   user-select: none;
@@ -226,7 +226,7 @@
 }
 
 .gridview_header_backdrop_left {
-  width: calc(4rem + 1px); /* Matches rowid width (+border) */
+  width: calc(52px + 1px); /* Matches rowid width (+border) */
   height:100%;
   top: 1px; /* go under 1px border on scrollpane */
   z-index: 10;
@@ -311,7 +311,7 @@
 /* style header and a data field */
 .record .field.frozen {
   position: sticky;
-  left: calc(4em + 1px + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* 4em for row number + total width of cells + 1px for border*/
+  left: calc(52px + 1px + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* 4em for row number + total width of cells + 1px for border*/
   z-index: 10;
 }
 /* for data field we need to reuse color from record (add-row and zebra stripes) */
