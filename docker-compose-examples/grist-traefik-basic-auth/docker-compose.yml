@@ -1,0 +1,52 @@
+# This is the simplest example of Grist with authentication and https encryption.
+
+# It uses Traefik as a reverse proxy and authentication service.
+# Users are defined in traefik-dynamic-config.yml.
+
+# This setup, after configuring HTTPS certificates correctly, should be acceptable on the public internet.
+
+# However, you may want to try a more secure authentication setup such Authelia, Authentik or traefik-forward-auth.
+
+# See https://support.getgrist.com for more information.
+
+services:
+  grist:
+    image: gristlabs/grist:latest
+    environment:
+      # Use Python 3 instead of 2.
+      PYTHON_VERSION: 3
+      # Sets the header to look at for authentication
+      GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
+      # Forces Grist to only use a single team called 'Example'
+      GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
+      # Force users to login (disable anonymous access)
+      GRIST_FORCE_LOGIN: true
+      # Base URL Grist redirects to when navigating. Change this to your domain.
+      APP_HOME_URL: https://localhost
+      # Default email for the "Admin" account
+      GRIST_DEFAULT_EMAIL: test@example.org
+    volumes:
+      # Where to store persistent data, such as documents.
+      - ./grist_local_data:/persist
+    labels:
+      - "traefik.http.services.grist.loadbalancer.server.port=8484"
+
+  traefik:
+    image: traefik:latest
+    ports:
+      # HTTP Ports
+      - "80:80"
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      # - "8080:8080"
+    volumes:
+      # Set the config file for traefik - this is loaded automatically.
+      - ./configs/traefik-config.yml:/etc/traefik/traefik.yml
+      # Set the config file for the dynamic config, such as middleware.
+      - ./configs/traefik-dynamic-config.yml:/etc/traefik/dynamic/dynamic-config.yml
+      # You may want to put state somewhere other than /tmp :-)
+      - /tmp/grist/acme:/acme
+      # Traefik needs docker access when configured via docker labels.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - grist
