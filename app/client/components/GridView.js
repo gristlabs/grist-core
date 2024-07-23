@@ -1466,7 +1466,7 @@ GridView.prototype.buildDom = function() {
 
       // rowid dom
       dom('div.gridview_data_row_num',
-        kd.style("width", '4em'),
+        kd.style("width", ROW_NUMBER_WIDTH + 'px'),
         dom('div.gridview_data_row_info',
           kd.toggleClass('linked_dst', () => {
             const myRowId = row.id();

@@ -311,7 +311,7 @@
 /* style header and a data field */
 .record .field.frozen {
   position: sticky;
-  left: calc(52px + 1px + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* 4em for row number + total width of cells + 1px for border*/
+  left: calc(52px + 1px + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* 52px (4em) for row number + total width of cells + 1px for border*/
   z-index: 10;
 }
 /* for data field we need to reuse color from record (add-row and zebra stripes) */
