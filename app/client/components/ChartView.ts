@@ -106,8 +106,9 @@ type RowPropGetter = (rowId: number) => Datum;
 // We convert Grist data to a list of Series first, from which we then construct Plotly traces.
 interface Series {
   label: string;          // Corresponds to the column name.
-  group?: Datum;          // The group value, when grouped.
   values: Datum[];
+  pureType?: string;      // The pure type of the column.
+  group?: Datum;          // The group value, when grouped.
   isInSortSpec?: boolean; // Whether this series is present in sort spec for this chart.
 }
 
@@ -273,6 +274,7 @@ export class ChartView extends Disposable {
         const pureType = field.displayColModel().pureType();
         const fullGetter = (pureType === 'Date' || pureType === 'DateTime') ? dateGetter(getter) : getter;
         return {
+          pureType,
           label: field.label(),
           values: rowIds.map(fullGetter),
           isInSortSpec: Boolean(Sort.findCol(this._sortSpec, field.colRef.peek())),
@@ -1121,7 +1123,15 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
 export const chartTypes: {[name: string]: ChartFunc} = {
   // TODO There is a lot of code duplication across chart types. Some refactoring is in order.
   bar(series: Series[], options: ChartOptions): PlotData {
-    return basicPlot(series, options, {type: 'bar'});
+    // If the X axis is not from numerical column, treat it as category.
+    const data = basicPlot(series, options, {type: 'bar'});
+    const useCategory = series[0]?.pureType && !['Numeric', 'Int', 'Any'].includes(series[0].pureType);
+    const xaxisName = options.orientation === 'h' ? 'yaxis' : 'xaxis';
+    if (useCategory && data.layout && data.layout[xaxisName]) {
+      const axisConfig = data.layout[xaxisName]!;
+      axisConfig.type = 'category';
+    }
+    return data;
   },
   line(series: Series[], options: ChartOptions): PlotData {
     sortByXValues(series);
