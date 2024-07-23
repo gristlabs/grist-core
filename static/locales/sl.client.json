@@ -1059,7 +1059,8 @@
         "URL": "URL",
         "Webhook Id": "Webhook ID",
         "Columns to check when update (separated by ;)": "Stolpci za preverjanje ob posodobitvi (ločeni z ;)",
-        "Event Types": "Vrste dogodkov"
+        "Event Types": "Vrste dogodkov",
+        "Header Authorization": "Pooblastilo za glavo"
     },
     "RecordLayout": {
         "Updating record layout.": "Posodobitev postavitve zapisa."
@@ -1553,7 +1554,11 @@
         "Self Checks": "Samopregledi",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Nimaš dostopa do skrbniške plošče.\nPrijavi se kot skrbnik.",
         "Administrator Panel Unavailable": "Skrbniška plošča ni na voljo",
-        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist omogoča konfiguracijo različnih vrst avtentikacije, vključno s SAML in OIDC. Priporočamo, da omogočiš enega od teh, če je Grist dostopen prek omrežja ali je na voljo več osebam."
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist omogoča konfiguracijo različnih vrst avtentikacije, vključno s SAML in OIDC. Priporočamo, da omogočiš enega od teh, če je Grist dostopen prek omrežja ali je na voljo več osebam.",
+        "Key to sign sessions with": "Ključ za podpisovanje sej",
+        "Session Secret": "Skrivnost seje",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist podpisuje piškotke uporabniške seje s skrivnim ključem. Ta ključ nastavite prek spremenljivke okolja GRIST_SESSION_SECRET. Grist se vrne na trdo kodirano privzeto vrednost, če ni nastavljena. To obvestilo bomo morda odstranili v prihodnosti, saj so ID-ji sej, ustvarjeni od različice 1.1.16, sami po sebi kriptografsko varni.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podpisuje piškotke uporabniške seje s skrivnim ključem. Ta ključ nastavite prek spremenljivke okolja GRIST_SESSION_SECRET. Grist se vrne na trdo kodirano privzeto vrednost, če ni nastavljena. To obvestilo bomo morda odstranili v prihodnosti, saj so ID-ji sej, ustvarjeni od različice 1.1.16, sami po sebi kriptografsko varni."
     },
     "ChoiceEditor": {
         "Error in dropdown condition": "Napaka v spustnem meniju",
