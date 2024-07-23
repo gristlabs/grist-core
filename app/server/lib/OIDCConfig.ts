@@ -35,6 +35,14 @@
  *    env GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED
  *        If set to "true", the user will be allowed to login even if the email is not verified by the IDP.
  *        Defaults to false.
+ *    env GRIST_OIDC_SP_FORCE_MFA
+ *        If set to "true", the user will be forced to have multi-factor authentication enabled. The state of MFA will
+ *        be determined by OIDC's amr claim: It must include "mfa". Make sure that the IDP returns the amr claim
+ *        correctly, otherwise authentication will fail.
+ *    env GRIST_OIDC_SP_MFA_SETTINGS_URL
+ *        This is needed when GRIST_OIDC_SP_FORCE_MFA is set to true. Enter the URL where the user will be able to
+ *        configure Multi-factor authentication on their account. This will be shown in the UI if the user does not have
+ *        MFA enabled.
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -69,6 +77,7 @@ export class OIDCConfig {
   private _endSessionEndpoint: string;
   private _skipEndSessionEndpoint: boolean;
   private _ignoreEmailVerified: boolean;
+  private _forceMfa: boolean;
 
   public constructor() {
   }
@@ -110,6 +119,11 @@ export class OIDCConfig {
 
     this._ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
       envVar: 'GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED',
+      defaultValue: false,
+    })!;
+
+    this._forceMfa = section.flag('forceMfa').readBool({
+      envVar: 'GRIST_OIDC_SP_FORCE_MFA',
       defaultValue: false,
     })!;
 
@@ -157,6 +171,26 @@ export class OIDCConfig {
 
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
         throw new Error(`OIDCConfig: email not verified for ${userInfo.email}`);
+      }
+
+      const amr = tokenSet.claims().amr;
+      if (this._forceMfa) {
+        if (!amr) {
+          throw new Error('OIDCConfig: could not verify mfa status due to missing amr claim.');
+        } else if (!amr.includes("mfa")) {
+          log.error(`OIDCConfig: multi-factor-authentication is not enabled for ${userInfo.email}.`);
+          delete mreq.session.oidc;
+
+          // Convert absolute URL into relative, since it will be prefixed further down the line
+          const targetURL = new URL(targetUrl as string);
+          let targetUrlRelative = targetURL.pathname;
+          if (targetURL.searchParams.toString()) {
+            targetUrlRelative += "?" + targetURL.searchParams.toString();
+          }
+
+          res.redirect(`/login/error/mfa-not-enabled?next=${targetUrlRelative}`);
+          return;
+        }
       }
 
       const profile = this._makeUserProfileFromUserInfo(userInfo);

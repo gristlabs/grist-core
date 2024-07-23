@@ -991,7 +991,11 @@
         "An unknown error occurred.": "Ein unbekannter Fehler ist aufgetreten.",
         "Powered by": "Angetrieben durch",
         "Build your own form": "Erstellen Sie Ihr eigenes Formular",
-        "Form not found": "Formular nicht gefunden"
+        "Form not found": "Formular nicht gefunden",
+        "Multi-factor authentication required{{suffix}}": "Multi-Faktor-Authentifizierung nötig{{suffix}}",
+        "Multi-factor-authentication is required for accessing this site, but it is not set up on your account. Please enable it and try again.": "Für den Zugriff auf diese Website ist Multi-Faktor-Authentifizierung erforderlich. Diese ist nicht in Ihrem Konto eingerichtet. Bitte richten Sie sie ein und versuchen Sie es erneut.",
+        "Set up Multi-factor authentication": "Multi-Faktor-Authentifizierung einrichten",
+        "Try again": "Erneut versuchen"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",

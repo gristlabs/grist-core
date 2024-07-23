@@ -818,6 +818,9 @@ export interface GristLoadConfig {
 
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
+
+  // The URL to the external IDP, where the user can set up Multi-factor authentication
+  mfaSettingsUrl?: string;
 }
 
 export const Features = StringUnion(
