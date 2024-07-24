@@ -1406,7 +1406,8 @@ export class GranularAccess implements GranularAccessForBundle {
     // approximate with the user's access rights at beginning of
     // bundle.
     // We also check for +S in scenarios that are hard to break down
-    // in a more granular way.
+    // in a more granular way, for example ConvertFromColumn and
+    // CopyFromColumn.
     if (scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
       await this._assertSchemaAccess(docSession);
     }

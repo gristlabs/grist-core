@@ -465,6 +465,12 @@ describe('GranularAccess', function() {
                               {id: 'B', type: 'Int'},
                               {id: 'C', type: 'Int'}]],
       ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'C'}],
+      // Add at least one access rule. Otherwise the test would succeed
+      // trivially, via shortcuts in place when the GranularAccess
+      // hasNuancedAccess test returns false. If there are no access
+      // rules present, editors can make any edit. Once a granular access
+      // rule is present, editors lose some rights that are simply too
+      // hard to compute or we haven't gotten around to.
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1, aclFormula: 'user.Access == OWNER', permissionsText: '-R',
       }],
