@@ -3791,6 +3791,19 @@ export async function waitForAccessDenied() {
   });
 }
 
+/**
+ * Deletes a widget by title. Optionally confirms deletion only for the widget without the data.
+ */
+export async function deleteWidget(title: string) {
+  const menu = await openSectionMenu('viewLayout', title);
+  await menu.findContent('.test-cmd-name', 'Delete widget').click();
+  if (await driver.findWait('.test-option-deleteOnlyWidget', 100).isPresent()) {
+    await driver.find('.test-option-deleteOnlyWidget').click();
+    await driver.find('.test-modal-confirm').click();
+  }
+  await waitForServer();
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

@@ -113,8 +113,7 @@ describe('Views.ntest', function() {
     await gu.waitForServer();
     await gu.actions.viewSection('TABLE4').selectSection();
     // Delete the section
-    await gu.actions.viewSection('TABLE4').selectMenuOption('viewLayout', 'Delete widget');
-    await gu.waitForServer();
+    await gu.deleteWidget('TABLE4');
     // Assert that the default section (Table1 record) is now active.
     assert.equal(await $('.active_section > .viewsection_title').text(), 'TABLE1');
     // Assert that focus is returned to the deleted section on undo.
