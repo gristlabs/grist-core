@@ -84,6 +84,7 @@ export const commonUrls = {
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
+  helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-activate-grist-enterprise",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
