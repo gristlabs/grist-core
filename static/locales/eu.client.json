@@ -316,7 +316,7 @@
         "Only available to document editors": "Soilik dokumentuen editoreentzat eskuragarri",
         "Only available to document owners": "Soilik dokumentuen jabeentzat eskuragarri",
         "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "REST APIak {{docId}} eskatzen duen bakoitzean erabili beharreko IDa. Ikus {{apiURL}}",
-        "Find slow formulas": "Formula geldoak bilatu.",
+        "Find slow formulas": "Formula motelak bilatu",
         "For currency columns": "Moneta zutabeetarako",
         "For number and date formats": "Zenbaki- eta data-formatuetarako",
         "Formula times": "Formula-denborak",
@@ -349,7 +349,7 @@
         "Investment Research": "Inbertsioen ikerketa",
         "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Kontsultatu gure tutoriala datuak lotzeko eta produktibitate handiko antolaketak sortzeko.",
         "Tutorial: Analyze & Visualize": "Tutoriala: aztertu eta bistaratu",
-        "Tutorial: Create a CRM": "Tutoriala: CRM bat sortu.",
+        "Tutorial: Create a CRM": "Tutoriala: CRM bat sortu",
         "Tutorial: Manage Business Data": "Tutoriala: Negozio-datuak kudeatu",
         "Welcome to the Afterschool Program template": "Ongi etorri Eskolaz kanpoko programa txantiloira",
         "Welcome to the Investment Research template": "Ongi etorri Inbertsioen ikerketa txantiloira",
@@ -459,7 +459,7 @@
         "Adding UUID column": "UUID zutabea gehitzen",
         "Adding duplicates column": "Bikoiztutako zutabea gehitzen",
         "Duplicate in {{- label}}": "{{- label}} bikoiztuta",
-        "No reference columns.": "Erreferentzia-zutaberik ez",
+        "No reference columns.": "Ez dago erreferentzia-zutaberik.",
         "Search columns": "Bilaketa-zutabeak",
         "Detect duplicates in...": "Antzeman bikoizketak…",
         "Add column with type": "Gehitu zutabea tipoarekin",
@@ -630,7 +630,7 @@
         "Redirect automatically after submission": "Birbideratu automatikoki bidali ondoren",
         "Submission": "Bidalketa",
         "Table column name": "Taularen zutabearen izena",
-        "Select a field in the form widget to configure.": "Aukeratu widgetaren formularioko eremu bat konfiguratzeko",
+        "Select a field in the form widget to configure.": "Aukeratu widgetaren formularioko eremu bat konfiguratzeko.",
         "Submit button label": "Bidaltzeko botoiaren testua",
         "Success text": "Arrakastatsua denean erakusteko testua",
         "WIDGET TITLE": "WIDGETAREN IZENA",
@@ -856,7 +856,7 @@
         "Choice List": "Aukeren zerrenda",
         "Attachment": "Eranskina",
         "* Workspaces are available on team plans. ": "* Lan-eremuak TEAM planetan daude eskuragarri. ",
-        "Upgrade now": "Eguneratu orain.",
+        "Upgrade now": "Eguneratu orain",
         "Numeric": "Zenbakizkoa",
         "Integer": "Osoa",
         "DateTime": "Data eta Ordua",
@@ -987,7 +987,7 @@
         "Decimals": "Dezimalak",
         "Currency": "Moneta",
         "Field Format": "Eremuaren formatua",
-        "Spinner": "Spinner.",
+        "Spinner": "Spinner",
         "max": "max",
         "min": "min"
     },
@@ -1077,7 +1077,7 @@
         "Use reference columns to relate data in different tables.": "Erabili erreferentzia-zutabeak taula ezberdinetako datuak erlazionatzeko.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Goitibeheran dauden widgeten artean aukeratu dezakezu, edo zurea txertatu URL osoa emanez.",
         "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Erabili \\u{1D6BA} ikonoa laburpen- (edo pibote-) taulak sortzeko, totaletarako edo azpi-totaletarako.",
-        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Erreferentzia-zutabe bateko gelaxkek beti identifikatzen dute erregistro{whole}} bat taula horretan, baina erregistro horretako zein zutabe erakutsi hautatu dezakezu.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Erreferentzia-zutabe bateko gelaxkek beti identifikatzen dute erregistro {{entire}} bat taula horretan, baina erregistro horretako zein zutabe erakutsi hautatu dezakezu.",
         "Linking Widgets": "Widgetak lotzen (erlazionatzen)",
         "Unpin to hide the the button while keeping the filter.": "Utzi finkatzeari botoia ezkutatzeko iragazkia mantendu bitartean.",
         "Select the table to link to.": "Hautatu lotu beharreko taula.",
@@ -1106,7 +1106,7 @@
         "Cut": "Ebaki",
         "Hide field": "Ezkutatu eremua",
         "Paste": "Itsatsi",
-        "Copy anchor link": "Kopiatu aingura-esteka."
+        "Copy anchor link": "Kopiatu aingura-esteka"
     },
     "WebhookPage": {
         "Enabled": "Gaituta",
@@ -1167,8 +1167,8 @@
     },
     "ChartView": {
         "Pick a column": "Hautatu zutabea",
-        "Create separate series for each value of the selected column.": "Sortu serie bereiziak hautatutako zutabearen balio bakoitzerako",
-        "Each Y series is followed by a series for the length of error bars.": "Y serie bakoitzaren ondoren serie bat dago errore-barren luzerarako",
+        "Create separate series for each value of the selected column.": "Sortu serie bereiziak hautatutako zutabearen balio bakoitzerako.",
+        "Each Y series is followed by a series for the length of error bars.": "Y serie bakoitzaren ondoren serie bat dago errore-barren luzerarako.",
         "Toggle chart aggregation": "Grafikoaren agregazioa bai/ez",
         "selected new group data columns": "hautatutako taldekako datu-zutabe berriak",
         "Each Y series is followed by two series, for top and bottom error bars.": "Y serie bakoitzaren ondoren bi serie daude, goiko eta beheko errore-barretarako."
@@ -1226,7 +1226,7 @@
         "Code View is available only when you have full document access.": "Kode-ikustailea dokumentu guztiak eskura dituzunean bakarrik dago eskuragarri."
     },
     "DocTour": {
-        "No valid document tour": "Ez du balio dokumentu-ibilbideak.",
+        "No valid document tour": "Ez du balio dokumentu-ibilbideak",
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Ezin da dokumentu-ibilbide bat egin dokumentu honetako datuetatik abiatuta. GristDocTour izeneko mahai bat dago zutabeekin. Izenburua, gorputza, kokapena eta kokapena."
     },
     "Drafts": {
@@ -1237,7 +1237,7 @@
         "Import from file": "Inportatu fitxategitik",
         "Added new linked section to view {{viewName}}": "{{viewName}} ikusteko lotutako atal berria gehitu da",
         "go to webhook settings": "Joan webhooken ezarpenetara",
-        "Saved linked section {{title}} in view {{name}}": "{{title}} atala gorde da hemen: {name}}"
+        "Saved linked section {{title}} in view {{name}}": "{{title}} atala gorde da hemen: {{name}}"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Gristen bideo-bisitaldia",
@@ -1321,7 +1321,7 @@
         "guest": "gonbidatua",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Ez dago dokumentu indibidualetarako edo lan-guneetarako defektuzko-sarbiderik, lantaldearen gune osora baizik.",
         "You are about to remove your own access to this {{resourceType}}": "{{resourceType}} honetarako zure sarbidea ezabatzear zaude",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Erabiltzaileak {{parent}} -ren baimenak heredatzen ditu. Kentzeko, ezarri \"Heredatu sarbidea\" aukera \"Bat ere ez\" aukerara.",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Erabiltzaileak {{parent})} -ren baimenak heredatzen ditu. Kentzeko, ezarri \"Heredatu sarbidea\" aukera \"Bat ere ez\" aukerara.",
         "free collaborator": "Kolaboratzaile askea",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Zure sarbidea kendu eta gero, ezingo duzu berreskuratu {{resourceType}}(e)rako sarbidea nahikoa duen norbaiten laguntzarik gabe.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Erabiltzaileak {{resource}}-rako bistarako sarbidea du, barneko baliabideetarako sarbidea eskuz ezartzearen ondorioz. Hemendik kenduz gero, barruan dauden baliabideak galduko ditu."
@@ -1475,7 +1475,7 @@
         "Unmap fields": "Desmapeatu eremuak"
     },
     "CreateTeamModal": {
-        "Cancel": "Utzi bertan behera.",
+        "Cancel": "Utzi",
         "Domain name is required": "Domeinuaren izena beharrezkoa da",
         "Go to your site": "Joan zure gunera",
         "Team name": "Taldearen izena",
@@ -1545,7 +1545,7 @@
         "No values in show column of referenced table": "Ez dago baliorik erakusten den zutabean edo erreferentzia-taulan"
     },
     "Toggle": {
-        "Checkbox": "Aukera-kutxa.",
+        "Checkbox": "Aukera-kutxa",
         "Field Format": "Eremuaren formatua",
         "Switch": "Aldatu"
     },
@@ -1613,7 +1613,7 @@
         "To use this widget, please map all non-optional columns from the creator panel on the right.": "Widget hau erabiltzeko, mapeatu aukerakoak ez diren zutabeak eskuineko sortzaileen mahaigainetik."
     },
     "FormContainer": {
-        "Build your own form": "Sortu zure formularioa.",
+        "Build your own form": "Sortu zure formularioa",
         "Powered by": "Honi esker:"
     },
     "FormErrorPage": {
