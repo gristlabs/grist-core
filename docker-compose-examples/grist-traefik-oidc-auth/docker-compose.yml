@@ -1,0 +1,83 @@
+# This is an example of Grist using Authelia and Traefik for OIDC authentication and https encryption.
+
+# At a minimum, the following should be changed before hosting this example on the internet:
+# - An SMTP notifier should be setup to allow Authelia to send emails, instead of logging to a file.
+# - DNS should be setup appropriately
+
+# Users are defined in ./configs/authelia/user-database.yml
+
+# See https://support.getgrist.com for more information.
+
+secrets:
+  # These secrets are used by Authelia
+  JWT_SECRET:
+    file: ./secrets/JWT_SECRET
+  SESSION_SECRET:
+    file: ./secrets/SESSION_SECRET
+  STORAGE_ENCRYPTION_KEY:
+    file: ./secrets/STORAGE_ENCRYPTION_KEY
+  STORAGE_PASSWORD:
+    file: ./secrets/STORAGE_PASSWORD
+
+services:
+#  grist:
+#    image: gristlabs/grist:latest
+#    environment:
+#      # Use Python 3 instead of 2.
+#      PYTHON_VERSION: 3
+#      # Sets the header to look at for authentication
+#      GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
+#      # Forces Grist to only use a single team called 'Example'
+#      GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
+#      # Force users to login (disable anonymous access)
+#      GRIST_FORCE_LOGIN: true
+#      # Base URL Grist redirects to when navigating. Change this to your domain.
+#      APP_HOME_URL: https://localhost
+#      # Default email for the "Admin" account
+#      GRIST_DEFAULT_EMAIL: test@example.org
+#    volumes:
+#      # Where to store persistent data, such as documents.
+#      - ./grist_local_data:/persist
+#    labels:
+#      - "traefik.http.services.grist.loadbalancer.server.port=8484"
+
+#  traefik:
+#    image: traefik:latest
+#    ports:
+#      # HTTP Ports
+#      - "80:80"
+#      - "443:443"
+#      # The Web UI (enabled by --api.insecure=true)
+#      # - "8080:8080"
+#    volumes:
+#      # Set the config file for traefik - this is loaded automatically.
+#      - ./configs/traefik-config.yml:/etc/traefik/traefik.yml
+#      # Set the config file for the dynamic config, such as middleware.
+#      - ./configs/traefik-dynamic-config.yml:/etc/traefik/dynamic/dynamic-config.yml
+#      # You may want to put state somewhere other than /tmp :-)
+#      - /tmp/grist/acme:/acme
+#      # Traefik needs docker access when configured via docker labels.
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    depends_on:
+#      - grist
+  authelia:
+    image: authelia/authelia:4
+    ports:
+      - 9091:9091
+    secrets:
+      - JWT_SECRET
+      - SESSION_SECRET
+      - STORAGE_ENCRYPTION_KEY
+    environment:
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
+      APP_DOMAIN: 'grist.localhost'
+    volumes:
+      - ./configs/authelia:/config
+    command:
+      - 'authelia'
+      - '--config=/config/configuration.yml'
+      - '--config.experimental.filters=template'
+
+
