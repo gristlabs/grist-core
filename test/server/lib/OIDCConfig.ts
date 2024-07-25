@@ -5,7 +5,7 @@ import {Sessions} from "app/server/lib/Sessions";
 import log from "app/server/lib/log";
 import {assert} from "chai";
 import Sinon from "sinon";
-import {Client, generators} from "openid-client";
+import {Client, generators, errors as OIDCError} from "openid-client";
 import express from "express";
 import _ from "lodash";
 import {RequestWithLogin} from "app/server/lib/Authorizer";
@@ -672,9 +672,13 @@ describe('OIDCConfig', () => {
         session: DEFAULT_SESSION,
       } as unknown as express.Request;
       clientStub.callbackParams.returns({state: FAKE_STATE});
+      const errorResponse = {
+        body: { property: 'response here' },
+        statusCode: 400,
+        statusMessage: 'statusMessage'
+      } as unknown as any;
 
-      const err: Error & {response?: {body: string }} = new Error('userinfo failed');
-      err.response = { body: 'response here' };
+      const err = new OIDCError.OPError({error: 'userinfo failed'}, errorResponse);
       clientStub.userinfo.rejects(err);
 
       await config.handleCallback(
@@ -685,7 +689,8 @@ describe('OIDCConfig', () => {
 
       assert.equal(logErrorStub.callCount, 2, 'logErrorStub show be called twice');
       assert.include(logErrorStub.firstCall.args[0], err.message);
-      assert.include(logErrorStub.secondCall.args[0], err.response.body);
+      assert.include(logErrorStub.secondCall.args[0], 'Response received');
+      assert.deepEqual(logErrorStub.secondCall.args[1], errorResponse);
       assert.isTrue(sendAppPageStub.calledOnce, "An error should have been sent");
     });
   });

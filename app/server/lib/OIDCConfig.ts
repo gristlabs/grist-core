@@ -65,7 +65,7 @@
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
 import {
-  Client, ClientMetadata, Issuer, TokenSet, UserinfoResponse
+  Client, ClientMetadata, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
 } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
@@ -234,8 +234,9 @@ export class OIDCConfig {
       res.redirect(targetUrl ?? '/');
     } catch (err) {
       log.error(`OIDC callback failed: ${err.stack}`);
-      if (Object.prototype.hasOwnProperty.call(err, 'response')) {
-        log.error(`Response received: ${err.response?.body ?? err.response}`);
+      const maybeResponse = this._maybeExtractDetailsFromError(err);
+      if (maybeResponse) {
+        log.error('Response received: %o',  maybeResponse);
       }
 
       // Delete entirely the session data when the login failed.
@@ -351,6 +352,27 @@ export class OIDCConfig {
     const lname = userInfo.family_name ?? '';
 
     return `${fname} ${lname}`.trim() || userInfo.name;
+  }
+
+  /**
+   * Returns some response details from either OIDCClient's RPError or OPError,
+   * which are handy for error logging.
+   */
+  private _maybeExtractDetailsFromError(error: Error) {
+    if (error instanceof OIDCError.OPError || error instanceof OIDCError.RPError) {
+      const { response } = error;
+      if (response) {
+        // Ensure that we don't log a buffer (which might be noisy), at least for now, unless we're sure that
+        // would be relevant.
+        const isBodyPureObject = response.body && Object.getPrototypeOf(response.body) === Object.prototype;
+        return {
+          body: isBodyPureObject ? response.body : undefined,
+          statusCode: response.statusCode,
+          statusMessage: response.statusMessage,
+        };
+      }
+    }
+    return null;
   }
 }
 
