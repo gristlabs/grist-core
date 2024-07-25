@@ -1,0 +1,61 @@
+# This file uses Go template formatting.
+
+issuer: {{ getenv "DEX_ISSUER" "http://127.0.0.1:5556/dex" }}
+
+storage:
+  type: sqlite3
+  config:
+    file: {{ getenv "DEX_STORAGE_SQLITE3_CONFIG_FILE" "/var/dex/dex.db" }}
+
+web:
+{{- if getenv "DEX_WEB_HTTPS" "" }}
+  https: {{ .Env.DEX_WEB_HTTPS }}
+  tlsKey: {{ getenv "DEX_WEB_TLS_KEY" | required "$DEX_WEB_TLS_KEY in case of web.https is enabled" }}
+  tlsCert: {{ getenv "DEX_WEB_TLS_CERT" | required "$DEX_WEB_TLS_CERT in case of web.https is enabled" }}
+{{- end }}
+  http: {{ getenv "DEX_WEB_HTTP" "0.0.0.0:5556" }}
+
+{{- if getenv "DEX_TELEMETRY_HTTP" }}
+telemetry:
+  http: {{ .Env.DEX_TELEMETRY_HTTP }}
+{{- end }}
+
+expiry:
+  deviceRequests: {{ getenv "DEX_EXPIRY_DEVICE_REQUESTS" "5m" }}
+  signingKeys: {{ getenv "DEX_EXPIRY_SIGNING_KEYS" "6h" }}
+  idTokens: {{ getenv "DEX_EXPIRY_ID_TOKENS" "24h" }}
+  authRequests: {{ getenv "DEX_EXPIRY_AUTH_REQUESTS" "24h" }}
+
+logger:
+  level: {{ getenv "DEX_LOG_LEVEL" "info" }}
+  format: {{ getenv "DEX_LOG_FORMAT" "text" }}
+
+oauth2:
+  responseTypes: {{ getenv "DEX_OAUTH2_RESPONSE_TYPES" "[code]" }}
+  skipApprovalScreen: {{ getenv "DEX_OAUTH2_SKIP_APPROVAL_SCREEN" "false" }}
+  alwaysShowLoginScreen: {{ getenv "DEX_OAUTH2_ALWAYS_SHOW_LOGIN_SCREEN" "false" }}
+{{- if getenv "DEX_OAUTH2_PASSWORD_CONNECTOR" "" }}
+  passwordConnector: {{ .Env.DEX_OAUTH2_PASSWORD_CONNECTOR }}
+{{- end }}
+
+enablePasswordDB: {{ getenv "DEX_ENABLE_PASSWORD_DB" "true" }}
+
+staticPasswords:
+  - email: "admin@example.com"
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    username: "admin"
+    userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+
+staticClients:
+  - id: grist-client
+    secret: app-secret
+    name: 'Private Client'
+    redirectURIs:
+      - 'https://example.com/oidc/callback'
+
+connectors:
+{{- if getenv "DEX_CONNECTORS_ENABLE_MOCK" }}
+- type: mockCallback
+  id: mock
+  name: Example
+{{- end }}
