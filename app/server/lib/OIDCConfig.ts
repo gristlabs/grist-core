@@ -75,6 +75,7 @@ import { UserProfile } from 'app/common/LoginSessionAPI';
 import { SendAppPage } from 'app/server/lib/sendAppPage';
 import { StringUnionError } from 'app/common/StringUnion';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
+import { SessionObj } from './BrowserSession';
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -191,7 +192,7 @@ export class OIDCConfig {
     try {
       mreq = this._getRequestWithSession(req);
     } catch(err) {
-      log.warn(err.message);
+      log.warn("OIDCConfig callback:", err.message);
       return this._sendErrorPage(req, res);
     }
 
@@ -224,8 +225,11 @@ export class OIDCConfig {
         profile,
       }));
 
+      // We clear the previous session info, like the states, nonce or the code verifier, which
+      // now that we are authenticated.
+      // We store the idToken for later, especially for the logout
       mreq.session.oidc = {
-        idToken: tokenSet.id_token, // keep idToken for logout
+        idToken: tokenSet.id_token,
       };
       res.redirect(targetUrl ?? '/');
     } catch (err) {
@@ -260,7 +264,7 @@ export class OIDCConfig {
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
-    const mreq = this._getRequestWithSession(req, { throwIfMissing: false });
+    const session: SessionObj|undefined = (req as RequestWithLogin).session;
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
     if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
@@ -271,7 +275,7 @@ export class OIDCConfig {
     }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href,
-      id_token_hint: mreq.session?.oidc?.idToken,
+      id_token_hint: session?.oidc?.idToken,
     });
   }
 
@@ -303,9 +307,9 @@ export class OIDCConfig {
     });
   }
 
-  private _getRequestWithSession(req: express.Request, {throwIfMissing} = {throwIfMissing: true}) {
+  private _getRequestWithSession(req: express.Request) {
     const mreq = req as RequestWithLogin;
-    if (!mreq.session && throwIfMissing) { throw new Error('no session available'); }
+    if (!mreq.session) { throw new Error('no session available'); }
 
     return mreq;
   }

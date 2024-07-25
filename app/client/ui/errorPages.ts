@@ -104,10 +104,10 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
 }
 
 export function createSigninFailedPage(appModel: AppModel, message?: string) {
-  document.title = t("Signin failed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
-  return pagePanelsError(appModel, t("Signin failed{{suffix}}", {suffix: ''}), [
+  document.title = t("Sign-in failed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
+  return pagePanelsError(appModel, t("Sign-in failed{{suffix}}", {suffix: ''}), [
     cssErrorText(message ??
-      t("Failed to login.{{separator}}Please try again or contact support.", {
+      t("Failed to log in.{{separator}}Please try again or contact support.", {
         separator: dom('br')
     })),
     signInAgainButton(),

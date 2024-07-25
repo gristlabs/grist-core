@@ -1,5 +1,5 @@
 import { StringUnion } from 'app/common/StringUnion';
-import { SessionObj } from 'app/server/lib/BrowserSession';
+import { SessionOIDCInfo } from 'app/server/lib/BrowserSession';
 import { AuthorizationParameters, generators, OpenIDCallbackChecks } from 'openid-client';
 
 export const EnabledProtection = StringUnion(
@@ -8,8 +8,6 @@ export const EnabledProtection = StringUnion(
   "PKCE",
 );
 export type EnabledProtectionString = typeof EnabledProtection.type;
-
-type SessionOIDCInfo = Exclude<SessionObj['oidc'], undefined>;
 
 interface Protection {
   generate(): SessionOIDCInfo;
