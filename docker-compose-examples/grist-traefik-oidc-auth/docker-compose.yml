@@ -16,31 +16,38 @@ secrets:
     file: ./secrets/SESSION_SECRET
   STORAGE_ENCRYPTION_KEY:
     file: ./secrets/STORAGE_ENCRYPTION_KEY
-  STORAGE_PASSWORD:
-    file: ./secrets/STORAGE_PASSWORD
+  # These secrets are for using Authelia as an OIDC provider
+  HMAC_SECRET:
+    file: ./secrets/HMAC_SECRET
 
 services:
-#  grist:
-#    image: gristlabs/grist:latest
-#    environment:
-#      # Use Python 3 instead of 2.
-#      PYTHON_VERSION: 3
-#      # Sets the header to look at for authentication
-#      GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
-#      # Forces Grist to only use a single team called 'Example'
-#      GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
-#      # Force users to login (disable anonymous access)
-#      GRIST_FORCE_LOGIN: true
-#      # Base URL Grist redirects to when navigating. Change this to your domain.
-#      APP_HOME_URL: https://localhost
-#      # Default email for the "Admin" account
-#      GRIST_DEFAULT_EMAIL: test@example.org
-#    volumes:
-#      # Where to store persistent data, such as documents.
-#      - ./grist_local_data:/persist
-#    labels:
-#      - "traefik.http.services.grist.loadbalancer.server.port=8484"
+  grist:
+    image: gristlabs/grist:latest
+    ports:
+      - 8484:8484
+    environment:
+      GRIST_OIDC_IDP_ISSUER: http://dex:5556
+      GRIST_OIDC_IDP_CLIENT_ID: grist-client
+      GRIST_OIDC_IDP_CLIENT_SECRET: app-secret
+      GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: true
 
+      # Forces Grist to only use a single team called 'Example'
+      GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
+      # Force users to login (disable anonymous access)
+      GRIST_FORCE_LOGIN: true
+      # Base URL Grist redirects to when navigating. Change this to your domain.
+      APP_HOME_URL: https://grist.localhost
+      # Default email for the "Admin" account
+      GRIST_DEFAULT_EMAIL: test@example.org
+    volumes:
+      # Where to store persistent data, such as documents.
+      - ./grist_local_data:/persist
+    labels:
+      - "traefik.http.services.grist.loadbalancer.server.port=8484"
+      - "traefik.http.routers.grist.rule=Host(`grist.localhost`)"
+      - "traefik.http.routers.grist.service=grist"
+      - "traefik.http.routers.grist.tls.certresolver=letsencrypt"
+#
 #  traefik:
 #    image: traefik:latest
 #    ports:
@@ -59,25 +66,54 @@ services:
 #      # Traefik needs docker access when configured via docker labels.
 #      - /var/run/docker.sock:/var/run/docker.sock
 #    depends_on:
-#      - grist
-  authelia:
-    image: authelia/authelia:4
-    ports:
-      - 9091:9091
-    secrets:
-      - JWT_SECRET
-      - SESSION_SECRET
-      - STORAGE_ENCRYPTION_KEY
-    environment:
-      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
-      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
-      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
-      APP_DOMAIN: 'grist.localhost'
-    volumes:
-      - ./configs/authelia:/config
-    command:
-      - 'authelia'
-      - '--config=/config/configuration.yml'
-      - '--config.experimental.filters=template'
+#      grist:
+#        condition: service_started
+#      authelia:
+#        condition: service_started
 
+#  authelia:
+#    image: authelia/authelia:4
+#    ports:
+#      - 9091:9091
+#    secrets:
+#      - HMAC_SECRET
+#      - JWT_SECRET
+#      - SESSION_SECRET
+#      - STORAGE_ENCRYPTION_KEY
+#    environment:
+#      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+#      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
+#      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
+#      # Domain Grist is hosted at. Custom variable that's interpolated into the Authelia config
+#      APP_DOMAIN: 'grist.localhost'
+#    volumes:
+#      - ./configs/authelia:/config
+#    command:
+#      - 'authelia'
+#      - '--config=/config/configuration.yml'
+#      # Enables passing environment variables down to the Authelia config.
+#      - '--config.experimental.filters=template'
+#    labels:
+#      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
+#      - "traefik.http.routers.authelia.rule=Host(`auth.grist.localhost`)"
+#      - "traefik.http.routers.authelia.service=authelia"
+#      - "traefik.http.routers.authelia.tls.certresolver=letsencrypt"
+
+  dex:
+    image: dexidp/dex:latest
+    ports:
+      - 5556:5556
+      - 5557:5557
+    environment:
+      DEX_ISSUER: http://auth.grist.localhost:5556/
+      DEX_STORAGE_SQLITE3_CONFIG_FILE: /dex_db/dex.db
+      DEX_ENABLE_PASSWORD_DB: true
+      DEX_OAUTH2_PASSWORD_CONNECTOR: local
+    volumes:
+      - ./configs/dex:/config
+      - ./dex_db:/dex_db
+    command:
+      - dex
+      - serve
+      - /config/config.yaml
 
