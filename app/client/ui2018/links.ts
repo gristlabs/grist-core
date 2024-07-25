@@ -58,11 +58,11 @@ export async function onClickHyperLink(ev: MouseEvent, url: CellValue) {
 export function makeLinks(text: string) {
   try {
     const domElements: DomArg[] = [];
-    for (const {value, isLink} of findLinks(text)) {
+    for (const {value, link, isLink} of findLinks(text)) {
       if (isLink) {
         // Wrap link with a span to provide hover on and to override wrapping.
         domElements.push(cssMaybeWrap(
-          gristLink(value,
+          gristLink(link,
             cssIconBackground(
               icon("FieldLink", testId('tb-link-icon')),
               dom.cls(cssHoverInText.className),
