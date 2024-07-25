@@ -1633,5 +1633,37 @@
         "Number of Calls": "Number of Calls",
         "Table ID": "Table ID",
         "Total Time (s)": "Total Time (s)"
+    },
+    "DocTutorial": {
+        "Click to expand": "Click to expand",
+        "Do you want to restart the tutorial? All progress will be lost.": "Do you want to restart the tutorial? All progress will be lost.",
+        "End tutorial": "End tutorial",
+        "Finish": "Finish",
+        "Next": "Next",
+        "Previous": "Previous",
+        "Restart": "Restart"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3 minute video tour",
+        "Complete our basics tutorial": "Complete our basics tutorial",
+        "Complete the tutorial": "Complete the tutorial",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Learn the basic of reference columns, linked widgets, column types, & cards."
+    },
+    "OnboardingPage": {
+        "Back": "Back",
+        "Discover Grist in 3 minutes": "Discover Grist in 3 minutes",
+        "Go hands-on with the Grist Basics tutorial": "Go hands-on with the Grist Basics tutorial",
+        "Go to the tutorial!": "Go to the tutorial!",
+        "Next step": "Next step",
+        "Skip step": "Skip step",
+        "Skip tutorial": "Skip tutorial",
+        "Tell us who you are": "Tell us who you are",
+        "Type here": "Type here",
+        "Welcome": "Welcome",
+        "What brings you to Grist (you can select multiple)?": "What brings you to Grist (you can select multiple)?",
+        "What is your role?": "What is your role?",
+        "What organization are you with?": "What organization are you with?",
+        "Your organization": "Your organization",
+        "Your role": "Your role"
     }
 }
