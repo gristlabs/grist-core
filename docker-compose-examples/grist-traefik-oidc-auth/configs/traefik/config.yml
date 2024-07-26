@@ -1,9 +1,6 @@
 providers:
   # Enables reading docker label config values
   docker: {}
-  # Read additional config from this file.
-  file:
-    directory: "/etc/traefik/dynamic"
 
 entrypoints:
   # Defines a secure entrypoint using TLS encryption
@@ -29,7 +26,5 @@ certificatesResolvers:
       storage: /acme/acme.json
       tlschallenge: true
 
-# Enables the web UI
-# This is disabled by default for security, but can be useful to debugging traefik.
 api:
-  # insecure: true
+  insecure: true

@@ -1,13 +1,3 @@
-# This is an example of Grist using Authelia and Traefik for OIDC authentication and https encryption.
-
-# At a minimum, the following should be changed before hosting this example on the internet:
-# - An SMTP notifier should be setup to allow Authelia to send emails, instead of logging to a file.
-# - DNS should be setup appropriately
-
-# Users are defined in ./configs/authelia/user-database.yml
-
-# See https://support.getgrist.com for more information.
-
 secrets:
   # These secrets are used by Authelia
   JWT_SECRET:
@@ -19,17 +9,27 @@ secrets:
   # These secrets are for using Authelia as an OIDC provider
   HMAC_SECRET:
     file: ./secrets/HMAC_SECRET
+  JWT_PRIVATE_KEY:
+    file: ./secrets/certs/private.pem
+  GRIST_CLIENT_SECRET_DIGEST:
+    file: ./secrets/GRIST_CLIENT_SECRET_DIGEST
 
 services:
   grist:
     image: gristlabs/grist:latest
-    ports:
-      - 8484:8484
     environment:
-      GRIST_OIDC_IDP_ISSUER: http://dex:5556
-      GRIST_OIDC_IDP_CLIENT_ID: grist-client
-      GRIST_OIDC_IDP_CLIENT_SECRET: app-secret
-      GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: true
+      # The URL of given OIDC provider. Used for redirects, among other things.
+      GRIST_OIDC_IDP_ISSUER: https://auth.grist.localhost
+      # Client ID, as configured with the OIDC provider.
+      GRIST_OIDC_IDP_CLIENT_ID: grist-local
+      # Client secret, as provided by the OIDC provider.
+      GRIST_OIDC_IDP_CLIENT_SECRET: ${GRIST_CLIENT_SECRET}
+      # The URL to redirect to with the OIDC provider to log out.
+      # Some OIDC providers will automatically configure this.
+      GRIST_OIDC_IDP_END_SESSION_ENDPOINT: https://auth.grist.localhost/logout
+      # Allow self-signed certificates so this example behaves correctly.
+      # REMOVE THIS IF HOSTING ON THE INTERNET.
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
 
       # Forces Grist to only use a single team called 'Example'
       GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
@@ -39,6 +39,7 @@ services:
       APP_HOME_URL: https://grist.localhost
       # Default email for the "Admin" account
       GRIST_DEFAULT_EMAIL: test@example.org
+    restart: always
     volumes:
       # Where to store persistent data, such as documents.
       - ./grist_local_data:/persist
@@ -46,74 +47,71 @@ services:
       - "traefik.http.services.grist.loadbalancer.server.port=8484"
       - "traefik.http.routers.grist.rule=Host(`grist.localhost`)"
       - "traefik.http.routers.grist.service=grist"
-      - "traefik.http.routers.grist.tls.certresolver=letsencrypt"
-#
-#  traefik:
-#    image: traefik:latest
-#    ports:
-#      # HTTP Ports
-#      - "80:80"
-#      - "443:443"
-#      # The Web UI (enabled by --api.insecure=true)
-#      # - "8080:8080"
-#    volumes:
-#      # Set the config file for traefik - this is loaded automatically.
-#      - ./configs/traefik-config.yml:/etc/traefik/traefik.yml
-#      # Set the config file for the dynamic config, such as middleware.
-#      - ./configs/traefik-dynamic-config.yml:/etc/traefik/dynamic/dynamic-config.yml
-#      # You may want to put state somewhere other than /tmp :-)
-#      - /tmp/grist/acme:/acme
-#      # Traefik needs docker access when configured via docker labels.
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    depends_on:
-#      grist:
-#        condition: service_started
-#      authelia:
-#        condition: service_started
+      # Uncomment and configure in traefik-config.yml to enable automatic HTTPS certificate setup.
+      #- "traefik.http.routers.grist.tls.certresolver=letsencrypt"
+    depends_on:
+      # Grist attempts to setup OIDC when it starts, making a request to the OIDC service.
+      # This will fail if Authelia isn't ready and reachable.
+      # Traefik will only start routing to Authelia when it's registered as healthy.
+      # Making Grist wait for Authelia to be healthy should avoid this issue.
+      authelia:
+        condition: service_healthy
+      traefik:
+        condition: service_started
 
-#  authelia:
-#    image: authelia/authelia:4
-#    ports:
-#      - 9091:9091
-#    secrets:
-#      - HMAC_SECRET
-#      - JWT_SECRET
-#      - SESSION_SECRET
-#      - STORAGE_ENCRYPTION_KEY
-#    environment:
-#      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
-#      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
-#      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
-#      # Domain Grist is hosted at. Custom variable that's interpolated into the Authelia config
-#      APP_DOMAIN: 'grist.localhost'
-#    volumes:
-#      - ./configs/authelia:/config
-#    command:
-#      - 'authelia'
-#      - '--config=/config/configuration.yml'
-#      # Enables passing environment variables down to the Authelia config.
-#      - '--config.experimental.filters=template'
-#    labels:
-#      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
-#      - "traefik.http.routers.authelia.rule=Host(`auth.grist.localhost`)"
-#      - "traefik.http.routers.authelia.service=authelia"
-#      - "traefik.http.routers.authelia.tls.certresolver=letsencrypt"
-
-  dex:
-    image: dexidp/dex:latest
+  traefik:
+    image: traefik:latest
     ports:
-      - 5556:5556
-      - 5557:5557
-    environment:
-      DEX_ISSUER: http://auth.grist.localhost:5556/
-      DEX_STORAGE_SQLITE3_CONFIG_FILE: /dex_db/dex.db
-      DEX_ENABLE_PASSWORD_DB: true
-      DEX_OAUTH2_PASSWORD_CONNECTOR: local
+      # HTTP Ports
+      - "80:80"
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+      - "8082:8082"
     volumes:
-      - ./configs/dex:/config
-      - ./dex_db:/dex_db
-    command:
-      - dex
-      - serve
-      - /config/config.yaml
+      # Set the config file for traefik - this is loaded automatically.
+      - ./configs/traefik/config.yml:/etc/traefik/traefik.yml
+      # Certificate location, if automatic certificate setup is enabled.
+      - ./configs/traefik/acme:/acme
+      # Traefik needs docker access when configured via docker labels.
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      default:
+        aliases:
+          # Enables Grist to resolve this domain to Traefik when doing OIDC setup.
+          - auth.grist.localhost
 
+  authelia:
+    image: authelia/authelia:4
+    secrets:
+      - HMAC_SECRET
+      - JWT_SECRET
+      - JWT_PRIVATE_KEY
+      - GRIST_CLIENT_SECRET_DIGEST
+      - SESSION_SECRET
+      - STORAGE_ENCRYPTION_KEY
+    environment:
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
+      HMAC_SECRET_FILE: '/run/secrets/HMAC_SECRET'
+      JWT_PRIVATE_KEY_FILE: '/run/secrets/JWT_PRIVATE_KEY'
+      # Domain Grist is hosted at. Custom variable that's interpolated into the Authelia config
+      APP_DOMAIN: 'grist.localhost'
+      # Where Authelia should redirect to after successful authentication.
+      GRIST_OAUTH_CALLBACK_URL: https://grist.localhost/oauth2/callback
+      # Hash of the client secret provided to Grist.
+      GRIST_CLIENT_SECRET_DIGEST_FILE: "/run/secrets/GRIST_CLIENT_SECRET_DIGEST"
+    volumes:
+      - ./configs/authelia:/config
+    command:
+      - 'authelia'
+      - '--config=/config/configuration.yml'
+      # Enables templating in the config file
+      - '--config.experimental.filters=template'
+    labels:
+      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
+      - "traefik.http.routers.authelia.rule=Host(`auth.grist.localhost`)"
+      - "traefik.http.routers.authelia.service=authelia"
+      # Uncomment and configure in traefik-config.yml to enable automatic HTTPS certificate setup.
+      #- "traefik.http.routers.authelia.tls.certresolver=letsencrypt"
