@@ -13,6 +13,26 @@ import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
 
+// In the past, the session secret was used as an additional
+// protection passed on to expressjs-session for security when
+// generating session IDs, in order to make them less guessable.
+// Quoting the upstream documentation,
+//
+//     Using a secret that cannot be guessed will reduce the ability
+//     to hijack a session to only guessing the session ID (as
+//     determined by the genid option).
+//
+//   https://expressjs.com/en/resources/middleware/session.html
+//
+// However, since this change,
+//
+//   https://github.com/gristlabs/grist-core/commit/24ce54b586e20a260376a9e3d5b6774e3fa2b8b8#diff-d34f5357f09d96e1c2ba63495da16aad7bc4c01e7925ab1e96946eacd1edb094R121-R124
+//
+// session IDs are now completely randomly generated in a cryptographically
+// secure way, so there is no danger of session IDs being guessable.
+// This makes the value of the session secret less important. The only
+// concern is that changing the secret will invalidate existing
+// sessions and force users to log in again.
 export const DEFAULT_SESSION_SECRET =
   'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
 
