@@ -1,18 +1,26 @@
 # Helper script to securely generate random secrets for Authelia.
 
-# If this doesn't work on your platform, here are some alternate snippets for secure string generation:
-# Python:
-# python -c "import secrets; print(secrets.token_urlsafe(32))"
-# Javascript / Node:
-# node -e "console.log(crypto.randomBytes(32).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, ''))"
-
 SCRIPT_DIR=$(dirname $0)
 
-function generateSecureString {
-  xxd -l"$1" -ps /dev/urandom | xxd -r -ps | base64 \
-    | tr -d = | tr + - | tr / _ | tr -d \\n
+function getSecret {
+  cut -d ":" -f 2 <<< "$1" | tr -d '[:blank:]'
 }
 
-generateSecureString 64 > "$SCRIPT_DIR/secrets/JWT_SECRET"
-generateSecureString 64 > "$SCRIPT_DIR/secrets/SESSION_SECRET"
-generateSecureString 64 > "$SCRIPT_DIR/secrets/STORAGE_ENCRYPTION_KEY"
+function generateSecureString {
+  getSecret "$(docker run authelia/authelia:4 authelia crypto rand --charset=rfc3986 --length="$1")"
+}
+
+generateSecureString 128 > "$SCRIPT_DIR/secrets/HMAC_SECRET"
+generateSecureString 128 > "$SCRIPT_DIR/secrets/JWT_SECRET"
+generateSecureString 128 > "$SCRIPT_DIR/secrets/SESSION_SECRET"
+generateSecureString 128 > "$SCRIPT_DIR/secrets/STORAGE_ENCRYPTION_KEY"
+
+# Generates the OIDC secret key for the Grist client
+CLIENT_SECRET_OUTPUT="$(docker run authelia/authelia:4 authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986)"
+CLIENT_SECRET=$(getSecret "$(grep 'Password' <<< $CLIENT_SECRET_OUTPUT)")
+echo "GRIST_CLIENT_SECRET=$CLIENT_SECRET" >> "$SCRIPT_DIR/.env"
+getSecret "$(grep 'Digest' <<< $CLIENT_SECRET_OUTPUT)" >> "$SCRIPT_DIR/secrets/GRIST_CLIENT_SECRET_DIGEST"
+
+# Generate JWT certificates Authelia needs for OIDC
+docker run -v ./secrets/certs:/certs authelia/authelia:4 authelia crypto certificate rsa generate -d /certs
+
