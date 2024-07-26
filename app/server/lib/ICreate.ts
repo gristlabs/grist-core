@@ -75,6 +75,15 @@ export interface ICreateTelemetryOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry|undefined;
 }
 
+/**
+ * This function returns a `create` object that defines various core
+ * aspects of a Grist installation, such as what kind of billing or
+ * sandbox to use, if any.
+ *
+ * The intended use of this function is to initialise Grist with
+ * different settings and providers, to facilitate different editions
+ * such as standard, enterprise or cloud-hosted.
+ */
 export function makeSimpleCreator(opts: {
   deploymentType: GristDeploymentType,
   sessionSecret?: string,
