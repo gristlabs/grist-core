@@ -1,7 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
-import {DocCreationInfo} from 'app/common/DocListAPI';
 import {commonUrls, encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
@@ -247,7 +246,6 @@ export class FlexServer implements GristServer {
       recentItems: [],
     };
     this.electronServerMethods = {
-      async importDoc() { throw new Error('not implemented'); },
       onDocOpen(cb) {
         // currently only a stub.
         cb('');
@@ -390,6 +388,11 @@ export class FlexServer implements GristServer {
   public getStorageManager(): IDocStorageManager {
     if (!this._storageManager) { throw new Error('no storage manager available'); }
     return this._storageManager;
+  }
+
+  public getDocManager(): DocManager {
+    if (!this._docManager) { throw new Error('no document manager available'); }
+    return this._docManager;
   }
 
   public getTelemetry(): ITelemetry {
@@ -2539,7 +2542,6 @@ function noCaching(req: express.Request, res: express.Response, next: express.Ne
 
 // Methods that Electron app relies on.
 export interface ElectronServerMethods {
-  importDoc(filepath: string): Promise<DocCreationInfo>;
   onDocOpen(cb: (filePath: string) => void): void;
   getUserConfig(): Promise<any>;
   updateUserConfig(obj: any): Promise<void>;
