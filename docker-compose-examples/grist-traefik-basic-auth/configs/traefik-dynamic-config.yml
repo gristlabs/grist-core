@@ -11,26 +11,3 @@ http:
         users:
           # The default username is "test@example.org". The default password is "test".
           - "test@example.org:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"
-  routers:
-    # General router for almost all Grist traffic.
-    general:
-      entrypoints:
-        - web
-        - websecure
-      rule: "HostRegexp(`.*`)"
-      service: grist@docker
-      tls:
-        certresolver: letsencrypt
-
-    # Separate Traefik router for the login pages.
-    # This allows a user to visit the site without hitting the basic auth login page.
-    login:
-      entrypoints:
-        - web
-        - websecure
-      rule: "PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`)"
-      middlewares:
-        - grist-basic-auth
-      service: grist@docker
-      tls:
-        certresolver: letsencrypt
