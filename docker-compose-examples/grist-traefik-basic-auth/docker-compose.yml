@@ -1,13 +1,4 @@
-# This is the simplest example of Grist with authentication and https encryption.
 
-# It uses Traefik as a reverse proxy and authentication service.
-# Users are defined in traefik-dynamic-config.yml.
-
-# This setup, after configuring HTTPS certificates correctly, should be acceptable on the public internet.
-
-# However, you may want to try a more secure authentication setup such Authelia, Authentik or traefik-forward-auth.
-
-# See https://support.getgrist.com for more information.
 
 services:
   grist:

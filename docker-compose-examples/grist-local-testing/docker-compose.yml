@@ -1,9 +1,3 @@
-# This is the simplest example that runs Grist, suitable for local testing.
-
-# It is STRONGLY RECOMMENDED not to use this container in a way that makes it accessible to the internet.
-# This setup lacks basic security or authentication.
-# See https://support.getgrist.com for more information.
-
 services:
   grist:
     image: gristlabs/grist:latest
