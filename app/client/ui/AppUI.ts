@@ -91,6 +91,8 @@ function createMainPage(appModel: AppModel, appObj: App) {
 
 function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
   const pageModel = HomeModelImpl.create(owner, appModel, app.clientScope);
+  // Expose the HomeModel for grist-desktop.
+  (window as any).gristHomeModel = pageModel;
   const leftPanelOpen = Observable.create(owner, true);
 
   // Set document title to strings like "Home - Grist" or "Org Name - Grist".
