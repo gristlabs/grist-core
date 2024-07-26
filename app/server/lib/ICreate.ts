@@ -13,6 +13,9 @@ import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
 
+export const DEFAULT_SESSION_SECRET =
+  'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
+
 export interface ICreate {
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
@@ -116,11 +119,7 @@ export function makeSimpleCreator(opts: {
       return createSandbox(opts.sandboxFlavor || 'unsandboxed', options);
     },
     sessionSecret() {
-      const secret = process.env.GRIST_SESSION_SECRET || sessionSecret;
-      if (!secret) {
-        throw new Error('need GRIST_SESSION_SECRET');
-      }
-      return secret;
+      return process.env.GRIST_SESSION_SECRET || sessionSecret || DEFAULT_SESSION_SECRET;
     },
     async configure() {
       for (const s of storage || []) {
