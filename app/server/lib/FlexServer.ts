@@ -1877,14 +1877,13 @@ export class FlexServer implements GristServer {
     const probes = new BootProbes(this.app, this, '/api', adminMiddleware);
     probes.addEndpoints();
 
-    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (req, resp) => {
-      const newConfig = req.body.newConfig;
+    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (_, resp) => {
       resp.on('finish', () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         if (process.send) {
-          process.send({ action: 'restart', newConfig });
+          process.send({ action: 'restart' });
         }
       });
       // On the topic of http response codes, thus spake MDN:
