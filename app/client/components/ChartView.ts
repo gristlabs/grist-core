@@ -78,6 +78,9 @@ export function isNumericLike(col: ColumnRec, use: UseCB = unwrap) {
   return ['Numeric', 'Int', 'Any'].includes(colType);
 }
 
+function isCategoryType(pureType: string): boolean {
+  return !['Numeric', 'Int', 'Any', 'Date', 'DateTime'].includes(pureType);
+}
 
 interface ChartOptions {
   multiseries?: boolean;
@@ -1125,7 +1128,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
   bar(series: Series[], options: ChartOptions): PlotData {
     // If the X axis is not from numerical column, treat it as category.
     const data = basicPlot(series, options, {type: 'bar'});
-    const useCategory = series[0]?.pureType && !['Numeric', 'Int', 'Any'].includes(series[0].pureType);
+    const useCategory = series[0]?.pureType && isCategoryType(series[0].pureType);
     const xaxisName = options.orientation === 'h' ? 'yaxis' : 'xaxis';
     if (useCategory && data.layout && data.layout[xaxisName]) {
       const axisConfig = data.layout[xaxisName]!;
