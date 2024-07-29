@@ -69,7 +69,7 @@ export interface SessionObj {
                           // something they just added, without allowing the suer
                           // to edit other people's contributions).
 
-  oidc?: SessionOIDCInfo
+  oidc?: SessionOIDCInfo;
 }
 
 export interface SessionOIDCInfo {
