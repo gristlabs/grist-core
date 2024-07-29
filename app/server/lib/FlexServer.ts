@@ -1886,10 +1886,15 @@ export class FlexServer implements GristServer {
           process.send({ action: 'restart' });
         }
       });
-      // On the topic of http response codes, thus spake MDN:
-      // "409: This response is sent when a request conflicts with the current state of the server."
-      const status = process.send ? 200 : 409;
-      return resp.status(status).send();
+
+      if(!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+        // On the topic of http response codes, thus spake MDN:
+        // "409: This response is sent when a request conflicts with the current state of the server."
+        return resp.status(409).send({
+          error: "Cannot automatically restart the Grist server to enact changes. Please restart server manually."
+        });
+      }
+      return resp.status(200).send({ msg: 'ok' });
     }));
 
     // Restrict this endpoint to install admins

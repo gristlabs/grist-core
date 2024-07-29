@@ -5,7 +5,8 @@ let grist;
 function startGrist(newConfig={}) {
   // H/T https://stackoverflow.com/a/36995148/11352427
   grist = spawn('./sandbox/run.sh', {
-    stdio: ['inherit', 'inherit', 'inherit', 'ipc']
+    stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+    env: {...process.env, GRIST_RUNNING_UNDER_SUPERVISOR: true}
   });
   grist.on('message', function(data) {
     if (data.action === 'restart') {
