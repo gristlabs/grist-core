@@ -6,7 +6,7 @@ import { GristServer } from 'app/server/lib/GristServer';
 import * as express from 'express';
 import WS from 'ws';
 import fetch from 'node-fetch';
-import { DEFAULT_SESSION_SECRET } from 'app/server/lib/coreCreator';
+import { DEFAULT_SESSION_SECRET } from 'app/server/lib/ICreate';
 
 /**
  * Self-diagnostics useful when installing Grist.
