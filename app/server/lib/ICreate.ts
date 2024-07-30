@@ -1,5 +1,5 @@
 import {GristDeploymentType} from 'app/common/gristUrls';
-import { getCoreLoginSystem } from "app/server/lib/coreLogins";
+import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';

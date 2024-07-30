@@ -1973,7 +1973,7 @@ export class FlexServer implements GristServer {
   }
 
   public resolveLoginSystem() {
-    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem() );
+    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : this._getLoginSystem();
   }
 
   public addUpdatesCheck() {
