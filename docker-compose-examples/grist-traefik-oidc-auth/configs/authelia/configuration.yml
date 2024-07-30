@@ -911,7 +911,7 @@ storage:
   ##
   local:
     ## Path to the SQLite3 Database.
-    path: '/config/db.sqlite3'
+    path: '/persist/db.sqlite3'
 
   ##
   ## MySQL / MariaDB (Storage Provider)
@@ -1051,7 +1051,7 @@ notifier:
   ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   filesystem:
-    filename: '/config/notification.txt'
+    filename: '/persist/notification.txt'
 
   ##
   ## SMTP (Notification Provider)

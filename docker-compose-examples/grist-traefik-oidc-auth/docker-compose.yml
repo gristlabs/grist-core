@@ -104,6 +104,7 @@ services:
       GRIST_CLIENT_SECRET_DIGEST_FILE: "/run/secrets/GRIST_CLIENT_SECRET_DIGEST"
     volumes:
       - ./configs/authelia:/config
+      - ${PERSIST_DIR}/authelia:/persist
     command:
       - 'authelia'
       - '--config=/config/configuration.yml'
