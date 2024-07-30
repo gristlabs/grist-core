@@ -166,7 +166,7 @@
         "Filter by Range": "Iragazi tartearen arabera",
         "Max": "Max.",
         "Start": "Hasi",
-        "End": "Amaitu",
+        "End": "Amaiera",
         "Other Values": "Beste balio batzuk",
         "All Except": "Denak, hauek izan ezik",
         "Other Non-Matching": "Bat ez datorren beste bat",
@@ -1186,7 +1186,7 @@
         "Update existing records": "Eguneratu lehendik dauden erregistroak",
         "{{count}} unmatched field_other": "Bat ez datozen {{count}} eremu",
         "Column Mapping": "Zutabeen mapaketa",
-        "Column mapping": "Zutabeen mapaketa",
+        "Column mapping": "Zutabeen esleipena",
         "{{count}} unmatched field in import_one": "Bat ez datorren eremu {{count}} inportazioan",
         "{{count}} unmatched field in import_other": "Bat ez datozen {{count}} eremu inportazioan",
         "{{count}} unmatched field_one": "Bat ez datorren eremu {{count}}",
@@ -1416,7 +1416,7 @@
         "Paragraph": "Paragrafoa",
         "Paste": "Itsatsi",
         "Separator": "Bereizgailua",
-        "Unmapped fields": "Mapaketatu gabeko eremuak",
+        "Unmapped fields": "Esleitu gabeko eremuak",
         "Header": "Goiburua"
     },
     "UnmappedFieldsConfig": {
@@ -1424,8 +1424,8 @@
         "Select All": "Hautatu guztia",
         "Map fields": "Mapaketatu eremuak",
         "Mapped": "Mapaketatuta",
-        "Unmap fields": "Desmapaketatu eremuak",
-        "Unmapped": "Mapaketatu gabe"
+        "Unmap fields": "Utzi eremuak esleitzeari",
+        "Unmapped": "Esleitu gabe"
     },
     "FormConfig": {
         "Default": "Defektuzkoa",
@@ -1471,8 +1471,8 @@
         "Map fields": "Mapaketatu eremuak",
         "Mapped": "Mapaketatuta",
         "Select All": "Hautatu guztia",
-        "Unmapped": "Mapaketatu gabe",
-        "Unmap fields": "Desmapaketatu eremuak"
+        "Unmapped": "Esleitu gabe",
+        "Unmap fields": "Utzi eremuak esleitzeari"
     },
     "CreateTeamModal": {
         "Cancel": "Utzi",
@@ -1609,8 +1609,8 @@
         "Hidden fields": "Ezkutatutako eremuak"
     },
     "CustomView": {
-        "Some required columns aren't mapped": "Nahitaezko zutabe batzuk ez daude mapaketatuta",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Widget hau erabiltzeko, mapaketatu aukerakoak ez diren zutabeak sortzaileen mahaigainetik, eskuinean."
+        "Some required columns aren't mapped": "Nahitaezko zutabe batzuk ez daude esleituta",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Widget hau erabiltzeko, esleitu aukerakoak ez diren zutabeak sortzaileen mahaigainetik, eskuinean."
     },
     "FormContainer": {
         "Build your own form": "Sortu zure formularioa",
@@ -1633,5 +1633,37 @@
     },
     "DropdownConditionEditor": {
         "Enter condition.": "Sartu baldintza."
+    },
+    "DocTutorial": {
+        "Click to expand": "Egin klik hedatzeko",
+        "Do you want to restart the tutorial? All progress will be lost.": "Berriz hasi nahi duzu tutoriala? Orain arte egindakoa galduko da.",
+        "Next": "Hurrengoa",
+        "Previous": "Aurrekoa",
+        "Restart": "Hasi berriz",
+        "End tutorial": "Tutorialaren amaiera",
+        "Finish": "Amaitu"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3 minutuko bideo-bisitaldia",
+        "Complete our basics tutorial": "Burutu oinarrizko tutoriala",
+        "Complete the tutorial": "Burutu tutoriala",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Ikasi erreferentzia-zutabeen, lotutako widgeten, zutabe-moten eta txartelen oinarriak."
+    },
+    "OnboardingPage": {
+        "Go hands-on with the Grist Basics tutorial": "Murgildu Gristen oinarrizko tutorialean",
+        "Next step": "Hurrengo urratsa",
+        "Skip step": "Utzi egin gabe",
+        "Skip tutorial": "Utzi tutoriala egin gabe",
+        "Welcome": "Ongi etorri",
+        "What brings you to Grist (you can select multiple)?": "Zerk zakartza Gristera? (bat baino gehiago hautatu dezakezu)?",
+        "Back": "Atzera",
+        "Tell us who you are": "Esaguzu nor zaren",
+        "Discover Grist in 3 minutes": "Ezagutu Grist 3 minututan",
+        "Go to the tutorial!": "Joan tutorialera!",
+        "Type here": "Idatzi hemen",
+        "What is your role?": "Zein da zure rola?",
+        "What organization are you with?": "Zein erakunderekin jarduten duzu?",
+        "Your role": "Zure rola",
+        "Your organization": "Zure erakundea"
     }
 }
