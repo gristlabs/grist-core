@@ -11,3 +11,7 @@ Other examples demonstrate how to set up authentication and HTTPS.
 See https://support.getgrist.com/self-managed for more information.
 
 This setup is based on one provided by Akito (https://github.com/theAkito).
+
+## How to run this example
+
+This example can be run with `docker compose up`.
