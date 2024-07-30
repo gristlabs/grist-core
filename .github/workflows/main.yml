@@ -168,6 +168,7 @@ jobs:
 
   candidate:
     needs: build_and_test
+    name: Update latest_candidate branch
     if: ${{ success() && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
