@@ -7,7 +7,7 @@ services:
       TYPEORM_USERNAME: grist
       TYPEORM_HOST: grist-db
       TYPEORM_LOGGING: false
-      TYPEORM_PASSWORD: CHANGE THIS PASSWORD
+      TYPEORM_PASSWORD: ${DATABASE_PASSWORD}
       TYPEORM_PORT: 5432
       TYPEORM_TYPE: postgres
 
@@ -16,7 +16,7 @@ services:
 
       # MinIO setup. This requires the bucket set up on the MinIO instance with versioning enabled.
       GRIST_DOCS_MINIO_ACCESS_KEY: grist
-      GRIST_DOCS_MINIO_SECRET_KEY: CHANGE THIS MINIO PASSWORD
+      GRIST_DOCS_MINIO_SECRET_KEY: ${MINIO_PASSWORD}
       GRIST_DOCS_MINIO_USE_SSL: 0
       GRIST_DOCS_MINIO_BUCKET: grist-docs
       GRIST_DOCS_MINIO_ENDPOINT: grist-minio
@@ -24,7 +24,7 @@ services:
 
     volumes:
       # Where to store persistent data, such as documents.
-      - ./grist_local_data:/persist
+      - ${PERSIST_DIR}/grist:/persist
     ports:
       - 8484:8484
     depends_on:
@@ -38,22 +38,22 @@ services:
     environment:
         POSTGRES_DB: grist
         POSTGRES_USER: grist
-        POSTGRES_PASSWORD: CHANGE THIS PASSWORD
+        POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
-      - ./grist_database:/var/lib/postgresql/data
+      - ${PERSIST_DIR}/postgres:/var/lib/postgresql/data
 
   grist-redis:
     image: redis:alpine
     volumes:
-      - ./grist_redis:/data
+      - ${PERSIST_DIR}/redis:/data
 
   grist-minio:
     image: minio/minio:latest
     environment:
       MINIO_ROOT_USER: grist
-      MINIO_ROOT_PASSWORD: CHANGE THIS MINIO PASSWORD
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
     volumes:
-      - ./grist_minio:/data
+      - ${PERSIST_DIR}/minio:/data
     command:
       server /data --console-address=":9001"
 
@@ -61,13 +61,15 @@ services:
   # It isn't necessary for deployment and can be safely removed.
   minio-setup:
     image: minio/mc
+    environment:
+      MINIO_PASSWORD: ${MINIO_PASSWORD}
     depends_on:
       grist-minio:
         condition: service_started
     restart: on-failure
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set myminio http://grist-minio:9000 grist 'CHANGE THIS MINIO PASSWORD';
+      /usr/bin/mc alias set myminio http://grist-minio:9000 grist '$MINIO_PASSWORD';
       /usr/bin/mc mb myminio/grist-docs;
       /usr/bin/mc anonymous set public myminio/grist-docs;
       /usr/bin/mc version enable myminio/grist-docs;
