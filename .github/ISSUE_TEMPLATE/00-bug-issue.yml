@@ -1,3 +1,5 @@
+# Inspired by PeerTube templates:
+# https://github.com/Chocobozzz/PeerTube/blob/3d4d49a23eae71f3ce62cbbd7d93f07336a106b7/.github/ISSUE_TEMPLATE/00-bug-issue.yml
 name: 🐛 Bug Report
 description: Use this template for reporting a bug
 body:

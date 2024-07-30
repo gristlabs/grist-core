@@ -1,3 +1,5 @@
+# Inspired by PeerTube templates:
+# https://github.com/Chocobozzz/PeerTube/blob/master/.github/ISSUE_TEMPLATE/30-feature-request.yml
 ---
 name: ✨ Feature Request
 description: Use this template to ask for new features and suggest new ideas 💡
