@@ -1,18 +1,18 @@
 secrets:
   # These secrets are used by Authelia
   JWT_SECRET:
-    file: ./secrets/JWT_SECRET
+    file: ${SECRETS_DIR}/JWT_SECRET
   SESSION_SECRET:
-    file: ./secrets/SESSION_SECRET
+    file: ${SECRETS_DIR}/SESSION_SECRET
   STORAGE_ENCRYPTION_KEY:
-    file: ./secrets/STORAGE_ENCRYPTION_KEY
+    file: ${SECRETS_DIR}/STORAGE_ENCRYPTION_KEY
   # These secrets are for using Authelia as an OIDC provider
   HMAC_SECRET:
-    file: ./secrets/HMAC_SECRET
+    file: ${SECRETS_DIR}/HMAC_SECRET
   JWT_PRIVATE_KEY:
-    file: ./secrets/certs/private.pem
+    file: ${SECRETS_DIR}/certs/private.pem
   GRIST_CLIENT_SECRET_DIGEST:
-    file: ./secrets/GRIST_CLIENT_SECRET_DIGEST
+    file: ${SECRETS_DIR}/GRIST_CLIENT_SECRET_DIGEST
 
 services:
   grist:
@@ -38,11 +38,11 @@ services:
       # Base URL Grist redirects to when navigating. Change this to your domain.
       APP_HOME_URL: https://grist.localhost
       # Default email for the "Admin" account
-      GRIST_DEFAULT_EMAIL: test@example.org
+      GRIST_DEFAULT_EMAIL: ${DEFAULT_EMAIL:-test@example.org}
     restart: always
     volumes:
       # Where to store persistent data, such as documents.
-      - ./grist_local_data:/persist
+      - ${PERSIST_DIR}/grist:/persist
     labels:
       - "traefik.http.services.grist.loadbalancer.server.port=8484"
       - "traefik.http.routers.grist.rule=Host(`grist.localhost`)"
