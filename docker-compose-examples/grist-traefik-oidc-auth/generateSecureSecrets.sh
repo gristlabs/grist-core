@@ -2,6 +2,8 @@
 
 SCRIPT_DIR=$(dirname $0)
 
+mkdir -p "$SCRIPT_DIR/secrets"
+
 function getSecret {
   cut -d ":" -f 2 <<< "$1" | tr -d '[:blank:]'
 }
