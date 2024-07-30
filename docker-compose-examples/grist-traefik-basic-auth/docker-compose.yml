@@ -1,5 +1,3 @@
-
-
 services:
   grist:
     image: gristlabs/grist:latest

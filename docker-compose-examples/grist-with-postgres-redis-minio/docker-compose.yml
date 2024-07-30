@@ -1,12 +1,7 @@
-
-
 services:
   grist:
     image: gristlabs/grist:latest
     environment:
-      # Use Python 3 instead of 2.
-      PYTHON_VERSION: 3
-
       # Postgres database setup
       TYPEORM_DATABASE: grist
       TYPEORM_USERNAME: grist

@@ -1,11 +1,8 @@
 services:
   grist:
     image: gristlabs/grist:latest
-    environment:
-      # Use Python 3 instead of 2.
-      PYTHON_VERSION: 3
     volumes:
       # Where to store persistent data, such as documents.
-      - ./grist_local_data:/persist
+      - ${GRIST_DATA_DIR:-./grist_local_data}:/persist
     ports:
       - 8484:8484
