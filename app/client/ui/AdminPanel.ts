@@ -9,6 +9,7 @@ import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {SupportGristPage} from 'app/client/ui/SupportGristPage';
+import {ToggleEnterpriseWidget} from 'app/client/ui/ToggleEnterpriseWidget';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
@@ -25,7 +26,6 @@ import {Computed, Disposable, dom, IDisposable,
         IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
 import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
 
-
 const t = makeT('AdminPanel');
 
 // Translated "Admin Panel" name, made available to other modules.
@@ -35,6 +35,7 @@ export function getAdminPanelName() {
 
 export class AdminPanel extends Disposable {
   private _supportGrist = SupportGristPage.create(this, this._appModel);
+  private _toggleEnterprise = ToggleEnterpriseWidget.create(this);
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private _checks: AdminChecks;
 
@@ -160,6 +161,13 @@ Please log in as an administrator.`)),
           name: t('Current'),
           description: t('Current version of Grist'),
           value: cssValueLabel(`Version ${version.version}`),
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'enterprise',
+          name: t('Enterprise'),
+          description: t('Enable Grist Enterprise'),
+          value: dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable()),
+          expandedContent: this._toggleEnterprise.buildEnterpriseSection(),
         }),
         this._buildUpdates(owner),
       ]),
