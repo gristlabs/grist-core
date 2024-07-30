@@ -12,3 +12,13 @@ You may want to try a more secure authentication setup such Authelia, Authentik 
 The OIDC auth example demonstrates a setup using Authelia.
 
 See https://support.getgrist.com/self-managed for more information.
+
+## How to run this example
+
+This example can be run with `docker compose up`.
+
+The default login is:
+- Username: `test@example.org`
+- Password: `test`
+
+This can be changed in `./configs/traefik-dynamic-config.yaml`. Instructions on how to do this are available in that file.
