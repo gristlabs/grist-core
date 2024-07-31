@@ -243,26 +243,30 @@ class RecordSet(object):
   @property
   def find(self):
     """
-    A set of methods for finding values in sorted set of records. For example:
+    Name: find.*
+    Usage: RecordSet.**find.\\***(value)
+
+    A set of methods for finding values in sorted sets of records, as returned by
+    [`lookupRecords`](#lookuprecords). For example:
     ```
-    Transactions.lookupRecords(..., sort_by="Date").find.lt($Date)
-    Table.lookupRecords(..., sort_by=("Foo", "Bar")).find.le(foo, bar)
+    Transactions.lookupRecords(..., order_by="Date").find.lt($Date)
+    Table.lookupRecords(..., order_by=("Foo", "Bar")).find.le(foo, bar)
     ```
 
-    If the `find` method is shadowed by a same-named user column, you may use `_find` instead.
+    If the `find` attribute is shadowed by a same-named user column, you may use `_find` instead.
 
     The methods available are:
 
-    - `lt`: (less than) find nearest record with sort values < the given values
-    - `le`: (less than or equal to) find nearest record with sort values <= the given values
-    - `gt`: (greater than) find nearest record with sort values > the given values
-    - `ge`: (greater than or equal to) find nearest record with sort values >= the given values
-    - `eq`: (equal to) find nearest record with sort values == the given values
+    - __`lt`__: (less than) find nearest record with sort values < the given values
+    - __`le`__: (less than or equal to) find nearest record with sort values <= the given values
+    - __`gt`__: (greater than) find nearest record with sort values > the given values
+    - __`ge`__: (greater than or equal to) find nearest record with sort values >= the given values
+    - __`eq`__: (equal to) find nearest record with sort values == the given values
 
-    Example from https://templates.getgrist.com/5pHLanQNThxk/Payroll. Each person has a history of
-    pay rates, in the Rates table. To find a rate applicable on a certain date, here is how you
-    can do it old-style:
-    ```
+    Example from [our Payroll template](https://templates.getgrist.com/5pHLanQNThxk/Payroll).
+    Each person has a history of pay rates, in the Rates table. To find a rate applicable on a
+    certain date, here is how you can do it old-style:
+    ```python
     # Get all the rates for the Person and Role in this row.
     rates = Rates.lookupRecords(Person=$Person, Role=$Role)
 
@@ -277,8 +281,9 @@ class RecordSet(object):
     ```
 
     With the new methods, it is much simpler:
-    ```
-    rate = Rates.lookupRecords(Person=$Person, Role=$Role, sort_by="Rate_Start").find.le($Date)
+    ```python
+    rates = Rates.lookupRecords(Person=$Person, Role=$Role, order_by="Rate_Start")
+    rate = rates.find.le($Date)
     return rate.Hourly_Rate
     ```
 
