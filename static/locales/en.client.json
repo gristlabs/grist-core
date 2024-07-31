@@ -1572,7 +1572,9 @@
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
         "Key to sign sessions with": "Key to sign sessions with",
-        "Session Secret": "Session Secret"
+        "Session Secret": "Session Secret",
+        "Enable Grist Enterprise": "Enable Grist Enterprise",
+        "Enterprise": "Enterprise"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1665,5 +1667,18 @@
         "What organization are you with?": "What organization are you with?",
         "Your organization": "Your organization",
         "Your role": "Your role"
+    },
+    "ToggleEnterpriseWidget": {
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",
+        "Disable Grist Enterprise": "Disable Grist Enterprise",
+        "Enable Grist Enterprise": "Enable Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise is **enabled**."
+    },
+    "ViewLayout": {
+        "Delete": "Delete",
+        "Delete data and this widget.": "Delete data and this widget.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Keep data and delete widget. Table will remain available in {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "Table {{tableName}} will no longer be visible",
+        "raw data page": "raw data page"
     }
 }
