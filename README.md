@@ -125,9 +125,9 @@ the standard Grist functionality, as well as extra source-available
 code for enterprise customers taken from the
 [grist-ee](https://github.com/gristlabs/grist-ee) repository. This
 extra code is not under a free or open source license. By default,
-however, the code from the `grist-ee` repository is completely inert and
-inactive. This code becomes active only when an administrator enables
-it by setting either `GRIST_ACTIVATION` or `GRIST_ACTIVATION_FILE`.
+however, the code from the `grist-ee` repository is completely inert
+and inactive. This code becomes active only when enabled from the
+administrator panel.
 
 If you would rather use an image that contains exclusively free and
 open source code, the `gristlabs/grist-oss` Docker image is available
