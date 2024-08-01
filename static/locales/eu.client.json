@@ -834,7 +834,7 @@
         "Your account has been deleted.": "Zure kontua ezabatu da.",
         "An unknown error occurred.": "Errore ezezagun bat gertatu da.",
         "Form not found": "Ez da formularioa aurkitu",
-        "Access denied{{suffix}}": "Sarbidea ukatua da{{suffix}}",
+        "Access denied{{suffix}}": "Sarbidea ukatu da{{suffix}}",
         "Error{{suffix}}": "Errorea{{suffix}}",
         "Page not found{{suffix}}": "Ez da orria aurkitu {{suffix}}",
         "Signed out{{suffix}}": "Saioa amaituta{{suffix}}",
