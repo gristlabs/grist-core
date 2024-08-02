@@ -1,0 +1,33 @@
+# Inspired by PeerTube templates:
+# https://github.com/Chocobozzz/PeerTube/blob/master/.github/ISSUE_TEMPLATE/10-installation-issue.yml
+name: 🛠️ Installation/Upgrade Issue
+description: Use this template for installation/upgrade issues
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check first the official documentation for self-hosting: https://support.getgrist.com/self-managed/
+
+  - type: markdown
+    attributes:
+      value: |
+        Please search among past open/closed issues for a similar one beforehand:
+          - https://github.com/gristlabs/grist-core/issues?q=
+          - https://community.getgrist.com/
+
+  - type: textarea
+    attributes:
+      label: Describe the problem
+
+  - type: textarea
+    attributes:
+      label: Additional information
+      value: |
+          * Grist version:
+          * Grist instance URL:
+          * SSO solution used and its version (if relevant):
+          * S3 storage solution and its version (if relevant):
+          * Docker version (if relevant):
+          * NodeJS version (if relevant):
+          * Redis version (if relevant):
+          * PostgreSQL version (if relevant):

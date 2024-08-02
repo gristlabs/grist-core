@@ -1,0 +1,52 @@
+# Inspired by PeerTube templates:
+# https://github.com/Chocobozzz/PeerTube/blob/3d4d49a23eae71f3ce62cbbd7d93f07336a106b7/.github/ISSUE_TEMPLATE/00-bug-issue.yml
+name: 🐛 Bug Report
+description: Use this template for reporting a bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking time to fill out this bug report!
+        Please search among past open/closed issues for a similar one beforehand:
+          - https://github.com/gristlabs/grist-core/issues?q=
+          - https://community.getgrist.com/
+
+  - type: textarea
+    attributes:
+      label: Describe the current behavior
+
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      value: |
+          1.
+          2.
+          3.
+
+  - type: textarea
+    attributes:
+      label: Describe the expected behavior
+
+  - type: checkboxes
+    attributes:
+      label: Where have you encountered this bug?
+      options:
+        - label: On [docs.getgrist.com](https://docs.getgrist.com)
+        - label: On a self-hosted instance 
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Instance information (when self-hosting only)
+      description: In case you self-host, please share information above. You can discard any question you don't know the answer.
+      value: |
+          * Grist instance:
+            * Version:
+            * URL (if it's OK for you to share it):
+            * Installation mode: docker/kubernetes/...
+            * Architecture: single-worker/multi-workers
+
+          * Browser name, version and platforms on which you could reproduce the bug:
+          * Link to browser console log if relevant:
+          * Link to server log if relevant:
