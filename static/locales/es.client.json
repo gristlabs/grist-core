@@ -1614,7 +1614,7 @@
         "Key to sign sessions with": "Clave para firmar sesiones con",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist firma las cookies de sesión de usuario con una clave secreta. Establezca esta clave mediante la variable de entorno GRIST_SESSION_SECRET. Si no se establece, Grist vuelve a un valor predeterminado. Es posible que quitemos este aviso en el futuro, ya que los identificadores de sesión generados desde la versión 1.1.16 son intrínsecamente seguros desde el punto de vista criptográfico.",
         "Enterprise": "Empresarial",
-        "Enable Grist Enterprise": "Activar Grist Empresarial"
+        "Enable Grist Enterprise": "Activar Grist Enterprise"
     },
     "CreateTeamModal": {
         "Cancel": "Cancelar",
@@ -1726,9 +1726,13 @@
         "Delete": "Borrar",
         "Delete data and this widget.": "Eliminar datos y este widget.",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Mantener datos y eliminar el widget. La tabla permanecerá disponible en {{rawDataLink}}",
-        "Table {{tableName}} will no longer be visible": "La tabla {{tableName}} ya no será visible"
+        "Table {{tableName}} will no longer be visible": "La tabla {{tableName}} ya no será visible",
+        "raw data page": "página de datos en bruto"
     },
     "ToggleEnterpriseWidget": {
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Una clave de activación se utiliza para ejecutar Grist Empresarial después de un período de prueba\nde 30 días. Obtén una clave de activación [registrándose en Grist\nEmpresarial]({{signupLink}}). No necesitas una clave de activación para ejecutar\nGrist Core.\n\nMás información en nuestro [Centro de Ayuda]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Una clave de activación se utiliza para ejecutar Grist Enterprise después de un período de prueba\nde 30 días. Obtén una clave de activación [registrándose en Grist\nEmpresarial]({{signupLink}}). No necesitas una clave de activación para ejecutar\nGrist Core.\n\nMás información en nuestro [Centro de Ayuda]({{helpCenter}}).",
+        "Disable Grist Enterprise": "Desactivar Grist Enterprise",
+        "Enable Grist Enterprise": "Activar Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise está **activado**."
     }
 }
