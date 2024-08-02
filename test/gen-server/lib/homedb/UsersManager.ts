@@ -13,13 +13,14 @@ import { getDatabase } from 'test/testUtils';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { Document } from 'app/gen-server/entity/Document';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import Sinon, { SinonSandbox } from 'sinon';
+import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
 import { assert } from 'chai';
 import { addSeedData } from 'test/gen-server/seed';
-import { FullUser } from 'app/common/LoginSessionAPI';
+import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { ANONYMOUS_USER_EMAIL } from 'app/common/UserAPI';
 import { Login } from 'app/gen-server/entity/Login';
 import { Pref } from 'app/gen-server/entity/Pref';
+import { EntityManager } from 'typeorm';
 
 const username = process.env.USER || "nobody";
 const tmpDir = path.join(tmpdir(), `grist_test_${username}_userendpoint`);
@@ -28,18 +29,31 @@ describe('UsersManager', function () {
   this.timeout(30000);
   let env: EnvironmentSnapshot;
   let db: HomeDBManager;
+  let sandbox: SinonSandbox;
+
+  function getTmpDatabase(typeormDb: string) {
+    return getDatabase(path.join(tmpDir, typeormDb));
+  }
 
   before(async function () {
     env = new EnvironmentSnapshot();
     await prepareFilesystemDirectoryForTests(tmpDir);
     await prepareDatabase(tmpDir);
     db = await getDatabase();
-    await addSeedData(db.connection);
   });
 
   after(async function () {
     env.restore();
   });
+
+  beforeEach(function () {
+    sandbox = Sinon.createSandbox();
+  });
+
+  afterEach(function () {
+    sandbox.restore();
+  });
+
 
   function* makeIdxIterator() {
     for (let i = 0; i < 500; i++) {
@@ -183,17 +197,9 @@ describe('UsersManager', function () {
     });
 
     describe('Without special id initialization', function () {
-      let sandbox: SinonSandbox;
-      before(function () {
-        sandbox = Sinon.createSandbox();
-      });
-      after(function () {
-        sandbox.restore();
-      });
-
       async function createDatabaseWithoutSpecialIds() {
         const stub = sandbox.stub(HomeDBManager.prototype, 'initializeSpecialIds').resolves(undefined);
-        const localDb = await getDatabase('without-special-ids');
+        const localDb = await getTmpDatabase('without-special-ids.db');
         stub.restore();
         return localDb;
       }
@@ -303,7 +309,7 @@ describe('UsersManager', function () {
       orgId: null,
       user: new User(),
       userId: SOME_USER_ID
-    }
+    };
 
 
     function makeSomeUser() {
@@ -367,4 +373,90 @@ describe('UsersManager', function () {
     });
   });
 
+  describe('ensureExternalUser()', function () {
+    let managerSaveSpy: SinonSpy;
+    let userSaveSpy: SinonSpy;
+    let localDb: HomeDBManager;
+
+    before(async function () {
+      localDb = await getTmpDatabase('ensureExternalUser.db');
+      await addSeedData(localDb.connection);
+    });
+    beforeEach(function () {
+      managerSaveSpy = sandbox.spy(EntityManager.prototype, 'save');
+      userSaveSpy = sandbox.spy(User.prototype, 'save');
+
+    });
+
+    function makeProfile(uuid: string): UserProfile {
+      return {
+        email: `${uuid}@getgrist.com`,
+        name: `NewUser ${uuid}`,
+        connectId: `ConnectId-${uuid}`,
+        picture: `https://mypic.com/${uuid}.png`
+      };
+    }
+
+    async function checkUserInfo(profile: UserProfile) {
+      const user = await localDb.getExistingUserByLogin(profile.email);
+      assert.exists(user, "the new user should be in database");
+      assert.deepInclude(user, {
+        isFirstTimeUser: false,
+        name: profile.name,
+        picture: profile.picture
+      });
+      assert.exists(user!.logins?.[0]);
+      assert.deepInclude(user!.logins[0], {
+        email: profile.email.toLowerCase(),
+        displayEmail: profile.email
+      });
+    }
+
+    it('should not do anything if the user already exists and is up to date', async function () {
+      await localDb.ensureExternalUser({
+        name: 'Chimpy',
+        email: 'chimpy@getgrist.com',
+      });
+      assert.isFalse(userSaveSpy.called, 'user.save() should not have been called');
+      assert.isFalse(managerSaveSpy.called, 'manager.save() should not have been called');
+    });
+
+    it('should save an unknown user', async function () {
+      const profile = makeProfile('f6fce1ec-892e-493a-9bd7-2c4b0480e7f5');
+      await localDb.ensureExternalUser(profile);
+      assert.isTrue(userSaveSpy.called, 'user.save() should have been called');
+      assert.isTrue(managerSaveSpy.called, 'manager.save() should have been called');
+
+      await checkUserInfo(profile);
+    });
+
+    it('should update a user if they already exist in database', async function () {
+      const oldProfile = makeProfile('b48b3c95-a808-43e1-9b78-9171fb6c58fd');
+      await localDb.ensureExternalUser(oldProfile);
+
+      let oldUser = await localDb.getExistingUserByLogin(oldProfile.email);
+      assert.exists(oldUser);
+
+      const newProfile = {
+        ...makeProfile('b6755ae0-0cb5-4a40-a54c-764d4b187c4c'),
+        connectId: oldProfile.connectId,
+      };
+
+      await localDb.ensureExternalUser(newProfile);
+      oldUser = await localDb.getExistingUserByLogin(oldProfile.email);
+      assert.notExists(oldUser, 'we should not retrieve the user given their old email address');
+
+      await checkUserInfo(newProfile);
+    });
+
+    it('should normalize email address', async function() {
+      const profile = makeProfile('92AF6F0F-03C0-414B-9012-2C282D89512A');
+      await localDb.ensureExternalUser(profile);
+      await checkUserInfo(profile);
+    });
+
+    it('FIXME', function () {
+      throw new Error('TODO: only use `db` and no localDb variable anymore');
+    });
+  });
 });
