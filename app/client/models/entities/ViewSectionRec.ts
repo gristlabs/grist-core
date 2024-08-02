@@ -93,8 +93,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // in which case the UI prevents various things like hiding columns or changing the widget type.
   isRaw: ko.Computed<boolean>;
 
-  tableRecordCard: ko.Computed<ViewSectionRec>
+  /** Is this table card viewsection (the one available after pressing spacebar) */
   isRecordCard: ko.Computed<boolean>;
+
+  /** Card record viewSection for associated table (might be the same section) */
+  tableRecordCard: ko.Computed<ViewSectionRec>;
 
   /** True if this section is disabled. Currently only used by Record Card sections. */
   disabled: modelUtil.KoSaveableObservable<boolean>;

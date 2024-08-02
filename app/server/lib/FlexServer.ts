@@ -85,7 +85,8 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import {IGristCoreConfig} from "./configCore";
+import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
+import {IGristCoreConfig} from "app/server/lib/configCore";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -1053,7 +1054,7 @@ export class FlexServer implements GristServer {
           // Reset isFirstTimeUser flag.
           await this._dbManager.updateUser(user.id, {isFirstTimeUser: false});
 
-          // This is a good time to set some other flags, for showing a popup with welcome question(s)
+          // This is a good time to set some other flags, for showing a page with welcome question(s)
           // to this new user and recording their sign-up with Google Tag Manager. These flags are also
           // scoped to the user, but isFirstTimeUser has a dedicated DB field because it predates userPrefs.
           // Note that the updateOrg() method handles all levels of prefs (for user, user+org, or org).
@@ -1588,20 +1589,25 @@ export class FlexServer implements GristServer {
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
       const userId = getUserId(req);
       const user = getUser(req);
+      const orgName = stringParam(req.body.org_name, 'org_name');
+      const orgRole = stringParam(req.body.org_role, 'org_role');
       const useCases = stringArrayParam(req.body.use_cases, 'use_cases');
       const useOther = stringParam(req.body.use_other, 'use_other');
       const row = {
         UserID: userId,
         Name: user.name,
         Email: user.loginEmail,
+        org_name: orgName,
+        org_role: orgRole,
         use_cases: ['L', ...useCases],
         use_other: useOther,
       };
-      this._recordNewUserInfo(row)
-      .catch(e => {
+      try {
+        await this._recordNewUserInfo(row);
+      } catch (e) {
         // If we failed to record, at least log the data, so we could potentially recover it.
         log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
-      });
+      }
       const nonOtherUseCases = useCases.filter(useCase => useCase !== 'Other');
       for (const useCase of [...nonOtherUseCases, ...(useOther ? [`Other - ${useOther}`] : [])]) {
         this.getTelemetry().logEvent(req as RequestWithLogin, 'answeredUseCaseQuestion', {
@@ -1873,20 +1879,24 @@ export class FlexServer implements GristServer {
     const probes = new BootProbes(this.app, this, '/api', adminMiddleware);
     probes.addEndpoints();
 
-    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (req, resp) => {
-      const newConfig = req.body.newConfig;
+    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (_, resp) => {
       resp.on('finish', () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         if (process.send) {
-          process.send({ action: 'restart', newConfig });
+          process.send({ action: 'restart' });
         }
       });
-      // On the topic of http response codes, thus spake MDN:
-      // "409: This response is sent when a request conflicts with the current state of the server."
-      const status = process.send ? 200 : 409;
-      return resp.status(status).send();
+
+      if(!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+        // On the topic of http response codes, thus spake MDN:
+        // "409: This response is sent when a request conflicts with the current state of the server."
+        return resp.status(409).send({
+          error: "Cannot automatically restart the Grist server to enact changes. Please restart server manually."
+        });
+      }
+      return resp.status(200).send({ msg: 'ok' });
     }));
 
     // Restrict this endpoint to install admins
@@ -1943,6 +1953,14 @@ export class FlexServer implements GristServer {
         res.json(await response.json());
       }
     }));
+  }
+
+  public addConfigEndpoints() {
+    // Need to be an admin to change the Grist config
+    const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
+
+    const configBackendAPI = new ConfigBackendAPI();
+    configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
   }
 
   // Get the HTML template sent for document pages.

@@ -25,7 +25,6 @@ export type CommandName =
   | 'expandSection'
   | 'leftPanelOpen'
   | 'rightPanelOpen'
-  | 'videoTourToolsOpen'
   | 'cursorDown'
   | 'cursorUp'
   | 'cursorRight'
@@ -268,11 +267,6 @@ export const groups: CommendGroupDef[] = [{
       name: 'rightPanelOpen',
       keys: [],
       desc: 'Shortcut to open the right panel',
-    },
-    {
-      name: 'videoTourToolsOpen',
-      keys: [],
-      desc: 'Shortcut to open video tour from home left panel',
     },
     {
       name: 'activateAssistant',

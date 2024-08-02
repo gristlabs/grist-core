@@ -124,28 +124,32 @@ Note that this combination of rules allows tables and column names to be valid i
 
 ## Value Types
 
+> [!WARNING]
+> This section is out of date.
+
 The format supports a number of data types. Some types have a short representation (e.g. `Numeric` as a JSON `number`, and `Text` as a JSON `string`), but all types have an explicit representation as well.
 
 The explicit representation of a value is an array `[typeCode, args...]`. The first member of the array is a string code that defines the type of the value. The rest of the elements are arguments used to construct the actual value.
 
 The following table lists currently supported types and their short and explicit representations.
 
-| **Type Name** | **Short Repr** | **[Type Code, Args...]** | **Description** |
-| `Numeric` | `number`* | `['n',number]` | double-precision floating point number |
-| `Text` | `string`* | `['s',string]` | Unicode string |
-| `Bool` | `bool`* | `['b',bool]` | Boolean value (true or false) |
-| `Null` | `null`* | `null` | Null value (no special explicit representation) |
-| `Int` | `number` | `['i',number]` | 32-bit integer |
-| `Date` | `number` | `['d',number]` | Calendar date, represented as seconds since Epoch to 00:00 UTC on that date. |
-| `DateTime` | `number` | `['D',number]` | Instance in time, represented as seconds since Epoch |
-| `Reference` | `number` | `['R',number]`  | Identifier of a record in a table. |
-| `ReferenceList` | | `['L',number,...]` | List of record identifiers |
-| `Choice` | `string` | `['C',string]` | Unicode string selected from a list of choices. |
-| `PositionNumber` | `number` | `['P',number]` | a double used to order records relative to each other. |
-| `Image` | | `['I',string]` | Binary data representing an image, encoded as base64 |
-| `List` | | `['l',values,...]` | List of values of any type. |
-| `JSON` | | `['J',object]` | JSON-serializable object |
-| `Error` | | `['E',string,string?,value?]` | Exception, with first argument exception type, second an optional message, and optionally a third containing additional info. |
+| **Type Name**    | **Short Repr** | **[Type Code, Args...]**      | **Description**                                                                                                               |
+|------------------|----------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `Numeric`        | `number`*      | `['n',number]`                | double-precision floating point number                                                                                        |
+| `Text`           | `string`*      | `['s',string]`                | Unicode string                                                                                                                |
+| `Bool`           | `bool`*        | `['b',bool]`                  | Boolean value (true or false)                                                                                                 |
+| `Null`           | `null`*        | `null`                        | Null value (no special explicit representation)                                                                               |
+| `Int`            | `number`       | `['i',number]`                | 32-bit integer                                                                                                                |
+| `Date`           | `number`       | `['d',number]`                | Calendar date, represented as seconds since Epoch to 00:00 UTC on that date.                                                  |
+| `DateTime`       | `number`       | `['D',number]`                | Instance in time, represented as seconds since Epoch                                                                          |
+| `Reference`      | `number`       | `['R',number]`                | Identifier of a record in a table.                                                                                            |
+| `ReferenceList`  |                | `['L',number,...]`            | List of record identifiers                                                                                                    |
+| `Choice`         | `string`       | `['C',string]`                | Unicode string selected from a list of choices.                                                                               |
+| `PositionNumber` | `number`       | `['P',number]`                | a double used to order records relative to each other.                                                                        |
+| `Image`          |                | `['I',string]`                | Binary data representing an image, encoded as base64                                                                          |
+| `List`           |                | `['l',values,...]`            | List of values of any type.                                                                                                   |
+| `JSON`           |                | `['J',object]`                | JSON-serializable object                                                                                                      |
+| `Error`          |                | `['E',string,string?,value?]` | Exception, with first argument exception type, second an optional message, and optionally a third containing additional info. |
 
 An important goal is to represent data efficiently in the common case. When a value matches the column's type, the short representation is used. For example, in a Numeric column, a Numeric value is represented as a `number`, and in a Date column, a Date value is represented as a `number`.
 

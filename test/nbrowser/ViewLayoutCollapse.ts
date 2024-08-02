@@ -761,6 +761,96 @@ describe("ViewLayoutCollapse", function() {
     await gu.checkForErrors();
   });
 
+  it('should prompt when last section is removed from tray', async () => {
+    const revert = await gu.begin();
+
+    // Add brand new table and collapse it.
+    await gu.addNewSection('Table', 'New Table', {tableName: 'ToCollapse'});
+    await collapseByMenu('ToCollapse');
+
+    // Now try to remove it, we should see prompt.
+    await openCollapsedSectionMenu('ToCollapse');
+    await driver.find('.test-section-delete').click();
+    assert.match(
+      await driver.find('.test-modal-title').getText(),
+      /Table ToCollapse will no longer be visible/
+    );
+
+    // Select first option, to delete both table and widget.
+    await driver.find('.test-option-deleteDataAndWidget').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+
+    // Make sure it is removed.
+    assert.deepEqual(await collapsedSectionTitles(), []);
+    assert.deepEqual(await visibleTables(), ['Companies', 'Investments']);
+    await gu.sendKeys(Key.ESCAPE);
+
+    // Single undo should add it back.
+    await gu.undo();
+    assert.deepEqual(await collapsedSectionTitles(), ['TOCOLLAPSE']);
+    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+
+    // Now do the same but, keep data.
+    await openCollapsedSectionMenu('ToCollapse');
+    await driver.find('.test-section-delete').click();
+    await driver.findWait('.test-modal-dialog', 100);
+    await driver.find('.test-option-deleteOnlyWidget').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+
+    // Make sure it is removed.
+    assert.deepEqual(await collapsedSectionTitles(), []);
+    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+
+    // Test single undo.
+    await gu.undo();
+    assert.deepEqual(await collapsedSectionTitles(), ['TOCOLLAPSE']);
+    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+
+    // Uncollapse it, and do the same with normal section.
+    await addToMainByMenu('ToCollapse');
+
+    // Now try to remove it, we should see prompt.
+    assert.include(
+      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
+
+    await gu.openSectionMenu('viewLayout', 'ToCollapse');
+    await driver.find('.test-section-delete').click();
+    await driver.findWait('.test-modal-dialog', 100);
+    await driver.find('.test-option-deleteOnlyWidget').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+    assert.notInclude(
+      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
+    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+    // Test undo.
+    await gu.undo();
+    assert.include(
+      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
+
+    // Do the same but delete data and widget.
+    await gu.openSectionMenu('viewLayout', 'ToCollapse');
+    await driver.find('.test-section-delete').click();
+    await driver.findWait('.test-modal-dialog', 100);
+    await driver.find('.test-option-deleteDataAndWidget').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+
+    // Make sure it is removed.
+    assert.notInclude(
+      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
+    assert.deepEqual(await visibleTables(), ['Companies', 'Investments']);
+
+    // Test undo.
+    await gu.undo();
+    assert.include(
+      await driver.findAll('.test-viewsection-title', e => e.getText()), 'TOCOLLAPSE');
+    assert.deepEqual(await visibleTables(), ['Companies', 'Investments', 'ToCollapse']);
+
+    await revert();
+  });
+
   it("should switch active section when collapsed", async () => {
     const revert = await gu.begin();
     await gu.selectSectionByTitle(gu.exactMatch(COMPANIES));
@@ -988,4 +1078,12 @@ async function waitForSave() {
     assert.isTrue(pending.length === 0);
     await gu.waitForServer();
   }, 3000);
+}
+
+async function visibleTables() {
+  await driver.findWait('.test-dp-add-new', 2000).doClick();
+  await driver.find('.test-dp-add-new-page').doClick();
+  const titles = await driver.findAll('.test-wselect-table', e => e.getText());
+  await gu.sendKeys(Key.ESCAPE);
+  return titles.map(x => x.trim()).filter(Boolean).filter(x => x !== 'New Table');
 }

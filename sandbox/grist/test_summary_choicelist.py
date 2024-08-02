@@ -145,22 +145,22 @@ class TestSummaryChoiceList(EngineTestCase):
       {
         '#summary#Source_summary_choices1': column.ReferenceListColumn,
         "#lookup#_Contains(value='#summary#Source_summary_choices1', match_empty=no_match_empty)":
-          lookup.ContainsLookupMapColumn,
+          lookup.LookupMapColumn,
         '#summary#Source_summary_choices1_choices2': column.ReferenceListColumn,
         "#lookup#_Contains(value='#summary#Source_summary_choices1_choices2', "
         "match_empty=no_match_empty)":
-          lookup.ContainsLookupMapColumn,
+          lookup.LookupMapColumn,
 
         # simple summary and lookup
         '#summary#Source_summary_other': column.ReferenceColumn,
-        '#lookup##summary#Source_summary_other': lookup.SimpleLookupMapColumn,
+        '#lookup##summary#Source_summary_other': lookup.LookupMapColumn,
 
         '#summary#Source_summary_choices1_other': column.ReferenceListColumn,
         "#lookup#_Contains(value='#summary#Source_summary_choices1_other', "
         "match_empty=no_match_empty)":
-          lookup.ContainsLookupMapColumn,
+          lookup.LookupMapColumn,
 
-        "#lookup#": lookup.SimpleLookupMapColumn,
+        "#lookup#": lookup.LookupMapColumn,
       }
     )
 

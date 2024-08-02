@@ -293,6 +293,25 @@ function initialize(appModel: AppModel) {
 
 function requestInterceptor(request: SwaggerUI.Request) {
   delete request.headers.Authorization;
+  const url = new URL(request.url);
+  // Swagger will use this request interceptor for several kinds of
+  // requests, such as requesting the API YAML spec from Github:
+  //
+  //      Function to intercept remote definition, "Try it out",
+  //      and OAuth 2.0 requests.
+  //
+  //    https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
+  //
+  // We want to ensure that only "Try it out" requests have XHR, so
+  // that they pass a same origin request, even if they're not GET,
+  // HEAD, or OPTIONS. "Try it out" requests are the requests to the
+  // same origin.
+  if (url.origin === window.origin) {
+    // Without this header, unauthenticated multipart POST requests
+    // (i.e. file uploads) would fail in the API console. We want those
+    // requests to succeed.
+    request.headers['X-Requested-With'] = 'XMLHttpRequest';
+  }
   return request;
 }
 

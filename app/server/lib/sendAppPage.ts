@@ -16,7 +16,7 @@ import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
-import {getTemplateOrg} from 'app/server/lib/gristSettings';
+import {getOnboardingTutorialDocId, getTemplateOrg} from 'app/server/lib/gristSettings';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
 import * as express from 'express';
@@ -97,6 +97,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
     templateOrg: getTemplateOrg(),
+    onboardingTutorialDocId: getOnboardingTutorialDocId(),
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),

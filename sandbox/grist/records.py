@@ -3,7 +3,11 @@ Implements the base classes for Record and RecordSet objects used to represent r
 tables. Individual tables use derived versions of these, which add per-column properties.
 """
 
+from bisect import bisect_left, bisect_right
 import functools
+import sys
+
+import six
 
 @functools.total_ordering
 class Record(object):
@@ -134,14 +138,14 @@ class RecordSet(object):
   """
 
   # Slots are an optimization to avoid the need for a per-object __dict__.
-  __slots__ = ('_row_ids', '_source_relation', '_group_by', '_sort_by')
+  __slots__ = ('_row_ids', '_source_relation', '_group_by', '_sort_by', '_sort_key')
 
   # Per-table derived classes override this and set it to the appropriate Table object.
   _table = None
 
   # Methods should be named with a leading underscore to avoid interfering with access to
   # user-defined fields.
-  def __init__(self, row_ids, relation=None, group_by=None, sort_by=None):
+  def __init__(self, row_ids, relation=None, group_by=None, sort_by=None, sort_key=None):
     """
     group_by may be a dictionary mapping column names to values that are all the same for the given
     RecordSet. sort_by may be the column name used for sorting this record set. Both are set by
@@ -149,9 +153,10 @@ class RecordSet(object):
     """
     self._row_ids = row_ids
     self._source_relation = relation or self._table._identity_relation
-    # If row_ids is itself a RecordList, default to its _group_by and _sort_by properties.
+    # If row_ids is itself a RecordList, default to its _group_by, _sort_by, _sort_key properties.
     self._group_by = group_by or getattr(row_ids, '_group_by', None)
     self._sort_by = sort_by or getattr(row_ids, '_sort_by', None)
+    self._sort_key = sort_key or getattr(row_ids, '_sort_key', None)
 
   def __len__(self):
     return len(self._row_ids)
@@ -181,15 +186,13 @@ class RecordSet(object):
     return False
 
   def get_one(self):
-    if not self._row_ids:
-      # Default to the empty/sample record
-      row_id = 0
-    elif self._sort_by:
-      # Pick the first record in the sorted order
-      row_id = self._row_ids[0]
-    else:
-      # Pick the first record in the order of the underlying table, for backwards compatibility.
-      row_id = min(self._row_ids)
+    # Pick the first record in the sorted order, or empty/sample record for empty RecordSet
+    row_id = self._row_ids[0] if self._row_ids else 0
+    return self._table.Record(row_id, self._source_relation)
+
+  def __getitem__(self, index):
+    # Allows subscripting a RecordSet as r[0] or r[-1].
+    row_id = self._row_ids[index]
     return self._table.Record(row_id, self._source_relation)
 
   def __getattr__(self, name):
@@ -198,11 +201,20 @@ class RecordSet(object):
   def __repr__(self):
     return "%s[%s]" % (self._table.table_id, self._row_ids)
 
+  def _at(self, index):
+    """
+    Returns element of RecordSet at the given index when the index is valid and non-negative.
+    Otherwise returns the empty/sample record.
+    """
+    row_id = self._row_ids[index] if (0 <= index < len(self._row_ids)) else 0
+    return self._table.Record(row_id, self._source_relation)
+
   def _clone_with_relation(self, src_relation):
     return self._table.RecordSet(self._row_ids,
                                  relation=src_relation.compose(self._source_relation),
                                  group_by=self._group_by,
-                                 sort_by=self._sort_by)
+                                 sort_by=self._sort_by,
+                                 sort_key=self._sort_key)
 
   def _get_encodable_row_ids(self):
     """
@@ -214,6 +226,134 @@ class RecordSet(object):
     else:
       return list(self._row_ids)
 
+  def _get_sort_key(self):
+    if not self._sort_key:
+      if self._sort_by:
+        raise ValueError("Sorted by %s but no sort_key" % (self._sort_by,))
+      raise ValueError("Can only use 'find' methods in a sorted reference list")
+    return self._sort_key
+
+  def _to_local_row_id(self, item):
+    if isinstance(item, int):
+      return item
+    if isinstance(item, Record) and item._table == self._table:
+      return int(item)
+    raise ValueError("unexpected search item")    # Need better error
+
+  @property
+  def find(self):
+    """
+    A set of methods for finding values in sorted set of records. For example:
+    ```
+    Transactions.lookupRecords(..., sort_by="Date").find.lt($Date)
+    Table.lookupRecords(..., sort_by=("Foo", "Bar")).find.le(foo, bar)
+    ```
+
+    If the `find` method is shadowed by a same-named user column, you may use `_find` instead.
+
+    The methods available are:
+
+    - `lt`: (less than) find nearest record with sort values < the given values
+    - `le`: (less than or equal to) find nearest record with sort values <= the given values
+    - `gt`: (greater than) find nearest record with sort values > the given values
+    - `ge`: (greater than or equal to) find nearest record with sort values >= the given values
+    - `eq`: (equal to) find nearest record with sort values == the given values
+
+    Example from https://templates.getgrist.com/5pHLanQNThxk/Payroll. Each person has a history of
+    pay rates, in the Rates table. To find a rate applicable on a certain date, here is how you
+    can do it old-style:
+    ```
+    # Get all the rates for the Person and Role in this row.
+    rates = Rates.lookupRecords(Person=$Person, Role=$Role)
+
+    # Pick out only those rates whose Rate_Start is on or before this row's Date.
+    past_rates = [r for r in rates if r.Rate_Start <= $Date]
+
+    # Select the latest of past_rates, i.e. maximum by Rate_Start.
+    rate = max(past_rates, key=lambda r: r.Rate_Start)
+
+    # Return the Hourly_Rate from the relevant Rates record.
+    return rate.Hourly_Rate
+    ```
+
+    With the new methods, it is much simpler:
+    ```
+    rate = Rates.lookupRecords(Person=$Person, Role=$Role, sort_by="Rate_Start").find.le($Date)
+    return rate.Hourly_Rate
+    ```
+
+    Note that this is also much faster when there are many rates for the same Person and Role.
+    """
+    return FindOps(self)
+
+  @property
+  def _find(self):
+    return FindOps(self)
+
+  def _find_eq(self, *values):
+    found = self._bisect_find(bisect_left, 0, _min_row_id, values)
+    if found:
+      # 'found' means that we found a row that's greater-than-or-equal-to the values we are
+      # looking for. To check if the row is actually "equal", it remains to check if it is stictly
+      # greater than the passed-in values.
+      key = self._get_sort_key()
+      if key(found._row_id, values) < key(found._row_id):
+        return self._table.Record(0, self._source_relation)
+    return found
+
+  def _bisect_index(self, bisect_func, search_row_id, search_values=None):
+    key = self._get_sort_key()
+    # Note that 'key' argument is only available from Python 3.10.
+    return bisect_func(self._row_ids, key(search_row_id, search_values), key=key)
+
+  def _bisect_find(self, bisect_func, shift, search_row_id, search_values=None):
+    i = self._bisect_index(bisect_func, search_row_id, search_values=search_values)
+    return self._at(i + shift)
+
+_min_row_id = -sys.float_info.max
+_max_row_id = sys.float_info.max
+
+if six.PY3:
+  class FindOps(object):
+    def __init__(self, record_set):
+      self._rset = record_set
+
+    def previous(self, row):
+      row_id = self._rset._to_local_row_id(row)
+      return self._rset._bisect_find(bisect_left, -1, row_id)
+
+    def next(self, row):
+      row_id = self._rset._to_local_row_id(row)
+      return self._rset._bisect_find(bisect_right, 0, row_id)
+
+    def rank(self, row, order="asc"):
+      row_id = self._rset._to_local_row_id(row)
+      index = self._rset._bisect_index(bisect_left, row_id)
+      if order == "asc":
+        return index + 1
+      elif order == "desc":
+        return len(self._rset) - index
+      else:
+        raise ValueError("The 'order' parameter must be \"asc\" (default) or \"desc\"")
+
+    def lt(self, *values):
+      return self._rset._bisect_find(bisect_left, -1, _min_row_id, values)
+
+    def le(self, *values):
+      return self._rset._bisect_find(bisect_right, -1, _max_row_id, values)
+
+    def gt(self, *values):
+      return self._rset._bisect_find(bisect_right, 0, _max_row_id, values)
+
+    def ge(self, *values):
+      return self._rset._bisect_find(bisect_left, 0, _min_row_id, values)
+
+    def eq(self, *values):
+      return self._rset._find_eq(*values)
+else:
+  class FindOps(object):
+    def __init__(self, record_set):
+      raise NotImplementedError("Update engine to Python3 to use lookupRecords().find")
 
 
 def adjust_record(relation, value):

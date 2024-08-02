@@ -392,6 +392,10 @@ export class AppModelImpl extends Disposable implements AppModel {
       this.behavioralPromptsManager.reset();
     };
 
+    G.window.resetOnboarding = () => {
+      getUserPrefObs(this.userPrefsObs, 'showNewUserQuestions').set(true);
+    };
+
     this.autoDispose(subscribe(urlState().state, this.topAppModel.orgs, async (_use, s, orgs) => {
       this._updateLastVisitedOrgDomain(s, orgs);
     }));

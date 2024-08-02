@@ -11,3 +11,9 @@ export function getTemplateOrg() {
   }
   return org;
 }
+
+export function getOnboardingTutorialDocId() {
+  return appSettings.section('tutorials').flag('onboardingTutorialDocId').readString({
+    envVar: 'GRIST_ONBOARDING_TUTORIAL_DOC_ID',
+  });
+}

@@ -459,7 +459,10 @@
         "Python": "Python",
         "Python version used": "Python используемая версия",
         "Time Zone": "Часовой пояс",
-        "Try API calls from the browser": "Попробуйте вызовы API из браузера"
+        "Try API calls from the browser": "Попробуйте вызовы API из браузера",
+        "Formula times": "Время вычисления формулы",
+        "Only available to document editors": "Доступно только редакторам документов",
+        "Only available to document owners": "Доступно только владельцам документа"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -546,7 +549,8 @@
         "Visit our {{link}} to learn more about Grist.": "Посетите наш {{link}} чтобы узнать больше о Grist.",
         "Sign in": "Вход",
         "To use Grist, please either sign up or sign in.": "Для использования Grist, зарегистрируйтесь или войдите в систему.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Узнайте больше в {{helpCenterLink}}, или найдите специалиста с {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Узнайте больше в {{helpCenterLink}}, или найдите специалиста с {{sproutsProgram}}.",
+        "Learn more in our {{helpCenterLink}}.": "Узнайте больше в нашем {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Import Document": "Импорт документа",
@@ -1550,7 +1554,11 @@
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist позволяет настраивать различные типы аутентификации, включая SAML и OIDC.     Мы рекомендуем включить один из них, если Grist доступен по сети или доступен     нескольким пользователям.",
         "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Или, в качестве запасного варианта, вы можете установить: {{bootKey}} в окружающей среде и посетить: {{url}}",
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist позволяет настраивать различные типы аутентификации, включая SAML и OIDC. Мы рекомендуем включить один из них, если Grist доступен по сети или доступен нескольким пользователям.",
-        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "У вас нет доступа к панели администратора.\nПожалуйста, войдите в систему как администратор."
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "У вас нет доступа к панели администратора.\nПожалуйста, войдите в систему как администратор.",
+        "Key to sign sessions with": "Ключ для подписи сеансов с",
+        "Session Secret": "Session Secret",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist подписывает файлы cookie сеанса пользователя секретным ключом. Установите этот ключ через переменную среды GRIST_SESSION_SECRET. Grist возвращается к жестко запрограммированному значению по умолчанию, если оно не установлено. Мы можем удалить это уведомление в будущем, поскольку идентификаторы сеансов, созданные начиная с версии 1.1.16, по своей сути криптографически безопасны.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist подписывает файлы cookie сеанса пользователя секретным ключом. Установите этот ключ через переменную среды GRIST_SESSION_SECRET. Grist возвращается к жестко запрограммированному значению по умолчанию, если оно не установлено. Мы можем удалить это уведомление в будущем, поскольку идентификаторы сеансов, созданные начиная с версии 1.1.16, по своей сути криптографически безопасны."
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",

@@ -1,14 +1,24 @@
 import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {TelemetryModel, TelemetryModelImpl} from 'app/client/models/TelemetryModel';
-import {basicButtonLink, bigBasicButton, bigBasicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {theme} from 'app/client/ui2018/cssVars';
+import {
+  cssButtonIconAndText,
+  cssButtonText,
+  cssOptInButton,
+  cssOptInOutMessage,
+  cssOptOutButton,
+  cssParagraph,
+  cssSection,
+  cssSpinnerBox,
+  cssSponsorButton,
+} from 'app/client/ui/AdminTogglesCss';
+import {basicButtonLink} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {commonUrls} from 'app/common/gristUrls';
 import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
-import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
+import {Computed, Disposable, dom, makeTestId} from 'grainjs';
 
 const testId = makeTestId('test-support-grist-page-');
 
@@ -164,45 +174,3 @@ function gristCoreLink() {
     {href: commonUrls.githubGristCore, target: '_blank'},
   );
 }
-
-const cssSection = styled('div', ``);
-
-const cssParagraph = styled('div', `
-  color: ${theme.text};
-  font-size: 14px;
-  line-height: 20px;
-  margin-bottom: 12px;
-`);
-
-const cssOptInOutMessage = styled(cssParagraph, `
-  line-height: 40px;
-  font-weight: 600;
-  margin-top: 24px;
-  margin-bottom: 0px;
-`);
-
-const cssOptInButton = styled(bigPrimaryButton, `
-  margin-top: 24px;
-`);
-
-const cssOptOutButton = styled(bigBasicButton, `
-  margin-top: 24px;
-`);
-
-const cssSponsorButton = styled(bigBasicButtonLink, `
-  margin-top: 24px;
-`);
-
-const cssButtonIconAndText = styled('div', `
-  display: flex;
-  align-items: center;
-`);
-
-const cssButtonText = styled('span', `
-  margin-left: 8px;
-`);
-
-const cssSpinnerBox = styled('div', `
-  margin-top: 24px;
-  text-align: center;
-`);

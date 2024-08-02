@@ -69,17 +69,31 @@ class UserTable(object):
     most commonly a field in the current row (e.g. `$SomeField`) or a constant (e.g. a quoted string
     like `"Some Value"`) (examples below).
 
-    You may set the optional `sort_by` parameter to the column ID by which to sort multiple matching
-    results, to determine which of them is returned. You can prefix the column ID with "-" to
-    reverse the order.
-
     For example:
     ```
     People.lookupRecords(Email=$Work_Email)
     People.lookupRecords(First_Name="George", Last_Name="Washington")
-    People.lookupRecords(Last_Name="Johnson", sort_by="First_Name")
-    Orders.lookupRecords(Customer=$id, sort_by="-OrderDate")
     ```
+
+    You may set the optional `order_by` parameter to the column ID by which to sort the results.
+    You can prefix the column ID with "-" to reverse the order. You can also specify multiple
+    column IDs as a tuple (e.g. `order_by=("Account", "-Date")`).
+
+    For example:
+    ```
+    Transactions.lookupRecords(Account=$Account, order_by="Date")
+    Transactions.lookupRecords(Account=$Account, order_by="-Date")
+    Transactions.lookupRecords(Active=True, order_by=("Account", "-Date"))
+    ```
+
+    For records with equal `order_by` fields, the results are sorted according to how they appear
+    in views (which is determined by the special `manualSort` column). You may set `order_by=None`
+    to match the order of records in unsorted views.
+
+    By default, with no `order_by`, records are sorted by row ID, as if with `order_by="id"`.
+
+    For backward compatibility, `sort_by` may be used instead of `order_by`, but only allows a
+    single field, and falls back to row ID (rather than `manualSort`).
 
     See [RecordSet](#recordset) for useful properties offered by the returned object.
 
@@ -92,27 +106,35 @@ class UserTable(object):
     return self.table.lookup_records(**field_value_pairs)
 
   def lookupOne(self, **field_value_pairs):
+    # pylint: disable=line-too-long
     """
     Name: lookupOne
     Usage: UserTable.__lookupOne__(Field_In_Lookup_Table=value, ...)
     Returns a [Record](#record) matching the given field=value arguments. The value may be any
     expression,
     most commonly a field in the current row (e.g. `$SomeField`) or a constant (e.g. a quoted string
-    like `"Some Value"`). If multiple records are found, the first match is returned.
-
-    You may set the optional `sort_by` parameter to the column ID by which to sort multiple matching
-    results, to determine which of them is returned. You can prefix the column ID with "-" to
-    reverse the order.
+    like `"Some Value"`).
 
     For example:
     ```
     People.lookupOne(First_Name="Lewis", Last_Name="Carroll")
     People.lookupOne(Email=$Work_Email)
-    Tickets.lookupOne(Person=$id, sort_by="Date")   # Find the first ticket for the person
-    Tickets.lookupOne(Person=$id, sort_by="-Date")  # Find the last ticket for the person
     ```
 
     Learn more about [lookupOne](references-lookups.md#lookupone).
+
+    If multiple records are found, the first match is returned. You may set the optional `order_by`
+    parameter to the column ID by which to sort the matches, to determine which of them is
+    returned as the first one. By default, the record with the lowest row ID is returned.
+
+    See [`lookupRecords`](#lookupRecords) for details of all available options and behavior of
+    `order_by` (and of its legacy alternative, `sort_by`).
+
+    For example:
+    ```
+    Tasks.lookupOne(Project=$id, order_by="Priority")  # Returns the Task with the smallest Priority.
+    Rates.lookupOne(Person=$id, order_by="-Date")      # Returns the Rate with the latest Date.
+    ```
     """
     return self.table.lookup_one_record(**field_value_pairs)
 
@@ -176,7 +198,7 @@ class Table(object):
       self._id_column = id_column
 
     def __contains__(self, row_id):
-      return row_id < self._id_column.size() and self._id_column.raw_get(row_id) > 0
+      return 0 < row_id < self._id_column.size() and self._id_column.raw_get(row_id) > 0
 
     def __iter__(self):
       for row_id in xrange(self._id_column.size()):
@@ -500,6 +522,7 @@ class Table(object):
     """
     # The tuple of keys used determines the LookupMap we need.
     sort_by = kwargs.pop('sort_by', None)
+    order_by = kwargs.pop('order_by', 'id')   # For backward compatibility
     key = []
     col_ids = []
     for col_id in sorted(kwargs):
@@ -520,21 +543,15 @@ class Table(object):
     key = tuple(key)
 
     lookup_map = self._get_lookup_map(col_ids)
-    row_id_set, rel = lookup_map.do_lookup(key)
-    if sort_by:
-      if not isinstance(sort_by, six.string_types):
-        raise TypeError("sort_by must be a column ID (string)")
-      reverse = sort_by.startswith("-")
-      sort_col = sort_by.lstrip("-")
-      sort_col_obj = self.all_columns[sort_col]
-      row_ids = sorted(
-        row_id_set,
-        key=lambda r: column.SafeSortKey(self._get_col_obj_value(sort_col_obj, r, rel)),
-        reverse=reverse,
-      )
+    sort_spec = make_sort_spec(order_by, sort_by, self.has_column('manualSort'))
+    if sort_spec:
+      sorted_lookup_map = self._get_sorted_lookup_map(lookup_map, sort_spec)
     else:
-      row_ids = sorted(row_id_set)
-    return self.RecordSet(row_ids, rel, group_by=kwargs, sort_by=sort_by)
+      sorted_lookup_map = lookup_map
+
+    row_ids, rel = sorted_lookup_map.do_lookup(key)
+    return self.RecordSet(row_ids, rel, group_by=kwargs, sort_by=sort_by,
+        sort_key=sorted_lookup_map.sort_key)
 
   def lookup_one_record(self, **kwargs):
     return self.lookup_records(**kwargs).get_one()
@@ -555,13 +572,18 @@ class Table(object):
         c = lookup.extract_column_id(c)
         if not self.has_column(c):
           raise KeyError("Table %s has no column %s" % (self.table_id, c))
-      if any(isinstance(col_id, lookup._Contains) for col_id in col_ids_tuple):
-        column_class = lookup.ContainsLookupMapColumn
-      else:
-        column_class = lookup.SimpleLookupMapColumn
-      lmap = column_class(self, lookup_col_id, col_ids_tuple)
+      lmap = lookup.LookupMapColumn(self, lookup_col_id, col_ids_tuple)
       self._add_special_col(lmap)
     return lmap
+
+  def _get_sorted_lookup_map(self, lookup_map, sort_spec):
+    helper_col_id = lookup_map.col_id + "#" + ":".join(sort_spec)
+    # Find or create a helper col for the given sort_spec.
+    helper_col = self._special_cols.get(helper_col_id)
+    if not helper_col:
+      helper_col = lookup.SortedLookupMapColumn(self, helper_col_id, lookup_map, sort_spec)
+      self._add_special_col(helper_col)
+    return helper_col
 
   def delete_column(self, col_obj):
     assert col_obj.table_id == self.table_id
@@ -719,7 +741,40 @@ class Table(object):
     setattr(self.RecordSet, col_obj.col_id, recordset_field)
 
   def _remove_field_from_record_classes(self, col_id):
-    if hasattr(self.Record, col_id):
+    # Check if col_id is in the immediate dictionary of self.Record[Set]; if missing, or inherited
+    # from the base class (e.g. "find"), there is nothing to delete.
+    if col_id in self.Record.__dict__:
       delattr(self.Record, col_id)
-    if hasattr(self.RecordSet, col_id):
+    if col_id in self.RecordSet.__dict__:
       delattr(self.RecordSet, col_id)
+
+
+def make_sort_spec(order_by, sort_by, has_manual_sort):
+  # Note that rowId is always an automatic fallback.
+  if sort_by:
+    if not isinstance(sort_by, six.string_types):
+      # pylint: disable=line-too-long
+      raise TypeError("sort_by must be a string column ID, with optional '-'; use order_by for tuples")
+    # No fallback to 'manualSort' here, for backward compatibility.
+    return (sort_by,)
+
+  if not isinstance(order_by, tuple):
+    # Suppot None and single-string specs (for a single column)
+    if isinstance(order_by, six.string_types):
+      order_by = (order_by,)
+    elif order_by is None:
+      order_by = ()
+    else:
+      raise TypeError("order_by must be a string column ID, with optional '-', or a tuple of them")
+
+  # Check if 'id' is mentioned explicitly. If so, then no fallback to 'manualSort', or anything
+  # else, since row IDs are unique. Also, drop the 'id' column itself because the row ID fallback
+  # is mandatory and automatic.
+  if 'id' in order_by:
+    return order_by[:order_by.index('id')]
+
+  # Fall back to manualSort, but only if it exists in the table and not yet mentioned in order_by.
+  if has_manual_sort and 'manualSort' not in order_by:
+    return order_by + ('manualSort',)
+
+  return order_by

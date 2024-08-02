@@ -496,11 +496,6 @@ def QUARTILE(data, quartile_number):
   raise NotImplementedError()
 
 @unimplemented
-def RANK(value, data, is_ascending=None):
-  """Returns the rank of a specified value in a dataset."""
-  raise NotImplementedError()
-
-@unimplemented
 def RANK_AVG(value, data, is_ascending=None):
   """Returns the rank of a specified value in a dataset. If there is more than one entry of the same value in the dataset, the average rank of the entries will be returned."""
   raise NotImplementedError()

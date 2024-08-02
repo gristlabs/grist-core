@@ -165,7 +165,7 @@ const cssFormContent = styled('form', `
     font-size: 10px;
   }
   & p {
-    margin: 0px;
+    margin: 0 0 10px 0;
   }
   & strong {
     font-weight: 600;

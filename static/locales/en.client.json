@@ -1572,7 +1572,9 @@
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
         "Key to sign sessions with": "Key to sign sessions with",
-        "Session Secret": "Session Secret"
+        "Session Secret": "Session Secret",
+        "Enable Grist Enterprise": "Enable Grist Enterprise",
+        "Enterprise": "Enterprise"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1633,5 +1635,50 @@
         "Number of Calls": "Number of Calls",
         "Table ID": "Table ID",
         "Total Time (s)": "Total Time (s)"
+    },
+    "DocTutorial": {
+        "Click to expand": "Click to expand",
+        "Do you want to restart the tutorial? All progress will be lost.": "Do you want to restart the tutorial? All progress will be lost.",
+        "End tutorial": "End tutorial",
+        "Finish": "Finish",
+        "Next": "Next",
+        "Previous": "Previous",
+        "Restart": "Restart"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3 minute video tour",
+        "Complete our basics tutorial": "Complete our basics tutorial",
+        "Complete the tutorial": "Complete the tutorial",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Learn the basic of reference columns, linked widgets, column types, & cards."
+    },
+    "OnboardingPage": {
+        "Back": "Back",
+        "Discover Grist in 3 minutes": "Discover Grist in 3 minutes",
+        "Go hands-on with the Grist Basics tutorial": "Go hands-on with the Grist Basics tutorial",
+        "Go to the tutorial!": "Go to the tutorial!",
+        "Next step": "Next step",
+        "Skip step": "Skip step",
+        "Skip tutorial": "Skip tutorial",
+        "Tell us who you are": "Tell us who you are",
+        "Type here": "Type here",
+        "Welcome": "Welcome",
+        "What brings you to Grist (you can select multiple)?": "What brings you to Grist (you can select multiple)?",
+        "What is your role?": "What is your role?",
+        "What organization are you with?": "What organization are you with?",
+        "Your organization": "Your organization",
+        "Your role": "Your role"
+    },
+    "ToggleEnterpriseWidget": {
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",
+        "Disable Grist Enterprise": "Disable Grist Enterprise",
+        "Enable Grist Enterprise": "Enable Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise is **enabled**."
+    },
+    "ViewLayout": {
+        "Delete": "Delete",
+        "Delete data and this widget.": "Delete data and this widget.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Keep data and delete widget. Table will remain available in {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "Table {{tableName}} will no longer be visible",
+        "raw data page": "raw data page"
     }
 }

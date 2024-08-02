@@ -64,7 +64,7 @@ interface ServerOptions extends FlexServerOptions {
 export class MergedServer {
 
   public static async create(port: number, serverTypes: ServerType[], options: ServerOptions = {}) {
-    options.settings ??= await getGlobalConfig();
+    options.settings ??= getGlobalConfig();
     const ms = new MergedServer(port, serverTypes, options);
     // We need to know early on whether we will be serving plugins or not.
     if (ms.hasComponent("home")) {
@@ -172,6 +172,7 @@ export class MergedServer {
         this.flexServer.addLogEndpoint();
         this.flexServer.addGoogleAuthEndpoint();
         this.flexServer.addInstallEndpoints();
+        this.flexServer.addConfigEndpoints();
       }
 
       if (this.hasComponent("docs")) {
@@ -222,7 +223,7 @@ export async function startMain() {
     }
 
     await server.run();
-    return server;
+    return server.flexServer;
   } catch (e) {
     log.error('mergedServer failed to start', e);
     process.exit(1);

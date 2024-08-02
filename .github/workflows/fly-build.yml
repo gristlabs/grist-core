@@ -23,7 +23,8 @@ jobs:
       - name: Build and export Docker image
         id: docker-build
         run: >
-          docker build -t grist-core:preview . &&
+          ./buildtools/checkout-ext-directory.sh grist-ee &&
+          docker build -t grist-core:preview . --build-context ext=ext &&
           docker image save grist-core:preview -o grist-core.tar
       - name: Save PR information
         run: |

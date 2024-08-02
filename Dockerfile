@@ -4,13 +4,13 @@
 ##   docker buildx build -t ... --build-context=ext=<path> .
 ## The code in <path> will then be built along with the rest of Grist.
 ################################################################################
-FROM scratch as ext
+FROM scratch AS ext
 
 ################################################################################
 ## Javascript build stage
 ################################################################################
 
-FROM node:18-buster as builder
+FROM node:18-buster AS builder
 
 # Install all node dependencies.
 WORKDIR /grist
@@ -46,7 +46,7 @@ RUN \
 ################################################################################
 
 # Fetch python3.11 and python2.7
-FROM python:3.11-slim-buster as collector
+FROM python:3.11-slim-buster AS collector
 
 # Install all python dependencies.
 ADD sandbox/requirements.txt requirements.txt
@@ -66,7 +66,7 @@ RUN \
 # Fetch gvisor-based sandbox. Note, to enable it to run within default
 # unprivileged docker, layers of protection that require privilege have
 # been stripped away, see https://github.com/google/gvisor/issues/4371
-FROM docker.io/gristlabs/gvisor-unprivileged:buster as sandbox
+FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 
 ################################################################################
 ## Run-time stage

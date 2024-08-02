@@ -86,3 +86,24 @@ class TestTempRowIds(test_engine.EngineTestCase):
           "schoolCities": ["E:C", "B:New York", "E:C", "B:New York", "B:New York"]}],
       ]
     })
+
+  def test_update_remove(self):
+    self.load_sample(testsamples.sample_students)
+
+    out_actions = self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
+      ['AddRecord', 'Students', -1, {'firstName': 'A'}],
+      ['UpdateRecord', 'Students', -1, {'lastName': 'A'}],
+      ['BulkAddRecord', 'Students', [-2, None, -3], {'firstName': ['C', 'D', 'E']}],
+      ['BulkUpdateRecord', 'Students', [-2, -3, -1], {'lastName': ['C', 'E', 'F']}],
+      ['RemoveRecord', 'Students', -2],
+    )])
+
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        ['AddRecord', 'Students', 7, {'firstName': 'A'}],
+        ['UpdateRecord', 'Students', 7, {'lastName': 'A'}],
+        ['BulkAddRecord', 'Students', [8, 9, 10], {'firstName': ['C', 'D', 'E']}],
+        ['BulkUpdateRecord', 'Students', [8, 10, 7], {'lastName': ['C', 'E', 'F']}],
+        ['RemoveRecord', 'Students', 8],
+      ]
+    })

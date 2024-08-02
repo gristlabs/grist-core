@@ -2,9 +2,9 @@ import * as fse from "fs-extra";
 
 // Export dependencies for stubbing in tests.
 export const Deps = {
-  readFile: fse.readFile,
+  readFile: fse.readFileSync,
   writeFile: fse.writeFile,
-  pathExists: fse.pathExists,
+  pathExists: fse.pathExistsSync,
 };
 
 /**
@@ -56,15 +56,15 @@ export class FileConfig<FileContents> {
    * @param validator - Validates the contents are in the correct format, and converts to the correct type.
    *  Should throw an error or return null if not valid.
    */
-  public static async create<CreateConfigFileContents>(
+  public static create<CreateConfigFileContents>(
     configPath: string,
     validator: FileContentsValidator<CreateConfigFileContents>
-  ): Promise<FileConfig<CreateConfigFileContents>> {
+  ): FileConfig<CreateConfigFileContents> {
     // Start with empty object, as it can be upgraded to a full config.
     let rawFileContents: any = {};
 
-    if (await Deps.pathExists(configPath)) {
-      rawFileContents = JSON.parse(await Deps.readFile(configPath, 'utf8'));
+    if (Deps.pathExists(configPath)) {
+      rawFileContents = JSON.parse(Deps.readFile(configPath, 'utf8'));
     }
 
     let fileContents = null;
@@ -97,8 +97,8 @@ export class FileConfig<FileContents> {
     await this.persistToDisk();
   }
 
-  public async persistToDisk(): Promise<void> {
-    await Deps.writeFile(this._filePath, JSON.stringify(this._rawConfig, null, 2));
+  public async persistToDisk() {
+    await Deps.writeFile(this._filePath, JSON.stringify(this._rawConfig, null, 2) + "\n");
   }
 }
 

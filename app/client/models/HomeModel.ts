@@ -7,7 +7,7 @@ import {AppModel, reportError} from 'app/client/models/AppModel';
 import {reportMessage, UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {ownerName} from 'app/client/models/WorkspaceInfo';
-import {IHomePage} from 'app/common/gristUrls';
+import {IHomePage, isFeatureEnabled} from 'app/common/gristUrls';
 import {isLongerThan} from 'app/common/gutil';
 import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
@@ -58,6 +58,8 @@ export interface HomeModel {
   newDocWorkspace: Observable<Workspace|null|"unsaved">;
 
   shouldShowAddNewTip: Observable<boolean>;
+
+  onboardingTutorial: Observable<Document|null>;
 
   createWorkspace(name: string): Promise<void>;
   renameWorkspace(id: number, name: string): Promise<void>;
@@ -141,6 +143,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly shouldShowAddNewTip = Observable.create(this,
     !this._app.behavioralPromptsManager.hasSeenPopup('addNew'));
 
+  public readonly onboardingTutorial = Observable.create<Document|null>(this, null);
+
   private _userOrgPrefs = Observable.create<UserOrgPrefs|undefined>(this, this._app.currentOrg?.userOrgPrefs);
 
   constructor(private _app: AppModel, clientScope: ClientScope) {
@@ -176,6 +180,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     this.importSources.set(importSources);
 
     this._app.refreshOrgUsage().catch(reportError);
+
+    this._loadWelcomeTutorial().catch(reportError);
   }
 
   // Accessor for the AppModel containing this HomeModel.
@@ -368,6 +374,28 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       ws.docs = sortBy(ws.docs, (doc) => doc.name.toLowerCase());
     }
     return templateWss;
+  }
+
+  private async _loadWelcomeTutorial() {
+    const {templateOrg, onboardingTutorialDocId} = getGristConfig();
+    if (
+      !isFeatureEnabled('tutorials') ||
+      !templateOrg ||
+      !onboardingTutorialDocId ||
+      this._app.dismissedPopups.get().includes('onboardingCards')
+    ) {
+      return;
+    }
+
+    try {
+      const doc = await this._app.api.getTemplate(onboardingTutorialDocId);
+      if (this.isDisposed()) { return; }
+
+      this.onboardingTutorial.set(doc);
+    } catch (e) {
+      console.error(e);
+      reportError('Failed to load welcome tutorial');
+    }
   }
 
   private async _saveUserOrgPref<K extends keyof UserOrgPrefs>(key: K, value: UserOrgPrefs[K]) {

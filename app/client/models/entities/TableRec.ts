@@ -39,6 +39,7 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
   // If user can select this table in various places.
   // Note: Some hidden tables can still be visible on RawData view.
   isHidden: ko.Computed<boolean>;
+  isSummary: ko.Computed<boolean>;
 
   tableColor: string;
   disableAddRemoveRows: ko.Computed<boolean>;
@@ -67,6 +68,8 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   // tableId for normal tables, or tableId of the source table for summary tables.
   this.primaryTableId = ko.pureComputed(() =>
     this.summarySourceTable() ? this.summarySource().tableId() : this.tableId());
+
+  this.isSummary = this.autoDispose(ko.pureComputed(() => Boolean(this.summarySourceTable())));
 
   this.groupByColumns = ko.pureComputed(() => this.columns().all().filter(c => c.summarySourceCol()));
 

@@ -13,6 +13,7 @@ import {createDocMenu} from 'app/client/ui/DocMenu';
 import {createForbiddenPage, createNotFoundPage, createOtherErrorPage} from 'app/client/ui/errorPages';
 import {createHomeLeftPane} from 'app/client/ui/HomeLeftPane';
 import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
+import {OnboardingPage, shouldShowOnboardingPage} from 'app/client/ui/OnboardingPage';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {RightPanel} from 'app/client/ui/RightPanel';
 import {createTopBarDoc, createTopBarHome} from 'app/client/ui/TopBar';
@@ -90,6 +91,10 @@ function createMainPage(appModel: AppModel, appObj: App) {
 }
 
 function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
+  if (shouldShowOnboardingPage(appModel.userPrefsObs)) {
+    return dom.create(OnboardingPage, appModel);
+  }
+
   const pageModel = HomeModelImpl.create(owner, appModel, app.clientScope);
   // Expose the HomeModel for grist-desktop.
   (window as any).gristHomeModel = pageModel;
