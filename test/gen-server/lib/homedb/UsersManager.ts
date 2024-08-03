@@ -113,7 +113,7 @@ describe('UsersManager', function () {
     return Array(usersListLength).fill(null).map(_ => makeUsers(nbUsersByGroups, idxIt));
   }
 
-  describe('getResourceUsers', function () {
+  describe('getResourceUsers()', function () {
     function populateResourceWithMembers(res: Resource, members: User[], groupName?: string) {
       const aclRule = new AclRuleOrg();
       const group = new Group();
@@ -158,7 +158,7 @@ describe('UsersManager', function () {
     });
   });
 
-  describe('getUsersWithRole', function () {
+  describe('getUsersWithRole()', function () {
     function makeGroups(groupDefinition: {[k in NonGuestGroup['name']]?: User[] | undefined}){
       return (Object.entries(groupDefinition) as [NonGuestGroup['name'], User[] | undefined][])
         .map(([groupName, users], index) => {
@@ -247,7 +247,7 @@ describe('UsersManager', function () {
     });
   });
 
-  describe('getUserByKey', function () {
+  describe('getUserByKey()', function () {
     it('should return the user given their API Key', async function () {
       const user = await db.getUserByKey('api_key_for_chimpy');
       assert.strictEqual(user?.name, 'Chimpy', 'should retrieve Chimpy by their API key');
@@ -260,7 +260,7 @@ describe('UsersManager', function () {
     });
   });
 
-  describe('getUser', async function () {
+  describe('getUser()', async function () {
 
     const userWithPrefsEmail = 'userwithprefs@getgrist.com';
     async function getOrCreateUserWithPrefs() {
@@ -603,7 +603,7 @@ describe('UsersManager', function () {
     });
   });
 
-  describe('getUserByLogin', function () {
+  describe('getUserByLogin()', function () {
     const callGetUserByLogin = getOrCreateUser;
 
     it('should create a user when none exist with the corresponding email', async function () {
@@ -700,6 +700,57 @@ describe('UsersManager', function () {
           authSubject: userOptions.authSubject,
         });
       });
+    });
+  });
+
+  describe('getUserByLoginWithRetry()', async function () {
+    async function ensureGetUserByLoginWithRetryWorks(uuid: string) {
+      const email = makeEmail(uuid);
+      const user = await db.getUserByLoginWithRetry(email);
+      assertExists(user);
+      assert.equal(user.loginEmail, email);
+    }
+
+    function makeQueryFailedError() {
+      const error = new Error() as any;
+      error.name = 'QueryFailedError';
+      error.detail = 'Key (email)=whatever@getgrist.com already exists';
+      return error;
+    }
+
+    it('should work just like getUserByLogin', async function () {
+      await ensureGetUserByLoginWithRetryWorks( '55bde435-2f61-477a-881a-20076232a941');
+    });
+
+    it('should make a second attempt on special error', async function () {
+      sandbox.stub(UsersManager.prototype, 'getUserByLogin')
+        .onFirstCall().throws(makeQueryFailedError())
+        .callThrough();
+      await ensureGetUserByLoginWithRetryWorks( '47c42c26-e1e0-4dbb-a042-862107eb28ce');
+    });
+
+    it('should reject after 3 attempts', async function () {
+      const secondError = makeQueryFailedError();
+      sandbox.stub(UsersManager.prototype, 'getUserByLogin')
+        .onFirstCall().throws(makeQueryFailedError())
+        .onSecondCall().throws(secondError)
+        .callThrough();
+
+      const email = makeEmail('cb5ff3d2-9d84-4b6a-b329-1b80d40e4edf');
+      const promise = db.getUserByLoginWithRetry(email);
+      await assert.isRejected(promise);
+      await promise.catch(err => assert.equal(err, secondError));
+    });
+
+    it('should reject immediately if the error is not a QueryFailedError', async function () {
+      const errorMsg = 'my error';
+      sandbox.stub(UsersManager.prototype, 'getUserByLogin')
+        .rejects(new Error(errorMsg))
+        .callThrough();
+
+      const email = makeEmail('cb5ff3d2-9d84-4b6a-b329-1b80d40e4edf');
+      const promise = db.getUserByLoginWithRetry(email);
+      await assert.isRejected(promise, errorMsg);
     });
   });
 
