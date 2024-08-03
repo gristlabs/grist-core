@@ -433,7 +433,6 @@ export class UsersManager {
         const startOfDay = timestamp - (timestamp % 86400 /*24h*/); // start of a day in seconds since epoc
         return startOfDay;
       };
-      console.log("user.lastConnectionAt = ", user.lastConnectionAt);
       if (!user.lastConnectionAt || getTimestampStartOfDay(user.lastConnectionAt) !== getTimestampStartOfDay(nowish)) {
         user.lastConnectionAt = nowish;
         needUpdate = true;
