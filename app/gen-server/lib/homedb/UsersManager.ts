@@ -286,13 +286,7 @@ export class UsersManager {
     return { user, isWelcomed };
   }
 
-  public async updateUserName(userId: number, name: string) {
-    const user = await User.findOne({where: {id: userId}});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-    user.name = name;
-    await user.save();
-  }
-
+  // TODO: rather use the updateUser() method, if that makes sense?
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
     const user = await User.findOne({where: {id: userId}});
     if (!user) { throw new ApiError("unable to find user", 400); }
@@ -321,16 +315,16 @@ export class UsersManager {
   // for an email key conflict failure. This is in case our transaction conflicts with a peer
   // doing the same thing. This is quite likely if the first page visited by a previously
   // unseen user fires off multiple api calls.
-  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|null> {
     try {
-      return await this.getUserByLogin(email, options);
+      return this.getUserByLogin(email, options);
     } catch (e) {
       if (e.name === 'QueryFailedError' && e.detail &&
           e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
         // because we have to serialize sqlite transactions in any case to get around a typeorm
         // limitation.
-        return await this.getUserByLogin(email, options);
+        return this.getUserByLogin(email, options);
       }
       throw e;
     }
@@ -361,10 +355,10 @@ export class UsersManager {
    * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}) {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
-    const userByLogin = await this._runInTransaction(transaction, async manager => {
+    return this._runInTransaction(transaction, async manager => {
       let needUpdate = false;
       const userQuery = manager.createQueryBuilder()
         .select('user')
@@ -439,6 +433,7 @@ export class UsersManager {
         const startOfDay = timestamp - (timestamp % 86400 /*24h*/); // start of a day in seconds since epoc
         return startOfDay;
       };
+      console.log("user.lastConnectionAt = ", user.lastConnectionAt);
       if (!user.lastConnectionAt || getTimestampStartOfDay(user.lastConnectionAt) !== getTimestampStartOfDay(nowish)) {
         user.lastConnectionAt = nowish;
         needUpdate = true;
@@ -475,7 +470,6 @@ export class UsersManager {
       }
       return user;
     });
-    return userByLogin;
   }
 
   /**
