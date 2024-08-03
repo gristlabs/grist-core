@@ -1558,7 +1558,9 @@
         "Key to sign sessions with": "Ključ za podpisovanje sej",
         "Session Secret": "Skrivnost seje",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist podpisuje piškotke uporabniške seje s skrivnim ključem. Ta ključ nastavite prek spremenljivke okolja GRIST_SESSION_SECRET. Grist se vrne na trdo kodirano privzeto vrednost, če ni nastavljena. To obvestilo bomo morda odstranili v prihodnosti, saj so ID-ji sej, ustvarjeni od različice 1.1.16, sami po sebi kriptografsko varni.",
-        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podpisuje piškotke uporabniške seje s skrivnim ključem. Ta ključ nastavite prek spremenljivke okolja GRIST_SESSION_SECRET. Grist se vrne na trdo kodirano privzeto vrednost, če ni nastavljena. To obvestilo bomo morda odstranili v prihodnosti, saj so ID-ji sej, ustvarjeni od različice 1.1.16, sami po sebi kriptografsko varni."
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podpisuje piškotke uporabniške seje s skrivnim ključem. Ta ključ nastavite prek spremenljivke okolja GRIST_SESSION_SECRET. Grist se vrne na trdo kodirano privzeto vrednost, če ni nastavljena. To obvestilo bomo morda odstranili v prihodnosti, saj so ID-ji sej, ustvarjeni od različice 1.1.16, sami po sebi kriptografsko varni.",
+        "Enable Grist Enterprise": "Omogoči Grist Enterprise",
+        "Enterprise": "Podjetje"
     },
     "ChoiceEditor": {
         "Error in dropdown condition": "Napaka v spustnem meniju",
@@ -1633,5 +1635,50 @@
         "Average Time (s)": "Povprečni čas (i)",
         "Column ID": "ID stolpca",
         "Formula timer": "Časovnik formule"
+    },
+    "DocTutorial": {
+        "Click to expand": "Kliknite za razširitev",
+        "Do you want to restart the tutorial? All progress will be lost.": "Ali želite znova zagnati učbenik? Ves napredek bo izgubljen.",
+        "End tutorial": "Končaj vadnico",
+        "Finish": "Končaj",
+        "Next": "Naslednji",
+        "Previous": "Prejšnji",
+        "Restart": "Ponovni zagon"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3 minutni video ogled",
+        "Complete our basics tutorial": "Dokončaj našo vadnico o osnovah",
+        "Complete the tutorial": "Dokončaj vadnico",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Nauči se osnov referenčnih stolpcev, povezanih pripomočkov, vrst stolpcev in kartic."
+    },
+    "OnboardingPage": {
+        "Back": "Nazaj",
+        "Next step": "Naslednji korak",
+        "Skip step": "Preskoči korak",
+        "Skip tutorial": "Preskoči vadnico",
+        "Tell us who you are": "Povej nam, kdo si",
+        "Type here": "Piši tukaj",
+        "Welcome": "Dobrodošel",
+        "What brings you to Grist (you can select multiple)?": "Kaj te je pripeljalo do Grista (lahko izbereš več)?",
+        "What is your role?": "Kakšna je tvoja vloga?",
+        "What organization are you with?": "V kateri organizaciji si?",
+        "Your organization": "Tvoja organizacija",
+        "Your role": "Tvoja vloga",
+        "Go hands-on with the Grist Basics tutorial": "Preizkusi vadnico Osnove Grista",
+        "Discover Grist in 3 minutes": "Odkrij Grist v 3 minutah",
+        "Go to the tutorial!": "Pojdi na vadnico!"
+    },
+    "ToggleEnterpriseWidget": {
+        "Disable Grist Enterprise": "Onemogoči Grist Enterprise",
+        "Enable Grist Enterprise": "Omogoči Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise je **omogočen**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Za zagon Grist Enterprise po poskusnem obdobju 30 dni potrebujete aktivacijski ključ. Pridobite aktivacijski ključ tako, da se [prijavite za Grist\nEnterprise]({{signupLink}}). Za delovanje Grist Core ne potrebujete aktivacijskega ključa\n.\n\nIzvedite več v našem [centru za pomoč]({{helpCenter}})."
+    },
+    "ViewLayout": {
+        "Delete": "Briši",
+        "Delete data and this widget.": "Izbriši podatke in ta pripomoček.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Ohranite podatke in izbrišite pripomoček. Tabela bo ostala na voljo v {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "Tabela {{tableName}} ne bo več vidna",
+        "raw data page": "stran z neobdelanimi podatki"
     }
 }
