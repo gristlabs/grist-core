@@ -461,10 +461,6 @@ export class HomeDBManager extends EventEmitter {
     }
   }
 
-  public async updateUserName(userId: number, name: string) {
-    return this._usersManager.updateUserName(userId, name);
-  }
-
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
     return this._usersManager.updateUserOptions(userId, props);
   }
@@ -473,14 +469,14 @@ export class HomeDBManager extends EventEmitter {
    * @see UsersManager.prototype.getUserByLoginWithRetry
    */
   public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
-    return this._usersManager.getUserByLoginWithRetry(email, options);
+    return await this._usersManager.getUserByLoginWithRetry(email, options) ?? undefined;
   }
 
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
   public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
-    return this._usersManager.getUserByLogin(email, options);
+    return await this._usersManager.getUserByLogin(email, options) ?? undefined;
   }
 
   /**

@@ -3,7 +3,7 @@ import { AclRuleOrg } from 'app/gen-server/entity/AclRule';
 import { Group } from 'app/gen-server/entity/Group';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
-import { NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
+import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
 import { tmpdir } from 'os';
 import path from 'path';
 import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
@@ -15,17 +15,19 @@ import { Document } from 'app/gen-server/entity/Document';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
 import { assert } from 'chai';
-import { addSeedData } from 'test/gen-server/seed';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
-import { ANONYMOUS_USER_EMAIL } from 'app/common/UserAPI';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserOptions } from 'app/common/UserAPI';
 import { Login } from 'app/gen-server/entity/Login';
 import { Pref } from 'app/gen-server/entity/Pref';
 import { EntityManager } from 'typeorm';
+import log from 'app/server/lib/log';
+import winston from 'winston';
 
 const username = process.env.USER || "nobody";
 const tmpDir = path.join(tmpdir(), `grist_test_${username}_userendpoint`);
 
 describe('UsersManager', function () {
+  const NON_EXISTING_USER_ID = 10001337;
   this.timeout(30000);
   let env: EnvironmentSnapshot;
   let db: HomeDBManager;
@@ -34,6 +36,34 @@ describe('UsersManager', function () {
   function getTmpDatabase(typeormDb: string) {
     return getDatabase(path.join(tmpDir, typeormDb));
   }
+
+  /**
+   * Works around lacks of type narrowing after asserting the value is defined.
+   * This is fixed in latest version of @types/chai
+   * FIXME: once using @types/chai > 4.3.17, remove this function
+   */
+  function assertExists<T>(value?: T, message?: string): asserts value is T {
+    assert.exists(value, message);
+  }
+
+  /**
+   * TODO: Get rid of this function after having forced getUserByLogin returing a Promise<User>
+   * and not a Promise<User|undefined>
+   */
+  async function getOrCreateUser(uuid: string, options?: GetUserOptions) {
+    const user = await db.getUserByLogin(makeEmail(uuid), options);
+    assertExists(user, 'new user should be created');
+    return user;
+  }
+
+  function makeEmail(uuid: string) {
+    return uuid + '@getgrist.com';
+  }
+
+  function disableLogging<T extends keyof winston.LoggerInstance>(method: T) {
+    return sandbox.stub(log, method);
+  }
+
 
   before(async function () {
     env = new EnvironmentSnapshot();
@@ -240,20 +270,20 @@ describe('UsersManager', function () {
 
     it('should retrieve a user by their ID', async function () {
       const user = await db.getUser(db.getSupportUserId());
-      assert.ok(user, 'Should have returned a user');
-      assert.strictEqual(user!.name, 'Support');
-      assert.strictEqual(user!.loginEmail, SUPPORT_EMAIL);
-      assert.ok(!user!.prefs, "should not have retrieved user's prefs");
+      assertExists(user, 'Should have returned a user');
+      assert.strictEqual(user.name, 'Support');
+      assert.strictEqual(user.loginEmail, SUPPORT_EMAIL);
+      assertExists(!user.prefs, "should not have retrieved user's prefs");
     });
 
     it('should retrieve a user along with their prefs with `includePrefs` set to true', async function () {
       const expectedUser = await getOrCreateUserWithPrefs();
       const user = await db.getUser(expectedUser.id, {includePrefs: true});
-      assert.ok(user, "Should have retrieved the user");
-      assert.ok(user!.loginEmail);
-      assert.strictEqual(user!.loginEmail, expectedUser.loginEmail);
-      assert.ok(Array.isArray(user!.prefs), "should not have retrieved user's prefs");
-      assert.deepEqual(user!.prefs, [{
+      assertExists(user, "Should have retrieved the user");
+      assertExists(user.loginEmail);
+      assert.strictEqual(user.loginEmail, expectedUser.loginEmail);
+      assertExists(Array.isArray(user.prefs), "should not have retrieved user's prefs");
+      assert.deepEqual(user.prefs, [{
         userId: expectedUser.id,
         orgId: expectedUser.personalOrg.id,
         prefs: { showGristTour: true } as any
@@ -289,7 +319,7 @@ describe('UsersManager', function () {
     });
 
     it('should throw when user is not found', async function () {
-      await assert.isRejected(db.getFullUser(1337), "unable to find user");
+      await assert.isRejected(db.getFullUser(NON_EXISTING_USER_ID), "unable to find user");
     });
   });
 
@@ -376,21 +406,20 @@ describe('UsersManager', function () {
   describe('ensureExternalUser()', function () {
     let managerSaveSpy: SinonSpy;
     let userSaveSpy: SinonSpy;
-    let localDb: HomeDBManager;
 
-    before(async function () {
-      localDb = await getTmpDatabase('ensureExternalUser.db');
-      await addSeedData(localDb.connection);
-    });
     beforeEach(function () {
       managerSaveSpy = sandbox.spy(EntityManager.prototype, 'save');
       userSaveSpy = sandbox.spy(User.prototype, 'save');
 
     });
 
+    /**
+     * Make a user profile.
+     * @param uuid A hard-coded UUID (so it is unique and still can be easily retrieved in database for diagnosis)
+     */
     function makeProfile(uuid: string): UserProfile {
       return {
-        email: `${uuid}@getgrist.com`,
+        email: makeEmail(uuid),
         name: `NewUser ${uuid}`,
         connectId: `ConnectId-${uuid}`,
         picture: `https://mypic.com/${uuid}.png`
@@ -398,22 +427,22 @@ describe('UsersManager', function () {
     }
 
     async function checkUserInfo(profile: UserProfile) {
-      const user = await localDb.getExistingUserByLogin(profile.email);
-      assert.exists(user, "the new user should be in database");
+      const user = await db.getExistingUserByLogin(profile.email);
+      assertExists(user, "the new user should be in database");
       assert.deepInclude(user, {
         isFirstTimeUser: false,
         name: profile.name,
         picture: profile.picture
       });
-      assert.exists(user!.logins?.[0]);
-      assert.deepInclude(user!.logins[0], {
+      assert.exists(user.logins?.[0]);
+      assert.deepInclude(user.logins[0], {
         email: profile.email.toLowerCase(),
         displayEmail: profile.email
       });
     }
 
     it('should not do anything if the user already exists and is up to date', async function () {
-      await localDb.ensureExternalUser({
+      await db.ensureExternalUser({
         name: 'Chimpy',
         email: 'chimpy@getgrist.com',
       });
@@ -423,7 +452,7 @@ describe('UsersManager', function () {
 
     it('should save an unknown user', async function () {
       const profile = makeProfile('f6fce1ec-892e-493a-9bd7-2c4b0480e7f5');
-      await localDb.ensureExternalUser(profile);
+      await db.ensureExternalUser(profile);
       assert.isTrue(userSaveSpy.called, 'user.save() should have been called');
       assert.isTrue(managerSaveSpy.called, 'manager.save() should have been called');
 
@@ -432,18 +461,18 @@ describe('UsersManager', function () {
 
     it('should update a user if they already exist in database', async function () {
       const oldProfile = makeProfile('b48b3c95-a808-43e1-9b78-9171fb6c58fd');
-      await localDb.ensureExternalUser(oldProfile);
+      await db.ensureExternalUser(oldProfile);
 
-      let oldUser = await localDb.getExistingUserByLogin(oldProfile.email);
-      assert.exists(oldUser);
+      let oldUser = await db.getExistingUserByLogin(oldProfile.email);
+      assertExists(oldUser);
 
       const newProfile = {
         ...makeProfile('b6755ae0-0cb5-4a40-a54c-764d4b187c4c'),
         connectId: oldProfile.connectId,
       };
 
-      await localDb.ensureExternalUser(newProfile);
-      oldUser = await localDb.getExistingUserByLogin(oldProfile.email);
+      await db.ensureExternalUser(newProfile);
+      oldUser = await db.getExistingUserByLogin(oldProfile.email);
       assert.notExists(oldUser, 'we should not retrieve the user given their old email address');
 
       await checkUserInfo(newProfile);
@@ -451,12 +480,222 @@ describe('UsersManager', function () {
 
     it('should normalize email address', async function() {
       const profile = makeProfile('92AF6F0F-03C0-414B-9012-2C282D89512A');
-      await localDb.ensureExternalUser(profile);
+      await db.ensureExternalUser(profile);
       await checkUserInfo(profile);
     });
+  });
 
-    it('FIXME', function () {
-      throw new Error('TODO: only use `db` and no localDb variable anymore');
+  describe('updateUser()', function () {
+    let emitSpy: SinonSpy;
+
+    before(function () {
+      emitSpy = Sinon.spy();
+      db.on('firstLogin', emitSpy);
+    });
+
+    after(function () {
+      db.off('firstLogin', emitSpy);
+    });
+
+    afterEach(function () {
+      emitSpy.resetHistory();
+    });
+
+    function checkNoEventEmitted() {
+      assert.equal(emitSpy.callCount, 0, 'No event should have been emitted');
+    }
+
+    it('should reject when user is not found', async function () {
+      disableLogging('debug');
+      const promise = db.updateUser(NON_EXISTING_USER_ID, {name: 'foobar'});
+      await assert.isRejected(promise, 'unable to find user');
+    });
+
+    it('should update a user name', async function () {
+      const uuid = 'b7afd9fc-02e1-4206-93f1-b6b923319aed';
+      const newUser = await getOrCreateUser(uuid);
+      assert.equal(newUser.name, '');
+      const userName = 'user name';
+      await db.updateUser(newUser.id, {name: userName});
+      checkNoEventEmitted();
+      const updatedUser = await getOrCreateUser(uuid);
+      assert.equal(updatedUser.name, userName);
+    });
+
+    it('should not emit any event when isFirstTimeUser value has not changed', async function () {
+      const uuid = 'f94fb688-1a62-4423-b852-cbe7f7ceab27';
+      const newUser = await getOrCreateUser(uuid);
+      assert.equal(newUser.isFirstTimeUser, true);
+
+      await db.updateUser(newUser.id, {isFirstTimeUser: true});
+      checkNoEventEmitted();
+    });
+
+    it('should emit "firstLogin" event when isFirstTimeUser value has been toggled to false', async function () {
+      const uuid = 'f04080c3-98e6-4f4d-a428-20aca006ad52';
+      const userName = 'user name';
+      const newUser = await getOrCreateUser(uuid);
+      assert.equal(newUser.isFirstTimeUser, true);
+
+      await db.updateUser(newUser.id, {isFirstTimeUser: false, name: userName});
+      assert.equal(emitSpy.callCount, 1, '"firstLogin" event should have been emitted');
+
+      const fullUserFromEvent = emitSpy.firstCall.args[0];
+      assertExists(fullUserFromEvent, 'a FullUser object should be passed with the "firstLogin" event');
+      assert.equal(fullUserFromEvent.name, userName);
+      assert.equal(fullUserFromEvent.email, makeEmail(uuid));
+
+      const updatedUser = await getOrCreateUser(uuid);
+      assert.equal(updatedUser.isFirstTimeUser, false);
+    });
+  });
+
+  describe('updateUserOptions()', function () {
+    it('should reject when user is not found', async function () {
+      disableLogging('debug');
+      const promise = db.updateUserOptions(NON_EXISTING_USER_ID, {});
+      await assert.isRejected(promise, 'unable to find user');
+    });
+
+    it('should update user options', async function () {
+      const uuid = 'ca8a6812-12c3-473d-a063-500df4827f64';
+      const newUser = await getOrCreateUser(uuid);
+
+      assert.notExists(newUser.options);
+
+      const options: UserOptions = {locale: 'fr', authSubject: 'subject', isConsultant: true, allowGoogleLogin: true};
+      await db.updateUserOptions(newUser.id, options);
+
+      const updatedUser = await getOrCreateUser(uuid);
+      assertExists(updatedUser);
+      assertExists(updatedUser.options);
+      assert.deepEqual(updatedUser.options, options);
+    });
+  });
+
+  describe('getExistingUserByLogin()', function () {
+    it('should return an existing user', async function () {
+      const uuid = '3fcc580a-567b-4786-ba5b-139c36653598';
+      const newUser = await getOrCreateUser(uuid);
+
+      const retrievedUser = await db.getExistingUserByLogin(newUser.loginEmail!);
+      assertExists(retrievedUser);
+
+      assert.equal(retrievedUser.id, newUser.id);
+      assert.equal(retrievedUser.name, newUser.name);
+    });
+
+    it('should normalize the passed user email', async function () {
+      const uuid = '35413bfd-961a-4429-91e0-7b3fb7c4e09f';
+      const newUser = await getOrCreateUser(uuid);
+
+      const retrievedUser = await db.getExistingUserByLogin(newUser.loginEmail!.toUpperCase());
+      assertExists(retrievedUser);
+    });
+
+    it('should return undefined when the user is not found', async function () {
+      const nonExistingEmail = 'i-dont-exist@getgrist.com';
+      const retrievedUser = await db.getExistingUserByLogin(nonExistingEmail);
+      assert.isUndefined(retrievedUser);
+    });
+  });
+
+  describe('getUserByLogin', function () {
+    const callGetUserByLogin = getOrCreateUser;
+
+    it('should create a user when none exist with the corresponding email', async function () {
+      const uuid = 'a091767e-1ff9-4018-aff3-a19258bf51ac';
+      const email = makeEmail(uuid);
+      sandbox.useFakeTimers(42_000);
+      assert.notExists(await db.getExistingUserByLogin(email));
+
+      const user = await callGetUserByLogin(uuid.toUpperCase());
+
+      assert.isTrue(user.isFirstTimeUser, 'should be marked as first time user');
+      assert.equal(user.loginEmail, email);
+      assert.equal(user.logins[0].displayEmail, makeEmail(uuid.toUpperCase()));
+      assert.equal(user.name, '');
+      // FIXME: why is user.lastConnectionAt actually a string and not a Date?
+      // FIXME: why is user.lastConnectionAt updated here and ont firstLoginAt?
+      assert.equal(String(user.lastConnectionAt), '1970-01-01 00:00:42.000');
+    });
+
+    it('should create a personnal organization for the new user', async function () {
+      const uuid = '66e36443-027e-4a6a-bc58-dafd8d0cda5c';
+
+      const user = await callGetUserByLogin(uuid);
+
+      const org = await db.getOrg({userId: user.id, showAll: true}, user.personalOrg.id);
+      assertExists(org.data, 'should have retrieved personnal org data');
+      assert.equal(org.data.name, 'Personal');
+    });
+
+    it('should not create organizations for non-login emails', async function () {
+      const user = await db.getUserByLogin(EVERYONE_EMAIL);
+      assertExists(user);
+      assert.notOk(user.personalOrg);
+    });
+
+    it('should not update user information when no profile is passed', async function () {
+      const uuid = '330eb9dd-5aba-4d65-9397-88634fe448a4';
+      const userFirstCall = await callGetUserByLogin(uuid);
+      const userSecondCall = await callGetUserByLogin(uuid);
+      assert.deepEqual(userFirstCall, userSecondCall);
+    });
+
+    it('should update lastConnectionAt only for different days', async function () {
+      const fakeTimer = sandbox.useFakeTimers(0);
+      const uuid = '174509c4-f671-4241-9c17-47df54cdc4e0';
+      let user = await callGetUserByLogin(uuid);
+      const epochDateTime = '1970-01-01 00:00:00.000';
+      assert.equal(String(user.lastConnectionAt), epochDateTime);
+
+      await fakeTimer.tickAsync(42_000);
+      user = await callGetUserByLogin(uuid);
+      assert.equal(String(user.lastConnectionAt), epochDateTime);
+
+      // await fakeTimer.tickAsync('1d');
+      // user = await callGetUserByLogin(uuid);
+      // assert.match(String(user.lastConnectionAt), /^1970-01-02/);
+    });
+
+    describe('when passing information to update (using `profile`)', function () {
+      const makeProfile = (newEmail: string): UserProfile => ({
+        name: 'my user name',
+        email: newEmail,
+        picture: 'https://mypic.com/foo.png',
+        connectId: 'new-connect-id',
+      });
+
+      it('should populate the firstTimeLogin and deduce the name from the email', async function () {
+        sandbox.useFakeTimers(42_000);
+        const uuid = '59c4fd04-46ca-4a29-aeca-61809359f19d';
+        const user = await callGetUserByLogin(uuid, {profile: {name: '', email: makeEmail(uuid)}});
+        assert.equal(user.name, uuid);
+        // FIXME: why is user.firstLoginAt actually a string and not a Date?
+        assert.equal(String(user.firstLoginAt), '1970-01-01 00:00:42.000');
+      });
+
+      it('should populate user with any passed information', async function () {
+        const uuid = 'eea38c2d-f470-4d4f-9fee-e7c8564292d1';
+        await callGetUserByLogin(uuid);
+
+        const profile = makeProfile(makeEmail('5d3aa491-e8ae-457c-96d1-7022998148db'));
+        const userOptions: UserOptions = {authSubject: 'my-auth-subject'};
+
+        const updatedUser = await callGetUserByLogin(uuid, { profile, userOptions });
+        assert.deepInclude(updatedUser, {
+          name: profile.name,
+          connectId: profile.connectId,
+          picture: profile.picture,
+        });
+        assert.deepInclude(updatedUser.logins[0], {
+          displayEmail: profile.email,
+        });
+        assert.deepInclude(updatedUser.options, {
+          authSubject: userOptions.authSubject,
+        });
+      });
     });
   });
 });
