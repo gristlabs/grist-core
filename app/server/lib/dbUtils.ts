@@ -50,8 +50,23 @@ export async function updateDb(connection?: Connection) {
  * avoid duplication.
  */
 const connectionMutex = new Mutex();
+
+async function buildConnection(name?: string) {
+  const connection = await createConnection({...getTypeORMSettings(), ...(name ? {name} : {})});
+  // When using Sqlite, set a busy timeout of 3s to tolerate a little
+  // interference from connections made by tests. Logging doesn't show
+  // any particularly slow queries, but bad luck is possible.
+  // This doesn't affect when Postgres is in use. It also doesn't have
+  // any impact when there is a single connection to the db, as is the
+  // case when Grist is run as a single process.
+  if (connection.driver.options.type === 'sqlite') {
+    await connection.query('PRAGMA busy_timeout = 3000');
+  }
+  return connection;
+}
+
 export async function getOrCreateConnection(): Promise<Connection> {
-  return connectionMutex.runExclusive(async() => {
+  return connectionMutex.runExclusive(async () => {
     try {
       // If multiple servers are started within the same process, we
       // share the database connection.  This saves locking trouble
@@ -62,19 +77,15 @@ export async function getOrCreateConnection(): Promise<Connection> {
       if (!String(e).match(/ConnectionNotFoundError/)) {
         throw e;
       }
-      const connection = await createConnection(getTypeORMSettings());
-      // When using Sqlite, set a busy timeout of 3s to tolerate a little
-      // interference from connections made by tests. Logging doesn't show
-      // any particularly slow queries, but bad luck is possible.
-      // This doesn't affect when Postgres is in use. It also doesn't have
-      // any impact when there is a single connection to the db, as is the
-      // case when Grist is run as a single process.
-      if (connection.driver.options.type === 'sqlite') {
-        await connection.query('PRAGMA busy_timeout = 3000');
-      }
-      return connection;
+      return buildConnection();
     }
   });
+}
+
+export async function createNewConnection(name?: string): Promise<Connection> {
+  return connectionMutex.runExclusive(async () => {
+    return buildConnection(name);
+  })
 }
 
 export async function runMigrations(connection: Connection) {

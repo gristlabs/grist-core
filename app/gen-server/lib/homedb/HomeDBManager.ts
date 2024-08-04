@@ -56,7 +56,7 @@ import {
   readJson
 } from 'app/gen-server/sqlUtils';
 import {appSettings} from 'app/server/lib/AppSettings';
-import {getOrCreateConnection} from 'app/server/lib/dbUtils';
+import {createNewConnection, getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -248,7 +248,6 @@ export type BillingOptions = Partial<Pick<BillingAccount,
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
   private _connection: Connection;
-  private _dbType: DatabaseType;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
   private _idPrefix: string = "";  // Place this before ids in subdomains, used in routing to
@@ -257,6 +256,10 @@ export class HomeDBManager extends EventEmitter {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   // In restricted mode, documents should be read-only.
   private _restrictedMode: boolean = false;
+
+  private get _dbType(): DatabaseType {
+    return this._connection.driver.options.type;
+  }
 
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
@@ -348,7 +351,10 @@ export class HomeDBManager extends EventEmitter {
 
   public async connect(): Promise<void> {
     this._connection = await getOrCreateConnection();
-    this._dbType = this._connection.driver.options.type;
+  }
+
+  public async createNewConnection(name?: string): Promise<void> {
+    this._connection = await createNewConnection(name);
   }
 
   // make sure special users and workspaces are available
@@ -4358,7 +4364,6 @@ export class HomeDBManager extends EventEmitter {
     });
     return verifyEntity(orgQuery);
   }
-
 }
 
 // Return a QueryResult reflecting the output of a query builder.
