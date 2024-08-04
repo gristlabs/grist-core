@@ -481,7 +481,7 @@
         "Sign in": "Hasi saioa",
         "To use Grist, please either sign up or sign in.": "Grist erabiltzeko eman izena edo hasi saioa.",
         "Visit our {{link}} to learn more about Grist.": "Bisitatu {{link}} Grist-i buruz gehiago ikasteko.",
-        "Help Center": "Laguntza gunea",
+        "Help Center": "Laguntza Gunea",
         "Import Document": "Inportatu dokumentua",
         "Welcome to {{orgName}}": "Ongi etorri {{orgName}}(e)ra",
         "Sign up": "Eman izena",
@@ -513,7 +513,7 @@
         "Tutorial": "Tutoriala"
     },
     "LeftPanelCommon": {
-        "Help Center": "Laguntza gunea"
+        "Help Center": "Laguntza Gunea"
     },
     "MakeCopyMenu": {
         "As Template": "Txantiloi gisa",
@@ -1002,7 +1002,7 @@
         "Configuring your document": "Dokumentua konfiguratzen",
         "Editing Data": "Datuak editatzen",
         "Enter": "Sartu",
-        "Help Center": "Laguntza gunea",
+        "Help Center": "Laguntza Gunea",
         "Use the Share button ({{share}}) to share the document or export data.": "Erabili Partekatu botoia ({{share}}) dokumentua partekatu edo datuak esportatzeko.",
         "Welcome to Grist!": "Ongi etorri Grist-era!",
         "template library": "txantiloi liburutegia",
@@ -1327,7 +1327,7 @@
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Erabiltzaileak {{resource}}-rako bistarako sarbidea du, barneko baliabideetarako sarbidea eskuz ezartzearen ondorioz. Hemendik kenduz gero, barruan dauden baliabideetarako sarbidea galduko du."
     },
     "SupportGristNudge": {
-        "Help Center": "Laguntza-gunea",
+        "Help Center": "Laguntza Gunea",
         "Opt in to Telemetry": "Bidali telemetria",
         "Support Grist": "Eman babesa Grist-i",
         "Support Grist page": "Eman babesa Grist-en orriari",
@@ -1339,7 +1339,7 @@
     },
     "SupportGristPage": {
         "GitHub Sponsors page": "GitHub Sponsors orria",
-        "Help Center": "Laguntza-gunea",
+        "Help Center": "Laguntza Gunea",
         "Home": "Hasiera",
         "Support Grist": "Eman babesa Grist-i",
         "Telemetry": "Telemetria",
@@ -1535,7 +1535,9 @@
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Ez duzu administratzailearen mahaigainera sarbiderik.\nHasi saioa administratzaile gisa.",
         "Key to sign sessions with": "Saioak sinatzeko gakoa",
         "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Gristek formula oso boteretsuak onartzen ditu, Python erabiliz. Dokumentu bakoitzean beste dokumentu batzuetatik eta saretik isolatutako sandbox baten barruan formulak exekutatzeko, GRIST_SANDBOX_FLAVOR aldagaia gvisor-era aldatzea gomendatzen dugu, zure hardwarea bateragarria bada (gehienak badira).",
-        "Session Secret": "Saioaren gakoa"
+        "Session Secret": "Saioaren gakoa",
+        "Enable Grist Enterprise": "Gaitu Grist Enterprise",
+        "Enterprise": "Enterprise"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -1665,5 +1667,18 @@
         "What organization are you with?": "Zein erakunderekin jarduten duzu?",
         "Your role": "Zure rola",
         "Your organization": "Zure erakundea"
+    },
+    "ToggleEnterpriseWidget": {
+        "Grist Enterprise is **enabled**.": "Grist Enterprise **gaituta** dago.",
+        "Disable Grist Enterprise": "Ezgaitu Grist Enterprise",
+        "Enable Grist Enterprise": "Gaitu Grist Enterprise",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n."
+    },
+    "ViewLayout": {
+        "Delete data and this widget.": "Ezabatu datuak eta widgeta.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Mantendu datuak eta ezabatu widgeta. Taulak erabilgarri egoten jarraituko du {{rawDataLink}}(e)n",
+        "Table {{tableName}} will no longer be visible": "{{tableName}} taula ez da ikusgai egongo aurrerantzean",
+        "raw data page": "datu gordinen orria",
+        "Delete": "Ezabatu"
     }
 }
