@@ -513,6 +513,63 @@ export class UsersManager {
     };
   }
 
+  public async initializeSpecialIds(): Promise<void> {
+    await this._maybeCreateSpecialUserId({
+      email: ANONYMOUS_USER_EMAIL,
+      name: "Anonymous"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: PREVIEWER_EMAIL,
+      name: "Preview"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: EVERYONE_EMAIL,
+      name: "Everyone"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: SUPPORT_EMAIL,
+      name: "Support"
+    });
+  }
+
+  /**
+   *
+   * Take a list of user profiles coming from the client's session, correlate
+   * them with Users and Logins in the database, and construct full profiles
+   * with user ids, standardized display emails, pictures, and anonymous flags.
+   *
+   */
+  public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
+    if (profiles.length === 0) { return []; }
+    const qb = this._connection.createQueryBuilder()
+      .select('logins')
+      .from(Login, 'logins')
+      .leftJoinAndSelect('logins.user', 'user')
+      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
+    const completedProfiles: {[email: string]: FullUser} = {};
+    for (const login of await qb.getMany()) {
+      completedProfiles[login.email] = {
+        id: login.user.id,
+        email: login.displayEmail,
+        name: login.user.name,
+        picture: login.user.picture,
+        anonymous: login.user.id === this.getAnonymousUserId(),
+        locale: login.user.options?.locale
+      };
+    }
+    return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
+      .filter(fullProfile => fullProfile);
+  }
+
+  /**
+   * ==================================
+   *
+   * Below methods are public but not exposed by HomeDBManager
+   *
+   * They are meant to be used internally (i.e. by homedb/ modules)
+   *
+   */
+
   // Looks up the emails in the permission delta and adds them to the users map in
   // the delta object.
   // Returns a QueryResult based on the validity of the passed in PermissionDelta object.
@@ -580,25 +637,6 @@ export class UsersManager {
       permissionThreshold,
       affectsSelf: userId in userIdMap,
     };
-  }
-
-  public async initializeSpecialIds(): Promise<void> {
-    await this._maybeCreateSpecialUserId({
-      email: ANONYMOUS_USER_EMAIL,
-      name: "Anonymous"
-    });
-    await this._maybeCreateSpecialUserId({
-      email: PREVIEWER_EMAIL,
-      name: "Preview"
-    });
-    await this._maybeCreateSpecialUserId({
-      email: EVERYONE_EMAIL,
-      name: "Everyone"
-    });
-    await this._maybeCreateSpecialUserId({
-      email: SUPPORT_EMAIL,
-      name: "Support"
-    });
   }
 
   /**
@@ -677,34 +715,6 @@ export class UsersManager {
     return members;
   }
 
-  /**
-   *
-   * Take a list of user profiles coming from the client's session, correlate
-   * them with Users and Logins in the database, and construct full profiles
-   * with user ids, standardized display emails, pictures, and anonymous flags.
-   *
-   */
-  public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
-    if (profiles.length === 0) { return []; }
-    const qb = this._connection.createQueryBuilder()
-      .select('logins')
-      .from(Login, 'logins')
-      .leftJoinAndSelect('logins.user', 'user')
-      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
-    const completedProfiles: {[email: string]: FullUser} = {};
-    for (const login of await qb.getMany()) {
-      completedProfiles[login.email] = {
-        id: login.user.id,
-        email: login.displayEmail,
-        name: login.user.name,
-        picture: login.user.picture,
-        anonymous: login.user.id === this.getAnonymousUserId(),
-        locale: login.user.options?.locale
-      };
-    }
-    return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
-      .filter(profile => profile);
-  }
 
   // For the moment only the support user can add both everyone@ and anon@ to a
   // resource, since that allows spam. TODO: enhance or remove.

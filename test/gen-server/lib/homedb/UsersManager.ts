@@ -16,12 +16,13 @@ import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
 import { assert } from 'chai';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
-import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserOptions } from 'app/common/UserAPI';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PREVIEWER_EMAIL, UserOptions } from 'app/common/UserAPI';
 import { Login } from 'app/gen-server/entity/Login';
 import { Pref } from 'app/gen-server/entity/Pref';
 import { EntityManager } from 'typeorm';
 import log from 'app/server/lib/log';
 import winston from 'winston';
+import { updateDb } from 'app/server/lib/dbUtils';
 
 const username = process.env.USER || "nobody";
 const tmpDir = path.join(tmpdir(), `grist_test_${username}_userendpoint`);
@@ -832,6 +833,97 @@ describe('UsersManager', function () {
       const promise = db.deleteUser({userId: userToDelete.id}, userToDelete.id, userName);
       await assert.isFulfilled(promise);
     });
+  });
 
+  describe('completeProfiles()', function () {
+    it('should return an empty array if no profiles are provided', async function () {
+      const res = await db.completeProfiles([]);
+      assert.deepEqual(res, []);
+    });
+
+    it("should complete a single user profile with looking by normalized address", async function () {
+      const uuid = '0f9a8eae-4fcf-4e9b-85e8-227b2ce9cad5';
+      const email = makeEmail(uuid);
+      const profile = {
+        name: 'complete-profile-email-normalized-user',
+        email: makeEmail(uuid),
+        picture: 'https://mypic.com/me.png',
+      };
+      const someLocale = 'fr-FR';
+      const userCreated = await getOrCreateUser(uuid, { profile });
+      await db.updateUserOptions(userCreated.id, {locale: someLocale});
+
+      const res = await db.completeProfiles([{name: 'whatever', email: email.toUpperCase()}]);
+
+      assert.deepEqual(res, [{
+        ...profile,
+        id: userCreated.id,
+        locale: someLocale,
+        anonymous: false
+      }]);
+    });
+
+    it('should complete several user profiles', async function () {
+      const uuidPrefix = '0f9a8eae-4fcf-4e9b-85e8-227b2ce9cad5';
+      const seq = Array(10).fill(null).map((_, i) => i+1);
+      const uuids = seq.map(i => `${uuidPrefix}_${i}`);
+      const usersCreated = await Promise.all(
+        uuids.map(uuid => getOrCreateUser(uuid))
+      );
+
+      const res = await db.completeProfiles(
+        uuids.map(uuid => ({name: 'whatever', email: makeEmail(uuid)}))
+      );
+      assert.lengthOf(res, uuids.length);
+      for (const [index, uuid] of uuids.entries()) {
+        assert.deepInclude(res[index], {
+          id: usersCreated[index].id,
+          email: makeEmail(uuid),
+        });
+      }
+    });
+  });
+
+  describe('initializeSpecialIds()', function () {
+    let initSpecIdEnv: EnvironmentSnapshot;
+    async function withDataBase(dbName: string, cb: (db: HomeDBManager) => Promise<void>) {
+      // await prepareDatabase(tmpDir, dbName);
+      process.env.TYPEORM_DATABASE = path.join(tmpDir, dbName);
+      const localDb = new HomeDBManager();
+      await localDb.createNewConnection('special-id');
+      await updateDb(localDb.connection);
+      try {
+        await cb(localDb);
+      } finally {
+        await localDb.connection.destroy();
+      }
+    }
+
+    beforeEach(function () {
+      initSpecIdEnv = new EnvironmentSnapshot();
+    });
+    afterEach(function () {
+      initSpecIdEnv.restore();
+    });
+
+    it('should initialize special ids', async function () {
+      return withDataBase('test-special-ids.db', async (localDb) => {
+        const specialAccounts = [
+          {name: "Support", email: SUPPORT_EMAIL},
+          {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
+          {name: "Preview", email: PREVIEWER_EMAIL},
+          {name: "Everyone", email: EVERYONE_EMAIL}
+        ];
+        for (const {email} of specialAccounts) {
+          assert.notExists(await localDb.getExistingUserByLogin(email));
+        }
+        await localDb.initializeSpecialIds();
+        for (const {name, email} of specialAccounts) {
+          const res = await localDb.getExistingUserByLogin(email);
+          assertExists(res);
+          assert.equal(res.name, name);
+        }
+      });
+    });
   });
 });
