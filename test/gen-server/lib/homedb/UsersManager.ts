@@ -33,6 +33,7 @@ describe('UsersManager', function () {
   let env: EnvironmentSnapshot;
   let db: HomeDBManager;
   let sandbox: SinonSandbox;
+  const uniqueLocalPart = new Set<string>();
 
   function getTmpDatabase(typeormDb: string) {
     return getDatabase(path.join(tmpDir, typeormDb));
@@ -47,18 +48,31 @@ describe('UsersManager', function () {
     assert.exists(value, message);
   }
 
+  function ensureUnique(localPart: string) {
+    if (uniqueLocalPart.has(localPart)) {
+      throw new Error('passed localPart is already used elsewhere');
+    }
+    uniqueLocalPart.add(localPart);
+    return localPart;
+  }
+
+  function createUniqueUser(uniqueEmailLocalPart: string) {
+    ensureUnique(uniqueEmailLocalPart);
+    return getOrCreateUser(uniqueEmailLocalPart);
+  }
+
   /**
    * TODO: Get rid of this function after having forced getUserByLogin returing a Promise<User>
    * and not a Promise<User|undefined>
    */
-  async function getOrCreateUser(uuid: string, options?: GetUserOptions) {
-    const user = await db.getUserByLogin(makeEmail(uuid), options);
+  async function getOrCreateUser(localPart: string, options?: GetUserOptions) {
+    const user = await db.getUserByLogin(makeEmail(localPart), options);
     assertExists(user, 'new user should be created');
     return user;
   }
 
-  function makeEmail(uuid: string) {
-    return uuid + '@getgrist.com';
+  function makeEmail(localPart: string) {
+    return localPart + '@getgrist.com';
   }
 
   async function getPersonalOrg(user: User) {
@@ -419,14 +433,15 @@ describe('UsersManager', function () {
 
     /**
      * Make a user profile.
-     * @param uuid A hard-coded UUID (so it is unique and still can be easily retrieved in database for diagnosis)
+     * @param localPart A unique local part of the email (also used for the other fields).
      */
-    function makeProfile(uuid: string): UserProfile {
+    function makeProfile(localPart: string): UserProfile {
+      ensureUnique(localPart);
       return {
-        email: makeEmail(uuid),
-        name: `NewUser ${uuid}`,
-        connectId: `ConnectId-${uuid}`,
-        picture: `https://mypic.com/${uuid}.png`
+        email: makeEmail(localPart),
+        name: `NewUser ${localPart}`,
+        connectId: `ConnectId-${localPart}`,
+        picture: `https://mypic.com/${localPart}.png`
       };
     }
 
@@ -455,7 +470,7 @@ describe('UsersManager', function () {
     });
 
     it('should save an unknown user', async function () {
-      const profile = makeProfile('f6fce1ec-892e-493a-9bd7-2c4b0480e7f5');
+      const profile = makeProfile('ensureExternalUser-saves-an-unknown-user');
       await db.ensureExternalUser(profile);
       assert.isTrue(userSaveSpy.called, 'user.save() should have been called');
       assert.isTrue(managerSaveSpy.called, 'manager.save() should have been called');
@@ -464,14 +479,14 @@ describe('UsersManager', function () {
     });
 
     it('should update a user if they already exist in database', async function () {
-      const oldProfile = makeProfile('b48b3c95-a808-43e1-9b78-9171fb6c58fd');
+      const oldProfile = makeProfile('ensureexternaluser-updates-an-existing-user_old');
       await db.ensureExternalUser(oldProfile);
 
       let oldUser = await db.getExistingUserByLogin(oldProfile.email);
       assertExists(oldUser);
 
       const newProfile = {
-        ...makeProfile('b6755ae0-0cb5-4a40-a54c-764d4b187c4c'),
+        ...makeProfile('ensureexternaluser-updates-an-existing-user_new'),
         connectId: oldProfile.connectId,
       };
 
@@ -483,7 +498,7 @@ describe('UsersManager', function () {
     });
 
     it('should normalize email address', async function() {
-      const profile = makeProfile('92AF6F0F-03C0-414B-9012-2C282D89512A');
+      const profile = makeProfile('ENSUREEXTERNALUSER-NORMALIZES-email-address');
       await db.ensureExternalUser(profile);
       await checkUserInfo(profile);
     });
@@ -516,29 +531,29 @@ describe('UsersManager', function () {
     });
 
     it('should update a user name', async function () {
-      const uuid = 'b7afd9fc-02e1-4206-93f1-b6b923319aed';
-      const newUser = await getOrCreateUser(uuid);
-      assert.equal(newUser.name, '');
+      const emailLocalPart = 'updateUser-should-update-user-name';
+      const createdUser = await createUniqueUser(emailLocalPart);
+      assert.equal(createdUser.name, '');
       const userName = 'user name';
-      await db.updateUser(newUser.id, {name: userName});
+      await db.updateUser(createdUser.id, {name: userName});
       checkNoEventEmitted();
-      const updatedUser = await getOrCreateUser(uuid);
+      const updatedUser = await getOrCreateUser(emailLocalPart);
       assert.equal(updatedUser.name, userName);
     });
 
     it('should not emit any event when isFirstTimeUser value has not changed', async function () {
-      const uuid = 'f94fb688-1a62-4423-b852-cbe7f7ceab27';
-      const newUser = await getOrCreateUser(uuid);
-      assert.equal(newUser.isFirstTimeUser, true);
+      const localPart = 'updateuser-should-not-emit-when-isfirsttimeuser-not-changed';
+      const createdUser = await createUniqueUser(localPart);
+      assert.equal(createdUser.isFirstTimeUser, true);
 
-      await db.updateUser(newUser.id, {isFirstTimeUser: true});
+      await db.updateUser(createdUser.id, {isFirstTimeUser: true});
       checkNoEventEmitted();
     });
 
     it('should emit "firstLogin" event when isFirstTimeUser value has been toggled to false', async function () {
-      const uuid = 'f04080c3-98e6-4f4d-a428-20aca006ad52';
+      const localPart = 'updateuser-emits-firstlogin';
       const userName = 'user name';
-      const newUser = await getOrCreateUser(uuid);
+      const newUser = await createUniqueUser(localPart);
       assert.equal(newUser.isFirstTimeUser, true);
 
       await db.updateUser(newUser.id, {isFirstTimeUser: false, name: userName});
@@ -547,9 +562,9 @@ describe('UsersManager', function () {
       const fullUserFromEvent = emitSpy.firstCall.args[0];
       assertExists(fullUserFromEvent, 'a FullUser object should be passed with the "firstLogin" event');
       assert.equal(fullUserFromEvent.name, userName);
-      assert.equal(fullUserFromEvent.email, makeEmail(uuid));
+      assert.equal(fullUserFromEvent.email, makeEmail(localPart));
 
-      const updatedUser = await getOrCreateUser(uuid);
+      const updatedUser = await getOrCreateUser(localPart);
       assert.equal(updatedUser.isFirstTimeUser, false);
     });
   });
@@ -562,15 +577,15 @@ describe('UsersManager', function () {
     });
 
     it('should update user options', async function () {
-      const uuid = 'ca8a6812-12c3-473d-a063-500df4827f64';
-      const newUser = await getOrCreateUser(uuid);
+      const localPart = 'updateuseroptions-updates-user-options';
+      const createdUser = await createUniqueUser(localPart);
 
-      assert.notExists(newUser.options);
+      assert.notExists(createdUser.options);
 
       const options: UserOptions = {locale: 'fr', authSubject: 'subject', isConsultant: true, allowGoogleLogin: true};
-      await db.updateUserOptions(newUser.id, options);
+      await db.updateUserOptions(createdUser.id, options);
 
-      const updatedUser = await getOrCreateUser(uuid);
+      const updatedUser = await getOrCreateUser(localPart);
       assertExists(updatedUser);
       assertExists(updatedUser.options);
       assert.deepEqual(updatedUser.options, options);
@@ -579,19 +594,19 @@ describe('UsersManager', function () {
 
   describe('getExistingUserByLogin()', function () {
     it('should return an existing user', async function () {
-      const uuid = '3fcc580a-567b-4786-ba5b-139c36653598';
-      const newUser = await getOrCreateUser(uuid);
+      const localPart = 'getexistinguserbylogin-returns-existing-user';
+      const createdUser = await createUniqueUser(localPart);
 
-      const retrievedUser = await db.getExistingUserByLogin(newUser.loginEmail!);
+      const retrievedUser = await db.getExistingUserByLogin(createdUser.loginEmail!);
       assertExists(retrievedUser);
 
-      assert.equal(retrievedUser.id, newUser.id);
-      assert.equal(retrievedUser.name, newUser.name);
+      assert.equal(retrievedUser.id, createdUser.id);
+      assert.equal(retrievedUser.name, createdUser.name);
     });
 
     it('should normalize the passed user email', async function () {
-      const uuid = '35413bfd-961a-4429-91e0-7b3fb7c4e09f';
-      const newUser = await getOrCreateUser(uuid);
+      const localPart = 'getexistinguserbylogin-normalizes-user-email';
+      const newUser = await createUniqueUser(localPart);
 
       const retrievedUser = await db.getExistingUserByLogin(newUser.loginEmail!.toUpperCase());
       assertExists(retrievedUser);
@@ -608,16 +623,16 @@ describe('UsersManager', function () {
     const callGetUserByLogin = getOrCreateUser;
 
     it('should create a user when none exist with the corresponding email', async function () {
-      const uuid = 'a091767e-1ff9-4018-aff3-a19258bf51ac';
-      const email = makeEmail(uuid);
+      const localPart = ensureUnique('getuserbylogin-creates-user-when-not-already-exists');
+      const email = makeEmail(localPart);
       sandbox.useFakeTimers(42_000);
       assert.notExists(await db.getExistingUserByLogin(email));
 
-      const user = await callGetUserByLogin(uuid.toUpperCase());
+      const user = await callGetUserByLogin(localPart.toUpperCase());
 
       assert.isTrue(user.isFirstTimeUser, 'should be marked as first time user');
       assert.equal(user.loginEmail, email);
-      assert.equal(user.logins[0].displayEmail, makeEmail(uuid.toUpperCase()));
+      assert.equal(user.logins[0].displayEmail, makeEmail(localPart.toUpperCase()));
       assert.equal(user.name, '');
       // FIXME: why is user.lastConnectionAt actually a string and not a Date?
       // FIXME: why is user.lastConnectionAt updated here and ont firstLoginAt?
@@ -625,9 +640,9 @@ describe('UsersManager', function () {
     });
 
     it('should create a personnal organization for the new user', async function () {
-      const uuid = '66e36443-027e-4a6a-bc58-dafd8d0cda5c';
+      const localPart = ensureUnique('getuserbylogin-creates-personnal-org');
 
-      const user = await callGetUserByLogin(uuid);
+      const user = await callGetUserByLogin(localPart);
 
       const org = await getPersonalOrg(user);
       assertExists(org.data, 'should have retrieved personnal org data');
@@ -641,26 +656,26 @@ describe('UsersManager', function () {
     });
 
     it('should not update user information when no profile is passed', async function () {
-      const uuid = '330eb9dd-5aba-4d65-9397-88634fe448a4';
-      const userFirstCall = await callGetUserByLogin(uuid);
-      const userSecondCall = await callGetUserByLogin(uuid);
+      const localPart = ensureUnique('getuserbylogin-does-not-update-without-profile');
+      const userFirstCall = await callGetUserByLogin(localPart);
+      const userSecondCall = await callGetUserByLogin(localPart);
       assert.deepEqual(userFirstCall, userSecondCall);
     });
 
     // FIXME: why using Sinon.useFakeTimers() makes user.lastConnectionAt a string instead of a Date
     it.skip('should update lastConnectionAt only for different days', async function () {
       const fakeTimer = sandbox.useFakeTimers(0);
-      const uuid = '174509c4-f671-4241-9c17-47df54cdc4e0';
-      let user = await callGetUserByLogin(uuid);
+      const localPart = ensureUnique('getuserbylogin-updates-last_connection_at-for-different-days');
+      let user = await callGetUserByLogin(localPart);
       const epochDateTime = '1970-01-01 00:00:00.000';
       assert.equal(String(user.lastConnectionAt), epochDateTime);
 
       await fakeTimer.tickAsync(42_000);
-      user = await callGetUserByLogin(uuid);
+      user = await callGetUserByLogin(localPart);
       assert.equal(String(user.lastConnectionAt), epochDateTime);
 
       await fakeTimer.tickAsync('1d');
-      user = await callGetUserByLogin(uuid);
+      user = await callGetUserByLogin(localPart);
       assert.match(String(user.lastConnectionAt), /^1970-01-02/);
     });
 
@@ -674,21 +689,21 @@ describe('UsersManager', function () {
 
       it('should populate the firstTimeLogin and deduce the name from the email', async function () {
         sandbox.useFakeTimers(42_000);
-        const uuid = '59c4fd04-46ca-4a29-aeca-61809359f19d';
-        const user = await callGetUserByLogin(uuid, {profile: {name: '', email: makeEmail(uuid)}});
-        assert.equal(user.name, uuid);
+        const localPart = ensureUnique('getuserbylogin-with-profile-populates-first_time_login-and-name');
+        const user = await callGetUserByLogin(localPart, {profile: {name: '', email: makeEmail(localPart)}});
+        assert.equal(user.name, localPart);
         // FIXME: why using Sinon.useFakeTimers() makes user.firstLoginAt a string instead of a Date
         assert.equal(String(user.firstLoginAt), '1970-01-01 00:00:42.000');
       });
 
       it('should populate user with any passed information', async function () {
-        const uuid = 'eea38c2d-f470-4d4f-9fee-e7c8564292d1';
-        await callGetUserByLogin(uuid);
+        const localPart = ensureUnique('getuserbylogin-with-profile-populates-user-with-passed-info');
+        await callGetUserByLogin(localPart);
 
         const profile = makeProfile(makeEmail('5d3aa491-e8ae-457c-96d1-7022998148db'));
         const userOptions: UserOptions = {authSubject: 'my-auth-subject'};
 
-        const updatedUser = await callGetUserByLogin(uuid, { profile, userOptions });
+        const updatedUser = await callGetUserByLogin(localPart, { profile, userOptions });
         assert.deepInclude(updatedUser, {
           name: profile.name,
           connectId: profile.connectId,
@@ -705,8 +720,8 @@ describe('UsersManager', function () {
   });
 
   describe('getUserByLoginWithRetry()', async function () {
-    async function ensureGetUserByLoginWithRetryWorks(uuid: string) {
-      const email = makeEmail(uuid);
+    async function ensureGetUserByLoginWithRetryWorks(localPart: string) {
+      const email = makeEmail(localPart);
       const user = await db.getUserByLoginWithRetry(email);
       assertExists(user);
       assert.equal(user.loginEmail, email);
@@ -720,24 +735,24 @@ describe('UsersManager', function () {
     }
 
     it('should work just like getUserByLogin', async function () {
-      await ensureGetUserByLoginWithRetryWorks( '55bde435-2f61-477a-881a-20076232a941');
+      await ensureGetUserByLoginWithRetryWorks( ensureUnique('getuserbyloginwithretry-works-like-getuserbylogin'));
     });
 
     it('should make a second attempt on special error', async function () {
       sandbox.stub(UsersManager.prototype, 'getUserByLogin')
         .onFirstCall().throws(makeQueryFailedError())
         .callThrough();
-      await ensureGetUserByLoginWithRetryWorks( '47c42c26-e1e0-4dbb-a042-862107eb28ce');
+      await ensureGetUserByLoginWithRetryWorks( 'getuserbyloginwithretry-makes-a-single-retry');
     });
 
-    it('should reject after 3 attempts', async function () {
+    it('should reject after 2 attempts', async function () {
       const secondError = makeQueryFailedError();
       sandbox.stub(UsersManager.prototype, 'getUserByLogin')
         .onFirstCall().throws(makeQueryFailedError())
         .onSecondCall().throws(secondError)
         .callThrough();
 
-      const email = makeEmail('cb5ff3d2-9d84-4b6a-b329-1b80d40e4edf');
+      const email = makeEmail(ensureUnique('getuserbyloginwithretry-rejects-after-2-attempts'));
       const promise = db.getUserByLoginWithRetry(email);
       await assert.isRejected(promise);
       await promise.catch(err => assert.equal(err, secondError));
@@ -749,7 +764,7 @@ describe('UsersManager', function () {
         .rejects(new Error(errorMsg))
         .callThrough();
 
-      const email = makeEmail('cb5ff3d2-9d84-4b6a-b329-1b80d40e4edf');
+      const email = makeEmail(ensureUnique('getuserbyloginwithretry-rejects-immediately-when-not-queryfailederror'));
       const promise = db.getUserByLoginWithRetry(email);
       await assert.isRejected(promise, errorMsg);
     });
@@ -765,8 +780,8 @@ describe('UsersManager', function () {
     }
 
     it('should refuse to delete the account of someone else', async function () {
-      const uuid = 'e5c22c05-fb3c-4e9b-b410-b9a3b72e1c03';
-      const userToDelete = await getOrCreateUser(uuid);
+      const localPart = ensureUnique('deleteuser-refuses-for-someone-else');
+      const userToDelete = await getOrCreateUser(localPart);
 
       const promise = db.deleteUser({userId: 2}, userToDelete.id);
       await assert.isRejected(promise, 'not permitted to delete this user');
@@ -780,11 +795,11 @@ describe('UsersManager', function () {
 
     it('should refuse to delete the account if the passed name is not matching', async function () {
       disableLogging('debug');
-      const uuid = '317fed70-c68e-46d1-b806-92c47894911d';
-      const userToDelete = await getOrCreateUser(uuid, {
+      const localPart = ensureUnique('deleteuser-refuses-if-name-not-matching');
+      const userToDelete = await getOrCreateUser(localPart, {
         profile: {
           name: 'someone to delete',
-          email: makeEmail(uuid),
+          email: makeEmail(localPart),
         }
       });
 
@@ -795,11 +810,11 @@ describe('UsersManager', function () {
     });
 
     it('should remove the user and cleanup their info and personal organization', async function () {
-      const uuid = '226f8de2-347d-4816-8eb6-ecdc362deb18';
-      const userToDelete = await getOrCreateUser(uuid, {
+      const localPart = ensureUnique('deleteuser-removes-user-and-cleanups-info');
+      const userToDelete = await getOrCreateUser(localPart, {
         profile: {
           name: 'someone to delete',
-          email: makeEmail(uuid),
+          email: makeEmail(localPart),
         }
       });
 
@@ -822,12 +837,12 @@ describe('UsersManager', function () {
     });
 
     it("should remove the user when passed name corresponds to the user's name", async function () {
-      const uuid = '48a2ae1f-743a-45cc-943f-c8eb6c11ee75';
+      const localPart = ensureUnique('deleteuser-removes-user-when-name-matches');
       const userName = 'someone to delete';
-      const userToDelete = await getOrCreateUser(uuid, {
+      const userToDelete = await getOrCreateUser(localPart, {
         profile: {
           name: userName,
-          email: makeEmail(uuid),
+          email: makeEmail(localPart),
         }
       });
       const promise = db.deleteUser({userId: userToDelete.id}, userToDelete.id, userName);
@@ -887,15 +902,15 @@ describe('UsersManager', function () {
     });
 
     it("should complete a single user profile with looking by normalized address", async function () {
-      const uuid = '0f9a8eae-4fcf-4e9b-85e8-227b2ce9cad5';
-      const email = makeEmail(uuid);
+      const localPart = ensureUnique('completeprofiles-with-single-profile');
+      const email = makeEmail(localPart);
       const profile = {
         name: 'complete-profile-email-normalized-user',
-        email: makeEmail(uuid),
+        email: makeEmail(localPart),
         picture: 'https://mypic.com/me.png',
       };
       const someLocale = 'fr-FR';
-      const userCreated = await getOrCreateUser(uuid, { profile });
+      const userCreated = await getOrCreateUser(localPart, { profile });
       await db.updateUserOptions(userCreated.id, {locale: someLocale});
 
       const res = await db.completeProfiles([{name: 'whatever', email: email.toUpperCase()}]);
@@ -909,23 +924,23 @@ describe('UsersManager', function () {
     });
 
     it('should complete several user profiles', async function () {
-      const uuidPrefix = '0f9a8eae-4fcf-4e9b-85e8-227b2ce9cad5';
+      const localPartPrefix = ensureUnique('completeprofiles-with-several-profiles');
       const seq = Array(10).fill(null).map((_, i) => i+1);
-      const uuids = seq.map(i => `${uuidPrefix}_${i}`);
+      const localParts = seq.map(i => `${localPartPrefix}_${i}`);
       const usersCreated = await Promise.all(
-        uuids.map(uuid => getOrCreateUser(uuid))
+        localParts.map(localPart => getOrCreateUser(localPart))
       );
 
       const res = await db.completeProfiles(
-        uuids.map(
-          uuid => ({name: 'whatever', email: makeEmail(uuid)})
+        localParts.map(
+          localPart => ({name: 'whatever', email: makeEmail(localPart)})
         )
       );
-      assert.lengthOf(res, uuids.length);
-      for (const [index, uuid] of uuids.entries()) {
+      assert.lengthOf(res, localParts.length);
+      for (const [index, localPart] of localParts.entries()) {
         assert.deepInclude(res[index], {
           id: usersCreated[index].id,
-          email: makeEmail(uuid),
+          email: makeEmail(localPart),
         });
       }
     });
