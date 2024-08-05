@@ -3279,7 +3279,7 @@ describe('GranularAccess', function() {
     cliOwner.flush();
     let perm: PermissionDataWithExtraUsers = (await cliOwner.send("getUsersForViewAs", 0)).data;
     const getId = (name: string) => home.dbManager.testGetId(name) as Promise<number>;
-    const getRef = (email: string) => home.dbManager.getUserByLogin(email).then(user => user!.ref);
+    const getRef = (email: string) => home.dbManager.getUserByLogin(email).then(user => user.ref);
     assert.deepEqual(perm.users, [
       { id: await getId('Chimpy'), email: 'chimpy@getgrist.com', name: 'Chimpy',
         ref: await getRef('chimpy@getgrist.com'),

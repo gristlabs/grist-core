@@ -98,9 +98,7 @@ export class UsersManager {
     return await this._connection.transaction(async manager => {
       for (const email of emails) {
         const user = await this.getUserByLogin(email, {manager});
-        if (user) {
-          await manager.delete(Pref, {userId: user.id});
-        }
+        await manager.delete(Pref, {userId: user.id});
       }
     });
   }
@@ -467,7 +465,7 @@ export class UsersManager {
         // In principle this could be optimized, but this is simpler to maintain.
         user = await userQuery.getOne();
       }
-      return user;
+      return user!;
     });
   }
 

@@ -166,10 +166,6 @@ export function addSiteCommand(program: commander.Command,
       const profile = {email, name: email};
       const db = await getHomeDBManager();
       const user = await db.getUserByLogin(email, {profile});
-      if (!user) {
-        // This should not happen.
-        throw new Error('failed to create user');
-      }
       db.unwrapQueryResult(await db.addOrg(user, {
         name: domain,
         domain,

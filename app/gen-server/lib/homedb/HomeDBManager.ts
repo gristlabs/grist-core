@@ -482,8 +482,8 @@ export class HomeDBManager extends EventEmitter {
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
-    return await this._usersManager.getUserByLogin(email, options) ?? undefined;
+  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
+    return await this._usersManager.getUserByLogin(email, options);
   }
 
   /**
