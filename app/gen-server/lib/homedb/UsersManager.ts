@@ -219,9 +219,6 @@ export class UsersManager {
           profile,
           manager
         });
-        if (!newUser) {
-          throw new ApiError("Unable to create user", 500);
-        }
         // No need to survey this user.
         newUser.isFirstTimeUser = false;
         await newUser.save();
@@ -313,7 +310,7 @@ export class UsersManager {
   // for an email key conflict failure. This is in case our transaction conflicts with a peer
   // doing the same thing. This is quite likely if the first page visited by a previously
   // unseen user fires off multiple api calls.
-  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|null> {
+  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User> {
     try {
       return this.getUserByLogin(email, options);
     } catch (e) {
@@ -736,7 +733,7 @@ export class UsersManager {
       // user if a bunch of servers start simultaneously and the user doesn't exist
       // yet.
       const user = await this.getUserByLoginWithRetry(profile.email, {profile});
-      if (user) { id = this._specialUserIds[profile.email] = user.id; }
+      id = this._specialUserIds[profile.email] = user.id;
     }
     if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
     return id;
