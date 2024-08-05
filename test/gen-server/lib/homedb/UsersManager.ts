@@ -835,6 +835,51 @@ describe('UsersManager', function () {
     });
   });
 
+  describe('initializeSpecialIds()', function () {
+    async function withDataBase(dbName: string, cb: (db: HomeDBManager) => Promise<void>) {
+      // await prepareDatabase(tmpDir, dbName);
+      const database = path.join(tmpDir, dbName);
+      const localDb = new HomeDBManager();
+      await localDb.createNewConnection({ name: 'special-id', database });
+      await updateDb(localDb.connection);
+      try {
+        await cb(localDb);
+      } finally {
+        await localDb.connection.destroy();
+      }
+    }
+
+    after(async function () {
+      // HACK: This is a weird case, we have established a different connection
+      // but the existing connection is also impacted.
+      // A found workaround consist in destroying and creating again the connection.
+      //
+      // TODO: Check whether using DataSource would help and avoid this hack.
+      await db.connection.destroy();
+      await db.createNewConnection();
+    });
+
+    it('should initialize special ids', async function () {
+      return withDataBase('test-special-ids.db', async (localDb) => {
+        const specialAccounts = [
+          {name: "Support", email: SUPPORT_EMAIL},
+          {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
+          {name: "Preview", email: PREVIEWER_EMAIL},
+          {name: "Everyone", email: EVERYONE_EMAIL}
+        ];
+        for (const {email} of specialAccounts) {
+          assert.notExists(await localDb.getExistingUserByLogin(email));
+        }
+        await localDb.initializeSpecialIds();
+        for (const {name, email} of specialAccounts) {
+          const res = await localDb.getExistingUserByLogin(email);
+          assertExists(res);
+          assert.equal(res.name, name);
+        }
+      });
+    });
+  });
+
   describe('completeProfiles()', function () {
     it('should return an empty array if no profiles are provided', async function () {
       const res = await db.completeProfiles([]);
@@ -872,7 +917,9 @@ describe('UsersManager', function () {
       );
 
       const res = await db.completeProfiles(
-        uuids.map(uuid => ({name: 'whatever', email: makeEmail(uuid)}))
+        uuids.map(
+          uuid => ({name: 'whatever', email: makeEmail(uuid)})
+        )
       );
       assert.lengthOf(res, uuids.length);
       for (const [index, uuid] of uuids.entries()) {
@@ -881,49 +928,6 @@ describe('UsersManager', function () {
           email: makeEmail(uuid),
         });
       }
-    });
-  });
-
-  describe('initializeSpecialIds()', function () {
-    let initSpecIdEnv: EnvironmentSnapshot;
-    async function withDataBase(dbName: string, cb: (db: HomeDBManager) => Promise<void>) {
-      // await prepareDatabase(tmpDir, dbName);
-      process.env.TYPEORM_DATABASE = path.join(tmpDir, dbName);
-      const localDb = new HomeDBManager();
-      await localDb.createNewConnection('special-id');
-      await updateDb(localDb.connection);
-      try {
-        await cb(localDb);
-      } finally {
-        await localDb.connection.destroy();
-      }
-    }
-
-    beforeEach(function () {
-      initSpecIdEnv = new EnvironmentSnapshot();
-    });
-    afterEach(function () {
-      initSpecIdEnv.restore();
-    });
-
-    it('should initialize special ids', async function () {
-      return withDataBase('test-special-ids.db', async (localDb) => {
-        const specialAccounts = [
-          {name: "Support", email: SUPPORT_EMAIL},
-          {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
-          {name: "Preview", email: PREVIEWER_EMAIL},
-          {name: "Everyone", email: EVERYONE_EMAIL}
-        ];
-        for (const {email} of specialAccounts) {
-          assert.notExists(await localDb.getExistingUserByLogin(email));
-        }
-        await localDb.initializeSpecialIds();
-        for (const {name, email} of specialAccounts) {
-          const res = await localDb.getExistingUserByLogin(email);
-          assertExists(res);
-          assert.equal(res.name, name);
-        }
-      });
     });
   });
 });
