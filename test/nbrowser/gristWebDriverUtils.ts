@@ -223,6 +223,16 @@ export class GristWebDriverUtils {
    * Accepts an alert.
    */
   public async acceptAlert() {
+    const caps = await this.driver.getCapabilities();
+    if (caps.getBrowserName() === 'chrome') {
+      const version = caps.getBrowserVersion();
+      // Check if major version is 127 or higher, if yes, the alert won't be shown.
+      // https://github.com/SeleniumHQ/selenium/issues/14290
+      // TODO: track this issue if it was resolved.
+      if (version && parseInt(version.split('.')[0], 10) >= 127) {
+        return;
+      }
+    }
     await (await this.driver.switchTo().alert()).accept();
   }
 
