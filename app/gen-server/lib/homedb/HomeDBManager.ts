@@ -476,14 +476,14 @@ export class HomeDBManager extends EventEmitter {
    * @see UsersManager.prototype.getUserByLoginWithRetry
    */
   public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User> {
-    return await this._usersManager.getUserByLoginWithRetry(email, options);
+    return this._usersManager.getUserByLoginWithRetry(email, options);
   }
 
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
   public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
-    return await this._usersManager.getUserByLogin(email, options);
+    return this._usersManager.getUserByLogin(email, options);
   }
 
   /**

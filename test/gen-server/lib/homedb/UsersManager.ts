@@ -800,7 +800,7 @@ describe('UsersManager', function () {
       it('should reject immediately if the error is not a QueryFailedError', async function () {
         const errorMsg = 'my error';
         sandbox.stub(UsersManager.prototype, 'getUserByLogin')
-          .rejects(new Error(errorMsg))
+          .onFirstCall().rejects(new Error(errorMsg))
           .callThrough();
 
         const email = makeEmail(ensureUnique('getuserbyloginwithretry-rejects-immediately-when-not-queryfailederror'));

@@ -312,7 +312,7 @@ export class UsersManager {
   // unseen user fires off multiple api calls.
   public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User> {
     try {
-      return this.getUserByLogin(email, options);
+      return await this.getUserByLogin(email, options);
     } catch (e) {
       if (e.name === 'QueryFailedError' && e.detail &&
           e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
