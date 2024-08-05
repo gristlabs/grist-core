@@ -70,6 +70,7 @@ import {
   Brackets,
   Connection,
   DatabaseType,
+  DataSourceOptions,
   EntityManager,
   ObjectLiteral,
   SelectQueryBuilder,
@@ -353,8 +354,8 @@ export class HomeDBManager extends EventEmitter {
     this._connection = await getOrCreateConnection();
   }
 
-  public async createNewConnection(name?: string): Promise<void> {
-    this._connection = await createNewConnection(name);
+  public async createNewConnection(overrideConf?: Partial<DataSourceOptions>): Promise<void> {
+    this._connection = await createNewConnection(overrideConf);
   }
 
   // make sure special users and workspaces are available

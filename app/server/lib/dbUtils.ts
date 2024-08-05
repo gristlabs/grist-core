@@ -45,14 +45,19 @@ export async function updateDb(connection?: Connection) {
   await synchronizeProducts(connection, true);
 }
 
+function getConnectionName() {
+  return process.env.TYPEORM_NAME || 'default';
+}
+
 /**
  * Get a connection to db if one exists, or create one. Serialized to
  * avoid duplication.
  */
 const connectionMutex = new Mutex();
 
-async function buildConnection(name?: string) {
-  const connection = await createConnection({...getTypeORMSettings(), ...(name ? {name} : {})});
+async function buildConnection(overrideConf?: Partial<DataSourceOptions>) {
+  const settings = getTypeORMSettings(overrideConf);
+  const connection = await createConnection(settings);
   // When using Sqlite, set a busy timeout of 3s to tolerate a little
   // interference from connections made by tests. Logging doesn't show
   // any particularly slow queries, but bad luck is possible.
@@ -71,8 +76,7 @@ export async function getOrCreateConnection(): Promise<Connection> {
       // If multiple servers are started within the same process, we
       // share the database connection.  This saves locking trouble
       // with Sqlite.
-      const connection = getConnection();
-      return connection;
+      return getConnection(getConnectionName());
     } catch (e) {
       if (!String(e).match(/ConnectionNotFoundError/)) {
         throw e;
@@ -82,10 +86,10 @@ export async function getOrCreateConnection(): Promise<Connection> {
   });
 }
 
-export async function createNewConnection(name?: string): Promise<Connection> {
+export async function createNewConnection(overrideConf?: Partial<DataSourceOptions>): Promise<Connection> {
   return connectionMutex.runExclusive(async () => {
-    return buildConnection(name);
-  })
+    return buildConnection(overrideConf);
+  });
 }
 
 export async function runMigrations(connection: Connection) {
@@ -114,7 +118,7 @@ export async function undoLastMigration(connection: Connection) {
 // Replace the old janky ormconfig.js file, which was always a source of
 // pain to use since it wasn't properly integrated into the typescript
 // project.
-export function getTypeORMSettings(): DataSourceOptions {
+export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): DataSourceOptions {
   // If we have a redis server available, tell typeorm.  Then any queries built with
   // .cache() called on them will be cached via redis.
   // We use a separate environment variable for the moment so that we don't have to
@@ -131,7 +135,7 @@ export function getTypeORMSettings(): DataSourceOptions {
   } : undefined;
 
   return {
-    "name": process.env.TYPEORM_NAME || "default",
+    "name": getConnectionName(),
     "type": (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
                                                    // but if we use that, this file will never
                                                    // be read, and we can't configure
@@ -155,5 +159,6 @@ export function getTypeORMSettings(): DataSourceOptions {
     ],
     ...JSON.parse(process.env.TYPEORM_EXTRA || "{}"),
     ...cache,
+    ...overrideConf,
   };
 }
