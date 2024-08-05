@@ -20,6 +20,12 @@ This is automated for you in `generateSecureSecrets.sh`, which uses Authelia's d
 
 This example can then be run with `docker compose up`. This will make Grist available on `https://grist.localhost` with a self-signed certificate (by default), after all the services have started. Note: it may take up to a minute for all of the services to start correctly.
 
+The self-signed certificate will cause a security warning in the web browser when you try to visit Grist.
+This is fine for local testing and can be bypassed, but correct certificates should be set up if Grist is being made
+available on the internet.
+
+### Users
+
 The default username is `test`, with password `test`.
 
 You can add or modify users in ./configs/authelia/user-database.yml. Additional instructions are provided in that file.
