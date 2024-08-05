@@ -83,3 +83,8 @@ xunit.xml
 
 # ext directory can be overwritten
 ext/**
+
+# Docker compose examples - persistent values and secrets
+/docker-compose-examples/*/persist
+/docker-compose-examples/*/secrets
+/docker-compose-examples/grist-traefik-oidc-auth/.env
