@@ -14,7 +14,7 @@ services:
       GRIST_DEFAULT_EMAIL: test@example.org
     volumes:
       # Where to store persistent data, such as documents.
-      - ./grist_local_data:/persist
+      - ${PERSIST_DIR}/grist:/persist
     labels:
       - "traefik.http.services.grist.loadbalancer.server.port=8484"
       - "traefik.http.routers.grist.rule=Host(`grist.localhost`)"
