@@ -76,7 +76,7 @@
     "@types/qrcode": "1.4.2",
     "@types/redlock": "3.0.2",
     "@types/saml2-js": "2.0.1",
-    "@types/selenium-webdriver": "4.1.22",
+    "@types/selenium-webdriver": "4.1.24",
     "@types/sinon": "17.0.3",
     "@types/sqlite3": "3.1.6",
     "@types/swagger-ui": "3.52.4",

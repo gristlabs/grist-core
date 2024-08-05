@@ -33,6 +33,7 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
   // Set "kiosk" printing that saves to PDF without offering any dialogs. This applies to regular
   // (non-headless) Chrome. On headless Chrome, no dialog or output occurs regardless.
   chromeOpts.addArguments("--kiosk-printing");
+  chromeOpts.enableBidi();
 
   chromeOpts.setUserPreferences({
     // Don't show popups to save passwords, which are shown when running against a deployment when
