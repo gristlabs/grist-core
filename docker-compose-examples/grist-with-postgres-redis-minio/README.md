@@ -14,4 +14,7 @@ This setup is based on one provided by Akito (https://github.com/theAkito).
 
 ## How to run this example
 
+Before running this example, it's very strongly recommended to update the `_PASSWORD` environment variables
+in `.env` to be long, randomly generated passwords.
+
 This example can be run with `docker compose up`.
