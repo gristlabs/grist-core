@@ -60,6 +60,22 @@ for (const arg of process.argv) {
 // start and end of the worker process.
 if (process.env.MOCHA_WORKER_ID !== undefined &&
     process.env.MOCHA_WEBDRIVER !== undefined) {
-  const {getMochaHooks} = require('mocha-webdriver');
-  exports.mochaHooks = getMochaHooks();
+  const {getMochaHooks, setDriver, createDriver, stackWrapDriverMethods} = require('mocha-webdriver');
+  const mochaHooks = getMochaHooks();
+  mochaHooks.beforeAll = async function() {
+    console.debug('Hijiking mocha webdriver');
+    const oldDriver = setDriver(null);
+    if (oldDriver) {
+      setDriver(oldDriver);
+      return;
+    }
+    this.timeout('20s');
+    stackWrapDriverMethods();
+
+    setDriver(await createDriver().catch(err => {
+      console.error('Failed to create driver:', err);
+      throw err;
+    }));
+  };
+  exports.mochaHooks = mochaHooks;
 }
