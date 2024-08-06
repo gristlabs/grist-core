@@ -216,13 +216,13 @@ export async function startMain() {
     const port = parseInt(process.env.GRIST_PORT, 10);
 
     const server = await MergedServer.create(port, serverTypes);
+    await server.run();
 
     const opt = process.argv[2];
     if (opt === '--testingHooks') {
       await server.flexServer.addTestingHooks();
     }
 
-    await server.run();
     return server.flexServer;
   } catch (e) {
     log.error('mergedServer failed to start', e);
