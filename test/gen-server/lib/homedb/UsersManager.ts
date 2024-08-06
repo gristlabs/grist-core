@@ -156,7 +156,7 @@ describe('UsersManager', function () {
 
         const result = UsersManager.getUsersWithRole(groups, excludedUsersId);
 
-        assert.deepEqual( result, new Map([ ['editors', expectedUsers] ]));
+        assert.deepEqual(result, new Map([ ['editors', expectedUsers] ]));
       });
     });
   });
@@ -186,9 +186,9 @@ describe('UsersManager', function () {
       return localPart;
     }
 
-    function createUniqueUser(uniqueEmailLocalPart: string) {
+    function createUniqueUser(uniqueEmailLocalPart: string, options?: GetUserOptions) {
       ensureUnique(uniqueEmailLocalPart);
-      return getOrCreateUser(uniqueEmailLocalPart);
+      return getOrCreateUser(uniqueEmailLocalPart, options);
     }
 
     async function getOrCreateUser(localPart: string, options?: GetUserOptions) {
@@ -269,10 +269,10 @@ describe('UsersManager', function () {
       describe('Without special id initialization', function () {
         it('should throw an error', async function () {
           await withDataBase('without-special-ids', async function (localDb) {
-            assert.throws(() => localDb.getAnonymousUserId(), "Anonymous user not available");
-            assert.throws(() => localDb.getPreviewerUserId(), "Previewer user not available");
-            assert.throws(() => localDb.getEveryoneUserId(), "'everyone' user not available");
-            assert.throws(() => localDb.getSupportUserId(), "'support' user not available");
+            assert.throws(() => localDb.getAnonymousUserId(), "'Anonymous' user not available");
+            assert.throws(() => localDb.getPreviewerUserId(), "'Previewer' user not available");
+            assert.throws(() => localDb.getEveryoneUserId(), "'Everyone' user not available");
+            assert.throws(() => localDb.getSupportUserId(), "'Support' user not available");
           });
         });
       });
@@ -299,7 +299,7 @@ describe('UsersManager', function () {
         assertExists(user, 'Should have returned a user');
         assert.strictEqual(user.name, 'Support');
         assert.strictEqual(user.loginEmail, SUPPORT_EMAIL);
-        assertExists(!user.prefs, "should not have retrieved user's prefs");
+        assert.notExists(user.prefs, "should not have retrieved user's prefs");
       });
 
       it('should retrieve a user along with their prefs with `includePrefs` set to true', async function () {
@@ -308,7 +308,7 @@ describe('UsersManager', function () {
         assertExists(user, "Should have retrieved the user");
         assertExists(user.loginEmail);
         assert.strictEqual(user.loginEmail, expectedUser.loginEmail);
-        assertExists(Array.isArray(user.prefs), "should not have retrieved user's prefs");
+        assert.isTrue(Array.isArray(user.prefs), "should not have retrieved user's prefs");
         assert.deepEqual(user.prefs, [{
           userId: expectedUser.id,
           orgId: expectedUser.personalOrg.id,
@@ -330,7 +330,7 @@ describe('UsersManager', function () {
           name: 'Support'
         };
         assert.deepInclude(user, expectedResult);
-        assert.ok(!user.anonymous, 'anonymous property should be falsy');
+        assert.notOk(user.anonymous, 'anonymous property should be falsy');
       });
 
       it('should return the anonymous user', async function () {
@@ -345,10 +345,10 @@ describe('UsersManager', function () {
           name: 'Anonymous',
         };
         assert.deepInclude(user, expectedResult);
-        assert.ok(!user.isSupport, 'support property should be falsy');
+        assert.notOk(user.isSupport, 'support property should be falsy');
       });
 
-      it('should throw when user is not found', async function () {
+      it('should reject when user is not found', async function () {
         await assert.isRejected(db.getFullUser(NON_EXISTING_USER_ID), "unable to find user");
       });
     });
@@ -418,7 +418,7 @@ describe('UsersManager', function () {
         const fullUser = db.makeFullUser(anon);
 
         assert.isTrue(fullUser.anonymous, "`anonymous` property should be set to true");
-        assert.ok(!fullUser.isSupport, "`isSupport` should be falsy");
+        assert.notOk(fullUser.isSupport, "`isSupport` should be falsy");
       });
 
       it('sets `isSupport` property to true for support account', async function () {
@@ -427,7 +427,7 @@ describe('UsersManager', function () {
         const fullUser = db.makeFullUser(support!);
 
         assert.isTrue(fullUser.isSupport, "`isSupport` property should be set to true");
-        assert.ok(!fullUser.anonymous, "`anonymouse` should be falsy");
+        assert.notOk(fullUser.anonymous, "`anonymouse` should be falsy");
       });
 
       it('should throw when no displayEmail exist for this user', function () {
@@ -621,7 +621,6 @@ describe('UsersManager', function () {
         await db.updateUserOptions(createdUser.id, options);
 
         const updatedUser = await getOrCreateUser(localPart);
-        assertExists(updatedUser);
         assertExists(updatedUser.options);
         assert.deepEqual(updatedUser.options, options);
       });
@@ -781,7 +780,7 @@ describe('UsersManager', function () {
         sandbox.stub(UsersManager.prototype, 'getUserByLogin')
           .onFirstCall().throws(makeQueryFailedError())
           .callThrough();
-        await ensureGetUserByLoginWithRetryWorks( 'getuserbyloginwithretry-makes-a-single-retry');
+        await ensureGetUserByLoginWithRetryWorks('getuserbyloginwithretry-makes-a-single-retry');
       });
 
       it('should reject after 2 attempts', async function () {
@@ -819,8 +818,7 @@ describe('UsersManager', function () {
       }
 
       it('should refuse to delete the account of someone else', async function () {
-        const localPart = ensureUnique('deleteuser-refuses-for-someone-else');
-        const userToDelete = await getOrCreateUser(localPart);
+        const userToDelete = await createUniqueUser('deleteuser-refuses-for-someone-else');
 
         const promise = db.deleteUser({userId: 2}, userToDelete.id);
 
@@ -837,8 +835,9 @@ describe('UsersManager', function () {
 
       it('should refuse to delete the account if the passed name is not matching', async function () {
         disableLoggingLevel('debug');
-        const localPart = ensureUnique('deleteuser-refuses-if-name-not-matching');
-        const userToDelete = await getOrCreateUser(localPart, {
+        const localPart = 'deleteuser-refuses-if-name-not-matching';
+
+        const userToDelete = await createUniqueUser(localPart, {
           profile: {
             name: 'someone to delete',
             email: makeEmail(localPart),
@@ -852,8 +851,8 @@ describe('UsersManager', function () {
       });
 
       it('should remove the user and cleanup their info and personal organization', async function () {
-        const localPart = ensureUnique('deleteuser-removes-user-and-cleanups-info');
-        const userToDelete = await getOrCreateUser(localPart, {
+        const localPart = 'deleteuser-removes-user-and-cleanups-info';
+        const userToDelete = await createUniqueUser(localPart, {
           profile: {
             name: 'someone to delete',
             email: makeEmail(localPart),
@@ -879,9 +878,9 @@ describe('UsersManager', function () {
       });
 
       it("should remove the user when passed name corresponds to the user's name", async function () {
-        const localPart = ensureUnique('deleteuser-removes-user-when-name-matches');
         const userName = 'someone to delete';
-        const userToDelete = await getOrCreateUser(localPart, {
+        const localPart = 'deleteuser-removes-user-when-name-matches';
+        const userToDelete = await createUniqueUser(localPart, {
           profile: {
             name: userName,
             email: makeEmail(localPart),

@@ -114,7 +114,7 @@ export class UsersManager {
    */
   public getAnonymousUserId(): number {
     const id = this._specialUserIds[ANONYMOUS_USER_EMAIL];
-    if (!id) { throw new Error("Anonymous user not available"); }
+    if (!id) { throw new Error("'Anonymous' user not available"); }
     return id;
   }
 
@@ -123,7 +123,7 @@ export class UsersManager {
    */
   public getPreviewerUserId(): number {
     const id = this._specialUserIds[PREVIEWER_EMAIL];
-    if (!id) { throw new Error("Previewer user not available"); }
+    if (!id) { throw new Error("'Previewer' user not available"); }
     return id;
   }
 
@@ -132,7 +132,7 @@ export class UsersManager {
    */
   public getEveryoneUserId(): number {
     const id = this._specialUserIds[EVERYONE_EMAIL];
-    if (!id) { throw new Error("'everyone' user not available"); }
+    if (!id) { throw new Error("'Everyone' user not available"); }
     return id;
   }
 
@@ -141,7 +141,7 @@ export class UsersManager {
    */
   public getSupportUserId(): number {
     const id = this._specialUserIds[SUPPORT_EMAIL];
-    if (!id) { throw new Error("'support' user not available"); }
+    if (!id) { throw new Error("'Support' user not available"); }
     return id;
   }
 
