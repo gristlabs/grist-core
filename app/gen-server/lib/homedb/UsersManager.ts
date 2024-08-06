@@ -97,8 +97,10 @@ export class UsersManager {
   public async testClearUserPrefs(emails: string[]) {
     return await this._connection.transaction(async manager => {
       for (const email of emails) {
-        const user = await this.getUserByLogin(email, {manager});
-        await manager.delete(Pref, {userId: user.id});
+        const user = await this.getExistingUserByLogin(email, manager);
+        if (user) {
+          await manager.delete(Pref, {userId: user.id});
+        }
       }
     });
   }
