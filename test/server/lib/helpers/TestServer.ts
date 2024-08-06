@@ -91,7 +91,7 @@ export class TestServer {
       ...this._defaultEnv,
       ...customEnv
     };
-    const main = await testUtils.getBuildFile('app/server/mergedServerMain.js');
+    const main = await testUtils.getBuildFile('app/server/MergedServer.js');
     this._server = spawn('node', [main, '--testingHooks'], {
       env,
       stdio: ['inherit', serverLog, serverLog]
