@@ -91,6 +91,24 @@ describe('UsersManager', function () {
         assert.deepEqual(result, usersList.flat());
       });
 
+      it('should deduplicate the results', function () {
+        const resources: Resource[] = [new Organization(), new Workspace()];
+        const usersList = makeUsersList(2, 1);
+        const expectedResult = usersList.flat();
+
+        const duplicateUser = new User();
+        duplicateUser.id = usersList[1][0].id;
+        usersList[0].unshift(duplicateUser);
+
+        for (const [idx, resource] of resources.entries()) {
+          populateResourceWithMembers(resource, usersList[idx]);
+        }
+
+        const result = UsersManager.getResourceUsers(resources);
+
+        assert.deepEqual(result, expectedResult);
+      });
+
       it('should return users matching group names from all resources ACL', function () {
         const resources: Resource[] = [new Organization(), new Workspace(), new Document()];
         const usersList = makeUsersList(3, 5);
@@ -226,6 +244,21 @@ describe('UsersManager', function () {
       return sandbox.stub(log, method);
     }
 
+    /**
+    * Make a user profile.
+    * @param localPart A unique local part of the email (also used for the other fields).
+    */
+    function makeProfile(localPart: string): UserProfile {
+      ensureUnique(localPart);
+      return {
+        email: makeEmail(localPart),
+        name: `NewUser ${localPart}`,
+        connectId: `ConnectId-${localPart}`,
+        picture: `https://mypic.com/${localPart}.png`
+      };
+    }
+
+
     before(async function () {
       env = new EnvironmentSnapshot();
       await prepareFilesystemDirectoryForTests(tmpDir);
@@ -314,6 +347,10 @@ describe('UsersManager', function () {
           orgId: expectedUser.personalOrg.id,
           prefs: { showGristTour: true } as any
         }]);
+      });
+
+      it('should return undefined when the id is not found', async function () {
+        assert.isUndefined(await db.getUser(NON_EXISTING_USER_ID));
       });
     });
 
@@ -449,20 +486,6 @@ describe('UsersManager', function () {
         managerSaveSpy = sandbox.spy(EntityManager.prototype, 'save');
         userSaveSpy = sandbox.spy(User.prototype, 'save');
       });
-
-      /**
-      * Make a user profile.
-      * @param localPart A unique local part of the email (also used for the other fields).
-      */
-      function makeProfile(localPart: string): UserProfile {
-        ensureUnique(localPart);
-        return {
-          email: makeEmail(localPart),
-          name: `NewUser ${localPart}`,
-          connectId: `ConnectId-${localPart}`,
-          picture: `https://mypic.com/${localPart}.png`
-        };
-      }
 
       async function checkUserInfo(profile: UserProfile) {
         const user = await db.getExistingUserByLogin(profile.email);
@@ -716,13 +739,6 @@ describe('UsersManager', function () {
       });
 
       describe('when passing information to update (using `profile`)', function () {
-        const makeProfile = (newEmail: string): UserProfile => ({
-          name: 'my user name',
-          email: newEmail,
-          picture: 'https://mypic.com/foo.png',
-          connectId: 'new-connect-id',
-        });
-
         it('should populate the firstTimeLogin and deduce the name from the email', async function () {
           sandbox.useFakeTimers(42_000);
           const localPart = ensureUnique('getuserbylogin-with-profile-populates-first_time_login-and-name');
@@ -737,6 +753,7 @@ describe('UsersManager', function () {
         it('should populate user with any passed information', async function () {
           const localPart = ensureUnique('getuserbylogin-with-profile-populates-user-with-passed-info_OLD');
           await db.getUserByLogin(makeEmail(localPart));
+          const originalNormalizedLoginEmail = makeEmail(localPart.toLowerCase());
 
           const profile = makeProfile(makeEmail('getuserbylogin-with-profile-populates-user-with-passed-info_NEW'));
           const userOptions: UserOptions = {authSubject: 'my-auth-subject'};
@@ -749,6 +766,7 @@ describe('UsersManager', function () {
           });
           assert.deepInclude(updatedUser.logins[0], {
             displayEmail: profile.email,
+            email: originalNormalizedLoginEmail,
           });
           assert.deepInclude(updatedUser.options, {
             authSubject: userOptions.authSubject,
@@ -817,12 +835,17 @@ describe('UsersManager', function () {
         return manager.exists('group_users', { where: {user_id: userId} });
       }
 
+      async function assertUserStillExistsInDb(userId: number) {
+        assert.exists(await db.getUser(userId));
+      }
+
       it('should refuse to delete the account of someone else', async function () {
         const userToDelete = await createUniqueUser('deleteuser-refuses-for-someone-else');
 
         const promise = db.deleteUser({userId: 2}, userToDelete.id);
 
         await assert.isRejected(promise, 'not permitted to delete this user');
+        await assertUserStillExistsInDb(userToDelete.id);
       });
 
       it('should refuse to delete a non existing account', async function () {
@@ -848,6 +871,7 @@ describe('UsersManager', function () {
 
         await assert.isRejected(promise);
         await promise.catch(e => assert.match(e.message, /user name did not match/));
+        await assertUserStillExistsInDb(userToDelete.id);
       });
 
       it('should remove the user and cleanup their info and personal organization', async function () {
