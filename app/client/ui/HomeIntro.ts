@@ -3,7 +3,7 @@ import {getLoginOrSignupUrl, getLoginUrl, getSignupUrl, urlState} from 'app/clie
 import {HomeModel} from 'app/client/models/HomeModel';
 import {productPill} from 'app/client/ui/AppHeader';
 import * as css from 'app/client/ui/DocMenuCss';
-import {createDocAndOpen, importDocAndOpen} from 'app/client/ui/NewDocMethods';
+import {newDocMethods} from 'app/client/ui/NewDocMethods';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -177,11 +177,11 @@ function buildButtons(homeModel: HomeModel, options: {
     ),
     !options.import ? null :
     cssBtn(cssBtnIcon('Import'), t("Import Document"), testId('intro-import-doc'),
-      dom.on('click', () => importDocAndOpen(homeModel)),
+      dom.on('click', () => newDocMethods.importDocAndOpen(homeModel)),
     ),
     !options.empty ? null :
     cssBtn(cssBtnIcon('Page'), t("Create Empty Document"), testId('intro-create-doc'),
-      dom.on('click', () => createDocAndOpen(homeModel)),
+      dom.on('click', () => newDocMethods.createDocAndOpen(homeModel)),
     ),
   );
 }

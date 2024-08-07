@@ -2,7 +2,7 @@ import * as roles from 'app/common/roles';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
-import {createDocAndOpen, importDocAndOpen, importFromPluginAndOpen} from 'app/client/ui/NewDocMethods';
+import {newDocMethods} from 'app/client/ui/NewDocMethods';
 import {createHelpTools, cssLeftPanel, cssScrollPane,
   cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
 import {
@@ -164,17 +164,17 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
   const needUpgrade = home.app.currentFeatures?.maxWorkspacesPerOrg === 1;
 
   return [
-    menuItem(() => createDocAndOpen(home), menuIcon('Page'), t("Create Empty Document"),
+    menuItem(() => newDocMethods.createDocAndOpen(home), menuIcon('Page'), t("Create Empty Document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-new-doc")
     ),
-    menuItem(() => importDocAndOpen(home), menuIcon('Import'), t("Import Document"),
+    menuItem(() => newDocMethods.importDocAndOpen(home), menuIcon('Import'), t("Import Document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-import")
     ),
     domComputed(home.importSources, importSources => ([
       ...importSources.map((source, i) =>
-      menuItem(() => importFromPluginAndOpen(home, source),
+      menuItem(() => newDocMethods.importFromPluginAndOpen(home, source),
         menuIcon('Import'),
         source.importSource.label,
         dom.cls('disabled', !home.newDocWorkspace.get()),
