@@ -382,7 +382,7 @@ export class ActiveDocImport {
    * @param {String} tmpPath: The path from of the original file.
    * @param {FileImportOptions} importOptions: File import options.
    * @returns {Promise<ImportResult>} with `options` property containing parseOptions as serialized JSON as adjusted
-   * or guessed by the plugin, and `tables`, which is which is a list of objects with information about
+   * or guessed by the plugin, and `tables`, which is a list of objects with information about
    * tables, such as `hiddenTableId`, `uploadFileIndex`, `origTableName`, `transformSectionRef`, `destTableId`.
    */
   private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,

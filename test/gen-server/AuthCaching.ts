@@ -2,7 +2,7 @@ import {delay} from 'app/common/delay';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import log from 'app/server/lib/log';
-import {main as mergedServerMain} from 'app/server/mergedServerMain';
+import {MergedServer} from 'app/server/MergedServer';
 import axios from 'axios';
 import {assert} from 'chai';
 import * as fse from 'fs-extra';
@@ -50,12 +50,17 @@ describe('AuthCaching', function() {
     setUpDB();
     await createInitialDb();
     process.env.GRIST_DATA_DIR = testDocDir;
-    homeServer = await mergedServerMain(0, ['home'],
+
+    const homeMS = await MergedServer.create(0, ['home'],
       {logToConsole: false, externalStorage: false});
+    await homeMS.run();
+    homeServer = homeMS.flexServer;
     homeUrl = homeServer.getOwnUrl();
     process.env.APP_HOME_URL = homeUrl;
-    docsServer = await mergedServerMain(0, ['docs'],
+    const docsMS = await MergedServer.create(0, ['docs'],
       {logToConsole: false, externalStorage: false});
+    await docsMS.run();
+    docsServer = docsMS.flexServer;
 
     // Helpers for getting cookie-based logins.
     session = new TestSession(homeServer);

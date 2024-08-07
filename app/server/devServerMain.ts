@@ -21,7 +21,7 @@
 import {updateDb} from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import log from 'app/server/lib/log';
-import {main as mergedServerMain} from 'app/server/mergedServerMain';
+import {MergedServer} from 'app/server/MergedServer';
 import {promisifyAll} from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
@@ -96,8 +96,9 @@ export async function main() {
     if (!process.env.APP_HOME_URL) {
       process.env.APP_HOME_URL = `http://localhost:${port}`;
     }
-    const server = await mergedServerMain(port, ["home", "docs", "static"]);
-    await server.addTestingHooks();
+    const mergedServer = await MergedServer.create(port, ["home", "docs", "static"]);
+    await mergedServer.flexServer.addTestingHooks();
+    await mergedServer.run();
     return;
   }
 
@@ -118,17 +119,18 @@ export async function main() {
   log.info("== staticServer");
   const staticPort = getPort("STATIC_PORT", 9001);
   process.env.APP_STATIC_URL = `http://localhost:${staticPort}`;
-  await mergedServerMain(staticPort, ["static"]);
+  await MergedServer.create(staticPort, ["static"]).then((s) => s.run());
 
   // Bring up a home server
   log.info("==========================================================================");
   log.info("== homeServer");
-  const home = await mergedServerMain(homeServerPort, ["home"]);
+  const homeServer = await MergedServer.create(homeServerPort, ["home"]);
+  await homeServer.run();
 
   // If a distinct webServerPort is specified, we listen also on that port, though serving
   // exactly the same content.  This is handy for testing CORS issues.
   if (webServerPort !== 0 && webServerPort !== homeServerPort) {
-    await home.startCopy('webServer', webServerPort);
+    await homeServer.flexServer.startCopy('webServer', webServerPort);
   }
 
   // Bring up the docWorker(s)
@@ -147,10 +149,10 @@ export async function main() {
   }
   const workers = new Array<FlexServer>();
   for (const port of ports) {
-    workers.push(await mergedServerMain(port, ["docs"]));
+    workers.push((await MergedServer.create(port, ["docs"])).flexServer);
   }
 
-  await home.addTestingHooks(workers);
+  await homeServer.flexServer.addTestingHooks(workers);
 }
 
 
