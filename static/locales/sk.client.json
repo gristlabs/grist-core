@@ -517,7 +517,8 @@
         "Visit our {{link}} to learn more about Grist.": "Navštíviť náš {{link}} a dozvedieť sa viac o Grist.",
         "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Viac informácií nájdete v našom {{helpCenterLink}} alebo nájdite odborníka prostredníctvom nášho {{sproutsProgram}}.",
         "Interested in using Grist outside of your team? Visit your free ": "Máte záujem používať Grist mimo váš tím? Navštívte svoje bezplatné ",
-        "Sign up": "Prihlásiť sa"
+        "Sign up": "Prihlásiť sa",
+        "Learn more in our {{helpCenterLink}}.": "Zistiť viac v našom {{helpCenterLink}}."
     },
     "Importer": {
         "Merge rows that match these fields:": "Zlúčiť riadky, ktoré zodpovedajú týmto poliam:",
@@ -1117,7 +1118,8 @@
         "URL": "URL",
         "Webhook Id": "Webhook ID",
         "Table": "Tabuľka",
-        "Filter for changes in these columns (semicolon-separated ids)": "Filtrovať zmeny v týchto stĺpcoch (identifikátory oddelené bodkočiarkou)"
+        "Filter for changes in these columns (semicolon-separated ids)": "Filtrovať zmeny v týchto stĺpcoch (identifikátory oddelené bodkočiarkou)",
+        "Header Authorization": "Autorizácia Hlavičky"
     },
     "FormulaAssistant": {
         "Capabilities": "Schopnosti",
@@ -1632,5 +1634,37 @@
     },
     "Columns": {
         "Remove Column": "Odobrať stĺpec"
+    },
+    "DocTutorial": {
+        "End tutorial": "Ukončiť tutorial",
+        "Finish": "Dokončiť",
+        "Next": "Ďaľší",
+        "Previous": "Predošlý",
+        "Restart": "Reštart",
+        "Do you want to restart the tutorial? All progress will be lost.": "Chcete reštartovať výukový program? Všetok pokrok sa stratí.",
+        "Click to expand": "Kliknutím rozbaliť"
+    },
+    "OnboardingCards": {
+        "Complete our basics tutorial": "Náš kompletný základný návod",
+        "Complete the tutorial": "Dokončiť tutoriál",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Naučiť sa základ referenčných stĺpcov, prepojených miniaplikácií, typov stĺpcov a kariet.",
+        "3 minute video tour": "3 minútová videoprehliadka"
+    },
+    "OnboardingPage": {
+        "Back": "Späť",
+        "Discover Grist in 3 minutes": "Preskúmať Grist za 3 minúty",
+        "Go hands-on with the Grist Basics tutorial": "Praktický tutoriál Základy Gristu",
+        "Go to the tutorial!": "Prejsť na tutoriál!",
+        "Next step": "Ďalší krok",
+        "Skip step": "Prekočiť krok",
+        "Skip tutorial": "Preskočiť tutoriál",
+        "Tell us who you are": "Povedz nám, kto si",
+        "Welcome": "Vitajte",
+        "What brings you to Grist (you can select multiple)?": "Čo vás privádza do Gristu (môžete vybrať viacero)?",
+        "What is your role?": "Aká je vaša úloha?",
+        "What organization are you with?": "Aká je Vaša organizácia?",
+        "Type here": "Zadať sem",
+        "Your organization": "Vaša organizácia",
+        "Your role": "Vaša úloha"
     }
 }

@@ -1234,7 +1234,7 @@
         "Event Types": "Types d'événements",
         "Memo": "Mémo",
         "Ready Column": "Colonne de déclenchement",
-        "Removed webhook.": "Suppression du webhook.",
+        "Removed webhook.": "Point d'ancrage supprimé.",
         "Filter for changes in these columns (semicolon-separated ids)": "Filtrer les changements dans ces colonnes (identifiants séparés par des points-virgules)",
         "Status": "Statut",
         "URL": "URL",
@@ -1633,5 +1633,37 @@
         "Number of Calls": "Nombre d'appels",
         "Table ID": "ID de la table",
         "Total Time (s)": "Temps total"
+    },
+    "DocTutorial": {
+        "Next": "Suivant",
+        "Restart": "Redémarrer",
+        "Click to expand": "Cliquez pour agrandir",
+        "End tutorial": "Fin du tutoriel",
+        "Do you want to restart the tutorial? All progress will be lost.": "Voulez-vous recommencer le tutoriel ? Tous les progrès seront perdus.",
+        "Previous": "Précédent",
+        "Finish": "Finir"
+    },
+    "OnboardingCards": {
+        "Complete our basics tutorial": "Complétez notre tutoriel des bases",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Apprenez les bases des colonnes de référence, des vues liées, des types de colonnes et des fiches.",
+        "3 minute video tour": "Visite guidée vidéo de 3 minutes",
+        "Complete the tutorial": "Compléter le tutoriel"
+    },
+    "OnboardingPage": {
+        "Back": "Retour",
+        "Discover Grist in 3 minutes": "Découvrez Grist en 3 minutes",
+        "Go hands-on with the Grist Basics tutorial": "Mettez la main à la pâte avec le tutoriel des bases Grist",
+        "Type here": "Tapez ici",
+        "Welcome": "Bienvenue",
+        "What organization are you with?": "Quelle est l'organisation à laquelle vous appartenez ?",
+        "Your organization": "Votre organisation",
+        "Your role": "Votre rôle",
+        "Next step": "Prochaine étape",
+        "Skip step": "Sauter cette étape",
+        "Skip tutorial": "Sauter le tutoriel",
+        "Go to the tutorial!": "Allez au tutoriel !",
+        "Tell us who you are": "Dites-nous qui vous êtes",
+        "What brings you to Grist (you can select multiple)?": "Qu'est-ce qui vous amène à Grist (vous pouvez en sélectionner plusieurs) ?",
+        "What is your role?": "Quel est votre rôle ?"
     }
 }

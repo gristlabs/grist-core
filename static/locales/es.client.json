@@ -1612,7 +1612,9 @@
         "Session Secret": "Secreto de sesión",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist firma las cookies de sesión de usuario con una clave secreta. Establezca esta clave mediante la variable de entorno GRIST_SESSION_SECRET. Si no se establece, Grist vuelve a un valor predeterminado. Es posible que quitemos este aviso en el futuro, ya que los identificadores de sesión generados desde la versión 1.1.16 son intrínsecamente seguros desde el punto de vista criptográfico.",
         "Key to sign sessions with": "Clave para firmar sesiones con",
-        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist firma las cookies de sesión de usuario con una clave secreta. Establezca esta clave mediante la variable de entorno GRIST_SESSION_SECRET. Si no se establece, Grist vuelve a un valor predeterminado. Es posible que quitemos este aviso en el futuro, ya que los identificadores de sesión generados desde la versión 1.1.16 son intrínsecamente seguros desde el punto de vista criptográfico."
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist firma las cookies de sesión de usuario con una clave secreta. Establezca esta clave mediante la variable de entorno GRIST_SESSION_SECRET. Si no se establece, Grist vuelve a un valor predeterminado. Es posible que quitemos este aviso en el futuro, ya que los identificadores de sesión generados desde la versión 1.1.16 son intrínsecamente seguros desde el punto de vista criptográfico.",
+        "Enterprise": "Empresarial",
+        "Enable Grist Enterprise": "Activar Grist Enterprise"
     },
     "CreateTeamModal": {
         "Cancel": "Cancelar",
@@ -1687,5 +1689,50 @@
         "Total Time (s)": "Tiempo total (s)",
         "Column ID": "ID de la columna",
         "Max Time (s)": "Tiempo máximo (s)"
+    },
+    "DocTutorial": {
+        "Click to expand": "Haz clic para ampliar",
+        "End tutorial": "Fin del tutorial",
+        "Next": "Siguiente",
+        "Restart": "Reanudar",
+        "Do you want to restart the tutorial? All progress will be lost.": "¿Quieres reiniciar el tutorial? Se perderá todo el progreso.",
+        "Finish": "Finalizar",
+        "Previous": "Anterior"
+    },
+    "OnboardingCards": {
+        "Complete our basics tutorial": "Completa nuestro tutorial básico",
+        "Complete the tutorial": "Completa el tutorial",
+        "3 minute video tour": "La duración del vídeo es de 3 minutos",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Aprende los conceptos básicos de las columnas de referencia, widgets vinculados, tipos de columnas y tarjetas."
+    },
+    "OnboardingPage": {
+        "Discover Grist in 3 minutes": "Descubre Grist en 3 minutos",
+        "Next step": "Paso siguiente",
+        "Skip step": "Omitir el paso",
+        "Skip tutorial": "Omitir el tutorial",
+        "Tell us who you are": "¿Quién eres?",
+        "Type here": "Escribe aquí",
+        "Welcome": "Bienvenid@",
+        "What brings you to Grist (you can select multiple)?": "¿Qué te trae a Grist (puedes seleccionar varias opciones)?",
+        "What is your role?": "¿Cual es tu papel?",
+        "Your role": "Tu función",
+        "Back": "Atrás",
+        "Your organization": "Tu organización",
+        "Go hands-on with the Grist Basics tutorial": "Práctica con el tutorial básico de Grist",
+        "Go to the tutorial!": "¡Ve al tutorial!",
+        "What organization are you with?": "¿A qué organización perteneces?"
+    },
+    "ViewLayout": {
+        "Delete": "Borrar",
+        "Delete data and this widget.": "Eliminar datos y este widget.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Mantener datos y eliminar el widget. La tabla permanecerá disponible en {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "La tabla {{tableName}} ya no será visible",
+        "raw data page": "página de datos en bruto"
+    },
+    "ToggleEnterpriseWidget": {
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Una clave de activación se utiliza para ejecutar Grist Enterprise después de un período de prueba\nde 30 días. Obtén una clave de activación [registrándose en Grist\nEmpresarial]({{signupLink}}). No necesitas una clave de activación para ejecutar\nGrist Core.\n\nMás información en nuestro [Centro de Ayuda]({{helpCenter}}).",
+        "Disable Grist Enterprise": "Desactivar Grist Enterprise",
+        "Enable Grist Enterprise": "Activar Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise está **activado**."
     }
 }

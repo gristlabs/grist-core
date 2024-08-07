@@ -87,7 +87,8 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import {IGristCoreConfig} from "./configCore";
+import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
+import {IGristCoreConfig} from "app/server/lib/configCore";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -1876,20 +1877,24 @@ export class FlexServer implements GristServer {
     const probes = new BootProbes(this.app, this, '/api', adminMiddleware);
     probes.addEndpoints();
 
-    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (req, resp) => {
-      const newConfig = req.body.newConfig;
+    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (_, resp) => {
       resp.on('finish', () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         if (process.send) {
-          process.send({ action: 'restart', newConfig });
+          process.send({ action: 'restart' });
         }
       });
-      // On the topic of http response codes, thus spake MDN:
-      // "409: This response is sent when a request conflicts with the current state of the server."
-      const status = process.send ? 200 : 409;
-      return resp.status(status).send();
+
+      if(!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+        // On the topic of http response codes, thus spake MDN:
+        // "409: This response is sent when a request conflicts with the current state of the server."
+        return resp.status(409).send({
+          error: "Cannot automatically restart the Grist server to enact changes. Please restart server manually."
+        });
+      }
+      return resp.status(200).send({ msg: 'ok' });
     }));
 
     // Restrict this endpoint to install admins
@@ -1946,6 +1951,14 @@ export class FlexServer implements GristServer {
         res.json(await response.json());
       }
     }));
+  }
+
+  public addConfigEndpoints() {
+    // Need to be an admin to change the Grist config
+    const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
+
+    const configBackendAPI = new ConfigBackendAPI();
+    configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
   }
 
   // Get the HTML template sent for document pages.

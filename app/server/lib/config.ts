@@ -98,7 +98,7 @@ export class FileConfig<FileContents> {
   }
 
   public async persistToDisk() {
-    await Deps.writeFile(this._filePath, JSON.stringify(this._rawConfig, null, 2));
+    await Deps.writeFile(this._filePath, JSON.stringify(this._rawConfig, null, 2) + "\n");
   }
 }
 
