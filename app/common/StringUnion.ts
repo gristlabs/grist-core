@@ -50,6 +50,6 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return value != null && guard(value) ? value : undefined;
   };
 
-  const unionNamespace = {guard, check, parse, values, checkAll };
+  const unionNamespace = { guard, check, parse, values, checkAll };
   return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
 };

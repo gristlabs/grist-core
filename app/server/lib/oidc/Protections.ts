@@ -10,7 +10,7 @@ export const EnabledProtection = StringUnion(
 export type EnabledProtectionString = typeof EnabledProtection.type;
 
 interface Protection {
-  generate(): SessionOIDCInfo;
+  generateSessionInfo(): SessionOIDCInfo;
   forgeAuthUrlParams(sessionInfo: SessionOIDCInfo): AuthorizationParameters;
   getCallbackChecks(sessionInfo: SessionOIDCInfo): OpenIDCallbackChecks;
 }
@@ -21,7 +21,7 @@ function checkIsSet(value: string|undefined, message: string): string {
 }
 
 class PKCEProtection implements Protection {
-  public generate(): SessionOIDCInfo {
+  public generateSessionInfo(): SessionOIDCInfo {
     return {
       code_verifier: generators.codeVerifier()
     };
@@ -40,7 +40,7 @@ class PKCEProtection implements Protection {
 }
 
 class NonceProtection implements Protection {
-  public generate(): SessionOIDCInfo {
+  public generateSessionInfo(): SessionOIDCInfo {
     return {
       nonce: generators.nonce()
     };
@@ -58,7 +58,7 @@ class NonceProtection implements Protection {
 }
 
 class StateProtection implements Protection {
-  public generate(): SessionOIDCInfo {
+  public generateSessionInfo(): SessionOIDCInfo {
     return {
       state: generators.state()
     };
@@ -90,10 +90,10 @@ export class ProtectionsManager implements Protection {
     }
   }
 
-  public generate(): SessionOIDCInfo {
+  public generateSessionInfo(): SessionOIDCInfo {
     const sessionInfo: SessionOIDCInfo = {};
     for (const protection of this._protections) {
-      Object.assign(sessionInfo, protection.generate());
+      Object.assign(sessionInfo, protection.generateSessionInfo());
     }
     return sessionInfo;
   }

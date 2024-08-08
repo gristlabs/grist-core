@@ -9,15 +9,15 @@ import {Client, generators, errors as OIDCError} from "openid-client";
 import express from "express";
 import _ from "lodash";
 import {RequestWithLogin} from "app/server/lib/Authorizer";
-import { SendAppPage } from "app/server/lib/sendAppPage";
+import { SendAppPageFunction } from "app/server/lib/sendAppPage";
 
-const NOOPED_SEND_APP_PAGE: SendAppPage = () => Promise.resolve();
+const NOOPED_SEND_APP_PAGE: SendAppPageFunction = () => Promise.resolve();
 
 class OIDCConfigStubbed extends OIDCConfig {
   public static async buildWithStub(client: Client = new ClientStub().asClient()) {
     return this.build(NOOPED_SEND_APP_PAGE, client);
   }
-  public static async build(sendAppPage: SendAppPage, clientStub?: Client): Promise<OIDCConfigStubbed> {
+  public static async build(sendAppPage: SendAppPageFunction, clientStub?: Client): Promise<OIDCConfigStubbed> {
     const result = new OIDCConfigStubbed(sendAppPage);
     if (clientStub) {
       result._initClient = Sinon.spy(() => {
@@ -424,12 +424,19 @@ describe('OIDCConfig', () => {
 
     [
       {
+        itMsg: 'should reject when no OIDC information is present in the session',
+        session: {},
+        expectedErrorMsg: /Missing OIDC information/
+      },
+      {
         itMsg: 'should resolve when the state and the code challenge are found in the session',
         session: DEFAULT_SESSION,
       },
       {
         itMsg: 'should reject when the state is not found in the session',
-        session: {},
+        session: {
+          oidc: {}
+        },
         expectedErrorMsg: /Login or logout failed to complete/,
       },
       {
@@ -616,7 +623,7 @@ describe('OIDCConfig', () => {
         const fakeParams = {
           state: FAKE_STATE,
         };
-        const config = await OIDCConfigStubbed.build(sendAppPageStub as SendAppPage, clientStub.asClient());
+        const config = await OIDCConfigStubbed.build(sendAppPageStub as SendAppPageFunction, clientStub.asClient());
         const session = _.clone(ctx.session); // session is modified, so clone it
         const req = {
           session,

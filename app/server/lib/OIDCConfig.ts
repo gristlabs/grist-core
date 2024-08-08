@@ -39,7 +39,8 @@
  *        A comma-separated list of protections to enable. Supported values are "PKCE", "STATE", "NONCE"
  *        (or you may set it to "UNPROTECTED" alone, to disable any protections if you *really* know what you do!).
  *        Defaults to "PKCE,STATE", which is the recommended settings.
- *        It's highly recommended that you enable STATE, and at least either PKCE or NONCE.
+ *        It's highly recommended that you enable STATE, and at least either PKCE or NONCE
+ *        depending on what requires/supports your OIDC provider.
  *    env GRIST_OIDC_IDP_ACR_VALUES
  *        A space-separated list of ACR values to request from the IdP. Optional.
  *    env GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA
@@ -72,7 +73,7 @@ import log from 'app/server/lib/log';
 import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
-import { SendAppPage } from 'app/server/lib/sendAppPage';
+import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
 import { StringUnionError } from 'app/common/StringUnion';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
 import { SessionObj } from './BrowserSession';
@@ -100,7 +101,7 @@ export class OIDCConfig {
   /**
    * Handy alias to create an OIDCConfig instance and initialize it.
    */
-  public static async build(sendAppPage: SendAppPage): Promise<OIDCConfig> {
+  public static async build(sendAppPage: SendAppPageFunction): Promise<OIDCConfig> {
     const config = new OIDCConfig(sendAppPage);
     await config.initOIDC();
     return config;
@@ -117,7 +118,7 @@ export class OIDCConfig {
   private _acrValues?: string;
 
   protected constructor(
-    private _sendAppPage: SendAppPage
+    private _sendAppPage: SendAppPageFunction
   ) {}
 
   public async initOIDC(): Promise<void> {
@@ -198,9 +199,13 @@ export class OIDCConfig {
 
     try {
       const params = this._client.callbackParams(req);
-      const { targetUrl } = mreq.session.oidc ?? {};
+      if (!mreq.session.oidc) {
+        throw new Error('Missing OIDC information associated to this session');
+      }
 
-      const checks = this._protectionManager.getCallbackChecks(mreq.session.oidc ?? {});
+      const { targetUrl } = mreq.session.oidc;
+
+      const checks = this._protectionManager.getCallbackChecks(mreq.session.oidc);
 
       // The callback function will compare the protections present in the params and the ones we retrieved
       // from the session. If they don't match, it will throw an error.
@@ -254,7 +259,7 @@ export class OIDCConfig {
 
     mreq.session.oidc = {
       targetUrl: targetUrl.href,
-      ...this._protectionManager.generate()
+      ...this._protectionManager.generateSessionInfo()
     };
 
     return this._client.authorizationUrl({
