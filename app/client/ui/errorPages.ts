@@ -15,12 +15,19 @@ const testId = makeTestId('test-');
 
 const t = makeT('errorPages');
 
+function signInAgainButton() {
+  return cssButtonWrap(bigPrimaryButtonLink(
+    t("Sign in again"), {href: getLoginUrl()}, testId('error-signin')
+  ));
+}
+
 export function createErrPage(appModel: AppModel) {
   const {errMessage, errPage} = getGristConfig();
   return errPage === 'signed-out' ? createSignedOutPage(appModel) :
     errPage === 'not-found' ? createNotFoundPage(appModel, errMessage) :
     errPage === 'access-denied' ? createForbiddenPage(appModel, errMessage) :
     errPage === 'account-deleted' ? createAccountDeletedPage(appModel) :
+    errPage === 'signin-failed' ? createSigninFailedPage(appModel, errMessage) :
     createOtherErrorPage(appModel, errMessage);
 }
 
@@ -61,9 +68,7 @@ export function createSignedOutPage(appModel: AppModel) {
 
   return pagePanelsError(appModel, t("Signed out{{suffix}}", {suffix: ''}), [
     cssErrorText(t("You are now signed out.")),
-    cssButtonWrap(bigPrimaryButtonLink(
-      t("Sign in again"), {href: getLoginUrl()}, testId('error-signin')
-    ))
+    signInAgainButton(),
   ]);
 }
 
@@ -94,6 +99,18 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
     })),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
+    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),
+  ]);
+}
+
+export function createSigninFailedPage(appModel: AppModel, message?: string) {
+  document.title = t("Sign-in failed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
+  return pagePanelsError(appModel, t("Sign-in failed{{suffix}}", {suffix: ''}), [
+    cssErrorText(message ??
+      t("Failed to log in.{{separator}}Please try again or contact support.", {
+        separator: dom('br')
+    })),
+    signInAgainButton(),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),
   ]);
 }
