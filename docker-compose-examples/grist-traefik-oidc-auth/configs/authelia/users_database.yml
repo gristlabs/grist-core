@@ -1,0 +1,14 @@
+# Primary users file.
+
+# Passwords are generated using 'authelia crypto hash generate argon2'
+# E.g:
+#     docker run authelia/authelia:4 authelia crypto hash generate argon2 --password "test"
+# See https://www.authelia.com/reference/guides/passwords/#yaml-format
+
+users:
+  test:
+    disabled: false
+    displayname: 'Test'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$j1Jub3z0jWBmXNOjNpRK5w$d5176FINCAuzdT3uehQqMS08FC4fadAGrqyZL+0W+p4'
+    email: 'test@example.org'
+    groups: []

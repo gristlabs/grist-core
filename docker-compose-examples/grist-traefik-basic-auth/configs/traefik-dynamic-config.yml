@@ -1,0 +1,13 @@
+http:
+  # Declaring the user list
+  middlewares:
+    grist-basic-auth:
+      basicAuth:
+        # The header that Grist will listen for authenticated usernames on.
+        headerField: "X-Forwarded-User"
+        # This is the list of users, in the format username:password.
+        # Passwords can be created using `htpasswd`
+        # E.g: `htpasswd -nB test@example.org`
+        users:
+          # The default username is "test@example.org". The default password is "test".
+          - "test@example.org:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"

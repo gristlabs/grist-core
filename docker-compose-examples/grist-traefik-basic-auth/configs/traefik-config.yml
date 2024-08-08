@@ -1,0 +1,35 @@
+providers:
+  # Enables reading docker label config values
+  docker: {}
+  # Read additional config from this file.
+  file:
+    directory: "/etc/traefik/dynamic"
+
+entrypoints:
+  # Defines a secure entrypoint using TLS encryption
+  websecure:
+    address: ":443"
+    http:
+      tls: true
+  # Defines an insecure entrypoint that redirects to the secure one.
+  web:
+    address: ":80"
+    http:
+      # Redirects HTTP to HTTPS
+      redirections:
+        entrypoint:
+          to: "websecure"
+          scheme: "https"
+
+# Enables automatic certificate renewal
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "my_email@example.com"
+      storage: /acme/acme.json
+      tlschallenge: true
+
+# Enables the web UI
+# This is disabled by default for security, but can be useful to debugging traefik.
+api:
+  # insecure: true

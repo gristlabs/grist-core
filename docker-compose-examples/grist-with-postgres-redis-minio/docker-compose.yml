@@ -1,0 +1,76 @@
+services:
+  grist:
+    image: gristlabs/grist:latest
+    environment:
+      # Postgres database setup
+      TYPEORM_DATABASE: grist
+      TYPEORM_USERNAME: grist
+      TYPEORM_HOST: grist-db
+      TYPEORM_LOGGING: false
+      TYPEORM_PASSWORD: ${DATABASE_PASSWORD}
+      TYPEORM_PORT: 5432
+      TYPEORM_TYPE: postgres
+
+      # Redis setup
+      REDIS_URL: redis://grist-redis
+
+      # MinIO setup. This requires the bucket set up on the MinIO instance with versioning enabled.
+      GRIST_DOCS_MINIO_ACCESS_KEY: grist
+      GRIST_DOCS_MINIO_SECRET_KEY: ${MINIO_PASSWORD}
+      GRIST_DOCS_MINIO_USE_SSL: 0
+      GRIST_DOCS_MINIO_BUCKET: grist-docs
+      GRIST_DOCS_MINIO_ENDPOINT: grist-minio
+      GRIST_DOCS_MINIO_PORT: 9000
+
+    volumes:
+      # Where to store persistent data, such as documents.
+      - ${PERSIST_DIR}/grist:/persist
+    ports:
+      - 8484:8484
+    depends_on:
+      - grist-db
+      - grist-redis
+      - grist-minio
+      - minio-setup
+
+  grist-db:
+    image: postgres:alpine
+    environment:
+        POSTGRES_DB: grist
+        POSTGRES_USER: grist
+        POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - ${PERSIST_DIR}/postgres:/var/lib/postgresql/data
+
+  grist-redis:
+    image: redis:alpine
+    volumes:
+      - ${PERSIST_DIR}/redis:/data
+
+  grist-minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: grist
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - ${PERSIST_DIR}/minio:/data
+    command:
+      server /data --console-address=":9001"
+
+  # This sets up the buckets required in MinIO. It is only needed to make this example work.
+  # It isn't necessary for deployment and can be safely removed.
+  minio-setup:
+    image: minio/mc
+    environment:
+      MINIO_PASSWORD: ${MINIO_PASSWORD}
+    depends_on:
+      grist-minio:
+        condition: service_started
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://grist-minio:9000 grist '$MINIO_PASSWORD';
+      /usr/bin/mc mb myminio/grist-docs;
+      /usr/bin/mc anonymous set public myminio/grist-docs;
+      /usr/bin/mc version enable myminio/grist-docs;
+      "
