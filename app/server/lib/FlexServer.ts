@@ -1036,7 +1036,7 @@ export class FlexServer implements GristServer {
       server: this,
       staticDir: getAppPathTo(this.appRoot, 'static'),
       tag: this.tag,
-      testLogin: allowTestLogin(),
+      testLogin: isTestLoginAllowed(),
       baseDomain: this._defaultBaseDomain,
     });
 
@@ -1207,7 +1207,7 @@ export class FlexServer implements GristServer {
     })));
     this.app.get('/signin', ...signinMiddleware, expressWrap(this._redirectToLoginOrSignup.bind(this, {})));
 
-    if (allowTestLogin()) {
+    if (isTestLoginAllowed()) {
       // This is an endpoint for the dev environment that lets you log in as anyone.
       // For a standard dev environment, it will be accessible at localhost:8080/test/login
       // and localhost:8080/o/<org>/test/login.  Only available when GRIST_TEST_LOGIN is set.
@@ -1989,7 +1989,9 @@ export class FlexServer implements GristServer {
   }
 
   public resolveLoginSystem() {
-    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
+    return isTestLoginAllowed() ?
+      getTestLoginSystem() :
+      (this._getLoginSystem?.() || getLoginSystem());
   }
 
   public addUpdatesCheck() {
@@ -2519,8 +2521,8 @@ function configServer<T extends https.Server|http.Server>(server: T): T {
 }
 
 // Returns true if environment is configured to allow unauthenticated test logins.
-function allowTestLogin() {
-  return Boolean(process.env.GRIST_TEST_LOGIN);
+function isTestLoginAllowed() {
+  return isAffirmative(process.env.GRIST_TEST_LOGIN);
 }
 
 // Check OPTIONS requests for allowed origins, and return heads to allow the browser to proceed
