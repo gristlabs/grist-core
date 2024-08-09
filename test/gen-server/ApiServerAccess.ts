@@ -61,9 +61,9 @@ describe('ApiServerAccess', function() {
       }
     );
     dbManager = server.dbManager;
-    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user!.ref);
-    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user!.ref);
-    charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user!.ref);
+    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
+    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user.ref);
+    charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user.ref);
     // Listen to user count updates and add them to an array.
     dbManager.on('userChange', ({org, countBefore, countAfter}: UserChange) => {
       if (countBefore === countAfter) { return; }

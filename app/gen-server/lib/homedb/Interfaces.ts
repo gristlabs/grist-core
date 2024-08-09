@@ -34,7 +34,7 @@ export type NonGuestGroup = Group & { name: roles.NonGuestRole };
 
 export type Resource = Organization|Workspace|Document;
 
-export type RunInTransaction = (
+export type RunInTransaction = <T>(
   transaction: EntityManager|undefined,
-  op: ((manager: EntityManager) => Promise<any>)
-) => Promise<any>;
+  op: ((manager: EntityManager) => Promise<T>)
+) => Promise<T>;
