@@ -6,7 +6,6 @@
  *    log.info(...);
  */
 
-import { isAffirmative } from 'app/common/gutil';
 import {timeFormat} from 'app/common/timeFormat';
 import * as winston from 'winston';
 
@@ -70,7 +69,7 @@ const fileTransportOptions = {
   level: process.env.GRIST_LOG_LEVEL || 'debug',
   timestamp: log.timestamp,
   colorize: true,
-  json: isAffirmative(process.env.GRIST_HOSTED_VERSION)
+  json: process.env.GRIST_HOSTED_VERSION ? true : false
 };
 
 // Configure logging to use console and simple timestamps.
