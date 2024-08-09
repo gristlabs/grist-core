@@ -23,6 +23,7 @@ import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';
 import onHeaders from 'on-headers';
+import { ShareOptions } from 'app/common/ShareOptions';
 
 export interface RequestWithLogin extends Request {
   sessionID: string;
@@ -173,23 +174,69 @@ export async function addRequestUser(
 
   // Now, check for an apiKey
   if (!authDone && mreq.headers && mreq.headers.authorization) {
-    // header needs to be of form "Bearer XXXXXXXXX" to apply
     const parts = String(mreq.headers.authorization).split(' ');
+    // header needs to be of form "Bearer XXXXXXXXX" to apply
     if (parts[0] === "Bearer") {
-      const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
-      if (!user) {
-        return res.status(401).send('Bad request: invalid API key');
+      // Bearer needs to be form "DOC-YYYYYYYYY" to apply as Doc Api key
+      if (parts[1]?.match(/^DOC-.*/)) {
+        const url = mreq.url;
+
+        const didRegex = /(?<=^\/docs\/).+?(?=\/|$)/g;
+        const did = url.match(didRegex);
+        // Only API scope matching regex MUST be accessed with Doc Api keys
+        if (!did || !did[0]){
+          return res.status(401).send(`Access Denied: Scope limited to Documents`);
+        }
+        // Doc Api Key
+        const docApiKey = parts[1].split('-')[1];
+        const share = docApiKey ? await dbManager.getDocApiKeyByKey(docApiKey) : undefined;
+
+        // A share with key matching Bearer and having options.access set to true MUST exist
+        if (!share || !share.options.apikey) {
+          return res.status(401).send('Bad request: invalid Doc Api key');
+        }
+        // DocId in request parameters MUST match share.DocId
+        if (did[0] !== share.docId){
+          return res.status(401).send('Bad request: invalid Doc Api key');
+        }
+        // access as two valid values
+        const legalAccessValues: ShareOptions["access"][] = ["editors", "viewers"];
+        if (!legalAccessValues.includes(share.options.access)){
+         return res.status(401).send(`Bad request: invalid option.access ${share.options.access}`);
+        }
+
+        // We setup the user as anonymous
+        // with access determined by share.options.access value
+        const anon = dbManager.getAnonymousUser();
+        const org = await dbManager.getOrgOwnerFromDocApiKey(share);
+        const userId = org?.ownerId;
+        mreq.user = anon;
+        mreq.userId = userId;
+
+        const docAuth = await getOrSetDocAuth(mreq, dbManager, options.gristServer, did[0]);
+        const access = share.options.access ? share.options.access : null;
+        mreq.docAuth = {...docAuth, access};
+        mreq.userIsAuthorized = true;
+        hasApiKey = true;
+
+      // If Bearer have another form it must be a User Api Key
+      } else {
+        // full scope Api Key
+        const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
+        if (!user) {
+          return res.status(401).send('Bad request: invalid API key');
+        }
+        if (user.id === dbManager.getAnonymousUserId()) {
+          // We forbid the anonymous user to present an api key.  That saves us
+          // having to think through the consequences of authorized access to the
+          // anonymous user's profile via the api (e.g. how should the api key be managed).
+          return res.status(401).send('Credentials cannot be presented for the anonymous user account via API key');
+        }
+        mreq.user = user;
+        mreq.userId = user.id;
+        mreq.userIsAuthorized = true;
+        hasApiKey = true;
       }
-      if (user.id === dbManager.getAnonymousUserId()) {
-        // We forbid the anonymous user to present an api key.  That saves us
-        // having to think through the consequences of authorized access to the
-        // anonymous user's profile via the api (e.g. how should the api key be managed).
-        return res.status(401).send('Credentials cannot be presented for the anonymous user account via API key');
-      }
-      mreq.user = user;
-      mreq.userId = user.id;
-      mreq.userIsAuthorized = true;
-      hasApiKey = true;
     }
   }
 
