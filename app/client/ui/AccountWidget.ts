@@ -1,7 +1,7 @@
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
-import {getAdminPanelName} from 'app/client/ui/AdminPanel';
+import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';

@@ -25,13 +25,9 @@ import * as version from 'app/common/version';
 import {Computed, Disposable, dom, IDisposable,
         IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
 import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
+import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 
 const t = makeT('AdminPanel');
-
-// Translated "Admin Panel" name, made available to other modules.
-export function getAdminPanelName() {
-  return t("Admin Panel");
-}
 
 export class AdminPanel extends Disposable {
   private _supportGrist = SupportGristPage.create(this, this._appModel);
