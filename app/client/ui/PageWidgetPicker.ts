@@ -95,12 +95,21 @@ export interface IOptions extends ISelectOptions {
   placement?: Popper.Placement;
 }
 
+export interface ICompatibleTypes {
+
+  // true if "New Page" is selected in Page Picker
+  isNewPage: Boolean | undefined;
+
+  // true if can be summarized
+  summarize: Boolean;
+}
+
 const testId = makeTestId('test-wselect-');
 
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
 function getCompatibleTypes(tableId: TableRef,
-                            {isNewPage, summarize}: {isNewPage: boolean|undefined, summarize: boolean}): IWidgetType[] {
+                            {isNewPage, summarize}: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: Array<IWidgetType> = [];
   if (tableId !== 'New Table') {
     compatibleTypes = ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
@@ -116,15 +125,15 @@ function getCompatibleTypes(tableId: TableRef,
 
 // The Picker disables some choices that do not make much sense.
 // This function return a boolean telling if summary can be used with this type.
-function isSummaryCompatible(tableId: IWidgetType): boolean {
+function isSummaryCompatible(widgetType: IWidgetType): boolean {
   const incompatibleTypes: Array<IWidgetType> = ['form'];
-  return !incompatibleTypes.includes(tableId);
+  return !incompatibleTypes.includes(widgetType);
 }
 
 // Whether table and type make for a valid selection whether the user is creating a new page or not.
 function isValidSelection(table: TableRef,
                           type: IWidgetType,
-                          {isNewPage, summarize}: {isNewPage: boolean|undefined, summarize: boolean}) {
+                          {isNewPage, summarize}: ICompatibleTypes) {
   return table !== null && getCompatibleTypes(table, {isNewPage, summarize}).includes(type);
 }
 
@@ -459,9 +468,6 @@ export class PageWidgetSelect extends Disposable {
 
   private _selectType(type: IWidgetType) {
     this._value.type.set(type);
-    if (!isSummaryCompatible(type)) {
-      this._closeSummarizePanel();
-    }
   }
 
   private _selectTable(tid: TableRef) {

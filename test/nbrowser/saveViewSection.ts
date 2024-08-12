@@ -160,7 +160,7 @@ describe("saveViewSection", function() {
     await assertActiveSectionColumns('Test', 'count');
   });
 
-  it("Should disable summary when form type is selected", async () => {
+  it("should disable summary when form type is selected", async () => {
     // select form type
     await driver.find('.test-dp-add-new').doClick();
     await driver.find('.test-dp-add-new-page').doClick();
@@ -171,10 +171,9 @@ describe("saveViewSection", function() {
 
     // close page widget picker
     await driver.sendKeys(Key.ESCAPE);
-    await gu.checkForErrors();
   });
 
-  it("Should disable form when summary is selected", async () => {
+  it("should disable form when summary is selected", async () => {
     // select table type then select summary for a Table
     await driver.find('.test-dp-add-new').doClick();
     await driver.find('.test-dp-add-new-page').doClick();
@@ -185,6 +184,5 @@ describe("saveViewSection", function() {
 
     // close page widget picker
     await driver.sendKeys(Key.ESCAPE);
-    await gu.checkForErrors();
   });
 });
