@@ -1,5 +1,14 @@
 # yamllint disable rule:comments-indentation
----
+
+###############################################################################
+##         Original configuration file available at this URL:                ##
+##   https://github.com/authelia/authelia/blob/master/config.template.yml    ##
+##                                                                           ##
+##     This file is an edited version to support Grist as an OIDC client     ##
+###############################################################################
+
+#------------------------------------------------------------------------------
+
 ###############################################################################
 ##                           Authelia Configuration                          ##
 ###############################################################################
