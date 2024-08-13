@@ -223,10 +223,15 @@ export class WidgetFrame extends DisposableWithEvents {
 
   // Appends access level to query string.
   private _urlWithAccess(url: string) {
-    if (!url) {
+    if (!url) { return url; }
+
+    let urlObj: URL;
+    try {
+      urlObj = new URL(url);
+    } catch (e) {
+      console.error(e);
       return url;
     }
-    const urlObj = new URL(url);
     urlObj.searchParams.append('access', this._options.access);
     urlObj.searchParams.append('readonly', String(this._options.readonly));
     // Append user and document preferences to query string.

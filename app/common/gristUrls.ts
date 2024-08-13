@@ -759,7 +759,8 @@ export interface GristLoadConfig {
   // List of registered plugins (used by HomePluginManager and DocPluginManager)
   plugins?: LocalPlugin[];
 
-  // If custom widget list is available.
+  // If additional custom widgets (besides the Custom URL widget) should be shown in
+  // the custom widget gallery.
   enableWidgetRepository?: boolean;
 
   // Whether there is somewhere for survey data to go.

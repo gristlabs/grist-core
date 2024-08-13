@@ -100,15 +100,15 @@ describe("ViewLayoutCollapse", function() {
 
     // Add custom section.
     await gu.addNewPage('Table', 'Companies');
-    await gu.addNewSection('Custom', 'Companies', { selectBy: 'COMPANIES'});
+    await gu.addNewSection('Custom', 'Companies', {selectBy: 'COMPANIES'});
 
     // Serve custom widget.
     const widgetServer = await serveSomething(app => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
+    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', {openGallery: false});
     await gu.openWidgetPanel();
-    await gu.setWidgetUrl(widgetServer.url + '/probe/index.html');
     await gu.widgetAccess(AccessLevel.full);
 
     // Collapse it.
@@ -139,15 +139,15 @@ describe("ViewLayoutCollapse", function() {
 
     // Add custom section.
     await gu.addNewPage('Table', 'Companies');
-    await gu.addNewSection('Custom', 'Companies', { selectBy: 'COMPANIES'});
+    await gu.addNewSection('Custom', 'Companies', {selectBy: 'COMPANIES'});
 
     // Serve custom widget.
     const widgetServer = await serveSomething(app => {
       addStatic(app);
     });
     cleanup.addAfterAll(widgetServer.shutdown);
+    await gu.setCustomWidgetUrl(widgetServer.url + '/probe/index.html', {openGallery: false});
     await gu.openWidgetPanel();
-    await gu.setWidgetUrl(widgetServer.url + '/probe/index.html');
     await gu.widgetAccess(AccessLevel.full);
 
     // Collapse it.

@@ -119,6 +119,7 @@ export type IconName = "ChartArea" |
   "Public" |
   "PublicColor" |
   "PublicFilled" |
+  "Question" |
   "Redo" |
   "Remove" |
   "RemoveBig" |
@@ -280,6 +281,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Public",
   "PublicColor",
   "PublicFilled",
+  "Question",
   "Redo",
   "Remove",
   "RemoveBig",

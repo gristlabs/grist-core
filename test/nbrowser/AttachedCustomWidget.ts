@@ -24,13 +24,6 @@ describe('AttachedCustomWidget', function () {
   let widgetServerUrl = '';
   // Holds widgets manifest content.
   let widgets: ICustomWidget[] = [];
-  // Switches widget manifest url
-  async function useManifest(url: string) {
-    await server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : '');
-    await driver.executeAsyncScript(
-      (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done()
-    );
-  }
 
   async function buildWidgetServer(){
     // Create simple widget server that serves manifest.json file, some widgets and some error pages.
@@ -69,12 +62,11 @@ describe('AttachedCustomWidget', function () {
   before(async function () {
     await buildWidgetServer();
     oldEnv = new EnvironmentSnapshot();
+    process.env.GRIST_WIDGET_LIST_URL = `${widgetServerUrl}${manifestEndpoint}`;
     process.env.PERMITTED_CUSTOM_WIDGETS = "calendar";
     await server.restart();
-    await useManifest(manifestEndpoint);
     const session = await gu.session().login();
     await session.tempDoc(cleanup, 'Hello.grist');
-
   });
 
   after(async function () {

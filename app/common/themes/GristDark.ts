@@ -248,6 +248,8 @@ export const GristDark: ThemeColors = {
   'right-panel-toggle-button-disabled-bg': '#32323F',
   'right-panel-field-settings-bg': '#404150',
   'right-panel-field-settings-button-bg': '#646473',
+  'right-panel-custom-widget-button-fg': '#EFEFEF',
+  'right-panel-custom-widget-button-bg': '#60606D',
 
   /* Document History */
   'document-history-snapshot-fg': '#EFEFEF',
@@ -551,4 +553,13 @@ export const GristDark: ThemeColors = {
 
   /* Numeric Spinners */
   'numeric-spinner-fg': '#A4A4B1',
+
+  /* Custom Widget Gallery */
+  'widget-gallery-border': '#555563',
+  'widget-gallery-border-selected': '#17B378',
+  'widget-gallery-shadow': '#00000080',
+  'widget-gallery-bg-hover': '#262633',
+  'widget-gallery-secondary-header-fg': '#FFFFFF',
+  'widget-gallery-secondary-header-bg': '#70707D',
+  'widget-gallery-secondary-header-bg-hover': '#60606D',
 };

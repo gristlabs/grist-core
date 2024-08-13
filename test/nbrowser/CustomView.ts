@@ -1,24 +1,11 @@
 import {safeJsonParse} from 'app/common/gutil';
+import * as chai from 'chai';
 import {assert, driver, Key} from 'mocha-webdriver';
+import {serveCustomViews, Serving, setAccess} from 'test/nbrowser/customUtil';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
-import { serveCustomViews, Serving, setAccess } from 'test/nbrowser/customUtil';
-
-import * as chai from 'chai';
 chai.config.truncateThreshold = 5000;
-
-async function setCustomWidget() {
-  // if there is a select widget option
-  if (await driver.find('.test-config-widget-select').isPresent()) {
-    const selected = await driver.find('.test-config-widget-select .test-select-open').getText();
-    if (selected != "Custom URL") {
-      await driver.find('.test-config-widget-select .test-select-open').click();
-      await driver.findContent('.test-select-menu li', "Custom URL").click();
-      await gu.waitForServer();
-    }
-  }
-}
 
 describe('CustomView', function() {
   this.timeout(20000);
@@ -49,9 +36,8 @@ describe('CustomView', function() {
     await gu.addNewSection('Custom', 'Table1');
 
     // Point to a widget that doesn't immediately call ready.
+    await gu.setCustomWidgetUrl(`${serving.url}/deferred-ready`, {openGallery: false});
     await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-config-widget-url').click();
-    await gu.sendKeys(`${serving.url}/deferred-ready`, Key.ENTER);
 
     // We should have a single iframe.
     assert.equal(await driver.findAll('iframe').then(f => f.length), 1);
@@ -108,10 +94,8 @@ describe('CustomView', function() {
 
         // Replace the widget with a custom widget that just reads out the data
         // as JSON.
-        await driver.find('.test-config-widget').click();
-        await setCustomWidget();
-        await driver.find('.test-config-widget-url').click();
-        await driver.sendKeys(`${serving.url}/readout`, Key.ENTER);
+        await gu.setCustomWidgetUrl(`${serving.url}/readout`, {openGallery: false});
+        await gu.openWidgetPanel();
         await setAccess(access);
         await gu.waitForServer();
 
@@ -167,10 +151,8 @@ describe('CustomView', function() {
         await gu.waitForServer();
 
         // Choose the custom view that just reads out data as json
-        await driver.find('.test-config-widget').click();
-        await setCustomWidget();
-        await driver.find('.test-config-widget-url').click();
-        await driver.sendKeys(`${serving.url}/readout`, Key.ENTER);
+        await gu.setCustomWidgetUrl(`${serving.url}/readout`, {openGallery: false});
+        await gu.openWidgetPanel();
         await setAccess(access);
         await gu.waitForServer();
 
@@ -265,7 +247,7 @@ describe('CustomView', function() {
       it('allows switching to custom section by clicking inside it', async function() {
         await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
         assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS');
-        assert.equal(await driver.find('.test-config-widget-url').isPresent(), false);
+        assert.equal(await driver.find('.test-config-widget-open-custom-widget-gallery').isPresent(), false);
 
         const iframe = gu.getSection('Friends custom').find('iframe');
         await driver.switchTo().frame(iframe);
@@ -274,24 +256,19 @@ describe('CustomView', function() {
         // Check that the right section is active, and its settings visible in the side panel.
         await driver.switchTo().defaultContent();
         assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS Custom');
-        assert.equal(await driver.find('.test-config-widget-url').isPresent(), true);
+        assert.equal(await driver.find('.test-config-widget-open-custom-widget-gallery').isPresent(), true);
 
         // Switch back.
         await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
         assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS');
-        assert.equal(await driver.find('.test-config-widget-url').isPresent(), false);
+        assert.equal(await driver.find('.test-config-widget-open-custom-widget-gallery').isPresent(), false);
       });
 
       it('deals correctly with requests that require full access', async function() {
         // Choose a custom widget that tries to replace all cells in all user tables with 'zap'.
         await gu.getSection('Friends Custom').click();
-        await driver.find('.test-config-widget').click();
-        await setAccess("none");
-        await gu.waitForServer();
-
-        await gu.setValue(driver.find('.test-config-widget-url'), '');
-        await driver.find('.test-config-widget-url').click();
-        await driver.sendKeys(`${serving.url}/zap`, Key.ENTER);
+        await gu.setCustomWidgetUrl(`${serving.url}/zap`);
+        await gu.openWidgetPanel();
         await setAccess(access);
         await gu.waitForServer();
 
@@ -329,12 +306,10 @@ describe('CustomView', function() {
     // The test doc already has a Custom View widget. It just needs to
     // have a URL set.
     await gu.getSection('TYPES custom').click();
-    await driver.find('.test-config-widget').click();
-    await setCustomWidget();
+    await gu.setCustomWidgetUrl(`${serving.url}/types`);
     // If we needed to change widget to Custom URL, make sure access is read table.
     await setAccess("read table");
-    await driver.find('.test-config-widget-url').click();
-    await driver.sendKeys(`${serving.url}/types`, Key.ENTER);
+    await gu.waitForServer();
 
     const iframe = gu.getSection('TYPES custom').find('iframe');
     await driver.switchTo().frame(iframe);
@@ -480,10 +455,8 @@ describe('CustomView', function() {
     await gu.waitForServer();
 
     // Select a custom widget that tries to replace all cells in all user tables with 'zap'.
-    await driver.find('.test-config-widget').click();
-    await setCustomWidget();
-    await driver.find('.test-config-widget-url').click();
-    await driver.sendKeys(`${serving.url}/zap`, Key.ENTER);
+    await gu.setCustomWidgetUrl(`${serving.url}/zap`, {openGallery: false});
+    await gu.openWidgetPanel();
     await setAccess("full");
     await gu.waitForServer();
 
@@ -537,10 +510,10 @@ describe('CustomView', function() {
     const doc = await mainSession.tempDoc(cleanup, 'FetchSelectedOptions.grist', {load: false});
     await mainSession.loadDoc(`/doc/${doc.id}`);
 
-    await gu.toggleSidePanel('right', 'open');
     await gu.getSection('TABLE1 Custom').click();
-    await driver.find('.test-config-widget-url').click();
-    await gu.sendKeys(`${serving.url}/fetchSelectedOptions`, Key.ENTER);
+    await gu.setCustomWidgetUrl(`${serving.url}/fetchSelectedOptions`);
+    await gu.openWidgetPanel();
+    await setAccess("full");
     await gu.waitForServer();
 
     const expected = {
@@ -620,8 +593,10 @@ describe('CustomView', function() {
     }
 
     await inFrame(async () => {
-      const parsed = await getData(12);
-      assert.deepEqual(parsed, expected);
+      await gu.waitToPass(async () => {
+        const parsed = await getData(12);
+        assert.deepEqual(parsed, expected);
+      }, 1000);
     });
 
     // Change the access level away from 'full'.

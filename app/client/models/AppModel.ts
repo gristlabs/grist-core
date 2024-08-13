@@ -62,8 +62,6 @@ export interface TopAppModel {
   orgs: Observable<Organization[]>;
   users: Observable<FullUser[]>;
 
-  customWidgets: Observable<ICustomWidget[]|null>;
-
   // Reinitialize the app. This is called when org or user changes.
   initialize(): void;
 
@@ -162,26 +160,26 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly orgs = Observable.create<Organization[]>(this, []);
   public readonly users = Observable.create<FullUser[]>(this, []);
   public readonly plugins: LocalPlugin[] = [];
-  public readonly customWidgets = Observable.create<ICustomWidget[]|null>(this, null);
-  private readonly _gristConfig?: GristLoadConfig;
+  private readonly _gristConfig? = this._window.gristConfig;
   // Keep a list of available widgets, once requested, so we don't have to
   // keep reloading it. Downside: browser page will need reloading to pick
   // up new widgets - that seems ok.
   private readonly _widgets: AsyncCreate<ICustomWidget[]>;
 
-  constructor(window: {gristConfig?: GristLoadConfig},
+  constructor(private _window: {gristConfig?: GristLoadConfig},
     public readonly api: UserAPI = newUserAPIImpl(),
     public readonly options: TopAppModelOptions = {}
   ) {
     super();
     setErrorNotifier(this.notifier);
-    this.isSingleOrg = Boolean(window.gristConfig && window.gristConfig.singleOrg);
-    this.productFlavor = getFlavor(window.gristConfig && window.gristConfig.org);
-    this._gristConfig = window.gristConfig;
+    this.isSingleOrg = Boolean(this._gristConfig?.singleOrg);
+    this.productFlavor = getFlavor(this._gristConfig?.org);
     this._widgets = new AsyncCreate<ICustomWidget[]>(async () => {
-      const widgets = this.options.useApi === false ? [] : await this.api.getWidgets();
-      this.customWidgets.set(widgets);
-      return widgets;
+      if (this.options.useApi === false || !this._gristConfig?.enableWidgetRepository) {
+        return [];
+      }
+
+      return await this.api.getWidgets();
     });
 
     // Initially, and on any change to subdomain, call initialize() to get the full Organization
@@ -214,8 +212,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public async testReloadWidgets() {
     console.log("testReloadWidgets");
     this._widgets.clear();
-    this.customWidgets.set(null);
-    console.log("testReloadWidgets cleared and nulled");
+    console.log("testReloadWidgets cleared");
     const result = await this.getWidgets();
     console.log("testReloadWidgets got", {result});
   }

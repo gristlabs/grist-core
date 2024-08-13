@@ -1,11 +1,22 @@
 import {allCommands} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeTestId} from 'app/client/lib/domUtils';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
 import * as kf from 'app/client/lib/koForm';
 import {makeT} from 'app/client/lib/localization';
+import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
+import {
+  cssDeveloperLink,
+  cssWidgetMetadata,
+  cssWidgetMetadataName,
+  cssWidgetMetadataRow,
+  cssWidgetMetadataValue,
+  CUSTOM_URL_WIDGET_ID,
+  getWidgetName,
+  showCustomWidgetGallery,
+} from 'app/client/ui/CustomWidgetGallery';
 import {cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
@@ -14,16 +25,15 @@ import {theme, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
 import {cssOptionLabel, IOption, IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
-import {GristLoadConfig} from 'app/common/gristUrls';
 import {not, unwrap} from 'app/common/gutil';
 import {
   bundleChanges,
   Computed,
   Disposable,
   dom,
+  DomContents,
   fromKo,
   MultiHolder,
   Observable,
@@ -33,21 +43,7 @@ import {
 
 const t = makeT('CustomSectionConfig');
 
-// Custom URL widget id - used as mock id for selectbox.
-const CUSTOM_ID = 'custom';
 const testId = makeTestId('test-config-widget-');
-
-/**
- * Custom Widget section.
- * Allows to select custom widget from the list of available widgets
- * (taken from /widgets endpoint), or enter a Custom URL.
- * When Custom Widget has a desired access level (in accessLevel field),
- * will prompt user to approve it. "None" access level is auto approved,
- * so prompt won't be shown.
- *
- * When gristConfig.enableWidgetRepository is set to false, it will only
- * allow to specify the custom URL.
- */
 
 class ColumnPicker extends Disposable {
   constructor(
@@ -319,17 +315,17 @@ class ColumnListPicker extends Disposable {
 }
 
 class CustomSectionConfigurationConfig extends Disposable{
-  // Does widget has custom configuration.
-  private readonly _hasConfiguration: Computed<boolean>;
+  private readonly _hasConfiguration = Computed.create(this, use =>
+    Boolean(use(this._section.hasCustomOptions) || use(this._section.columnsToMap)));
+
   constructor(private _section: ViewSectionRec, private _gristDoc: GristDoc) {
     super();
-    this._hasConfiguration = Computed.create(this, use => use(_section.hasCustomOptions));
   }
+
   public buildDom() {
-    // Show prompt, when desired access level is different from actual one.
-    return dom(
-      'div',
-      dom.maybe(this._hasConfiguration, () =>
+    return dom.maybe(this._hasConfiguration, () => [
+      cssSeparator(),
+      dom.maybe(this._section.hasCustomOptions, () =>
         cssSection(
           textButton(
             t("Open configuration"),
@@ -363,7 +359,7 @@ class CustomSectionConfigurationConfig extends Disposable{
             : dom.create(ColumnPicker, m.value, m.column, this._section)),
         );
       })
-    );
+    ]);
   }
   private _openConfiguration(): void {
     allCommands.openWidgetConfiguration.run();
@@ -384,274 +380,107 @@ class CustomSectionConfigurationConfig extends Disposable{
   }
 }
 
+/**
+ * Custom widget configuration.
+ *
+ * Allows picking a custom widget from a gallery of available widgets
+ * (fetched from the `/widgets` endpoint), which includes the Custom URL
+ * widget.
+ *
+ * When a custom widget has a desired `accessLevel` set to a value other
+ * than `"None"`, a prompt will be shown to grant the requested access level
+ * to the widget.
+ *
+ * When `gristConfig.enableWidgetRepository` is set to false, only the
+ * Custom URL widget will be available to select in the gallery.
+ */
 export class CustomSectionConfig extends Disposable {
+  protected _customSectionConfigurationConfig = new CustomSectionConfigurationConfig(
+    this._section, this._gristDoc);
 
-  protected _customSectionConfigurationConfig: CustomSectionConfigurationConfig;
-  // Holds all available widget definitions.
-  private _widgets: Observable<ICustomWidget[]|null>;
-  // Holds selected option (either custom string or a widgetId).
-  private readonly _selectedId: Computed<string | null>;
-  // Holds custom widget URL.
-  private readonly _url: Computed<string>;
-  // Enable or disable widget repository.
-  private readonly _canSelect: boolean = true;
-  // When widget is changed, it sets its desired access level. We will prompt
-  // user to approve or reject it.
-  private readonly _desiredAccess: Observable<AccessLevel|null>;
-  // Current access level (stored inside a section).
-  private readonly _currentAccess: Computed<AccessLevel>;
+  private readonly _widgetId = Computed.create(this, use => {
+    // Stored in one of two places, depending on age of document.
+    const widgetId = use(this._section.customDef.widgetId) ||
+      use(this._section.customDef.widgetDef)?.widgetId;
+    if (widgetId) {
+      const pluginId = use(this._section.customDef.pluginId);
+      return (pluginId || '') + ':' + widgetId;
+    } else {
+      return CUSTOM_URL_WIDGET_ID;
+    }
+  });
 
+  private readonly _isCustomUrlWidget = Computed.create(this, this._widgetId, (_use, widgetId) => {
+    return widgetId === CUSTOM_URL_WIDGET_ID;
+  });
 
+  private readonly _currentAccess = Computed.create(this, use =>
+    (use(this._section.customDef.access) as AccessLevel) || AccessLevel.none)
+    .onWrite(async newAccess => {
+      await this._section.customDef.access.setAndSave(newAccess);
+    });
 
+  private readonly _desiredAccess = fromKo(this._section.desiredAccessLevel);
+
+  private readonly _url = Computed.create(this, use => use(this._section.customDef.url) || '')
+    .onWrite(async newUrl => {
+      bundleChanges(() => {
+        this._section.customDef.renderAfterReady(false);
+        if (newUrl) {
+          this._section.customDef.widgetId(null);
+          this._section.customDef.pluginId('');
+          this._section.customDef.widgetDef(null);
+        }
+        this._section.customDef.url(newUrl);
+      });
+      await this._section.saveCustomDef();
+    });
+
+  private readonly _requiresAccess = Computed.create(this, use => {
+    const [currentAccess, desiredAccess] = [use(this._currentAccess), use(this._desiredAccess)];
+    return desiredAccess && !isSatisfied(currentAccess, desiredAccess);
+  });
+
+  private readonly _widgetDetailsExpanded: Observable<boolean>;
+
+  private readonly _widgets: Observable<ICustomWidget[] | null> = Observable.create(this, null);
+
+  private readonly _selectedWidget = Computed.create(this, use => {
+    const id = use(this._widgetId);
+    if (id === CUSTOM_URL_WIDGET_ID) { return null; }
+
+    const widgets = use(this._widgets);
+    if (!widgets) { return null; }
+
+    const [pluginId, widgetId] = id.split(':');
+    return matchWidget(widgets, {pluginId, widgetId}) ?? null;
+  });
 
   constructor(protected _section: ViewSectionRec, private _gristDoc: GristDoc) {
     super();
-    this._customSectionConfigurationConfig = new CustomSectionConfigurationConfig(_section, _gristDoc);
 
-    // Test if we can offer widget list.
-    const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
-    this._canSelect = gristConfig.enableWidgetRepository ?? true;
+    const userId = this._gristDoc.appModel.currentUser?.id ?? 0;
+    this._widgetDetailsExpanded = this.autoDispose(localStorageBoolObs(
+      `u:${userId};customWidgetDetailsExpanded`,
+      true
+    ));
 
-    // Array of available widgets - will be updated asynchronously.
-    this._widgets = _gristDoc.app.topAppModel.customWidgets;
-    this._getWidgets().catch(reportError);
-    // Request for rest of the widgets.
+    this._getWidgets()
+      .then(widgets => {
+        if (this.isDisposed()) { return; }
 
-    // Selected value from the dropdown (contains widgetId or "custom" string for Custom URL)
-    this._selectedId = Computed.create(this, use => {
-      // widgetId could be stored in one of two places, depending on
-      // age of document.
-      const widgetId = use(_section.customDef.widgetId) ||
-          use(_section.customDef.widgetDef)?.widgetId;
-      const pluginId = use(_section.customDef.pluginId);
-      if (widgetId) {
-        // selection id is "pluginId:widgetId"
-        return (pluginId || '') + ':' + widgetId;
-      }
-      return CUSTOM_ID;
-    });
-    this._selectedId.onWrite(async value => {
-      if (value === CUSTOM_ID) {
-        // Select Custom URL
-        bundleChanges(() => {
-          // Reset whether widget should render after `grist.ready()`.
-          _section.customDef.renderAfterReady(false);
-          // Clear url.
-          _section.customDef.url(null);
-          // Clear widgetId
-          _section.customDef.widgetId(null);
-          _section.customDef.widgetDef(null);
-          // Clear pluginId
-          _section.customDef.pluginId('');
-          // Reset access level to none.
-          _section.customDef.access(AccessLevel.none);
-          // Clear all saved options.
-          _section.customDef.widgetOptions(null);
-          // Reset custom configuration flag.
-          _section.hasCustomOptions(false);
-          // Clear column mappings.
-          _section.customDef.columnsMapping(null);
-          _section.columnsToMap(null);
-          this._desiredAccess.set(AccessLevel.none);
-        });
-        await _section.saveCustomDef();
-      } else {
-        const [pluginId, widgetId] = value?.split(':') || [];
-        // Select Widget
-        const selectedWidget = matchWidget(this._widgets.get()||[], {
-          widgetId,
-          pluginId,
-        });
-        if (!selectedWidget) {
-          // should not happen
-          throw new Error('Error accessing widget from the list');
-        }
-        // If user selected the same one, do nothing.
-        if (_section.customDef.widgetId.peek() === widgetId &&
-            _section.customDef.pluginId.peek() === pluginId) {
-          return;
-        }
-        bundleChanges(() => {
-          // Reset whether widget should render after `grist.ready()`.
-          _section.customDef.renderAfterReady(selectedWidget.renderAfterReady ?? false);
-          // Clear access level
-          _section.customDef.access(AccessLevel.none);
-          // When widget wants some access, set desired access level.
-          this._desiredAccess.set(selectedWidget.accessLevel || AccessLevel.none);
-
-          // Keep a record of the original widget definition.
-          // Don't rely on this much, since the document could
-          // have moved installation since, and widgets could be
-          // served from elsewhere.
-          _section.customDef.widgetDef(selectedWidget);
-
-          // Update widgetId.
-          _section.customDef.widgetId(selectedWidget.widgetId);
-          // Update pluginId.
-          _section.customDef.pluginId(selectedWidget.source?.pluginId || '');
-          // Update widget URL. Leave blank when widgetId is set.
-          _section.customDef.url(null);
-          // Clear options.
-          _section.customDef.widgetOptions(null);
-          // Clear has custom configuration.
-          _section.hasCustomOptions(false);
-          // Clear column mappings.
-          _section.customDef.columnsMapping(null);
-          _section.columnsToMap(null);
-        });
-        await _section.saveCustomDef();
-      }
-    });
-
-    // Url for the widget, taken either from widget definition, or provided by hand for Custom URL.
-    // For custom widget, we will store url also in section definition.
-    this._url = Computed.create(this, use => use(_section.customDef.url) || '');
-    this._url.onWrite(async newUrl => {
-      bundleChanges(() => {
-        _section.customDef.renderAfterReady(false);
-        if (newUrl) {
-          // When a URL is set explicitly, make sure widgetId/pluginId/widgetDef
-          // is empty.
-          _section.customDef.widgetId(null);
-          _section.customDef.pluginId('');
-          _section.customDef.widgetDef(null);
-        }
-        _section.customDef.url(newUrl);
-      });
-      await _section.saveCustomDef();
-    });
-
-    // Compute current access level.
-    this._currentAccess = Computed.create(
-      this,
-      use => (use(_section.customDef.access) as AccessLevel) || AccessLevel.none
-    );
-    this._currentAccess.onWrite(async newAccess => {
-      await _section.customDef.access.setAndSave(newAccess);
-    });
-    // From the start desired access level is the same as current one.
-    this._desiredAccess = fromKo(_section.desiredAccessLevel);
+        this._widgets.set(widgets);
+      })
+      .catch(reportError);
 
     // Clear intermediate state when section changes.
-    this.autoDispose(_section.id.subscribe(() => this._reject()));
+    this.autoDispose(_section.id.subscribe(() => this._dismissAccessPrompt()));
   }
 
-  public buildDom() {
-    // UI observables holder.
-    const holder = new MultiHolder();
-
-    // Show prompt, when desired access level is different from actual one.
-    const prompt = Computed.create(holder, use =>
-      use(this._desiredAccess)
-      && !isSatisfied(use(this._currentAccess), use(this._desiredAccess)!));
-    // If this is empty section or not.
-    const isSelected = Computed.create(holder, use => Boolean(use(this._selectedId)));
-    // If user is using custom url.
-    const isCustom = Computed.create(holder, use => use(this._selectedId) === CUSTOM_ID || !this._canSelect);
-    // Options for the select-box (all widgets definitions and Custom URL)
-    const options = Computed.create(holder, use => [
-      {label: 'Custom URL', value: 'custom'},
-      ...(use(this._widgets) || [])
-           .filter(w => w?.published !== false)
-           .map(w => ({
-             label: w.source?.name ? `${w.name} (${w.source.name})` : w.name,
-             value: (w.source?.pluginId || '') + ':' + w.widgetId,
-           })),
-    ]);
-    function buildPrompt(level: AccessLevel|null) {
-      if (!level) {
-        return null;
-      }
-      switch(level) {
-        case AccessLevel.none: return cssConfirmLine(t("Widget does not require any permissions."));
-        case AccessLevel.read_table:
-          return cssConfirmLine(t("Widget needs to {{read}} the current table.", {read: dom("b", "read")}));
-        case AccessLevel.full:
-          return cssConfirmLine(t("Widget needs {{fullAccess}} to this document.", {
-            fullAccess: dom("b", "full access")
-          }));
-        default: throw new Error(`Unsupported ${level} access level`);
-      }
-    }
-    // Options for access level.
-    const levels: IOptionFull<string>[] = [
-      {label: t("No document access"), value: AccessLevel.none},
-      {label: t("Read selected table"), value: AccessLevel.read_table},
-      {label: t("Full document access"), value: AccessLevel.full},
-    ];
-    return dom(
-      'div',
-      dom.autoDispose(holder),
-      this.shouldRenderWidgetSelector() &&
-      this._canSelect
-        ? cssRow(
-          select(this._selectedId, options, {
-            defaultLabel: t("Select Custom Widget"),
-            menuCssClass: cssMenu.className,
-          }),
-          testId('select')
-        )
-        : null,
-      dom.maybe((use) => use(isCustom) && this.shouldRenderWidgetSelector(), () => [
-        cssRow(
-          cssTextInput(
-            this._url,
-            async value => this._url.set(value),
-            dom.attr('placeholder', t("Enter Custom URL")),
-            testId('url')
-          ),
-          this._gristDoc.behavioralPromptsManager.attachPopup('customURL', {
-            popupOptions: {
-              placement: 'left-start',
-            },
-            isDisabled: () => {
-              // Disable tip if a custom widget is already selected.
-              return Boolean(this._selectedId.get() && !(isCustom.get() && this._url.get().trim() === ''));
-            },
-          })
-        ),
-      ]),
-      dom.maybe(prompt, () =>
-        kf.prompt(
-          {tabindex: '-1'},
-          cssColumns(
-            cssWarningWrapper(icon('Lock')),
-            dom(
-              'div',
-              cssConfirmRow(
-                dom.domComputed(this._desiredAccess, (level) => buildPrompt(level))
-              ),
-              cssConfirmRow(
-                primaryButton(
-                  'Accept',
-                  testId('access-accept'),
-                  dom.on('click', () => this._accept())
-                ),
-                basicButton(
-                  'Reject',
-                  testId('access-reject'),
-                  dom.on('click', () => this._reject())
-                )
-              )
-            )
-          )
-        )
-      ),
-      dom.maybe(
-        use => use(isSelected) || !this._canSelect,
-        () => [
-          cssLabel('ACCESS LEVEL'),
-          cssRow(select(this._currentAccess, levels), testId('access')),
-        ]
-      ),
-      cssSection(
-        cssLink(
-          dom.attr('href', 'https://support.getgrist.com/widget-custom'),
-          dom.attr('target', '_blank'),
-          t("Learn more about custom widgets")
-        )
-      ),
-      cssSeparator(),
+  public buildDom(): DomContents {
+    return dom('div',
+      this._buildWidgetSelector(),
+      this._buildAccessLevelConfig(),
       this._customSectionConfigurationConfig.buildDom(),
     );
   }
@@ -661,19 +490,192 @@ export class CustomSectionConfig extends Disposable {
   }
 
   protected async _getWidgets() {
-    await this._gristDoc.app.topAppModel.getWidgets();
+    return await this._gristDoc.app.topAppModel.getWidgets();
   }
 
-  private _accept() {
+  private _buildWidgetSelector() {
+    if (!this.shouldRenderWidgetSelector()) { return null; }
+
+    return [
+      cssRow(
+        cssWidgetSelector(
+          this._buildShowWidgetDetailsButton(),
+          this._buildWidgetName(),
+        ),
+      ),
+      this._maybeBuildWidgetDetails(),
+    ];
+  }
+
+  private _buildShowWidgetDetailsButton() {
+    return cssShowWidgetDetails(
+      cssShowWidgetDetailsIcon(
+        'Dropdown',
+        cssShowWidgetDetailsIcon.cls('-collapsed', use => !use(this._widgetDetailsExpanded)),
+        testId('toggle-custom-widget-details'),
+        testId(use => !use(this._widgetDetailsExpanded)
+          ? 'show-custom-widget-details'
+          : 'hide-custom-widget-details'
+        ),
+      ),
+      cssWidgetLabel(t('Widget')),
+      dom.on('click', () => {
+        this._widgetDetailsExpanded.set(!this._widgetDetailsExpanded.get());
+      }),
+    );
+  }
+
+  private _buildWidgetName() {
+    return cssWidgetName(
+      dom.text(use => {
+        if (use(this._isCustomUrlWidget)) {
+          return t('Custom URL');
+        } else {
+          const widget = use(this._selectedWidget) ?? use(this._section.customDef.widgetDef);
+          return widget ? getWidgetName(widget) : use(this._widgetId);
+        }
+      }),
+      dom.on('click', () => showCustomWidgetGallery(this._gristDoc, {
+        sectionRef: this._section.id(),
+      })),
+      testId('open-custom-widget-gallery'),
+    );
+  }
+
+  private _maybeBuildWidgetDetails() {
+    return dom.maybe(this._widgetDetailsExpanded, () =>
+      dom.domComputed(this._selectedWidget, (widget) =>
+        cssRow(
+          this._buildWidgetDetails(widget),
+        )
+      )
+    );
+  }
+
+  private _buildWidgetDetails(widget: ICustomWidget | null) {
+    return dom.domComputed(this._isCustomUrlWidget, (isCustomUrlWidget) => {
+      if (isCustomUrlWidget) {
+        return cssCustomUrlDetails(
+          cssTextInput(
+            this._url,
+            async value => this._url.set(value),
+            dom.show(this._isCustomUrlWidget),
+            {placeholder: t('Enter Custom URL')},
+          ),
+        );
+      } else if (!widget?.description && !widget?.authors?.[0] && !widget?.lastUpdatedAt) {
+        return cssDetailsMessage(t('Missing description and author information.'));
+      } else {
+        return cssWidgetDetails(
+          !widget?.description ? null : cssWidgetDescription(
+            widget.description,
+            testId('custom-widget-description'),
+          ),
+          cssWidgetMetadata(
+            !widget?.authors?.[0] ? null : cssWidgetMetadataRow(
+              cssWidgetMetadataName(t('Developer:')),
+              cssWidgetMetadataValue(
+                widget.authors[0].url
+                  ? cssDeveloperLink(
+                    widget.authors[0].name,
+                    {href: widget.authors[0].url, target: '_blank'},
+                    testId('custom-widget-developer'),
+                  )
+                  : dom('span',
+                    widget.authors[0].name,
+                    testId('custom-widget-developer'),
+                  ),
+                testId('custom-widget-developer'),
+              ),
+            ),
+            !widget?.lastUpdatedAt ? null : cssWidgetMetadataRow(
+              cssWidgetMetadataName(t('Last updated:')),
+              cssWidgetMetadataValue(
+                new Date(widget.lastUpdatedAt).toLocaleDateString('default', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                }),
+                testId('custom-widget-last-updated'),
+              ),
+            ),
+          )
+        );
+      }
+    });
+  }
+
+  private _buildAccessLevelConfig() {
+    return [
+      cssSeparator({style: 'margin-top: 0px'}),
+      cssLabel(t('ACCESS LEVEL')),
+      cssRow(select(this._currentAccess, getAccessLevels()), testId('access')),
+      dom.maybeOwned(this._requiresAccess, (owner) => kf.prompt(
+        (elem: HTMLDivElement) => { FocusLayer.create(owner, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        cssColumns(
+          cssWarningWrapper(icon('Lock')),
+          dom('div',
+            cssConfirmRow(
+              dom.domComputed(this._desiredAccess, (level) => this._buildAccessLevelPrompt(level))
+            ),
+            cssConfirmRow(
+              primaryButton(
+                t('Accept'),
+                testId('access-accept'),
+                dom.on('click', () => this._grantDesiredAccess())
+              ),
+              basicButton(
+                t('Reject'),
+                testId('access-reject'),
+                dom.on('click', () => this._dismissAccessPrompt())
+              )
+            )
+          )
+        ),
+        dom.onKeyDown({
+          Enter: () => this._grantDesiredAccess(),
+          Escape:() => this._dismissAccessPrompt(),
+        }),
+      )),
+    ];
+  }
+
+  private _buildAccessLevelPrompt(level: AccessLevel | null) {
+    if (!level) { return null; }
+
+    switch (level) {
+      case AccessLevel.none: {
+        return cssConfirmLine(t("Widget does not require any permissions."));
+      }
+      case AccessLevel.read_table: {
+        return cssConfirmLine(t("Widget needs to {{read}} the current table.", {read: dom("b", "read")}));
+      }
+      case AccessLevel.full: {
+        return cssConfirmLine(t("Widget needs {{fullAccess}} to this document.", {
+          fullAccess: dom("b", "full access")
+        }));
+      }
+    }
+  }
+
+  private _grantDesiredAccess() {
     if (this._desiredAccess.get()) {
       this._currentAccess.set(this._desiredAccess.get()!);
     }
-    this._reject();
+    this._dismissAccessPrompt();
   }
 
-  private _reject() {
+  private _dismissAccessPrompt() {
     this._desiredAccess.set(null);
   }
+}
+
+function getAccessLevels(): IOptionFull<string>[] {
+  return [
+    {label: t("No document access"), value: AccessLevel.none},
+    {label: t("Read selected table"), value: AccessLevel.read_table},
+    {label: t("Full document access"), value: AccessLevel.full},
+  ];
 }
 
 const cssWarningWrapper = styled('div', `
@@ -698,12 +700,6 @@ const cssConfirmLine = styled('span', `
 
 const cssSection = styled('div', `
   margin: 16px 16px 12px 16px;
-`);
-
-const cssMenu = styled('div', `
-  & > li:first-child {
-    border-bottom: 1px solid ${theme.menuBorder};
-  }
 `);
 
 const cssAddIcon = styled(icon, `
@@ -748,16 +744,8 @@ const cssAddMapping = styled('div', `
 `);
 
 const cssTextInput = styled(textInput, `
-  flex: 1 0 auto;
-
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
-
-  &:disabled {
-    color: ${theme.inputDisabledFg};
-    background-color: ${theme.inputDisabledBg};
-    pointer-events: none;
-  }
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
@@ -770,4 +758,63 @@ const cssDisabledSelect = styled(select, `
 
 const cssBlank = styled(cssOptionLabel, `
   --grist-option-label-color: ${theme.lightText};
+`);
+
+const cssWidgetSelector = styled('div', `
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  column-gap: 16px;
+`);
+
+const cssShowWidgetDetails = styled('div', `
+  display: flex;
+  align-items: center;
+  column-gap: 4px;
+  cursor: pointer;
+`);
+
+const cssShowWidgetDetailsIcon = styled(icon, `
+  --icon-color: ${theme.lightText};
+  flex-shrink: 0;
+
+  &-collapsed {
+    transform: rotate(-90deg);
+  }
+`);
+
+const cssWidgetLabel = styled('div', `
+  text-transform: uppercase;
+  font-size: ${vars.xsmallFontSize};
+`);
+
+const cssWidgetName = styled('div', `
+  color: ${theme.rightPanelCustomWidgetButtonFg};
+  background-color: ${theme.rightPanelCustomWidgetButtonBg};
+  height: 24px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`);
+
+const cssWidgetDetails = styled('div', `
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+`);
+
+const cssCustomUrlDetails = styled(cssWidgetDetails, `
+  flex: 1 0 auto;
+`);
+
+const cssDetailsMessage = styled('div', `
+  color: ${theme.lightText};
+`);
+
+const cssWidgetDescription = styled('div', `
+  margin-bottom: 16px;
 `);

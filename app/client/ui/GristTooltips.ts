@@ -42,7 +42,8 @@ export type Tooltip =
   | 'formulaColumn'
   | 'accessRulesTableWide'
   | 'setChoiceDropdownCondition'
-  | 'setRefDropdownCondition';
+  | 'setRefDropdownCondition'
+  | 'communityWidgets';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -149,6 +150,15 @@ see or edit which parts of your document.')
     })),
     dom('div',
       cssLink({href: commonUrls.helpFilteringReferenceChoices, target: '_blank'}, t('Learn more.')),
+    ),
+    ...args,
+  ),
+  communityWidgets: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('Community widgets are created and maintained by Grist community members.')
+    ),
+    dom('div',
+      cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -306,20 +316,6 @@ to determine who can see or edit which parts of your document.')),
     hideDontShowTips: true,
     forceShow: true,
     markAsSeen: false,
-  },
-  customURL: {
-    popupType: 'tip',
-    title: () => t('Custom Widgets'),
-    content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div',
-        t(
-          'You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.'
-        ),
-      ),
-      dom('div', cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.'))),
-      ...args,
-    ),
-    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   calendarConfig: {
     popupType: 'tip',
