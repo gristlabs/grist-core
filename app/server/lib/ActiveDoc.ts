@@ -138,7 +138,7 @@ import {
   OptDocSession
 } from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
-import {expandQuery} from './ExpandedQuery';
+import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession} from './serverUtils';
@@ -1169,6 +1169,11 @@ export class ActiveDoc extends EventEmitter {
     this._log.info(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
+    const onDemand = this._onDemandActions.isOnDemand(tableId);
+    if (onDemand) {
+      // It's safe to use this.docData after waitForInitialization().
+      return getFormulaErrorForExpandQuery(this.docData!, tableId, colId);
+    }
     return this._pyCall('get_formula_error', tableId, colId, rowId);
   }
 
