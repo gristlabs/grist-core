@@ -810,6 +810,9 @@ export interface GristLoadConfig {
   // The Grist deployment type (e.g. core, enterprise).
   deploymentType?: GristDeploymentType;
 
+  // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
+  forceEnableEnterprise?: boolean;
+
   // The org containing public templates and tutorials.
   templateOrg?: string|null;
 

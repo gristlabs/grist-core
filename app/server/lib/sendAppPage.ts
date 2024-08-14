@@ -96,6 +96,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
+    forceEnableEnterprise: isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE),
     templateOrg: getTemplateOrg(),
     onboardingTutorialDocId: getOnboardingTutorialDocId(),
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),

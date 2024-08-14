@@ -26,6 +26,7 @@ import {Computed, Disposable, dom, IDisposable,
         IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
 import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
 import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
+import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
 
 const t = makeT('AdminPanel');
 
@@ -158,13 +159,7 @@ Please log in as an administrator.`)),
           description: t('Current version of Grist'),
           value: cssValueLabel(`Version ${version.version}`),
         }),
-        dom.create(AdminSectionItem, {
-          id: 'enterprise',
-          name: t('Enterprise'),
-          description: t('Enable Grist Enterprise'),
-          value: dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable()),
-          expandedContent: this._toggleEnterprise.buildEnterpriseSection(),
-        }),
+        this._maybeAddEnterpriseToggle(),
         this._buildUpdates(owner),
       ]),
       dom.create(AdminSection, t('Self Checks'), [
@@ -184,6 +179,19 @@ Please log in as an administrator.`)),
         }),
       ]),
     ];
+  }
+
+  private _maybeAddEnterpriseToggle() {
+    if (!showEnterpriseToggle()) {
+      return null;
+    }
+    return dom.create(AdminSectionItem, {
+      id: 'enterprise',
+      name: t('Enterprise'),
+      description: t('Enable Grist Enterprise'),
+      value: dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable()),
+      expandedContent: this._toggleEnterprise.buildEnterpriseSection(),
+    });
   }
 
   private _buildSandboxingDisplay(owner: IDisposableOwner) {
