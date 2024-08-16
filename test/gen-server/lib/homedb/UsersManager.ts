@@ -1,29 +1,31 @@
-import { User } from 'app/gen-server/entity/User';
+import { isAffirmative } from 'app/common/gutil';
+import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PREVIEWER_EMAIL, UserOptions } from 'app/common/UserAPI';
 import { AclRuleOrg } from 'app/gen-server/entity/AclRule';
+import { Document } from 'app/gen-server/entity/Document';
 import { Group } from 'app/gen-server/entity/Group';
+import { Login } from 'app/gen-server/entity/Login';
 import { Organization } from 'app/gen-server/entity/Organization';
-import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
+import { Pref } from 'app/gen-server/entity/Pref';
+import { User } from 'app/gen-server/entity/User';
+import { Workspace } from 'app/gen-server/entity/Workspace';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
-import { tmpdir } from 'os';
-import fs from 'node:fs/promises';
-import path from 'path';
+import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
+import { updateDb } from 'app/server/lib/dbUtils';
 import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
 import { getDatabase } from 'test/testUtils';
-import { Workspace } from 'app/gen-server/entity/Workspace';
-import { Document } from 'app/gen-server/entity/Document';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
-import { assert } from 'chai';
-import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
-import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PREVIEWER_EMAIL, UserOptions } from 'app/common/UserAPI';
-import { Login } from 'app/gen-server/entity/Login';
-import { Pref } from 'app/gen-server/entity/Pref';
-import { EntityManager } from 'typeorm';
+
 import log from 'app/server/lib/log';
+import { assert } from 'chai';
+import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
+import { EntityManager } from 'typeorm';
 import winston from 'winston';
-import { updateDb } from 'app/server/lib/dbUtils';
-import { isAffirmative } from 'app/common/gutil';
+
+import fs from 'fs/promises';
+import { tmpdir } from 'os';
+import path from 'path';
 
 const username = process.env.USER || "nobody";
 const tmpDirPrefix = path.join(tmpdir(), `grist_test_${username}_userendpoint_`);
