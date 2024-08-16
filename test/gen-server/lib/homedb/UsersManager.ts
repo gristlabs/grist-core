@@ -5,9 +5,9 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
 import { tmpdir } from 'os';
+import fs from 'node:fs/promises';
 import path from 'path';
 import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
-import { prepareFilesystemDirectoryForTests } from 'test/server/lib/helpers/PrepareFilesystemDirectoryForTests';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
 import { getDatabase } from 'test/testUtils';
 import { Workspace } from 'app/gen-server/entity/Workspace';
@@ -23,12 +23,26 @@ import { EntityManager } from 'typeorm';
 import log from 'app/server/lib/log';
 import winston from 'winston';
 import { updateDb } from 'app/server/lib/dbUtils';
+import { isAffirmative } from 'app/common/gutil';
 
 const username = process.env.USER || "nobody";
-const tmpDir = path.join(tmpdir(), `grist_test_${username}_userendpoint`);
+const tmpDirPrefix = path.join(tmpdir(), `grist_test_${username}_userendpoint_`);
+// it is sometimes useful in debugging to turn off automatic cleanup of sqlite databases.
+const noCleanup = isAffirmative(process.env.NO_CLEANUP);
 
 describe('UsersManager', function () {
   this.timeout('30s');
+  let tmpDir: string;
+
+  before(async function () {
+    tmpDir = await fs.mkdtemp(tmpDirPrefix);
+  });
+
+  after(async function () {
+    if (!noCleanup) {
+      await fs.rm(tmpDir, {recursive: true});
+    }
+  });
 
   describe('static method', function () {
     /**
@@ -284,7 +298,6 @@ describe('UsersManager', function () {
 
     before(async function () {
       env = new EnvironmentSnapshot();
-      await prepareFilesystemDirectoryForTests(tmpDir);
       await prepareDatabase(tmpDir);
       db = await getDatabase();
     });
