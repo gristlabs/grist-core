@@ -28,81 +28,103 @@ const username = process.env.USER || "nobody";
 const tmpDir = path.join(tmpdir(), `grist_test_${username}_userendpoint`);
 
 describe('UsersManager', function () {
-  this.timeout(30000);
+  this.timeout('30s');
 
   describe('static method', function () {
+    /**
+     * Create a simple iterator of integer starting from 0 which is incremented every time we call next()
+     */
     function* makeIdxIterator() {
       for (let i = 0; i < 500; i++) {
         yield i;
       }
     }
 
-    function makeUsers(nbUsers: number, idxIt = makeIdxIterator()) {
+    /**
+     * Create a table of users.
+     * @param nbUsers The number of users to create
+     * @param [userIdIterator=makeIdxIterator()] An iterator used to create users' id,
+     *        which keep track of the increment accross calls.
+     *        Pass your own iterator if you want to call this methods several times and keep the id unique.
+     *        If omitted, create its own iterator that starts from 0.
+     */
+    function makeUsers(nbUsers: number, userIdIterator = makeIdxIterator()): User[] {
       return Array(nbUsers).fill(null).map(() => {
         const user = new User();
-        const index = idxIt.next();
-        if (index.done) {
+        const itItem = userIdIterator.next();
+        if (itItem.done) {
           throw new Error('Excessive number of users created');
         }
-        user.id = index.value;
-        user.name = `User ${index.value}`;
+        user.id = itItem.value;
+        user.name = `User ${itItem.value}`;
         return user;
       });
     }
 
-    function makeUsersList(usersListLength: number, nbUsersByGroups: number) {
-      const idxIt = makeIdxIterator();
-      return Array(usersListLength).fill(null).map(_ => makeUsers(nbUsersByGroups, idxIt));
+    /**
+     * Populate passed resources with members
+     * @param resources The Resources
+     * @param nbUsersByResource The number of users to create for each resources (each one is unique)
+     * @returns The Resources and their respective members
+     */
+    function populateResourcesWithMembers(
+      resources: Resource[], nbUsersByResource: number, makeResourceGrpName?: (idx: number) => string
+    ): Map<Resource, User[]> {
+      const membersByResource = new Map<Resource, User[]>();
+      const idxIterator = makeIdxIterator();
+      for (const [idx, resource] of resources.entries()) {
+        const aclRule = new AclRuleOrg();
+        const group = new Group();
+        if (makeResourceGrpName) {
+          group.name = makeResourceGrpName(idx);
+        }
+        const members = makeUsers(nbUsersByResource, idxIterator);
+        group.memberUsers = members;
+        aclRule.group = group;
+        resource.aclRules = [
+          aclRule
+        ];
+        membersByResource.set(resource, members);
+      }
+      return membersByResource;
+    }
+
+    /**
+     * Populate a resource with members and return the members
+     */
+    function populateSingleResourceWithMembers(resource: Resource, nbUsers: number) {
+      const membersByResource = populateResourcesWithMembers([resource], nbUsers);
+      return membersByResource.get(resource)!;
     }
 
     describe('getResourceUsers()', function () {
-      function populateResourceWithMembers(res: Resource, members: User[], groupName?: string) {
-        const aclRule = new AclRuleOrg();
-        const group = new Group();
-        if (groupName) {
-          group.name = groupName;
-        }
-        group.memberUsers = members;
-        aclRule.group = group;
-        res.aclRules = [
-          aclRule
-        ];
-      }
-
       it('should return all users from a single organization ACL', function () {
         const resource = new Organization();
-        const users = makeUsers(5);
-        populateResourceWithMembers(resource, users);
+        const expectedUsers = populateSingleResourceWithMembers(resource, 5);
 
         const result = UsersManager.getResourceUsers(resource);
 
-        assert.deepEqual(result, users);
+        assert.deepEqual(result, expectedUsers);
       });
 
       it('should return all users from all resources ACL', function () {
         const resources: Resource[] = [new Organization(), new Workspace(), new Document()];
-        const usersList = makeUsersList(3, 5);
-        for (const [idx, resource] of resources.entries()) {
-          populateResourceWithMembers(resource, usersList[idx]);
-        }
+        const membersByResource = populateResourcesWithMembers(resources, 5);
 
         const result = UsersManager.getResourceUsers(resources);
 
-        assert.deepEqual(result, usersList.flat());
+        assert.deepEqual(result, [...membersByResource.values()].flat());
       });
 
       it('should deduplicate the results', function () {
         const resources: Resource[] = [new Organization(), new Workspace()];
-        const usersList = makeUsersList(2, 1);
+        const membersByResource = populateResourcesWithMembers(resources, 1);
+        const usersList = [...membersByResource.values()];
         const expectedResult = usersList.flat();
 
         const duplicateUser = new User();
         duplicateUser.id = usersList[1][0].id;
         usersList[0].unshift(duplicateUser);
-
-        for (const [idx, resource] of resources.entries()) {
-          populateResourceWithMembers(resource, usersList[idx]);
-        }
 
         const result = UsersManager.getResourceUsers(resources);
 
@@ -110,17 +132,18 @@ describe('UsersManager', function () {
       });
 
       it('should return users matching group names from all resources ACL', function () {
-        const resources: Resource[] = [new Organization(), new Workspace(), new Document()];
-        const usersList = makeUsersList(3, 5);
-        const allGroupNames = ['Grp1', 'Grp2', 'Grp3'];
-        const filteredGroupNames = [ 'Grp2', 'Grp3' ];
-        for (const [idx, resource] of resources.entries()) {
-          populateResourceWithMembers(resource, usersList[idx], allGroupNames[idx]);
-        }
+        const someOrg = new Organization();
+        const someWorkspace = new Workspace();
+        const someDoc = new Document();
+        const resources: Resource[] = [someOrg, someWorkspace, someDoc];
+        const allGroupNames = ['OrgGrp', 'WorkspaceGrp', 'DocGrp'];
+        const membersByResource = populateResourcesWithMembers(resources, 5, i => allGroupNames[i]);
+        const filteredGroupNames = [ 'WorkspaceGrp', 'DocGrp' ];
 
         const result = UsersManager.getResourceUsers(resources, filteredGroupNames);
 
-        assert.deepEqual(result, usersList.slice(1).flat(), 'should discard the users from the first resource');
+        const expectedResult = [...membersByResource.get(someWorkspace)!, ...membersByResource.get(someDoc)!];
+        assert.deepEqual(result, expectedResult, 'should discard the users from the first resource');
       });
     });
 
@@ -651,21 +674,15 @@ describe('UsersManager', function () {
 
     describe('getExistingUserByLogin()', function () {
       it('should return an existing user', async function () {
-        const localPart = 'getexistinguserbylogin-returns-existing-user';
-        const createdUser = await createUniqueUser(localPart);
-
-        const retrievedUser = await db.getExistingUserByLogin(createdUser.loginEmail!);
+        const retrievedUser = await db.getExistingUserByLogin(PREVIEWER_EMAIL);
         assertExists(retrievedUser);
 
-        assert.equal(retrievedUser.id, createdUser.id);
-        assert.equal(retrievedUser.name, createdUser.name);
+        assert.equal(retrievedUser.id, db.getPreviewerUserId());
+        assert.equal(retrievedUser.name, 'Preview');
       });
 
       it('should normalize the passed user email', async function () {
-        const localPart = 'getexistinguserbylogin-normalizes-user-email';
-        const newUser = await createUniqueUser(localPart);
-
-        const retrievedUser = await db.getExistingUserByLogin(newUser.loginEmail!.toUpperCase());
+        const retrievedUser = await db.getExistingUserByLogin(PREVIEWER_EMAIL.toUpperCase());
 
         assertExists(retrievedUser);
       });

@@ -321,7 +321,7 @@ export class UsersManager {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
         // because we have to serialize sqlite transactions in any case to get around a typeorm
         // limitation.
-        return this.getUserByLogin(email, options);
+        return await this.getUserByLogin(email, options);
       }
       throw e;
     }
@@ -355,7 +355,7 @@ export class UsersManager {
   public async getUserByLogin(email: string, options: GetUserOptions = {}) {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
-    return this._runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       let needUpdate = false;
       const userQuery = manager.createQueryBuilder()
         .select('user')

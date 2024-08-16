@@ -3,7 +3,7 @@ import { version } from 'app/common/version';
 import { synchronizeProducts } from 'app/gen-server/entity/Product';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
-import { createNewConnection, getMigrations, getTypeORMSettings,
+import { getMigrations, getOrCreateConnection, getTypeORMSettings,
          undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
 import { getDatabaseUrl } from 'app/server/lib/serverUtils';
 import { getTelemetryPrefs } from 'app/server/lib/Telemetry';
@@ -190,7 +190,7 @@ export function addDbCommand(program: commander.Command,
       if (!process.env.TYPEORM_LOGGING) {
         process.env.TYPEORM_LOGGING = 'true';
       }
-      const connection = reuseConnection || await createNewConnection();
+      const connection = reuseConnection || await getOrCreateConnection();
       const exitCode = await op(connection);
       if (exitCode !== 0) {
         program.error('db command failed', {exitCode});
