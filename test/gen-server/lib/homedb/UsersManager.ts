@@ -34,7 +34,7 @@ describe('UsersManager', function () {
     /**
      * Create a simple iterator of integer starting from 0 which is incremented every time we call next()
      */
-    function* makeIdxIterator() {
+    function* makeUserIdIterator() {
       for (let i = 0; i < 500; i++) {
         yield i;
       }
@@ -48,7 +48,7 @@ describe('UsersManager', function () {
      *        Pass your own iterator if you want to call this methods several times and keep the id unique.
      *        If omitted, create its own iterator that starts from 0.
      */
-    function makeUsers(nbUsers: number, userIdIterator = makeIdxIterator()): User[] {
+    function makeUsers(nbUsers: number, userIdIterator = makeUserIdIterator()): User[] {
       return Array(nbUsers).fill(null).map(() => {
         const user = new User();
         const itItem = userIdIterator.next();
@@ -71,7 +71,7 @@ describe('UsersManager', function () {
       resources: Resource[], nbUsersByResource: number, makeResourceGrpName?: (idx: number) => string
     ): Map<Resource, User[]> {
       const membersByResource = new Map<Resource, User[]>();
-      const idxIterator = makeIdxIterator();
+      const idxIterator = makeUserIdIterator();
       for (const [idx, resource] of resources.entries()) {
         const aclRule = new AclRuleOrg();
         const group = new Group();
@@ -173,7 +173,7 @@ describe('UsersManager', function () {
       });
 
       it('should retrieve users of passed groups', function () {
-        const idxIt = makeIdxIterator();
+        const idxIt = makeUserIdIterator();
         const groupsUsersMap = {
           'editors': makeUsers(3, idxIt),
           'owners': makeUsers(4, idxIt),
