@@ -9,4 +9,12 @@ See https://support.getgrist.com/self-managed for more information.
 
 ## How to run this example
 
-This example can be run with `docker compose up`.
+Before running, create a directory where Grist will store its documents and settings:
+```sh
+mkdir ./persist
+```
+
+Then this example can be run with:
+```sh
+env PERSIST_DIR=./persist docker compose up
+```
