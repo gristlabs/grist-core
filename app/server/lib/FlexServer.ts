@@ -1322,7 +1322,7 @@ export class FlexServer implements GristServer {
       this._storageManager = storageManager;
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
-      const storageManager = new DocStorageManager(this.docsRoot, samples, this._comm, this);
+      const storageManager = new DocStorageManager(this.docsRoot, samples, this._comm, this.create.Shell?.());
       this._storageManager = storageManager;
     }
 

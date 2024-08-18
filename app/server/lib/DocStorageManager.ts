@@ -10,7 +10,6 @@ import {DocumentUsage} from 'app/common/DocUsage';
 import * as gutil from 'app/common/gutil';
 import {Comm} from 'app/server/lib/Comm';
 import * as docUtils from 'app/server/lib/docUtils';
-import {GristServer} from 'app/server/lib/GristServer';
 import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {IShell} from 'app/server/lib/IShell';
 import log from 'app/server/lib/log';
@@ -39,10 +38,10 @@ export class DocStorageManager implements IDocStorageManager {
    * The file watcher is created if the optComm argument is given.
    */
   constructor(private _docsRoot: string, private _samplesRoot?: string,
-              private _comm?: Comm, gristServer?: GristServer) {
+              private _comm?: Comm, shell?: IShell) {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
     this._watcher = null;
-    this._shell = gristServer?.create.Shell?.() || {
+    this._shell = shell ?? {
       trashItem() { throw new Error('Unable to move document to trash'); },
       showItemInFolder() { throw new Error('Unable to show item in folder'); }
     };
