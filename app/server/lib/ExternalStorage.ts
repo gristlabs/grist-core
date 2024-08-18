@@ -378,6 +378,15 @@ export interface ExternalStorageSettings {
 }
 
 /**
+ * Function returning the core ExternalStorage implementation,
+ * which may then be wrapped in additional layer(s) of ExternalStorage.
+ * See ICreate.ExternalStorage.
+ * Uses S3 by default in hosted Grist.
+*/
+export type ExternalStorageCreator =
+  (purpose: ExternalStorageSettings["purpose"], extraPrefix: string) => ExternalStorage | undefined;
+
+/**
  * The storage mapping we use for our SaaS. A reasonable default, but relies
  * on appropriate lifecycle rules being set up in the bucket.
  */

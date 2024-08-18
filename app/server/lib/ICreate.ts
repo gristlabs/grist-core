@@ -3,7 +3,7 @@ import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {ExternalStorage} from 'app/server/lib/ExternalStorage';
+import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
@@ -39,18 +39,17 @@ export const DEFAULT_SESSION_SECRET =
   'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
 
 export interface ICreate {
-
-  Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
-  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
-  Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
-  Shell?(): IShell;  // relevant to electron version of Grist only.
-
   // Create a space to store files externally, for storing either:
   //  - documents. This store should be versioned, and can be eventually consistent.
   //  - meta. This store need not be versioned, and can be eventually consistent.
   // For test purposes an extra prefix may be supplied.  Stores with different prefixes
   // should not interfere with each other.
-  ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage | undefined;
+  ExternalStorage: ExternalStorageCreator;
+
+  Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
+  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
+  Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
+  Shell?(): IShell;  // relevant to electron version of Grist only.
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
