@@ -303,7 +303,7 @@ export class ActiveDoc extends EventEmitter {
         ),
         // Update the time in formulas every hour.
         new Interval(
-          () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
+          () => this._updateCurrentTime(),
           Deps.UPDATE_CURRENT_TIME_DELAY,
           {onError: (e) => this._log.error(null, 'failed to update current time', e)},
         ),
@@ -1696,7 +1696,7 @@ export class ActiveDoc extends EventEmitter {
     const timeDeleted = changes.map(r => r.used ? null : now);
     const action: BulkUpdateRecord = ["BulkUpdateRecord", "_grist_Attachments", rowIds, {timeDeleted}];
     // Don't use applyUserActions which may block the update action in delete-only mode
-    await this._applyUserActions(makeExceptionalDocSession('system'), [action]);
+    await this._applyUserActionsAsSystem([action]);
     return true;
   }
 
@@ -2012,6 +2012,16 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Applies an array of user actions initiated by Grist itself, using a DocSession with "system"
+   * access rights. These bypass access rules.
+   *
+   * They also do not count as "user activity" for the purpose of keeping the document open.
+   */
+  protected async _applyUserActionsAsSystem(actions: UserAction[]): Promise<ApplyUAResult> {
+    return this._applyUserActions(makeExceptionalDocSession('system'), actions, {});
+  }
+
+  /**
    * Applies an array of user actions to the sandbox and broadcasts the results to doc's clients.
    *
    * @private
@@ -2028,14 +2038,12 @@ export class ActiveDoc extends EventEmitter {
    *    isModification: true if document was changed by one or more actions.
    * }
    */
-  @ActiveDoc.keepDocOpen
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAExtendedOptions = {}): Promise<ApplyUAResult> {
 
     const client = docSession.client;
     this._log.debug(docSession, "_applyUserActions(%s, %s)%s", client, shortDesc(actions),
       options.parseStrings ? ' (will parse)' : '');
-    this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     if (options.parseStrings) {
       actions = actions.map(ua => parseUserAction(ua, this.docData!));
@@ -2159,6 +2167,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.debug(docSession, "shutdown complete");
   }
 
+  @ActiveDoc.keepDocOpen
   private async _applyUserActionsWithExtendedOptions(docSession: OptDocSession, actions: UserAction[],
                                                      options?: ApplyUAExtendedOptions): Promise<ApplyUAResult> {
     assert(Array.isArray(actions), "`actions` parameter should be an array.");
@@ -2220,6 +2229,20 @@ export class ActiveDoc extends EventEmitter {
       otherId: options.otherId || 0,
       linkId: options.linkId || 0,
     };
+  }
+
+  /**
+   * Update the time in formulas; this is called via Interval every hour.
+   */
+  private async _updateCurrentTime() {
+    const dataEngine = await this._getEngine();
+    if (dataEngine.isProcessDown()) {
+      // Don't attempt to update time if data engine is down, as this can't help, and leads to
+      // spurious errors. Instead, report as a warning, more clearly and concisely.
+      this._log.warn(null, 'failed to update current time: data engine is down');
+      return;
+    }
+    return this._applyUserActionsAsSystem([['UpdateCurrentTime']]);
   }
 
   /**
@@ -2462,7 +2485,7 @@ export class ActiveDoc extends EventEmitter {
 
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
-        await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
+        await this._applyUserActionsAsSystem([['Calculate']]);
         await this._reportDataEngineMemory();
       }
 

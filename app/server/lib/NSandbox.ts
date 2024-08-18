@@ -230,6 +230,10 @@ export class NSandbox implements ISandbox {
     log.rawDebug('Sandbox memory', {memory, ...this._logMeta});
   }
 
+  public isProcessDown() {
+    return this._isReadClosed || this._isWriteClosed;
+  }
+
   public getFlavor() {
     return this._logMeta.flavor;
   }

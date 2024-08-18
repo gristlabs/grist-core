@@ -27,6 +27,7 @@ export interface ISandbox {
   pyCall(funcName: string, ...varArgs: unknown[]): Promise<any>;
   reportMemoryUsage(): Promise<void>;
   getFlavor(): string;
+  isProcessDown(): boolean;
 }
 
 export interface ISandboxCreator {
