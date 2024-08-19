@@ -26,6 +26,7 @@ import winston from 'winston';
 import fs from 'fs/promises';
 import { tmpdir } from 'os';
 import path from 'path';
+import { dereferenceConnection } from 'test/gen-server/seed';
 
 const username = process.env.USER || "nobody";
 const tmpDirPrefix = path.join(tmpdir(), `grist_test_${username}_userendpoint_`);
@@ -276,6 +277,7 @@ describe('UsersManager', function () {
         // TODO: Check whether using DataSource would help and avoid this hack.
         await db.connection.destroy();
         await db.createNewConnection();
+        dereferenceConnection(dbName);
       }
     }
 

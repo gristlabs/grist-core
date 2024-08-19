@@ -42,7 +42,9 @@ import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
-import {getOrCreateConnection, runMigrations, undoLastMigration, updateDb} from 'app/server/lib/dbUtils';
+import {
+  getConnectionName, getOrCreateConnection, runMigrations, undoLastMigration, updateDb
+} from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import * as fse from 'fs-extra';
 
@@ -526,15 +528,26 @@ class Seed {
 
 // When running mocha on several test files at once, we need to reset our database connection
 // if it exists.  This is a little ugly since it is stored globally.
-export async function removeConnection() {
-  if (getConnectionManager().connections.length > 0) {
-    if (getConnectionManager().connections.length > 1) {
+export async function removeConnection(name?: string) {
+  const connections = getConnectionManager().connections;
+  if (connections.length > 0) {
+    if (connections.length > 1) {
       throw new Error("unexpected number of connections");
     }
-    await getConnectionManager().connections[0].close();
-    // There is still no official way to delete connections that I've found.
-    (getConnectionManager() as any).connectionMap = new Map();
+    await connections[0].destroy();
+    dereferenceConnection(getConnectionName());
   }
+}
+
+export function dereferenceConnection(name: string) {
+  // There seem to be no official way to delete connections.
+  // Also we should probably get rid of the use of connectionManager, which is deprecated
+  const connectionMgr = getConnectionManager();
+  const connectionMap = (connectionMgr as any).connectionMap as Map<string, Connection>;
+  if (!connectionMap.has(name)) {
+    throw new Error('connection with this name not found: ' + name);
+  }
+  connectionMap.delete(name);
 }
 
 export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean = true) {

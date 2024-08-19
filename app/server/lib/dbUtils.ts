@@ -45,7 +45,7 @@ export async function updateDb(connection?: Connection) {
   await synchronizeProducts(connection, true);
 }
 
-function getConnectionName() {
+export function getConnectionName() {
   return process.env.TYPEORM_NAME || 'default';
 }
 
