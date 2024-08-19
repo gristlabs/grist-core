@@ -56,7 +56,7 @@ import {
   readJson
 } from 'app/gen-server/sqlUtils';
 import {appSettings} from 'app/server/lib/AppSettings';
-import {createNewConnection, getOrCreateConnection} from 'app/server/lib/dbUtils';
+import {createNewDataSource} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -248,7 +248,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  */
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
-  private _connection: Connection;
+  private _dataSource: Connection;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
   private _idPrefix: string = "";  // Place this before ids in subdomains, used in routing to
@@ -259,7 +259,7 @@ export class HomeDBManager extends EventEmitter {
   private _restrictedMode: boolean = false;
 
   private get _dbType(): DatabaseType {
-    return this._connection.driver.options.type;
+    return this._dataSource.driver.options.type;
   }
 
   /**
@@ -350,12 +350,12 @@ export class HomeDBManager extends EventEmitter {
     this._restrictedMode = restricted;
   }
 
-  public async connect(): Promise<void> {
-    this._connection = await getOrCreateConnection();
+  public async initializeDataSource(overrideConf?: Partial<DataSourceOptions>): Promise<void> {
+    this._dataSource = await createNewDataSource(overrideConf);
   }
 
-  public async createNewConnection(overrideConf?: Partial<DataSourceOptions>): Promise<void> {
-    this._connection = await createNewConnection(overrideConf);
+  public async destroyDataSource(): Promise<void> {
+    await this._dataSource.destroy();
   }
 
   // make sure special users and workspaces are available
@@ -386,12 +386,12 @@ export class HomeDBManager extends EventEmitter {
     }
   }
 
-  public get connection() {
-    return this._connection;
+  public get dataSource() {
+    return this._dataSource;
   }
 
   public async testQuery(sql: string, args: any[]): Promise<any> {
-    return this._connection.query(sql, args);
+    return this._dataSource.query(sql, args);
   }
 
   /**
@@ -873,7 +873,7 @@ export class HomeDBManager extends EventEmitter {
            shareKey} = parseUrlId(key.urlId);
     let doc: Document;
     if (shareKey) {
-      const res = await (transaction || this._connection).createQueryBuilder()
+      const res = await (transaction || this._dataSource).createQueryBuilder()
         .select('shares')
         .from(Share, 'shares')
         .leftJoinAndSelect('shares.doc', 'doc')
@@ -1014,7 +1014,7 @@ export class HomeDBManager extends EventEmitter {
   // TODO: make a more efficient implementation if needed.
   public async flushSingleDocAuthCache(scope: DocScope, docId: string) {
     // Get all aliases of this document.
-    const aliases = await this._connection.manager.find(Alias, {where: {docId}});
+    const aliases = await this._dataSource.manager.find(Alias, {where: {docId}});
     // Construct a set of possible prefixes for cache keys.
     const names = new Set(aliases.map(a => stringifyUrlIdOrg(a.urlId, scope.org)));
     names.add(stringifyUrlIdOrg(docId, scope.org));
@@ -1047,7 +1047,7 @@ export class HomeDBManager extends EventEmitter {
    * deleting a document.
    */
   public async getDocForks(docId: string): Promise<Document[]> {
-    return this._connection.createQueryBuilder()
+    return this._dataSource.createQueryBuilder()
       .select('forks')
       .from(Document, 'forks')
       .where('forks.trunk_id = :docId', {docId})
@@ -1377,7 +1377,7 @@ export class HomeDBManager extends EventEmitter {
         errMessage: 'Bad request: name required'
       };
     }
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       let orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions: Permissions.ADD,
@@ -1424,7 +1424,7 @@ export class HomeDBManager extends EventEmitter {
   // query result with status 200 on success.
   public async updateWorkspace(scope: Scope, wsId: number,
                                props: Partial<WorkspaceProperties>): Promise<QueryResult<number>> {
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       const wsQuery = this._workspace(scope, wsId, {
         manager,
         markPermissions: Permissions.UPDATE
@@ -1447,7 +1447,7 @@ export class HomeDBManager extends EventEmitter {
   // error. Otherwise deletes the given workspace. Returns an empty query result with
   // status 200 on success.
   public async deleteWorkspace(scope: Scope, wsId: number): Promise<QueryResult<number>> {
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       const wsQuery = this._workspace(scope, wsId, {
         manager,
         markPermissions: Permissions.REMOVE,
@@ -1503,7 +1503,7 @@ export class HomeDBManager extends EventEmitter {
         errMessage: 'Bad request: name required'
       };
     }
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       let wsQuery = this._workspace(scope, wsId, {
         manager,
         markPermissions: Permissions.ADD
@@ -1593,7 +1593,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public addSecret(value: string, docId: string): Promise<Secret> {
-    return this._connection.transaction(async manager => {
+    return this._dataSource.transaction(async manager => {
       const secret = new Secret();
       secret.id = uuidv4();
       secret.value = value;
@@ -1605,7 +1605,7 @@ export class HomeDBManager extends EventEmitter {
 
   // Updates the secret matching id and docId, to the new value.
   public async updateSecret(id: string, docId: string, value: string, manager?: EntityManager): Promise<void> {
-    const res = await (manager || this._connection).createQueryBuilder()
+    const res = await (manager || this._dataSource).createQueryBuilder()
       .update(Secret)
       .set({value})
       .where("id = :id AND doc_id = :docId", {id, docId})
@@ -1616,7 +1616,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getSecret(id: string, docId: string, manager?: EntityManager): Promise<string | undefined> {
-    const secret = await (manager || this._connection).createQueryBuilder()
+    const secret = await (manager || this._dataSource).createQueryBuilder()
       .select('secrets')
       .from(Secret, 'secrets')
       .where('id = :id AND doc_id = :docId', {id, docId})
@@ -1663,7 +1663,7 @@ export class HomeDBManager extends EventEmitter {
     if (!unsubscribeKey && checkKey) {
       throw new ApiError('Bad request: unsubscribeKey required', 400);
     }
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       if (checkKey) {
         const secret = await this.getSecret(id, docId, manager);
         if (!secret) {
@@ -1752,7 +1752,7 @@ export class HomeDBManager extends EventEmitter {
   // error. Otherwise deletes the given document. Returns an empty query result with
   // status 200 on success.
   public async deleteDocument(scope: DocScope): Promise<QueryResult<number>> {
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       const {forkId} = parseUrlId(scope.urlId);
       if (forkId) {
         const forkQuery = this._fork(scope, {
@@ -1815,7 +1815,7 @@ export class HomeDBManager extends EventEmitter {
     orgKey: string|number,
     callback: (billingAccount: BillingAccount, transaction: EntityManager) => void|Promise<void>
   ): Promise<QueryResult<void>> {
-    return await this._connection.transaction(async transaction => {
+    return await this._dataSource.transaction(async transaction => {
       const billingAccount = await this.getBillingAccount({userId}, orgKey, false, transaction);
       const billingAccountCopy = Object.assign({}, billingAccount);
       await callback(billingAccountCopy, transaction);
@@ -1847,7 +1847,7 @@ export class HomeDBManager extends EventEmitter {
       permissionDelta.users![key] = delta.users[key] ? 'owners' : null;
     }
 
-    return await this._connection.transaction(async transaction => {
+    return await this._dataSource.transaction(async transaction => {
       const billingAccount = await this.getBillingAccount({userId}, orgKey, true, transaction);
       // At this point, we'll have thrown an error if userId is not a billing account manager.
       // Now check if the billing account has mutable managers (individual account does not).
@@ -1901,7 +1901,7 @@ export class HomeDBManager extends EventEmitter {
   ): Promise<QueryResult<void>> {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
-    const result = await this._connection.transaction(async manager => {
+    const result = await this._dataSource.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
       const {userIdDelta} = analysis;
       let orgQuery = this.org(scope, orgKey, {
@@ -1958,7 +1958,7 @@ export class HomeDBManager extends EventEmitter {
   ): Promise<QueryResult<void>> {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
-    const result = await this._connection.transaction(async manager => {
+    const result = await this._dataSource.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       let {userIdDelta} = analysis;
       let wsQuery = this._workspace(scope, wsId, {
@@ -2032,7 +2032,7 @@ export class HomeDBManager extends EventEmitter {
     delta: PermissionDelta
   ): Promise<QueryResult<void>> {
     const notifications: Array<() => void> = [];
-    const result = await this._connection.transaction(async manager => {
+    const result = await this._dataSource.transaction(async manager => {
       const {userId} = scope;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       let {userIdDelta} = analysis;
@@ -2111,7 +2111,7 @@ export class HomeDBManager extends EventEmitter {
   public async getWorkspaceAccess(scope: Scope, wsId: number): Promise<QueryResult<PermissionData>> {
     // Run the query for the workspace and org in a transaction. This brings some isolation protection
     // against changes to the workspace or org while we are querying.
-    const { workspace, org, queryFailure } = await this._connection.transaction(async manager => {
+    const { workspace, org, queryFailure } = await this._dataSource.transaction(async manager => {
       const wsQueryResult = await this._getWorkspaceWithACLRules(scope, wsId, { manager });
       if (wsQueryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
@@ -2261,7 +2261,7 @@ export class HomeDBManager extends EventEmitter {
     scope: DocScope,
     wsId: number
   ): Promise<QueryResult<void>> {
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       // Get the doc
       const docQuery = this._doc(scope, {
         manager,
@@ -2373,7 +2373,7 @@ export class HomeDBManager extends EventEmitter {
     scope: DocScope,
     setPinned: boolean
   ): Promise<QueryResult<void>> {
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       // Find the doc to assert that it exists. Assert that the user has edit access to the
       // parent org.
       const permissions = Permissions.EDITOR;
@@ -2411,7 +2411,7 @@ export class HomeDBManager extends EventEmitter {
     doc: Document,
     forkId: string,
   ): Promise<QueryResult<string>> {
-    return await this._connection.transaction(async manager => {
+    return await this._dataSource.transaction(async manager => {
       const fork = new Document();
       fork.id = forkId;
       fork.name = doc.name;
@@ -2441,7 +2441,7 @@ export class HomeDBManager extends EventEmitter {
       };
     }
     const docIds = Object.keys(docUpdateMap);
-    return this._connection.transaction(async manager => {
+    return this._dataSource.transaction(async manager => {
       const updateTasks = docIds.map(docId => {
         return manager.createQueryBuilder()
           .update(Document)
@@ -2455,7 +2455,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async setDocGracePeriodStart(docId: string, gracePeriodStart: Date | null) {
-    return await this._connection.createQueryBuilder()
+    return await this._dataSource.createQueryBuilder()
       .update(Document)
       .set({gracePeriodStart})
       .where({id: docId})
@@ -2463,7 +2463,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getProduct(name: string): Promise<Product | undefined> {
-    return await this._connection.createQueryBuilder()
+    return await this._dataSource.createQueryBuilder()
       .select('product')
       .from(Product, 'product')
       .where('name = :name', {name})
@@ -2471,7 +2471,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getDocFeatures(docId: string): Promise<Features | undefined> {
-    const billingAccount = await this._connection.createQueryBuilder()
+    const billingAccount = await this._dataSource.createQueryBuilder()
       .select('account')
       .from(BillingAccount, 'account')
       .leftJoinAndSelect('account.product', 'product')
@@ -2489,7 +2489,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getDocProduct(docId: string): Promise<Product | undefined> {
-    return await this._connection.createQueryBuilder()
+    return await this._dataSource.createQueryBuilder()
       .select('product')
       .from(Product, 'product')
       .leftJoinAndSelect('product.accounts', 'account')
@@ -2610,7 +2610,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getLimits(accountId: number): Promise<Limit[]> {
-    const result = this._connection.transaction(async manager => {
+    const result = this._dataSource.transaction(async manager => {
       return await manager.createQueryBuilder()
         .select('limit')
         .from(Limit, 'limit')
@@ -2630,7 +2630,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async removeLimit(scope: Scope, limitType: LimitType): Promise<void> {
-    await this._connection.transaction(async manager => {
+    await this._dataSource.transaction(async manager => {
       const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
         .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
         .innerJoinAndSelect('billing_account.product', 'product')
@@ -2656,7 +2656,7 @@ export class HomeDBManager extends EventEmitter {
     delta: number,
     dryRun?: boolean,
   }): Promise<Limit|null> {
-    const limitOrError: Limit|ApiError|null = await this._connection.transaction(async manager => {
+    const limitOrError: Limit|ApiError|null = await this._dataSource.transaction(async manager => {
       const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
         .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
         .innerJoinAndSelect('billing_account.product', 'product')
@@ -2720,7 +2720,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async syncShares(docId: string, shares: ShareInfo[]) {
-    return this._connection.transaction(async manager => {
+    return this._dataSource.transaction(async manager => {
       for (const share of shares) {
         const key = makeId();
         await manager.createQueryBuilder()
@@ -2755,7 +2755,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getShareByKey(key: string) {
-    return this._connection.createQueryBuilder()
+    return this._dataSource.createQueryBuilder()
       .select('shares')
       .from(Share, 'shares')
       .where('shares.key = :key', {key})
@@ -2763,7 +2763,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getShareByLinkId(docId: string, linkId: string) {
-    return this._connection.createQueryBuilder()
+    return this._dataSource.createQueryBuilder()
       .select('shares')
       .from(Share, 'shares')
       .where('shares.doc_id = :docId and shares.link_id = :linkId', {docId, linkId})
@@ -2793,7 +2793,7 @@ export class HomeDBManager extends EventEmitter {
     if (accountId === 0) {
       throw new Error(`getLimit: called for not existing account`);
     }
-    const result = this._connection.transaction(async manager => {
+    const result = this._dataSource.transaction(async manager => {
       let existing = await manager.createQueryBuilder()
         .select('limit')
         .from(Limit, 'limit')
@@ -3265,7 +3265,7 @@ export class HomeDBManager extends EventEmitter {
   private _runInTransaction(transaction: EntityManager|undefined,
                             op: (manager: EntityManager) => Promise<any>): Promise<any> {
     if (transaction) { return op(transaction); }
-    return this._connection.transaction(op);
+    return this._dataSource.transaction(op);
   }
 
   /**
@@ -3283,7 +3283,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   private _docs(manager?: EntityManager) {
-    return (manager || this._connection).createQueryBuilder()
+    return (manager || this._dataSource).createQueryBuilder()
       .select('docs')
       .from(Document, 'docs');
   }
@@ -3377,7 +3377,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   private _workspaces(manager?: EntityManager) {
-    return (manager || this._connection).createQueryBuilder()
+    return (manager || this._dataSource).createQueryBuilder()
       .select('workspaces')
       .from(Workspace, 'workspaces');
   }
@@ -3430,7 +3430,7 @@ export class HomeDBManager extends EventEmitter {
   }
 
   private _orgs(manager?: EntityManager) {
-    return (manager || this._connection).createQueryBuilder()
+    return (manager || this._dataSource).createQueryBuilder()
       .select('orgs')
       .from(Organization, 'orgs');
   }
@@ -4273,7 +4273,7 @@ export class HomeDBManager extends EventEmitter {
 
   // Set Workspace.removedAt to null (undeletion) or to a datetime (soft deletion)
   private _setWorkspaceRemovedAt(scope: Scope, wsId: number, removedAt: Date|null) {
-    return this._connection.transaction(async manager => {
+    return this._dataSource.transaction(async manager => {
       const wsQuery = this._workspace({...scope, showAll: true}, wsId, {
         manager,
         markPermissions: Permissions.REMOVE
@@ -4287,7 +4287,7 @@ export class HomeDBManager extends EventEmitter {
 
   // Set Document.removedAt to null (undeletion) or to a datetime (soft deletion)
   private _setDocumentRemovedAt(scope: DocScope, removedAt: Date|null) {
-    return this._connection.transaction(async manager => {
+    return this._dataSource.transaction(async manager => {
       let docQuery = this._doc({...scope, showAll: true}, {
         manager,
         markPermissions: Permissions.SCHEMA_EDIT | Permissions.REMOVE,

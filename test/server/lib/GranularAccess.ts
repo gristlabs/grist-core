@@ -95,7 +95,7 @@ describe('GranularAccess', function() {
   }
 
   async function getShareKeyForUrl(linkId: string) {
-    const shares = await home.dbManager.connection.query(
+    const shares = await home.dbManager.dataSource.query(
       'select * from shares where link_id = ?', [linkId]);
     const key = shares[0].key;
     if (!key) {
@@ -3729,7 +3729,7 @@ describe('GranularAccess', function() {
       ]);
 
       // Check it reached the home db.
-      let shares = await home.dbManager.connection.query('select * from shares');
+      let shares = await home.dbManager.dataSource.query('select * from shares');
       assert.lengthOf(shares, 1);
       assert.equal(shares[0].link_id, 'x');
       assert.deepEqual(JSON.parse(shares[0].options),
@@ -3804,7 +3804,7 @@ describe('GranularAccess', function() {
           options: '{"publish": true, "test": true}'
         }],
       ]);
-      shares = await home.dbManager.connection.query('select * from shares');
+      shares = await home.dbManager.dataSource.query('select * from shares');
       assert.lengthOf(shares, 1);
       assert.deepEqual(JSON.parse(shares[0].options),
                        {publish: true, test: true});
@@ -3822,7 +3822,7 @@ describe('GranularAccess', function() {
       await owner.applyUserActions(docId, [
         ['RemoveRecord', '_grist_Shares', 1]
       ]);
-      shares = await home.dbManager.connection.query('select * from shares');
+      shares = await home.dbManager.dataSource.query('select * from shares');
       assert.lengthOf(shares, 0);
     });
 
@@ -4053,7 +4053,7 @@ describe('GranularAccess', function() {
       await hamShare.addRows('Customer', { Name: ['Foo'] });
       await assert.isRejected(hamShare.addRows('Actor', { Name: ['Foo'] }));
       await removeShares(docId, owner);
-      const shares = await home.dbManager.connection.query('select * from shares');
+      const shares = await home.dbManager.dataSource.query('select * from shares');
       assert.lengthOf(shares, 0);
     });
 
@@ -4069,7 +4069,7 @@ describe('GranularAccess', function() {
       ]);
 
       // Check it reached the home db.
-      let shares = await home.dbManager.connection.query('select * from shares');
+      let shares = await home.dbManager.dataSource.query('select * from shares');
       assert.lengthOf(shares, 1);
       assert.equal(shares[0].link_id, 'x2');
 
@@ -4078,7 +4078,7 @@ describe('GranularAccess', function() {
       });
       // Do anything with the new document.
       await owner.getDocAPI(copyDocId).getRows('Table1');
-      shares = await home.dbManager.connection.query('select * from shares');
+      shares = await home.dbManager.dataSource.query('select * from shares');
       assert.lengthOf(shares, 2);
       assert.equal(shares[0].link_id, 'x2');
       assert.equal(shares[1].link_id, 'x2');

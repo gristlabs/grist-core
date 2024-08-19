@@ -3,14 +3,14 @@ import { version } from 'app/common/version';
 import { synchronizeProducts } from 'app/gen-server/entity/Product';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
-import { getMigrations, getOrCreateConnection, getTypeORMSettings,
+import { createNewDataSource, getMigrations, getTypeORMSettings,
          undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
 import { getDatabaseUrl } from 'app/server/lib/serverUtils';
 import { getTelemetryPrefs } from 'app/server/lib/Telemetry';
 import { Gristifier } from 'app/server/utils/gristify';
 import { pruneActionHistory } from 'app/server/utils/pruneActionHistory';
 import * as commander from 'commander';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 /**
  * Main entrypoint for a cli toolbox for configuring aspects of Grist
@@ -184,14 +184,14 @@ export function addSiteCommand(program: commander.Command,
 //   db url
 export function addDbCommand(program: commander.Command,
                              options: CommandOptions,
-                             reuseConnection?: Connection) {
-  function withConnection(op: (connection: Connection) => Promise<number>) {
+                             datasourceToReuse?: DataSource) {
+  function withDataSource(op: (dataSource: DataSource) => Promise<number>) {
     return async () => {
       if (!process.env.TYPEORM_LOGGING) {
         process.env.TYPEORM_LOGGING = 'true';
       }
-      const connection = reuseConnection || await getOrCreateConnection();
-      const exitCode = await op(connection);
+      const dataSource = datasourceToReuse || await createNewDataSource();
+      const exitCode = await op(dataSource);
       if (exitCode !== 0) {
         program.error('db command failed', {exitCode});
       }
@@ -205,25 +205,25 @@ export function addDbCommand(program: commander.Command,
 
   sub('migrate')
     .description('run all pending migrations on database')
-    .action(withConnection(async (connection) => {
-      await updateDb(connection);
+    .action(withDataSource(async (dataSource) => {
+      await updateDb(dataSource);
       return 0;
     }));
 
   sub('revert')
     .description('revert last migration on database')
-    .action(withConnection(async (connection) => {
-      await undoLastMigration(connection);
+    .action(withDataSource(async (dataSource) => {
+      await undoLastMigration(dataSource);
       return 0;
     }));
 
   sub('check')
     .description('check that there are no pending migrations on database')
-    .action(withConnection(dbCheck));
+    .action(withDataSource(dbCheck));
 
   sub('url')
     .description('construct a url for the database (for psql, catsql etc)')
-    .action(withConnection(async () => {
+    .action(withDataSource(async () => {
       console.log(getDatabaseUrl(getTypeORMSettings(), true));
       return 0;
     }));
@@ -254,9 +254,9 @@ export function addVersionCommand(program: commander.Command) {
 
 // Report the status of the database. Migrations appied, migrations pending,
 // product information applied, product changes pending.
-export async function dbCheck(connection: Connection) {
-  const migrations = await getMigrations(connection);
-  const changingProducts = await synchronizeProducts(connection, false);
+export async function dbCheck(dataSource: DataSource) {
+  const migrations = await getMigrations(dataSource);
+  const changingProducts = await synchronizeProducts(dataSource, false);
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const log = process.env.TYPEORM_LOGGING === 'true' ? console.log : (...args: any[]) => null;
   const options = getTypeORMSettings();
@@ -286,7 +286,7 @@ export async function dbCheck(connection: Connection) {
 // Get an interface to the home db.
 export async function getHomeDBManager() {
   const dbManager = new HomeDBManager();
-  await dbManager.connect();
+  await dbManager.initializeDataSource();
   await dbManager.initializeSpecialIds();
   return dbManager;
 }

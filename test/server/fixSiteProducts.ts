@@ -39,7 +39,7 @@ describe('fixSiteProducts', function() {
   it('fixes sites that where created with a wrong product', async function() {
     const db = server.dbManager;
     const user = await db.getUserByLogin(email, {profile}) as any;
-    const getOrg = (id: number) => db.connection.manager.findOne(
+    const getOrg = (id: number) => db.dataSource.manager.findOne(
       Organization,
       {where: {id}, relations: ['billingAccount', 'billingAccount.product']});
 
@@ -132,7 +132,7 @@ describe('fixSiteProducts', function() {
       product: 'teamFree',
     }));
 
-    const getOrg = (id: number) => db.connection.manager.findOne(Organization,
+    const getOrg = (id: number) => db.dataSource.manager.findOne(Organization,
       {where: {id}, relations: ['billingAccount', 'billingAccount.product']});
     const productOrg = (id: number) => getOrg(id)?.then(org => org?.billingAccount?.product?.name);
     assert.equal(await productOrg(orgId), 'teamFree');

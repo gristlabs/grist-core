@@ -4,7 +4,7 @@ import {Organization} from 'app/gen-server/entity/Organization';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {assert} from 'chai';
-import {addSeedData, createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {addSeedData, createInitialDb, setUpDB} from 'test/gen-server/seed';
 import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 import {Initial1536634251710 as Initial} from 'app/gen-server/migration/1536634251710-Initial';
@@ -85,25 +85,25 @@ describe('migrations', function() {
   });
 
   beforeEach(async function() {
-    await home.connect();
+    await home.initializeDataSource();
     // If testing against postgres, remove all tables.
     // If SQLite, we're using a fresh in-memory db each time.
-    const sqlite = home.connection.driver.options.type === 'sqlite';
+    const sqlite = home.dataSource.driver.options.type === 'sqlite';
     if (!sqlite) {
-      await home.connection.query('DROP SCHEMA public CASCADE');
-      await home.connection.query('CREATE SCHEMA public');
+      await home.dataSource.query('DROP SCHEMA public CASCADE');
+      await home.dataSource.query('CREATE SCHEMA public');
     }
-    await createInitialDb(home.connection, false);
+    await createInitialDb(home.dataSource, false);
   });
 
   afterEach(async function() {
-    await removeConnection();
+    await home.destroyDataSource();
   });
 
   // a test to exercise the rollback scripts a bit
   it('can migrate, do full rollback, and migrate again', async function() {
     this.timeout(60000);
-    const runner = home.connection.createQueryRunner();
+    const runner = home.dataSource.createQueryRunner();
     for (const migration of migrations) {
       await (new migration()).up(runner);
     }
@@ -113,14 +113,14 @@ describe('migrations', function() {
     for (const migration of migrations) {
       await (new migration()).up(runner);
     }
-    await addSeedData(home.connection);
+    await addSeedData(home.dataSource);
     // if we made it this far without an exception, then the rollback scripts must
     // be doing something.
   });
 
   it('can migrate UserUUID and UserUniqueRefUUID with user in table', async function() {
     this.timeout(60000);
-    const runner = home.connection.createQueryRunner();
+    const runner = home.dataSource.createQueryRunner();
 
     // Create 400 users to test the chunk (each chunk is 300 users)
     const nbUsersToCreate = 400;
@@ -142,19 +142,19 @@ describe('migrations', function() {
     const setOfUserRefs = new Set(userList.map(u => u.ref));
     assert.equal(nbUsersToCreate, userList.length);
     assert.equal(setOfUserRefs.size, userList.length);
-    await addSeedData(home.connection);
+    await addSeedData(home.dataSource);
   });
 
   it('can correctly switch display_email column to non-null with data', async function() {
     this.timeout(60000);
-    const sqlite = home.connection.driver.options.type === 'sqlite';
+    const sqlite = home.dataSource.driver.options.type === 'sqlite';
     // sqlite migrations need foreign keys turned off temporarily
-    if (sqlite) { await home.connection.query("PRAGMA foreign_keys = OFF;"); }
-    const runner = home.connection.createQueryRunner();
+    if (sqlite) { await home.dataSource.query("PRAGMA foreign_keys = OFF;"); }
+    const runner = home.dataSource.createQueryRunner();
     for (const migration of migrations) {
       await (new migration()).up(runner);
     }
-    await addSeedData(home.connection);
+    await addSeedData(home.dataSource);
     // migrate back until just before display_email column added, so we have no
     // display_emails
     for (const migration of migrations.slice().reverse()) {
@@ -164,18 +164,18 @@ describe('migrations', function() {
     // now check DisplayEmail and DisplayEmailNonNull succeed with data in the db.
     await (new DisplayEmail()).up(runner);
     await (new DisplayEmailNonNull()).up(runner);
-    if (sqlite) { await home.connection.query("PRAGMA foreign_keys = ON;"); }
+    if (sqlite) { await home.dataSource.query("PRAGMA foreign_keys = ON;"); }
   });
 
   // a test to ensure the TeamMember migration works on databases with existing content
   it('can perform TeamMember migration with seed data set', async function() {
     this.timeout(30000);
-    const runner = home.connection.createQueryRunner();
+    const runner = home.dataSource.createQueryRunner();
     // Perform full up migration and add the seed data.
     for (const migration of migrations) {
       await (new migration()).up(runner);
     }
-    await addSeedData(home.connection);
+    await addSeedData(home.dataSource);
     const initAclCount = await getAclRowCount(runner);
     const initGroupCount = await getGroupRowCount(runner);
 

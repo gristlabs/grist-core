@@ -59,7 +59,7 @@ async function setupDb() {
     await updateDb();
   }
   const db = new HomeDBManager();
-  await db.connect();
+  await db.initializeDataSource();
   await db.initializeSpecialIds({skipWorkspaces: true});
 
   // If a team/organization is specified, make sure it exists.

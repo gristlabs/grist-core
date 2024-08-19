@@ -8,7 +8,7 @@ import {assert, expect} from 'chai';
 import {countBy, values} from 'lodash';
 import {createClient, RedisClient} from 'redis';
 import {TestSession} from 'test/gen-server/apiUtils';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {createInitialDb, setUpDB} from 'test/gen-server/seed';
 import sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
@@ -413,7 +413,6 @@ describe('DocWorkerMap', function() {
     after(async function() {
       if (servers) {
         await Promise.all(Object.values(servers).map(server => server.close()));
-        await removeConnection();
         delete process.env.REDIS_URL;
         delete process.env.GRIST_DOC_WORKER_ID;
         delete process.env.GRIST_WORKER_GROUP;

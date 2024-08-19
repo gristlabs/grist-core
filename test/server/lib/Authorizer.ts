@@ -5,7 +5,7 @@ import {FlexServer} from 'app/server/lib/FlexServer';
 import axios from 'axios';
 import {assert} from 'chai';
 import {toPairs} from 'lodash';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {createInitialDb, setUpDB} from 'test/gen-server/seed';
 import {configForUser, getGristConfig} from 'test/gen-server/testUtils';
 import {createDocTools} from 'test/server/docTools';
 import {openClient} from 'test/server/gristClient';
@@ -90,7 +90,6 @@ describe('Authorizer', function() {
   after(async function() {
     const messages = await testUtils.captureLog('warn', async () => {
       await server.close();
-      await removeConnection();
     });
     assert.lengthOf(messages, 0);
     oldEnv.restore();

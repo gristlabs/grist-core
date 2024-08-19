@@ -26,7 +26,6 @@ import winston from 'winston';
 import fs from 'fs/promises';
 import { tmpdir } from 'os';
 import path from 'path';
-import { dereferenceConnection } from 'test/gen-server/seed';
 
 const username = process.env.USER || "nobody";
 const tmpDirPrefix = path.join(tmpdir(), `grist_test_${username}_userendpoint_`);
@@ -264,20 +263,17 @@ describe('UsersManager', function () {
     async function withDataBase(dbName: string, cb: (db: HomeDBManager) => Promise<void>) {
       const database = path.join(tmpDir, dbName + '.db');
       const localDb = new HomeDBManager();
-      await localDb.createNewConnection({ name: dbName, database });
-      await updateDb(localDb.connection);
+      await localDb.initializeDataSource({ name: dbName, database });
+      await updateDb(localDb.dataSource);
       try {
         await cb(localDb);
       } finally {
-        await localDb.connection.destroy();
+        await localDb.dataSource.destroy();
         // HACK: This is a weird case, we have established a different connection
         // but the existing connection is also impacted.
-        // A found workaround consist in destroying and creating again the connection.
-        //
-        // TODO: Check whether using DataSource would help and avoid this hack.
-        await db.connection.destroy();
-        await db.createNewConnection();
-        dereferenceConnection(dbName);
+        // A found workaround consist in destroying and creating again the datasource.
+        await db.dataSource.destroy();
+        await db.initializeDataSource();
       }
     }
 
@@ -922,7 +918,7 @@ describe('UsersManager', function () {
 
         assertExists(await getPersonalOrg(userToDelete));
 
-        await db.connection.transaction(async (manager) => {
+        await db.dataSource.transaction(async (manager) => {
           assert.isTrue(await userHasGroupUsers(userToDelete.id, manager));
           assert.isTrue(await userHasPrefs(userToDelete.id, manager));
         });
@@ -932,7 +928,7 @@ describe('UsersManager', function () {
         assert.notExists(await db.getUser(userToDelete.id));
         assert.deepEqual(await getPersonalOrg(userToDelete), { errMessage: 'organization not found', status: 404 });
 
-        await db.connection.transaction(async (manager) => {
+        await db.dataSource.transaction(async (manager) => {
           assert.isFalse(await userHasGroupUsers(userToDelete.id, manager));
           assert.isFalse(await userHasPrefs(userToDelete.id, manager));
         });

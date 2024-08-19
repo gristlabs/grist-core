@@ -82,7 +82,7 @@ export class UsersManager {
   private _specialUserIds: {[name: string]: number} = {}; // id for anonymous user, previewer, etc
 
   private get _connection () {
-    return this._homeDb.connection;
+    return this._homeDb.dataSource;
   }
 
   public constructor(

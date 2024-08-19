@@ -24,7 +24,6 @@ import {driver, IMochaServer, WebDriver} from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
-import {removeConnection} from 'test/gen-server/seed';
 import {HomeUtil} from 'test/nbrowser/homeUtil';
 import {getDatabase} from 'test/testUtils';
 
@@ -273,8 +272,8 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   }
 
   public async closeDatabase() {
+    await this._dbManager?.destroyDataSource();
     this._dbManager = undefined;
-    await removeConnection();
   }
 
   public get driver() {

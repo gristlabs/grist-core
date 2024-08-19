@@ -2949,7 +2949,7 @@ function testDocApi() {
     assert.equal(resp.status, 200);
 
     const db = await getDatabase();
-    const shares = await db.connection.query('select * from shares');
+    const shares = await db.dataSource.query('select * from shares');
     const {key} = shares[0];
 
     resp = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);

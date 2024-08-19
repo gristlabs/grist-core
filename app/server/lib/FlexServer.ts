@@ -493,7 +493,7 @@ export class FlexServer implements GristServer {
         checks.set('hooks', this._hasTestingHooks);
       }
       if (isParameterOn(req.query.db)) {
-        checks.set('db', asyncCheck(this._dbManager.connection.query('SELECT 1')));
+        checks.set('db', asyncCheck(this._dbManager.dataSource.query('SELECT 1')));
       }
       if (isParameterOn(req.query.redis)) {
         checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.pingAsync()));
@@ -760,10 +760,10 @@ export class FlexServer implements GristServer {
     if (this._check('homedb')) { return; }
     this._dbManager = new HomeDBManager();
     this._dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
-    await this._dbManager.connect();
+    await this._dbManager.initializeDataSource();
     await this._dbManager.initializeSpecialIds();
     // Report which database we are using, without sensitive credentials.
-    this.info.push(['database', getDatabaseUrl(this._dbManager.connection.options, false)]);
+    this.info.push(['database', getDatabaseUrl(this._dbManager.dataSource.options, false)]);
     // If the installation appears to be new, give it an id and a creation date.
     this._activations = new Activations(this._dbManager);
     await this._activations.current();
@@ -930,6 +930,8 @@ export class FlexServer implements GristServer {
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.
     if (this._docWorkerMap) { await this._docWorkerMap.close(); }
     if (this._sessionStore) { await this._sessionStore.close(); }
+    // FIXME: can this be moved above instead?
+    await this._dbManager?.destroyDataSource();
   }
 
   public addDocApiForwarder() {

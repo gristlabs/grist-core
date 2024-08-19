@@ -19,7 +19,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import * as path from 'path';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {createInitialDb, setUpDB} from 'test/gen-server/seed';
 import {setPlan} from 'test/gen-server/testUtils';
 import {fixturesRoot} from 'test/server/testUtils';
 import {isAffirmative} from 'app/common/gutil';
@@ -58,7 +58,6 @@ export class TestServer {
         await delay(100);
       }
     }
-    await removeConnection();
   }
 
   // Set up a profile for the given org, and return an axios configuration to
@@ -74,7 +73,7 @@ export class TestServer {
 
   // add named user as billing manager to org (identified by domain)
   public async addBillingManager(userName: string, orgDomain: string) {
-    const ents = this.dbManager.connection.createEntityManager();
+    const ents = this.dbManager.dataSource.createEntityManager();
     const org = await ents.findOne(Organization, {
       relations: ['billingAccount'],
       where: {domain: orgDomain}
@@ -122,7 +121,7 @@ export class TestServer {
    * inherits access from the workspace).
    */
   public async listUserMemberships(email: string): Promise<ResourceWithRole[]> {
-    const rules = await this.dbManager.connection.createQueryBuilder()
+    const rules = await this.dbManager.dataSource.createQueryBuilder()
       .select('acl_rules')
       .from(AclRule, 'acl_rules')
       .leftJoinAndSelect('acl_rules.group', 'groups')
@@ -168,7 +167,7 @@ export class TestServer {
   // Find instances of guests and members used in inheritance.
   public async getBadGroupLinks(): Promise<Group[]> {
     // guests and members should never be in other groups, or have groups.
-    return this.dbManager.connection.createQueryBuilder()
+    return this.dbManager.dataSource.createQueryBuilder()
       .select('groups')
       .from(Group, 'groups')
       .innerJoinAndSelect('groups.memberGroups', 'memberGroups')
@@ -196,7 +195,7 @@ export class TestServer {
    * TODO: rework AclRule to automate this kind of step.
    */
   private async _getResourceName(aclRule: AclRule): Promise<ResourceWithRole> {
-    const con = this.dbManager.connection.manager;
+    const con = this.dbManager.dataSource.manager;
     let res: Document|Workspace|Organization|null;
     if (aclRule instanceof AclRuleDoc) {
       res = await con.findOne(Document, {where: {id: aclRule.docId}});
@@ -216,7 +215,7 @@ export class TestServer {
    * Filters for groups of the specified name.
    */
   private _listMembers(role: Role|null) {
-    let q = this.dbManager.connection.createQueryBuilder()
+    let q = this.dbManager.dataSource.createQueryBuilder()
       .select('users')
       .from(User, 'users')
       .leftJoin('users.groups', 'groups')

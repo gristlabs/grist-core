@@ -929,7 +929,7 @@ describe('ApiServer', function() {
     assert.isNotNull(org.updatedAt);
 
     // Upgrade this org to a fancier plan, and check that vanity domain starts working
-    const db = dbManager.connection.manager;
+    const db = dbManager.dataSource.manager;
     const dbOrg = await db.findOne(Organization,
                                    {where: {name: 'Magic'},
                                     relations: ['billingAccount', 'billingAccount.product']});
@@ -2072,7 +2072,7 @@ describe('ApiServer', function() {
     const user = await dbManager.getUserByLogin('meep@getgrist.com', {profile});
     const userId = user.id;
     // set up an api key
-    await dbManager.connection.query("update users set api_key = 'api_key_for_meep' where id = $1", [userId]);
+    await dbManager.dataSource.query("update users set api_key = 'api_key_for_meep' where id = $1", [userId]);
 
     // make sure we have at least one extra user, a login, an org, a group_user entry,
     // a billing account, a billing account manager.
@@ -2110,7 +2110,7 @@ describe('ApiServer', function() {
     const userBlank = await dbManager.getUserByLogin('blank@getgrist.com',
                                                      {profile: {email: 'blank@getgrist.com',
                                                       name: ''}});
-    await dbManager.connection.query("update users set api_key = 'api_key_for_blank' where id = $1", [userBlank.id]);
+    await dbManager.dataSource.query("update users set api_key = 'api_key_for_blank' where id = $1", [userBlank.id]);
 
     // check that user can delete themselves
     resp = await axios.delete(`${homeUrl}/api/users/${userBlank.id}`,
@@ -2151,7 +2151,7 @@ describe('ApiServer', function() {
       const prevAccount = await dbManager.getBillingAccount(
         {userId: dbManager.getPreviewerUserId()},
         'best-friends-squad', false);
-      await dbManager.connection.query(
+      await dbManager.dataSource.query(
         'update billing_accounts set product_id = (select id from products where name = $1) where id = $2',
         [TEAM_FREE_PLAN, prevAccount.id]
       );
@@ -2339,7 +2339,7 @@ describe('ApiServer', function() {
 // in postgres.
 async function getNextId(dbManager: HomeDBManager, table: 'orgs'|'workspaces') {
   // Check current top org id.
-  const row = await dbManager.connection.query(`select max(id) as id from ${table}`);
+  const row = await dbManager.dataSource.query(`select max(id) as id from ${table}`);
   const id = row[0]['id'];
   return id + 1;
 }

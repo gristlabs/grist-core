@@ -315,13 +315,13 @@ describe('HomeDBManager', function() {
   it('will fail on parameter collision', async function() {
     // Check collision in a simple query.
     // Note: it is query construction that fails, not query execution.
-    assert.throws(() => home.connection.createQueryBuilder().from('orgs', 'orgs')
+    assert.throws(() => home.dataSource.createQueryBuilder().from('orgs', 'orgs')
                   .where('id = :id', {id: 1}).andWhere('id = :id', {id: 2}),
                   /parameter collision/);
 
     // Check collision between subqueries.
     assert.throws(
-      () => home.connection.createQueryBuilder().from('orgs', 'orgs')
+      () => home.dataSource.createQueryBuilder().from('orgs', 'orgs')
         .select(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', {x: ['five']}))
         .addSelect(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', {x: ['six']})),
         /parameter collision/);

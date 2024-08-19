@@ -25,7 +25,7 @@
 import {addPath} from 'app-module-path';
 import {Context} from 'mocha';
 import * as path from 'path';
-import {Connection, getConnectionManager, Repository} from 'typeorm';
+import {DataSource, Repository} from 'typeorm';
 
 if (require.main === module) {
   addPath(path.dirname(path.dirname(__dirname)));
@@ -43,7 +43,7 @@ import {Workspace} from "app/gen-server/entity/Workspace";
 import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {
-  getConnectionName, getOrCreateConnection, runMigrations, undoLastMigration, updateDb
+    createNewDataSource, runMigrations, undoLastMigration, updateDb, withTmpDataSource
 } from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import * as fse from 'fs-extra';
@@ -284,9 +284,9 @@ class Seed {
   public groupRepository: Repository<Group>;
   public groups: {[key: string]: Groups};
 
-  constructor(public connection: Connection) {
-    this.userRepository = connection.getRepository(User);
-    this.groupRepository = connection.getRepository(Group);
+  constructor(public dataSource: DataSource) {
+    this.userRepository = dataSource.getRepository(User);
+    this.groupRepository = dataSource.getRepository(Group);
     this.groups = {};
   }
 
@@ -422,7 +422,7 @@ class Seed {
   }
 
   public async addUserToGroup(user: User, group: Group) {
-    await this.connection.createQueryBuilder()
+    await this.dataSource.createQueryBuilder()
       .relation(Group, "memberUsers")
       .of(group)
       .add(user);
@@ -490,7 +490,7 @@ class Seed {
       return;
     }
 
-    await this.connection.runMigrations();
+    await this.dataSource.runMigrations();
 
     const benchmarkOrgs = _generateData(100, 50, 20);
     // Create an access object giving Chimpy random access to the orgs.
@@ -526,31 +526,7 @@ class Seed {
   }
 }
 
-// When running mocha on several test files at once, we need to reset our database connection
-// if it exists.  This is a little ugly since it is stored globally.
-export async function removeConnection(name?: string) {
-  const connections = getConnectionManager().connections;
-  if (connections.length > 0) {
-    if (connections.length > 1) {
-      throw new Error("unexpected number of connections");
-    }
-    await connections[0].destroy();
-    dereferenceConnection(getConnectionName());
-  }
-}
-
-export function dereferenceConnection(name: string) {
-  // There seem to be no official way to delete connections.
-  // Also we should probably get rid of the use of connectionManager, which is deprecated
-  const connectionMgr = getConnectionManager();
-  const connectionMap = (connectionMgr as any).connectionMap as Map<string, Connection>;
-  if (!connectionMap.has(name)) {
-    throw new Error('connection with this name not found: ' + name);
-  }
-  connectionMap.delete(name);
-}
-
-export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean = true) {
+export async function createInitialDb(dataSource?: DataSource, migrateAndSeedData: boolean = true) {
   // In jenkins tests, we may want to reset the database to a clean
   // state.  If so, TEST_CLEAN_DATABASE will have been set.  How to
   // clean the database depends on what kind of database it is.  With
@@ -559,10 +535,10 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
   // are only allowed to do this if there is no connection open to it
   // (so we fail if a connection has already been made).  If the
   // sqlite db is in memory (":memory:") there's nothing to delete.
-  const uncommitted = !connection;  // has user already created a connection?
+  const uncommitted = !dataSource;  // has user already created a connection?
                                     // if so we won't be able to delete sqlite db
-  connection = connection || await getOrCreateConnection();
-  const opt = connection.driver.options;
+  dataSource = dataSource || await createNewDataSource();
+  const opt = dataSource.driver.options;
   if (process.env.TEST_CLEAN_DATABASE) {
     if (opt.type === 'sqlite') {
       const database = (opt as any).database;
@@ -572,16 +548,16 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
         if (!uncommitted) {
           throw Error("too late to clean sqlite db");
         }
-        await removeConnection();
         if (await fse.pathExists(database)) {
           await fse.unlink(database);
         }
-        connection = await getOrCreateConnection();
+        await dataSource.destroy();
+        await dataSource.initialize();
       }
     } else if (opt.type === 'postgres') {
       // recreate schema, destroying everything that was inside it
-      await connection.query("DROP SCHEMA public CASCADE;");
-      await connection.query("CREATE SCHEMA public;");
+      await dataSource.query("DROP SCHEMA public CASCADE;");
+      await dataSource.query("CREATE SCHEMA public;");
     } else {
       throw new Error(`do not know how to clean a ${opt.type} db`);
     }
@@ -589,24 +565,27 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
 
   // Finally - actually initialize the database.
   if (migrateAndSeedData) {
-    await updateDb(connection);
-    await addSeedData(connection);
+    await updateDb(dataSource);
+    await addSeedData(dataSource);
   }
 }
 
 // add some test data to the database.
-export async function addSeedData(connection: Connection) {
-  await synchronizeProducts(connection, true, testProducts);
-  await connection.transaction(async tr => {
+export async function addSeedData(dataSource: DataSource) {
+  await synchronizeProducts(dataSource, true, testProducts);
+  await dataSource.transaction(async tr => {
     const seed = new Seed(tr.connection);
     await seed.run();
   });
 }
 
-export async function createBenchmarkDb(connection?: Connection) {
-  connection = connection || await getOrCreateConnection();
-  await updateDb(connection);
-  await connection.transaction(async tr => {
+export async function createBenchmarkDb(dataSource?: DataSource): Promise<void> {
+  if (!dataSource) {
+    return await withTmpDataSource(createBenchmarkDb);
+  }
+
+  await updateDb(dataSource);
+  await dataSource.transaction(async tr => {
     const seed = new Seed(tr.connection);
     await seed.runBenchmark();
   });
@@ -624,7 +603,7 @@ export async function createServer(port: number, initDb = createInitialDb): Prom
   flexServer.addApiMiddleware();
   flexServer.addHomeApi();
   flexServer.addApiErrorHandlers();
-  await initDb(flexServer.getHomeDBManager().connection);
+  await initDb(flexServer.getHomeDBManager().dataSource);
   flexServer.summary();
   return flexServer;
 }
@@ -681,18 +660,18 @@ async function main() {
     await createInitialDb();
     return;
   } else if (cmd === 'benchmark') {
-    const connection = await getOrCreateConnection();
+    const connection = await createNewDataSource();
     await createInitialDb(connection, false);
     await createBenchmarkDb(connection);
     return;
   } else if (cmd === 'migrate') {
     process.env.TYPEORM_LOGGING = 'true';
-    const connection = await getOrCreateConnection();
+    const connection = await createNewDataSource();
     await runMigrations(connection);
     return;
   } else if (cmd === 'revert') {
     process.env.TYPEORM_LOGGING = 'true';
-    const connection = await getOrCreateConnection();
+    const connection = await createNewDataSource();
     await undoLastMigration(connection);
     return;
   } else if (cmd === 'serve') {

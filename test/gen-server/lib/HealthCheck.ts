@@ -61,7 +61,7 @@ describe('HealthCheck', function() {
         const resolvers: Array<() => void> = [];
         for (let i = 0; i < driver.master.options.max; i++) {
           const promise = new Promise<void>((resolve) => { resolvers.push(resolve); });
-          blockers.push(server.dbManager.connection.transaction((manager) => promise));
+          blockers.push(server.dbManager.dataSource.transaction((manager) => promise));
         }
         return {
           blockerPromise: Promise.all(blockers),
@@ -70,14 +70,14 @@ describe('HealthCheck', function() {
       }
 
       it('reports error when database is unhealthy', async function() {
-        if (server.dbManager.connection.options.type !== 'postgres') {
+        if (server.dbManager.dataSource.options.type !== 'postgres') {
           // On postgres, we have a way to interfere with connections. Elsewhere (sqlite) it's not
           // so obvious how to make DB unhealthy, so don't bother testing that.
           this.skip();
         }
         this.timeout(5000);
 
-        const {blockerPromise, resolve} = blockPostgres(server.dbManager.connection.driver as any);
+        const {blockerPromise, resolve} = blockPostgres(server.dbManager.dataSource.driver as any);
         try {
           const result = await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=500');
           assert.match(await result.text(), /Grist server.*unhealthy.*db not ok, redis ok/);

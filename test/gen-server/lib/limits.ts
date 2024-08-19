@@ -41,7 +41,7 @@ describe('limits', function() {
     const samHome = await createUser(dbManager, 'sam');
     // Overwrite default product
     const billingId = samHome.billingAccount.id;
-    await dbManager.connection.createQueryBuilder()
+    await dbManager.dataSource.createQueryBuilder()
       .update(BillingAccount)
       .set({product})
       .where('id = :billingId', {billingId})
@@ -309,7 +309,7 @@ describe('limits', function() {
 
     // Try smuggling in a doc that breaks the rules
     // Tweak NASA's product to allow 4 shares per doc.
-    const db = dbManager.connection.manager;
+    const db = dbManager.dataSource.manager;
     const nasaOrg = await db.findOne(Organization, {where: {domain: 'nasa'},
                                                     relations: ['billingAccount',
                                                                 'billingAccount.product']});

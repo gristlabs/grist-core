@@ -1123,7 +1123,7 @@ export class DocWorkerApi {
         if (req.body.resetTutorialMetadata) {
           const scope = getDocScope(req);
           const tutorialTrunkId = options.sourceDocId;
-          await this._dbManager.connection.transaction(async (manager) => {
+          await this._dbManager.dataSource.transaction(async (manager) => {
             // Fetch the tutorial trunk so we can replace the tutorial fork's name.
             const tutorialTrunk = await this._dbManager.getDoc({...scope, urlId: tutorialTrunkId}, manager);
             await this._dbManager.updateDocument(

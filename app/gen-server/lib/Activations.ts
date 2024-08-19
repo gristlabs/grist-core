@@ -15,7 +15,7 @@ export class Activations {
   // It will be created with an empty key column, which will get
   // filled in once an activation key is presented.
   public current(): Promise<Activation> {
-    return this._db.connection.manager.transaction(async manager => {
+    return this._db.dataSource.manager.transaction(async manager => {
       let activation = await manager.findOne(Activation, {where: {}});
       if (!activation) {
         activation = manager.create(Activation);

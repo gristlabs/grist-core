@@ -4,7 +4,7 @@ import {FlexServer} from 'app/server/lib/FlexServer';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
 import axios from 'axios';
 import {assert} from 'chai';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {createInitialDb, setUpDB} from 'test/gen-server/seed';
 import {configForUser, createUser, setPlan} from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
@@ -28,7 +28,6 @@ describe('mergedOrgs', function() {
 
   after(async function() {
     await home.close();
-    await removeConnection();
   });
 
   it('can list all shared workspaces from personal orgs', async function() {

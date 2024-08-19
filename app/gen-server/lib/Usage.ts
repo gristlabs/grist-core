@@ -43,7 +43,7 @@ export class Usage {
 
   private async _apply(): Promise<void> {
     try {
-      const manager = this._dbManager.connection.manager;
+      const manager = this._dbManager.dataSource.manager;
       // raw count of users
       const userCount = await manager.count(User);
       // users who have logged in at least once

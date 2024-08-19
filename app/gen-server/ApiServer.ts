@@ -76,7 +76,7 @@ export function addOrg(
     billing?: BillingOptions,
   }
 ): Promise<number> {
-  return dbManager.connection.transaction(async manager => {
+  return dbManager.dataSource.transaction(async manager => {
     const user = await manager.findOne(User, {where: {id: userId}});
     if (!user) { return handleDeletedUser(); }
     const query = await dbManager.addOrg(user, props, {
@@ -505,7 +505,7 @@ export class ApiServer {
     this._app.post('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const force = req.body ? req.body.force : false;
-      const manager = this._dbManager.connection.manager;
+      const manager = this._dbManager.dataSource.manager;
       let user = await manager.findOne(User, {where: {id: userId}});
       if (!user) { return handleDeletedUser(); }
       if (!user.apiKey || force) {
@@ -520,7 +520,7 @@ export class ApiServer {
     // Delete apiKey
     this._app.delete('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      await this._dbManager.connection.transaction(async manager => {
+      await this._dbManager.dataSource.transaction(async manager => {
         const user = await manager.findOne(User, {where: {id: userId}});
         if (!user) { return handleDeletedUser(); }
         user.apiKey = null;
