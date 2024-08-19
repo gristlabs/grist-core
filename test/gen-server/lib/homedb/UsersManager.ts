@@ -299,13 +299,16 @@ describe('UsersManager', function () {
 
 
     before(async function () {
+      if (process.env.TYPEORM_TYPE === "postgres") {
+        this.skip();
+      }
       env = new EnvironmentSnapshot();
       await prepareDatabase(tmpDir);
       db = await getDatabase();
     });
 
     after(async function () {
-      env.restore();
+      env?.restore();
     });
 
     beforeEach(function () {
