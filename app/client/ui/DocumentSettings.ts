@@ -65,7 +65,7 @@ export class DocSettingsPage extends Disposable {
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
 
     return cssContainer(
-      dom.create(AdminSection, t('Document Settings'), [
+      dom.create(cssAdminSection, t('Document Settings'), [
         dom.create(AdminSectionItem, {
           id: 'timezone',
           name: t('Time Zone'),
@@ -89,7 +89,7 @@ export class DocSettingsPage extends Disposable {
         }),
       ]),
 
-      dom.create(AdminSection, t('Data Engine'), [
+      dom.create(cssAdminSection, t('Data Engine'), [
         dom.create(AdminSectionItem, {
           id: 'timings',
           name: t('Formula timer'),
@@ -122,7 +122,6 @@ export class DocSettingsPage extends Disposable {
           )),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
-
         dom.create(AdminSectionItem, {
           id: 'reload',
           name: t('Reload'),
@@ -130,7 +129,6 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallButton(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
           disabled: isDocEditor ? false : t('Only available to document editors'),
         }),
-
         canChangeEngine ? dom.create(AdminSectionItem, {
           id: 'python',
           name: t('Python'),
@@ -139,7 +137,7 @@ export class DocSettingsPage extends Disposable {
         }) : null,
       ]),
 
-      dom.create(AdminSection, t('API'), [
+      dom.create(cssAdminSection, t('API'), [
         dom.create(AdminSectionItem, {
           id: 'documentId',
           name: t('Document ID'),
@@ -188,7 +186,6 @@ export class DocSettingsPage extends Disposable {
             href: getApiConsoleLink(docPageModel),
           }),
         }),
-
         dom.create(AdminSectionItem, {
           id: 'webhooks',
           name: t('Webhooks'),
@@ -196,7 +193,8 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallLinkButton(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
         }),
       ]),
-      dom.create(AdminSection, t('Document conversion'), [
+
+      dom.create(cssAdminSection, t('Document conversion'), [
         dom.create(AdminSectionItem, {
           id: 'document-type',
           name: t('Document type'),
@@ -565,4 +563,8 @@ const cssWrap = styled('p', `
 
 const cssRedText = styled('span', `
   color: ${theme.errorText};
+`);
+
+const cssAdminSection = styled(AdminSection, `
+  max-width: 750px;
 `);

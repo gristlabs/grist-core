@@ -25,6 +25,9 @@ export const cssLabel = styled('label', `
   margin-bottom: 0px;
   flex-shrink: 0;
 
+  align-items: center;
+  justify-content: center;
+
   outline: none;
   user-select: none;
 
@@ -226,6 +229,8 @@ const cssBlockCheckbox = styled('div', `
   }
   &-block {
     pointer-events: none;
+    border-color: ${theme.controlFg};
+    border-width: 2px;
   }
   &-block a {
     pointer-events: all;
