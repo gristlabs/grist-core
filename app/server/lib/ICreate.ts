@@ -14,6 +14,9 @@ import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
 import {IDocStorageManager} from './IDocStorageManager';
+import { Comm } from "./Comm";
+import { IDocWorkerMap } from "./DocWorkerMap";
+import { HostedStorageManager, HostedStorageOptions } from "./HostedStorageManager";
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -37,6 +40,17 @@ import {IDocStorageManager} from './IDocStorageManager';
 // sessions and force users to log in again.
 export const DEFAULT_SESSION_SECRET =
   'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
+
+type LocalDocStorageManagerCreator = (docsRoot: string, samplesRoot?: string, comm?: Comm, shell?: IShell) => IDocStorageManager;
+type HostedDocStorageManagerCreator = (
+    docsRoot: string,
+    docWorkerId: string,
+    disableS3: boolean,
+    docWorkerMap: IDocWorkerMap,
+    dbManager: HomeDBManager,
+    createExternalStorage: ExternalStorageCreator,
+    options?: HostedStorageOptions
+  ) => IDocStorageManager;
 
 export interface ICreate {
   // Create a space to store files externally, for storing either:
@@ -71,8 +85,10 @@ export interface ICreate {
 
   getLoginSystem(): Promise<GristLoginSystem>;
 
-  // Used by Grist Desktop to override the getPath function.
-  decorateDocStorageManager? (original: IDocStorageManager): void;
+  // Creates a IDocStorageManager for storing documents on the local machine.
+  getLocalDocStorageManager?: LocalDocStorageManagerCreator;
+  // Creates a IDocStorageManager for storing documents on an external storage (e.g S3)
+  getHostedDocStorageManager?: HostedDocStorageManagerCreator;
 }
 
 export interface ICreateActiveDocOptions {
@@ -124,7 +140,8 @@ export function makeSimpleCreator(opts: {
   getSandboxVariants?: () => Record<string, SpawnFn>,
   createInstallAdmin?: (dbManager: HomeDBManager) => Promise<InstallAdmin>,
   getLoginSystem?: () => Promise<GristLoginSystem>,
-  decorateDocStorageManager?: (original: IDocStorageManager) => void,
+  getHostedDocStorageManager?: HostedDocStorageManagerCreator,
+  getLocalDocStorageManager?: LocalDocStorageManagerCreator,
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
   return {
@@ -196,6 +213,14 @@ export function makeSimpleCreator(opts: {
     getSandboxVariants: opts.getSandboxVariants,
     createInstallAdmin: opts.createInstallAdmin || (async (dbManager) => new SimpleInstallAdmin(dbManager)),
     getLoginSystem: opts.getLoginSystem || getCoreLoginSystem,
-    decorateDocStorageManager: opts.decorateDocStorageManager,
+    getHostedDocStorageManager: opts.getHostedDocStorageManager ?? ((
+      docsRoot,
+      docWorkerId,
+      disableS3,
+      docWorkerMap,
+      dbManager,
+      createExternalStorage, options) => {
+      new HostedStorageManager(docsRoot, docWorkerId, disableS3, docWorkerMap, dbManager, createExternalStorage, options);
+    })
   };
 }
