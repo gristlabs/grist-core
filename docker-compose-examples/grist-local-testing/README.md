@@ -9,12 +9,11 @@ See https://support.getgrist.com/self-managed for more information.
 
 ## How to run this example
 
-Before running, create a directory where Grist will store its documents and settings:
+To run this example, change to the directory containing this example, and run:
 ```sh
-mkdir ./persist
+docker compose up
 ```
+Then you should be able to visit your local Grist instance at <http://localhost:8484>.
 
-Then this example can be run with:
-```sh
-env PERSIST_DIR=./persist docker compose up
-```
+This will start an instance that stores its documents and files in the `persist/` subdirectory.
+You can change this location using the `PERSIST_DIR` environment variable.
