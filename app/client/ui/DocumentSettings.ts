@@ -42,7 +42,6 @@ export class DocSettingsPage extends Disposable {
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
-  // private _type: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('type');
   private _engine: Computed<EngineCode|undefined> = Computed.create(this, (
     use => use(this._docInfo.documentSettingsJson.prop('engine'))
   ))
@@ -86,6 +85,18 @@ export class DocSettingsPage extends Disposable {
             dom.create(cssCurrencyPicker, fromKo(this._currency), (val) => this._currency.saveOnly(val),
               {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
           )
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'templateMode',
+          name: t('Template mode'),
+          description: t('Special document mode'),
+          value: cssDocTypeContainer(
+            dom.create(displayCurrentType, docPageModel.type, /*docPageModel.currentDocId.get()*/),
+            cssSmallButton(t('Edit'),
+              dom.on('click', this._doSetDocumentType.bind(this, true))
+            )
+          ),
+          disabled: isDocEditor ? false : t('Only available to document editors'),
         }),
       ]),
 
@@ -193,15 +204,6 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallLinkButton(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
         }),
       ]),
-
-      dom.create(cssAdminSection, t('Document conversion'), [
-        dom.create(AdminSectionItem, {
-          id: 'document-type',
-          name: t('Document type'),
-          description: t('Convert the document'),
-          value: dom.create(buildTypeSelect, docPageModel.type, docPageModel.currentDocId.get()),
-        }),
-      ]),
     );
   }
 
@@ -232,11 +234,11 @@ export class DocSettingsPage extends Disposable {
     const docPageModel = this._gristDoc.docPageModel;
     modal((ctl, owner) => {
       this.onDispose(() => ctl.close());
-      const selected = Observable.create<Option>(owner, Option.Adhoc);
+      const selected = Observable.create<TimingModalOption>(owner, TimingModalOption.Adhoc);
       const page = Observable.create<TimingModalPage>(owner, TimingModalPage.Start);
 
       const startTiming = async () => {
-        if (selected.get() === Option.Reload) {
+        if (selected.get() === TimingModalOption.Reload) {
           page.set(TimingModalPage.Spinner);
           await this._gristDoc.docApi.startTiming();
           await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
@@ -251,7 +253,7 @@ export class DocSettingsPage extends Disposable {
       const startPage = () => [
         cssRadioCheckboxOptions(
           dom.style('max-width', '400px'),
-          radioCheckboxOption(selected, Option.Adhoc, dom('div',
+          radioCheckboxOption(selected, TimingModalOption.Adhoc, dom('div',
             dom('div',
               dom('strong', t('Start timing')),
             ),
@@ -261,7 +263,7 @@ export class DocSettingsPage extends Disposable {
             ),
             testId('timing-modal-option-adhoc'),
           )),
-          radioCheckboxOption(selected, Option.Reload, dom('div',
+          radioCheckboxOption(selected, TimingModalOption.Reload, dom('div',
             dom('div',
               dom('strong', t('Time reload')),
             ),
@@ -292,6 +294,99 @@ export class DocSettingsPage extends Disposable {
       return [
         cssModalTitle(t(`Formula timer`)),
         dom.domComputed(page, (p) => p === TimingModalPage.Start ? startPage() : spinnerPage()),
+        testId('timing-modal'),
+      ];
+    });
+  }
+
+  private async _doSetDocumentType() {
+    const docPageModel = this._gristDoc.docPageModel;
+    modal((ctl, owner) => {
+      this.onDispose(() => ctl.close());
+      const currentDocType = docPageModel.type.get() as string;
+      let currentDocTypeOption;
+      switch (currentDocType) {
+        case "":
+          currentDocTypeOption = DocTypeOption.Regular;
+          break;
+        case "Template":
+          currentDocTypeOption = DocTypeOption.Template;
+          break;
+        case "Tutorial":
+          currentDocTypeOption = DocTypeOption.Tutorial;
+          break;
+        default:
+          currentDocTypeOption = DocTypeOption.Regular;
+      }
+
+      const selected = Observable.create<DocTypeOption>(owner, currentDocTypeOption);
+
+      const doSetDocumentType = async () => {
+        const docId = docPageModel.currentDocId.get();
+        let docType;
+        if (selected.get() === DocTypeOption.Regular) {
+          docType = "";
+        } else if (selected.get() === DocTypeOption.Template) {
+          docType = "Template";
+        } else {
+          docType = "Tutorial";
+        }
+        persistType(docType, docId)
+        .then(()=>window.location.reload())
+        .catch(err=>console.log(err));
+
+        ctl.close();
+      };
+
+      const documentTypeOptions = () => [
+        cssRadioCheckboxOptions(
+          dom.style('max-width', '400px'),
+          radioCheckboxOption(selected, DocTypeOption.Regular, dom('div',
+            dom('div',
+              dom('strong', t('Regular document')),
+            ),
+            dom('div',
+              dom.style('margin-top', '16px'),
+              dom('span', t('Regular document behavior, all users work on the same copy of the document.'))
+            ),
+            testId('doctype-modal-option-regular'),
+          )),
+          radioCheckboxOption(selected, DocTypeOption.Template, dom('div',
+            dom('div',
+              dom('strong', t('Template')),
+            ),
+            dom('div',
+              dom.style('margin-top', '16px'),
+              dom('span',
+                t('Document automatically opens in '),
+                dom('a', t('fiddle mode')),
+                t('. Any edit (open to anybody) will create a new unsaved copy.'),
+              ),
+            ),
+            testId('doctype-modal-option-template'),
+          )),
+          radioCheckboxOption(selected, DocTypeOption.Tutorial, dom('div',
+            dom('div',
+              dom('strong', t('Tutorial')),
+            ),
+            dom('div',
+              dom.style('margin-top', '16px'),
+              dom('span', t('Document automatically opens with a new copy.')),
+            ),
+            testId('doctype-modal-option-tutorial'),
+          ))
+        ),
+        cssModalButtons(
+          bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close()), testId('doctype-modal-cancel')),
+          bigPrimaryButton(t(`Confirm change`),
+            dom.on('click', doSetDocumentType),
+            testId('doctype-modal-confirm'),
+          ),
+        )
+      ];
+      return [
+        cssModalTitle(t(`Change nature of document`)),
+        documentTypeOptions(),
         testId('timing-modal'),
       ];
     });
@@ -361,41 +456,32 @@ function buildLocaleSelect(
 
 type DocumentTypeItem = ACSelectItem & {type?: string};
 
-function buildTypeSelect(
+const typeList: DocumentTypeItem[] = [{
+  label: t('Regular'),
+  type: ''
+}, {
+  label: t('Template'),
+  type: 'template'
+},
+{
+  label: t('Tutorial'),
+  type: 'tutorial'
+}].map((el) => ({
+  ...el,
+  value: el.label,
+  cleanText: el.label.trim().toLowerCase()
+}));
+
+function displayCurrentType(
   owner: IDisposableOwner,
   type: Observable<DocumentType|null>,
-  id: string|undefined,
 ) {
-  const typeList: DocumentTypeItem[] = [{
-    label: t('Regular'),
-    type: ''
-  }, {
-    label: t('Template'),
-    type: 'template'
-  },
-  {
-    label: t('Tutorial'),
-    type: 'tutorial'
-  }].map((el) => ({
-    ...el,
-    value: el.label,
-    cleanText: el.label.trim().toLowerCase()
-  }));
   const typeObs = Computed.create(owner, use => {
     const typeCode = use(type)??"";
     const typeName = typeList.find(ty => ty.type === typeCode)?.label || typeCode;
     return typeName;
   });
-  const acIndex = new ACIndexImpl<DocumentTypeItem>(typeList, {maxResults: 200, keepOrder: true});
-  return buildACSelect(owner, {
-    acIndex, valueObs: typeObs,
-    save(_value, item: DocumentTypeItem | undefined) {
-      if (!item) { throw new Error("Invalid DocumentType"); }
-      persistType(item.type!, id)
-        .then(()=>window.location.reload())
-        .catch(err=>console.log(err));
-    }
-  });
+  return dom('div', typeObs.get());
 }
 
 const cssContainer = styled('div', `
@@ -517,7 +603,7 @@ enum TimingModalPage {
 /**
  * Enum for the different options in the timing modal.
  */
-enum Option {
+enum TimingModalOption {
   /**
    * Start timing and immediately forces a reload of the document and waits for the
    * document to be loaded, to show the results.
@@ -527,6 +613,15 @@ enum Option {
    * Just starts the timing, without reloading the document.
    */
   Adhoc,
+}
+
+/**
+ * Enum for the different options in the document type Modal.
+ */
+enum DocTypeOption {
+  Regular,
+  Template,
+  Tutorial,
 }
 
 // A version that is not underlined, and on hover mouse pointer indicates that copy is available
@@ -567,4 +662,13 @@ const cssRedText = styled('span', `
 
 const cssAdminSection = styled(AdminSection, `
   max-width: 750px;
+`);
+
+const cssDocTypeContainer = styled('div', `
+  display: flex;
+  width: 172px;
+  justify-content: space-between;
+  & > * {
+    display: inline-block;
+  }
 `);
