@@ -159,6 +159,7 @@ const cssItemName = styled('div', `
 `);
 
 const cssItemDescription = styled('div', `
+  max-width: 320px;
   margin-right: auto;
   margin-bottom: -1px; /* aligns with the value */
 `);
