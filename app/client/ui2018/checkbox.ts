@@ -26,7 +26,6 @@ export const cssLabel = styled('label', `
   flex-shrink: 0;
 
   align-items: center;
-  justify-content: center;
 
   outline: none;
   user-select: none;
