@@ -66,6 +66,15 @@ export const typeDefs: any = {
           wrap: undefined,
         }
       },
+      Markdown: {
+        cons: 'MarkdownTextBox',
+        editCons: 'TextEditor',
+        icon: 'FieldMarkdown',
+        options: {
+          alignment: 'left',
+          wrap: undefined,
+        }
+      },
       HyperLink: {
         cons: 'HyperLinkTextBox',
         editCons: 'HyperLinkEditor',

@@ -31,7 +31,8 @@ import {Computed, Disposable, dom, DomElementArg, makeTestId, MutableObsArray,
         obsArray, Observable, styled, subscribeElem} from 'grainjs';
 import debounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import {marked} from 'marked';
+import {Marked} from 'marked';
+import {markedHighlight} from 'marked-highlight';
 import {v4 as uuidv4} from 'uuid';
 
 const t = makeT('FormulaEditor');
@@ -802,6 +803,7 @@ class ChatHistory extends Disposable {
   public lastSuggestedFormula: Computed<string|null>;
 
   private _element: HTMLElement;
+  private _marked: Marked;
 
   constructor(private _options: {
     column: ColumnRec,
@@ -845,6 +847,17 @@ class ChatHistory extends Disposable {
     this.lastSuggestedFormula = Computed.create(this, use => {
       return [...use(this.conversationHistory)].reverse().find(({formula}) => formula)?.formula ?? null;
     });
+
+    const highlightCodePromise = buildCodeHighlighter({maxLines: 60});
+    this._marked = new Marked(
+      markedHighlight({
+        async: true,
+        highlight: async (code) => {
+          const highlightCode = await highlightCodePromise;
+          return highlightCode(code);
+        },
+      })
+    );
   }
 
   public thinking(on = true) {
@@ -862,10 +875,6 @@ class ChatHistory extends Disposable {
       });
       this.scrollDown();
     }
-  }
-
-  public supportsMarkdown() {
-    return this._options.column.chatHistory.peek().get().state !== undefined;
   }
 
   public addResponse(message: ChatMessage) {
@@ -958,6 +967,10 @@ class ChatHistory extends Disposable {
     );
   }
 
+  private _supportsMarkdown() {
+    return this._options.column.chatHistory.peek().get().state !== undefined;
+  }
+
   private _buildIntroMessage() {
     return cssAiIntroMessage(
       cssAvatar(cssAiImage()),
@@ -1010,14 +1023,10 @@ class ChatHistory extends Disposable {
    * Renders the message as markdown if possible, otherwise as a code block.
    */
   private _render(message: string, ...args: DomElementArg[]) {
-    if (this.supportsMarkdown()) {
+    if (this._supportsMarkdown()) {
       return dom('div',
         (el) => subscribeElem(el, gristThemeObs(), async () => {
-          const highlightCode = await buildCodeHighlighter({maxLines: 60});
-          const content = sanitizeHTML(marked(message, {
-            highlight: (code) => highlightCode(code)
-          }));
-          el.innerHTML = content;
+          el.innerHTML = sanitizeHTML(await this._marked.parse(message));
         }),
         ...args
       );

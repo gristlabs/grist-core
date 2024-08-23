@@ -2,7 +2,7 @@ import {marked} from 'marked';
 
 export const renderer = new marked.Renderer();
 
-renderer.image = (href: string | null, title: string | null, _text: string) => {
+renderer.image = ({href, title}) => {
   let classes = 'doc-tutorial-popup-thumbnail';
   const hash = href?.split('#')?.[1];
   if (hash) {
@@ -17,6 +17,6 @@ renderer.image = (href: string | null, title: string | null, _text: string) => {
 </div>`;
 };
 
-renderer.link = (href: string | null, _title: string | null, text: string) => {
+renderer.link = ({href, text}) => {
   return `<a href="${href}" target="_blank">${text}</a>`;
 };

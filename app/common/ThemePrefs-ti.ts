@@ -447,6 +447,9 @@ export const ThemeColors = t.iface([], {
   "widget-gallery-secondary-header-fg": "string",
   "widget-gallery-secondary-header-bg": "string",
   "widget-gallery-secondary-header-bg-hover": "string",
+  "markdown-cell-light-bg": "string",
+  "markdown-cell-light-border": "string",
+  "markdown-cell-medium-border": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

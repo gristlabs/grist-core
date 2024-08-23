@@ -56,7 +56,7 @@ import { IconName } from './IconList';
 /**
  * Defaults for all icons.
  */
-const iconDiv = styled('div', `
+const iconStyles = `
   position: relative;
   display: inline-block;
   vertical-align: middle;
@@ -66,23 +66,34 @@ const iconDiv = styled('div', `
   width: 16px;
   height: 16px;
   background-color: var(--icon-color, var(--grist-theme-text, black));
-`);
+`;
 
-export const cssIconBackground = styled(iconDiv, `
-  background-color: var(--icon-background, inherit);
-  -webkit-mask: none;
-  & .${iconDiv.className} {
-    transition: inherit;
-    display: block;
-  }
-`);
+const cssIconDiv = styled('div', iconStyles);
+
+const cssIconSpan = styled('span', iconStyles);
 
 export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
-  return iconDiv(
+  return cssIconDiv(
     dom.style('-webkit-mask-image', `var(--icon-${name})`),
     ...domArgs
   );
 }
+
+export function iconSpan(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
+  return cssIconSpan(
+    dom.style('-webkit-mask-image', `var(--icon-${name})`),
+    ...domArgs
+  );
+}
+
+export const cssIconSpanBackground = styled(cssIconSpan, `
+  background-color: var(--icon-background, inherit);
+  -webkit-mask: none;
+  & .${cssIconSpan.className} {
+    transition: inherit;
+    display: block;
+  }
+`);
 
 /**
  * Container box for an icon to serve as a button..

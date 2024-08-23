@@ -11,6 +11,7 @@ import DateTimeEditor from 'app/client/widgets/DateTimeEditor';
 import DateTimeTextBox from 'app/client/widgets/DateTimeTextBox';
 import {HyperLinkEditor} from 'app/client/widgets/HyperLinkEditor';
 import {HyperLinkTextBox} from 'app/client/widgets/HyperLinkTextBox';
+import {MarkdownTextBox} from 'app/client/widgets/MarkdownTextBox';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {NTextBox} from 'app/client/widgets/NTextBox';
@@ -36,6 +37,7 @@ export const nameToWidget = {
   'NumericEditor': NumericEditor,
   'HyperLinkTextBox': HyperLinkTextBox,
   'HyperLinkEditor': HyperLinkEditor,
+  'MarkdownTextBox': MarkdownTextBox,
   'Spinner': Spinner,
   'CheckBox': ToggleCheckBox,
   'CheckBoxEditor': CheckBoxEditor,
