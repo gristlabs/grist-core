@@ -528,7 +528,7 @@ class Seed {
 
 // When running mocha on several test files at once, we need to reset our database connection
 // if it exists.  This is a little ugly since it is stored globally.
-export async function removeConnection(name?: string) {
+export async function removeConnection() {
   const connections = getConnectionManager().connections;
   if (connections.length > 0) {
     if (connections.length > 1) {
