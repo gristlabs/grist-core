@@ -219,6 +219,7 @@ const cssBlockCheckbox = styled('div', `
   border: 1px solid ${theme.controlSecondaryDisabledFg};
   border-radius: 3px;
   cursor: pointer;
+
   & input::before, & input::after  {
     top: unset;
     left: unset;
@@ -233,6 +234,15 @@ const cssBlockCheckbox = styled('div', `
   }
   &-block a {
     pointer-events: all;
+  }
+
+  & input:checked::before, & input:disabled::before, & input:indeterminate::before {
+    background-color: ${theme.checkboxBg};
+  }
+
+  & input:checked::after, & input:indeterminate::after {
+    -webkit-mask-image: var(--icon-RadioButtonInnerCircle);
+    background-color: ${theme.checkboxSelectedFg};
   }
 `);
 
