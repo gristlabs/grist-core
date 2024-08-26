@@ -96,7 +96,7 @@
     "http-proxy": "1.18.1",
     "i18next-scanner": "4.4.0",
     "mocha": "10.2.0",
-    "mocha-webdriver": "0.3.3",
+    "mocha-webdriver": "git+https://github.com/gristlabs/mocha-webdriver.git#02435db655631fbc6e80613a66b52615b9fa9736",
     "moment-locales-webpack-plugin": "^1.2.0",
     "nodemon": "^2.0.4",
     "otplib": "12.0.1",

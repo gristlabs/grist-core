@@ -5775,10 +5775,9 @@ mkdirp@^2.1.3:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-2.1.6.tgz#964fbcb12b2d8c5d6fbc62a963ac95a273e2cc19"
   integrity sha512-+hEnITedc8LAtIP9u3HJDFIdcLV2vXP33sqLLIzkv1Db1zO/1OxbvYf0Y1OC/S/Qo5dxHXepofhmxL02PsKe+A==
 
-mocha-webdriver@0.3.3:
+"mocha-webdriver@git+https://github.com/gristlabs/mocha-webdriver.git#02435db655631fbc6e80613a66b52615b9fa9736":
   version "0.3.3"
-  resolved "https://registry.yarnpkg.com/mocha-webdriver/-/mocha-webdriver-0.3.3.tgz#278d3dea42e7b3473e34d26f522e179012a740c0"
-  integrity sha512-zmXpCIz23NHWLq781wB1iqkW3VjZzsHCXvpoE4lxrNlkp8eo5jebDQ4TQbVEKRCr89k2REdcq6+baoYMyBsv5w==
+  resolved "git+https://github.com/gristlabs/mocha-webdriver.git#02435db655631fbc6e80613a66b52615b9fa9736"
   dependencies:
     chai "^4.1.2"
     chai-as-promised "^7.1.1"
