@@ -358,9 +358,12 @@ export class DocSettingsPage extends Disposable {
             dom('div',
               dom.style('margin-top', '16px'),
               dom('span',
-                t('Document automatically opens in '),
-                dom('a', t('fiddle mode')),
-                t('. Any edit (open to anybody) will create a new unsaved copy.'),
+                t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
+                  'Any edit (open to anybody) will create a new unsaved copy.',
+                  {
+                    fiddleModeDocUrl: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('fiddle mode'))
+                  }
+                )
               ),
             ),
             testId('doctype-modal-option-template'),
