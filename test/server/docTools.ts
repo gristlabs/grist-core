@@ -4,7 +4,6 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
 import {DocManager} from 'app/server/lib/DocManager';
 import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {getAppRoot} from 'app/server/lib/places';
@@ -17,6 +16,7 @@ import * as fse from 'fs-extra';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as tmp from 'tmp';
+import { create } from "app/server/lib/create";
 
 tmp.setGracefulCleanup();
 
@@ -138,7 +138,7 @@ export async function createDocManager(
               server?: GristServer} = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
-  const docStorageManager = options.storageManager || new DocStorageManager(tmpDir);
+  const docStorageManager = options.storageManager || create.createLocalDocStorageManager(tmpDir);
   const pluginManager = options.pluginManager || await getGlobalPluginManager();
   const store = getDocWorkerMap();
   const internalPermitStore = store.getPermitStore('1');

@@ -36,7 +36,6 @@ import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
@@ -45,7 +44,6 @@ import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
-import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
@@ -1317,17 +1315,16 @@ export class FlexServer implements GristServer {
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
-      const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, this._disableExternalStorage, workers,
-                                                      this._dbManager, this.create.ExternalStorage);
+      const storageManager = this.create.createHostedDocStorageManager(
+        this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager, this.create.ExternalStorage
+      );
       this._storageManager = storageManager;
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
-      const storageManager = new DocStorageManager(this.docsRoot, samples, this._comm, this.create.Shell?.());
+      const storageManager = this.create.createLocalDocStorageManager(
+        this.docsRoot, samples, this._comm, this.create.Shell?.()
+      );
       this._storageManager = storageManager;
-    }
-
-    if (this.create.decorateDocStorageManager) {
-      this.create.decorateDocStorageManager(this._storageManager);
     }
 
     const pluginManager = await this._addPluginManager();

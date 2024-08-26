@@ -17,6 +17,7 @@ import {IDocStorageManager} from './IDocStorageManager';
 import { Comm } from "./Comm";
 import { IDocWorkerMap } from "./DocWorkerMap";
 import { HostedStorageManager, HostedStorageOptions } from "./HostedStorageManager";
+import { DocStorageManager } from "./DocStorageManager";
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -60,6 +61,11 @@ export interface ICreate {
   // should not interfere with each other.
   ExternalStorage: ExternalStorageCreator;
 
+  // Creates a IDocStorageManager for storing documents on the local machine.
+  createLocalDocStorageManager: LocalDocStorageManagerCreator;
+  // Creates a IDocStorageManager for storing documents on an external storage (e.g S3)
+  createHostedDocStorageManager: HostedDocStorageManagerCreator;
+
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
@@ -84,11 +90,6 @@ export interface ICreate {
   getSandboxVariants?(): Record<string, SpawnFn>;
 
   getLoginSystem(): Promise<GristLoginSystem>;
-
-  // Creates a IDocStorageManager for storing documents on the local machine.
-  getLocalDocStorageManager?: LocalDocStorageManagerCreator;
-  // Creates a IDocStorageManager for storing documents on an external storage (e.g S3)
-  getHostedDocStorageManager?: HostedDocStorageManagerCreator;
 }
 
 export interface ICreateActiveDocOptions {
@@ -140,8 +141,8 @@ export function makeSimpleCreator(opts: {
   getSandboxVariants?: () => Record<string, SpawnFn>,
   createInstallAdmin?: (dbManager: HomeDBManager) => Promise<InstallAdmin>,
   getLoginSystem?: () => Promise<GristLoginSystem>,
-  getHostedDocStorageManager?: HostedDocStorageManagerCreator,
-  getLocalDocStorageManager?: LocalDocStorageManagerCreator,
+  createHostedDocStorageManager?: HostedDocStorageManagerCreator,
+  createLocalDocStorageManager?: LocalDocStorageManagerCreator,
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
   return {
@@ -213,14 +214,22 @@ export function makeSimpleCreator(opts: {
     getSandboxVariants: opts.getSandboxVariants,
     createInstallAdmin: opts.createInstallAdmin || (async (dbManager) => new SimpleInstallAdmin(dbManager)),
     getLoginSystem: opts.getLoginSystem || getCoreLoginSystem,
-    getHostedDocStorageManager: opts.getHostedDocStorageManager ?? ((
+    createLocalDocStorageManager: opts.createLocalDocStorageManager ?? createDefaultLocalStorageManager,
+    createHostedDocStorageManager: opts.createHostedDocStorageManager ?? createDefaultHostedStorageManager,
+  };
+}
+
+const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = (
       docsRoot,
       docWorkerId,
       disableS3,
       docWorkerMap,
       dbManager,
-      createExternalStorage, options) => {
-      new HostedStorageManager(docsRoot, docWorkerId, disableS3, docWorkerMap, dbManager, createExternalStorage, options);
-    })
-  };
-}
+      createExternalStorage, options
+) =>
+  new HostedStorageManager(docsRoot, docWorkerId, disableS3, docWorkerMap, dbManager, createExternalStorage, options);
+
+const createDefaultLocalStorageManager: LocalDocStorageManagerCreator = (
+  docsRoot, samplesRoot, comm, shell
+) => new DocStorageManager(docsRoot, samplesRoot, comm, shell);
+
