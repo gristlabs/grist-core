@@ -46,6 +46,7 @@ jobs:
   push_to_registry:
     name: Push latest Docker image to Docker Hub
     runs-on: ubuntu-latest
+    if: ${{ vars.RUN_DAILY_BUILD }}
     strategy:
       matrix:
         python-version: [3.11]
