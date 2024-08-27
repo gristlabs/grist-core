@@ -91,12 +91,16 @@ export class DocSettingsPage extends Disposable {
           name: t('Template mode'),
           description: t('Special document mode'),
           value: cssDocTypeContainer(
-            dom.create(displayCurrentType, docPageModel.type, /*docPageModel.currentDocId.get()*/),
+            dom.create(
+              displayCurrentType,
+              docPageModel.type,
+            ),
             cssSmallButton(t('Edit'),
-              dom.on('click', this._doSetDocumentType.bind(this, true))
+              dom.on('click', this._doSetDocumentType.bind(this, true)),
+              testId('doctype-edit')
             )
           ),
-          disabled: isDocEditor ? false : t('Only available to document editors'),
+          disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
       ]),
 
@@ -390,7 +394,7 @@ export class DocSettingsPage extends Disposable {
       return [
         cssModalTitle(t(`Change nature of document`)),
         documentTypeOptions(),
-        testId('timing-modal'),
+        testId('doctype-modal'),
       ];
     });
   }
@@ -484,7 +488,11 @@ function displayCurrentType(
     const typeName = typeList.find(ty => ty.type === typeCode)?.label || typeCode;
     return typeName;
   });
-  return dom('div', typeObs.get());
+  return dom(
+    'div',
+    typeObs.get(),
+    testId('doctype-value')
+  );
 }
 
 const cssContainer = styled('div', `
