@@ -42,8 +42,9 @@ import { DocStorageManager } from "./DocStorageManager";
 export const DEFAULT_SESSION_SECRET =
   'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
 
-type LocalDocStorageManagerCreator = (docsRoot: string, samplesRoot?: string, comm?: Comm, shell?: IShell) => IDocStorageManager;
-type HostedDocStorageManagerCreator = (
+export type LocalDocStorageManagerCreator =
+  (docsRoot: string, samplesRoot?: string, comm?: Comm, shell?: IShell) => IDocStorageManager;
+export type HostedDocStorageManagerCreator = (
     docsRoot: string,
     docWorkerId: string,
     disableS3: boolean,
