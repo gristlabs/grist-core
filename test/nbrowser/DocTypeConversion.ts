@@ -24,11 +24,14 @@ describe("Document Type Conversion", function () {
     assert.isTrue(await editButton.visible());
   }
 
-  async function convert(from:String, to:String) {
+  async function convert(from: String, to: String) {
     await gu.openDocumentSettings();
 
     // Check that Document type is from before any conversion was ever apply to It.
     assert.equal(await displayedLabel.element().getText(), from);
+
+    // Click to open the modal
+    await editButton.click();
 
     // Wait for modal.
     await modal.wait();
@@ -55,7 +58,7 @@ describe("Document Type Conversion", function () {
     await modalConfirm.click();
 
     // await for the page reload
-    await driver.navigate().refresh();
+    await driver.sleep(200);
 
     // check that the displayedLabel is now equal to convert destination
     assert.equal(await displayedLabel.element().getText(), to);
@@ -91,27 +94,27 @@ describe("Document Type Conversion", function () {
 
   // If the next six tests succeed so each document type can properly be converted to every other
   it('should convert from Regular to Template', async function() {
-    convert("Regular", "Template");
+    await convert("Regular", "Template");
   });
 
   it('should convert from Template to Tutorial', async function() {
-    convert("Template", "Tutorial");
+    await convert("Template", "Tutorial");
   });
 
   it('should convert from Tutorial to Regular', async function() {
-    convert("Tutorial", "Regular");
+    await convert("Tutorial", "Regular");
   });
 
   it('should convert from Regular to Tutorial', async function() {
-    convert("Regular", "Tutorial");
+    await convert("Regular", "Tutorial");
   });
 
   it('should convert from Tutorial to Template', async function() {
-    convert("Tutorial", "Template");
+    await convert("Tutorial", "Template");
   });
 
   it('should convert from Template to Regular', async function() {
-    convert("Template", "Regular");
+    await convert("Template", "Regular");
   });
 
   it('should be disabled for non-owners', async function() {
