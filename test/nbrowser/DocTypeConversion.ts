@@ -58,7 +58,7 @@ describe("Document Type Conversion", function () {
     await modalConfirm.click();
 
     // await for the page reload
-    await driver.sleep(200);
+    await driver.sleep(1000);
 
     // check that the displayedLabel is now equal to convert destination
     assert.equal(await displayedLabel.element().getText(), to);
