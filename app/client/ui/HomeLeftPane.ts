@@ -69,11 +69,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         // TODO: Introduce a "SwitchSelector" pattern to avoid the need for N computeds (and N
         // recalculations) to select one of N items.
         const isRenaming = computed((use) => use(renaming) === ws);
-        const iconName = ws.shareType === 'public'
-          ? 'FolderPublic'
-          : ws.shareType === 'shared'
-            ? 'FolderShared'
-            : 'FolderPrivate';
+        const iconName = ws.shareType === 'private' ? 'FolderPrivate' : 'Folder';
         return cssPageEntry(
           dom.autoDispose(isRenaming),
           dom.autoDispose(isTrivial),
@@ -102,9 +98,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           cssPageEntry.cls('-renaming', isRenaming),
           dom.maybe(isRenaming, () =>
             cssPageLink(
-              cssPageIcon(iconName,
-                cssPageIcon.cls(`-${ws.shareType}`)
-              ),
+              cssPageIcon(iconName),
               cssEditorInput({
                 initialValue: ws.name || '',
                 save: async (val) => (val !== ws.name) ? home.renameWorkspace(ws.id, val) : undefined,

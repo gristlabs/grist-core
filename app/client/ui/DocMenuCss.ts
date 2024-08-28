@@ -120,15 +120,11 @@ export const siteButton = styled(bigBasicButton, `
 `);
 
 export const docHeaderIcon = styled(icon, `
+  width: 24px;
+  height: 24px;
   margin-right: 8px;
   margin-top: -3px;
   --icon-color: ${theme.lightText};
-  &-public {
-    --icon-color: ${colors.lightGreen};
-  }
-  &-shared {
-    --icon-color: ${colors.warning};
-  }
 `);
 
 export const pinnedDocsIcon = styled(docHeaderIcon, `
@@ -236,9 +232,6 @@ export const docPublicIcon = styled(icon, `
   --icon-color: ${theme.lightText};
   &-public {
     --icon-color: ${colors.lightGreen};
-  }
-  &-shared {
-    --icon-color: ${colors.warning};
   }
 `);
 

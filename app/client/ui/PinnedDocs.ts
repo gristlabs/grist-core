@@ -50,7 +50,7 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
               : doc.shareType === 'shared'
                 ? 'FileShared'
                 : 'FilePrivate',
-            cssPublicIcon.cls(`-${doc.shareType}`),
+            cssPublicIcon.cls(doc.shareType === 'public' ? `-${doc.shareType}` : ''),
             testId('public')) : null),
           pinnedDocPreview.cls('-with-icon', Boolean(doc.options?.icon)),
         ),
@@ -280,11 +280,10 @@ const cssPublicIcon = styled(icon, `
   position: absolute;
   top: 16px;
   left: 16px;
+  width: 20px;
+  height: 20px;
   --icon-color: ${theme.lightText};
   &-public {
     --icon-color: ${colors.lightGreen};
-  }
-  &-shared {
-    --icon-color: ${colors.warning};
   }
 `);

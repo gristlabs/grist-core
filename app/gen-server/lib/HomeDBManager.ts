@@ -703,12 +703,9 @@ export class HomeDBManager extends EventEmitter {
               roles.getWeakestRole(<roles.Role>user.parentAccess, <roles.Role>maxInheritedRole));
           });
           if (permissionDataUsers?.length > 1) {
-            ws.shareType = permissionDataUsers.find((user) => user.email === EVERYONE_EMAIL
-              || user.email === ANONYMOUS_USER_EMAIL)
-              ? 'public'
-              : permissionDataUsers.find((user) => user.id !== scope.userId)
-                ? 'shared'
-                : 'private';
+            ws.shareType = permissionDataUsers.find((user) => user.email !== EVERYONE_EMAIL && user.email !== ANONYMOUS_USER_EMAIL && user.id === scope.userId)
+              ? 'private'
+              : 'public';
 
             for(const doc of ws.docs) {
               const permissionDataUsersDoc = this.unwrapQueryResult(

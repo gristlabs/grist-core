@@ -137,12 +137,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                         hasFeaturedTemplates ? t("More Examples and Templates") : t("Examples and Templates")
                     ) :
                     page === 'trash' ? t("Trash") :
-                      workspace && [css.docHeaderIcon(workspace.shareType === 'public'
-                          ? 'FolderPublic'
-                          : workspace.shareType === 'shared'
-                            ? 'FolderShared'
-                            : 'FolderPrivate',
-                        css.docHeaderIcon.cls(`-${workspace.shareType}`)),
+                      workspace && [css.docHeaderIcon(workspace.shareType === 'private' ? 'FolderPrivate' : 'Folder'),
                         workspaceName(home.app, workspace)]
                   ),
                   testId('doc-header'),
@@ -207,13 +202,7 @@ function buildAllDocsBlock(
     return css.docBlock(
       css.docBlockHeaderLink(
         css.wsLeft(
-          css.docHeaderIcon(ws.shareType === 'public'
-              ? 'FolderPublic'
-              : ws.shareType === 'shared'
-                ? 'FolderShared'
-                : 'FolderPrivate',
-            css.docHeaderIcon.cls(`-${ws.shareType}`)
-          ),
+          css.wsLeft(css.docHeaderIcon(ws.shareType === 'private' ? 'FolderPrivate' : 'Folder'),
           workspaceName(home.app, ws),
         ),
 
@@ -290,13 +279,7 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
     return css.templatesDocBlock(
       css.templateBlockHeader(
         css.wsLeft(
-          css.docHeaderIcon(workspace.shareType === 'public'
-              ? 'FolderPublic'
-              : workspace.shareType === 'shared'
-                ? 'FolderShared'
-                : 'FolderPrivate',
-            css.docHeaderIcon.cls(`-${workspace.shareType}`)
-          ),
+          css.docHeaderIcon(workspace.shareType === 'private' ? 'FolderPrivate' : 'Folder'),
           workspace.name,
         ),
         testId('templates-header'),

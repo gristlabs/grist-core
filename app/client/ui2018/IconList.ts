@@ -76,8 +76,6 @@ export type IconName = "ChartArea" |
   "Flag" |
   "Folder" |
   "FolderPrivate" |
-  "FolderPublic" |
-  "FolderShared" |
   "FontBold" |
   "FontItalic" |
   "FontStrikethrough" |
@@ -239,8 +237,6 @@ export const IconList: IconName[] = ["ChartArea",
   "Flag",
   "Folder",
   "FolderPrivate",
-  "FolderPublic",
-  "FolderShared",
   "FontBold",
   "FontItalic",
   "FontStrikethrough",

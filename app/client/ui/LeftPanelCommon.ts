@@ -16,7 +16,7 @@
 import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -154,14 +154,10 @@ export const cssLinkText = styled('span', `
 
 export const cssPageIcon = styled(icon, `
   flex: none;
+  width: 24px;
+  height: 24px;
   margin-right: var(--page-icon-margin, 8px);
   --icon-color: ${theme.lightText};
-  &-public {
-    --icon-color: ${colors.lightGreen};
-  }
-  &-shared {
-    --icon-color: ${colors.warning};
-  }
   .${cssTools.className}-collapsed & {
     margin-right: 0;
   }
