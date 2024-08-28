@@ -132,10 +132,11 @@ def make_formula_body(formula, default_value, assoc_value=None):
   return final_formula
 
 
-def replace_dollar_attrs(formula):
+def get_dollar_replacer(formula):
   """
-  Translates formula "$" expression into rec. expression. This is extracted from the
-  make_formula_body function.
+  Returns a textbuilder.Replacer that would replace all dollar signs ("$") in the given
+  formula with "rec.". The Replacer tracks extra info we can later use to restore the
+  dollar signs back. To get the processed text, call .get_text() on the Replacer.
   """
   formula_builder_text = textbuilder.Text(formula)
   tmp_patches = textbuilder.make_regexp_patches(formula, DOLLAR_REGEX, 'DOLLAR')
@@ -150,7 +151,7 @@ def replace_dollar_attrs(formula):
       if m:
         patches.append(textbuilder.make_patch(formula, m.start(0), m.end(0), 'rec.'))
   final_formula = textbuilder.Replacer(formula_builder_text, patches)
-  return final_formula.get_text()
+  return final_formula
 
 
 def _create_syntax_error_code(builder, input_text, err):
@@ -198,6 +199,8 @@ def infer(node):
 
 
 _lookup_method_names = ('lookupOne', 'lookupRecords')
+_prev_next_functions = ('PREVIOUS', 'NEXT', 'RANK')
+_lookup_find_methods = ('lt', 'le', 'gt', 'ge', 'eq', 'previous', 'next')
 
 def _is_table(node):
   """
@@ -322,6 +325,50 @@ class InferAllReference(InferenceTip):
     yield astroid.bases.Instance(infer(node.expr))
 
 
+class InferLookupFindResult(InferenceTip):
+  """
+  Inference helper to treat the return value of `Table.lookupRecords(...).find.lt(...)` as
+  returning instances of table `Table`.
+  """
+  node_class = astroid.nodes.Call
+
+  @classmethod
+  def filter(cls, node):
+    func = node.func
+    if isinstance(func, astroid.nodes.Attribute) and func.attrname in _lookup_find_methods:
+      p_expr = func.expr
+      if isinstance(p_expr, astroid.nodes.Attribute) and p_expr.attrname in ('find', '_find'):
+        obj = infer(p_expr.expr)
+        if isinstance(obj, astroid.bases.Instance) and _is_table(obj._proxied):
+          return True
+    return False
+
+  @classmethod
+  def infer(cls, node, context=None):
+    # A bit of fuzziness here: node.func.expr.expr is the result of lookupRecords(). It so happens
+    # that at the moment it is already of type Instance(table), as if a single record rather than
+    # a list, to support recognizing `.ColId` attributes. So we return the same type.
+    yield infer(node.func.expr.expr)
+
+
+class InferPrevNextResult(InferenceTip):
+  """
+  Inference helper to treat the return value of PREVIOUS(...) and NEXT(...) as returning instances
+  of table `Table`.
+  """
+  node_class = astroid.nodes.Call
+
+  @classmethod
+  def filter(cls, node):
+    return (isinstance(node.func, astroid.nodes.Name) and
+        node.func.name in _prev_next_functions and
+        node.args)
+
+  @classmethod
+  def infer(cls, node, context=None):
+    yield infer(node.args[0])
+
+
 class InferComprehensionBase(InferenceTip):
   node_class = astroid.nodes.AssignName
   reference_inference_class = None
@@ -396,7 +443,8 @@ def parse_grist_names(builder):
   code_text = builder.get_text()
 
   with use_inferences(InferReferenceColumn, InferReferenceFormula, InferLookupReference,
-                      InferLookupComprehension, InferAllReference, InferAllComprehension):
+                      InferLookupComprehension, InferAllReference, InferAllComprehension,
+                      InferLookupFindResult, InferPrevNextResult):
     atok = asttokens.ASTText(code_text, tree=astroid.builder.parse(code_text))
 
   def make_tuple(start, end, table_id, col_id):
@@ -411,6 +459,13 @@ def parse_grist_names(builder):
     if in_value:
       return (in_value, in_patch.start, table_id, col_id)
     return None
+
+  # Helper for collecting column IDs mentioned in order_by/group_by parameters, so that
+  # those can be updated when a column is renamed.
+  def list_order_group_by_tuples(table_id, node):
+    for start, end, col_id in parse_order_group_by(atok, node):
+      if code_text[start:end] == col_id:
+        yield make_tuple(start, end, table_id, col_id)
 
   parsed_names = []
   for node in asttokens.util.walk(atok.tree, include_joined_str=True):
@@ -429,21 +484,53 @@ def parse_grist_names(builder):
           start = end - len(node.attrname)
           if code_text[start:end] == node.attrname:
             parsed_names.append(make_tuple(start, end, cls.name, node.attrname))
+
     elif isinstance(node, astroid.nodes.Keyword):
       func = node.parent.func
       if isinstance(func, astroid.nodes.Attribute) and func.attrname in _lookup_method_names:
         obj = infer(func.expr)
         if _is_table(obj) and node.arg is not None:   # Skip **kwargs, which have arg value of None
+          table_id = obj.name
           start = atok.get_text_range(node)[0]
           end = start + len(node.arg)
-          if code_text[start:end] == node.arg:
-            parsed_names.append(make_tuple(start, end, obj.name, node.arg))
+          if node.arg == 'order_by':
+            # Rename values in 'order_by' arguments to lookup methods.
+            parsed_names.extend(list_order_group_by_tuples(table_id, node.value))
+          elif code_text[start:end] == node.arg:
+            parsed_names.append(make_tuple(start, end, table_id, node.arg))
+
+      elif (isinstance(func, astroid.nodes.Name)
+          # Rename values in 'order_by' and 'group_by' arguments to PREVIOUS() and NEXT().
+          and func.name in _prev_next_functions
+          and node.arg in ('order_by', 'group_by')
+          and node.parent.args):
+        obj = infer(node.parent.args[0])
+        if isinstance(obj, astroid.bases.Instance):
+          cls = obj._proxied
+          if _is_table(cls):
+            table_id = cls.name
+            parsed_names.extend(list_order_group_by_tuples(table_id, node.value))
 
   return [name for name in parsed_names if name]
 
 
 code_filename = "usercode"
 
+def parse_order_group_by(atok, node):
+  """
+  order_by and group_by parameters take the form of a column ID string, optionally prefixed by a
+  "-", or a tuple of them. We parse out the list of (start, end, col_id) tuples for each column ID
+  mentioned, to support automatic formula updates when a mentioned column is renamed.
+  """
+  if isinstance(node, astroid.nodes.Const):
+    if isinstance(node.value, six.string_types):
+      start, end = atok.get_text_range(node)
+      # Account for opening/closing quote, and optional leading "-".
+      return [(start + 2, end - 1, node.value[1:]) if node.value.startswith("-") else
+              (start + 1, end - 1, node.value)]
+  elif isinstance(node, astroid.nodes.Tuple):
+    return [t for e in node.elts for t in parse_order_group_by(atok, e)]
+  return []
 
 def save_to_linecache(source_code):
   """

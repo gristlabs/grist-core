@@ -1,5 +1,4 @@
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
-import {isAffirmative} from 'app/common/gutil';
 import log from 'app/server/lib/log';
 import {createTmpDir} from 'app/server/lib/uploads';
 
@@ -236,19 +235,8 @@ export class ChecksummedExternalStorage implements ExternalStorage {
           // We are confident this should not be the case anymore, though this has to be studied carefully.
           // If a snapshotId was specified, we can skip this check.
           if (expectedChecksum && expectedChecksum !== checksum) {
-            const message = `ext ${this.label} download: data for ${fromKey} has wrong checksum:` +
-              ` ${checksum} (expected ${expectedChecksum})`;
-
-            // If GRIST_SKIP_REDIS_CHECKSUM_MISMATCH is set, issue a warning only and continue,
-            // rather than issuing an error and failing.
-            // This flag is experimental and should be removed once we are
-            // confident that the checksums verification is useless.
-            if (isAffirmative(process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH)) {
-              log.warn(message);
-            } else {
-              log.error(message);
-              return undefined;
-            }
+            log.warn(`ext ${this.label} download: data for ${fromKey} has wrong checksum:` +
+              ` ${checksum} (expected ${expectedChecksum})`);
           }
         }
 

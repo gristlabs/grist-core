@@ -9,7 +9,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
 import {OrganizationProperties, PermissionDelta} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
-import {BillingOptions, HomeDBManager, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
+import {BillingOptions, HomeDBManager, QueryResult, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -300,6 +300,18 @@ export class ApiServer {
         templateOrg
       );
       return sendReply(req, res, query);
+    }));
+
+    // GET /api/templates/:did
+    // Get information about a template.
+    this._app.get('/api/templates/:did', expressWrap(async (req, res) => {
+      const templateOrg = getTemplateOrg();
+      if (!templateOrg) {
+        throw new ApiError('Template org is not configured', 501);
+      }
+
+      const query = await this._dbManager.getDoc({...getScope(req), org: templateOrg});
+      return sendOkReply(req, res, query);
     }));
 
     // GET /api/widgets/

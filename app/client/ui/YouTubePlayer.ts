@@ -11,6 +11,7 @@ export interface Player {
   unMute(): void;
   setVolume(volume: number): void;
   getCurrentTime(): number;
+  getPlayerState(): PlayerState;
 }
 
 export interface PlayerOptions {
@@ -28,6 +29,7 @@ export interface PlayerVars {
   fs?: 0 | 1;
   iv_load_policy?: 1 | 3;
   modestbranding?: 0 | 1;
+  rel?: 0 | 1;
 }
 
 export interface PlayerStateChangeEvent {
@@ -91,6 +93,18 @@ export class YouTubePlayer extends Disposable {
 
   public play() {
     this._player.playVideo();
+  }
+
+  public pause() {
+    this._player.pauseVideo();
+  }
+
+  public playPause() {
+    if (this._player.getPlayerState() === PlayerState.Playing) {
+      this._player.pauseVideo();
+    } else {
+      this._player.playVideo();
+    }
   }
 
   public setVolume(volume: number) {

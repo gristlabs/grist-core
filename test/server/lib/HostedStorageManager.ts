@@ -2,7 +2,7 @@ import {ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL} from 'app/common/Asy
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import {SCHEMA_VERSION} from 'app/common/schema';
 import {DocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
@@ -494,18 +494,12 @@ describe('HostedStorageManager', function() {
         await setRedisChecksum(docId, 'nobble');
         await store.removeAll();
 
-        // With GRIST_SKIP_REDIS_CHECKSUM_MISMATCH set, the fetch should work
-        process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH = 'true';
+        const warnSpy = sandbox.spy(log, 'warn');
         await store.run(async () => {
           await assert.isFulfilled(store.docManager.fetchDoc(docSession, docId));
+          assert.isTrue(warnSpy.calledWithMatch('has wrong checksum'), 'a warning should have been logged');
         });
-
-        // By default, the fetch should eventually errors.
-        delete process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH;
-        await store.run(async () => {
-          await assert.isRejected(store.docManager.fetchDoc(docSession, docId),
-                                  /operation failed to become consistent/);
-        });
+        warnSpy.restore();
 
         // Check we get the document back on fresh start if checksum is correct.
         await setRedisChecksum(docId, checksum);

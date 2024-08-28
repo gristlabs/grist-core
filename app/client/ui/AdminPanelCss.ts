@@ -1,3 +1,4 @@
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {transition} from 'app/client/ui/transitions';
 import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -21,6 +22,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   description?: DomContents,
   value?: DomContents,
   expandedContent?: DomContents,
+  disabled?: false|string,
 }) {
   const itemContent = (...prefix: DomContents[]) => [
     cssItemName(
@@ -34,7 +36,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       testId(`admin-panel-item-value-${options.id}`),
       dom.on('click', ev => ev.stopPropagation())),
   ];
-  if (options.expandedContent) {
+  if (options.expandedContent && !options.disabled) {
     const isCollapsed = Observable.create(owner, true);
     return cssItem(
       cssItemShort(
@@ -56,7 +58,13 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
     );
   } else {
     return cssItem(
-      cssItemShort(itemContent()),
+      cssItemShort(itemContent(),
+        cssItemShort.cls('-disabled', Boolean(options.disabled)),
+        options.disabled ? hoverTooltip(options.disabled, {
+          placement: 'bottom-end',
+          modifiers: {offset: {offset: '0, -10'}},
+        }) : null,
+      ),
       testId(`admin-panel-item-${options.id}`),
     );
   }
@@ -109,6 +117,9 @@ const cssItemShort = styled('div', `
   &-expandable:hover {
     background-color: ${theme.lightHover};
   }
+  &-disabled {
+    opacity: .5;
+  }
 
   @container line (max-width: 500px) {
     & {
@@ -157,6 +168,10 @@ const cssItemValue = styled('div', `
   margin: -16px;
   padding: 16px;
   cursor: auto;
+
+  .${cssItemShort.className}-disabled & {
+    pointer-events: none;
+  }
 `);
 
 const cssCollapseIcon = styled(icon, `

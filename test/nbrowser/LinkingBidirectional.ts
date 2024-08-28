@@ -219,16 +219,10 @@ describe('LinkingBidirectional', function() {
   });
 
   it('should support custom filters', async function() {
-    // Add a new custom section with a widget.
+    // Add a new page with a table and custom widget.
     await gu.addNewPage('Table', 'Classes', {});
-
-    // Rename this section as Data.
     await gu.renameActiveSection('Data');
-
-    // Add new custom section with a widget.
-    await gu.addNewSection('Custom', 'Classes', { selectBy: 'Data' });
-
-    // Rename this section as Custom.
+    await gu.addNewSection('Custom', 'Classes', {customWidget: /Custom URL/, selectBy: 'Data'});
     await gu.renameActiveSection('Custom');
 
     // Make sure it can be used as a filter.

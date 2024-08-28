@@ -86,10 +86,10 @@ export const BehavioralPrompt = StringUnion(
   'editCardLayout',
   'addNew',
   'rickRow',
-  'customURL',
   'calendarConfig',
 
   // The following were used in the past and should not be re-used.
+  // 'customURL',
   // 'formsAreHere',
 );
 export type BehavioralPrompt = typeof BehavioralPrompt.type;
@@ -107,12 +107,15 @@ export interface BehavioralPromptPrefs {
 export const DismissedPopup = StringUnion(
   'deleteRecords',        // confirmation for deleting records keyboard shortcut
   'deleteFields',         // confirmation for deleting columns keyboard shortcut
-  'tutorialFirstCard',    // first card of the tutorial
   'formulaHelpInfo',      // formula help info shown in the popup editor
   'formulaAssistantInfo', // formula assistant info shown in the popup editor
   'supportGrist',         // nudge to opt in to telemetry
   'publishForm',          // confirmation for publishing a form
   'unpublishForm',        // confirmation for unpublishing a form
+  'onboardingCards',      // onboarding cards shown on the doc menu
+
+  /* Deprecated */
+  'tutorialFirstCard',    // first card of the tutorial
 );
 export type DismissedPopup = typeof DismissedPopup.type;
 

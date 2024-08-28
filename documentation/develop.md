@@ -122,6 +122,13 @@ You may run the tests using one of these commands:
  - `yarn test:docker` to run some end-to-end tests under docker
  - `yarn test:python` to run the data engine tests
 
+Also some options that may interest you:
+ - `GREP_TESTS="pattern"` in order to filter the tests to run, for example: `GREP_TESTS="Boot" yarn test:nbrowser`
+ - `VERBOSE=1` in order to view logs when a server is spawned (especially useful to debug the end-to-end and backend tests)
+ - `SERVER_NODE_OPTIONS="node options"` in order to pass options to the server being tested,
+   for example: `SERVER_NODE_OPTIONS="--inspect --inspect-brk" GREP_TESTS="Boot" yarn test:nbrowser` 
+   to run the tests with the debugger (you should close the debugger each time the node process should stop)
+
 ## Develop widgets
 
 Check out this repository: https://github.com/gristlabs/grist-widget#readme
@@ -130,6 +137,7 @@ Check out this repository: https://github.com/gristlabs/grist-widget#readme
 
 Some documentation to help you starting developing:
  - [Overview of Grist Components](./overview.md)
+ - [The database](./database.md)
  - [GrainJS & Grist Front-End Libraries](./grainjs.md)
  - [GrainJS Documentation](https://github.com/gristlabs/grainjs/) (The library used to build the DOM)
  - [The user support documentation](https://support.getgrist.com/)

@@ -17,7 +17,7 @@ import {
 import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
 import {Activation} from 'app/gen-server/entity/Activation';
 import {Activations} from 'app/gen-server/lib/Activations';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getDocSessionUser, OptDocSession} from 'app/server/lib/DocSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -334,6 +334,17 @@ export class Telemetry implements ITelemetry {
     try {
       this._numPendingForwardEventRequests += 1;
       const {category: eventCategory} = TelemetryContracts[event];
+
+      if (metadata) {
+        if ('installationId' in metadata ||
+            'eventSource' in metadata ||
+            'eventName' in metadata ||
+            'eventCategory' in metadata)
+        {
+          throw new Error('metadata contains reserved keys');
+        }
+      }
+
       await this._doForwardEvent(JSON.stringify({
         event,
         metadata: {

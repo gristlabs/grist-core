@@ -6,6 +6,7 @@ import { GristServer } from 'app/server/lib/GristServer';
 import * as express from 'express';
 import WS from 'ws';
 import fetch from 'node-fetch';
+import { DEFAULT_SESSION_SECRET } from 'app/server/lib/ICreate';
 
 /**
  * Self-diagnostics useful when installing Grist.
@@ -61,6 +62,7 @@ export class BootProbes {
     this._probes.push(_sandboxingProbe);
     this._probes.push(_authenticationProbe);
     this._probes.push(_webSocketsProbe);
+    this._probes.push(_sessionSecretProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -280,6 +282,20 @@ const _authenticationProbe: Probe = {
       status: (loginSystemId != undefined) ? 'success' : 'fault',
       details: {
         loginSystemId,
+      }
+    };
+  },
+};
+
+const _sessionSecretProbe: Probe = {
+  id: 'session-secret',
+  name: 'Session secret',
+  apply: async(server, req) => {
+    const usingDefaultSessionSecret = server.create.sessionSecret() === DEFAULT_SESSION_SECRET;
+    return {
+      status: usingDefaultSessionSecret ? 'warning' : 'success',
+      details: {
+        "GRIST_SESSION_SECRET": process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       }
     };
   },

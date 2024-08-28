@@ -380,59 +380,60 @@ export class FieldEditor extends Disposable {
     if (!editor) { return false; }
     // Make sure the editor is save ready
     const saveIndex = this._cursor.rowIndex();
-    await editor.prepForSave();
-    if (this.isDisposed()) {
-      // We shouldn't normally get disposed here, but if we do, avoid confusing JS errors.
-      console.warn(t("Unable to finish saving edited cell"));  // tslint:disable-line:no-console
-      return false;
-    }
-
-    // Then save the value the appropriate way
-    // TODO: this isFormula value doesn't actually reflect if editing the formula, since
-    // editingFormula() is used for toggling column headers, and this is deferred to start of
-    // typing (a double-click or Enter) does not immediately set it. (This can cause a
-    // console.warn below, although harmless.)
-    const isFormula = this._field.editingFormula();
-    const col = this._field.column();
-    let waitPromise: Promise<unknown>|null = null;
-
-    if (isFormula) {
-      const formula = String(editor.getCellValue() ?? '');
-      // Bundle multiple changes so that we can undo them in one step.
-      if (isFormula !== col.isFormula.peek() || formula !== col.formula.peek()) {
-        waitPromise = this._gristDoc.docData.bundleActions(null, () => Promise.all([
-          col.updateColValues({isFormula, formula}),
-          // If we're saving a non-empty formula, then also add an empty record to the table
-          // so that the formula calculation is visible to the user.
-          (!this._detached.get() && this._editRow._isAddRow.peek() && formula !== "" ?
-            this._editRow.updateColValues({}) : undefined),
-        ]));
+    return await this._gristDoc.docData.bundleActions(null, async () => {
+      await editor.prepForSave();
+      if (this.isDisposed()) {
+        // We shouldn't normally get disposed here, but if we do, avoid confusing JS errors.
+        console.warn(t("Unable to finish saving edited cell"));  // tslint:disable-line:no-console
+        return false;
       }
-    } else {
-      const value = editor.getCellValue();
-      if (col.isRealFormula()) {
-        // tslint:disable-next-line:no-console
-        console.warn(t("It should be impossible to save a plain data value into a formula column"));
+      // Then save the value the appropriate way
+      // TODO: this isFormula value doesn't actually reflect if editing the formula, since
+      // editingFormula() is used for toggling column headers, and this is deferred to start of
+      // typing (a double-click or Enter) does not immediately set it. (This can cause a
+      // console.warn below, although harmless.)
+      const isFormula = this._field.editingFormula();
+      const col = this._field.column();
+      let waitPromise: Promise<unknown>|null = null;
+
+      if (isFormula) {
+        const formula = String(editor.getCellValue() ?? '');
+        // Bundle multiple changes so that we can undo them in one step.
+        if (isFormula !== col.isFormula.peek() || formula !== col.formula.peek()) {
+          waitPromise = Promise.all([
+            col.updateColValues({isFormula, formula}),
+            // If we're saving a non-empty formula, then also add an empty record to the table
+            // so that the formula calculation is visible to the user.
+            (!this._detached.get() && this._editRow._isAddRow.peek() && formula !== "" ?
+              this._editRow.updateColValues({}) : undefined),
+          ]);
+        }
       } else {
-        // This could still be an isFormula column if it's empty (isEmpty is true), but we don't
-        // need to toggle isFormula in that case, since the data engine takes care of that.
-        waitPromise = setAndSave(this._editRow, this._field, value);
+        const value = editor.getCellValue();
+        if (col.isRealFormula()) {
+          // tslint:disable-next-line:no-console
+          console.warn(t("It should be impossible to save a plain data value into a formula column"));
+        } else {
+          // This could still be an isFormula column if it's empty (isEmpty is true), but we don't
+          // need to toggle isFormula in that case, since the data engine takes care of that.
+          waitPromise = setAndSave(this._editRow, this._field, value);
+        }
       }
-    }
 
-    const event: FieldEditorStateEvent = {
-      position : this.cellPosition(),
-      wasModified : this._editorHasChanged,
-      currentState : this._editorHolder.get()?.editorState?.get(),
-      type : this._field.column.peek().pureType.peek()
-    };
-    this.saveEmitter.emit(event);
+      const event: FieldEditorStateEvent = {
+        position : this.cellPosition(),
+        wasModified : this._editorHasChanged,
+        currentState : this._editorHolder.get()?.editorState?.get(),
+        type : this._field.column.peek().pureType.peek()
+      };
+      this.saveEmitter.emit(event);
 
-    const cursor = this._cursor;
-    // Deactivate the editor. We are careful to avoid using `this` afterwards.
-    this.dispose();
-    await waitPromise;
-    return isFormula || (saveIndex !== cursor.rowIndex());
+      const cursor = this._cursor;
+      // Deactivate the editor. We are careful to avoid using `this` afterwards.
+      this.dispose();
+      await waitPromise;
+      return isFormula || (saveIndex !== cursor.rowIndex());
+    });
   }
 }
 

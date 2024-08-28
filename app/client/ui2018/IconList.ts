@@ -119,6 +119,7 @@ export type IconName = "ChartArea" |
   "Public" |
   "PublicColor" |
   "PublicFilled" |
+  "Question" |
   "Redo" |
   "Remove" |
   "RemoveBig" |
@@ -133,13 +134,17 @@ export type IconName = "ChartArea" |
   "Separator" |
   "Settings" |
   "Share" |
+  "Skip" |
   "Sort" |
   "Sparks" |
+  "Star" |
   "Tick" |
   "TickSolid" |
   "Undo" |
   "Validation" |
   "Video" |
+  "VideoPlay" |
+  "VideoPlay2" |
   "Warning" |
   "Widget" |
   "Wrap" |
@@ -276,6 +281,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Public",
   "PublicColor",
   "PublicFilled",
+  "Question",
   "Redo",
   "Remove",
   "RemoveBig",
@@ -290,13 +296,17 @@ export const IconList: IconName[] = ["ChartArea",
   "Separator",
   "Settings",
   "Share",
+  "Skip",
   "Sort",
   "Sparks",
+  "Star",
   "Tick",
   "TickSolid",
   "Undo",
   "Validation",
   "Video",
+  "VideoPlay",
+  "VideoPlay2",
   "Warning",
   "Widget",
   "Wrap",

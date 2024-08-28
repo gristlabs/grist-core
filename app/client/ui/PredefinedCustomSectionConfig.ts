@@ -1,6 +1,7 @@
-import {GristDoc} from "../components/GristDoc";
-import {ViewSectionRec} from "../models/entities/ViewSectionRec";
-import {CustomSectionConfig} from "./CustomSectionConfig";
+import {GristDoc} from 'app/client/components/GristDoc';
+import {ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
+import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
+import {ICustomWidget} from 'app/common/CustomWidget';
 
 export class PredefinedCustomSectionConfig extends CustomSectionConfig {
 
@@ -17,7 +18,7 @@ export class PredefinedCustomSectionConfig extends CustomSectionConfig {
     return false;
   }
 
-  protected async _getWidgets(): Promise<void> {
-    // Do nothing.
+  protected async _getWidgets(): Promise<ICustomWidget[]> {
+    return [];
   }
 }

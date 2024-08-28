@@ -84,6 +84,7 @@ export const commonUrls = {
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
+  helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-activate-grist-enterprise",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
@@ -93,7 +94,6 @@ export const commonUrls = {
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
   plans: "https://www.getgrist.com/pricing",
-  sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
   templates: 'https://www.getgrist.com/templates',
   community: 'https://community.getgrist.com',
@@ -102,8 +102,6 @@ export const commonUrls = {
   formulas: 'https://support.getgrist.com/formulas',
   forms: 'https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer',
 
-  basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
-  basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
   gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',
   gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',
   githubGristCore: 'https://github.com/gristlabs/grist-core',
@@ -111,6 +109,8 @@ export const commonUrls = {
 
   versionCheck: 'https://api.getgrist.com/api/version',
 };
+
+export const ONBOARDING_VIDEO_YOUTUBE_EMBED_ID = '56AieR9rpww';
 
 /**
  * Values representable in a URL. The current state is available as urlState().state observable
@@ -759,7 +759,8 @@ export interface GristLoadConfig {
   // List of registered plugins (used by HomePluginManager and DocPluginManager)
   plugins?: LocalPlugin[];
 
-  // If custom widget list is available.
+  // If additional custom widgets (besides the Custom URL widget) should be shown in
+  // the custom widget gallery.
   enableWidgetRepository?: boolean;
 
   // Whether there is somewhere for survey data to go.
@@ -809,8 +810,14 @@ export interface GristLoadConfig {
   // The Grist deployment type (e.g. core, enterprise).
   deploymentType?: GristDeploymentType;
 
+  // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
+  forceEnableEnterprise?: boolean;
+
   // The org containing public templates and tutorials.
   templateOrg?: string|null;
+
+  // The doc id of the tutorial shown during onboarding.
+  onboardingTutorialDocId?: string;
 
   // Whether to show the "Delete Account" button in the account page.
   canCloseAccount?: boolean;

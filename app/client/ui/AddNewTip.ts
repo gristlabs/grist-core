@@ -1,13 +1,7 @@
 import {HomeModel} from 'app/client/models/HomeModel';
-import {shouldShowWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
 
 export function attachAddNewTip(home: HomeModel): (el: Element) => void {
   return () => {
-    const {app: {userPrefsObs}} = home;
-    if (shouldShowWelcomeQuestions(userPrefsObs)) {
-      return;
-    }
-
     if (shouldShowAddNewTip(home)) {
       showAddNewTip(home);
     }

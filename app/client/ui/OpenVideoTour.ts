@@ -1,4 +1,3 @@
-import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getMainOrgUrl} from 'app/client/models/gristUrlState';
@@ -7,14 +6,12 @@ import {YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssModalCloseButton, modal} from 'app/client/ui2018/modals';
-import {isFeatureEnabled} from 'app/common/gristUrls';
-import {dom, makeTestId, styled} from 'grainjs';
+import {isFeatureEnabled, ONBOARDING_VIDEO_YOUTUBE_EMBED_ID} from 'app/common/gristUrls';
+import {dom, keyframes, makeTestId, styled} from 'grainjs';
 
 const t = makeT('OpenVideoTour');
 
 const testId = makeTestId('test-video-tour-');
-
-const VIDEO_TOUR_YOUTUBE_EMBED_ID = '56AieR9rpww';
 
 /**
  * Opens a modal containing a video tour of Grist.
@@ -23,12 +20,15 @@ const VIDEO_TOUR_YOUTUBE_EMBED_ID = '56AieR9rpww';
   return modal(
     (ctl, owner) => {
       const youtubePlayer = YouTubePlayer.create(owner,
-        VIDEO_TOUR_YOUTUBE_EMBED_ID,
+        ONBOARDING_VIDEO_YOUTUBE_EMBED_ID,
         {
           onPlayerReady: (player) => player.playVideo(),
           height: '100%',
           width: '100%',
           origin: getMainOrgUrl(),
+          playerVars: {
+            rel: 0,
+          },
         },
         cssYouTubePlayer.cls(''),
       );
@@ -83,12 +83,7 @@ export function createVideoTourToolsButton(): HTMLDivElement | null {
 
   let iconElement: HTMLElement;
 
-  const commandsGroup = commands.createGroup({
-    videoTourToolsOpen: () => openVideoTour(iconElement),
-  }, null, true);
-
   return cssPageEntryMain(
-    dom.autoDispose(commandsGroup),
     cssPageLink(
       iconElement = cssPageIcon('Video'),
       cssLinkText(t("Video Tour")),
@@ -108,10 +103,19 @@ const cssModal = styled('div', `
   max-width: 864px;
 `);
 
+const delayedVisibility = keyframes(`
+  to {
+    visibility: visible;
+  }
+`);
+
 const cssYouTubePlayerContainer = styled('div', `
   position: relative;
   padding-bottom: 56.25%;
   height: 0;
+  /* Wait until the modal is finished animating. */
+  visibility: hidden;
+  animation: 0s linear 0.4s forwards ${delayedVisibility};
 `);
 
 const cssYouTubePlayer = styled('div', `

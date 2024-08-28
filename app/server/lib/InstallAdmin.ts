@@ -1,5 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {getUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {User} from 'app/gen-server/entity/User';

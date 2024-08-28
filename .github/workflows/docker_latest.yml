@@ -10,6 +10,37 @@ on:
     # Run at 5:41 UTC daily
     - cron:  '41 5 * * *'
   workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch from which to create the latest Docker image (default: latest_candidate)"
+        type: string
+        required: true
+        default: latest_candidate
+      disable_tests:
+        description: "Should the tests be skipped?"
+        type: boolean
+        required: True
+        default: False
+      platforms:
+        description: "Platforms to build"
+        type: choice
+        required: True
+        options:
+          - linux/amd64
+          - linux/arm64/v8
+          - linux/amd64,linux/arm64/v8
+        default: linux/amd64,linux/arm64/v8
+      tag:
+        description: "Tag for the resulting images"
+        type: string
+        required: True
+        default: 'latest'
+
+env:
+  BRANCH: ${{ inputs.branch || 'latest_candidate' }}
+  PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64/v8' }}
+  TAG: ${{ inputs.tag || 'latest' }}
+  DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
 
 jobs:
   push_to_registry:
@@ -17,56 +48,131 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: [3.11]
         node-version: [18.x]
+        image:
+          # We build two images, `grist-oss` and `grist`.
+          # See https://github.com/gristlabs/grist-core?tab=readme-ov-file#available-docker-images
+          - name: "grist-oss"
+            repo: "grist-core"
+          - name: "grist"
+            repo: "grist-ee"
     steps:
+      - name: Build settings
+        run: |
+          echo "Branch: $BRANCH"
+          echo "Platforms: $PLATFORMS"
+          echo "Docker Hub Owner: $DOCKER_HUB_OWNER"
+          echo "Tag: $TAG"
+
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          ref: latest_candidate
+          ref: ${{ env.BRANCH }}
+
+      - name: Add a dummy ext/ directory
+        run:
+          mkdir ext && touch ext/dummy
+
+      - name: Check out the ext/ directory
+        if: matrix.image.name != 'grist-oss'
+        run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+
       - name: Prepare image but do not push it yet
         uses: docker/build-push-action@v2
         with:
           context: .
           load: true
-          tags: ${{ github.repository_owner }}/grist:latest
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
           cache-from: type=gha
+          build-contexts: ext=ext
+
       - name: Use Node.js ${{ matrix.node-version }} for testing
+        if: ${{ !inputs.disable_tests }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Set up Python ${{ matrix.python-version }} for testing - maybe not needed
+        if: ${{ !inputs.disable_tests }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install Python packages
+        if: ${{ !inputs.disable_tests }}
         run: |
           pip install virtualenv
           yarn run install:python
+
       - name: Install Node.js packages
+        if: ${{ !inputs.disable_tests }}
         run: yarn install
+
+      - name: Disable the ext/ directory
+        if: ${{ !inputs.disable_tests }}
+        run: mv ext/ ext-disabled/
+
       - name: Build Node.js code
+        if: ${{ !inputs.disable_tests }}
         run: yarn run build:prod
+
       - name: Run tests
-        run: TEST_IMAGE=${{ github.repository_owner }}/grist VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
+        if: ${{ !inputs.disable_tests }}
+        run: TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }} VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
+
+      - name: Re-enable the ext/ directory
+        if: ${{ !inputs.disable_tests }}
+        run: mv ext-disabled/ ext/
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Push to Docker Hub
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: linux/amd64,linux/arm64/v8
+          platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ github.repository_owner }}/grist:latest
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-contexts: ext=ext
+
+      - name: Push Enterprise to Docker Hub
+        if: ${{ matrix.image.name == 'grist' }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: |
+            BASE_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name}}
+            BASE_VERSION=${{ env.TAG }}
+          file: ext/Dockerfile
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: ${{ env.DOCKER_HUB_OWNER }}/grist-ee:${{ env.TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  update_latest_branch:
+    name: Update latest branch
+    runs-on: ubuntu-latest
+    needs: push_to_registry
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.latest_branch }}
+
       - name: Update latest branch
         uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
         with:

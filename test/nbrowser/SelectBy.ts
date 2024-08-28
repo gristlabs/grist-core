@@ -100,7 +100,7 @@ describe("SelectBy", function() {
 
     // Create a page with with charts and custom widget and then check that no linking is offered
     await gu.addNewPage(/Chart/, /Table1/);
-    await gu.addNewSection(/Custom/, /Table2/);
+    await gu.addNewSection(/Custom/, /Table2/, {customWidget: /Custom URL/});
 
     // open add widget to page
     await driver.findWait('.test-dp-add-new', 2000).doClick();

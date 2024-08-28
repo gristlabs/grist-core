@@ -13,6 +13,7 @@ import {createDocMenu} from 'app/client/ui/DocMenu';
 import {createForbiddenPage, createNotFoundPage, createOtherErrorPage} from 'app/client/ui/errorPages';
 import {createHomeLeftPane} from 'app/client/ui/HomeLeftPane';
 import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
+import {OnboardingPage, shouldShowOnboardingPage} from 'app/client/ui/OnboardingPage';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {RightPanel} from 'app/client/ui/RightPanel';
 import {createTopBarDoc, createTopBarHome} from 'app/client/ui/TopBar';
@@ -82,7 +83,7 @@ function createMainPage(appModel: AppModel, appObj: App) {
     } else if (pageType === 'admin') {
       return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel)));
     } else if (pageType === 'activation') {
-      return domAsync(loadActivationPage().then(ap => dom.create(ap.ActivationPage, appModel)));
+      return domAsync(loadActivationPage().then(ap => dom.create(ap.getActivationPage(), appModel)));
     } else {
       return dom.create(pagePanelsDoc, appModel, appObj);
     }
@@ -90,6 +91,11 @@ function createMainPage(appModel: AppModel, appObj: App) {
 }
 
 function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
+  
+  if (shouldShowOnboardingPage(appModel.userPrefsObs)) {
+    return dom.create(OnboardingPage, appModel);
+  }
+
   const homeModel = HomeModelImpl.create(owner, appModel, app.clientScope);
   const pageModel = DocPageModelImpl.create(owner, app, appModel);
   const leftPanelOpen = Observable.create(owner, true);

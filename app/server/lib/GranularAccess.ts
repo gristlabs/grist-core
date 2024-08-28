@@ -35,7 +35,7 @@ import { EmptyRecordView, InfoView, RecordView } from 'app/common/RecordView';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { User } from 'app/common/User';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionShare,
@@ -113,8 +113,6 @@ const SPECIAL_ACTIONS = new Set(['InitNewDoc',
                                  'FillTransformRuleColIds',
                                  'TransformAndFinishImport',
                                  'AddView',
-                                 'CopyFromColumn',
-                                 'ConvertFromColumn',
                                  'AddHiddenColumn',
                                  'RespondToRequests',
                                 ]);
@@ -132,9 +130,7 @@ const OK_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime']);
 // Only add an action to OTHER_RECOGNIZED_ACTIONS if you know access control
 // has been handled for it, or it is clear that access control can be done
 // by looking at the Create/Update/Delete permissions for the DocActions it
-// will create. For example, at the time of writing CopyFromColumn should
-// not be here, since it could read a column the user is not supposed to
-// have access rights to, and it is not handled specially.
+// will create.
 const OTHER_RECOGNIZED_ACTIONS = new Set([
   // Data actions.
   'AddRecord',
@@ -148,6 +144,11 @@ const OTHER_RECOGNIZED_ACTIONS = new Set([
   // Data actions handled specially because of read needs.
   'AddOrUpdateRecord',
   'BulkAddOrUpdateRecord',
+
+  // Certain column actions are handled specially because of reads that
+  // don't fit the pattern of data actions.
+  'ConvertFromColumn',
+  'CopyFromColumn',
 
   // Groups of actions.
   'ApplyDocActions',
@@ -818,7 +819,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Checks are in no particular order.
     await this._checkSimpleDataActions(docSession, actions);
     await this._checkForSpecialOrSurprisingActions(docSession, actions);
-    await this._checkPossiblePythonFormulaModification(docSession, actions);
+    await this._checkIfNeedsEarlySchemaPermission(docSession, actions);
     await this._checkDuplicateTableAccess(docSession, actions);
     await this._checkAddOrUpdateAccess(docSession, actions);
   }
@@ -912,7 +913,14 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   public needEarlySchemaPermission(a: UserAction|DocAction): boolean {
     const name = a[0] as string;
-    if (name === 'ModifyColumn' || name === 'SetDisplayFormula') {
+    if (name === 'ModifyColumn' || name === 'SetDisplayFormula' ||
+        // ConvertFromColumn and CopyFromColumn are hard to reason
+        // about, especially since they appear in bundles with other
+        // actions. We throw up our hands a bit here, and just make
+        // sure the user has schema permissions. Today, in Grist, that
+        // gives a lot of power. If this gets narrowed down in future,
+        // we'll have to rethink this.
+        name === 'ConvertFromColumn' || name === 'CopyFromColumn') {
       return true;
     } else if (isDataAction(a)) {
       const tableId = getTableId(a);
@@ -1362,7 +1370,6 @@ export class GranularAccess implements GranularAccessForBundle {
     }
 
     await this._assertOnlyBundledWithSimpleDataActions(ADD_OR_UPDATE_RECORD_ACTIONS, actions);
-
     // Check for read access, and that we're not touching metadata.
     await applyToActionsRecursively(actions, async (a) => {
       if (!isAddOrUpdateRecordAction(a)) { return; }
@@ -1392,12 +1399,15 @@ export class GranularAccess implements GranularAccessForBundle {
     });
   }
 
-  private async _checkPossiblePythonFormulaModification(docSession: OptDocSession, actions: UserAction[]) {
+  private async _checkIfNeedsEarlySchemaPermission(docSession: OptDocSession, actions: UserAction[]) {
     // If changes could include Python formulas, then user must have
     // +S before we even consider passing these to the data engine.
     // Since we don't track rule or schema changes at this stage, we
     // approximate with the user's access rights at beginning of
     // bundle.
+    // We also check for +S in scenarios that are hard to break down
+    // in a more granular way, for example ConvertFromColumn and
+    // CopyFromColumn.
     if (scanActionsRecursively(actions, (a) => this.needEarlySchemaPermission(a))) {
       await this._assertSchemaAccess(docSession);
     }

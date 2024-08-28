@@ -1,3 +1,4 @@
+import type {App} from 'app/client/ui/App';
 import {textarea} from 'app/client/ui/inputs';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {basicButton, basicButtonLink, primaryButtonLink, textButton} from 'app/client/ui2018/buttons';
@@ -759,11 +760,17 @@ export function saveControls(editMode: Observable<boolean>, save: (ok: boolean) 
         }
       }
     }),
-    dom.on('blur', (ev) => {
-      if (!editMode.isDisposed() && editMode.get()) {
-        save(true);
-        editMode.set(false);
+    dom.create((owner) => {
+      // Whenever focus returns to the Clipboard component, close the editor by saving the value.
+      function saveEdit() {
+        if (!editMode.isDisposed() && editMode.get()) {
+          save(true);
+          editMode.set(false);
+        }
       }
+      const app = (window as any).gristApp as App;
+      app.on('clipboard_focus', saveEdit);
+      owner.onDispose(() => app.off('clipboard_focus', saveEdit));
     }),
   ];
 }

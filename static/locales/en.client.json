@@ -204,7 +204,15 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} non-{{columnType}} column is not shown",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} non-{{columnType}} columns are not shown",
         "Clear selection": "Clear selection",
-        "No {{columnType}} columns in table.": "No {{columnType}} columns in table."
+        "No {{columnType}} columns in table.": "No {{columnType}} columns in table.",
+        "ACCESS LEVEL": "ACCESS LEVEL",
+        "Accept": "Accept",
+        "Custom URL": "Custom URL",
+        "Developer:": "Developer:",
+        "Last updated:": "Last updated:",
+        "Missing description and author information.": "Missing description and author information.",
+        "Reject": "Reject",
+        "Widget": "Widget"
     },
     "DataTables": {
         "Click to copy": "Click to copy",
@@ -339,7 +347,9 @@
         "Stop timing...": "Stop timing...",
         "Time reload": "Time reload",
         "Timing is on": "Timing is on",
-        "You can make changes to the document, then stop timing to see the results.": "You can make changes to the document, then stop timing to see the results."
+        "You can make changes to the document, then stop timing to see the results.": "You can make changes to the document, then stop timing to see the results.",
+        "Only available to document editors": "Only available to document editors",
+        "Only available to document owners": "Only available to document owners"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -521,7 +531,7 @@
         "Sign in": "Sign in",
         "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
         "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}.": "Learn more in our {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
@@ -929,7 +939,9 @@
         "An unknown error occurred.": "An unknown error occurred.",
         "Build your own form": "Build your own form",
         "Form not found": "Form not found",
-        "Powered by": "Powered by"
+        "Powered by": "Powered by",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Failed to log in.{{separator}}Please try again or contact support.",
+        "Sign-in failed{{suffix}}": "Sign-in failed{{suffix}}"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -1191,7 +1203,8 @@
         "Learn more": "Learn more",
         "These rules are applied after all column rules have been processed, if applicable.": "These rules are applied after all column rules have been processed, if applicable.",
         "Example: {{example}}": "Example: {{example}}",
-        "Filter displayed dropdown values with a condition.": "Filter displayed dropdown values with a condition."
+        "Filter displayed dropdown values with a condition.": "Filter displayed dropdown values with a condition.",
+        "Community widgets are created and maintained by Grist community members.": "Community widgets are created and maintained by Grist community members."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1239,7 +1252,8 @@
         "URL": "URL",
         "Webhook Id": "Webhook Id",
         "Table": "Table",
-        "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)"
+        "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)",
+        "Header Authorization": "Header Authorization"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",
@@ -1539,6 +1553,7 @@
         "Error": "Error",
         "Error checking for updates": "Error checking for updates",
         "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
         "Grist is up to date": "Grist is up to date",
         "Grist releases are at ": "Grist releases are at ",
         "Last checked {{time}}": "Last checked {{time}}",
@@ -1565,7 +1580,12 @@
         "Results": "Results",
         "Self Checks": "Self Checks",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator.",
-        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people."
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
+        "Key to sign sessions with": "Key to sign sessions with",
+        "Session Secret": "Session Secret",
+        "Enable Grist Enterprise": "Enable Grist Enterprise",
+        "Enterprise": "Enterprise"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1626,5 +1646,90 @@
         "Number of Calls": "Number of Calls",
         "Table ID": "Table ID",
         "Total Time (s)": "Total Time (s)"
+    },
+    "DocTutorial": {
+        "Click to expand": "Click to expand",
+        "Do you want to restart the tutorial? All progress will be lost.": "Do you want to restart the tutorial? All progress will be lost.",
+        "End tutorial": "End tutorial",
+        "Finish": "Finish",
+        "Next": "Next",
+        "Previous": "Previous",
+        "Restart": "Restart"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3 minute video tour",
+        "Complete our basics tutorial": "Complete our basics tutorial",
+        "Complete the tutorial": "Complete the tutorial",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Learn the basic of reference columns, linked widgets, column types, & cards.",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Learn the basics of reference columns, linked widgets, column types, & cards."
+    },
+    "OnboardingPage": {
+        "Back": "Back",
+        "Discover Grist in 3 minutes": "Discover Grist in 3 minutes",
+        "Go hands-on with the Grist Basics tutorial": "Go hands-on with the Grist Basics tutorial",
+        "Go to the tutorial!": "Go to the tutorial!",
+        "Next step": "Next step",
+        "Skip step": "Skip step",
+        "Skip tutorial": "Skip tutorial",
+        "Tell us who you are": "Tell us who you are",
+        "Type here": "Type here",
+        "Welcome": "Welcome",
+        "What brings you to Grist (you can select multiple)?": "What brings you to Grist (you can select multiple)?",
+        "What is your role?": "What is your role?",
+        "What organization are you with?": "What organization are you with?",
+        "Your organization": "Your organization",
+        "Your role": "Your role"
+    },
+    "ToggleEnterpriseWidget": {
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",
+        "Disable Grist Enterprise": "Disable Grist Enterprise",
+        "Enable Grist Enterprise": "Enable Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise is **enabled**."
+    },
+    "ViewLayout": {
+        "Delete": "Delete",
+        "Delete data and this widget.": "Delete data and this widget.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Keep data and delete widget. Table will remain available in {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "Table {{tableName}} will no longer be visible",
+        "raw data page": "raw data page"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Admin Panel"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Missing info)",
+        "Add Widget": "Add Widget",
+        "Add Your Own Widget": "Add Your Own Widget",
+        "Add a widget from outside this gallery.": "Add a widget from outside this gallery.",
+        "Cancel": "Cancel",
+        "Change Widget": "Change Widget",
+        "Choose Custom Widget": "Choose Custom Widget",
+        "Community Widget": "Community Widget",
+        "Custom URL": "Custom URL",
+        "Developer:": "Developer:",
+        "Grist Widget": "Grist Widget",
+        "Last updated:": "Last updated:",
+        "Learn more about Custom Widgets": "Learn more about Custom Widgets",
+        "No matching widgets": "No matching widgets",
+        "Search": "Search",
+        "Widget URL": "Widget URL"
+    },
+    "markdown": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element."
+            }
+        },
+        "The toggle is **off**": "The toggle is **off**",
+        "The toggle is **on**": "The toggle is **on**"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element."
+            }
+        },
+        "The toggle is **off**": "The toggle is **off**",
+        "The toggle is **on**": "The toggle is **on**"
     }
 }

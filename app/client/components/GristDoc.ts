@@ -42,6 +42,7 @@ import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import TableModel from 'app/client/models/TableModel';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {App} from 'app/client/ui/App';
+import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
 import {DocTutorial} from 'app/client/ui/DocTutorial';
@@ -136,6 +137,13 @@ interface PopupSectionOptions {
   viewSection: ViewSectionRec;
   hash: HashLink;
   close: () => void;
+}
+
+interface AddSectionOptions {
+  /** If focus should move to the new section. Defaults to `true`. */
+  focus?: boolean;
+  /** If popups should be shown (e.g. Card Layout tip). Defaults to `true`. */
+  popups?: boolean;
 }
 
 export class GristDoc extends DisposableWithEvents {
@@ -894,38 +902,27 @@ export class GristDoc extends DisposableWithEvents {
   /**
    * Adds a view section described by val to the current page.
    */
-  public async addWidgetToPage(val: IPageWidget) {
-    const docData = this.docModel.docData;
-    const viewName = this.viewModel.name.peek();
+  public async addWidgetToPage(widget: IPageWidget) {
+    const {table, type} = widget;
     let tableId: string | null | undefined;
-    if (val.table === 'New Table') {
+    if (table === 'New Table') {
       tableId = await this._promptForName();
       if (tableId === undefined) {
         return;
       }
     }
-
-    const widgetType = getTelemetryWidgetTypeFromPageWidget(val);
-    logTelemetryEvent('addedWidget', {full: {docIdDigest: this.docId(), widgetType}});
-    if (val.link !== NoLink) {
-      logTelemetryEvent('linkedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    if (type === 'custom') {
+      return showCustomWidgetGallery(this, {
+        addWidget: () => this._addWidgetToPage(widget, tableId),
+      });
     }
 
-    const res: {sectionRef: number} = await docData.bundleActions(
+    const viewName = this.viewModel.name.peek();
+    const {sectionRef} = await this.docData.bundleActions(
       t("Added new linked section to view {{viewName}}", {viewName}),
-      () => this.addWidgetToPageImpl(val, tableId ?? null)
+      () => this._addWidgetToPage(widget, tableId ?? null)
     );
-
-    // The newly-added section should be given focus.
-    this.viewModel.activeSectionId(res.sectionRef);
-
-    this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
-
-    if (AttachedCustomWidgets.guard(val.type)) {
-      this._handleNewAttachedCustomWidget(val.type).catch(reportError);
-    }
-
-    return res.sectionRef;
+    return sectionRef;
   }
 
   public async onCreateForm() {
@@ -942,79 +939,30 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   /**
-   * The actual implementation of addWidgetToPage
-   */
-  public async addWidgetToPageImpl(val: IPageWidget, tableId: string | null = null) {
-    const viewRef = this.activeViewId.get();
-    const tableRef = val.table === 'New Table' ? 0 : val.table;
-    const result = await this.docData.sendAction(
-      ['CreateViewSection', tableRef, viewRef, val.type, val.summarize ? val.columns : null, tableId]
-    );
-    if (val.type === 'chart') {
-      await this._ensureOneNumericSeries(result.sectionRef);
-    }
-    if (val.type === 'form') {
-      await this._setDefaultFormLayoutSpec(result.sectionRef);
-    }
-    await this.saveLink(val.link, result.sectionRef);
-    return result;
-  }
-
-  /**
    * Adds a new page (aka: view) with a single view section (aka: page widget) described by `val`.
    */
   public async addNewPage(val: IPageWidget) {
-    logTelemetryEvent('addedPage', {full: {docIdDigest: this.docId()}});
-    logTelemetryEvent('addedWidget', {
-      full: {
-        docIdDigest: this.docId(),
-        widgetType: getTelemetryWidgetTypeFromPageWidget(val),
-      },
-    });
-
-    let viewRef: IDocPage;
-    let sectionRef: number | undefined;
-    await this.docData.bundleActions('Add new page', async () => {
-      if (val.table === 'New Table') {
-        const name = await this._promptForName();
-        if (name === undefined) {
-          return;
-        }
-        if (val.type === WidgetType.Table) {
-          const result = await this.docData.sendAction(['AddEmptyTable', name]);
-          viewRef = result.views[0].id;
-        } else {
-          // This will create a new table and page.
-          const result = await this.docData.sendAction(
-            ['CreateViewSection', /* new table */0, 0, val.type, null, name]
-          );
-          [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
-        }
-      } else {
-        const result = await this.docData.sendAction(
-          ['CreateViewSection', val.table, 0, val.type, val.summarize ? val.columns : null, null]
-        );
-        [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
-        if (val.type === 'chart') {
-          await this._ensureOneNumericSeries(sectionRef!);
-        }
-      }
-      if (val.type === 'form') {
-        await this._setDefaultFormLayoutSpec(sectionRef!);
-      }
-    });
-
-    await this.openDocPage(viewRef!);
-    if (sectionRef) {
-      // The newly-added section should be given focus.
-      this.viewModel.activeSectionId(sectionRef);
+    const {table, type} = val;
+    let tableId: string | null | undefined;
+    if (table === 'New Table') {
+      tableId = await this._promptForName();
+      if (tableId === undefined) { return; }
+    }
+    if (type === 'custom') {
+      return showCustomWidgetGallery(this, {
+        addWidget: () => this._addPage(val, tableId ?? null) as Promise<{
+          viewRef: number;
+          sectionRef: number;
+        }>,
+      });
     }
 
-    this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
-
-    if (AttachedCustomWidgets.guard(val.type)) {
-      this._handleNewAttachedCustomWidget(val.type).catch(reportError);
-    }
+    const {sectionRef, viewRef} = await this.docData.bundleActions(
+      'Add new page',
+      () => this._addPage(val, tableId ?? null)
+    );
+    await this._focus({sectionRef, viewRef});
+    this._showNewWidgetPopups(type);
   }
 
   /**
@@ -1460,6 +1408,90 @@ export class GristDoc extends DisposableWithEvents {
     return values;
   }
 
+  private async _addWidgetToPage(
+    widget: IPageWidget,
+    tableId: string | null = null,
+    {focus = true, popups = true}: AddSectionOptions= {}
+  ) {
+    const {columns, link, summarize, table, type} = widget;
+    const viewRef = this.activeViewId.get();
+    const tableRef = table === 'New Table' ? 0 : table;
+    const result: {viewRef: number, sectionRef: number} = await this.docData.sendAction(
+      ['CreateViewSection', tableRef, viewRef, type, summarize ? columns : null, tableId]
+    );
+    if (type === 'chart') {
+      await this._ensureOneNumericSeries(result.sectionRef);
+    }
+    if (type === 'form') {
+      await this._setDefaultFormLayoutSpec(result.sectionRef);
+    }
+    await this.saveLink(link, result.sectionRef);
+    const widgetType = getTelemetryWidgetTypeFromPageWidget(widget);
+    logTelemetryEvent('addedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    if (link !== NoLink) {
+      logTelemetryEvent('linkedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    }
+    if (focus) { await this._focus({sectionRef: result.sectionRef}); }
+    if (popups) { this._showNewWidgetPopups(type); }
+    return result;
+  }
+
+  private async _addPage(
+    widget: IPageWidget,
+    tableId: string | null = null,
+    {focus = true, popups = true}: AddSectionOptions = {}
+  ) {
+    const {columns, summarize, table, type} = widget;
+    let viewRef: number;
+    let sectionRef: number | undefined;
+    if (table === 'New Table') {
+      if (type === WidgetType.Table) {
+        const result = await this.docData.sendAction(['AddEmptyTable', tableId]);
+        viewRef = result.views[0].id;
+      } else {
+        // This will create a new table and page.
+        const result = await this.docData.sendAction(
+          ['CreateViewSection', 0, 0, type, null, tableId]
+        );
+        [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
+      }
+    } else {
+      const result = await this.docData.sendAction(
+        ['CreateViewSection', table, 0, type, summarize ? columns : null, null]
+      );
+      [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
+      if (type === 'chart') {
+        await this._ensureOneNumericSeries(sectionRef!);
+      }
+    }
+    if (type === 'form') {
+      await this._setDefaultFormLayoutSpec(sectionRef!);
+    }
+    logTelemetryEvent('addedPage', {full: {docIdDigest: this.docId()}});
+    logTelemetryEvent('addedWidget', {
+      full: {
+        docIdDigest: this.docId(),
+        widgetType: getTelemetryWidgetTypeFromPageWidget(widget),
+      },
+    });
+    if (focus) { await this._focus({viewRef, sectionRef}); }
+    if (popups) { this._showNewWidgetPopups(type); }
+    return {viewRef, sectionRef};
+  }
+
+  private async _focus({viewRef, sectionRef}: {viewRef?: number, sectionRef?: number}) {
+    if (viewRef) { await this.openDocPage(viewRef); }
+    if (sectionRef) { this.viewModel.activeSectionId(sectionRef); }
+  }
+
+  private _showNewWidgetPopups(type: IWidgetType) {
+    this._maybeShowEditCardLayoutTip(type).catch(reportError);
+
+    if (AttachedCustomWidgets.guard(type)) {
+      this._handleNewAttachedCustomWidget(type).catch(reportError);
+    }
+  }
+
   /**
    * Opens popup with a section data (used by Raw Data view).
    */
@@ -1718,7 +1750,7 @@ export class GristDoc extends DisposableWithEvents {
     const sectionId = section.id();
 
     // create a new section
-    const sectionCreationResult = await this.addWidgetToPageImpl(newVal);
+    const sectionCreationResult = await this._addWidgetToPage(newVal, null, {focus: false, popups: false});
 
     // update section name
     const newSection: ViewSectionRec = docModel.viewSections.getRowModel(sectionCreationResult.sectionRef);

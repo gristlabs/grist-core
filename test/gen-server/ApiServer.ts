@@ -8,7 +8,7 @@ import {createEmptyOrgUsageSummary, OrgUsageSummary} from 'app/common/DocUsage';
 import {Document, Workspace} from 'app/common/UserAPI';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
-import {HomeDBManager, UserChange} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
 

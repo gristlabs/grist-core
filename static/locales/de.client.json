@@ -347,7 +347,9 @@
         "Formula timer": "Formel Timer",
         "Cancel": "Abbrechen",
         "Timing is on": "Das Timing läuft",
-        "You can make changes to the document, then stop timing to see the results.": "Sie können Änderungen an dem Dokument vornehmen und dann die Zeitmessung stoppen, um die Ergebnisse zu sehen."
+        "You can make changes to the document, then stop timing to see the results.": "Sie können Änderungen an dem Dokument vornehmen und dann die Zeitmessung stoppen, um die Ergebnisse zu sehen.",
+        "Only available to document editors": "Nur für Redakteure von Dokumenten verfügbar",
+        "Only available to document owners": "Nur für Eigentümer von Dokumenten verfügbar"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -553,7 +555,7 @@
         "Visit our {{link}} to learn more about Grist.": "Besuchen Sie unsere {{link}}, um mehr über Grist zu erfahren.",
         "Sign in": "Anmelden",
         "To use Grist, please either sign up or sign in.": "Um Grist zu nutzen, melden Sie sich bitte an oder registrieren Sie sich.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Erfahren Sie mehr in unserem {{helpCenterLink}}, oder finden Sie einen Experten über unser {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}.": "Erfahren Sie mehr in unserem {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Access Details": "Zugangsdetails",
@@ -1303,7 +1305,8 @@
         "Removed webhook.": "Der Webhook wurde entfernt.",
         "Webhook Id": "Webhook Id",
         "Filter for changes in these columns (semicolon-separated ids)": "Filter für Änderungen in diesen Spalten (durch Semikolon getrennte IDs)",
-        "Cleared webhook queue.": "Webhook-Warteschlange geleert."
+        "Cleared webhook queue.": "Webhook-Warteschlange geleert.",
+        "Header Authorization": "Kopfzeilen-Autorisierung"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Fragen Sie den Bot.",
@@ -1611,7 +1614,13 @@
         "No fault detected.": "Kein Fehler erkannt.",
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "In Grist können verschiedene Arten der Authentifizierung konfiguriert werden, darunter SAML und OIDC.     Wir empfehlen, eine davon zu aktivieren, wenn Grist über das Netzwerk zugänglich ist oder mehreren Personen zur Verfügung gestellt wird.",
         "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Als Ausweichmöglichkeit können Sie auch {{bootKey}} in der Umgebung einstellen und {{url}} besuchen",
-        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "In Grist können verschiedene Arten der Authentifizierung konfiguriert werden, darunter SAML und OIDC. Wir empfehlen, eine davon zu aktivieren, wenn Grist über das Netzwerk zugänglich ist oder mehreren Personen zur Verfügung gestellt wird."
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "In Grist können verschiedene Arten der Authentifizierung konfiguriert werden, darunter SAML und OIDC. Wir empfehlen, eine davon zu aktivieren, wenn Grist über das Netzwerk zugänglich ist oder mehreren Personen zur Verfügung gestellt wird.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist signiert die Sitzungscookies der Benutzer mit einem geheimen Schlüssel. Bitte setzen Sie diesen Schlüssel über die Umgebungsvariable GRIST_SESSION_SECRET. Grist greift auf eine hart kodierte Voreinstellung zurück, wenn sie nicht gesetzt ist. Wir werden diesen Hinweis möglicherweise in Zukunft entfernen, da Sitzungs-IDs, die seit v1.1.16 erzeugt werden, von Natur aus kryptographisch sicher sind.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signiert die Sitzungscookies der Benutzer mit einem geheimen Schlüssel. Bitte setzen Sie diesen Schlüssel über die Umgebungsvariable GRIST_SESSION_SECRET. Grist greift auf eine hart kodierte Voreinstellung zurück, wenn sie nicht gesetzt ist. Wir werden diesen Hinweis möglicherweise in Zukunft entfernen, da Sitzungs-IDs, die seit v1.1.16 erzeugt werden, von Natur aus kryptographisch sicher sind.",
+        "Key to sign sessions with": "Schlüssel zum Anmelden von Sitzungen mit",
+        "Session Secret": "Sitzungsgeheimnis",
+        "Enterprise": "Unternehmen",
+        "Enable Grist Enterprise": "Aktivieren Sie Grist Enterprise"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -1690,5 +1699,50 @@
         "Average Time (s)": "Durchschnittliche Zeit(en)",
         "Loading timing data. Don't close this tab.": "Zeitpunktsdaten laden. Schließen Sie diese Registerkarte nicht.",
         "Column ID": "Spalte ID"
+    },
+    "DocTutorial": {
+        "Click to expand": "Klicken Sie zum Erweitern",
+        "Finish": "Fertig",
+        "Do you want to restart the tutorial? All progress will be lost.": "Möchten Sie das Tutorial neu starten? Alle Fortschritte gehen dann verloren.",
+        "End tutorial": "Tutorial beenden",
+        "Next": "Nächste",
+        "Restart": "Neustart",
+        "Previous": "Vorherige"
+    },
+    "OnboardingPage": {
+        "Back": "Zurück",
+        "Type here": "Hier tippen",
+        "Welcome": "Willkommen",
+        "What brings you to Grist (you can select multiple)?": "Was bringt Sie zu Grist (Sie können mehrere auswählen)?",
+        "Discover Grist in 3 minutes": "Entdecken Sie Grist in 3 Minuten",
+        "Go hands-on with the Grist Basics tutorial": "Praktische Übungen mit dem Grist Basics-Tutorial",
+        "Go to the tutorial!": "Gehen Sie zum Tutorial!",
+        "Next step": "Nächster Schritt",
+        "Tell us who you are": "Sagen Sie uns, wer Sie sind",
+        "What is your role?": "Was ist Ihre Aufgabe?",
+        "What organization are you with?": "In welches Unternehem sind Sie tätig?",
+        "Your organization": "Ihr Unternehmen",
+        "Your role": "Ihre Rolle",
+        "Skip step": "Schritt überspringen",
+        "Skip tutorial": "Tutorial überspringen"
+    },
+    "OnboardingCards": {
+        "Complete the tutorial": "Fertigen Sie das Tutorial",
+        "3 minute video tour": "3 Minuten Video-Tour",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Lernen Sie die Grundlagen von Referenzspalten, verknüpften Widgets, Spaltentypen und Karten kennen.",
+        "Complete our basics tutorial": "Vervollständigen Sie unser Grundlagen-Tutorial"
+    },
+    "ToggleEnterpriseWidget": {
+        "Disable Grist Enterprise": "Grist Enterprise deaktivieren",
+        "Enable Grist Enterprise": "Grist Enterprise aktivieren",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Testphase\nvon 30 Tagen. Sie erhalten einen Aktivierungsschlüssel, indem Sie [sich für Grist\nEnterprise anmelden]({{signupLink}}). Sie brauchen keinen Aktivierungsschlüssel, um\nGrist Core zu benutzen.\n\nErfahren Sie mehr in unserem [Help Center]({{helpCenter}}).",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise ist **aktiviert**."
+    },
+    "ViewLayout": {
+        "Delete": "Löschen",
+        "Table {{tableName}} will no longer be visible": "Die Tabelle {{tableName}} wird nicht mehr sichtbar sein.",
+        "raw data page": "Rohdaten-Seite",
+        "Delete data and this widget.": "Daten und dieses Widget löschen.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Daten behalten und Widget löschen. Die Tabelle bleibt verfügbar in {{rawDataLink}}"
     }
 }

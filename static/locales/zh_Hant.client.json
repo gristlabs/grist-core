@@ -414,7 +414,7 @@
         "Save & ": "儲存 & ",
         "Outside collaborator": "外部協作者",
         "{{collaborator}} limit exceeded": "{{collaborator}} 限制已超過",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "使用者繼承自 {{parent}} 的權限。要移除，請將 '繼承存取' 選項設為 '無'。",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "使用者繼承自 {{parent})} 的權限。要移除，請將 '繼承存取' 選項設為 '無'。",
         "Your role for this {{resourceType}}": "您在此 {{resourceType}} 中的角色",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "一旦您移除了自己的存取權限，除非有其他具有足夠存取權限的人協助，否則您將無法復原對 {{resourceType}} 的存取權限。",
         "Close": "關閉",

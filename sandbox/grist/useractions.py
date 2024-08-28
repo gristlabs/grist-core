@@ -12,8 +12,9 @@ from six.moves import xrange
 import acl
 import depend
 import gencode
-from acl_formula import parse_acl_formulas
+from acl import parse_acl_formulas
 from dropdown_condition import parse_dropdown_conditions
+import dropdown_condition
 import actions
 import column
 import sort_specs
@@ -228,6 +229,12 @@ class UserActions(object):
     self._overrides = {key: method.__get__(self, UserActions)
                        for key, method in six.iteritems(_action_method_overrides)}
 
+  def get_docmodel(self):
+    """
+    Getter for the docmodel.
+    """
+    return self._docmodel
+
   @contextmanager
   def indirect_actions(self):
     """
@@ -395,7 +402,7 @@ class UserActions(object):
 
     # Whenever we add new rows, remember the mapping from any negative row_ids to their final
     # values. This allows the negative_row_ids to be used as Reference values in subsequent
-    # actions in the same bundle.
+    # actions in the same bundle, and in UpdateRecord/RemoveRecord actions.
     self._engine.out_actions.summary.update_new_rows_map(table_id, row_ids, filled_row_ids)
 
     # Convert entered values to the correct types.
@@ -446,6 +453,9 @@ class UserActions(object):
   # ----------------------------------------
 
   def doBulkUpdateRecord(self, table_id, row_ids, columns):
+    # Replace negative ids that may refer to rows just added to this table in this bundle.
+    row_ids = self._engine.out_actions.summary.translate_new_row_ids(table_id, row_ids)
+
     # Convert passed-in values to the column's correct types (or alttext, or errors) and trim any
     # unchanged values.
     action, extra_actions = self._engine.convert_action_values(
@@ -632,7 +642,7 @@ class UserActions(object):
       if 'type' in values:
         self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'})
 
-    make_acl_updates = acl.prepare_acl_table_renames(self._docmodel, self, table_renames)
+    make_acl_updates = acl.prepare_acl_table_renames(self, table_renames)
 
     # Collect all the table renames, and do the actual schema actions to apply them.
     for tbl, values in update_pairs:
@@ -688,6 +698,9 @@ class UserActions(object):
                if has_diff_value(values, 'colId', c.colId)}
 
     if renames:
+      # When a column rename has occurred, we need to update the corresponding references in
+      # formula, ACL rules and dropdown conditions.
+
       # Build up a dictionary mapping col_ref of each affected formula to the new formula text.
       formula_updates = self._prepare_formula_renames(renames)
 
@@ -718,8 +731,6 @@ class UserActions(object):
           if not allowed_summary_change(key, value, expected):
             raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
-    make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
-
     rename_summary_tables = set()
     for c, values in update_pairs:
       # Trigger ModifyColumn and RenameColumn as necessary
@@ -738,11 +749,13 @@ class UserActions(object):
 
     self.doBulkUpdateFromPairs(table_id, update_pairs)
 
+    if renames:
+      acl.perform_acl_rule_renames(self, renames)
+      dropdown_condition.perform_dropdown_condition_renames(self, renames)
+
     for table_id in rebuild_summary_tables:
       table = self._engine.tables[table_id]
       self._engine._update_table_model(table, table.user_table)
-
-    make_acl_updates()
 
     for table in rename_summary_tables:
       groupby_col_ids = [c.colId for c in table.columns if c.summarySourceCol]
@@ -1071,6 +1084,9 @@ class UserActions(object):
     assert all(isinstance(r, (int, table.Record)) for r in row_ids_or_records)
     row_ids = [int(r) for r in row_ids_or_records]
 
+    # Replace negative ids that may refer to rows just added to this table in this bundle.
+    row_ids = self._engine.out_actions.summary.translate_new_row_ids(table_id, row_ids)
+
     self._do_doc_action(actions.BulkRemoveRecord(table_id, row_ids))
 
     # Also remove any references to this row from other tables.
@@ -1251,9 +1267,8 @@ class UserActions(object):
 
     # Remove all view fields for all removed columns.
     # Bypass the check for raw data view sections.
-    field_ids = [f.id for c in col_recs for f in c.viewFields]
-
-    self.doBulkRemoveRecord("_grist_Views_section_field", field_ids)
+    fields = [f for c in col_recs for f in c.viewFields]
+    self._doRemoveViewSectionFieldRecords(fields)
 
     # If there is a displayCol, it may get auto-removed, but may first produce calc actions
     # triggered by the removal of this column. To avoid those, remove displayCols immediately.
@@ -1337,12 +1352,20 @@ class UserActions(object):
     Remove view sections, including their fields, without checking for raw view sections.
     """
     self.doBulkRemoveRecord('_grist_Views_section_field', [f.id for vs in recs for f in vs.fields])
-    self.doBulkRemoveRecord('_grist_Views_section', [r.id for r in recs])
+    views = {r.parentId.id: r.parentId for r in recs}.values()
+    rec_ids = [r.id for r in recs]
+    updates = _get_layout_spec_updates(views, set(rec_ids))
+    if updates:
+      self._do_doc_action(actions.BulkUpdateRecord('_grist_Views',
+        [row_id for (row_id, _) in updates],
+        {'layoutSpec': [value for (_, value) in updates]}
+      ))
+    self.doBulkRemoveRecord('_grist_Views_section', rec_ids)
 
   @override_action('BulkRemoveRecord', '_grist_Views_section_field')
   def _removeViewSectionFieldRecords(self, table_id, row_ids):
     """
-    Remove view sections, including their fields.
+    Remove view section fields.
     Raises an error if trying to remove a field of a table's rawViewSectionRef,
     i.e. hiding a column in a raw data widget.
     """
@@ -1350,7 +1373,21 @@ class UserActions(object):
     for rec in recs:
       if rec.parentId.isRaw:
         raise ValueError("Cannot remove raw view section field")
-    self.doBulkRemoveRecord(table_id, row_ids)
+    self._doRemoveViewSectionFieldRecords(recs)
+
+  def _doRemoveViewSectionFieldRecords(self, recs):
+    """
+    Remove view section fields, without checking for raw view section fields.
+    """
+    view_sections = {r.parentId.id: r.parentId for r in recs}.values()
+    rec_ids = [r.id for r in recs]
+    updates = _get_layout_spec_updates(view_sections, rec_ids)
+    if updates:
+      self._do_doc_action(actions.BulkUpdateRecord('_grist_Views_section',
+        [row_id for (row_id, _) in updates],
+        {'layoutSpec': [value for (_, value) in updates]}
+      ))
+    self.doBulkRemoveRecord('_grist_Views_section_field', rec_ids)
 
   #----------------------------------------
   # User actions on columns.
@@ -2345,3 +2382,30 @@ def _is_transform_col(col_id):
     'gristHelper_Transform',
     'gristHelper_Converted',
   ))
+
+def _get_layout_spec_updates(resources, removed_ids):
+  def get_patched_layout_spec(layout_spec):
+    if not isinstance(layout_spec, dict):
+      return layout_spec
+    if 'leaf' in layout_spec and layout_spec['leaf'] in removed_ids_set:
+      return None
+
+    patched_layout_spec = layout_spec.copy()
+    for key in ('children', 'collapsed'):
+      if key not in layout_spec or not isinstance(layout_spec[key], list):
+        continue
+
+      patched_values = [get_patched_layout_spec(v) for v in layout_spec[key]]
+      patched_layout_spec[key] = [v for v in patched_values if v is not None]
+    return patched_layout_spec
+
+  updates = []
+  removed_ids_set = set(removed_ids)
+  for (row_id, layout_spec) in [(r.id, r.layoutSpec) for r in resources if r.layoutSpec != ""]:
+    try:
+      layout_spec_parsed = json.loads(layout_spec)
+    except ValueError:
+      continue
+    new_layout_spec = json.dumps(get_patched_layout_spec(layout_spec_parsed), sort_keys=True)
+    updates.append((row_id, new_layout_spec))
+  return updates

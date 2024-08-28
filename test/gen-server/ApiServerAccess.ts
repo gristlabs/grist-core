@@ -4,7 +4,7 @@ import {Deps} from 'app/gen-server/ApiServer';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {User} from 'app/gen-server/entity/User';
-import {HomeDBManager, UserChange} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {SendGridConfig, SendGridMail} from 'app/gen-server/lib/NotifierTypes';
 import axios, {AxiosResponse} from 'axios';
 import {delay} from 'bluebird';

@@ -7,7 +7,7 @@ import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
 import {UserOptions} from 'app/common/UserAPI';
 import {Document} from 'app/gen-server/entity/Document';
 import {User} from 'app/gen-server/entity/User';
-import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
         SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';

@@ -1,0 +1,19 @@
+{
+    "ACUserManager": {
+        "Invite new member": "Convidar nou membre",
+        "Enter email address": "Posa l'adreça de correu electrònic",
+        "We'll email an invite to {{email}}": "Enviarem una invitació per correu electrònic a {{email}}"
+    },
+    "AccessRules": {
+        "Add Default Rule": "Afegir regla per defecte",
+        "Add Table Rules": "Afegir regles de Taula",
+        "Add User Attributes": "Afegir atributs d'usuari",
+        "Allow everyone to view Access Rules.": "Permetre a tothom veure les Regles d'Accés.",
+        "Attribute name": "Nom de l'Atribut",
+        "Attribute to Look Up": "Atribut a buscar",
+        "Checking...": "Comprovant…",
+        "Condition": "Condició",
+        "Add Column Rule": "Afegir regla de columna",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Permetre a tothom copiar el document complet, o veure'l en mode completament obert.\nÚtil per a exemples i plantilles, però no per a dades sensibles."
+    }
+}

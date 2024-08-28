@@ -1,5 +1,5 @@
 import {parseUrlId} from 'app/common/gristUrls';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {DocManager} from 'app/server/lib/DocManager';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import axios from 'axios';
@@ -17,13 +17,13 @@ let server: FlexServer;
 let dbManager: HomeDBManager;
 
 async function activateServer(home: FlexServer, docManager: DocManager) {
-  await home.loadConfig();
+  await home.addLoginMiddleware();
   await home.initHomeDBManager();
   home.addHosts();
   home.addDocWorkerMap();
   home.addAccessMiddleware();
   dbManager = home.getHomeDBManager();
-  await home.loadConfig();
+  await home.addLoginMiddleware();
   home.addSessions();
   home.addHealthCheck();
   docManager.testSetHomeDbManager(dbManager);

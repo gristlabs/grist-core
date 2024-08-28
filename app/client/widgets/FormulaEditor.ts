@@ -480,6 +480,7 @@ function _isInIdentifier(line: string, column: number) {
 
 /**
  * Open a formula editor. Returns a Disposable that owns the editor.
+ * This is used for the editor in the side panel.
  */
 export function openFormulaEditor(options: {
   gristDoc: GristDoc,

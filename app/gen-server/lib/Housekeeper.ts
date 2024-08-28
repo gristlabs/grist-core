@@ -1,10 +1,13 @@
 import { ApiError } from 'app/common/ApiError';
 import { delay } from 'app/common/delay';
 import { buildUrlId } from 'app/common/gristUrls';
+import { normalizedDateTimeString } from 'app/common/normalizedDateTimeString';
+import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
+import { Product } from 'app/gen-server/entity/Product';
 import { Workspace } from 'app/gen-server/entity/Workspace';
-import { HomeDBManager, Scope } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { fromNow } from 'app/gen-server/sqlUtils';
 import { getAuthorizedUserId } from 'app/server/lib/Authorizer';
 import { expressWrap } from 'app/server/lib/expressWrap';
@@ -14,7 +17,6 @@ import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
-import moment from 'moment';
 import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
 import { EntityManager } from 'typeorm';
@@ -415,32 +417,6 @@ export class Housekeeper {
 }
 
 /**
- * Output an ISO8601 format datetime string, with timezone.
- * Any string fed in without timezone is expected to be in UTC.
- *
- * When connected to postgres, dates will be extracted as Date objects,
- * with timezone information. The normalization done here is not
- * really needed in this case.
- *
- * Timestamps in SQLite are stored as UTC, and read as strings
- * (without timezone information). The normalization here is
- * pretty important in this case.
- */
-function normalizedDateTimeString(dateTime: any): string {
-  if (!dateTime) { return dateTime; }
-  if (dateTime instanceof Date) {
-    return moment(dateTime).toISOString();
-  }
-  if (typeof dateTime === 'string') {
-    // When SQLite returns a string, it will be in UTC.
-    // Need to make sure it actually have timezone info in it
-    // (will not by default).
-    return moment.utc(dateTime).toISOString();
-  }
-  throw new Error(`normalizedDateTimeString cannot handle ${dateTime}`);
-}
-
-/**
  * Call callback(item) for each item on the list, sleeping periodically to allow other works to
  * happen. Any time work takes more than SYNC_WORK_LIMIT_MS, will sleep for SYNC_WORK_BREAK_MS.
  * At each sleep will log a message with logText and progress info.
@@ -461,4 +437,64 @@ async function forEachWithBreaks<T>(logText: string, items: T[], callback: (item
     }
   }
   log.rawInfo(logText, {itemsProcesssed, itemsTotal, timeMs: Date.now() - start});
+}
+
+/**
+ * For a brief moment file `stubs/app/server/server.ts` was ignoring the GRIST_DEFAULT_PRODUCT
+ * variable, which is currently set for all deployment types to 'Free' product. As a result orgs
+ * created after 2024-06-12 (1.1.15) were created with 'teamFree' product instead of 'Free'.
+ * It only affected deployments that were using:
+ * - GRIST_DEFAULT_PRODUCT variable set to 'Free'
+ * - GRIST_SINGLE_ORG set to enforce single org mode.
+ *
+ * This method fixes the product for all orgs created with 'teamFree' product, if the default
+ * product that should be used is 'Free' and the deployment type is not 'saas' ('saas' deployment
+ * isn't using GRIST_DEFAULT_PRODUCT variable). This method should be removed after 2024.10.01.
+ *
+ * There is a corresponding test that will fail if this method (and that test) are not removed.
+ *
+ * @returns true if the method was run, false otherwise.
+ */
+export async function fixSiteProducts(options: {
+  deploymentType: string,
+  db: HomeDBManager
+}) {
+  const {deploymentType, db} = options;
+
+  const hasDefaultProduct = () => Boolean(process.env.GRIST_DEFAULT_PRODUCT);
+  const defaultProductIsFree = () => process.env.GRIST_DEFAULT_PRODUCT === 'Free';
+  const notSaasDeployment = () => deploymentType !== 'saas';
+  const mustRun = hasDefaultProduct() && defaultProductIsFree() && notSaasDeployment();
+  if (!mustRun) {
+    return false;
+  }
+  const removeMeDate = new Date('2024-10-01');
+  const warningMessage = `WARNING: This method should be removed after ${removeMeDate.toDateString()}.`;
+  if (new Date() > removeMeDate) {
+    console.warn(warningMessage);
+  }
+
+  // Find all billing accounts on teamFree product and change them to the Free.
+  return await db.connection.transaction(async (t) => {
+    const freeProduct = await t.findOne(Product, {where: {name: 'Free'}});
+    const freeTeamProduct = await t.findOne(Product, {where: {name: 'teamFree'}});
+
+    if (!freeTeamProduct) {
+      console.warn('teamFree product not found.');
+      return false;
+    }
+
+    if (!freeProduct) {
+      console.warn('Free product not found.');
+      return false;
+    }
+
+    await t.createQueryBuilder()
+        .update(BillingAccount)
+        .set({product: freeProduct.id})
+        .where({product: freeTeamProduct.id})
+        .execute();
+
+    return true;
+  });
 }

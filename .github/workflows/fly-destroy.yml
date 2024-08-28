@@ -1,0 +1,36 @@
+# This workflow runs in the target repo context, as it is triggered via pull_request_target.
+# It does not, and should not have access to code in the PR.
+# See https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
+name: fly.io Destroy
+on:
+  pull_request_target:
+    branches: [ main ]
+    types: [unlabeled, closed]
+
+  # Allows running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  destroy:
+    name: Remove app from fly.io
+    runs-on: ubuntu-latest
+    # Remove the deployment when 'preview' label is removed, or the PR is closed.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' &&
+      (github.event.action == 'closed' ||
+      (github.event.action == 'unlabeled' && github.event.label.name == 'preview')))
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.2.72
+      - name: Destroy fly.io app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          BRANCH_NAME: ${{ github.event.pull_request.head.repo.full_name }}-${{ github.event.pull_request.head.ref }}
+          # See fly-build for what BRANCH_NAME looks like.
+        id: fly_destroy
+        run: node buildtools/fly-deploy.js destroy

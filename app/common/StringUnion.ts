@@ -1,3 +1,9 @@
+export class StringUnionError extends TypeError {
+  constructor(errMessage: string, public readonly actual: string, public readonly values: string[]) {
+    super(errMessage);
+  }
+}
+
 /**
  * TypeScript will infer a string union type from the literal values passed to
  * this function. Without `extends string`, it would instead generalize them
@@ -28,7 +34,7 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     if (!guard(value)) {
       const actual = JSON.stringify(value);
       const expected = values.map(s => JSON.stringify(s)).join(' | ');
-      throw new TypeError(`Value '${actual}' is not assignable to type '${expected}'.`);
+      throw new StringUnionError(`Value '${actual}' is not assignable to type '${expected}'.`, actual, values);
     }
     return value;
   };
@@ -44,6 +50,6 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return value != null && guard(value) ? value : undefined;
   };
 
-  const unionNamespace = {guard, check, parse, values, checkAll};
+  const unionNamespace = { guard, check, parse, values, checkAll };
   return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
 };

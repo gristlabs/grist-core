@@ -1,12 +1,12 @@
-import {AppModel} from 'app/client/models/AppModel';
-import {Disposable} from 'grainjs';
+import {
+  DefaultActivationPage, IActivationPageCreator
+} from "app/client/ui/DefaultActivationPage";
 
-export class ActivationPage extends Disposable {
-  constructor(_appModel: AppModel) {
-    super();
-  }
+export function getActivationPage(): IActivationPageCreator {
+  return DefaultActivationPage;
+}
 
-  public buildDom() {
-    return null;
-  }
+export function showEnterpriseToggle() {
+  // To be changed by enterprise module
+  return false;
 }

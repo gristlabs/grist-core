@@ -6,8 +6,8 @@
 
 import {commonUrls} from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {TEAM_FREE_PLAN} from 'app/common/Features';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {fixSiteProducts} from 'app/gen-server/lib/Housekeeper';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -15,7 +15,6 @@ const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.
 if (!debugging) {
   // Be a lot less noisy by default.
   setDefaultEnv('GRIST_LOG_LEVEL', 'error');
-  setDefaultEnv('GRIST_LOG_SKIP_HTTP', 'true');
 }
 
 // Use a distinct cookie.  Bump version to 2.
@@ -90,7 +89,6 @@ async function setupDb() {
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        product: TEAM_FREE_PLAN
       }));
     }
   }
@@ -137,6 +135,12 @@ export async function main() {
   if (process.env.GRIST_SERVE_PLUGINS_PORT) {
     await server.startCopy('pluginServer', parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
   }
+
+  await fixSiteProducts({
+    deploymentType: server.getDeploymentType(),
+    db: server.getHomeDBManager()
+  });
+
   return server;
 }
 

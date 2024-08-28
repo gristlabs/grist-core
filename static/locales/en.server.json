@@ -1,5 +1,8 @@
 {
   "sendAppPage": {
     "Loading": "Loading"
+  },
+  "oidc": {
+    "emailNotVerifiedError": "Please verify your email with the identity provider, and log in again."
   }
 }

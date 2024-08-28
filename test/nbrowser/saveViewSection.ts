@@ -99,7 +99,6 @@ describe("saveViewSection", function() {
     await switchTypeAndAssert('Card');
     await switchTypeAndAssert('Table');
     await switchTypeAndAssert('Chart');
-
   });
 
   it("should work correctly when changing grouped by column", async () => {
@@ -159,5 +158,31 @@ describe("saveViewSection", function() {
 
     // Check all columns are visible.
     await assertActiveSectionColumns('Test', 'count');
+  });
+
+  it("should disable summary when form type is selected", async () => {
+    // select form type
+    await driver.find('.test-dp-add-new').doClick();
+    await driver.find('.test-dp-add-new-page').doClick();
+    await driver.findContent('.test-wselect-type', gu.exactMatch("Form")).doClick();
+
+    // check that summary is disabled
+    assert.ok(await driver.find('.test-wselect-pivot[class*=-disabled]'));
+
+    // close page widget picker
+    await driver.sendKeys(Key.ESCAPE);
+  });
+
+  it("should disable form when summary is selected", async () => {
+    // select table type then select summary for a Table
+    await driver.find('.test-dp-add-new').doClick();
+    await driver.find('.test-dp-add-new-page').doClick();
+    await driver.find('.test-wselect-pivot').doClick();
+
+    // check that form is disabled
+    assert.equal(await driver.find('.test-wselect-type[class*=-disabled]').getText(), "Form");
+
+    // close page widget picker
+    await driver.sendKeys(Key.ESCAPE);
   });
 });

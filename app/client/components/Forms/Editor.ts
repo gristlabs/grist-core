@@ -23,10 +23,6 @@ interface Props {
    */
   content: DomContents,
   /**
-   * Click handler. If not provided, then clicking on the editor will select it.
-   */
-  click?: (ev: MouseEvent, box: BoxModel) => void,
-  /**
    * Whether to show the remove button. Defaults to true.
    */
   showRemoveButton?: BindableValue<boolean>,
@@ -75,22 +71,6 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     style.cssRemoveButton.cls('-right', props.removePosition === 'right'),
   );
 
-  const onClick = (ev: MouseEvent) => {
-    // Only if the click was in this element.
-    const target = ev.target as HTMLElement;
-    if (!target.closest) { return; }
-    // Make sure that the closest editor is this one.
-    const closest = target.closest(`.${style.cssFieldEditor.className}`);
-    if (closest !== element) { return; }
-
-    ev.stopPropagation();
-    ev.preventDefault();
-    props.click?.(ev, props.box);
-
-    // Mark this box as selected.
-    box.view.selectedBox.set(box);
-  };
-
   const dragAbove = Observable.create(owner, false);
   const dragBelow = Observable.create(owner, false);
   const dragging = Observable.create(owner, false);
@@ -111,7 +91,10 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     testId('field-editor-selected', box.selected),
 
     // Select on click.
-    dom.on('click', onClick),
+    dom.on('click', (ev) => {
+      stopEvent(ev);
+      box.view.selectedBox.set(box);
+    }),
 
     // Attach context menu.
     buildMenu({
@@ -121,6 +104,15 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
 
     // And now drag and drop support.
     {draggable: "true"},
+
+    // In Firefox, 'draggable' interferes with mouse selection in child input elements. Workaround
+    // is to turn off 'draggable' temporarily (see https://stackoverflow.com/q/21680363/328565).
+    dom.on('mousedown', (ev, elem) => {
+      const isInput = ["INPUT", "TEXTAREA"].includes((ev.target as Element)?.tagName);
+      // Turn off 'draggable' for inputs only, to support selection there; keep it on elsewhere.
+      elem.draggable = !isInput;
+    }),
+    dom.on('mouseup', (ev, elem) => { elem.draggable = true; }),
 
     // When started, we just put the box into the dataTransfer as a plain text.
     // TODO: this might be very sofisticated in the future.

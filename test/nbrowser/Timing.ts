@@ -166,6 +166,30 @@ describe("Timing", function () {
     await driver.findWait('.test-raw-data-list', 2000);
     assert.deepEqual(await driver.findAll('.test-raw-data-table-id', e => e.getText()), ['Table1']);
   });
+
+  it('should be disabled for non-owners', async function() {
+    await userApi.updateDocPermissions(docId, {users: {
+      [gu.translateUser('user2').email]: 'editors',
+    }});
+
+    const session = await gu.session().teamSite.user('user2').login();
+    await session.loadDoc(`/doc/${docId}`);
+    await gu.openDocumentSettings();
+
+    const start = driver.find('.test-settings-timing-start');
+    assert.equal(await start.isPresent(), true);
+
+    // Check that we have an informative tooltip.
+    await start.mouseMove();
+    assert.match(await driver.findWait('.test-tooltip', 2000).getText(), /Only available to document owners/);
+
+    // Nothing should happen on click. We click the location rather than the element, since the
+    // element isn't actually clickable.
+    await start.mouseMove();
+    await driver.withActions(a => a.press().release());
+    await driver.sleep(100);
+    assert.equal(await driver.find(".test-settings-timing-modal").isPresent(), false);
+  });
 });
 
 const element = (testId: string) => ({

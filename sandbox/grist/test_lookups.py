@@ -773,6 +773,13 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
           [9, "lookup_max_num",
            "Any", True,
            "Table1.lookupOne(is_num=True, sort_by='-num').num", "", ""],
+
+          [10, "lookup_2a", "Any", True,
+           "Table1.lookupRecords(order_by=('is_num', 'num')).num", "", ""],
+          [10, "lookup_2b", "Any", True,
+           "Table1.lookupRecords(order_by=('is_num', '-num')).num", "", ""],
+          [10, "lookup_2c", "Any", True,
+           "Table1.lookupRecords(order_by=('-is_num', 'num')).num", "", ""],
         ]]
       ],
       "DATA": {
@@ -795,13 +802,42 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
          "lookup_reverse",
          "lookup_first",
          "lookup_min", "lookup_min_num",
-         "lookup_max", "lookup_max_num"],
+         "lookup_max", "lookup_max_num",
+         "lookup_2a", "lookup_2b", "lookup_2c"],
         [1,
          [None, 0, 1, 2, 3, 'foo'],
          ['foo', 3, 2, 1, 0, None],
          2,  # lookup_first: first record (by id)
          None, 0,  # lookup_min[_num]
-         'foo', 3],  # lookup_max[_num]
+         'foo', 3,  # lookup_max[_num]
+        [None, 'foo', 0, 1, 2, 3],   # lookup_2a ('is_num', 'num')
+        ['foo', None, 3, 2, 1, 0],   # lookup_2b ('is_num', '-num')
+        [0, 1, 2, 3, None, 'foo'],   # lookup_2c ('-is_num', 'num')
+        ]
+      ])
+
+    # Ensure that changes in values used for sorting result in updates,
+    # and produce correctly sorted updates.
+    self.update_record("Table1", 2, num=100)
+    self.assertTableData(
+      "Table1", cols="subset", rows="subset", data=[
+        ["id",
+         "lookup",
+         "lookup_reverse",
+         "lookup_first",
+         "lookup_min", "lookup_min_num",
+         "lookup_max", "lookup_max_num",
+         "lookup_2a", "lookup_2b", "lookup_2c"],
+        [1,
+         [None, 0, 2, 3, 100, 'foo'],
+         ['foo', 100, 3, 2, 0, None],
+         2,  # lookup_first: first record (by id)
+         None, 0,  # lookup_min[_num]
+         'foo', 100,  # lookup_max[_num]
+        [None, 'foo', 0, 2, 3, 100],   # lookup_2a ('is_num', 'num')
+        ['foo', None, 100, 3, 2, 0],   # lookup_2b ('is_num', '-num')
+        [0, 2, 3, 100, None, 'foo'],   # lookup_2c ('-is_num', 'num')
+        ]
       ])
 
   def test_conversion(self):

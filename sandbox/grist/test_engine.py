@@ -2,6 +2,7 @@ import difflib
 import functools
 import json
 import logging
+import os
 import sys
 import unittest
 from collections import namedtuple
@@ -39,7 +40,7 @@ class EngineTestCase(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     cls._orig_log_level = logging.root.level
-    logging.root.setLevel(logging.WARNING)
+    logging.root.setLevel(logging.DEBUG if os.environ.get('VERBOSE') else logging.WARNING)
 
   @classmethod
   def tearDownClass(cls):
@@ -58,7 +59,8 @@ class EngineTestCase(unittest.TestCase):
     def trace_call(col_obj, _rec):
       # Ignore formulas in metadata tables for simplicity. Such formulas are mostly private, and
       # it would be annoying to fix tests every time we change them.
-      if not col_obj.table_id.startswith("_grist_"):
+      # Also ignore negative row_ids, used as extra dependency nodes in lookups.
+      if not col_obj.table_id.startswith("_grist_") and _rec._row_id >= 0:
         tmap = self.call_counts.setdefault(col_obj.table_id, {})
         tmap[col_obj.col_id] = tmap.get(col_obj.col_id, 0) + 1
     self.engine.formula_tracer = trace_call
@@ -211,17 +213,27 @@ class EngineTestCase(unittest.TestCase):
   def assertTableData(self, table_name, data=[], cols="all", rows="all", sort=None):
     """
     Verify some or all of the data in the table named `table_name`.
-    - data: an array of rows, with first row containing column names starting with "id", and
-      other rows also all starting with row_id.
+    - data: one of
+      (1) an array of rows, with first row containing column names starting with "id", and
+          other rows also all starting with row_id.
+      (2) an array of dictionaries, mapping colIds to values
+      (3) an array of namedtuples, e.g. as returned by transpose_bulk_action().
     - cols: may be "all" (default) to match all columns, or "subset" to match only those listed.
     - rows: may be "all" (default) to match all rows, or "subset" to match only those listed,
       or a function called with a Record to return whether to include it.
     - sort: optionally a key function called with a Record, for sorting observed rows.
     """
-    assert data[0][0] == 'id', "assertRecords requires 'id' as the first column"
-    col_names = data[0]
-    row_data = data[1:]
-    expected = testutil.table_data_from_rows(table_name, col_names, row_data)
+    if hasattr(data[0], '_asdict'):   # namedtuple
+      data = [r._asdict() for r in data]
+
+    if isinstance(data[0], dict):
+      expected = testutil.table_data_from_row_dicts(table_name, data)
+      col_names = ['id'] + list(expected.columns)
+    else:
+      assert data[0][0] == 'id', "assertRecords requires 'id' as the first column"
+      col_names = data[0]
+      row_data = data[1:]
+      expected = testutil.table_data_from_rows(table_name, col_names, row_data)
 
     table = self.engine.tables[table_name]
     columns = [c for c in table.all_columns.values()
@@ -236,7 +248,7 @@ class EngineTestCase(unittest.TestCase):
     if rows == "all":
       row_ids = list(table.row_ids)
     elif rows == "subset":
-      row_ids = [row[0] for row in row_data]
+      row_ids = expected.row_ids
     elif callable(rows):
       row_ids = [r.id for r in table.user_table.all if rows(r)]
     else:

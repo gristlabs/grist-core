@@ -826,8 +826,23 @@ export async function loadDoc(relPath: string, wait: boolean = true): Promise<vo
   if (wait) { await waitForDocToLoad(); }
 }
 
-export async function loadDocMenu(relPath: string, wait: boolean = true): Promise<void> {
+/**
+ * Load a DocMenu on a site.
+ *
+ * If loading for a potentially first-time user, you may give 'skipOnboarding' for second
+ * argument to skip the onboarding flow, if it gets shown.
+ */
+export async function loadDocMenu(relPath: string, wait: boolean|'skipOnboarding' = true): Promise<void> {
   await driver.get(`${server.getHost()}${relPath}`);
+  if (wait === 'skipOnboarding') {
+    const first = await Promise.race([
+      driver.findWait('.test-onboarding-page', 2000),
+      driver.findWait('.test-dm-doclist', 2000),
+    ]);
+    if (await first.matches('.test-onboarding-page')) {
+      await skipOnboarding();
+    }
+  }
   if (wait) { await waitForDocMenuToLoad(); }
 }
 
@@ -2105,7 +2120,6 @@ export class Session {
                                 freshAccount?: boolean,
                                 isFirstLogin?: boolean,
                                 showTips?: boolean,
-                                skipTutorial?: boolean, // By default true
                                 userName?: string,
                                 email?: string,
                                 retainExistingLogin?: boolean}) {
@@ -2129,11 +2143,6 @@ export class Session {
     }
     await server.simulateLogin(this.settings.name, this.settings.email, this.settings.orgDomain,
                                {isFirstLogin: false, cacheCredentials: true, ...options});
-
-    if (options?.skipTutorial ?? true) {
-      await dismissTutorialCard();
-    }
-
     return this;
   }
 
@@ -2172,17 +2181,20 @@ export class Session {
   }
 
   // Load a DocMenu on a site.
-  // If loading for a potentially first-time user, you may give 'skipWelcomeQuestions' for second
-  // argument to dismiss the popup with welcome questions, if it gets shown.
-  public async loadDocMenu(relPath: string, wait: boolean|'skipWelcomeQuestions' = true) {
+  // If loading for a potentially first-time user, you may give 'skipOnboarding' for second
+  // argument to skip the onboarding flow, if it gets shown.
+  public async loadDocMenu(relPath: string, wait: boolean|'skipOnboarding' = true) {
     await this.loadRelPath(relPath);
-    if (wait) { await waitForDocMenuToLoad(); }
-
-    if (wait === 'skipWelcomeQuestions') {
-      // When waitForDocMenuToLoad() returns, welcome questions should also render, so that we
-      // don't need to wait extra for them.
-      await skipWelcomeQuestions();
+    if (wait === 'skipOnboarding') {
+      const first = await Promise.race([
+        driver.findWait('.test-onboarding-page', 2000),
+        driver.findWait('.test-dm-doclist', 2000),
+      ]);
+      if (await first.matches('.test-onboarding-page')) {
+        await skipOnboarding();
+      }
     }
+    if (wait) { await waitForDocMenuToLoad(); }
   }
 
   public async loadRelPath(relPath: string) {
@@ -3152,21 +3164,6 @@ export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
 }
 
 /**
- * Dismisses any tutorial card that might be active.
- */
-export async function dismissTutorialCard() {
-  // If there is something in our way, we can't do it.
-  if (await driver.find('.test-welcome-questions').isPresent()) {
-    return;
-  }
-  if (await driver.find('.test-tutorial-card-close').isPresent()) {
-    if (await driver.find('.test-tutorial-card-close').isDisplayed()) {
-      await driver.find('.test-tutorial-card-close').click();
-    }
-  }
-}
-
-/**
  * Dismisses coaching call if needed.
  */
 export async function dismissCoachingCall() {
@@ -3245,14 +3242,49 @@ export async function renameActiveTable(name: string) {
   await waitForServer();
 }
 
-export async function setWidgetUrl(url: string) {
-  await driver.find('.test-config-widget-url').click();
-  // First clear textbox.
-  await clearInput();
-  if (url) {
-    await sendKeys(url);
+export async function getCustomWidgetName() {
+  await openWidgetPanel();
+  return await driver.find('.test-config-widget-open-custom-widget-gallery').getText();
+}
+
+export async function getCustomWidgetInfo(info: 'description'|'developer'|'last-updated') {
+  await openWidgetPanel();
+  if (await driver.find('.test-config-widget-show-custom-widget-details').isPresent()) {
+    await driver.find('.test-config-widget-show-custom-widget-details').click();
   }
+  if (!await driver.find(`.test-config-widget-custom-widget-${info}`).isPresent()) {
+    return '';
+  }
+
+  return await driver.find(`.test-config-widget-custom-widget-${info}`).getText();
+}
+
+export async function openCustomWidgetGallery() {
+  await openWidgetPanel();
+  await driver.find('.test-config-widget-open-custom-widget-gallery').click();
+  await waitForServer();
+}
+
+interface SetWidgetOptions {
+  /** Defaults to `true`. */
+  openGallery?: boolean;
+}
+
+export async function setCustomWidgetUrl(url: string, options: SetWidgetOptions = {}) {
+  const {openGallery = true} = options;
+  if (openGallery) { await openCustomWidgetGallery(); }
+  await driver.find('.test-custom-widget-gallery-custom-url').click();
+  await clearInput();
+  if (url) { await sendKeys(url); }
   await sendKeys(Key.ENTER);
+  await waitForServer();
+}
+
+export async function setCustomWidget(content: string|RegExp, options: SetWidgetOptions = {}) {
+  const {openGallery = true} = options;
+  if (openGallery) { await openCustomWidgetGallery(); }
+  await driver.findContent('.test-custom-widget-gallery-widget', content).click();
+  await driver.find('.test-custom-widget-gallery-save').click();
   await waitForServer();
 }
 
@@ -3370,11 +3402,14 @@ export async function setRangeFilterBound(minMax: 'min'|'max', value: string|{re
   }
 }
 
-export async function skipWelcomeQuestions() {
-  if (await driver.find('.test-welcome-questions').isPresent()) {
-    await driver.sendKeys(Key.ESCAPE);
-    assert.equal(await driver.find('.test-welcome-questions').isPresent(), false);
-  }
+/**
+ * Skips the onboarding page that's shown to users on their first visit to the
+ * doc menu.
+ */
+export async function skipOnboarding() {
+  await driver.findWait('.test-onboarding-page', 2000);
+  await waitForServer();
+  await driver.navigate().refresh();
 }
 
 /**
@@ -3789,6 +3824,19 @@ export async function waitForAccessDenied() {
       await driver.findWait('.test-notifier-toast-message', 1000).getText(),
       'access denied');
   });
+}
+
+/**
+ * Deletes a widget by title. Optionally confirms deletion only for the widget without the data.
+ */
+export async function deleteWidget(title: string) {
+  const menu = await openSectionMenu('viewLayout', title);
+  await menu.findContent('.test-cmd-name', 'Delete widget').click();
+  if (await driver.findWait('.test-option-deleteOnlyWidget', 100).isPresent()) {
+    await driver.find('.test-option-deleteOnlyWidget').click();
+    await driver.find('.test-modal-confirm').click();
+  }
+  await waitForServer();
 }
 
 } // end of namespace gristUtils
