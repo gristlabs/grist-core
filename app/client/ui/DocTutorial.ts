@@ -1,11 +1,12 @@
 import {GristDoc} from 'app/client/components/GristDoc';
+import {makeT} from 'app/client/lib/localization';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
 import {cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup} from 'app/client/ui/FloatingPopup';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {hoverTooltip, setHoverTooltip} from 'app/client/ui/tooltips';
-import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
+import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
@@ -24,6 +25,8 @@ interface DocTutorialSlide {
   imageUrls: string[];
 }
 
+const t = makeT('DocTutorial');
+
 const testId = makeTestId('test-doc-tutorial-');
 
 export class DocTutorial extends FloatingPopup {
@@ -35,12 +38,12 @@ export class DocTutorial extends FloatingPopup {
   private _docId = this._gristDoc.docId();
   private _slides: Observable<DocTutorialSlide[] | null> = Observable.create(this, null);
   private _currentSlideIndex = Observable.create(this, this._currentFork?.options?.tutorial?.lastSlideIndex ?? 0);
+  private _percentComplete = this._currentFork?.options?.tutorial?.percentComplete;
 
-
-  private _saveCurrentSlidePositionDebounced = debounce(this._saveCurrentSlidePosition, 1000, {
-    // Save new position immediately if at least 1 second has passed since the last change.
+  private _saveProgressDebounced = debounce(this._saveProgress, 1000, {
+    // Save progress immediately if at least 1 second has passed since the last change.
     leading: true,
-    // Otherwise, wait for the new position to settle for 1 second before saving it.
+    // Otherwise, wait 1 second before saving.
     trailing: true
   });
 
@@ -49,6 +52,18 @@ export class DocTutorial extends FloatingPopup {
       minimizable: true,
       stopClickPropagationOnMove: true,
     });
+
+    this.autoDispose(this._currentSlideIndex.addListener((slideIndex) => {
+      const numSlides = this._slides.get()?.length ?? 0;
+      if (numSlides > 0) {
+        this._percentComplete = Math.max(
+          Math.floor((slideIndex / numSlides) * 100),
+          this._percentComplete ?? 0
+        );
+      } else {
+        this._percentComplete = undefined;
+      }
+    }));
   }
 
   public async start() {
@@ -103,13 +118,6 @@ export class DocTutorial extends FloatingPopup {
           const isFirstSlide = slideIndex === 0;
           const isLastSlide = slideIndex === numSlides - 1;
           return [
-              cssFooterButtonsLeft(
-              cssPopupFooterButton(icon('Undo'),
-                hoverTooltip('Restart Tutorial', {key: FLOATING_POPUP_TOOLTIP_KEY}),
-                dom.on('click', () => this._restartTutorial()),
-                testId('popup-restart'),
-              ),
-            ),
             cssProgressBar(
               range(slides.length).map((i) => cssProgressBarDot(
                 hoverTooltip(slides[i].slideTitle, {
@@ -121,17 +129,17 @@ export class DocTutorial extends FloatingPopup {
                 testId(`popup-slide-${i + 1}`),
               )),
             ),
-            cssFooterButtonsRight(
-              basicButton('Previous',
+            cssFooterButtons(
+              basicButton(t('Previous'),
                 dom.on('click', async () => {
                   await this._previousSlide();
                 }),
                 {style: `visibility: ${isFirstSlide ? 'hidden' : 'visible'}`},
                 testId('popup-previous'),
               ),
-              primaryButton(isLastSlide ? 'Finish': 'Next',
+              primaryButton(isLastSlide ? t('Finish'): t('Next'),
                 isLastSlide
-                  ? dom.on('click', async () => await this._finishTutorial())
+                  ? dom.on('click', async () => await this._exitTutorial(true))
                   : dom.on('click', async () => await this._nextSlide()),
                 testId('popup-next'),
               ),
@@ -139,6 +147,21 @@ export class DocTutorial extends FloatingPopup {
           ];
         }),
         testId('popup-footer'),
+      ),
+      cssTutorialControls(
+        cssTextButton(
+          cssRestartIcon('Undo'),
+          t('Restart'),
+          dom.on('click', () => this._restartTutorial()),
+          testId('popup-restart'),
+        ),
+        cssButtonsSeparator(),
+        cssTextButton(
+          cssSkipIcon('Skip'),
+          t('End tutorial'),
+          dom.on('click', () => this._exitTutorial()),
+          testId('popup-end-tutorial'),
+        ),
       ),
     ];
   }
@@ -161,19 +184,13 @@ export class DocTutorial extends FloatingPopup {
   }
 
   private _logTelemetryEvent(event: 'tutorialOpened' | 'tutorialProgressChanged') {
-    const currentSlideIndex = this._currentSlideIndex.get();
-    const numSlides = this._slides.get()?.length;
-    let percentComplete: number | undefined = undefined;
-    if (numSlides !== undefined && numSlides > 0) {
-      percentComplete = Math.floor(((currentSlideIndex + 1) / numSlides) * 100);
-    }
     logTelemetryEvent(event, {
       full: {
         tutorialForkIdDigest: this._currentFork?.id,
         tutorialTrunkIdDigest: this._currentFork?.trunkId,
-        lastSlideIndex: currentSlideIndex,
-        numSlides,
-        percentComplete,
+        lastSlideIndex: this._currentSlideIndex.get(),
+        numSlides: this._slides.get()?.length,
+        percentComplete: this._percentComplete,
       },
     });
   }
@@ -251,14 +268,13 @@ export class DocTutorial extends FloatingPopup {
     }
   }
 
-  private async _saveCurrentSlidePosition() {
-    const currentOptions = this._currentDoc?.options ?? {};
-    const currentSlideIndex = this._currentSlideIndex.get();
+  private async _saveProgress() {
     await this._appModel.api.updateDoc(this._docId, {
       options: {
-        ...currentOptions,
+        ...this._currentFork?.options,
         tutorial: {
-          lastSlideIndex: currentSlideIndex,
+          lastSlideIndex: this._currentSlideIndex.get(),
+          percentComplete: this._percentComplete,
         }
       }
     });
@@ -267,7 +283,7 @@ export class DocTutorial extends FloatingPopup {
 
   private async _changeSlide(slideIndex: number) {
     this._currentSlideIndex.set(slideIndex);
-    await this._saveCurrentSlidePositionDebounced();
+    await this._saveProgressDebounced();
   }
 
   private async _previousSlide() {
@@ -278,9 +294,10 @@ export class DocTutorial extends FloatingPopup {
     await this._changeSlide(this._currentSlideIndex.get() + 1);
   }
 
-  private async _finishTutorial() {
-    this._saveCurrentSlidePositionDebounced.cancel();
-    await this._saveCurrentSlidePosition();
+  private async _exitTutorial(markAsComplete = false) {
+    this._saveProgressDebounced.cancel();
+    if (markAsComplete) { this._percentComplete = 100; }
+    await this._saveProgressDebounced();
     const lastVisitedOrg = this._appModel.lastVisitedOrgDomain.get();
     if (lastVisitedOrg) {
       await urlState().pushUrl({org: lastVisitedOrg});
@@ -298,8 +315,8 @@ export class DocTutorial extends FloatingPopup {
     };
 
     confirmModal(
-      'Do you want to restart the tutorial? All progress will be lost.',
-      'Restart',
+      t('Do you want to restart the tutorial? All progress will be lost.'),
+      t('Restart'),
       doRestart,
       {
         modalOptions: {
@@ -321,7 +338,7 @@ export class DocTutorial extends FloatingPopup {
           // eslint-disable-next-line no-self-assign
           img.src = img.src;
 
-          setHoverTooltip(img, 'Click to expand', {
+          setHoverTooltip(img, t('Click to expand'), {
             key: FLOATING_POPUP_TOOLTIP_KEY,
             modifiers: {
               flip: {
@@ -357,14 +374,13 @@ export class DocTutorial extends FloatingPopup {
   }
 }
 
-
 const cssPopupFooter = styled('div', `
   display: flex;
   column-gap: 24px;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  padding: 24px 16px 24px 16px;
+  padding: 16px;
   border-top: 1px solid ${theme.tutorialsPopupBorder};
 `);
 
@@ -373,19 +389,6 @@ const cssTryItOutBox = styled('div', `
   padding: 24px;
   border-radius: 4px;
   background-color: ${theme.tutorialsPopupBoxBg};
-`);
-
-
-
-const cssPopupFooterButton = styled('div', `
-  --icon-color: ${theme.controlSecondaryFg};
-  padding: 4px;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: ${theme.hover};
-  }
 `);
 
 const cssProgressBar = styled('div', `
@@ -409,11 +412,7 @@ const cssProgressBarDot = styled('div', `
   }
 `);
 
-const cssFooterButtonsLeft = styled('div', `
-  flex-shrink: 0;
-`);
-
-const cssFooterButtonsRight = styled('div', `
+const cssFooterButtons = styled('div', `
   display: flex;
   justify-content: flex-end;
   column-gap: 8px;
@@ -472,4 +471,35 @@ const cssSpinner = styled('div', `
   justify-content: center;
   align-items: center;
   height: 100%;
+`);
+
+const cssTutorialControls = styled('div', `
+  background-color: ${theme.notificationsPanelHeaderBg};
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+`);
+
+const cssTextButton = styled(textButton, `
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  column-gap: 4px;
+  padding: 0 16px;
+`);
+
+const cssRestartIcon = styled(icon, `
+  width: 14px;
+  height: 14px;
+`);
+
+const cssButtonsSeparator = styled('div', `
+  width: 0;
+  border-right: 1px solid ${theme.controlFg};
+`);
+
+const cssSkipIcon = styled(icon, `
+  width: 20px;
+  height: 20px;
+  margin: 0px -3px;
 `);

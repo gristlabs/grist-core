@@ -555,7 +555,7 @@
         "Visit our {{link}} to learn more about Grist.": "Visite nosso site {{link}} para saber mais sobre o Grist.",
         "Sign in": "Entrar",
         "To use Grist, please either sign up or sign in.": "Para usar o Grist, inscreva-se ou faça login.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Saiba mais em nosso {{helpCenterLink}}, ou encontre um especialista através do nosso {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}.": "Saiba mais em nosso {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Access Details": "Detalhes de Acesso",
@@ -1297,7 +1297,8 @@
         "Removed webhook.": "Webhook removido.",
         "Webhook Id": "Id do webhook",
         "Table": "Tabela",
-        "Filter for changes in these columns (semicolon-separated ids)": "Filtrar as alterações nessas Colunas (ids separados por ponto e vírgula)"
+        "Filter for changes in these columns (semicolon-separated ids)": "Filtrar as alterações nessas Colunas (ids separados por ponto e vírgula)",
+        "Header Authorization": "Autorização de cabeçalho"
     },
     "FieldContextMenu": {
         "Copy anchor link": "Copiar link de âncora",
@@ -1617,7 +1618,13 @@
         "Check failed.": "A verificação falhou.",
         "Current authentication method": "Método de autenticação atual",
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC.     Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas.",
-        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC. Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas."
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC. Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas.",
+        "Key to sign sessions with": "Chave para assinar sessões com",
+        "Session Secret": "Segredo da sessão",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "O Grist assina os cookies de sessão do usuário com uma chave secreta. Defina essa chave por meio da variável de ambiente GRIST_SESSION_SECRET. O Grist retorna a um padrão codificado quando ele não está definido. Poderemos remover esse aviso no futuro, pois os IDs de sessão gerados desde a versão 1.1.16 são inerentemente seguros em termos de criptografia.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "O Grist assina os cookies de sessão do usuário com uma chave secreta. Defina essa chave por meio da variável de ambiente GRIST_SESSION_SECRET. O Grist retorna a um padrão codificado quando ele não está definido. Poderemos remover esse aviso no futuro, pois os IDs de sessão gerados desde a versão 1.1.16 são inerentemente seguros em termos de criptografia.",
+        "Enterprise": "Empresarial",
+        "Enable Grist Enterprise": "Habilitar a Grist Empresarial"
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -1692,5 +1699,50 @@
         "Loading timing data. Don't close this tab.": "Carregando dados de tempo. Não feche essa guia.",
         "Number of Calls": "Número de chamadas",
         "Table ID": "ID da tabela"
+    },
+    "DocTutorial": {
+        "Do you want to restart the tutorial? All progress will be lost.": "Você quer reiniciar o tutorial? Todo o progresso será perdido.",
+        "Finish": "Terminar",
+        "Restart": "Reiniciar",
+        "Click to expand": "Clique para expandir",
+        "Previous": "Anterior",
+        "End tutorial": "Finalizar tutorial",
+        "Next": "Próximo"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "Vídeo tour de 3 minutos",
+        "Complete our basics tutorial": "Conclua nosso tutorial básico",
+        "Complete the tutorial": "Concluir o tutorial",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Aprenda o básico sobre Colunas de referência, widgets vinculados, tipos de colunas e cartões."
+    },
+    "OnboardingPage": {
+        "Discover Grist in 3 minutes": "Descubra Grist em 3 minutos",
+        "Go hands-on with the Grist Basics tutorial": "Pratique com o tutorial Conceitos Básicos do Grist",
+        "Go to the tutorial!": "Vá para o tutorial!",
+        "Next step": "Próximo passo",
+        "Skip tutorial": "Pular o tutorial",
+        "Tell us who you are": "Diga-nos quem você é",
+        "Type here": "Digite aqui",
+        "What brings you to Grist (you can select multiple)?": "O que o traz ao Grist (você pode selecionar várias opções)?",
+        "What is your role?": "Qual é a sua função?",
+        "What organization are you with?": "Em que organização você está?",
+        "Your organization": "Sua organização",
+        "Your role": "Sua função",
+        "Skip step": "Pular passo",
+        "Back": "Voltar",
+        "Welcome": "Bem-vindo"
+    },
+    "ToggleEnterpriseWidget": {
+        "Disable Grist Enterprise": "Desativar o Grist Empresarial",
+        "Enable Grist Enterprise": "Habilitar a Grist Empresarial",
+        "Grist Enterprise is **enabled**.": "O Grist Empresarial está **habilitado**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após um período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [inscrevendo-se no Grist\nEmpresarial]({{signupLink}}). Você não precisa de uma chave de ativação para executar o\nGrist Core.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}})."
+    },
+    "ViewLayout": {
+        "Delete": "Excluir",
+        "Delete data and this widget.": "Excluir dados e este widget.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Mantenha os dados e exclua o widget. A tabela permanecerá disponível em {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "A tabela {{tableName}} não estará mais visível",
+        "raw data page": "página de dados brutos"
     }
 }

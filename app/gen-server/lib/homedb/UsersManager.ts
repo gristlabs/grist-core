@@ -17,7 +17,7 @@ import { Group } from 'app/gen-server/entity/Group';
 import { Login } from 'app/gen-server/entity/Login';
 import { User } from 'app/gen-server/entity/User';
 import { appSettings } from 'app/server/lib/AppSettings';
-import { HomeDBManager, PermissionDeltaAnalysis, Scope } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager, PermissionDeltaAnalysis, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import {
   AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
 } from 'app/gen-server/lib/homedb/Interfaces';
@@ -395,14 +395,6 @@ export class UsersManager {
         user.name = (profile && (profile.name || email.split('@')[0])) || '';
         needUpdate = true;
       }
-      if (profile && !user.firstLoginAt) {
-        // set first login time to now (remove milliseconds for compatibility with other
-        // timestamps in db set by typeorm, and since second level precision is fine)
-        const nowish = new Date();
-        nowish.setMilliseconds(0);
-        user.firstLoginAt = nowish;
-        needUpdate = true;
-      }
       if (!user.picture && profile && profile.picture) {
         // Set the user's profile picture if our provider knows it.
         user.picture = profile.picture;
@@ -430,6 +422,25 @@ export class UsersManager {
       if (!user.options?.authSubject && userOptions?.authSubject) {
         // Link subject from password-based authentication provider if not previously linked.
         user.options = {...(user.options ?? {}), authSubject: userOptions.authSubject};
+        needUpdate = true;
+      }
+
+      // get date of now (remove milliseconds for compatibility with other
+      // timestamps in db set by typeorm, and since second level precision is fine)
+      const nowish = new Date();
+      nowish.setMilliseconds(0);
+      if (profile && !user.firstLoginAt) {
+        // set first login time to now
+        user.firstLoginAt = nowish;
+        needUpdate = true;
+      }
+      const getTimestampStartOfDay = (date: Date) => {
+        const timestamp = Math.floor(date.getTime() / 1000); // unix timestamp seconds from epoc
+        const startOfDay = timestamp - (timestamp % 86400 /*24h*/); // start of a day in seconds since epoc
+        return startOfDay;
+      };
+      if (!user.lastConnectionAt || getTimestampStartOfDay(user.lastConnectionAt) !== getTimestampStartOfDay(nowish)) {
+        user.lastConnectionAt = nowish;
         needUpdate = true;
       }
       if (needUpdate) {

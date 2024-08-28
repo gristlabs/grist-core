@@ -8,14 +8,14 @@ import {DocumentUsage} from 'app/common/DocUsage';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {KeyedOps} from 'app/common/KeyedOps';
 import {DocReplacementOptions, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {DocSnapshotInventory, DocSnapshotPruner} from 'app/server/lib/DocSnapshots';
 import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {ChecksummedExternalStorage, DELETED_TOKEN, ExternalStorage, Unchanged} from 'app/server/lib/ExternalStorage';
 import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
 import {ICreate} from 'app/server/lib/ICreate';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
+import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
 import * as fse from 'fs-extra';
@@ -93,6 +93,9 @@ export class HostedStorageManager implements IDocStorageManager {
 
   // Time at which document was last changed.
   private _timestamps = new Map<string, string>();
+
+  // Statistics related to snapshot generation.
+  private _snapshotProgress = new Map<string, SnapshotProgress>();
 
   // Access external storage.
   private _ext: ChecksummedExternalStorage;
@@ -221,6 +224,18 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   public async getCanonicalDocName(altDocName: string): Promise<string> {
     return path.basename(altDocName, '.grist');
+  }
+
+  /**
+   * Read some statistics related to generating snapshots.
+   */
+  public getSnapshotProgress(docName: string): SnapshotProgress {
+    let snapshotProgress = this._snapshotProgress.get(docName);
+    if (!snapshotProgress) {
+      snapshotProgress = new EmptySnapshotProgress();
+      this._snapshotProgress.set(docName, snapshotProgress);
+    }
+    return snapshotProgress;
   }
 
   /**
@@ -476,7 +491,11 @@ export class HostedStorageManager implements IDocStorageManager {
    * This is called when a document may have been changed, via edits or migrations etc.
    */
   public markAsChanged(docName: string, reason?: string): void {
-    const timestamp = new Date().toISOString();
+    const now = new Date();
+    const snapshotProgress = this.getSnapshotProgress(docName);
+    snapshotProgress.lastChangeAt = now.getTime();
+    snapshotProgress.changes++;
+    const timestamp = now.toISOString();
     this._timestamps.set(docName, timestamp);
     try {
       if (parseUrlId(docName).snapshotId) { return; }
@@ -486,6 +505,10 @@ export class HostedStorageManager implements IDocStorageManager {
       }
       if (this._disableS3) { return; }
       if (this._closed) { throw new Error("HostedStorageManager.markAsChanged called after closing"); }
+      if (!this._uploads.hasPendingOperation(docName)) {
+        snapshotProgress.lastWindowStartedAt = now.getTime();
+        snapshotProgress.windowsStarted++;
+      }
       this._uploads.addOperation(docName);
     } finally {
       if (reason === 'edit') {
@@ -729,6 +752,7 @@ export class HostedStorageManager implements IDocStorageManager {
   private async _pushToS3(docId: string): Promise<void> {
     let tmpPath: string|null = null;
 
+    const snapshotProgress = this.getSnapshotProgress(docId);
     try {
       if (this._prepareFiles.has(docId)) {
         throw new Error('too soon to consider pushing');
@@ -748,14 +772,18 @@ export class HostedStorageManager implements IDocStorageManager {
       await this._inventory.uploadAndAdd(docId, async () => {
         const prevSnapshotId = this._latestVersions.get(docId) || null;
         const newSnapshotId = await this._ext.upload(docId, tmpPath as string, metadata);
+        snapshotProgress.lastWindowDoneAt = Date.now();
+        snapshotProgress.windowsDone++;
         if (newSnapshotId === Unchanged) {
           // Nothing uploaded because nothing changed
+          snapshotProgress.skippedPushes++;
           return { prevSnapshotId };
         }
         if (!newSnapshotId) {
           // This is unexpected.
           throw new Error('No snapshotId allocated after upload');
         }
+        snapshotProgress.pushes++;
         const snapshot = {
           lastModified: t,
           snapshotId: newSnapshotId,
@@ -767,6 +795,10 @@ export class HostedStorageManager implements IDocStorageManager {
       if (changeMade) {
         await this._onInventoryChange(docId);
       }
+    } catch (e) {
+      snapshotProgress.errors++;
+      // Snapshot window completion time deliberately not set.
+      throw e;
     } finally {
       // Clean up backup.
       // NOTE: fse.remove succeeds also when the file does not exist.

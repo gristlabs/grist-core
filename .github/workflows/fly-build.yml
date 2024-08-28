@@ -1,0 +1,44 @@
+# fly-deploy will be triggered on completion of this workflow to actually deploy the code to fly.io.
+
+name: fly.io Build
+on:
+  pull_request:
+    branches: [ main ]
+    types: [labeled, opened, synchronize, reopened]
+
+  # Allows running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    # Build when the 'preview' label is added, or when PR is updated with this label present.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'preview'))
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and export Docker image
+        id: docker-build
+        run: >
+          ./buildtools/checkout-ext-directory.sh grist-ee &&
+          docker build -t grist-core:preview . --build-context ext=ext &&
+          docker image save grist-core:preview -o grist-core.tar
+      - name: Save PR information
+        run: |
+          echo PR_NUMBER=${{ github.event.number }} >> ./pr-info.txt
+          echo PR_SOURCE=${{ github.event.pull_request.head.repo.full_name }}-${{ github.event.pull_request.head.ref }} >> ./pr-info.txt
+          echo PR_SHASUM=${{ github.event.pull_request.head.sha }} >> ./pr-info.txt
+        # PR_SOURCE looks like <owner>/<repo>-<branch>.
+        # For example, if the GitHub user "foo" forked grist-core as "grist-bar", and makes a PR from their branch named "baz",
+        # it will be "foo/grist-bar-baz". deploy.js later replaces "/" with "-", making it "foo-grist-bar-baz".
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: |
+            ./grist-core.tar
+            ./pr-info.txt
+          if-no-files-found: "error"

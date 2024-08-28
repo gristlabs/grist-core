@@ -13,16 +13,15 @@ import {attachAddNewTip} from 'app/client/ui/AddNewTip';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro, buildWorkspaceIntro} from 'app/client/ui/HomeIntro';
 import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
-import {buildTutorialCard} from 'app/client/ui/TutorialCard';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {makeShareDocUrl} from 'app/client/ui/ShareMenu';
 import {transition} from 'app/client/ui/transitions';
 import {shouldShowWelcomeCoachingCall, showWelcomeCoachingCall} from 'app/client/ui/WelcomeCoachingCall';
-import {shouldShowWelcomeQuestions, showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
 import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
 import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
+import {buildOnboardingCards} from 'app/client/ui/OnboardingCards';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
@@ -62,10 +61,8 @@ export function createDocMenu(home: HomeModel): DomElementArg[] {
 
 function attachWelcomePopups(home: HomeModel): (el: Element) => void {
   return (element: Element) => {
-    const {app, app: {userPrefsObs}} = home;
-    if (shouldShowWelcomeQuestions(userPrefsObs)) {
-      showWelcomeQuestions(userPrefsObs);
-    } else if (shouldShowWelcomeCoachingCall(app)) {
+    const {app} = home;
+    if (shouldShowWelcomeCoachingCall(app)) {
       showWelcomeCoachingCall(element, app);
     }
   };
@@ -75,117 +72,117 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
   const flashDocId = observable<string|null>(null);
   const upgradeButton = buildUpgradeButton(owner, home.app);
   return css.docList( /* vbox */
-  /* first line */
-  dom.create(buildTutorialCard, { app: home.app }),
-  /* hbox */
-  css.docListContent(
-    /* left column - grow 1 */
-    css.docMenu(
-      attachAddNewTip(home),
+    /* first line */
+    dom.create(buildOnboardingCards, {homeModel: home}),
+    /* hbox */
+    css.docListContent(
+      /* left column - grow 1 */
+      css.docMenu(
+        attachAddNewTip(home),
 
-      dom.maybe(!home.app.currentFeatures?.workspaces, () => [
-        css.docListHeader(t("This service is not available right now")),
-        dom('span', t("(The organization needs a paid plan)")),
-      ]),
+        dom.maybe(!home.app.currentFeatures?.workspaces, () => [
+          css.docListHeader(t("This service is not available right now")),
+          dom('span', t("(The organization needs a paid plan)")),
+        ]),
 
-      // currentWS and showIntro observables change together. We capture both in one domComputed call.
-      dom.domComputed<[IHomePage, Workspace|undefined, boolean]>(
-        (use) => [use(home.currentPage), use(home.currentWS), use(home.showIntro)],
-        ([page, workspace, showIntro]) => {
-          const viewSettings: ViewSettings =
-            page === 'trash' ? makeLocalViewSettings(home, 'trash') :
-            page === 'templates' ? makeLocalViewSettings(home, 'templates') :
-            workspace ? makeLocalViewSettings(home, workspace.id) :
-            home;
-          return [
-            buildPrefs(
-              viewSettings,
-              // Hide the sort and view options when showing the intro.
-              {hideSort: showIntro, hideView: showIntro && page === 'all'},
-              ['all', 'workspace'].includes(page)
-                ? upgradeButton.showUpgradeButton(css.upgradeButton.cls(''))
-                : null,
-            ),
-
-            // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded.
-            // TODO: this is shown on all pages, but there is a hack in currentWSPinnedDocs that
-            // removes all pinned docs when on trash page.
-            dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
-              css.docListHeader(css.pinnedDocsIcon('PinBig'), t("Pinned Documents")),
-              createPinnedDocs(home, home.currentWSPinnedDocs),
-            ]),
-
-            // Build the featured templates dom if on the Examples & Templates page.
-            dom.maybe((use) => page === 'templates' && use(home.featuredTemplates).length > 0, () => [
-              css.featuredTemplatesHeader(
-                css.featuredTemplatesIcon('Idea'),
-                t("Featured"),
-                testId('featured-templates-header')
+        // currentWS and showIntro observables change together. We capture both in one domComputed call.
+        dom.domComputed<[IHomePage, Workspace|undefined, boolean]>(
+          (use) => [use(home.currentPage), use(home.currentWS), use(home.showIntro)],
+          ([page, workspace, showIntro]) => {
+            const viewSettings: ViewSettings =
+              page === 'trash' ? makeLocalViewSettings(home, 'trash') :
+              page === 'templates' ? makeLocalViewSettings(home, 'templates') :
+              workspace ? makeLocalViewSettings(home, workspace.id) :
+              home;
+            return [
+              buildPrefs(
+                viewSettings,
+                // Hide the sort and view options when showing the intro.
+                {hideSort: showIntro, hideView: showIntro && page === 'all'},
+                ['all', 'workspace'].includes(page)
+                  ? upgradeButton.showUpgradeButton(css.upgradeButton.cls(''))
+                  : null,
               ),
-              createPinnedDocs(home, home.featuredTemplates, true),
-            ]),
 
-            dom.maybe(home.available, () => [
-              buildOtherSites(home),
-              (showIntro && page === 'all' ?
-                null :
-                css.docListHeader(
-                  (
-                    page === 'all' ? t("All Documents") :
-                    page === 'templates' ?
-                      dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
-                        hasFeaturedTemplates ? t("More Examples and Templates") : t("Examples and Templates")
-                    ) :
-                    page === 'trash' ? t("Trash") :
-                      workspace && [css.docHeaderIcon(workspace.shareType === 'private' ? 'FolderPrivate' : 'Folder'),
-                        workspaceName(home.app, workspace)]
-                  ),
-                  testId('doc-header'),
-                )
-              ),
-              (
-                (page === 'all') ?
-                  dom('div',
-                    showIntro ? buildHomeIntro(home) : null,
-                    buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
-                    shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
-                  ) :
-                (page === 'trash') ?
-                  dom('div',
-                    css.docBlock(t("Documents stay in Trash for 30 days, after which they get deleted permanently.")),
-                    dom.maybe((use) => use(home.trashWorkspaces).length === 0, () =>
-                      css.docBlock(t("Trash is empty."))
+              // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded.
+              // TODO: this is shown on all pages, but there is a hack in currentWSPinnedDocs that
+              // removes all pinned docs when on trash page.
+              dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
+                css.docListHeader(css.pinnedDocsIcon('PinBig'), t("Pinned Documents")),
+                createPinnedDocs(home, home.currentWSPinnedDocs),
+              ]),
+
+              // Build the featured templates dom if on the Examples & Templates page.
+              dom.maybe((use) => page === 'templates' && use(home.featuredTemplates).length > 0, () => [
+                css.featuredTemplatesHeader(
+                  css.featuredTemplatesIcon('Idea'),
+                  t("Featured"),
+                  testId('featured-templates-header')
+                ),
+                createPinnedDocs(home, home.featuredTemplates, true),
+              ]),
+
+              dom.maybe(home.available, () => [
+                buildOtherSites(home),
+                (showIntro && page === 'all' ?
+                  null :
+                  css.docListHeader(
+                    (
+                      page === 'all' ? t("All Documents") :
+                      page === 'templates' ?
+                        dom.domComputed(use => use(home.featuredTemplates).length > 0, (hasFeaturedTemplates) =>
+                          hasFeaturedTemplates ? t("More Examples and Templates") : t("Examples and Templates")
+                      ) :
+                      page === 'trash' ? t("Trash") :
+                      workspace && [css.docHeaderIcon(workspace.shareType === 'private' ? 'FolderPrivate' : 'Folder'), workspaceName(home.app, workspace)]
                     ),
-                    buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
-                  ) :
-                (page === 'templates') ?
-                  dom('div',
-                    buildAllTemplates(home, home.templateWorkspaces, viewSettings)
-                  ) :
-                  workspace && !workspace.isSupportWorkspace && workspace.docs?.length ?
-                    css.docBlock(
-                      buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
-                      testId('doc-block')
+                    testId('doc-header'),
+                  )
+                ),
+                (
+                  (page === 'all') ?
+                    dom('div',
+                      showIntro ? buildHomeIntro(home) : null,
+                      buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
+                      shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
                     ) :
-                  workspace && !workspace.isSupportWorkspace && workspace.docs?.length === 0 ?
-                  buildWorkspaceIntro(home) :
-                  css.docBlock(t("Workspace not found"))
-              )
-            ]),
+                  (page === 'trash') ?
+                    dom('div',
+                      css.docBlock(t("Documents stay in Trash for 30 days, after which they get deleted permanently.")),
+                      dom.maybe((use) => use(home.trashWorkspaces).length === 0, () =>
+                        css.docBlock(t("Trash is empty."))
+                      ),
+                      buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
+                    ) :
+                  (page === 'templates') ?
+                    dom('div',
+                      buildAllTemplates(home, home.templateWorkspaces, viewSettings)
+                    ) :
+                    workspace && !workspace.isSupportWorkspace && workspace.docs?.length ?
+                      css.docBlock(
+                        buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
+                        testId('doc-block')
+                      ) :
+                    workspace && !workspace.isSupportWorkspace && workspace.docs?.length === 0 ?
+                    buildWorkspaceIntro(home) :
+                    css.docBlock(t("Workspace not found"))
+                )
+              ]),
+            ];
+          }),
+        testId('doclist')
+      ),
+      dom.maybe(use => !use(isNarrowScreenObs()) && ['all', 'workspace'].includes(use(home.currentPage)),
+        () => {
+          // TODO: These don't currently clash (grist-core stubs the upgradeButton), but a way to
+          // manage card popups will be needed if more are added later.
+          return [
+            upgradeButton.showUpgradeCard(css.upgradeCard.cls('')),
+            home.app.supportGristNudge.buildNudgeCard(),
           ];
         }),
-      testId('doclist')
     ),
-    dom.maybe(use => !use(isNarrowScreenObs()) && ['all', 'workspace'].includes(use(home.currentPage)),
-      () => {
-        // TODO: These don't currently clash (grist-core stubs the upgradeButton), but a way to
-        // manage card popups will be needed if more are added later.
-        return [
-          upgradeButton.showUpgradeCard(css.upgradeCard.cls('')),
-          home.app.supportGristNudge.buildNudgeCard(),
-        ];
-      }),
-  ));
+  );
 }
 
 function buildAllDocsBlock(

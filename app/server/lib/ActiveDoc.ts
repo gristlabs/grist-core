@@ -69,6 +69,7 @@ import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
+import {normalizedDateTimeString} from 'app/common/normalizedDateTimeString';
 import {
   compilePredicateFormula,
   getPredicateFormulaProperties,
@@ -137,7 +138,7 @@ import {
   OptDocSession
 } from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
-import {expandQuery} from './ExpandedQuery';
+import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession} from './serverUtils';
@@ -1168,6 +1169,11 @@ export class ActiveDoc extends EventEmitter {
     this._log.info(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
+    const onDemand = this._onDemandActions.isOnDemand(tableId);
+    if (onDemand) {
+      // It's safe to use this.docData after waitForInitialization().
+      return getFormulaErrorForExpandQuery(this.docData!, tableId, colId);
+    }
     return this._pyCall('get_formula_error', tableId, colId, rowId);
   }
 
@@ -2496,6 +2502,24 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
+  private _logSnapshotProgress(docSession: OptDocSession) {
+    const snapshotProgress = this._docManager.storageManager.getSnapshotProgress(this.docName);
+    const lastWindowTime = (snapshotProgress.lastWindowStartedAt &&
+        snapshotProgress.lastWindowDoneAt &&
+        snapshotProgress.lastWindowDoneAt > snapshotProgress.lastWindowStartedAt) ?
+        snapshotProgress.lastWindowDoneAt : Date.now();
+    const delay = snapshotProgress.lastWindowStartedAt ?
+        lastWindowTime - snapshotProgress.lastWindowStartedAt : null;
+    log.rawInfo('snapshot status', {
+      ...this.getLogMeta(docSession),
+      ...snapshotProgress,
+      lastChangeAt: normalizedDateTimeString(snapshotProgress.lastChangeAt),
+      lastWindowStartedAt: normalizedDateTimeString(snapshotProgress.lastWindowStartedAt),
+      lastWindowDoneAt: normalizedDateTimeString(snapshotProgress.lastWindowDoneAt),
+      delay,
+    });
+  }
+
   private _logDocMetrics(docSession: OptDocSession, triggeredBy: 'docOpen' | 'interval'| 'docClose') {
     this.logTelemetryEvent(docSession, 'documentUsage', {
       limited: {
@@ -2513,6 +2537,9 @@ export class ActiveDoc extends EventEmitter {
         ...this._getCustomWidgetMetrics(),
       },
     });
+    // Log progress on making snapshots periodically, to catch anything
+    // excessively slow.
+    this._logSnapshotProgress(docSession);
   }
 
   private _getAccessRuleMetrics() {

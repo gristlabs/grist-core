@@ -83,7 +83,8 @@ If you just want a quick demo of Grist:
   * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
   * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-desktop](https://github.com/gristlabs/grist-desktop).
 
-To get `grist-core` running on your computer with [Docker](https://www.docker.com/get-started), do:
+To get the default version of `grist-core` running on your computer
+with [Docker](https://www.docker.com/get-started), do:
 
 ```sh
 docker pull gristlabs/grist
@@ -116,6 +117,22 @@ environments.
 You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
 [Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
+
+## Available Docker images
+
+The default Docker image is `gristlabs/grist`. This contains all of
+the standard Grist functionality, as well as extra source-available
+code for enterprise customers taken from the
+[grist-ee](https://github.com/gristlabs/grist-ee) repository. This
+extra code is not under a free or open source license. By default,
+however, the code from the `grist-ee` repository is completely inert
+and inactive. This code becomes active only when enabled from the
+administrator panel.
+
+If you would rather use an image that contains exclusively free and
+open source code, the `gristlabs/grist-oss` Docker image is available
+for this purpose. It is by default functionally equivalent to the
+`gristlabs/grist` image.
 
 ## The administrator panel
 
@@ -185,7 +202,7 @@ and Google/Microsoft sign-ins via [Dex](https://dexidp.io/).
 
 We use [Weblate](https://hosted.weblate.org/engage/grist/) to manage translations.
 Thanks to everyone who is pitching in. Thanks especially to the ANCT developers who
-did the hard work of making a good chunk of the application localizable. Merci bien!
+did the hard work of making a good chunk of the application localizable. Merci beaucoup !
 
 <a href="https://hosted.weblate.org/engage/grist/">
 <img src="https://hosted.weblate.org/widgets/grist/-/open-graph.png" alt="Translation status" width=480 />
@@ -295,11 +312,12 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_UI_FEATURES                  | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter,billing,templates,createSite,multiSite,multiAccounts,sendToDrive,tutorials,supportGrist`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.                                                                                                            |
 | GRIST_UNTRUSTED_PORT               | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL.                                                                                                                                                                                                                                                      |
 | GRIST_WIDGET_LIST_URL              | a url pointing to a widget manifest, by default `https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json` is used                                                                                                                                                                                                                    |
+| GRIST_LOG_HTTP                     | When set to `true`, log HTTP requests and responses information. Defaults to `false`.                                                                                                                                                                                                                                                                         |
+| GRIST_LOG_HTTP_BODY                | When this variable and `GRIST_LOG_HTTP` are set to `true` , log the body along with the HTTP requests. :warning: Be aware it may leak confidential information in the logs.:warning: Defaults to `false`.                                                                                                                                                   |
 | COOKIE_MAX_AGE                     | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie                                                                                                                                                                                                                                                                 |
 | HOME_PORT                          | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.                                                                                                                                                                                                                                                     |
 | PORT                               | port number to listen on for Grist server                                                                                                                                                                                                                                                                                                                     |
 | REDIS_URL                          | optional redis server for browser sessions and db query caching                                                                                                                                                                                                                                                                                               |
-| GRIST_SKIP_REDIS_CHECKSUM_MISMATCH | Experimental. If set, only warn if the checksum in Redis differs with the one in your S3 backend storage. You may turn it on if your backend storage implements the [read-after-write consistency](https://aws.amazon.com/fr/blogs/aws/amazon-s3-update-strong-read-after-write-consistency/). Defaults to false.                                             |
 | GRIST_SNAPSHOT_TIME_CAP            | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}                                                                                                                                                                                                                                      |
 | GRIST_SNAPSHOT_KEEP                | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made                                                                                                                                                                                                                                              |
 | GRIST_PROMCLIENT_PORT              | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️.                                                                                                                                                                                                                         |
@@ -448,7 +466,7 @@ Then, you can run the main test suite like so:
 yarn test
 ```
 
-Python tests may also be run locally. (Note: currently requires Python 3.9 - 3.11.)
+Python tests may also be run locally. (Note: currently requires Python 3.10 - 3.11.)
 
 ```
 yarn test:python

@@ -1,6 +1,6 @@
 import { makeId } from 'app/server/lib/idUtils';
 import { Activation } from 'app/gen-server/entity/Activation';
-import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 
 /**
  * Manage activations. Not much to do currently, there is at most one

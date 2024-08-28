@@ -247,15 +247,22 @@ export class Comm extends EventEmitter {
     for (const server of servers) {
       const wssi = new GristSocketServer(server, {
         verifyClient: async (req: http.IncomingMessage) => {
-          if (this._options.hosts) {
-            // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
-            // needed. addOrgInfo assumes req.url starts with /o/ if present.
-            req.url = parseFirstUrlPart('dw', req.url!).path;
-            req.url = parseFirstUrlPart('v', req.url).path;
-            await this._options.hosts.addOrgInfo(req);
-          }
+          try {
+            if (this._options.hosts) {
+              // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
+              // needed. addOrgInfo assumes req.url starts with /o/ if present.
+              req.url = parseFirstUrlPart('dw', req.url!).path;
+              req.url = parseFirstUrlPart('v', req.url).path;
+              await this._options.hosts.addOrgInfo(req);
+            }
 
-          return trustOrigin(req);
+            return trustOrigin(req);
+          } catch (err) {
+            // Consider exceptions (e.g. in parsing unexpected hostname) as failures to verify.
+            // In practice, we only see this happening for spammy/illegitimate traffic; there is
+            // no particular reason to log these.
+            return false;
+          }
         }
       });
 

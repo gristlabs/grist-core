@@ -38,43 +38,34 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: 'Interactions', children: [
-          { label: 'Documents' },
+          {label: 'Documents' },
         ]
       },
       {
         label: 'People', children: [
-          { label: 'User & Leads', children: [{ label: 'Overview' }] },
+          {label: 'User & Leads', children: [
+            {label: 'Overview'}] },
         ]
       },
     ]);
     const revertAcl = await gu.beginAclTran(api, doc.id);
-    // Update ACL, hide People table from all users.
-    await hideTable("People");
+    // Update ACL, hide Overview table from all users.
+    await hideTable("Overview");
     // We will be reloaded, but it's not easy to wait for it, so do the refresh manually.
     await gu.reloadDoc();
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: 'Interactions', children: [
-          { label: 'Documents'},
+          {label: 'Documents'},
         ]
       },
       {
-        label: 'CENSORED', children: [
-          { label: 'User & Leads', children: [{ label: 'Overview' }] },
+        label: 'People', children: [
+          {label: 'User & Leads'},
         ]
       },
     ]);
 
-    // Test that we can't click this page.
-    await driver.findContent('.test-treeview-itemHeader', /CENSORED/).click();
-    await gu.waitForServer();
-    assert.equal(await gu.getSectionTitle(), 'INTERACTIONS');
-
-    // Test that we don't have move handler.
-    assert.isFalse(
-      await driver.findContent('.test-treeview-itemHeaderWrapper', /CENSORED/)
-                  .find('.test-treeview-handle').isPresent()
-    );
 
     // Now hide User_Leads
     await hideTable("User_Leads");
@@ -86,14 +77,12 @@ describe('Pages', function() {
         ]
       },
       {
-        label: 'CENSORED', children: [
-          { label: 'CENSORED', children: [{ label: 'Overview' }] },
-        ]
+        label: 'People'
       },
     ]);
 
-    // Now hide Overview, and test that whole node is hidden.
-    await hideTable("Overview");
+    // Now hide People, and test that whole node is hidden.
+    await hideTable("People");
     await gu.reloadDoc();
     assert.deepEqual(await gu.getPageTree(), [
       {

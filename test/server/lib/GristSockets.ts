@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import * as http from 'http';
 import { GristClientSocket } from 'app/client/components/GristClientSocket';
-import { GristSocketServer } from 'app/server/lib/GristSocketServer';
+import { GristSocketServer, GristSocketServerOptions } from 'app/server/lib/GristSocketServer';
 import { fromCallback, listenPromise } from 'app/server/lib/serverUtils';
 import { AddressInfo } from 'net';
 import httpProxy from 'http-proxy';
@@ -29,9 +29,9 @@ describe(`GristSockets`, function () {
         await stopSocketServer();
       });
 
-      async function startSocketServer() {
+      async function startSocketServer(options?: GristSocketServerOptions) {
         server = http.createServer((req, res) => res.writeHead(404).end());
-        socketServer = new GristSocketServer(server);
+        socketServer = new GristSocketServer(server, options);
         await listenPromise(server.listen(0, 'localhost'));
         serverPort = (server.address() as AddressInfo).port;
       }
@@ -165,6 +165,30 @@ describe(`GristSockets`, function () {
         await closePromise;
       });
 
+      it("should fail gracefully if verifyClient throws exception", async function () {
+
+        // Restart servers with a failing verifyClient method.
+        await stopProxyServer();
+        await stopSocketServer();
+        await startSocketServer({verifyClient: () => { throw new Error("Test error from verifyClient"); }});
+        await startProxyServer();
+
+        // Check whether we are getting an unhandledRejection.
+        let rejection: unknown = null;
+        const onUnhandledRejection = (err: unknown) => { rejection = err; };
+        process.on('unhandledRejection', onUnhandledRejection);
+
+        try {
+          // The "poll error" comes from the fallback to polling.
+          await assert.isRejected(connectClient(wsAddress), /poll error/);
+        } finally {
+          // Typings for process.removeListener are broken, possibly by electron's presence
+          // (https://github.com/electron/electron/issues/9626).
+          process.removeListener('unhandledRejection' as any, onUnhandledRejection);
+        }
+        // The important thing is that we don't get unhandledRejection.
+        assert.equal(rejection, null);
+      });
     });
   }
 });

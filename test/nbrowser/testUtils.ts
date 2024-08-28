@@ -33,6 +33,16 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
   // Set "kiosk" printing that saves to PDF without offering any dialogs. This applies to regular
   // (non-headless) Chrome. On headless Chrome, no dialog or output occurs regardless.
   chromeOpts.addArguments("--kiosk-printing");
+  // Latest chrome version 127, has started ignoring alerts and popups when controlled via a
+  // webdriver.
+  // https://github.com/SeleniumHQ/selenium/issues/14290
+  // According to the article above, popups and alerts are still shown in `BiDi` sessions. While we
+  // don't have latest webdriver library (where the new `enableBiDi` method is exposed), it can be
+  // toggled by using the `set` method in `capabilities` interface, as it is done here (long URL):
+
+  // eslint-disable-next-line max-len
+  // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
+  chromeOpts.set('webSocketUrl', true);
 
   chromeOpts.setUserPreferences({
     // Don't show popups to save passwords, which are shown when running against a deployment when

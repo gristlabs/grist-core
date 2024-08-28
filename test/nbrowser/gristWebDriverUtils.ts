@@ -99,13 +99,14 @@ export class GristWebDriverUtils {
     tableRe: RegExp|string = '',
     options: PageWidgetPickerOptions = {}
   ) {
+    const {customWidget, dismissTips, dontAdd, selectBy, summarize, tableName} = options;
     const driver = this.driver;
-    if (options.dismissTips) { await this.dismissBehavioralPrompts(); }
+    if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
     // select right type
     await driver.findContent('.test-wselect-type', typeRe).doClick();
 
-    if (options.dismissTips) { await this.dismissBehavioralPrompts(); }
+    if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
     if (tableRe) {
       const tableEl = driver.findContent('.test-wselect-table', tableRe);
@@ -118,34 +119,32 @@ export class GristWebDriverUtils {
       // let's select table
       await tableEl.click();
 
-      if (options.dismissTips) { await this.dismissBehavioralPrompts(); }
+      if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
       const pivotEl = tableEl.find('.test-wselect-pivot');
       if (await pivotEl.isPresent()) {
-        await this.toggleSelectable(pivotEl, Boolean(options.summarize));
+        await this.toggleSelectable(pivotEl, Boolean(summarize));
       }
 
-      if (options.summarize) {
+      if (summarize) {
         for (const columnEl of await driver.findAll('.test-wselect-column')) {
           const label = await columnEl.getText();
           // TODO: Matching cols with regexp calls for trouble and adds no value. I think function should be
           // rewritten using string matching only.
-          const goal = Boolean(options.summarize.find(r => label.match(r)));
+          const goal = Boolean(summarize.find(r => label.match(r)));
           await this.toggleSelectable(columnEl, goal);
         }
       }
 
-      if (options.selectBy) {
+      if (selectBy) {
         // select link
         await driver.find('.test-wselect-selectby').doClick();
-        await driver.findContent('.test-wselect-selectby option', options.selectBy).doClick();
+        await driver.findContent('.test-wselect-selectby option', selectBy).doClick();
       }
     }
 
 
-    if (options.dontAdd) {
-      return;
-    }
+    if (dontAdd) { return; }
 
     // add the widget
     await driver.find('.test-wselect-addBtn').doClick();
@@ -154,12 +153,18 @@ export class GristWebDriverUtils {
     const prompts = await driver.findAll(".test-modal-prompt");
     const prompt = prompts[0];
     if (prompt) {
-      if (options.tableName) {
+      if (tableName) {
         await prompt.doClear();
         await prompt.click();
-        await driver.sendKeys(options.tableName);
+        await driver.sendKeys(tableName);
       }
       await driver.find(".test-modal-confirm").click();
+    }
+
+    if (customWidget) {
+      await this.waitForServer();
+      await driver.findContent('.test-custom-widget-gallery-widget-name', customWidget).click();
+      await driver.find('.test-custom-widget-gallery-save').click();
     }
 
     await this.waitForServer();
@@ -269,4 +274,6 @@ export interface PageWidgetPickerOptions {
   dontAdd?: boolean;
   /** If true, dismiss any tooltips that are shown. */
   dismissTips?: boolean;
+  /** Optional pattern of custom widget name to select in the gallery. */
+  customWidget?: RegExp|string;
 }

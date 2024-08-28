@@ -13,22 +13,27 @@ describe('DocTutorial', function () {
   let doc: DocCreationInfo;
   let api: UserAPI;
   let ownerSession: gu.Session;
+  let editorSession: gu.Session;
   let viewerSession: gu.Session;
   let oldEnv: EnvironmentSnapshot;
 
-  const cleanup = setupTestSuite({team: true});
+  const cleanup = setupTestSuite({samples: true, team: true});
 
   before(async () => {
+    ownerSession = await gu.session().customTeamSite('templates').user('support').login();
+    doc = await ownerSession.tempDoc(cleanup, 'DocTutorial.grist', {load: false});
     oldEnv = new EnvironmentSnapshot();
     process.env.GRIST_UI_FEATURES = 'tutorials';
+    process.env.GRIST_TEMPLATE_ORG = 'templates';
+    process.env.GRIST_ONBOARDING_TUTORIAL_DOC_ID = doc.id;
     await server.restart();
-    ownerSession = await gu.session().teamSite.user('support').login();
-    doc = await ownerSession.tempDoc(cleanup, 'DocTutorial.grist');
+
     api = ownerSession.createHomeApi();
     await api.updateDoc(doc.id, {type: 'tutorial'});
     await api.updateDocPermissions(doc.id, {users: {
       'anon@getgrist.com': 'viewers',
       'everyone@getgrist.com': 'viewers',
+      [gu.translateUser('user1').email]: 'editors',
     }});
   });
 
@@ -43,20 +48,25 @@ describe('DocTutorial', function () {
     });
 
     it('shows a tutorial card', async function() {
-      await viewerSession.loadRelPath('/');
-      await gu.waitForDocMenuToLoad();
-      await gu.skipWelcomeQuestions();
+      await viewerSession.loadDocMenu('/');
+      assert.isTrue(await driver.find('.test-onboarding-tutorial-card').isDisplayed());
+      assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '0%');
+    });
 
-      assert.isTrue(await driver.find('.test-tutorial-card-content').isDisplayed());
-      // Can dismiss it.
-      await driver.find('.test-tutorial-card-close').click();
-      assert.isFalse((await driver.findAll('.test-tutorial-card-content')).length > 0);
-      // When dismissed, we can see link in the menu.
+    it('can dismiss tutorial card', async function() {
+      await driver.find('.test-onboarding-dismiss-cards').click();
+      assert.isFalse(await driver.find('.test-onboarding-tutorial-card').isPresent());
+      await driver.navigate().refresh();
+      await gu.waitForDocMenuToLoad();
+      assert.isFalse(await driver.find('.test-onboarding-tutorial-card').isPresent());
+    });
+
+    it('shows a link to tutorial', async function() {
       assert.isTrue(await driver.find('.test-dm-basic-tutorial').isDisplayed());
     });
 
     it('redirects user to log in', async function() {
-      await viewerSession.loadDoc(`/doc/${doc.id}`, {wait: false});
+      await driver.find('.test-dm-basic-tutorial').click();
       await gu.checkLoginPage();
     });
   });
@@ -65,41 +75,24 @@ describe('DocTutorial', function () {
     let forkUrl: string;
 
     before(async () => {
-      ownerSession = await gu.session().teamSite.user('user1').login({showTips: true});
+      editorSession = await gu.session().customTeamSite('templates').user('user1').login({showTips: true});
+      await editorSession.loadDocMenu('/');
+      await driver.executeScript('resetDismissedPopups();');
+      await gu.waitForServer();
     });
 
     afterEach(() => gu.checkForErrors());
 
     it('shows a tutorial card', async function() {
-      await ownerSession.loadRelPath('/');
-      await gu.waitForDocMenuToLoad();
-      await gu.skipWelcomeQuestions();
-
-      // Make sure we have clean start.
-      await driver.executeScript('resetDismissedPopups();');
-      await gu.waitForServer();
-      await driver.navigate().refresh();
-      await gu.waitForDocMenuToLoad();
-
-      // Make sure we see the card.
-      assert.isTrue(await driver.find('.test-tutorial-card-content').isDisplayed());
-
-      // And can dismiss it.
-      await driver.find('.test-tutorial-card-close').click();
-      assert.isFalse((await driver.findAll('.test-tutorial-card-content')).length > 0);
-
-      // When dismissed, we can see link in the menu.
-      assert.isTrue(await driver.find('.test-dm-basic-tutorial').isDisplayed());
-
-      // Prefs are preserved after reload.
-      await driver.navigate().refresh();
-      await gu.waitForDocMenuToLoad();
-      assert.isFalse((await driver.findAll('.test-tutorial-card-content')).length > 0);
-      assert.isTrue(await driver.find('.test-dm-basic-tutorial').isDisplayed());
+      assert.isTrue(await driver.find('.test-onboarding-tutorial-card').isDisplayed());
+      await gu.waitToPass(async () =>
+        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '0%'),
+        2000
+      );
     });
 
     it('creates a fork the first time the document is opened', async function() {
-      await ownerSession.loadDoc(`/doc/${doc.id}`);
+      await driver.find('.test-dm-basic-tutorial').click();
       await driver.wait(async () => {
         forkUrl = await driver.getCurrentUrl();
         return /~/.test(forkUrl);
@@ -274,7 +267,7 @@ describe('DocTutorial', function () {
     });
 
     it('does not show the GristDocTutorial page or table to non-editors', async function() {
-      viewerSession = await gu.session().teamSite.user('user2').login();
+      viewerSession = await gu.session().customTeamSite('templates').user('user2').login();
       await viewerSession.loadDoc(`/doc/${doc.id}`);
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2']);
       await driver.find('.test-tools-raw').click();
@@ -300,7 +293,7 @@ describe('DocTutorial', function () {
         otherForkUrl = await driver.getCurrentUrl();
         return /~/.test(forkUrl);
       });
-      ownerSession = await gu.session().teamSite.user('user1').login();
+      editorSession = await gu.session().customTeamSite('templates').user('user1').login();
       await driver.navigate().to(otherForkUrl!);
       assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
       await driver.navigate().to(forkUrl);
@@ -424,7 +417,7 @@ describe('DocTutorial', function () {
 
     it('remembers the last slide the user had open', async function() {
       await driver.find('.test-doc-tutorial-popup-slide-3').click();
-      // There's a 1000ms debounce in place for updates to the last slide.
+      // There's a 1000ms debounce in place when updating tutorial progress.
       await driver.sleep(1000 + 250);
       await gu.waitForServer();
       await driver.navigate().refresh();
@@ -446,7 +439,7 @@ describe('DocTutorial', function () {
       await gu.getCell(0, 1).click();
       await gu.sendKeys('Redacted', Key.ENTER);
       await gu.waitForServer();
-      await ownerSession.loadDoc(`/doc/${doc.id}`);
+      await editorSession.loadDoc(`/doc/${doc.id}`);
       let currentUrl: string;
       await driver.wait(async () => {
         currentUrl = await driver.getCurrentUrl();
@@ -456,7 +449,20 @@ describe('DocTutorial', function () {
       assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Redacted']);
     });
 
+    it('tracks completion percentage', async function() {
+      await driver.find('.test-doc-tutorial-popup-end-tutorial').click();
+      await gu.waitForServer();
+      await gu.waitForDocMenuToLoad();
+      await gu.waitToPass(async () =>
+        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '15%'),
+        2000
+      );
+      await driver.find('.test-dm-basic-tutorial').click();
+      await gu.waitForDocToLoad();
+    });
+
     it('skips starting or resuming a tutorial if the open mode is set to default', async function() {
+      ownerSession = await gu.session().customTeamSite('templates').user('support').login();
       await ownerSession.loadDoc(`/doc/${doc.id}/m/default`);
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial']);
       await driver.find('.test-tools-raw').click();
@@ -467,11 +473,14 @@ describe('DocTutorial', function () {
     });
 
     it('can restart tutorials', async function() {
-      // Simulate that the tutorial has been updated since it was forked.
-      await api.updateDoc(doc.id, {name: 'DocTutorial V2'});
-      await api.applyUserActions(doc.id, [['AddTable', 'NewTable', [{id: 'A'}]]]);
+      // Update the tutorial as the owner.
+      await driver.find('.test-bc-doc').doClick();
+      await driver.sendKeys('DocTutorial V2', Key.ENTER);
+      await gu.waitForServer();
+      await gu.addNewTable();
 
-      // Load the fork of the tutorial.
+      // Switch back to the editor's fork of the tutorial.
+      editorSession = await gu.session().customTeamSite('templates').user('user1').login();
       await driver.navigate().to(forkUrl);
       await gu.waitForDocToLoad();
       await driver.findWait('.test-doc-tutorial-popup', 2000);
@@ -503,10 +512,13 @@ describe('DocTutorial', function () {
       // Check that changes made to the tutorial since it was last started are included.
       assert.equal(await driver.find('.test-doc-tutorial-popup-header').getText(),
         'DocTutorial V2');
-      assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial', 'NewTable']);
+      assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial', 'Table1']);
     });
 
-    it('allows editors to replace original', async function() {
+    it('allows owners to replace original', async function() {
+      ownerSession = await gu.session().customTeamSite('templates').user('support').login();
+      await ownerSession.loadDoc(`/doc/${doc.id}`);
+
       // Make an edit to one of the tutorial slides.
       await gu.openPage('GristDocTutorial');
       await gu.getCell(1, 1).click();
@@ -532,7 +544,7 @@ describe('DocTutorial', function () {
       await gu.waitForServer();
 
       // Switch to another user and restart the tutorial.
-      viewerSession = await gu.session().teamSite.user('user2').login();
+      viewerSession = await gu.session().customTeamSite('templates').user('user2').login();
       await viewerSession.loadDoc(`/doc/${doc.id}`);
       await driver.findWait('.test-doc-tutorial-popup-restart', 2000).click();
       await driver.find('.test-modal-confirm').click();
@@ -554,13 +566,22 @@ describe('DocTutorial', function () {
       await driver.find('.test-doc-tutorial-popup-next').click();
       await gu.waitForDocMenuToLoad();
       assert.match(await driver.getCurrentUrl(), /o\/docs\/$/);
+      await gu.waitToPass(async () =>
+        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '0%'),
+        2000
+      );
+      await ownerSession.loadDocMenu('/');
+      await gu.waitToPass(async () =>
+        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '100%'),
+        2000
+      );
     });
   });
 
   describe('without tutorial flag set', function () {
     before(async () => {
       await api.updateDoc(doc.id, {type: null});
-      ownerSession = await gu.session().teamSite.user('user1').login();
+      ownerSession = await gu.session().customTeamSite('templates').user('support').login();
       await ownerSession.loadDoc(`/doc/${doc.id}`);
     });
 
@@ -568,7 +589,7 @@ describe('DocTutorial', function () {
 
     it('shows the GristDocTutorial page and table', async function() {
       assert.deepEqual(await gu.getPageNames(),
-        ['Page 1', 'Page 2', 'GristDocTutorial', 'NewTable']);
+        ['Page 1', 'Page 2', 'GristDocTutorial', 'Table1']);
       await gu.openPage('GristDocTutorial');
       assert.deepEqual(
         await gu.getVisibleGridCells({cols: [1, 2], rowNums: [1]}),

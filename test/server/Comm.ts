@@ -102,16 +102,6 @@ describe('Comm', function() {
     }
   };
 
-  beforeEach(function() {
-    // Silence console messages from client-side Comm.ts.
-    if (!process.env.VERBOSE) {
-      // TODO: This no longer works, now that 'log' is a more proper "module" object rather than
-      // an arbitrary JS object. Also used in a couple other tests where logs are no longer
-      // silenced.
-      sandbox.stub(log, 'debug');
-    }
-  });
-
   afterEach(async function() {
     // Run the cleanup callbacks registered in cleanup().
     await Promise.all(cleanup.splice(0).map(callback => callback()));

@@ -29,6 +29,7 @@ import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
+import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
 import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
 import {BuildEditorOptions} from 'app/client/ui/FieldConfig';
 import {GridOptions} from 'app/client/ui/GridOptions';
@@ -526,7 +527,7 @@ export class RightPanel extends Disposable {
       dom.maybe((use) => use(this._pageWidgetType) === 'custom', () => {
         const parts = vct._buildCustomTypeItems() as any[];
         return [
-          cssLabel(t("CUSTOM")),
+          cssSeparator(),
           // If 'customViewPlugin' feature is on, show the toggle that allows switching to
           // plugin mode. Note that the default mode for a new 'custom' view is 'url', so that's
           // the only one that will be shown without the feature flag.
@@ -880,13 +881,20 @@ export class RightPanel extends Disposable {
 
   private _createPageWidgetPicker(): DomElementMethod {
     const gristDoc = this._gristDoc;
-    const section = gristDoc.viewModel.activeSection;
-    const onSave = (val: IPageWidget) => gristDoc.saveViewSection(section.peek(), val);
-    return (elem) => { attachPageWidgetPicker(elem, gristDoc, onSave, {
-      buttonLabel:  t("Save"),
-      value: () => toPageWidget(section.peek()),
-      selectBy: (val) => gristDoc.selectBy(val),
-    }); };
+    const {activeSection} = gristDoc.viewModel;
+    const onSave = async (val: IPageWidget) => {
+      const {id} = await gristDoc.saveViewSection(activeSection.peek(), val);
+      if (val.type === 'custom') {
+        showCustomWidgetGallery(gristDoc, {sectionRef: id()});
+      }
+    };
+    return (elem) => {
+      attachPageWidgetPicker(elem, gristDoc, onSave, {
+        buttonLabel:  t("Save"),
+        value: () => toPageWidget(activeSection.peek()),
+        selectBy: (val) => gristDoc.selectBy(val),
+      });
+    };
   }
 
   // Returns dom for a section item.

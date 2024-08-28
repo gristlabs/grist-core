@@ -211,6 +211,8 @@ export const ThemeColors = t.iface([], {
   "right-panel-toggle-button-disabled-bg": "string",
   "right-panel-field-settings-bg": "string",
   "right-panel-field-settings-button-bg": "string",
+  "right-panel-custom-widget-button-fg": "string",
+  "right-panel-custom-widget-button-bg": "string",
   "document-history-snapshot-fg": "string",
   "document-history-snapshot-selected-fg": "string",
   "document-history-snapshot-bg": "string",
@@ -438,6 +440,13 @@ export const ThemeColors = t.iface([], {
   "scroll-shadow": "string",
   "toggle-checkbox-fg": "string",
   "numeric-spinner-fg": "string",
+  "widget-gallery-border": "string",
+  "widget-gallery-border-selected": "string",
+  "widget-gallery-shadow": "string",
+  "widget-gallery-bg-hover": "string",
+  "widget-gallery-secondary-header-fg": "string",
+  "widget-gallery-secondary-header-bg": "string",
+  "widget-gallery-secondary-header-bg-hover": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

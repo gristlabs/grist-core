@@ -52,8 +52,8 @@ describe('HomeIntro', function() {
         freshAccount: true,
       });
 
-      // Open doc-menu and dismiss the welcome questions popup
-      await session.loadDocMenu('/', 'skipWelcomeQuestions');
+      // Open doc-menu and skip onboarding
+      await session.loadDocMenu('/', 'skipOnboarding');
 
       // Reload the doc-menu and dismiss the coaching call popup
       await session.loadDocMenu('/');
@@ -83,11 +83,11 @@ describe('HomeIntro', function() {
       await session.resetSite();
 
       // Open doc-menu
-      await session.loadDocMenu('/', 'skipWelcomeQuestions');
+      await session.loadDocMenu('/');
 
       // Check message specific to logged-in user and an empty team site.
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.orgName}`));
-      assert.match(await driver.find('.test-welcome-text').getText(), /Learn more.*find an expert/);
+      assert.match(await driver.find('.test-welcome-text').getText(), /Learn more/);
       assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/);
     });
 

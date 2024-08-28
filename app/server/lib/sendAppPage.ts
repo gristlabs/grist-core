@@ -12,11 +12,11 @@ import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget} from "app/common/widgetTypes";
-import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
+import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
-import {getTemplateOrg} from 'app/server/lib/gristSettings';
+import {getOnboardingTutorialDocId, getTemplateOrg} from 'app/server/lib/gristSettings';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
 import * as express from 'express';
@@ -96,7 +96,9 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
+    forceEnableEnterprise: isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE),
     templateOrg: getTemplateOrg(),
+    onboardingTutorialDocId: getOnboardingTutorialDocId(),
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),
@@ -120,15 +122,16 @@ export function makeMessagePage(staticDir: string) {
   };
 }
 
+export type SendAppPageFunction =
+  (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
+
 /**
  * Send a simple template page, read from file at pagePath (relative to static/), with certain
  * placeholders replaced.
  */
-export function makeSendAppPage(opts: {
-  server: GristServer, staticDir: string, tag: string, testLogin?: boolean,
-  baseDomain?: string
-}) {
-  const {server, staticDir, tag, testLogin} = opts;
+export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain }: {
+  server: GristServer, staticDir: string, tag: string, testLogin?: boolean, baseDomain?: string
+}): SendAppPageFunction {
 
   // If env var GRIST_INCLUDE_CUSTOM_SCRIPT_URL is set, load it in a <script> tag on all app pages.
   const customScriptUrl = process.env.GRIST_INCLUDE_CUSTOM_SCRIPT_URL;
@@ -139,7 +142,7 @@ export function makeSendAppPage(opts: {
     const config = makeGristConfig({
       homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
       extra: options.config,
-      baseDomain: opts.baseDomain,
+      baseDomain,
       req,
       server,
     });

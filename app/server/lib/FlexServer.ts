@@ -20,7 +20,7 @@ import {Activations} from 'app/gen-server/lib/Activations';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {Doom} from 'app/gen-server/lib/Doom';
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
@@ -54,7 +54,7 @@ import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
 import {getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
-import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
+import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
@@ -87,6 +87,8 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
+import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
+import {IGristCoreConfig} from "app/server/lib/configCore";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -105,6 +107,9 @@ export interface FlexServerOptions {
   baseDomain?: string;
   // Base URL for plugins, if permitted. Defaults to APP_UNTRUSTED_URL.
   pluginUrl?: string;
+
+  // Global grist config options
+  settings?: IGristCoreConfig;
 }
 
 const noop: express.RequestHandler = (req, res, next) => next();
@@ -122,7 +127,7 @@ export class FlexServer implements GristServer {
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public settings?: Readonly<Record<string, unknown>>;
+  public settings?: IGristCoreConfig;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
@@ -186,6 +191,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
+    this.settings = options.settings;
     this.app = express();
     this.app.set('port', port);
 
@@ -436,24 +442,33 @@ export class FlexServer implements GristServer {
 
   public addLogging() {
     if (this._check('logging')) { return; }
-    if (process.env.GRIST_LOG_SKIP_HTTP) { return; }
+    if (!this._httpLoggingEnabled()) { return; }
     // Add a timestamp token that matches exactly the formatting of non-morgan logs.
     morganLogger.token('logTime', (req: Request) => log.timestamp());
     // Add an optional gristInfo token that can replace the url, if the url is sensitive.
     morganLogger.token('gristInfo', (req: RequestWithGristInfo) =>
                        req.gristInfo || req.originalUrl || req.url);
     morganLogger.token('host', (req: express.Request) => req.get('host'));
-    const msg = ':logTime :host :method :gristInfo :status :response-time ms - :res[content-length]';
+    morganLogger.token('body', (req: express.Request) =>
+      req.is('application/json') ? JSON.stringify(req.body) : undefined
+    );
+
+    // For debugging, be careful not to enable logging in production (may log sensitive data)
+    const shouldLogBody = isAffirmative(process.env.GRIST_LOG_HTTP_BODY);
+
+    const msg = `:logTime :host :method :gristInfo ${shouldLogBody ? ':body ' : ''}` +
+      ":status :response-time ms - :res[content-length]";
     // In hosted Grist, render json so logs retain more organization.
     function outputJson(tokens: any, req: any, res: any) {
       return JSON.stringify({
         timestamp: tokens.logTime(req, res),
+        host: tokens.host(req, res),
         method: tokens.method(req, res),
         path: tokens.gristInfo(req, res),
+        ...(shouldLogBody ? { body: tokens.body(req, res) } : {}),
         status: tokens.status(req, res),
         timeMs: parseFloat(tokens['response-time'](req, res)) || undefined,
         contentLength: parseInt(tokens.res(req, res, 'content-length'), 10) || undefined,
-        host: tokens.host(req, res),
         altSessionId: req.altSessionId,
       });
     }
@@ -662,7 +677,7 @@ export class FlexServer implements GristServer {
 
   public get instanceRoot() {
     if (!this._instanceRoot) {
-      this._instanceRoot = path.resolve(process.env.GRIST_INST_DIR || this.appRoot);
+      this._instanceRoot = getInstanceRoot();
       this.info.push(['instanceRoot', this._instanceRoot]);
     }
     return this._instanceRoot;
@@ -774,7 +789,7 @@ export class FlexServer implements GristServer {
   // Set up the main express middleware used.  For a single user setup, without logins,
   // all this middleware is currently a no-op.
   public addAccessMiddleware() {
-    if (this._check('middleware', 'map', 'config', isSingleUserMode() ? null : 'hosts')) { return; }
+    if (this._check('middleware', 'map', 'loginMiddleware', isSingleUserMode() ? null : 'hosts')) { return; }
 
     if (!isSingleUserMode()) {
       const skipSession = appSettings.section('login').flag('skipSession').readBool({
@@ -938,7 +953,7 @@ export class FlexServer implements GristServer {
   }
 
   public addSessions() {
-    if (this._check('sessions', 'config')) { return; }
+    if (this._check('sessions', 'loginMiddleware')) { return; }
     this.addTagChecker();
     this.addOrg();
 
@@ -1030,7 +1045,7 @@ export class FlexServer implements GristServer {
       server: this,
       staticDir: getAppPathTo(this.appRoot, 'static'),
       tag: this.tag,
-      testLogin: allowTestLogin(),
+      testLogin: isTestLoginAllowed(),
       baseDomain: this._defaultBaseDomain,
     });
 
@@ -1050,7 +1065,7 @@ export class FlexServer implements GristServer {
           // Reset isFirstTimeUser flag.
           await this._dbManager.updateUser(user.id, {isFirstTimeUser: false});
 
-          // This is a good time to set some other flags, for showing a popup with welcome question(s)
+          // This is a good time to set some other flags, for showing a page with welcome question(s)
           // to this new user and recording their sign-up with Google Tag Manager. These flags are also
           // scoped to the user, but isFirstTimeUser has a dedicated DB field because it predates userPrefs.
           // Note that the updateOrg() method handles all levels of prefs (for user, user+org, or org).
@@ -1135,25 +1150,8 @@ export class FlexServer implements GristServer {
     });
   }
 
-  /**
-   * Load user config file from standard location (if present).
-   *
-   * Note that the user config file doesn't do anything today, but may be useful in
-   * the future for configuring things that don't fit well into environment variables.
-   *
-   * TODO: Revisit this, and update `GristServer.settings` type to match the expected shape
-   * of config.json. (ts-interface-checker could be useful here for runtime validation.)
-   */
-  public async loadConfig() {
-    if (this._check('config')) { return; }
-    const settingsPath = path.join(this.instanceRoot, 'config.json');
-    if (await fse.pathExists(settingsPath)) {
-      log.info(`Loading config from ${settingsPath}`);
-      this.settings = JSON.parse(await fse.readFile(settingsPath, 'utf8'));
-    } else {
-      log.info(`Loading empty config because ${settingsPath} missing`);
-      this.settings = {};
-    }
+  public async addLoginMiddleware() {
+    if (this._check('loginMiddleware')) { return; }
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
@@ -1169,9 +1167,9 @@ export class FlexServer implements GristServer {
   }
 
   public addComm() {
-    if (this._check('comm', 'start', 'homedb', 'config')) { return; }
+    if (this._check('comm', 'start', 'homedb', 'loginMiddleware')) { return; }
     this._comm = new Comm(this.server, {
-      settings: this.settings,
+      settings: {},
       sessions: this._sessions,
       hosts: this._hosts,
       loginMiddleware: this._loginMiddleware,
@@ -1218,7 +1216,7 @@ export class FlexServer implements GristServer {
     })));
     this.app.get('/signin', ...signinMiddleware, expressWrap(this._redirectToLoginOrSignup.bind(this, {})));
 
-    if (allowTestLogin()) {
+    if (isTestLoginAllowed()) {
       // This is an endpoint for the dev environment that lets you log in as anyone.
       // For a standard dev environment, it will be accessible at localhost:8080/test/login
       // and localhost:8080/o/<org>/test/login.  Only available when GRIST_TEST_LOGIN is set.
@@ -1311,7 +1309,7 @@ export class FlexServer implements GristServer {
       null : 'homedb', 'api-mw', 'map', 'telemetry');
     // add handlers for cleanup, if we are in charge of the doc manager.
     if (!this._docManager) { this.addCleanup(); }
-    await this.loadConfig();
+    await this.addLoginMiddleware();
     this.addComm();
 
     await this.create.configure?.();
@@ -1598,20 +1596,25 @@ export class FlexServer implements GristServer {
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
       const userId = getUserId(req);
       const user = getUser(req);
+      const orgName = stringParam(req.body.org_name, 'org_name');
+      const orgRole = stringParam(req.body.org_role, 'org_role');
       const useCases = stringArrayParam(req.body.use_cases, 'use_cases');
       const useOther = stringParam(req.body.use_other, 'use_other');
       const row = {
         UserID: userId,
         Name: user.name,
         Email: user.loginEmail,
+        org_name: orgName,
+        org_role: orgRole,
         use_cases: ['L', ...useCases],
         use_other: useOther,
       };
-      this._recordNewUserInfo(row)
-      .catch(e => {
+      try {
+        await this._recordNewUserInfo(row);
+      } catch (e) {
         // If we failed to record, at least log the data, so we could potentially recover it.
         log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
-      });
+      }
       const nonOtherUseCases = useCases.filter(useCase => useCase !== 'Other');
       for (const useCase of [...nonOtherUseCases, ...(useOther ? [`Other - ${useOther}`] : [])]) {
         this.getTelemetry().logEvent(req as RequestWithLogin, 'answeredUseCaseQuestion', {
@@ -1883,20 +1886,24 @@ export class FlexServer implements GristServer {
     const probes = new BootProbes(this.app, this, '/api', adminMiddleware);
     probes.addEndpoints();
 
-    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (req, resp) => {
-      const newConfig = req.body.newConfig;
+    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (_, resp) => {
       resp.on('finish', () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         if (process.send) {
-          process.send({ action: 'restart', newConfig });
+          process.send({ action: 'restart' });
         }
       });
-      // On the topic of http response codes, thus spake MDN:
-      // "409: This response is sent when a request conflicts with the current state of the server."
-      const status = process.send ? 200 : 409;
-      return resp.status(status).send();
+
+      if(!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+        // On the topic of http response codes, thus spake MDN:
+        // "409: This response is sent when a request conflicts with the current state of the server."
+        return resp.status(409).send({
+          error: "Cannot automatically restart the Grist server to enact changes. Please restart server manually."
+        });
+      }
+      return resp.status(200).send({ msg: 'ok' });
     }));
 
     // Restrict this endpoint to install admins
@@ -1955,6 +1962,14 @@ export class FlexServer implements GristServer {
     }));
   }
 
+  public addConfigEndpoints() {
+    // Need to be an admin to change the Grist config
+    const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
+
+    const configBackendAPI = new ConfigBackendAPI();
+    configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
+  }
+
   // Get the HTML template sent for document pages.
   public async getDocTemplate(): Promise<DocTemplate> {
     const page = await fse.readFile(path.join(getAppPathTo(this.appRoot, 'static'),
@@ -1983,11 +1998,13 @@ export class FlexServer implements GristServer {
   }
 
   public resolveLoginSystem() {
-    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
+    return isTestLoginAllowed() ?
+      getTestLoginSystem() :
+      (this._getLoginSystem?.() || getLoginSystem());
   }
 
   public addUpdatesCheck() {
-    if (this._check('update')) { return; }
+    if (this._check('update', 'json')) { return; }
 
     // For now we only are active for sass deployments.
     if (this._deploymentType !== 'saas') { return; }
@@ -2481,6 +2498,33 @@ export class FlexServer implements GristServer {
       [];
     return [...pluggedMiddleware, sessionClearMiddleware];
   }
+
+  /**
+   * Returns true if GRIST_LOG_HTTP="true" (or any truthy value).
+   * Returns true if GRIST_LOG_SKIP_HTTP="" (empty string).
+   * Returns false otherwise.
+   *
+   * Also displays a deprecation warning if GRIST_LOG_SKIP_HTTP is set to any value ("", "true", whatever...),
+   * and throws an exception if GRIST_LOG_SKIP_HTTP and GRIST_LOG_HTTP are both set to make the server crash.
+   */
+  private _httpLoggingEnabled(): boolean {
+    const deprecatedOptionEnablesLog = process.env.GRIST_LOG_SKIP_HTTP === '';
+    const isGristLogHttpEnabled = isAffirmative(process.env.GRIST_LOG_HTTP);
+
+    if (process.env.GRIST_LOG_HTTP !== undefined && process.env.GRIST_LOG_SKIP_HTTP !== undefined) {
+      throw new Error('Both GRIST_LOG_HTTP and GRIST_LOG_SKIP_HTTP are set. ' +
+        'Please remove GRIST_LOG_SKIP_HTTP and set GRIST_LOG_HTTP to the value you actually want.');
+    }
+
+    if (process.env.GRIST_LOG_SKIP_HTTP !== undefined) {
+      const expectedGristLogHttpVal = deprecatedOptionEnablesLog ? "true" : "false";
+
+      log.warn(`Setting env variable GRIST_LOG_SKIP_HTTP="${process.env.GRIST_LOG_SKIP_HTTP}" `
+        + `is deprecated in favor of GRIST_LOG_HTTP="${expectedGristLogHttpVal}"`);
+    }
+
+    return isGristLogHttpEnabled || deprecatedOptionEnablesLog;
+  }
 }
 
 /**
@@ -2513,8 +2557,8 @@ function configServer<T extends https.Server|http.Server>(server: T): T {
 }
 
 // Returns true if environment is configured to allow unauthenticated test logins.
-function allowTestLogin() {
-  return Boolean(process.env.GRIST_TEST_LOGIN);
+function isTestLoginAllowed() {
+  return isAffirmative(process.env.GRIST_TEST_LOGIN);
 }
 
 // Check OPTIONS requests for allowed origins, and return heads to allow the browser to proceed

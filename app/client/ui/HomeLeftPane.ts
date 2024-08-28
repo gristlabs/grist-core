@@ -5,7 +5,7 @@ import {reportError} from 'app/client/models/AppModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
-import {getAdminPanelName} from 'app/client/ui/AdminPanel';
+import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
 import {docImport, importFromPlugin} from 'app/client/ui/HomeImports';
 import {
@@ -31,7 +31,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
   const creating = observable<boolean>(false);
   const renaming = observable<Workspace|null>(null);
   const isAnonymous = !home.app.currentValidUser;
-  const canCreate = !isAnonymous || getGristConfig().enableAnonPlayground;
+  const {enableAnonPlayground, templateOrg, onboardingTutorialDocId} = getGristConfig();
+  const canCreate = !isAnonymous || enableAnonPlayground;
 
   return cssContent(
     dom.autoDispose(creating),
@@ -119,7 +120,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       )),
       cssTools(
         cssPageEntry(
-          dom.show(isFeatureEnabled("templates") && Boolean(getGristConfig().templateOrg)),
+          dom.show(isFeatureEnabled("templates") && Boolean(templateOrg)),
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
           cssPageLink(cssPageIcon('Board'), cssLinkText(t("Examples & Templates")),
             urlState().setLinkUrl({homePage: "templates"}),
@@ -135,9 +136,9 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         ),
         cssSpacer(),
         cssPageEntry(
-          dom.show(isFeatureEnabled('tutorials')),
+          dom.show(isFeatureEnabled('tutorials') && Boolean(templateOrg && onboardingTutorialDocId)),
           cssPageLink(cssPageIcon('Bookmark'), cssLinkText(t("Tutorial")),
-            { href: commonUrls.basicTutorial, target: '_blank' },
+            urlState().setLinkUrl({org: templateOrg!, doc: onboardingTutorialDocId}),
             testId('dm-basic-tutorial'),
           ),
         ),

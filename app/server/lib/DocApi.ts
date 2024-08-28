@@ -30,7 +30,7 @@ import {TelemetryMetadataByLevel} from "app/common/Telemetry";
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/homedb/HomeDBManager';
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
 import {GristObjCode} from "app/plugin/GristData";
@@ -324,7 +324,7 @@ export class DocWorkerApi {
     );
 
     const registerWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, webhook: WebhookFields) => {
-      const {fields, url} = await getWebhookSettings(activeDoc, req, null, webhook);
+      const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, null, webhook);
       if (!fields.eventTypes?.length) {
         throw new ApiError(`eventTypes must be a non-empty array`, 400);
       }
@@ -336,7 +336,7 @@ export class DocWorkerApi {
       }
 
       const unsubscribeKey = uuidv4();
-      const webhookSecret: WebHookSecret = {unsubscribeKey, url};
+      const webhookSecret: WebHookSecret = {unsubscribeKey, url, authorization};
       const secretValue = JSON.stringify(webhookSecret);
       const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
 
@@ -392,7 +392,7 @@ export class DocWorkerApi {
       const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
       const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
       let currentTableId = trigger ? tablesTable.getValue(trigger.tableRef, 'tableId')! : undefined;
-      const {url, eventTypes, watchedColIds, isReadyColumn, name} = webhook;
+      const {url, authorization, eventTypes, watchedColIds, isReadyColumn, name} = webhook;
       const tableId = await getRealTableId(req.params.tableId || webhook.tableId, {metaTables});
 
       const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
@@ -454,6 +454,7 @@ export class DocWorkerApi {
       return {
         fields,
         url,
+        authorization,
       };
     }
 
@@ -926,16 +927,16 @@ export class DocWorkerApi {
 
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
-        const {fields, url} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
+        const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
         if (fields.enabled === false) {
           await activeDoc.triggers.clearSingleWebhookQueue(webhookId);
         }
 
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
 
-        // update url in homedb
-        if (url) {
-          await this._dbManager.updateWebhookUrl(webhookId, docId, url);
+        // update url and authorization header in homedb
+        if (url || authorization) {
+          await this._dbManager.updateWebhookUrlAndAuth({id: webhookId, docId, url, auth: authorization});
           activeDoc.triggers.webhookDeleted(webhookId); // clear cache
         }
 
@@ -1123,7 +1124,7 @@ export class DocWorkerApi {
           const scope = getDocScope(req);
           const tutorialTrunkId = options.sourceDocId;
           await this._dbManager.connection.transaction(async (manager) => {
-            // Fetch the tutorial trunk doc so we can replace the tutorial doc's name.
+            // Fetch the tutorial trunk so we can replace the tutorial fork's name.
             const tutorialTrunk = await this._dbManager.getDoc({...scope, urlId: tutorialTrunkId}, manager);
             await this._dbManager.updateDocument(
               scope,
@@ -1131,9 +1132,8 @@ export class DocWorkerApi {
                 name: tutorialTrunk.name,
                 options: {
                   tutorial: {
-                    ...tutorialTrunk.options?.tutorial,
-                    // For now, the only state we need to reset is the slide position.
                     lastSlideIndex: 0,
+                    percentComplete: 0,
                   },
                 },
               },

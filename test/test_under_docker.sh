@@ -31,6 +31,8 @@ cleanup() {
 GRIST_LOG_LEVEL="error"
 if [[ "${DEBUG:-}" == 1 ]]; then
   GRIST_LOG_LEVEL=""
+  GRIST_LOG_HTTP="true"
+  GRIST_LOG_HTTP_BODY="true"
 fi
 
 docker run --name $DOCKER_CONTAINER --rm \
@@ -39,7 +41,8 @@ docker run --name $DOCKER_CONTAINER --rm \
   --env GRIST_SESSION_COOKIE=grist_test_cookie \
   --env GRIST_TEST_LOGIN=1 \
   --env GRIST_LOG_LEVEL=$GRIST_LOG_LEVEL \
-  --env GRIST_LOG_SKIP_HTTP=${DEBUG:-false} \
+  --env GRIST_LOG_HTTP=${GRIST_LOG_HTTP:-false} \
+  --env GRIST_LOG_HTTP_BODY=${GRIST_LOG_HTTP_BODY:-false} \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
   --env GRIST_TEMPLATE_ORG=templates \
   ${TEST_IMAGE:-gristlabs/grist} &

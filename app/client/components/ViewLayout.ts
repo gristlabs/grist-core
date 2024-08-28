@@ -20,7 +20,12 @@ import {reportError} from 'app/client/models/errors';
 import {getTelemetryWidgetTypeFromVS} from 'app/client/ui/widgetTypesMap';
 import {isNarrowScreen, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
+import {makeT} from 'app/client/lib/localization';
+import {urlState} from 'app/client/models/gristUrlState';
+import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
+import {cssLink} from 'app/client/ui2018/links';
 import {mod} from 'app/common/gutil';
 import {
   Computed,
@@ -38,6 +43,8 @@ import {
 import * as ko from 'knockout';
 import debounce from 'lodash/debounce';
 import * as _ from 'underscore';
+
+const t = makeT('ViewLayout');
 
 // tslint:disable:no-console
 
@@ -125,7 +132,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     this.listenTo(this.layout, 'layoutUserEditStop', () => {
       this.isResizing.set(false);
       this.layoutSaveDelay.schedule(1000, () => {
-        this.saveLayoutSpec();
+        this.saveLayoutSpec().catch(reportError);
       });
     });
 
@@ -187,7 +194,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     }));
 
     const commandGroup = {
-      deleteSection: () => { this.removeViewSection(this.viewModel.activeSectionId()); },
+      deleteSection: () => { this.removeViewSection(this.viewModel.activeSectionId()).catch(reportError); },
       nextSection: () => { this._otherSection(+1); },
       prevSection: () => { this._otherSection(-1); },
       printSection: () => { printViewSection(this.layout, this.viewModel.activeSection()).catch(reportError); },
@@ -265,31 +272,83 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     this._savePending.set(false);
     // Cancel the automatic delay.
     this.layoutSaveDelay.cancel();
-    if (!this.layout) { return; }
+    if (!this.layout) { return Promise.resolve(); }
     // Only save layout changes when the document isn't read-only.
     if (!this.gristDoc.isReadonly.get()) {
       if (!specs) {
         specs = this.layout.getLayoutSpec();
         specs.collapsed = this.viewModel.activeCollapsedSections.peek().map((leaf)=> ({leaf}));
       }
-      this.viewModel.layoutSpecObj.setAndSave(specs).catch(reportError);
+      return this.viewModel.layoutSpecObj.setAndSave(specs).catch(reportError);
     }
     this._onResize();
+    return Promise.resolve();
   }
 
-  // Removes a view section from the current view. Should only be called if there is
-  // more than one viewsection in the view.
-  public removeViewSection(viewSectionRowId: number) {
+  /**
+   * Removes a view section from the current view. Should only be called if there is more than
+   * one viewsection in the view.
+   * @returns A promise that resolves with true when the view section is removed. If user was
+   * prompted and decided to cancel, the promise resolves with false.
+   */
+  public async removeViewSection(viewSectionRowId: number) {
     this.maximized.set(null);
     const viewSection = this.viewModel.viewSections().all().find(s => s.getRowId() === viewSectionRowId);
     if (!viewSection) {
       throw new Error(`Section not found: ${viewSectionRowId}`);
     }
+    const tableId = viewSection.table.peek().tableId.peek();
 
-    const widgetType = getTelemetryWidgetTypeFromVS(viewSection);
-    logTelemetryEvent('deletedWidget', {full: {docIdDigest: this.gristDoc.docId(), widgetType}});
+    // Check if this is a UserTable (not summary) and if so, if it is available on any other page
+    // we have access to (or even on this page but in different widget). If yes, then we are safe
+    // to remove it, otherwise we need to warn the user.
 
-    this.gristDoc.docData.sendAction(['RemoveViewSection', viewSectionRowId]).catch(reportError);
+    const logTelemetry = () => {
+      const widgetType = getTelemetryWidgetTypeFromVS(viewSection);
+      logTelemetryEvent('deletedWidget', {full: {docIdDigest: this.gristDoc.docId(), widgetType}});
+    };
+
+    const isUserTable = () => viewSection.table.peek().isSummary.peek() === false;
+
+    const notInAnyOtherSection = () => {
+      // Get all viewSection we have access to, and check if the table is used in any of them.
+      const others = this.gristDoc.docModel.viewSections.rowModels
+                      .filter(vs => !vs.isDisposed())
+                      .filter(vs => vs.id.peek() !== viewSectionRowId)
+                      .filter(vs => vs.isRaw.peek() === false)
+                      .filter(vs => vs.isRecordCard.peek() === false)
+                      .filter(vs => vs.tableId.peek() === viewSection.tableId.peek());
+      return others.length === 0;
+    };
+
+    const REMOVED = true, IGNORED = false;
+
+    const possibleActions = {
+      [DELETE_WIDGET]: async () => {
+        logTelemetry();
+        await this.gristDoc.docData.sendAction(['RemoveViewSection', viewSectionRowId]);
+        return REMOVED;
+      },
+      [DELETE_DATA]: async () => {
+        logTelemetry();
+        await this.gristDoc.docData.sendActions([
+          ['RemoveViewSection', viewSectionRowId],
+          ['RemoveTable', tableId],
+        ]);
+        return REMOVED;
+      },
+      [CANCEL]: async () => IGNORED,
+    };
+
+    const tableName = () => viewSection.table.peek().tableNameDef.peek();
+
+    const needPrompt = isUserTable() && notInAnyOtherSection();
+
+    const decision = needPrompt
+      ? widgetRemovalPrompt(tableName())
+      : Promise.resolve(DELETE_WIDGET as PromptAction);
+
+    return possibleActions[await decision]();
   }
 
   public rebuildLayout(layoutSpec: BoxSpec) {
@@ -415,6 +474,47 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     const menu: HTMLElement | null = leafBoxDom.querySelector('.test-section-menu-sortAndFilter');
     menu?.click();
   }
+}
+
+const DELETE_WIDGET = 'deleteOnlyWidget';
+const DELETE_DATA = 'deleteDataAndWidget';
+const CANCEL = 'cancel';
+type PromptAction = typeof DELETE_WIDGET | typeof DELETE_DATA | typeof CANCEL;
+
+function widgetRemovalPrompt(tableName: string): Promise<PromptAction> {
+  return new Promise<PromptAction>((resolve) => {
+    saveModal((ctl, owner): ISaveModalOptions => {
+      const selected = Observable.create<PromptAction | ''>(owner, '');
+      const saveDisabled = Computed.create(owner, use => use(selected) === '');
+      const saveFunc = async () => selected.get() && resolve(selected.get() as PromptAction);
+      owner.onDispose(() => resolve(CANCEL));
+      return {
+        title: t('Table {{tableName}} will no longer be visible', { tableName }),
+        body: dom('div',
+          testId('removePopup'),
+          cssRadioCheckboxOptions(
+            radioCheckboxOption(selected, DELETE_DATA, t("Delete data and this widget.")),
+            radioCheckboxOption(selected, DELETE_WIDGET,
+              t(
+                `Keep data and delete widget. Table will remain available in {{rawDataLink}}`,
+                {
+                  rawDataLink: cssLink(
+                    t('raw data page'),
+                    urlState().setHref({docPage: 'data'}),
+                    {target: '_blank'},
+                  )
+                }
+              )
+            ),
+          ),
+        ),
+        saveDisabled,
+        saveLabel: t("Delete"),
+        saveFunc,
+        width: 'fixed-wide',
+      };
+    });
+  });
 }
 
 const cssLayoutBox = styled('div', `

@@ -536,6 +536,12 @@ class TestUserActions(test_engine.EngineTestCase):
   def test_section_removes(self):
     # Add a couple of tables and views, to trigger creation of some related items.
     self.init_views_sample()
+    self.apply_user_action(['BulkUpdateRecord', '_grist_Views', [2], {
+      'layoutSpec': [
+        "{\"children\":[{\"children\":[{\"leaf\":10},{\"leaf\":4}]}],"
+          + "\"collapsed\":[{\"leaf\":6}]}",
+      ]
+    }])
 
     self.assertViews([
       View(1, sections=[
@@ -594,6 +600,56 @@ class TestUserActions(test_engine.EngineTestCase):
           Field(20, colRef=3),
         ]),
       ])
+    ])
+
+    # Check that the view layout spec also got updated.
+    self.assertTableData('_grist_Views', rows='subset', cols='subset', data=[
+      ['id', 'layoutSpec'],
+      [2, "{\"children\": [{\"children\": [{\"leaf\": 4}]}], \"collapsed\": []}"],
+    ])
+
+  #----------------------------------------------------------------------
+
+  def test_field_removes(self):
+    self.init_views_sample()
+    self.apply_user_action(['BulkUpdateRecord', '_grist_Views_section', [1, 4, 6, 7], {
+      'layoutSpec': [
+        "",
+        "{\"children\":[{\"children\":[{\"leaf\":10},{\"leaf\":11}]},{\"leaf\":12}]}",
+        "{\"id\":\"d748210f-91e1-4209-8f56-c27f4f62efde\",\"type\":\"Layout\",\"children\":[{\"id"
+          + "\":\"a939f6b0-c728-4b36-bdde-6bb727ce4027\",\"type\":\"Paragraph\",\"text\":\"## **F"
+          + "orm Title**\",\"alignment\":\"center\"},{\"id\":\"428c5f4f-b1f8-4bb6-89e5-5cdab4fca5"
+          + "d0\",\"type\":\"Paragraph\",\"text\":\"Your form description goes here.\",\"alignmen"
+          + "t\":\"center\"},{\"id\":\"9bfaa427-7776-411e-9724-e351fb4d5bdf\",\"type\":\"Section"
+          + "\",\"children\":[{\"id\":\"8192f1c8-918f-4b4f-b51c-c775588a6087\",\"type\":\"Paragra"
+          + "ph\",\"text\":\"### **Header**\"},{\"id\":\"6005123f-069b-4b31-85d1-d8c677c53f7e\","
+          + "\"type\":\"Paragraph\",\"text\":\"Description\"},{\"id\":\"444ffba4-5a99-4a3f-abb9-9"
+          + "09deea5c059\",\"type\":\"Field\",\"leaf\":16},{\"id\":\"c7deaa62-3c06-45a8-aa79-122d"
+          + "01c77832\",\"type\":\"Field\",\"leaf\":17},{\"id\":\"b7326be0-a73e-4cc1-8f8b-6c5033d"
+          + "227e4\",\"type\":\"Field\",\"leaf\":18}]},{\"id\":\"3a70d09f-2b08-4875-a813-3432d2d0"
+          + "ae3d\",\"type\":\"Submit\"}]}",
+        "invalid",
+      ]
+    }])
+
+    # Remove a couple of fields. Ensure the layout specs of their sections get updated.
+    self.apply_user_action(['BulkRemoveRecord', '_grist_Views_section_field', [1, 10, 12, 16, 19]])
+    self.assertTableData('_grist_Views_section', rows='subset', cols='subset', data=[
+      ['id', 'layoutSpec'],
+      [1, ""],
+      [4, "{\"children\": [{\"children\": [{\"leaf\": 11}]}]}"],
+      [6, "{\"children\": [{\"alignment\": \"center\", \"id\": \"a939f6b0-c728-4b36-bdde-6bb727ce4"
+        + "027\", \"text\": \"## **Form Title**\", \"type\": \"Paragraph\"}, {\"alignment\": \"cen"
+        + "ter\", \"id\": \"428c5f4f-b1f8-4bb6-89e5-5cdab4fca5d0\", \"text\": \"Your form descript"
+        + "ion goes here.\", \"type\": \"Paragraph\"}, {\"children\": [{\"id\": \"8192f1c8-918f-4b"
+        + "4f-b51c-c775588a6087\", \"text\": \"### **Header**\", \"type\": \"Paragraph\"}, {\"id\""
+        + ": \"6005123f-069b-4b31-85d1-d8c677c53f7e\", \"text\": \"Description\", \"type\": \"Para"
+        + "graph\"}, {\"id\": \"c7deaa62-3c06-45a8-aa79-122d01c77832\", \"leaf\": 17, \"type\": \""
+        + "Field\"}, {\"id\": \"b7326be0-a73e-4cc1-8f8b-6c5033d227e4\", \"leaf\": 18, \"type\": \""
+        + "Field\"}], \"id\": \"9bfaa427-7776-411e-9724-e351fb4d5bdf\", \"type\": \"Section\"}, {"
+        + "\"id\": \"3a70d09f-2b08-4875-a813-3432d2d0ae3d\", \"type\": \"Submit\"}], \"id\": \"d74"
+        + "8210f-91e1-4209-8f56-c27f4f62efde\", \"type\": \"Layout\"}"],
+      [7, "invalid"],
     ])
 
   #----------------------------------------------------------------------

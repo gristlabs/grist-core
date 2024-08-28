@@ -21,6 +21,47 @@ describe('ChartView1', function() {
   gu.bigScreen();
   afterEach(() => gu.checkForErrors());
 
+  it('should treat text as category', async function() {
+    const revert = await gu.begin();
+    await gu.sendActions([
+      ['AddTable', 'Text', [
+        {id: 'X', type: 'Int'},
+        {id: 'Y', type: 'Int'}
+      ]],
+      ['AddRecord', 'Text', null, {X: 1, Y: 1}],
+      ['AddRecord', 'Text', null, {X: 100, Y: 2}],
+      ['AddRecord', 'Text', null, {X: 101, Y: 3}],
+      ['AddRecord', 'Text', null, {X: 102, Y: 4}],
+    ]);
+    await gu.openPage('Text');
+    await gu.addNewSection('Chart', 'Text');
+
+    const layout = () => getChartData().then(d => d.layout);
+
+    await gu.waitToPass(async () => {
+      // Check to make sure initial values are correct.
+      assert.deepEqual((await layout()).xaxis.type, 'linear');
+    });
+
+    // Now convert X to text.
+    await gu.sendActions([
+      ['ModifyColumn', 'Text', 'X', {type: 'Text'}],
+    ]);
+    assert.deepEqual((await layout()).xaxis.type, 'category');
+
+    // Invert the chart.
+    await gu.selectSectionByTitle('Text Chart');
+    await gu.toggleSidePanel('right', 'open');
+    await driver.find('.test-chart-orientation .test-select-open').click();
+    await driver.findContent('.test-select-menu', 'Horizontal').click();
+    await gu.waitForServer();
+    assert.deepEqual((await layout()).yaxis.type, 'category');
+    assert.deepEqual((await layout()).xaxis.type, 'linear');
+
+    await revert();
+    await gu.toggleSidePanel('right', 'close');
+  });
+
   it('should allow adding and removing chart viewsections', async function() {
     // Starting out with one section
     assert.lengthOf(await driver.findAll('.test-gristdoc .view_leaf'), 1);
@@ -133,7 +174,7 @@ describe('ChartView1', function() {
 
   it('should update chart when new columns are included', async function() {
     const chartDom = await driver.find('.test-chart-container');
-    // Check to make sure intial values are correct.
+    // Check to make sure initial values are correct.
     let data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
     assert.deepEqual(data[0].x, [ 61, 5, 4, 3, 2, 1 ]);

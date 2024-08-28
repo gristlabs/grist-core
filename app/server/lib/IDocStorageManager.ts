@@ -36,6 +36,8 @@ export interface IDocStorageManager {
   // Metadata may not be returned in this case.
   getSnapshots(docName: string, skipMetadataCache?: boolean): Promise<DocSnapshots>;
   removeSnapshots(docName: string, snapshotIds: string[]): Promise<void>;
+  // Get information about how snapshot generation is going.
+  getSnapshotProgress(docName: string): SnapshotProgress;
   replace(docName: string, options: DocReplacementOptions): Promise<void>;
 }
 
@@ -66,5 +68,60 @@ export class TrivialDocStorageManager implements IDocStorageManager {
   public async flushDoc() {}
   public async getSnapshots(): Promise<never> { throw new Error('no'); }
   public async removeSnapshots(): Promise<never> { throw new Error('no'); }
+  public getSnapshotProgress(): SnapshotProgress { return new EmptySnapshotProgress(); }
   public async replace(): Promise<never> { throw new Error('no'); }
+}
+
+
+/**
+ * Some summary information about how snapshot generation is going.
+ * Any times are in ms.
+ * All information is within the lifetime of a doc worker, not global.
+ */
+export interface SnapshotProgress {
+  /** The last time the document was marked as having changed. */
+  lastChangeAt?: number;
+
+  /**
+   * The last time a save window started for the document (checking to see
+   * if it needs to be pushed, and pushing it if so, possibly waiting
+   * quite some time to bundle any other changes).
+   */
+  lastWindowStartedAt?: number;
+
+  /**
+   * The last time the document was either pushed or determined to not
+   * actually need to be pushed, after having been marked as changed.
+   */
+  lastWindowDoneAt?: number;
+
+  /** Number of times the document was pushed. */
+  pushes: number;
+
+  /** Number of times the document was not pushed because no change found. */
+  skippedPushes: number;
+
+  /** Number of times there was an error trying to push. */
+  errors: number;
+
+  /**
+   * Number of times the document was marked as changed.
+   * Will generally be a lot greater than saves.
+   */
+  changes: number;
+
+  /** Number of times a save window was started. */
+  windowsStarted: number;
+
+  /** Number of times a save window was completed. */
+  windowsDone: number;
+}
+
+export class EmptySnapshotProgress implements SnapshotProgress {
+  public pushes: number = 0;
+  public skippedPushes: number = 0;
+  public errors: number = 0;
+  public changes: number = 0;
+  public windowsStarted: number = 0;
+  public windowsDone: number = 0;
 }

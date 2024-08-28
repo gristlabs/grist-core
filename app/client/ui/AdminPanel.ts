@@ -9,6 +9,7 @@ import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {SupportGristPage} from 'app/client/ui/SupportGristPage';
+import {ToggleEnterpriseWidget} from 'app/client/ui/ToggleEnterpriseWidget';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
@@ -24,17 +25,14 @@ import * as version from 'app/common/version';
 import {Computed, Disposable, dom, IDisposable,
         IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
 import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
-
+import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
+import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
 
 const t = makeT('AdminPanel');
 
-// Translated "Admin Panel" name, made available to other modules.
-export function getAdminPanelName() {
-  return t("Admin Panel");
-}
-
 export class AdminPanel extends Disposable {
   private _supportGrist = SupportGristPage.create(this, this._appModel);
+  private _toggleEnterprise = ToggleEnterpriseWidget.create(this);
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private _checks: AdminChecks;
 
@@ -145,6 +143,13 @@ Please log in as an administrator.`)),
           description: t('Current authentication method'),
           value: this._buildAuthenticationDisplay(owner),
           expandedContent: this._buildAuthenticationNotice(owner),
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'session',
+          name: t('Session Secret'),
+          description: t('Key to sign sessions with'),
+          value: this._buildSessionSecretDisplay(owner),
+          expandedContent: this._buildSessionSecretNotice(owner),
         })
       ]),
       dom.create(AdminSection, t('Version'), [
@@ -154,6 +159,7 @@ Please log in as an administrator.`)),
           description: t('Current version of Grist'),
           value: cssValueLabel(`Version ${version.version}`),
         }),
+        this._maybeAddEnterpriseToggle(),
         this._buildUpdates(owner),
       ]),
       dom.create(AdminSection, t('Self Checks'), [
@@ -173,6 +179,19 @@ Please log in as an administrator.`)),
         }),
       ]),
     ];
+  }
+
+  private _maybeAddEnterpriseToggle() {
+    if (!showEnterpriseToggle()) {
+      return null;
+    }
+    return dom.create(AdminSectionItem, {
+      id: 'enterprise',
+      name: t('Enterprise'),
+      description: t('Enable Grist Enterprise'),
+      value: dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable()),
+      expandedContent: this._toggleEnterprise.buildEnterpriseSection(),
+    });
   }
 
   private _buildSandboxingDisplay(owner: IDisposableOwner) {
@@ -239,6 +258,27 @@ Please log in as an administrator.`)),
     return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
 We recommend enabling one of these if Grist is accessible over the network or being made available \
 to multiple people.');
+  }
+
+  private _buildSessionSecretDisplay(owner: IDisposableOwner) {
+    return dom.domComputed(
+      use => {
+        const req = this._checks.requestCheckById(use, 'session-secret');
+        const result = req ? use(req.result) : undefined;
+
+        if (result?.status === 'warning') {
+          return cssValueLabel(cssDangerText('default'));
+        }
+
+        return cssValueLabel(cssHappyText('configured'));
+      }
+    );
+  }
+
+  private _buildSessionSecretNotice(owner: IDisposableOwner) {
+    return t('Grist signs user session cookies with a secret key. Please set this key via the environment variable \
+GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
+in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.');
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -472,7 +512,11 @@ to multiple people.');
     return dom.domComputed(
       use => [
         ...use(this._checks.probes).map(probe => {
-          const isRedundant = probe.id === 'sandboxing';
+          const isRedundant = [
+            'sandboxing',
+            'authentication',
+            'session-secret'
+          ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
           const req = this._checks.requestCheck(probe);
