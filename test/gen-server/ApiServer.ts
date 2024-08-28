@@ -2212,6 +2212,7 @@ describe('ApiServer', function() {
         await server.dbManager.setDocsMetadata({[id]: {usage}});
       }
       await server.dbManager.setDocGracePeriodStart(docIds[docIds.length - 1], new Date(2000, 1, 1));
+      await server.dbManager.setDocGracePeriodStart(docIds[docIds.length - 2], new Date());
 
       // Check that what's reported by /usage is accurate.
       await assertOrgUsage(freeTeamOrgId, chimpy, {
@@ -2238,6 +2239,7 @@ describe('ApiServer', function() {
         dataSizeBytes: 999999999,
         attachmentsSizeBytes: 999999999,
       }}});
+      await server.dbManager.setDocGracePeriodStart(docId, new Date());
 
       // Check that /usage includes that document in the count.
       await assertOrgUsage(freeTeamOrgId, chimpy, {

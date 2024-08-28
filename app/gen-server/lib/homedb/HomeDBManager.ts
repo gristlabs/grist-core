@@ -1,7 +1,7 @@
 import {ShareInfo} from 'app/common/ActiveDocAPI';
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
-import {getDataLimitStatus} from 'app/common/DocLimits';
+import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
@@ -764,7 +764,7 @@ export class HomeDBManager extends EventEmitter {
     // Return an aggregate count of documents, grouped by data limit status.
     const summary = createEmptyOrgUsageSummary();
     for (const {usage: docUsage, gracePeriodStart} of docs) {
-      const dataLimitStatus = getDataLimitStatus({docUsage, gracePeriodStart, productFeatures});
+      const dataLimitStatus = getDataLimitInfo({docUsage, gracePeriodStart, productFeatures}).status;
       if (dataLimitStatus) { summary[dataLimitStatus] += 1; }
     }
     return summary;

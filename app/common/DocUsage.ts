@@ -10,13 +10,17 @@ export interface RowCounts {
 }
 
 export type DataLimitStatus = 'approachingLimit' | 'gracePeriod' | 'deleteOnly' | null;
+export interface DataLimitInfo {
+  status: DataLimitStatus;
+  daysRemaining?: number;
+}
 
 type DocUsageOrPending = {
   [Metric in keyof Required<DocumentUsage>]: Required<DocumentUsage>[Metric] | 'pending'
 }
 
 export interface DocUsageSummary extends DocUsageOrPending {
-  dataLimitStatus: DataLimitStatus;
+  dataLimitInfo: DataLimitInfo;
 }
 
 // Count of non-removed documents in an org, grouped by data limit status.
@@ -27,7 +31,7 @@ type FilteredDocUsage = {
 }
 
 export interface FilteredDocUsageSummary extends FilteredDocUsage {
-  dataLimitStatus: DataLimitStatus;
+  dataLimitInfo: DataLimitInfo;
 }
 
 // Ratio of usage at which we start telling users that they're approaching limits.

@@ -792,7 +792,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const role = options.role ?? await this.getNominalAccess(docSession);
     const hasEditRole = canEdit(role);
-    if (!hasEditRole) { result.dataLimitStatus = null; }
+    if (!hasEditRole) { result.dataLimitInfo.status = null; }
     const hasFullReadAccess = await this.canReadEverything(docSession);
     if (!hasEditRole || !hasFullReadAccess) {
       result.rowCount = 'hidden';

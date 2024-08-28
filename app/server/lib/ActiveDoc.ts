@@ -50,12 +50,12 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {getDataLimitRatio, getDataLimitStatus, getSeverity, LimitExceededError} from 'app/common/DocLimits';
+import {getDataLimitInfo, getDataLimitRatio, getSeverity, LimitExceededError} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
   APPROACHING_LIMIT_RATIO,
-  DataLimitStatus,
+  DataLimitInfo,
   DocumentUsage,
   DocUsageSummary,
   FilteredDocUsageSummary,
@@ -421,8 +421,8 @@ export class ActiveDoc extends EventEmitter {
     return getDataLimitRatio(this._docUsage, this._product?.features);
   }
 
-  public get dataLimitStatus(): DataLimitStatus {
-    return getDataLimitStatus({
+  public get dataLimitInfo(): DataLimitInfo {
+    return getDataLimitInfo({
       docUsage: this._docUsage,
       productFeatures: this._product?.features,
       gracePeriodStart: this._gracePeriodStart,
@@ -431,7 +431,7 @@ export class ActiveDoc extends EventEmitter {
 
   public getDocUsageSummary(): DocUsageSummary {
     return {
-      dataLimitStatus: this.dataLimitStatus,
+      dataLimitInfo: this.dataLimitInfo,
       rowCount: this._docUsage?.rowCount ?? 'pending',
       dataSizeBytes: this._docUsage?.dataSizeBytes ?? 'pending',
       attachmentsSizeBytes: this._docUsage?.attachmentsSizeBytes ?? 'pending',
@@ -2176,7 +2176,7 @@ export class ActiveDoc extends EventEmitter {
     await this.waitForInitialization();
 
     if (
-      this.dataLimitStatus === "deleteOnly" &&
+      this.dataLimitInfo.status === "deleteOnly" &&
       !actions.every(action => [
           'RemoveTable', 'RemoveColumn', 'RemoveRecord', 'BulkRemoveRecord',
           'RemoveViewSection', 'RemoveView', 'ApplyUndoActions', 'RespondToRequests',
@@ -2253,13 +2253,13 @@ export class ActiveDoc extends EventEmitter {
    */
   private async _updateDocUsage(usage: Partial<DocumentUsage>, options: UpdateUsageOptions = {}) {
     const {syncUsageToDatabase = true, broadcastUsageToClients = true} = options;
-    const oldStatus = this.dataLimitStatus;
+    const oldStatus = this.dataLimitInfo.status;
     this._docUsage = {...(this._docUsage || {}), ...usage};
     if (syncUsageToDatabase) {
       /* If status decreased, we'll update usage in the database with minimal delay, so site usage
        * banners show up-to-date statistics. If status increased or stayed the same, we'll schedule
        * a delayed update, since it's less critical for banners to update immediately. */
-      const didStatusDecrease = getSeverity(this.dataLimitStatus) < getSeverity(oldStatus);
+      const didStatusDecrease = getSeverity(this.dataLimitInfo.status) < getSeverity(oldStatus);
       this._syncDocUsageToDatabase(didStatusDecrease);
     }
     if (broadcastUsageToClients) {
