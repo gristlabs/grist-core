@@ -1,4 +1,4 @@
-# Welcome to the contribution guide for Grist!
+# Welcome to the distribution guide for Grist!
 
 You are eager to contribute to Grist? That's awesome! See below some contributions you can make:
 - [translate](/documentation/translations.md)
