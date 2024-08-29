@@ -108,7 +108,7 @@ export const cssCheckboxCircle = styled(cssCheckboxSquare, `
 `);
 
 export const cssLabelText = styled('span', `
-  margin-left: 8px;
+  margin-left: 16px;
   color: ${theme.text};
   font-weight: initial;   /* negate bootstrap */
   overflow: hidden;
@@ -215,7 +215,7 @@ export function toggle(value: Observable<boolean|null>, ...domArgs: DomElementAr
 // checkbox doesn't support two-way binding.
 const cssBlockCheckbox = styled('div', `
   display: flex;
-  padding: 10px 8px;
+  padding: 16px;
   border: 1px solid ${theme.controlSecondaryDisabledFg};
   border-radius: 3px;
   cursor: pointer;
