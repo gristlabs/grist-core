@@ -350,7 +350,7 @@ export class DocSettingsPage extends Disposable {
               dom('strong', t('Regular document')),
             ),
             dom('div',
-              dom.style('margin-top', '16px'),
+              dom.style('margin-top', '8px'),
               dom('span', t('Regular document behavior, all users work on the same copy of the document.'))
             ),
             testId('doctype-modal-option-regular'),
@@ -360,7 +360,7 @@ export class DocSettingsPage extends Disposable {
               dom('strong', t('Template')),
             ),
             dom('div',
-              dom.style('margin-top', '16px'),
+              dom.style('margin-top', '8px'),
               dom('span',
                 t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
                   'Any edit (open to anybody) will create a new unsaved copy.',
@@ -377,7 +377,7 @@ export class DocSettingsPage extends Disposable {
               dom('strong', t('Tutorial')),
             ),
             dom('div',
-              dom.style('margin-top', '16px'),
+              dom.style('margin-top', '8px'),
               dom('span', t('Document automatically opens with a new copy.')),
             ),
             testId('doctype-modal-option-tutorial'),
@@ -678,6 +678,7 @@ const cssAdminSection = styled(AdminSection, `
 const cssDocTypeContainer = styled('div', `
   display: flex;
   width: 172px;
+  align-items: center;
   justify-content: space-between;
   & > * {
     display: inline-block;
