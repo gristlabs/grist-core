@@ -134,7 +134,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                           hasFeaturedTemplates ? t("More Examples and Templates") : t("Examples and Templates")
                       ) :
                       page === 'trash' ? t("Trash") :
-                      workspace && [css.docHeaderIcon(workspace.shareType === 'private' ? 'FolderPrivate' : 'Folder'), workspaceName(home.app, workspace)]
+                      workspace && [css.docHeaderIcon(workspace.shareType === 'public' ? 'Folder' : 'FolderPrivate'), workspaceName(home.app, workspace)]
                     ),
                     testId('doc-header'),
                   )
@@ -198,8 +198,7 @@ function buildAllDocsBlock(
     if (showIntro) { return null; }
     return css.docBlock(
       css.docBlockHeaderLink(
-        css.wsLeft(
-          css.wsLeft(css.docHeaderIcon(ws.shareType === 'private' ? 'FolderPrivate' : 'Folder'),
+        css.wsLeft(css.docHeaderIcon(ws.shareType === 'public' ? 'Folder' : 'FolderPrivate'),
           workspaceName(home.app, ws),
         ),
 
@@ -276,7 +275,7 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
     return css.templatesDocBlock(
       css.templateBlockHeader(
         css.wsLeft(
-          css.docHeaderIcon(workspace.shareType === 'private' ? 'FolderPrivate' : 'Folder'),
+          css.docHeaderIcon(workspace.shareType === 'public' ? 'Folder' : 'FolderPrivate'),
           workspace.name,
         ),
         testId('templates-header'),

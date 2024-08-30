@@ -70,7 +70,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         // TODO: Introduce a "SwitchSelector" pattern to avoid the need for N computeds (and N
         // recalculations) to select one of N items.
         const isRenaming = computed((use) => use(renaming) === ws);
-        const iconName = ws.shareType === 'private' ? 'FolderPrivate' : 'Folder';
+        const iconName = ws.shareType === 'public' ? 'Folder' : 'FolderPrivate';
         return cssPageEntry(
           dom.autoDispose(isRenaming),
           dom.autoDispose(isTrivial),
