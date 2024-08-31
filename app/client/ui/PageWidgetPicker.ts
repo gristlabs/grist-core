@@ -1,5 +1,6 @@
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -260,8 +261,7 @@ export function buildPageWidgetPicker(
     dom.create(PageWidgetSelect,
       value, tables, columns, onSaveCB, behavioralPromptsManager, options),
 
-    // gives focus and binds keydown events
-    (elem: any) => { setTimeout(() => elem.focus(), 0); },
+    elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
     onKeyDown({
       Escape: () => ctl.close(),
       Enter: () => isValid() && onSaveCB()
