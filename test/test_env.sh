@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 export GRIST_SESSION_COOKIE="grist_test_cookie"
-export GRIST_TEST_LOGIN="1"
 export LANGUAGE="en_US"
 export SE_BROWSER="chrome"
 export SE_BROWSER_VERSION="127"

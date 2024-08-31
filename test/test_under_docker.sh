@@ -67,5 +67,6 @@ fi
 
 TEST_ADD_SAMPLES=1 TEST_ACCOUNT_PASSWORD=not-needed \
   HOME_URL=http://localhost:8585 \
+  GRIST_TEST_LOGIN=1 \
   NODE_PATH=_build:_build/stubs \
   $MOCHA _build/test/deployment/*.js --slow 6000 -g "${GREP_TESTS:-}" "$@"
