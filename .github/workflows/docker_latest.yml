@@ -123,6 +123,9 @@ jobs:
         if: ${{ !inputs.disable_tests }}
         run: yarn run build:prod
 
+     - name: Install Google Chrome for Testing
+        run: ./test_env.sh node_modules/selenium-webdriver/bin/linux/selenium-manager
+
       - name: Run tests
         if: ${{ !inputs.disable_tests }}
         run: TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }} VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
