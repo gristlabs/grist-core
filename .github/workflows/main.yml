@@ -71,7 +71,7 @@ jobs:
 
       - name: Install Google Chrome for Testing
         if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:')
-        run: ./test_env.sh ./node_modules/selenium-webdriver/bin/linux/selenium-manager
+        run: ./test/test_env.sh ./node_modules/selenium-webdriver/bin/linux/selenium-manager
 
       - name: Run smoke test
         if: contains(matrix.tests, ':smoke:')
