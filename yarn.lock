@@ -934,6 +934,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/linkify-it@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@types/linkify-it/-/linkify-it-5.0.0.tgz#21413001973106cda1c3a9b91eedd4ccd5469d76"
+  integrity sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==
+
 "@types/lodash@4.14.117":
   version "4.14.117"
   resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.117.tgz"
@@ -5287,6 +5292,13 @@ lie@~3.3.0:
   dependencies:
     immediate "~3.0.5"
 
+linkify-it@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/linkify-it/-/linkify-it-5.0.0.tgz#9ef238bfa6dc70bd8e7f9572b52d369af569b421"
+  integrity sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==
+  dependencies:
+    uc.micro "^2.0.0"
+
 listenercount@~1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/listenercount/-/listenercount-1.0.1.tgz"
@@ -5534,6 +5546,14 @@ marked-highlight@2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/marked-highlight/-/marked-highlight-2.1.4.tgz#33d4d74b55e5acc76ee95fa5117e847795392a42"
   integrity sha512-D1GOkcdzP+1dzjoColL7umojefFrASDuLeyaHS0Zr/Uo9jkr1V6vpLRCzfi1djmEaWyK0SYMFtHnpkZ+cwFT1w==
+
+marked-linkify-it@3.1.11:
+  version "3.1.11"
+  resolved "https://registry.yarnpkg.com/marked-linkify-it/-/marked-linkify-it-3.1.11.tgz#2388747db5827279656a8fdac9c587726f98f83f"
+  integrity sha512-xcrc9c4PMQdUoEO8dE6HLW80ShrolXBqqmJz1c9XdM5t/D0fzXXZ+FJOM4wqhs1AOfpjLipPQKmkcxA5cSFykw==
+  dependencies:
+    "@types/linkify-it" "^5.0.0"
+    linkify-it "^5.0.0"
 
 marked@14.0.0:
   version "14.0.0"
@@ -8041,6 +8061,11 @@ typescript@^3.0.0:
   version "3.9.10"
   resolved "https://registry.npmjs.org/typescript/-/typescript-3.9.10.tgz"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
+
+uc.micro@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/uc.micro/-/uc.micro-2.1.0.tgz#f8d3f7d0ec4c3dea35a7e3c8efa4cb8b45c9e7ee"
+  integrity sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==
 
 uglify-js@^3.1.4:
   version "3.16.3"

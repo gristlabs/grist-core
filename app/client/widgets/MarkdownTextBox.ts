@@ -9,6 +9,7 @@ import { NTextBox } from 'app/client/widgets/NTextBox';
 import { dom, styled, subscribeBindable } from 'grainjs';
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
+import markedLinkifyIt from 'marked-linkify-it';
 
 /**
  * Creates a widget for displaying Markdown-formatted text.
@@ -27,7 +28,8 @@ export class MarkdownTextBox extends NTextBox {
           const highlightCode = await highlightCodePromise;
           return highlightCode(code);
         },
-      })
+      }),
+      markedLinkifyIt(),
     );
   }
 
@@ -71,7 +73,7 @@ const cssFieldClip = styled('div.field_clip', `
   & > *:first-child {
      margin-top: 0px !important;
   }
-  & > *:last-child {
+  & > :not(blockquote, ol, pre, ul):last-child {
      margin-bottom: 0px !important;
   }
   & h1, & h2, & h3, & h4, & h5, & h6 {
@@ -156,15 +158,10 @@ const cssFieldClip = styled('div.field_clip', `
     white-space: nowrap;
   }
   & ul, & ol {
-    list-style-position: inside;
-    padding-left: 1em;
+    padding-left: 2em;
   }
   & li > ol, & li > ul {
     margin: 0;
-  }
-  &:not(&-text-wrap) li {
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   & li + li,
   & li > ol > li:first-child,
