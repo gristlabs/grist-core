@@ -685,10 +685,14 @@ export class UsersManager {
     return [this.getSupportUserId(), this.getAnonymousUserId(), this.getEveryoneUserId()];
   }
 
+  public async getUsers() {
+    return await User.find({relations: ["logins"]});
+  }
+
   /**
    * Returns a Promise for an array of User entites for the given userIds.
    */
-  public async getUsers(userIds: number[], optManager?: EntityManager): Promise<User[]> {
+  public async getUsersByIds(userIds: number[], optManager?: EntityManager): Promise<User[]> {
     if (userIds.length === 0) {
       return [];
     }

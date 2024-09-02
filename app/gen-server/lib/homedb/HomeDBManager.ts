@@ -452,6 +452,10 @@ export class HomeDBManager extends EventEmitter {
     return this._usersManager.getUser(userId, options);
   }
 
+  public async getUsers() {
+    return this._usersManager.getUsers();
+  }
+
   public async getFullUser(userId: number) {
     return this._usersManager.getFullUser(userId);
   }
@@ -3599,7 +3603,7 @@ export class HomeDBManager extends EventEmitter {
     // Get the user objects which map to non-null values in the userDelta.
     const userIds = Object.keys(userDelta).filter(userId => userDelta[userId])
       .map(userIdStr => parseInt(userIdStr, 10));
-    const users = await this._usersManager.getUsers(userIds, manager);
+    const users = await this._usersManager.getUsersByIds(userIds, manager);
 
     // Add unaffected users to the delta so that we have a record of where they are.
     groups.forEach(grp => {

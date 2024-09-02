@@ -631,6 +631,7 @@ export async function createServer(port: number, initDb = createInitialDb): Prom
   flexServer.addAccessMiddleware();
   flexServer.addApiMiddleware();
   flexServer.addHomeApi();
+  flexServer.addScimApi();
   flexServer.addApiErrorHandlers();
   await initDb(flexServer.getHomeDBManager().connection);
   flexServer.summary();
