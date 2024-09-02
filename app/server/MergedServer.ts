@@ -161,6 +161,7 @@ export class MergedServer {
         await this.flexServer.addLandingPages();
         // todo: add support for home api to standalone app
         this.flexServer.addHomeApi();
+        this.flexServer.addScimApi();
         this.flexServer.addBillingApi();
         this.flexServer.addNotifier();
         this.flexServer.addAuditLogger();

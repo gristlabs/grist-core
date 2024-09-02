@@ -1,21 +1,11 @@
 import * as express from 'express';
-import { buildUsersRoute, checkPermissionToUsersEndpoint } from './v2/users';
+
+import { buildScimRouterv2 } from './v2/ScimV2Api';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import SCIMMY from "scimmy";
-import SCIMMYRouters from "scimmy-routers";
+import { InstallAdmin } from '../InstallAdmin';
 
-type SCIMMYResource = typeof SCIMMY.Types.Resource;
-
-const buildScimRouter = (dbManager: HomeDBManager) => {
-  const v2 = express.Router();
-  v2.use('/Users', checkPermissionToUsersEndpoint, buildUsersRoute(dbManager));
-
-  SCIMMY.Resources.User.ingress(handler)
-  SCIMMY.Resources.declare(SCIMMY.Resources.User)
-    .ingress((resource: SCIMMYResource, data) => {
-
-
-    });
+const buildScimRouter = (dbManager: HomeDBManager, installAdmin: InstallAdmin) => {
+  const v2 = buildScimRouterv2(dbManager, installAdmin);
   const scim = express.Router();
   scim.use('/v2', v2);
   return scim;
