@@ -442,24 +442,33 @@ export class FlexServer implements GristServer {
 
   public addLogging() {
     if (this._check('logging')) { return; }
-    if (process.env.GRIST_LOG_SKIP_HTTP) { return; }
+    if (!this._httpLoggingEnabled()) { return; }
     // Add a timestamp token that matches exactly the formatting of non-morgan logs.
     morganLogger.token('logTime', (req: Request) => log.timestamp());
     // Add an optional gristInfo token that can replace the url, if the url is sensitive.
     morganLogger.token('gristInfo', (req: RequestWithGristInfo) =>
                        req.gristInfo || req.originalUrl || req.url);
     morganLogger.token('host', (req: express.Request) => req.get('host'));
-    const msg = ':logTime :host :method :gristInfo :status :response-time ms - :res[content-length]';
+    morganLogger.token('body', (req: express.Request) =>
+      req.is('application/json') ? JSON.stringify(req.body) : undefined
+    );
+
+    // For debugging, be careful not to enable logging in production (may log sensitive data)
+    const shouldLogBody = isAffirmative(process.env.GRIST_LOG_HTTP_BODY);
+
+    const msg = `:logTime :host :method :gristInfo ${shouldLogBody ? ':body ' : ''}` +
+      ":status :response-time ms - :res[content-length]";
     // In hosted Grist, render json so logs retain more organization.
     function outputJson(tokens: any, req: any, res: any) {
       return JSON.stringify({
         timestamp: tokens.logTime(req, res),
+        host: tokens.host(req, res),
         method: tokens.method(req, res),
         path: tokens.gristInfo(req, res),
+        ...(shouldLogBody ? { body: tokens.body(req, res) } : {}),
         status: tokens.status(req, res),
         timeMs: parseFloat(tokens['response-time'](req, res)) || undefined,
         contentLength: parseInt(tokens.res(req, res, 'content-length'), 10) || undefined,
-        host: tokens.host(req, res),
         altSessionId: req.altSessionId,
       });
     }
@@ -2488,6 +2497,33 @@ export class FlexServer implements GristServer {
       this._loginMiddleware.getLogoutMiddleware() :
       [];
     return [...pluggedMiddleware, sessionClearMiddleware];
+  }
+
+  /**
+   * Returns true if GRIST_LOG_HTTP="true" (or any truthy value).
+   * Returns true if GRIST_LOG_SKIP_HTTP="" (empty string).
+   * Returns false otherwise.
+   *
+   * Also displays a deprecation warning if GRIST_LOG_SKIP_HTTP is set to any value ("", "true", whatever...),
+   * and throws an exception if GRIST_LOG_SKIP_HTTP and GRIST_LOG_HTTP are both set to make the server crash.
+   */
+  private _httpLoggingEnabled(): boolean {
+    const deprecatedOptionEnablesLog = process.env.GRIST_LOG_SKIP_HTTP === '';
+    const isGristLogHttpEnabled = isAffirmative(process.env.GRIST_LOG_HTTP);
+
+    if (process.env.GRIST_LOG_HTTP !== undefined && process.env.GRIST_LOG_SKIP_HTTP !== undefined) {
+      throw new Error('Both GRIST_LOG_HTTP and GRIST_LOG_SKIP_HTTP are set. ' +
+        'Please remove GRIST_LOG_SKIP_HTTP and set GRIST_LOG_HTTP to the value you actually want.');
+    }
+
+    if (process.env.GRIST_LOG_SKIP_HTTP !== undefined) {
+      const expectedGristLogHttpVal = deprecatedOptionEnablesLog ? "true" : "false";
+
+      log.warn(`Setting env variable GRIST_LOG_SKIP_HTTP="${process.env.GRIST_LOG_SKIP_HTTP}" `
+        + `is deprecated in favor of GRIST_LOG_HTTP="${expectedGristLogHttpVal}"`);
+    }
+
+    return isGristLogHttpEnabled || deprecatedOptionEnablesLog;
   }
 }
 
