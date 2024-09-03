@@ -123,7 +123,7 @@ jobs:
         if: ${{ !inputs.disable_tests }}
         run: yarn run build:prod
 
-     - name: Install Google Chrome for Testing
+      - name: Install Google Chrome for Testing
         run: ./test/test_env.sh node_modules/selenium-webdriver/bin/linux/selenium-manager
 
       - name: Run tests
