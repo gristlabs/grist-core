@@ -563,6 +563,10 @@ export class HomeDBManager extends EventEmitter {
     return this._usersManager.deleteUser(scope, userIdToDelete, name);
   }
 
+  public async overrideUser(userId: number, props: UserProfile) {
+    return this._usersManager.overrideUser(userId, props);
+  }
+
   /**
    * Returns a QueryResult for the given organization.  The orgKey
    * can be a string (the domain from url) or the id of an org.  If it is

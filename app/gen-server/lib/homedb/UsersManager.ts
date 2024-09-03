@@ -395,7 +395,7 @@ export class UsersManager {
         // Set the user's name if our provider knows it. Otherwise use their username
         // from email, for lack of something better. If we don't have a profile at this
         // time, then leave the name blank in the hopes of learning it when the user logs in.
-        user.name = (profile && (profile.name || email.split('@')[0])) || '';
+        user.name = (profile && this._getNameOrDeduceFromEmail(profile.name, email)) || '';
         needUpdate = true;
       }
       if (!user.picture && profile && profile.picture) {
@@ -580,6 +580,27 @@ export class UsersManager {
     }
     return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
       .filter(fullProfile => fullProfile);
+  }
+
+  /**
+   * Update users with passed property. Optional user properties that are missing will be reset to their default value.
+   */
+  public async overrideUser(userId: number, props: UserProfile): Promise<User> {
+    return await this._connection.transaction(async manager => {
+      const user = await this.getUser(userId, {includePrefs: true});
+      if (!user) { throw new ApiError("unable to find user to update", 404); }
+      const login = user.logins[0];
+      user.name = this._getNameOrDeduceFromEmail(props.name, props.email);
+      user.picture = props.picture || '';
+      user.options = {...(user.options || {}), locale: props.locale ?? undefined};
+      if (props.email) {
+        login.email = normalizeEmail(props.email);
+        login.displayEmail = props.email;
+      }
+      await manager.save([user, login]);
+
+      return (await this.getUser(userId))!;
+    });
   }
 
   /**
@@ -774,6 +795,10 @@ export class UsersManager {
     }
     if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
     return id;
+  }
+
+  private _getNameOrDeduceFromEmail(name: string, email: string) {
+    return name || email.split('@')[0];
   }
 
   // This deals with the problem posed by receiving a PermissionDelta specifying a
