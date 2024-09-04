@@ -80,7 +80,7 @@ describe('urlIds', function() {
     });
 
     it(`cannot use an existing docId as a urlId in ${org}`, async function() {
-      const doc = await home.dbManager.connection.manager.findOneOrFail(Document, {where: {}});
+      const doc = await home.dbManager.dataSource.manager.findOneOrFail(Document, {where: {}});
       const prevDocId = doc.id;
       try {
         // Change doc id to ensure it has characters permitted for a urlId.

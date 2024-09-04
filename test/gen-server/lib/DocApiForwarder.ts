@@ -11,7 +11,7 @@ import morganLogger from 'morgan';
 import { AddressInfo } from 'net';
 import sinon = require("sinon");
 
-import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
+import { createInitialDb, setUpDB } from "test/gen-server/seed";
 import { configForUser } from 'test/gen-server/testUtils';
 
 import { DocApiForwarder } from "app/gen-server/lib/DocApiForwarder";
@@ -59,8 +59,8 @@ describe('DocApiForwarder', function() {
   before(async function() {
     setUpDB(this);
     dbManager = new HomeDBManager();
-    await dbManager.connect();
-    await createInitialDb(dbManager.connection);
+    await dbManager.initializeDataSource();
+    await createInitialDb(dbManager.dataSource);
     await dbManager.initializeSpecialIds();
 
     // create cheap doc worker
@@ -95,7 +95,6 @@ describe('DocApiForwarder', function() {
   });
 
   after(async function() {
-    await removeConnection();
     homeServer.close();
     docWorker.close();
     dbManager.flushDocAuthCache();    // To avoid hanging up exit from tests.

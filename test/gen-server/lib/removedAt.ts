@@ -258,7 +258,7 @@ describe('removedAt', function() {
           'test3@getgrist.com': 'editors',
         }
       });
-      const userRef = (email: string) => home.dbManager.getUserByLogin(email).then((user) => user!.ref);
+      const userRef = (email: string) => home.dbManager.getUserByLogin(email).then((user) => user.ref);
       const idTest1 = (await home.dbManager.getUserByLogin("test1@getgrist.com"))!.id;
       const idTest2 = (await home.dbManager.getUserByLogin("test2@getgrist.com"))!.id;
       const idTest3 = (await home.dbManager.getUserByLogin("test3@getgrist.com"))!.id;

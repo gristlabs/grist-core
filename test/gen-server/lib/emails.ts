@@ -19,7 +19,7 @@ describe('emails', function() {
   beforeEach(async function() {
     this.timeout(5000);
     server = new TestServer(this);
-    ref = (email: string) => server.dbManager.getUserByLogin(email).then((user) => user!.ref);
+    ref = (email: string) => server.dbManager.getUserByLogin(email).then((user) => user.ref);
     serverUrl = await server.start();
   });
 

@@ -10,7 +10,7 @@ import {tmpdir} from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import {TestSession} from 'test/gen-server/apiUtils';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {createInitialDb, setUpDB} from 'test/gen-server/seed';
 import {configForUser, getGristConfig} from 'test/gen-server/testUtils';
 import {openClient} from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
@@ -80,7 +80,6 @@ describe('AuthCaching', function() {
     await testUtils.captureLog('warn', async () => {
       await docsServer.close();
       await homeServer.close();
-      await removeConnection();
     });
   });
 

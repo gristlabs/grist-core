@@ -768,7 +768,7 @@ export async function enterGridRows(cell: ICellSelect, rowsOfValues: string[][])
 export async function setApiKey(username: string, apiKey?: string) {
   apiKey = apiKey || `api_key_for_${username.toLowerCase()}`;
   const dbManager = await server.getDatabase();
-  await dbManager.connection.query(`update users set api_key = $1 where name = $2`,
+  await dbManager.dataSource.query(`update users set api_key = $1 where name = $2`,
                                    [apiKey, username]);
   if (!await dbManager.getUserByKey(apiKey)) {
     throw new Error(`setApiKey failed: user ${username} may not yet be in the database`);
@@ -780,7 +780,7 @@ export async function setApiKey(username: string, apiKey?: string) {
  */
 export async function updateOrgPlan(orgName: string, productName: string = 'team') {
   const dbManager = await server.getDatabase();
-  const db = dbManager.connection.manager;
+  const db = dbManager.dataSource.manager;
   const dbOrg = await db.findOne(Organization, {where: {name: orgName},
     relations: ['billingAccount', 'billingAccount.product']});
   if (!dbOrg) { throw new Error(`cannot find org ${orgName}`); }

@@ -6,7 +6,7 @@ export async function getDatabase(typeormDb?: string): Promise<HomeDBManager> {
     process.env.TYPEORM_DATABASE = typeormDb;
   }
   const db = new HomeDBManager();
-  await db.connect();
+  await db.initializeDataSource();
   await db.initializeSpecialIds();
   if (origTypeormDB) {
     process.env.TYPEORM_DATABASE = origTypeormDB;

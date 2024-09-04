@@ -35,12 +35,12 @@ describe('Housekeeper', function() {
   });
 
   async function getDoc(docId: string) {
-    const manager = home.dbManager.connection.manager;
+    const manager = home.dbManager.dataSource.manager;
     return manager.findOneOrFail(Document, {where: {id: docId}});
   }
 
   async function getWorkspace(wsId: number) {
-    const manager = home.dbManager.connection.manager;
+    const manager = home.dbManager.dataSource.manager;
     return manager.findOneOrFail(Workspace, {where: {id: wsId}});
   }
 

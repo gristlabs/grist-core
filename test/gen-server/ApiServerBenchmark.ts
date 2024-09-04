@@ -6,7 +6,7 @@ import {assert} from 'chai';
 
 import {FlexServer} from 'app/server/lib/FlexServer';
 
-import {createBenchmarkServer, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {createBenchmarkServer, setUpDB} from 'test/gen-server/seed';
 
 let home: FlexServer;
 let homeUrl: string;
@@ -31,7 +31,7 @@ describe('ApiServerBenchmark', function() {
   after(async function() {
     if (home) {
       await home.stopListening();
-      await removeConnection();
+      await home.getHomeDBManager().destroyDataSource();
     }
   });
 

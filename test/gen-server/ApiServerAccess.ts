@@ -61,9 +61,9 @@ describe('ApiServerAccess', function() {
       }
     );
     dbManager = server.dbManager;
-    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user!.ref);
-    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user!.ref);
-    charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user!.ref);
+    chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
+    kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user.ref);
+    charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user.ref);
     // Listen to user count updates and add them to an array.
     dbManager.on('userChange', ({org, countBefore, countAfter}: UserChange) => {
       if (countBefore === countAfter) { return; }
@@ -1411,7 +1411,7 @@ describe('ApiServerAccess', function() {
 
     before(async function() {
       // Set NASA to be specifically on a team plan, with team plan restrictions.
-      const db = dbManager.connection.manager;
+      const db = dbManager.dataSource.manager;
       nasaOrg = (await db.findOne(Organization, {where: {domain: 'nasa'},
                                                  relations: ['billingAccount',
                                                              'billingAccount.product']}))!;
@@ -1600,12 +1600,12 @@ describe('ApiServerAccess', function() {
     describe('force flag is not needed if apiKey is not set', function() {
       before(function() {
         // turn off api key access for chimpy
-        return dbManager.connection.query(`update users set api_key = null where name = 'Chimpy'`);
+        return dbManager.dataSource.query(`update users set api_key = null where name = 'Chimpy'`);
       });
 
       after(function() {
         // bring back api key access for chimpy
-        return dbManager.connection.query(`update users set api_key = 'api_key_for_chimpy' where name = 'Chimpy'`);
+        return dbManager.dataSource.query(`update users set api_key = 'api_key_for_chimpy' where name = 'Chimpy'`);
       });
 
       it('force flag is not needed', async function() {

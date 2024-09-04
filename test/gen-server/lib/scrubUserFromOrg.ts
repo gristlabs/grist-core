@@ -27,7 +27,7 @@ describe('scrubUserFromOrg', function() {
 
   // count how many rows there are in the group_users table, for sanity checks.
   async function countGroupUsers() {
-    return await server.dbManager.connection.manager.count('group_users');
+    return await server.dbManager.dataSource.manager.count('group_users');
   }
 
   // get the home api, making sure the user's api key is set.

@@ -58,7 +58,7 @@ async function setupDb() {
     await updateDb();
   }
   const db = new HomeDBManager();
-  await db.connect();
+  await db.initializeDataSource();
   await db.initializeSpecialIds({skipWorkspaces: true});
 
   // If a team/organization is specified, make sure it exists.
@@ -79,10 +79,6 @@ async function setupDb() {
       }
       const profile = {email, name: email};
       const user = await db.getUserByLogin(email, {profile});
-      if (!user) {
-        // This should not happen.
-        throw new Error('failed to create GRIST_DEFAULT_EMAIL user');
-      }
       db.unwrapQueryResult(await db.addOrg(user, {
         name: org,
         domain: org,

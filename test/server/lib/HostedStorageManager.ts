@@ -5,6 +5,7 @@ import {DocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {create} from 'app/server/lib/create';
+import { createNewDataSource } from 'app/server/lib/dbUtils';
 import {DocManager} from 'app/server/lib/DocManager';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {DELETED_TOKEN, ExternalStorage, wrapWithKeyMappedStorage} from 'app/server/lib/ExternalStorage';
@@ -23,10 +24,11 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import {createClient, RedisClient} from 'redis';
 import * as sinon from 'sinon';
-import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {createInitialDb, setUpDB} from 'test/gen-server/seed';
 import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
+import { DataSource } from 'typeorm';
 import uuidv4 from "uuid/v4";
 
 bluebird.promisifyAll(RedisClient.prototype);
@@ -289,7 +291,7 @@ class TestStore {
     await this.end();
     this._active = true;
     const dbManager = new HomeDBManager();
-    await dbManager.connect();
+    await dbManager.initializeDataSource();
     await dbManager.initializeSpecialIds();
     const options: HostedStorageOptions = {
       secondsBeforePush: 0.5,
@@ -359,6 +361,7 @@ class TestStore {
 
 describe('HostedStorageManager', function() {
 
+  let dataSource: DataSource;
   setTmpLogLevel('info');  // allow info messages for this test since failures are hard to replicate
   this.timeout(60000);     // s3 can be slow
 
@@ -366,11 +369,12 @@ describe('HostedStorageManager', function() {
 
   before(async function() {
     setUpDB(this);
-    await createInitialDb();
+    dataSource = await createNewDataSource();
+    await createInitialDb(dataSource);
   });
 
   after(async function() {
-    await removeConnection();
+    await dataSource.destroy();
   });
 
   for (const storage of ['azure', 's3', 'minio', 'cached'] as const) {

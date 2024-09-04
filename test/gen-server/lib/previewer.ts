@@ -34,7 +34,7 @@ describe('previewer', function() {
     dbManager = home.dbManager;
     homeUrl = home.serverUrl;
     // for these tests, give the previewer an api key.
-    await dbManager.connection.query(`update users set api_key = 'api_key_for_thumbnail' where name = 'Preview'`);
+    await dbManager.dataSource.query(`update users set api_key = 'api_key_for_thumbnail' where name = 'Preview'`);
   });
 
   after(async function() {

@@ -39,7 +39,7 @@ describe('fixSiteProducts', function() {
   it('fixes sites that where created with a wrong product', async function() {
     const db = server.dbManager;
     const user = await db.getUserByLogin(email, {profile}) as any;
-    const getOrg = (id: number) => db.connection.manager.findOne(
+    const getOrg = (id: number) => db.dataSource.manager.findOne(
       Organization,
       {where: {id}, relations: ['billingAccount', 'billingAccount.product']});
 
@@ -122,7 +122,7 @@ describe('fixSiteProducts', function() {
     assert.equal(getDefaultProductNames().teamInitial, 'stub');
 
     const db = server.dbManager;
-    const user = await db.getUserByLogin(email, {profile}) as any;
+    const user = await db.getUserByLogin(email, {profile});
     const orgId = db.unwrapQueryResult(await db.addOrg(user, {
       name: 'sanity-check-org',
       domain: 'sanity-check-org',
@@ -132,7 +132,7 @@ describe('fixSiteProducts', function() {
       product: 'teamFree',
     }));
 
-    const getOrg = (id: number) => db.connection.manager.findOne(Organization,
+    const getOrg = (id: number) => db.dataSource.manager.findOne(Organization,
       {where: {id}, relations: ['billingAccount', 'billingAccount.product']});
     const productOrg = (id: number) => getOrg(id)?.then(org => org?.billingAccount?.product?.name);
     assert.equal(await productOrg(orgId), 'teamFree');

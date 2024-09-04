@@ -185,7 +185,7 @@ export class Housekeeper {
       log.warn("logMetrics siteUsage starting");
       // Avoid using a transaction since it may end up being held up for a while, and for no good
       // reason (atomicity matters for this reporting).
-      const manager = this._dbManager.connection.manager;
+      const manager = this._dbManager.dataSource.manager;
       const usageSummaries = await this._getOrgUsageSummaries(manager);
 
       // We sleep occasionally during this logging. We may log many MANY lines, which can hang up a
@@ -212,7 +212,7 @@ export class Housekeeper {
 
     if (this._telemetry.shouldLogEvent('siteMembership')) {
       log.warn("logMetrics siteMembership starting");
-      const manager = this._dbManager.connection.manager;
+      const manager = this._dbManager.dataSource.manager;
       const membershipSummaries = await this._getOrgMembershipSummaries(manager);
       await forEachWithBreaks("logMetrics siteMembership progress", membershipSummaries, summary => {
         this._telemetry.logEvent(null, 'siteMembership', {
@@ -297,7 +297,7 @@ export class Housekeeper {
   }
 
   private async _getDocsToDelete() {
-    const docs = await this._dbManager.connection.createQueryBuilder()
+    const docs = await this._dbManager.dataSource.createQueryBuilder()
       .select('docs')
       .from(Document, 'docs')
       .leftJoinAndSelect('docs.workspace', 'workspaces')
@@ -309,7 +309,7 @@ export class Housekeeper {
   }
 
   private async _getWorkspacesToDelete() {
-    const workspaces = await this._dbManager.connection.createQueryBuilder()
+    const workspaces = await this._dbManager.dataSource.createQueryBuilder()
       .select('workspaces')
       .from(Workspace, 'workspaces')
       .leftJoin('workspaces.docs', 'docs')
@@ -323,7 +323,7 @@ export class Housekeeper {
   }
 
   private async _getForksToDelete() {
-    const forks = await this._dbManager.connection.createQueryBuilder()
+    const forks = await this._dbManager.dataSource.createQueryBuilder()
       .select('forks')
       .from(Document, 'forks')
       .where('forks.trunk_id IS NOT NULL')
@@ -385,7 +385,7 @@ export class Housekeeper {
    * don't have to deal with its caprices.
    */
   private _getThreshold() {
-    return fromNow(this._dbManager.connection.driver.options.type, AGE_THRESHOLD_OFFSET);
+    return fromNow(this._dbManager.dataSource.driver.options.type, AGE_THRESHOLD_OFFSET);
   }
 
   // Call a document endpoint with a permit, cleaning up after the call.
@@ -475,7 +475,7 @@ export async function fixSiteProducts(options: {
   }
 
   // Find all billing accounts on teamFree product and change them to the Free.
-  return await db.connection.transaction(async (t) => {
+  return await db.dataSource.transaction(async (t) => {
     const freeProduct = await t.findOne(Product, {where: {name: 'Free'}});
     const freeTeamProduct = await t.findOne(Product, {where: {name: 'teamFree'}});
 

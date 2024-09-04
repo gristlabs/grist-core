@@ -152,7 +152,7 @@ export class Doom {
       }
     }
     const candidate = sortBy(owners, ['email'])[0];
-    await scrubUserFromOrg(orgId, userId, candidate.id, this._dbManager.connection.manager);
+    await scrubUserFromOrg(orgId, userId, candidate.id, this._dbManager.dataSource.manager);
   }
 
   // List the sites a user has access to.

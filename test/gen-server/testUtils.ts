@@ -46,7 +46,6 @@ export async function createUser(dbManager: HomeDBManager, name: string): Promis
   const username = name.toLowerCase();
   const email = `${username}@getgrist.com`;
   const user = await dbManager.getUserByLogin(email, {profile: {email, name}});
-  if (!user) { throw new Error('failed to create user'); }
   user.apiKey = `api_key_for_${username}`;
   await user.save();
   const userHome = (await dbManager.getOrg({userId: user.id}, null)).data;
@@ -59,10 +58,10 @@ export async function createUser(dbManager: HomeDBManager, name: string): Promis
  */
 export async function setPlan(dbManager: HomeDBManager, org: {billingAccount?: {id: number}},
                               productName: string) {
-  const product = await dbManager.connection.manager.findOne(Product, {where: {name: productName}});
+  const product = await dbManager.dataSource.manager.findOne(Product, {where: {name: productName}});
   if (!product) { throw new Error(`cannot find product ${productName}`); }
   if (!org.billingAccount) { throw new Error('must join billingAccount'); }
-  await dbManager.connection.createQueryBuilder()
+  await dbManager.dataSource.createQueryBuilder()
     .update(BillingAccount)
     .set({product})
     .where('id = :bid', {bid: org.billingAccount.id})
@@ -93,7 +92,7 @@ export async function waitForAllNotifications(notifier: INotifier, maxWait: numb
 
 // count the number of rows in a table
 export async function getRowCount(dbManager: HomeDBManager, tableName: string): Promise<number> {
-  const result = await dbManager.connection.query(`select count(*) as ct from ${tableName}`);
+  const result = await dbManager.dataSource.query(`select count(*) as ct from ${tableName}`);
   return parseInt(result[0].ct, 10);
 }
 
