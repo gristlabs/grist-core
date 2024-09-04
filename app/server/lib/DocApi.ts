@@ -972,11 +972,12 @@ export class DocWorkerApi {
 
     // Reload a document forcibly (in fact this closes the doc, it will be automatically
     // reopened on use).
-    this._app.post('/api/docs/:docId/force-reload', canEdit, throttled(async (req, res) => {
-      const activeDoc = await this._getActiveDoc(req);
+    this._app.post('/api/docs/:docId/force-reload', canEdit, async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const activeDoc = await this._getActiveDoc(mreq);
       await activeDoc.reloadDoc();
       res.json(null);
-    }));
+    });
 
     this._app.post('/api/docs/:docId/recover', canEdit, throttled(async (req, res) => {
       const recoveryModeRaw = req.body.recoveryMode;
