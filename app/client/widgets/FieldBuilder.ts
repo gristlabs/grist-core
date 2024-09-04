@@ -29,7 +29,7 @@ import { FieldEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
 import { CellDiscussionPopup, EmptyCell } from 'app/client/widgets/DiscussionEditor';
 import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
-import { NewBaseEditor } from "app/client/widgets/NewBaseEditor";
+import { IEditorConstructor } from "app/client/widgets/NewBaseEditor";
 import * as UserType from 'app/client/widgets/UserType';
 import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
 import * as gristTypes from 'app/common/gristTypes';
@@ -758,7 +758,7 @@ export class FieldBuilder extends Disposable {
       return clearOwn();
     }
 
-    const editorCtor: typeof NewBaseEditor =
+    const editorCtor: IEditorConstructor =
       UserTypeImpl.getEditorConstructor(this.options().widget, this._readOnlyPureType());
     // constructor may be null for a read-only non-formula field, though not today.
     if (!editorCtor) {

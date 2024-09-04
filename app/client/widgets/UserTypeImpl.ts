@@ -5,15 +5,15 @@ import ChoiceEditor from 'app/client/widgets/ChoiceEditor';
 import {ChoiceListCell} from 'app/client/widgets/ChoiceListCell';
 import {ChoiceListEditor} from 'app/client/widgets/ChoiceListEditor';
 import {ChoiceTextBox} from 'app/client/widgets/ChoiceTextBox';
-import DateEditor from 'app/client/widgets/DateEditor';
+import {DateEditor} from 'app/client/widgets/DateEditor';
 import DateTextBox from 'app/client/widgets/DateTextBox';
-import DateTimeEditor from 'app/client/widgets/DateTimeEditor';
+import {DateTimeEditor} from 'app/client/widgets/DateTimeEditor';
 import DateTimeTextBox from 'app/client/widgets/DateTimeTextBox';
 import {HyperLinkEditor} from 'app/client/widgets/HyperLinkEditor';
 import {HyperLinkTextBox} from 'app/client/widgets/HyperLinkTextBox';
 import {MarkdownTextBox} from 'app/client/widgets/MarkdownTextBox';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
-import {NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
+import {IEditorConstructor} from 'app/client/widgets/NewBaseEditor';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {NTextEditor} from 'app/client/widgets/NTextEditor';
 import {NumericEditor} from 'app/client/widgets/NumericEditor';
@@ -74,7 +74,7 @@ export function getFormWidgetConstructor(widget: string, type: string): WidgetCo
 }
 
 /** return a good class to instantiate for editing a widget/type combination */
-export function getEditorConstructor(widget: string, type: string): typeof NewBaseEditor {
+export function getEditorConstructor(widget: string, type: string): IEditorConstructor {
   const {config} = getWidgetConfiguration(widget, type as GristType);
   return nameToWidget[config.editCons as keyof typeof nameToWidget] as any;
 }
