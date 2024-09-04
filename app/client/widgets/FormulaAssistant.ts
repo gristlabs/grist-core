@@ -35,7 +35,7 @@ import {Marked} from 'marked';
 import {markedHighlight} from 'marked-highlight';
 import {v4 as uuidv4} from 'uuid';
 
-const t = makeT('FormulaEditor');
+const t = makeT('FormulaAssistant');
 const testId = makeTestId('test-formula-editor-');
 
 const LOW_CREDITS_WARNING_BANNER_THRESHOLD = 10;
