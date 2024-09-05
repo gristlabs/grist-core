@@ -1,11 +1,12 @@
 import * as express from 'express';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import SCIMMY from "scimmy";
 import SCIMMYRouters from "scimmy-routers";
 import { RequestWithLogin } from '../../Authorizer';
 import { InstallAdmin } from '../../InstallAdmin';
 import { toSCIMMYUser, toUserProfile } from './ScimUserUtils';
 import { ApiError } from 'app/common/ApiError';
+import { parseInt } from 'lodash';
 
 const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
 
@@ -20,7 +21,8 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
 
   SCIMMY.Resources.declare(SCIMMY.Resources.User, {
     egress: async (resource: any) => {
-      const { id, filter } = resource;
+      const { filter } = resource;
+      const id = parseInt(resource.id, 10);
       if (id) {
         const user = await dbManager.getUser(id);
         if (!user) {
@@ -33,7 +35,7 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
     },
     ingress: async (resource: any, data: any) => {
       try {
-        const { id } = resource;
+        const id = parseInt(resource.id, 10);
         if (id) {
           const updatedUser = await dbManager.overrideUser(id, toUserProfile(data));
           return toSCIMMYUser(updatedUser);
@@ -55,9 +57,13 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
           throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
         }
 
+        // FIXME: Remove this part and find another way to detect a constraint error.
         if (ex.code?.startsWith('SQLITE')) {
           switch (ex.code) {
             case 'SQLITE_CONSTRAINT':
+              // Return a 409 error if a conflict is detected (e.g. email already exists)
+              // "uniqueness" is an error code expected by the SCIM RFC for this case.
+              // FIXME: the emails are unique in the database, but this is not enforced in the schema.
               throw new SCIMMY.Types.Error(409, 'uniqueness', ex.message);
             default:
               throw new SCIMMY.Types.Error(500, 'serverError', ex.message);
@@ -67,8 +73,19 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
         throw ex;
       }
     },
-    degress: () => {
-      return null;
+    degress: async (resource: any) => {
+      const id = parseInt(resource.id, 10);
+      const fakeScope: Scope = { userId: id }; // FIXME: deleteUser should probably better not requiring a scope.
+      try {
+        await dbManager.deleteUser(fakeScope, id);
+      } catch (ex) {
+        console.error('Error deleting user', ex);
+        if (ex instanceof ApiError) {
+          throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
+        }
+
+        throw new SCIMMY.Types.Error(500, 'serverError', ex.message);
+      }
     }
   });
 
