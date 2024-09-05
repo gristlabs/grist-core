@@ -44,7 +44,7 @@ describe('Scim', () => {
     homeUrl = await server.start();
     const userNames = Object.keys(USER_CONFIG_BY_NAME) as Array<keyof UserConfigByName>;
     for (const user of userNames) {
-      userIdByName[user] = await getUserId(user);
+      userIdByName[user] = await getOrCreateUserId(user);
     }
   });
 
@@ -77,8 +77,14 @@ describe('Scim', () => {
     };
   }
 
-  async function getUserId(user: string) {
+  async function getOrCreateUserId(user: string) {
     return (await server.dbManager.getUserByLogin(user + '@getgrist.com'))!.id;
+  }
+
+  async function cleanupUser(userId: number) {
+    if (await server.dbManager.getUser(userId)) {
+      await server.dbManager.deleteUser({ userId: userId }, userId);
+    }
   }
 
   function checkEndpointNotAccessibleForNonAdminUsers(
@@ -199,7 +205,7 @@ describe('Scim', () => {
     it('should create a new user', async function () {
       const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId('newuser1'), chimpy);
       assert.equal(res.status, 201);
-      const newUserId = await getUserId('newuser1');
+      const newUserId = await getOrCreateUserId('newuser1');
       assert.deepEqual(res.data, toSCIMUserWithId('newuser1', newUserId));
     });
 
@@ -247,10 +253,10 @@ describe('Scim', () => {
     const userToUpdateEmailLocalPart = 'user-to-update';
 
     beforeEach(async function () {
-      userToUpdateId = await getUserId(userToUpdateEmailLocalPart);
+      userToUpdateId = await getOrCreateUserId(userToUpdateEmailLocalPart);
     });
     afterEach(async function () {
-      await server.dbManager.deleteUser({ userId: userToUpdateId }, userToUpdateId);
+      await cleanupUser(userToUpdateId);
     });
 
     it('should update an existing user', async function () {
@@ -344,15 +350,69 @@ describe('Scim', () => {
   });
 
   describe('PATCH /Users/{id}', function () {
-    it('should update the user of id=1', async function () {
-      throw new Error("This is a reminder :)");
+    let userToPatchId: number;
+    const userToPatchEmailLocalPart = 'user-to-patch';
+    beforeEach(async function () {
+      userToPatchId = await getOrCreateUserId(userToPatchEmailLocalPart);
     });
+    afterEach(async function () {
+      await cleanupUser(userToPatchId);
+    });
+
+    it('should replace values of an existing user', async function () {
+      const newName = 'User to Patch new Name';
+      const res = await axios.patch(scimUrl(`/Users/${userToPatchId}`), {
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+        Operations: [{
+          op: "replace",
+          path: "displayName",
+          value: newName,
+        }, {
+          op: "replace",
+          path: "locale",
+          value: 'fr'
+        }],
+      }, chimpy);
+      assert.equal(res.status, 200);
+      const refreshedUser = await axios.get(scimUrl(`/Users/${userToPatchId}`), chimpy);
+      assert.deepEqual(refreshedUser.data, {
+        ...toSCIMUserWithId(userToPatchEmailLocalPart, userToPatchId),
+        displayName: newName,
+        name: { formatted: newName },
+        locale: 'fr',
+        preferredLanguage: 'fr',
+      });
+    });
+
     checkEndpointNotAccessibleForNonAdminUsers('patch', '/Users/1');
   });
 
   describe('DELETE /Users/{id}', function () {
-    it('should delete the user of id=1', async function () {
-      throw new Error("This is a reminder :)");
+    let userToDeleteId: number;
+    const userToDeleteEmailLocalPart = 'user-to-delete';
+
+    beforeEach(async function () {
+      userToDeleteId = await getOrCreateUserId(userToDeleteEmailLocalPart);
+    });
+    afterEach(async function () {
+      await cleanupUser(userToDeleteId);
+    });
+
+    it('should delete some user', async function () {
+      const res = await axios.delete(scimUrl(`/Users/${userToDeleteId}`), chimpy);
+      assert.equal(res.status, 204);
+      const refreshedUser = await axios.get(scimUrl(`/Users/${userToDeleteId}`), chimpy);
+      assert.equal(refreshedUser.status, 404);
+    });
+
+    it('should return 404 when the user is not found', async function () {
+      const res = await axios.delete(scimUrl('/Users/1000'), chimpy);
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, {
+        schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+        status: '404',
+        detail: 'user not found'
+      });
     });
     checkEndpointNotAccessibleForNonAdminUsers('delete', '/Users/1');
   });
