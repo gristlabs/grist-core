@@ -122,7 +122,7 @@ describe('fixSiteProducts', function() {
     assert.equal(getDefaultProductNames().teamInitial, 'stub');
 
     const db = server.dbManager;
-    const user = await db.getUserByLogin(email, {profile}) as any;
+    const user = await db.getUserByLogin(email, {profile});
     const orgId = db.unwrapQueryResult(await db.addOrg(user, {
       name: 'sanity-check-org',
       domain: 'sanity-check-org',
