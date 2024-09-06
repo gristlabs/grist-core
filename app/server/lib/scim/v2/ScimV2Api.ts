@@ -64,7 +64,7 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
         const newUser = await dbManager.getUserByLoginWithRetry(userProfileToInsert.email, {
           profile: userProfileToInsert
         });
-        return toSCIMMYUser(newUser!);
+        return toSCIMMYUser(newUser);
       } catch (ex) {
         if (ex instanceof ApiError) {
           if (ex.status === 409) {

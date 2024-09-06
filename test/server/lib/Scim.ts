@@ -18,6 +18,7 @@ function scimConfigForUser(user: string) {
 
 const chimpy = scimConfigForUser('Chimpy');
 const kiwi = scimConfigForUser('Kiwi');
+const charon = scimConfigForUser('Charon');
 const anon = scimConfigForUser('Anonymous');
 
 const USER_CONFIG_BY_NAME = {
@@ -36,9 +37,12 @@ describe('Scim', () => {
 
   const scimUrl = (path: string) => (homeUrl + '/api/scim/v2' + path);
 
+  testUtils.setTmpLogLevel('error');
+
   before(async function () {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = 'chimpy@getgrist.com';
+    process.env.GRIST_SCIM_EMAIL = 'charon@getgrist.com';
     process.env.TYPEORM_DATABASE = ':memory:';
     server = new TestServer(this);
     homeUrl = await server.start();
@@ -216,6 +220,11 @@ describe('Scim', () => {
       assert.isBelow(indexOfKiwi, indexOfChimpy, 'kiwi should come before chimpy');
     });
 
+    it('should also allow access for user Charon (the one refered in GRIST_SCIM_EMAIL)', async function () {
+      const res = await axios.post(scimUrl('/Users/.search'), searchExample, charon);
+      assert.equal(res.status, 200);
+    });
+
     it('should filter the users by userName', async function () {
       const res = await axios.post(scimUrl('/Users/.search'), {
         schemas: [SEARCH_SCHEMA],
@@ -260,6 +269,13 @@ describe('Scim', () => {
         assert.equal(res.status, 201);
         assert.equal(res.data.userName, userName + '@getgrist.com');
         assert.equal(res.data.displayName, userName);
+      });
+    });
+
+    it('should also allow user Charon to create a user (the one refered in GRIST_SCIM_EMAIL)', async function () {
+      await withUserName('new.user.by.charon', async (userName) => {
+        const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), charon);
+        assert.equal(res.status, 201);
       });
     });
 
@@ -470,8 +486,6 @@ describe('Scim', () => {
 
     beforeEach(async function () {
       usersToCleanupEmails = [];
-      usersToCleanupEmails.push('bulk-user1@getgrist.com');
-      usersToCleanupEmails.push('bulk-user2@getgrist.com');
     });
 
     afterEach(async function () {
@@ -501,6 +515,8 @@ describe('Scim', () => {
         ],
       }, chimpy);
       assert.equal(res.status, 200);
+
+      const newUserID = await getOrCreateUserId('bulk-user3');
       assert.deepEqual(res.data, {
         schemas: [ "urn:ietf:params:scim:api:messages:2.0:BulkResponse" ],
         Operations: [
@@ -519,7 +535,7 @@ describe('Scim', () => {
           }, {
             method: "POST",
             bulkId: "1",
-            location: "/api/scim/v2/Users/26",
+            location: "/api/scim/v2/Users/" + newUserID,
             status: "201"
           }, {
             method: "POST",
