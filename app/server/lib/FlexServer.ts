@@ -899,11 +899,13 @@ export class FlexServer implements GristServer {
 
   public addScimApi() {
     if (this._check('scim', 'api', 'homedb', 'json', 'api-mw')) { return; }
+
     const scimRouter = isAffirmative(process.env.GRIST_ENABLE_SCIM) ?
       buildScimRouter(this._dbManager, this._installAdmin) :
       () => {
         throw new ApiError('SCIM API is not enabled', 501);
       };
+
     this.app.use('/api/scim', scimRouter);
   }
 
