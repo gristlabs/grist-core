@@ -1,100 +1,25 @@
 import * as express from 'express';
-import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import SCIMMY from "scimmy";
 import SCIMMYRouters from "scimmy-routers";
-import { RequestWithLogin } from '../../Authorizer';
-import { InstallAdmin } from '../../InstallAdmin';
-import { toSCIMMYUser, toUserProfile } from './ScimUserUtils';
-import { ApiError } from 'app/common/ApiError';
-import { parseInt } from 'lodash';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { InstallAdmin } from 'app/server/lib/InstallAdmin';
+import { RequestContext } from './ScimTypes';
+import { getScimUserConfig } from './ScimUserController';
 
 const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
-
-interface RequestContext {
-  path: string;
-  isAdmin: boolean;
-  isScimUser: boolean;
-}
-
-function checkAccess(context: RequestContext) {
-  const {isAdmin, isScimUser, path } = context;
-  if (!isAdmin && !isScimUser && !WHITELISTED_PATHS_FOR_NON_ADMINS.includes(path)) {
-    throw new SCIMMY.Types.Error(403, null!, 'You are not authorized to access this resource');
-  }
-}
-
-async function checkEmailIsUnique(dbManager: HomeDBManager, email: string, id?: number) {
-  const existingUser = await dbManager.getExistingUserByLogin(email);
-  if (existingUser !== undefined && existingUser.id !== id) {
-    throw new SCIMMY.Types.Error(409, 'uniqueness', 'An existing user with the passed email exist.');
-  }
-}
 
 const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin) => {
   const v2 = express.Router();
 
-  SCIMMY.Resources.declare(SCIMMY.Resources.User, {
-    egress: async (resource: any, context: RequestContext) => {
-      checkAccess(context);
-
-      const { filter } = resource;
-      const id = parseInt(resource.id, 10);
-      if (!isNaN(id)) {
-        const user = await dbManager.getUser(id);
-        if (!user) {
-          throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
-        }
-        return toSCIMMYUser(user);
-      }
-      const scimmyUsers = (await dbManager.getUsers()).map(user => toSCIMMYUser(user));
-      return filter ? filter.match(scimmyUsers) : scimmyUsers;
-    },
-    ingress: async (resource: any, data: any, context: RequestContext) => {
-      checkAccess(context);
-
-      try {
-        const id = parseInt(resource.id, 10);
-        if (!isNaN(id)) {
-          await checkEmailIsUnique(dbManager, data.userName, id);
-          const updatedUser = await dbManager.overrideUser(id, toUserProfile(data));
-          return toSCIMMYUser(updatedUser);
-        }
-        await checkEmailIsUnique(dbManager, data.userName);
-        const userProfileToInsert = toUserProfile(data);
-        const newUser = await dbManager.getUserByLoginWithRetry(userProfileToInsert.email, {
-          profile: userProfileToInsert
-        });
-        return toSCIMMYUser(newUser);
-      } catch (ex) {
-        if (ex instanceof ApiError) {
-          if (ex.status === 409) {
-            throw new SCIMMY.Types.Error(ex.status, 'uniqueness', ex.message);
-          }
-          throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
-        }
-
-        throw ex;
-      }
-    },
-    degress: async (resource: any, context: RequestContext) => {
-      checkAccess(context);
-
-      const id = parseInt(resource.id, 10);
-      if (isNaN(id)) {
-        throw new SCIMMY.Types.Error(400, null!, 'Invalid ID');
-      }
-      const fakeScope: Scope = { userId: id }; // FIXME: deleteUser should probably better not requiring a scope.
-      try {
-        await dbManager.deleteUser(fakeScope, id);
-      } catch (ex) {
-        if (ex instanceof ApiError) {
-          throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
-        }
-
-        throw new SCIMMY.Types.Error(500, 'serverError', ex.message);
-      }
+  function checkAccess(context: RequestContext) {
+    const {isAdmin, isScimUser, path } = context;
+    if (!isAdmin && !isScimUser && !WHITELISTED_PATHS_FOR_NON_ADMINS.includes(path)) {
+      throw new SCIMMY.Types.Error(403, null!, 'You are not authorized to access this resource');
     }
-  });
+  }
+
+  SCIMMY.Resources.declare(SCIMMY.Resources.User, getScimUserConfig(dbManager, checkAccess));
 
   const scimmyRouter = new SCIMMYRouters({
     type: 'bearer',

@@ -416,6 +416,17 @@ describe('Scim', () => {
         });
       });
 
+      it('should return 400 when the user id is malformed', async function () {
+        const res = await axios.put(scimUrl('/Users/not-an-id'), toSCIMUserWithoutId('whoever'), chimpy);
+        assert.deepEqual(res.data, {
+          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+          status: '400',
+          detail: 'Invalid passed user ID',
+          scimType: 'invalidValue'
+        });
+        assert.equal(res.status, 400);
+      });
+
       it('should normalize the passed email for the userName and keep the case for email.value', async function () {
         const newEmail = 'my-EMAIL@getgrist.com';
         const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
