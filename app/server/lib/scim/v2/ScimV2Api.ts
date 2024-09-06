@@ -10,20 +10,36 @@ import { parseInt } from 'lodash';
 
 const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
 
-async function isAuthorizedAction(mreq: RequestWithLogin, installAdmin: InstallAdmin): Promise<boolean> {
-  const isAdmin = await installAdmin.isAdminReq(mreq);
-  const isScimUser = Boolean(process.env.GRIST_SCIM_EMAIL && mreq.user?.loginEmail === process.env.GRIST_SCIM_EMAIL);
-  return isAdmin || isScimUser || WHITELISTED_PATHS_FOR_NON_ADMINS.includes(mreq.path);
+interface RequestContext {
+  path: string;
+  isAdmin: boolean;
+  isScimUser: boolean;
+}
+
+function checkAccess(context: RequestContext) {
+  const {isAdmin, isScimUser, path } = context;
+  if (!isAdmin && !isScimUser && !WHITELISTED_PATHS_FOR_NON_ADMINS.includes(path)) {
+    throw new SCIMMY.Types.Error(403, null!, 'You are not authorized to access this resource');
+  }
+}
+
+async function checkEmailIsUnique(dbManager: HomeDBManager, email: string, id?: number) {
+  const existingUser = await dbManager.getExistingUserByLogin(email);
+  if (existingUser !== undefined && existingUser.id !== id) {
+    throw new SCIMMY.Types.Error(409, 'uniqueness', 'An existing user with the passed email exist.');
+  }
 }
 
 const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin) => {
   const v2 = express.Router();
 
   SCIMMY.Resources.declare(SCIMMY.Resources.User, {
-    egress: async (resource: any) => {
+    egress: async (resource: any, context: RequestContext) => {
+      checkAccess(context);
+
       const { filter } = resource;
       const id = parseInt(resource.id, 10);
-      if (id) {
+      if (!isNaN(id)) {
         const user = await dbManager.getUser(id);
         if (!user) {
           throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
@@ -33,18 +49,18 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
       const scimmyUsers = (await dbManager.getUsers()).map(user => toSCIMMYUser(user));
       return filter ? filter.match(scimmyUsers) : scimmyUsers;
     },
-    ingress: async (resource: any, data: any) => {
+    ingress: async (resource: any, data: any, context: RequestContext) => {
+      checkAccess(context);
+
       try {
         const id = parseInt(resource.id, 10);
-        if (id) {
+        if (!isNaN(id)) {
+          await checkEmailIsUnique(dbManager, data.userName, id);
           const updatedUser = await dbManager.overrideUser(id, toUserProfile(data));
           return toSCIMMYUser(updatedUser);
         }
+        await checkEmailIsUnique(dbManager, data.userName);
         const userProfileToInsert = toUserProfile(data);
-        const maybeExistingUser = await dbManager.getExistingUserByLogin(userProfileToInsert.email);
-        if (maybeExistingUser !== undefined) {
-          throw new SCIMMY.Types.Error(409, 'uniqueness', 'An existing user with the passed email exist.');
-        }
         const newUser = await dbManager.getUserByLoginWithRetry(userProfileToInsert.email, {
           profile: userProfileToInsert
         });
@@ -57,29 +73,20 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
           throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
         }
 
-        // FIXME: Remove this part and find another way to detect a constraint error.
-        if (ex.code?.startsWith('SQLITE')) {
-          switch (ex.code) {
-            case 'SQLITE_CONSTRAINT':
-              // Return a 409 error if a conflict is detected (e.g. email already exists)
-              // "uniqueness" is an error code expected by the SCIM RFC for this case.
-              // FIXME: the emails are unique in the database, but this is not enforced in the schema.
-              throw new SCIMMY.Types.Error(409, 'uniqueness', ex.message);
-            default:
-              throw new SCIMMY.Types.Error(500, 'serverError', ex.message);
-          }
-        }
-
         throw ex;
       }
     },
-    degress: async (resource: any) => {
+    degress: async (resource: any, context: RequestContext) => {
+      checkAccess(context);
+
       const id = parseInt(resource.id, 10);
+      if (isNaN(id)) {
+        throw new SCIMMY.Types.Error(400, null!, 'Invalid ID');
+      }
       const fakeScope: Scope = { userId: id }; // FIXME: deleteUser should probably better not requiring a scope.
       try {
         await dbManager.deleteUser(fakeScope, id);
       } catch (ex) {
-        console.error('Error deleting user', ex);
         if (ex instanceof ApiError) {
           throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
         }
@@ -102,10 +109,15 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
         throw new Error('Anonymous user cannot access SCIM resources');
       }
 
-      if (!await isAuthorizedAction(mreq, installAdmin)) {
-        throw new SCIMMY.Types.Error(403, null!, 'Resource disallowed for non-admin users');
-      }
-      return String(mreq.userId); // HACK: SCIMMYRouters requires the userId to be a string.
+      return String(mreq.userId); // SCIMMYRouters requires the userId to be a string.
+    },
+    context: async (mreq: RequestWithLogin): Promise<RequestContext> => {
+      const isAdmin = await installAdmin.isAdminReq(mreq);
+      const isScimUser = Boolean(
+        process.env.GRIST_SCIM_EMAIL && mreq.user?.loginEmail === process.env.GRIST_SCIM_EMAIL
+      );
+      const path = mreq.path;
+      return { isAdmin, isScimUser, path };
     }
   }) as express.Router; // Have to cast it into express.Router. See https://github.com/scimmyjs/scimmy-routers/issues/24
 
