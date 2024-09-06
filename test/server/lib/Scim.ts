@@ -18,7 +18,7 @@ function scimConfigForUser(user: string) {
 
 const chimpy = scimConfigForUser('Chimpy');
 const kiwi = scimConfigForUser('Kiwi');
-const anon = configForUser('Anonymous');
+const anon = scimConfigForUser('Anonymous');
 
 const USER_CONFIG_BY_NAME = {
   chimpy,
@@ -89,13 +89,14 @@ describe('Scim', () => {
 
   function checkEndpointNotAccessibleForNonAdminUsers(
     method: 'get' | 'post' | 'put' | 'patch' | 'delete',
-    path: string
+    path: string,
+    validBody: object = {}
   ) {
     function makeCallWith(user: keyof UserConfigByName) {
       if (method === 'get' || method === 'delete') {
         return axios[method](scimUrl(path), USER_CONFIG_BY_NAME[user]);
       }
-      return axios[method](scimUrl(path), {}, USER_CONFIG_BY_NAME[user]);
+      return axios[method](scimUrl(path), validBody, USER_CONFIG_BY_NAME[user]);
     }
     it('should return 401 for anonymous', async function () {
       const res: any = await makeCallWith('anon');
@@ -104,7 +105,12 @@ describe('Scim', () => {
 
     it('should return 401 for kiwi', async function () {
       const res: any = await makeCallWith('kiwi');
-      assert.equal(res.status, 401);
+      assert.deepEqual(res.data, {
+        schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+        status: '403',
+        detail: 'You are not authorized to access this resource'
+      });
+      assert.equal(res.status, 403);
     });
   }
 
@@ -127,6 +133,27 @@ describe('Scim', () => {
       const res = await axios.get(scimUrl('/Me'), anon);
       assert.equal(res.status, 401);
     });
+
+    it.skip('should allow operation like PATCH for kiwi', async function () {
+      // SKIPPING this test: only the GET verb is currently implemented by SCIMMY for the /Me endpoint.
+      // Issue created here: https://github.com/scimmyjs/scimmy/issues/47
+      const patchBody = {
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+        Operations: [{
+          op: "replace",
+          path: 'locale',
+          value: 'fr',
+        }],
+      };
+      const res = await axios.patch(scimUrl('/Me'), patchBody, kiwi);
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, {
+        ...personaToSCIMMYUserWithId('kiwi'),
+        locale: 'fr',
+        preferredLanguage: 'en',
+      });
+    });
+
   });
 
   describe('/Users/{id}', function () {
@@ -170,12 +197,15 @@ describe('Scim', () => {
 
   describe('POST /Users/.search', function () {
     const SEARCH_SCHEMA = 'urn:ietf:params:scim:api:messages:2.0:SearchRequest';
+
+    const searchExample = {
+      schemas: [SEARCH_SCHEMA],
+      sortBy: 'userName',
+      sortOrder: 'descending',
+    };
+
     it('should return all users for chimpy order by userName in descending order', async function () {
-      const res = await axios.post(scimUrl('/Users/.search'), {
-        schemas: [SEARCH_SCHEMA],
-        sortBy: 'userName',
-        sortOrder: 'descending',
-      }, chimpy);
+      const res = await axios.post(scimUrl('/Users/.search'), searchExample, chimpy);
       assert.equal(res.status, 200);
       assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
       const users = res.data.Resources.map((r: any) => r.userName);
@@ -198,54 +228,70 @@ describe('Scim', () => {
         "should have retrieved only chimpy's username and not other attribute");
     });
 
-    checkEndpointNotAccessibleForNonAdminUsers('post', '/Users/.search');
+    checkEndpointNotAccessibleForNonAdminUsers('post', '/Users/.search', searchExample);
   });
 
   describe('POST /Users', function () { // Create a new users
+    async function withUserName(userName: string, cb: (userName: string) => Promise<void>) {
+      try {
+        await cb(userName);
+      } finally {
+        const user = await server.dbManager.getExistingUserByLogin(userName + "@getgrist.com");
+        if (user) {
+          await cleanupUser(user.id);
+        }
+      }
+    }
     it('should create a new user', async function () {
-      const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId('newuser1'), chimpy);
-      assert.equal(res.status, 201);
-      const newUserId = await getOrCreateUserId('newuser1');
-      assert.deepEqual(res.data, toSCIMUserWithId('newuser1', newUserId));
+      await withUserName('newuser1', async (userName) => {
+        const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), chimpy);
+        assert.equal(res.status, 201);
+        const newUserId = await getOrCreateUserId(userName);
+        assert.deepEqual(res.data, toSCIMUserWithId(userName, newUserId));
+      });
     });
 
     it('should allow creating a new user given only their email passed as username', async function () {
-      const res = await axios.post(scimUrl('/Users'), {
-        schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-        userName: 'new.user2@getgrist.com',
-      }, chimpy);
-      assert.equal(res.status, 201);
-      assert.equal(res.data.userName, 'new.user2@getgrist.com');
-      assert.equal(res.data.displayName, 'new.user2');
+      await withUserName('new.user2', async (userName) => {
+        const res = await axios.post(scimUrl('/Users'), {
+          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+          userName: 'new.user2@getgrist.com',
+        }, chimpy);
+        assert.equal(res.status, 201);
+        assert.equal(res.data.userName, userName + '@getgrist.com');
+        assert.equal(res.data.displayName, userName);
+      });
     });
 
     it('should reject when passed email differs from username', async function () {
-      const res = await axios.post(scimUrl('/Users'), {
-        schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-        userName: 'username@getgrist.com',
-        emails: [{ value: 'emails.value@getgrist.com' }],
-      }, chimpy);
-      assert.equal(res.status, 400);
-      assert.deepEqual(res.data, {
-        schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-        status: '400',
-        detail: 'Email and userName must be the same',
-        scimType: 'invalidValue'
+      await withUserName('username', async (userName) => {
+        const res = await axios.post(scimUrl('/Users'), {
+          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+          userName: userName + '@getgrist.com',
+          emails: [{ value: 'emails.value@getgrist.com' }],
+        }, chimpy);
+        assert.deepEqual(res.data, {
+          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+          status: '400',
+          detail: 'Email and userName must be the same',
+          scimType: 'invalidValue'
+        });
+        assert.equal(res.status, 400);
       });
     });
 
     it('should disallow creating a user with the same email', async function () {
       const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId('chimpy'), chimpy);
-      assert.equal(res.status, 409);
       assert.deepEqual(res.data, {
         schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
         status: '409',
         detail: 'An existing user with the passed email exist.',
         scimType: 'uniqueness'
       });
+      assert.equal(res.status, 409);
     });
 
-    checkEndpointNotAccessibleForNonAdminUsers('post', '/Users');
+    checkEndpointNotAccessibleForNonAdminUsers('post', '/Users', toSCIMUserWithoutId('some-user'));
   });
 
   describe('PUT /Users/{id}', function () {
@@ -286,34 +332,34 @@ describe('Scim', () => {
         userName: userToUpdateEmailLocalPart + '@getgrist.com',
         emails: [{ value: 'whatever@getgrist.com', primary: true }],
       }, chimpy);
-      assert.equal(res.status, 400);
       assert.deepEqual(res.data, {
         schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
         status: '400',
         detail: 'Email and userName must be the same',
         scimType: 'invalidValue'
       });
+      assert.equal(res.status, 400);
     });
 
-    it('should disallow updating a user with the same email', async function () {
+    it('should disallow updating a user with the same email as another user\'s', async function () {
       const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), toSCIMUserWithoutId('chimpy'), chimpy);
-      assert.equal(res.status, 409);
       assert.deepEqual(res.data, {
         schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
         status: '409',
-        detail: 'SQLITE_CONSTRAINT: UNIQUE constraint failed: logins.email',
+        detail: 'An existing user with the passed email exist.',
         scimType: 'uniqueness'
       });
+      assert.equal(res.status, 409);
     });
 
     it('should return 404 when the user is not found', async function () {
-      const res = await axios.put(scimUrl('/Users/1000'), toSCIMUserWithoutId('chimpy'), chimpy);
-      assert.equal(res.status, 404);
+      const res = await axios.put(scimUrl('/Users/1000'), toSCIMUserWithoutId('whoever'), chimpy);
       assert.deepEqual(res.data, {
         schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
         status: '404',
         detail: 'unable to find user to update'
       });
+      assert.equal(res.status, 404);
     });
 
     it('should deduce the name from the displayEmail when not provided', async function () {
@@ -346,7 +392,7 @@ describe('Scim', () => {
       });
     });
 
-    checkEndpointNotAccessibleForNonAdminUsers('put', '/Users/1');
+    checkEndpointNotAccessibleForNonAdminUsers('put', '/Users/1', toSCIMUserWithoutId('chimpy'));
   });
 
   describe('PATCH /Users/{id}', function () {
@@ -359,20 +405,22 @@ describe('Scim', () => {
       await cleanupUser(userToPatchId);
     });
 
-    it('should replace values of an existing user', async function () {
-      const newName = 'User to Patch new Name';
-      const res = await axios.patch(scimUrl(`/Users/${userToPatchId}`), {
-        schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
-        Operations: [{
-          op: "replace",
-          path: "displayName",
-          value: newName,
-        }, {
+    const validPatchBody = (newName: string) => ({
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+      Operations: [{
+        op: "replace",
+        path: "displayName",
+        value: newName,
+      }, {
           op: "replace",
           path: "locale",
           value: 'fr'
         }],
-      }, chimpy);
+    });
+
+    it('should replace values of an existing user', async function () {
+      const newName = 'User to Patch new Name';
+      const res = await axios.patch(scimUrl(`/Users/${userToPatchId}`), validPatchBody(newName), chimpy);
       assert.equal(res.status, 200);
       const refreshedUser = await axios.get(scimUrl(`/Users/${userToPatchId}`), chimpy);
       assert.deepEqual(refreshedUser.data, {
@@ -384,7 +432,7 @@ describe('Scim', () => {
       });
     });
 
-    checkEndpointNotAccessibleForNonAdminUsers('patch', '/Users/1');
+    checkEndpointNotAccessibleForNonAdminUsers('patch', '/Users/1', validPatchBody('new name2'));
   });
 
   describe('DELETE /Users/{id}', function () {
@@ -407,17 +455,200 @@ describe('Scim', () => {
 
     it('should return 404 when the user is not found', async function () {
       const res = await axios.delete(scimUrl('/Users/1000'), chimpy);
-      assert.equal(res.status, 404);
       assert.deepEqual(res.data, {
         schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
         status: '404',
         detail: 'user not found'
       });
+      assert.equal(res.status, 404);
     });
     checkEndpointNotAccessibleForNonAdminUsers('delete', '/Users/1');
   });
 
-  it('should fix the 401 response for authenticated users', function () {
-    throw new Error("This is a reminder :)");
+  describe('POST /Bulk', function () {
+    let usersToCleanupEmails: string[];
+
+    beforeEach(async function () {
+      usersToCleanupEmails = [];
+      usersToCleanupEmails.push('bulk-user1@getgrist.com');
+      usersToCleanupEmails.push('bulk-user2@getgrist.com');
+    });
+
+    afterEach(async function () {
+      for (const email of usersToCleanupEmails) {
+        const user = await server.dbManager.getExistingUserByLogin(email);
+        if (user) {
+          await cleanupUser(user.id);
+        }
+      }
+    });
+
+    it('should return statuses for each operation', async function () {
+      const putOnUnknownResource = { method: 'PUT', path: '/Users/1000', value: toSCIMUserWithoutId('chimpy') };
+      const validCreateOperation = {
+        method: 'POST', path: '/Users/', data: toSCIMUserWithoutId('bulk-user3'), bulkId: '1'
+      };
+      usersToCleanupEmails.push('bulk-user3');
+      const createOperationWithUserNameConflict = {
+        method: 'POST', path: '/Users/', data: toSCIMUserWithoutId('chimpy'), bulkId: '2'
+      };
+      const res = await axios.post(scimUrl('/Bulk'), {
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
+        Operations: [
+          putOnUnknownResource,
+          validCreateOperation,
+          createOperationWithUserNameConflict,
+        ],
+      }, chimpy);
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, {
+        schemas: [ "urn:ietf:params:scim:api:messages:2.0:BulkResponse" ],
+        Operations: [
+          {
+            method: "PUT",
+            location: "/api/scim/v2/Users/1000",
+            status: "400",
+            response: {
+              schemas: [
+                "urn:ietf:params:scim:api:messages:2.0:Error"
+              ],
+              status: "400",
+              scimType: "invalidSyntax",
+              detail: "Expected 'data' to be a single complex value in BulkRequest operation #1"
+            }
+          }, {
+            method: "POST",
+            bulkId: "1",
+            location: "/api/scim/v2/Users/26",
+            status: "201"
+          }, {
+            method: "POST",
+            bulkId: "2",
+            status: "409",
+            response: {
+              schemas: [
+                "urn:ietf:params:scim:api:messages:2.0:Error"
+              ],
+              status: "409",
+              scimType: "uniqueness",
+              detail: "An existing user with the passed email exist."
+            }
+          }
+        ]
+      });
+    });
+
+    it('should return 400 when no operations are provided', async function () {
+      const res = await axios.post(scimUrl('/Bulk'), {
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
+        Operations: [],
+      }, chimpy);
+      assert.equal(res.status, 400);
+      assert.deepEqual(res.data, {
+        schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+        status: '400',
+        detail: "BulkRequest request body must contain 'Operations' attribute with at least one operation",
+        scimType: 'invalidValue'
+      });
+    });
+
+    it('should disallow accessing resources to kiwi', async function () {
+      const creationOperation = {
+        method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user4'), bulkId: '1'
+      };
+      usersToCleanupEmails.push('bulk-user4');
+      const selfPutOperation = { method: 'PUT', path: '/Me', value: toSCIMUserWithoutId('kiwi') };
+      const res = await axios.post(scimUrl('/Bulk'), {
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
+        Operations: [
+          creationOperation,
+          selfPutOperation,
+        ],
+      }, kiwi);
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, {
+        schemas: [ "urn:ietf:params:scim:api:messages:2.0:BulkResponse" ],
+        Operations: [
+          {
+            method: "POST",
+            bulkId: "1",
+            status: "403",
+            response: {
+              detail: "You are not authorized to access this resource",
+              schemas: [ "urn:ietf:params:scim:api:messages:2.0:Error" ],
+              status: "403"
+            }
+          }, {
+            // When writing this test, the SCIMMY implementation does not yet support PUT operations on /Me.
+            // This reflects the current behavior, but it may change in the future.
+            // Change this test if the behavior changes.
+            // It is probably fine to allow altering oneself even for non-admins.
+            method: "PUT",
+            location: "/Me",
+            status: "400",
+            response: {
+              schemas: [
+                "urn:ietf:params:scim:api:messages:2.0:Error"
+              ],
+              status: "400",
+              detail: "Invalid 'path' value '/Me' in BulkRequest operation #2",
+              scimType: "invalidValue"
+            }
+          }
+        ]
+      });
+    });
+
+    it('should disallow accessing resources to anonymous', async function () {
+      const creationOperation = {
+        method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user5'), bulkId: '1'
+      };
+      usersToCleanupEmails.push('bulk-user5');
+      const res = await axios.post(scimUrl('/Bulk'), {
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
+        Operations: [creationOperation],
+      }, anon);
+      assert.equal(res.status, 401);
+    });
+  });
+
+  it('should allow fetching the Scim schema when autenticated', async function () {
+    const res = await axios.get(scimUrl('/Schemas'), kiwi);
+    assert.equal(res.status, 200);
+    assert.deepInclude(res.data, {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+    });
+    assert.property(res.data, 'Resources');
+    assert.deepInclude(res.data.Resources[0], {
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+      id: 'urn:ietf:params:scim:schemas:core:2.0:User',
+      name: 'User',
+      description: 'User Account',
+    });
+  });
+
+  it('should allow fetching the Scim resource types when autenticated', async function () {
+    const res = await axios.get(scimUrl('/ResourceTypes'), kiwi);
+    assert.equal(res.status, 200);
+    assert.deepInclude(res.data, {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+    });
+    assert.property(res.data, 'Resources');
+    assert.deepInclude(res.data.Resources[0], {
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+      name: 'User',
+      endpoint: '/Users',
+    });
+  });
+
+  it('should allow fetching the Scim service provider config when autenticated', async function () {
+    const res = await axios.get(scimUrl('/ServiceProviderConfig'), kiwi);
+    assert.equal(res.status, 200);
+    assert.deepInclude(res.data, {
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig'],
+    });
+    assert.property(res.data, 'patch');
+    assert.property(res.data, 'bulk');
+    assert.property(res.data, 'filter');
   });
 });
