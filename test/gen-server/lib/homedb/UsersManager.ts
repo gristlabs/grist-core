@@ -20,6 +20,7 @@ import { assert } from 'chai';
 import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
 import { EntityManager } from 'typeorm';
 import winston from 'winston';
+import omit from 'lodash/omit';
 
 import {delay} from 'app/common/delay';
 
@@ -980,6 +981,68 @@ describe('UsersManager', function () {
             email: makeEmail(localPart),
           });
         }
+      });
+    });
+
+    describe('overrideUser()', function () {
+      it('should reject when user is not found', async function () {
+        disableLoggingLevel('debug');
+
+        const promise = db.overrideUser(NON_EXISTING_USER_ID, {
+          email: 'whatever@getgrist.com',
+          name: 'whatever',
+        });
+
+        await assert.isRejected(promise, 'unable to find user to update');
+      });
+
+      it('should update user information', async function () {
+        const localPart = 'overrideuser-updates-user-info';
+        const newLocalPart = 'overrideuser-updates-user-info-new';
+        const user = await createUniqueUser(localPart);
+        const newInfo: UserProfile = {
+          name: 'new name',
+          email: makeEmail(newLocalPart).toUpperCase(),
+          picture: 'https://mypic.com/me.png',
+          locale: 'fr-FR',
+        };
+
+        await db.overrideUser(user.id, newInfo);
+
+        const updatedUser = await getOrCreateUser(newLocalPart);
+        assert.deepInclude(updatedUser, {
+          id: user.id,
+          name: newInfo.name,
+          picture: newInfo.picture,
+          options: {locale: newInfo.locale},
+        });
+        assert.deepInclude(updatedUser.logins[0], {
+          email: newInfo.email.toLowerCase(),
+          displayEmail: newInfo.email,
+        });
+      });
+    });
+
+    describe('getUsers()', function () {
+      it('should return all users with their logins', async function () {
+        const localPart = 'getUsers-user';
+        const existingUser = await createUniqueUser(localPart);
+        const users = await db.getUsers();
+        assert.isAbove(users.length, 2);
+        const mapUsersById = new Map(users.map(user => [user.id, user]));
+
+        // Check that we retrieve the existing user in the result with all their property
+        // except the personalOrg
+        const existingUserInResult = mapUsersById.get(existingUser.id);
+        assertExists(existingUserInResult);
+        assertExists(existingUserInResult.logins);
+        assert.lengthOf(existingUserInResult.logins, 1);
+        assert.deepEqual(existingUserInResult, omit(existingUser, 'personalOrg'));
+
+        // Check that we retrieve special accounts among the result
+        assert.exists(mapUsersById.get(db.getSupportUserId()));
+        assert.exists(mapUsersById.get(db.getEveryoneUserId()));
+        assert.exists(mapUsersById.get(db.getAnonymousUserId()));
       });
     });
   });
