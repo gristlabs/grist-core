@@ -128,6 +128,7 @@ describe('Scim', () => {
         }
         return axios[method](scimUrl(path), validBody, USER_CONFIG_BY_NAME[user]);
       }
+
       it('should return 401 for anonymous', async function () {
         const res = await makeCallWith('anon');
         assert.equal(res.status, 401);
@@ -243,6 +244,25 @@ describe('Scim', () => {
         assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
         assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('chimpy'));
         assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('kiwi'));
+      });
+
+      it('should handle pagination', async function () {
+        const endpointPaginated = '/Users?count=1&sortBy=id';
+        {
+          const firstPage = await axios.get(scimUrl(endpointPaginated), chimpy);
+          assert.equal(firstPage.status, 200);
+          assert.lengthOf(firstPage.data.Resources, 1);
+          const firstPageResourceId = parseInt(firstPage.data.Resources[0].id);
+          assert.equal(firstPageResourceId, 1);
+        }
+
+        {
+          const secondPage = await axios.get(scimUrl(endpointPaginated + '&startIndex=2'), chimpy);
+          assert.equal(secondPage.status, 200);
+          assert.lengthOf(secondPage.data.Resources, 1);
+          const secondPageResourceId = parseInt(secondPage.data.Resources[0].id);
+          assert.equal(secondPageResourceId, 2);
+        }
       });
 
       checkCommonErrors('get', '/Users');
