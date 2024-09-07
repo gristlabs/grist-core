@@ -1,6 +1,8 @@
 import axios from 'axios';
 import capitalize from 'lodash/capitalize';
 import { assert } from 'chai';
+import Sinon from 'sinon';
+
 import { TestServer } from 'test/gen-server/apiUtils';
 import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
@@ -115,7 +117,7 @@ describe('Scim', () => {
       }
     }
 
-    function checkEndpointNotAccessibleForNonAdminUsers(
+    function checkCommonErrors(
       method: 'get' | 'post' | 'put' | 'patch' | 'delete',
       path: string,
       validBody: object = {}
@@ -127,18 +129,42 @@ describe('Scim', () => {
         return axios[method](scimUrl(path), validBody, USER_CONFIG_BY_NAME[user]);
       }
       it('should return 401 for anonymous', async function () {
-        const res: any = await makeCallWith('anon');
+        const res = await makeCallWith('anon');
         assert.equal(res.status, 401);
       });
 
       it('should return 403 for kiwi', async function () {
-        const res: any = await makeCallWith('kiwi');
+        const res = await makeCallWith('kiwi');
         assert.deepEqual(res.data, {
           schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
           status: '403',
           detail: 'You are not authorized to access this resource'
         });
         assert.equal(res.status, 403);
+      });
+
+      it('should return a 500 in case of unknown Error', async function () {
+        const sandbox = Sinon.createSandbox();
+        try {
+          const error = new Error('Some unexpected Error');
+
+          // Stub all the dbManager methods called by the controller
+          sandbox.stub(getDbManager(), 'getUsers').throws(error);
+          sandbox.stub(getDbManager(), 'getUser').throws(error);
+          sandbox.stub(getDbManager(), 'getUserByLoginWithRetry').throws(error);
+          sandbox.stub(getDbManager(), 'overrideUser').throws(error);
+          sandbox.stub(getDbManager(), 'deleteUser').throws(error);
+
+          const res = await makeCallWith('chimpy');
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '500',
+            detail: error.message
+          });
+          assert.equal(res.status, 500);
+        } finally {
+          sandbox.restore();
+        }
       });
     }
 
@@ -181,10 +207,9 @@ describe('Scim', () => {
           preferredLanguage: 'en',
         });
       });
-
     });
 
-    describe('/Users/{id}', function () {
+    describe('GET /Users/{id}', function () {
 
       it('should return the user of id=1 for chimpy', async function () {
         const res = await axios.get(scimUrl('/Users/1'), chimpy);
@@ -208,7 +233,7 @@ describe('Scim', () => {
         });
       });
 
-      checkEndpointNotAccessibleForNonAdminUsers('get', '/Users/1');
+      checkCommonErrors('get', '/Users/1');
     });
 
     describe('GET /Users', function () {
@@ -220,7 +245,7 @@ describe('Scim', () => {
         assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('kiwi'));
       });
 
-      checkEndpointNotAccessibleForNonAdminUsers('get', '/Users');
+      checkCommonErrors('get', '/Users');
     });
 
     describe('POST /Users/.search', function () {
@@ -261,7 +286,7 @@ describe('Scim', () => {
           "should have retrieved only chimpy's username and not other attribute");
       });
 
-      checkEndpointNotAccessibleForNonAdminUsers('post', '/Users/.search', searchExample);
+      checkCommonErrors('post', '/Users/.search', searchExample);
     });
 
     describe('POST /Users', function () { // Create a new users
@@ -331,7 +356,7 @@ describe('Scim', () => {
         assert.equal(res.status, 409);
       });
 
-      checkEndpointNotAccessibleForNonAdminUsers('post', '/Users', toSCIMUserWithoutId('some-user'));
+      checkCommonErrors('post', '/Users', toSCIMUserWithoutId('some-user'));
     });
 
     describe('PUT /Users/{id}', function () {
@@ -443,7 +468,7 @@ describe('Scim', () => {
         });
       });
 
-      checkEndpointNotAccessibleForNonAdminUsers('put', '/Users/1', toSCIMUserWithoutId('chimpy'));
+      checkCommonErrors('put', '/Users/1', toSCIMUserWithoutId('chimpy'));
     });
 
     describe('PATCH /Users/{id}', function () {
@@ -483,7 +508,7 @@ describe('Scim', () => {
         });
       });
 
-      checkEndpointNotAccessibleForNonAdminUsers('patch', '/Users/1', validPatchBody('new name2'));
+      checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
     });
 
     describe('DELETE /Users/{id}', function () {
@@ -513,7 +538,7 @@ describe('Scim', () => {
         });
         assert.equal(res.status, 404);
       });
-      checkEndpointNotAccessibleForNonAdminUsers('delete', '/Users/1');
+      checkCommonErrors('delete', '/Users/1');
     });
 
     describe('POST /Bulk', function () {

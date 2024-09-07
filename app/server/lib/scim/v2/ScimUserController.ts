@@ -19,73 +19,70 @@ class ScimUserController {
   ) {}
 
   public async getSingleUser(resource: any, context: RequestContext) {
-    this._checkAccess(context);
-
-    const id = ScimUserController._getIdFromResource(resource);
-    const user = await this._dbManager.getUser(id);
-    if (!user) {
-      throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
-    }
-    return toSCIMMYUser(user);
+    return this._runAndHandleErrors(context, async () => {
+      const id = ScimUserController._getIdFromResource(resource);
+      const user = await this._dbManager.getUser(id);
+      if (!user) {
+        throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
+      }
+      return toSCIMMYUser(user);
+    });
   }
 
   public async getUsers(resource: any, context: RequestContext) {
-    this._checkAccess(context);
-
-    const { filter } = resource;
-    const scimmyUsers = (await this._dbManager.getUsers()).map(user => toSCIMMYUser(user));
-    return filter ? filter.match(scimmyUsers) : scimmyUsers;
+    return this._runAndHandleErrors(context, async () => {
+      const { filter } = resource;
+      const scimmyUsers = (await this._dbManager.getUsers()).map(user => toSCIMMYUser(user));
+      return filter ? filter.match(scimmyUsers) : scimmyUsers;
+    });
   }
 
   public async createUser(data: any, context: RequestContext) {
-    this._checkAccess(context);
-
-    try {
+    return this._runAndHandleErrors(context, async () => {
       await this._checkEmailIsUnique(data.userName);
       const userProfile = toUserProfile(data);
       const newUser = await this._dbManager.getUserByLoginWithRetry(userProfile.email, {
         profile: userProfile
       });
       return toSCIMMYUser(newUser);
-    } catch (ex) {
-      return this._toScimError(ex);
-    }
+    });
   }
 
   public async overrideUser(resource: any, data: any, context: RequestContext) {
-    this._checkAccess(context);
-
-    try {
+    return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
       await this._checkEmailIsUnique(data.userName, id);
       const updatedUser = await this._dbManager.overrideUser(id, toUserProfile(data));
       return toSCIMMYUser(updatedUser);
-    } catch (ex) {
-      return this._toScimError(ex);
-    }
+    });
   }
 
   public async deleteUser(resource: any, context: RequestContext) {
-    this._checkAccess(context);
-
-    const id = ScimUserController._getIdFromResource(resource);
-    try {
+    return this._runAndHandleErrors(context, async () => {
+      const id = ScimUserController._getIdFromResource(resource);
       const fakeScope: Scope = { userId: id };
       // FIXME: deleteUser should probably better not requiring a scope.
       await this._dbManager.deleteUser(fakeScope, id);
-    } catch (ex) {
-      return this._toScimError(ex);
-    }
+    });
   }
 
-  private async _toScimError(ex: Error) {
-    if (ex instanceof ApiError) {
-      if (ex.status === 409) {
-        throw new SCIMMY.Types.Error(ex.status, 'uniqueness', ex.message);
+  private async _runAndHandleErrors<T>(context: RequestContext, cb: () => Promise<T>): Promise<T> {
+    try {
+      this._checkAccess(context);
+      return await cb();
+    } catch (ex) {
+      if (ex instanceof ApiError) {
+        if (ex.status === 409) {
+          throw new SCIMMY.Types.Error(ex.status, 'uniqueness', ex.message);
+        }
+        throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
       }
-      throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
+      if (ex instanceof SCIMMY.Types.Error) {
+        throw ex;
+      }
+      // By default, return a 500 error
+      throw new SCIMMY.Types.Error(500, null!, ex.message);
     }
-    throw ex;
   }
 
   private async _checkEmailIsUnique(email: string, id?: number) {
