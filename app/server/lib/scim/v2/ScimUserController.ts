@@ -18,6 +18,12 @@ class ScimUserController {
     private _checkAccess: (context: RequestContext) => void
   ) {}
 
+  /**
+   * Gets a single user with the passed ID.
+   *
+   * @param resource The SCIMMY user resource performing the operation
+   * @param context The request context
+   */
   public async getSingleUser(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
@@ -29,6 +35,12 @@ class ScimUserController {
     });
   }
 
+  /**
+   * Gets all users or filters them based on the passed filter.
+   *
+   * @param resource The SCIMMY user resource performing the operation
+   * @param context The request context
+   */
   public async getUsers(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const { filter } = resource;
@@ -37,9 +49,15 @@ class ScimUserController {
     });
   }
 
+  /**
+   * Creates a new user with the passed data.
+   *
+   * @param data The data to create the user with
+   * @param context The request context
+   */
   public async createUser(data: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
-      await this._checkEmailIsUnique(data.userName);
+      await this._checkEmailCanBeUsed(data.userName);
       const userProfile = toUserProfile(data);
       const newUser = await this._dbManager.getUserByLoginWithRetry(userProfile.email, {
         profile: userProfile
@@ -48,15 +66,28 @@ class ScimUserController {
     });
   }
 
+  /**
+   * Overrides a user with the passed data.
+   *
+   * @param resource The SCIMMY user resource performing the operation
+   * @param data The data to override the user with
+   * @param context The request context
+   */
   public async overrideUser(resource: any, data: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
-      await this._checkEmailIsUnique(data.userName, id);
+      await this._checkEmailCanBeUsed(data.userName, id);
       const updatedUser = await this._dbManager.overrideUser(id, toUserProfile(data));
       return toSCIMMYUser(updatedUser);
     });
   }
 
+  /**
+   * Deletes a user with the passed ID.
+   *
+   * @param resource The SCIMMY user resource performing the operation
+   * @param context The request context
+   */
   public async deleteUser(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
@@ -66,6 +97,14 @@ class ScimUserController {
     });
   }
 
+  /**
+   * Runs the passed callback and handles any errors that might occur.
+   * Also checks if the user has access to the operation.
+   * Any public method of this class should be run through this method.
+   *
+   * @param context The request context to check access for the user
+   * @param cb The callback to run
+   */
   private async _runAndHandleErrors<T>(context: RequestContext, cb: () => Promise<T>): Promise<T> {
     try {
       this._checkAccess(context);
@@ -85,9 +124,16 @@ class ScimUserController {
     }
   }
 
-  private async _checkEmailIsUnique(email: string, id?: number) {
+  /**
+   * Checks if the passed email can be used for a new user or by the existing user.
+   *
+   * @param email The email to check
+   * @param userIdToUpdate The ID of the user to update. Pass this when updating a user,
+   * so it won't raise an error if the passed email is already used by this user.
+   */
+  private async _checkEmailCanBeUsed(email: string, userIdToUpdate?: number) {
     const existingUser = await this._dbManager.getExistingUserByLogin(email);
-    if (existingUser !== undefined && existingUser.id !== id) {
+    if (existingUser !== undefined && existingUser.id !== userIdToUpdate) {
       throw new SCIMMY.Types.Error(409, 'uniqueness', 'An existing user with the passed email exist.');
     }
   }
