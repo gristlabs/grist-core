@@ -2031,9 +2031,10 @@ export enum TestUserEnum {
   support = 'support',
 }
 export type TestUser = keyof typeof TestUserEnum;     // 'user1' | 'user2' | ...
+export interface UserData { email: string, name: string }
 
 // Get name and email for the given test user.
-export function translateUser(userName: TestUser): {email: string, name: string} {
+export function translateUser(userName: TestUser): UserData {
   if (userName === 'anon') {
     return {email: 'anon@getgrist.com', name: 'Anonymous'};
   }
@@ -2102,8 +2103,11 @@ export class Session {
   }
 
   // Return a session configured for the current session's site but a different user.
-  public user(userName: TestUser = 'user1') {
-    return new Session({...this.settings, ...translateUser(userName)});
+  public user(userName?: TestUser): Session
+  public user(user: UserData): Session
+  public user(arg: TestUser|UserData = 'user1') {
+    const data = typeof arg === 'string' ? translateUser(arg) : arg;
+    return new Session({...this.settings, ...data});
   }
 
   // Return a session configured for the current session's site and anonymous access.
