@@ -5,7 +5,7 @@ import {Sessions} from "app/server/lib/Sessions";
 import log from "app/server/lib/log";
 import {assert} from "chai";
 import Sinon from "sinon";
-import {Client, generators, errors as OIDCError} from "openid-client";
+import {Client, custom, generators, errors as OIDCError} from "openid-client";
 import express from "express";
 import _ from "lodash";
 import {RequestWithLogin} from "app/server/lib/Authorizer";
@@ -188,6 +188,55 @@ describe('OIDCConfig', () => {
           } else {
             await assert.isFulfilled(promise);
             assert.isTrue(isInitializedLogCalled());
+          }
+        });
+      });
+    });
+
+    describe('GRIST_OIDC_SP_HTTP_TIMEOUT', function () {
+      [
+        {
+          itMsg: 'when omitted should not override openid-client default value',
+          expectedUserDefinedHttpOptions: {}
+        },
+        {
+          itMsg: 'should reject when the provided value is not a number',
+          env: {
+            GRIST_OIDC_SP_HTTP_TIMEOUT: '__NOT_A_NUMBER__',
+          },
+          expectedErrorMsg: /__NOT_A_NUMBER__ does not look like a number/,
+        },
+        {
+          itMsg: 'should override openid-client timeout accordingly to the provided value',
+          env: {
+            GRIST_OIDC_SP_HTTP_TIMEOUT: '10000',
+          },
+          shouldSetTimeout: true,
+          expectedUserDefinedHttpOptions: {
+            timeout: 10000
+          }
+        },
+        {
+          itMsg: 'should allow disabling the timeout by having its value set to 0',
+          env: {
+            GRIST_OIDC_SP_HTTP_TIMEOUT: '0',
+          },
+          expectedUserDefinedHttpOptions: {
+            timeout: 0
+          }
+        }
+      ].forEach(ctx => {
+        it(ctx.itMsg, async () => {
+          const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
+          setEnvVars();
+          Object.assign(process.env, ctx.env);
+          const promise = OIDCConfigStubbed.buildWithStub();
+          if (ctx.expectedErrorMsg) {
+            await assert.isRejected(promise, ctx.expectedErrorMsg);
+          } else {
+            await assert.isFulfilled(promise, 'initOIDC should have been fulfilled');
+            assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, 'Should have called custom.setHttpOptionsDefaults');
+            assert.deepEqual(setHttpOptionsDefaultsStub.firstCall.args[0], ctx.expectedUserDefinedHttpOptions);
           }
         });
       });

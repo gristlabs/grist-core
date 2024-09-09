@@ -420,7 +420,7 @@ export class HomeUtil {
     if (this.server.isExternalServer()) { throw new Error('not supported'); }
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
-    if (user) { await dbManager.deleteUser({userId: user.id}, user.id, user.name); }
+    await dbManager.deleteUser({userId: user.id}, user.id, user.name);
   }
 
   // Set whether this is the user's first time logging in.  Requires access to the database.
@@ -428,10 +428,8 @@ export class HomeUtil {
     if (this.server.isExternalServer()) { throw new Error('not supported'); }
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
-    if (user) {
-      user.isFirstTimeUser = isFirstLogin;
-      await user.save();
-    }
+    user.isFirstTimeUser = isFirstLogin;
+    await user.save();
   }
 
   private async _initShowGristTour(email: string, showGristTour: boolean) {
@@ -463,7 +461,6 @@ export class HomeUtil {
 
     const dbManager = await this.server.getDatabase();
     const user = await dbManager.getUserByLogin(email);
-    if (!user) { return; }
 
     if (user.personalOrg) {
       const org = await dbManager.getOrg({userId: user.id}, user.personalOrg.id);

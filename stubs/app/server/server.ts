@@ -79,10 +79,6 @@ async function setupDb() {
       }
       const profile = {email, name: email};
       const user = await db.getUserByLogin(email, {profile});
-      if (!user) {
-        // This should not happen.
-        throw new Error('failed to create GRIST_DEFAULT_EMAIL user');
-      }
       db.unwrapQueryResult(await db.addOrg(user, {
         name: org,
         domain: org,

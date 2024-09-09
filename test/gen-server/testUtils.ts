@@ -46,7 +46,6 @@ export async function createUser(dbManager: HomeDBManager, name: string): Promis
   const username = name.toLowerCase();
   const email = `${username}@getgrist.com`;
   const user = await dbManager.getUserByLogin(email, {profile: {email, name}});
-  if (!user) { throw new Error('failed to create user'); }
   user.apiKey = `api_key_for_${username}`;
   await user.save();
   const userHome = (await dbManager.getOrg({userId: user.id}, null)).data;

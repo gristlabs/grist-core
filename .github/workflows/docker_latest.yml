@@ -46,6 +46,7 @@ jobs:
   push_to_registry:
     name: Push latest Docker image to Docker Hub
     runs-on: ubuntu-latest
+    if: ${{ vars.RUN_DAILY_BUILD }}
     strategy:
       matrix:
         python-version: [3.11]
@@ -122,6 +123,9 @@ jobs:
       - name: Build Node.js code
         if: ${{ !inputs.disable_tests }}
         run: yarn run build:prod
+
+      - name: Install Google Chrome for Testing
+        run: ./test/test_env.sh node_modules/selenium-webdriver/bin/linux/selenium-manager
 
       - name: Run tests
         if: ${{ !inputs.disable_tests }}
