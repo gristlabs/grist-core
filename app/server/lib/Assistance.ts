@@ -148,8 +148,8 @@ class RetryableError extends Error {
  * An optional ASSISTANT_MAX_TOKENS can be specified.
  */
 export class OpenAIAssistant implements Assistant {
-  public static DEFAULT_MODEL = "gpt-3.5-turbo-0613";
-  public static DEFAULT_LONGER_CONTEXT_MODEL = "gpt-3.5-turbo-16k-0613";
+  public static DEFAULT_MODEL = "gpt-4o-2024-08-06";
+  public static DEFAULT_LONGER_CONTEXT_MODEL = "";
 
   private _apiKey?: string;
   private _model?: string;
