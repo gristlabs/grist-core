@@ -156,6 +156,7 @@ export async function main(port: number, serverTypes: ServerType[],
       server.addHomeApi();
       server.addBillingApi();
       server.addNotifier();
+      server.addAuditLogger();
       await server.addTelemetry();
       await server.addHousekeeper();
       await server.addLoginRoutes();
@@ -170,6 +171,7 @@ export async function main(port: number, serverTypes: ServerType[],
 
     if (includeDocs) {
       server.addJsonSupport();
+      server.addAuditLogger();
       await server.addTelemetry();
       await server.addDoc();
     }

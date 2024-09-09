@@ -27,6 +27,7 @@ import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
 import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
+import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
@@ -151,6 +152,7 @@ export class FlexServer implements GristServer {
   private _sessions: Sessions;
   private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
+  private _auditLogger: IAuditLogger;
   private _telemetry: ITelemetry;
   private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
   private _docWorkerMap: IDocWorkerMap;
@@ -396,6 +398,11 @@ export class FlexServer implements GristServer {
   public getStorageManager(): IDocStorageManager {
     if (!this._storageManager) { throw new Error('no storage manager available'); }
     return this._storageManager;
+  }
+
+  public getAuditLogger(): IAuditLogger {
+    if (!this._auditLogger) { throw new Error('no audit logger available'); }
+    return this._auditLogger;
   }
 
   public getTelemetry(): ITelemetry {
@@ -909,6 +916,12 @@ export class FlexServer implements GristServer {
       });
       return resp.status(200).send();
     });
+  }
+
+  public addAuditLogger() {
+    if (this._check('audit-logger')) { return; }
+
+    this._auditLogger = this.create.AuditLogger();
   }
 
   public async addTelemetry() {

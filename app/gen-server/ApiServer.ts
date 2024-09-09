@@ -283,6 +283,12 @@ export class ApiServer {
           altSessionId: mreq.altSessionId,
         },
       });
+      this._gristServer.getAuditLogger().logEvent(mreq, {
+        event: {
+          name: 'createDocument',
+          details: {id: docId},
+        },
+      });
       return sendReply(req, res, query);
     }));
 

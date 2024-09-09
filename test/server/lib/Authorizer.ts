@@ -34,6 +34,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   home.addJsonSupport();
   await home.addLandingPages();
   home.addHomeApi();
+  home.addAuditLogger();
   await home.addTelemetry();
   await home.addDoc();
   home.addApiErrorHandlers();

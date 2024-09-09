@@ -19,20 +19,18 @@ import {Activation} from 'app/gen-server/entity/Activation';
 import {Activations} from 'app/gen-server/lib/Activations';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {getDocSessionUser, OptDocSession} from 'app/server/lib/DocSession';
+import {getDocSessionUser} from 'app/server/lib/DocSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {GristServer} from 'app/server/lib/GristServer';
 import {hashId} from 'app/server/lib/hashingUtils';
 import {LogMethods} from 'app/server/lib/LogMethods';
-import {stringParam} from 'app/server/lib/requestUtils';
+import {RequestOrSession, stringParam} from 'app/server/lib/requestUtils';
 import {getLogMetaFromDocSession} from 'app/server/lib/serverUtils';
 import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
 import merge = require('lodash/merge');
 import pickBy = require('lodash/pickBy');
-
-type RequestOrSession = RequestWithLogin | OptDocSession | null;
 
 interface RequestWithMatomoVisitorId extends RequestWithLogin {
   /**
