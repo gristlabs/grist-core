@@ -20,6 +20,7 @@ import math
 
 import six
 from six import integer_types
+import depend
 import objtypes
 from objtypes import AltText, is_int_short
 import moment
@@ -49,9 +50,14 @@ _type_defaults = {
   'Text':         u'',
 }
 
+def get_pure_type(col_type):
+  """
+  Returns type to the first colon, i.e. strips suffix for Ref:, DateTime:, etc.
+  """
+  return col_type.split(':', 1)[0]
+
 def get_type_default(col_type):
-  col_type = col_type.split(':', 1)[0]      # Strip suffix for Ref:, DateTime:, etc.
-  return _type_defaults.get(col_type, None)
+  return _type_defaults.get(get_pure_type(col_type), None)
 
 def formulaType(grist_type):
   """
@@ -70,6 +76,13 @@ def get_referenced_table_id(col_type):
     return col_type[8:]
   return None
 
+def is_compatible_ref_type(type1, type2):
+  """
+  Returns whether type1 and type2 are Ref or RefList types with the same target table.
+  """
+  ref_table1 = get_referenced_table_id(type1)
+  ref_table2 = get_referenced_table_id(type2)
+  return bool(ref_table1 and ref_table1 == ref_table2)
 
 def ifError(value, value_if_error):
   """
@@ -415,26 +428,35 @@ class Reference(Id):
   record is available as `rec.foo._row_id`. It is equivalent to `rec.foo.id`, except that
   accessing `id`, as other public properties, involves a lookup in `Foo` table.
   """
-  def __init__(self, table_id):
+  def __init__(self, table_id, reverse_of=None):
     super(Reference, self).__init__()
     self.table_id = table_id
+    self._reverse_col_id = reverse_of
 
   @classmethod
   def typename(cls):
     return "Ref"
 
+  def reverse_source_node(self):
+    """ Returns the reverse column as depend.Node, if it exists. """
+    return depend.Node(self.table_id, self._reverse_col_id) if self._reverse_col_id else None
 
 class ReferenceList(BaseColumnType):
   """
   ReferenceList stores a list of references into another table.
   """
-  def __init__(self, table_id):
+  def __init__(self, table_id, reverse_of=None):
     super(ReferenceList, self).__init__()
     self.table_id = table_id
+    self._reverse_col_id = reverse_of
 
   @classmethod
   def typename(cls):
     return "RefList"
+
+  def reverse_source_node(self):
+    """ Returns the reverse column as depend.Node, if it exists. """
+    return depend.Node(self.table_id, self._reverse_col_id) if self._reverse_col_id else None
 
   def do_convert(self, value):
     if isinstance(value, six.string_types):
@@ -448,7 +470,11 @@ class ReferenceList(BaseColumnType):
       try:
         # If it's a string that looks like JSON, try to parse it as such.
         if value.startswith('['):
-          value = json.loads(value)
+          parsed = json.loads(value)
+          # It must be list of integers, and all of them must be positive integers.
+          if (isinstance(parsed, list) and
+              all(isinstance(v, int) and v > 0 for v in parsed)):
+            value = parsed
         else:
         # Else try to parse it as a RecordList
           value = objtypes.RecordList.from_repr(value)

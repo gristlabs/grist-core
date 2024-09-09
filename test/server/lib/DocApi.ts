@@ -831,7 +831,8 @@ function testDocApi() {
             visibleCol: 0,
             rules: null,
             recalcWhen: 0,
-            recalcDeps: null
+            recalcDeps: null,
+            reverseCol: 0,
           }
         },
         {
@@ -852,7 +853,8 @@ function testDocApi() {
             visibleCol: 0,
             rules: null,
             recalcWhen: 0,
-            recalcDeps: null
+            recalcDeps: null,
+            reverseCol: 0,
           }
         },
         {
@@ -873,7 +875,8 @@ function testDocApi() {
             visibleCol: 0,
             rules: null,
             recalcWhen: 0,
-            recalcDeps: null
+            recalcDeps: null,
+            reverseCol: 0,
           }
         },
         {
@@ -894,7 +897,8 @@ function testDocApi() {
             visibleCol: 0,
             rules: null,
             recalcWhen: 0,
-            recalcDeps: null
+            recalcDeps: null,
+            reverseCol: 0,
           }
         },
         {
@@ -915,7 +919,8 @@ function testDocApi() {
             visibleCol: 0,
             rules: null,
             recalcWhen: 0,
-            recalcDeps: null
+            recalcDeps: null,
+            reverseCol: 0,
           }
         }
       ]
@@ -1715,7 +1720,8 @@ function testDocApi() {
               "visibleCol": 0,
               "rules": null,
               "recalcWhen": 0,
-              "recalcDeps": null
+              "recalcDeps": null,
+              reverseCol: 0,
             }
           }
         ]

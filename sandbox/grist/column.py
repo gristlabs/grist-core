@@ -6,11 +6,13 @@ from numbers import Number
 
 import six
 
+import actions
 import depend
 import objtypes
 import usertypes
 import relabeling
 import relation
+import reverse_references
 import moment
 from sortedcontainers import SortedListWithKey
 
@@ -221,16 +223,22 @@ class BaseColumn(object):
     """
     return self.type_obj.convert(value_to_convert)
 
-  def prepare_new_values(self, values, ignore_data=False, action_summary=None):
+  def prepare_new_values(self, row_ids, values, ignore_data=False, action_summary=None):
     """
-    This allows us to modify values and also produce adjustments to existing records. This
-    currently is only used by PositionColumn. Returns two lists: new_values, and
-    [(row_id, new_value)] list of adjustments to existing records.
+    This allows us to modify values and also produce adjustments to existing records.
+
+    Returns the pair (new_values, adjustments), where new_values is a list to replace `values`
+    (one for each row_id), and adjustments is a list of additional docactions to apply, e.g. to
+    adjust other rows.
+
     If ignore_data is True, makes adjustments without regard to the existing data; this is used
     for processing ReplaceTableData actions.
     """
     # pylint: disable=no-self-use, unused-argument
     return values, []
+
+  def recalc_from_reverse_values(self):
+    pass    # Only two-way references implement this
 
 
 class DataColumn(BaseColumn):
@@ -253,6 +261,7 @@ class ChoiceColumn(DataColumn):
     return row_ids, values
 
   def _rename_cell_choice(self, renames, value):
+    # pylint: disable=no-self-use
     return renames.get(value)
 
 
@@ -373,7 +382,7 @@ class PositionColumn(NumericColumn):
     self._sorted_rows = SortedListWithKey(other_column._sorted_rows[:],
                                           key=lambda x: SafeSortKey(self.raw_get(x)))
 
-  def prepare_new_values(self, values, ignore_data=False, action_summary=None):
+  def prepare_new_values(self, row_ids, values, ignore_data=False, action_summary=None):
     # This does the work of adjusting positions and relabeling existing rows with new position
     # (without changing sort order) to make space for the new positions. Note that this is also
     # used for updating a position for an existing row: we'll find a new value for it; later when
@@ -385,7 +394,9 @@ class PositionColumn(NumericColumn):
     # prepare_inserts expects floats as keys, not MixedTypesKeys
     rows = SortedListWithKey(rows, key=self.raw_get)
     adjustments, new_values = relabeling.prepare_inserts(rows, values)
-    return new_values, [(self._sorted_rows[i], pos) for (i, pos) in adjustments]
+    adj_action = _adjustments_to_action(self.node,
+        [(self._sorted_rows[i], pos) for (i, pos) in adjustments])
+    return new_values, ([adj_action] if adj_action else [])
 
 
 class ChoiceListColumn(ChoiceColumn):
@@ -410,6 +421,7 @@ class ChoiceListColumn(ChoiceColumn):
   def _rename_cell_choice(self, renames, value):
     if any((v in renames) for v in value):
       return tuple(renames.get(choice, choice) for choice in value)
+    return None
 
 
 class BaseReferenceColumn(BaseColumn):
@@ -420,24 +432,45 @@ class BaseReferenceColumn(BaseColumn):
     super(BaseReferenceColumn, self).__init__(table, col_id, col_info)
     # We can assume that all tables have been instantiated, but not all initialized.
     target_table_id = self.type_obj.table_id
+    self._table = table
     self._target_table = table._engine.tables.get(target_table_id, None)
     self._relation = relation.ReferenceRelation(table.table_id, target_table_id, col_id)
     # Note that we need to remove these back-references when the column is removed.
     if self._target_table:
       self._target_table._back_references.add(self)
 
+    self._reverse_source_node = self.type_obj.reverse_source_node()
+    if self._reverse_source_node:
+      _multimap_add(self._table._reverse_cols_by_source_node, self._reverse_source_node, self)
+
+
   def destroy(self):
     # Destroy the column and remove the back-reference we created in the constructor.
     super(BaseReferenceColumn, self).destroy()
+    if self._reverse_source_node:
+      _multimap_remove(self._table._reverse_cols_by_source_node, self._reverse_source_node, self)
+
     if self._target_table:
       self._target_table._back_references.remove(self)
 
   def _update_references(self, row_id, old_value, new_value):
+    for r in self._value_iterable(old_value):
+      self._relation.remove_reference(row_id, r)
+    for r in self._value_iterable(new_value):
+      self._relation.add_reference(row_id, r)
+
+  def _clean_up_value(self, value):
+    raise NotImplementedError()
+
+  def _value_iterable(self, value):
+    raise NotImplementedError()
+
+  def _list_to_value(self, value_as_list):
     raise NotImplementedError()
 
   def set(self, row_id, value):
     old = self.safe_get(row_id)
-    super(BaseReferenceColumn, self).set(row_id, value)
+    super(BaseReferenceColumn, self).set(row_id, self._clean_up_value(value))
     new = self.safe_get(row_id)
     self._update_references(row_id, old, new)
 
@@ -461,6 +494,39 @@ class BaseReferenceColumn(BaseColumn):
     """
     affected_rows = sorted(self._relation.get_affected_rows(target_row_ids))
     return [(row_id, self._raw_get_without(row_id, target_row_ids)) for row_id in affected_rows]
+
+  def prepare_new_values(self, row_ids, values, ignore_data=False, action_summary=None):
+    values = [self._clean_up_value(v) for v in values]
+    reverse_cols = self._target_table._reverse_cols_by_source_node.get(self.node, [])
+    adjustments = []
+    if reverse_cols:
+      old_values = [self.raw_get(r) for r in row_ids]
+      reverse_adjustments = reverse_references.get_reverse_adjustments(
+          row_ids, old_values, values, self._value_iterable, self._relation)
+
+      if reverse_adjustments:
+        for reverse_col in reverse_cols:
+          adjustments.append(_adjustments_to_action(
+            reverse_col.node,
+            [(row_id, reverse_col._list_to_value(value)) for (row_id, value) in reverse_adjustments]
+          ))
+
+    return values, adjustments
+
+  def recalc_from_reverse_values(self):
+    """
+    Generates actions to update reverse column based on this column.
+    """
+    if not self._reverse_source_node:
+      return None
+    rev_table_id, rev_col_id = self._reverse_source_node
+    reverse_col = self._target_table.get_column(rev_col_id)
+    reverse_adjustments = []
+    for target_row_id in self._target_table.row_ids:
+      reverse_value = self._relation.get_affected_rows((target_row_id,))
+      reverse_adjustments.append((target_row_id, sorted(reverse_value)))
+    return _adjustments_to_action(reverse_col.node,
+        [(row_id, reverse_col._list_to_value(value)) for (row_id, value) in reverse_adjustments])
 
   def _raw_get_without(self, _row_id, _target_row_ids):
     """
@@ -493,28 +559,33 @@ class ReferenceColumn(BaseReferenceColumn):
     # the 0 index will contain the all-defaults record.
     return self._target_table.Record(typed_value, self._relation)
 
-  def _update_references(self, row_id, old_value, new_value):
-    if old_value:
-      self._relation.remove_reference(row_id, old_value)
-    if new_value:
-      self._relation.add_reference(row_id, new_value)
+  def _value_iterable(self, value):
+    return (value,) if value and self.type_obj.is_right_type(value) else ()
 
-  def set(self, row_id, value):
+  def _list_to_value(self, value_as_list):
+    if len(value_as_list) > 1:
+      raise ValueError("UNIQUE reference constraint failed for action")
+    return value_as_list[0] if value_as_list else 0
+
+  def _clean_up_value(self, value):
     # Allow float values that are small integers. In practice, this only turns out to be relevant
     # in rare cases (such as undo of Ref->Numeric conversion).
     if type(value) == float and value.is_integer():   # pylint:disable=unidiomatic-typecheck
       if value > 0 and objtypes.is_int_short(int(value)):
-        value = int(value)
-    super(ReferenceColumn, self).set(row_id, value)
+        return int(value)
+    return value
 
-  def prepare_new_values(self, values, ignore_data=False, action_summary=None):
+  def prepare_new_values(self, row_ids, values, ignore_data=False, action_summary=None):
     if action_summary and values:
       values = action_summary.translate_new_row_ids(self._target_table.table_id, values)
-    return values, []
+    return super(ReferenceColumn, self).prepare_new_values(row_ids, values,
+        ignore_data=ignore_data, action_summary=action_summary)
 
   def convert(self, val):
     if isinstance(val, objtypes.ReferenceLookup):
       val = self._lookup(val, val.value) or self._alt_text(val.alt_text)
+    elif isinstance(val, list):
+      val = val[0] if val else 0
     return super(ReferenceColumn, self).convert(val)
 
 
@@ -523,7 +594,7 @@ class ReferenceListColumn(BaseReferenceColumn):
   ReferenceListColumn maintains for each row a list of references (row IDs) into another table.
   Accessing them yields RecordSets.
   """
-  def set(self, row_id, value):
+  def _clean_up_value(self, value):
     if isinstance(value, six.string_types):
       # This is second part of a "hack" we have to do when we rename tables. During
       # the rename, we briefly change all Ref columns to Int columns (to lose the table
@@ -535,20 +606,27 @@ class ReferenceListColumn(BaseReferenceColumn):
       try:
         # If it's a string that looks like JSON, try to parse it as such.
         if value.startswith('['):
-          value = json.loads(value)
+          parsed = json.loads(value)
+
+          # It must be list of integers.
+          if not isinstance(parsed, list):
+            return value
+
+          # All of them must be positive integers
+          if all(isinstance(v, int) and v > 0 for v in parsed):
+            return parsed
         else:
-        # Else try to parse it as a RecordList
-          value = objtypes.RecordList.from_repr(value)
+          # Else try to parse it as a RecordList
+          return objtypes.RecordList.from_repr(value)
       except Exception:
         pass
+    return value
 
-    super(ReferenceListColumn, self).set(row_id, value)
+  def _value_iterable(self, value):
+    return value if value and self.type_obj.is_right_type(value) else ()
 
-  def _update_references(self, row_id, old_list, new_list):
-    for old_value in old_list or ():
-      self._relation.remove_reference(row_id, old_value)
-    for new_value in new_list or ():
-      self._relation.add_reference(row_id, new_value)
+  def _list_to_value(self, value_as_list):
+    return value_as_list or None
 
   def _make_rich_value(self, typed_value):
     if typed_value is None:
@@ -579,8 +657,27 @@ class ReferenceListColumn(BaseReferenceColumn):
           return self._alt_text(val.alt_text)
         result.append(lookup_value)
       val = result
+
+    if isinstance(val, int) and val:
+      val = [val]
+
     return super(ReferenceListColumn, self).convert(val)
 
+def _multimap_add(mapping, key, value):
+  mapping.setdefault(key, []).append(value)
+
+def _multimap_remove(mapping, key, value):
+  if key in mapping and value in mapping[key]:
+    mapping[key].remove(value)
+    if not mapping[key]:
+      del mapping[key]
+
+def _adjustments_to_action(node, row_value_pairs):
+  # Takes a depend.Node and a list of (row_id, value) pairs, and returns a BulkUpdateRecord action.
+  if not row_value_pairs:
+    return None
+  row_ids, values = zip(*row_value_pairs)
+  return actions.BulkUpdateRecord(node.table_id, row_ids, {node.col_id: values})
 
 # Set up the relationship between usertypes objects and column objects.
 usertypes.BaseColumnType.ColType = DataColumn

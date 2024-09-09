@@ -111,6 +111,11 @@ class Record(object):
   def __repr__(self):
     return "%s[%s]" % (self._table.table_id, self._row_id)
 
+  def _exists(self):
+    # Whether the record exists: helpful for the rare cases when examining a record with a
+    # non-zero rowId which has just been deleted.
+    return self._row_id in self._table.row_ids
+
   def _clone_with_relation(self, src_relation):
     return self._table.Record(self._row_id,
                               relation=src_relation.compose(self._source_relation))
