@@ -347,6 +347,22 @@ export class UsersManager {
   }
 
   /**
+   * Find some users by their emails. Don't create the users if they don't already exist.
+   */
+  public async getExistingUsersByLogin(
+    emails: string[],
+    manager?: EntityManager
+  ): Promise<User[]> {
+    const normalizedEmails = emails.map(email=> normalizeEmail(email));
+    return await (manager || this._connection).createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .leftJoinAndSelect('user.logins', 'logins')
+      .where('email IN (:...emails)', {emails: normalizedEmails})
+      .getMany();
+  }
+
+  /**
    *
    * Fetches a user record based on an email address. If a user record already
    * exists linked to the email address supplied, that is the record returned.
@@ -471,7 +487,11 @@ export class UsersManager {
     });
   }
 
-  /**
+  public async createUser(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+    return await this.getUserByLogin(email, options);
+  }
+
+  /*
    * Deletes a user from the database. For the moment, the only person with the right
    * to delete a user is the user themselves.
    * Users have logins, a personal org, and entries in the group_users table. All are
@@ -612,9 +632,16 @@ export class UsersManager {
       // Lookup emails
       const emailMap = delta.users;
       const emails = Object.keys(emailMap);
-      const emailUsers = await Promise.all(
-        emails.map(async email => await this.getUserByLogin(email, {manager: transaction}))
-      );
+      const existingUsers = await this.getExistingUsersByLogin(emails, transaction);
+      const emailsExistingUsers = existingUsers.map(user=>user.loginEmail);
+      const emailsUsersToCreate = emails.filter(email => ! emailsExistingUsers.includes(email));
+      for (const email of emailsUsersToCreate){
+        const user = await this.createUser(email, {manager: transaction});
+        if (user !== undefined) {
+          existingUsers.push(user);
+        }
+      }
+      const emailUsers = [...existingUsers];
       emails.forEach((email, i) => {
         const userIdAffected = emailUsers[i]!.id;
         // Org-level sharing with everyone would allow serious spamming - forbid it.
