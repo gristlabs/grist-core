@@ -1,4 +1,4 @@
-import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
+import {BaseEntity, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
 
 import {User} from "./User";
 
@@ -9,6 +9,7 @@ export class Login extends BaseEntity {
   public id: number;
 
   // This is the normalized email address we use for equality and indexing.
+  @Index()
   @Column({type: String})
   public email: string;
 
