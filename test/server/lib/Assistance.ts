@@ -1,11 +1,12 @@
-import {createDocTools} from "test/server/docTools";
+import {AssistanceState} from 'app/common/AssistancePrompts';
 import {ActiveDoc} from "app/server/lib/ActiveDoc";
-import {DEPS, OpenAIAssistant, sendForCompletion} from "app/server/lib/Assistance";
+import {DEPS, OpenAIAssistant, sendForCompletion} from 'app/server/lib/Assistance';
+import {DocSession} from 'app/server/lib/DocSession';
 import {assert} from 'chai';
-import * as sinon from 'sinon';
 import {Response} from 'node-fetch';
-import {DocSession} from "app/server/lib/DocSession";
-import {AssistanceState} from "app/common/AssistancePrompts";
+import * as sinon from 'sinon';
+import {createDocTools} from 'test/server/docTools';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 // For some reason, assert.isRejected is not getting defined,
 // though test/chai-as-promised.js should be taking care of this.
@@ -13,6 +14,12 @@ import {AssistanceState} from "app/common/AssistancePrompts";
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
+
+/**
+ * We no longer use a longer context model by default, but we still
+ * test this configuration.
+ */
+const LONGER_CONTEXT_MODEL_FOR_TEST = "fake";
 
 describe('Assistance', function () {
   this.timeout(10000);
@@ -22,14 +29,20 @@ describe('Assistance', function () {
   const table2Id = "Table2";
   let session: DocSession;
   let doc: ActiveDoc;
+  let oldEnv: EnvironmentSnapshot;
   before(async () => {
+    oldEnv = new EnvironmentSnapshot();
     process.env.OPENAI_API_KEY = "fake";
+    process.env.ASSISTANT_LONGER_CONTEXT_MODEL = LONGER_CONTEXT_MODEL_FOR_TEST;
     session = docTools.createFakeSession();
     doc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
       ["AddTable", table1Id, [{id: "A"}, {id: "B"}, {id: "C"}]],
       ["AddTable", table2Id, [{id: "A"}, {id: "B"}, {id: "C"}]],
     ]);
+  });
+  after(async function () {
+    oldEnv.restore();
   });
 
   const colId = "C";
@@ -204,8 +217,8 @@ describe('Assistance', function () {
     );
     checkModels([
       OpenAIAssistant.DEFAULT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
   });
 
@@ -254,8 +267,8 @@ describe('Assistance', function () {
     );
     checkModels([
       OpenAIAssistant.DEFAULT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
   });
 
@@ -278,8 +291,8 @@ describe('Assistance', function () {
     );
     checkModels([
       OpenAIAssistant.DEFAULT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
   });
 
@@ -310,8 +323,8 @@ describe('Assistance', function () {
     const result = await checkSendForCompletion();
     checkModels([
       OpenAIAssistant.DEFAULT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
-      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
+      LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
     assert.deepEqual(result.suggestedActions, [
       ["ModifyColumn", table1Id, colId, {formula: "123"}]
