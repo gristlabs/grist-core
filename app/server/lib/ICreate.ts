@@ -43,7 +43,7 @@ export const DEFAULT_SESSION_SECRET =
   'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
 
 export type LocalDocStorageManagerCreator =
-  (docsRoot: string, samplesRoot?: string, comm?: Comm, shell?: IShell) => IDocStorageManager;
+  (docsRoot: string, samplesRoot?: string, comm?: Comm, shell?: IShell) => Promise<IDocStorageManager>;
 export type HostedDocStorageManagerCreator = (
     docsRoot: string,
     docWorkerId: string,
@@ -52,7 +52,7 @@ export type HostedDocStorageManagerCreator = (
     dbManager: HomeDBManager,
     createExternalStorage: ExternalStorageCreator,
     options?: HostedStorageOptions
-  ) => IDocStorageManager;
+  ) => Promise<IDocStorageManager>;
 
 export interface ICreate {
   // Create a space to store files externally, for storing either:
@@ -220,7 +220,7 @@ export function makeSimpleCreator(opts: {
   };
 }
 
-const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = (
+const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = async (
       docsRoot,
       docWorkerId,
       disableS3,
@@ -230,7 +230,7 @@ const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = (
 ) =>
   new HostedStorageManager(docsRoot, docWorkerId, disableS3, docWorkerMap, dbManager, createExternalStorage, options);
 
-const createDefaultLocalStorageManager: LocalDocStorageManagerCreator = (
+const createDefaultLocalStorageManager: LocalDocStorageManagerCreator = async (
   docsRoot, samplesRoot, comm, shell
 ) => new DocStorageManager(docsRoot, samplesRoot, comm, shell);
 

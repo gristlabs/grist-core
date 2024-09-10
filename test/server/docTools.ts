@@ -138,7 +138,7 @@ export async function createDocManager(
               server?: GristServer} = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
-  const docStorageManager = options.storageManager || create.createLocalDocStorageManager(tmpDir);
+  const docStorageManager = options.storageManager || await create.createLocalDocStorageManager(tmpDir);
   const pluginManager = options.pluginManager || await getGlobalPluginManager();
   const store = getDocWorkerMap();
   const internalPermitStore = store.getPermitStore('1');
