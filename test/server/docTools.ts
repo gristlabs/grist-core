@@ -16,7 +16,7 @@ import * as fse from 'fs-extra';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import { create } from "app/server/lib/create";
+import {create} from "app/server/lib/create";
 
 tmp.setGracefulCleanup();
 

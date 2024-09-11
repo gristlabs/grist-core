@@ -3,7 +3,7 @@ import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {DocStorage} from 'app/server/lib/DocStorage';
 import * as docUtils from 'app/server/lib/docUtils';
 import log from 'app/server/lib/log';
-import { create } from "app/server/lib/create";
+import {create} from "app/server/lib/create";
 
 /**
  * A utility script for cleaning up the action log.
