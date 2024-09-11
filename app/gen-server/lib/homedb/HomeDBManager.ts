@@ -56,7 +56,7 @@ import {
   readJson
 } from 'app/gen-server/sqlUtils';
 import {appSettings} from 'app/server/lib/AppSettings';
-import {createNewConnection, getOrCreateConnection} from 'app/server/lib/dbUtils';
+import {getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -70,7 +70,6 @@ import {
   Brackets,
   Connection,
   DatabaseType,
-  DataSourceOptions,
   EntityManager,
   ObjectLiteral,
   SelectQueryBuilder,
@@ -354,8 +353,8 @@ export class HomeDBManager extends EventEmitter {
     this._connection = await getOrCreateConnection();
   }
 
-  public async createNewConnection(overrideConf?: Partial<DataSourceOptions>): Promise<void> {
-    this._connection = await createNewConnection(overrideConf);
+  public connectTo(connection: Connection) {
+    this._connection = connection;
   }
 
   // make sure special users and workspaces are available
@@ -458,7 +457,7 @@ export class HomeDBManager extends EventEmitter {
    * @see UsersManager.prototype.ensureExternalUser
    */
   public async ensureExternalUser(profile: UserProfile) {
-    return this._usersManager.ensureExternalUser(profile);
+    return await this._usersManager.ensureExternalUser(profile);
   }
 
   public async updateUser(userId: number, props: UserProfileChange) {
@@ -491,7 +490,7 @@ export class HomeDBManager extends EventEmitter {
    * Find a user by email. Don't create the user if it doesn't already exist.
    */
   public async getExistingUserByLogin(email: string, manager?: EntityManager): Promise<User|undefined> {
-    return this._usersManager.getExistingUserByLogin(email, manager);
+    return await this._usersManager.getExistingUserByLogin(email, manager);
   }
 
   /**

@@ -223,7 +223,7 @@ export class UsersManager {
         });
         // No need to survey this user.
         newUser.isFirstTimeUser = false;
-        await newUser.save();
+        await manager.save(newUser);
       } else {
         // Else update profile and login information from external profile.
         let updated = false;
@@ -277,7 +277,7 @@ export class UsersManager {
         if (!props.isFirstTimeUser) { isWelcomed = true; }
       }
       if (needsSave) {
-        await user.save();
+        await manager.save(user);
       }
     });
     return { user, isWelcomed };
@@ -285,12 +285,12 @@ export class UsersManager {
 
   // TODO: rather use the updateUser() method, if that makes sense?
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
-    const user = await User.findOne({where: {id: userId}});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-
-    const newOptions = {...(user.options ?? {}), ...props};
-    user.options = newOptions;
-    await user.save();
+    await this._runInTransaction(undefined, async manager => {
+      const user = await manager.findOne(User, {where: {id: userId}});
+      if (!user) { throw new ApiError("unable to find user", 400); }
+      user.options = {...(user.options ?? {}), ...props};
+      await manager.save(user);
+    });
   }
 
   /**

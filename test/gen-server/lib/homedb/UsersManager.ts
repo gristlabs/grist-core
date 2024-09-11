@@ -1,4 +1,3 @@
-import { isAffirmative } from 'app/common/gutil';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PREVIEWER_EMAIL, UserOptions } from 'app/common/UserAPI';
 import { AclRuleOrg } from 'app/gen-server/entity/AclRule';
@@ -13,9 +12,8 @@ import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
 import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { updateDb } from 'app/server/lib/dbUtils';
-import { prepareDatabase } from 'test/server/lib/helpers/PrepareDatabase';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
-import { getDatabase } from 'test/testUtils';
+import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
 
 import log from 'app/server/lib/log';
 import { assert } from 'chai';
@@ -23,29 +21,10 @@ import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
 import { EntityManager } from 'typeorm';
 import winston from 'winston';
 
-import fs from 'fs/promises';
-import { tmpdir } from 'os';
-import path from 'path';
-import { dereferenceConnection } from 'test/gen-server/seed';
-
-const username = process.env.USER || "nobody";
-const tmpDirPrefix = path.join(tmpdir(), `grist_test_${username}_userendpoint_`);
-// it is sometimes useful in debugging to turn off automatic cleanup of sqlite databases.
-const noCleanup = isAffirmative(process.env.NO_CLEANUP);
+import {delay} from 'app/common/delay';
 
 describe('UsersManager', function () {
-  this.timeout('30s');
-  let tmpDir: string;
-
-  before(async function () {
-    tmpDir = await fs.mkdtemp(tmpDirPrefix);
-  });
-
-  after(async function () {
-    if (!noCleanup) {
-      await fs.rm(tmpDir, {recursive: true});
-    }
-  });
+  this.timeout('3m');
 
   describe('static method', function () {
     /**
@@ -226,15 +205,6 @@ describe('UsersManager', function () {
     let sandbox: SinonSandbox;
     const uniqueLocalPart = new Set<string>();
 
-    /**
-    * Works around lacks of type narrowing after asserting the value is defined.
-    * This is fixed in latest versions of @types/chai
-    *
-    * FIXME: once upgrading @types/chai to 4.3.17 or higher, remove this function which would not be usefull anymore
-    */
-    function assertExists<T>(value?: T, message?: string): asserts value is T {
-      assert.exists(value, message);
-    }
 
     function ensureUnique(localPart: string) {
       if (uniqueLocalPart.has(localPart)) {
@@ -261,26 +231,6 @@ describe('UsersManager', function () {
       return db.getOrg({userId: user.id}, user.personalOrg.id);
     }
 
-    async function withDataBase(dbName: string, cb: (db: HomeDBManager) => Promise<void>) {
-      const database = path.join(tmpDir, dbName + '.db');
-      const localDb = new HomeDBManager();
-      await localDb.createNewConnection({ name: dbName, database });
-      await updateDb(localDb.connection);
-      try {
-        await cb(localDb);
-      } finally {
-        await localDb.connection.destroy();
-        // HACK: This is a weird case, we have established a different connection
-        // but the existing connection is also impacted.
-        // A found workaround consist in destroying and creating again the connection.
-        //
-        // TODO: Check whether using DataSource would help and avoid this hack.
-        await db.connection.destroy();
-        await db.createNewConnection();
-        dereferenceConnection(dbName);
-      }
-    }
-
     function disableLoggingLevel<T extends keyof winston.LoggerInstance>(method: T) {
       return sandbox.stub(log, method);
     }
@@ -299,18 +249,19 @@ describe('UsersManager', function () {
       };
     }
 
-
     before(async function () {
-      if (process.env.TYPEORM_TYPE === "postgres") {
-        this.skip();
-      }
       env = new EnvironmentSnapshot();
-      await prepareDatabase(tmpDir);
-      db = await getDatabase();
+      process.env.TEST_CLEAN_DATABASE = 'true';
+      setUpDB(this);
+      db = new HomeDBManager();
+      await createInitialDb();
+      await db.connect();
+      await db.initializeSpecialIds();
     });
 
     after(async function () {
       env?.restore();
+      await removeConnection();
     });
 
     beforeEach(function () {
@@ -340,17 +291,6 @@ describe('UsersManager', function () {
 
       it("getSupportUserId() should retrieve 'support' user id", function () {
         assert.strictEqual(db.getSupportUserId(), SUPPORT_USER_ID);
-      });
-
-      describe('Without special id initialization', function () {
-        it('should throw an error', async function () {
-          await withDataBase('without-special-ids', async function (localDb) {
-            assert.throws(() => localDb.getAnonymousUserId(), "'Anonymous' user not available");
-            assert.throws(() => localDb.getPreviewerUserId(), "'Previewer' user not available");
-            assert.throws(() => localDb.getEveryoneUserId(), "'Everyone' user not available");
-            assert.throws(() => localDb.getSupportUserId(), "'Support' user not available");
-          });
-        });
       });
     });
 
@@ -523,11 +463,13 @@ describe('UsersManager', function () {
 
     describe('ensureExternalUser()', function () {
       let managerSaveSpy: SinonSpy;
-      let userSaveSpy: SinonSpy;
 
       beforeEach(function () {
         managerSaveSpy = sandbox.spy(EntityManager.prototype, 'save');
-        userSaveSpy = sandbox.spy(User.prototype, 'save');
+      });
+
+      afterEach(function () {
+        managerSaveSpy.restore();
       });
 
       async function checkUserInfo(profile: UserProfile) {
@@ -552,14 +494,12 @@ describe('UsersManager', function () {
           email: 'chimpy@getgrist.com',
         });
 
-        assert.isFalse(userSaveSpy.called, 'user.save() should not have been called');
         assert.isFalse(managerSaveSpy.called, 'manager.save() should not have been called');
       });
 
       it('should save an unknown user', async function () {
         const profile = makeProfile('ensureExternalUser-saves-an-unknown-user');
         await db.ensureExternalUser(profile);
-        assert.isTrue(userSaveSpy.called, 'user.save() should have been called');
         assert.isTrue(managerSaveSpy.called, 'manager.save() should have been called');
 
         await checkUserInfo(profile);
@@ -720,18 +660,18 @@ describe('UsersManager', function () {
       it('should create a user when none exist with the corresponding email', async function () {
         const localPart = ensureUnique('getuserbylogin-creates-user-when-not-already-exists');
         const email = makeEmail(localPart);
-        sandbox.useFakeTimers(42_000);
         assert.notExists(await db.getExistingUserByLogin(email));
 
+        const before = Date.now();
+        // We are storing time without miliseconds, so make sure at least 1 second has passed
+        await delay(2000);
         const user = await db.getUserByLogin(makeEmail(localPart.toUpperCase()));
-
+        const after = Date.now();
         assert.isTrue(user.isFirstTimeUser, 'should be marked as first time user');
         assert.equal(user.loginEmail, email);
         assert.equal(user.logins[0].displayEmail, makeEmail(localPart.toUpperCase()));
         assert.equal(user.name, '');
-        // FIXME: why is user.lastConnectionAt actually a string and not a Date?
-        // FIXME: is it consistent that user.lastConnectionAt updated here and not firstLoginAt?
-        assert.equal(String(user.lastConnectionAt), '1970-01-01 00:00:42.000');
+        asssertBetween(before, user.lastConnectionAt?.getTime(), after);
       });
 
       it('should create a personnal organization for the new user', async function () {
@@ -758,7 +698,7 @@ describe('UsersManager', function () {
         assert.deepEqual(userFirstCall, userSecondCall);
       });
 
-      // FIXME: why using Sinon.useFakeTimers() makes user.lastConnectionAt a string instead of a Date
+      // FIXME: postgresql doesn't like fake timers.
       it.skip('should update lastConnectionAt only for different days', async function () {
         const fakeTimer = sandbox.useFakeTimers(0);
         const localPart = ensureUnique('getuserbylogin-updates-last_connection_at-for-different-days');
@@ -776,15 +716,18 @@ describe('UsersManager', function () {
       });
 
       describe('when passing information to update (using `profile`)', function () {
-        it('should populate the firstTimeLogin and deduce the name from the email', async function () {
-          sandbox.useFakeTimers(42_000);
+        // FIXME: postgresql doesn't like fake timers.
+        it.skip('should populate the firstTimeLogin and deduce the name from the email', async function () {
+          const timers = sandbox.useFakeTimers(42_000);
           const localPart = ensureUnique('getuserbylogin-with-profile-populates-first_time_login-and-name');
           const user = await db.getUserByLogin(makeEmail(localPart), {
             profile: {name: '', email: makeEmail(localPart)}
           });
           assert.equal(user.name, localPart);
-          // FIXME: why using Sinon.useFakeTimers() makes user.firstLoginAt a string instead of a Date
-          assert.equal(String(user.firstLoginAt), '1970-01-01 00:00:42.000');
+          assert.equal(user.firstLoginAt?.getTime(), 42_000);
+          await timers.runAllAsync();
+
+          timers.restore();
         });
 
         it('should populate user with any passed information', async function () {
@@ -954,30 +897,6 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('initializeSpecialIds()', function () {
-      it('should initialize special ids', async function () {
-        return withDataBase('test-special-ids', async (localDb) => {
-          const specialAccounts = [
-            {name: "Support", email: SUPPORT_EMAIL},
-            {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
-            {name: "Preview", email: PREVIEWER_EMAIL},
-            {name: "Everyone", email: EVERYONE_EMAIL}
-          ];
-          for (const {email} of specialAccounts) {
-            assert.notExists(await localDb.getExistingUserByLogin(email));
-          }
-
-          await localDb.initializeSpecialIds();
-
-          for (const {name, email} of specialAccounts) {
-            const res = await localDb.getExistingUserByLogin(email);
-            assertExists(res);
-            assert.equal(res.name, name);
-          }
-        });
-      });
-    });
-
     describe('completeProfiles()', function () {
       it('should return an empty array if no profiles are provided', async function () {
         const res = await db.completeProfiles([]);
@@ -1030,4 +949,71 @@ describe('UsersManager', function () {
       });
     });
   });
+
+  describe('class method without db setup', function () {
+    let db: HomeDBManager;
+    let env: EnvironmentSnapshot;
+
+    describe('initializeSpecialIds()', function () {
+      before(async function () {
+        env = new EnvironmentSnapshot();
+        process.env.TEST_CLEAN_DATABASE = 'true';
+        setUpDB(this);
+        db = new HomeDBManager();
+        await db.connect();
+        await createInitialDb(db.connection, false);
+        await updateDb(db.connection);
+      });
+
+      after(async function () {
+        await removeConnection();
+        env?.restore();
+      });
+
+      it('should initialize special ids', async function () {
+        const specialAccounts = [
+          {name: "Support", email: SUPPORT_EMAIL},
+          {name: "Anonymous", email: ANONYMOUS_USER_EMAIL},
+          {name: "Preview", email: PREVIEWER_EMAIL},
+          {name: "Everyone", email: EVERYONE_EMAIL}
+        ];
+        for (const {email} of specialAccounts) {
+          assert.notExists(await db.getExistingUserByLogin(email));
+        }
+
+        assert.throws(() => db.getAnonymousUserId(), "'Anonymous' user not available");
+        assert.throws(() => db.getPreviewerUserId(), "'Previewer' user not available");
+        assert.throws(() => db.getEveryoneUserId(), "'Everyone' user not available");
+        assert.throws(() => db.getSupportUserId(), "'Support' user not available");
+
+        await db.initializeSpecialIds();
+
+        for (const {name, email} of specialAccounts) {
+          const res = await db.getExistingUserByLogin(email);
+          assertExists(res);
+          assert.equal(res.name, name);
+        }
+      });
+    });
+
+  });
 });
+
+/**
+* Works around lacks of type narrowing after asserting the value is defined.
+* This is fixed in latest versions of @types/chai
+*
+* FIXME: once upgrading @types/chai to 4.3.17 or higher, remove this function which would not be usefull anymore
+*/
+function assertExists<T>(value?: T, message?: string): asserts value is T {
+  assert.exists(value, message);
+}
+
+function asssertBetween(min: number, value: number|null|undefined, max: number, message?: string) {
+  assert.isNotNull(value, message);
+  assert.isDefined(value, message);
+  if (value !== null && value !== undefined) {
+    assert.isAtLeast(value, min, message);
+    assert.isAtMost(value, max, message);
+  }
+}
