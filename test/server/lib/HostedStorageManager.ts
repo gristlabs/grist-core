@@ -7,7 +7,12 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
-import {DELETED_TOKEN, ExternalStorage, wrapWithKeyMappedStorage} from 'app/server/lib/ExternalStorage';
+import {
+  DELETED_TOKEN,
+  ExternalStorage, ExternalStorageCreator,
+  ExternalStorageSettings,
+  wrapWithKeyMappedStorage
+} from 'app/server/lib/ExternalStorage';
 import {createDummyGristServer} from 'app/server/lib/GristServer';
 import {
   BackupEvent,
@@ -270,7 +275,7 @@ class TestStore {
     private _localDirectory: string,
     private _workerId: string,
     private _workers: DocWorkerMap,
-    private _externalStorageCreate: (purpose: 'doc'|'meta', extraPrefix: string) => ExternalStorage|undefined) {
+    private _externalStorageCreate: ExternalStorageCreator) {
   }
 
   public async run<T>(fn: () => Promise<T>): Promise<T> {
@@ -296,18 +301,20 @@ class TestStore {
       secondsBeforeFirstRetry: 3,   // rumors online suggest delays of 10-11 secs
                                     // are not super-unusual.
       pushDocUpdateTimes: false,
-      externalStorageCreator: (purpose) => {
+
+    };
+    const externalStorageCreator = (purpose: ExternalStorageSettings["purpose"]) => {
         const result = this._externalStorageCreate(purpose, this._extraPrefix);
         if (!result) { throw new Error('no storage'); }
         return result;
-      }
-    };
+    }
+
     const storageManager = new HostedStorageManager(this._localDirectory,
                                                     this._workerId,
                                                     false,
                                                     this._workers,
                                                     dbManager,
-                                                    create,
+                                                    externalStorageCreator,
                                                     options);
     this.storageManager = storageManager;
     this.docManager = new DocManager(storageManager, await getGlobalPluginManager(),
