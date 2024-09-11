@@ -1810,12 +1810,13 @@ export class HomeDBManager extends EventEmitter {
   //
   // Returns an empty query result with status 200 on success.
   public async updateBillingAccount(
-    userId: number,
+    scopeOrUser: number|Scope,
     orgKey: string|number,
     callback: (billingAccount: BillingAccount, transaction: EntityManager) => void|Promise<void>
-  ): Promise<QueryResult<void>> {
+  ): Promise<QueryResult<void>>  {
     return await this._connection.transaction(async transaction => {
-      const billingAccount = await this.getBillingAccount({userId}, orgKey, false, transaction);
+      const scope = typeof scopeOrUser === 'number' ? {userId: scopeOrUser} : scopeOrUser;
+      const billingAccount = await this.getBillingAccount(scope, orgKey, false, transaction);
       const billingAccountCopy = Object.assign({}, billingAccount);
       await callback(billingAccountCopy, transaction);
       // Pick out properties that are allowed to be changed, to prevent accidental updating
