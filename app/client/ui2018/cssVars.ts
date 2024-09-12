@@ -265,6 +265,7 @@ export const theme = {
 
   /* Popups */
   popupBg: new CustomProp('theme-popup-bg', undefined, 'white'),
+  popupSecondaryBg: new CustomProp('theme-popup-secondary-bg', undefined, colors.lightGrey),
   popupInnerShadow: new CustomProp('theme-popup-shadow-inner', undefined,
     'rgba(31, 37, 50, 0.31)'),
   popupOuterShadow: new CustomProp('theme-popup-shadow-outer', undefined,

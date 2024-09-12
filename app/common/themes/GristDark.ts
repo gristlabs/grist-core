@@ -85,6 +85,7 @@ export const GristDark: ThemeColors = {
 
   /* Popups */
   'popup-bg': '#32323F',
+  'popup-secondary-bg': '#262633',
   'popup-shadow-inner': '#000000',
   'popup-shadow-outer': '#000000',
   'popup-close-button-fg': '#A4A4B1',

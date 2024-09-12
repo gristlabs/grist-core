@@ -1,44 +1,31 @@
 import {makeT} from 'app/client/lib/localization';
-import {localStorageObs} from 'app/client/lib/localStorageObs';
-import {getStorage} from 'app/client/lib/storage';
 import {tokenFieldStyles} from 'app/client/lib/TokenField';
 import {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {TelemetryModel, TelemetryModelImpl} from 'app/client/models/TelemetryModel';
 import {basicButton, basicButtonLink, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {colors, isNarrowScreenObs, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
+import {modal} from 'app/client/ui2018/modals';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom, DomContents, Observable, styled, UseCB} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, Observable, styled} from 'grainjs';
 
 const t = makeT('SupportGristNudge');
 
-type ButtonState =
-  | 'collapsed'
-  | 'expanded';
-
 /**
- * Nudges users to support Grist by opting in to telemetry or sponsoring on Github.
+ * Button that nudges users to support Grist by opting in to telemetry or sponsoring on Github.
  *
- * For installation admins, this includes a card with a nudge which collapses into a "Support
+ * For installation admins, this includes a modal with a nudge which collapses into a "Support
  * Grist" button in the top bar. When that's not applicable, it is only a "Support Grist" button
  * that links to the Github sponsorship page.
  *
- * Users can dismiss these nudges.
+ * Users can dismiss this button.
  */
-export class SupportGristNudge extends Disposable {
+export class SupportGristButton extends Disposable {
+  private readonly _showButton: Computed<null|'link'|'expand'>;
   private readonly _telemetryModel: TelemetryModel = TelemetryModelImpl.create(this, this._appModel);
-
-  private readonly _buttonStateKey = `u=${this._appModel.currentValidUser?.id ?? 0};supportGristNudge`;
-  private _buttonState = localStorageObs(this._buttonStateKey, 'expanded') as Observable<ButtonState>;
-
-  // Whether the nudge just got accepted, and we should temporarily show the "Thanks" version.
-  private _justAccepted = Observable.create(this, false);
-
-  private _showButton: Computed<null|'link'|'expand'>;
-  private _showNudge: Computed<null|'normal'|'accepted'>;
 
   constructor(private _appModel: AppModel) {
     super();
@@ -48,28 +35,16 @@ export class SupportGristNudge extends Disposable {
     const isTelemetryOn = (telemetry && telemetry.telemetryLevel !== 'off');
     const isAdminNudgeApplicable = isAdmin && !isTelemetryOn;
 
-    const generallyHide = (use: UseCB) => (
-      !isEnabled ||
-      use(_appModel.dismissedPopups).includes('supportGrist') ||
-      use(isNarrowScreenObs())
-    );
-
     this._showButton = Computed.create(this, use => {
-      if (generallyHide(use)) { return null; }
-      if (!isAdminNudgeApplicable) { return 'link'; }
-      if (use(this._buttonState) !== 'expanded') { return 'expand'; }
-      return null;
-    });
+      if (!isEnabled || use(_appModel.dismissedPopups).includes('supportGrist')) {
+        return null;
+      }
 
-    this._showNudge = Computed.create(this, use => {
-      if (use(this._justAccepted)) { return 'accepted'; }
-      if (generallyHide(use)) { return null; }
-      if (isAdminNudgeApplicable && use(this._buttonState) === 'expanded') { return 'normal'; }
-      return null;
+      return isAdminNudgeApplicable ? 'expand' : 'link';
     });
   }
 
-  public buildTopBarButton(): DomContents {
+  public buildDom(): DomContents {
     return dom.domComputed(this._showButton, (which) => {
       if (!which) { return null; }
       const elemType = (which === 'link') ? basicButtonLink : basicButton;
@@ -77,7 +52,7 @@ export class SupportGristNudge extends Disposable {
         elemType(cssHeartIcon('💛 '), t('Support Grist'),
           (which === 'link' ?
             {href: commonUrls.githubSponsorGristLabs, target: '_blank'} :
-            dom.on('click', () => this._buttonState.set('expanded'))
+            dom.on('click', () => this._buildNudgeModal())
           ),
 
           cssContributeButtonCloseButton(
@@ -85,7 +60,7 @@ export class SupportGristNudge extends Disposable {
             dom.on('click', (ev) => {
               ev.stopPropagation();
               ev.preventDefault();
-              this._dismissAndClose();
+              this._markDismissed();
             }),
             testId('support-grist-button-dismiss'),
           ),
@@ -95,26 +70,31 @@ export class SupportGristNudge extends Disposable {
     });
   }
 
-  public buildNudgeCard() {
-    return dom.domComputed(this._showNudge, nudge => {
-      if (!nudge) { return null; }
-      return cssCard(
-        (nudge === 'normal' ?
-          this._buildSupportGristCardContent() :
-          this._buildOptedInCardContent()
+  private _buildNudgeModal() {
+    return modal((ctl, owner) => {
+      const currentStep = Observable.create<'opt-in' | 'opted-in'>(owner, 'opt-in');
+
+      return [
+        cssModal.cls(''),
+        cssCloseButton(
+          icon('CrossBig'),
+          dom.on('click', () => ctl.close()),
+          testId('support-nudge-close'),
         ),
-        testId('support-nudge'),
-      );
-    });
+        dom.domComputed(currentStep, (step) => {
+          return step === 'opt-in'
+            ? this._buildOptInScreen(async () => {
+              await this._optInToTelemetry();
+              currentStep.set('opted-in');
+            })
+            : this._buildOptedInScreen(() => ctl.close());
+        }),
+      ];
+    }, {});
   }
 
-  private _buildSupportGristCardContent() {
+  private _buildOptInScreen(onOptIn: () => Promise<void>) {
     return [
-      cssCloseButton(
-        icon('CrossBig'),
-        dom.on('click', () => this._buttonState.set('collapsed')),
-        testId('support-nudge-close'),
-      ),
       cssLeftAlignedHeader(t('Support Grist')),
       cssParagraph(t(
         'Opt in to telemetry to help us understand how the product ' +
@@ -132,19 +112,14 @@ export class SupportGristNudge extends Disposable {
       ),
       cssFullWidthButton(
         t('Opt in to Telemetry'),
-        dom.on('click', () => this._optInToTelemetry()),
+        dom.on('click', () => onOptIn()),
         testId('support-nudge-opt-in'),
       ),
     ];
   }
 
-  private _buildOptedInCardContent() {
+  private _buildOptedInScreen(onClose: () => void) {
     return [
-      cssCloseButton(
-        icon('CrossBig'),
-        dom.on('click', () => this._justAccepted.set(false)),
-        testId('support-nudge-close'),
-      ),
       cssCenteredFlex(cssSparks()),
       cssCenterAlignedHeader(t('Opted In')),
       cssParagraph(
@@ -157,7 +132,7 @@ export class SupportGristNudge extends Disposable {
       cssCenteredFlex(
         cssPrimaryButton(
           t('Close'),
-          dom.on('click', () => this._justAccepted.set(false)),
+          dom.on('click', () => onClose()),
           testId('support-nudge-close-button'),
         ),
       ),
@@ -166,19 +141,11 @@ export class SupportGristNudge extends Disposable {
 
   private _markDismissed() {
     this._appModel.dismissPopup('supportGrist', true);
-    // Also cleanup the no-longer-needed button state from localStorage.
-    getStorage().removeItem(this._buttonStateKey);
-  }
-
-  private _dismissAndClose() {
-    this._markDismissed();
-    this._justAccepted.set(false);
   }
 
   private async _optInToTelemetry() {
     await this._telemetryModel.updateTelemetryPrefs({telemetryLevel: 'limited'});
     this._markDismissed();
-    this._justAccepted.set(true);
   }
 }
 
@@ -202,10 +169,7 @@ const cssCenteredFlex = styled('div', `
   align-items: center;
 `);
 
-const cssContributeButton = styled('div', `
-  margin-left: 8px;
-  margin-right: 8px;
-`);
+const cssContributeButton = styled('div', ``);
 
 const cssContributeButtonCloseButton = styled(tokenFieldStyles.cssDeleteButton, `
   margin-left: 4px;
@@ -231,18 +195,6 @@ const cssContributeButtonCloseButton = styled(tokenFieldStyles.cssDeleteButton, 
   &:hover {
     --icon-color: ${colors.lightGreen};
   }
-`);
-
-const cssCard = styled('div', `
-  width: 297px;
-  padding: 24px;
-  color: ${theme.announcementPopupFg};
-  background: ${theme.announcementPopupBg};
-  border-radius: 4px;
-  align-self: flex-start;
-  position: sticky;
-  flex-shrink: 0;
-  top: 0px;
 `);
 
 const cssHeader = styled('div', `
@@ -302,4 +254,11 @@ const cssSparks = styled('div', `
 // This is just to avoid the emoji pushing the button to be taller.
 const cssHeartIcon = styled('span', `
   line-height: 1;
+`);
+
+const cssModal = styled('div', `
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  min-width: 0px;
 `);

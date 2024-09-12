@@ -14,7 +14,7 @@ async function openMainPage() {
   await driver.get(`${server.getHost()}`);
   while (true) {    // eslint-disable-line no-constant-condition
     try {
-      if (await driver.findContent('button', /Create Empty Document/).isPresent()) {
+      if (await driver.find('.test-intro-create-doc').isPresent()) {
         return;
       }
     } catch (e) {
@@ -31,7 +31,7 @@ describe("Smoke", function() {
   it('can create, edit, and reopen a document', async function() {
     this.timeout(20000);
     await openMainPage();
-    await driver.findContent('button', /Create Empty Document/).click();
+    await driver.find('.test-intro-create-doc').click();
     await gu.waitForDocToLoad(20000);
     await gu.dismissWelcomeTourIfNeeded();
     await gu.getCell('A', 1).click();

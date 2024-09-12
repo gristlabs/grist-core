@@ -14,8 +14,10 @@ function shouldShowAddNewTip(home: HomeModel): boolean {
     home.app.isOwnerOrEditor() &&
     // And the tip hasn't been shown before.
     home.shouldShowAddNewTip.get() &&
-    // And the intro isn't being shown.
-    !home.showIntro.get() &&
+    // And the site isn't empty.
+    !home.empty.get() &&
+    // And home page cards aren't being shown.
+    !(home.currentPage.get() === 'all' && !home.onlyShowDocuments.get()) &&
     // And the workspace loaded correctly.
     home.available.get() &&
     // And the current page isn't /p/trash; the Add New button is limited there.

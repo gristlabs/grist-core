@@ -170,7 +170,6 @@ export interface Scope {
   users?: AvailableUsers;        // Set if available identities.
   includeSupport?: boolean;      // When set, include sample resources shared by support to scope.
   showRemoved?: boolean;         // When set, query is scoped to removed workspaces/docs.
-  showOnlyPinned?: boolean;      // When set, query is scoped only to pinned docs.
   showAll?: boolean;             // When set, return both removed and regular resources.
   specialPermit?: Permit;        // When set, extra rights are granted on a specific resource.
 }
@@ -3399,8 +3398,6 @@ export class HomeDBManager extends EventEmitter {
     const onDefault = 'docs.workspace_id = workspaces.id';
     if (scope.showAll) {
       return onDefault;
-    } else if (scope.showOnlyPinned) {
-      return `${onDefault} AND docs.is_pinned = TRUE AND (workspaces.removed_at IS NULL AND docs.removed_at IS NULL)`;
     } else if (scope.showRemoved) {
       return `${onDefault} AND (workspaces.removed_at IS NOT NULL OR docs.removed_at IS NOT NULL)`;
     } else {

@@ -90,6 +90,7 @@ export const ThemeColors = t.iface([], {
   "modal-backdrop-close-button-fg": "string",
   "modal-backdrop-close-button-hover-fg": "string",
   "popup-bg": "string",
+  "popup-secondary-bg": "string",
   "popup-shadow-inner": "string",
   "popup-shadow-outer": "string",
   "popup-close-button-fg": "string",

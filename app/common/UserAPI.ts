@@ -367,7 +367,7 @@ export interface UserAPI {
   getOrg(orgId: number|string): Promise<Organization>;
   getOrgWorkspaces(orgId: number|string, includeSupport?: boolean): Promise<Workspace[]>;
   getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary>;
-  getTemplates(onlyFeatured?: boolean): Promise<Workspace[]>;
+  getTemplates(): Promise<Workspace[]>;
   getTemplate(docId: string): Promise<Document>;
   getDoc(docId: string): Promise<Document>;
   newOrg(props: Partial<OrganizationProperties>): Promise<number>;
@@ -584,8 +584,8 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/usage`, { method: 'GET' });
   }
 
-  public async getTemplates(onlyFeatured: boolean = false): Promise<Workspace[]> {
-    return this.requestJson(`${this._url}/api/templates?onlyFeatured=${onlyFeatured ? 1 : 0}`, { method: 'GET' });
+  public async getTemplates(): Promise<Workspace[]> {
+    return this.requestJson(`${this._url}/api/templates`, { method: 'GET' });
   }
 
   public async getTemplate(docId: string): Promise<Document> {

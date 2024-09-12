@@ -148,15 +148,14 @@ describe('BehavioralPrompts', function() {
   describe('for the Add New button', function() {
     it('should not be shown if site is empty', async function() {
       session = await gu.session().user('user4').login({showTips: true});
-      await gu.dismissCoachingCall();
-      await driver.navigate().refresh();
-      await gu.loadDocMenu('/');
+      await session.loadDocMenu('/');
       await assertPromptTitle(null);
     });
 
     it('should be shown if site has documents', async function() {
       await session.tempNewDoc(cleanup, 'BehavioralPromptsAddNew');
-      await session.loadDocMenu('/');
+      await driver.find('.test-bc-workspace').click();
+      await gu.waitForDocMenuToLoad();
       await assertPromptTitle('Add New');
     });
 
@@ -166,16 +165,31 @@ describe('BehavioralPrompts', function() {
       await assertPromptTitle(null);
     });
 
-    it('should only be shown once each visit to the doc menu', async function() {
-      // Navigate to another page without reloading; the tip should now be shown.
-      await driver.find('.test-dm-all-docs').click();
-      await gu.waitForDocMenuToLoad();
+    it('should only be shown on the All Documents page if intro is hidden', async function() {
+      await session.loadDocMenu('/');
+      await assertPromptTitle(null);
+      await driver.find('.test-welcome-menu').click();
+      await driver.find('.test-welcome-menu-only-show-documents').click();
+      await gu.waitForServer();
+      await assertPromptTitle(null);
+      await gu.loadDocMenu('/');
+      await assertPromptTitle('Add New');
+    });
+
+    it('should only be shown once on each visit', async function() {
+      // Navigate to the home page for the first time; the tip should be shown.
+      await gu.loadDocMenu('/');
       await assertPromptTitle('Add New');
 
-      // Navigate to another page; the tip should no longer be shown.
+      // Switch to a different page; the tip should no longer be shown.
       await driver.findContent('.test-dm-workspace', /Home/).click();
       await gu.waitForDocMenuToLoad();
       await assertPromptTitle(null);
+
+      // Reload the page; the tip should be shown again.
+      await driver.navigate().refresh();
+      await gu.waitForDocMenuToLoad();
+      await assertPromptTitle('Add New');
     });
   });
 

@@ -8,7 +8,9 @@ import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildNotifyMenuButton} from 'app/client/ui/NotifyUI';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
+import {UpgradeButton} from 'app/client/ui/ProductUpgrades';
 import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
+import {SupportGristButton} from 'app/client/ui/SupportGristButton';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
@@ -28,20 +30,20 @@ export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean
 
   return [
     cssFlexSpace(),
-    (appModel.isTeamSite && roles.canEditAccess(appModel.currentOrg?.access || null) ?
-      [
-        basicButton(
-          t("Manage Team"),
-          dom.on('click', () => manageTeamUsersApp({app: appModel, onSave})),
-          testId('topbar-manage-team')
-        ),
-        cssSpacer()
-      ] :
-      null
+    cssButtons(
+      dom.create(UpgradeButton, appModel),
+      dom.create(SupportGristButton, appModel),
+      (appModel.isTeamSite && roles.canEditAccess(appModel.currentOrg?.access || null) ?
+        [
+          basicButton(
+            t("Manage team"),
+            dom.on('click', () => manageTeamUsersApp({app: appModel, onSave})),
+            testId('topbar-manage-team')
+          ),
+        ] :
+        null
+      ),
     ),
-
-    appModel.supportGristNudge.buildTopBarButton(),
-
     buildLanguageMenu(appModel),
     isAnonymous ? null : buildNotifyMenuButton(appModel.notifier, appModel),
     dom('div', dom.create(AccountWidget, appModel)),
@@ -196,6 +198,12 @@ function topBarUndoBtn(iconName: IconName, ...domArgs: DomElementArg[]): Element
     ...domArgs
   );
 }
+
+const cssButtons = styled('div', `
+  display: flex;
+  gap: 8px;
+  margin-right: 8px;
+`);
 
 const cssTopBarUndoBtn = styled(cssTopBarBtn, `
   background-color: ${theme.topBarButtonSecondaryFg};

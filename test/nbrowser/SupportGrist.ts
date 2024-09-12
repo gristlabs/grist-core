@@ -38,8 +38,7 @@ describe('SupportGrist', function() {
         await session.loadDocMenu('/');
       });
 
-      it('does not show a nudge on the doc menu', async function() {
-        await assertNudgeCardShown(false);
+      it('shows a button in the top bar', async function() {
         await assertSupportButtonShown(true, {isSponsorLink: true});
       });
 
@@ -56,34 +55,15 @@ describe('SupportGrist', function() {
         await session.loadDocMenu('/');
       });
 
-      it('shows a nudge on the doc menu', async function() {
-        // Check that the nudge is expanded by default.
-        await assertSupportButtonShown(false);
-        await assertNudgeCardShown(true);
-
-        // Reload the doc menu and check that it's still expanded.
-        await session.loadDocMenu('/');
-        await assertSupportButtonShown(false);
-        await assertNudgeCardShown(true);
-
-        // Close the nudge and check that it's now collapsed.
-        await driver.find('.test-support-nudge-close').click();
+      it('shows a button in the top bar', async function() {
         await assertSupportButtonShown(true, {isSponsorLink: false});
-        await assertNudgeCardShown(false);
 
-        // Reload again, and check that it's still collapsed.
-        await session.loadDocMenu('/');
-        await assertSupportButtonShown(true, {isSponsorLink: false});
-        await assertNudgeCardShown(false);
-
-        // Dismiss the contribute button and check that it's now gone, even after reloading.
+        // Dismiss the button and check that it's now gone, even after reloading.
         await driver.find('.test-support-grist-button').mouseMove();
         await driver.find('.test-support-grist-button-dismiss').click();
         await assertSupportButtonShown(false);
-        await assertNudgeCardShown(false);
         await session.loadDocMenu('/');
         await assertSupportButtonShown(false);
-        await assertNudgeCardShown(false);
       });
 
       it('shows a link to Admin Panel and Support Grist in the user menu', async function() {
@@ -92,35 +72,30 @@ describe('SupportGrist', function() {
         await assertMenuHasSupportGrist(true);
       });
 
-      it('supports opting in to telemetry from the nudge', async function() {
-        // Reset all dismissed popups, including the telemetry nudge.
+      it('supports opting in to telemetry', async function() {
+        // Reset all dismissed popups, which includes the telemetry button.
         await driver.executeScript('resetDismissedPopups();');
         await gu.waitForServer();
         await session.loadDocMenu('/');
 
         // Opt in to telemetry and reload the page.
+        await driver.find('.test-support-grist-button').click();
         await driver.find('.test-support-nudge-opt-in').click();
         await driver.findWait('.test-support-nudge-close-button', 1000).click();
         await assertSupportButtonShown(false);
-        await assertNudgeCardShown(false);
         await session.loadDocMenu('/');
 
-        // Check that the nudge is no longer shown and telemetry is set to "limited".
+        // Check that the button is no longer shown and telemetry is set to "limited".
         await assertSupportButtonShown(false);
-        await assertNudgeCardShown(false);
         await assertTelemetryLevel('limited');
       });
 
-      it('does not show the nudge if telemetry is enabled', async function() {
-        // Reset all dismissed popups, including the telemetry nudge.
+      it('does not show the button if telemetry is enabled', async function() {
         await driver.executeScript('resetDismissedPopups();');
         await gu.waitForServer();
 
-        // Reload the doc menu and check that the nudge still isn't shown.
+        // Reload the doc menu and check that We show the "Support Grist" button linking to sponsorship page.
         await session.loadDocMenu('/');
-        await assertNudgeCardShown(false);
-
-        // We still show the "Support Grist" button linking to sponsorship page.
         await assertSupportButtonShown(true, {isSponsorLink: true});
 
         // Disable telemetry from the Support Grist page.
@@ -133,10 +108,9 @@ describe('SupportGrist', function() {
           '.test-support-grist-page-telemetry-section button', /Opt out of Telemetry/, 2000).click();
         await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt in to Telemetry/, 2000);
 
-        // Reload the doc menu and check that the nudge is now shown.
+        // Reload the doc menu and check that the button is now shown.
         await gu.loadDocMenu('/');
-        await assertSupportButtonShown(false);
-        await assertNudgeCardShown(true);
+        await assertSupportButtonShown(true, {isSponsorLink: false});
       });
 
       it('shows sponsorship link when no telemetry nudge, and allows dismissing it', async function() {
@@ -156,16 +130,14 @@ describe('SupportGrist', function() {
 
         // We still show the "Support Grist" button linking to sponsorship page.
         await assertSupportButtonShown(true, {isSponsorLink: true});
-        await assertNudgeCardShown(false);
 
-        // we can dismiss it.
+        // We can dismiss it.
         await driver.find('.test-support-grist-button').mouseMove();
         await driver.find('.test-support-grist-button-dismiss').click();
         await assertSupportButtonShown(false);
 
         // And this will get remembered.
         await session.loadDocMenu('/');
-        await assertNudgeCardShown(false);
         await assertSupportButtonShown(false);
       });
     });
@@ -185,9 +157,8 @@ describe('SupportGrist', function() {
       oldEnv.restore();
     });
 
-    it('does not show a nudge on the doc menu', async function() {
+    it('does not show a button in the top bar', async function() {
       await assertSupportButtonShown(false);
-      await assertNudgeCardShown(false);
     });
 
     it('shows Admin Panel but not Support Grist in the user menu for admin', async function() {
@@ -219,9 +190,8 @@ describe('SupportGrist', function() {
       oldEnv.restore();
     });
 
-    it('does not show a nudge on the doc menu', async function() {
+    it('does not show a button in the top bar', async function() {
       await assertSupportButtonShown(false);
-      await assertNudgeCardShown(false);
     });
 
     it('shows Admin Panel but not Support Grist page in the user menu', async function() {
@@ -240,11 +210,6 @@ async function assertSupportButtonShown(isShown: boolean, opts?: {isSponsorLink:
   if (isShown) {
     assert.equal(await button.getAttribute('href'), opts?.isSponsorLink ? sponsorshipUrl : null);
   }
-}
-
-async function assertNudgeCardShown(isShown: boolean) {
-  const card = driver.find('.test-support-nudge');
-  assert.equal(await card.isPresent() && await card.isDisplayed(), isShown);
 }
 
 async function assertMenuHasAdminPanel(isShown: boolean) {

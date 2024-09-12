@@ -4,6 +4,7 @@
  * Orgs, workspaces and docs are fetched asynchronously on build via the passed in API.
  */
 import {loadUserManager} from 'app/client/lib/imports';
+import {makeT} from 'app/client/lib/localization';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {reportError} from 'app/client/models/AppModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
@@ -12,17 +13,18 @@ import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {attachAddNewTip} from 'app/client/ui/AddNewTip';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro, buildWorkspaceIntro} from 'app/client/ui/HomeIntro';
-import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
+import {newDocMethods} from 'app/client/ui/NewDocMethods';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {makeShareDocUrl} from 'app/client/ui/ShareMenu';
+import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
 import {transition} from 'app/client/ui/transitions';
 import {shouldShowWelcomeCoachingCall, showWelcomeCoachingCall} from 'app/client/ui/WelcomeCoachingCall';
-import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
+import {bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
-import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
-import {buildOnboardingCards} from 'app/client/ui/OnboardingCards';
+import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {confirmModal, saveModal} from 'app/client/ui2018/modals';
@@ -30,12 +32,17 @@ import {IHomePage} from 'app/common/gristUrls';
 import {SortPref, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
-import {computed, Computed, dom, DomArg, DomContents, DomElementArg, IDisposableOwner,
-        makeTestId, observable, Observable} from 'grainjs';
-import {buildTemplateDocs} from 'app/client/ui/TemplateDocs';
-import {makeT} from 'app/client/lib/localization';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
-import {bigBasicButton} from 'app/client/ui2018/buttons';
+import {
+  computed,
+  Computed,
+  dom,
+  DomArg,
+  DomElementArg,
+  IDisposableOwner,
+  makeTestId,
+  observable,
+  Observable,
+} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 
 const t = makeT(`DocMenu`);
@@ -70,10 +77,7 @@ function attachWelcomePopups(home: HomeModel): (el: Element) => void {
 
 function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
   const flashDocId = observable<string|null>(null);
-  const upgradeButton = buildUpgradeButton(owner, home.app);
   return css.docList( /* vbox */
-    /* first line */
-    dom.create(buildOnboardingCards, {homeModel: home}),
     /* hbox */
     css.docListContent(
       /* left column - grow 1 */
@@ -85,24 +89,16 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
           dom('span', t("(The organization needs a paid plan)")),
         ]),
 
-        // currentWS and showIntro observables change together. We capture both in one domComputed call.
-        dom.domComputed<[IHomePage, Workspace|undefined, boolean]>(
-          (use) => [use(home.currentPage), use(home.currentWS), use(home.showIntro)],
-          ([page, workspace, showIntro]) => {
+        dom.domComputed<[IHomePage, Workspace|undefined]>(
+          (use) => [use(home.currentPage), use(home.currentWS)],
+          ([page, workspace]) => {
             const viewSettings: ViewSettings =
               page === 'trash' ? makeLocalViewSettings(home, 'trash') :
               page === 'templates' ? makeLocalViewSettings(home, 'templates') :
               workspace ? makeLocalViewSettings(home, workspace.id) :
               home;
             return [
-              buildPrefs(
-                viewSettings,
-                // Hide the sort and view options when showing the intro.
-                {hideSort: showIntro, hideView: showIntro && page === 'all'},
-                ['all', 'workspace'].includes(page)
-                  ? upgradeButton.showUpgradeButton(css.upgradeButton.cls(''))
-                  : null,
-              ),
+              page !== 'all' ? null : buildHomeIntro(home),
 
               // Build the pinned docs dom. Builds nothing if the selectedOrg is unloaded.
               // TODO: this is shown on all pages, but there is a hack in currentWSPinnedDocs that
@@ -124,9 +120,8 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
 
               dom.maybe(home.available, () => [
                 buildOtherSites(home),
-                (showIntro && page === 'all' ?
-                  null :
-                  css.docListHeader(
+                page === 'all' && home.app.isPersonal && !home.app.currentValidUser ? null : css.docListHeaderWrap(
+                  css.listHeader(
                     (
                       page === 'all' ? t("All Documents") :
                       page === 'templates' ?
@@ -137,24 +132,20 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                       workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
                     ),
                     testId('doc-header'),
-                  )
+                  ),
+                  buildPrefs(viewSettings),
                 ),
                 (
-                  (page === 'all') ?
-                    dom('div',
-                      showIntro ? buildHomeIntro(home) : null,
-                      buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
-                      shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
-                    ) :
-                  (page === 'trash') ?
+                  page === 'all' ? buildAllDocumentsDocsBlock({home, flashDocId, viewSettings}) :
+                  page === 'trash' ?
                     dom('div',
                       css.docBlock(t("Documents stay in Trash for 30 days, after which they get deleted permanently.")),
                       dom.maybe((use) => use(home.trashWorkspaces).length === 0, () =>
                         css.docBlock(t("Trash is empty."))
                       ),
-                      buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
+                      buildAllDocsBlock(home, home.trashWorkspaces, flashDocId, viewSettings),
                     ) :
-                  (page === 'templates') ?
+                  page === 'templates' ?
                     dom('div',
                       buildAllTemplates(home, home.templateWorkspaces, viewSettings)
                     ) :
@@ -172,30 +163,21 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
           }),
         testId('doclist')
       ),
-      dom.maybe(use => !use(isNarrowScreenObs()) && ['all', 'workspace'].includes(use(home.currentPage)),
-        () => {
-          // TODO: These don't currently clash (grist-core stubs the upgradeButton), but a way to
-          // manage card popups will be needed if more are added later.
-          return [
-            upgradeButton.showUpgradeCard(css.upgradeCard.cls('')),
-            home.app.supportGristNudge.buildNudgeCard(),
-          ];
-        }),
     ),
   );
 }
 
 function buildAllDocsBlock(
-  home: HomeModel, workspaces: Observable<Workspace[]>,
-  showIntro: boolean, flashDocId: Observable<string|null>, viewSettings: ViewSettings,
+  home: HomeModel,
+  workspaces: Observable<Workspace[]>,
+  flashDocId: Observable<string|null>,
+  viewSettings: ViewSettings
 ) {
   return dom.forEach(workspaces, (ws) => {
     // Don't show the support workspace -- examples/templates are now retrieved from a special org.
     // TODO: Remove once support workspaces are removed from the backend.
     if (ws.isSupportWorkspace) { return null; }
-    // Show docs in regular workspaces. For empty orgs, we show the intro and skip
-    // the empty workspace headers. Workspaces are still listed in the left panel.
-    if (showIntro) { return null; }
+
     return css.docBlock(
       css.docBlockHeaderLink(
         css.wsLeft(
@@ -224,42 +206,50 @@ function buildAllDocsBlock(
   });
 }
 
-/**
- * Builds the collapsible examples and templates section at the bottom of
- * the All Documents page.
- *
- * If there are no featured templates, builds nothing.
- */
-function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
-  return dom.domComputed(home.featuredTemplates, templates => {
-    if (templates.length === 0) { return null; }
+function buildAllDocumentsDocsBlock(options: {
+  home: HomeModel,
+  flashDocId: Observable<string|null>,
+  viewSettings: ViewSettings
+}) {
+  const {home, flashDocId, viewSettings} = options;
+  if (home.app.isPersonal && !home.app.currentValidUser) { return null; }
 
-    const hideTemplatesObs = localStorageBoolObs('hide-examples');
-    return css.allDocsTemplates(css.templatesDocBlock(
-      dom.autoDispose(hideTemplatesObs),
-      css.templatesHeaderWrap(
-        css.templatesHeader(
-          t("Examples & Templates"),
-          dom.domComputed(hideTemplatesObs, (collapsed) =>
-            collapsed ? css.templatesHeaderIcon('Expand') : css.templatesHeaderIcon('Collapse')
-          ),
-          dom.on('click', () => hideTemplatesObs.set(!hideTemplatesObs.get())),
-          testId('all-docs-templates-header'),
-        ),
-        createVideoTourTextButton(),
+  return dom('div',
+    dom.maybe(use => use(home.empty) && !home.app.isOwnerOrEditor(), () => css.docBlock(
+      css.introLine(
+        t("You have read-only access to this site. Currently there are no documents."),
+        dom('br'),
+        t("Any documents created in this site will appear here."),
+        testId('readonly-no-docs-message'),
       ),
-      dom.maybe((use) => !use(hideTemplatesObs), () => [
-        buildTemplateDocs(home, templates, viewSettings),
-        bigBasicButton(
-          t("Discover More Templates"),
-          urlState().setLinkUrl({homePage: 'templates'}),
-          testId('all-docs-templates-discover-more'),
-        )
-      ]),
-      css.docBlock.cls((use) => '-' + use(home.currentView)),
-      testId('all-docs-templates'),
-    ));
-  });
+      css.introLine(
+        t(
+          "Interested in using Grist outside of your team? Visit your free "
+            + "{{personalSiteLink}}.",
+          {
+            personalSiteLink: dom.maybe(use =>
+              use(home.app.topAppModel.orgs).find(o => o.owner), org => cssLink(
+                urlState().setLinkUrl({org: org.domain ?? undefined}),
+                t("personal site"),
+                testId('readonly-personal-site-link')
+              )),
+          }
+        ),
+        testId('readonly-personal-site-message'),
+      ),
+    )),
+    dom.maybe(use => use(home.empty) && home.app.isOwnerOrEditor(), () => css.createFirstDocument(
+      css.createFirstDocumentImage({src: 'img/create-document.svg'}),
+      bigPrimaryButton(
+        t('Create my first document'),
+        dom.on('click', () => newDocMethods.createDocAndOpen(home)),
+        dom.boolAttr('disabled', use => !use(home.newDocWorkspace)),
+      ),
+    )),
+    dom.maybe(use => !use(home.empty), () =>
+      buildAllDocsBlock(home, home.workspaces, flashDocId, viewSettings),
+    ),
+  );
 }
 
 /**
@@ -333,20 +323,11 @@ function buildOtherSites(home: HomeModel) {
 
 /**
  * Build the widget for selecting sort and view mode options.
- *
- * Options hideSort and hideView control which options are shown; they should have no effect
- * on the list of examples, so best to hide when those are the only docs shown.
  */
-function buildPrefs(
-  viewSettings: ViewSettings,
-  options: {
-    hideSort: boolean,
-    hideView: boolean,
-  },
-  ...args: DomArg<HTMLElement>[]): DomContents {
+function buildPrefs(viewSettings: ViewSettings, ...args: DomArg<HTMLElement>[]) {
   return css.prefSelectors(
     // The Sort selector.
-    options.hideSort ? null : dom.update(
+    dom.update(
       select<SortPref>(viewSettings.currentSort, [
           {value: 'name', label: t("By Name")},
           {value: 'date', label: t("By Date Modified")},
@@ -357,7 +338,7 @@ function buildPrefs(
     ),
 
     // The View selector.
-    options.hideView ? null : buttonSelect<ViewPref>(viewSettings.currentView, [
+    buttonSelect<ViewPref>(viewSettings.currentView, [
         {value: 'icons', icon: 'TypeTable'},
         {value: 'list', icon: 'TypeCardList'},
       ],
@@ -616,14 +597,4 @@ function scrollIntoViewIfNeeded(target: Element) {
   if (rect.top < 0) {
     target.scrollIntoView(true);
   }
-}
-
-/**
- * Returns true if templates should be shown in All Documents.
- */
-function shouldShowTemplates(home: HomeModel, showIntro: boolean): boolean {
-  const org = home.app.currentOrg;
-  const isPersonalOrg = Boolean(org && org.owner);
-  // Show templates for all personal orgs, and for non-personal orgs when showing intro.
-  return isPersonalOrg || showIntro;
 }

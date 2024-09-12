@@ -96,6 +96,7 @@ export const commonUrls = {
   plans: "https://www.getgrist.com/pricing",
   contact: "https://www.getgrist.com/contact",
   templates: 'https://www.getgrist.com/templates',
+  webinars: getWebinarsUrl(),
   community: 'https://community.getgrist.com',
   functions: 'https://support.getgrist.com/functions',
   formulaSheet: 'https://support.getgrist.com/formula-cheat-sheet',
@@ -703,6 +704,9 @@ export interface GristLoadConfig {
   // Url for "contact support" button on Grist's "not found" error page
   contactSupportUrl?: string;
 
+  // Url for webinars.
+  webinarsUrl?: string;
+
   // When set, this directs the client to encode org information in path, not in domain.
   pathOnly?: boolean;
 
@@ -907,7 +911,7 @@ export function getKnownOrg(): string|null {
 
 export function getHelpCenterUrl(): string {
   const defaultUrl = "https://support.getgrist.com";
-  if(isClient()) {
+  if (isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
   } else {
@@ -916,7 +920,7 @@ export function getHelpCenterUrl(): string {
 }
 
 export function getTermsOfServiceUrl(): string|undefined {
-  if(isClient()) {
+  if (isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return gristConfig && gristConfig.termsOfServiceUrl || undefined;
   } else {
@@ -926,7 +930,7 @@ export function getTermsOfServiceUrl(): string|undefined {
 
 export function getFreeCoachingCallUrl(): string {
   const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
-  if(isClient()) {
+  if (isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return gristConfig && gristConfig.freeCoachingCallUrl || defaultUrl;
   } else {
@@ -935,12 +939,22 @@ export function getFreeCoachingCallUrl(): string {
 }
 
 export function getContactSupportUrl(): string {
-  const defaultUrl = "https://www.getgrist.com/contact/";
-  if(isClient()) {
+  const defaultUrl = "https://www.getgrist.com/contact";
+  if (isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return gristConfig && gristConfig.contactSupportUrl || defaultUrl;
   } else {
     return process.env.GRIST_CONTACT_SUPPORT_URL || defaultUrl;
+  }
+}
+
+export function getWebinarsUrl(): string {
+  const defaultUrl = "https://www.getgrist.com/webinars";
+  if (isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.webinarsUrl || defaultUrl;
+  } else {
+    return process.env.GRIST_WEBINARS_URL || defaultUrl;
   }
 }
 

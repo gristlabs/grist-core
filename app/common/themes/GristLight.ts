@@ -85,6 +85,7 @@ export const GristLight: ThemeColors = {
 
   /* Popups */
   'popup-bg': 'white',
+  'popup-secondary-bg': '#F7F7F7',
   'popup-shadow-inner': 'rgba(31, 37, 50, 0.31)',
   'popup-shadow-outer': 'rgba(76, 86, 103, 0.24)',
   'popup-close-button-fg': '#929299',

@@ -1,24 +1,22 @@
 import {makeT} from 'app/client/lib/localization';
-import {getLoginOrSignupUrl, getLoginUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {productPill} from 'app/client/ui/AppHeader';
 import * as css from 'app/client/ui/DocMenuCss';
+import {buildHomeIntroCards} from 'app/client/ui/HomeIntroCards';
 import {newDocMethods} from 'app/client/ui/NewDocMethods';
-import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
-import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
+import {bigBasicButton} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {menu, menuCssClass} from 'app/client/ui2018/menus';
+import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, dom, DomContents, styled} from 'grainjs';
+import {dom, DomContents, styled} from 'grainjs';
+import {defaultMenuOptions} from 'popweasel';
 
 const t = makeT('HomeIntro');
 
 export function buildHomeIntro(homeModel: HomeModel): DomContents {
-  const isViewer = homeModel.app.currentOrg?.access === roles.VIEWER;
   const user = homeModel.app.currentValidUser;
   const isAnonym = !user;
   const isPersonal = !homeModel.app.isTeamSite;
@@ -26,185 +24,104 @@ export function buildHomeIntro(homeModel: HomeModel): DomContents {
     return makeAnonIntro(homeModel);
   } else if (isPersonal) {
     return makePersonalIntro(homeModel, user);
-  } else { // isTeamSite
-    if (isViewer) {
-      return makeViewerTeamSiteIntro(homeModel);
-    } else {
-      return makeTeamSiteIntro(homeModel);
-    }
+  } else {
+    return makeTeamSiteIntro(homeModel);
   }
 }
 
 export function buildWorkspaceIntro(homeModel: HomeModel): DomContents {
   const isViewer = homeModel.currentWS.get()?.access === roles.VIEWER;
   const isAnonym = !homeModel.app.currentValidUser;
-  const emptyLine = cssIntroLine(testId('empty-workspace-info'), t("This workspace is empty."));
+  const emptyLine = css.introLine(testId('empty-workspace-info'), t("This workspace is empty."));
   if (isAnonym || isViewer) {
     return emptyLine;
   } else {
     return [
       emptyLine,
-      buildButtons(homeModel, {
-        invite: false,
-        templates: false,
-        import: true,
-        empty: true
-      })
+      cssBtnGroup(
+        cssBtn(cssBtnIcon('Import'), t("Import Document"), testId('intro-import-doc'),
+          dom.on('click', () => newDocMethods.importDocAndOpen(homeModel)),
+        ),
+        cssBtn(cssBtnIcon('Page'), t("Create Empty Document"), testId('intro-create-doc'),
+          dom.on('click', () => newDocMethods.createDocAndOpen(homeModel)),
+        ),
+      ),
     ];
   }
 }
 
-function makeViewerTeamSiteIntro(homeModel: HomeModel) {
-  const personalOrg = Computed.create(null, use => use(homeModel.app.topAppModel.orgs).find(o => o.owner));
-  const docLink = (dom.maybe(personalOrg, org => {
-    return cssLink(
-      urlState().setLinkUrl({org: org.domain ?? undefined}),
-      t("personal site"),
-      testId('welcome-personal-url'));
-  }));
-  return [
-    css.docListHeader(
-      dom.autoDispose(personalOrg),
-      t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
-      productPill(homeModel.app.currentOrg, {large: true}),
-      testId('welcome-title')
-    ),
-    cssIntroLine(
-      testId('welcome-info'),
-      t("You have read-only access to this site. Currently there are no documents."),
-      dom('br'),
-      t("Any documents created in this site will appear here."),
-    ),
-    cssIntroLine(
-      t("Interested in using Grist outside of your team? Visit your free "), docLink, '.',
-      testId('welcome-text')
-    )
-  ];
-}
-
 function makeTeamSiteIntro(homeModel: HomeModel) {
   return [
-    css.docListHeader(
-      t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
-      productPill(homeModel.app.currentOrg, {large: true}),
-      testId('welcome-title')
+    css.docListHeaderWrap(
+      cssHeader(
+        t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
+        productPill(homeModel.app.currentOrg, {large: true}),
+        testId('welcome-title')
+      ),
+      buildPreferencesMenu(homeModel),
     ),
-    cssIntroLine(t("Get started by inviting your team and creating your first Grist document.")),
-    (!isFeatureEnabled('helpCenter') ? null :
-      cssIntroLine(
-        t(
-          'Learn more in our {{helpCenterLink}}.',
-          {helpCenterLink: helpCenterLink()}
-        ),
-        testId('welcome-text')
-      )
-    ),
-    makeCreateButtons(homeModel)
+    dom.create(buildHomeIntroCards, {homeModel}),
   ];
 }
 
 function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   return [
-    css.docListHeader(t("Welcome to Grist, {{- name}}!", {name: user.name}), testId('welcome-title')),
-    cssIntroLine(t("Get started by creating your first Grist document.")),
-    (!isFeatureEnabled('helpCenter') ? null :
-      cssIntroLine(t("Visit our {{link}} to learn more.", { link: helpCenterLink() }),
-        testId('welcome-text'))
+    css.docListHeaderWrap(
+      cssHeader(
+        t("Welcome to Grist, {{- name}}!", {name: user.name}),
+        testId('welcome-title'),
+      ),
+      buildPreferencesMenu(homeModel),
     ),
-    makeCreateButtons(homeModel),
+    dom.create(buildHomeIntroCards, {homeModel}),
   ];
-}
-
-function makeAnonIntroWithoutPlayground(homeModel: HomeModel) {
-    return [
-      (!isFeatureEnabled('helpCenter') ? null : cssIntroLine(t("Visit our {{link}} to learn more about Grist.", {
-        link: helpCenterLink()
-      }), testId('welcome-text-no-playground'))),
-      cssIntroLine(t("To use Grist, please either sign up or sign in.")),
-      cssBtnGroup(
-        cssBtn(t("Sign up"), cssButton.cls('-primary'), testId('intro-sign-up'),
-          dom.on('click', () => location.href = getSignupUrl())
-        ),
-        cssBtn(t("Sign in"), testId('intro-sign-in'),
-          dom.on('click', () => location.href = getLoginUrl())
-        )
-      )
-    ];
 }
 
 function makeAnonIntro(homeModel: HomeModel) {
-  const welcomeToGrist = css.docListHeader(t("Welcome to Grist!"), testId('welcome-title'));
+  const welcomeToGrist = css.docListHeaderWrap(
+    cssHeader(
+      t("Welcome to Grist!"),
+      testId('welcome-title'),
+    ),
+  );
 
-  if (!getGristConfig().enableAnonPlayground) {
-    return [
-      welcomeToGrist,
-      ...makeAnonIntroWithoutPlayground(homeModel)
-    ];
-  }
-
-  const signUp = cssLink({href: getLoginOrSignupUrl()}, t("Sign up"));
-  return [
+  return cssIntro(
     welcomeToGrist,
-    cssIntroLine(t("Get started by exploring templates, or creating your first Grist document.")),
-    cssIntroLine(t("{{signUp}} to save your work. ", {signUp}),
-      (!isFeatureEnabled('helpCenter') ? null : t("Visit our {{link}} to learn more.", { link: helpCenterLink() })),
-      testId('welcome-text')),
-    makeCreateButtons(homeModel),
-  ];
-}
-
-function helpCenterLink() {
-  return cssLink({href: commonUrls.help, target: '_blank'}, cssInlineIcon('Help'), t("Help Center"));
-}
-
-function buildButtons(homeModel: HomeModel, options: {
-  invite: boolean,
-  templates: boolean,
-  import: boolean,
-  empty: boolean,
-}) {
-  return cssBtnGroup(
-    !options.invite ? null :
-    cssBtn(cssBtnIcon('Help'), t("Invite Team Members"), testId('intro-invite'),
-      cssButton.cls('-primary'),
-      dom.on('click', () => manageTeamUsersApp({app: homeModel.app})),
-    ),
-    !options.templates ? null :
-    cssBtn(cssBtnIcon('FieldTable'), t("Browse Templates"), testId('intro-templates'),
-      cssButton.cls('-primary'),
-      dom.show(isFeatureEnabled("templates")),
-      urlState().setLinkUrl({homePage: 'templates'}),
-    ),
-    !options.import ? null :
-    cssBtn(cssBtnIcon('Import'), t("Import Document"), testId('intro-import-doc'),
-      dom.on('click', () => newDocMethods.importDocAndOpen(homeModel)),
-    ),
-    !options.empty ? null :
-    cssBtn(cssBtnIcon('Page'), t("Create Empty Document"), testId('intro-create-doc'),
-      dom.on('click', () => newDocMethods.createDocAndOpen(homeModel)),
-    ),
+    dom.create(buildHomeIntroCards, {homeModel}),
   );
 }
 
-function makeCreateButtons(homeModel: HomeModel) {
-  const canManageTeam = homeModel.app.isTeamSite &&
-    roles.canEditAccess(homeModel.app.currentOrg?.access || null);
-  return buildButtons(homeModel, {
-    invite: canManageTeam,
-    templates: !canManageTeam,
-    import: true,
-    empty: true
-  });
+function buildPreferencesMenu(homeModel: HomeModel) {
+  const {onlyShowDocuments} = homeModel;
+
+  return cssDotsMenu(
+    cssDots(icon('Dots')),
+    menu(
+      () => [
+        toggleSwitch(onlyShowDocuments, {
+          label: t('Only show documents'),
+          args: [
+            testId('welcome-menu-only-show-documents'),
+          ],
+        }),
+      ],
+      {
+        ...defaultMenuOptions,
+        menuCssClass: `${menuCssClass} ${cssPreferencesMenu.className}`,
+        placement: 'bottom-end',
+      }
+    ),
+    testId('welcome-menu'),
+  );
 }
 
-const cssParagraph = styled(css.docBlock, `
-  color: ${theme.text};
-  line-height: 1.6;
+const cssIntro = styled('div', `
+  margin-bottom: 24px;
 `);
 
-const cssIntroLine = styled(cssParagraph, `
-  font-size: ${vars.introFontSize};
-  margin-bottom: 8px;
+const cssHeader = styled(css.listHeader, `
+  font-size: 24px;
+  line-height: 36px;
 `);
 
 const cssBtnGroup = styled('div', `
@@ -225,6 +142,21 @@ const cssBtnIcon = styled(icon, `
   margin-right: 8px;
 `);
 
-const cssInlineIcon = styled(icon, `
-  margin: -2px 4px 2px 4px;
+const cssPreferencesMenu = styled('div', `
+  padding: 10px 16px;
+`);
+
+const cssDotsMenu = styled('div', `
+  display: flex;
+  cursor: pointer;
+  border-radius: ${vars.controlBorderRadius};
+
+  &:hover, &.weasel-popup-open {
+    background-color: ${theme.hover};
+  }
+`);
+
+const cssDots = styled('div', `
+  --icon-color: ${theme.lightText};
+  padding: 8px;
 `);

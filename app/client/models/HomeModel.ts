@@ -6,6 +6,7 @@ import {localStorageObs} from 'app/client/lib/localStorageObs';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {reportMessage, UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
+import {getUserPrefObs} from 'app/client/models/UserPrefs';
 import {ownerName} from 'app/client/models/WorkspaceInfo';
 import {IHomePage, isFeatureEnabled} from 'app/common/gristUrls';
 import {isLongerThan} from 'app/common/gutil';
@@ -31,7 +32,7 @@ export interface HomeModel {
   workspaces: Observable<Workspace[]>;
   loading: Observable<boolean|"slow">;          // Set to "slow" when loading for a while.
   available: Observable<boolean>;               // set if workspaces loaded correctly.
-  showIntro: Observable<boolean>;               // set if no docs and we should show intro.
+  empty: Observable<boolean>;                   // set if no docs.
   singleWorkspace: Observable<boolean>;         // set if workspace name should be hidden.
   trashWorkspaces: Observable<Workspace[]>;     // only set when viewing trash
   templateWorkspaces: Observable<Workspace[]>;  // Only set when viewing templates or all documents.
@@ -48,6 +49,8 @@ export interface HomeModel {
   // List of other sites (orgs) user can access. Only populated on All Documents, and only when
   // the current org is a personal org, or the current org is view access only.
   otherSites: Observable<Organization[]>;
+
+  onlyShowDocuments: Observable<boolean>;
 
   currentSort: Observable<SortPref>;
   currentView: Observable<ViewPref>;
@@ -123,21 +126,26 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       return orgs.filter(org => org.id !== currentOrg.id);
     });
 
+  public readonly onlyShowDocuments = getUserPrefObs(this.app.userPrefsObs, 'onlyShowDocuments', {
+    defaultValue: false,
+  }) as Observable<boolean>;
+
   public readonly currentSort: Observable<SortPref>;
   public readonly currentView: Observable<ViewPref>;
 
   // The workspace for new docs, or "unsaved" to only allow unsaved-doc creation, or null if the
   // user isn't allowed to create a doc.
   public readonly newDocWorkspace = Computed.create(this, this.currentPage, this.currentWS, (use, page, ws) => {
-    // Anonymous user can create docs, but in unsaved mode.
-    if (!this.app.currentValidUser) { return "unsaved"; }
+    if (!this.app.currentValidUser) {
+      // Anonymous user can create docs, but in unsaved mode and only when enabled.
+      return getGristConfig().enableAnonPlayground ? 'unsaved' : null;
+    }
     if (page === 'trash') { return null; }
     const destWS = (['all', 'templates'].includes(page)) ? (use(this.workspaces)[0] || null) : ws;
     return destWS && roles.canEdit(destWS.access) ? destWS : null;
   });
 
-  // Whether to show intro: no docs (other than examples).
-  public readonly showIntro = Computed.create(this, this.workspaces, (use, wss) => (
+  public readonly empty = Computed.create(this, this.workspaces, (use, wss) => (
     wss.every((ws) => ws.isSupportWorkspace || ws.docs.length === 0)));
 
   public readonly shouldShowAddNewTip = Observable.create(this,
@@ -343,22 +351,16 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   }
 
   /**
-   * Fetches templates if on the Templates or All Documents page.
-   *
-   * Only fetches featured (pinned) templates on the All Documents page.
+   * Fetches templates if on the Templates page.
    */
   private async _maybeFetchTemplates(): Promise<Workspace[] | null> {
-    const {templateOrg} = getGristConfig();
-    if (!templateOrg) { return null; }
-
-    const currentPage = this.currentPage.get();
-    const shouldFetchTemplates = ['all', 'templates'].includes(currentPage);
-    if (!shouldFetchTemplates) { return null; }
+    if (!getGristConfig().templateOrg || this.currentPage.get() !== 'templates') {
+      return null;
+    }
 
     let templateWss: Workspace[] = [];
     try {
-      const onlyFeatured = currentPage === 'all';
-      templateWss = await this._app.api.getTemplates(onlyFeatured);
+      templateWss = await this._app.api.getTemplates();
     } catch {
       reportError('Failed to load templates');
     }
@@ -381,8 +383,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     if (
       !isFeatureEnabled('tutorials') ||
       !templateOrg ||
-      !onboardingTutorialDocId ||
-      this._app.dismissedPopups.get().includes('onboardingCards')
+      !onboardingTutorialDocId
     ) {
       return;
     }

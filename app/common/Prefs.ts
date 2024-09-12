@@ -33,6 +33,8 @@ export interface UserPrefs extends Prefs {
   dismissedWelcomePopups?: DismissedReminder[];
   // Localization support.
   locale?: string;
+  // If only documents should be shown on the All Documents page.
+  onlyShowDocuments?: boolean;
 }
 
 // A collection of preferences related to a combination of user and org.
@@ -112,9 +114,9 @@ export const DismissedPopup = StringUnion(
   'supportGrist',         // nudge to opt in to telemetry
   'publishForm',          // confirmation for publishing a form
   'unpublishForm',        // confirmation for unpublishing a form
-  'onboardingCards',      // onboarding cards shown on the doc menu
 
   /* Deprecated */
+  'onboardingCards',      // onboarding cards shown on the doc menu
   'tutorialFirstCard',    // first card of the tutorial
 );
 export type DismissedPopup = typeof DismissedPopup.type;

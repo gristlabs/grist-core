@@ -293,18 +293,14 @@ export class ApiServer {
     }));
 
     // GET /api/templates/
-    // Get all templates (or only featured templates if `onlyFeatured` is set).
+    // Get all templates.
     this._app.get('/api/templates/', expressWrap(async (req, res) => {
       const templateOrg = getTemplateOrg();
       if (!templateOrg) {
-        throw new ApiError('Template org is not configured', 500);
+        throw new ApiError('Template org is not configured', 501);
       }
 
-      const onlyFeatured = isParameterOn(req.query.onlyFeatured);
-      const query = await this._dbManager.getOrgWorkspaces(
-        {...getScope(req), showOnlyPinned: onlyFeatured},
-        templateOrg
-      );
+      const query = await this._dbManager.getOrgWorkspaces(getScope(req), templateOrg);
       return sendReply(req, res, query);
     }));
 

@@ -22,24 +22,12 @@ describe('HomeIntro', function() {
 
       // Check message specific to anon
       assert.equal(await driver.find('.test-welcome-title').getText(), 'Welcome to Grist!');
-      assert.match(await driver.find('.test-welcome-text').getText(), /Sign up.*Visit our Help Center/);
-
-      // Check the sign-up link.
-      const signUp = await driver.findContent('.test-welcome-text a', 'Sign up');
-      assert.include(await signUp.getAttribute('href'), '/signin');
-
-      // Check that the link takes us to a Grist login page.
-      await signUp.click();
-      await gu.checkLoginPage();
-      await driver.navigate().back();
-      await gu.waitForDocMenuToLoad();
     });
 
-    it('should should intro screen for anon', () => testIntroScreen({team: false}));
+    it('should should intro screen for anon', () => testIntroScreen({anon: true, team: false}));
     it('should not show Other Sites section', testOtherSitesSection);
     it('should allow create/import from intro screen', testCreateImport.bind(null, false));
-    it('should allow collapsing examples and remember the state', testExamplesCollapsing);
-    it('should show examples workspace with the intro', testExamplesSection);
+    it('should link to examples page from the intro', testExamplesPage);
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
   });
 
@@ -61,15 +49,12 @@ describe('HomeIntro', function() {
 
       // Check message specific to logged-in user
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.name}`));
-      assert.match(await driver.find('.test-welcome-text').getText(), /Visit our Help Center/);
-      assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/i);
     });
 
     it('should not show Other Sites section', testOtherSitesSection);
-    it('should show intro screen for empty org', () => testIntroScreen({team: false}));
+    it('should show intro screen for empty org', () => testIntroScreen({anon: false, team: false}));
     it('should allow create/import from intro screen', testCreateImport.bind(null, true));
-    it('should allow collapsing examples and remember the state', testExamplesCollapsing);
-    it('should show examples workspace with the intro', testExamplesSection);
+    it('should link to examples page from the intro', testExamplesPage);
     it('should allow copying examples', testCopyingExamples.bind(null, undefined));
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
     it('should show empty workspace info', testEmptyWorkspace.bind(null, {buttons: true}));
@@ -87,14 +72,12 @@ describe('HomeIntro', function() {
 
       // Check message specific to logged-in user and an empty team site.
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.orgName}`));
-      assert.match(await driver.find('.test-welcome-text').getText(), /Learn more/);
-      assert.notMatch(await driver.find('.test-welcome-text').getText(), /sign up/);
     });
 
     it('should not show Other Sites section', testOtherSitesSection);
-    it('should show intro screen for empty org', () => testIntroScreen({team: true}));
+    it('should show intro screen for empty org', () => testIntroScreen({anon: false, team: true}));
     it('should allow create/import from intro screen', testCreateImport.bind(null, true));
-    it('should show examples workspace with the intro', testExamplesSection);
+    it('should link to examples page from the intro', testExamplesPage);
     it('should allow copying examples', testCopyingExamples.bind(null, gu.session().teamSite.orgName));
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
     it('should show empty workspace info', testEmptyWorkspace);
@@ -105,22 +88,41 @@ describe('HomeIntro', function() {
     assert.isFalse(await driver.find('.test-dm-other-sites-header').isPresent());
   }
 
-  async function testIntroScreen(options: {team: boolean}) {
+  async function testIntroScreen(options: {anon: boolean; team: boolean}) {
     // TODO There is no longer a thumbnail + video link on an empty site, but it's a good place to
     // check for the presence and functionality of the planned links that open an intro video.
 
-    // Check link to Help Center
-    assert.include(await driver.findContent('.test-welcome-text a', /Help Center/).getAttribute('href'),
+    assert.isTrue(await driver.find('.test-intro-cards').isDisplayed());
+    assert.isTrue(await driver.find('.test-intro-video-tour').isDisplayed());
+    assert.isFalse(await driver.find('.test-intro-tutorial').isDisplayed());
+    assert.isTrue(await driver.find('.test-intro-create-doc').isDisplayed());
+    assert.isTrue(await driver.find('.test-intro-import-doc').isDisplayed());
+    assert.isTrue(await driver.find('.test-intro-templates').isDisplayed());
+    assert.include(await driver.find('.test-intro-webinars').getAttribute('href'),
+      'www.getgrist.com/webinars');
+    assert.include(await driver.find('.test-intro-help-center').getAttribute('href'),
       'support.getgrist.com');
 
     if (options.team) {
-      assert.equal(await driver.find('.test-intro-invite').getText(), 'Invite Team Members');
-      assert.equal(await driver.find('.test-topbar-manage-team').getText(), 'Manage Team');
+      assert.equal(await driver.find('.test-topbar-manage-team').getText(), 'Manage team');
     } else {
-      assert.equal(await driver.find('.test-intro-invite').isPresent(), false);
       assert.equal(await driver.find('.test-topbar-manage-team').isPresent(), false);
-      assert.equal(await driver.find('.test-intro-templates').getText(), 'Browse Templates');
-      assert.include(await driver.find('.test-intro-templates').getAttribute('href'), '/p/templates');
+    }
+
+    if (options.anon) {
+      assert.isFalse(await driver.find('.test-welcome-menu').isPresent());
+    } else {
+      await driver.find('.test-welcome-menu').click();
+      await driver.find('.test-welcome-menu-only-show-documents').click();
+      await gu.waitForServer();
+      assert.isFalse(await driver.find('.test-intro-cards').isPresent());
+      await driver.navigate().refresh();
+      await gu.waitForDocMenuToLoad();
+      assert.isFalse(await driver.find('.test-intro-cards').isPresent());
+      await driver.find('.test-welcome-menu').click();
+      await driver.find('.test-welcome-menu-only-show-documents').click();
+      await gu.waitForServer();
+      assert.isTrue(await driver.find('.test-intro-cards').isDisplayed());
     }
   }
 
@@ -159,48 +161,15 @@ describe('HomeIntro', function() {
     assert.isAbove(Number(await img.getAttribute('naturalWidth')), 0);
   });
 
-
-
-  async function testExamplesCollapsing() {
-    assert.equal(await driver.find('.test-dm-pinned-doc-name').isDisplayed(), true);
-
-    // Collapse the templates section, check it's collapsed
-    await driver.find('.test-dm-all-docs-templates-header').click();
-    assert.equal(await driver.find('.test-dm-pinned-doc-name').isPresent(), false);
-
-    // Reload and check it's still collapsed.
-    await driver.navigate().refresh();
+  async function testExamplesPage() {
+    // Make sure we can get to the templates page from the home page.
+    await driver.find('.test-intro-templates').click();
     await gu.waitForDocMenuToLoad();
-    assert.equal(await driver.find('.test-dm-pinned-doc-name').isPresent(), false);
-
-    // Expand back, and check.
-    await driver.find('.test-dm-all-docs-templates-header').click();
-    assert.equal(await driver.find('.test-dm-pinned-doc-name').isDisplayed(), true);
-
-    // Reload and check it's still expanded.
-    await driver.navigate().refresh();
-    await gu.waitForDocMenuToLoad();
-    assert.equal(await driver.find('.test-dm-pinned-doc-name').isDisplayed(), true);
-  }
-
-  async function testExamplesSection() {
-    // Check rendering and functionality of the examples and templates section
+    assert(gu.testCurrentUrl(/p\/templates/));
 
     // Check titles.
     assert.includeMembers(await driver.findAll('.test-dm-pinned-doc-name', (el) => el.getText()),
       ['Lightweight CRM']);
-
-    // Check the Discover More Templates button is shown.
-    const discoverMoreButton = await driver.find('.test-dm-all-docs-templates-discover-more');
-    assert(await discoverMoreButton.isPresent());
-    assert.include(await discoverMoreButton.getAttribute('href'), '/p/templates');
-
-    // Check that the button takes us to the templates page, then go back.
-    await discoverMoreButton.click();
-    await gu.waitForDocMenuToLoad();
-    assert(gu.testCurrentUrl(/p\/templates/));
-    await driver.navigate().back();
-    await gu.waitForDocMenuToLoad();
 
     // Check images.
     const docItem = await driver.findContent('.test-dm-pinned-doc', /Lightweight CRM/);
@@ -223,8 +192,9 @@ describe('HomeIntro', function() {
   }
 
   async function testCopyingExamples(destination?: string) {
-    // Open the example to copy it. Note that we no longer support copying examples from doc menu.
-    // Make full copy of the example.
+    // Open the example and make a full copy of it.
+    await driver.find('.test-dm-templates-page').click();
+    await gu.waitForDocMenuToLoad();
     await driver.findContent('.test-dm-pinned-doc-name', /Lightweight CRM/).click();
     await gu.waitForDocToLoad();
     await driver.findWait('.test-tb-share-action', 500).click();
@@ -232,9 +202,11 @@ describe('HomeIntro', function() {
     await checkDocAndRestore(true, async () => {
       assert.match(await gu.getCell('Company', 1).getText(), /Sporer/);
       assert.match(await driver.find('.test-bc-doc').value(), /LCRM Copy/);
-    }, 2);
+    }, 3);
 
     // Make a template copy of the example.
+    await driver.find('.test-dm-templates-page').click();
+    await gu.waitForDocMenuToLoad();
     await driver.findContent('.test-dm-pinned-doc-name', /Lightweight CRM/).click();
     await gu.waitForDocToLoad();
     await driver.findWait('.test-tb-share-action', 500).click();
@@ -244,7 +216,7 @@ describe('HomeIntro', function() {
       // No data, because the file was copied as a template.
       assert.equal(await gu.getCell(0, 1).getText(), '');
       assert.match(await driver.find('.test-bc-doc').value(), /LCRM Template Copy/);
-    }, 2);
+    }, 3);
   }
 
   async function testSelectedExamplesPage() {
@@ -328,8 +300,6 @@ async function checkDocAndRestore(
   await gu.waitForDocMenuToLoad();
   // If not logged in, we create docs "unsaved" and don't see them in doc-menu.
   if (isLoggedIn) {
-    // Freshly-created users will see a tip for the Add New button; dismiss it.
-    await gu.dismissBehavioralPrompts();
     // Delete the first doc we find. We expect exactly one to exist.
     await deleteFirstDoc();
   }

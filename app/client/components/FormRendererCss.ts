@@ -102,73 +102,12 @@ export const submitButton = styled('div', `
   }
 `);
 
-// TODO: break up into multiple variables, one for each field type.
 export const field = styled('div', `
   display: flex;
   flex-direction: column;
   height: 100%;
   justify-content: space-between;
 
-  & input[type="checkbox"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    margin: 0;
-    padding: 0;
-    flex-shrink: 0;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    --radius: 3px;
-    position: relative;
-    margin-right: 8px;
-    vertical-align: baseline;
-  }
-  & input[type="checkbox"]:focus {
-    outline-color: ${vars.primaryBgHover};
-  }
-  & input[type="checkbox"]:checked:enabled,
-  & input[type="checkbox"]:indeterminate:enabled {
-    --color: ${vars.primaryBg};
-  }
-  & input[type="checkbox"]:disabled {
-    --color: ${colors.darkGrey};
-    cursor: not-allowed;
-  }
-  & input[type="checkbox"]::before,
-  & input[type="checkbox"]::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 16px;
-    width: 16px;
-    box-sizing: border-box;
-    border: 1px solid var(--color, ${colors.darkGrey});
-    border-radius: var(--radius);
-  }
-  & input[type="checkbox"]:checked::before,
-  & input[type="checkbox"]:disabled::before,
-  & input[type="checkbox"]:indeterminate::before {
-    background-color: var(--color);
-  }
-  & input[type="checkbox"]:not(:checked):indeterminate::after {
-    -webkit-mask-image: var(--icon-Minus);
-  }
-  & input[type="checkbox"]:not(:disabled)::after {
-    background-color: ${colors.light};
-  }
-  & input[type="checkbox"]:checked::after,
-  & input[type="checkbox"]:indeterminate::after {
-    content: '';
-    position: absolute;
-    height: 16px;
-    width: 16px;
-    -webkit-mask-image: var(--icon-Tick);
-    -webkit-mask-size: contain;
-    -webkit-mask-position: center;
-    -webkit-mask-repeat: no-repeat;
-    background-color: ${colors.light};
-  }
   & > .${label.className} {
     color: ${colors.dark};
     font-size: 13px;
@@ -217,6 +156,63 @@ export const textarea = styled('textarea', `
   resize: none;
 `);
 
+export const checkboxInput = styled('input', `
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  --radius: 3px;
+  position: relative;
+  margin-right: 8px;
+  vertical-align: baseline;
+
+  &:focus {
+    outline-color: ${vars.primaryBgHover};
+  }
+  &:checked:enabled, &:indeterminate:enabled {
+    --color: ${vars.primaryBg};
+  }
+  &:disabled {
+    --color: ${colors.darkGrey};
+    cursor: not-allowed;
+  }
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    box-sizing: border-box;
+    border: 1px solid var(--color, ${colors.darkGrey});
+    border-radius: var(--radius);
+  }
+  &:checked::before, &:disabled::before, &:indeterminate::before {
+    background-color: var(--color);
+  }
+  &:not(:checked):indeterminate::after {
+    -webkit-mask-image: var(--icon-Minus);
+  }
+  &:not(:disabled)::after {
+    background-color: ${colors.light};
+  }
+  &:checked::after, &:indeterminate::after {
+    content: '';
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    -webkit-mask-image: var(--icon-Tick);
+    -webkit-mask-size: contain;
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    background-color: ${colors.light};
+  }
+`);
+
 export const spinner = styled(numericSpinner, `
   & input {
     height: 29px;
@@ -240,87 +236,11 @@ export const toggle = styled('label', `
   }
 `);
 
-export const toggleSwitch = styled(toggle, `
-  cursor: pointer;
-
-  & input[type='checkbox'] {
-    margin: 0;
-    position: absolute;
-    top: 1px;
-    left: 4px;
-  }
-  & input[type='checkbox'],
-  & input[type='checkbox']::before,
-  & input[type='checkbox']::after {
-    height: 1px;
-    width: 1px;
-  }
-  & input[type='checkbox']:focus {
-    outline: none;
-  }
-  & input[type='checkbox']:focus {
-    outline: none;
-  }
-  & > span {
-    margin-left: 8px;
-  }
-`);
-
 export const toggleLabel = styled('span', `
   font-size: 13px;
   font-weight: 700;
   line-height: 16px;
   overflow-wrap: anywhere;
-`);
-
-export const gristSwitchSlider = styled('div', `
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  border-radius: 17px;
-  -webkit-transition: background-color .4s;
-  transition: background-color .4s;
-`);
-
-export const gristSwitchCircle = styled('div', `
-  position: absolute;
-  cursor: pointer;
-  content: "";
-  height: 13px;
-  width: 13px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  border-radius: 17px;
-  -webkit-transition: transform .4s;
-  transition: transform .4s;
-`);
-
-export const gristSwitch = styled('div', `
-  position: relative;
-  width: 30px;
-  height: 17px;
-  display: inline-block;
-  flex: none;
-
-  input:focus + & > .${gristSwitchSlider.className} {
-    outline: 2px solid ${vars.primaryBgHover};
-    outline-offset: 1px;
-  }
-
-  input:checked + & > .${gristSwitchSlider.className} {
-    background-color: ${vars.primaryBg};
-  }
-
-  input:checked + & > .${gristSwitchCircle.className} {
-    -webkit-transform: translateX(13px);
-    -ms-transform: translateX(13px);
-    transform: translateX(13px);
-  }
 `);
 
 export const checkboxList = styled('div', `

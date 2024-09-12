@@ -5,6 +5,7 @@ import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
 import {isXSmallScreenObs} from 'app/client/ui2018/cssVars';
 import {confirmModal} from 'app/client/ui2018/modals';
+import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {CellValue} from 'app/plugin/GristData';
 import {Disposable, dom, DomContents, makeTestId, MutableObsArray, obsArray, Observable} from 'grainjs';
 import {marked} from 'marked';
@@ -528,32 +529,21 @@ class BoolRenderer extends BaseFieldRenderer {
   }
 
   private _renderSwitchInput() {
-    return css.toggleSwitch(
-      dom('input',
-        dom.prop('checked', this.checked),
-        dom.prop('value', use => use(this.checked) ? '1' : '0'),
-        dom.on('change', (_e, elem) => this.checked.set(elem.checked)),
-        {
-          type: this.inputType,
-          name: this.name(),
-          required: this.field.options.formRequired,
-        },
+    return toggleSwitch(this. checked, {
+      label: this.field.question,
+      inputArgs: [
+        {name: this.name(), required: this.field.options.formRequired},
         preventSubmitOnEnter(),
-      ),
-      css.gristSwitch(
-        css.gristSwitchSlider(),
-        css.gristSwitchCircle(),
-      ),
-      css.toggleLabel(
+      ],
+      labelArgs: [
         css.label.cls('-required', Boolean(this.field.options.formRequired)),
-        this.field.question,
-      ),
-    );
+      ],
+    });
   }
 
   private _renderCheckboxInput() {
     return css.toggle(
-      dom('input',
+      css.checkboxInput(
         dom.prop('checked', this.checked),
         dom.prop('value', use => use(this.checked) ? '1' : '0'),
         dom.on('change', (_e, elem) => this.checked.set(elem.checked)),
@@ -613,7 +603,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
       {name: this.name(), required},
       dom.forEach(this.checkboxes, (checkbox) =>
         css.checkbox(
-          dom('input',
+          css.checkboxInput(
             dom.prop('checked', checkbox.checked),
             dom.on('change', (_e, elem) => checkbox.checked.set(elem.value)),
             {
@@ -674,7 +664,7 @@ class RefListRenderer extends BaseFieldRenderer {
       {name: this.name(), required},
       dom.forEach(this.checkboxes, (checkbox) =>
         css.checkbox(
-          dom('input',
+          css.checkboxInput(
             dom.prop('checked', checkbox.checked),
             dom.on('change', (_e, elem) => checkbox.checked.set(elem.value)),
             {

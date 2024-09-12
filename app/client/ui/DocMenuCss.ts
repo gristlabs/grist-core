@@ -36,14 +36,24 @@ export const docList = styled('div', `
 
 export const docListContent = styled('div', `
   display: flex;
+  width: 100%;
+  max-width: 1340px;
+  margin: 0 auto;
 `);
 
 export const docMenu = styled('div', `
-  flex-grow: 1;
-  max-width: 100%;
+  width: 100%;
 `);
 
-const listHeader = styled('div', `
+export const docListHeaderWrap = styled('div', `
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+`);
+
+export const listHeader = styled('div', `
   min-height: 32px;
   line-height: 32px;
   color: ${theme.text};
@@ -357,4 +367,29 @@ export const upgradeButton = styled('div', `
 
 export const upgradeCard = styled('div', `
   margin-left: 64px;
+`);
+
+export const createFirstDocument = styled('div', `
+  margin: 32px 0px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  align-items: center;
+  justify-content: center;
+`);
+
+export const createFirstDocumentImage = styled('img', `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`);
+
+export const paragraph = styled(docBlock, `
+  color: ${theme.text};
+  line-height: 1.6;
+`);
+
+export const introLine = styled(paragraph, `
+  font-size: ${vars.introFontSize};
+  margin-bottom: 8px;
 `);

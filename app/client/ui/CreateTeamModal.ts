@@ -1,4 +1,5 @@
 import {autoFocus} from 'app/client/lib/domUtils';
+import {makeT} from 'app/client/lib/localization';
 import {ValidationGroup, Validator} from 'app/client/lib/Validator';
 import {AppModel, getHomeUrl} from 'app/client/models/AppModel';
 import {reportError, UserError} from 'app/client/models/errors';
@@ -11,11 +12,7 @@ import {TEAM_PLAN} from 'app/common/Features';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {UserAPIImpl} from 'app/common/UserAPI';
 import {PlanSelection} from 'app/common/BillingAPI';
-import {
-  Disposable, dom, DomArg, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
-  Observable, styled
-} from 'grainjs';
-import { makeT } from '../lib/localization';
+import {Disposable, dom, DomContents, DomElementArg, input, makeTestId, Observable, styled} from 'grainjs';
 
 const t = makeT('CreateTeamModal');
 const testId = makeTestId('test-create-team-');
@@ -87,16 +84,12 @@ export function buildUpgradeModal(owner: Disposable, options: {
   throw new UserError(t(`Billing is not supported in grist-core`));
 }
 
-export interface IUpgradeButton {
-  showUpgradeCard(...args: DomArg<HTMLElement>[]): DomContents;
-  showUpgradeButton(...args: DomArg<HTMLElement>[]): DomContents;
-}
+export class UpgradeButton extends Disposable {
+  constructor(_appModel: AppModel) {
+    super();
+  }
 
-export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): IUpgradeButton {
-  return {
-    showUpgradeCard: () => null,
-    showUpgradeButton: () => null,
-  };
+  public buildDom() { return null; }
 }
 
 export function buildConfirm({

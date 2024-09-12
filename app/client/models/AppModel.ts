@@ -9,7 +9,6 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
-import {SupportGristNudge} from 'app/client/ui/SupportGristNudge';
 import {gristThemePrefs} from 'app/client/ui2018/theme';
 import {AsyncCreate} from 'app/common/AsyncCreate';
 import {PlanSelection} from 'app/common/BillingAPI';
@@ -129,8 +128,6 @@ export interface AppModel {
   planName: string|null;
 
   behavioralPromptsManager: BehavioralPromptsManager;
-
-  supportGristNudge: SupportGristNudge;
 
   refreshOrgUsage(): Promise<void>;
   showUpgradeModal(): Promise<void>;
@@ -350,8 +347,6 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly behavioralPromptsManager: BehavioralPromptsManager =
     BehavioralPromptsManager.create(this, this);
-
-  public readonly supportGristNudge: SupportGristNudge = SupportGristNudge.create(this, this);
 
   constructor(
     public readonly topAppModel: TopAppModel,

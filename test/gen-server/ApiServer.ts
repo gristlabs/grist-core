@@ -2301,15 +2301,6 @@ describe('ApiServer', function() {
       assert.deepEqual(resp.data[0].docs.map((doc: any) => doc.name), ['Lightweight CRM']);
       assert.deepEqual(resp.data[1].docs.map((doc: any) => doc.name), ['Expense Report', 'Timesheet']);
 
-      // Make a request to retrieve only the featured (pinned) templates.
-      const resp2 = await axios.get(`${homeUrl}/api/templates/?onlyFeatured=1`, nobody);
-      // Assert that the response includes only pinned documents.
-      assert.equal(resp2.status, 200);
-      assert.lengthOf(resp2.data, 2);
-      assert.deepEqual(resp.data.map((ws: any) => ws.name), ['CRM', 'Invoice']);
-      assert.deepEqual(resp2.data[0].docs.map((doc: any) => doc.name), ['Lightweight CRM']);
-      assert.deepEqual(resp2.data[1].docs, []);
-
       // Add a new document to the CRM workspace, but don't share it with everyone.
       await axios.post(`${homeUrl}/api/workspaces/${crmWsId}/docs`,
         {name: 'Draft CRM Template', isPinned: true}, support);

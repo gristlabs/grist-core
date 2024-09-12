@@ -49,16 +49,8 @@ describe('DocTutorial', function () {
 
     it('shows a tutorial card', async function() {
       await viewerSession.loadDocMenu('/');
-      assert.isTrue(await driver.find('.test-onboarding-tutorial-card').isDisplayed());
-      assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '0%');
-    });
-
-    it('can dismiss tutorial card', async function() {
-      await driver.find('.test-onboarding-dismiss-cards').click();
-      assert.isFalse(await driver.find('.test-onboarding-tutorial-card').isPresent());
-      await driver.navigate().refresh();
-      await gu.waitForDocMenuToLoad();
-      assert.isFalse(await driver.find('.test-onboarding-tutorial-card').isPresent());
+      assert.isTrue(await driver.find('.test-intro-tutorial').isDisplayed());
+      assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '0%');
     });
 
     it('shows a link to tutorial', async function() {
@@ -84,9 +76,9 @@ describe('DocTutorial', function () {
     afterEach(() => gu.checkForErrors());
 
     it('shows a tutorial card', async function() {
-      assert.isTrue(await driver.find('.test-onboarding-tutorial-card').isDisplayed());
+      assert.isTrue(await driver.find('.test-intro-tutorial').isDisplayed());
       await gu.waitToPass(async () =>
-        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '0%'),
+        assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '0%'),
         2000
       );
     });
@@ -454,7 +446,7 @@ describe('DocTutorial', function () {
       await gu.waitForServer();
       await gu.waitForDocMenuToLoad();
       await gu.waitToPass(async () =>
-        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '15%'),
+        assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '15%'),
         2000
       );
       await driver.find('.test-dm-basic-tutorial').click();
@@ -567,12 +559,12 @@ describe('DocTutorial', function () {
       await gu.waitForDocMenuToLoad();
       assert.match(await driver.getCurrentUrl(), /o\/docs\/$/);
       await gu.waitToPass(async () =>
-        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '0%'),
+        assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '0%'),
         2000
       );
       await ownerSession.loadDocMenu('/');
       await gu.waitToPass(async () =>
-        assert.equal(await driver.find('.test-onboarding-tutorial-percent-complete').getText(), '100%'),
+        assert.equal(await driver.find('.test-intro-tutorial-percent-complete').getText(), '100%'),
         2000
       );
     });
