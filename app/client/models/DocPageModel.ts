@@ -149,7 +149,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly isTemplate = Computed.create(this, this.currentDoc,
     (use, doc) => doc ? doc.isTemplate : false);
   public readonly type = Computed.create(this, this.currentDoc,
-    (use, doc) => doc?.type?? null);
+    (use, doc) => doc?.type ?? null);
 
   public readonly importSources: ImportSource[] = [];
 

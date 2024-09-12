@@ -310,9 +310,6 @@ export class DocSettingsPage extends Disposable {
       const currentDocType = docPageModel.type.get() as string;
       let currentDocTypeOption;
       switch (currentDocType) {
-        case "":
-          currentDocTypeOption = DocTypeOption.Regular;
-          break;
         case "Template":
           currentDocTypeOption = DocTypeOption.Template;
           break;
@@ -335,11 +332,8 @@ export class DocSettingsPage extends Disposable {
         } else {
           docType = "Tutorial";
         }
-        persistType(docType, docId)
-        .then(()=>window.location.reload())
-        .catch(err=>console.log(err));
-
-        ctl.close();
+        await persistType(docType, docId);
+        window.location.reload();
       };
 
       const documentTypeOptions = () => [
@@ -415,7 +409,7 @@ function persistType(type: string|null, docId: string|undefined){
       headers: {"Content-Type": "application/json"},
       credentials: 'include',
       body:JSON.stringify({type})
-    }).catch((err)=>{ console.log(err); });
+    });
 }
 
 function getApiConsoleLink(docPageModel: DocPageModel) {
