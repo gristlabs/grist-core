@@ -1,4 +1,5 @@
 import { UserAPI } from "app/common/UserAPI";
+//import { assert, By, driver, until } from "mocha-webdriver";
 import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -57,8 +58,7 @@ describe("Document Type Conversion", function () {
     // Confirm the choice
     await modalConfirm.click();
 
-    // await for the page reload
-    await driver.sleep(1000);
+    await driver.sleep(3000);
 
     // check that the displayedLabel is now equal to convert destination
     assert.equal(await displayedLabel.element().getText(), to);
