@@ -109,18 +109,18 @@ class ScimUserController {
     try {
       this._checkAccess(context);
       return await cb();
-    } catch (ex) {
-      if (ex instanceof ApiError) {
-        if (ex.status === 409) {
-          throw new SCIMMY.Types.Error(ex.status, 'uniqueness', ex.message);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 409) {
+          throw new SCIMMY.Types.Error(err.status, 'uniqueness', err.message);
         }
-        throw new SCIMMY.Types.Error(ex.status, null!, ex.message);
+        throw new SCIMMY.Types.Error(err.status, null!, err.message);
       }
-      if (ex instanceof SCIMMY.Types.Error) {
-        throw ex;
+      if (err instanceof SCIMMY.Types.Error) {
+        throw err;
       }
       // By default, return a 500 error
-      throw new SCIMMY.Types.Error(500, null!, ex.message);
+      throw new SCIMMY.Types.Error(500, null!, err.message);
     }
   }
 
