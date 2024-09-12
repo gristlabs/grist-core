@@ -21,6 +21,9 @@ export class DataRowModel extends BaseRowModel {
   public _validationFailures: ko.PureComputed<Array<IRowModel<'_grist_Validations'>>>;
   public _isAddRow: ko.Observable<boolean>;
 
+  // Observable that's set whenever a change to a row model is likely to be real, and unset when a
+  // row model is being reassigned to a different row. If a widget uses CSS transitions for
+  // changes, those should only be enabled when _isRealChange is true.
   public _isRealChange: ko.Observable<boolean>;
 
   public constructor(dataTableModel: DataTableModel, colNames: string[]) {

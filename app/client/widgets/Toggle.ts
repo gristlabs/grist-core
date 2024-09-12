@@ -10,7 +10,7 @@ import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
 import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { theme } from 'app/client/ui2018/cssVars';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
-import { dom, DomContents, makeTestId } from 'grainjs';
+import { dom, DomContents, DomElementArg, makeTestId } from 'grainjs';
 
 const t = makeT('Toggle');
 
@@ -74,14 +74,7 @@ export class ToggleCheckBox extends ToggleBase {
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
     return dom('div.field_clip',
-      dom('div.widget_checkbox',
-        dom('div.widget_checkmark',
-          dom.show(value),
-          dom('div.checkmark_kick'),
-          dom('div.checkmark_stem')
-        ),
-        this._addClickEventHandlers(row),
-      )
+      buildCheckbox(value, this._addClickEventHandlers(row))
     );
   }
 }
@@ -91,16 +84,42 @@ export class ToggleSwitch extends ToggleBase {
     super(field, {defaultTextColor: '#2CB0AF'});
   }
 
-  public buildDom(row: DataRowModel) {
+  public override buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
     return dom('div.field_clip',
-      dom('div.widget_switch',
-        dom.cls('switch_on', value),
-        dom.cls('switch_transition', row._isRealChange),
-        dom('div.switch_slider'),
-        dom('div.switch_circle'),
+      // For printing, we will show this as a checkbox (without handlers).
+      buildCheckbox(value, dom.cls('screen-force-hide')),
+      // For screen, we will show this as a switch (with handlers).
+      buildSwitch(
+        value,
+        row._isRealChange,
         this._addClickEventHandlers(row),
+        dom.cls('print-force-hide')
       )
     );
   }
+}
+
+function buildCheckbox(value: KoSaveableObservable<boolean>, ...args: DomElementArg[]) {
+  return dom('div.widget_checkbox',
+    dom('div.widget_checkmark',
+      dom.show(value),
+      dom('div.checkmark_kick'),
+      dom('div.checkmark_stem')
+    ),
+    ...args
+  );
+}
+
+function buildSwitch(
+  value: KoSaveableObservable<boolean>,
+  isTransitionEnabled: ko.Observable<boolean>,
+  ...args: DomElementArg[]) {
+  return dom('div.widget_switch',
+    dom.cls('switch_on', value),
+    dom.cls('switch_transition', isTransitionEnabled),
+    dom('div.switch_slider'),
+    dom('div.switch_circle'),
+    ...args
+  );
 }
