@@ -307,7 +307,7 @@ class TestStore {
         const result = this._externalStorageCreate(purpose, this._extraPrefix);
         if (!result) { throw new Error('no storage'); }
         return result;
-    }
+    };
 
     const storageManager = new HostedStorageManager(this._localDirectory,
                                                     this._workerId,
