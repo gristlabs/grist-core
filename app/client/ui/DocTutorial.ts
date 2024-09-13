@@ -4,7 +4,7 @@ import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
 import {cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup} from 'app/client/ui/FloatingPopup';
-import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
+import {sanitizeTutorialHTML} from 'app/client/ui/sanitizeHTML';
 import {hoverTooltip, setHoverTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, theme, vars} from 'app/client/ui2018/cssVars';
@@ -13,7 +13,7 @@ import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {confirmModal, modal} from 'app/client/ui2018/modals';
 import {parseUrlId} from 'app/common/gristUrls';
 import {dom, makeTestId, Observable, styled} from 'grainjs';
-import {marked} from 'marked';
+import {marked, Token} from 'marked';
 import debounce = require('lodash/debounce');
 import range = require('lodash/range');
 import sortBy = require('lodash/sortBy');
@@ -219,7 +219,7 @@ export class DocTutorial extends FloatingPopup {
           return value ? String(value) : undefined;
         };
 
-        const walkTokens = (token: marked.Token) => {
+        const walkTokens = (token: Token) => {
           if (token.type === 'image') {
             imageUrls.push(token.href);
           }
@@ -231,13 +231,13 @@ export class DocTutorial extends FloatingPopup {
 
         let slideContent = getValue('slide_content');
         if (!slideContent) { return null; }
-        slideContent = sanitizeHTML(await marked.parse(slideContent, {
+        slideContent = sanitizeTutorialHTML(await marked.parse(slideContent, {
           async: true, renderer, walkTokens
         }));
 
         let boxContent = getValue('box_content');
         if (boxContent) {
-          boxContent = sanitizeHTML(await marked.parse(boxContent, {
+          boxContent = sanitizeTutorialHTML(await marked.parse(boxContent, {
             async: true, renderer, walkTokens
           }));
         }

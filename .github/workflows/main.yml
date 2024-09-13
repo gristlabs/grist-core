@@ -69,9 +69,9 @@ jobs:
       - name: Build Node.js code
         run: yarn run build:prod
 
-      - name: Install chromedriver
+      - name: Install Google Chrome for Testing
         if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:')
-        run: ./node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
+        run: ./test/test_env.sh ./node_modules/selenium-webdriver/bin/linux/selenium-manager
 
       - name: Run smoke test
         if: contains(matrix.tests, ':smoke:')

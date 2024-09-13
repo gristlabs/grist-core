@@ -3,10 +3,13 @@ import * as WS from 'ws';
 import * as EIO from 'engine.io';
 import {GristServerSocket, GristServerSocketEIO, GristServerSocketWS} from './GristServerSocket';
 import * as net from 'net';
+import * as stream from 'stream';
 
 const MAX_PAYLOAD = 100e6;
 
 export interface GristSocketServerOptions {
+  // Check if this request should be accepted. To produce a valid response (perhaps a rejection),
+  // this callback should not throw.
   verifyClient?: (request: http.IncomingMessage) => Promise<boolean>;
 }
 
@@ -64,7 +67,15 @@ export class GristSocketServer {
 
   private _attach(server: http.Server) {
     // Forward all WebSocket upgrade requests to WS
-    server.on('upgrade', async (request, socket, head) => {
+
+    // Wrapper for server event handlers that catches rejected promises, which would otherwise
+    // lead to "unhandledRejection" and process exit. Instead we abort the connection, which helps
+    // in testing this scenario. This is a fallback; in reality, handlers should never throw.
+    function destroyOnRejection(socket: stream.Duplex, func: () => Promise<void>) {
+      func().catch(e => { socket.destroy(); });
+    }
+
+    server.on('upgrade', (request, socket, head) => destroyOnRejection(socket, async () => {
       if (this._options?.verifyClient && !await this._options.verifyClient(request)) {
         // Because we are handling an "upgrade" event, we don't have access to
         // a "response" object, just the raw socket. We can still construct
@@ -76,14 +87,14 @@ export class GristSocketServer {
       this._wsServer.handleUpgrade(request, socket as net.Socket, head, (client) => {
         this._connectionHandler?.(new GristServerSocketWS(client), request);
       });
-    });
+    }));
 
     // At this point an Express app is installed as the handler for the server's
     // "request" event. We need to install our own listener instead, to intercept
     // requests that are meant for the Engine.IO polling implementation.
     const listeners = [...server.listeners("request")];
     server.removeAllListeners("request");
-    server.on("request", async (req, res) => {
+    server.on("request", (req, res) => destroyOnRejection(req.socket, async() => {
       // Intercept requests that have transport=polling in their querystring
       if (/[&?]transport=polling(&|$)/.test(req.url ?? '')) {
         if (this._options?.verifyClient && !await this._options.verifyClient(req)) {
@@ -98,7 +109,7 @@ export class GristSocketServer {
           listener.call(server, req, res);
         }
       }
-    });
+    }));
 
     server.on("close", this.close.bind(this));
   }

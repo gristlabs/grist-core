@@ -96,6 +96,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
+    forceEnableEnterprise: isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE),
     templateOrg: getTemplateOrg(),
     onboardingTutorialDocId: getOnboardingTutorialDocId(),
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
@@ -121,15 +122,16 @@ export function makeMessagePage(staticDir: string) {
   };
 }
 
+export type SendAppPageFunction =
+  (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
+
 /**
  * Send a simple template page, read from file at pagePath (relative to static/), with certain
  * placeholders replaced.
  */
-export function makeSendAppPage(opts: {
-  server: GristServer, staticDir: string, tag: string, testLogin?: boolean,
-  baseDomain?: string
-}) {
-  const {server, staticDir, tag, testLogin} = opts;
+export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain }: {
+  server: GristServer, staticDir: string, tag: string, testLogin?: boolean, baseDomain?: string
+}): SendAppPageFunction {
 
   // If env var GRIST_INCLUDE_CUSTOM_SCRIPT_URL is set, load it in a <script> tag on all app pages.
   const customScriptUrl = process.env.GRIST_INCLUDE_CUSTOM_SCRIPT_URL;
@@ -140,7 +142,7 @@ export function makeSendAppPage(opts: {
     const config = makeGristConfig({
       homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
       extra: options.config,
-      baseDomain: opts.baseDomain,
+      baseDomain,
       req,
       server,
     });

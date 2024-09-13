@@ -505,7 +505,7 @@ export const cssMarkdownRender = styled('div', `
 export function markdown(obs: BindableValue<string>, ...args: IDomArgs<HTMLDivElement>) {
   return cssMarkdownRender(el => {
     dom.autoDisposeElem(el, subscribeBindable(obs, val => {
-      el.innerHTML = sanitizeHTML(marked(val));
+      el.innerHTML = sanitizeHTML(marked(val, {async: false}));
     }));
   }, ...args);
 }

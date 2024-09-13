@@ -335,3 +335,7 @@ interface Location {
   // historical accident than an intentional choice.
   reload(forceGet?: boolean): void;
 }
+
+interface JQuery {
+  datepicker(options: unknown): JQuery;
+}

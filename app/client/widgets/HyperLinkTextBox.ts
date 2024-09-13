@@ -2,7 +2,7 @@ import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { constructUrl } from 'app/client/models/gristUrlState';
 import { testId, theme } from 'app/client/ui2018/cssVars';
-import { cssIconBackground, icon } from 'app/client/ui2018/icons';
+import { cssIconSpanBackground, iconSpan } from 'app/client/ui2018/icons';
 import { cssHoverIn, gristLink } from 'app/client/ui2018/links';
 import { NTextBox } from 'app/client/widgets/NTextBox';
 import { CellValue } from 'app/common/DocActions';
@@ -27,8 +27,8 @@ export class HyperLinkTextBox extends NTextBox {
       dom.cls('text_wrapping', this.wrapping),
       dom.maybe((use) => Boolean(use(value)), () =>
         gristLink(url,
-          cssIconBackground(
-            icon("FieldLink", testId('tb-link-icon')),
+          cssIconSpanBackground(
+            iconSpan("FieldLink", testId('tb-link-icon')),
             dom.cls(cssHoverOnField.className),
           ),
           testId('tb-link'),

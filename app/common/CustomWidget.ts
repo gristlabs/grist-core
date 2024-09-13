@@ -30,12 +30,10 @@ export interface ICustomWidget {
    * applying the Grist theme.
    */
   renderAfterReady?: boolean;
-
   /**
    * If set to false, do not offer to user in UI.
    */
   published?: boolean;
-
   /**
    * If the widget came from a plugin, we track that here.
    */
@@ -43,6 +41,29 @@ export interface ICustomWidget {
     pluginId: string;
     name: string;
   };
+  /**
+   * Widget description.
+   */
+  description?: string;
+  /**
+   * Widget authors.
+   *
+   * The first author is the one shown in the UI.
+   */
+  authors?: WidgetAuthor[];
+  /**
+   * Date the widget was last updated.
+   */
+  lastUpdatedAt?: string;
+  /**
+   * If the widget is maintained by Grist Labs.
+   */
+  isGristLabsMaintained?: boolean;
+}
+
+export interface WidgetAuthor {
+  name: string;
+  url?: string;
 }
 
 /**

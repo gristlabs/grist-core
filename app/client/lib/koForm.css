@@ -134,6 +134,10 @@ div:hover > .kf_tooltip {
   z-index: 11;
 }
 
+.kf_prompt_content:focus {
+  outline: none;
+}
+
 .kf_draggable {
   display: inline-block;
 }

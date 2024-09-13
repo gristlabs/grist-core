@@ -25,7 +25,7 @@ export function loadGristCoreConfig(fileConfig?: FileConfig<IGristCoreConfigFile
   const fileConfigValue = fileConfigAccessorFactory(fileConfig);
   return {
     edition: createConfigValue<Edition>(
-      isAffirmative(process.env.TEST_ENABLE_ACTIVATION) ? "enterprise" : "core",
+      isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE) ? "enterprise" : "core",
       fileConfigValue("edition")
     )
   };

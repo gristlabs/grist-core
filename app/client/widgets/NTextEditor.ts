@@ -96,6 +96,14 @@ export class NTextEditor extends NewBaseEditor {
     this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
   }
 
+  public get contentSizer(): HTMLElement {
+    return this._contentSizer;
+  }
+
+  public get editorPlacement(): EditorPlacement {
+    return this._editorPlacement;
+  }
+
   /**
    * Occurs when user types text in the textarea
    *

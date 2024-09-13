@@ -135,7 +135,9 @@ class ParagraphRenderer extends FormRenderer {
     return css.paragraph(
       css.paragraph.cls(`-alignment-${this.layoutNode.alignment || 'left'}`),
       el => {
-        el.innerHTML = sanitizeHTML(marked(this.layoutNode.text || '**Lorem** _ipsum_ dolor'));
+        el.innerHTML = sanitizeHTML(marked(this.layoutNode.text || '**Lorem** _ipsum_ dolor', {
+          async: false,
+        }));
       },
     );
   }

@@ -1,0 +1,44 @@
+services:
+  grist:
+    image: gristlabs/grist:latest
+    environment:
+      # Sets the header to look at for authentication
+      GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
+      # Forces Grist to only use a single team called 'Example'
+      GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
+      # Force users to login (disable anonymous access)
+      GRIST_FORCE_LOGIN: true
+      # Base URL Grist redirects to when navigating. Change this to your domain.
+      APP_HOME_URL: https://grist.localhost
+      # Default email for the "Admin" account
+      GRIST_DEFAULT_EMAIL: test@example.org
+    volumes:
+      # Where to store persistent data, such as documents.
+      - ${PERSIST_DIR}/grist:/persist
+    labels:
+      - "traefik.http.services.grist.loadbalancer.server.port=8484"
+      - "traefik.http.routers.grist.rule=Host(`grist.localhost`)"
+      - "traefik.http.routers.grist.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.grist-auth.rule=Host(`grist.localhost`) && (PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`))"
+      - "traefik.http.routers.grist-auth.middlewares=grist-basic-auth@file"
+      - "traefik.http.routers.grist-auth.tls.certresolver=letsencrypt"
+
+  traefik:
+    image: traefik:latest
+    ports:
+      # HTTP Ports
+      - "80:80"
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      # - "8080:8080"
+    volumes:
+      # Set the config file for traefik - this is loaded automatically.
+      - ./configs/traefik-config.yml:/etc/traefik/traefik.yml
+      # Set the config file for the dynamic config, such as middleware.
+      - ./configs/traefik-dynamic-config.yml:/etc/traefik/dynamic/dynamic-config.yml
+      # Certificate location, if automatic certificate setup is enabled.
+      - ./configs/acme:/acme
+      # Traefik needs docker access when configured via docker labels.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - grist

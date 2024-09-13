@@ -1,0 +1,12 @@
+{
+    "ACUserManager": {
+        "Invite new member": "Yeni Üye Davet gönder",
+        "Enter email address": "mail adresinizi girin",
+        "We'll email an invite to {{email}}": "{{email}} .. adresine davet gönderilecek"
+    },
+    "AccessRules": {
+        "Add Column Rule": "Sütuna Kural ekle",
+        "Add Default Rule": "Kural ekle (genel)",
+        "Add Table Rules": "Tabloya kural ekle"
+    }
+}

@@ -22,4 +22,6 @@ export class NullSandbox implements ISandbox {
   public getFlavor() {
     return 'null';
   }
+
+  public isProcessDown() { return true; }
 }

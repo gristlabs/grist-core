@@ -12,7 +12,7 @@
 /sandbox_venv*
 /.vscode/
 
-# Files created by grist-desktop setup 
+# Files created by grist-desktop setup
 /cpython.tar.gz
 /python
 /static_ext
@@ -89,3 +89,8 @@ xunit.xml
 # ext directory can be overwritten
 /ext
 /ext/**
+
+# Docker compose examples - persistent values and secrets
+/docker-compose-examples/*/persist
+/docker-compose-examples/*/secrets
+/docker-compose-examples/grist-traefik-oidc-auth/.env

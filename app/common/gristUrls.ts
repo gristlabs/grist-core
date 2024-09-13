@@ -759,7 +759,8 @@ export interface GristLoadConfig {
   // List of registered plugins (used by HomePluginManager and DocPluginManager)
   plugins?: LocalPlugin[];
 
-  // If custom widget list is available.
+  // If additional custom widgets (besides the Custom URL widget) should be shown in
+  // the custom widget gallery.
   enableWidgetRepository?: boolean;
 
   // Whether there is somewhere for survey data to go.
@@ -808,6 +809,9 @@ export interface GristLoadConfig {
 
   // The Grist deployment type (e.g. core, enterprise).
   deploymentType?: GristDeploymentType;
+
+  // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
+  forceEnableEnterprise?: boolean;
 
   // The org containing public templates and tutorials.
   templateOrg?: string|null;

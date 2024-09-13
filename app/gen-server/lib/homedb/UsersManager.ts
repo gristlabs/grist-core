@@ -97,7 +97,7 @@ export class UsersManager {
   public async testClearUserPrefs(emails: string[]) {
     return await this._connection.transaction(async manager => {
       for (const email of emails) {
-        const user = await this.getUserByLogin(email, {manager});
+        const user = await this.getExistingUserByLogin(email, manager);
         if (user) {
           await manager.delete(Pref, {userId: user.id});
         }
@@ -116,7 +116,7 @@ export class UsersManager {
    */
   public getAnonymousUserId(): number {
     const id = this._specialUserIds[ANONYMOUS_USER_EMAIL];
-    if (!id) { throw new Error("Anonymous user not available"); }
+    if (!id) { throw new Error("'Anonymous' user not available"); }
     return id;
   }
 
@@ -125,7 +125,7 @@ export class UsersManager {
    */
   public getPreviewerUserId(): number {
     const id = this._specialUserIds[PREVIEWER_EMAIL];
-    if (!id) { throw new Error("Previewer user not available"); }
+    if (!id) { throw new Error("'Previewer' user not available"); }
     return id;
   }
 
@@ -134,7 +134,7 @@ export class UsersManager {
    */
   public getEveryoneUserId(): number {
     const id = this._specialUserIds[EVERYONE_EMAIL];
-    if (!id) { throw new Error("'everyone' user not available"); }
+    if (!id) { throw new Error("'Everyone' user not available"); }
     return id;
   }
 
@@ -143,7 +143,7 @@ export class UsersManager {
    */
   public getSupportUserId(): number {
     const id = this._specialUserIds[SUPPORT_EMAIL];
-    if (!id) { throw new Error("'support' user not available"); }
+    if (!id) { throw new Error("'Support' user not available"); }
     return id;
   }
 
@@ -221,9 +221,6 @@ export class UsersManager {
           profile,
           manager
         });
-        if (!newUser) {
-          throw new ApiError("Unable to create user", 500);
-        }
         // No need to survey this user.
         newUser.isFirstTimeUser = false;
         await newUser.save();
@@ -286,13 +283,7 @@ export class UsersManager {
     return { user, isWelcomed };
   }
 
-  public async updateUserName(userId: number, name: string) {
-    const user = await User.findOne({where: {id: userId}});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-    user.name = name;
-    await user.save();
-  }
-
+  // TODO: rather use the updateUser() method, if that makes sense?
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
     const user = await User.findOne({where: {id: userId}});
     if (!user) { throw new ApiError("unable to find user", 400); }
@@ -321,7 +312,7 @@ export class UsersManager {
   // for an email key conflict failure. This is in case our transaction conflicts with a peer
   // doing the same thing. This is quite likely if the first page visited by a previously
   // unseen user fires off multiple api calls.
-  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User> {
     try {
       return await this.getUserByLogin(email, options);
     } catch (e) {
@@ -361,10 +352,10 @@ export class UsersManager {
    * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}) {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
-    const userByLogin = await this._runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       let needUpdate = false;
       const userQuery = manager.createQueryBuilder()
         .select('user')
@@ -473,9 +464,8 @@ export class UsersManager {
         // In principle this could be optimized, but this is simpler to maintain.
         user = await userQuery.getOne();
       }
-      return user;
+      return user!;
     });
-    return userByLogin;
   }
 
   /**
@@ -519,6 +509,63 @@ export class UsersManager {
       status: 200
     };
   }
+
+  public async initializeSpecialIds(): Promise<void> {
+    await this._maybeCreateSpecialUserId({
+      email: ANONYMOUS_USER_EMAIL,
+      name: "Anonymous"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: PREVIEWER_EMAIL,
+      name: "Preview"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: EVERYONE_EMAIL,
+      name: "Everyone"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: SUPPORT_EMAIL,
+      name: "Support"
+    });
+  }
+
+  /**
+   *
+   * Take a list of user profiles coming from the client's session, correlate
+   * them with Users and Logins in the database, and construct full profiles
+   * with user ids, standardized display emails, pictures, and anonymous flags.
+   *
+   */
+  public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
+    if (profiles.length === 0) { return []; }
+    const qb = this._connection.createQueryBuilder()
+      .select('logins')
+      .from(Login, 'logins')
+      .leftJoinAndSelect('logins.user', 'user')
+      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
+    const completedProfiles: {[email: string]: FullUser} = {};
+    for (const login of await qb.getMany()) {
+      completedProfiles[login.email] = {
+        id: login.user.id,
+        email: login.displayEmail,
+        name: login.user.name,
+        picture: login.user.picture,
+        anonymous: login.user.id === this.getAnonymousUserId(),
+        locale: login.user.options?.locale
+      };
+    }
+    return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
+      .filter(fullProfile => fullProfile);
+  }
+
+  /**
+   * ==================================
+   *
+   * Below methods are public but not exposed by HomeDBManager
+   *
+   * They are meant to be used internally (i.e. by homedb/ modules)
+   *
+   */
 
   // Looks up the emails in the permission delta and adds them to the users map in
   // the delta object.
@@ -587,25 +634,6 @@ export class UsersManager {
       permissionThreshold,
       affectsSelf: userId in userIdMap,
     };
-  }
-
-  public async initializeSpecialIds(): Promise<void> {
-    await this._maybeCreateSpecialUserId({
-      email: ANONYMOUS_USER_EMAIL,
-      name: "Anonymous"
-    });
-    await this._maybeCreateSpecialUserId({
-      email: PREVIEWER_EMAIL,
-      name: "Preview"
-    });
-    await this._maybeCreateSpecialUserId({
-      email: EVERYONE_EMAIL,
-      name: "Everyone"
-    });
-    await this._maybeCreateSpecialUserId({
-      email: SUPPORT_EMAIL,
-      name: "Support"
-    });
   }
 
   /**
@@ -684,34 +712,6 @@ export class UsersManager {
     return members;
   }
 
-  /**
-   *
-   * Take a list of user profiles coming from the client's session, correlate
-   * them with Users and Logins in the database, and construct full profiles
-   * with user ids, standardized display emails, pictures, and anonymous flags.
-   *
-   */
-  public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
-    if (profiles.length === 0) { return []; }
-    const qb = this._connection.createQueryBuilder()
-      .select('logins')
-      .from(Login, 'logins')
-      .leftJoinAndSelect('logins.user', 'user')
-      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
-    const completedProfiles: {[email: string]: FullUser} = {};
-    for (const login of await qb.getMany()) {
-      completedProfiles[login.email] = {
-        id: login.user.id,
-        email: login.displayEmail,
-        name: login.user.name,
-        picture: login.user.picture,
-        anonymous: login.user.id === this.getAnonymousUserId(),
-        locale: login.user.options?.locale
-      };
-    }
-    return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
-      .filter(profile => profile);
-  }
 
   // For the moment only the support user can add both everyone@ and anon@ to a
   // resource, since that allows spam. TODO: enhance or remove.
@@ -735,7 +735,7 @@ export class UsersManager {
       // user if a bunch of servers start simultaneously and the user doesn't exist
       // yet.
       const user = await this.getUserByLoginWithRetry(profile.email, {profile});
-      if (user) { id = this._specialUserIds[profile.email] = user.id; }
+      id = this._specialUserIds[profile.email] = user.id;
     }
     if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
     return id;

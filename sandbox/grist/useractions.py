@@ -1267,8 +1267,9 @@ class UserActions(object):
 
     # Remove all view fields for all removed columns.
     # Bypass the check for raw data view sections.
-    fields = [f for c in col_recs for f in c.viewFields]
-    self._doRemoveViewSectionFieldRecords(fields)
+    field_ids = [f.id for c in col_recs for f in c.viewFields]
+
+    self.doBulkRemoveRecord("_grist_Views_section_field", field_ids)
 
     # If there is a displayCol, it may get auto-removed, but may first produce calc actions
     # triggered by the removal of this column. To avoid those, remove displayCols immediately.
@@ -1352,20 +1353,12 @@ class UserActions(object):
     Remove view sections, including their fields, without checking for raw view sections.
     """
     self.doBulkRemoveRecord('_grist_Views_section_field', [f.id for vs in recs for f in vs.fields])
-    views = {r.parentId.id: r.parentId for r in recs}.values()
-    rec_ids = [r.id for r in recs]
-    updates = _get_layout_spec_updates(views, set(rec_ids))
-    if updates:
-      self._do_doc_action(actions.BulkUpdateRecord('_grist_Views',
-        [row_id for (row_id, _) in updates],
-        {'layoutSpec': [value for (_, value) in updates]}
-      ))
-    self.doBulkRemoveRecord('_grist_Views_section', rec_ids)
+    self.doBulkRemoveRecord('_grist_Views_section', [r.id for r in recs])
 
   @override_action('BulkRemoveRecord', '_grist_Views_section_field')
   def _removeViewSectionFieldRecords(self, table_id, row_ids):
     """
-    Remove view section fields.
+    Remove view sections, including their fields.
     Raises an error if trying to remove a field of a table's rawViewSectionRef,
     i.e. hiding a column in a raw data widget.
     """
@@ -1373,21 +1366,7 @@ class UserActions(object):
     for rec in recs:
       if rec.parentId.isRaw:
         raise ValueError("Cannot remove raw view section field")
-    self._doRemoveViewSectionFieldRecords(recs)
-
-  def _doRemoveViewSectionFieldRecords(self, recs):
-    """
-    Remove view section fields, without checking for raw view section fields.
-    """
-    view_sections = {r.parentId.id: r.parentId for r in recs}.values()
-    rec_ids = [r.id for r in recs]
-    updates = _get_layout_spec_updates(view_sections, rec_ids)
-    if updates:
-      self._do_doc_action(actions.BulkUpdateRecord('_grist_Views_section',
-        [row_id for (row_id, _) in updates],
-        {'layoutSpec': [value for (_, value) in updates]}
-      ))
-    self.doBulkRemoveRecord('_grist_Views_section_field', rec_ids)
+    self.doBulkRemoveRecord(table_id, row_ids)
 
   #----------------------------------------
   # User actions on columns.
@@ -2382,30 +2361,3 @@ def _is_transform_col(col_id):
     'gristHelper_Transform',
     'gristHelper_Converted',
   ))
-
-def _get_layout_spec_updates(resources, removed_ids):
-  def get_patched_layout_spec(layout_spec):
-    if not isinstance(layout_spec, dict):
-      return layout_spec
-    if 'leaf' in layout_spec and layout_spec['leaf'] in removed_ids_set:
-      return None
-
-    patched_layout_spec = layout_spec.copy()
-    for key in ('children', 'collapsed'):
-      if key not in layout_spec or not isinstance(layout_spec[key], list):
-        continue
-
-      patched_values = [get_patched_layout_spec(v) for v in layout_spec[key]]
-      patched_layout_spec[key] = [v for v in patched_values if v is not None]
-    return patched_layout_spec
-
-  updates = []
-  removed_ids_set = set(removed_ids)
-  for (row_id, layout_spec) in [(r.id, r.layoutSpec) for r in resources if r.layoutSpec != ""]:
-    try:
-      layout_spec_parsed = json.loads(layout_spec)
-    except ValueError:
-      continue
-    new_layout_spec = json.dumps(get_patched_layout_spec(layout_spec_parsed), sort_keys=True)
-    updates.append((row_id, new_layout_spec))
-  return updates

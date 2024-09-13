@@ -1,0 +1,8 @@
+services:
+  grist:
+    image: gristlabs/grist:latest
+    volumes:
+      # Where to store persistent data, such as documents.
+      - ${PERSIST_DIR:-./persist}/grist:/persist
+    ports:
+      - 8484:8484

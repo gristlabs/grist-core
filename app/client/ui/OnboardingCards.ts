@@ -50,7 +50,7 @@ export function buildOnboardingCards(
           t('Complete our basics tutorial'),
         ),
         cssTutorialCardSubHeader(
-          t('Learn the basic of reference columns, linked widgets, column types, & cards.')
+          t('Learn the basics of reference columns, linked widgets, column types, & cards.')
         ),
         cssTutorialCardBody(
           cssTutorialProgress(

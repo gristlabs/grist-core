@@ -29,6 +29,7 @@ export interface PlayerVars {
   fs?: 0 | 1;
   iv_load_policy?: 1 | 3;
   modestbranding?: 0 | 1;
+  rel?: 0 | 1;
 }
 
 export interface PlayerStateChangeEvent {

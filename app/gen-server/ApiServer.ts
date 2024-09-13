@@ -429,7 +429,7 @@ export class ApiServer {
         throw new ApiError('Name expected in the body', 400);
       }
       const name = req.body.name;
-      await this._dbManager.updateUserName(userId, name);
+      await this._dbManager.updateUser(userId, { name });
       res.sendStatus(200);
     }));
 

@@ -125,8 +125,7 @@ describe('CellColor', function() {
     await gu.getSection('TABLE1').click();
     let cell = await gu.getCell('B', 1).doClick();
     await gu.enterCell('foo');
-    await driver.findContent('.test-select-button', /HyperLink/).click();
-    await gu.waitForServer();
+    await gu.setFieldWidgetType('HyperLink');
 
     // check default color of hyperlink
     cell = await gu.getCell('B', 1).find('.field_clip');
@@ -219,8 +218,7 @@ describe('CellColor', function() {
     await gu.getSection('TABLE1').click();
 
     // change widget to hyper link
-    await driver.findContent('.test-select-button', /HyperLink/).click();
-    await gu.waitForServer();
+    await gu.setFieldWidgetType('HyperLink');
     const cell = gu.getCell('A', 1).find('.field_clip');
 
     // check cell show hyperlink
@@ -450,8 +448,7 @@ describe('CellColor', function() {
     await gu.waitForServer();
 
     // change format to hyperlink
-    await driver.findContent('.test-select-button', /HyperLink/).click();
-    await gu.waitForServer();
+    await gu.setFieldWidgetType('HyperLink');
 
     // check color is still ok
     cell = gu.getCell('A', 1).find('.field_clip');

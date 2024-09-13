@@ -26,6 +26,9 @@ const testId = makeTestId('test-video-tour-');
           height: '100%',
           width: '100%',
           origin: getMainOrgUrl(),
+          playerVars: {
+            rel: 0,
+          },
         },
         cssYouTubePlayer.cls(''),
       );

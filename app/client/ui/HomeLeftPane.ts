@@ -1,3 +1,9 @@
+import {makeT} from 'app/client/lib/localization';
+import {loadUserManager} from 'app/client/lib/imports';
+import {urlState} from 'app/client/models/gristUrlState';
+import {HomeModel} from 'app/client/models/HomeModel';
+import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
+import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 import * as roles from 'app/common/roles';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
@@ -8,19 +14,13 @@ import {createHelpTools, cssLeftPanel, cssScrollPane,
 import {
   cssLinkText, cssMenuTrigger, cssPageEntry, cssPageIcon, cssPageLink, cssSpacer
 } from 'app/client/ui/LeftPanelCommon';
-import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
-import {getAdminPanelName} from 'app/client/ui/AdminPanel';
 import {getGristConfig} from 'app/common/urlUtils';
-import {HomeModel} from 'app/client/models/HomeModel';
 import {icon} from 'app/client/ui2018/icons';
-import {loadUserManager} from 'app/client/lib/imports';
-import {makeT} from 'app/client/lib/localization';
 import {transientInput} from 'app/client/ui/transientInput';
-import {urlState} from 'app/client/models/gristUrlState';
 import {Workspace} from 'app/common/UserAPI';
 
 const t = makeT('HomeLeftPane');

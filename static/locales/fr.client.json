@@ -321,7 +321,7 @@
         "Manage webhooks": "Gérer les points d'ancrage Web",
         "ID for API use": "ID pour l'utilisation de l'API",
         "Find slow formulas": "Trouver les formules lentes",
-        "python2 (legacy)": "python2 (encien)",
+        "python2 (legacy)": "python2 (ancien)",
         "Try API calls from the browser": "Essayer les appels API à partir du navigateur",
         "Time Zone": "Fuseau horaire",
         "python3 (recommended)": "python3 (recommandé)",
@@ -958,7 +958,8 @@
         "Don't show again.": "Ne plus montrer.",
         "Got it": "J'ai compris",
         "Are you sure you want to delete these records?": "Êtes-vous sûr de vouloir supprimer ces enregistrements ?",
-        "Are you sure you want to delete this record?": "Êtes-vous sûr de vouloir supprimer cet enregistrement ?"
+        "Are you sure you want to delete this record?": "Êtes-vous sûr de vouloir supprimer cet enregistrement ?",
+        "TIP": "CONSEIL"
     },
     "pages": {
         "Rename": "Renommer",
@@ -1242,7 +1243,8 @@
         "Table": "Table",
         "Enabled": "Activé",
         "Name": "Nom",
-        "Sorry, not all fields can be edited.": "Désolé, tous les champs ne peuvent pas être modifiés."
+        "Sorry, not all fields can be edited.": "Désolé, tous les champs ne peuvent pas être modifiés.",
+        "Header Authorization": "Entête de sécurité"
     },
     "FormulaAssistant": {
         "Grist's AI Formula Assistance. ": "Assistance des formules de l'IA de Grist ",
@@ -1558,7 +1560,9 @@
         "Sandboxing": "Bac à sable",
         "Self Checks": "Auto contrôles",
         "Session Secret": "Secret de session",
-        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Ou, comme plan B., vous pouvez renseigner : {{bootKey}} dans l'environnement et visiter : {{url}}"
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Ou, comme plan B., vous pouvez renseigner : {{bootKey}} dans l'environnement et visiter : {{url}}",
+        "Enable Grist Enterprise": "Activer Grist Entreprise",
+        "Enterprise": "Entreprise"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -1665,5 +1669,17 @@
         "Tell us who you are": "Dites-nous qui vous êtes",
         "What brings you to Grist (you can select multiple)?": "Qu'est-ce qui vous amène à Grist (vous pouvez en sélectionner plusieurs) ?",
         "What is your role?": "Quel est votre rôle ?"
+    },
+    "ToggleEnterpriseWidget": {
+        "Disable Grist Enterprise": "Désactiver Grist Entreprise",
+        "Enable Grist Enterprise": "Activer Grist Entreprise",
+        "Grist Enterprise is **enabled**.": "Grist Entreprise est **activité**."
+    },
+    "ViewLayout": {
+        "Delete": "Supprimer",
+        "Delete data and this widget.": "Supprimer les données et le composant.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer le composant. La table restera disponible dans {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
+        "raw data page": "page de données brutes"
     }
 }

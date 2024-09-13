@@ -667,7 +667,7 @@
         "Replace {{termToUse}}...": "Ordeztu {{termToUse}}…",
         "Save Document": "Gorde dokumentua",
         "Send to Google Drive": "Bidali Google Drivera",
-        "Show in folder": "Erakutsi direktorioan",
+        "Show in folder": "Erakutsi karpetan",
         "Work on a Copy": "Egin lan kopia batean",
         "Share": "Partekatu",
         "Download...": "Jaitsi…",
@@ -1273,7 +1273,7 @@
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Ezinezkoa litzateke datu-balio soil bat formula-zutabe batean gordetzea",
-        "Unable to finish saving edited cell": "Ezin izan da gelaxka gordetzen amaitu"
+        "Unable to finish saving edited cell": "Ezin da gelaxka gordetzen amaitu"
     },
     "HyperLinkEditor": {
         "[link label] url": "[link label] URLa"

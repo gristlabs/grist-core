@@ -95,7 +95,8 @@ class UserTable(object):
     For backward compatibility, `sort_by` may be used instead of `order_by`, but only allows a
     single field, and falls back to row ID (rather than `manualSort`).
 
-    See [RecordSet](#recordset) for useful properties offered by the returned object.
+    See [RecordSet](#recordset) for useful properties offered by the returned object. In
+    particular, methods like [`.find.le`](#find_) allow searching for nearest values.
 
     See [CONTAINS](#contains) for an example utilizing `UserTable.lookupRecords` to find records
     where a field of a list type (such as `Choice List` or `Reference List`) contains the given
@@ -127,13 +128,13 @@ class UserTable(object):
     parameter to the column ID by which to sort the matches, to determine which of them is
     returned as the first one. By default, the record with the lowest row ID is returned.
 
-    See [`lookupRecords`](#lookupRecords) for details of all available options and behavior of
+    See [`lookupRecords`](#lookuprecords) for details of all available options and behavior of
     `order_by` (and of its legacy alternative, `sort_by`).
 
     For example:
     ```
-    Tasks.lookupOne(Project=$id, order_by="Priority")  # Returns the Task with the smallest Priority.
-    Rates.lookupOne(Person=$id, order_by="-Date")      # Returns the Rate with the latest Date.
+    Tasks.lookupOne(Project=$id, order_by="Priority")  # Task with the smallest Priority.
+    Rates.lookupOne(Person=$id, order_by="-Date")      # Rate with the latest Date.
     ```
     """
     return self.table.lookup_one_record(**field_value_pairs)

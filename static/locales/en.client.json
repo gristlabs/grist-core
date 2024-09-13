@@ -204,7 +204,15 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} non-{{columnType}} column is not shown",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} non-{{columnType}} columns are not shown",
         "Clear selection": "Clear selection",
-        "No {{columnType}} columns in table.": "No {{columnType}} columns in table."
+        "No {{columnType}} columns in table.": "No {{columnType}} columns in table.",
+        "ACCESS LEVEL": "ACCESS LEVEL",
+        "Accept": "Accept",
+        "Custom URL": "Custom URL",
+        "Developer:": "Developer:",
+        "Last updated:": "Last updated:",
+        "Missing description and author information.": "Missing description and author information.",
+        "Reject": "Reject",
+        "Widget": "Widget"
     },
     "DataTables": {
         "Click to copy": "Click to copy",
@@ -931,7 +939,9 @@
         "An unknown error occurred.": "An unknown error occurred.",
         "Build your own form": "Build your own form",
         "Form not found": "Form not found",
-        "Powered by": "Powered by"
+        "Powered by": "Powered by",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Failed to log in.{{separator}}Please try again or contact support.",
+        "Sign-in failed{{suffix}}": "Sign-in failed{{suffix}}"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -1193,7 +1203,8 @@
         "Learn more": "Learn more",
         "These rules are applied after all column rules have been processed, if applicable.": "These rules are applied after all column rules have been processed, if applicable.",
         "Example: {{example}}": "Example: {{example}}",
-        "Filter displayed dropdown values with a condition.": "Filter displayed dropdown values with a condition."
+        "Filter displayed dropdown values with a condition.": "Filter displayed dropdown values with a condition.",
+        "Community widgets are created and maintained by Grist community members.": "Community widgets are created and maintained by Grist community members."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1649,7 +1660,8 @@
         "3 minute video tour": "3 minute video tour",
         "Complete our basics tutorial": "Complete our basics tutorial",
         "Complete the tutorial": "Complete the tutorial",
-        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Learn the basic of reference columns, linked widgets, column types, & cards."
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Learn the basic of reference columns, linked widgets, column types, & cards.",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Learn the basics of reference columns, linked widgets, column types, & cards."
     },
     "OnboardingPage": {
         "Back": "Back",
@@ -1680,5 +1692,44 @@
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Keep data and delete widget. Table will remain available in {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "Table {{tableName}} will no longer be visible",
         "raw data page": "raw data page"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Admin Panel"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Missing info)",
+        "Add Widget": "Add Widget",
+        "Add Your Own Widget": "Add Your Own Widget",
+        "Add a widget from outside this gallery.": "Add a widget from outside this gallery.",
+        "Cancel": "Cancel",
+        "Change Widget": "Change Widget",
+        "Choose Custom Widget": "Choose Custom Widget",
+        "Community Widget": "Community Widget",
+        "Custom URL": "Custom URL",
+        "Developer:": "Developer:",
+        "Grist Widget": "Grist Widget",
+        "Last updated:": "Last updated:",
+        "Learn more about Custom Widgets": "Learn more about Custom Widgets",
+        "No matching widgets": "No matching widgets",
+        "Search": "Search",
+        "Widget URL": "Widget URL"
+    },
+    "markdown": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element."
+            }
+        },
+        "The toggle is **off**": "The toggle is **off**",
+        "The toggle is **on**": "The toggle is **on**"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element."
+            }
+        },
+        "The toggle is **off**": "The toggle is **off**",
+        "The toggle is **on**": "The toggle is **on**"
     }
 }

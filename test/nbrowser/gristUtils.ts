@@ -3242,14 +3242,49 @@ export async function renameActiveTable(name: string) {
   await waitForServer();
 }
 
-export async function setWidgetUrl(url: string) {
-  await driver.find('.test-config-widget-url').click();
-  // First clear textbox.
-  await clearInput();
-  if (url) {
-    await sendKeys(url);
+export async function getCustomWidgetName() {
+  await openWidgetPanel();
+  return await driver.find('.test-config-widget-open-custom-widget-gallery').getText();
+}
+
+export async function getCustomWidgetInfo(info: 'description'|'developer'|'last-updated') {
+  await openWidgetPanel();
+  if (await driver.find('.test-config-widget-show-custom-widget-details').isPresent()) {
+    await driver.find('.test-config-widget-show-custom-widget-details').click();
   }
+  if (!await driver.find(`.test-config-widget-custom-widget-${info}`).isPresent()) {
+    return '';
+  }
+
+  return await driver.find(`.test-config-widget-custom-widget-${info}`).getText();
+}
+
+export async function openCustomWidgetGallery() {
+  await openWidgetPanel();
+  await driver.find('.test-config-widget-open-custom-widget-gallery').click();
+  await waitForServer();
+}
+
+interface SetWidgetOptions {
+  /** Defaults to `true`. */
+  openGallery?: boolean;
+}
+
+export async function setCustomWidgetUrl(url: string, options: SetWidgetOptions = {}) {
+  const {openGallery = true} = options;
+  if (openGallery) { await openCustomWidgetGallery(); }
+  await driver.find('.test-custom-widget-gallery-custom-url').click();
+  await clearInput();
+  if (url) { await sendKeys(url); }
   await sendKeys(Key.ENTER);
+  await waitForServer();
+}
+
+export async function setCustomWidget(content: string|RegExp, options: SetWidgetOptions = {}) {
+  const {openGallery = true} = options;
+  if (openGallery) { await openCustomWidgetGallery(); }
+  await driver.findContent('.test-custom-widget-gallery-widget', content).click();
+  await driver.find('.test-custom-widget-gallery-save').click();
   await waitForServer();
 }
 

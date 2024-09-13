@@ -223,16 +223,21 @@ export class DocModel {
     this.allPages = ko.computed(() => allPages.all());
     this.menuPages = ko.computed(() => {
       const pagesToShow = this.allPages().filter(p => !p.isSpecial()).sort((a, b) => a.pagePos() - b.pagePos());
-      // Helper to find all children of a page.
-      const children = memoize((page: PageRec) => {
-        const following = pagesToShow.slice(pagesToShow.indexOf(page) + 1);
-        const firstOutside = following.findIndex(p => p.indentation() <= page.indentation());
-        return firstOutside >= 0 ? following.slice(0, firstOutside) : following;
+      const parent = memoize((page: PageRec) => {
+        const myIdentation = page.indentation();
+        if (myIdentation === 0) { return null; }
+        const idx = pagesToShow.indexOf(page);
+        // Find first page starting from before that has lower indentation then mine.
+        const beforeMe = pagesToShow.slice(0, idx).reverse();
+        return beforeMe.find(p => p.indentation() < myIdentation) ?? null;
       });
-      // Helper to test if the page is hidden and all its children are hidden.
-      // In that case, we won't show it at all.
-      const hide = memoize((page: PageRec): boolean => page.isCensored() && children(page).every(p => hide(p)));
-      return pagesToShow.filter(p => !hide(p));
+      const ancestors = memoize((page: PageRec): PageRec[] => {
+        const anc = parent(page);
+        return anc ? [anc, ...ancestors(anc)] : [];
+      });
+      // Helper to test if the page is hidden or is in a hidden branch.
+      const hidden = memoize((page: PageRec): boolean => page.isHidden() || ancestors(page).some(p => p.isHidden()));
+      return pagesToShow.filter(p => !hidden(p));
     });
     this.visibleDocPages = ko.computed(() => this.allPages().filter(p => !p.isHidden()));
 

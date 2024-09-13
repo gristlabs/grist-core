@@ -86,10 +86,10 @@ export const BehavioralPrompt = StringUnion(
   'editCardLayout',
   'addNew',
   'rickRow',
-  'customURL',
   'calendarConfig',
 
   // The following were used in the past and should not be re-used.
+  // 'customURL',
   // 'formsAreHere',
 );
 export type BehavioralPrompt = typeof BehavioralPrompt.type;

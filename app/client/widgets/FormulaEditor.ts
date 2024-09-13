@@ -118,11 +118,12 @@ export class FormulaEditor extends NewBaseEditor {
 
     const hideErrDetails = Observable.create(this, true);
     const raisedException = Computed.create(this, use => {
-      if (!options.formulaError || !use(options.formulaError)) {
+      const formulaError = options.formulaError && use(options.formulaError);
+      if (!formulaError) {
         return null;
       }
-      const error = isRaisedException(use(options.formulaError)!) ?
-                    decodeObject(use(options.formulaError)!) as RaisedException:
+      const error = isRaisedException(formulaError) ?
+                    decodeObject(formulaError) as RaisedException:
                     new RaisedException(["Unknown error"]);
       return error;
     });
@@ -382,7 +383,7 @@ export class FormulaEditor extends NewBaseEditor {
 
     // If we have an error to show, ask for a larger size for formulaEditor.
     const desiredSize = {
-      width: Math.max(desiredElemSize.width, (this.options.formulaError.get() ? minFormulaErrorWidth : 0)),
+      width: Math.max(desiredElemSize.width, (this.options.formulaError?.get() ? minFormulaErrorWidth : 0)),
       // Ask for extra space for the error; we'll decide how to allocate it below.
       height: desiredElemSize.height + (errorBoxDesiredHeight - errorBoxStartHeight),
     };
@@ -480,6 +481,7 @@ function _isInIdentifier(line: string, column: number) {
 
 /**
  * Open a formula editor. Returns a Disposable that owns the editor.
+ * This is used for the editor in the side panel.
  */
 export function openFormulaEditor(options: {
   gristDoc: GristDoc,
@@ -487,7 +489,7 @@ export function openFormulaEditor(options: {
   column?: ColumnRec,
   // Associated formula from a view field. If provided together with column, this field is used
   field?: ViewFieldRec,
-  editingFormula?: ko.Computed<boolean>,
+  editingFormula: ko.Computed<boolean>,
   // Needed to get exception value, if any.
   editRow?: DataRowModel,
   // Element over which to position the editor.
@@ -554,7 +556,7 @@ export function openFormulaEditor(options: {
     column,
     field: options.field,
   }) : undefined;
-  const editor = FormulaEditor.create(null, {
+  const editorOptions: IFormulaEditorOptions = {
     gristDoc,
     column,
     field: options.field,
@@ -568,7 +570,8 @@ export function openFormulaEditor(options: {
     cssClass: 'formula_editor_sidepane',
     readonly : false,
     canDetach: options.canDetach
-  } as IFormulaEditorOptions) as FormulaEditor;
+  };
+  const editor = FormulaEditor.create(null, editorOptions);
   editor.autoDispose(attachedHolder);
   editor.attach(refElem);
 

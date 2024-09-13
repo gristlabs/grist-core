@@ -8,7 +8,7 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {showTooltipToCreateFormula} from 'app/client/widgets/EditorTooltip';
 import {FormulaEditor, getFormulaError} from 'app/client/widgets/FormulaEditor';
-import {IEditorCommandGroup, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
+import {IEditorCommandGroup, IEditorConstructor, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {asyncOnce} from "app/common/AsyncCreate";
 import {CellValue} from "app/common/DocActions";
 import * as gutil from 'app/common/gutil';
@@ -17,8 +17,6 @@ import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
 import {CursorPos} from 'app/plugin/GristAPI';
 import isEqual = require('lodash/isEqual');
 import {Disposable, dom, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
-
-type IEditorConstructor = typeof NewBaseEditor;
 
 const t = makeT('FieldEditor');
 

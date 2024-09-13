@@ -44,6 +44,8 @@ import {Shares1701557445716 as Shares} from 'app/gen-server/migration/1701557445
 import {Billing1711557445716 as BillingFeatures} from 'app/gen-server/migration/1711557445716-Billing';
 import {UserLastConnection1713186031023
         as UserLastConnection} from 'app/gen-server/migration/1713186031023-UserLastConnection';
+import {ActivationEnabled1722529827161
+        as ActivationEnabled} from 'app/gen-server/migration/1722529827161-Activation-Enabled';
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -53,7 +55,7 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
                     ExternalBilling, DocOptions, Secret, UserOptions, GracePeriodStart,
                     DocumentUsage, Activations, UserConnectId, UserUUID, UserUniqueRefUUID,
                     Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures,
-                    UserLastConnection];
+                    UserLastConnection, ActivationEnabled];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {

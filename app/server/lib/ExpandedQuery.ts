@@ -1,5 +1,6 @@
 import { ServerQuery } from 'app/common/ActiveDocAPI';
 import { ApiError } from 'app/common/ApiError';
+import { CellValue } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { parseFormula } from 'app/common/Formula';
 import { removePrefix } from 'app/common/gutil';
@@ -131,6 +132,24 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
   query.joins = [...joins];
   query.selects = [...selects];
   return query;
+}
+
+export function getFormulaErrorForExpandQuery(docData: DocData, tableId: string, colId: string): CellValue {
+  // On-demand tables may produce several kinds of error messages, e.g. "Formula not supported" or
+  // "Cannot find column". We construct the full query to get the basic message for the requested
+  // column, then tack on the detail, which is fine to be the same for all of them.
+  const iquery: ServerQuery = {tableId, filters: {}};
+  const expanded = expandQuery(iquery, docData, true);
+  const constantValue = expanded.constants?.[colId];
+  if (constantValue?.length === 2) {
+    return [GristObjCode.Exception, constantValue[1],
+`Not supported in on-demand tables.
+
+This table is marked as an on-demand table. Such tables don't support most formulas. \
+For proper formula support, unmark it as on-demand.
+`];
+  }
+  return null;
 }
 
 /**

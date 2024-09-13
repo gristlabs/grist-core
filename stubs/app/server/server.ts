@@ -15,7 +15,6 @@ const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.
 if (!debugging) {
   // Be a lot less noisy by default.
   setDefaultEnv('GRIST_LOG_LEVEL', 'error');
-  setDefaultEnv('GRIST_LOG_SKIP_HTTP', 'true');
 }
 
 // Use a distinct cookie.  Bump version to 2.
@@ -80,10 +79,6 @@ async function setupDb() {
       }
       const profile = {email, name: email};
       const user = await db.getUserByLogin(email, {profile});
-      if (!user) {
-        // This should not happen.
-        throw new Error('failed to create GRIST_DEFAULT_EMAIL user');
-      }
       db.unwrapQueryResult(await db.addOrg(user, {
         name: org,
         domain: org,

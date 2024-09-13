@@ -38,7 +38,8 @@ function isAtScrollTop(elem: Element): boolean {
 // Indicates that an element is currently scrolled such that the bottom of the element is visible.
 // It is expected that the elem arg has the offsetHeight property set.
 function isAtScrollBtm(elem: HTMLElement): boolean {
-  return elem.scrollTop >= (elem.scrollHeight - elem.offsetHeight);
+  // Check we're within a threshold of 1 pixel, to account for possible rounding.
+  return (elem.scrollHeight - elem.offsetHeight - elem.scrollTop) < 1;
 }
 
 const cssScrollMenu = styled('div', `

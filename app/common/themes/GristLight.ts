@@ -248,6 +248,8 @@ export const GristLight: ThemeColors = {
   'right-panel-toggle-button-disabled-bg': '#E8E8E8',
   'right-panel-field-settings-bg': '#E8E8E8',
   'right-panel-field-settings-button-bg': 'lightgrey',
+  'right-panel-custom-widget-button-fg': '#262633',
+  'right-panel-custom-widget-button-bg': '#D9D9D9',
 
   /* Document History */
   'document-history-snapshot-fg': '#262633',
@@ -551,4 +553,18 @@ export const GristLight: ThemeColors = {
 
   /* Numeric Spinners */
   'numeric-spinner-fg': '#606060',
+
+  /* Custom Widget Gallery */
+  'widget-gallery-border': '#D9D9D9',
+  'widget-gallery-border-selected': '#16B378',
+  'widget-gallery-shadow': '#0000001A',
+  'widget-gallery-bg-hover': '#F7F7F7',
+  'widget-gallery-secondary-header-fg': '#FFFFFF',
+  'widget-gallery-secondary-header-bg': '#929299',
+  'widget-gallery-secondary-header-bg-hover': '#7E7E85',
+
+  /* Markdown Cell */
+  'markdown-cell-light-bg': '#F7F7F7',
+  'markdown-cell-light-border': '#E8E8E8',
+  'markdown-cell-medium-border': '#D9D9D9',
 };

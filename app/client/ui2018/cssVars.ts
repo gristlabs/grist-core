@@ -471,6 +471,10 @@ export const theme = {
     undefined, colors.mediumGreyOpaque),
   rightPanelFieldSettingsButtonBg: new CustomProp('theme-right-panel-field-settings-button-bg',
     undefined, 'lightgrey'),
+  rightPanelCustomWidgetButtonFg: new CustomProp('theme-right-panel-custom-widget-button-fg',
+    undefined, colors.dark),
+  rightPanelCustomWidgetButtonBg: new CustomProp('theme-right-panel-custom-widget-button-bg',
+    undefined, colors.darkGrey),
 
   /* Document History */
   documentHistorySnapshotFg: new CustomProp('theme-document-history-snapshot-fg', undefined,
@@ -877,6 +881,27 @@ export const theme = {
 
   /* Numeric Spinners */
   numericSpinnerFg: new CustomProp('theme-numeric-spinner-fg', undefined, '#606060'),
+
+  /* Custom Widget Gallery */
+  widgetGalleryBorder: new CustomProp('theme-widget-gallery-border', undefined, colors.darkGrey),
+  widgetGalleryBorderSelected: new CustomProp('theme-widget-gallery-border-selected', undefined,
+    colors.lightGreen),
+  widgetGalleryShadow: new CustomProp('theme-widget-gallery-shadow', undefined, '#0000001A'),
+  widgetGalleryBgHover: new CustomProp('theme-widget-gallery-bg-hover', undefined,
+    colors.lightGrey),
+  widgetGallerySecondaryHeaderFg: new CustomProp('theme-widget-gallery-secondary-header-fg',
+    undefined, colors.light),
+  widgetGallerySecondaryHeaderBg: new CustomProp('theme-widget-gallery-secondary-header-bg',
+    undefined, colors.slate),
+  widgetGallerySecondaryHeaderBgHover: new CustomProp(
+    'theme-widget-gallery-secondary-header-bg-hover', undefined, '#7E7E85'),
+
+  /* Markdown Cell */
+  markdownCellLightBg: new CustomProp('theme-markdown-cell-light-bg', undefined, colors.lightGrey),
+  markdownCellLightBorder: new CustomProp('theme-markdown-cell-light-border', undefined,
+    colors.mediumGreyOpaque),
+  markdownCellMediumBorder: new CustomProp('theme-markdown-cell-medium-border', undefined,
+    colors.darkGrey),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

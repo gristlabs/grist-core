@@ -145,18 +145,6 @@ describe('BehavioralPrompts', function() {
     await assertPromptTitle('Editing Card Layout');
   });
 
-  it('should be shown after adding custom view as a new page', async function() {
-    await gu.addNewPage('Custom', 'Table1');
-    await assertPromptTitle('Custom Widgets');
-    await gu.undo();
-  });
-
-  it('should be shown after adding custom section', async function() {
-    await gu.addNewSection('Custom', 'Table1');
-    await assertPromptTitle('Custom Widgets');
-    await gu.undo();
-  });
-
   describe('for the Add New button', function() {
     it('should not be shown if site is empty', async function() {
       session = await gu.session().user('user4').login({showTips: true});

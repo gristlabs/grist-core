@@ -1,7 +1,7 @@
 import {ShareInfo} from 'app/common/ActiveDocAPI';
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
-import {getDataLimitStatus} from 'app/common/DocLimits';
+import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
@@ -56,7 +56,7 @@ import {
   readJson
 } from 'app/gen-server/sqlUtils';
 import {appSettings} from 'app/server/lib/AppSettings';
-import {getOrCreateConnection} from 'app/server/lib/dbUtils';
+import {createNewConnection, getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -70,6 +70,7 @@ import {
   Brackets,
   DatabaseType,
   DataSource,
+  DataSourceOptions,
   EntityManager,
   ObjectLiteral,
   SelectQueryBuilder,
@@ -248,7 +249,6 @@ export type BillingOptions = Partial<Pick<BillingAccount,
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
   private _connection: DataSource;
-  private _dbType: DatabaseType;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
   private _idPrefix: string = "";  // Place this before ids in subdomains, used in routing to
@@ -257,6 +257,10 @@ export class HomeDBManager extends EventEmitter {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   // In restricted mode, documents should be read-only.
   private _restrictedMode: boolean = false;
+
+  private get _dbType(): DatabaseType {
+    return this._connection.driver.options.type;
+  }
 
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
@@ -348,7 +352,10 @@ export class HomeDBManager extends EventEmitter {
 
   public async connect(): Promise<void> {
     this._connection = await getOrCreateConnection();
-    this._dbType = this._connection.driver.options.type;
+  }
+
+  public async createNewConnection(overrideConf?: Partial<DataSourceOptions>): Promise<void> {
+    this._connection = await createNewConnection(overrideConf);
   }
 
   // make sure special users and workspaces are available
@@ -461,10 +468,6 @@ export class HomeDBManager extends EventEmitter {
     }
   }
 
-  public async updateUserName(userId: number, name: string) {
-    return this._usersManager.updateUserName(userId, name);
-  }
-
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
     return this._usersManager.updateUserOptions(userId, props);
   }
@@ -472,14 +475,14 @@ export class HomeDBManager extends EventEmitter {
   /**
    * @see UsersManager.prototype.getUserByLoginWithRetry
    */
-  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User> {
     return this._usersManager.getUserByLoginWithRetry(email, options);
   }
 
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
     return this._usersManager.getUserByLogin(email, options);
   }
 
@@ -764,7 +767,7 @@ export class HomeDBManager extends EventEmitter {
     // Return an aggregate count of documents, grouped by data limit status.
     const summary = createEmptyOrgUsageSummary();
     for (const {usage: docUsage, gracePeriodStart} of docs) {
-      const dataLimitStatus = getDataLimitStatus({docUsage, gracePeriodStart, productFeatures});
+      const dataLimitStatus = getDataLimitInfo({docUsage, gracePeriodStart, productFeatures}).status;
       if (dataLimitStatus) { summary[dataLimitStatus] += 1; }
     }
     return summary;
@@ -4366,7 +4369,6 @@ export class HomeDBManager extends EventEmitter {
     });
     return verifyEntity(orgQuery);
   }
-
 }
 
 // Return a QueryResult reflecting the output of a query builder.

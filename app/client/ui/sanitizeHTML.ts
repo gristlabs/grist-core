@@ -1,16 +1,30 @@
-import DOMPurify from 'dompurify';
+import createDOMPurifier from 'dompurify';
 
-const config = {
-  ADD_TAGS: ['iframe'],
-  ADD_ATTR: ['allowFullscreen'],
-};
+export function sanitizeHTML(source: string | Node): string {
+  return defaultPurifier.sanitize(source);
+}
 
-DOMPurify.addHook('uponSanitizeAttribute', (node) => {
+export function sanitizeTutorialHTML(source: string | Node): string {
+  return tutorialPurifier.sanitize(source, {
+    ADD_TAGS: ['iframe'],
+    ADD_ATTR: ['allowFullscreen'],
+  });
+}
+
+const defaultPurifier = createDOMPurifier();
+defaultPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
+
+const tutorialPurifier = createDOMPurifier();
+tutorialPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
+tutorialPurifier.addHook('uponSanitizeElement', handleSanitizeTutorialElement);
+
+function handleSanitizeAttribute(node: Element) {
   if (!('target' in node)) { return; }
 
   node.setAttribute('target', '_blank');
-});
-DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+}
+
+function handleSanitizeTutorialElement(node: Element, data: createDOMPurifier.SanitizeElementHookEvent) {
   if (data.tagName !== 'iframe') { return; }
 
   const src = node.getAttribute('src');
@@ -18,9 +32,5 @@ DOMPurify.addHook('uponSanitizeElement', (node, data) => {
     return;
   }
 
-  return node.parentNode?.removeChild(node);
-});
-
-export function sanitizeHTML(source: string | Node): string {
-  return DOMPurify.sanitize(source, config);
+  node.parentNode?.removeChild(node);
 }

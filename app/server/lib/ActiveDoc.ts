@@ -50,12 +50,12 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {getDataLimitRatio, getDataLimitStatus, getSeverity, LimitExceededError} from 'app/common/DocLimits';
+import {getDataLimitInfo, getDataLimitRatio, getSeverity, LimitExceededError} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
   APPROACHING_LIMIT_RATIO,
-  DataLimitStatus,
+  DataLimitInfo,
   DocumentUsage,
   DocUsageSummary,
   FilteredDocUsageSummary,
@@ -138,7 +138,7 @@ import {
   OptDocSession
 } from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
-import {expandQuery} from './ExpandedQuery';
+import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession} from './serverUtils';
@@ -303,7 +303,7 @@ export class ActiveDoc extends EventEmitter {
         ),
         // Update the time in formulas every hour.
         new Interval(
-          () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
+          () => this._updateCurrentTime(),
           Deps.UPDATE_CURRENT_TIME_DELAY,
           {onError: (e) => this._log.error(null, 'failed to update current time', e)},
         ),
@@ -421,8 +421,8 @@ export class ActiveDoc extends EventEmitter {
     return getDataLimitRatio(this._docUsage, this._product?.features);
   }
 
-  public get dataLimitStatus(): DataLimitStatus {
-    return getDataLimitStatus({
+  public get dataLimitInfo(): DataLimitInfo {
+    return getDataLimitInfo({
       docUsage: this._docUsage,
       productFeatures: this._product?.features,
       gracePeriodStart: this._gracePeriodStart,
@@ -431,7 +431,7 @@ export class ActiveDoc extends EventEmitter {
 
   public getDocUsageSummary(): DocUsageSummary {
     return {
-      dataLimitStatus: this.dataLimitStatus,
+      dataLimitInfo: this.dataLimitInfo,
       rowCount: this._docUsage?.rowCount ?? 'pending',
       dataSizeBytes: this._docUsage?.dataSizeBytes ?? 'pending',
       attachmentsSizeBytes: this._docUsage?.attachmentsSizeBytes ?? 'pending',
@@ -1169,6 +1169,11 @@ export class ActiveDoc extends EventEmitter {
     this._log.info(docSession, "getFormulaError(%s, %s, %s, %s)",
       docSession, tableId, colId, rowId);
     await this.waitForInitialization();
+    const onDemand = this._onDemandActions.isOnDemand(tableId);
+    if (onDemand) {
+      // It's safe to use this.docData after waitForInitialization().
+      return getFormulaErrorForExpandQuery(this.docData!, tableId, colId);
+    }
     return this._pyCall('get_formula_error', tableId, colId, rowId);
   }
 
@@ -1691,7 +1696,7 @@ export class ActiveDoc extends EventEmitter {
     const timeDeleted = changes.map(r => r.used ? null : now);
     const action: BulkUpdateRecord = ["BulkUpdateRecord", "_grist_Attachments", rowIds, {timeDeleted}];
     // Don't use applyUserActions which may block the update action in delete-only mode
-    await this._applyUserActions(makeExceptionalDocSession('system'), [action]);
+    await this._applyUserActionsAsSystem([action]);
     return true;
   }
 
@@ -2007,6 +2012,16 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Applies an array of user actions initiated by Grist itself, using a DocSession with "system"
+   * access rights. These bypass access rules.
+   *
+   * They also do not count as "user activity" for the purpose of keeping the document open.
+   */
+  protected async _applyUserActionsAsSystem(actions: UserAction[]): Promise<ApplyUAResult> {
+    return this._applyUserActions(makeExceptionalDocSession('system'), actions, {});
+  }
+
+  /**
    * Applies an array of user actions to the sandbox and broadcasts the results to doc's clients.
    *
    * @private
@@ -2023,14 +2038,12 @@ export class ActiveDoc extends EventEmitter {
    *    isModification: true if document was changed by one or more actions.
    * }
    */
-  @ActiveDoc.keepDocOpen
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                     options: ApplyUAExtendedOptions = {}): Promise<ApplyUAResult> {
 
     const client = docSession.client;
     this._log.debug(docSession, "_applyUserActions(%s, %s)%s", client, shortDesc(actions),
       options.parseStrings ? ' (will parse)' : '');
-    this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     if (options.parseStrings) {
       actions = actions.map(ua => parseUserAction(ua, this.docData!));
@@ -2154,6 +2167,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.debug(docSession, "shutdown complete");
   }
 
+  @ActiveDoc.keepDocOpen
   private async _applyUserActionsWithExtendedOptions(docSession: OptDocSession, actions: UserAction[],
                                                      options?: ApplyUAExtendedOptions): Promise<ApplyUAResult> {
     assert(Array.isArray(actions), "`actions` parameter should be an array.");
@@ -2162,7 +2176,7 @@ export class ActiveDoc extends EventEmitter {
     await this.waitForInitialization();
 
     if (
-      this.dataLimitStatus === "deleteOnly" &&
+      this.dataLimitInfo.status === "deleteOnly" &&
       !actions.every(action => [
           'RemoveTable', 'RemoveColumn', 'RemoveRecord', 'BulkRemoveRecord',
           'RemoveViewSection', 'RemoveView', 'ApplyUndoActions', 'RespondToRequests',
@@ -2218,6 +2232,20 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Update the time in formulas; this is called via Interval every hour.
+   */
+  private async _updateCurrentTime() {
+    const dataEngine = await this._getEngine();
+    if (dataEngine.isProcessDown()) {
+      // Don't attempt to update time if data engine is down, as this can't help, and leads to
+      // spurious errors. Instead, report as a warning, more clearly and concisely.
+      this._log.warn(null, 'failed to update current time: data engine is down');
+      return;
+    }
+    return this._applyUserActionsAsSystem([['UpdateCurrentTime']]);
+  }
+
+  /**
    * Applies all metrics from `usage` to the current document usage state.
    *
    * Allows specifying `options` for toggling whether usage is synced to
@@ -2225,13 +2253,13 @@ export class ActiveDoc extends EventEmitter {
    */
   private async _updateDocUsage(usage: Partial<DocumentUsage>, options: UpdateUsageOptions = {}) {
     const {syncUsageToDatabase = true, broadcastUsageToClients = true} = options;
-    const oldStatus = this.dataLimitStatus;
+    const oldStatus = this.dataLimitInfo.status;
     this._docUsage = {...(this._docUsage || {}), ...usage};
     if (syncUsageToDatabase) {
       /* If status decreased, we'll update usage in the database with minimal delay, so site usage
        * banners show up-to-date statistics. If status increased or stayed the same, we'll schedule
        * a delayed update, since it's less critical for banners to update immediately. */
-      const didStatusDecrease = getSeverity(this.dataLimitStatus) < getSeverity(oldStatus);
+      const didStatusDecrease = getSeverity(this.dataLimitInfo.status) < getSeverity(oldStatus);
       this._syncDocUsageToDatabase(didStatusDecrease);
     }
     if (broadcastUsageToClients) {
@@ -2457,7 +2485,7 @@ export class ActiveDoc extends EventEmitter {
 
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
-        await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
+        await this._applyUserActionsAsSystem([['Calculate']]);
         await this._reportDataEngineMemory();
       }
 
