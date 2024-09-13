@@ -4,6 +4,7 @@ files: test_summary.py and test_summary2.py.
 """
 
 import logging
+import unittest
 
 import actions
 import summary
@@ -960,49 +961,49 @@ class Address:
     old = '{"widget":"Spinner","alignment":"center"}'
     self.assertTrue(widgetOptions(new, old))
 
-    # Can update but must leave other options.
-    new = '{"widget":"TextBox","cant":"center"}'
-    old = '{"widget":"Spinner","cant":"center"}'
+    # Can update but must leave choices options.
+    new = '{"widget":"TextBox","choices":"center"}'
+    old = '{"widget":"Spinner","choices":"center"}'
     self.assertTrue(widgetOptions(new, old))
 
     # Can't add protected property when old was empty.
-    new = '{"widget":"TextBox","cant":"new"}'
+    new = '{"widget":"TextBox","choices":"new"}'
     old = None
     self.assertFalse(widgetOptions(new, old))
 
     # Can't remove when there was a protected property.
     new = None
-    old = '{"widget":"TextBox","cant":"old"}'
+    old = '{"widget":"TextBox","choices":"old"}'
     self.assertFalse(widgetOptions(new, old))
 
     # Can't update by omitting.
     new = '{"widget":"TextBox"}'
-    old = '{"widget":"TextBox","cant":"old"}'
+    old = '{"widget":"TextBox","choices":"old"}'
     self.assertFalse(widgetOptions(new, old))
 
     # Can't update by changing.
-    new = '{"widget":"TextBox","cant":"new"}'
-    old = '{"widget":"TextBox","cant":"old"}'
+    new = '{"widget":"TextBox","choices":"new"}'
+    old = '{"widget":"TextBox","choices":"old"}'
     self.assertFalse(widgetOptions(new, old))
 
     # Can't update by adding.
-    new = '{"widget":"TextBox","cant":"new"}'
+    new = '{"widget":"TextBox","choices":"new"}'
     old = '{"widget":"TextBox"}'
     self.assertFalse(widgetOptions(new, old))
 
     # Can update objects
-    new = '{"widget":"TextBox","alignment":{"prop":1},"cant":{"prop":1}}'
-    old = '{"widget":"TextBox","alignment":{"prop":2},"cant":{"prop":1}}'
+    new = '{"widget":"TextBox","alignment":{"prop":1},"choices":{"prop":1}}'
+    old = '{"widget":"TextBox","alignment":{"prop":2},"choices":{"prop":1}}'
     self.assertTrue(widgetOptions(new, old))
 
     # Can't update objects
-    new = '{"widget":"TextBox","cant":{"prop":1}}'
-    old = '{"widget":"TextBox","cant":{"prop":2}}'
+    new = '{"widget":"TextBox","choices":{"prop":1}}'
+    old = '{"widget":"TextBox","choices":{"prop":2}}'
     self.assertFalse(widgetOptions(new, old))
 
     # Can't update lists
-    new = '{"widget":"TextBox","cant":[1, 2]}'
-    old = '{"widget":"TextBox","cant":[2, 1]}'
+    new = '{"widget":"TextBox","choices":[1, 2]}'
+    old = '{"widget":"TextBox","choices":[2, 1]}'
     self.assertFalse(widgetOptions(new, old))
 
     # Can update lists
@@ -1011,7 +1012,10 @@ class Address:
     self.assertTrue(widgetOptions(new, old))
 
     # Can update without changing list.
-    new = '{"widget":"TextBox","dontChange":[1, 2]}'
-    old = '{"widget":"Spinner","dontChange":[1, 2]}'
+    new = '{"widget":"TextBox","choices":[1, 2]}'
+    old = '{"widget":"Spinner","choices":[1, 2]}'
     self.assertTrue(widgetOptions(new, old))
   # pylint: enable=R0915
+
+if __name__ == "__main__":
+  unittest.main()

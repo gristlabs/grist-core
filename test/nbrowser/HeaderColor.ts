@@ -5,22 +5,50 @@ import { setupTestSuite } from 'test/nbrowser/testUtils';
 const defaultHeaderBackgroundColor = '#f7f7f7';
 
 describe('HeaderColor', function () {
-  this.timeout(20000);
+  this.timeout('20s');
   const cleanup = setupTestSuite();
 
   before(async () => {
     // Create a new document
     const mainSession = await gu.session().login();
     await mainSession.tempNewDoc(cleanup, 'HeaderColor');
+  });
+
+  it('allows setting header colors in summary table', async function () {
+    const revert = await gu.begin();
+    await gu.toggleSidePanel('left', 'close');
+    // Add summary table.
+    await gu.addNewSection('Table', 'Table1', {summarize: ['A']});
+    await gu.sendActions([
+      ['AddRecord', 'Table1', null, {A: 1}],
+    ]);
+    await gu.toggleSidePanel('right', 'open');
+    const testStyle = async () => {
+      await gu.openHeaderColorPicker();
+      await gu.setFillColor('red');
+      await gu.setTextColor('blue');
+      await gu.applyStyle();
+      await gu.checkForErrors();
+      await gu.assertHeaderFillColor(await gu.getSelectedColumn(), 'red');
+      await gu.assertHeaderTextColor(await gu.getSelectedColumn(), 'blue');
+    };
+    await gu.openColumnPanel('A');
+    await testStyle();
+    await gu.openColumnPanel('count');
+    await testStyle();
+
+    await gu.waitForServer();
+    await revert();
+  });
+
+  it('should save by clicking away', async function () {
     // add records
     await gu.enterCell('a');
     await gu.enterCell('b');
     await gu.enterCell('c');
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-field').click();
-  });
 
-  it('should save by clicking away', async function () {
     await gu.getCell('A', 1).click();
     // open color picker
     await gu.openHeaderColorPicker();

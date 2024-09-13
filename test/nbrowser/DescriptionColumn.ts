@@ -9,11 +9,38 @@ describe('DescriptionColumn', function() {
   let session: gu.Session;
 
   before(async () => {
-    session = await gu.session().teamSite.login();
+    session = await gu.session().login();
+    await session.tempNewDoc(cleanup);
+  });
+
+  it('should allow to edit description on summary table', async () => {
+    await gu.toggleSidePanel('left', 'close');
+    // Add summary table.
+    await gu.addNewSection('Table', 'Table1', {summarize: ['A']});
+    await gu.sendActions([
+      ['AddRecord', 'Table1', null, {A: 1}],
+    ]);
+
+    // Set description on A column and count column.
+    await gu.openColumnPanel('A');
+    await getDescriptionInput().sendKeys('testA');
+    await gu.openColumnPanel('count');
+    await gu.waitForServer();
+    await gu.checkForErrors();
+    await getDescriptionInput().sendKeys('testCount');
+    await gu.openColumnPanel('A');
+    await gu.waitForServer();
+    await gu.checkForErrors();
+
+    await gu.reloadDoc();
+    await gu.openColumnPanel('A');
+    assert.equal(await getDescriptionInput().getAttribute('value'), 'testA');
+    await gu.openColumnPanel('count');
+    assert.equal(await getDescriptionInput().getAttribute('value'), 'testCount');
+    await gu.undo(4);
   });
 
   it('should switch between close and save', async () => {
-    await session.tempNewDoc(cleanup);
     // Add new column.
     await addColumn();
 
@@ -99,7 +126,6 @@ describe('DescriptionColumn', function() {
     await gu.undo();
     assert.isFalse(await gu.getColumnHeader({col: 'D'}).isPresent());
   });
-
 
   it('shows links in the column description', async () => {
     const revert = await gu.begin();

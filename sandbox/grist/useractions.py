@@ -192,8 +192,8 @@ def allowed_summary_change(key, updated, original):
   """
   Checks if summary group by column can be modified.
   """
-  # Conditional styles are allowed
-  if updated == original or key == 'rules':
+  allowed_fields_to_change = {'rules', 'description'}
+  if updated == original or key in allowed_fields_to_change:
     return True
   elif key == 'widgetOptions':
     try:
@@ -201,18 +201,12 @@ def allowed_summary_change(key, updated, original):
       original_options = json.loads(original or '{}')
     except ValueError:
       return False
-    # Unfortunately all widgetOptions are allowed to change, except choice items. But it is
-    # better to list those that can be changed.
-    # TODO: move choice items to separate column
-    allowed_to_change = {'widget', 'dateFormat', 'timeFormat', 'isCustomDateFormat', 'alignment',
-                         'fillColor', 'textColor', 'isCustomTimeFormat', 'isCustomDateFormat',
-                         'numMode', 'numSign', 'decimals', 'maxDecimals', 'currency',
-                         'fontBold', 'fontItalic', 'fontUnderline', 'fontStrikethrough',
-                         'rulesOptions'}
+    # Can do anything, but those options must be the same
+    must_be_the_same = {'choices', 'choiceOptions'}
     # Helper function to remove protected keys from dictionary.
-    def trim(options):
-      return {k: v for k, v in options.items() if k not in allowed_to_change}
-    return trim(updated_options) == trim(original_options)
+    def protected_options(options):
+      return {k: v for k, v in options.items() if k in must_be_the_same}
+    return protected_options(updated_options) == protected_options(original_options)
   else:
     return False
 

@@ -563,6 +563,10 @@ export function getColumnHeader(colOrColOptions: string|IColHeader): WebElementP
     sectionElem.findContent('.column_name .kf_elabel_text', exactMatch(col)).findClosest('.column_name'));
 }
 
+export function getSelectedColumn() {
+  return driver.find('.active_section .column_name.selected');
+}
+
 export async function getColumnNames() {
   const section = await driver.findWait('.active_section', 4000);
   return (await section.findAll('.column_name', el => el.getText()))
@@ -2439,6 +2443,11 @@ export function setFillColor(color: string) {
   return setColor(driver.find('.test-fill-input'), color);
 }
 
+export async function applyStyle() {
+  await driver.find('.test-colors-save').click();
+  await waitForServer();
+}
+
 export function getStyleRuleAt(nr: number) {
   return driver.find(`.test-widget-style-conditional-rule-${nr}`);
 }
@@ -2482,13 +2491,16 @@ export function openHeaderColorPicker() {
   return driver.find('.test-header-color-select .test-color-select').click();
 }
 
-export async function assertHeaderTextColor(col: string, color: string) {
-  await assertTextColor(await getColumnHeader(col), color);
+export async function assertHeaderTextColor(col: string|WebElement, color: string) {
+  const element = typeof col === 'string' ? await getColumnHeader(col) : col;
+  await assertTextColor(element, color);
 }
 
-export async function assertHeaderFillColor(col: string, color: string) {
-  await assertFillColor(await getColumnHeader(col), color);
+export async function assertHeaderFillColor(col: string|WebElement, color: string) {
+  const element = typeof col === 'string' ? await getColumnHeader(col) : col;
+  await assertFillColor(element, color);
 }
+
 
 /**
  * Opens a cell color picker, either the default one or the one for a specific style rule.
