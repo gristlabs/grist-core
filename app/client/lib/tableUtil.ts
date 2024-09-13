@@ -30,12 +30,22 @@ export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: n
  * @param {CopySelection} selection - a CopySelection instance
  * @return {String}
  **/
-export function makePasteText(tableData: TableData, selection: CopySelection) {
+export function makePasteText(tableData: TableData, selection: CopySelection, includeColHeaders: boolean) {
   // tsvEncode expects data as a 2-d array with each a array representing a row
   // i.e. [["1-1", "1-2", "1-3"],["2-1", "2-2", "2-3"]]
-  const values = selection.rowIds.map(rowId =>
-    selection.columns.map(col => col.fmtGetter(rowId)));
-  return tsvEncode(values);
+  let result;
+  if (includeColHeaders) {
+    result = [
+      selection.columns.map(col => col.colId),
+      ...selection.rowIds.map(rowId =>
+        selection.columns.map(col => col.fmtGetter(rowId))
+      )
+    ];
+  } else {
+    result = selection.rowIds.map(rowId =>
+      selection.columns.map(col => col.fmtGetter(rowId)));
+  }
+  return tsvEncode(result);
 }
 
 /**

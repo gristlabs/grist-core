@@ -107,6 +107,7 @@ Base.setBaseFor(Clipboard);
 
 Clipboard.commands = {
   contextMenuCopy: function() { this._doContextMenuCopy(); },
+  contextMenuCopyWithHeaders: function() { this._doContextMenuCopyWithHeaders(); },
   contextMenuCut: function() { this._doContextMenuCut(); },
   contextMenuPaste: function() { this._doContextMenuPaste(); },
 };
@@ -120,13 +121,19 @@ Clipboard.prototype._onCopy = function(elem, event) {
 
   let pasteObj = commands.allCommands.copy.run();
 
-  this._setCBdata(pasteObj, event.originalEvent.clipboardData);
+  this._setCBdata(pasteObj, event.originalEvent.clipboardData, false);
 };
 
 Clipboard.prototype._doContextMenuCopy = function() {
   let pasteObj = commands.allCommands.copy.run();
 
-  this._copyToClipboard(pasteObj, 'copy');
+  this._copyToClipboard(pasteObj, 'copy', false);
+};
+
+Clipboard.prototype._doContextMenuCopyWithHeaders = function() {
+  let pasteObj = commands.allCommands.copy.run();
+
+  this._copyToClipboard(pasteObj, 'copy', true);
 };
 
 Clipboard.prototype._onCut = function(elem, event) {
@@ -143,24 +150,24 @@ Clipboard.prototype._doContextMenuCut = function() {
   this._copyToClipboard(pasteObj, 'cut');
 };
 
-Clipboard.prototype._setCBdata = function(pasteObj, clipboardData) {
+Clipboard.prototype._setCBdata = function(pasteObj, clipboardData, includeColHeaders) {
   if (!pasteObj) { return; }
 
-  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection);
+  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection, includeColHeaders);
   clipboardData.setData('text/plain', plainText);
-  const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection);
+  const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
   clipboardData.setData('text/html', htmlText);
 
   this._setCutCallback(pasteObj, plainText);
 };
 
-Clipboard.prototype._copyToClipboard = async function(pasteObj, action) {
+Clipboard.prototype._copyToClipboard = async function(pasteObj, action, includeColHeaders) {
   if (!pasteObj) { return; }
 
-  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection);
+  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection, includeColHeaders);
   let data;
   if (typeof ClipboardItem === 'function') {
-    const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection);
+    const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
     // eslint-disable-next-line no-undef
     data = new ClipboardItem({
       // eslint-disable-next-line no-undef
