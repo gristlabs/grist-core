@@ -207,6 +207,16 @@ export class GristDoc extends DisposableWithEvents {
 
   public isTimingOn = Observable.create(this, false);
 
+  /**
+   * Checks if it is ok to show raw data popup for currently selected section.
+   * We can't show raw data if:
+   * - we already have full screen section (which looks the same)
+   * - we are already showing raw data
+   *
+   * Extracted to single computed as it is used here and in menus.
+   */
+  public canShowRawData: Computed<boolean>;
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos | null = null;
@@ -498,7 +508,21 @@ export class GristDoc extends DisposableWithEvents {
       reloadPlugins() {
         void this.docComm.reloadPlugins().then(() => G.window.location.reload(false));
       },
-
+      async showRawData(sectionId: number = 0) {
+        if (!this.canShowRawData.get()) {
+          return;
+        }
+        if (!sectionId) {
+          const viewSection = this.viewModel.activeSection();
+          if (viewSection?.isDisposed()) { return; }
+          if (viewSection.isRaw.peek()) {
+            return;
+          }
+          sectionId = viewSection.id.peek();
+        }
+        const anchorUrlState = { hash: { sectionId, popup: true } };
+        await urlState().pushUrl(anchorUrlState, { replace: true });
+      },
       // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
       setCursor: this.onSetCursorPos.bind(this),
@@ -603,6 +627,14 @@ export class GristDoc extends DisposableWithEvents {
         this._prevSectionId = null;
       }
     }));
+
+    this.canShowRawData = Computed.create(this, (use) => {
+      const isSinglePage = use(urlState().state).params?.style === 'singlePage';
+      if (isSinglePage || use(this.maximizedSectionId)) {
+        return false;
+      }
+      return true;
+    });
   }
 
   /**

@@ -10,6 +10,15 @@ const G = getBrowserGlobals('document', 'window');
 
 let _notifier: Notifier;
 
+/**
+ * Doesn't show or trigger any UI when thrown. Use it when you will handle it yourself, but
+ * need to stop any futher actions from the app. Currently only used in the model that tries
+ * to react in response of UNIQUE reference constraint validation.
+ */
+export class MutedError extends Error {
+
+}
+
 export class UserError extends Error {
   public name: string = "UserError";
   public key?: string;
@@ -106,6 +115,9 @@ const unhelpfulErrors = new Set<string>();
  * this function might show a simple toast message.
  */
 export function reportError(err: Error|string, ev?: ErrorEvent): void {
+  if (err instanceof MutedError) {
+    return;
+  }
   log.error(`ERROR:`, err);
   if (String(err).match(/GristWSConnection disposed/)) {
     // This error can be emitted while a page is reloaded, and isn't worth reporting.

@@ -55,7 +55,8 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
-const { isList } = require('app/common/gristTypes');
+const {isList} = require('app/common/gristTypes');
+
 
 const t = makeT('GridView');
 
@@ -628,27 +629,25 @@ GridView.prototype.paste = async function(data, cutCallback) {
 
   if (actions.length > 0) {
     let cursorPos = this.cursor.getCursorPos();
-    return this.sendPasteActions(cutCallback, actions)
-    .then(results => {
-      // If rows were added, get their rowIds from the action results.
-      let addRowIds = (actions[0][0] === 'BulkAddRecord' ? results[0] : []);
-      console.assert(addRowIds.length <= updateRowIds.length,
-        `Unexpected number of added rows: ${addRowIds.length} of ${updateRowIds.length}`);
-      let newRowIds = updateRowIds.slice(0, updateRowIds.length - addRowIds.length)
-        .concat(addRowIds);
+    const results = await this.sendPasteActions(cutCallback, actions);
+    // If rows were added, get their rowIds from the action results.
+    let addRowIds = (actions[0][0] === 'BulkAddRecord' ? results[0] : []);
+    console.assert(addRowIds.length <= updateRowIds.length,
+      `Unexpected number of added rows: ${addRowIds.length} of ${updateRowIds.length}`);
+    let newRowIds = updateRowIds.slice(0, updateRowIds.length - addRowIds.length)
+      .concat(addRowIds);
 
-      // Restore the cursor to the right rowId, even if it jumped.
-      this.cursor.setCursorPos({rowId: cursorPos.rowId === 'new' ? addRowIds[0] : cursorPos.rowId});
+    // Restore the cursor to the right rowId, even if it jumped.
+    this.cursor.setCursorPos({rowId: cursorPos.rowId === 'new' ? addRowIds[0] : cursorPos.rowId});
 
-      // Restore the selection if it would select the correct rows.
-      let topRowIndex = this.viewData.getRowIndex(newRowIds[0]);
-      if (newRowIds.every((r, i) => r === this.viewData.getRowId(topRowIndex + i))) {
-        this.cellSelector.selectArea(topRowIndex, leftIndex,
-          topRowIndex + outputHeight - 1, leftIndex + outputWidth - 1);
-      }
+    // Restore the selection if it would select the correct rows.
+    let topRowIndex = this.viewData.getRowIndex(newRowIds[0]);
+    if (newRowIds.every((r, i) => r === this.viewData.getRowId(topRowIndex + i))) {
+      this.cellSelector.selectArea(topRowIndex, leftIndex,
+        topRowIndex + outputHeight - 1, leftIndex + outputWidth - 1);
+    }
 
-      commands.allCommands.clearCopySelection.run();
-    });
+    await commands.allCommands.clearCopySelection.run();
   }
 };
 

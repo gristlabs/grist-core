@@ -6,7 +6,7 @@
  */
 
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {GristTooltips, Tooltip} from 'app/client/ui/GristTooltips';
+import {GristTooltips, Tooltip, TooltipContentFunc} from 'app/client/ui/GristTooltips';
 import {prepareForTransition} from 'app/client/ui/transitions';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -324,12 +324,12 @@ export type InfoTooltipVariant = 'click' | 'hover';
  * Renders an info icon that shows a tooltip with the specified `content`.
  */
 export function infoTooltip(
-  tooltip: Tooltip,
+  tooltip: Tooltip|TooltipContentFunc,
   options: InfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
   const {variant = 'click'} = options;
-  const content = GristTooltips[tooltip]();
+  const content = typeof tooltip === 'function' ? tooltip() : GristTooltips[tooltip]();
   const onOpen = () => logTelemetryEvent('viewedTip', {full: {tipName: tooltip}});
   switch (variant) {
     case 'click': {
@@ -437,7 +437,7 @@ export function withInfoTooltip(
   options: WithInfoTooltipOptions = {},
 ) {
   const {variant = 'click', domArgs, iconDomArgs, popupOptions} = options;
-  return cssDomWithTooltip(
+  return cssInfoTooltip(
     domContents,
     infoTooltip(tooltip, {variant, popupOptions}, iconDomArgs),
     ...(domArgs ?? [])
@@ -474,6 +474,12 @@ export function descriptionInfoTooltip(
     ...domArgs,
   );
 }
+
+const cssInfoTooltip = styled('div', `
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+`);
 
 const cssTooltipCorner = styled('div', `
   position: absolute;
@@ -605,10 +611,4 @@ const cssInfoTooltipPopupCloseButton = styled('div', `
   &:hover {
     background-color: ${theme.hover};
   }
-`);
-
-const cssDomWithTooltip = styled('div', `
-  display: flex;
-  align-items: center;
-  column-gap: 8px;
 `);

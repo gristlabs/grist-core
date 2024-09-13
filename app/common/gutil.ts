@@ -1069,3 +1069,19 @@ export function computedOwned<T>(
 }
 
 export type Constructor<T> = new (...args: any[]) => T;
+
+/**
+ * Simple memoization function that caches the result of a function call based on its arguments.
+ * Unlike lodash's memoize, it uses all arguments to generate the key.
+ */
+export function cached<T>(fn: T): T {
+  const dict = new Map();
+  const impl = (...args: any[]) => {
+    const key = JSON.stringify(args);
+    if (!dict.has(key)) {
+      dict.set(key, (fn as any)(...args));
+    }
+    return dict.get(key);
+  };
+  return impl as any as T;
+}

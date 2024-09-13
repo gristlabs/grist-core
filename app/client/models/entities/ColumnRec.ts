@@ -63,6 +63,11 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   displayColModel: ko.Computed<ColumnRec>;
   visibleColModel: ko.Computed<ColumnRec>;
 
+  // Reverse Ref/RefList column for this column. Only for Ref/RefList columns in two-way relations.
+  reverseColModel: ko.Computed<ColumnRec>;
+  // If this column has a relation.
+  hasReverse: ko.Computed<boolean>;
+
   disableModifyBase: ko.Computed<boolean>;    // True if column config can't be modified (name, type, etc.)
   disableModify: ko.Computed<boolean>;        // True if column can't be modified (is summary) or is being transformed.
   disableEditData: ko.Computed<boolean>;      // True to disable editing of the data in this column.
@@ -94,6 +99,12 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   saveDisplayFormula(formula: string): Promise<void>|undefined;
 
   createValueParser(): (value: string) => any;
+
+  /** Helper method to add a reverse column (only for Ref/RefList) */
+  addReverseColumn(): Promise<void>;
+
+  /** Helper method to remove a reverse column (only for Ref/RefList) */
+  removeReverseColumn(): Promise<void>;
 }
 
 export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
@@ -138,6 +149,8 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   // The display column to use for the column, or the column itself when no displayCol is set.
   this.displayColModel = refRecord(docModel.columns, this.displayColRef);
+  this.reverseColModel = refRecord(docModel.columns, this.reverseCol);
+  this.hasReverse = this.autoDispose(ko.pureComputed(() => Boolean(this.reverseColModel().id())));
   this.visibleColModel = refRecord(docModel.columns, this.visibleCol);
 
   this.disableModifyBase = ko.pureComputed(() => Boolean(this.summarySourceCol()));
@@ -184,6 +197,21 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     }
     return JSON.stringify(options);
   });
+
+  this.addReverseColumn = () => {
+    return docModel.docData.sendAction(['AddReverseColumn', this.table.peek().tableId.peek(), this.colId.peek()]);
+  };
+
+  this.removeReverseColumn = async () => {
+    if (!this.hasReverse.peek()) {
+      throw new Error("Column does not have a reverse column");
+    }
+    // Remove the other column. Data engine will take care of removing the relation.
+    const column = this.reverseColModel.peek();
+    const tableId = column.table.peek().tableId.peek();
+    const colId = column.colId.peek();
+    return await docModel.docData.sendAction(['RemoveColumn', tableId, colId]);
+  };
 }
 
 export function formatterForRec(

@@ -36,7 +36,7 @@ import {GridOptions} from 'app/client/ui/GridOptions';
 import {textarea} from 'app/client/ui/inputs';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
-import {cssLabel} from 'app/client/ui/RightPanelStyles';
+import {cssLabel, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widgetTypesMap";
@@ -1271,10 +1271,6 @@ const cssTabContents = styled('div', `
   overflow: auto;
 `);
 
-const cssSeparator = styled('div', `
-  border-bottom: 1px solid ${theme.pagePanelsBorder};
-  margin-top: 16px;
-`);
 
 const cssConfigContainer = styled('div.test-config-container', `
   overflow: auto;

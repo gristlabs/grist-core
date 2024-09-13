@@ -32,6 +32,9 @@ const {COMMENTS} = require('app/client/models/features');
 const {DismissedPopup} = require('app/common/Prefs');
 const {markAsSeen} = require('app/client/models/UserPrefs');
 const {buildConfirmDelete, reportUndo} = require('app/client/components/modals');
+const {buildReassignModal} = require('app/client/ui/buildReassignModal');
+const {MutedError} = require('app/client/models/errors');
+
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -648,7 +651,17 @@ BaseView.prototype.sendPasteActions = function(cutCallback, actions) {
     // If the cut occurs on an edit restricted cell, there may be no cut action.
     if (cutAction) { actions.unshift(cutAction); }
   }
-  return this.gristDoc.docData.sendActions(actions);
+  return this.gristDoc.docData.sendActions(actions).catch(ex => {
+    if (ex.code === 'UNIQUE_REFERENCE_VIOLATION') {
+      buildReassignModal({
+        docModel: this.gristDoc.docModel,
+        actions,
+      }).catch(reportError);
+      throw new MutedError();
+    } else {
+      throw ex;
+    }
+  });
 };
 
 BaseView.prototype.buildDom = function() {

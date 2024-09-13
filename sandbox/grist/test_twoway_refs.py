@@ -1157,6 +1157,41 @@ class TestTwoWayReferences(test_engine.EngineTestCase):
       [Azor, "Azor", Alice],
     ])
 
+  def test_back_update_empty_column(self):
+    """
+    There was a bug. When user cretes a reverse column for an empty column, and then updates the
+    reverse column first, the empty column wasn't updated (as it was seen as empty).
+    """
+
+    # Load pets sample
+    self.load_pets()
+
+    # Remove owner and add it back as empty column.
+    self.apply_user_action(["RemoveColumn", "Pets", "Owner"])
+    self.apply_user_action(["AddColumn", "Pets", "Owner", {
+      "type": "Ref:Owners",
+      "isFormula": True,
+      "formula": '',
+    }])
+
+    # Now add reverse column for Owner
+    self.apply_user_action(["AddReverseColumn", 'Pets', 'Owner'])
+
+    # And now add Rex with Alice as an owner using Owners table
+    self.apply_user_action(["UpdateRecord", "Owners", Alice, {"Pets": ['L', Rex]}])
+
+    # Make sure we see the data
+    self.assertTableData("Owners", cols="subset", data=[
+      ["id", "Name", "Pets"],
+      [1, "Alice", [Rex]],
+      [2, "Bob", EmptyList],
+    ])
+
+    self.assertTableData("Pets", cols="subset", data=[
+      ["id", "Name", "Owner"],
+      [Rex, "Rex", Alice],
+    ])
+
 
 def uniqueReferences(rec):
   return rec.reverseCol and rec.reverseCol.type.startswith('Ref:')

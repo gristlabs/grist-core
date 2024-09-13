@@ -109,7 +109,7 @@ export function buildFormulaConfig(
 ) {
 
   // If we can't modify anything about the column.
-  const disableModify = Computed.create(owner, use => use(origColumn.disableModify));
+  const disableModify = Computed.create(owner, use => use(origColumn.disableModify) || use(origColumn.hasReverse));
 
   // Intermediate state - user wants to specify formula, but haven't done yet
   const maybeFormula = Observable.create(owner, false);
@@ -320,8 +320,10 @@ export function buildFormulaConfig(
 
   // Should we disable all other action buttons and formula editor. For now
   // we will disable them when multiple columns are selected, or any of the column selected
-  // can't be modified.
-  const disableOtherActions = Computed.create(owner, use => use(disableModify) || use(isMultiSelect));
+  // can't be modified or if the column has a reverse column.
+  const disableOtherActions = Computed.create(owner,
+    use => use(disableModify) || use(isMultiSelect) || use(origColumn.hasReverse)
+  );
 
   const errorMessage = createFormulaErrorObs(owner, gristDoc, origColumn);
   // Helper that will create different flavors for formula builder.

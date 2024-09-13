@@ -43,6 +43,11 @@ export class ViewFieldConfig {
       return list.filter(f => !f.isDisposed() && !f.column().isDisposed());
     }));
 
+
+    // Helper that lists all not disposed widgets. Many methods below gets all fields
+    // list which still can contain disposed fields, this helper will filter them out.
+    const listFields = () => this.fields().filter(f => !f.isDisposed());
+
     // Just a helper field to see if we have multiple selected columns or not.
     this.multiselect = owner.autoDispose(ko.pureComputed(() => this.fields().length > 1));
 
@@ -50,7 +55,7 @@ export class ViewFieldConfig {
     // we have normal TextBox and Spinner). This will be used to allow the user to change
     // this type if such columns are selected.
     this.sameWidgets = owner.autoDispose(ko.pureComputed(() => {
-      const list = this.fields();
+      const list = listFields();
       // If we have only one field selected, list is always the same.
       if (list.length <= 1) { return true; }
       // Now get all widget list and calculate intersection of the Sets.
@@ -71,7 +76,7 @@ export class ViewFieldConfig {
         }
         // If all have the same value, return it, otherwise
         // return a default value for this option "undefined"
-        const values = this.fields().map(f => f.widget());
+        const values = listFields().map(f => f.widget());
         if (allSame(values)) {
           return values[0];
         } else {
@@ -80,7 +85,7 @@ export class ViewFieldConfig {
       },
       write: (widget) => {
         // Go through all the fields, and reset them all.
-        for(const field of this.fields.peek()) {
+        for(const field of listFields()) {
           // Reset the entire JSON, so that all options revert to their defaults.
           const previous = field.widgetOptionsJson.peek();
           // We don't need to bundle anything (actions send in the same tick, are bundled
@@ -100,7 +105,7 @@ export class ViewFieldConfig {
     // We will use this, to know which options are allowed to be changed
     // when multiple columns are selected.
     const commonOptions = owner.autoDispose(ko.pureComputed(() => {
-      const fields = this.fields();
+      const fields = listFields();
       // Put all options of first widget in the Set, and then remove
       // them one by one, if they are not present in other fields.
       let options: Set<string>|null = null;
@@ -134,7 +139,7 @@ export class ViewFieldConfig {
         // Assemble final json object.
         const result: any = {};
         // First get all widgetOption jsons from all columns/fields.
-        const optionList = this.fields().map(f => f.widgetOptionsJson());
+        const optionList = listFields().map(f => f.widgetOptionsJson());
         // And fill only those that are common
         const common = commonOptions();
         for(const key of common) {
@@ -162,7 +167,7 @@ export class ViewFieldConfig {
         }
         // Now update all options, for all fields, by amending the options
         // object from the field/column.
-        for(const item of this.fields.peek()) {
+        for(const item of listFields()) {
           const previous = item.widgetOptionsJson.peek();
           setter(item.widgetOptionsJson, {
             ...previous,
@@ -177,9 +182,9 @@ export class ViewFieldConfig {
       // Property is not supported by set of columns if it is not a common option.
       disabled: prop => ko.pureComputed(() => !commonOptions().has(prop)),
       // Property has mixed value, if not all options are the same.
-      mixed: prop => ko.pureComputed(() => !allSame(this.fields().map(f => f.widgetOptionsJson.prop(prop)()))),
+      mixed: prop => ko.pureComputed(() => !allSame(listFields().map(f => f.widgetOptionsJson.prop(prop)()))),
       // Property has empty value, if all options are empty (are null, undefined, empty Array or empty Object).
-      empty: prop => ko.pureComputed(() => allEmpty(this.fields().map(f => f.widgetOptionsJson.prop(prop)()))),
+      empty: prop => ko.pureComputed(() => allEmpty(listFields().map(f => f.widgetOptionsJson.prop(prop)()))),
     }));
 
     // This is repeated logic for wrap property in viewFieldRec,
@@ -196,8 +201,8 @@ export class ViewFieldConfig {
     // To support this use case we need to compute a snapshot of fields, and use it to save style. Style
     // picker will be rebuild every time fields change, and it will have access to last selected fields
     // when it will be disposed.
-    this.style = ko.pureComputed(() => {
-      const fields = this.fields();
+    this.style = owner.autoDispose(ko.pureComputed(() => {
+      const fields = listFields();
       const multiSelect = fields.length > 1;
       const savableOptions = modelUtil.savingComputed({
         read: () => {
@@ -256,10 +261,10 @@ export class ViewFieldConfig {
       });
       result.revert = () => { zip(fields, state).forEach(([f, s]) => f!.style(s!)); };
       return result;
-    });
+    }));
 
-    this.headerStyle = ko.pureComputed(() => {
-      const fields = this.fields();
+    this.headerStyle = owner.autoDispose(ko.pureComputed(() => {
+      const fields = listFields();
       const multiSelect = fields.length > 1;
       const savableOptions = modelUtil.savingComputed({
         read: () => {
@@ -318,7 +323,7 @@ export class ViewFieldConfig {
       });
       result.revert = () => { zip(fields, state).forEach(([f, s]) => f!.headerStyle(s!)); };
       return result;
-    });
+    }));
   }
 
   // Helper for Choice/ChoiceList columns, that saves widget options and renames values in a document
@@ -328,7 +333,7 @@ export class ViewFieldConfig {
     const tableId = this._field.column.peek().table.peek().tableId.peek();
     if (this.multiselect.peek()) {
       this._field.config.options.update(options);
-      const colIds = this.fields.peek().map(f => f.colId.peek());
+      const colIds = this.fields.peek().filter(f => !f.isDisposed()).map(f => f.colId.peek());
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.config.options.save(),
         !hasRenames ? null : this._docModel.docData.sendActions(

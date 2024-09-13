@@ -1,9 +1,9 @@
+import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
 import {
   FormFieldRulesConfig,
   FormOptionsSortConfig,
   FormSelectConfig
 } from 'app/client/components/Forms/FormConfig';
-import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
@@ -15,6 +15,7 @@ import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
+import {ReverseReferenceConfig} from 'app/client/widgets/ReverseReferenceConfig';
 import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
 import {UIRowId} from 'app/plugin/GristAPI';
 import {Computed, dom, styled} from 'grainjs';
@@ -58,6 +59,7 @@ export class Reference extends NTextBox {
     return [
       this.buildTransformConfigDom(),
       dom.create(DropdownConditionConfig, this.field, gristDoc),
+      dom.create(ReverseReferenceConfig, this.field),
       cssLabel(t('CELL FORMAT')),
       super.buildConfigDom(gristDoc),
     ];

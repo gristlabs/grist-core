@@ -2,7 +2,7 @@ import { ColumnTransform } from 'app/client/components/ColumnTransform';
 import { Cursor } from 'app/client/components/Cursor';
 import { FormulaTransform } from 'app/client/components/FormulaTransform';
 import { GristDoc } from 'app/client/components/GristDoc';
-import { addColTypeSuffix, guessWidgetOptionsSync } from 'app/client/components/TypeConversion';
+import { addColTypeSuffix, guessWidgetOptionsSync, inferColTypeSuffix } from 'app/client/components/TypeConversion';
 import { TypeTransform } from 'app/client/components/TypeTransform';
 import { FloatingEditor } from 'app/client/widgets/FloatingEditor';
 import { UnsavedChange } from 'app/client/components/UnsavedChanges';
@@ -365,7 +365,7 @@ export class FieldBuilder extends Disposable {
       // the full type, and set it. If multiple columns are selected (and all are formulas/empty),
       // then we will set the type for all of them using full type guessed from the first column.
       const column = this.field.column(); // same as this.origColumn.
-      const calculatedType = addColTypeSuffix(newType, column, this._docModel);
+      const calculatedType = inferColTypeSuffix(newType, column) ?? addColTypeSuffix(newType, column, this._docModel);
       const fields = this.field.viewSection.peek().selectedFields.peek();
       // If we selected multiple empty/formula columns, make the change for all of them.
       if (

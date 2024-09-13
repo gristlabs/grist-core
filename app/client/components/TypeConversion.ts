@@ -48,6 +48,25 @@ export function addColTypeSuffix(type: string, column: ColumnRec, docModel: DocM
 }
 
 /**
+ * Infers the suffix for a column type, based on the type of the column and the type to convert it to.
+ * Currently only used for Ref and RefList types, where the suffix is the tableId of the reference.
+ */
+export function inferColTypeSuffix(newPure: string, column: ColumnRec) {
+  // We can infer only for Ref and RefList types.
+  if (newPure !== "Ref" && newPure !== "RefList") {
+    return null;
+  }
+
+  // If the old type was also Ref/RefList, just return the tableId from the old type.
+  const existingTable = column.type.peek().split(':')[1];
+  const oldPure = gristTypes.extractTypeFromColType(column.type.peek());
+  if (existingTable && (oldPure === "Ref" || oldPure === "RefList")) {
+    return `${newPure}:${existingTable}`;
+  }
+  return null;
+}
+
+/**
  * Looks through the data of the given column to find the first value of the form
  * [R|r, <tableId>, <rowId>] (a Reference(List) value returned from a formula), and returns the tableId
  * from that.

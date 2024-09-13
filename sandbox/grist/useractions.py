@@ -257,6 +257,26 @@ class UserActions(object):
       self._engine.out_actions.direct.append(self._indirection_level == DIRECT_ACTION)
       self._engine.apply_doc_action(action)
 
+  def _do_extra_doc_action(self, action):
+    # It this is Update, Add (or Bulks), run thouse actions through ensure_column_accepts_data
+    # to ensure that the data is valid.
+
+    converted_action = action
+
+    if isinstance(action, (actions.BulkAddRecord, actions.BulkUpdateRecord)):
+      if isinstance(action, actions.BulkAddRecord):
+        ActionType = actions.BulkAddRecord
+      else:
+        ActionType = actions.BulkUpdateRecord
+
+      # Iterate over every column and make sure it accepts data.
+      table_id, row_ids, column_values = action
+      for col_id, values in six.iteritems(column_values):
+        column_values[col_id] = self._ensure_column_accepts_data(table_id, col_id, values)
+      converted_action = ActionType(table_id, row_ids, column_values)
+
+    return self._do_doc_action(converted_action)
+
   def _bulk_action_iter(self, table_id, row_ids, col_values=None):
     """
     Helper for processing Bulk actions, which generates a list of (i, record, value_dict) tuples,
@@ -408,7 +428,7 @@ class UserActions(object):
 
     # If any extra actions were generated (e.g. to adjust positions), apply them.
     for a in extra_actions:
-      self._do_doc_action(a)
+      self._do_extra_doc_action(a)
 
     # We could set static default values for omitted data columns, or we can ensure that other
     # code (JS, DocStorage) is aware of the static defaults. Since other code is already aware,
@@ -504,7 +524,7 @@ class UserActions(object):
 
     # If any extra actions were generated (e.g. to adjust positions), apply them.
     for a in extra_actions:
-      self._do_doc_action(a)
+      self._do_extra_doc_action(a)
 
     # Finally, update the record
     self._do_doc_action(action)
@@ -1781,6 +1801,13 @@ class UserActions(object):
     if widgetOptions is None:
       widgetOptions = src_col.widgetOptions
 
+    # If we are changing type, and this column is reverse column, make sure it is compatible.
+    # If not, break the connection first, UI should have already warned the user.
+    existing_type = dst_col.type
+    new_type = src_col.type
+    if not is_compatible_ref_type(new_type, existing_type) and dst_col.reverseCol:
+      self._docmodel.update([dst_col, src_col], reverseCol=0)
+
     # Update the destination column to match the source's type and options. Also unset displayCol,
     # except if src_col has a displayCol, then keep it unchanged until SetDisplayFormula below.
     self._docmodel.update([dst_col], type=src_col.type, widgetOptions=[widgetOptions],
@@ -1936,6 +1963,7 @@ class UserActions(object):
     ret = self.AddVisibleColumn(target_table_id, reverse_label, {
       "isFormula": False,
       "type": "RefList:" + table_id,
+      "label": reverse_label,
     })
     added_col = self._docmodel.columns.table.get_record(ret['colRef'])
     self._docmodel.update([col_rec], reverseCol=added_col.id)

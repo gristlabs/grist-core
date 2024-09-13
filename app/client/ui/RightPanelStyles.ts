@@ -15,6 +15,13 @@ export const cssLabel = styled('div', `
   font-size: ${vars.xsmallFontSize};
 `);
 
+export const cssLabelText = styled('span', `
+  color: ${theme.text};
+  text-transform: uppercase;
+  font-size: ${vars.xsmallFontSize};
+`);
+
+
 export const cssHelp = styled('div', `
   color: ${theme.lightText};
   margin: -8px 16px 12px 16px;

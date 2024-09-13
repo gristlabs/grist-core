@@ -545,6 +545,8 @@ class BaseReferenceColumn(BaseColumn):
     value = objtypes.decode_object(value)
     return self._target_table.lookup_one_record(**{col_id: value})
 
+class UniqueReferenceError(ValueError):
+  pass
 
 class ReferenceColumn(BaseReferenceColumn):
   """
@@ -564,7 +566,7 @@ class ReferenceColumn(BaseReferenceColumn):
 
   def _list_to_value(self, value_as_list):
     if len(value_as_list) > 1:
-      raise ValueError("UNIQUE reference constraint failed for action")
+      raise UniqueReferenceError("UNIQUE reference constraint violated")
     return value_as_list[0] if value_as_list else 0
 
   def _clean_up_value(self, value):

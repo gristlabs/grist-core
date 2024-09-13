@@ -43,7 +43,9 @@ export type Tooltip =
   | 'accessRulesTableWide'
   | 'setChoiceDropdownCondition'
   | 'setRefDropdownCondition'
-  | 'communityWidgets';
+  | 'communityWidgets'
+  | 'twoWayReferences'
+  | 'reasignTwoWayReference';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -159,6 +161,21 @@ see or edit which parts of your document.')
     ),
     dom('div',
       cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.')),
+    ),
+    ...args,
+  ),
+  twoWayReferences: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('Creates a reverse column in target table that can be edited from either end.')
+    ),
+    ...args,
+  ),
+  reasignTwoWayReference: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('This limitation occurs when one end of a two-way reference is configured as a single Reference.')
+    ),
+    dom('div',
+      t('To allow multiple assignments, change the type of the Reference column to Reference List.')
     ),
     ...args,
   ),

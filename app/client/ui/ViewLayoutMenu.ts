@@ -118,12 +118,11 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
  */
 export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: GristDoc) {
   const isReadonly = gristDoc.isReadonly.get();
-  const isSinglePage = urlState().state.get().params?.style === 'singlePage';
   const sectionId = viewSection.table.peek().rawViewSectionRef.peek();
   const anchorUrlState = { hash: { sectionId, popup: true } };
   const rawUrl = urlState().makeUrl(anchorUrlState);
   return [
-    dom.maybe((use) => !use(viewSection.isRaw) && !isSinglePage && !use(gristDoc.maximizedSectionId),
+    dom.maybe((use) => !use(viewSection.isRaw) && use(gristDoc.canShowRawData),
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
         dom.on('click', () => {
