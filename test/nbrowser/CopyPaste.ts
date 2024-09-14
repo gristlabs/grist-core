@@ -637,7 +637,7 @@ async function copyAndCheck(
   }
 }
 
-function createDummyTextArea() {
+export function createDummyTextArea() {
   const textarea = document.createElement('textarea');
   textarea.style.position = "absolute";
   textarea.style.top = "0";
@@ -647,7 +647,7 @@ function createDummyTextArea() {
   window.document.body.appendChild(textarea);
 }
 
-function removeDummyTextArea() {
+export function removeDummyTextArea() {
   const textarea = document.getElementById('dummyText');
   if (textarea) {
     window.document.body.removeChild(textarea);
