@@ -231,13 +231,13 @@ return [
     await driver.sendKeys('=');
     await gu.waitAppFocus(false);
     // A single long string often works, but sometimes fails, so break up into multiple.
-    await gu.sendKeys(`  if $Budget > 50:${Key.chord(Key.SHIFT, Key.ENTER)}`);
+    await gu.sendKeysSlowly(`  if $Budget > 50:${Key.chord(Key.SHIFT, Key.ENTER)}`);
     await driver.sleep(50);
     // The next line should get auto-indented.
-    await gu.sendKeys(`return 'Big'${Key.chord(Key.SHIFT, Key.ENTER)}`);
+    await gu.sendKeysSlowly(`return 'Big'${Key.chord(Key.SHIFT, Key.ENTER)}`);
     await driver.sleep(50);
     // In the next line, we want to remove one level of indent.
-    await gu.sendKeys(`${Key.BACK_SPACE}return 'Small'`);
+    await gu.sendKeysSlowly(`${Key.BACK_SPACE}return 'Small'`);
     await gu.sendKeys(Key.ENTER);
     await gu.waitForServer();
 

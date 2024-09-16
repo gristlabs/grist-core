@@ -3,8 +3,9 @@ import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
-import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {createDummyAuditLogger, createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -69,6 +70,7 @@ export interface ICreate {
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
+  AuditLogger(): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
   Shell?(): IShell;  // relevant to electron version of Grist only.
 
@@ -115,6 +117,12 @@ export interface ICreateBillingOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): IBilling|undefined;
 }
 
+export interface ICreateAuditLoggerOptions {
+  name: 'grist'|'hec';
+  check(): boolean;
+  create(): IAuditLogger|undefined;
+}
+
 export interface ICreateTelemetryOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry|undefined;
 }
@@ -134,6 +142,7 @@ export function makeSimpleCreator(opts: {
   storage?: ICreateStorageOptions[],
   billing?: ICreateBillingOptions,
   notifier?: ICreateNotifierOptions,
+  auditLogger?: ICreateAuditLoggerOptions[],
   telemetry?: ICreateTelemetryOptions,
   sandboxFlavor?: string,
   shell?: IShell,
@@ -145,7 +154,7 @@ export function makeSimpleCreator(opts: {
   createHostedDocStorageManager?: HostedDocStorageManagerCreator,
   createLocalDocStorageManager?: LocalDocStorageManagerCreator,
 }): ICreate {
-  const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
+  const {deploymentType, sessionSecret, storage, notifier, billing, auditLogger, telemetry} = opts;
   return {
     deploymentType() { return deploymentType; },
     Billing(dbManager, gristConfig) {
@@ -167,6 +176,9 @@ export function makeSimpleCreator(opts: {
         }
       }
       return undefined;
+    },
+    AuditLogger() {
+      return auditLogger?.find(({check}) => check())?.create() ?? createDummyAuditLogger();
     },
     Telemetry(dbManager, gristConfig) {
       return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();

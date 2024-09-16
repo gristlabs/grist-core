@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long
 
 import json
 
@@ -156,3 +157,28 @@ class TestDCRenames(test_engine.EngineTestCase):
       [27, 2, "features", build_dc2("identifier", "address")],
     ])
     self.assert_invalid_formula_untouched()
+
+  def test_rename_when_null_widget_options(self):
+    # Create a column with None for widget options. Just a presence of such a column was causing
+    # an error at one point.
+    self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
+      ["AddColumn", "Schools", "dummy", {
+        "type": "Text",
+        "widgetOptions": None,
+      }],
+    )])
+
+    # Check that rename works when it needs to affect a dropdown condition.
+    # First check the dropdown condition before the rename.
+    self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
+      ["id", "parentId", "colId", "widgetOptions"],
+      [12, 2, "address", build_dc1("name", "city")],
+    ])
+
+    self.apply_user_action(["RenameColumn", "Address", "city", "area"])
+
+    # Check the condition got updated after the rename.
+    self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
+      ["id", "parentId", "colId", "widgetOptions"],
+      [12, 2, "address", build_dc1("name", "area")],
+    ])

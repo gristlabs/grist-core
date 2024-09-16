@@ -30,6 +30,8 @@ def perform_dropdown_condition_renames(useractions, renames):
   updates = []
 
   for col in useractions.get_docmodel().columns.all:
+    if not col.widgetOptions:
+      continue
 
     # Find all columns in the document that have dropdown conditions.
     try:

@@ -18,7 +18,7 @@ export abstract class InstallAdmin {
   // the Grist installation. This should not fail, only return true or false.
   public async isAdminReq(req: express.Request): Promise<boolean> {
     const user = (req as RequestWithLogin).user;
-    return user ? this.isAdminUser(user) : false;
+    return user ? (await this.isAdminUser(user)) : false;
   }
 
   // Returns middleware that fails unless the request includes an authenticated user and this user

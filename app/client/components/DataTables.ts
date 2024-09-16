@@ -12,8 +12,9 @@ import {icon} from 'app/client/ui2018/icons';
 import {loadingDots} from 'app/client/ui2018/loaders';
 import {menu, menuDivider, menuIcon, menuItem, menuItemAsync, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, fromKo, observable, Observable, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
+import {makeTestId} from 'app/client/lib/domUtils';
 import * as weasel from 'popweasel';
 
 const testId = makeTestId('test-raw-data-');
@@ -109,6 +110,7 @@ export class DataTables extends Disposable {
                 ),
                 cssDotsButton(
                   testId('table-menu'),
+                  testId(use => `table-menu-${use(tableRec.tableId)}`),
                   icon('Dots'),
                   menu(() => this._menuItems(tableRec, isEditingName), {placement: 'bottom-start'}),
                   dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),

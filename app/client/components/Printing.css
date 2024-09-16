@@ -5,6 +5,10 @@
     display: none;
   }
 
+  .print-force-hide {
+    display: none !important;
+  }
+
   .print-parent {
     display: block !important;
     position: relative !important;
@@ -51,6 +55,10 @@
   .ui-resizable-handle {
     display: none !important;
   }
+
+  .viewsection_content .filter_bar {
+    display: none !important;
+  }
 }
 
 /*
@@ -67,5 +75,9 @@
 @media not print {
   .print-all-rows {
     display: none;
+  }
+
+  .screen-force-hide {
+    display: none !important;
   }
 }

@@ -55,40 +55,30 @@ export function getConnectionName() {
  */
 const connectionMutex = new Mutex();
 
-async function buildConnection(overrideConf?: Partial<DataSourceOptions>) {
-  const settings = getTypeORMSettings(overrideConf);
-  const connection = await createConnection(settings);
-  // When using Sqlite, set a busy timeout of 3s to tolerate a little
-  // interference from connections made by tests. Logging doesn't show
-  // any particularly slow queries, but bad luck is possible.
-  // This doesn't affect when Postgres is in use. It also doesn't have
-  // any impact when there is a single connection to the db, as is the
-  // case when Grist is run as a single process.
-  if (connection.driver.options.type === 'sqlite') {
-    await connection.query('PRAGMA busy_timeout = 3000');
-  }
-  return connection;
-}
-
 export async function getOrCreateConnection(): Promise<Connection> {
-  return connectionMutex.runExclusive(async () => {
+  return connectionMutex.runExclusive(async() => {
     try {
       // If multiple servers are started within the same process, we
       // share the database connection.  This saves locking trouble
       // with Sqlite.
-      return getConnection(getConnectionName());
+      const connection = getConnection();
+      return connection;
     } catch (e) {
       if (!String(e).match(/ConnectionNotFoundError/)) {
         throw e;
       }
-      return buildConnection();
+      const connection = await createConnection(getTypeORMSettings());
+      // When using Sqlite, set a busy timeout of 3s to tolerate a little
+      // interference from connections made by tests. Logging doesn't show
+      // any particularly slow queries, but bad luck is possible.
+      // This doesn't affect when Postgres is in use. It also doesn't have
+      // any impact when there is a single connection to the db, as is the
+      // case when Grist is run as a single process.
+      if (connection.driver.options.type === 'sqlite') {
+        await connection.query('PRAGMA busy_timeout = 3000');
+      }
+      return connection;
     }
-  });
-}
-
-export async function createNewConnection(overrideConf?: Partial<DataSourceOptions>): Promise<Connection> {
-  return connectionMutex.runExclusive(async () => {
-    return buildConnection(overrideConf);
   });
 }
 
@@ -100,9 +90,7 @@ export async function runMigrations(connection: Connection) {
   // transaction, or it has no effect.
   const sqlite = connection.driver.options.type === 'sqlite';
   if (sqlite) { await connection.query("PRAGMA foreign_keys = OFF;"); }
-  await connection.transaction(async tr => {
-    await tr.connection.runMigrations();
-  });
+  await connection.runMigrations({ transaction: "all" });
   if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
 }
 

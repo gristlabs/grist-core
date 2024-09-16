@@ -1,5 +1,5 @@
 import {colors, theme} from 'app/client/ui2018/cssVars';
-import {FullUser} from 'app/common/LoginSessionAPI';
+import {UserProfile} from 'app/common/LoginSessionAPI';
 import {dom, DomElementArg, styled} from 'grainjs';
 import {icon} from 'app/client/ui2018/icons';
 
@@ -9,7 +9,9 @@ export type Size = 'small' | 'medium' | 'large';
  * Returns a DOM element showing a circular icon with a user's picture, or the user's initials if
  * picture is missing. Also varies the color of the circle when using initials.
  */
-export function createUserImage(user: FullUser|'exampleUser'|null, size: Size, ...args: DomElementArg[]): HTMLElement {
+export function createUserImage(
+  user: UserProfile|'exampleUser'|null, size: Size, ...args: DomElementArg[]
+): HTMLElement {
   let initials: string;
   return cssUserImage(
     cssUserImage.cls('-' + size),
@@ -39,7 +41,7 @@ export function getInitials(user: {name?: string, email?: string}) {
 /**
  * Hashes the username to return a color.
  */
-function pickColor(user: FullUser): string {
+function pickColor(user: UserProfile): string {
   let c = hashCode(user.name + ':' + user.email) % someColors.length;
   if (c < 0) { c += someColors.length; }
   return someColors[c];

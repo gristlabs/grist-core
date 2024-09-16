@@ -507,9 +507,11 @@ class Engine(object):
     if col_parent_ids > valid_table_refs:
       collist = sorted(actions.transpose_bulk_action(meta_columns),
                        key=lambda c: (c.parentId, c.parentPos))
+      reverse_col_id = schema.get_reverse_col_id_lookup_func(collist)
       raise AssertionError("Internal schema inconsistent; extra columns in metadata:\n"
           + "\n".join('  #%s %s' %
-                      (c.id, schema.SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula))
+                      (c.id, schema.SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula,
+                        reverse_col_id(c)))
                       for c in collist if c.parentId not in valid_table_refs))
 
   def dump_state(self):
@@ -1035,11 +1037,9 @@ class Engine(object):
 
       # If there are values for any PositionNumber columns, ensure PositionNumbers are ordered as
       # intended but are all unique, which may require updating other positions.
-      nvalues, adjustments = col_obj.prepare_new_values(values,
+      nvalues, adjustments = col_obj.prepare_new_values(row_ids, values,
           action_summary=self.out_actions.summary)
-      if adjustments:
-        extra_actions.append(actions.BulkUpdateRecord(
-          action.table_id, [r for r,v in adjustments], {col_id: [v for r,v in adjustments]}))
+      extra_actions.extend(adjustments)
 
       new_values[col_id] = nvalues
 
@@ -1054,11 +1054,10 @@ class Engine(object):
         defaults = [col_obj.getdefault() for r in row_ids]
         # We use defaults to get new values or adjustments. If we are replacing data, we'll make
         # the adjustments without regard to the existing data.
-        nvalues, adjustments = col_obj.prepare_new_values(defaults, ignore_data=ignore_data,
+        nvalues, adjustments = col_obj.prepare_new_values(row_ids, defaults,
+            ignore_data=ignore_data,
             action_summary=self.out_actions.summary)
-        if adjustments:
-          extra_actions.append(actions.BulkUpdateRecord(
-            action.table_id, [r for r,v in adjustments], {col_id: [v for r,v in adjustments]}))
+        extra_actions.extend(adjustments)
         if nvalues != defaults:
           new_values[col_id] = nvalues
 

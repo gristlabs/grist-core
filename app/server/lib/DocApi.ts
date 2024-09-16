@@ -1730,6 +1730,12 @@ export class DocWorkerApi {
         docIdDigest: docId,
       },
     });
+    this._grist.getAuditLogger().logEvent(req as RequestWithLogin, {
+      event: {
+        name: 'createDocument',
+        details: {id: docId},
+      },
+    });
     return docId;
   }
 
@@ -1737,6 +1743,7 @@ export class DocWorkerApi {
     userId: number,
     browserSettings?: BrowserSettings,
   }): Promise<string> {
+    const mreq = req as RequestWithLogin;
     const {userId, browserSettings} = options;
     const isAnonymous = isAnonymousUser(req);
     const result = makeForkIds({
@@ -1747,10 +1754,7 @@ export class DocWorkerApi {
     });
     const docId = result.docId;
     await this._docManager.createNamedDoc(
-      makeExceptionalDocSession('nascent', {
-        req: req as RequestWithLogin,
-        browserSettings,
-      }),
+      makeExceptionalDocSession('nascent', {req: mreq, browserSettings}),
       docId
     );
     this._logDocumentCreatedTelemetryEvent(req, {
@@ -1765,6 +1769,12 @@ export class DocWorkerApi {
     this._logCreatedEmptyDocTelemetryEvent(req, {
       full: {
         docIdDigest: docId,
+      },
+    });
+    this._grist.getAuditLogger().logEvent(mreq, {
+      event: {
+        name: 'createDocument',
+        details: {id: docId},
       },
     });
     return docId;

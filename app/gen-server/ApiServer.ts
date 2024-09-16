@@ -17,7 +17,7 @@ import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import log from 'app/server/lib/log';
-import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
+import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
@@ -283,6 +283,12 @@ export class ApiServer {
           altSessionId: mreq.altSessionId,
         },
       });
+      this._gristServer.getAuditLogger().logEvent(mreq, {
+        event: {
+          name: 'createDocument',
+          details: {id: docId},
+        },
+      });
       return sendReply(req, res, query);
     }));
 
@@ -392,7 +398,7 @@ export class ApiServer {
     // Get user access information regarding an org
     this._app.get('/api/orgs/:oid/access', expressWrap(async (req, res) => {
       const org = getOrgKey(req);
-      const query = await this._withSupportUserAllowedToView(
+      const query = await this._withPrivilegedViewForUser(
         org, req, (scope) => this._dbManager.getOrgAccess(scope, org)
       );
       return sendReply(req, res, query);
@@ -534,7 +540,7 @@ export class ApiServer {
     this._app.get('/api/session/access/active', expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req, {includePrefs: true});
       const domain = getOrgFromRequest(req);
-      const org = domain ? (await this._withSupportUserAllowedToView(
+      const org = domain ? (await this._withPrivilegedViewForUser(
         domain, req, (scope) => this._dbManager.getOrg(scope, domain)
       )) : null;
       const orgError = (org && org.errMessage) ? {error: org.errMessage, status: org.status} : undefined;
@@ -617,26 +623,32 @@ export class ApiServer {
 
 
   /**
-   * Run a query, and, if it is denied and the user is the support
+   * Run a query, and, if it is denied and the user is the support or admin
    * user, rerun the query with permission to view the current
-   * org. This is a bit inefficient, but only affects the support
+   * org. This is a bit inefficient, but only affects the support/admin
    * user. We wait to add the special permission only if needed, since
-   * it will in fact override any other access the support user has
+   * it will in fact override any other access the special user has
    * been granted, which could reduce their apparent access if that is
    * part of what is returned by the query.
    */
-  private async _withSupportUserAllowedToView<T>(
+  private async _withPrivilegedViewForUser<T>(
     org: string|number, req: express.Request,
     op: (scope: Scope) => Promise<QueryResult<T>>
   ): Promise<QueryResult<T>> {
     const scope = getScope(req);
     const userId = getUserId(req);
     const result = await op(scope);
-    if (result.status === 200 || userId !== this._dbManager.getSupportUserId()) {
+
+    if (result.status === 200) {
       return result;
     }
-    const extendedScope = addPermit(scope, this._dbManager.getSupportUserId(), {org});
-    return await op(extendedScope);
+
+    if (userId === this._dbManager.getSupportUserId() ||
+        await this._gristServer.getInstallAdmin()?.isAdminReq(req)) {
+      const extendedScope: Scope = {...scope, specialPermit: {org}};
+      return await op(extendedScope);
+    }
+    return result;
   }
 
   private _logInvitedDocUserTelemetryEvents(mreq: RequestWithLogin, delta: PermissionDelta) {

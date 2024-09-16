@@ -1,8 +1,6 @@
-"""
-This test replicates a bug involving a column conversion after a table rename in the presence of
-a RefList. A RefList column type today only appears as a result of detaching a summary table.
-"""
+import json
 import logging
+import unittest
 import test_engine
 from test_engine import Table, Column
 
@@ -10,6 +8,10 @@ log = logging.getLogger(__name__)
 
 class TestRefListRelation(test_engine.EngineTestCase):
   def test_ref_list_relation(self):
+    """
+    This test replicates a bug involving a column conversion after a table rename in the presence of
+    a RefList. A RefList column type today only appears as a result of detaching a summary table.
+    """
     # Create two tables, the second referring to the first using a RefList and a Ref column.
     self.apply_user_action(["AddTable", "TableA", [
       {"id": "ColA", "type": "Text"}
@@ -100,3 +102,69 @@ class TestRefListRelation(test_engine.EngineTestCase):
       [ 2,      2,    "b",                    [],     0 ],
       [ 3,      1,    "a",                    [],     0 ],
     ])
+
+
+  def test_ref_list_conversion_from_string(self):
+    """
+    RefLists can accept JSON arrays as strings, but only if they look valid.
+    This feature is used by 2 way references, and column renames where type of the column
+    is changed briefly to Int (or other) and the value is converted to string (to represent
+    an error), then when column recovers its type, it should be able to read this string
+    and restore its value
+    """
+    self.apply_user_action(["AddTable", "Tree", [
+      {"id": "Name", "type": "Text"},
+      {"id": "Children", "type": "RefList:Tree"},
+    ]])
+
+    # Add two records.
+    self.apply_user_action(["BulkAddRecord", "Tree", [None]*2,
+      {"Name": ["John", "Bobby"]}])
+
+
+    test_literal = lambda x: self.assertTableData('Tree', cols="subset", data=[
+      [ "id", "Name", "Children" ],
+      [ 1,    "John", x],
+      [ 2,    "Bobby", None ],
+    ])
+
+    invalid_json_arrays = (
+      '["Bobby"]',
+      '["2"]',
+      '["2", "3"]',
+      '[-1]',
+      '["1", "-1"]',
+      '[0]',
+    )
+
+    for value in invalid_json_arrays:
+      self.apply_user_action(
+        ['UpdateRecord', 'Tree', 1, {'Children': value}]
+      )
+      test_literal(value)
+
+    valid_json_arrays = (
+      '[2]',
+      '[1, 2]',
+      '[100]',
+    )
+
+    for value in valid_json_arrays:
+      # Clear value
+      self.apply_user_action(
+        ['UpdateRecord', 'Tree', 1, {'Children': None}]
+      )
+      self.apply_user_action(
+        ['UpdateRecord', 'Tree', 1, {'Children': value}]
+      )
+      self.assertTableData('Tree', cols="subset", data=[
+        [ "id", "Name", "Children" ],
+        [ 1,    "John", json.loads(value) ],
+        [ 2,    "Bobby", None ],
+      ])
+
+
+
+
+if __name__ == "__main__":
+  unittest.main()

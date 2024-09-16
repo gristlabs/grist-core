@@ -1,16 +1,19 @@
 import {ApiError} from 'app/common/ApiError';
-import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from 'app/common/gristUrls';
+import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {OptDocSession} from 'app/server/lib/DocSession';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {RequestWithGrist} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
-import { IncomingMessage } from 'http';
+import {IncomingMessage} from 'http';
 import {Writable} from 'stream';
-import { TLSSocket } from 'tls';
+import {TLSSocket} from 'tls';
+
+export type RequestOrSession = RequestWithLogin | OptDocSession | null;
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
 const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
