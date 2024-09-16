@@ -91,15 +91,17 @@ function createMainPage(appModel: AppModel, appObj: App) {
 }
 
 function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
+  
   if (shouldShowOnboardingPage(appModel.userPrefsObs)) {
     return dom.create(OnboardingPage, appModel);
   }
 
-  const pageModel = HomeModelImpl.create(owner, appModel, app.clientScope);
+  const homeModel = HomeModelImpl.create(owner, appModel, app.clientScope);
+  const pageModel = DocPageModelImpl.create(owner, app, appModel);
   const leftPanelOpen = Observable.create(owner, true);
 
   // Set document title to strings like "Home - Grist" or "Org Name - Grist".
-  owner.autoDispose(subscribe(pageModel.currentPage, pageModel.currentWS, (use, page, ws) => {
+  owner.autoDispose(subscribe(homeModel.currentPage, homeModel.currentWS, (use, page, ws) => {
     const name = (
       page === 'trash' ? 'Trash' :
       page === 'templates' ? 'Examples & Templates' :
@@ -114,10 +116,10 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
       panelOpen: leftPanelOpen,
       hideOpener: true,
       header: dom.create(AppHeader, appModel),
-      content: createHomeLeftPane(leftPanelOpen, pageModel),
+      content: createHomeLeftPane(leftPanelOpen, homeModel),
     },
     headerMain: createTopBarHome(appModel),
-    contentMain: createDocMenu(pageModel),
+    contentMain: createDocMenu(homeModel, pageModel),
     contentTop: buildHomeBanners(appModel),
     testId,
   });
