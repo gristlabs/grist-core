@@ -2,7 +2,7 @@ import {DocWorkerMap, getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import {Permit} from 'app/server/lib/Permit';
-import {main as mergedServerMain} from 'app/server/mergedServerMain';
+import {MergedServer} from "app/server/MergedServer";
 import {delay, promisifyAll} from 'bluebird';
 import {assert, expect} from 'chai';
 import {countBy, values} from 'lodash';
@@ -387,24 +387,34 @@ describe('DocWorkerMap', function() {
       process.env.REDIS_URL = process.env.TEST_REDIS_URL;
 
       // Make home server.
-      const home = await mergedServerMain(0, ['home'], opts);
+      const homeMergedServer = await MergedServer.create(0, ['home'], opts);
+      const home = homeMergedServer.flexServer;
+      await homeMergedServer.run();
 
       // Make a worker, not associated with any group.
       process.env.GRIST_DOC_WORKER_ID = 'worker1';
-      const docs1 = await mergedServerMain(0, ['docs'], opts);
+      const docs1MergedServer = await MergedServer.create(0, ['docs'], opts);
+      const docs1 = docs1MergedServer.flexServer;
+      await docs1MergedServer.run();
 
       // Make a worker in "special" group.
       process.env.GRIST_DOC_WORKER_ID = 'worker2';
       process.env.GRIST_WORKER_GROUP = 'special';
-      const docs2 = await mergedServerMain(0, ['docs'], opts);
+      const docs2MergedServer = await MergedServer.create(0, ['docs'], opts);
+      const docs2 = docs2MergedServer.flexServer;
+      await docs2MergedServer.run();
 
       // Make two worker in "other" group.
       process.env.GRIST_DOC_WORKER_ID = 'worker3';
       process.env.GRIST_WORKER_GROUP = 'other';
-      const docs3 = await mergedServerMain(0, ['docs'], opts);
+      const docs3MergedServer = await MergedServer.create(0, ['docs'], opts);
+      const docs3 = docs3MergedServer.flexServer;
+      await docs3MergedServer.run();
       process.env.GRIST_DOC_WORKER_ID = 'worker4';
       process.env.GRIST_WORKER_GROUP = 'other';
-      const docs4 = await mergedServerMain(0, ['docs'], opts);
+      const docs4MergedServer = await MergedServer.create(0, ['docs'], opts);
+      const docs4 = docs4MergedServer.flexServer;
+      await docs4MergedServer.run();
 
       servers = {home, docs1, docs2, docs3, docs4};
       workers = getDocWorkerMap();

@@ -1,7 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
-import {DocCreationInfo} from 'app/common/DocListAPI';
 import {commonUrls, encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
@@ -38,7 +37,6 @@ import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
@@ -47,13 +45,11 @@ import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
-import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
-import {getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
@@ -185,7 +181,7 @@ export class FlexServer implements GristServer {
   private _getSignUpRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
-  private _getLoginSystem?: () => Promise<GristLoginSystem>;
+  private _getLoginSystem: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
   private _updateManager: UpdateManager;
@@ -193,6 +189,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
+    this._getLoginSystem = create.getLoginSystem;
     this.settings = options.settings;
     this.app = express();
     this.app.set('port', port);
@@ -250,7 +247,6 @@ export class FlexServer implements GristServer {
       recentItems: [],
     };
     this.electronServerMethods = {
-      async importDoc() { throw new Error('not implemented'); },
       onDocOpen(cb) {
         // currently only a stub.
         cb('');
@@ -270,11 +266,6 @@ export class FlexServer implements GristServer {
       (req as RequestWithGrist).gristServer = this;
       next();
     });
-  }
-
-  // Allow overridding the login system.
-  public setLoginSystem(loginSystem: () => Promise<GristLoginSystem>) {
-    this._getLoginSystem = loginSystem;
   }
 
   public getHost(): string {
@@ -403,6 +394,11 @@ export class FlexServer implements GristServer {
   public getAuditLogger(): IAuditLogger {
     if (!this._auditLogger) { throw new Error('no audit logger available'); }
     return this._auditLogger;
+  }
+
+  public getDocManager(): DocManager {
+    if (!this._docManager) { throw new Error('no document manager available'); }
+    return this._docManager;
   }
 
   public getTelemetry(): ITelemetry {
@@ -1341,12 +1337,15 @@ export class FlexServer implements GristServer {
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
-      const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, this._disableExternalStorage, workers,
-                                                      this._dbManager, this.create);
+      const storageManager = await this.create.createHostedDocStorageManager(
+        this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager, this.create.ExternalStorage
+      );
       this._storageManager = storageManager;
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
-      const storageManager = new DocStorageManager(this.docsRoot, samples, this._comm, this);
+      const storageManager = await this.create.createLocalDocStorageManager(
+        this.docsRoot, samples, this._comm, this.create.Shell?.()
+      );
       this._storageManager = storageManager;
     }
 
@@ -2012,8 +2011,7 @@ export class FlexServer implements GristServer {
 
   public resolveLoginSystem() {
     return isTestLoginAllowed() ?
-      getTestLoginSystem() :
-      (this._getLoginSystem?.() || getLoginSystem());
+      getTestLoginSystem() : this._getLoginSystem();
   }
 
   public addUpdatesCheck() {
@@ -2609,7 +2607,6 @@ function noCaching(req: express.Request, res: express.Response, next: express.Ne
 
 // Methods that Electron app relies on.
 export interface ElectronServerMethods {
-  importDoc(filepath: string): Promise<DocCreationInfo>;
   onDocOpen(cb: (filePath: string) => void): void;
   getUserConfig(): Promise<any>;
   updateUserConfig(obj: any): Promise<void>;

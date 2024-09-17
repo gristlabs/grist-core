@@ -12,9 +12,14 @@ import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {DocSnapshotInventory, DocSnapshotPruner} from 'app/server/lib/DocSnapshots';
 import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {ChecksummedExternalStorage, DELETED_TOKEN, ExternalStorage, Unchanged} from 'app/server/lib/ExternalStorage';
+import {
+  ChecksummedExternalStorage,
+  DELETED_TOKEN,
+  ExternalStorage,
+  ExternalStorageCreator, ExternalStorageSettings,
+  Unchanged
+} from 'app/server/lib/ExternalStorage';
 import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
-import {ICreate} from 'app/server/lib/ICreate';
 import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
@@ -51,11 +56,6 @@ export interface HostedStorageOptions {
   secondsBeforePush: number;
   secondsBeforeFirstRetry: number;
   pushDocUpdateTimes: boolean;
-  // A function returning the core ExternalStorage implementation,
-  // which may then be wrapped in additional layer(s) of ExternalStorage.
-  // See ICreate.ExternalStorage.
-  // Uses S3 by default in hosted Grist.
-  externalStorageCreator?: (purpose: 'doc'|'meta') => ExternalStorage;
 }
 
 const defaultOptions: HostedStorageOptions = {
@@ -134,10 +134,10 @@ export class HostedStorageManager implements IDocStorageManager {
     private _disableS3: boolean,
     private _docWorkerMap: IDocWorkerMap,
     dbManager: HomeDBManager,
-    create: ICreate,
+    createExternalStorage: ExternalStorageCreator,
     options: HostedStorageOptions = defaultOptions
   ) {
-    const creator = options.externalStorageCreator || ((purpose) => create.ExternalStorage(purpose, ''));
+    const creator = ((purpose: ExternalStorageSettings['purpose']) => createExternalStorage(purpose, ''));
     // We store documents either in a test store, or in an s3 store
     // at s3://<s3Bucket>/<s3Prefix><docId>.grist
     const externalStoreDoc = this._disableS3 ? undefined : creator('doc');
