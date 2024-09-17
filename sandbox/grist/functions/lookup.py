@@ -26,15 +26,17 @@ def COLUMNS(range):
   """Returns the number of columns in a specified array or range."""
   raise NotImplementedError()
 
-def FLATTEN_RECORDS_LIST(list_of_tables, dedup=False):
+def FLATTEN_RECORDS_LIST(list_of_records, dedup=False):
     """Returns a flat list of records"""
-    # TODO add support for more than level 2 nesting
-    # Maybe by recursing while list_or_table is a list of list
-    # Maybe it's a good idea to put a max level of dive
-    if type(list_of_tables) is not list:
-        raise TypeError("Unexpected Argument, waiting of a list of tables")
-    flatten_record_list = [ el for val in list_of_tables for el in val]
-    return set(flatten_record_list) if dedup else flatten_record_list
+    if type(list_of_records) is not list:
+        raise TypeError("Unexpected Argument, waiting of a list of Records")
+    if len(list_of_records) == 0:
+        return list_of_records
+    flatten_list = [el for val in list_of_records for el in val]
+    el_type = {el.__class__.__name__ for el in flatten_list}
+    if list(el_type)[0] != 'Record':
+        return FLATTEN_RECORDS_LIST(flatten_list, dedup)
+    return set(flatten_list) if dedup else flatten_list
 
 @unimplemented
 def GETPIVOTDATA(value_name, any_pivot_table_cell, original_column_1, pivot_item_1=None, *args):
