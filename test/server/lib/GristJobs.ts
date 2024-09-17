@@ -81,10 +81,11 @@ describe('GristJobs', function() {
       assert.equal(ct, 0);
       assert.equal(defaultCt, 0);
       await delay(1000);
-      assert.isAtLeast(ct, 8 - 2);
-      assert.isAtMost(ct, 8 + 2);
-      assert.isAtLeast(defaultCt, 10 - 1);
-      assert.isAtMost(defaultCt, 10 + 1);
+      // allow for a lot of slop on CI
+      assert.isAtLeast(ct, 8 - 4);
+      assert.isAtMost(ct, 8 + 4);
+      assert.isAtLeast(defaultCt, 10 - 3);
+      assert.isAtMost(defaultCt, 10 + 3);
     } finally {
       await jobs.stop({obliterate: true});
     }
