@@ -97,8 +97,8 @@ export async function main() {
       process.env.APP_HOME_URL = `http://localhost:${port}`;
     }
     const mergedServer = await MergedServer.create(port, ["home", "docs", "static"]);
-    await mergedServer.flexServer.addTestingHooks();
     await mergedServer.run();
+    await mergedServer.flexServer.addTestingHooks();
     return;
   }
 
@@ -149,7 +149,9 @@ export async function main() {
   }
   const workers = new Array<FlexServer>();
   for (const port of ports) {
-    workers.push((await MergedServer.create(port, ["docs"])).flexServer);
+    const mergedServer = await MergedServer.create(port, ["docs"]);
+    workers.push(mergedServer.flexServer);
+    await mergedServer.run();
   }
 
   await homeServer.flexServer.addTestingHooks(workers);

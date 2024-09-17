@@ -245,4 +245,3 @@ const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = async 
 const createDefaultLocalStorageManager: LocalDocStorageManagerCreator = async (
   docsRoot, samplesRoot, comm, shell
 ) => new DocStorageManager(docsRoot, samplesRoot, comm, shell);
-

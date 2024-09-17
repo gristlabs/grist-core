@@ -55,4 +55,3 @@ export class ImportProgress extends Disposable {
     this._progressUI.setProgress(100 * progress);
   }
 }
-

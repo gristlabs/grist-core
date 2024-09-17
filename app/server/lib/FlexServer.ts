@@ -1295,6 +1295,7 @@ export class FlexServer implements GristServer {
   }
 
   public async addTestingHooks(workerServers?: FlexServer[]) {
+    this._check('testinghooks', 'comm');
     if (process.env.GRIST_TESTING_SOCKET) {
       await startTestingHooks(process.env.GRIST_TESTING_SOCKET, this.port, this._comm, this,
                               workerServers || []);
