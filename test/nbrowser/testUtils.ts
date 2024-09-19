@@ -92,6 +92,7 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
 
 interface TestSuiteOptions {
   samples?: boolean;
+  tutorial?: boolean;
   team?: boolean;
 
   // If set, clear user preferences for all test users at the end of the suite. It should be used
@@ -268,10 +269,11 @@ export function setupCleanup() {
  */
 export function setupRequirement(options: TestSuiteOptions) {
   const cleanup = setupCleanup();
-  if (options.samples) {
+  const {samples, tutorial} = options;
+  if (samples || tutorial) {
     if (process.env.TEST_ADD_SAMPLES || !server.isExternalServer()) {
       gu.shareSupportWorkspaceForSuite(); // TODO: Remove after the support workspace is removed from the backend.
-      gu.addSamplesForSuite();
+      gu.addSamplesForSuite(tutorial);
     }
   }
 

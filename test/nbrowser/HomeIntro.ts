@@ -9,8 +9,12 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('HomeIntro', function() {
   this.timeout(40000);
-  setupTestSuite({samples: true});
-  gu.withEnvironmentSnapshot({'GRIST_TEMPLATE_ORG': 'templates'});
+  setupTestSuite({samples: true, tutorial: true});
+  gu.withEnvironmentSnapshot({
+    'GRIST_UI_FEATURES': 'templates,tutorials',
+    'GRIST_TEMPLATE_ORG': 'templates',
+    'GRIST_ONBOARDING_TUTORIAL_DOC_ID': 'grist-basics',
+  });
 
   describe("Anonymous on merged-org", function() {
     it('should show welcome for anonymous user', async function() {
@@ -94,7 +98,7 @@ describe('HomeIntro', function() {
 
     assert.isTrue(await driver.find('.test-intro-cards').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-video-tour').isDisplayed());
-    assert.isFalse(await driver.find('.test-intro-tutorial').isDisplayed());
+    assert.isTrue(await driver.find('.test-intro-tutorial').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-create-doc').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-import-doc').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-templates').isDisplayed());
@@ -276,6 +280,7 @@ async function testEmptyWorkspace(options = { buttons: false }) {
   // Check that we don't see empty info.
   await driver.navigate().back();
   await gu.waitForDocMenuToLoad();
+  await gu.dismissBehavioralPrompts();
   assert.equal(await driver.find('.test-empty-workspace-info').isPresent(), false);
   // Remove created document, it also checks that document is visible.
   await deleteFirstDoc();

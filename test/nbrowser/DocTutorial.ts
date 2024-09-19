@@ -1,45 +1,32 @@
-import {DocCreationInfo} from 'app/common/DocListAPI';
 import {UserAPI} from 'app/common/UserAPI';
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('DocTutorial', function () {
   this.timeout(60000);
 
   gu.bigScreen();
 
-  let doc: DocCreationInfo;
   let api: UserAPI;
   let ownerSession: gu.Session;
   let editorSession: gu.Session;
   let viewerSession: gu.Session;
-  let oldEnv: EnvironmentSnapshot;
 
-  const cleanup = setupTestSuite({samples: true, team: true});
+  setupTestSuite({samples: true, tutorial: true, team: true});
+
+  gu.withEnvironmentSnapshot({
+    'GRIST_UI_FEATURES': 'tutorials',
+    'GRIST_TEMPLATE_ORG': 'templates',
+    'GRIST_ONBOARDING_TUTORIAL_DOC_ID': 'grist-basics',
+  });
 
   before(async () => {
     ownerSession = await gu.session().customTeamSite('templates').user('support').login();
-    doc = await ownerSession.tempDoc(cleanup, 'DocTutorial.grist', {load: false});
-    oldEnv = new EnvironmentSnapshot();
-    process.env.GRIST_UI_FEATURES = 'tutorials';
-    process.env.GRIST_TEMPLATE_ORG = 'templates';
-    process.env.GRIST_ONBOARDING_TUTORIAL_DOC_ID = doc.id;
-    await server.restart();
-
     api = ownerSession.createHomeApi();
-    await api.updateDoc(doc.id, {type: 'tutorial'});
-    await api.updateDocPermissions(doc.id, {users: {
-      'anon@getgrist.com': 'viewers',
-      'everyone@getgrist.com': 'viewers',
+    await api.updateDocPermissions('grist-basics', {users: {
       [gu.translateUser('user1').email]: 'editors',
     }});
-  });
-
-  after(async function () {
-    oldEnv.restore();
-    await server.restart();
   });
 
   describe('when logged out', function () {
@@ -93,15 +80,14 @@ describe('DocTutorial', function () {
 
     it('shows a popup containing slides generated from the GristDocTutorial table', async function() {
       assert.isTrue(await driver.findWait('.test-doc-tutorial-popup', 2000).isDisplayed());
-      assert.equal(await driver.find('.test-floating-popup-header').getText(), 'DocTutorial');
+      assert.equal(await driver.find('.test-floating-popup-header').getText(), 'Grist Basics');
       assert.equal(
         await driver.findWait('.test-doc-tutorial-popup h1', 2000).getText(),
         'Intro'
       );
-      assert.equal(
-        await driver.find('.test-doc-tutorial-popup p').getText(),
-        'Welcome to the Grist Basics tutorial. We will cover the most important Grist '
-          + 'concepts and features. Let’s get started.'
+      assert.match(
+        await driver.find('.test-doc-tutorial-popup').getText(),
+        /Welcome to the Grist Basics tutorial/
       );
     });
 
@@ -260,7 +246,7 @@ describe('DocTutorial', function () {
 
     it('does not show the GristDocTutorial page or table to non-editors', async function() {
       viewerSession = await gu.session().customTeamSite('templates').user('user2').login();
-      await viewerSession.loadDoc(`/doc/${doc.id}`);
+      await viewerSession.loadDoc(`/doc/grist-basics`);
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2']);
       await driver.find('.test-tools-raw').click();
       await driver.findWait('.test-raw-data-list', 1000);
@@ -279,7 +265,7 @@ describe('DocTutorial', function () {
     it('only allows users access to their own forks', async function() {
       await driver.navigate().to(forkUrl);
       assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
-      await viewerSession.loadDoc(`/doc/${doc.id}`);
+      await viewerSession.loadDoc(`/doc/grist-basics`);
       let otherForkUrl: string;
       await driver.wait(async () => {
         otherForkUrl = await driver.getCurrentUrl();
@@ -303,8 +289,8 @@ describe('DocTutorial', function () {
       );
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1 + p').getText(),
-        'On the left-side panel is a list of pages which are views of your data. Right'
-          + ' now, there are two pages, Page 1 and Page 2. You are looking at Page 1.'
+        'On the left-side panel is a list of pages, which are views of your data. ' +
+          'Right now, there are two pages: Page 1 and Page 2. You are looking at Page 1.'
       );
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-next').isDisplayed());
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-previous').isDisplayed());
@@ -314,10 +300,9 @@ describe('DocTutorial', function () {
         await driver.find('.test-doc-tutorial-popup h1').getText(),
         'Intro'
       );
-      assert.equal(
-        await driver.find('.test-doc-tutorial-popup p').getText(),
-        'Welcome to the Grist Basics tutorial. We will cover the most important Grist '
-          + 'concepts and features. Let’s get started.'
+      assert.match(
+        await driver.find('.test-doc-tutorial-popup').getText(),
+        /Welcome to the Grist Basics tutorial/
       );
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-next').isDisplayed());
       assert.isFalse(await driver.find('.test-doc-tutorial-popup-previous').isDisplayed());
@@ -339,8 +324,7 @@ describe('DocTutorial', function () {
       );
       assert.equal(
         await driver.find('.test-doc-tutorial-popup p').getText(),
-        "You can add new columns to your table by clicking the ‘+’ icon"
-          + ' to the far right of your column headers.'
+        "Let's start with the basics of working with spreadsheet data — columns and rows."
       );
 
       const slide1 = await driver.find('.test-doc-tutorial-popup-slide-1');
@@ -355,10 +339,9 @@ describe('DocTutorial', function () {
         await driver.find('.test-doc-tutorial-popup h1').getText(),
         'Intro'
       );
-      assert.equal(
-        await driver.find('.test-doc-tutorial-popup p').getText(),
-        'Welcome to the Grist Basics tutorial. We will cover the most important Grist '
-          + 'concepts and features. Let’s get started.'
+      assert.match(
+        await driver.find('.test-doc-tutorial-popup').getText(),
+        /Welcome to the Grist Basics tutorial/
       );
     });
 
@@ -367,7 +350,7 @@ describe('DocTutorial', function () {
       assert.isTrue(await driver.find('.test-doc-tutorial-lightbox').isDisplayed());
       assert.equal(
         await driver.find('.test-doc-tutorial-lightbox-image').getAttribute('src'),
-        'https://www.getgrist.com/wp-content/uploads/2023/03/Row-1-Intro.png'
+        'https://www.getgrist.com/wp-content/uploads/2023/11/Row-1-Intro.png'
       );
       await driver.find('.test-doc-tutorial-lightbox-close').click();
       assert.isFalse(await driver.find('.test-doc-tutorial-lightbox').isPresent());
@@ -421,8 +404,7 @@ describe('DocTutorial', function () {
       );
       assert.equal(
         await driver.find('.test-doc-tutorial-popup p').getText(),
-        "You can add new columns to your table by clicking the ‘+’ icon"
-          + ' to the far right of your column headers.'
+        "Let's start with the basics of working with spreadsheet data — columns and rows."
       );
     });
 
@@ -431,7 +413,7 @@ describe('DocTutorial', function () {
       await gu.getCell(0, 1).click();
       await gu.sendKeys('Redacted', Key.ENTER);
       await gu.waitForServer();
-      await editorSession.loadDoc(`/doc/${doc.id}`);
+      await editorSession.loadDoc(`/doc/grist-basics`);
       let currentUrl: string;
       await driver.wait(async () => {
         currentUrl = await driver.getCurrentUrl();
@@ -455,7 +437,7 @@ describe('DocTutorial', function () {
 
     it('skips starting or resuming a tutorial if the open mode is set to default', async function() {
       ownerSession = await gu.session().customTeamSite('templates').user('support').login();
-      await ownerSession.loadDoc(`/doc/${doc.id}/m/default`);
+      await ownerSession.loadDoc(`/doc/grist-basics/m/default`);
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial']);
       await driver.find('.test-tools-raw').click();
       await gu.waitForServer();
@@ -492,10 +474,9 @@ describe('DocTutorial', function () {
         await driver.findWait('.test-doc-tutorial-popup h1', 2000).getText(),
         'Intro'
       );
-      assert.equal(
-        await driver.find('.test-doc-tutorial-popup p').getText(),
-        'Welcome to the Grist Basics tutorial. We will cover the most important Grist '
-          + 'concepts and features. Let’s get started.'
+      assert.match(
+        await driver.find('.test-doc-tutorial-popup').getText(),
+        /Welcome to the Grist Basics tutorial/
       );
 
       // Check that edits were reset.
@@ -509,7 +490,7 @@ describe('DocTutorial', function () {
 
     it('allows owners to replace original', async function() {
       ownerSession = await gu.session().customTeamSite('templates').user('support').login();
-      await ownerSession.loadDoc(`/doc/${doc.id}`);
+      await ownerSession.loadDoc(`/doc/grist-basics`);
 
       // Make an edit to one of the tutorial slides.
       await gu.openPage('GristDocTutorial');
@@ -537,7 +518,7 @@ describe('DocTutorial', function () {
 
       // Switch to another user and restart the tutorial.
       viewerSession = await gu.session().customTeamSite('templates').user('user2').login();
-      await viewerSession.loadDoc(`/doc/${doc.id}`);
+      await viewerSession.loadDoc(`/doc/grist-basics`);
       await driver.findWait('.test-doc-tutorial-popup-restart', 2000).click();
       await driver.find('.test-modal-confirm').click();
       await gu.waitForServer();
@@ -553,7 +534,7 @@ describe('DocTutorial', function () {
     it('redirects to the last visited site when finished', async function() {
       const otherSiteSession = await gu.session().personalSite.user('user1').addLogin();
       await otherSiteSession.loadDocMenu('/');
-      await ownerSession.loadDoc(`/doc/${doc.id}`);
+      await ownerSession.loadDoc(`/doc/grist-basics`);
       await driver.findWait('.test-doc-tutorial-popup-slide-13', 2000).click();
       await driver.find('.test-doc-tutorial-popup-next').click();
       await gu.waitForDocMenuToLoad();
@@ -572,9 +553,9 @@ describe('DocTutorial', function () {
 
   describe('without tutorial flag set', function () {
     before(async () => {
-      await api.updateDoc(doc.id, {type: null});
+      await api.updateDoc('grist-basics', {type: null});
       ownerSession = await gu.session().customTeamSite('templates').user('support').login();
-      await ownerSession.loadDoc(`/doc/${doc.id}`);
+      await ownerSession.loadDoc(`/doc/grist-basics`);
     });
 
     afterEach(() => gu.checkForErrors());
@@ -584,10 +565,9 @@ describe('DocTutorial', function () {
         ['Page 1', 'Page 2', 'GristDocTutorial', 'Table1']);
       await gu.openPage('GristDocTutorial');
       assert.deepEqual(
-        await gu.getVisibleGridCells({cols: [1, 2], rowNums: [1]}),
+        await gu.getVisibleGridCells({cols: [1], rowNums: [1]}),
         [
           '# Intro\n\nWelcome to the Grist Basics tutorial V2.',
-          '',
         ]
       );
       await driver.find('.test-tools-raw').click();

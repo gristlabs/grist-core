@@ -4,7 +4,7 @@ import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('BehavioralPrompts', function() {
   this.timeout(20000);
-  const cleanup = setupTestSuite();
+  const cleanup = setupTestSuite({tutorial: true});
 
   let session: gu.Session;
   let docId: string;
@@ -228,16 +228,19 @@ describe('BehavioralPrompts', function() {
   });
 
   describe('when in a tutorial', function() {
-    gu.withEnvironmentSnapshot({'GRIST_UI_FEATURES': 'tutorials'});
+    gu.withEnvironmentSnapshot({
+      'GRIST_UI_FEATURES': 'tutorials',
+      'GRIST_TEMPLATE_ORG': 'templates',
+      'GRIST_ONBOARDING_TUTORIAL_DOC_ID': 'grist-basics',
+    });
 
     before(async () => {
       const tutorialSession = await gu.session().user('user3').login({
         showTips: true,
       });
-      const doc = await tutorialSession.tempDoc(cleanup, 'DocTutorial.grist', {load: false});
-      const api = tutorialSession.createHomeApi();
-      await api.updateDoc(doc.id, {type: 'tutorial'});
-      await tutorialSession.loadDoc(`/doc/${doc.id}`);
+      await tutorialSession.loadDocMenu('/');
+      await driver.find('.test-dm-basic-tutorial').click();
+      await gu.waitForDocToLoad();
     });
 
     it('should not be shown', async function() {

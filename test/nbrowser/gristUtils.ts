@@ -2667,7 +2667,7 @@ export async function addSupportUserIfPossible() {
 /**
  * Adds samples to the Examples & Templates page.
  */
-async function addSamples() {
+async function addSamples(includeTutorial: boolean) {
   await addSupportUserIfPossible();
   const homeApi = createHomeApi('support', 'docs');
 
@@ -2734,6 +2734,27 @@ async function addSamples() {
       'anon@getgrist.com': 'viewers',
     }});
   }
+
+  if (includeTutorial) {
+    await templatesApi.newWorkspace({name: 'Tutorials'}, 'current');
+    const tutorialDocId = (await importFixturesDoc('support', 'templates', 'Tutorials',
+      'Grist Basics.grist', {load: false, newName: 'Grist Basics.grist'})).id;
+    await templatesApi.updateDoc(
+      tutorialDocId,
+      {
+        type: 'tutorial',
+        options: {
+          description: 'Learn Grist fast with a hands-on tutorial that covers the basics.',
+          icon: 'https://grist-static.com/icons/grist-basics.png',
+        },
+        urlId: 'grist-basics',
+      },
+    );
+    await homeApi.updateDocPermissions(tutorialDocId, {users: {
+      'everyone@getgrist.com': 'viewers',
+      'anon@getgrist.com': 'viewers',
+    }});
+  }
 }
 
 /**
@@ -2749,9 +2770,9 @@ function removeTemplatesOrg() {
  * "Examples & Templates" page in before(), and remove added samples
  * in after().
  */
-export function addSamplesForSuite() {
+export function addSamplesForSuite(includeTutorial = false) {
   before(async function() {
-    await addSamples();
+    await addSamples(includeTutorial);
   });
 
   after(async function() {
