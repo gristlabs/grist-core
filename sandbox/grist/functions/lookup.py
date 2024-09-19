@@ -36,7 +36,7 @@ def FLATTEN_RECORDS_LIST(list_of_records, dedup=False):
     el_type = {el.__class__.__name__ for el in flatten_list}
     if list(el_type)[0] != 'Record':
         return FLATTEN_RECORDS_LIST(flatten_list, dedup)
-    return set(flatten_list) if dedup else flatten_list
+    return list(set(flatten_list)) if dedup else flatten_list
 
 @unimplemented
 def GETPIVOTDATA(value_name, any_pivot_table_cell, original_column_1, pivot_item_1=None, *args):
