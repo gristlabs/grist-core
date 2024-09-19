@@ -34,17 +34,18 @@ export function buildNameConfig(
   const saveColId = (val: string) => origColumn.colId.saveOnly(val.startsWith('$') ? val.slice(1) : val);
 
   const isSummaryTable = Computed.create(owner, use => Boolean(use(use(origColumn.table).summarySourceTable)));
-  // We will listen to cursor position and force a blur event on
-  // the text input, which will trigger save before the column observable
+  // We will listen to cursor position and force a blur event on both the id and
+  // the label inputs, which will trigger save before the column observable
   // will change its value.
   // Otherwise, blur will be invoked after column change and save handler will
   // update a different column.
-  let editor: HTMLInputElement | undefined;
+  const editors: HTMLInputElement[] = [];
   owner.autoDispose(
    cursor.subscribe(() => {
-     editor?.blur();
+     editors.forEach(e => e.blur());
    })
   );
+  const setEditor = (id: number) => (el: HTMLInputElement) => { editors[id] = el; };
 
   const toggleUntieColId = () => {
     if (!origColumn.disableModify.peek() && !disabled.peek()) {
@@ -57,11 +58,12 @@ export function buildNameConfig(
     cssRow(
       dom.cls(cssBlockedCursor.className, origColumn.disableModify),
       cssColLabelBlock(
-        editor = cssInput(fromKo(origColumn.label),
+        cssInput(fromKo(origColumn.label),
           async val => { await origColumn.label.saveOnly(val); editedLabel.set(''); },
           dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
           dom.boolAttr('readonly', use => use(origColumn.disableModify) || use(disabled)),
           testId('field-label'),
+          setEditor(0),
         ),
         cssInput(editableColId,
           saveColId,
@@ -70,6 +72,7 @@ export function buildNameConfig(
           cssCodeBlock.cls(''),
           {style: 'margin-top: 8px'},
           testId('field-col-id'),
+          setEditor(1),
         ),
       ),
       cssColTieBlock(

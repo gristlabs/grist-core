@@ -15,6 +15,38 @@ describe('GridViewBugs', function() {
     api = session.createHomeApi();
   });
 
+  it('should rename valid column when clicked away', async function() {
+    await gu.openColumnPanel('A');
+
+    // Rename column A to Dummy
+    await toggleDerived();
+    await colId().click();
+    await gu.clearInput();
+    await colId().sendKeys('$Dummy');
+
+    // Now click away, it used to rename the new column to Dummy
+    await gu.getCell('B', 1).click();
+    await gu.waitForServer();
+
+    // Now make sure that column A was renamed to $Dummy
+    await gu.getCell('A', 1).click();
+    assert.equal(await colId().value(), '$Dummy');
+
+    // And that column B is still named $B.
+    await gu.getCell('B', 1).click();
+    assert.equal(await colId().value(), '$B');
+    await gu.undo();
+
+    async function toggleDerived() {
+      await driver.find(".test-field-derive-id").click();
+      await gu.waitForServer();
+    }
+
+    function colId() {
+      return driver.find('.test-field-col-id');
+    }
+  });
+
   // This test is for a bug where hiding multiple columns at once would cause an error in the menu.
   // Selection wasn't updated and the column index was out of bounds.
   it('should hide multiple columns without an error', async function() {
