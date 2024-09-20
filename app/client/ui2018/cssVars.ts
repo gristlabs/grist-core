@@ -895,6 +895,13 @@ export const theme = {
     undefined, colors.slate),
   widgetGallerySecondaryHeaderBgHover: new CustomProp(
     'theme-widget-gallery-secondary-header-bg-hover', undefined, '#7E7E85'),
+
+  /* Markdown Cell */
+  markdownCellLightBg: new CustomProp('theme-markdown-cell-light-bg', undefined, colors.lightGrey),
+  markdownCellLightBorder: new CustomProp('theme-markdown-cell-light-border', undefined,
+    colors.mediumGreyOpaque),
+  markdownCellMediumBorder: new CustomProp('theme-markdown-cell-medium-border', undefined,
+    colors.darkGrey),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

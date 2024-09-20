@@ -23,6 +23,7 @@ export type IconName = "ChartArea" |
   "FieldFunctionEqual" |
   "FieldInteger" |
   "FieldLink" |
+  "FieldMarkdown" |
   "FieldNumeric" |
   "FieldReference" |
   "FieldSpinner" |
@@ -185,6 +186,7 @@ export const IconList: IconName[] = ["ChartArea",
   "FieldFunctionEqual",
   "FieldInteger",
   "FieldLink",
+  "FieldMarkdown",
   "FieldNumeric",
   "FieldReference",
   "FieldSpinner",

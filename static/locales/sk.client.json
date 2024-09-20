@@ -1309,7 +1309,9 @@
         "unknown": "neznáme",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podpisuje súbory cookie relácie používateľa tajným kľúčom. Nastavte tento kľúč prostredníctvom premennej prostredia GRIST_SESSION_SECRET. Grist sa vráti späť na pevne zakódované predvolené nastavenie, keď nie je nastavené. Toto upozornenie môžeme v budúcnosti odstrániť, pretože ID relácie generované od verzie 1.1.16 sú vo svojej podstate kryptograficky bezpečné.",
         "Key to sign sessions with": "Kľúč na podpisovanie relácií",
-        "Session Secret": "Tajomstvo Relácie"
+        "Session Secret": "Tajomstvo Relácie",
+        "Enable Grist Enterprise": "Povoliť Grist Enterprise",
+        "Enterprise": "Enterprise"
     },
     "TimingPage": {
         "Table ID": "ID Tabuľky",
@@ -1666,5 +1668,18 @@
         "Type here": "Zadať sem",
         "Your organization": "Vaša organizácia",
         "Your role": "Vaša úloha"
+    },
+    "ToggleEnterpriseWidget": {
+        "Disable Grist Enterprise": "Zakázať Grist Enterprise",
+        "Enable Grist Enterprise": "Povoliť Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Grist Enterprise je **povolený**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivačný kľúč sa používa na spustenie Grist Enterprise po uplynutí skúšobnej\ndoby 30 dní. Získajte aktivačný kľúč [registráciou pre Grist\nPodnik]({{signupLink}}). Na spustenie nepotrebujete aktivačný kľúč\nGrist Core.\n\nZistite viac v našom [Help Center] ({{helpCenter}})."
+    },
+    "ViewLayout": {
+        "Delete": "Odstrániť",
+        "Delete data and this widget.": "Odstrániť dáta a tento widget.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Uchovať údaje a odstrániť widget. Tabuľka zostane dostupná v {{rawDataLink}}",
+        "raw data page": "stránka nespracovaných údajov",
+        "Table {{tableName}} will no longer be visible": "Tabuľka {{tableName}} nebude dlho viditeľná"
     }
 }

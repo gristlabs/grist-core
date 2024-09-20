@@ -45,11 +45,16 @@ export async function updateDb(connection?: Connection) {
   await synchronizeProducts(connection, true);
 }
 
+export function getConnectionName() {
+  return process.env.TYPEORM_NAME || 'default';
+}
+
 /**
  * Get a connection to db if one exists, or create one. Serialized to
  * avoid duplication.
  */
 const connectionMutex = new Mutex();
+
 export async function getOrCreateConnection(): Promise<Connection> {
   return connectionMutex.runExclusive(async() => {
     try {
@@ -85,9 +90,7 @@ export async function runMigrations(connection: Connection) {
   // transaction, or it has no effect.
   const sqlite = connection.driver.options.type === 'sqlite';
   if (sqlite) { await connection.query("PRAGMA foreign_keys = OFF;"); }
-  await connection.transaction(async tr => {
-    await tr.connection.runMigrations();
-  });
+  await connection.runMigrations({ transaction: "all" });
   if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
 }
 
@@ -103,7 +106,7 @@ export async function undoLastMigration(connection: Connection) {
 // Replace the old janky ormconfig.js file, which was always a source of
 // pain to use since it wasn't properly integrated into the typescript
 // project.
-export function getTypeORMSettings(): DataSourceOptions {
+export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): DataSourceOptions {
   // If we have a redis server available, tell typeorm.  Then any queries built with
   // .cache() called on them will be cached via redis.
   // We use a separate environment variable for the moment so that we don't have to
@@ -120,7 +123,7 @@ export function getTypeORMSettings(): DataSourceOptions {
   } : undefined;
 
   return {
-    "name": process.env.TYPEORM_NAME || "default",
+    "name": getConnectionName(),
     "type": (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
                                                    // but if we use that, this file will never
                                                    // be read, and we can't configure
@@ -144,5 +147,6 @@ export function getTypeORMSettings(): DataSourceOptions {
     ],
     ...JSON.parse(process.env.TYPEORM_EXTRA || "{}"),
     ...cache,
+    ...overrideConf,
   };
 }

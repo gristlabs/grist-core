@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 42
+SCHEMA_VERSION = 43
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -87,6 +87,10 @@ def schema_create_actions():
       make_column("visibleCol",       "Ref:_grist_Tables_column"),
       # Points to formula columns that hold conditional formatting rules.
       make_column("rules",       "RefList:_grist_Tables_column"),
+
+      # For Ref/RefList columns only, points to the corresponding reverse reference column.
+      # This column will get automatically set to reverse of the references in reverseCol.
+      make_column("reverseCol",       "Ref:_grist_Tables_column"),
 
       # Instructions when to recalculate the formula on a column with isFormula=False (previously
       # known as a "default formula"). Values are RecalcWhen constants defined below.
@@ -379,17 +383,25 @@ class RecalcWhen(object):
 # These are little structs to represent the document schema that's used in code generation.
 # Schema itself (as stored by Engine) is an OrderedDict(tableId -> SchemaTable), with
 # SchemaTable.columns being an OrderedDict(colId -> SchemaColumn).
+# Note: reverseColId produces types like grist.ReferenceList("Table", reverse_of="ColId")
+# used for two-way references.
 SchemaTable = namedtuple('SchemaTable', ('tableId', 'columns'))
-SchemaColumn = namedtuple('SchemaColumn', ('colId', 'type', 'isFormula', 'formula'))
+SchemaColumn = namedtuple('SchemaColumn', ('colId', 'type', 'isFormula', 'formula', 'reverseColId'))
 
 # Helpers to convert between schema structures and dicts used in schema actions.
 def dict_to_col(col, col_id=None):
   """Convert dict as used in AddColumn/AddTable actions to a SchemaColumn object."""
-  return SchemaColumn(col_id or col["id"], col["type"], bool(col["isFormula"]), col["formula"])
+  return SchemaColumn(col_id or col["id"], col["type"], bool(col["isFormula"]), col["formula"],
+      col.get("reverseColId"))
 
-def col_to_dict(col, include_id=True):
-  """Convert SchemaColumn to dict to use in AddColumn/AddTable actions."""
+def col_to_dict(col, include_id=True, include_default=False):
+  """
+  Convert SchemaColumn to dict to use in AddColumn/AddTable actions.
+  Set include_default=True to include default values explicitly, e.g. override previous values.
+  """
   ret = {"type": col.type, "isFormula": col.isFormula, "formula": col.formula}
+  if col.reverseColId or include_default:
+    ret["reverseColId"] = col.reverseColId
   if include_id:
     ret["id"] = col.colId
   return ret
@@ -405,6 +417,14 @@ def cols_to_dict_list(cols):
 def clone_schema(schema):
   return OrderedDict((t, SchemaTable(s.tableId, s.columns.copy()))
                      for (t, s) in six.iteritems(schema))
+
+def get_reverse_col_id_lookup_func(collist):
+  """
+  Given a list of _grist_Tables_column records, return a function that takes a record and
+  returns its reverseColId.
+  """
+  col_ref_to_col_id = {c.id: c.colId for c in collist}
+  return lambda c: col_ref_to_col_id.get(getattr(c, 'reverseCol', 0))
 
 def build_schema(meta_tables, meta_columns, include_builtin=True):
   """
@@ -425,8 +445,12 @@ def build_schema(meta_tables, meta_columns, include_builtin=True):
                    key=lambda c: (c.parentId, c.parentPos))
   coldict = {t: list(cols) for t, cols in itertools.groupby(collist, lambda r: r.parentId)}
 
+  # Translate reverseCol in metadata to reverseColId in schema structure.
+  reverse_col_id = get_reverse_col_id_lookup_func(collist)
+
   for t in actions.transpose_bulk_action(meta_tables):
-    columns = OrderedDict((c.colId, SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula))
-                          for c in coldict[t.id])
+    columns = OrderedDict(
+        (c.colId, SchemaColumn(c.colId, c.type, bool(c.isFormula), c.formula, reverse_col_id(c)))
+        for c in coldict[t.id])
     schema[t.tableId] = SchemaTable(t.tableId, columns)
   return schema

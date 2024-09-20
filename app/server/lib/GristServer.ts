@@ -9,6 +9,7 @@ import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { Activations } from 'app/gen-server/lib/Activations';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { IAuditLogger } from 'app/server/lib/AuditLogger';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';
@@ -54,6 +55,7 @@ export interface GristServer {
   getInstallAdmin(): InstallAdmin;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
+  getAuditLogger(): IAuditLogger;
   getTelemetry(): ITelemetry;
   hasNotifier(): boolean;
   getNotifier(): INotifier;
@@ -147,6 +149,7 @@ export function createDummyGristServer(): GristServer {
     getInstallAdmin() { throw new Error('no install admin'); },
     getHomeDBManager() { throw new Error('no db'); },
     getStorageManager() { throw new Error('no storage manager'); },
+    getAuditLogger() { return createDummyAuditLogger(); },
     getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
     hasNotifier() { return false; },
@@ -162,6 +165,13 @@ export function createDummyGristServer(): GristServer {
     getBootKey() { return undefined; },
     getSandboxInfo() { return undefined; },
     getInfo(key: string) { return undefined; }
+  };
+}
+
+export function createDummyAuditLogger(): IAuditLogger {
+  return {
+    logEvent() { /* do nothing */ },
+    logEventAsync() { return Promise.resolve(); },
   };
 }
 

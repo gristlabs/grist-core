@@ -18,7 +18,7 @@ import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
-import { UserAction } from 'app/common/DocActions';
+import { DocAction, UserAction } from 'app/common/DocActions';
 import { TestState } from 'app/common/TestState';
 import { Organization as APIOrganization, DocStateComparison,
          UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
@@ -343,6 +343,31 @@ export async function getVisibleGridCells<T>(
 }
 
 /**
+ * Checks if visible section with a grid contains the given data.
+ * Data is in form of:
+ * [0, "ColA", "ColB"]
+ * [1, "Val",  "1"] // cells are strings
+ * [2, "Val2", "2"]
+ */
+export async function assertGridData(section: string, data: any[][]) {
+  // Data is in form of
+  // [0, "ColA", "ColB"]
+  // [1, "Val",  1]
+
+  const rowIndices = data.slice(1).map((row: number[]) => row[0]);
+  const columnNames = data[0].slice(1);
+
+  for(const col of columnNames) {
+    const colIndex = columnNames.indexOf(col) + 1;
+    const colValues = data.slice(1).map((row: string[]) => row[colIndex]);
+    assert.deepEqual(
+      await getVisibleGridCells(col, rowIndices, section),
+      colValues
+    );
+  }
+}
+
+/**
  * Experimental fast version of getVisibleGridCells that reads data directly from browser by
  * invoking javascript code.
  */
@@ -539,7 +564,8 @@ export function getColumnHeader(colOrColOptions: string|IColHeader): WebElementP
 }
 
 export async function getColumnNames() {
-  return (await driver.findAll('.column_name', el => el.getText()))
+  const section = await driver.findWait('.active_section', 4000);
+  return (await section.findAll('.column_name', el => el.getText()))
     .filter(name => name !== '+');
 }
 
@@ -1028,7 +1054,7 @@ export async function waitForLabelInput(): Promise<void> {
 /**
  * Sends UserActions using client api from the browser.
  */
-export async function sendActions(actions: UserAction[]) {
+export async function sendActions(actions: (DocAction|UserAction)[]) {
   await driver.manage().setTimeouts({
     script: 1000 * 2, /* 2 seconds, default is 0.5s */
   });
@@ -1438,6 +1464,13 @@ export async function redo(optCount: number = 1, optTimeout?: number) {
   await waitForServer(optTimeout);
 }
 
+export async function redoAll() {
+  const isActive = () => driver.find('.test-redo').matches('[class*="disabled"]').then((v) => !v);
+  while (await isActive()) {
+    await redo();
+  }
+}
+
 /**
  * Asserts the absence of javascript errors.
  */
@@ -1458,7 +1491,10 @@ export async function openWidgetPanel(tab: 'widget'|'sortAndFilter'|'data' = 'wi
 /**
  * Opens a Creator Panel on Widget/Table settings tab.
  */
- export async function openColumnPanel() {
+ export async function openColumnPanel(col?: string|number) {
+  if (col !== undefined) {
+    await getColumnHeader({col}).click();
+  }
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();
 }
@@ -1746,7 +1782,17 @@ export async function selectAllKey() {
  * Send keys, with support for Key.chord(), similar to driver.sendKeys(). Note that while
  * elem.sendKeys() supports Key.chord(...), driver.sendKeys() does not. This is a replacement.
  */
-export async function sendKeys(...keys: string[]) {
+export async function sendKeys(...keys: string[]): Promise<void>
+/**
+ * Send keys with a pause between each key.
+ */
+export async function sendKeys(interval: number, ...keys: string[]): Promise<void>
+export async function sendKeys(...args: (string|number)[]) {
+  let interval = 0;
+  if (typeof args[0] === 'number') {
+    interval = args.shift() as number;
+  }
+  const keys = args as string[];
   // tslint:disable-next-line:max-line-length
   // Implementation follows the description of WebElement.sendKeys functionality at https://github.com/SeleniumHQ/selenium/blob/2f7727c314f943582f9f1b2a7e4d77ebdd64bdd3/javascript/node/selenium-webdriver/lib/webdriver.js#L2146
   await driver.withActions((a) => {
@@ -1761,19 +1807,19 @@ export async function sendKeys(...keys: string[]) {
         } else {
           a.sendKeys(key);
         }
+        if (interval) {
+          a.pause(interval);
+        }
       }
     }
   });
 }
 
 /**
- * Send keys with a pause between each key.
+ * An default ovveride for sendKeys that sends keys slowly, suitable for formula editor.
  */
-export async function sendKeysSlowly(keys: string[], delayMs = 40) {
-  for (const [i, key] of keys.entries()) {
-    await sendKeys(key);
-    if (i < keys.length - 1) { await driver.sleep(delayMs); }
-  }
+export async function sendKeysSlowly(...keys: string[]) {
+  return await sendKeys(10, ...keys);
 }
 
 /**
@@ -2031,9 +2077,10 @@ export enum TestUserEnum {
   support = 'support',
 }
 export type TestUser = keyof typeof TestUserEnum;     // 'user1' | 'user2' | ...
+export interface UserData { email: string, name: string }
 
 // Get name and email for the given test user.
-export function translateUser(userName: TestUser): {email: string, name: string} {
+export function translateUser(userName: TestUser): UserData {
   if (userName === 'anon') {
     return {email: 'anon@getgrist.com', name: 'Anonymous'};
   }
@@ -2102,8 +2149,11 @@ export class Session {
   }
 
   // Return a session configured for the current session's site but a different user.
-  public user(userName: TestUser = 'user1') {
-    return new Session({...this.settings, ...translateUser(userName)});
+  public user(userName?: TestUser): Session
+  public user(user: UserData): Session
+  public user(arg: TestUser|UserData = 'user1') {
+    const data = typeof arg === 'string' ? translateUser(arg) : arg;
+    return new Session({...this.settings, ...data});
   }
 
   // Return a session configured for the current session's site and anonymous access.

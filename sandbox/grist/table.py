@@ -229,6 +229,10 @@ class Table(object):
     # Set of ReferenceColumn objects that refer to this table
     self._back_references = set()
 
+    # Maps the depend.Node of the source column (possibly in a different table) to column(s) in
+    # this table that have that source column as reverseColRef: {Node: [Column, ...]}.
+    self._reverse_cols_by_source_node = {}
+
     # Store the constant Node for "new columns". Accessing invalid columns creates a dependency
     # on this node, and triggers recomputation when columns are added or renamed.
     self._new_columns_node = depend.Node(self.table_id, None)

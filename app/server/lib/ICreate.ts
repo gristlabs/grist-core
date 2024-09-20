@@ -1,9 +1,11 @@
 import {GristDeploymentType} from 'app/common/gristUrls';
+import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {ExternalStorage} from 'app/server/lib/ExternalStorage';
-import {createDummyTelemetry, GristServer} from 'app/server/lib/GristServer';
+import {IAuditLogger} from 'app/server/lib/AuditLogger';
+import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
+import {createDummyAuditLogger, createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -12,6 +14,11 @@ import {IShell} from 'app/server/lib/IShell';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
+import {IDocStorageManager} from './IDocStorageManager';
+import { Comm } from "./Comm";
+import { IDocWorkerMap } from "./DocWorkerMap";
+import { HostedStorageManager, HostedStorageOptions } from "./HostedStorageManager";
+import { DocStorageManager } from "./DocStorageManager";
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -36,19 +43,36 @@ import {ITelemetry} from 'app/server/lib/Telemetry';
 export const DEFAULT_SESSION_SECRET =
   'Phoo2ag1jaiz6Moo2Iese2xoaphahbai3oNg7diemohlah0ohtae9iengafieS2Hae7quungoCi9iaPh';
 
+export type LocalDocStorageManagerCreator =
+  (docsRoot: string, samplesRoot?: string, comm?: Comm, shell?: IShell) => Promise<IDocStorageManager>;
+export type HostedDocStorageManagerCreator = (
+    docsRoot: string,
+    docWorkerId: string,
+    disableS3: boolean,
+    docWorkerMap: IDocWorkerMap,
+    dbManager: HomeDBManager,
+    createExternalStorage: ExternalStorageCreator,
+    options?: HostedStorageOptions
+  ) => Promise<IDocStorageManager>;
+
 export interface ICreate {
-
-  Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
-  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
-  Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
-  Shell?(): IShell;  // relevant to electron version of Grist only.
-
   // Create a space to store files externally, for storing either:
   //  - documents. This store should be versioned, and can be eventually consistent.
   //  - meta. This store need not be versioned, and can be eventually consistent.
   // For test purposes an extra prefix may be supplied.  Stores with different prefixes
   // should not interfere with each other.
-  ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage | undefined;
+  ExternalStorage: ExternalStorageCreator;
+
+  // Creates a IDocStorageManager for storing documents on the local machine.
+  createLocalDocStorageManager: LocalDocStorageManagerCreator;
+  // Creates a IDocStorageManager for storing documents on an external storage (e.g S3)
+  createHostedDocStorageManager: HostedDocStorageManagerCreator;
+
+  Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
+  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
+  AuditLogger(): IAuditLogger;
+  Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
+  Shell?(): IShell;  // relevant to electron version of Grist only.
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
@@ -67,6 +91,8 @@ export interface ICreate {
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
+
+  getLoginSystem(): Promise<GristLoginSystem>;
 }
 
 export interface ICreateActiveDocOptions {
@@ -91,6 +117,12 @@ export interface ICreateBillingOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): IBilling|undefined;
 }
 
+export interface ICreateAuditLoggerOptions {
+  name: 'grist'|'hec';
+  check(): boolean;
+  create(): IAuditLogger|undefined;
+}
+
 export interface ICreateTelemetryOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry|undefined;
 }
@@ -110,6 +142,7 @@ export function makeSimpleCreator(opts: {
   storage?: ICreateStorageOptions[],
   billing?: ICreateBillingOptions,
   notifier?: ICreateNotifierOptions,
+  auditLogger?: ICreateAuditLoggerOptions[],
   telemetry?: ICreateTelemetryOptions,
   sandboxFlavor?: string,
   shell?: IShell,
@@ -117,8 +150,11 @@ export function makeSimpleCreator(opts: {
   getSqliteVariant?: () => SqliteVariant,
   getSandboxVariants?: () => Record<string, SpawnFn>,
   createInstallAdmin?: (dbManager: HomeDBManager) => Promise<InstallAdmin>,
+  getLoginSystem?: () => Promise<GristLoginSystem>,
+  createHostedDocStorageManager?: HostedDocStorageManagerCreator,
+  createLocalDocStorageManager?: LocalDocStorageManagerCreator,
 }): ICreate {
-  const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
+  const {deploymentType, sessionSecret, storage, notifier, billing, auditLogger, telemetry} = opts;
   return {
     deploymentType() { return deploymentType; },
     Billing(dbManager, gristConfig) {
@@ -140,6 +176,9 @@ export function makeSimpleCreator(opts: {
         }
       }
       return undefined;
+    },
+    AuditLogger() {
+      return auditLogger?.find(({check}) => check())?.create() ?? createDummyAuditLogger();
     },
     Telemetry(dbManager, gristConfig) {
       return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();
@@ -187,5 +226,23 @@ export function makeSimpleCreator(opts: {
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,
     createInstallAdmin: opts.createInstallAdmin || (async (dbManager) => new SimpleInstallAdmin(dbManager)),
+    getLoginSystem: opts.getLoginSystem || getCoreLoginSystem,
+    createLocalDocStorageManager: opts.createLocalDocStorageManager ?? createDefaultLocalStorageManager,
+    createHostedDocStorageManager: opts.createHostedDocStorageManager ?? createDefaultHostedStorageManager,
   };
 }
+
+const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = async (
+      docsRoot,
+      docWorkerId,
+      disableS3,
+      docWorkerMap,
+      dbManager,
+      createExternalStorage, options
+) =>
+  new HostedStorageManager(docsRoot, docWorkerId, disableS3, docWorkerMap, dbManager, createExternalStorage, options);
+
+const createDefaultLocalStorageManager: LocalDocStorageManagerCreator = async (
+  docsRoot, samplesRoot, comm, shell
+) => new DocStorageManager(docsRoot, samplesRoot, comm, shell);
+

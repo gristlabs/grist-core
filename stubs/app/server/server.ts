@@ -15,7 +15,6 @@ const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.
 if (!debugging) {
   // Be a lot less noisy by default.
   setDefaultEnv('GRIST_LOG_LEVEL', 'error');
-  setDefaultEnv('GRIST_LOG_SKIP_HTTP', 'true');
 }
 
 // Use a distinct cookie.  Bump version to 2.
@@ -35,7 +34,7 @@ setDefaultEnv('GRIST_UI_FEATURES',
   'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite,supportGrist');
 setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
 import {updateDb} from 'app/server/lib/dbUtils';
-import {main as mergedServerMain, parseServerTypes} from 'app/server/mergedServerMain';
+import {MergedServer, parseServerTypes} from 'app/server/MergedServer';
 import * as fse from 'fs-extra';
 import {runPrometheusExporter} from './prometheus-exporter';
 
@@ -80,10 +79,6 @@ async function setupDb() {
       }
       const profile = {email, name: email};
       const user = await db.getUserByLogin(email, {profile});
-      if (!user) {
-        // This should not happen.
-        throw new Error('failed to create GRIST_DEFAULT_EMAIL user');
-      }
       db.unwrapQueryResult(await db.addOrg(user, {
         name: org,
         domain: org,
@@ -129,20 +124,20 @@ export async function main() {
   }
 
   // Launch single-port, self-contained version of Grist.
-  const server = await mergedServerMain(G.port, serverTypes);
+  const mergedServer = await MergedServer.create(G.port, serverTypes);
+  await mergedServer.run();
   if (process.env.GRIST_TESTING_SOCKET) {
-    await server.addTestingHooks();
+    await mergedServer.flexServer.addTestingHooks();
   }
   if (process.env.GRIST_SERVE_PLUGINS_PORT) {
-    await server.startCopy('pluginServer', parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
+    await mergedServer.flexServer.startCopy('pluginServer', parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
   }
-
   await fixSiteProducts({
-    deploymentType: server.getDeploymentType(),
-    db: server.getHomeDBManager()
+    deploymentType: mergedServer.flexServer.getDeploymentType(),
+    db: mergedServer.flexServer.getHomeDBManager()
   });
 
-  return server;
+  return mergedServer.flexServer;
 }
 
 if (require.main === module) {

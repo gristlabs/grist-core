@@ -1,5 +1,6 @@
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -260,8 +261,7 @@ export function buildPageWidgetPicker(
     dom.create(PageWidgetSelect,
       value, tables, columns, onSaveCB, behavioralPromptsManager, options),
 
-    // gives focus and binds keydown events
-    (elem: any) => { setTimeout(() => elem.focus(), 0); },
+    elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
     onKeyDown({
       Escape: () => ctl.close(),
       Enter: () => isValid() && onSaveCB()
@@ -328,6 +328,8 @@ export class PageWidgetSelect extends Disposable {
   private _isNewTableDisabled = Computed.create(this, this._value.type, (use, type) => !isValidSelection(
     'New Table', type, {isNewPage: this._options.isNewPage, summarize: use(this._value.summarize)}));
 
+  private _isSummaryDisabled = Computed.create(this, this._value.type, (_use, type) => !isSummaryCompatible(type));
+
   constructor(
     private _value: IWidgetValueObs,
     private _tables: Observable<TableRec[]>,
@@ -389,8 +391,9 @@ export class PageWidgetSelect extends Disposable {
                   cssEntry.cls('-selected', (use) => use(this._value.summarize) &&
                                                      use(this._value.table) === table.id()
                   ),
-                  cssEntry.cls('-disabled', (use) => !isSummaryCompatible(use(this._value.type))),
-                  dom.on('click', (ev, el) => this._selectPivot(table.id(), el as HTMLElement)),
+                  cssEntry.cls('-disabled', this._isSummaryDisabled),
+                  dom.on('click', (_ev, el) =>
+                    !this._isSummaryDisabled.get() && this._selectPivot(table.id(), el as HTMLElement)),
                   testId('pivot'),
               ),
               testId('table'),
@@ -572,7 +575,6 @@ const cssEntry = styled('div', `
   &-disabled {
     color: ${theme.widgetPickerItemDisabledBg};
     cursor: default;
-    pointer-events: none;
   }
   &-disabled&-selected {
     background-color: inherit;

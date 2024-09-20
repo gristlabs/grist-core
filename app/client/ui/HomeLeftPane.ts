@@ -1,29 +1,27 @@
 import {makeT} from 'app/client/lib/localization';
 import {loadUserManager} from 'app/client/lib/imports';
-import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
-import {reportError} from 'app/client/models/AppModel';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
+import {urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
+import * as roles from 'app/common/roles';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
-import {docImport, importFromPlugin} from 'app/client/ui/HomeImports';
+import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
+import {newDocMethods} from 'app/client/ui/NewDocMethods';
+import {createHelpTools, cssLeftPanel, cssScrollPane,
+  cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
 import {
   cssLinkText, cssMenuTrigger, cssPageEntry, cssPageIcon, cssPageLink, cssSpacer
 } from 'app/client/ui/LeftPanelCommon';
-import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
-import {transientInput} from 'app/client/ui/transientInput';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
 import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import * as roles from 'app/common/roles';
+import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
 import {getGristConfig} from 'app/common/urlUtils';
+import {icon} from 'app/client/ui2018/icons';
+import {transientInput} from 'app/client/ui/transientInput';
 import {Workspace} from 'app/common/UserAPI';
-import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
-import {createHelpTools, cssLeftPanel, cssScrollPane,
-        cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
 
 const t = makeT('HomeLeftPane');
 
@@ -160,65 +158,23 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
   );
 }
 
-export async function createDocAndOpen(home: HomeModel) {
-  const destWS = home.newDocWorkspace.get();
-  if (!destWS) { return; }
-  try {
-    const docId = await home.createDoc("Untitled document", destWS === "unsaved" ? "unsaved" : destWS.id);
-    // Fetch doc information including urlId.
-    // TODO: consider changing API to return same response as a GET when creating an
-    // object, which is a semi-standard.
-    const doc = await home.app.api.getDoc(docId);
-    await urlState().pushUrl(docUrl(doc));
-  } catch (err) {
-    reportError(err);
-  }
-}
-
-export async function importDocAndOpen(home: HomeModel) {
-  const destWS = home.newDocWorkspace.get();
-  if (!destWS) { return; }
-  const docId = await docImport(home.app, destWS === "unsaved" ? "unsaved" : destWS.id);
-  if (docId) {
-    const doc = await home.app.api.getDoc(docId);
-    await urlState().pushUrl(docUrl(doc));
-  }
-}
-
-export async function importFromPluginAndOpen(home: HomeModel, source: ImportSourceElement) {
-  try {
-    const destWS = home.newDocWorkspace.get();
-    if (!destWS) { return; }
-    const docId = await importFromPlugin(
-      home.app,
-      destWS === "unsaved" ? "unsaved" : destWS.id,
-      source);
-    if (docId) {
-      const doc = await home.app.api.getDoc(docId);
-      await urlState().pushUrl(docUrl(doc));
-    }
-  } catch (err) {
-    reportError(err);
-  }
-}
-
 function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[] {
   const org = home.app.currentOrg;
   const orgAccess: roles.Role|null = org ? org.access : null;
   const needUpgrade = home.app.currentFeatures?.maxWorkspacesPerOrg === 1;
 
   return [
-    menuItem(() => createDocAndOpen(home), menuIcon('Page'), t("Create Empty Document"),
+    menuItem(() => newDocMethods.createDocAndOpen(home), menuIcon('Page'), t("Create Empty Document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-new-doc")
     ),
-    menuItem(() => importDocAndOpen(home), menuIcon('Import'), t("Import Document"),
+    menuItem(() => newDocMethods.importDocAndOpen(home), menuIcon('Import'), t("Import Document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-import")
     ),
     domComputed(home.importSources, importSources => ([
       ...importSources.map((source, i) =>
-      menuItem(() => importFromPluginAndOpen(home, source),
+      menuItem(() => newDocMethods.importFromPluginAndOpen(home, source),
         menuIcon('Import'),
         source.importSource.label,
         dom.cls('disabled', !home.newDocWorkspace.get()),

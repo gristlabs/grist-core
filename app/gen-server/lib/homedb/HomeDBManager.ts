@@ -1,7 +1,7 @@
 import {ShareInfo} from 'app/common/ActiveDocAPI';
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
-import {getDataLimitStatus} from 'app/common/DocLimits';
+import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
@@ -68,12 +68,12 @@ import {Request} from "express";
 import {defaultsDeep, flatten, pick} from 'lodash';
 import {
   Brackets,
-  Connection,
   DatabaseType,
+  DataSource,
   EntityManager,
   ObjectLiteral,
   SelectQueryBuilder,
-  WhereExpression
+  WhereExpressionBuilder
 } from "typeorm";
 import uuidv4 from "uuid/v4";
 
@@ -247,8 +247,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  */
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
-  private _connection: Connection;
-  private _dbType: DatabaseType;
+  private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
   private _idPrefix: string = "";  // Place this before ids in subdomains, used in routing to
@@ -257,6 +256,10 @@ export class HomeDBManager extends EventEmitter {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   // In restricted mode, documents should be read-only.
   private _restrictedMode: boolean = false;
+
+  private get _dbType(): DatabaseType {
+    return this._connection.driver.options.type;
+  }
 
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
@@ -348,7 +351,10 @@ export class HomeDBManager extends EventEmitter {
 
   public async connect(): Promise<void> {
     this._connection = await getOrCreateConnection();
-    this._dbType = this._connection.driver.options.type;
+  }
+
+  public connectTo(connection: DataSource) {
+    this._connection = connection;
   }
 
   // make sure special users and workspaces are available
@@ -451,7 +457,7 @@ export class HomeDBManager extends EventEmitter {
    * @see UsersManager.prototype.ensureExternalUser
    */
   public async ensureExternalUser(profile: UserProfile) {
-    return this._usersManager.ensureExternalUser(profile);
+    return await this._usersManager.ensureExternalUser(profile);
   }
 
   public async updateUser(userId: number, props: UserProfileChange) {
@@ -461,10 +467,6 @@ export class HomeDBManager extends EventEmitter {
     }
   }
 
-  public async updateUserName(userId: number, name: string) {
-    return this._usersManager.updateUserName(userId, name);
-  }
-
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
     return this._usersManager.updateUserOptions(userId, props);
   }
@@ -472,14 +474,14 @@ export class HomeDBManager extends EventEmitter {
   /**
    * @see UsersManager.prototype.getUserByLoginWithRetry
    */
-  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User> {
     return this._usersManager.getUserByLoginWithRetry(email, options);
   }
 
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
     return this._usersManager.getUserByLogin(email, options);
   }
 
@@ -488,7 +490,7 @@ export class HomeDBManager extends EventEmitter {
    * Find a user by email. Don't create the user if it doesn't already exist.
    */
   public async getExistingUserByLogin(email: string, manager?: EntityManager): Promise<User|undefined> {
-    return this._usersManager.getExistingUserByLogin(email, manager);
+    return await this._usersManager.getExistingUserByLogin(email, manager);
   }
 
   /**
@@ -764,7 +766,7 @@ export class HomeDBManager extends EventEmitter {
     // Return an aggregate count of documents, grouped by data limit status.
     const summary = createEmptyOrgUsageSummary();
     for (const {usage: docUsage, gracePeriodStart} of docs) {
-      const dataLimitStatus = getDataLimitStatus({docUsage, gracePeriodStart, productFeatures});
+      const dataLimitStatus = getDataLimitInfo({docUsage, gracePeriodStart, productFeatures}).status;
       if (dataLimitStatus) { summary[dataLimitStatus] += 1; }
     }
     return summary;
@@ -983,6 +985,10 @@ export class HomeDBManager extends EventEmitter {
       throw new ApiError('document not found', 404);
     }
     return doc;
+  }
+
+  public async getAllDocs() {
+    return this.connection.getRepository(Document).find();
   }
 
   public async getRawDocById(docId: string, transaction?: EntityManager) {
@@ -1808,12 +1814,13 @@ export class HomeDBManager extends EventEmitter {
   //
   // Returns an empty query result with status 200 on success.
   public async updateBillingAccount(
-    userId: number,
+    scopeOrUser: number|Scope,
     orgKey: string|number,
     callback: (billingAccount: BillingAccount, transaction: EntityManager) => void|Promise<void>
-  ): Promise<QueryResult<void>> {
+  ): Promise<QueryResult<void>>  {
     return await this._connection.transaction(async transaction => {
-      const billingAccount = await this.getBillingAccount({userId}, orgKey, false, transaction);
+      const scope = typeof scopeOrUser === 'number' ? {userId: scopeOrUser} : scopeOrUser;
+      const billingAccount = await this.getBillingAccount(scope, orgKey, false, transaction);
       const billingAccountCopy = Object.assign({}, billingAccount);
       await callback(billingAccountCopy, transaction);
       // Pick out properties that are allowed to be changed, to prevent accidental updating
@@ -3435,7 +3442,7 @@ export class HomeDBManager extends EventEmitter {
   // Adds a where clause to filter orgs by domain or id.
   // If org is null, filter for user's personal org.
   // if includeSupport is true, include the org of the support@ user (for the Samples workspace)
-  private _whereOrg<T extends WhereExpression>(qb: T, org: string|number, includeSupport = false): T {
+  private _whereOrg<T extends WhereExpressionBuilder>(qb: T, org: string|number, includeSupport = false): T {
     if (this.isMergedOrg(org)) {
       // Select from universe of personal orgs.
       // Don't panic though!  While this means that SQL can't use an organization id
@@ -3455,7 +3462,7 @@ export class HomeDBManager extends EventEmitter {
     }
   }
 
-  private _wherePlainOrg<T extends WhereExpression>(qb: T, org: string|number): T {
+  private _wherePlainOrg<T extends WhereExpressionBuilder>(qb: T, org: string|number): T {
     if (typeof org === 'number') {
       return qb.andWhere('orgs.id = :org', {org});
     }
@@ -4362,7 +4369,6 @@ export class HomeDBManager extends EventEmitter {
     });
     return verifyEntity(orgQuery);
   }
-
 }
 
 // Return a QueryResult reflecting the output of a query builder.

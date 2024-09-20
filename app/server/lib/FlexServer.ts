@@ -1,7 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
-import {DocCreationInfo} from 'app/common/DocListAPI';
 import {commonUrls, encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
@@ -27,6 +26,7 @@ import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
 import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
+import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
@@ -37,7 +37,6 @@ import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
@@ -46,13 +45,11 @@ import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
-import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
-import {getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
@@ -151,6 +148,7 @@ export class FlexServer implements GristServer {
   private _sessions: Sessions;
   private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
+  private _auditLogger: IAuditLogger;
   private _telemetry: ITelemetry;
   private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
   private _docWorkerMap: IDocWorkerMap;
@@ -183,7 +181,7 @@ export class FlexServer implements GristServer {
   private _getSignUpRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
-  private _getLoginSystem?: () => Promise<GristLoginSystem>;
+  private _getLoginSystem: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
   private _updateManager: UpdateManager;
@@ -191,6 +189,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
+    this._getLoginSystem = create.getLoginSystem;
     this.settings = options.settings;
     this.app = express();
     this.app.set('port', port);
@@ -248,7 +247,6 @@ export class FlexServer implements GristServer {
       recentItems: [],
     };
     this.electronServerMethods = {
-      async importDoc() { throw new Error('not implemented'); },
       onDocOpen(cb) {
         // currently only a stub.
         cb('');
@@ -268,11 +266,6 @@ export class FlexServer implements GristServer {
       (req as RequestWithGrist).gristServer = this;
       next();
     });
-  }
-
-  // Allow overridding the login system.
-  public setLoginSystem(loginSystem: () => Promise<GristLoginSystem>) {
-    this._getLoginSystem = loginSystem;
   }
 
   public getHost(): string {
@@ -398,6 +391,16 @@ export class FlexServer implements GristServer {
     return this._storageManager;
   }
 
+  public getAuditLogger(): IAuditLogger {
+    if (!this._auditLogger) { throw new Error('no audit logger available'); }
+    return this._auditLogger;
+  }
+
+  public getDocManager(): DocManager {
+    if (!this._docManager) { throw new Error('no document manager available'); }
+    return this._docManager;
+  }
+
   public getTelemetry(): ITelemetry {
     if (!this._telemetry) { throw new Error('no telemetry available'); }
     return this._telemetry;
@@ -442,24 +445,33 @@ export class FlexServer implements GristServer {
 
   public addLogging() {
     if (this._check('logging')) { return; }
-    if (process.env.GRIST_LOG_SKIP_HTTP) { return; }
+    if (!this._httpLoggingEnabled()) { return; }
     // Add a timestamp token that matches exactly the formatting of non-morgan logs.
     morganLogger.token('logTime', (req: Request) => log.timestamp());
     // Add an optional gristInfo token that can replace the url, if the url is sensitive.
     morganLogger.token('gristInfo', (req: RequestWithGristInfo) =>
                        req.gristInfo || req.originalUrl || req.url);
     morganLogger.token('host', (req: express.Request) => req.get('host'));
-    const msg = ':logTime :host :method :gristInfo :status :response-time ms - :res[content-length]';
+    morganLogger.token('body', (req: express.Request) =>
+      req.is('application/json') ? JSON.stringify(req.body) : undefined
+    );
+
+    // For debugging, be careful not to enable logging in production (may log sensitive data)
+    const shouldLogBody = isAffirmative(process.env.GRIST_LOG_HTTP_BODY);
+
+    const msg = `:logTime :host :method :gristInfo ${shouldLogBody ? ':body ' : ''}` +
+      ":status :response-time ms - :res[content-length]";
     // In hosted Grist, render json so logs retain more organization.
     function outputJson(tokens: any, req: any, res: any) {
       return JSON.stringify({
         timestamp: tokens.logTime(req, res),
+        host: tokens.host(req, res),
         method: tokens.method(req, res),
         path: tokens.gristInfo(req, res),
+        ...(shouldLogBody ? { body: tokens.body(req, res) } : {}),
         status: tokens.status(req, res),
         timeMs: parseFloat(tokens['response-time'](req, res)) || undefined,
         contentLength: parseInt(tokens.res(req, res, 'content-length'), 10) || undefined,
-        host: tokens.host(req, res),
         altSessionId: req.altSessionId,
       });
     }
@@ -902,6 +914,12 @@ export class FlexServer implements GristServer {
     });
   }
 
+  public addAuditLogger() {
+    if (this._check('audit-logger')) { return; }
+
+    this._auditLogger = this.create.AuditLogger();
+  }
+
   public async addTelemetry() {
     if (this._check('telemetry', 'homedb', 'json', 'api-mw')) { return; }
 
@@ -1319,12 +1337,15 @@ export class FlexServer implements GristServer {
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
-      const storageManager = new HostedStorageManager(this.docsRoot, docWorkerId, this._disableExternalStorage, workers,
-                                                      this._dbManager, this.create);
+      const storageManager = await this.create.createHostedDocStorageManager(
+        this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager, this.create.ExternalStorage
+      );
       this._storageManager = storageManager;
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
-      const storageManager = new DocStorageManager(this.docsRoot, samples, this._comm, this);
+      const storageManager = await this.create.createLocalDocStorageManager(
+        this.docsRoot, samples, this._comm, this.create.Shell?.()
+      );
       this._storageManager = storageManager;
     }
 
@@ -1990,8 +2011,7 @@ export class FlexServer implements GristServer {
 
   public resolveLoginSystem() {
     return isTestLoginAllowed() ?
-      getTestLoginSystem() :
-      (this._getLoginSystem?.() || getLoginSystem());
+      getTestLoginSystem() : this._getLoginSystem();
   }
 
   public addUpdatesCheck() {
@@ -2489,6 +2509,33 @@ export class FlexServer implements GristServer {
       [];
     return [...pluggedMiddleware, sessionClearMiddleware];
   }
+
+  /**
+   * Returns true if GRIST_LOG_HTTP="true" (or any truthy value).
+   * Returns true if GRIST_LOG_SKIP_HTTP="" (empty string).
+   * Returns false otherwise.
+   *
+   * Also displays a deprecation warning if GRIST_LOG_SKIP_HTTP is set to any value ("", "true", whatever...),
+   * and throws an exception if GRIST_LOG_SKIP_HTTP and GRIST_LOG_HTTP are both set to make the server crash.
+   */
+  private _httpLoggingEnabled(): boolean {
+    const deprecatedOptionEnablesLog = process.env.GRIST_LOG_SKIP_HTTP === '';
+    const isGristLogHttpEnabled = isAffirmative(process.env.GRIST_LOG_HTTP);
+
+    if (process.env.GRIST_LOG_HTTP !== undefined && process.env.GRIST_LOG_SKIP_HTTP !== undefined) {
+      throw new Error('Both GRIST_LOG_HTTP and GRIST_LOG_SKIP_HTTP are set. ' +
+        'Please remove GRIST_LOG_SKIP_HTTP and set GRIST_LOG_HTTP to the value you actually want.');
+    }
+
+    if (process.env.GRIST_LOG_SKIP_HTTP !== undefined) {
+      const expectedGristLogHttpVal = deprecatedOptionEnablesLog ? "true" : "false";
+
+      log.warn(`Setting env variable GRIST_LOG_SKIP_HTTP="${process.env.GRIST_LOG_SKIP_HTTP}" `
+        + `is deprecated in favor of GRIST_LOG_HTTP="${expectedGristLogHttpVal}"`);
+    }
+
+    return isGristLogHttpEnabled || deprecatedOptionEnablesLog;
+  }
 }
 
 /**
@@ -2560,7 +2607,6 @@ function noCaching(req: express.Request, res: express.Response, next: express.Ne
 
 // Methods that Electron app relies on.
 export interface ElectronServerMethods {
-  importDoc(filepath: string): Promise<DocCreationInfo>;
   onDocOpen(cb: (filePath: string) => void): void;
   getUserConfig(): Promise<any>;
   updateUserConfig(obj: any): Promise<void>;

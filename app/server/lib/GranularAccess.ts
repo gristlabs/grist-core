@@ -160,6 +160,7 @@ const OTHER_RECOGNIZED_ACTIONS = new Set([
   'RemoveColumn',
   'RenameColumn',
   'ModifyColumn',
+  'AddReverseColumn',
 
   // Table-level schema changes.
   'AddEmptyTable',
@@ -792,7 +793,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const role = options.role ?? await this.getNominalAccess(docSession);
     const hasEditRole = canEdit(role);
-    if (!hasEditRole) { result.dataLimitStatus = null; }
+    if (!hasEditRole) { result.dataLimitInfo.status = null; }
     const hasFullReadAccess = await this.canReadEverything(docSession);
     if (!hasEditRole || !hasFullReadAccess) {
       result.rowCount = 'hidden';
@@ -913,14 +914,20 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   public needEarlySchemaPermission(a: UserAction|DocAction): boolean {
     const name = a[0] as string;
-    if (name === 'ModifyColumn' || name === 'SetDisplayFormula' ||
-        // ConvertFromColumn and CopyFromColumn are hard to reason
-        // about, especially since they appear in bundles with other
-        // actions. We throw up our hands a bit here, and just make
-        // sure the user has schema permissions. Today, in Grist, that
-        // gives a lot of power. If this gets narrowed down in future,
-        // we'll have to rethink this.
-        name === 'ConvertFromColumn' || name === 'CopyFromColumn') {
+    // ConvertFromColumn and CopyFromColumn are hard to reason
+    // about, especially since they appear in bundles with other
+    // actions. We throw up our hands a bit here, and just make
+    // sure the user has schema permissions. Today, in Grist, that
+    // gives a lot of power. If this gets narrowed down in future,
+    // we'll have to rethink this.
+    const actionNames = [
+      'ModifyColumn',
+      'SetDisplayFormula',
+      'ConvertFromColumn',
+      'CopyFromColumn',
+      'AddReverseColumn',
+    ];
+    if (actionNames.includes(name)) {
       return true;
     } else if (isDataAction(a)) {
       const tableId = getTableId(a);

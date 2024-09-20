@@ -166,8 +166,7 @@ class DocActions(object):
     # Replace the renamed column in the schema object.
     schema_table_info = self._engine.schema[table_id]
     colinfo = schema_table_info.columns.pop(old_col_id)
-    schema_table_info.columns[new_col_id] = schema.SchemaColumn(
-      new_col_id, colinfo.type, colinfo.isFormula, colinfo.formula)
+    schema_table_info.columns[new_col_id] = colinfo._replace(colId=new_col_id)
 
     self._engine.rebuild_usercode()
     self._engine.new_column_name(table)
@@ -192,12 +191,14 @@ class DocActions(object):
     new = schema.SchemaColumn(col_id,
                               col_info.get('type', old.type),
                               bool(col_info.get('isFormula', old.isFormula)),
-                              col_info.get('formula', old.formula))
+                              col_info.get('formula', old.formula),
+                              col_info.get('reverseColId', old.reverseColId))
     if new == old:
       log.info("ModifyColumn called which was a noop")
       return
 
-    undo_col_info = {k: v for k, v in six.iteritems(schema.col_to_dict(old, include_id=False))
+    undo_col_info = {k: v for k, v in six.iteritems(
+                        schema.col_to_dict(old, include_id=False, include_default=True))
                      if k in col_info}
 
     # Remove the column from the schema, then re-add it, to force creation of a new column object.

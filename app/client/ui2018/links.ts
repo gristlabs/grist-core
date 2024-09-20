@@ -1,9 +1,9 @@
 import {findLinks} from 'app/client/lib/textUtils';
-import { sameDocumentUrlState, urlState } from 'app/client/models/gristUrlState';
-import { hideInPrintView, testId, theme } from 'app/client/ui2018/cssVars';
-import {cssIconBackground, icon} from 'app/client/ui2018/icons';
-import { CellValue } from 'app/plugin/GristData';
-import { dom, DomArg, IDomArgs, Observable, styled } from 'grainjs';
+import {sameDocumentUrlState, urlState} from 'app/client/models/gristUrlState';
+import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
+import {cssIconSpanBackground, iconSpan} from 'app/client/ui2018/icons';
+import {CellValue} from 'app/plugin/GristData';
+import {dom, DomArg, IDomArgs, Observable, styled} from 'grainjs';
 
 /**
  * Styling for a simple <A HREF> link.
@@ -37,6 +37,19 @@ export function gristLink(href: string|Observable<string>, ...args: IDomArgs<HTM
   );
 }
 
+export function gristIconLink(href: string, label = href) {
+  return cssMaybeWrap(
+    gristLink(href,
+      cssIconSpanBackground(
+        iconSpan("FieldLink", testId('tb-link-icon')),
+        dom.cls(cssHoverInText.className),
+      ),
+    ),
+    linkColor(label),
+    testId("text-link"),
+  );
+}
+
 /**
  * If possible (i.e. if `url` points to somewhere in the current document)
  * use pushUrl to navigate without reloading or opening a new tab
@@ -60,17 +73,7 @@ export function makeLinks(text: string) {
     const domElements: DomArg[] = [];
     for (const {value, isLink} of findLinks(text)) {
       if (isLink) {
-        // Wrap link with a span to provide hover on and to override wrapping.
-        domElements.push(cssMaybeWrap(
-          gristLink(value,
-            cssIconBackground(
-              icon("FieldLink", testId('tb-link-icon')),
-              dom.cls(cssHoverInText.className),
-            ),
-          ),
-          linkColor(value),
-          testId("text-link")
-        ));
+        domElements.push(gristIconLink(value));
       } else {
         domElements.push(value);
       }

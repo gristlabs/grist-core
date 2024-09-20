@@ -562,4 +562,9 @@ export const GristDark: ThemeColors = {
   'widget-gallery-secondary-header-fg': '#FFFFFF',
   'widget-gallery-secondary-header-bg': '#70707D',
   'widget-gallery-secondary-header-bg-hover': '#60606D',
+
+  /* Markdown Cell */
+  'markdown-cell-light-bg': '#494958',
+  'markdown-cell-light-border': '#32323F',
+  'markdown-cell-medium-border': '#555563',
 };

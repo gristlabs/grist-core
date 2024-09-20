@@ -1,3 +1,4 @@
+import {normalizeEmail} from 'app/common/emails';
 import {UserPrefs} from 'app/common/Prefs';
 
 // User profile info for the user. When using Cognito, it is fetched during login.
@@ -10,6 +11,21 @@ export interface UserProfile {
   connectId?: string|null, // used by GristConnect to identify user in external provider.
   loginMethod?: 'Google'|'Email + Password'|'External';
   locale?: string|null;
+}
+
+/**
+ * Tries to compare two user profiles to see if they represent the same user.
+ * Note: if you have access to FullUser objects, comparing ids is more reliable.
+ */
+export function sameUser(a: UserProfile|FullUser, b: UserProfile|FullUser): boolean {
+  if ('id' in a && 'id' in b) {
+    return a.id === b.id;
+  }
+  if (a.loginEmail && b.loginEmail) {
+    return a.loginEmail === b.loginEmail;
+  } else {
+    return normalizeEmail(a.email) === normalizeEmail(b.email);
+  }
 }
 
 // User profile including user id and user ref.  All information in it should

@@ -90,6 +90,7 @@ class TestGenCode(unittest.TestCase):
     gcode = gencode.GenCode()
     gcode.make_module(self.schema)
     module = gcode.usercode
+    # pylint: disable=E1101
     self.assertTrue(isinstance(module.Students, table.UserTable))
 
   def test_ident_combining_chars(self):
@@ -242,7 +243,7 @@ class TestGenCode(unittest.TestCase):
     # Test the case of a bare-word function with a keyword argument appearing in a formula. This
     # case had a bug with code parsing.
     self.schema['Address'].columns['testcol'] = schema.SchemaColumn(
-      'testcol', 'Any', True, 'foo(bar=$region) or max(Students.all, key=lambda n: -n)')
+      'testcol', 'Any', True, 'foo(bar=$region) or max(Students.all, key=lambda n: -n)', None)
     gcode.make_module(self.schema)
     self.assertEqual(gcode.grist_names(), expected_names + [
       (('Address', 'testcol'), 9, 'Address', 'region'),

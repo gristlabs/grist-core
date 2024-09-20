@@ -583,6 +583,11 @@ export interface ThemeColors {
   'widget-gallery-secondary-header-fg': string;
   'widget-gallery-secondary-header-bg': string;
   'widget-gallery-secondary-header-bg-hover': string;
+
+  /* Markdown Cell */
+  'markdown-cell-light-bg': string;
+  'markdown-cell-light-border': string;
+  'markdown-cell-medium-border': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

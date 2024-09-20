@@ -25,5 +25,5 @@ export function markdown(markdownObs: BindableValue<string>): DomElementMethod {
 }
 
 function setMarkdownValue(elem: Element, markdownValue: string): void {
-  elem.innerHTML = sanitizeHTML(marked(markdownValue));
+  elem.innerHTML = sanitizeHTML(marked(markdownValue, {async: false}));
 }

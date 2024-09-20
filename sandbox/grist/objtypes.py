@@ -167,15 +167,26 @@ def encode_object(value):
   Produces a Grist-encoded version of the value, e.g. turning a Date into ['d', timestamp].
   Returns ['U', repr(value)] if it fails to encode otherwise.
   """
+  # pylint: disable=unidiomatic-typecheck
   try:
-    if isinstance(value, (six.text_type, float, bool)) or value is None:
+    # A primitive type can be returned directly.
+    if type(value) in (six.text_type, float, bool) or value is None:
       return value
+    # Other instances of these types must be derived; cast these to the primitive type to ensure
+    # they are marshallable.
+    elif isinstance(value, six.text_type):
+      return six.text_type(value)
+    elif isinstance(value, float):
+      return float(value)
+    elif isinstance(value, bool):
+      return bool(value)
     elif isinstance(value, six.binary_type):
       return value.decode('utf8')
     elif isinstance(value, six.integer_types):
       if not is_int_short(value):
-        raise UnmarshallableError("Integer too large")
-      return value
+        return ['U', str(value)]
+      # Cast to a primitive type to ensure it's marshallable (e.g. enum.IntEnum would not be).
+      return int(value)
     elif isinstance(value, AltText):
       return six.text_type(value)
     elif isinstance(value, records.Record):

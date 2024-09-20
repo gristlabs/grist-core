@@ -28,9 +28,7 @@ export class NTextBox extends NewAbstractWidget {
     this.alignment = fromKo(this.options.prop('alignment'));
     this.wrapping = fromKo(this.field.wrap);
 
-    this.autoDispose(this.wrapping.addListener(() => {
-      this.field.viewSection().events.trigger('rowHeightChange');
-    }));
+    this._addRowHeightListeners();
   }
 
   public buildConfigDom(_gristDoc: GristDoc): DomContents {
@@ -111,5 +109,13 @@ export class NTextBox extends NewAbstractWidget {
         null :
         makeLinks(use(this.valueFormatter).formatAny(use(value), t)))
     );
+  }
+
+  private _addRowHeightListeners() {
+    for (const obs of [this.wrapping, fromKo(this.field.config.widget)]) {
+      this.autoDispose(obs.addListener(() => {
+        this.field.viewSection().events.trigger('rowHeightChange');
+      }));
+    }
   }
 }

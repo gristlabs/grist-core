@@ -562,4 +562,9 @@ export const GristLight: ThemeColors = {
   'widget-gallery-secondary-header-fg': '#FFFFFF',
   'widget-gallery-secondary-header-bg': '#929299',
   'widget-gallery-secondary-header-bg-hover': '#7E7E85',
+
+  /* Markdown Cell */
+  'markdown-cell-light-bg': '#F7F7F7',
+  'markdown-cell-light-border': '#E8E8E8',
+  'markdown-cell-medium-border': '#D9D9D9',
 };

@@ -972,11 +972,12 @@ export class DocWorkerApi {
 
     // Reload a document forcibly (in fact this closes the doc, it will be automatically
     // reopened on use).
-    this._app.post('/api/docs/:docId/force-reload', canEdit, throttled(async (req, res) => {
-      const activeDoc = await this._getActiveDoc(req);
+    this._app.post('/api/docs/:docId/force-reload', canEdit, async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const activeDoc = await this._getActiveDoc(mreq);
       await activeDoc.reloadDoc();
       res.json(null);
-    }));
+    });
 
     this._app.post('/api/docs/:docId/recover', canEdit, throttled(async (req, res) => {
       const recoveryModeRaw = req.body.recoveryMode;
@@ -1729,6 +1730,12 @@ export class DocWorkerApi {
         docIdDigest: docId,
       },
     });
+    this._grist.getAuditLogger().logEvent(req as RequestWithLogin, {
+      event: {
+        name: 'createDocument',
+        details: {id: docId},
+      },
+    });
     return docId;
   }
 
@@ -1736,6 +1743,7 @@ export class DocWorkerApi {
     userId: number,
     browserSettings?: BrowserSettings,
   }): Promise<string> {
+    const mreq = req as RequestWithLogin;
     const {userId, browserSettings} = options;
     const isAnonymous = isAnonymousUser(req);
     const result = makeForkIds({
@@ -1746,10 +1754,7 @@ export class DocWorkerApi {
     });
     const docId = result.docId;
     await this._docManager.createNamedDoc(
-      makeExceptionalDocSession('nascent', {
-        req: req as RequestWithLogin,
-        browserSettings,
-      }),
+      makeExceptionalDocSession('nascent', {req: mreq, browserSettings}),
       docId
     );
     this._logDocumentCreatedTelemetryEvent(req, {
@@ -1764,6 +1769,12 @@ export class DocWorkerApi {
     this._logCreatedEmptyDocTelemetryEvent(req, {
       full: {
         docIdDigest: docId,
+      },
+    });
+    this._grist.getAuditLogger().logEvent(mreq, {
+      event: {
+        name: 'createDocument',
+        details: {id: docId},
       },
     });
     return docId;

@@ -254,6 +254,12 @@ export class DocManager extends EventEmitter {
         isSaved: workspaceId !== undefined,
       },
     }, telemetryMetadata));
+    this.gristServer.getAuditLogger().logEvent(mreq, {
+      event: {
+        name: 'createDocument',
+        details: {id: docCreationInfo.id},
+      },
+    });
 
     return docCreationInfo;
     // The imported document is associated with the worker that did the import.

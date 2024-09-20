@@ -42,7 +42,7 @@ def indent(body, levels=1):
 
 #----------------------------------------------------------------------
 
-def get_grist_type(col_type):
+def get_grist_type(col_type, reverse_col_id=None):
   """Returns code for a grist usertype object given a column type string."""
   col_type_split = col_type.split(':', 1)
   typename = col_type_split[0]
@@ -54,7 +54,12 @@ def get_grist_type(col_type):
   arg = col_type_split[1] if len(col_type_split) > 1 else ''
   arg = arg.strip().replace("'", "\\'")
 
-  return "grist.%s(%s)" % (typename, ("'%s'" % arg) if arg else '')
+  args = []
+  if arg:
+    args.append("'%s'" % arg)
+  if reverse_col_id and typename in ('Reference', 'ReferenceList'):
+    args.append('reverse_of=' + repr(reverse_col_id))
+  return "grist.%s(%s)" % (typename, ", ".join(args))
 
 
 class GenCode(object):
@@ -99,7 +104,7 @@ class GenCode(object):
 
     decorator = ''
     if include_type and col_info.type != 'Any':
-      decorator = '@grist.formulaType(%s)\n' % get_grist_type(col_info.type)
+      decorator = '@grist.formulaType(%s)\n' % get_grist_type(col_info.type, col_info.reverseColId)
     return textbuilder.Combiner(['\n' + decorator + decl, indent(body), '\n'])
 
 
@@ -111,7 +116,8 @@ class GenCode(object):
                                             name=table.get_default_func_name(col_info.colId),
                                             include_type=False,
                                             additional_params=['value', 'user']))
-    parts.append("%s = %s\n" % (col_info.colId, get_grist_type(col_info.type)))
+    parts.append("%s = %s\n" % (col_info.colId,
+      get_grist_type(col_info.type, col_info.reverseColId)))
     return textbuilder.Combiner(parts)
 
 

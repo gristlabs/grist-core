@@ -1,5 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
-import {APPROACHING_LIMIT_RATIO, DataLimitStatus, DocumentUsage, getUsageRatio} from 'app/common/DocUsage';
+import {APPROACHING_LIMIT_RATIO, DataLimitInfo, DataLimitStatus,
+        DocumentUsage, getUsageRatio} from 'app/common/DocUsage';
 import {Features} from 'app/common/Features';
 import moment from 'moment-timezone';
 
@@ -22,22 +23,24 @@ export interface GetDataLimitStatusParams {
  * Given a set of params that includes document usage, current product features, and
  * a grace-period start (if any), returns the data limit status of a document.
  */
-export function getDataLimitStatus(params: GetDataLimitStatusParams): DataLimitStatus {
+export function getDataLimitInfo(params: GetDataLimitStatusParams): DataLimitInfo {
   const {docUsage, productFeatures, gracePeriodStart} = params;
   const ratio = getDataLimitRatio(docUsage, productFeatures);
   if (ratio > 1) {
     const start = gracePeriodStart;
-    const days = productFeatures?.gracePeriodDays;
-    if (start && days && moment().diff(moment(start), 'days') >= days) {
-      return 'deleteOnly';
+    // In case we forgot to define a grace period, we'll default to two weeks.
+    const days = productFeatures?.gracePeriodDays ?? 14;
+    const daysRemaining = start && days ? days - moment().diff(moment(start), 'days') : NaN;
+    if (daysRemaining > 0) {
+      return {status: 'gracePeriod', daysRemaining};
     } else {
-      return 'gracePeriod';
+      return {status: 'deleteOnly'};
     }
   } else if (ratio > APPROACHING_LIMIT_RATIO) {
-    return 'approachingLimit';
-  } else {
-    return null;
+    return {status: 'approachingLimit'};
   }
+
+  return {status: null};
 }
 
 /**

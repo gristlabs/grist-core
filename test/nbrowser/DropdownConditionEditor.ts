@@ -66,7 +66,7 @@ describe('DropdownConditionEditor', function () {
           'user.A\nc\ncess\n ',
         ]);
       });
-      await gu.sendKeysSlowly(['hoice not in ']);
+      await gu.sendKeysSlowly('hoice not in ');
       // Attempts to reduce test flakiness by delaying input of $. Not guaranteed to do anything.
       await driver.sleep(100);
       await gu.sendKeys('$');
@@ -192,7 +192,7 @@ describe('DropdownConditionEditor', function () {
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await driver.find('.test-field-set-dropdown-condition').click();
       await gu.waitAppFocus(false);
-      await gu.sendKeysSlowly(['choice']);
+      await gu.sendKeysSlowly('choice');
       await gu.waitToPass(async () => {
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
         assert.deepEqual(completions, [
@@ -340,7 +340,7 @@ describe('DropdownConditionEditor', function () {
     await gu.getCell(1, 1).click();
     await driver.find('.test-field-set-dropdown-condition').click();
     await gu.waitAppFocus(false);
-    await gu.sendKeysSlowly(['user.']);
+    await gu.sendKeysSlowly('user.');
     await gu.waitToPass(async () => {
       const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
       assert.deepEqual(completions, [
