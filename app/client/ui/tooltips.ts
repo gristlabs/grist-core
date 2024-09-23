@@ -6,13 +6,13 @@
  */
 
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {GristTooltips, Tooltip, TooltipContentFunc} from 'app/client/ui/GristTooltips';
+import {GristTooltips, Tooltip} from 'app/client/ui/GristTooltips';
 import {prepareForTransition} from 'app/client/ui/transitions';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {makeLinks} from 'app/client/ui2018/links';
 import {menuCssClass} from 'app/client/ui2018/menus';
-import {dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
+import {BindableValue, dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
 import Popper from 'popper.js';
 import {cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import merge = require('lodash/merge');
@@ -324,12 +324,12 @@ export type InfoTooltipVariant = 'click' | 'hover';
  * Renders an info icon that shows a tooltip with the specified `content`.
  */
 export function infoTooltip(
-  tooltip: Tooltip|TooltipContentFunc,
+  tooltip: BindableValue<Tooltip>,
   options: InfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
   const {variant = 'click'} = options;
-  const content = typeof tooltip === 'function' ? tooltip() : GristTooltips[tooltip]();
+  const content = dom.domComputed(tooltip, (t) => GristTooltips[t]());
   const onOpen = () => logTelemetryEvent('viewedTip', {full: {tipName: tooltip}});
   switch (variant) {
     case 'click': {
@@ -433,7 +433,7 @@ export interface WithInfoTooltipOptions {
  */
 export function withInfoTooltip(
   domContents: DomContents,
-  tooltip: Tooltip,
+  tooltip: BindableValue<Tooltip>,
   options: WithInfoTooltipOptions = {},
 ) {
   const {variant = 'click', domArgs, iconDomArgs, popupOptions} = options;

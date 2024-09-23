@@ -2,6 +2,8 @@ import {allCommands} from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
 import {TableRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
+import {cssCode} from 'app/client/ui/DocTutorial';
+import {Tooltip} from 'app/client/ui/GristTooltips';
 import {
   cssLabelText,
   cssRow,
@@ -27,6 +29,7 @@ export class ReverseReferenceConfig extends Disposable {
   private _reverseColumn: Computed<string>;
   private _reverseType: Computed<string>;
   private _disabled: Computed<boolean>;
+  private _tooltip: Computed<Tooltip>;
 
   constructor(private _field: ViewFieldRec) {
     super();
@@ -54,6 +57,11 @@ export class ReverseReferenceConfig extends Disposable {
       const column = use(this._field.column);
       return Boolean(use(column.formula));
     });
+    this._tooltip = Computed.create(this, (use) => {
+      return use(this._disabled)
+        ? 'twoWayReferencesDisabled'
+        : 'twoWayReferences';
+    });
   }
 
   public buildDom() {
@@ -69,8 +77,8 @@ export class ReverseReferenceConfig extends Disposable {
               testId('add-reverse-columm'),
               dom.prop('disabled', this._disabled),
             ),
-            'twoWayReferences'
-          ),
+            this._tooltip
+          )
         ),
       ]),
       dom.maybe(this._isConfigured, () => cssTwoWayConfig(
@@ -94,7 +102,7 @@ export class ReverseReferenceConfig extends Disposable {
           cssContent(
             cssClipLine(
               cssClipItem(
-                cssCapitalize(t('Table'), dom.style('margin-right', '8px')),
+                cssCapitalize(t('Target table'), dom.style('margin-right', '8px')),
                 dom('span', dom.text(this._reverseTable)),
               ),
             ),
@@ -135,20 +143,21 @@ export class ReverseReferenceConfig extends Disposable {
       await column.removeReverseColumn();
     };
 
-    const revColumnLabel = column.reverseColModel.peek().label.peek() || column.reverseColModel.peek().colId.peek();
-    const revTableName = column.reverseColModel.peek().table.peek().tableNameDef.peek();
+    const refCol = column.reverseColModel.peek().label.peek() || column.reverseColModel.peek().colId.peek();
+    const refTable = column.reverseColModel.peek().table.peek().tableNameDef.peek();
 
-    const promptTitle = t('Delete column {{column}} in table {{table}}?', {
-      column: dom('b', revColumnLabel),
-      table: dom('b', revTableName),
-    });
+    const promptTitle = t('Delete two-way reference?');
 
     const myTable = column.table.peek().tableNameDef.peek();
     const myName = column.label.peek() || column.colId.peek();
 
-    const explanation = t('It is the reverse of the reference column {{column}} in table {{table}}.', {
-      column: dom('b', myName),
-      table: dom('b', myTable)
+    const explanation = t(
+      'This will delete the reference column {{refCol}} in table {{refTable}}. The reference column ' +
+      '{{myName}} will remain in the current table {{myTable}}.', {
+      refCol: dom('b', refCol),
+      refTable: cssCode(refTable),
+      myName: dom('b', myName),
+      myTable: cssCode(myTable),
     });
 
     confirmModal(
@@ -156,7 +165,7 @@ export class ReverseReferenceConfig extends Disposable {
       t('Delete'),
       onConfirm,
       {
-        explanation,
+        explanation: cssHigherLine(explanation),
         width: 'fixed-wide'
       }
     );
@@ -233,4 +242,8 @@ const cssGrayText = styled('span', `
 
 const cssIconAccent = styled(icon, `
   --icon-color: ${theme.accentIcon};
+`);
+
+const cssHigherLine = styled('div', `
+  line-height: 1.5;
 `);

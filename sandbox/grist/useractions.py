@@ -1164,13 +1164,19 @@ class UserActions(object):
         continue
       updates = ref_col.get_updates_for_removed_target_rows(row_id_set)
       if updates:
-        # Previously we sent this as a docaction. Now we do a proper useraction with all the
-        # processing that involves, e.g. triggering two-way-reference updates, and also all the
-        # metadata checks and updates.
-        self._BulkUpdateRecord_decoded(ref_col.table_id,
-          [row_id for (row_id, value) in updates],
-          { ref_col.col_id: [value for (row_id, value) in updates] }
-        )
+        table_id = ref_col.table_id
+        rows = [row_id for (row_id, value) in updates]
+        columns = {ref_col.col_id: [value for (row_id, value) in updates]}
+        if ref_col.table_id.startswith('_grist_'):
+          # Previously we sent this as a docaction. Now we do a proper useraction with all the
+          # processing that involves, e.g. triggering two-way-reference updates, and also all the
+          # metadata checks and updates.
+          self._BulkUpdateRecord_decoded(table_id, rows, columns)
+        else:
+          # But for normal user tables (with two-way references), we must still use the docaction,
+          # otherwise we'd invoke two-way update logic, and the reverse column would try to update
+          # rows that we just deleted.
+          self._do_doc_action(actions.BulkUpdateRecord(table_id, rows, columns))
 
   @useraction
   def RemoveRecord(self, table_id, row_id):

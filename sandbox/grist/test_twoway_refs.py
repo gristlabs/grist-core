@@ -20,6 +20,9 @@ Bob = 2
 Penny = 3
 EmptyList = None
 
+def uniqueReferences(rec):
+  return rec.reverseCol and rec.reverseCol.type.startswith('Ref:')
+
 class TestTwoWayReferences(test_engine.EngineTestCase):
 
   def get_col_rec(self, tableId, colId):
@@ -318,6 +321,16 @@ class TestTwoWayReferences(test_engine.EngineTestCase):
 
     # Add a pet named Rex with Bob as owner
     self.apply_user_action(["AddRecord", "Pets", 1, {"Name": "Rex", "Owner": Bob}])
+
+    self.assertTableData("Owners", cols="subset", data=[
+      ["id", "Name"],
+      [Alice, "Alice"],
+      [Bob, "Bob"],
+    ])
+    self.assertTableData("Pets", cols="subset", data=[
+      ["id", "Name", "Owner"],
+      [Rex, "Rex", Bob],
+    ])
 
 
   def test_uniques(self):
@@ -1192,9 +1205,78 @@ class TestTwoWayReferences(test_engine.EngineTestCase):
       [Rex, "Rex", Alice],
     ])
 
+  def test_back_loop(self):
+    """
+    Test that updating reverse column doesn't cause infinite loop.
+    """
 
-def uniqueReferences(rec):
-  return rec.reverseCol and rec.reverseCol.type.startswith('Ref:')
+    # Load pets sample.
+    self.load_pets()
+
+    # Add reverse column for Owner.
+    self.apply_user_action(["AddReverseColumn", 'Pets', 'Owner'])
+
+    # Convert Pets to Ref:Owners.
+    self.apply_user_action(["ModifyColumn", "Owners", "Pets", {"type": "Ref:Pets"}])
+
+    # Check the data.
+    self.assertTableData("Pets", cols="subset", data=[
+      ["id", "Name", "Owner"],
+      [1, "Rex", Bob],
+    ])
+
+    self.assertTableData("Owners", cols="subset", data=[
+      ["id", "Name", "Pets"],
+      [1, "Alice", Empty],
+      [2, "Bob", Rex],
+    ])
+
+    # Now move Rex to Alice using Pets table.
+    self.apply_user_action(["UpdateRecord", "Pets", Rex, {"Owner": Alice}])
+
+
+  def test_remove_in_bulk(self):
+    """
+    Test that we can remove many rows at the same time. PReviously it ended up in an error,
+    as the reverse column was trying to update the removed row.
+    """
+
+    # Load pets sample.
+    self.load_pets()
+
+    # Add another dog.
+    self.apply_user_action(["AddRecord", "Pets", Pluto, {"Name": "Pluto"}])
+
+    # Add reverse column for Owner.
+    self.apply_user_action(["AddReverseColumn", 'Pets', 'Owner'])
+
+    # Add Pluto to Bob.
+    self.apply_user_action(["UpdateRecord", "Pets", Pluto, {"Owner": Alice}])
+
+    # Test the data.
+    self.assertTableData("Pets", cols="subset", data=[
+      ["id", "Name", "Owner"],
+      [Rex, "Rex", Bob],
+      [Pluto, "Pluto", Alice],
+    ])
+    self.assertTableData("Owners", cols="subset", data=[
+      ["id", "Name", "Pets"],
+      [1, "Alice", [Pluto]],
+      [2, "Bob", [Rex]],
+    ])
+
+    # Now remove both dogs.
+    self.apply_user_action(["BulkRemoveRecord", "Pets", [Rex, Pluto]])
+
+    # Make sure we see the data.
+    self.assertTableData("Pets", cols="subset", data=[
+      ["id", "Name", "Owner"],
+    ])
+    self.assertTableData("Owners", cols="subset", data=[
+      ["id", "Name", "Pets"],
+      [1, "Alice", EmptyList],
+      [2, "Bob", EmptyList],
+    ])
 
 
 if __name__ == "__main__":

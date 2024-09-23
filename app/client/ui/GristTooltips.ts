@@ -45,6 +45,7 @@ export type Tooltip =
   | 'setRefDropdownCondition'
   | 'communityWidgets'
   | 'twoWayReferences'
+  | 'twoWayReferencesDisabled'
   | 'reasignTwoWayReference';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -166,16 +167,23 @@ see or edit which parts of your document.')
   ),
   twoWayReferences: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Creates a reverse column in target table that can be edited from either end.')
+      t('Creates a new Reference List column in the target table, with both this ' +
+        'and the target columns editable and synchronized.')
+    ),
+    ...args,
+  ),
+  twoWayReferencesDisabled: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('Two-way references are not currently supported for Formula or Trigger Formula columns')
     ),
     ...args,
   ),
   reasignTwoWayReference: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('This limitation occurs when one end of a two-way reference is configured as a single Reference.')
+      t('This limitation occurs when one column in a two-way reference has the Reference type.')
     ),
     dom('div',
-      t('To allow multiple assignments, change the type of the Reference column to Reference List.')
+      t(`To allow multiple assignments, change the referenced column's type to Reference List.`)
     ),
     ...args,
   ),

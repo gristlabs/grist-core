@@ -134,7 +134,7 @@ describe('TwoWayReference', function() {
     // We are now in a modal dialog.
     assert.equal(
       await driver.findWait('.test-modal-dialog label', 100).getText(),
-      'Reassign to Owners record Bob.'
+      'Reassign to Owners record "Bob".'
     );
 
     // Reassign it.
@@ -599,7 +599,7 @@ describe('TwoWayReference', function() {
     // We should have an option there.
     assert.equal(
       await driver.findWait('.test-modal-dialog label', 100).getText(),
-      'Reassign to People record Alice.'
+      'Reassign to People record "Alice".'
     );
 
     // Reassign it.
@@ -729,7 +729,7 @@ const removeTwoWay = () => driver.findWait('.test-remove-reverse-column', 100).c
 
 const configText = async () => {
   const text = await driver.findWait('.test-reverse-column-label', 100).getText();
-  return text.trim().split('\n').join('').replace('COLUMN', '.').replace("TABLE", "");
+  return text.trim().split('\n').join('').replace('COLUMN', '.').replace("TARGET TABLE", "");
 };
 
 const removeModal = {

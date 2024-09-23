@@ -1,6 +1,7 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnRec, DocModel} from 'app/client/models/DocModel';
+import {cssCode} from 'app/client/ui/DocTutorial';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton, textButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -101,10 +102,10 @@ export async function buildReassignModal(options: {
         `{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record \
          {{oldSourceName}}.`,
         {
-          targetTable: dom('i', Pets),
-          sourceTable: dom('i', Owners),
-          targetName: dom('b', Azor),
-          oldSourceName: dom('b', Bob),
+          targetTable: cssCode(Pets),
+          sourceTable: cssCode(Owners),
+          targetName: cssName(Azor),
+          oldSourceName: cssName(Bob),
         });
 
       return cssBulletLine(text);
@@ -117,11 +118,11 @@ export async function buildReassignModal(options: {
       // Task is the name of the revRec table
       const Pets = revRec.table().tableNameDef();
       const Owners = colRec.table().tableNameDef();
-      return dom('div', [
+      return cssHigherLine([
         t(`Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.`,
           {
-            targetTable: dom('i', Pets),
-            sourceTable: dom('i', Owners),
+            targetTable: cssCode(Pets),
+            sourceTable: cssCode(Owners),
           })
       ]);
     }
@@ -151,14 +152,14 @@ export async function buildReassignModal(options: {
       const Ann = rowDisplay(colRec.table().tableId(), newRowId, colRec.colId()) as string;
       const singleText = () => t(`Reassign to {{sourceTable}} record {{sourceName}}.`,
         {
-          sourceTable: dom('i', colRec.table().tableNameDef()),
-          sourceName: dom('b', Ann),
+          sourceTable: cssCode(colRec.table().tableNameDef()),
+          sourceName: cssName(Ann),
         });
       const multiText = () => t(`Reassign to new {{sourceTable}} records.`,
         {
-          sourceTable: dom('i', colRec.table().tableNameDef()),
+          sourceTable: cssCode(colRec.table().tableNameDef()),
         });
-      return labeledSquareCheckbox(checked, multiple ? multiText() : singleText());
+      return cssCheckbox(checked, multiple ? multiText() : singleText());
     }
   }
 
@@ -368,9 +369,23 @@ function* bulkToSingle(actions: DocAction[]): Iterable<DocAction> {
 
 const cssBulletLine = styled('div', `
   margin-bottom: 8px;
+  line-height: 22px;
   &::before {
     content: '•';
     margin-right: 4px;
     color: ${theme.lightText};
+  }
+`);
+
+const cssHigherLine = styled('div', `
+  line-height: 22px;
+`);
+
+const cssName = (text: string) => dom('span', `"${text}"`);
+
+const cssCheckbox = styled(labeledSquareCheckbox, `
+  line-height: 22px;
+  & > span {
+    overflow: unset; /* make some room for cssCode */
   }
 `);

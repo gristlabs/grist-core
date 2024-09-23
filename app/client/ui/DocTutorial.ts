@@ -503,3 +503,14 @@ const cssSkipIcon = styled(icon, `
   height: 20px;
   margin: 0px -3px;
 `);
+
+// This is aligned with css in ./DocTutorial.css
+export const cssCode = styled('code', `
+  padding: 2px 5px;
+  color: ${theme.tutorialsPopupCodeFg};
+  background: ${theme.tutorialsPopupCodeBg};
+  border: 1px solid ${theme.tutorialsPopupCodeBorder};
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: max(12.6px, 90%); /* 90% of 13px */
+`);
