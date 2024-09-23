@@ -383,10 +383,10 @@
     safe-buffer "5.2.0"
     uid-safe "~2.1.5"
 
-"@gristlabs/grist-widget@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@gristlabs/grist-widget/-/grist-widget-0.0.4.tgz#df50d988bcdf8fc26a876cf23b82e258bbdb0ccc"
-  integrity sha512-Q0k+GuudU2+0JkuvVkB9UZzqeUKJH8PsaO9ZfxKuqL9/ssIXUd080msB+PJLXB0TU9BkpzPSl7+kLqXTBSnA5g==
+"@gristlabs/grist-widget@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@gristlabs/grist-widget/-/grist-widget-0.0.5.tgz#b56b91ad0ee12020fa83993bb11e70d41c11a77b"
+  integrity sha512-0JhCFLjcbNqKsDyipQSWJhj5VglzixHXuqfAvHB858vmbRyG9s5G2x1lCZj2MGD+PCrIXA/qwNmJx/Ei7b6e8Q==
 
 "@gristlabs/moment-guess@1.2.4-grist.1":
   version "1.2.4-grist.1"
