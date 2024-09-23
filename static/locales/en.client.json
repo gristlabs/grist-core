@@ -277,7 +277,11 @@
         "Workspace not found": "Workspace not found",
         "You are on the {{siteName}} site. You also have access to the following sites:": "You are on the {{siteName}} site. You also have access to the following sites:",
         "You are on your personal site. You also have access to the following sites:": "You are on your personal site. You also have access to the following sites:",
-        "You may delete a workspace forever once it has no documents in it.": "You may delete a workspace forever once it has no documents in it."
+        "You may delete a workspace forever once it has no documents in it.": "You may delete a workspace forever once it has no documents in it.",
+        "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
+        "Create my first document": "Create my first document",
+        "You have read-only access to this site. Currently there are no documents.": "You have read-only access to this site. Currently there are no documents.",
+        "personal site": "personal site"
     },
     "DocPageModel": {
         "Add Empty Table": "Add Empty Table",
@@ -531,7 +535,8 @@
         "Sign in": "Sign in",
         "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
         "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist.",
-        "Learn more in our {{helpCenterLink}}.": "Learn more in our {{helpCenterLink}}."
+        "Learn more in our {{helpCenterLink}}.": "Learn more in our {{helpCenterLink}}.",
+        "Only show documents": "Only show documents"
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
@@ -793,7 +798,8 @@
         "API Console": "API Console"
     },
     "TopBar": {
-        "Manage Team": "Manage Team"
+        "Manage Team": "Manage Team",
+        "Manage team": "Manage team"
     },
     "TriggerFormulas": {
         "Any field": "Any field",
@@ -1204,7 +1210,10 @@
         "These rules are applied after all column rules have been processed, if applicable.": "These rules are applied after all column rules have been processed, if applicable.",
         "Example: {{example}}": "Example: {{example}}",
         "Filter displayed dropdown values with a condition.": "Filter displayed dropdown values with a condition.",
-        "Community widgets are created and maintained by Grist community members.": "Community widgets are created and maintained by Grist community members."
+        "Community widgets are created and maintained by Grist community members.": "Community widgets are created and maintained by Grist community members.",
+        "Creates a reverse column in target table that can be edited from either end.": "Creates a reverse column in target table that can be edited from either end.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "This limitation occurs when one end of a two-way reference is configured as a single Reference.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "To allow multiple assignments, change the type of the Reference column to Reference List."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1731,5 +1740,46 @@
         },
         "The toggle is **off**": "The toggle is **off**",
         "The toggle is **on**": "The toggle is **on**"
+    },
+    "HomeIntroCards": {
+        "3 minute video tour": "3 minute video tour",
+        "Blank document": "Blank document",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Find solutions and explore more resources {{helpCenterLink}}",
+        "Finish our basics tutorial": "Finish our basics tutorial",
+        "Help center": "Help center",
+        "Import file": "Import file",
+        "Learn more {{webinarsLinks}}": "Learn more {{webinarsLinks}}",
+        "Start a new document": "Start a new document",
+        "Templates": "Templates",
+        "Tutorial": "Tutorial",
+        "Webinars": "Webinars"
+    },
+    "ReverseReferenceConfig": {
+        "Add two-way reference": "Add two-way reference",
+        "Column": "Column",
+        "Delete": "Delete",
+        "Delete column {{column}} in table {{table}}?": "Delete column {{column}} in table {{table}}?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "It is the reverse of the reference column {{column}} in table {{table}}.",
+        "Table": "Table",
+        "Two-way Reference": "Two-way Reference"
+    },
+    "SupportGristButton": {
+        "Admin Panel": "Admin Panel",
+        "Close": "Close",
+        "Help Center": "Help Center",
+        "Opt in to Telemetry": "Opt in to Telemetry",
+        "Opted In": "Opted In",
+        "Support Grist": "Support Grist",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu."
+    },
+    "buildReassignModal": {
+        "Cancel": "Cancel",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.",
+        "Reassign": "Reassign",
+        "Reassign to new {{sourceTable}} records.": "Reassign to new {{sourceTable}} records.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Reassign to {{sourceTable}} record {{sourceName}}.",
+        "Record already assigned_one": "Record already assigned",
+        "Record already assigned_other": "Record already assigned",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}."
     }
 }
