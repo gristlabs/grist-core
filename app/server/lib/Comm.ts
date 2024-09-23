@@ -232,7 +232,7 @@ export class Comm extends EventEmitter {
     client.setSession(scopedSession);                 // Add a Session object to the client.
     client.setOrg((req as RequestWithOrg).org || "");
     client.setProfile(profile);
-    client.setConnection(websocket, counter, browserSettings);
+    client.setConnection({websocket, req, counter, browserSettings});
 
     await client.sendConnectMessage(newClient, reuseClient, lastSeqId, {
       serverVersion: this._serverVersion || version.gitcommit,

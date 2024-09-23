@@ -915,9 +915,9 @@ export class FlexServer implements GristServer {
   }
 
   public addAuditLogger() {
-    if (this._check('audit-logger')) { return; }
+    if (this._check('audit-logger', 'homedb')) { return; }
 
-    this._auditLogger = this.create.AuditLogger();
+    this._auditLogger = this.create.AuditLogger(this._dbManager);
   }
 
   public async addTelemetry() {

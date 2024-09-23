@@ -41,7 +41,13 @@ import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {Limit} from 'app/gen-server/entity/Limit';
 import {
-  AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange
+  AvailableUsers,
+  GetUserOptions,
+  NonGuestGroup,
+  PreviousAndCurrent,
+  QueryResult,
+  Resource,
+  UserProfileChange,
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
@@ -110,12 +116,6 @@ const listPublicSites = appSettings.section('access').flag('listPublicSites').re
 // A TTL in milliseconds for caching the result of looking up access level for a doc,
 // which is a burden under heavy traffic.
 const DOC_AUTH_CACHE_TTL = 5000;
-
-export interface QueryResult<T> {
-  status: number;
-  data?: T;
-  errMessage?: string;
-}
 
 // Maps from userId to group name, or null to inherit.
 export interface UserIdDelta {
@@ -1496,8 +1496,12 @@ export class HomeDBManager extends EventEmitter {
   // by makeId().  The client should not be given control of the choice of docId.
   // This option is used during imports, where it is convenient not to add a row to the
   // document database until the document has actually been imported.
-  public async addDocument(scope: Scope, wsId: number, props: Partial<DocumentProperties>,
-                           docId?: string): Promise<QueryResult<string>> {
+  public async addDocument(
+    scope: Scope,
+    wsId: number,
+    props: Partial<DocumentProperties>,
+    docId?: string
+  ): Promise<QueryResult<Document>> {
     const name = props.name;
     if (!name) {
       return {
@@ -1577,7 +1581,12 @@ export class HomeDBManager extends EventEmitter {
       });
       // Saves the document as well as its new ACL Rules and Group.
       const groups = doc.aclRules.map(rule => rule.group);
-      const result = await manager.save([doc, ...doc.aclRules, ...doc.aliases, ...groups]);
+      const [data] = await manager.save<[Document, ...(AclRuleDoc|Alias|Group)[]]>([
+        doc,
+        ...doc.aclRules,
+        ...doc.aliases,
+        ...groups,
+      ]);
       // Ensure that the creator is in the ws and org's guests group. Creator already has
       // access to the workspace (he is at least an editor), but we need to be sure that
       // even if he is removed from the workspace, he will still have access to this doc.
@@ -1587,10 +1596,7 @@ export class HomeDBManager extends EventEmitter {
       // time), but they are ignoring any unique constraints errors.
       await this._repairWorkspaceGuests(scope, workspace.id, manager);
       await this._repairOrgGuests(scope, workspace.org.id, manager);
-      return {
-        status: 200,
-        data: (result[0] as Document).id
-      };
+      return {status: 200, data};
     });
   }
 
@@ -1751,9 +1757,9 @@ export class HomeDBManager extends EventEmitter {
   }
 
   // Checks that the user has REMOVE permissions to the given document. If not, throws an
-  // error. Otherwise deletes the given document. Returns an empty query result with
-  // status 200 on success.
-  public async deleteDocument(scope: DocScope): Promise<QueryResult<number>> {
+  // error. Otherwise deletes the given document. Returns a query result with status 200
+  // and the deleted document on success.
+  public async deleteDocument(scope: DocScope): Promise<QueryResult<Document>> {
     return await this._connection.transaction(async manager => {
       const {forkId} = parseUrlId(scope.urlId);
       if (forkId) {
@@ -1767,8 +1773,9 @@ export class HomeDBManager extends EventEmitter {
           return queryResult;
         }
         const fork: Document = queryResult.data;
-        await manager.remove([fork]);
-        return {status: 200};
+        const data = structuredClone(fork);
+        await manager.remove(fork);
+        return {status: 200, data};
       } else {
         const docQuery = this._doc(scope, {
           manager,
@@ -1785,22 +1792,23 @@ export class HomeDBManager extends EventEmitter {
           return queryResult;
         }
         const doc: Document = queryResult.data;
-        // Delete the doc and doc ACLs/groups.
+        const data = structuredClone(doc);
         const docGroups = doc.aclRules.map(docAcl => docAcl.group);
+        // Delete the doc and doc ACLs/groups.
         await manager.remove([doc, ...docGroups, ...doc.aclRules]);
         // Update guests of the workspace and org after removing this doc.
         await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
         await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
-        return {status: 200};
+        return {status: 200, data};
       }
     });
   }
 
-  public softDeleteDocument(scope: DocScope): Promise<void> {
+  public softDeleteDocument(scope: DocScope): Promise<QueryResult<Document>> {
     return this._setDocumentRemovedAt(scope, new Date());
   }
 
-  public async undeleteDocument(scope: DocScope): Promise<void> {
+  public async undeleteDocument(scope: DocScope): Promise<QueryResult<Document>> {
     return this._setDocumentRemovedAt(scope, null);
   }
 
@@ -2263,7 +2271,7 @@ export class HomeDBManager extends EventEmitter {
   public async moveDoc(
     scope: DocScope,
     wsId: number
-  ): Promise<QueryResult<void>> {
+  ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
     return await this._connection.transaction(async manager => {
       // Get the doc
       const docQuery = this._doc(scope, {
@@ -2285,6 +2293,7 @@ export class HomeDBManager extends EventEmitter {
         return docQueryResult;
       }
       const doc: Document = docQueryResult.data;
+      const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
           status: 400,
@@ -2354,7 +2363,11 @@ export class HomeDBManager extends EventEmitter {
       doc.aliases = undefined as any;
       // Saves the document as well as its new ACL Rules and Groups and the
       // updated guest group in the workspace.
-      await manager.save([doc, ...doc.aclRules, ...docGroups]);
+      const [current] = await manager.save<[Document, ...(AclRuleDoc|Group)[]]>([
+        doc,
+        ...doc.aclRules,
+        ...docGroups,
+      ]);
       if (firstLevelUsers.length > 0) {
         // If the doc has first-level users, update the source and destination workspaces.
         await this._repairWorkspaceGuests(scope, oldWs.id, manager);
@@ -2365,9 +2378,7 @@ export class HomeDBManager extends EventEmitter {
           await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
         }
       }
-      return {
-        status: 200
-      };
+      return {status: 200, data: {previous, current}};
     });
   }
 
@@ -4301,9 +4312,9 @@ export class HomeDBManager extends EventEmitter {
       if (!removedAt) {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
-      await manager.createQueryBuilder()
-        .update(Document).set({removedAt}).where({id: doc.id})
-        .execute();
+      doc.removedAt = removedAt;
+      const data = await manager.save(doc);
+      return {status: 200, data};
     });
   }
 

@@ -1,9 +1,9 @@
 import {ApiError} from 'app/common/ApiError';
 import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
-import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {DocScope, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {OptDocSession} from 'app/server/lib/DocSession';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {RequestWithGrist} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
@@ -12,8 +12,6 @@ import {Request, Response} from 'express';
 import {IncomingMessage} from 'http';
 import {Writable} from 'stream';
 import {TLSSocket} from 'tls';
-
-export type RequestOrSession = RequestWithLogin | OptDocSession | null;
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
 const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
@@ -345,6 +343,38 @@ export function getOriginUrl(req: IncomingMessage) {
   const host = req.headers.host;
   const protocol = getEndUserProtocol(req);
   return `${protocol}://${host}`;
+}
+
+/**
+ * Returns the original request IP address.
+ *
+ * If the request was made through a proxy or load balancer, the IP address
+ * is read from forwarded headers. See:
+ *
+ *  - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
+ *  - https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
+ */
+export function getOriginIpAddress(req: IncomingMessage) {
+  return (
+    // May contain multiple comma-separated values; the first one is the original.
+    (req.headers['x-forwarded-for'] as string | undefined)
+      ?.split(',')
+      .map(value => value.trim())[0] ||
+    req.socket?.remoteAddress ||
+    undefined
+  );
+}
+
+/**
+ * Returns the request's "X-Forwarded-For" header, with the request's IP address
+ * appended to its value.
+ *
+ * If the header is absent from the request, a new header will be returned.
+ */
+export function buildXForwardedForHeader(req: Request): {'X-Forwarded-For': string}|undefined {
+  const values = req.get('X-Forwarded-For')?.split(',').map(value => value.trim()) ?? [];
+  if (req.socket.remoteAddress) { values.push(req.socket.remoteAddress); }
+  return values.length > 0 ? { 'X-Forwarded-For': values.join(', ') } : undefined;
 }
 
 /**

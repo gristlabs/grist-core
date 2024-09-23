@@ -18,7 +18,7 @@ import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
 import {AccessTokenInfo} from 'app/server/lib/AccessTokens';
-import {allowHost, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
+import {allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';
@@ -704,6 +704,7 @@ export function getTransitiveHeaders(
   const PermitHeader = req.get('Permit');
   const Organization = (req as RequestWithOrg).org;
   const XRequestedWith = req.get('X-Requested-With');
+  const UserAgent = req.get('User-Agent');
   const Origin = req.get('Origin');  // Pass along the original Origin since it may
                                      // play a role in granular access control.
 
@@ -713,6 +714,8 @@ export function getTransitiveHeaders(
     ...(Organization ? { Organization } : undefined),
     ...(PermitHeader ? { Permit: PermitHeader } : undefined),
     ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
+    ...(UserAgent ? { 'User-Agent': UserAgent } : undefined),
+    ...buildXForwardedForHeader(req),
     ...((includeOrigin && Origin) ? { Origin } : undefined),
   };
   const extraHeader = process.env.GRIST_FORWARD_AUTH_HEADER;

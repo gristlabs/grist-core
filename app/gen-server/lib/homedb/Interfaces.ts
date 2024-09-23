@@ -14,6 +14,11 @@ export interface QueryResult<T> {
   errMessage?: string;
 }
 
+export interface PreviousAndCurrent<T> {
+  previous: T;
+  current: T;
+}
+
 export interface GetUserOptions {
   manager?: EntityManager;
   profile?: UserProfile;

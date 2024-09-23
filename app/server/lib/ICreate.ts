@@ -70,7 +70,7 @@ export interface ICreate {
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
-  AuditLogger(): IAuditLogger;
+  AuditLogger(dbManager: HomeDBManager): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
   Shell?(): IShell;  // relevant to electron version of Grist only.
 
@@ -120,7 +120,7 @@ export interface ICreateBillingOptions {
 export interface ICreateAuditLoggerOptions {
   name: 'grist'|'hec';
   check(): boolean;
-  create(): IAuditLogger|undefined;
+  create(dbManager: HomeDBManager): IAuditLogger|undefined;
 }
 
 export interface ICreateTelemetryOptions {
@@ -177,8 +177,8 @@ export function makeSimpleCreator(opts: {
       }
       return undefined;
     },
-    AuditLogger() {
-      return auditLogger?.find(({check}) => check())?.create() ?? createDummyAuditLogger();
+    AuditLogger(dbManager) {
+      return auditLogger?.find(({check}) => check())?.create(dbManager) ?? createDummyAuditLogger();
     },
     Telemetry(dbManager, gristConfig) {
       return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();

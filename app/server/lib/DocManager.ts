@@ -19,17 +19,13 @@ import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {
-  getDocSessionCachedDoc,
-  makeExceptionalDocSession,
-  makeOptDocSession,
-  OptDocSession
-} from 'app/server/lib/DocSession';
+import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
 import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
+import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
 import log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
@@ -246,7 +242,6 @@ export class DocManager extends EventEmitter {
       register,
       userId,
     });
-
     this.gristServer.getTelemetry().logEvent(mreq, 'documentCreated', merge({
       limited: {
         docIdDigest: docCreationInfo.id,
@@ -254,13 +249,6 @@ export class DocManager extends EventEmitter {
         isSaved: workspaceId !== undefined,
       },
     }, telemetryMetadata));
-    this.gristServer.getAuditLogger().logEvent(mreq, {
-      event: {
-        name: 'createDocument',
-        details: {id: docCreationInfo.id},
-      },
-    });
-
     return docCreationInfo;
     // The imported document is associated with the worker that did the import.
     // We could break that association (see /api/docs/:docId/assign for how) if

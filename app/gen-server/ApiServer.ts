@@ -8,8 +8,10 @@ import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
 import {OrganizationProperties, PermissionDelta} from 'app/common/UserAPI';
+import {Document} from "app/gen-server/entity/Document";
 import {User} from 'app/gen-server/entity/User';
-import {BillingOptions, HomeDBManager, QueryResult, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {BillingOptions, HomeDBManager, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {PreviousAndCurrent, QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -259,37 +261,10 @@ export class ApiServer {
     // POST /api/workspaces/:wid/docs
     // Create a new doc owned by the specific workspace.
     this._app.post('/api/workspaces/:wid/docs', expressWrap(async (req, res) => {
-      const mreq = req as RequestWithLogin;
       const wsId = integerParam(req.params.wid, 'wid');
-      const query = await this._dbManager.addDocument(getScope(req), wsId, req.body);
-      const docId = query.data!;
-      this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {
-        limited: {
-          docIdDigest: docId,
-          sourceDocIdDigest: undefined,
-          isImport: false,
-          fileType: undefined,
-          isSaved: true,
-        },
-        full: {
-          userId: mreq.userId,
-          altSessionId: mreq.altSessionId,
-        },
-      });
-      this._gristServer.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
-        full: {
-          docIdDigest: docId,
-          userId: mreq.userId,
-          altSessionId: mreq.altSessionId,
-        },
-      });
-      this._gristServer.getAuditLogger().logEvent(mreq, {
-        event: {
-          name: 'createDocument',
-          details: {id: docId},
-        },
-      });
-      return sendReply(req, res, query);
+      const result = await this._dbManager.addDocument(getScope(req), wsId, req.body);
+      if (result.status === 200) { this._logCreateDocumentEvents(req, result.data!); }
+      return sendReply(req, res, {...result, data: result.data?.id});
     }));
 
     // GET /api/templates/
@@ -334,7 +309,8 @@ export class ApiServer {
     // Recover the specified doc if it was previously soft-deleted and is
     // still available.
     this._app.post('/api/docs/:did/unremove', expressWrap(async (req, res) => {
-      await this._dbManager.undeleteDocument(getDocScope(req));
+      const {status, data} = await this._dbManager.undeleteDocument(getDocScope(req));
+      if (status === 200) { this._logRestoreDocumentEvents(req, data!); }
       return sendOkReply(req, res);
     }));
 
@@ -375,9 +351,10 @@ export class ApiServer {
     // PATCH /api/docs/:did/move
     // Move the doc to the workspace specified in the body.
     this._app.patch('/api/docs/:did/move', expressWrap(async (req, res) => {
-      const workspaceId = req.body.workspace;
-      const query = await this._dbManager.moveDoc(getDocScope(req), workspaceId);
-      return sendReply(req, res, query);
+      const workspaceId = integerParam(req.body.workspace, 'workspace');
+      const result = await this._dbManager.moveDoc(getDocScope(req), workspaceId);
+      if (result.status === 200) { this._logMoveDocumentEvents(req, result.data!); }
+      return sendReply(req, res, {...result, data: result.data?.current.id});
     }));
 
     this._app.patch('/api/docs/:did/pin', expressWrap(async (req, res) => {
@@ -647,6 +624,57 @@ export class ApiServer {
     return result;
   }
 
+  private _logCreateDocumentEvents(req: Request, document: Document) {
+    const mreq = req as RequestWithLogin;
+    const {id, name, workspace: {id: workspaceId}} = document;
+    this._gristServer.getAuditLogger().logEvent(mreq, {
+      event: {
+        name: 'createDocument',
+        details: {id, name},
+        context: {workspaceId},
+      },
+    });
+    this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {
+      limited: {
+        docIdDigest: id,
+        sourceDocIdDigest: undefined,
+        isImport: false,
+        fileType: undefined,
+        isSaved: true,
+      },
+      full: {
+        userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
+      },
+    });
+    this._gristServer.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
+      full: {
+        docIdDigest: id,
+        userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
+      },
+    });
+  }
+
+  private _logRestoreDocumentEvents(req: Request, document: Document) {
+    const {workspace} = document;
+    this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
+      event: {
+        name: 'restoreDocumentFromTrash',
+        details: {
+          document: {
+            id: document.id,
+            name: document.name,
+          },
+          workspace: {
+            id: workspace.id,
+            name: workspace.name,
+          },
+        },
+      },
+    });
+  }
+
   private _logInvitedDocUserTelemetryEvents(mreq: RequestWithLogin, delta: PermissionDelta) {
     if (!delta.users) { return; }
 
@@ -686,6 +714,32 @@ export class ApiServer {
         }
       );
     }
+  }
+
+  private _logMoveDocumentEvents(req: Request, {previous, current}: PreviousAndCurrent<Document>) {
+    this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
+      event: {
+        name: 'moveDocument',
+        details: {
+          id: current.id,
+          previous: {
+            workspace: {
+              id: previous.workspace.id,
+              name: previous.workspace.name,
+            },
+          },
+          current: {
+            workspace: {
+              id: current.workspace.id,
+              name: current.workspace.name,
+            },
+          },
+        },
+        context: {
+          workspaceId: previous.workspace.id,
+        },
+      },
+    });
   }
 }
 

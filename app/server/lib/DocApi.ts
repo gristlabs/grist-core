@@ -26,11 +26,11 @@ import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
-import {TelemetryMetadataByLevel} from "app/common/Telemetry";
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
 import {GristObjCode} from "app/plugin/GristData";
@@ -54,8 +54,11 @@ import {
   RequestWithLogin
 } from 'app/server/lib/Authorizer';
 import {DocManager} from "app/server/lib/DocManager";
-import {docSessionFromRequest, getDocSessionShare, makeExceptionalDocSession,
-        OptDocSession} from "app/server/lib/DocSession";
+import {
+  docSessionFromRequest,
+  makeExceptionalDocSession,
+  OptDocSession,
+} from "app/server/lib/DocSession";
 import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
@@ -85,6 +88,7 @@ import {
 } from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
+import {getDocSessionShare} from "app/server/lib/sessionUtils";
 import {isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import {fetchDoc, globalUploadSet, handleOptionalUpload, handleUpload,
         makeAccessId} from "app/server/lib/uploads";
@@ -993,14 +997,16 @@ export class DocWorkerApi {
     // DELETE /api/docs/:docId
     // Delete the specified doc.
     this._app.delete('/api/docs/:docId', canEditMaybeRemoved, throttled(async (req, res) => {
-      await this._removeDoc(req, res, true);
+      const {status, data} = await this._removeDoc(req, res, true);
+      if (status === 200) { this._logDeleteDocumentEvents(req, data!); }
     }));
 
     // POST /api/docs/:docId/remove
     // Soft-delete the specified doc.  If query parameter "permanent" is set,
     // delete permanently.
     this._app.post('/api/docs/:docId/remove', canEditMaybeRemoved, throttled(async (req, res) => {
-      await this._removeDoc(req, res, isParameterOn(req.query.permanent));
+      const {status, data} = await this._removeDoc(req, res, isParameterOn(req.query.permanent));
+      if (status === 200) { this._logRemoveDocumentEvents(req, data!); }
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
@@ -1253,11 +1259,7 @@ export class DocWorkerApi {
           },
         },
       });
-      this._logCreatedFileImportDocTelemetryEvent(req, {
-        full: {
-          docIdDigest: result.id,
-        },
-      });
+      this._logImportDocumentEvents(mreq, result);
       res.json(result);
     }));
 
@@ -1402,11 +1404,7 @@ export class DocWorkerApi {
           },
         });
         docId = result.id;
-        this._logCreatedFileImportDocTelemetryEvent(req, {
-          full: {
-            docIdDigest: docId,
-          },
-        });
+        this._logImportDocumentEvents(mreq, result);
       } else if (workspaceId !== undefined) {
         docId = await this._createNewSavedDoc(req, {
           workspaceId: workspaceId,
@@ -1661,7 +1659,7 @@ export class DocWorkerApi {
     }
 
     // Then, import the copy to the workspace.
-    const result = await this._docManager.importDocToWorkspace(mreq, {
+    const {id, title: name} = await this._docManager.importDocToWorkspace(mreq, {
       userId,
       uploadId: uploadResult.uploadId,
       documentName,
@@ -1677,31 +1675,9 @@ export class DocWorkerApi {
         },
       },
     });
-
-    const sourceDocument = await this._dbManager.getRawDocById(sourceDocumentId);
-    const isTemplateCopy = sourceDocument.type === 'template';
-    if (isTemplateCopy) {
-      this._grist.getTelemetry().logEvent(mreq, 'copiedTemplate', {
-        full: {
-          templateId: parseUrlId(sourceDocument.urlId || sourceDocument.id).trunkId,
-          userId: mreq.userId,
-          altSessionId: mreq.altSessionId,
-        },
-      });
-    }
-    this._grist.getTelemetry().logEvent(
-      mreq,
-      `createdDoc-${isTemplateCopy ? 'CopyTemplate' : 'CopyDoc'}`,
-      {
-        full: {
-          docIdDigest: result.id,
-          userId: mreq.userId,
-          altSessionId: mreq.altSessionId,
-        },
-      }
-    );
-
-    return result.id;
+    this._logDuplicateDocumentEvents(mreq, {id: sourceDocumentId}, {id, name})
+      .catch(e => log.error('DocApi failed to log duplicate document events', e));
+    return id;
   }
 
   private async _createNewSavedDoc(req: Request, options: {
@@ -1712,31 +1688,13 @@ export class DocWorkerApi {
     const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
       name: documentName ?? 'Untitled document',
     });
-    const docId = data!;
     if (status !== 200) {
       throw new ApiError(errMessage || 'unable to create document', status);
     }
-    this._logDocumentCreatedTelemetryEvent(req, {
-      limited: {
-        docIdDigest: docId,
-        sourceDocIdDigest: undefined,
-        isImport: false,
-        fileType: undefined,
-        isSaved: true,
-      },
-    });
-    this._logCreatedEmptyDocTelemetryEvent(req, {
-      full: {
-        docIdDigest: docId,
-      },
-    });
-    this._grist.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'createDocument',
-        details: {id: docId},
-      },
-    });
-    return docId;
+
+    const {id, name, workspace} = data!;
+    this._logCreateDocumentEvents(req, {id, name, workspaceId: workspace.id});
+    return id;
   }
 
   private async _createNewUnsavedDoc(req: Request, options: {
@@ -1752,64 +1710,13 @@ export class DocWorkerApi {
       trunkDocId: NEW_DOCUMENT_CODE,
       trunkUrlId: NEW_DOCUMENT_CODE,
     });
-    const docId = result.docId;
-    await this._docManager.createNamedDoc(
+    const id = result.docId;
+    const name = await this._docManager.createNamedDoc(
       makeExceptionalDocSession('nascent', {req: mreq, browserSettings}),
-      docId
+      id
     );
-    this._logDocumentCreatedTelemetryEvent(req, {
-      limited: {
-        docIdDigest: docId,
-        sourceDocIdDigest: undefined,
-        isImport: false,
-        fileType: undefined,
-        isSaved: false,
-      },
-    });
-    this._logCreatedEmptyDocTelemetryEvent(req, {
-      full: {
-        docIdDigest: docId,
-      },
-    });
-    this._grist.getAuditLogger().logEvent(mreq, {
-      event: {
-        name: 'createDocument',
-        details: {id: docId},
-      },
-    });
-    return docId;
-  }
-
-  private _logDocumentCreatedTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
-    const mreq = req as RequestWithLogin;
-    this._grist.getTelemetry().logEvent(mreq, 'documentCreated', _.merge({
-      full: {
-        userId: mreq.userId,
-        altSessionId: mreq.altSessionId,
-      },
-    }, metadata));
-  }
-
-  private _logCreatedEmptyDocTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
-    this._logCreatedDocTelemetryEvent(req, 'createdDoc-Empty', metadata);
-  }
-
-  private _logCreatedFileImportDocTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
-    this._logCreatedDocTelemetryEvent(req, 'createdDoc-FileImport', metadata);
-  }
-
-  private _logCreatedDocTelemetryEvent(
-    req: Request,
-    event: 'createdDoc-Empty' | 'createdDoc-FileImport',
-    metadata: TelemetryMetadataByLevel,
-  ) {
-    const mreq = req as RequestWithLogin;
-    this._grist.getTelemetry().logEvent(mreq, event, _.merge({
-      full: {
-        userId: mreq.userId,
-        altSessionId: mreq.altSessionId,
-      },
-    }, metadata));
+    this._logCreateDocumentEvents(req as RequestWithLogin, {id, name});
+    return id;
   }
 
   /**
@@ -2091,10 +1998,10 @@ export class DocWorkerApi {
     return result;
   }
 
-  private async _removeDoc(req: Request, res: Response, permanent: boolean) {
-    const mreq = req as RequestWithLogin;
+  private async _removeDoc(req: Request, res: Response, permanent: boolean): Promise<QueryResult<Document>> {
     const scope = getDocScope(req);
     const docId = getDocId(req);
+    let result: QueryResult<Document>;
     if (permanent) {
       const {forkId} = parseUrlId(docId);
       if (!forkId) {
@@ -2110,22 +2017,16 @@ export class DocWorkerApi {
       ];
       await Promise.all(docsToDelete.map(docName => this._docManager.deleteDoc(null, docName, true)));
       // Permanently delete from database.
-      const query = await this._dbManager.deleteDocument(scope);
-      this._dbManager.checkQueryResult(query);
-      this._grist.getTelemetry().logEvent(mreq, 'deletedDoc', {
-        full: {
-          docIdDigest: docId,
-          userId: mreq.userId,
-          altSessionId: mreq.altSessionId,
-        },
-      });
-      await sendReply(req, res, query);
+      result = await this._dbManager.deleteDocument(scope);
+      this._dbManager.checkQueryResult(result);
+      await sendReply(req, res, {...result, data: result.data!.id});
     } else {
-      await this._dbManager.softDeleteDocument(scope);
+      result = await this._dbManager.softDeleteDocument(scope);
       await sendOkReply(req, res);
     }
     await this._dbManager.flushSingleDocAuthCache(scope, docId);
     await this._docManager.interruptDocClients(docId);
+    return result;
   }
 
   private async _runSql(activeDoc: ActiveDoc, req: RequestWithLogin, res: Response,
@@ -2170,6 +2071,7 @@ export class DocWorkerApi {
     try {
       const records = await activeDoc.docStorage.all(wrappedStatement,
                                                      ...(options.args || []));
+      this._logRunSQLQueryEvents(req, options);
       res.status(200).json({
         statement,
         records: records.map(
@@ -2193,6 +2095,130 @@ export class DocWorkerApi {
     } finally {
       clearTimeout(interrupt);
     }
+  }
+
+  private _logCreateDocumentEvents(
+    req: Request,
+    document: {id: string; name?: string; workspaceId?: number}
+  ) {
+    const mreq = req as RequestWithLogin;
+    const {id, name, workspaceId} = document;
+    this._grist.getAuditLogger().logEvent(mreq, {
+      event: {
+        name: 'createDocument',
+        details: {id, name},
+        context: {workspaceId},
+      },
+    });
+    this._grist.getTelemetry().logEvent(mreq, 'documentCreated', {
+      limited: {
+        docIdDigest: id,
+        sourceDocIdDigest: undefined,
+        isImport: false,
+        fileType: undefined,
+        isSaved: workspaceId !== undefined,
+      },
+      full: {
+        userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
+      },
+    });
+    this._grist.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
+      limited: {
+        docIdDigest: id,
+        sourceDocIdDigest: undefined,
+        isImport: false,
+        fileType: undefined,
+        isSaved: workspaceId !== undefined,
+      },
+      full: {
+        docIdDigest: id,
+        userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
+      },
+    });
+  }
+
+  private _logRemoveDocumentEvents(req: RequestWithLogin, document: Document) {
+    const {id, name, workspace: {id: workspaceId}} = document;
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'removeDocument',
+        details: {id, name},
+        context: {workspaceId},
+      },
+    });
+  }
+
+  private _logDeleteDocumentEvents(req: RequestWithLogin, {id, name}: Document) {
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'deleteDocument',
+        details: {id, name},
+      },
+    });
+    this._grist.getTelemetry().logEvent(req, 'deletedDoc', {
+      full: {
+        docIdDigest: id,
+        userId: req.userId,
+        altSessionId: req.altSessionId,
+      },
+    });
+  }
+
+  private _logImportDocumentEvents(
+    req: RequestWithLogin,
+    {id}: {id: string}
+  ) {
+    this._grist.getTelemetry().logEvent(req, 'createdDoc-FileImport', {
+      full: {
+        docIdDigest: id,
+        userId: req.userId,
+        altSessionId: req.altSessionId,
+      },
+    });
+  }
+
+  private async _logDuplicateDocumentEvents(
+    req: RequestWithLogin,
+    originalDocument: {id: string},
+    newDocument: {id: string; name: string}
+  ) {
+    const document = await this._dbManager.getRawDocById(originalDocument.id);
+    const isTemplateCopy = document.type === 'template';
+    if (isTemplateCopy) {
+      this._grist.getTelemetry().logEvent(req, 'copiedTemplate', {
+        full: {
+          templateId: parseUrlId(document.urlId || document.id).trunkId,
+          userId: req.userId,
+          altSessionId: req.altSessionId,
+        },
+      });
+    }
+    this._grist.getTelemetry().logEvent(
+      req,
+      `createdDoc-${isTemplateCopy ? 'CopyTemplate' : 'CopyDoc'}`,
+      {
+        full: {
+          docIdDigest: newDocument.id,
+          userId: req.userId,
+          altSessionId: req.altSessionId,
+        },
+      }
+    );
+  }
+
+  private _logRunSQLQueryEvents(
+    req: RequestWithLogin,
+    {sql: query, args, timeout}: Types.SqlPost
+  ) {
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'runSQLQuery',
+        details: {query, arguments: args, timeout},
+        context: {documentId: getDocId(req)},
+      },
+    });
   }
 }
 

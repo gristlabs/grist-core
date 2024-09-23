@@ -52,10 +52,13 @@ describe('GristAuditLogger', function() {
         .post('/events', {
           event: {
             name: 'createDocument',
-            user: null,
+            user: {type: 'unknown'},
             details: {
               id: 'docId',
+              name: 'docName',
             },
+            context: {},
+            source: {},
           },
           timestamp,
         })
@@ -64,7 +67,7 @@ describe('GristAuditLogger', function() {
         auditLogger.logEventAsync(null, {
           event: {
             name: 'createDocument',
-            details: {id: 'docId'},
+            details: {id: 'docId', name: 'docName'},
           },
           timestamp,
         })
@@ -80,7 +83,7 @@ describe('GristAuditLogger', function() {
         auditLogger.logEventAsync(null, {
           event: {
             name: 'createDocument',
-            details: {id: 'docId'},
+            details: {id: 'docId', name: 'docName'},
           },
         }),
         'received a non-200 response from https://api.getgrist.com/events: 404 Not found'
@@ -98,7 +101,7 @@ describe('GristAuditLogger', function() {
         void auditLogger.logEvent(null, {
           event: {
             name: 'createDocument',
-            details: {id: 'docId'},
+            details: {id: 'docId', name: 'docName'},
           },
         });
       }
@@ -106,7 +109,7 @@ describe('GristAuditLogger', function() {
         auditLogger.logEventAsync(null, {
           event: {
             name: 'createDocument',
-            details: {id: 'docId'},
+            details: {id: 'docId', name: 'docName'},
           },
         }),
         'exceeded the maximum number of pending audit event calls (25)'

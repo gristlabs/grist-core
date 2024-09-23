@@ -1,28 +1,29 @@
 import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from 'app/common/BrowserSettings';
-import {delay} from 'app/common/delay';
 import {CommClientConnect, CommMessage, CommResponse, CommResponseError} from 'app/common/CommTypes';
+import {delay} from 'app/common/delay';
+import {normalizeEmail} from 'app/common/emails';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {TelemetryMetadata} from 'app/common/Telemetry';
 import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
-import {normalizeEmail} from 'app/common/emails';
 import {User} from 'app/gen-server/entity/User';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {ScopedSession} from 'app/server/lib/BrowserSession';
 import type {Comm} from 'app/server/lib/Comm';
 import {DocSession} from 'app/server/lib/DocSession';
-import log from 'app/server/lib/log';
-import {LogMethods} from "app/server/lib/LogMethods";
-import {MemoryPool} from 'app/server/lib/MemoryPool';
-import {shortDesc} from 'app/server/lib/shortDesc';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {i18n} from 'i18next';
-import * as crypto from 'crypto';
-import moment from 'moment';
 import {GristServerSocket} from 'app/server/lib/GristServerSocket';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import log from 'app/server/lib/log';
+import {LogMethods} from 'app/server/lib/LogMethods';
+import {MemoryPool} from 'app/server/lib/MemoryPool';
+import {fromCallback} from 'app/server/lib/serverUtils';
+import {shortDesc} from 'app/server/lib/shortDesc';
+import * as crypto from 'crypto';
+import {IncomingMessage} from 'http';
+import {i18n} from 'i18next';
+import moment from 'moment';
 
 // How many messages and bytes to accumulate for a disconnected client before booting it.
 // The benefit is that a client who temporarily disconnects and reconnects without missing much,
@@ -97,7 +98,8 @@ export class Client {
   private _missedMessagesTotalLength: number = 0;
   private _destroyTimer: NodeJS.Timer|null = null;
   private _destroyed: boolean = false;
-  private _websocket: GristServerSocket|null;
+  private _websocket: GristServerSocket|null = null;
+  private _req: IncomingMessage|null = null;
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
   private _user: FullUser|undefined = undefined;
@@ -130,14 +132,25 @@ export class Client {
     return this._locale;
   }
 
-  public setConnection(websocket: GristServerSocket, counter: string|null, browserSettings: BrowserSettings) {
+  public setConnection(options: {
+    websocket: GristServerSocket;
+    req: IncomingMessage;
+    counter: string|null;
+    browserSettings: BrowserSettings;
+  }) {
+    const {websocket, req, counter, browserSettings} = options;
     this._websocket = websocket;
+    this._req = req;
     this._counter = counter;
     this.browserSettings = browserSettings;
 
     websocket.onerror = (err: Error) => this._onError(err);
     websocket.onclose = () => this._onClose();
     websocket.onmessage = (msg: string) => this._onMessage(msg);
+  }
+
+  public getConnectionRequest(): IncomingMessage|null {
+    return this._req;
   }
 
   /**

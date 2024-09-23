@@ -6,16 +6,16 @@ import {
   AssistanceContext,
   AssistanceMessage,
   AssistanceRequest,
-  AssistanceResponse
+  AssistanceResponse,
 } from 'app/common/AssistancePrompts';
 import {delay} from 'app/common/delay';
 import {DocAction} from 'app/common/DocActions';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {getDocSessionUser, OptDocSession} from 'app/server/lib/DocSession';
+import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
+import {getFullUser, getLogMeta} from 'app/server/lib/sessionUtils';
+import {createHash} from 'crypto';
 import fetch from 'node-fetch';
-import {createHash} from "crypto";
-import {getLogMetaFromDocSession} from "./serverUtils";
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
@@ -559,13 +559,13 @@ async function completionToResponse(
 }
 
 function getUserHash(session: OptDocSession): string {
-  const user = getDocSessionUser(session);
+  const user = getFullUser(session);
   // Make it a bit harder to guess the user ID.
   const salt = "7a8sb6987asdb678asd687sad6boas7f8b6aso7fd";
   const hashSource = `${user?.id} ${user?.ref} ${salt}`;
   const hash = createHash('sha256').update(hashSource).digest('base64');
   // So that if we get feedback about a user ID hash, we can
   // search for the hash in the logs to find the original user ID.
-  log.rawInfo("getUserHash", {...getLogMetaFromDocSession(session), userRef: user?.ref, hash});
+  log.rawInfo("getUserHash", {...getLogMeta(session), userRef: user?.ref, hash});
   return hash;
 }

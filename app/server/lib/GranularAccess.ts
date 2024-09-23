@@ -38,8 +38,7 @@ import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
 import { DocClients } from 'app/server/lib/DocClients';
-import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionShare,
-         getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
+import { OptDocSession } from 'app/server/lib/DocSession';
 import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import { IPermissionInfo, MixedPermissionSetWithContext,
@@ -47,6 +46,12 @@ import { IPermissionInfo, MixedPermissionSetWithContext,
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
 import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
+import {
+  getAltSessionId,
+  getDocSessionAccess,
+  getDocSessionShare,
+  getFullUser,
+} from 'app/server/lib/sessionUtils';
 import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
@@ -379,7 +384,7 @@ export class GranularAccess implements GranularAccessForBundle {
         fullUser = attrs.override.user;
       }
     } else {
-      fullUser = getDocSessionUser(docSession);
+      fullUser = getFullUser(docSession);
     }
     const user = new User();
     user.Access = access;
@@ -395,7 +400,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Include origin info if accessed via the rest api.
     // TODO: could also get this for websocket access, just via a different route.
     user.Origin = docSession.req?.get('origin') || null;
-    user.SessionID = isAnonymous ? `a${getDocSessionAltSessionId(docSession)}` : `u${user.UserID}`;
+    user.SessionID = isAnonymous ? `a${getAltSessionId(docSession)}` : `u${user.UserID}`;
     user.IsLoggedIn = !isAnonymous;
     user.UserRef = fullUser?.ref || null; // Empty string should be treated as null.
 

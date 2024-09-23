@@ -107,6 +107,15 @@ import {LogMethods} from "app/server/lib/LogMethods";
 import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
+import {
+  getAltSessionId,
+  getDocSessionAccess,
+  getDocSessionAccessOrNull,
+  getDocSessionUsage,
+  getFullUser,
+  getLogMeta,
+  getUserId,
+} from 'app/server/lib/sessionUtils';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
 import {DocTriggers} from "app/server/lib/Triggers";
@@ -127,21 +136,12 @@ import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
-import {
-  DocSession,
-  getDocSessionAccess,
-  getDocSessionAltSessionId,
-  getDocSessionUsage,
-  getDocSessionUser,
-  getDocSessionUserId,
-  makeExceptionalDocSession,
-  OptDocSession
-} from './DocSession';
+import {DocSession, makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
 import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession} from './serverUtils';
+import {getPubSubPrefix} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -455,7 +455,7 @@ export class ActiveDoc extends EventEmitter {
   // Constructs metadata for logging, given a Client or an OptDocSession.
   public getLogMeta(docSession: OptDocSession|null, docMethod?: string): log.ILogMeta {
     return {
-      ...(docSession ? getLogMetaFromDocSession(docSession) : {}),
+      ...getLogMeta(docSession),
       docId: this._docName,
       ...(docMethod ? {docMethod} : {}),
     };
@@ -819,7 +819,7 @@ export class ActiveDoc extends EventEmitter {
    * It returns the list of rowIds for the rows created in the _grist_Attachments table.
    */
   public async addAttachments(docSession: OptDocSession, uploadId: number): Promise<number[]> {
-    const userId = getDocSessionUserId(docSession);
+    const userId = getUserId(docSession);
     const upload: UploadInfo = globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId));
     try {
       // We'll assert that the upload won't cause limits to be exceeded, retrying once after
@@ -1212,7 +1212,7 @@ export class ActiveDoc extends EventEmitter {
     const options = sanitizeApplyUAOptions(unsanitizedOptions);
     const actionBundles = await this._actionHistory.getActions(actionNums);
     let fromOwnHistory: boolean = true;
-    const user = getDocSessionUser(docSession);
+    const user = getFullUser(docSession);
     let oldestSource: number = Date.now();
     for (const [index, bundle] of actionBundles.entries()) {
       const actionNum = actionNums[index];
@@ -1403,7 +1403,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fork(docSession: OptDocSession): Promise<ForkResult> {
     const dbManager = this._getHomeDbManagerOrFail();
-    const user = getDocSessionUser(docSession);
+    const user = getFullUser(docSession);
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
     if (!user || !await this.canDownload(docSession)) {
@@ -1471,7 +1471,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async getAccessToken(docSession: OptDocSession, options: AccessTokenOptions): Promise<AccessTokenResult> {
     const tokens = this._docManager.gristServer.getAccessTokens();
-    const userId = getDocSessionUserId(docSession);
+    const userId = getUserId(docSession);
     const docId = this.docName;
     const access = getDocSessionAccess(docSession);
     // If we happen to be using a "readOnly" connection, max out at "readOnly"
@@ -1585,7 +1585,7 @@ export class ActiveDoc extends EventEmitter {
     };
     const isShared = new Set<string>();
 
-    const userId = getDocSessionUserId(docSession);
+    const userId = getUserId(docSession);
     if (!userId) { throw new Error('Cannot determine user'); }
 
     const parsed = parseUrlId(this.docName);
@@ -2747,9 +2747,9 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
-    const altSessionId = docSession ? getDocSessionAltSessionId(docSession) : undefined;
+    const altSessionId = getAltSessionId(docSession);
     return merge(
-      docSession ? getTelemetryMetaFromDocSession(docSession) : {},
+      getTelemetryMeta(docSession),
       altSessionId ? {altSessionId} : {},
       {
         limited: {
@@ -3047,4 +3047,24 @@ export function createSandbox(options: {
     preferredPythonVersion,
     sandboxOptions,
   });
+}
+
+/**
+ * Extract telemetry metadata from session.
+ */
+function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
+  if (!docSession) { return {}; }
+
+  const access = getDocSessionAccessOrNull(docSession);
+  const user = getFullUser(docSession);
+  const {client} = docSession;
+  return {
+    limited: {
+      access,
+    },
+    full: {
+      ...(user ? {userId: user.id} : {}),
+      ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
+    },
+  };
 }

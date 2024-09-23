@@ -1,11 +1,12 @@
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {GristAuditLogger} from 'app/server/lib/GristAuditLogger';
 
-export function configureGristAuditLogger() {
+export function configureGristAuditLogger(db: HomeDBManager) {
   const options = checkGristAuditLogger();
   if (!options) { return undefined; }
 
-  return new GristAuditLogger(options);
+  return new GristAuditLogger(db, options);
 }
 
 export function checkGristAuditLogger() {
