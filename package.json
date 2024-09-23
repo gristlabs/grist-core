@@ -143,7 +143,7 @@
     "engine.io": "^6.5.4",
     "engine.io-client": "^6.5.3",
     "exceljs": "4.2.1",
-    "express": "4.19.2",
+    "express": "4.20.0",
     "express-rate-limit": "7.2.0",
     "file-type": "16.5.4",
     "fs-extra": "7.0.0",
