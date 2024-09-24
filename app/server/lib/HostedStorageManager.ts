@@ -644,7 +644,7 @@ export class HostedStorageManager implements IDocStorageManager {
 
       const existsLocally = await fse.pathExists(this.getPath(docName));
       if (existsLocally) {
-        if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN) {
+        if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN || docStatus.docMD5 === 'unknown') {
           // New doc appears to already exist, but may not exist in S3.
           // Let's check.
           const head = await this._ext.head(docName);
