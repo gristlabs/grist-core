@@ -473,7 +473,7 @@ export const groups: CommendGroupDef[] = [{
       bindKeys: false,
     }, {
       name: 'contextMenuCopyWithHeaders',
-      keys: ['Mod+Shift+C'],
+      keys: [],
       desc: 'Copy current selection to clipboard including headers',
     }, {
       name: 'contextMenuCut',

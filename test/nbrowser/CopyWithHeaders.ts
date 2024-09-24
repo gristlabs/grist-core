@@ -26,17 +26,17 @@ describe("CopyWithHeaders", function() {
     await clipboard.lockAndPerform(async (cb) => {
         // Select all
         await gu.sendKeys(Key.chord(Key.CONTROL, 'a'));
-        // Copy with headers: control-shift-c
-        await gu.sendKeys(Key.chord(Key.CONTROL, Key.SHIFT, 'c'));
+        await gu.rightClick(gu.getCell({rowNum: 1, col: 'A'}));
+        await driver.findContent('.grist-floating-menu li', 'Copy with headers').click();
 
         await pasteAndCheck(cb, ["A", "B", "C", "D", "E"], 5);
     });
 
     await clipboard.lockAndPerform(async (cb) => {
         // Select a single cell.
-        await gu.getCell({col: 'D', rowNum: 2}).click();
-        // Copy with headers: control-shift-c
-        await gu.sendKeys(Key.chord(Key.CONTROL, Key.SHIFT, 'c'));
+        await gu.getCell({rowNum: 2, col: 'D'}).click();
+        await gu.rightClick(gu.getCell({rowNum: 2, col: 'D'}));
+        await driver.findContent('.grist-floating-menu li', 'Copy with headers').click();
 
         await pasteAndCheck(cb, ["D"], 2);
     });
