@@ -31,7 +31,7 @@ export interface GristJobs {
    */
   stop(options?: {
     obliterate?: boolean,
-  }) : Promise<void>;
+  }): Promise<void>;
 }
 
 /**
@@ -68,7 +68,7 @@ export interface GristQueueScope {
    */
   stop(options?: {
     obliterate?: boolean,
-  }) : Promise<void>;
+  }): Promise<void>;
 }
 
 /**
