@@ -42,7 +42,7 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
-import {GristJobs, IGristJobs} from 'app/server/lib/GristJobs';
+import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
@@ -187,7 +187,7 @@ export class FlexServer implements GristServer {
   private _isReady: boolean = false;
   private _updateManager: UpdateManager;
   private _sandboxInfo: SandboxInfo;
-  private _jobs?: IGristJobs;
+  private _jobs?: GristJobs;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -344,8 +344,8 @@ export class FlexServer implements GristServer {
   /**
    * Get interface to job queues.
    */
-  public getJobs(): IGristJobs {
-    const jobs = this._jobs || new GristJobs();
+  public getJobs(): GristJobs {
+    const jobs = this._jobs || new GristBullMQJobs();
     return jobs;
   }
 
@@ -953,6 +953,7 @@ export class FlexServer implements GristServer {
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
+    if (this._jobs)       { await this._jobs.stop(); }
     await this._shutdown();
     if (this._accessTokens) { await this._accessTokens.close(); }
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.

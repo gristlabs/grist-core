@@ -17,16 +17,27 @@ import IORedis from 'ioredis';
  * That has implications for testing and deployment, so be careful.
  *
  */
-export interface IGristJobs {
-  // All workers and jobs are scoped to individual named queues,
-  // with the real interfaces operating at that level.
-  queue(queueName?: string): IGristQueueScope;
+export interface GristJobs {
+  /**
+   * All workers and jobs are scoped to individual named queues,
+   * with the real interfaces operating at that level.
+   */
+  queue(queueName?: string): GristQueueScope;
+
+  /**
+   * Shut everything down that we're responsible for.
+   * Set obliterate flag to destroy jobs even if they are
+   * stored externally (useful for testing).
+   */
+  stop(options?: {
+    obliterate?: boolean,
+  }) : Promise<void>;
 }
 
 /**
  * For a given queue, we can add jobs, or methods to process jobs,
  */
-export interface IGristQueueScope {
+export interface GristQueueScope {
   /**
    * Add a job.
    */
@@ -49,6 +60,15 @@ export interface IGristQueueScope {
    */
   handleName(name: string,
              callback: (job: GristJob) => Promise<any>): void;
+
+  /**
+   * Shut everything down that we're responsible for.
+   * Set obliterate flag to destroy jobs even if they are
+   * stored externally (useful for testing).
+   */
+  stop(options?: {
+    obliterate?: boolean,
+  }) : Promise<void>;
 }
 
 /**
@@ -82,8 +102,10 @@ interface JobAddOptions {
 
 /**
  * Implementation for job functionality across the application.
+ * Will use BullMQ, with an in-memory fallback if Redis is
+ * unavailable.
  */
-export class GristJobs implements IGristJobs {
+export class GristBullMQJobs implements GristJobs {
   private _connection?: IORedis;
   private _checkedForConnection: boolean = false;
   private _queues = new Map<string, GristQueueScope>();
@@ -114,17 +136,12 @@ export class GristJobs implements IGristJobs {
     if (!this._queues.get(queueName)) {
       this._queues.set(
         queueName,
-        new GristQueueScope(queueName, this),
+        new GristBullMQQueueScope(queueName, this),
       );
     }
     return this._queues.get(queueName)!;
   }
 
-  /**
-   * Shut everything down that we're responsible for.
-   * Set obliterate flag to destroy jobs even if they are
-   * stored externally (useful for testing).
-   */
   public async stop(options: {
     obliterate?: boolean,
   } = {}) {
@@ -162,13 +179,13 @@ export class GristJobs implements IGristJobs {
 /**
  * Work with a particular named queue.
  */
-export class GristQueueScope implements IGristQueueScope {
+export class GristBullMQQueueScope implements GristQueueScope {
   private _queue: Queue|GristWorker|undefined;
   private _worker: Worker|GristWorker|undefined;
   private _namedProcessors: Record<string, JobHandler> = {};
 
   public constructor(public readonly queueName: string,
-                     private _owner: GristJobs) {}
+                     private _owner: GristBullMQJobs) {}
 
   public handleDefault(defaultCallback: JobHandler) {
     // The default callback passes any recognized named jobs to

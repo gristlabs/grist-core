@@ -1,12 +1,19 @@
 import { delay } from 'app/common/delay';
-import { GristJobs } from 'app/server/lib/GristJobs';
+import { GristBullMQJobs, GristJobs } from 'app/server/lib/GristJobs';
 import { assert } from 'chai';
 
 describe('GristJobs', function() {
   this.timeout(20000);
 
+  // Clean up any jobs left over from previous round of tests.
+  beforeEach(async function() {
+    const jobs = new GristBullMQJobs();
+    const q = jobs.queue();
+    await q.stop({obliterate: true});
+  });
+
   it('can run immediate jobs', async function() {
-    const jobs = new GristJobs();
+    const jobs: GristJobs = new GristBullMQJobs();
     const q = jobs.queue();
     try {
       let ct = 0;
@@ -38,7 +45,7 @@ describe('GristJobs', function() {
   });
 
   it('can run delayed jobs', async function() {
-    const jobs = new GristJobs();
+    const jobs: GristJobs = new GristBullMQJobs();
     const q = jobs.queue();
     try {
       let ct = 0;
@@ -65,7 +72,7 @@ describe('GristJobs', function() {
   });
 
   it('can run repeated jobs', async function() {
-    const jobs = new GristJobs();
+    const jobs: GristJobs = new GristBullMQJobs();
     const q = jobs.queue();
     try {
       let ct = 0;
@@ -88,6 +95,39 @@ describe('GristJobs', function() {
       assert.isAtMost(defaultCt, 10 + 3);
     } finally {
       await jobs.stop({obliterate: true});
+    }
+  });
+
+  it('can pick up jobs again', async function() {
+    // this test is only appropriate if we have an external queue.
+    if (!process.env.REDIS_URL) { this.skip(); }
+    const jobs1: GristJobs = new GristBullMQJobs();
+    const q = jobs1.queue();
+    try {
+      let ct = 0;
+      q.handleName('add', async (job) => {
+        ct += job.data.delta;
+      });
+      q.handleDefault(async () => {});
+      await q.add('add', {delta: 1}, {delay: 250});
+      await q.add('add', {delta: 1}, {delay: 1000});
+      await delay(500);
+      assert.equal(ct, 1);
+      await jobs1.stop();
+      const jobs2: GristJobs = new GristBullMQJobs();
+      const q2 = jobs2.queue();
+      try {
+        q2.handleName('add', async (job) => {
+          ct += job.data.delta * 2;
+        });
+        q2.handleDefault(async () => {});
+        await delay(1000);
+        assert.equal(ct, 3);
+      } finally {
+        await jobs2.stop({obliterate: true});
+      }
+    } finally {
+      await jobs1.stop({obliterate: true});
     }
   });
 });
