@@ -337,12 +337,7 @@ export class UsersManager {
     email: string,
     manager?: EntityManager
   ): Promise<User|undefined> {
-    const normalizedEmail = normalizeEmail(email);
-    return await (manager || this._connection).createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .leftJoinAndSelect('user.logins', 'logins')
-      .where('email = :email', {email: normalizedEmail})
+    return await this._buildExistingUsersByLoginRequest([email], manager)
       .getOne() || undefined;
   }
 
@@ -353,12 +348,7 @@ export class UsersManager {
     emails: string[],
     manager?: EntityManager
   ): Promise<User[]> {
-    const normalizedEmails = emails.map(email=> normalizeEmail(email));
-    return await (manager || this._connection).createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .leftJoinAndSelect('user.logins', 'logins')
-      .where('email IN (:...emails)', {emails: normalizedEmails})
+    return await this._buildExistingUsersByLoginRequest(emails, manager)
       .getMany();
   }
 
@@ -487,6 +477,13 @@ export class UsersManager {
     });
   }
 
+  /*
+   * This function is an alias of getUserByLogin
+   * Its purpose is to be more expressive and avoid confusion when reading code.
+   * FIXME :In the future it may be used to split getUserByLogin in two distinct functions
+   * One for creation
+   * the other for retrieving users in order to make it more maintainable
+   */
   public async createUser(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
     return await this.getUserByLogin(email, options);
   }
@@ -633,15 +630,15 @@ export class UsersManager {
       const emailMap = delta.users;
       const emails = Object.keys(emailMap);
       const existingUsers = await this.getExistingUsersByLogin(emails, transaction);
-      const emailsExistingUsers = existingUsers.map(user=>user.loginEmail);
-      const emailsUsersToCreate = emails.filter(email => ! emailsExistingUsers.includes(email));
-      for (const email of emailsUsersToCreate){
+      const emailsExistingUsers = existingUsers.map(user => user.loginEmail);
+      const emailsUsersToCreate = emails.filter(email => !emailsExistingUsers.includes(email));
+      const emailUsers = [...existingUsers];
+      for (const email of emailsUsersToCreate) {
         const user = await this.createUser(email, {manager: transaction});
         if (user !== undefined) {
-          existingUsers.push(user);
+          emailUsers.push(user);
         }
       }
-      const emailUsers = [...existingUsers];
       emails.forEach((email, i) => {
         const userIdAffected = emailUsers[i]!.id;
         // Org-level sharing with everyone would allow serious spamming - forbid it.
@@ -792,5 +789,17 @@ export class UsersManager {
       users[key] = users[key] ? roles.getStrongestRole(users[key], role) : role;
     }
     delta.users = users;
+  }
+
+  private _buildExistingUsersByLoginRequest(
+    emails: string[],
+    manager?: EntityManager
+  ) {
+    const normalizedEmails = emails.map(email=> normalizeEmail(email));
+    return (manager || this._connection).createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .leftJoinAndSelect('user.logins', 'logins')
+      .where('email IN (:...emails)', {emails: normalizedEmails});
   }
 }
