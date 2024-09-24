@@ -36,7 +36,7 @@ export function makePasteText(tableData: TableData, selection: CopySelection, in
   let result;
   if (includeColHeaders) {
     result = [
-      selection.columns.map(col => col.colId),
+      selection.fields.map(f => f.label()),
       ...selection.rowIds.map(rowId =>
         selection.columns.map(col => col.fmtGetter(rowId))
       )
@@ -80,7 +80,7 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
     )),
     // Include column headers if requested.
     (includeColHeaders ?
-      dom('tr', selection.colIds.map(colId => dom('th', colId))) :
+      dom('tr', selection.fields.map(field => dom('th', field.label()))) :
       null
     ),
     // Fill with table cells.
