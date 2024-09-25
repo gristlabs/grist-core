@@ -128,7 +128,7 @@
     "bootstrap": "3.4.1",
     "bootstrap-datepicker": "1.9.0",
     "bowser": "2.7.0",
-    "bullmq": "^5.8.7",
+    "bullmq": "5.8.7",
     "collect-js-deps": "^0.1.1",
     "color-convert": "2.0.1",
     "commander": "9.3.0",

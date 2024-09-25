@@ -5,7 +5,8 @@ import { assert } from 'chai';
 describe('GristJobs', function() {
   this.timeout(20000);
 
-  // Clean up any jobs left over from previous round of tests.
+  // Clean up any jobs left over from previous round of tests,
+  // if external queues are in use (Redis).
   beforeEach(async function() {
     const jobs = new GristBullMQJobs();
     const q = jobs.queue();

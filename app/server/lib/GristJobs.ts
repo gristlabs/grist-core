@@ -16,6 +16,10 @@ import IORedis from 'ioredis';
  * Important: if you put a job in a queue, it can outlast your process.
  * That has implications for testing and deployment, so be careful.
  *
+ * Long running jobs may be a challenge. BullMQ cancelation
+ * relies on non-open source features:
+ *  https://docs.bullmq.io/bullmq-pro/observables/cancelation
+ *
  */
 export interface GristJobs {
   /**
