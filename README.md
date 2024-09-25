@@ -332,8 +332,8 @@ ASSISTANT_MODEL     | optional. If set, this string is passed along in calls to 
 ASSISTANT_LONGER_CONTEXT_MODEL     | optional. If set, requests that fail because of a context length limitation will be retried with this model set.
 OPENAI_API_KEY      | optional. Synonym for ASSISTANT_API_KEY that assumes an OpenAI endpoint is being used. Sign up for an account on OpenAI and then generate a secret key [here](https://platform.openai.com/account/api-keys).
 
-At the time of writing, the AI Assistant is known to function against OpenAI chat completion endpoints for gpt-3.5-turbo and gpt-4.
-It can also function against the chat completion endpoint provided by <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a>.
+At the time of writing, the AI Assistant is known to function against OpenAI chat completion endpoints (those ending in `/v1/chat/completions`).
+It is also known to function against the chat completion endpoint provided by <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a> and by [LM Studio](https://lmstudio.ai/). For useful results, the LLM should be on par with GPT 3.5 or above.
 
 #### Sandbox related variables:
 
