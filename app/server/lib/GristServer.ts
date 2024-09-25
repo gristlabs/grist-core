@@ -70,7 +70,7 @@ export interface GristServer {
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
   getBootKey(): string|undefined;
-  getSandboxInfo(): SandboxInfo|undefined;
+  getSandboxInfo(): Promise<SandboxInfo|undefined>;
   getInfo(key: string): any;
   getJobs(): GristJobs;
 }

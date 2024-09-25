@@ -1397,8 +1397,9 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public async checkSandbox() {
-    if (this._check('sandbox', 'doc')) { return; }
+  public async getSandboxInfo(): Promise<SandboxInfo|undefined> {
+    if (this._sandboxInfo) { return this._sandboxInfo; }
+
     const flavor = process.env.GRIST_SANDBOX_FLAVOR || 'unknown';
     const info = this._sandboxInfo = {
       flavor,
@@ -1408,6 +1409,8 @@ export class FlexServer implements GristServer {
       sandboxed: false,
       lastSuccessfulStep: 'none',
     } as SandboxInfo;
+    // Only meaningful on instances that handle documents.
+    if (!this._docManager) { return info; }
     try {
       const sandbox = createSandbox({
         server: this,
@@ -1432,10 +1435,7 @@ export class FlexServer implements GristServer {
     } catch (e) {
       info.error = String(e);
     }
-  }
-
-  public getSandboxInfo(): SandboxInfo|undefined {
-    return this._sandboxInfo;
+    return info;
   }
 
   public getInfo(key: string): any {
