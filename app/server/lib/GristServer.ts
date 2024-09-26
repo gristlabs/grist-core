@@ -15,6 +15,7 @@ import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';
 import { create } from 'app/server/lib/create';
 import { Hosts } from 'app/server/lib/extractOrg';
+import { GristJobs } from 'app/server/lib/GristJobs';
 import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import { INotifier } from 'app/server/lib/INotifier';
@@ -71,6 +72,7 @@ export interface GristServer {
   getBootKey(): string|undefined;
   getSandboxInfo(): SandboxInfo|undefined;
   getInfo(key: string): any;
+  getJobs(): GristJobs;
 }
 
 export interface GristLoginSystem {
@@ -164,7 +166,8 @@ export function createDummyGristServer(): GristServer {
     getBundledWidgets() { return []; },
     getBootKey() { return undefined; },
     getSandboxInfo() { return undefined; },
-    getInfo(key: string) { return undefined; }
+    getInfo(key: string) { return undefined; },
+    getJobs(): GristJobs { throw new Error('no job system'); },
   };
 }
 
