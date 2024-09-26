@@ -2255,7 +2255,7 @@ builtin-status-codes@^3.0.0:
   resolved "https://registry.npmjs.org/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz"
   integrity sha1-hZgoeOIbmOHGZCXgPQF0eI9Wnug=
 
-bullmq@^5.8.7:
+bullmq@5.8.7:
   version "5.8.7"
   resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.8.7.tgz#d5da6215377fe29494d74ad307f195f7408b9e2e"
   integrity sha512-IdAgB9WvJHRAcZtamRLj6fbjMyuIogEa1cjOTWM1pkVoHUOpO34q6FzNMX1R8VOeUhkvkOkWcxI5ENgFLh+TVA==
