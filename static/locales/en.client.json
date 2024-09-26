@@ -1213,7 +1213,10 @@
         "Community widgets are created and maintained by Grist community members.": "Community widgets are created and maintained by Grist community members.",
         "Creates a reverse column in target table that can be edited from either end.": "Creates a reverse column in target table that can be edited from either end.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "This limitation occurs when one end of a two-way reference is configured as a single Reference.",
-        "To allow multiple assignments, change the type of the Reference column to Reference List.": "To allow multiple assignments, change the type of the Reference column to Reference List."
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "To allow multiple assignments, change the type of the Reference column to Reference List.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "This limitation occurs when one column in a two-way reference has the Reference type.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "To allow multiple assignments, change the referenced column's type to Reference List.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1761,7 +1764,9 @@
         "Delete column {{column}} in table {{table}}?": "Delete column {{column}} in table {{table}}?",
         "It is the reverse of the reference column {{column}} in table {{table}}.": "It is the reverse of the reference column {{column}} in table {{table}}.",
         "Table": "Table",
-        "Two-way Reference": "Two-way Reference"
+        "Two-way Reference": "Two-way Reference",
+        "Delete two-way reference?": "Delete two-way reference?",
+        "Target table": "Target table"
     },
     "SupportGristButton": {
         "Admin Panel": "Admin Panel",
