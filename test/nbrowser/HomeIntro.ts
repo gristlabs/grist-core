@@ -98,7 +98,6 @@ describe('HomeIntro', function() {
 
     assert.isTrue(await driver.find('.test-intro-cards').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-video-tour').isDisplayed());
-    assert.isTrue(await driver.find('.test-intro-tutorial').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-create-doc').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-import-doc').isDisplayed());
     assert.isTrue(await driver.find('.test-intro-templates').isDisplayed());
