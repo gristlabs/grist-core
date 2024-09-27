@@ -64,6 +64,8 @@ let docs: TestServer;
 let userApi: UserAPIImpl;
 let extraHeadersForConfig = {};
 
+const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
+
 function makeConfig(username: string): AxiosRequestConfig {
   const originalConfig = configForUser(username);
   return {
@@ -5384,8 +5386,6 @@ async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces('current');
   return workspaces.find((w) => w.name === name)!.id;
 }
-
-const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
 async function setupDataDir(dir: string) {
   // we'll be serving Hello.grist content for various document ids, so let's make copies of it in
