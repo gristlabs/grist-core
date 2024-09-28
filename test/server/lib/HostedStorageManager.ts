@@ -1,7 +1,7 @@
 import {ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import {SCHEMA_VERSION} from 'app/common/schema';
-import {DocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
+import {DocWorkerMap, getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {create} from 'app/server/lib/create';
@@ -33,6 +33,7 @@ import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import uuidv4 from "uuid/v4";
+import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 
 bluebird.promisifyAll(RedisClient.prototype);
 
@@ -962,6 +963,66 @@ describe('HostedStorageManager', function() {
       });
     });
   }
+
+  describe('minio-without-redis', async () => {
+    const workerId = 'dw17';
+    let tmpDir: string;
+    let oldEnv: EnvironmentSnapshot;
+    let docWorkerMap: IDocWorkerMap;
+    let externalStorageCreate: ExternalStorageCreator;
+
+    before(async function() {
+      tmpDir = await createTmpDir();
+      oldEnv = new EnvironmentSnapshot();
+      // Disable Redis
+      delete process.env.REDIS_URL;
+
+      const creator = create?.getStorageOptions?.('minio')?.create;
+      if (!creator) {
+        return this.skip();
+      }
+      externalStorageCreate = creator;
+    });
+
+    after(async () => {
+      oldEnv.restore();
+    });
+
+    beforeEach(async function() {
+      // With Redis disabled, this should be the non-redis version of IDocWorkerMap (DummyDocWorkerMap)
+      docWorkerMap = getDocWorkerMap();
+      await docWorkerMap.addWorker({
+        id: workerId,
+        publicUrl: "none",
+        internalUrl: "none",
+      });
+      await docWorkerMap.setWorkerAvailability(workerId, true);
+    });
+
+    it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
+      const storageManager = new HostedStorageManager(
+        tmpDir,
+        workerId,
+        false,
+        docWorkerMap,
+        {
+          setDocsMetadata: async (metadata) => {},
+          getDocFeatures: async (docId) => undefined,
+        },
+        externalStorageCreate,
+      );
+
+      const docId = "NewDoc";
+
+      const path = storageManager.getPath(docId);
+      // Simulate an uploaded .grist file.
+      await fse.writeFile(path, "");
+
+      await storageManager.prepareLocalDoc(docId);
+
+      assert.isTrue(await fse.pathExists(path));
+    });
+  });
 });
 
 // This is a performance test, to check if the backup settings are plausible.
