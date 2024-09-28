@@ -275,7 +275,7 @@ class TestStore {
   public constructor(
     private _localDirectory: string,
     private _workerId: string,
-    private _workers: DocWorkerMap,
+    private _workers: IDocWorkerMap,
     private _externalStorageCreate: ExternalStorageCreator) {
   }
 
@@ -970,6 +970,7 @@ describe('HostedStorageManager', function() {
     let oldEnv: EnvironmentSnapshot;
     let docWorkerMap: IDocWorkerMap;
     let externalStorageCreate: ExternalStorageCreator;
+    let defaultParams: ConstructorParameters<typeof HostedStorageManager>;
 
     before(async function() {
       tmpDir = await createTmpDir();
@@ -997,10 +998,8 @@ describe('HostedStorageManager', function() {
         internalUrl: "none",
       });
       await docWorkerMap.setWorkerAvailability(workerId, true);
-    });
 
-    it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
-      const storageManager = new HostedStorageManager(
+      defaultParams = [
         tmpDir,
         workerId,
         false,
@@ -1010,7 +1009,11 @@ describe('HostedStorageManager', function() {
           getDocFeatures: async (docId) => undefined,
         },
         externalStorageCreate,
-      );
+      ];
+    });
+
+    it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
+      const storageManager = new HostedStorageManager(...defaultParams);
 
       const docId = "NewDoc";
 
@@ -1021,6 +1024,34 @@ describe('HostedStorageManager', function() {
       await storageManager.prepareLocalDoc(docId);
 
       assert.isTrue(await fse.pathExists(path));
+    });
+
+    it("fetches remote docs if they don't exist locally", async function() {
+      const testStore = new TestStore(
+        tmpDir,
+        workerId,
+        docWorkerMap,
+        externalStorageCreate
+      );
+
+      let docName: string = "";
+      let docPath: string = "";
+
+      await testStore.run(async () => {
+        const newDoc = await testStore.docManager.createNewEmptyDoc(docSession, "NewRemoteDoc");
+        docName = newDoc.docName;
+        docPath = testStore.storageManager.getPath(docName);
+      });
+
+      // This should be safe since testStore.run closes everything down.
+      await fse.remove(docPath);
+      assert.isFalse(await fse.pathExists(docPath));
+
+      await testStore.run(async () => {
+        await testStore.docManager.fetchDoc(docSession, docName);
+      });
+
+      assert.isTrue(await fse.pathExists(docPath));
     });
   });
 });
