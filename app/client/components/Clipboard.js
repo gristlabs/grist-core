@@ -121,7 +121,7 @@ Clipboard.prototype._onCopy = function(elem, event) {
 
   let pasteObj = commands.allCommands.copy.run();
 
-  this._setCBdata(pasteObj, event.originalEvent.clipboardData, false);
+  this._setCBdata(pasteObj, event.originalEvent.clipboardData);
 };
 
 Clipboard.prototype._doContextMenuCopy = function() {
@@ -150,12 +150,12 @@ Clipboard.prototype._doContextMenuCut = function() {
   this._copyToClipboard(pasteObj, 'cut');
 };
 
-Clipboard.prototype._setCBdata = function(pasteObj, clipboardData, includeColHeaders) {
+Clipboard.prototype._setCBdata = function(pasteObj, clipboardData) {
   if (!pasteObj) { return; }
 
-  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection, includeColHeaders);
+  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection, false);
   clipboardData.setData('text/plain', plainText);
-  const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
+  const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection, false);
   clipboardData.setData('text/html', htmlText);
 
   this._setCutCallback(pasteObj, plainText);
