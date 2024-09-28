@@ -8,7 +8,6 @@ import {DocumentUsage} from 'app/common/DocUsage';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {KeyedOps} from 'app/common/KeyedOps';
 import {DocReplacementOptions, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {DocSnapshotInventory, DocSnapshotPruner} from 'app/server/lib/DocSnapshots';
 import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
@@ -19,14 +18,15 @@ import {
   ExternalStorageCreator, ExternalStorageSettings,
   Unchanged
 } from 'app/server/lib/ExternalStorage';
-import {HostedMetadataManager} from 'app/server/lib/HostedMetadataManager';
+import {HostedMetadataManager, SetDocsMetadataFunc} from 'app/server/lib/HostedMetadataManager';
 import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import uuidv4 from "uuid/v4";
-import { OpenMode, SQLiteDB } from './SQLiteDB';
+import {OpenMode, SQLiteDB} from './SQLiteDB';
+import {Features} from "app/common/Features";
 
 // Check for a valid document id.
 const docIdRegex = /^[-=_\w~%]+$/;
@@ -50,6 +50,11 @@ function checkValidDocId(docId: string): void {
   if (!docIdRegex.test(docId)) {
     throw new Error(`Invalid docId ${docId}`);
   }
+}
+
+export interface HostedStorageCallbacks {
+  setDocsMetadata: SetDocsMetadataFunc,
+  getDocFeatures: (docId: string) => Promise<Features | undefined>
 }
 
 export interface HostedStorageOptions {
@@ -133,7 +138,7 @@ export class HostedStorageManager implements IDocStorageManager {
     private _docWorkerId: string,
     private _disableS3: boolean,
     private _docWorkerMap: IDocWorkerMap,
-    dbManager: HomeDBManager,
+    callbacks: HostedStorageCallbacks,
     createExternalStorage: ExternalStorageCreator,
     options: HostedStorageOptions = defaultOptions
   ) {
@@ -144,7 +149,7 @@ export class HostedStorageManager implements IDocStorageManager {
     if (!externalStoreDoc) { this._disableS3 = true; }
     const secondsBeforePush = options.secondsBeforePush;
     if (options.pushDocUpdateTimes) {
-      this._metadataManager = new HostedMetadataManager(dbManager);
+      this._metadataManager = new HostedMetadataManager(callbacks.setDocsMetadata);
     }
     this._uploads = new KeyedOps(key => this._pushToS3(key), {
       delayBeforeOperationMs: secondsBeforePush * 1000,
@@ -178,7 +183,7 @@ export class HostedStorageManager implements IDocStorageManager {
           return path.join(dir, 'meta.json');
         },
         async docId => {
-          const features = await dbManager.getDocFeatures(docId);
+          const features = await callbacks.getDocFeatures(docId);
           return features?.snapshotWindow;
         },
       );

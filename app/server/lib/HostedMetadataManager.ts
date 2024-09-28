@@ -1,5 +1,7 @@
-import {DocumentMetadata, HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {DocumentMetadata} from 'app/gen-server/lib/homedb/HomeDBManager';
 import log from 'app/server/lib/log';
+
+export type SetDocsMetadataFunc = (metadata: { [p: string]: DocumentMetadata }) => Promise<any>;
 
 /**
  * HostedMetadataManager handles pushing document metadata changes to the Home database when
@@ -29,7 +31,7 @@ export class HostedMetadataManager {
    * Create an instance of HostedMetadataManager.
    * The minPushDelay is the default delay in seconds between metadata pushes to the database.
    */
-  constructor(private _dbManager: HomeDBManager, minPushDelay: number = 60) {
+  constructor(private _setDocsMetadata: SetDocsMetadataFunc, minPushDelay: number = 60) {
     this._minPushDelayMs = minPushDelay * 1000;
   }
 
@@ -68,7 +70,7 @@ export class HostedMetadataManager {
   }
 
   public setDocsMetadata(docUpdateMap: {[docId: string]: DocumentMetadata}): Promise<any> {
-    return this._dbManager.setDocsMetadata(docUpdateMap);
+    return this._setDocsMetadata(docUpdateMap);
   }
 
   /**
