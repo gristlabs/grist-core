@@ -1598,7 +1598,8 @@
         "Key to sign sessions with": "Key to sign sessions with",
         "Session Secret": "Session Secret",
         "Enable Grist Enterprise": "Enable Grist Enterprise",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "checking": "checking"
     },
     "Columns": {
         "Remove Column": "Remove Column"
