@@ -459,11 +459,15 @@ export class HomeDBManager extends EventEmitter {
     return await this._usersManager.ensureExternalUser(profile);
   }
 
-  public async updateUser(userId: number, props: UserProfileChange) {
-    const { user, isWelcomed } = await this._usersManager.updateUser(userId, props);
-    if (user && isWelcomed) {
-      this.emit('firstLogin', this.makeFullUser(user));
+  public async updateUser(
+    userId: number,
+    props: UserProfileChange
+  ): Promise<PreviousAndCurrent<User>> {
+    const {previous, current, isWelcomed} = await this._usersManager.updateUser(userId, props);
+    if (current && isWelcomed) {
+      this.emit('firstLogin', this.makeFullUser(current));
     }
+    return {previous, current};
   }
 
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
@@ -1058,7 +1062,7 @@ export class HomeDBManager extends EventEmitter {
 
   /**
    *
-   * Adds an org with the given name. Returns a query result with the id of the added org.
+   * Adds an org with the given name. Returns a query result with the added org.
    *
    * @param user: user doing the adding
    * @param name: desired org name
@@ -1073,12 +1077,17 @@ export class HomeDBManager extends EventEmitter {
    *   meaningful for team sites currently.
    * @param billing: if set, controls the billing account settings for the org.
    */
-  public async addOrg(user: User, props: Partial<OrganizationProperties>,
-                      options: { setUserAsOwner: boolean,
-                                 useNewPlan: boolean,
-                                 product?: string, // Default to PERSONAL_FREE_PLAN or TEAM_FREE_PLAN env variable.
-                                 billing?: BillingOptions},
-                      transaction?: EntityManager): Promise<QueryResult<number>> {
+  public async addOrg(
+    user: User,
+    props: Partial<OrganizationProperties>,
+    options: {
+      setUserAsOwner: boolean,
+      useNewPlan: boolean,
+      product?: string, // Default to PERSONAL_FREE_PLAN or TEAM_FREE_PLAN env variable.
+      billing?: BillingOptions
+    },
+    transaction?: EntityManager
+  ): Promise<QueryResult<Organization>> {
     const notifications: Array<() => void> = [];
     const name = props.name;
     const domain = props.domain;
@@ -1219,10 +1228,7 @@ export class HomeDBManager extends EventEmitter {
         // Emit a notification.
         notifications.push(this._teamCreatorNotification(user.id));
       }
-      return {
-        status: 200,
-        data: savedOrg.id
-      };
+      return {status: 200, data: savedOrg};
     });
     for (const notification of notifications) { notification(); }
     return orgResult;
@@ -1230,8 +1236,8 @@ export class HomeDBManager extends EventEmitter {
 
   // If setting anything more than prefs:
   //   Checks that the user has UPDATE permissions to the given org. If not, throws an
-  //   error. Otherwise updates the given org with the given name. Returns an empty
-  //   query result with status 200 on success.
+  //   error. Otherwise updates the given org with the given name. Returns a query
+  //   result with status 200 on success.
   // For setting userPrefs or userOrgPrefs:
   //   These are user-specific setting, so are allowed with VIEW access (that includes
   //   guests).  Prefs are replaced in their entirety, not merged.
@@ -1242,7 +1248,7 @@ export class HomeDBManager extends EventEmitter {
     orgKey: string|number,
     props: Partial<OrganizationProperties>,
     transaction?: EntityManager,
-  ): Promise<QueryResult<number>> {
+  ): Promise<QueryResult<PreviousAndCurrent<Organization>>> {
 
     // Check the scope of the modifications.
     let markPermissions: number = Permissions.VIEW;
@@ -1272,11 +1278,12 @@ export class HomeDBManager extends EventEmitter {
       });
       const queryResult = await verifyEntity(orgQuery);
       if (queryResult.status !== 200) {
-        // If the query for the workspace failed, return the failure result.
+        // If the query for the org failed, return the failure result.
         return queryResult;
       }
       // Update the fields and save.
       const org: Organization = queryResult.data;
+      const previous = structuredClone(org);
       org.checkProperties(props);
       if (modifyOrg) {
         if (props.domain) {
@@ -1312,15 +1319,18 @@ export class HomeDBManager extends EventEmitter {
             .execute();
         }
       }
-      return {status: 200};
+      return {status: 200, data: {previous, current: org}};
     });
   }
 
   // Checks that the user has REMOVE permissions to the given org. If not, throws an
-  // error. Otherwise deletes the given org. Returns an empty query result with
-  // status 200 on success.
-  public async deleteOrg(scope: Scope, orgKey: string|number,
-                         transaction?: EntityManager): Promise<QueryResult<number>> {
+  // error. Otherwise deletes the given org. Returns a query result with status 200
+  // on success.
+  public async deleteOrg(
+    scope: Scope,
+    orgKey: string|number,
+    transaction?: EntityManager
+  ): Promise<QueryResult<Organization>> {
     return await this._runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
@@ -1344,6 +1354,7 @@ export class HomeDBManager extends EventEmitter {
         return queryResult;
       }
       const org: Organization = queryResult.data;
+      const deletedOrg = structuredClone(org);
       // Delete the org, org ACLs/groups, workspaces, workspace ACLs/groups, workspace docs
       // and doc ACLs/groups.
       const orgGroups = org.aclRules.map(orgAcl => orgAcl.group);
@@ -1363,15 +1374,18 @@ export class HomeDBManager extends EventEmitter {
       if (billingAccount && billingAccount.orgs.length === 0) {
         await manager.remove([billingAccount]);
       }
-      return {status: 200};
+      return {status: 200, data: deletedOrg};
     });
   }
 
   // Checks that the user has ADD permissions to the given org. If not, throws an error.
-  // Otherwise adds a workspace with the given name. Returns a query result with the id
-  // of the added workspace.
-  public async addWorkspace(scope: Scope, orgKey: string|number,
-                            props: Partial<WorkspaceProperties>): Promise<QueryResult<number>> {
+  // Otherwise adds a workspace with the given name. Returns a query result with the
+  // added workspace.
+  public async addWorkspace(
+    scope: Scope,
+    orgKey: string|number,
+    props: Partial<WorkspaceProperties>
+  ): Promise<QueryResult<Workspace>> {
     const name = props.name;
     if (!name) {
       return {
@@ -1414,18 +1428,18 @@ export class HomeDBManager extends EventEmitter {
         }
       }
       const workspace = await this._doAddWorkspace({org, props, ownerId: scope.userId}, manager);
-      return {
-        status: 200,
-        data: workspace.id
-      };
+      return {status: 200, data: workspace};
     });
   }
 
   // Checks that the user has UPDATE permissions to the given workspace. If not, throws an
-  // error. Otherwise updates the given workspace with the given name. Returns an empty
-  // query result with status 200 on success.
-  public async updateWorkspace(scope: Scope, wsId: number,
-                               props: Partial<WorkspaceProperties>): Promise<QueryResult<number>> {
+  // error. Otherwise updates the given workspace with the given name. Returns a query result
+  // with status 200 on success.
+  public async updateWorkspace(
+    scope: Scope,
+    wsId: number,
+    props: Partial<WorkspaceProperties>
+  ): Promise<QueryResult<PreviousAndCurrent<Workspace>>> {
     return await this._connection.transaction(async manager => {
       const wsQuery = this._workspace(scope, wsId, {
         manager,
@@ -1438,17 +1452,18 @@ export class HomeDBManager extends EventEmitter {
       }
       // Update the name and save.
       const workspace: Workspace = queryResult.data;
+      const previous = structuredClone(workspace);
       workspace.checkProperties(props);
       workspace.updateFromProperties(props);
       await manager.save(workspace);
-      return {status: 200};
+      return {status: 200, data: {previous, current: workspace}};
     });
   }
 
   // Checks that the user has REMOVE permissions to the given workspace. If not, throws an
-  // error. Otherwise deletes the given workspace. Returns an empty query result with
-  // status 200 on success.
-  public async deleteWorkspace(scope: Scope, wsId: number): Promise<QueryResult<number>> {
+  // error. Otherwise deletes the given workspace. Returns a query result with status 200
+  // on success.
+  public async deleteWorkspace(scope: Scope, wsId: number): Promise<QueryResult<Workspace>> {
     return await this._connection.transaction(async manager => {
       const wsQuery = this._workspace(scope, wsId, {
         manager,
@@ -1469,6 +1484,7 @@ export class HomeDBManager extends EventEmitter {
         return queryResult;
       }
       const workspace: Workspace = queryResult.data;
+      const deletedWorkspace = structuredClone(workspace);
       // Delete the workspace, workspace docs, doc ACLs/groups and workspace ACLs/groups.
       const wsGroups = workspace.aclRules.map(wsAcl => wsAcl.group);
       const docAcls = ([] as AclRule[]).concat(...workspace.docs.map(doc => doc.aclRules));
@@ -1477,15 +1493,15 @@ export class HomeDBManager extends EventEmitter {
         ...workspace.aclRules, ...docGroups]);
       // Update the guests in the org after removing this workspace.
       await this._repairOrgGuests(scope, workspace.org.id, manager);
-      return {status: 200};
+      return {status: 200, data: deletedWorkspace};
     });
   }
 
-  public softDeleteWorkspace(scope: Scope, wsId: number): Promise<void> {
+  public softDeleteWorkspace(scope: Scope, wsId: number): Promise<QueryResult<Workspace>> {
     return this._setWorkspaceRemovedAt(scope, wsId, new Date());
   }
 
-  public async undeleteWorkspace(scope: Scope, wsId: number): Promise<void> {
+  public async undeleteWorkspace(scope: Scope, wsId: number): Promise<QueryResult<Workspace>> {
     return this._setWorkspaceRemovedAt(scope, wsId, null);
   }
 
@@ -1691,15 +1707,15 @@ export class HomeDBManager extends EventEmitter {
   }
 
   // Checks that the user has SCHEMA_EDIT permissions to the given doc. If not, throws an
-  // error. Otherwise updates the given doc with the given name. Returns an empty
-  // query result with status 200 on success.
+  // error. Otherwise updates the given doc with the given name. Returns a query result with
+  // status 200 on success.
   // NOTE: This does not update the updateAt date indicating the last modified time of the doc.
   // We may want to make it do so.
   public async updateDocument(
     scope: DocScope,
     props: Partial<DocumentProperties>,
     transaction?: EntityManager
-  ): Promise<QueryResult<number>> {
+  ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
     const markPermissions = Permissions.SCHEMA_EDIT;
     return await this._runInTransaction(transaction, async (manager) => {
       const {forkId} = parseUrlId(scope.urlId);
@@ -1721,6 +1737,7 @@ export class HomeDBManager extends EventEmitter {
       }
       // Update the name and save.
       const doc: Document = queryResult.data;
+      const previous = structuredClone(doc);
       doc.checkProperties(props);
       doc.updateFromProperties(props);
       if (forkId) {
@@ -1752,7 +1769,7 @@ export class HomeDBManager extends EventEmitter {
           .execute();
         // TODO: we could limit the max number of aliases stored per document.
       }
-      return {status: 200};
+      return {status: 200, data: {previous, current: doc}};
     });
   }
 
@@ -1909,7 +1926,7 @@ export class HomeDBManager extends EventEmitter {
     scope: Scope,
     orgKey: string|number,
     delta: PermissionDelta
-  ): Promise<QueryResult<void>> {
+  ): Promise<QueryResult<PermissionDelta & {organization: Organization}>> {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
@@ -1955,7 +1972,10 @@ export class HomeDBManager extends EventEmitter {
         // Notify any added users that they've been added to this resource.
         notifications.push(this._inviteNotification(userId, org, userIdDelta, membersBefore));
       }
-      return {status: 200};
+      return {status: 200, data: {
+        organization: org,
+        users: userIdDelta ?? undefined,
+      }};
     });
     for (const notification of notifications) { notification(); }
     return result;
@@ -1966,7 +1986,7 @@ export class HomeDBManager extends EventEmitter {
     scope: Scope,
     wsId: number,
     delta: PermissionDelta
-  ): Promise<QueryResult<void>> {
+  ): Promise<QueryResult<PermissionDelta & {workspace: Workspace}>> {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
@@ -2031,7 +2051,14 @@ export class HomeDBManager extends EventEmitter {
         await this._repairOrgGuests(scope, ws.org.id, manager);
         notifications.push(this._inviteNotification(userId, ws, userIdDelta, membersBefore));
       }
-      return {status: 200};
+      return {
+        status: 200,
+        data: {
+          workspace: ws,
+          maxInheritedRole: delta.maxInheritedRole,
+          users: userIdDelta ?? undefined,
+        },
+      };
     });
     for (const notification of notifications) { notification(); }
     return result;
@@ -2041,7 +2068,7 @@ export class HomeDBManager extends EventEmitter {
   public async updateDocPermissions(
     scope: DocScope,
     delta: PermissionDelta
-  ): Promise<QueryResult<void>> {
+  ): Promise<QueryResult<PermissionDelta & {document: Document}>> {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const {userId} = scope;
@@ -2082,7 +2109,14 @@ export class HomeDBManager extends EventEmitter {
         await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
         notifications.push(this._inviteNotification(userId, doc, userIdDelta, membersBefore));
       }
-      return {status: 200};
+      return {
+        status: 200,
+        data: {
+          document: doc,
+          maxInheritedRole: delta.maxInheritedRole,
+          users: userIdDelta ?? undefined,
+        },
+      };
     });
     for (const notification of notifications) { notification(); }
     return result;
@@ -2386,7 +2420,7 @@ export class HomeDBManager extends EventEmitter {
   public async pinDoc(
     scope: DocScope,
     setPinned: boolean
-  ): Promise<QueryResult<void>> {
+  ): Promise<QueryResult<Document>> {
     return await this._connection.transaction(async manager => {
       // Find the doc to assert that it exists. Assert that the user has edit access to the
       // parent org.
@@ -2410,7 +2444,7 @@ export class HomeDBManager extends EventEmitter {
         // Save and return success status.
         await manager.save(doc);
       }
-      return { status: 200 };
+      return {status: 200, data: doc};
     });
   }
 
@@ -4291,9 +4325,9 @@ export class HomeDBManager extends EventEmitter {
         markPermissions: Permissions.REMOVE
       });
       const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(wsQuery));
-      await manager.createQueryBuilder()
-        .update(Workspace).set({removedAt}).where({id: workspace.id})
-        .execute();
+      workspace.removedAt = removedAt;
+      const data = await manager.save(workspace);
+      return {status: 200, data};
     });
   }
 

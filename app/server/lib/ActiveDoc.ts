@@ -36,6 +36,7 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
+import {AuditEventName} from 'app/common/AuditEvent';
 import {WebhookMessageType} from 'app/common/CommTypes';
 import {
   BulkAddRecord,
@@ -92,6 +93,7 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
+import {AuditEventProperties} from 'app/server/lib/AuditLogger';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -115,6 +117,7 @@ import {
   getFullUser,
   getLogMeta,
   getUserId,
+  RequestOrSession,
 } from 'app/server/lib/sessionUtils';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
@@ -1451,17 +1454,7 @@ export class ActiveDoc extends EventEmitter {
       }
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
-
-      const isTemplate = doc.type === 'template';
-      this.logTelemetryEvent(docSession, 'documentForked', {
-        limited: {
-          forkIdDigest: forkIds.forkId,
-          forkDocIdDigest: forkIds.docId,
-          trunkIdDigest: doc.trunkId,
-          isTemplate,
-          lastActivity: doc.updatedAt,
-        },
-      });
+      this._logForkDocumentEvents(docSession, {originalDocument: doc, forkIds});
     } finally {
       await permitStore.removePermit(permitKey);
     }
@@ -1863,6 +1856,13 @@ export class ActiveDoc extends EventEmitter {
         status: this.isTimingOn ? 'active' : 'disabled'
       },
     });
+  }
+
+  public logAuditEvent<Name extends AuditEventName>(
+    requestOrSession: RequestOrSession,
+    properties: AuditEventProperties<Name>
+  ) {
+    this._docManager.gristServer.getAuditLogger().logEvent(requestOrSession, properties);
   }
 
   public logTelemetryEvent(
@@ -2961,6 +2961,38 @@ export class ActiveDoc extends EventEmitter {
     return  this._pyCall('start_timing');
   }
 
+  private _logForkDocumentEvents(docSession: OptDocSession, options: {
+    originalDocument: Document;
+    forkIds: ForkResult;
+  }) {
+    const {originalDocument, forkIds} = options;
+    this.logAuditEvent(docSession, {
+      event: {
+        name: 'forkDocument',
+        details: {
+          original: {
+            id: originalDocument.id,
+            name: originalDocument.name,
+          },
+          fork: {
+            id: forkIds.forkId,
+            documentId: forkIds.docId,
+            urlId: forkIds.urlId,
+          },
+        },
+        context: {documentId: originalDocument.id},
+      },
+    });
+    this.logTelemetryEvent(docSession, 'documentForked', {
+      limited: {
+        forkIdDigest: forkIds.forkId,
+        forkDocIdDigest: forkIds.docId,
+        trunkIdDigest: originalDocument.trunkId,
+        isTemplate: originalDocument.type === 'template',
+        lastActivity: originalDocument.updatedAt,
+      },
+    });
+  }
 }
 
 // Helper to initialize a sandbox action bundle with no values.

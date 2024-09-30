@@ -1,4 +1,4 @@
-import {AuditEvent, AuditEventContext, AuditEventDetails, AuditEventName} from 'app/common/AuditEvent';
+import {AuditEvent, AuditEventContext, AuditEventDetails, AuditEventName, AuditEventUser} from 'app/common/AuditEvent';
 import {RequestOrSession} from 'app/server/lib/sessionUtils';
 
 export interface IAuditLogger {
@@ -23,20 +23,24 @@ export interface IAuditLogger {
 export interface AuditEventProperties<Name extends AuditEventName> {
   event: {
     /**
-     * The event name.
+     * The name of the event.
      */
     name: Name;
     /**
-     * Additional event details.
+     * Event-specific details (e.g. properties of affected resources).
      */
     details?: AuditEventDetails[Name];
     /**
-     * The context of the event.
+     * The context that the event occurred in (e.g. workspace, document).
      */
     context?: AuditEventContext;
+    /**
+     * The user that triggered the event.
+     */
+    user?: AuditEventUser;
   };
   /**
-   * ISO 8601 timestamp (e.g. `2024-09-04T14:54:50Z`) of when the event occured.
+   * ISO 8601 timestamp (e.g. `2024-09-04T14:54:50Z`) of when the event occurred.
    *
    * Defaults to now.
    */

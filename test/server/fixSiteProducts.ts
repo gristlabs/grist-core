@@ -45,7 +45,7 @@ describe('fixSiteProducts', function() {
 
     const productOrg = (id: number) => getOrg(id)?.then(org => org?.billingAccount?.product?.name);
 
-    const freeOrgId = db.unwrapQueryResult(await db.addOrg(user, {
+    const freeOrg = db.unwrapQueryResult(await db.addOrg(user, {
       name: org,
       domain: org,
     }, {
@@ -54,7 +54,7 @@ describe('fixSiteProducts', function() {
       product: 'teamFree',
     }));
 
-    const teamOrgId = db.unwrapQueryResult(await db.addOrg(user, {
+    const teamOrg = db.unwrapQueryResult(await db.addOrg(user, {
       name: 'fix-team-org',
       domain: 'fix-team-org',
     }, {
@@ -64,7 +64,7 @@ describe('fixSiteProducts', function() {
     }));
 
     // Make sure it is created with teamFree product.
-    assert.equal(await productOrg(freeOrgId), 'teamFree');
+    assert.equal(await productOrg(freeOrg.id), 'teamFree');
 
     // Run the fixer.
     assert.isTrue(await fixSiteProducts({
@@ -73,10 +73,10 @@ describe('fixSiteProducts', function() {
     }));
 
     // Make sure we fixed the product is on Free product.
-    assert.equal(await productOrg(freeOrgId), 'Free');
+    assert.equal(await productOrg(freeOrg.id), 'Free');
 
     // Make sure the other org is still on team product.
-    assert.equal(await productOrg(teamOrgId), 'team');
+    assert.equal(await productOrg(teamOrg.id), 'team');
   });
 
   it("doesn't run when on saas deployment", async function() {
@@ -123,7 +123,7 @@ describe('fixSiteProducts', function() {
 
     const db = server.dbManager;
     const user = await db.getUserByLogin(email, {profile});
-    const orgId = db.unwrapQueryResult(await db.addOrg(user, {
+    const org = db.unwrapQueryResult(await db.addOrg(user, {
       name: 'sanity-check-org',
       domain: 'sanity-check-org',
     }, {
@@ -135,12 +135,12 @@ describe('fixSiteProducts', function() {
     const getOrg = (id: number) => db.connection.manager.findOne(Organization,
       {where: {id}, relations: ['billingAccount', 'billingAccount.product']});
     const productOrg = (id: number) => getOrg(id)?.then(org => org?.billingAccount?.product?.name);
-    assert.equal(await productOrg(orgId), 'teamFree');
+    assert.equal(await productOrg(org.id), 'teamFree');
 
     assert.isFalse(await fixSiteProducts({
       db: server.dbManager,
       deploymentType: server.server.getDeploymentType(),
     }));
-    assert.equal(await productOrg(orgId), 'teamFree');
+    assert.equal(await productOrg(org.id), 'teamFree');
   });
 });

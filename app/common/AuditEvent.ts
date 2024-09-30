@@ -1,3 +1,6 @@
+import {BasicRole, NonGuestRole} from 'app/common/roles';
+import {StringUnion} from 'app/common/StringUnion';
+
 export interface AuditEvent<Name extends AuditEventName> {
   /**
    * The event.
@@ -12,35 +15,73 @@ export interface AuditEvent<Name extends AuditEventName> {
      */
     user: AuditEventUser;
     /**
-     * The event details.
+     * Event-specific details (e.g. IDs of affected resources).
      */
     details: AuditEventDetails[Name] | {};
     /**
-     * The context of the event.
+     * The context that the event occurred in (e.g. workspace, document).
      */
     context: AuditEventContext;
     /**
-     * The source of the event.
+     * Information about the source of the event (e.g. IP address).
      */
     source: AuditEventSource;
   };
   /**
-   * ISO 8601 timestamp of when the event occurred.
+   * ISO 8601 timestamp (e.g. `2024-09-04T14:54:50Z`) of when the event occurred.
    */
   timestamp: string;
 }
 
-export type AuditEventName =
-  | 'createDocument'
-  | 'moveDocument'
-  | 'removeDocument'
-  | 'deleteDocument'
-  | 'restoreDocumentFromTrash'
-  | 'runSQLQuery';
+export const SiteAuditEventName = StringUnion(
+  'createDocument',
+  'sendToGoogleDrive',
+  'renameDocument',
+  'pinDocument',
+  'unpinDocument',
+  'moveDocument',
+  'removeDocument',
+  'deleteDocument',
+  'restoreDocumentFromTrash',
+  'changeDocumentAccess',
+  'openDocument',
+  'duplicateDocument',
+  'forkDocument',
+  'replaceDocument',
+  'reloadDocument',
+  'truncateDocumentHistory',
+  'deliverWebhookEvents',
+  'clearWebhookQueue',
+  'clearAllWebhookQueues',
+  'runSQLQuery',
+  'createWorkspace',
+  'renameWorkspace',
+  'removeWorkspace',
+  'deleteWorkspace',
+  'restoreWorkspaceFromTrash',
+  'changeWorkspaceAccess',
+  'renameSite',
+  'changeSiteAccess',
+);
+
+export type SiteAuditEventName = typeof SiteAuditEventName.type;
+
+export const AuditEventName = StringUnion(
+  ...SiteAuditEventName.values,
+  'createSite',
+  'deleteSite',
+  'changeUserName',
+  'createUserAPIKey',
+  'deleteUserAPIKey',
+  'deleteUser',
+);
+
+export type AuditEventName = typeof AuditEventName.type;
 
 export type AuditEventUser =
   | User
   | Anonymous
+  | System
   | Unknown;
 
 interface User {
@@ -54,14 +95,15 @@ interface Anonymous {
   type: 'anonymous';
 }
 
+interface System {
+  type: 'system';
+}
+
 interface Unknown {
   type: 'unknown';
 }
 
 export interface AuditEventDetails {
-  /**
-   * A new document was created.
-   */
   createDocument: {
     /**
      * The ID of the document.
@@ -72,54 +114,78 @@ export interface AuditEventDetails {
      */
     name?: string;
   };
-  /**
-   * A document was moved to a new workspace.
-   */
+  sendToGoogleDrive: {
+    /**
+     * The ID of the document.
+     */
+    id: string;
+  };
+  renameDocument: {
+    /**
+     * The ID of the document.
+     */
+    id: string;
+    /**
+     * The previous name of the document.
+     */
+    previousName: string;
+    /**
+     * The current name of the document.
+     */
+    currentName: string;
+  };
+  pinDocument: {
+    /**
+     * The ID of the document.
+     */
+    id: string;
+    /**
+     * The name of the document.
+     */
+    name: string;
+  };
+  unpinDocument: {
+    /**
+     * The ID of the document.
+     */
+    id: string;
+    /**
+     * The name of the document.
+     */
+    name: string;
+  };
   moveDocument: {
     /**
      * The ID of the document.
      */
     id: string;
     /**
-     * The previous workspace.
+     * The workspace the document was moved from.
      */
-    previous: {
+    previousWorkspace: {
       /**
-       * The workspace the document was moved from.
+       * The ID of the workspace.
        */
-      workspace: {
-        /**
-         * The ID of the workspace.
-         */
-        id: number;
-        /**
-         * The name of the workspace.
-         */
-        name: string;
-      };
+      id: number;
+      /**
+       * The name of the workspace.
+       */
+      name: string;
     };
     /**
-     * The current workspace.
+     * The workspace the document was moved to.
      */
-    current: {
+    newWorkspace: {
       /**
-       * The workspace the document was moved to.
+       * The ID of the workspace.
        */
-      workspace: {
-        /**
-         * The ID of the workspace.
-         */
-        id: number;
-        /**
-         * The name of the workspace.
-         */
-        name: string;
-      };
+      id: number;
+      /**
+       * The name of the workspace.
+       */
+      name: string;
     };
   };
-  /**
-   * A document was moved to the trash.
-   */
   removeDocument: {
     /**
      * The ID of the document.
@@ -130,9 +196,6 @@ export interface AuditEventDetails {
      */
     name: string;
   };
-  /**
-   * A document was permanently deleted.
-   */
   deleteDocument: {
     /**
      * The ID of the document.
@@ -143,25 +206,17 @@ export interface AuditEventDetails {
      */
     name: string;
   };
-  /**
-   * A document was restored from the trash.
-   */
   restoreDocumentFromTrash: {
     /**
-     * The restored document.
+     * The ID of the document.
      */
-    document: {
-      /**
-       * The ID of the document.
-       */
-      id: string;
-      /**
-       * The name of the document.
-       */
-      name: string;
-    };
+    id: string;
     /**
-     * The workspace of the restored document.
+     * The name of the document.
+     */
+    name: string;
+    /**
+     * The workspace of the document.
      */
     workspace: {
       /**
@@ -174,9 +229,176 @@ export interface AuditEventDetails {
       name: string;
     };
   };
-  /**
-   * A SQL query was run against a document.
-   */
+  changeDocumentAccess: {
+    /**
+     * The ID of the document.
+     */
+    id: string;
+    /**
+     * The access level of the document.
+     */
+    access: {
+      /**
+       * The max inherited role.
+       */
+      maxInheritedRole?: BasicRole | null;
+      /**
+       * The access level by user ID.
+       */
+      users?: Record<string, NonGuestRole | null>;
+    };
+  };
+  openDocument: {
+    /**
+     * The ID of the document.
+     */
+    id: string;
+    /**
+     * The name of the document.
+     */
+    name: string;
+    /**
+     * The URL ID of the document.
+     */
+    urlId: string;
+    /**
+     * The ID of the fork, if the document is a fork.
+     */
+    forkId?: string;
+    /**
+     * The ID of the snapshot, if the document is a snapshot.
+     */
+    snapshotId?: string;
+  };
+  duplicateDocument: {
+    /**
+     * The document that was duplicated.
+     */
+    original: {
+      /**
+       * The ID of the document.
+       */
+      id: string;
+      /**
+       * The name of the document.
+       */
+      name: string;
+      /**
+       * The workspace of the document.
+       */
+      workspace: {
+        /**
+         * The ID of the workspace.
+         */
+        id: number;
+        /**
+         * The name of the workspace.
+         */
+        name: string;
+      };
+    };
+    /**
+     * The newly-duplicated document.
+     */
+    duplicate: {
+      /**
+       * The ID of the document.
+       */
+      id: string;
+      /**
+       * The name of the document.
+       */
+      name: string;
+    };
+    /**
+     * If the document was duplicated without any data from the original document.
+     */
+    asTemplate: boolean;
+  };
+  forkDocument: {
+    /**
+     * The document that was forked.
+     */
+    original: {
+      /**
+       * The ID of the document.
+       */
+      id: string;
+      /**
+       * The name of the document.
+       */
+      name: string;
+    };
+    /**
+     * The newly-forked document.
+     */
+    fork: {
+      /**
+       * The ID of the fork.
+       */
+      id: string;
+      /**
+       * The ID of the fork with the trunk ID.
+       */
+      documentId: string;
+      /**
+       * The ID of the fork with the trunk URL ID.
+       */
+      urlId: string;
+    };
+  };
+  replaceDocument: {
+    /**
+     * The document that was replaced.
+     */
+    previous: {
+      /**
+       * The ID of the document.
+       */
+      id: string;
+    };
+    /**
+     * The newly-replaced document.
+     */
+    current: {
+      /**
+       * The ID of the document.
+       */
+      id: string;
+      /**
+       * The ID of the snapshot, if the document was replaced with one.
+       */
+      snapshotId?: string;
+    };
+  };
+  reloadDocument: {},
+  truncateDocumentHistory: {
+    /**
+     * The number of history items kept.
+     */
+    keep: number;
+  },
+  deliverWebhookEvents: {
+    /**
+     * The ID of the webhook.
+     */
+    id: string;
+    /**
+     * The host the webhook events were delivered to.
+     */
+    host: string;
+    /**
+     * The number of webhook events delivered.
+     */
+    quantity: number;
+  },
+  clearWebhookQueue: {
+    /**
+     * The ID of the webhook.
+     */
+    id: string;
+  },
+  clearAllWebhookQueues: {},
   runSQLQuery: {
     /**
      * The SQL query.
@@ -185,12 +407,169 @@ export interface AuditEventDetails {
     /**
      * The arguments used for query parameters, if any.
      */
-    arguments?: (string | number)[];
+    arguments?: Array<string | number>;
     /**
-     * The duration in milliseconds until query execution should time out.
+     * The query execution timeout duration in milliseconds.
      */
-    timeout?: number;
+    timeoutMs?: number;
   };
+  createWorkspace: {
+    /**
+     * The ID of the workspace.
+     */
+    id: number;
+    /**
+     * The name of the workspace.
+     */
+    name: string;
+  };
+  renameWorkspace: {
+    /**
+     * The ID of the workspace.
+     */
+    id: number;
+    /**
+     * The previous name of the workspace.
+     */
+    previousName: string;
+    /**
+     * The current name of the workspace.
+     */
+    currentName: string;
+  };
+  removeWorkspace: {
+    /**
+     * The ID of the workspace.
+     */
+    id: number;
+    /**
+     * The name of the workspace.
+     */
+    name: string;
+  };
+  deleteWorkspace: {
+    /**
+     * The ID of the workspace.
+     */
+    id: number;
+    /**
+     * The name of the workspace.
+     */
+    name: string;
+  };
+  restoreWorkspaceFromTrash: {
+    /**
+     * The ID of the workspace.
+     */
+    id: number;
+    /**
+     * The name of the workspace.
+     */
+    name: string;
+  };
+  changeWorkspaceAccess: {
+    /**
+     * The ID of the workspace.
+     */
+    id: number;
+    /**
+     * The access level of the workspace.
+     */
+    access: {
+      /**
+       * The max inherited role.
+       */
+      maxInheritedRole?: BasicRole | null;
+      /**
+       * The access level by user ID.
+       */
+      users?: Record<string, NonGuestRole | null>;
+    };
+  };
+  createSite: {
+    /**
+     * The ID of the site.
+     */
+    id: number;
+    /**
+     * The name of the site.
+     */
+    name: string;
+    /**
+     * The domain of the site.
+     */
+    domain: string;
+  };
+  renameSite: {
+    /**
+     * The ID of the site.
+     */
+    id: number;
+    /**
+     * The previous name and domain of the site.
+     */
+    previous: {
+      /**
+       * The name of the site.
+       */
+      name: string;
+      /**
+       * The domain of the site.
+       */
+      domain: string;
+    };
+    /**
+     * The current name and domain of the site.
+     */
+    current: {
+      /**
+       * The name of the site.
+       */
+      name: string;
+      /**
+       * The domain of the site.
+       */
+      domain: string;
+    };
+  };
+  deleteSite: {
+    /**
+     * The ID of the site.
+     */
+    id: number;
+    /**
+     * The name of the site.
+     */
+    name: string;
+  };
+  changeSiteAccess: {
+    /**
+     * The ID of the site.
+     */
+    id: number;
+    /**
+     * The access level of the site.
+     */
+    access: {
+      /**
+       * The access level by user ID.
+       */
+      users?: Record<string, NonGuestRole | null>;
+    };
+  };
+  changeUserName: {
+    /**
+     * The previous name of the user.
+     */
+    previousName: string;
+    /**
+     * The current name of the user.
+     */
+    currentName: string;
+  };
+  createUserAPIKey: {};
+  deleteUserAPIKey: {};
+  deleteUser: {};
 }
 
 export interface AuditEventContext {
@@ -206,7 +585,7 @@ export interface AuditEventContext {
 
 export interface AuditEventSource {
   /**
-   * The domain of the org tied to the originating request.
+   * The domain of the site tied to the originating request.
    */
   org?: string;
   /**

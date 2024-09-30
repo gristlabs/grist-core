@@ -1492,7 +1492,7 @@ export class FlexServer implements GristServer {
         // to other (not public) team sites.
         const doom = await createDoom();
         await doom.deleteUser(userId);
-        this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedAccount');
+        this._logDeleteUserEvents(req as RequestWithLogin);
         return resp.status(200).json(true);
       }));
 
@@ -1523,16 +1523,10 @@ export class FlexServer implements GristServer {
         }
 
         // Reuse Doom cli tool for org deletion. Note, this removes everything as a super user.
+        const deletedOrg = structuredClone(org);
         const doom = await createDoom();
         await doom.deleteOrg(org.id);
-
-        this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedSite', {
-          full: {
-            siteId: org.id,
-            userId: mreq.userId,
-          },
-        });
-
+        this._logDeleteSiteEvents(mreq, deletedOrg);
         return resp.status(200).send();
       }));
     }
@@ -2547,6 +2541,30 @@ export class FlexServer implements GristServer {
     }
 
     return isGristLogHttpEnabled || deprecatedOptionEnablesLog;
+  }
+
+  private _logDeleteUserEvents(req: RequestWithLogin) {
+    this.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'deleteUser',
+      },
+    });
+    this.getTelemetry().logEvent(req, 'deletedAccount');
+  }
+
+  private _logDeleteSiteEvents(req: RequestWithLogin, {id, name}: Organization) {
+    this.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'deleteSite',
+        details: {id, name},
+      }
+    });
+    this.getTelemetry().logEvent(req, 'deletedSite', {
+      full: {
+        siteId: id,
+        userId: req.userId,
+      },
+    });
   }
 }
 

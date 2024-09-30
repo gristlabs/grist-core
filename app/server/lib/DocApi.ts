@@ -906,8 +906,10 @@ export class DocWorkerApi {
     // Clears all outgoing webhooks in the queue for this document.
     this._app.delete('/api/docs/:docId/webhooks/queue', isOwner,
       withDocTriggersLock(async (activeDoc, req, res) => {
+        const docId = getDocId(req);
         await activeDoc.clearWebhookQueue();
         await activeDoc.sendWebhookNotification();
+        this._logClearAllWebhookQueueEvents(req, {docId});
         res.json({success: true});
       })
     );
@@ -933,7 +935,7 @@ export class DocWorkerApi {
         const webhookId = req.params.webhookId;
         const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
         if (fields.enabled === false) {
-          await activeDoc.triggers.clearSingleWebhookQueue(webhookId);
+          await activeDoc.clearSingleWebhookQueue(webhookId);
         }
 
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
@@ -960,9 +962,11 @@ export class DocWorkerApi {
     // Clears a single webhook in the queue for this document.
     this._app.delete('/api/docs/:docId/webhooks/queue/:webhookId', isOwner,
       withDocTriggersLock(async (activeDoc, req, res) => {
+        const docId = getDocId(req);
         const webhookId = req.params.webhookId;
         await activeDoc.clearSingleWebhookQueue(webhookId);
         await activeDoc.sendWebhookNotification();
+        this._logClearWebhookQueueEvents(req, {docId, webhookId});
         res.json({success: true});
       })
     );
@@ -978,8 +982,10 @@ export class DocWorkerApi {
     // reopened on use).
     this._app.post('/api/docs/:docId/force-reload', canEdit, async (req, res) => {
       const mreq = req as RequestWithLogin;
+      const docId = getDocId(req);
       const activeDoc = await this._getActiveDoc(mreq);
       await activeDoc.reloadDoc();
+      this._logReloadDocumentEvents(mreq, {docId});
       res.json(null);
     });
 
@@ -997,16 +1003,16 @@ export class DocWorkerApi {
     // DELETE /api/docs/:docId
     // Delete the specified doc.
     this._app.delete('/api/docs/:docId', canEditMaybeRemoved, throttled(async (req, res) => {
-      const {status, data} = await this._removeDoc(req, res, true);
-      if (status === 200) { this._logDeleteDocumentEvents(req, data!); }
+      const {data} = await this._removeDoc(req, res, true);
+      if (data) { this._logDeleteDocumentEvents(req, data); }
     }));
 
     // POST /api/docs/:docId/remove
     // Soft-delete the specified doc.  If query parameter "permanent" is set,
     // delete permanently.
     this._app.post('/api/docs/:docId/remove', canEditMaybeRemoved, throttled(async (req, res) => {
-      const {status, data} = await this._removeDoc(req, res, isParameterOn(req.query.permanent));
-      if (status === 200) { this._logRemoveDocumentEvents(req, data!); }
+      const {data} = await this._removeDoc(req, res, isParameterOn(req.query.permanent));
+      if (data) { this._logRemoveDocumentEvents(req, data); }
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
@@ -1100,6 +1106,7 @@ export class DocWorkerApi {
     // This endpoint cannot use withDoc since it is expected behavior for the ActiveDoc it
     // starts with to become muted.
     this._app.post('/api/docs/:docId/replace', canEdit, throttled(async (req, res) => {
+      const docId = getDocId(req);
       const docSession = docSessionFromRequest(req);
       const activeDoc = await this._getActiveDoc(req);
       const options: DocReplacementOptions = {};
@@ -1160,6 +1167,9 @@ export class DocWorkerApi {
         options.snapshotId = String(req.body.snapshotId);
       }
       await activeDoc.replace(docSession, options);
+      const previous = {id: docId};
+      const current = {id: options.sourceDocId || docId, snapshotId: options.snapshotId};
+      this._logReplaceDocumentEvents(req, {previous, current});
       res.json(null);
     }));
 
@@ -1169,9 +1179,12 @@ export class DocWorkerApi {
     }));
 
     this._app.post('/api/docs/:docId/states/remove', isOwner, withDoc(async (activeDoc, req, res) => {
+      const docId = getDocId(req);
       const docSession = docSessionFromRequest(req);
       const keep = integerParam(req.body.keep, 'keep');
-      res.json(await activeDoc.deleteActions(docSession, keep));
+      await activeDoc.deleteActions(docSession, keep);
+      this._logTruncateDocumentHistoryEvents(req, {docId, keep});
+      res.json(null);
     }));
 
     this._app.get('/api/docs/:docId/compare/:docId2', canView, withDoc(async (activeDoc, req, res) => {
@@ -1675,7 +1688,11 @@ export class DocWorkerApi {
         },
       },
     });
-    this._logDuplicateDocumentEvents(mreq, {id: sourceDocumentId}, {id, name})
+    this._logDuplicateDocumentEvents(mreq, {
+      originalDocument: {id: sourceDocumentId},
+      duplicateDocument: {id, name},
+      asTemplate,
+    })
       .catch(e => log.error('DocApi failed to log duplicate document events', e));
     return id;
   }
@@ -2029,8 +2046,13 @@ export class DocWorkerApi {
     return result;
   }
 
-  private async _runSql(activeDoc: ActiveDoc, req: RequestWithLogin, res: Response,
-      options: Types.SqlPost) {
+  private async _runSql(
+    activeDoc: ActiveDoc,
+    req: RequestWithLogin,
+    res: Response,
+    options: Types.SqlPost
+  ) {
+    const docId = getDocId(req);
     if (!await activeDoc.canCopyEverything(docSessionFromRequest(req))) {
       throw new ApiError('insufficient document access', 403);
     }
@@ -2071,7 +2093,7 @@ export class DocWorkerApi {
     try {
       const records = await activeDoc.docStorage.all(wrappedStatement,
                                                      ...(options.args || []));
-      this._logRunSQLQueryEvents(req, options);
+      this._logRunSQLQueryEvents(req, {docId, ...options});
       res.status(200).json({
         statement,
         records: records.map(
@@ -2124,13 +2146,6 @@ export class DocWorkerApi {
       },
     });
     this._grist.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
-      limited: {
-        docIdDigest: id,
-        sourceDocIdDigest: undefined,
-        isImport: false,
-        fileType: undefined,
-        isSaved: workspaceId !== undefined,
-      },
       full: {
         docIdDigest: id,
         userId: mreq.userId,
@@ -2179,17 +2194,64 @@ export class DocWorkerApi {
     });
   }
 
-  private async _logDuplicateDocumentEvents(
-    req: RequestWithLogin,
-    originalDocument: {id: string},
-    newDocument: {id: string; name: string}
-  ) {
-    const document = await this._dbManager.getRawDocById(originalDocument.id);
-    const isTemplateCopy = document.type === 'template';
+  private _logReplaceDocumentEvents(req: RequestWithLogin, options: {
+    previous: {id: string};
+    current: {id: string; snapshotId?: string};
+  }) {
+    const {previous, current} = options;
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'replaceDocument',
+        details: {
+          previous: {
+            id: previous.id,
+          },
+          current: {
+            id: current.id,
+            snapshotId: current.snapshotId,
+          },
+        },
+        context: {documentId: previous.id},
+      },
+    });
+  }
+
+  private async _logDuplicateDocumentEvents(req: RequestWithLogin, options: {
+    originalDocument: {id: string};
+    duplicateDocument: {id: string; name: string};
+    asTemplate: boolean;
+  }) {
+    const {originalDocument: {id}, duplicateDocument, asTemplate} = options;
+    const originalDocument = await this._dbManager.getRawDocById(id);
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'duplicateDocument',
+        details: {
+          original: {
+            id: originalDocument.id,
+            name: originalDocument.name,
+            workspace: {
+              id: originalDocument.workspace.id,
+              name: originalDocument.workspace.name,
+            },
+          },
+          duplicate: {
+            id: duplicateDocument.id,
+            name: duplicateDocument.name,
+          },
+          asTemplate,
+        },
+        context: {
+          workspaceId: originalDocument.workspace.id,
+          documentId: originalDocument.id,
+        },
+      },
+    });
+    const isTemplateCopy = originalDocument.type === 'template';
     if (isTemplateCopy) {
       this._grist.getTelemetry().logEvent(req, 'copiedTemplate', {
         full: {
-          templateId: parseUrlId(document.urlId || document.id).trunkId,
+          templateId: parseUrlId(originalDocument.urlId || originalDocument.id).trunkId,
           userId: req.userId,
           altSessionId: req.altSessionId,
         },
@@ -2200,7 +2262,7 @@ export class DocWorkerApi {
       `createdDoc-${isTemplateCopy ? 'CopyTemplate' : 'CopyDoc'}`,
       {
         full: {
-          docIdDigest: newDocument.id,
+          docIdDigest: duplicateDocument.id,
           userId: req.userId,
           altSessionId: req.altSessionId,
         },
@@ -2208,15 +2270,60 @@ export class DocWorkerApi {
     );
   }
 
-  private _logRunSQLQueryEvents(
+  private _logReloadDocumentEvents(req: RequestWithLogin, {docId: documentId}: {docId: string}) {
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'reloadDocument',
+        context: {documentId},
+      },
+    });
+  }
+
+  private _logTruncateDocumentHistoryEvents(
     req: RequestWithLogin,
-    {sql: query, args, timeout}: Types.SqlPost
+    {docId: documentId, keep}: {docId: string; keep: number}
   ) {
     this._grist.getAuditLogger().logEvent(req, {
       event: {
+        name: 'truncateDocumentHistory',
+        details: {keep},
+        context: {documentId},
+      },
+    });
+  }
+
+  private _logClearWebhookQueueEvents(
+    req: RequestWithLogin,
+    {docId: documentId, webhookId: id}: {docId: string; webhookId: string}
+  ) {
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'clearWebhookQueue',
+        details: {id},
+        context: {documentId},
+      },
+    });
+  }
+
+  private _logClearAllWebhookQueueEvents(
+    req: RequestWithLogin,
+    {docId: documentId}: {docId: string}
+  ) {
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
+        name: 'clearAllWebhookQueues',
+        context: {documentId},
+      },
+    });
+  }
+
+  private _logRunSQLQueryEvents(req: RequestWithLogin, options: {docId: string} & Types.SqlPost) {
+    const {docId: documentId, sql: query, args, timeout: timeoutMs} = options;
+    this._grist.getAuditLogger().logEvent(req, {
+      event: {
         name: 'runSQLQuery',
-        details: {query, arguments: args, timeout},
-        context: {documentId: getDocId(req)},
+        details: {query, arguments: args, timeoutMs},
+        context: {documentId},
       },
     });
   }

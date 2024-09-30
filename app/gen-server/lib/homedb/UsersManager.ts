@@ -256,14 +256,17 @@ export class UsersManager {
     });
   }
 
-  public async updateUser(userId: number, props: UserProfileChange) {
-    let isWelcomed: boolean = false;
-    let user: User|null = null;
-    await this._connection.transaction(async manager => {
-      user = await manager.findOne(User, {relations: ['logins'],
-                                          where: {id: userId}});
+  public async updateUser(userId: number, props: UserProfileChange){
+    return await this._connection.transaction(async manager => {
+      let isWelcomed = false;
       let needsSave = false;
+      const user = await manager.findOne(User, {
+        relations: ['logins'],
+        where: {id: userId},
+      });
       if (!user) { throw new ApiError("unable to find user", 400); }
+
+      const previous = structuredClone(user);
       if (props.name && props.name !== user.name) {
         user.name = props.name;
         needsSave = true;
@@ -279,8 +282,8 @@ export class UsersManager {
       if (needsSave) {
         await manager.save(user);
       }
+      return {previous, current: user, isWelcomed};
     });
-    return { user, isWelcomed };
   }
 
   // TODO: rather use the updateUser() method, if that makes sense?
@@ -454,9 +457,9 @@ export class UsersManager {
 
         // We just created a personal org; set userOrgPrefs that should apply for new users only.
         const userOrgPrefs: UserOrgPrefs = {showGristTour: true};
-        const orgId = result.data;
-        if (orgId) {
-          await this._homeDb.updateOrg({userId: user.id}, orgId, {userOrgPrefs}, manager);
+        const org = result.data;
+        if (org) {
+          await this._homeDb.updateOrg({userId: user.id}, org.id, {userOrgPrefs}, manager);
         }
       }
       if (needUpdate) {

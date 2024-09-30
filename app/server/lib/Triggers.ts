@@ -691,17 +691,16 @@ export class DocTriggers {
       if (this._loopAbort.signal.aborted) {
         continue;
       }
-      let meta: Record<string, any>|undefined;
-
+      let meta: {webhookId: string; host: string, quantity: number} | undefined;
       let success: boolean;
       if (!url) {
         success = true;
       } else {
         await this._stats.logStatus(id, 'sending');
-        meta = {numEvents: batch.length, webhookId: id, host: new URL(url).host};
+        meta = {webhookId: id, host: new URL(url).host, quantity: batch.length};
         this._log("Sending batch of webhook events", meta);
         this._activeDoc.logTelemetryEvent(null, 'sendingWebhooks', {
-          limited: {numEvents: meta.numEvents},
+          limited: {numEvents: meta.quantity},
         });
         success = await this._sendWebhookWithRetries(
           id, url, authorization, body, batch.length, this._loopAbort.signal);
@@ -743,6 +742,14 @@ export class DocTriggers {
         await this._stats.logStatus(id, 'idle');
         if (meta) {
           this._log("Successfully sent batch of webhook events", meta);
+          const {webhookId, host, quantity} = meta;
+          this._activeDoc.logAuditEvent(null, {
+            event: {
+              name: 'deliverWebhookEvents',
+              details: {id: webhookId, host, quantity},
+              user: {type: 'system'},
+            },
+          });
         }
       }
 

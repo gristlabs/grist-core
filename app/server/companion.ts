@@ -9,6 +9,7 @@ import { getDatabaseUrl } from 'app/server/lib/serverUtils';
 import { getTelemetryPrefs } from 'app/server/lib/Telemetry';
 import { Gristifier } from 'app/server/utils/gristify';
 import { pruneActionHistory } from 'app/server/utils/pruneActionHistory';
+import { showAuditLogEvents } from 'app/server/utils/showAuditLogEvents';
 import * as commander from 'commander';
 import { Connection } from 'typeorm';
 
@@ -43,6 +44,7 @@ export function getProgram(): commander.Command {
                               // want to reserve "grist" for electron app?
     .description('a toolbox of handy Grist-related utilities');
 
+  addAuditLogsCommand(program, {nested: true});
   addDbCommand(program, {nested: true});
   addHistoryCommand(program, {nested: true});
   addSettingsCommand(program, {nested: true});
@@ -50,6 +52,18 @@ export function getProgram(): commander.Command {
   addSqliteCommand(program);
   addVersionCommand(program);
   return program;
+}
+
+function addAuditLogsCommand(program: commander.Command, options: CommandOptions) {
+  const sub = section(program, {
+    sectionName: 'audit-logs',
+    sectionDescription: 'show information about audit logs',
+    ...options,
+  });
+  sub('events')
+    .description('show audit log events')
+    .addOption(new commander.Option('--type <type>').choices(['installation', 'site']))
+    .action(showAuditLogEvents);
 }
 
 // Add commands related to document history:

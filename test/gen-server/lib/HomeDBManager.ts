@@ -90,7 +90,7 @@ describe('HomeDBManager', function() {
 
   it('can add an org', async function() {
     const user = await home.getUserByLogin('chimpy@getgrist.com');
-    const orgId = (await home.addOrg(user, {name: 'NewOrg', domain: 'novel-org'}, teamOptions)).data!;
+    const orgId = (await home.addOrg(user, {name: 'NewOrg', domain: 'novel-org'}, teamOptions)).data!.id;
     const org = await home.getOrg({userId: user.id}, orgId);
     assert.equal(org.data!.name, 'NewOrg');
     assert.equal(org.data!.domain, 'novel-org');
@@ -109,7 +109,7 @@ describe('HomeDBManager', function() {
         useNewPlan: true,
         // omit plan, to use a default one (teamInitial)
         // it will either be 'stub' or anything set in GRIST_DEFAULT_PRODUCT
-      })).data!;
+      })).data!.id;
       let org = await home.getOrg({userId: user.id}, orgId);
       assert.equal(org.data!.name, 'NewOrg');
       assert.equal(org.data!.domain, 'novel-org');
@@ -121,7 +121,7 @@ describe('HomeDBManager', function() {
       orgId = (await home.addOrg(user, {name: 'NewOrg', domain: 'novel-org'}, {
         setUserAsOwner: false,
         useNewPlan: true,
-      })).data!;
+      })).data!.id;
 
       org = await home.getOrg({userId: user.id}, orgId);
       assert.equal(org.data!.billingAccount.product.name, STUB_PLAN);
@@ -135,7 +135,7 @@ describe('HomeDBManager', function() {
     const user = await home.getUserByLogin('chimpy@getgrist.com');
     const domain = 'repeated-domain';
     const result = await home.addOrg(user, {name: `${domain}!`, domain}, teamOptions);
-    const orgId = result.data!;
+    const orgId = result.data!.id;
     assert.equal(result.status, 200);
     await assert.isRejected(home.addOrg(user, {name: `${domain}!`, domain}, teamOptions),
                             /Domain already in use/);

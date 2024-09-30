@@ -153,30 +153,8 @@ export function attachAppEndpoint(options: AttachOptions): void {
       docStatus = workerInfo.docStatus;
       body = await workerInfo.resp.json();
     }
-
-    const isPublic = ((doc as unknown) as APIDocument).public ?? false;
-    const isSnapshot = Boolean(parseUrlId(urlId).snapshotId);
-    const isTemplate = doc.type === 'template';
-    if (isPublic || isTemplate) {
-      gristServer.getTelemetry().logEvent(mreq, 'documentOpened', {
-        limited: {
-          docIdDigest: docId,
-          access: doc.access,
-          isPublic,
-          isSnapshot,
-          isTemplate,
-          lastUpdated: doc.updatedAt,
-        },
-        full: {
-          siteId: doc.workspace.org.id,
-          siteType: doc.workspace.org.billingAccount.product.name,
-          userId: mreq.userId,
-          altSessionId: mreq.altSessionId,
-        },
-      });
-    }
-
-    if (isTemplate) {
+    logOpenDocumentEvents(mreq, {server: gristServer, doc, urlId});
+    if (doc.type === 'template') {
       // Keep track of the last template a user visited in the last hour.
       // If a sign-up occurs within that time period, we'll know which
       // template, if any, was viewed most recently.
@@ -231,4 +209,40 @@ export function attachAppEndpoint(options: AttachOptions): void {
           ...docMiddleware, docHandler);
   app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
           ...docMiddleware, docHandler);
+}
+
+function logOpenDocumentEvents(req: RequestWithLogin, options: {
+  server: GristServer;
+  doc: Document;
+  urlId: string;
+}) {
+  const {server, doc, urlId} = options;
+  const {forkId, snapshotId} = parseUrlId(urlId);
+  server.getAuditLogger().logEvent(req, {
+    event: {
+      name: 'openDocument',
+      details: {id: doc.id, name: doc.name, urlId, forkId, snapshotId},
+    },
+  });
+
+  const isPublic = ((doc as unknown) as APIDocument).public ?? false;
+  const isTemplate = doc.type === 'template';
+  if (isPublic || isTemplate) {
+    server.getTelemetry().logEvent(req, 'documentOpened', {
+      limited: {
+        docIdDigest: doc.id,
+        access: doc.access,
+        isPublic,
+        isSnapshot: Boolean(snapshotId),
+        isTemplate,
+        lastUpdated: doc.updatedAt,
+      },
+      full: {
+        siteId: doc.workspace.org.id,
+        siteType: doc.workspace.org.billingAccount.product.name,
+        userId: req.userId,
+        altSessionId: req.altSessionId,
+      },
+    });
+  }
 }
