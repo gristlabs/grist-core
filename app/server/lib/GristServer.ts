@@ -70,7 +70,7 @@ export interface GristServer {
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
   getBootKey(): string|undefined;
-  getSandboxInfo(): Promise<SandboxInfo|undefined>;
+  getSandboxInfo(): Promise<SandboxInfo>;
   getInfo(key: string): any;
   getJobs(): GristJobs;
 }
@@ -165,7 +165,7 @@ export function createDummyGristServer(): GristServer {
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
     getBootKey() { return undefined; },
-    getSandboxInfo() { return undefined; },
+    getSandboxInfo() { throw new Error('no sandbox'); },
     getInfo(key: string) { return undefined; },
     getJobs(): GristJobs { throw new Error('no job system'); },
   };

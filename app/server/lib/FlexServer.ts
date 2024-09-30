@@ -1397,7 +1397,7 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public async getSandboxInfo(): Promise<SandboxInfo|undefined> {
+  public async getSandboxInfo(): Promise<SandboxInfo> {
     if (this._sandboxInfo) { return this._sandboxInfo; }
 
     const flavor = process.env.GRIST_SANDBOX_FLAVOR || 'unknown';
