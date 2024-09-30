@@ -224,7 +224,7 @@ export class UrlStateImpl {
 
 /**
  * Given value like `foo bar baz`, constructs URL by checking if `baz` is a valid URL and,
- * if not, prepending `http://`.
+ * if not, prepending `https://`.
  */
 export function constructUrl(value: CellValue): string {
   if (typeof value !== 'string') {
@@ -235,8 +235,8 @@ export function constructUrl(value: CellValue): string {
     // Try to construct a valid URL
     return (new URL(url)).toString();
   } catch (e) {
-    // Not a valid URL, so try to prefix it with http
-    return 'http://' + url;
+    // Not a valid URL, so try to prefix it with https
+    return 'https://' + url;
   }
 }
 
