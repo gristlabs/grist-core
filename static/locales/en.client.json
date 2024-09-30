@@ -148,7 +148,8 @@
         "Comment": "Comment",
         "Copy": "Copy",
         "Cut": "Cut",
-        "Paste": "Paste"
+        "Paste": "Paste",
+        "Copy with headers": "Copy with headers"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Create separate series for each value of the selected column.",
