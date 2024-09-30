@@ -38,6 +38,7 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
   result.push(
     menuItemCmd(allCommands.contextMenuCut, t('Cut'), disableForReadonlyColumn),
     menuItemCmd(allCommands.contextMenuCopy, t('Copy')),
+    menuItemCmd(allCommands.contextMenuCopyWithHeaders, t('Copy with headers')),
     menuItemCmd(allCommands.contextMenuPaste, t('Paste'), disableForReadonlyColumn),
     menuDivider(),
     colOptions.isFormula ?
