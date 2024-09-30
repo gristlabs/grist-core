@@ -655,15 +655,10 @@ export class GristDoc extends DisposableWithEvents {
    * Builds the DOM for this GristDoc.
    */
   public buildDom() {
-    const isMaximized = Computed.create(this, use => use(this.maximizedSectionId) !== null);
-    const isPopup = Computed.create(this, use => {
-      return ['data', 'settings'].includes(use(this.activeViewId) as any) // On Raw data or doc settings pages
-        || use(isMaximized) // Layout has a maximized section visible
-        || Boolean(use(this._popupSectionOptions)); // Layout has a popup section visible
-    });
     return cssViewContentPane(
       testId('gristdoc'),
-      cssViewContentPane.cls("-contents", isPopup),
+      cssViewContentPane.cls("-special-page", use =>
+        ['data', 'settings', 'code'].includes(use(this.activeViewId) as string)),
       dom.maybe(this._isRickRowing, () => cssStopRickRowingButton(
         cssCloseIcon('CrossBig'),
         dom.on('click', () => {
@@ -2052,8 +2047,9 @@ const cssViewContentPane = styled('div', `
       padding: 0px;
     }
   }
-  &-contents {
+  &-special-page {
     overflow: hidden;
+    padding: 0px;
   }
 `);
 

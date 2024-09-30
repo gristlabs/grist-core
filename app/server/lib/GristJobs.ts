@@ -222,7 +222,7 @@ export class GristBullMQQueueScope implements GristQueueScope {
   } = {}) {
     await this._worker?.close();
     if (options.obliterate) {
-      await this._queue?.obliterate();
+      await this._queue?.obliterate({force: true});
     }
   }
 
