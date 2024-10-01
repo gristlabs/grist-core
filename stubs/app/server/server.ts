@@ -7,7 +7,6 @@
 import {commonUrls} from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {fixSiteProducts} from 'app/gen-server/lib/Housekeeper';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -132,10 +131,6 @@ export async function main() {
   if (process.env.GRIST_SERVE_PLUGINS_PORT) {
     await mergedServer.flexServer.startCopy('pluginServer', parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
   }
-  await fixSiteProducts({
-    deploymentType: mergedServer.flexServer.getDeploymentType(),
-    db: mergedServer.flexServer.getHomeDBManager()
-  });
 
   return mergedServer.flexServer;
 }
