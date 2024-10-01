@@ -18,7 +18,7 @@ import {
   ExternalStorageCreator, ExternalStorageSettings,
   Unchanged
 } from 'app/server/lib/ExternalStorage';
-import {HostedMetadataManager, SetDocsMetadataFunc} from 'app/server/lib/HostedMetadataManager';
+import {HostedMetadataManager, SaveDocsMetadataFunc} from 'app/server/lib/HostedMetadataManager';
 import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
@@ -53,7 +53,9 @@ function checkValidDocId(docId: string): void {
 }
 
 export interface HostedStorageCallbacks {
-  setDocsMetadata: SetDocsMetadataFunc,
+  // Saves the given metadata for the specified documents.
+  setDocsMetadata: SaveDocsMetadataFunc,
+  // Retrieves account features enabled for the given document.
   getDocFeatures: (docId: string) => Promise<Features | undefined>
 }
 
