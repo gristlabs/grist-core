@@ -192,7 +192,12 @@
         "No {{columnType}} columns in table.": "Ez dago {{columnType}} zutaberik taulan.",
         " (optional)": " (aukerakoa)",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} ez dira {{columnType}} zutabeak erakusten",
-        "Full document access": "Sarbide osoa dokumentura"
+        "Full document access": "Sarbide osoa dokumentura",
+        "Accept": "Onartu",
+        "Developer:": "Garatzailea:",
+        "Last updated:": "Azkenekoz eguneratua:",
+        "Missing description and author information.": "Ez dago deskribapen ezta egilearen informaziorik ere.",
+        "Reject": "Baztertu"
     },
     "DataTables": {
         "Click to copy": "Egin klik kopiatzeko",
@@ -257,7 +262,8 @@
         "Workspace not found": "Ez da lan-eremua aurkitu",
         "You are on the {{siteName}} site. You also have access to the following sites:": "{{siteName}} gunean zaude. Honako gune hauetara ere sar zaitezke:",
         "You are on your personal site. You also have access to the following sites:": "Zure leku pertsonalean zaude. Honako gune hauetara ere sar zaitezke:",
-        "You may delete a workspace forever once it has no documents in it.": "Lan-eremu bat betiko ezabatzeko ezin du barruan dokumenturik izan."
+        "You may delete a workspace forever once it has no documents in it.": "Lan-eremu bat betiko ezabatzeko ezin du barruan dokumenturik izan.",
+        "Create my first document": "Sortu nire lehen dokumentua"
     },
     "DocPageModel": {
         "Add Empty Table": "Gehitu taula hutsa",
@@ -493,7 +499,8 @@
         "Get started by exploring templates, or creating your first Grist document.": "Has zaitez txantiloiak arakatuz edo zure lehen Grist dokumentua sortuz.",
         "Get started by inviting your team and creating your first Grist document.": "Has zaitez zure taldea gonbidatuz eta zure lehen Grist dokumentua sortuz.",
         "Interested in using Grist outside of your team? Visit your free ": "Grist zure taldetik kanpo erabili nahi duzu? Bisitatu zure doako ",
-        "Sprouts Program": "Kimuen programa"
+        "Sprouts Program": "Kimuen programa",
+        "Only show documents": "Erakutsi dokumentuak bakarrik"
     },
     "HomeLeftPane": {
         "All Documents": "Dokumentu guztiak",
@@ -720,7 +727,8 @@
         "API Console": "API kontsola"
     },
     "TopBar": {
-        "Manage Team": "Kudeatu taldea"
+        "Manage Team": "Kudeatu taldea",
+        "Manage team": "Kudeatu taldea"
     },
     "TriggerFormulas": {
         "Cancel": "Utzi",
@@ -1537,7 +1545,8 @@
         "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Gristek formula oso boteretsuak onartzen ditu, Python erabiliz. Dokumentu bakoitzean beste dokumentu batzuetatik eta saretik isolatutako sandbox baten barruan formulak exekutatzeko, GRIST_SANDBOX_FLAVOR aldagaia gvisor-era aldatzea gomendatzen dugu, zure hardwarea bateragarria bada (gehienak badira).",
         "Session Secret": "Saioaren gakoa",
         "Enable Grist Enterprise": "Gaitu Grist Enterprise",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "checking": "egiaztatzen"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -1680,5 +1689,40 @@
         "Table {{tableName}} will no longer be visible": "{{tableName}} taula ez da ikusgai egongo aurrerantzean",
         "raw data page": "datu gordinen orria",
         "Delete": "Ezabatu"
+    },
+    "CustomWidgetGallery": {
+        "Add Your Own Widget": "Gehitu zure widgeta",
+        "Cancel": "Utzi",
+        "Change Widget": "Aldatu widgeta",
+        "Developer:": "Garatzailea:",
+        "Last updated:": "Azkenekoz eguneratua:",
+        "Search": "Bilatu",
+        "Widget URL": "Widgetaren URLa",
+        "Add Widget": "Gehitu widgeta",
+        "(Missing info)": "(Informaziorik gabe)",
+        "Grist Widget": "Grist widgeta",
+        "No matching widgets": "Ez dago bat datorren widgetik"
+    },
+    "HomeIntroCards": {
+        "Help center": "Laguntza gunea",
+        "Learn more {{webinarsLinks}}": "Ikasi gehiago {{webinarsLinks}}",
+        "Start a new document": "Hasi dokuemntu berria",
+        "Templates": "Txantiloiak",
+        "Blank document": "Dokumentu zuria",
+        "Import file": "Inportatu fitxategia"
+    },
+    "ReverseReferenceConfig": {
+        "Delete": "Ezabatu",
+        "Table": "Taula",
+        "Target table": "Helmugako taula",
+        "Delete column {{column}} in table {{table}}?": "{{table}} taulako {{column}} zutabea ezabatu nahi duzu?",
+        "Column": "Zutabea"
+    },
+    "SupportGristButton": {
+        "Close": "Itxi",
+        "Help Center": "Laguntza gunea"
+    },
+    "buildReassignModal": {
+        "Cancel": "Utzi"
     }
 }
