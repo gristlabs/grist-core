@@ -7,6 +7,7 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
+import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {
   DELETED_TOKEN,
   ExternalStorage, ExternalStorageCreator,
@@ -33,7 +34,6 @@ import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import uuidv4 from "uuid/v4";
-import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 
 bluebird.promisifyAll(RedisClient.prototype);
 
@@ -978,8 +978,9 @@ describe('HostedStorageManager', function() {
       // Disable Redis
       delete process.env.REDIS_URL;
 
-      const creator = create?.getStorageOptions?.('minio')?.create;
-      if (!creator) {
+      const storage = create?.getStorageOptions?.('minio');
+      const creator = storage?.create;
+      if (!creator || !storage?.check()) {
         return this.skip();
       }
       externalStorageCreate = creator;
