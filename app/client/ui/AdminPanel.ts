@@ -202,7 +202,10 @@ Please log in as an administrator.`)),
         const success = result?.status === 'success';
         const details = result?.details as SandboxingBootProbeDetails|undefined;
         if (!details) {
-          return cssValueLabel(t('unknown'));
+          // Sandbox details get filled out relatively slowly if
+          // this is first time on admin panel. So show "checking"
+          // if we don't have a reported status yet.
+          return cssValueLabel(result?.status ? t('unknown') : t('checking'));
         }
         const flavor = details.flavor;
         const configured = details.configured;

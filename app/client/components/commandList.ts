@@ -63,6 +63,7 @@ export type CommandName =
   | 'cut'
   | 'paste'
   | 'contextMenuCopy'
+  | 'contextMenuCopyWithHeaders'
   | 'contextMenuCut'
   | 'contextMenuPaste'
   | 'fillSelectionDown'
@@ -470,6 +471,10 @@ export const groups: CommendGroupDef[] = [{
       keys: ['Mod+C'],
       desc: 'Copy current selection to clipboard',
       bindKeys: false,
+    }, {
+      name: 'contextMenuCopyWithHeaders',
+      keys: [],
+      desc: 'Copy current selection to clipboard including headers',
     }, {
       name: 'contextMenuCut',
       keys: ['Mod+X'],

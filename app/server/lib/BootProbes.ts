@@ -265,7 +265,7 @@ const _sandboxingProbe: Probe = {
   id: 'sandboxing',
   name: 'Is document sandboxing effective',
   apply: async (server, req) => {
-    const details = server.getSandboxInfo();
+    const details = await server.getSandboxInfo();
     return {
       status: (details?.configured && details?.functional) ? 'success' : 'fault',
       details,

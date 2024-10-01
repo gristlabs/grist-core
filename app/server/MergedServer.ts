@@ -192,12 +192,6 @@ export class MergedServer {
       this.flexServer.checkOptionCombinations();
       this.flexServer.summary();
       this.flexServer.ready();
-
-      // Some tests have their timing perturbed by having this earlier
-      // TODO: update those tests.
-      if (this.hasComponent("docs")) {
-        await this.flexServer.checkSandbox();
-      }
     } catch(e) {
       await this.flexServer.close();
       throw e;
