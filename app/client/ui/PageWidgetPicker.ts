@@ -32,6 +32,7 @@ import {
 import Popper from 'popper.js';
 import {IOpenController, popupOpen, setPopupToCreateDom} from 'popweasel';
 import without = require('lodash/without');
+import {labelsOrder} from 'app/client/models/entities/ColumnRec';
 
 const t = makeT('PageWidgetPicker');
 
@@ -407,7 +408,7 @@ export class PageWidgetSelect extends Disposable {
             (use) => use(this._columns)
               .filter((col) => !col.isHiddenCol() && col.parentId() === use(this._value.table)),
             (cols) => cols ?
-              dom.forEach(cols, (col) =>
+              dom.forEach([...cols].sort(labelsOrder), (col) =>
                 cssEntry(cssIcon('FieldColumn'), cssFieldLabel(dom.text(col.label)),
                   dom.on('click', () => this._toggleColumnId(col.id())),
                   cssEntry.cls('-selected', (use) => use(this._value.columns).includes(col.id())),
