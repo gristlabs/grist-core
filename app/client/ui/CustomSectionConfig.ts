@@ -75,11 +75,13 @@ class ColumnPicker extends Disposable {
       void use(refreshTrigger);
 
       const columnsAsOptions: IOption<number|null>[] = use(canBeMapped)
-                                              .map((col) => ({
-                                                value: col.getRowId(),
-                                                label: col.label.peek(),
-                                                icon: 'FieldColumn',
-                                              }));
+        .map((col) => ({
+          value: col.getRowId(),
+          label: col.label.peek() || '',
+          icon: 'FieldColumn',
+        }));
+      // Order it by label.
+      columnsAsOptions.sort((a, b) => a.label.localeCompare(b.label));
 
       // For optional mappings, add 'Blank' option but only if the value is set.
       // This option will allow to clear the selection.
