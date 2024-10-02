@@ -230,6 +230,23 @@ export function formatterForRec(
   return func(args);
 }
 
+export function labelsOrder(a: ColumnRec, b: ColumnRec): number {
+  const left  = a.label.peek().toLowerCase();
+  const right = b.label.peek().toLowerCase();
+
+  // Order is as follows:
+  // - First columns with normal labels starting with a letter.
+  // - Second all columns starting with '_' (treated as private)
+  // - Third all columns starting with '#' (treated as private)
+  // - Rest.
+  if (left[0] === '_' && right[0] !== '_') { return 1; }
+  if (left[0] !== '_' && right[0] === '_') { return -1; }
+  if (left[0] === '#' && right[0] !== '#') { return 1; }
+  if (left[0] !== '#' && right[0] === '#') { return -1; }
+  return left.localeCompare(right);
+}
+
+
 /**
  * A chat message. Either send by the user or by the AI.
  */
