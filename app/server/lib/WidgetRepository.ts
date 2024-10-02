@@ -9,6 +9,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import LRUCache from 'lru-cache';
 import * as url from 'url';
 import { AsyncCreate } from 'app/common/AsyncCreate';
+import { proxyAgent } from 'app/server/lib/ProxyAgent'
 
 // Static url for UrlWidgetRepository
 const STATIC_URL = process.env.GRIST_WIDGET_LIST_URL;
@@ -109,7 +110,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
       return [];
     }
     try {
-      const response = await fetch(this._staticUrl);
+      const response = await fetch(this._staticUrl, { agent: proxyAgent(new URL(this._staticUrl)) });
       if (!response.ok) {
         if (response.status === 404) {
           throw new ApiError('WidgetRepository: Remote widget list not found', 404);
