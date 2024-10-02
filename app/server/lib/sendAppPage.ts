@@ -89,7 +89,9 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
     featureComments: isAffirmative(process.env.COMMENTS),
-    featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY || process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT),
+    featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY ||
+      process.env.ASSISTANT_API_KEY  ||
+      process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT),
     assistantService: process.env.OPENAI_API_KEY ? 'OpenAI' : undefined,
     permittedCustomWidgets: getPermittedCustomWidgets(server),
     supportEmail: SUPPORT_EMAIL,
