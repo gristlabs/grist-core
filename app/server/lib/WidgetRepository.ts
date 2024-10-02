@@ -9,7 +9,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import LRUCache from 'lru-cache';
 import * as url from 'url';
 import { AsyncCreate } from 'app/common/AsyncCreate';
-import { proxyAgent } from 'app/server/lib/ProxyAgent'
+import { proxyAgent } from 'app/server/lib/ProxyAgent';
 
 // Static url for UrlWidgetRepository
 const STATIC_URL = process.env.GRIST_WIDGET_LIST_URL;
