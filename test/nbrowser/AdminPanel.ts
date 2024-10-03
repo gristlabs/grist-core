@@ -174,8 +174,10 @@ describe('AdminPanel', function() {
   it('should show version', async function() {
     await driver.get(`${server.getHost()}/admin`);
     await waitForAdminPanel();
-    assert.equal(await driver.find('.test-admin-panel-item-version').isDisplayed(), true);
-    assert.match(await driver.find('.test-admin-panel-item-value-version').getText(), /^Version \d+\./);
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.find('.test-admin-panel-item-version').isDisplayed(), true);
+      assert.match(await driver.find('.test-admin-panel-item-value-version').getText(), /^Version \d+\./);
+    }, 3000);
   });
 
   it('should show sandbox', async function() {
@@ -185,7 +187,7 @@ describe('AdminPanel', function() {
     await gu.waitToPass(
       // unknown for grist-saas, unconfigured for grist-core.
       async () => assert.match(await driver.find('.test-admin-panel-item-value-sandboxing').getText(),
-                               /^((unknown)|(unconfigured))/),
+                               /^((Error: unknown)|(unconfigured))/),
       3000,
     );
     // It would be good to test other scenarios, but we are using

@@ -45,8 +45,7 @@ describe('GristJobs', function() {
     }
   });
 
-  // FIXME: unskip this and the following test once Jenkins failures are resolved.
-  it.skip('can run delayed jobs', async function() {
+  it('can run delayed jobs', async function() {
     const jobs: GristJobs = new GristBullMQJobs();
     const q = jobs.queue();
     try {
@@ -73,7 +72,7 @@ describe('GristJobs', function() {
     }
   });
 
-  it.skip('can run repeated jobs', async function() {
+  it('can run repeated jobs', async function() {
     const jobs: GristJobs = new GristBullMQJobs();
     const q = jobs.queue();
     try {
@@ -102,7 +101,8 @@ describe('GristJobs', function() {
 
   it('can pick up jobs again', async function() {
     // this test is only appropriate if we have an external queue.
-    if (!process.env.REDIS_URL) { this.skip(); }
+    if (!process.env.REDIS_URL &&
+        !process.env.TEST_REDIS_URL) { this.skip(); }
     const jobs1: GristJobs = new GristBullMQJobs();
     const q = jobs1.queue();
     try {
