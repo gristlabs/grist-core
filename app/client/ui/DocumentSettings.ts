@@ -310,10 +310,10 @@ export class DocSettingsPage extends Disposable {
       const currentDocType = docPageModel.type.get() as string;
       let currentDocTypeOption;
       switch (currentDocType) {
-        case "Template":
+        case "template":
           currentDocTypeOption = DocTypeOption.Template;
           break;
-        case "Tutorial":
+        case "tutorial":
           currentDocTypeOption = DocTypeOption.Tutorial;
           break;
         default:
@@ -328,12 +328,19 @@ export class DocSettingsPage extends Disposable {
         if (selected.get() === DocTypeOption.Regular) {
           docType = "";
         } else if (selected.get() === DocTypeOption.Template) {
-          docType = "Template";
+          docType = "template";
         } else {
-          docType = "Tutorial";
+          docType = "tutorial";
         }
         await persistType(docType, docId);
-        window.location.reload();
+        const currentUrl = window.location.href;
+        const urlId = currentUrl.split("/docs/")[1];
+        const cleanUrlId = urlId.match(/^doc\/.*/) ? urlId.split("/")[1] : urlId.split("/")[0];
+        const shortDocId = urlId?.split("~")[0];
+        const reloadUrl = urlId.match(/^doc\/.*/) ?
+          currentUrl.replace(`doc/${cleanUrlId}`, shortDocId) :
+          currentUrl.replace(cleanUrlId, shortDocId);
+        window.location.replace(reloadUrl ?? "");
       };
 
       const documentTypeOptions = () => [
