@@ -159,8 +159,8 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     const staticTag = options.tag || tag;
     // If boot tag is used, serve assets locally, otherwise respect
     // APP_STATIC_URL.
-    const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || '');
-    const staticBaseUrl = `${staticOrigin}/v/${staticTag}/`;
+    const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || config.homeUrl || '');
+    const staticBaseUrl = `${staticOrigin.replace(/\/*$/, '')}/v/${staticTag}/`;
     const customHeadHtmlSnippet = server.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     // Preload all languages that will be used or are requested by client.
@@ -174,8 +174,8 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getPageTitle(req, config))
-      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(config))
+      .replace("<!-- INSERT TITLE -->", getPageTitle(config) ?? (translate(req, 'Loading') + "..."))
+      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config, staticBaseUrl))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
       .replace("<!-- INSERT LOCALE -->", preloads)
@@ -271,11 +271,10 @@ function configuredPageTitleSuffix() {
  *
  * Note: The string returned is escaped and safe to insert into HTML.
  */
-function getPageTitle(req: express.Request, config: GristLoadConfig): string {
+function getPageTitle(config: GristLoadConfig): string|null {
   const maybeDoc = getDocFromConfig(config);
-  if (!maybeDoc) { return translate(req, 'Loading') + "..."; }
 
-  return handlebars.Utils.escapeExpression(maybeDoc.name);
+  return maybeDoc && handlebars.Utils.escapeExpression(maybeDoc.name);
 }
 
 /**
@@ -286,25 +285,26 @@ function getPageTitle(req: express.Request, config: GristLoadConfig): string {
  *
  * Note: The string returned is escaped and safe to insert into HTML.
  */
-function getPageMetadataHtmlSnippet(config: GristLoadConfig): string {
+function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfig, staticBaseUrl: string): string {
   const metadataElements: string[] = [];
   const maybeDoc = getDocFromConfig(config);
 
-  const description = maybeDoc?.options?.description;
-  if (description) {
-    const content = handlebars.Utils.escapeExpression(description);
-    metadataElements.push(`<meta name="description" content="${content}">`);
-    metadataElements.push(`<meta property="og:description" content="${content}">`);
-    metadataElements.push(`<meta name="twitter:description" content="${content}">`);
-  }
+  const description = maybeDoc?.options?.description ?? String(translate(req, 'gristMetaDescription'));
+  const escapedDescription = handlebars.Utils.escapeExpression(description);
+  metadataElements.push(`<meta name="description" content="${escapedDescription}">`);
+  metadataElements.push(`<meta property="og:description" content="${escapedDescription}">`);
+  metadataElements.push(`<meta name="twitter:description" content="${escapedDescription}">`);
 
-  const icon = maybeDoc?.options?.icon;
-  if (icon) {
-    const content = handlebars.Utils.escapeExpression(icon);
-    metadataElements.push(`<meta name="thumbnail" content="${content}">`);
-    metadataElements.push(`<meta property="og:image" content="${content}">`);
-    metadataElements.push(`<meta name="twitter:image" content="${content}">`);
-  }
+  const icon = maybeDoc?.options?.icon ?? new URL('img/icon-grist.png', staticBaseUrl).href;
+  const escapedIcon = handlebars.Utils.escapeExpression(icon);
+  metadataElements.push(`<meta name="thumbnail" content="${escapedIcon}">`);
+  metadataElements.push(`<meta property="og:image" content="${escapedIcon}">`);
+  metadataElements.push(`<meta name="twitter:image" content="${escapedIcon}">`);
+
+  const title = (getPageTitle(config) ?? translate(req, 'Welcome')) + getPageTitleSuffix(config);
+  // NB: We don't generate the content of the <title> tag here.
+  metadataElements.push(`<meta property="og:title" content="${title}">`);
+  metadataElements.push(`<meta name="twitter:title" content="${title}">`);
 
   return metadataElements.join('\n');
 }
