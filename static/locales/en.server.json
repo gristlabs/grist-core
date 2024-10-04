@@ -1,6 +1,8 @@
 {
   "sendAppPage": {
-    "Loading": "Loading"
+    "Loading...": "Loading...",
+    "og-description": "A modern, open source spreadsheet that goes beyond the grid",
+    "og-title": "Grist, the evolution of spreadsheets"
   },
   "oidc": {
     "emailNotVerifiedError": "Please verify your email with the identity provider, and log in again."

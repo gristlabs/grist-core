@@ -26,7 +26,7 @@ import jsesc from 'jsesc';
 import * as path from 'path';
 import difference = require('lodash/difference');
 
-const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args);
+const translate = (req: express.Request, key: string, args?: any) => String(req.t(`sendAppPage.${key}`, args));
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
@@ -158,9 +158,9 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     const tagManagerSnippet = needTagManager ? getTagManagerSnippet(process.env.GOOGLE_TAG_MANAGER_ID) : '';
     const staticTag = options.tag || tag;
     // If boot tag is used, serve assets locally, otherwise respect
-    // APP_STATIC_URL.
-    const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || '');
-    const staticBaseUrl = `${staticOrigin}/v/${staticTag}/`;
+    // APP_STATIC_URL or APP_HOME_URL.
+    const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || config.homeUrl || '');
+    const staticBaseUrl = `${staticOrigin.replace(/\/*$/, '')}/v/${staticTag}/`;
     const customHeadHtmlSnippet = server.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     // Preload all languages that will be used or are requested by client.
@@ -174,8 +174,8 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getPageTitle(req, config))
-      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(config))
+      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? translate(req, 'Loading...'))
+      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config, staticBaseUrl))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
       .replace("<!-- INSERT LOCALE -->", preloads)
@@ -264,18 +264,15 @@ function configuredPageTitleSuffix() {
 }
 
 /**
- * Returns a page title suitable for inserting into an HTML title element.
- *
- * Currently returns the document name if the page being requested is for a document, or
- * a placeholder, "Loading...", that's updated in the client once the page has loaded.
+ * Returns the doc name.
  *
  * Note: The string returned is escaped and safe to insert into HTML.
+ *
  */
-function getPageTitle(req: express.Request, config: GristLoadConfig): string {
+function getDocName(config: GristLoadConfig): string|null {
   const maybeDoc = getDocFromConfig(config);
-  if (!maybeDoc) { return translate(req, 'Loading') + "..."; }
 
-  return handlebars.Utils.escapeExpression(maybeDoc.name);
+  return maybeDoc && handlebars.Utils.escapeExpression(maybeDoc.name);
 }
 
 /**
@@ -286,25 +283,29 @@ function getPageTitle(req: express.Request, config: GristLoadConfig): string {
  *
  * Note: The string returned is escaped and safe to insert into HTML.
  */
-function getPageMetadataHtmlSnippet(config: GristLoadConfig): string {
+function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfig, staticBaseUrl: string): string {
   const metadataElements: string[] = [];
   const maybeDoc = getDocFromConfig(config);
 
-  const description = maybeDoc?.options?.description;
-  if (description) {
-    const content = handlebars.Utils.escapeExpression(description);
-    metadataElements.push(`<meta name="description" content="${content}">`);
-    metadataElements.push(`<meta property="og:description" content="${content}">`);
-    metadataElements.push(`<meta name="twitter:description" content="${content}">`);
-  }
+  metadataElements.push('<meta property="og:type" content="website">');
+  metadataElements.push('<meta name="twitter:card" content="summary_large_image">');
+  const description = maybeDoc?.options?.description ?? translate(req, 'og-description');
+  const escapedDescription = handlebars.Utils.escapeExpression(description);
+  metadataElements.push(`<meta name="description" content="${escapedDescription}">`);
+  metadataElements.push(`<meta property="og:description" content="${escapedDescription}">`);
+  metadataElements.push(`<meta name="twitter:description" content="${escapedDescription}">`);
 
-  const icon = maybeDoc?.options?.icon;
-  if (icon) {
-    const content = handlebars.Utils.escapeExpression(icon);
-    metadataElements.push(`<meta name="thumbnail" content="${content}">`);
-    metadataElements.push(`<meta property="og:image" content="${content}">`);
-    metadataElements.push(`<meta name="twitter:image" content="${content}">`);
-  }
+  const icon = maybeDoc?.options?.icon ?? new URL('img/opengraph-preview-image.png', staticBaseUrl).href;
+  const escapedIcon = handlebars.Utils.escapeExpression(icon);
+  metadataElements.push(`<meta name="thumbnail" content="${escapedIcon}">`);
+  metadataElements.push(`<meta property="og:image" content="${escapedIcon}">`);
+  metadataElements.push(`<meta name="twitter:image" content="${escapedIcon}">`);
+
+  const maybeDocTitle = getDocName(config);
+  const title = (maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translate(req, 'og-title'));
+  // NB: We don't generate the content of the <title> tag here.
+  metadataElements.push(`<meta property="og:title" content="${title}">`);
+  metadataElements.push(`<meta name="twitter:title" content="${title}">`);
 
   return metadataElements.join('\n');
 }

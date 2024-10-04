@@ -29,6 +29,7 @@ describe('HomeIntro', function() {
     });
 
     it('should should intro screen for anon', () => testIntroScreen({anon: true, team: false}));
+    it('should should set meta tags for URL previews', testMetaTags);
     it('should not show Other Sites section', testOtherSitesSection);
     it('should allow create/import from intro screen', testCreateImport.bind(null, false));
     it('should link to examples page from the intro', testExamplesPage);
@@ -127,6 +128,22 @@ describe('HomeIntro', function() {
       await gu.waitForServer();
       assert.isTrue(await driver.find('.test-intro-cards').isDisplayed());
     }
+  }
+
+  async function testMetaTags() {
+    const expectedTitle = 'Grist, the evolution of spreadsheets';
+    assert.equal(await driver.find('meta[name="twitter:title"]').getAttribute('content'), expectedTitle);
+    assert.equal(await driver.find('meta[property="og:title"]').getAttribute('content'), expectedTitle);
+
+    const expectedDescription = 'A modern, open source spreadsheet that goes beyond the grid';
+    assert.equal(await driver.find('meta[name="description"]').getAttribute('content'), expectedDescription);
+    assert.equal(await driver.find('meta[name="twitter:description"]').getAttribute('content'), expectedDescription);
+    assert.equal(await driver.find('meta[property="og:description"]').getAttribute('content'), expectedDescription);
+
+    const gristIconFileName = 'opengraph-preview-image.png';
+    assert.include(await driver.find('meta[name="thumbnail"]').getAttribute('content'), gristIconFileName);
+    assert.include(await driver.find('meta[name="twitter:image"]').getAttribute('content'), gristIconFileName);
+    assert.include(await driver.find('meta[property="og:image"]').getAttribute('content'), gristIconFileName);
   }
 
   async function testCreateImport(isLoggedIn: boolean) {
