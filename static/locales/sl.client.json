@@ -1739,7 +1739,12 @@
     },
     "markdown.d": {
         "The toggle is **on**": "Preklop je **vklopljen**",
-        "The toggle is **off**": "Preklop je **izklopljen**"
+        "The toggle is **off**": "Preklop je **izklopljen**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova funkcija Markdown\n *\n * Lahko _napišemo_ [običajni Markdown](https://markdownguide.org) *znotraj*\n * element Grainjs."
+            }
+        }
     },
     "HomeIntroCards": {
         "3 minute video tour": "3 minutni video ogled",
@@ -1768,6 +1773,20 @@
     "SupportGristButton": {
         "Admin Panel": "Skrbniška plošča",
         "Close": "Zapri",
-        "Help Center": "Center za pomoč"
+        "Help Center": "Center za pomoč",
+        "Opted In": "Omogočeno",
+        "Opt in to Telemetry": "Omogoči uporabo telemetrije",
+        "Support Grist": "Podpora Gristu",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Hvala! Vaše zaupanje in podporo zelo cenimo. Kadar koli se odjavite na {{link}} v uporabniškem meniju."
+    },
+    "buildReassignModal": {
+        "Cancel": "Prekliči",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Vsak zapis {{targetTable}} je lahko dodeljen samo enemu zapisu {{sourceTable}}.",
+        "Reassign": "Prerazporedi",
+        "Reassign to new {{sourceTable}} records.": "Ponovno dodelite novim zapisom {{sourceTable}}.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Znova dodeli zapisu {{sourceTable}} {{sourceName}}.",
+        "Record already assigned_one": "Zapis je že dodeljen",
+        "Record already assigned_other": "Zapis je že dodeljen",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "Zapis {{targetTable}} {{targetName}} je že dodeljen zapisu {{sourceTable}} {{oldSourceName}}."
     }
 }
