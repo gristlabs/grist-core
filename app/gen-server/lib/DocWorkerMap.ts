@@ -580,8 +580,10 @@ let dummyDocWorkerMap: DummyDocWorkerMap|null = null;
 
 export function getDocWorkerMap(): IDocWorkerMap {
   if (process.env.REDIS_URL) {
+    log.info("Creating Redis-based DocWorker");
     return new DocWorkerMap();
   } else {
+    log.info("Creating local/dummy DocWorker");
     dummyDocWorkerMap = dummyDocWorkerMap || new DummyDocWorkerMap();
     return dummyDocWorkerMap;
   }

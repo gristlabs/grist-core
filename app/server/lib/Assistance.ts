@@ -158,8 +158,7 @@ export class OpenAIAssistant implements Assistant {
   private _maxTokens = process.env.ASSISTANT_MAX_TOKENS ?
       parseInt(process.env.ASSISTANT_MAX_TOKENS, 10) : undefined;
 
-  public constructor() {
-    const apiKey = process.env.ASSISTANT_API_KEY || process.env.OPENAI_API_KEY;
+  public constructor(apiKey: string | undefined) {
     const endpoint = process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT;
     if (!apiKey && !endpoint) {
       throw new Error('Please set either OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
@@ -485,11 +484,13 @@ class EchoAssistant implements Assistant {
  * Instantiate an assistant, based on environment variables.
  */
 export function getAssistant() {
-  if (process.env.OPENAI_API_KEY === 'test') {
+  const apiKey = process.env.ASSISTANT_API_KEY || process.env.OPENAI_API_KEY;
+
+  if (apiKey === 'test') {
     return new EchoAssistant();
   }
-  if (process.env.OPENAI_API_KEY || process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT) {
-    return new OpenAIAssistant();
+  if (apiKey || process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT) {
+    return new OpenAIAssistant(apiKey);
   }
   throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
 }

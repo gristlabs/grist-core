@@ -71,7 +71,7 @@
         "Sign Out": "Amaitu saioa",
         "Sign in": "Hasi saioa",
         "Switch Accounts": "Aldatu kontua",
-        "Support Grist": "Babestu Grist",
+        "Support Grist": "Eman babesa Grist-i",
         "Sign In": "Hasi saioa",
         "Sign Up": "Eman izena",
         "Use This Template": "Txantiloi hau erabili",
@@ -148,7 +148,8 @@
         "Cut": "Ebaki",
         "Paste": "Itsatsi",
         "Clear cell": "Garbitu gelaxka",
-        "Filter by this value": "Iragazi balio honen arabera"
+        "Filter by this value": "Iragazi balio honen arabera",
+        "Copy with headers": "Kopiatu goiburuekin"
     },
     "ColorSelect": {
         "Apply": "Aplikatu",
@@ -192,7 +193,15 @@
         "No {{columnType}} columns in table.": "Ez dago {{columnType}} zutaberik taulan.",
         " (optional)": " (aukerakoa)",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} ez dira {{columnType}} zutabeak erakusten",
-        "Full document access": "Sarbide osoa dokumentura"
+        "Full document access": "Sarbide osoa dokumentura",
+        "Accept": "Onartu",
+        "Developer:": "Garatzailea:",
+        "Last updated:": "Azkenekoz eguneratua:",
+        "Missing description and author information.": "Ez dago deskribapen ezta egilearen informaziorik ere.",
+        "Reject": "Baztertu",
+        "ACCESS LEVEL": "SARBIDE-MAILA",
+        "Custom URL": "URL pertsonalizatua",
+        "Widget": "Widgeta"
     },
     "DataTables": {
         "Click to copy": "Egin klik kopiatzeko",
@@ -257,7 +266,11 @@
         "Workspace not found": "Ez da lan-eremua aurkitu",
         "You are on the {{siteName}} site. You also have access to the following sites:": "{{siteName}} gunean zaude. Honako gune hauetara ere sar zaitezke:",
         "You are on your personal site. You also have access to the following sites:": "Zure leku pertsonalean zaude. Honako gune hauetara ere sar zaitezke:",
-        "You may delete a workspace forever once it has no documents in it.": "Lan-eremu bat betiko ezabatzeko ezin du barruan dokumenturik izan."
+        "You may delete a workspace forever once it has no documents in it.": "Lan-eremu bat betiko ezabatzeko ezin du barruan dokumenturik izan.",
+        "Create my first document": "Sortu nire lehen dokumentua",
+        "Any documents created in this site will appear here.": "Gune honetan sortutako dokumentuak hemen agertuko dira.",
+        "personal site": "gune pertsonala",
+        "You have read-only access to this site. Currently there are no documents.": "Soilik irakurtzeko sarbidea duzu gune honetan. Unean ez dago dokumenturik."
     },
     "DocPageModel": {
         "Add Empty Table": "Gehitu taula hutsa",
@@ -493,7 +506,8 @@
         "Get started by exploring templates, or creating your first Grist document.": "Has zaitez txantiloiak arakatuz edo zure lehen Grist dokumentua sortuz.",
         "Get started by inviting your team and creating your first Grist document.": "Has zaitez zure taldea gonbidatuz eta zure lehen Grist dokumentua sortuz.",
         "Interested in using Grist outside of your team? Visit your free ": "Grist zure taldetik kanpo erabili nahi duzu? Bisitatu zure doako ",
-        "Sprouts Program": "Kimuen programa"
+        "Sprouts Program": "Kimuen programa",
+        "Only show documents": "Erakutsi dokumentuak bakarrik"
     },
     "HomeLeftPane": {
         "All Documents": "Dokumentu guztiak",
@@ -720,7 +734,8 @@
         "API Console": "API kontsola"
     },
     "TopBar": {
-        "Manage Team": "Kudeatu taldea"
+        "Manage Team": "Kudeatu taldea",
+        "Manage team": "Kudeatu taldea"
     },
     "TriggerFormulas": {
         "Cancel": "Utzi",
@@ -844,7 +859,9 @@
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "{{email}} gisa hasi duzu saioa. Beste kontu batekin hasi dezakezu saioa, edo administratzaile bati sarbidea eskatu.",
         "Build your own form": "Sortu zure formularioa",
         "Powered by": "Honi esker:",
-        "Account deleted{{suffix}}": "Kontua ezabatu da{{suffix}}"
+        "Account deleted{{suffix}}": "Kontua ezabatu da{{suffix}}",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Saioaren hasierak huts egin du.{{separator}}Saiatu berriro edo jarri harremanetan laguntza eskatzeko.",
+        "Sign-in failed{{suffix}}": "Saioaren hasierak huts egin du{{suffix}}"
     },
     "menus": {
         "Select fields": "Hautatu eremuak",
@@ -1083,7 +1100,14 @@
         "Select the table to link to.": "Hautatu lotu beharreko taula.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Erabili 𝚺 ikonoa laburpen-taulak edo taula dinamikoak sortzeko, guztizkoetarako edo guztizko partzialetarako.",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Ez dituzu zutabe egokiak aurkitzen? Egin klik \"Aldatu widgeta\"-n gertaeren datuak dituen taula hautatzeko.",
-        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Gelaxka bakoitzeko {{EyeHideIcon}}-en klik eginez gero, eremua ikuspegi honetatik ezkutatuko da ezabatu gabe."
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Gelaxka bakoitzeko {{EyeHideIcon}}-en klik eginez gero, eremua ikuspegi honetatik ezkutatuko da ezabatu gabe.",
+        "Creates a reverse column in target table that can be edited from either end.": "Helburuko taulan bi muturretatik editatu daitekeen alderantzizko zutabe bat sortzen du.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Esleipen bat baino gehiago baimentzeko, aldatu erreferentzia-zutabearen mota Erreferentzia zerrendara.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Muga hau bi noranzkoko erreferentzia bateko muturretako bat erreferentzia bakar gisa konfiguratuta dagoenean ematen da.",
+        "Community widgets are created and maintained by Grist community members.": "Komunitatearen widgetak Gristen komunitateko kideek sortzen eta mantentzen dituztenak dira.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Esleipen bat baino gehiago baimentzeko, aldatu erreferentzia-zutabearen mota Erreferentzia zerrendara.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Muga hau bi noranzkoko erreferentzia bateko zutabetako bat erreferentzia mota gisa konfiguratuta dagoenean ematen da.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Bi noranzkoko erreferentziak ez dira unean bateragarriak Formula edo formula-abiarazle zutabeekin."
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "Zutabearen IDa arbelera kopiatu da",
@@ -1283,7 +1307,7 @@
     },
     "UserManager": {
         "Add {{member}} to your team": "Gehitu {{member}} zure taldean",
-        "Allow anyone with the link to open.": "Utzi esteka duen edonori irekitzen.",
+        "Allow anyone with the link to open.": "Baimendu esteka duen edonori irekitzea.",
         "Confirm": "Baieztatu",
         "Copy Link": "Kopiatu esteka",
         "Guest": "Gonbidatua",
@@ -1330,11 +1354,11 @@
         "Help Center": "Laguntza Gunea",
         "Opt in to Telemetry": "Bidali telemetria",
         "Support Grist": "Eman babesa Grist-i",
-        "Support Grist page": "Eman babesa Grist-en orriari",
+        "Support Grist page": "Grist-en laguntza orria",
         "Opted In": "Izena emanda",
         "Close": "Itxi",
         "Contribute": "Hartu parte",
-        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Mila esker! Zure konfiantza eta babesa oso estimatua da. Edozein unetan bidaltzeari utzi diezaiokezu erabiltzailearen menuko {{link}}tik.",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Mila esker! Zure konfiantza eta babesa oso estimatuak dira. Edozein unetan bidaltzeari utzi diezaiokezu erabiltzailearen menuko {{link}}tik.",
         "Admin Panel": "Administratzailearen mahaigaina"
     },
     "SupportGristPage": {
@@ -1537,7 +1561,8 @@
         "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Gristek formula oso boteretsuak onartzen ditu, Python erabiliz. Dokumentu bakoitzean beste dokumentu batzuetatik eta saretik isolatutako sandbox baten barruan formulak exekutatzeko, GRIST_SANDBOX_FLAVOR aldagaia gvisor-era aldatzea gomendatzen dugu, zure hardwarea bateragarria bada (gehienak badira).",
         "Session Secret": "Saioaren gakoa",
         "Enable Grist Enterprise": "Gaitu Grist Enterprise",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "checking": "egiaztatzen"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -1649,7 +1674,8 @@
         "3 minute video tour": "3 minutuko bideo-bisitaldia",
         "Complete our basics tutorial": "Burutu oinarrizko tutoriala",
         "Complete the tutorial": "Burutu tutoriala",
-        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Ikasi erreferentzia-zutabeen, lotutako widgeten, zutabe-moten eta txartelen oinarriak."
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Ikasi erreferentzia-zutabeen, lotutako widgeten, zutabe-moten eta txartelen oinarriak.",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Ikasi erreferentzia-zutabeen, lotutako widgeten, zutabe moten, eta txartelen oinarriak."
     },
     "OnboardingPage": {
         "Go hands-on with the Grist Basics tutorial": "Murgildu Gristen oinarrizko tutorialean",
@@ -1680,5 +1706,87 @@
         "Table {{tableName}} will no longer be visible": "{{tableName}} taula ez da ikusgai egongo aurrerantzean",
         "raw data page": "datu gordinen orria",
         "Delete": "Ezabatu"
+    },
+    "CustomWidgetGallery": {
+        "Add Your Own Widget": "Gehitu zure widgeta",
+        "Cancel": "Utzi",
+        "Change Widget": "Aldatu widgeta",
+        "Developer:": "Garatzailea:",
+        "Last updated:": "Azkenekoz eguneratua:",
+        "Search": "Bilatu",
+        "Widget URL": "Widgetaren URLa",
+        "Add Widget": "Gehitu widgeta",
+        "(Missing info)": "(Informaziorik gabe)",
+        "Grist Widget": "Grist widgeta",
+        "No matching widgets": "Ez dago bat datorren widgetik",
+        "Add a widget from outside this gallery.": "Gehitu galeria honetatik kanpoko widgetak.",
+        "Choose Custom Widget": "Aukeratu widget pertsonalizatua",
+        "Community Widget": "Komunitatearen widgetak",
+        "Custom URL": "URL pertsonalizatua",
+        "Learn more about Custom Widgets": "Ikasi gehiago widget pertsonalizatuei buruz"
+    },
+    "HomeIntroCards": {
+        "Help center": "Laguntza gunea",
+        "Learn more {{webinarsLinks}}": "Ikasi gehiago {{webinarsLinks}}",
+        "Start a new document": "Hasi dokuemntu berria",
+        "Templates": "Txantiloiak",
+        "Blank document": "Dokumentu zuria",
+        "Import file": "Inportatu fitxategia",
+        "3 minute video tour": "3 minutuko bideo-bisitaldia",
+        "Finish our basics tutorial": "Amaitu oinarrizko tutoriala",
+        "Tutorial": "Tutoriala",
+        "Webinars": "Web-mintegiak",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Ikusi adibideak eta arakatu baliabide gehiago {{helpCenterLink}}"
+    },
+    "ReverseReferenceConfig": {
+        "Delete": "Ezabatu",
+        "Table": "Taula",
+        "Target table": "Helmugako taula",
+        "Delete column {{column}} in table {{table}}?": "{{table}} taulako {{column}} zutabea ezabatu nahi duzu?",
+        "Column": "Zutabea",
+        "Add two-way reference": "Gehitu bi noranzkoko erreferentzia",
+        "Two-way Reference": "Bi noranzkoko erreferentzia",
+        "Delete two-way reference?": "Bi noranzkoko erreferentzia ezabatu?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "{{table}} taulako {{column}} zutabearen alderantzizko erreferentzia da."
+    },
+    "SupportGristButton": {
+        "Close": "Itxi",
+        "Help Center": "Laguntza gunea",
+        "Admin Panel": "Administratzailearen mahaigaina",
+        "Support Grist": "Eman babesa Grist-i",
+        "Opted In": "Telemetria bidaltzen da",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Mila esker! Zure konfiantza eta babesa oso estimatuak dira. Edozein unetan bidaltzeari utzi diezaiokezu erabiltzailearen menuko {{link}}tik.",
+        "Opt in to Telemetry": "Bidali telemetria"
+    },
+    "buildReassignModal": {
+        "Cancel": "Utzi",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "{{targetTable}} erregistro bakoitzari {{sourceTable}} erregistro bakarra esleitu dakioke.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Berresleitu {{sourceTable}}(e)ko {{sourceName}} erregistroari.",
+        "Record already assigned_one": "Erregistroa esleituta dago lehendik ere",
+        "Record already assigned_other": "Erregistroa esleituta dago lehendik ere",
+        "Reassign": "Berresleitu",
+        "Reassign to new {{sourceTable}} records.": "Berresleitu {{sourceTable}}(e)ko erregistro berri bati.",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}}(e)ko {{targetName}} erregistroa lehendik dago {{sourceTable}}(e)ko {{oldSourceName}} erregistroari esleituta."
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Administratzailearen mahaigaina"
+    },
+    "markdown": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Markdown funtzio berria\n *\n *      Grainjs elementu baten *barruan*\n *      [ohiko Markdown sintaxia](https://markdownguide.org) _idatz_ dezakegu."
+            }
+        },
+        "The toggle is **off**": "Ezaugarria **desaktibatuta** dago",
+        "The toggle is **on**": "Ezaugarria **aktibatuta** dago"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Markdown funtzio berria\n *\n *      Grainjs elementu baten *barruan*\n *      [ohiko Markdown sintaxia](https://markdownguide.org) _idatz_ dezakegu."
+            }
+        },
+        "The toggle is **off**": "Ezaugarria **desaktibatuta** dago",
+        "The toggle is **on**": "Ezaugarria **aktibatuta** dago"
     }
 }

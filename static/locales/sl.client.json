@@ -133,7 +133,8 @@
         "Cut": "Izreži",
         "Paste": "Prilepi",
         "Clear values": "Izbriši vrednosti",
-        "Clear cell": "Čista celica"
+        "Clear cell": "Čista celica",
+        "Copy with headers": "Kopiraj z glavami"
     },
     "DocMenu": {
         "Document will be moved to Trash.": "Dokument se bo premaknil v koš.",
@@ -174,7 +175,11 @@
         "Restore": "Obnovi",
         "Move {{name}} to workspace": "Premakni {{name}} v delovni prostor",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Nahajate se na spletnem mestu {{siteName}}. Prav tako imate dostop do naslednjih spletnih mest:",
-        "Examples & Templates": "Primeri & predloge"
+        "Examples & Templates": "Primeri & predloge",
+        "Any documents created in this site will appear here.": "Vsi dokumenti, ustvarjeni na tem mestu, bodo prikazani tukaj.",
+        "Create my first document": "Ustvari moj prvi dokument",
+        "personal site": "osebno spletno mesto",
+        "You have read-only access to this site. Currently there are no documents.": "Do tega mesta imate dostop samo za branje. Trenutno ni dokumentov."
     },
     "GridViewMenus": {
         "Rename column": "Preimenuj stolpec",
@@ -407,7 +412,15 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} stolpci, ki niso{{columnType}}, niso prikazani",
         "Widget needs to {{read}} the current table.": "Widget mora {{read}} trenutno tabelo.",
         "No {{columnType}} columns in table.": "V tabeli ni stolpcev tipa {{columnType}}.",
-        "Clear selection": "Briši izbor"
+        "Clear selection": "Briši izbor",
+        "Custom URL": "URL po meri",
+        "Developer:": "Razvijalec:",
+        "ACCESS LEVEL": "STOPNJA DOSTOPOV",
+        "Reject": "Zavrni",
+        "Accept": "Sprejmi",
+        "Last updated:": "Zadnja posodobitev:",
+        "Missing description and author information.": "Manjka opis in podatki o avtorju.",
+        "Widget": "Widget"
     },
     "DocHistory": {
         "Activity": "Dejavnost",
@@ -784,7 +797,14 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Ustvari preproste obrazce neposredno v Gristu in jih deli z enim klikom z našim novim pripomočkom. {{learnMoreButton}}",
         "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo.",
         "Filter displayed dropdown values with a condition.": "Filtriraj prikazane vrednosti .",
-        "Example: {{example}}": "Primer: {{example}}"
+        "Example: {{example}}": "Primer: {{example}}",
+        "Creates a reverse column in target table that can be edited from either end.": "Ustvari vzvratni stolpec v ciljni tabeli, ki ga je mogoče urejati z obeh koncev.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Če želiš dovoliti več dodelitev, spremeni vrsto stolpca Reference v Seznam referenc.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Če želiš omogočiti več dodelitev, spremeni vrsto referenčnega stolpca v Referenčni seznam.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Dvosmerne reference trenutno niso podprte za stolpce formule ali formule sprožilca",
+        "Community widgets are created and maintained by Grist community members.": "Pripomočke skupnosti ustvarjajo in vzdržujejo člani skupnosti Grist.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Do te omejitve pride, ko je en konec dvosmerne reference konfiguriran kot ena sama referenca.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Do te omejitve pride, ko ima en stolpec v dvosmernem sklicu vrsto Reference."
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -922,7 +942,8 @@
         "Visit our {{link}} to learn more about Grist.": "Obiščite našo spletno stran {{link}} da izveste več o Grisstu.",
         "Sign in": "Prijavi se",
         "To use Grist, please either sign up or sign in.": "Če želiš uporabljati Grist, se prijavi ali prvič prijavi.",
-        "Learn more in our {{helpCenterLink}}.": "Izvedi več v našem {{helpCenterLink}}."
+        "Learn more in our {{helpCenterLink}}.": "Izvedi več v našem {{helpCenterLink}}.",
+        "Only show documents": "Pokaži samo dokumente"
     },
     "WelcomeSitePicker": {
         "You have access to the following Grist sites.": "Imate dostop do naslednjih Grist spletnih mest .",
@@ -1101,7 +1122,8 @@
         "Rule {{length}}": "Pravilo {{length}}"
     },
     "TopBar": {
-        "Manage Team": "Upravljanje ekipe"
+        "Manage Team": "Upravljanje ekipe",
+        "Manage team": "Uredi ekipo"
     },
     "UserManagerModel": {
         "View & Edit": "Ogled in urejanje",
@@ -1175,7 +1197,9 @@
         "Build your own form": "Ustvari svoj obrazec",
         "Powered by": "Poganja ga",
         "An unknown error occurred.": "Prišlo je do neznane napake.",
-        "Form not found": "Ne najdem obrazca"
+        "Form not found": "Ne najdem obrazca",
+        "Sign-in failed{{suffix}}": "Prijava ni uspela{{suffix}}",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Prijava ni uspela.{{separator}}Poskusi znova ali se obrni na podporo."
     },
     "WidgetTitle": {
         "DATA TABLE NAME": "IME PODATKOVNE TABELE",
@@ -1560,7 +1584,8 @@
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist podpisuje piškotke uporabniške seje s skrivnim ključem. Ta ključ nastavite prek spremenljivke okolja GRIST_SESSION_SECRET. Grist se vrne na trdo kodirano privzeto vrednost, če ni nastavljena. To obvestilo bomo morda odstranili v prihodnosti, saj so ID-ji sej, ustvarjeni od različice 1.1.16, sami po sebi kriptografsko varni.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podpisuje piškotke uporabniške seje s skrivnim ključem. Ta ključ nastavite prek spremenljivke okolja GRIST_SESSION_SECRET. Grist se vrne na trdo kodirano privzeto vrednost, če ni nastavljena. To obvestilo bomo morda odstranili v prihodnosti, saj so ID-ji sej, ustvarjeni od različice 1.1.16, sami po sebi kriptografsko varni.",
         "Enable Grist Enterprise": "Omogoči Grist Enterprise",
-        "Enterprise": "Podjetje"
+        "Enterprise": "Podjetje",
+        "checking": "preverjanje"
     },
     "ChoiceEditor": {
         "Error in dropdown condition": "Napaka v spustnem meniju",
@@ -1649,7 +1674,8 @@
         "3 minute video tour": "3 minutni video ogled",
         "Complete our basics tutorial": "Dokončaj našo vadnico o osnovah",
         "Complete the tutorial": "Dokončaj vadnico",
-        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Nauči se osnov referenčnih stolpcev, povezanih pripomočkov, vrst stolpcev in kartic."
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Nauči se osnov referenčnih stolpcev, povezanih pripomočkov, vrst stolpcev in kartic.",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Naučite se osnov referenčnih stolpcev, povezanih pripomočkov, vrst stolpcev in kartic."
     },
     "OnboardingPage": {
         "Back": "Nazaj",
@@ -1680,5 +1706,87 @@
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Ohranite podatke in izbrišite pripomoček. Tabela bo ostala na voljo v {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "Tabela {{tableName}} ne bo več vidna",
         "raw data page": "stran z neobdelanimi podatki"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Skrbniška plošča"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Manjkajo informacije)",
+        "Add Widget": "Dodaj pripomoček",
+        "Add Your Own Widget": "Dodajte svoj pripomoček",
+        "Add a widget from outside this gallery.": "Dodaj pripomoček zunaj te galerije.",
+        "Cancel": "Prekliči",
+        "Change Widget": "Spremeni pripomoček",
+        "Developer:": "razvijalec:",
+        "Grist Widget": "Grist Pripomoček",
+        "Learn more about Custom Widgets": "Izvedite več o pripomočkih po meri",
+        "No matching widgets": "Ni ujemajočih se pripomočkov",
+        "Search": "Iskanje",
+        "Widget URL": "URL pripomočka",
+        "Choose Custom Widget": "Izberite Pripomoček po meri",
+        "Community Widget": "Pripomoček skupnosti",
+        "Custom URL": "URL po meri",
+        "Last updated:": "Zadnja posodobitev:"
+    },
+    "markdown": {
+        "The toggle is **off**": "Preklop je **izklopljen**",
+        "The toggle is **on**": "Preklop je **vklopljen**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova funkcija Markdown\n *\n * Lahko _napišemo_ [običajni Markdown](https://markdownguide.org) *znotraj*\n * element Grainjs."
+            }
+        }
+    },
+    "markdown.d": {
+        "The toggle is **on**": "Preklop je **vklopljen**",
+        "The toggle is **off**": "Preklop je **izklopljen**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova funkcija Markdown\n *\n * Lahko _napišemo_ [običajni Markdown](https://markdownguide.org) *znotraj*\n * element Grainjs."
+            }
+        }
+    },
+    "HomeIntroCards": {
+        "3 minute video tour": "3 minutni video ogled",
+        "Blank document": "Prazen dokument",
+        "Finish our basics tutorial": "Dokončaj našo vadnico o osnovah",
+        "Learn more {{webinarsLinks}}": "Več o tem {{webinarsLinks}}",
+        "Start a new document": "Začni nov dokument",
+        "Templates": "Predloge",
+        "Tutorial": "Vadnica",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Poiščite rešitve in raziščite več virov {{helpCenterLink}}",
+        "Help center": "Center za pomoč",
+        "Import file": "Uvozi datoteko",
+        "Webinars": "Spletni seminarji"
+    },
+    "ReverseReferenceConfig": {
+        "Add two-way reference": "Dodaj dvosmerno referenco",
+        "Delete column {{column}} in table {{table}}?": "Želiš izbrisati stolpec {{column}} v tabeli {{table}}?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Je obratna stran referenčnega stolpca {{column}} v tabeli {{table}}.",
+        "Two-way Reference": "Dvosmerna referenca",
+        "Delete two-way reference?": "Želiš izbrisati dvosmerno referenco?",
+        "Target table": "Ciljna tabela",
+        "Column": "Stolpec",
+        "Delete": "Izbriši",
+        "Table": "Tabela"
+    },
+    "SupportGristButton": {
+        "Admin Panel": "Skrbniška plošča",
+        "Close": "Zapri",
+        "Help Center": "Center za pomoč",
+        "Opted In": "Omogočeno",
+        "Opt in to Telemetry": "Omogoči uporabo telemetrije",
+        "Support Grist": "Podpora Gristu",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Hvala! Vaše zaupanje in podporo zelo cenimo. Kadar koli se odjavite na {{link}} v uporabniškem meniju."
+    },
+    "buildReassignModal": {
+        "Cancel": "Prekliči",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Vsak zapis {{targetTable}} je lahko dodeljen samo enemu zapisu {{sourceTable}}.",
+        "Reassign": "Prerazporedi",
+        "Reassign to new {{sourceTable}} records.": "Ponovno dodelite novim zapisom {{sourceTable}}.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Znova dodeli zapisu {{sourceTable}} {{sourceName}}.",
+        "Record already assigned_one": "Zapis je že dodeljen",
+        "Record already assigned_other": "Zapis je že dodeljen",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "Zapis {{targetTable}} {{targetName}} je že dodeljen zapisu {{sourceTable}} {{oldSourceName}}."
     }
 }

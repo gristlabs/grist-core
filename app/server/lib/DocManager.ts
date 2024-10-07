@@ -638,6 +638,7 @@ export class DocManager extends EventEmitter {
         throw new Error('Grist docs must be uploaded individually');
       }
       const first = uploadInfo.files[0].origName;
+      log.debug(`DocManager._doImportDoc: Received doc with name ${first}`);
       const ext = extname(first);
       const basename = path.basename(first, ext).trim() || "Untitled upload";
       let id: string;
@@ -662,6 +663,7 @@ export class DocManager extends EventEmitter {
       }
       await options.register?.(id, basename);
       if (ext === '.grist') {
+        log.debug(`DocManager._doImportDoc: Importing .grist doc`);
         // If the import is a grist file, copy it to the docs directory.
         // TODO: We should be skeptical of the upload file to close a possible
         // security vulnerability. See https://phab.getgrist.com/T457.

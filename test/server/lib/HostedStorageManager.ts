@@ -1,12 +1,13 @@
 import {ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import {SCHEMA_VERSION} from 'app/common/schema';
-import {DocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
+import {DocWorkerMap, getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
+import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {
   DELETED_TOKEN,
   ExternalStorage, ExternalStorageCreator,
@@ -274,7 +275,7 @@ class TestStore {
   public constructor(
     private _localDirectory: string,
     private _workerId: string,
-    private _workers: DocWorkerMap,
+    private _workers: IDocWorkerMap,
     private _externalStorageCreate: ExternalStorageCreator) {
   }
 
@@ -962,6 +963,98 @@ describe('HostedStorageManager', function() {
       });
     });
   }
+
+  describe('minio-without-redis', async () => {
+    const workerId = 'dw17';
+    let tmpDir: string;
+    let oldEnv: EnvironmentSnapshot;
+    let docWorkerMap: IDocWorkerMap;
+    let externalStorageCreate: ExternalStorageCreator;
+    let defaultParams: ConstructorParameters<typeof HostedStorageManager>;
+
+    before(async function() {
+      tmpDir = await createTmpDir();
+      oldEnv = new EnvironmentSnapshot();
+      // Disable Redis
+      delete process.env.REDIS_URL;
+
+      const storage = create?.getStorageOptions?.('minio');
+      const creator = storage?.create;
+      if (!creator || !storage?.check()) {
+        return this.skip();
+      }
+      externalStorageCreate = creator;
+    });
+
+    after(async () => {
+      oldEnv.restore();
+    });
+
+    beforeEach(async function() {
+      // With Redis disabled, this should be the non-redis version of IDocWorkerMap (DummyDocWorkerMap)
+      docWorkerMap = getDocWorkerMap();
+      await docWorkerMap.addWorker({
+        id: workerId,
+        publicUrl: "none",
+        internalUrl: "none",
+      });
+      await docWorkerMap.setWorkerAvailability(workerId, true);
+
+      defaultParams = [
+        tmpDir,
+        workerId,
+        false,
+        docWorkerMap,
+        {
+          setDocsMetadata: async (metadata) => {},
+          getDocFeatures: async (docId) => undefined,
+        },
+        externalStorageCreate,
+      ];
+    });
+
+    it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
+      const storageManager = new HostedStorageManager(...defaultParams);
+
+      const docId = "NewDoc";
+
+      const path = storageManager.getPath(docId);
+      // Simulate an uploaded .grist file.
+      await fse.writeFile(path, "");
+
+      await storageManager.prepareLocalDoc(docId);
+
+      assert.isTrue(await fse.pathExists(path));
+    });
+
+    it("fetches remote docs if they don't exist locally", async function() {
+      const testStore = new TestStore(
+        tmpDir,
+        workerId,
+        docWorkerMap,
+        externalStorageCreate
+      );
+
+      let docName: string = "";
+      let docPath: string = "";
+
+      await testStore.run(async () => {
+        const newDoc = await testStore.docManager.createNewEmptyDoc(docSession, "NewRemoteDoc");
+        docName = newDoc.docName;
+        docPath = testStore.storageManager.getPath(docName);
+      });
+
+      // This should be safe since testStore.run closes everything down.
+      await fse.remove(docPath);
+      assert.isFalse(await fse.pathExists(docPath));
+
+      await testStore.run(async () => {
+        await testStore.docManager.fetchDoc(docSession, docName);
+      });
+
+      assert.isTrue(await fse.pathExists(docPath));
+    });
+  });
 });
 
 // This is a performance test, to check if the backup settings are plausible.
