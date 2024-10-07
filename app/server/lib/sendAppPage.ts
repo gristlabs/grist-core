@@ -295,7 +295,7 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   metadataElements.push(`<meta property="og:description" content="${escapedDescription}">`);
   metadataElements.push(`<meta name="twitter:description" content="${escapedDescription}">`);
 
-  const icon = maybeDoc?.options?.icon ?? new URL('icons/grist.svg', staticBaseUrl).href;
+  const icon = maybeDoc?.options?.icon ?? new URL('icons/grist.png', staticBaseUrl).href;
   const escapedIcon = handlebars.Utils.escapeExpression(icon);
   metadataElements.push(`<meta name="thumbnail" content="${escapedIcon}">`);
   metadataElements.push(`<meta property="og:image" content="${escapedIcon}">`);
