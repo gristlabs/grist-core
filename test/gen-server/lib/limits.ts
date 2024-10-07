@@ -25,6 +25,8 @@ describe('limits', function() {
 
   testUtils.setTmpLogLevel('error');
 
+  this.timeout('10s');
+
   before(async function() {
     home = new TestServer(this);
     await home.start(["home", "docs"]);
@@ -222,7 +224,9 @@ describe('limits', function() {
   });
 
   it('can enforce limits on number of doc shares', async function() {
-    this.timeout(4000);      // This can exceed the default of 2s on Jenkins
+    // This can exceed the default of 2s on Jenkins
+    // - Changed from 4s to 8s on 2024-10-04
+    this.timeout('8s');
 
     await setFeatures({maxSharesPerDoc: 3, workspaces: true});
     const wsId = await api.newWorkspace({name: 'shares'}, 'docs');

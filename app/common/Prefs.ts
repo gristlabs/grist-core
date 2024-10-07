@@ -56,7 +56,10 @@ export interface UserOrgPrefs extends Prefs {
   seenDocTours?: string[];
 }
 
-export type OrgPrefs = Prefs;
+export interface OrgPrefs extends Prefs {
+  /* The URL (might be data url) of the custom logo to use for the org. */
+  customLogoUrl?: string|null;
+}
 
 /**
  * List of all deprecated warnings that user can see and dismiss.

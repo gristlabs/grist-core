@@ -589,6 +589,11 @@ export interface ThemeColors {
   'markdown-cell-light-bg': string;
   'markdown-cell-light-border': string;
   'markdown-cell-medium-border': string;
+
+  /* App Header */
+  'app-header-bg': string;
+  'app-header-hover-bg': string;
+  'app-header-border': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

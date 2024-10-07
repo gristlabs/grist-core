@@ -64,3 +64,25 @@ export function stopEvent(ev: Event) {
   ev.preventDefault();
   ev.stopImmediatePropagation();
 }
+
+/**
+ * Adds a handler for a custom event triggered by `domDispatch` function below.
+ */
+export function domOnCustom(name: string, handler: (args: any, event: Event, element: Element) => void) {
+  return (el: Element) => {
+    dom.onElem(el, name, (ev, target) => {
+      const cv = ev as CustomEvent;
+      handler(cv.detail, ev, target);
+    });
+  };
+}
+
+/**
+ * Triggers a custom event on an element.
+ */
+export function domDispatch(element: Element, name: string, args?: any) {
+  element.dispatchEvent(new CustomEvent(name, {
+    bubbles: true,
+    detail: args
+  }));
+}

@@ -903,6 +903,11 @@ export const theme = {
     colors.mediumGreyOpaque),
   markdownCellMediumBorder: new CustomProp('theme-markdown-cell-medium-border', undefined,
     colors.darkGrey),
+
+  /* App Header */
+  appHeaderBg: new CustomProp('theme-app-header-bg', undefined, colors.light),
+  appHeaderBorder: new CustomProp('theme-app-header-border', undefined, colors.mediumGreyOpaque),
+  appHeaderHoverBg: new CustomProp('theme-app-header-hover-bg', undefined, colors.hover),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

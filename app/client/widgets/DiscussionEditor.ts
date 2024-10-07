@@ -1,11 +1,14 @@
+import {createPopper, Options as PopperOptions} from '@popperjs/core';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
+import {autoFocus, domDispatch, domOnCustom} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
+import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {CellRec, ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {RowSource, RowWatcher} from 'app/client/models/rowset';
+import {autoGrow} from 'app/client/ui/forms';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -29,13 +32,10 @@ import {
   Observable,
   styled
 } from 'grainjs';
-import {createPopper, Options as PopperOptions} from '@popperjs/core';
 import * as ko from 'knockout';
 import moment from 'moment';
 import maxSize from 'popper-max-size-modifier';
 import flatMap = require('lodash/flatMap');
-import {autoGrow} from 'app/client/ui/forms';
-import {autoFocus} from 'app/client/lib/domUtils';
 
 const testId = makeTestId('test-discussion-');
 const t = makeT('DiscussionEditor');
@@ -416,7 +416,7 @@ class CommentView extends Disposable {
       this.props.isReply ? testId('reply') : testId('comment'),
       dom.on('click', () => {
         if (this.props.isReply) { return; }
-        trigger(this._bodyDom, CommentView.SELECT, comment);
+        domDispatch(this._bodyDom, CommentView.SELECT, comment);
         if (!this._resolved.get()) { return; }
         this._expanded.set(!this._expanded.get());
       }),
@@ -474,11 +474,11 @@ class CommentView extends Disposable {
                 const value = text.get();
                 text.set("");
                 await topic.update(comment, value);
-                trigger(this._bodyDom, CommentView.CANCEL, this);
+                domDispatch(this._bodyDom, CommentView.CANCEL, this);
                 this.isEditing.set(false);
               },
               onCancel: () => {
-                trigger(this._bodyDom, CommentView.CANCEL, this);
+                domDispatch(this._bodyDom, CommentView.CANCEL, this);
                 this.isEditing.set(false);
               },
               mode: 'start',
@@ -583,7 +583,7 @@ class CommentView extends Disposable {
   }
 
   private _edit() {
-    trigger(this._bodyDom, CommentView.EDIT, this);
+    domDispatch(this._bodyDom, CommentView.EDIT, this);
     this.isEditing.set(true);
   }
 }
@@ -1334,21 +1334,7 @@ const cssHoverButton = styled(cssCloseButton, `
 //   transform: rotate(180deg);
 // `);
 
-function domOnCustom(name: string, handler: (args: any, event: Event, element: Element) => void) {
-  return (el: Element) => {
-    dom.onElem(el, name, (ev, target) => {
-      const cv = ev as CustomEvent;
-      handler(cv.detail.args ?? {}, ev, target);
-    });
-  };
-}
 
-function trigger(element: Element, name: string, args?: any) {
-  element.dispatchEvent(new CustomEvent(name, {
-    bubbles: true,
-    detail: {args}
-  }));
-}
 
 const cssResolvedBlock = styled('div', `
   margin-top: 5px;

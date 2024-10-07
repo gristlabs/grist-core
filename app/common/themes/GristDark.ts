@@ -568,4 +568,9 @@ export const GristDark: ThemeColors = {
   'markdown-cell-light-bg': '#494958',
   'markdown-cell-light-border': '#32323F',
   'markdown-cell-medium-border': '#555563',
+
+  /* App Header */
+  'app-header-bg': '#32323F',
+  'app-header-border': '#FFFFFF00',
+  'app-header-hover-bg': 'rgba(111,111,125,0.6)',
 };

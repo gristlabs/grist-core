@@ -5,26 +5,51 @@ import {icon} from 'app/client/ui2018/icons';
 
 export type Size = 'small' | 'medium' | 'large';
 
+interface OrgProperties {
+  name: string;
+  domain: string|null;
+}
+
+/** Helper wrapper around OrgProfile that converts it to UserProfile */
+function OrgUser(org: OrgProperties): UserProfile {
+  return {name: org.name, email: org.domain || ''};
+}
+
 /**
  * Returns a DOM element showing a circular icon with a user's picture, or the user's initials if
  * picture is missing. Also varies the color of the circle when using initials.
  */
 export function createUserImage(
-  user: UserProfile|'exampleUser'|null, size: Size, ...args: DomElementArg[]
+  user: Partial<UserProfile>|'exampleUser'|null, size: Size, ...args: DomElementArg[]
 ): HTMLElement {
-  let initials: string;
   return cssUserImage(
     cssUserImage.cls('-' + size),
-    (user === 'exampleUser') ? [cssUserImage.cls('-example'), cssExampleUserIcon('EyeShow')] :
-    (!user || user.anonymous) ? cssUserImage.cls('-anon') :
-    [
-      (user.picture ? cssUserPicture({src: user.picture}, dom.on('error', (ev, el) => dom.hideElem(el, true))) : null),
-      dom.style('background-color', pickColor(user)),
-      (initials = getInitials(user)).length > 1 ? cssUserImage.cls('-reduced') : null,
-      initials!,
-    ],
+    ...(function*() {
+      if (user === 'exampleUser') {
+        yield [cssUserImage.cls('-example'), cssExampleUserIcon('EyeShow')];
+      } else if (!user || user.anonymous) {
+        yield cssUserImage.cls('-anon');
+      } else {
+        if (user.picture) {
+          yield cssUserPicture({src: user.picture}, dom.on('error', (ev, el) => dom.hideElem(el, true)));
+        }
+        yield dom.style('background-color', pickColor(user));
+        const initials = getInitials(user);
+        if (initials.length > 1) {
+          yield cssUserImage.cls('-reduced');
+        }
+        yield initials;
+      }
+    })(),
     ...args,
   );
+}
+
+/**
+ * Returns a DOM element showing team's initials as a circular icon.
+ */
+export function createTeamImage(org: OrgProperties, size: Size, ...args: DomElementArg[]): HTMLElement {
+  return createUserImage(OrgUser(org), size, ...args);
 }
 
 /**
@@ -33,7 +58,7 @@ export function createUserImage(
  *
  * Exported for testing.
  */
-export function getInitials(user: {name?: string, email?: string}) {
+export function getInitials(user: Partial<UserProfile>) {
   const source = (user.name && user.name.trim()) || (user.email && user.email.trim()) || '';
   return source.split(/\s+/, 2).map(p => p.slice(0, 1)).join('');
 }
@@ -41,7 +66,7 @@ export function getInitials(user: {name?: string, email?: string}) {
 /**
  * Hashes the username to return a color.
  */
-function pickColor(user: UserProfile): string {
+function pickColor(user: Partial<UserProfile>): string {
   let c = hashCode(user.name + ':' + user.email) % someColors.length;
   if (c < 0) { c += someColors.length; }
   return someColors[c];
@@ -87,22 +112,26 @@ export const cssUserImage = styled('div', `
   display: flex;
   align-items: center;
   justify-content: center;
+  --border-size: 0px;
+  width: calc(var(--icon-size, 24px) - var(--border-size));
+  height: calc(var(--icon-size, 24px) - var(--border-size));
+  line-height: 1em;
 
   &-small {
-    width: 24px;
-    height: 24px;
+    --icon-size: 24px;
     font-size: 13.5px;
     --reduced-font-size: 12px;
   }
   &-medium {
-    width: 32px;
-    height: 32px;
+    --icon-size: 32px;
     font-size: 18px;
     --reduced-font-size: 16px;
   }
+  &-border {
+    --border-size: 2px;
+  }
   &-large {
-    width: 40px;
-    height: 40px;
+    --icon-size: 40px;
     font-size: 22.5px;
     --reduced-font-size: 20px;
   }
@@ -117,7 +146,9 @@ export const cssUserImage = styled('div', `
   &-reduced {
     font-size: var(--reduced-font-size);
   }
-
+  &-square {
+    border-radius: 0px;
+  }
   &-example {
     background-color: ${colors.slate};
     border: 1px solid ${colors.slate};
@@ -130,7 +161,7 @@ const cssUserPicture = styled('img', `
   height: 100%;
   object-fit: cover;
   background-color: ${theme.menuBg};
-  border-radius: 100px;
+  border-radius: inherit;
   box-sizing: content-box;    /* keep the border outside of the size of the image */
 `);
 

@@ -568,4 +568,9 @@ export const GristLight: ThemeColors = {
   'markdown-cell-light-bg': '#F7F7F7',
   'markdown-cell-light-border': '#E8E8E8',
   'markdown-cell-medium-border': '#D9D9D9',
+
+  /* App header */
+  'app-header-bg': 'var(--grist-theme-page-panels-main-panel-bg)',
+  'app-header-border': 'var(--grist-theme-menu-border)',
+  'app-header-hover-bg': 'var(--grist-theme-hover)',
 };

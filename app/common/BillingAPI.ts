@@ -149,7 +149,8 @@ export interface ILimit {
 
 export interface IBillingOrgSettings {
   name: string;
-  domain: string;
+  domain: string|null;
+  customLogoUrl?: string|null;
 }
 
 // Full description of billing account, including nested list of orgs and managers.
@@ -204,7 +205,7 @@ export interface BillingAPI {
   getSubscription(): Promise<IBillingSubscription>;
   getBillingAccount(): Promise<FullBillingAccount>;
   updateBillingManagers(delta: ManagerDelta): Promise<void>;
-  updateSettings(settings: IBillingOrgSettings): Promise<void>;
+  updateSettings(settings: Partial<IBillingOrgSettings>): Promise<void>;
   subscriptionStatus(planId: string): Promise<boolean>;
   createFreeTeam(name: string, domain: string): Promise<void>;
   createTeam(name: string, domain: string, plan: PlanSelection, next?: string): Promise<{
@@ -261,7 +262,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
-  public async updateSettings(settings?: IBillingOrgSettings): Promise<void> {
+  public async updateSettings(settings?: Partial<IBillingOrgSettings>): Promise<void> {
     await this.request(`${this._url}/api/billing/settings`, {
       method: 'POST',
       body: JSON.stringify({ settings })
