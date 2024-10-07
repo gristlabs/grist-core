@@ -1,8 +1,16 @@
 import { UserAPI } from "app/common/UserAPI";
 //import { assert, By, driver, until } from "mocha-webdriver";
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, WebElementPromise } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+
+interface Button {
+  click(): Promise<void>;
+  element(): WebElementPromise;
+  wait(): Promise<void>;
+  visible(): Promise<boolean>;
+  present(): Promise<boolean>;
+}
 
 describe("Document Type Conversion", function () {
   this.timeout(20000);
@@ -18,11 +26,11 @@ describe("Document Type Conversion", function () {
     userApi = session.createHomeApi();
   });
 
-  async function assertExists() {
+  async function assertExistsButton(button: Button, text: String) {
     await gu.waitToPass(async () => {
-      assert.equal(await editButton.element().getText(), "Edit");
+      assert.equal(await button.element().getText(), text);
     });
-    assert.isTrue(await editButton.visible());
+    assert.isTrue(await button.visible());
   }
 
   async function convert(from: String, to: String) {
@@ -67,7 +75,7 @@ describe("Document Type Conversion", function () {
   it("should allow to convert from a document type to another", async function () {
     await gu.openDocumentSettings();
     // Make sure we see the Edit button of document type conversion.
-    await assertExists();
+    await assertExistsButton(editButton, "Edit");
 
     // Check that Document type is Regular before any conversion was ever apply to It.
     assert.equal(await displayedLabel.element().getText(), "Regular");
@@ -95,26 +103,40 @@ describe("Document Type Conversion", function () {
   // If the next six tests succeed so each document type can properly be converted to every other
   it('should convert from Regular to Template', async function() {
     await convert("Regular", "Template");
+    await assertExistsButton(saveCopyButton, "Save Copy");
   });
 
   it('should convert from Template to Tutorial', async function() {
     await convert("Template", "Tutorial");
+    await assertExistsButton(saveCopyButton, "Save Copy");
+    await session.loadDoc(`/doc/${docId}`);
+    await driver.sleep(500);
+    assert.isTrue(await tutorialPopin.visible());
+    await gu.openDocumentSettings();
   });
 
   it('should convert from Tutorial to Regular', async function() {
     await convert("Tutorial", "Regular");
+    assert.isFalse(await saveCopyButton.present());
   });
 
   it('should convert from Regular to Tutorial', async function() {
     await convert("Regular", "Tutorial");
+    await assertExistsButton(saveCopyButton, "Save Copy");
+    assert.isTrue(await tutorialPopin.visible());
+    await session.loadDoc(`/doc/${docId}`);
+    await driver.sleep(500);
+    await gu.openDocumentSettings();
   });
 
   it('should convert from Tutorial to Template', async function() {
     await convert("Tutorial", "Template");
+    await assertExistsButton(saveCopyButton, "Save Copy");
   });
 
   it('should convert from Template to Regular', async function() {
     await convert("Template", "Regular");
+    assert.equal(await saveCopyButton.present(), false);
   });
 
   it('should be disabled for non-owners', async function() {
@@ -182,10 +204,12 @@ const option = (testId: string) => ({
 });
 
 const editButton = button('.test-settings-doctype-edit');
-const displayedLabel = label(".test-settings-doctype-value");
-const modal = element(".test-settings-doctype-modal");
+const saveCopyButton = button('.test-tb-share-action');
+const displayedLabel = label('.test-settings-doctype-value');
+const modal = element('.test-settings-doctype-modal');
 const optionRegular = option('.test-settings-doctype-modal-option-regular');
 const optionTemplate = option('.test-settings-doctype-modal-option-template');
 const optionTutorial = option('.test-settings-doctype-modal-option-tutorial');
 const modalConfirm = button('.test-settings-doctype-modal-confirm');
 const modalCancel = button('.test-settings-doctype-modal-cancel');
+const tutorialPopin = element('.test-onboarding-popup');
