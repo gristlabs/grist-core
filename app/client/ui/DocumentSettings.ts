@@ -333,14 +333,12 @@ export class DocSettingsPage extends Disposable {
           docType = "tutorial";
         }
         await persistType(docType, docId);
-        const currentUrl = window.location.href;
-        const urlId = currentUrl.split("/docs/")[1];
-        const cleanUrlId = urlId.match(/^doc\/.*/) ? urlId.split("/")[1] : urlId.split("/")[0];
-        const shortDocId = urlId?.split("~")[0];
-        const reloadUrl = urlId.match(/^doc\/.*/) ?
-          currentUrl.replace(`doc/${cleanUrlId}`, shortDocId) :
-          currentUrl.replace(cleanUrlId, shortDocId);
-        window.location.replace(reloadUrl ?? "");
+        const {trunkId} = docPageModel.currentDoc.get()!.idParts;
+        window.location.replace(urlState().makeUrl({
+          docPage: "settings",
+          fork: undefined, // will be automatically set once the page is reloaded
+          doc: trunkId,
+        }));
       };
 
       const documentTypeOptions = () => [
