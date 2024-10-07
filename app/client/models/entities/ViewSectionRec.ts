@@ -16,7 +16,7 @@ import {
   ViewFieldRec,
   ViewRec
 } from 'app/client/models/DocModel';
-import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
+import {BEHAVIOR, labelsOrder} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {LinkConfig} from 'app/client/ui/selectBy';
@@ -698,7 +698,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // Evaluates to an array of column models, which are not referenced by anything in viewFields.
   this.hiddenColumns = this.autoDispose(ko.pureComputed(() => {
     const included = new Set(this.viewFields().all().map((f) => f.column().origColRef()));
-    return this.columns().filter(c => !included.has(c.getRowId()));
+    return this.columns()
+      .filter(c => !included.has(c.getRowId()))
+      .sort(labelsOrder);
   }));
 
   this.hasFocus = ko.pureComputed({
