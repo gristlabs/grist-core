@@ -140,7 +140,7 @@ describe('HomeIntro', function() {
     assert.equal(await driver.find('meta[name="twitter:description"]').getAttribute('content'), expectedDescription);
     assert.equal(await driver.find('meta[property="og:description"]').getAttribute('content'), expectedDescription);
 
-    const gristIconFileName = 'grist.svg';
+    const gristIconFileName = 'grist.png';
     assert.include(await driver.find('meta[name="thumbnail"]').getAttribute('content'), gristIconFileName);
     assert.include(await driver.find('meta[name="twitter:image"]').getAttribute('content'), gristIconFileName);
     assert.include(await driver.find('meta[property="og:image"]').getAttribute('content'), gristIconFileName);
