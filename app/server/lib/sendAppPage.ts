@@ -26,7 +26,7 @@ import jsesc from 'jsesc';
 import * as path from 'path';
 import difference = require('lodash/difference');
 
-const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args);
+const translate = (req: express.Request, key: string, args?: any) => String(req.t(`sendAppPage.${key}`, args));
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
@@ -158,7 +158,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     const tagManagerSnippet = needTagManager ? getTagManagerSnippet(process.env.GOOGLE_TAG_MANAGER_ID) : '';
     const staticTag = options.tag || tag;
     // If boot tag is used, serve assets locally, otherwise respect
-    // APP_STATIC_URL.
+    // APP_STATIC_URL or APP_HOME_URL.
     const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || config.homeUrl || '');
     const staticBaseUrl = `${staticOrigin.replace(/\/*$/, '')}/v/${staticTag}/`;
     const customHeadHtmlSnippet = server.create.getExtraHeadHtml?.() ?? "";
@@ -174,7 +174,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getPageTitle(config) ?? (translate(req, 'Loading...')))
+      .replace("<!-- INSERT TITLE -->", getPageTitle(config) ?? translate(req, 'Loading...'))
       .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config, staticBaseUrl))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
@@ -289,7 +289,7 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   const metadataElements: string[] = [];
   const maybeDoc = getDocFromConfig(config);
 
-  const description = maybeDoc?.options?.description ?? String(translate(req, 'gristMetaDescription'));
+  const description = maybeDoc?.options?.description ?? translate(req, 'gristMetaDescription');
   const escapedDescription = handlebars.Utils.escapeExpression(description);
   metadataElements.push(`<meta name="description" content="${escapedDescription}">`);
   metadataElements.push(`<meta property="og:description" content="${escapedDescription}">`);
