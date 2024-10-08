@@ -4326,8 +4326,10 @@ export class HomeDBManager extends EventEmitter {
       });
       const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(wsQuery));
       workspace.removedAt = removedAt;
-      const data = await manager.save(workspace);
-      return {status: 200, data};
+      await manager.createQueryBuilder()
+        .update(Workspace).set({removedAt}).where({id: workspace.id})
+        .execute();
+      return {status: 200, data: workspace};
     });
   }
 
@@ -4347,8 +4349,10 @@ export class HomeDBManager extends EventEmitter {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
       doc.removedAt = removedAt;
-      const data = await manager.save(doc);
-      return {status: 200, data};
+      await manager.createQueryBuilder()
+        .update(Document).set({removedAt}).where({id: doc.id})
+        .execute();
+      return {status: 200, data: doc};
     });
   }
 
