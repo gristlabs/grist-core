@@ -77,7 +77,7 @@ function makeConfig(username: string): AxiosRequestConfig {
   };
 }
 
-async function makeUserApi(
+function makeUserApi(
   org: string,
   username: string,
   options?: {
@@ -238,7 +238,7 @@ describe('DocApi', function () {
       });
 
       async function testCompareDocs(proxy: TestServerReverseProxy, home: TestServer) {
-        const chimpyApi = await makeUserApi(ORG_NAME, 'chimpy');
+        const chimpyApi = makeUserApi(ORG_NAME, 'chimpy');
         const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
         const docId1 = await chimpyApi.newDoc({name: 'testdoc1'}, ws1);
         const docId2 = await chimpyApi.newDoc({name: 'testdoc2'}, ws1);
@@ -375,7 +375,7 @@ function testDocApi(settings: {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     // Make sure kiwi isn't allowed here.
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
-    const kiwiApi = await makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor for the org.
     await assert.isRejected(kiwiApi.getOrgAccess(ORG_NAME), /Forbidden/);
@@ -395,7 +395,7 @@ function testDocApi(settings: {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
     // Make sure kiwi isn't allowed here.
-    const kiwiApi = await makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor of this workspace.
     await userApi.updateWorkspacePermissions(ws1, {users: {[kiwiEmail]: 'editors'}});
@@ -414,7 +414,7 @@ function testDocApi(settings: {
   it("should allow only owners to remove a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdeleteme1'}, ws1);
-    const kiwiApi = await makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't delete it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -430,7 +430,7 @@ function testDocApi(settings: {
   it("should allow only owners to rename a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testrenameme1'}, ws1);
-    const kiwiApi = await makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't rename it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -3006,7 +3006,7 @@ function testDocApi(settings: {
       this.skip();
     }
     // Prepare an API for a different user.
-    const kiwiApi = await makeUserApi('Fish', 'kiwi'); // upload something for Chimpy and something else for Kiwi.
+    const kiwiApi = makeUserApi('Fish', 'kiwi'); // upload something for Chimpy and something else for Kiwi.
     const worker1 = await userApi.getWorkerAPI('import');
     const fakeData1 = await testUtils.readFixtureDoc('Hello.grist');
     const uploadId1 = await worker1.upload(fakeData1, 'upload.grist');
@@ -3270,7 +3270,7 @@ function testDocApi(settings: {
     // Pass kiwi's headers as it contains both Authorization and Origin headers
     // if run behind a proxy, so we can ensure that the Origin header check is not made.
     const userApiServerUrl = docs.proxiedServer ? serverUrl : undefined;
-    const chimpyApi = await makeUserApi(ORG_NAME, 'chimpy', { baseUrl: userApiServerUrl });
+    const chimpyApi = makeUserApi(ORG_NAME, 'chimpy', { baseUrl: userApiServerUrl });
     const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
     const docId1 = await chimpyApi.newDoc({name: 'testdoc1'}, ws1);
     const docId2 = await chimpyApi.newDoc({name: 'testdoc2'}, ws1);
@@ -3788,7 +3788,7 @@ function testDocApi(settings: {
 
     it("limits daily API usage", async function () {
       // Make a new document in a test product with a low daily limit
-      const api = await makeUserApi('testdailyapilimit', 'chimpy');
+      const api = makeUserApi('testdailyapilimit', 'chimpy');
       const workspaceId = await getWorkspaceId(api, 'TestDailyApiLimitWs');
       const docId = await api.newDoc({name: 'TestDoc1'}, workspaceId);
       const max = testDailyApiLimitFeatures.baseMaxApiUnitsPerDocumentPerDay;
@@ -3816,7 +3816,7 @@ function testDocApi(settings: {
     it("limits daily API usage and sets the correct keys in redis", async function () {
       this.retries(3);
       // Make a new document in a free team site, currently the only real product which limits daily API usage.
-      const freeTeamApi = await makeUserApi('freeteam', 'chimpy');
+      const freeTeamApi = makeUserApi('freeteam', 'chimpy');
       const workspaceId = await getWorkspaceId(freeTeamApi, 'FreeTeamWs');
       const docId = await freeTeamApi.newDoc({name: 'TestDoc2'}, workspaceId);
       // Rather than making 5000 requests, set high counts directly for the current and next daily and hourly keys
@@ -5389,7 +5389,7 @@ function setup(name: string, cb: () => Promise<void>) {
     await cb();
 
     // create TestDoc as an empty doc into Private workspace
-    userApi = api = await makeUserApi(ORG_NAME, 'chimpy');
+    userApi = api = makeUserApi(ORG_NAME, 'chimpy');
     const wid = await getWorkspaceId(api, 'Private');
     docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
   });
