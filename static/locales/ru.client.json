@@ -134,14 +134,15 @@
         "Comment": "Комментарий",
         "Copy": "Копировать",
         "Cut": "Вырезать",
-        "Paste": "Вставить"
+        "Paste": "Вставить",
+        "Copy with headers": "Копировать с заголовком"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Этот сайт группы приостановлен. Документы можно читать, но не изменять."
     },
     "ChartView": {
-        "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
-        "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
+        "Each Y series is followed by a series for the length of error bars.": "После каждого ряда У следует ряд, описывающий ошибки.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Каждая ряд У сопровождается двумя рядами  ошибок вверху и внизу.",
         "Create separate series for each value of the selected column.": "Создайте отдельные ряды для каждого значения выбранного столбца.",
         "selected new group data columns": "выбранные новые группы столбцов данных",
         "Pick a column": "Выберите столбец",
@@ -169,7 +170,15 @@
         "Read selected table": "Просмотр выбранной таблицы",
         "Widget does not require any permissions.": "Виджет не требует никаких разрешений.",
         "No {{columnType}} columns in table.": "Нет {{columnType}} столбцов в таблице.",
-        "Clear selection": "Очистить выбор"
+        "Clear selection": "Очистить выбор",
+        "Custom URL": "URL пользователя",
+        "Developer:": "Разраб:",
+        "Reject": "Отклонено",
+        "Widget": "Виджет",
+        "ACCESS LEVEL": "УРОВЕНЬ ДОСТУПА",
+        "Accept": "Принять",
+        "Last updated:": "Последнее обновление:",
+        "Missing description and author information.": "Отсутствует описание и информация об авторе."
     },
     "AccountWidget": {
         "Access Details": "Сведения о доступе",
