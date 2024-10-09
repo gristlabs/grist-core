@@ -194,7 +194,8 @@ describe("AccessRules3", function() {
       await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
       fin = findTable(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'rec.Unreal == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1', error: 'Invalid columns: Unreal'},
+                       [{ formula: 'rec.Unreal == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1',
+                          error: 'Invalid columns: Unreal' },
                         { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
                         { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);
