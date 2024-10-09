@@ -20,6 +20,8 @@ import * as ko from 'knockout';
 
 const t = makeT('FieldConfig');
 
+export const LIMITED_COLUMN_OPTIONS = t("Column options are limited in summary tables.");
+
 export function buildNameConfig(
   owner: MultiHolder,
   origColumn: ColumnRec,
@@ -86,7 +88,7 @@ export function buildNameConfig(
       )
     ),
     dom.maybe(isSummaryTable,
-      () => cssRow(t("Column options are limited in summary tables.")))
+      () => cssRow(LIMITED_COLUMN_OPTIONS))
   ];
 }
 

@@ -14,6 +14,7 @@ describe('DescriptionColumn', function() {
   });
 
   it('should allow to edit description on summary table', async () => {
+    const revert = await gu.begin();
     await gu.toggleSidePanel('left', 'close');
     // Add summary table.
     await gu.addNewSection('Table', 'Table1', {summarize: ['A']});
@@ -37,7 +38,45 @@ describe('DescriptionColumn', function() {
     assert.equal(await getDescriptionInput().getAttribute('value'), 'testA');
     await gu.openColumnPanel('count');
     assert.equal(await getDescriptionInput().getAttribute('value'), 'testCount');
-    await gu.undo(4);
+    await gu.undo(2);
+
+    // Now add description through the modal.
+    await doubleClickHeader('A', null);
+    assert.isTrue(await popupVisible());
+
+    // Name should be disabled.
+    assert.equal(await getLabel().getAttribute('disabled'), 'true');
+
+    // We see add description button.
+    await addDescriptionIsVisible();
+
+    // We have tooltip explaining what it is.
+    await getLabel().mouseMove();
+
+    // Wait for hover tooltip to show up.
+    await gu.waitToPass(
+      async () => assert.isTrue(await driver.find('.test-tooltip').isDisplayed()),
+      500
+    );
+    assert.equal(await driver.find('.test-tooltip').getText(), 'Column options are limited in summary tables.');
+
+    // It works.
+    await clickAddDescription();
+
+    // Now we see description field.
+    await descriptionIsVisible();
+
+    // Type something.
+    await gu.sendKeys('ColumnA description');
+
+    // Save it.
+    await pressSave();
+
+    // Make sure it is saved.
+    await clickTooltip('A');
+    await gu.waitToPass(async () =>
+      assert.equal(await driver.find(".test-column-info-tooltip-popup").getText(), 'ColumnA description'));
+    await revert();
   });
 
   it('should switch between close and save', async () => {
@@ -94,7 +133,7 @@ describe('DescriptionColumn', function() {
 
     // Clear label completely, we have change, but we can't save.
     await gu.sendKeys(Key.BACK_SPACE);
-    assert.isEmpty(await getLabel());
+    assert.isEmpty(await getLabelText());
     assert.isFalse(await closeVisible());
     assert.isTrue(await saveVisible());
     // But save button is disabled.
@@ -535,8 +574,12 @@ function getDescriptionInput() {
   return driver.find('.test-right-panel .test-column-description');
 }
 
+function getLabelText() {
+  return getLabel().getAttribute('value');
+}
+
 function getLabel() {
-  return driver.findWait(".test-column-title-label", 1000).getAttribute('value');
+  return driver.findWait(".test-column-title-label", 1000);
 }
 
 async function popupVisible() {
@@ -549,7 +592,7 @@ async function popupVisible() {
 
 async function popupIsAt(col: string) {
   // Make sure we are now at column.
-  assert.equal(await getLabel(), col);
+  assert.equal(await getLabelText(), col);
   // Make sure that popup is near the column.
   const headerCRect = await gu.getColumnHeader({col}).getRect();
   const popup = await driver.find(".test-column-title-popup").getRect();
@@ -559,15 +602,18 @@ async function popupIsAt(col: string) {
   assert.isBelow(popup.y, headerCRect.y + headerCRect.height + 2);
 }
 
-async function doubleClickHeader(col: string) {
+async function doubleClickHeader(col: string, focus: 'label'|'description'|null = 'label') {
   const header = await gu.getColumnHeader({col});
   await header.click();
   await header.click();
-  await waitForFocus('label');
+  if (focus) {
+    await waitForFocus(focus);
+  }
 }
 
 async function waitForFocus(field: 'label'|'description') {
-  await gu.waitToPass(async () => assert.isTrue(await driver.find(`.test-column-title-${field}`).hasFocus()), 200);
+  await gu.waitToPass(async () => assert.isTrue(
+    await driver.find(`.test-column-title-${field}`).hasFocus(), `${field} doesn't have focus`), 200);
 }
 
 async function waitForTooltip() {

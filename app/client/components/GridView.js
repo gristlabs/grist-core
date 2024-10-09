@@ -1270,12 +1270,12 @@ GridView.prototype.buildDom = function() {
             kd.style('minWidth', '100%'),
             kd.style('borderLeftWidth', v.borderWidthPx),
             kd.foreach(v.viewFields(), field => {
+              const canRename = ko.pureComputed(() => !field.column().disableEditData());
               const isEditingLabel = koUtil.withKoUtils(ko.pureComputed({
                 read: () => {
                   const goodIndex = () => editIndex() === field._index();
                   const isReadonly = () => this.isReadonly || self.isPreview;
-                  const isSummary = () => Boolean(field.column().disableEditData());
-                  return goodIndex() && !isReadonly() && !isSummary();
+                  return goodIndex() && !isReadonly();
                 },
                 write: val => {
                   if (val) {
@@ -1306,6 +1306,7 @@ GridView.prototype.buildDom = function() {
 
               return dom(
                 'div.column_name.field',
+                dom.autoDispose(canRename),
                 dom.autoDispose(headerTextColor),
                 dom.autoDispose(headerFillColor),
                 dom.autoDispose(headerFontBold),
@@ -1355,7 +1356,8 @@ GridView.prototype.buildDom = function() {
                   buildRenameColumn({
                     field,
                     isEditing: isEditingLabel,
-                    optCommands: renameCommands
+                    optCommands: renameCommands,
+                    canRename,
                   }),
                 ),
                 self._showTooltipOnHover(field, isTooltip),

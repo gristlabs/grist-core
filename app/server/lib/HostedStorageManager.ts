@@ -151,7 +151,7 @@ export class HostedStorageManager implements IDocStorageManager {
     if (!externalStoreDoc) { this._disableS3 = true; }
     const secondsBeforePush = options.secondsBeforePush;
     if (options.pushDocUpdateTimes) {
-      this._metadataManager = new HostedMetadataManager(callbacks.setDocsMetadata);
+      this._metadataManager = new HostedMetadataManager(callbacks.setDocsMetadata.bind(callbacks));
     }
     this._uploads = new KeyedOps(key => this._pushToS3(key), {
       delayBeforeOperationMs: secondsBeforePush * 1000,

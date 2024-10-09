@@ -5,26 +5,43 @@ import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {setTestState} from 'app/client/lib/testState';
 import {ViewFieldRec} from 'app/client/models/DocModel';
+import {LIMITED_COLUMN_OPTIONS} from 'app/client/ui/FieldConfig';
 import {autoGrow} from 'app/client/ui/forms';
-import {showTransientTooltip} from 'app/client/ui/tooltips';
+import {cssInput, cssLabel, cssRenamePopup, cssTextArea} from 'app/client/ui/RenamePopupStyles';
+import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass} from 'app/client/ui2018/menus';
-
 import {Computed, dom, makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import {IOpenController, PopupControl, setPopupToCreateDom} from 'popweasel';
-import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from 'app/client/ui/RenamePopupStyles';
 
 
 const testId = makeTestId('test-column-title-');
 const t = makeT('ColumnTitle');
 
 interface IColumnTitleOptions {
+  /**
+   * The field to rename.
+   */
   field: ViewFieldRec;
+  /**
+   * An observable that triggers the popup to open when set to true.
+   */
   isEditing: ko.Computed<boolean>;
+  /**
+   * Optional commands to bind when the popup is open.
+   */
   optCommands?: any;
+  /**
+   * Optional computed or boolean to determine if the column can be renamed. Defaults to true.
+   */
+  canRename?: ko.Computed<boolean>|boolean;
+  /**
+   * Optional computed or boolean to determine if the description can be changed. Defaults to true.
+   */
+  canChangeDesc?: ko.Computed<boolean>|boolean;
 }
 
 export function buildRenameColumn(options: IColumnTitleOptions) {
@@ -49,9 +66,8 @@ export function buildRenameColumn(options: IColumnTitleOptions) {
   };
 }
 
-function buildColumnRenamePopup(
-  ctrl: IOpenController, {field, isEditing, optCommands}: IColumnTitleOptions
-) {
+function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOptions) {
+  const {field, isEditing, optCommands} = options;
   // Store temporary values for the label and description.
   const editedLabel = Observable.create(ctrl, field.displayLabel.peek());
   const editedDesc = Observable.create(ctrl, field.description.peek());
@@ -159,20 +175,30 @@ function buildColumnRenamePopup(
 
   // Create this group and attach it to the popup and both inputs.
   const commandGroup = commands.createGroup({...optCommands, ...myCommands}, ctrl, true);
+  ctrl.autoDispose(commandGroup);
 
   // We will still focus from other elements and restore it on either the label or description input.
   let lastFocus: HTMLElement | undefined;
   const rememberFocus = (el: HTMLElement) => dom.on('focus', () => lastFocus = el);
   const restoreFocus = (el: HTMLElement) => dom.on('focus', () => lastFocus?.focus());
 
-  const showDesc = Observable.create(null, Boolean(field.description.peek() !== ''));
+  const showDesc = Observable.create(ctrl, Boolean(field.description.peek() !== ''));
+
+  const defaultTrue = (val: boolean|ko.Computed<boolean>|undefined) => {
+    return val === undefined ? true : val;
+  };
+  const toComputed = (val: boolean|ko.Computed<boolean>) =>
+    typeof val === 'boolean' ? Computed.create(ctrl, () => val) : Computed.create(ctrl, use => use(val));
+
+  const not = (val: Observable<boolean>) => Computed.create(ctrl, (use) => !use(val));
+
+  const canRename = toComputed(defaultTrue(options.canRename));
+  const canChangeDesc = toComputed(defaultTrue(options.canChangeDesc));
 
   let labelInput: HTMLInputElement | undefined;
   let descInput: HTMLTextAreaElement | undefined;
   return cssRenamePopup(
     dom.onDispose(onClose),
-    dom.autoDispose(commandGroup),
-    dom.autoDispose(showDesc),
     testId('popup'),
     dom.cls(menuCssClass),
     cssLabel(t("Column label")),
@@ -184,6 +210,9 @@ function buildColumnRenamePopup(
         testId('label'),
         commandGroup.attach(),
         rememberFocus,
+        hoverTooltip(LIMITED_COLUMN_OPTIONS, {hidden: canRename}),
+        dom.boolAttr('disabled', not(canRename)),
+        dom.style('pointer-events', 'all')
       ),
       cssColId(
         t("COLUMN ID: "),
@@ -219,6 +248,7 @@ function buildColumnRenamePopup(
         commandGroup.attach(),
         rememberFocus,
         autoGrow(editedDesc),
+        dom.boolAttr('disabled', not(canChangeDesc)),
       ),
     ]),
     dom.onKeyDown({
@@ -251,8 +281,13 @@ function buildColumnRenamePopup(
     // After showing the popup, focus the label input and select it's content.
     elem => { setTimeout(() => {
       if (ctrl.isDisposed()) { return; }
-      labelInput?.focus();
-      labelInput?.select();
+      if (canRename.get()) {
+        labelInput?.focus();
+        labelInput?.select();
+      } else if (canChangeDesc.get()) {
+        descInput?.focus();
+        descInput?.select();
+      }
     }, 0); },
     // Create a FocusLayer to keep focus in this popup while it's active, by default when focus is stolen
     // by someone else, we will bring back it to the label element. Clicking anywhere outside the popup

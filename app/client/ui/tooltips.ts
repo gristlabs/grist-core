@@ -12,7 +12,7 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {makeLinks} from 'app/client/ui2018/links';
 import {menuCssClass} from 'app/client/ui2018/menus';
-import {BindableValue, dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
+import {BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled} from 'grainjs';
 import Popper from 'popper.js';
 import {cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import merge = require('lodash/merge');
@@ -79,6 +79,11 @@ export interface IHoverTipOptions extends ITransientTipOptions {
 
   /** Whether to show the tooltip only when the ref element overflows horizontally. */
   overflowOnly?: boolean;
+
+  /**
+   * If set tooltip won't be shown on hover. Default to false.
+   */
+  hidden?: Observable<boolean>;
 }
 
 export type ITooltipContent = ITooltipContentFunc | DomContents;
@@ -250,6 +255,7 @@ export function setHoverTooltip(
     }
   }
   function open() {
+    if (options.hidden?.get()) { return; }
     clearTimer();
     tipControl = showTooltip(refElem, ctl => tipContentFunc({...ctl, close}), options);
     const tipDom = tipControl.getDom();
@@ -260,6 +266,7 @@ export function setHoverTooltip(
     if (timeoutMs) { resetTimer(close, timeoutMs); }
   }
   function close() {
+    if (options.hidden?.get()) { return; }
     clearTimer();
     tipControl?.close();
     tipControl = undefined;
@@ -267,6 +274,8 @@ export function setHoverTooltip(
 
   // We simulate hover effect by handling mouseenter/mouseleave.
   dom.onElem(refElem, 'mouseenter', () => {
+    if (options.hidden?.get()) { return; }
+
     if (overflowOnly && (refElem as HTMLElement).offsetWidth >= refElem.scrollWidth) {
       return;
     }
