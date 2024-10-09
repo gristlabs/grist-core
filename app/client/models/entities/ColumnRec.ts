@@ -230,6 +230,28 @@ export function formatterForRec(
   return func(args);
 }
 
+type ColumnInfo = {label: string}|{label: ko.Observable<string>};
+function peekLabel(info: ColumnInfo): string {
+  return typeof info.label === 'string' ? info.label : info.label.peek();
+}
+
+export function labelsOrder(a: ColumnInfo, b: ColumnInfo): number {
+  const left  = peekLabel(a).toLowerCase();
+  const right = peekLabel(b).toLowerCase();
+
+  // Order is as follows:
+  // - First columns with normal labels starting with a letter.
+  // - Second all columns starting with '_' (treated as private)
+  // - Third all columns starting with '#' (treated as private)
+  // - Rest.
+  if (left[0] === '_' && right[0] !== '_') { return 1; }
+  if (left[0] !== '_' && right[0] === '_') { return -1; }
+  if (left[0] === '#' && right[0] !== '#') { return 1; }
+  if (left[0] !== '#' && right[0] === '#') { return -1; }
+  return left.localeCompare(right);
+}
+
+
 /**
  * A chat message. Either send by the user or by the AI.
  */

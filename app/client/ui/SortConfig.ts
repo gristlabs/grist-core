@@ -4,6 +4,7 @@ import * as kf from 'app/client/lib/koForm';
 import {makeT} from 'app/client/lib/localization';
 import {addToSort, updatePositions} from 'app/client/lib/sortUtil';
 import {ViewSectionRec} from 'app/client/models/DocModel';
+import {labelsOrder} from 'app/client/models/entities/ColumnRec';
 import {ObjObservable} from 'app/client/models/modelUtil';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
 import {cssIcon, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
@@ -215,7 +216,7 @@ export class SortConfig extends Disposable {
       const currentSection = this._section;
       const currentSortSpec = use(currentSection.activeSortSpec);
       const specRowIds = new Set(currentSortSpec.map(_sortRef => Sort.getColRef(_sortRef)));
-      return use(columns).filter(_col => !specRowIds.has(_col.value));
+      return use(columns).filter(_col => !specRowIds.has(_col.value)).sort(labelsOrder);
     });
     const {menuOptions} = this._options;
     return cssButtonRow(
