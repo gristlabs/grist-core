@@ -149,6 +149,81 @@ describe("AccessRules3", function() {
       await assertSaved();
     });
 
+    it('can have a SeedRule special that refers to columns', async function() {
+      // Open Access Rules page.
+      const mainSession = await gu.session().teamSite.user('user1').login();
+      await mainSession.loadDoc(`/doc/${docId}`);
+      await driver.find('.test-tools-access-rules').click();
+      await driver.findWait('.test-rule-set', 2000);
+
+      // Check seed rule checkbox is unselected.
+      const seedRule = await driver.find('div.test-rule-special-SeedRule');
+      const checkbox = seedRule.find('input[type=checkbox]');
+      assert.equal(await checkbox.isSelected(), false);
+
+      // Now check the box, and see we get the default rule we expect.
+      await checkbox.click();
+      await assertChanged();
+      await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
+      assert.deepEqual(await getRules(seedRule),
+                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
+      assert.equal(await hasExtraAdd(seedRule), true);
+
+      // Tweak the seed rule to refer to a column.
+      await seedRule.find('.test-rule-part .test-rule-add').click();
+      await enterRulePart(seedRule, 1, 'rec.Year == 1', 'Deny All', 'memo1');
+      assert.equal(await checkbox.getAttribute('disabled'), 'true');
+
+      // New table rules should include the seed rule.
+      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
+      let fin = findTable(/FinancialsTable/);
+      assert.deepEqual(await getRules(fin),
+                       [{ formula: 'rec.Year == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
+                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
+                        { formula: 'Everyone Else', perm: '', res: 'All' }]);
+      assert.equal(await hasExtraAdd(fin), false);
+      await removeTable(/FinancialsTable/);
+
+      // Tweak the seed rule to refer to a column that won't exist.
+      await enterRulePart(seedRule, 1, 'rec.Unreal == 1', 'Deny All', 'memo1');
+      assert.equal(await checkbox.getAttribute('disabled'), 'true');
+
+      // New table rules should include the seed rule, and show an error.
+      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
+      fin = findTable(/FinancialsTable/);
+      assert.deepEqual(await getRules(fin),
+                       [{ formula: 'rec.Unreal == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1', error: 'Invalid columns: Unreal'},
+                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
+                        { formula: 'Everyone Else', perm: '', res: 'All' }]);
+      assert.equal(await hasExtraAdd(fin), false);
+      await removeTable(/FinancialsTable/);
+
+      // Check that returning to the single OWNER rule gets us back to an uncomplicated
+      // selected checkbox.
+      await assertChanged();
+      assert.equal(await checkbox.getAttribute('disabled'), 'true');
+      assert.equal(await checkbox.isSelected(), false);
+      await seedRule.find('.test-rule-part .test-rule-remove').click();
+      assert.equal(await checkbox.getAttribute('disabled'), null);
+      assert.equal(await checkbox.isSelected(), true);
+
+      // Check that removing that rule deselected the checkbox and collapses rule list.
+      await seedRule.find('.test-rule-part .test-rule-remove').click();
+      assert.equal(await checkbox.getAttribute('disabled'), null);
+      assert.equal(await checkbox.isSelected(), false);
+      await assertSaved();
+      assert.lengthOf(await seedRule.findAll('.test-rule-set'), 0);
+
+      // Expand again, and make sure we are back to default.
+      await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
+      assert.lengthOf(await seedRule.findAll('.test-rule-set'), 1);
+      assert.deepEqual(await getRules(seedRule),
+                       [{ formula: 'Everyone', perm: '' }]);
+      await assertSaved();
+    });
+
     it('can save and reload SeedRule special', async function() {
       const mainSession = await gu.session().teamSite.user('user1').login();
       await mainSession.loadDoc(`/doc/${docId}`);

@@ -139,7 +139,8 @@ namespace gristUtils {
   export async function getRules(el: WebElement): Promise<Array<{
     formula: string, perm: string,
     res?: string,
-    memo?: string}>> {
+    memo?: string,
+    error?: string}>> {
     const ruleSets = await el.findAll('.test-rule-set');
     const results: Array<{formula: string, perm: string,
                           res?: string,
@@ -162,9 +163,12 @@ namespace gristUtils {
         }
         const hasMemo = await part.find('.test-rule-memo').isPresent();
         const memo = hasMemo ? await part.find('.test-rule-memo input').value() : undefined;
+        const hasError = await part.find('.test-rule-error').isPresent();
+        const error = hasError ? await part.find('.test-rule-error').getText() : undefined;
         results.push({formula, perm: permParts.join(''),
                       ...(memo ? {memo} : {}),
-                      ...(res ? {res} : {})
+                      ...(res ? {res} : {}),
+                      ...(error ? {error} : {}),
                      });
       }
     }
