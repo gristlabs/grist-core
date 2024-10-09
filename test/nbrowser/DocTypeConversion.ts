@@ -1,16 +1,11 @@
 import { UserAPI } from "app/common/UserAPI";
-//import { assert, By, driver, until } from "mocha-webdriver";
-import { assert, driver, until, WebElementPromise } from "mocha-webdriver";
+import { assert, driver, until } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
+import { Button, button, element, label, option} from "test/nbrowser/elementUtils";
 
-interface Button {
-  click(): Promise<void>;
-  element(): WebElementPromise;
-  wait(): Promise<void>;
-  visible(): Promise<boolean>;
-  present(): Promise<boolean>;
-}
+type TypeLabels = "Regular" | "Template" | "Tutorial";
+
 
 describe("Document Type Conversion", function () {
   this.timeout(20000);
@@ -33,10 +28,10 @@ describe("Document Type Conversion", function () {
     assert.isTrue(await button.visible());
   }
 
-  async function convert(from: String, to: String) {
+  async function convert(from: String, to: TypeLabels) {
     await gu.openDocumentSettings();
 
-    // Check that Document type is from before any conversion was ever apply to It.
+    // Ensure that initial document type is the expected one.
     assert.equal(await displayedLabel.element().getText(), from);
 
     // Click to open the modal
@@ -45,23 +40,10 @@ describe("Document Type Conversion", function () {
     // Wait for modal.
     await modal.wait();
 
-    let option;
+    // Select the desired Document type
+    await optionByLabel[to].click();
 
-    switch (to) {
-      case "Regular":
-        option = optionRegular;
-        break;
-      case "Template":
-        option = optionTemplate;
-        break;
-      case "Tutorial":
-        option = optionTutorial;
-        break;
-    }
-    // Select the template option
-    await option?.click();
-
-    assert.isTrue(await option?.checked());
+    assert.isTrue(await optionByLabel[to]?.checked());
 
     // Confirm the choice
     await modalConfirm.click();
@@ -74,7 +56,22 @@ describe("Document Type Conversion", function () {
     assert.equal(await displayedLabel.element().getText(), to);
   }
 
-  it("should allow to convert from a document type to another", async function () {
+  async function isRegular(){
+    assert.isFalse(await saveCopyButton.present());
+    assert.isFalse(await fiddleTag.present());
+  }
+
+  async function isTemplate(){
+    await assertExistsButton(saveCopyButton, "Save Copy");
+    assert.isTrue(await fiddleTag.visible());
+  }
+
+  async function isTutorial(){
+    await assertExistsButton(saveCopyButton, "Save Copy");
+    assert.isFalse(await fiddleTag.present());
+  }
+
+  it("should display the modal with only the current type selected", async function () {
     await gu.openDocumentSettings();
     // Make sure we see the Edit button of document type conversion.
     await assertExistsButton(editButton, "Edit");
@@ -105,38 +102,32 @@ describe("Document Type Conversion", function () {
   // If the next six tests succeed so each document type can properly be converted to every other
   it('should convert from Regular to Template', async function() {
     await convert("Regular", "Template");
-    await assertExistsButton(saveCopyButton, "Save Copy");
-    assert.isTrue(await fiddleTag.visible());
+    await isTemplate();
   });
 
   it('should convert from Template to Tutorial', async function() {
     await convert("Template", "Tutorial");
-    await assertExistsButton(saveCopyButton, "Save Copy");
-    assert.isFalse(await fiddleTag.present());
+    await isTutorial();
   });
 
   it('should convert from Tutorial to Regular', async function() {
     await convert("Tutorial", "Regular");
-    assert.isFalse(await saveCopyButton.present());
-    assert.isFalse(await fiddleTag.present());
+    await isRegular();
   });
 
   it('should convert from Regular to Tutorial', async function() {
     await convert("Regular", "Tutorial");
-    await assertExistsButton(saveCopyButton, "Save Copy");
-    assert.isFalse(await fiddleTag.present());
+    await isTutorial();
   });
 
   it('should convert from Tutorial to Template', async function() {
     await convert("Tutorial", "Template");
-    await assertExistsButton(saveCopyButton, "Save Copy");
-    assert.isTrue(await fiddleTag.visible());
+    await isTemplate();
   });
 
   it('should convert from Template to Regular', async function() {
     await convert("Template", "Regular");
-    assert.isFalse(await saveCopyButton.present());
-    assert.isFalse(await fiddleTag.present());
+    await isRegular();
   });
 
   it('should be disabled for non-owners', async function() {
@@ -168,43 +159,6 @@ describe("Document Type Conversion", function () {
   });
 });
 
-const element = (testId: string) => ({
-  element() {
-    return driver.find(testId);
-  },
-  async wait() {
-    await driver.findWait(testId, 1000);
-  },
-  async visible() {
-    return await this.element().isDisplayed();
-  },
-  async present() {
-    return await this.element().isPresent();
-  }
-});
-
-const label = (testId: string) => ({
-  ...element(testId),
-  async text() {
-    return this.element().getText();
-  },
-});
-
-const button = (testId: string) => ({
-  ...element(testId),
-  async click() {
-    await gu.scrollIntoView(this.element());
-    await this.element().click();
-  },
-});
-
-const option = (testId: string) => ({
-  ...button(testId),
-  async checked() {
-    return 'true' === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute('checked');
-  }
-});
-
 const editButton = button('.test-settings-doctype-edit');
 const saveCopyButton = button('.test-tb-share-action');
 const displayedLabel = label('.test-settings-doctype-value');
@@ -212,6 +166,11 @@ const modal = element('.test-settings-doctype-modal');
 const optionRegular = option('.test-settings-doctype-modal-option-regular');
 const optionTemplate = option('.test-settings-doctype-modal-option-template');
 const optionTutorial = option('.test-settings-doctype-modal-option-tutorial');
+const optionByLabel = {
+  'Tutorial': optionTutorial,
+  'Template': optionTemplate,
+  'Regular': optionRegular
+};
 const modalConfirm = button('.test-settings-doctype-modal-confirm');
 const modalCancel = button('.test-settings-doctype-modal-cancel');
 const fiddleTag = element('.test-fiddle-tag');
