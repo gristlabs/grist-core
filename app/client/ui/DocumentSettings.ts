@@ -363,7 +363,7 @@ export class DocSettingsPage extends Disposable {
           description: string,
           itemTestId: DomElementMethod | null
         }) => {
-        return  radioCheckboxOption(selected, type, dom('div',
+        return radioCheckboxOption(selected, type, dom('div',
           dom('div',
             dom('strong', label),
           ),
