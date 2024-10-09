@@ -104,39 +104,37 @@ describe("Document Type Conversion", function () {
   it('should convert from Regular to Template', async function() {
     await convert("Regular", "Template");
     await assertExistsButton(saveCopyButton, "Save Copy");
+    assert.isTrue(await fiddleTag.visible());
   });
 
   it('should convert from Template to Tutorial', async function() {
     await convert("Template", "Tutorial");
     await assertExistsButton(saveCopyButton, "Save Copy");
-    await session.loadDoc(`/doc/${docId}`);
-    await driver.sleep(500);
-    assert.isTrue(await tutorialPopin.visible());
-    await gu.openDocumentSettings();
+    assert.isFalse(await fiddleTag.present());
   });
 
   it('should convert from Tutorial to Regular', async function() {
     await convert("Tutorial", "Regular");
     assert.isFalse(await saveCopyButton.present());
+    assert.isFalse(await fiddleTag.present());
   });
 
   it('should convert from Regular to Tutorial', async function() {
     await convert("Regular", "Tutorial");
     await assertExistsButton(saveCopyButton, "Save Copy");
-    assert.isTrue(await tutorialPopin.visible());
-    await session.loadDoc(`/doc/${docId}`);
-    await driver.sleep(500);
-    await gu.openDocumentSettings();
+    assert.isFalse(await fiddleTag.present());
   });
 
   it('should convert from Tutorial to Template', async function() {
     await convert("Tutorial", "Template");
     await assertExistsButton(saveCopyButton, "Save Copy");
+    assert.isTrue(await fiddleTag.visible());
   });
 
   it('should convert from Template to Regular', async function() {
     await convert("Template", "Regular");
-    assert.equal(await saveCopyButton.present(), false);
+    assert.isFalse(await saveCopyButton.present());
+    assert.isFalse(await fiddleTag.present());
   });
 
   it('should be disabled for non-owners', async function() {
@@ -212,4 +210,4 @@ const optionTemplate = option('.test-settings-doctype-modal-option-template');
 const optionTutorial = option('.test-settings-doctype-modal-option-tutorial');
 const modalConfirm = button('.test-settings-doctype-modal-confirm');
 const modalCancel = button('.test-settings-doctype-modal-cancel');
-const tutorialPopin = element('.test-onboarding-popup');
+const fiddleTag = element('.test-fiddle-tag');
