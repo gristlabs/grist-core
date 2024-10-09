@@ -230,9 +230,14 @@ export function formatterForRec(
   return func(args);
 }
 
-export function labelsOrder(a: ColumnRec, b: ColumnRec): number {
-  const left  = a.label.peek().toLowerCase();
-  const right = b.label.peek().toLowerCase();
+type ColumnInfo = {label: string}|{label: ko.Observable<string>};
+function peekLabel(info: ColumnInfo): string {
+  return typeof info.label === 'string' ? info.label : info.label.peek();
+}
+
+export function labelsOrder(a: ColumnInfo, b: ColumnInfo): number {
+  const left  = peekLabel(a).toLowerCase();
+  const right = peekLabel(b).toLowerCase();
 
   // Order is as follows:
   // - First columns with normal labels starting with a letter.
