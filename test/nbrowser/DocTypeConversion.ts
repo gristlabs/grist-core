@@ -1,6 +1,6 @@
 import { UserAPI } from "app/common/UserAPI";
 //import { assert, By, driver, until } from "mocha-webdriver";
-import { assert, driver, WebElementPromise } from "mocha-webdriver";
+import { assert, driver, until, WebElementPromise } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -66,7 +66,9 @@ describe("Document Type Conversion", function () {
     // Confirm the choice
     await modalConfirm.click();
 
-    await driver.sleep(3000);
+    // Wait for the page to be reloaded
+    await driver.wait(until.stalenessOf(displayedLabel.element()));
+    await displayedLabel.wait();
 
     // check that the displayedLabel is now equal to convert destination
     assert.equal(await displayedLabel.element().getText(), to);
@@ -152,7 +154,9 @@ describe("Document Type Conversion", function () {
 
     // Check that we have an informative tooltip.
     await start.mouseMove();
-    assert.match(await driver.findWait('.test-tooltip', 2000).getText(), /Only available to document owners/);
+    await gu.waitToPass(async () => {
+      assert.match(await driver.find('.test-tooltip').getText(), /Only available to document owners/);
+    });
 
     // Nothing should happen on click. We click the location rather than the element, since the
     // element isn't actually clickable.
