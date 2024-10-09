@@ -145,7 +145,8 @@
         "Clear cell": "Vymazať bunku",
         "Clear values": "Vyčistiť hodnoty",
         "Copy anchor link": "Kopírovať odkaz na kotvu",
-        "Delete {{count}} rows_one": "Odstrániť riadok"
+        "Delete {{count}} rows_one": "Odstrániť riadok",
+        "Copy with headers": "Kopírovať s hlavičkami"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Vytvoriť samostatné série pre každú hodnotu vybratého stĺpca.",
@@ -192,7 +193,14 @@
         "Clear selection": "Vyčistiť výber",
         "No {{columnType}} columns in table.": "V tabuľke nie sú žiadne stĺpce {{columnType}}.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "stĺpce {{wrongTypeCount}} iné ako {{columnType}} sa nezobrazujú",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "stĺpec {{wrongTypeCount}} iný ako {{columnType}} sa nezobrazuje"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "stĺpec {{wrongTypeCount}} iný ako {{columnType}} sa nezobrazuje",
+        "Custom URL": "Vlastná URL",
+        "Developer:": "Vývojár:",
+        "Last updated:": "Posledná aktualizácia:",
+        "Missing description and author information.": "Chýba popis a informácie o autorovi.",
+        "ACCESS LEVEL": "ÚROVEŇ PRÍSTUPU",
+        "Accept": "Prijať",
+        "Reject": "Odmietnuť"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Táto tímová stránka je pozastavená. Dokumenty je možné čítať, ale nie upravovať."
@@ -269,7 +277,11 @@
         "Restore": "Obnoviť",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Nachádzate sa na stránke {{siteName}}. Máte tiež prístup k nasledujúcim stránkam:",
         "You may delete a workspace forever once it has no documents in it.": "Keď pracovný priestor neobsahuje žiadne dokumenty, môžete ho natrvalo odstrániť.",
-        "Delete {{name}}": "Odstrániť {{name}}"
+        "Delete {{name}}": "Odstrániť {{name}}",
+        "Create my first document": "Vytvoriť môj prvý dokument",
+        "personal site": "osobná stránka",
+        "Any documents created in this site will appear here.": "Všetky dokumenty vytvorené na tejto stránke sa zobrazia tu.",
+        "You have read-only access to this site. Currently there are no documents.": "Máte prístup len na čítanie tejto stránky. V súčasnosti neexistujú žiadne dokumenty."
     },
     "DocPageModel": {
         "Enter recovery mode": "Spustiť režim obnovenia",
@@ -518,7 +530,8 @@
         "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Viac informácií nájdete v našom {{helpCenterLink}} alebo nájdite odborníka prostredníctvom nášho {{sproutsProgram}}.",
         "Interested in using Grist outside of your team? Visit your free ": "Máte záujem používať Grist mimo váš tím? Navštívte svoje bezplatné ",
         "Sign up": "Prihlásiť sa",
-        "Learn more in our {{helpCenterLink}}.": "Zistiť viac v našom {{helpCenterLink}}."
+        "Learn more in our {{helpCenterLink}}.": "Zistiť viac v našom {{helpCenterLink}}.",
+        "Only show documents": "Dokumenty iba ukázať"
     },
     "Importer": {
         "Merge rows that match these fields:": "Zlúčiť riadky, ktoré zodpovedajú týmto poliam:",
@@ -755,7 +768,8 @@
         "TOOLS": "NÁSTROJE"
     },
     "TopBar": {
-        "Manage Team": "Riadiť Tím"
+        "Manage Team": "Riadiť Tím",
+        "Manage team": "Riadiť tím"
     },
     "TriggerFormulas": {
         "Any field": "Akékoľvek pole",
@@ -876,7 +890,9 @@
         "Account deleted{{suffix}}": "Účet odstránený {{suffix}}",
         "Your account has been deleted.": "Váš účet bol odstránený.",
         "An unknown error occurred.": "Vyskytla sa neznáma chyba.",
-        "Build your own form": "Vytvorte si vlastný formulár"
+        "Build your own form": "Vytvorte si vlastný formulár",
+        "Sign-in failed{{suffix}}": "Prihlásenie zlyhalo{{suffix}}",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Nepodarilo sa prihlásiť.{{separator}}Prosím skúste to znova alebo kontaktujte podporu."
     },
     "menus": {
         "Select fields": "Vybrať polia",
@@ -1077,7 +1093,8 @@
         "Forms are here!": "Formuláre sú tu!",
         "Learn more": "Naučiť sa viac",
         "Linking Widgets": "Prepojenie Miniaplikácií",
-        "The total size of all data in this document, excluding attachments.": "Celková veľkosť všetkých údajov v tomto dokumente okrem príloh."
+        "The total size of all data in this document, excluding attachments.": "Celková veľkosť všetkých údajov v tomto dokumente okrem príloh.",
+        "Community widgets are created and maintained by Grist community members.": "Widgety komunity vytvárajú a udržiavajú členovia komunity Grist."
     },
     "ColumnTitle": {
         "Add description": "Pridať popis",
