@@ -1286,7 +1286,7 @@ export class FlexServer implements GristServer {
     }
 
     this.app.get('/logout', ...this._logoutMiddleware(), expressWrap(async (req, resp) => {
-      const signedOutUrl = new URL(getOriginUrl(req) + 'signed-out');
+      const signedOutUrl = new URL('/signed-out', getOriginUrl(req));
       const redirectUrl = await this._getLogoutRedirectUrl(req, signedOutUrl);
       resp.redirect(redirectUrl);
     }));
