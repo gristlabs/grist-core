@@ -521,7 +521,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     const savedFiltersByColRef = new Map(this._savedFilters().all().map(f => [f.colRef(), f]));
     const viewFieldsByColRef = new Map(this.viewFields().all().map(f => [f.origCol().getRowId(), f]));
 
-    return this.columns().map(column => {
+    return [...this.columns()].sort(labelsOrder).map(column => {
       const savedFilter = savedFiltersByColRef.get(column.origColRef());
       // Initialize with a saved filter, if one exists. Otherwise, use a blank filter.
       const filter = modelUtil.customComputed({
