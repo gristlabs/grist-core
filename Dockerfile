@@ -10,7 +10,7 @@ FROM scratch AS ext
 ## Javascript build stage
 ################################################################################
 
-FROM node:18-buster AS builder
+FROM node:22-bookworm AS builder
 
 # Install all node dependencies.
 WORKDIR /grist
@@ -45,19 +45,29 @@ RUN \
 ## Python collection stage
 ################################################################################
 
-# Fetch python3.11 and python2.7
-FROM python:3.11-slim-buster AS collector
-
-# Install all python dependencies.
-ADD sandbox/requirements.txt requirements.txt
+# Fetch python3.11
+FROM python:3.11-slim-bookworm AS collector-py3
 ADD sandbox/requirements3.txt requirements3.txt
+RUN \
+  pip3 install -r requirements3.txt
+
+# Fetch <shame>python2.7</shame>
+# This is to support users with old documents.
+# If you have documents with python2.7 formulas, try switching
+# to python3 in the document settings. It'll probably work fine!
+# And we'll be forced to turn off python2 support eventually,
+# the workarounds needed to keep it are getting silly.
+# It doesn't exist in recent Debian, so we need to reach back
+# to buster.
+FROM python:2.7-slim-buster AS collector-py2
+ADD sandbox/requirements.txt requirements.txt
 RUN \
   apt update && \
   apt install -y --no-install-recommends python2 python-pip python-setuptools \
   build-essential libxml2-dev libxslt-dev python-dev zlib1g-dev && \
   pip2 install wheel && \
   pip2 install -r requirements.txt && \
-  pip3 install -r requirements3.txt
+  pip2 install six
 
 ################################################################################
 ## Sandbox collection stage
@@ -66,6 +76,8 @@ RUN \
 # Fetch gvisor-based sandbox. Note, to enable it to run within default
 # unprivileged docker, layers of protection that require privilege have
 # been stripped away, see https://github.com/google/gvisor/issues/4371
+# The sandbox binary is built on buster, but remains compatible with recent
+# Debian.
 FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 
 ################################################################################
@@ -73,7 +85,7 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 ################################################################################
 
 # Now, start preparing final image.
-FROM node:18-buster-slim
+FROM node:22-bookworm-slim
 
 # Install libexpat1, libsqlite3-0 for python3 library binary dependencies.
 # Install pgrep for managing gvisor processes.
@@ -91,13 +103,21 @@ COPY --from=builder /grist/node_modules /grist/node_modules
 COPY --from=builder /grist/_build /grist/_build
 COPY --from=builder /grist/static /grist/static-built
 
-# Copy python files.
-COPY --from=collector /usr/bin/python2.7 /usr/bin/python2.7
-COPY --from=collector /usr/lib/python2.7 /usr/lib/python2.7
-COPY --from=collector /usr/local/lib/python2.7 /usr/local/lib/python2.7
-COPY --from=collector /usr/local/bin/python3.11 /usr/bin/python3.11
-COPY --from=collector /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=collector /usr/local/lib/libpython3.11.* /usr/local/lib/
+# Copy python2 files.
+COPY --from=collector-py2 /usr/bin/python2.7 /usr/bin/python2.7
+COPY --from=collector-py2 /usr/lib/python2.7 /usr/lib/python2.7
+COPY --from=collector-py2 /usr/local/lib/python2.7 /usr/local/lib/python2.7
+# Make a small python2 tweak so that material in /usr/local/lib is found.
+RUN \
+  mkdir /etc/python2.7 && \
+  echo "import sys\nsys.path.append('/usr/local/lib/python2.7/site-packages')" > /etc/python2.7/sitecustomize.py
+# Copy across an older libffi needed by python2
+COPY --from=collector-py2 /usr/lib/x86_64-linux-gnu/libffi.so.6* /usr/lib/x86_64-linux-gnu/
+
+# Copy python3 files.
+COPY --from=collector-py3 /usr/local/bin/python3.11 /usr/bin/python3.11
+COPY --from=collector-py3 /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=collector-py3 /usr/local/lib/libpython3.11.* /usr/local/lib/
 # Set default to python3
 RUN \
   ln -s /usr/bin/python3.11 /usr/bin/python && \
