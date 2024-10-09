@@ -8,7 +8,10 @@ describe("NumberFormat", function() {
 
   // useGrouping became more nuanced in recent node.
   // Its old 'true' value may now be 'always' or 'auto'.
-  const useGroupingAlways = buildNumberFormat({numMode: 'decimal'}, defaultDocSettings).resolvedOptions().useGrouping as boolean|string;
+  const useGroupingAlways = buildNumberFormat(
+    {numMode: 'decimal'},
+    defaultDocSettings
+  ).resolvedOptions().useGrouping as boolean|string;
   const useGroupingAuto = (useGroupingAlways === 'always') ? 'auto' : true;
 
   it("should convert Grist options into Intr.NumberFormat", function() {
