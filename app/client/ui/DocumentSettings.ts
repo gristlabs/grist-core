@@ -29,7 +29,17 @@ import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
-import {Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
+import {
+  Computed,
+  Disposable,
+  dom,
+  DomElementMethod,
+  fromKo,
+  IDisposableOwner,
+  makeTestId,
+  Observable,
+  styled
+} from 'grainjs';
 import * as moment from 'moment-timezone';
 import {DocumentType} from 'app/common/UserAPI';
 
@@ -341,46 +351,56 @@ export class DocSettingsPage extends Disposable {
         }));
       };
 
+      const docTypeOption = (
+        {
+          type,
+          label,
+          description,
+          itemTestId
+        }: {
+          type: DocTypeOption,
+          label: string | any,
+          description: string,
+          itemTestId: DomElementMethod | null
+        }) => {
+        return  radioCheckboxOption(selected, type, dom('div',
+          dom('div',
+            dom('strong', label),
+          ),
+          dom('div',
+            dom.style('margin-top', '8px'),
+            dom('span', description)
+          ),
+          itemTestId,
+        ));
+      };
+
       const documentTypeOptions = () => [
         cssRadioCheckboxOptions(
           dom.style('max-width', '400px'),
-          radioCheckboxOption(selected, DocTypeOption.Regular, dom('div',
-            dom('div',
-              dom('strong', t('Regular document')),
+          docTypeOption({
+            type: DocTypeOption.Regular,
+            label: t('Regular document'),
+            description: t('Regular document behavior, all users work on the same copy of the document.'),
+            itemTestId: testId('doctype-modal-option-regular'),
+          }),
+          docTypeOption({
+            type: DocTypeOption.Template,
+            label: t('Template'),
+            description:  t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
+              'Any edit (open to anybody) will create a new unsaved copy.',
+              {
+                fiddleModeDocUrl: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('fiddle mode'))
+              }
             ),
-            dom('div',
-              dom.style('margin-top', '8px'),
-              dom('span', t('Regular document behavior, all users work on the same copy of the document.'))
-            ),
-            testId('doctype-modal-option-regular'),
-          )),
-          radioCheckboxOption(selected, DocTypeOption.Template, dom('div',
-            dom('div',
-              dom('strong', t('Template')),
-            ),
-            dom('div',
-              dom.style('margin-top', '8px'),
-              dom('span',
-                t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
-                  'Any edit (open to anybody) will create a new unsaved copy.',
-                  {
-                    fiddleModeDocUrl: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('fiddle mode'))
-                  }
-                )
-              ),
-            ),
-            testId('doctype-modal-option-template'),
-          )),
-          radioCheckboxOption(selected, DocTypeOption.Tutorial, dom('div',
-            dom('div',
-              dom('strong', t('Tutorial')),
-            ),
-            dom('div',
-              dom.style('margin-top', '8px'),
-              dom('span', t('Document automatically opens with a new copy.')),
-            ),
-            testId('doctype-modal-option-tutorial'),
-          ))
+            itemTestId: testId('doctype-modal-option-template'),
+          }),
+          docTypeOption({
+            type: DocTypeOption.Tutorial,
+            label: t('Tutorial'),
+            description: t('Document automatically opens with a new copy.'),
+            itemTestId: testId('doctype-modal-option-tutorial'),
+          }),
         ),
         cssModalButtons(
           bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close()), testId('doctype-modal-cancel')),
@@ -409,12 +429,12 @@ export class DocSettingsPage extends Disposable {
 
 function persistType(type: string|null, docId: string|undefined){
   docId = docId?.split("~")[0];
-  return fetch(`/o/docs/api/docs/${docId}`,
-    { method:'PATCH',
-      headers: {"Content-Type": "application/json"},
-      credentials: 'include',
-      body:JSON.stringify({type})
-    });
+  return fetch(`/o/docs/api/docs/${docId}`, {
+    method: 'PATCH',
+    headers: {"Content-Type": "application/json"},
+    credentials: 'include',
+    body: JSON.stringify({type})
+  });
 }
 
 function getApiConsoleLink(docPageModel: DocPageModel) {
@@ -468,8 +488,7 @@ const typeList: DocumentTypeItem[] = [{
 }, {
   label: t('Template'),
   type: 'template'
-},
-{
+}, {
   label: t('Tutorial'),
   type: 'tutorial'
 }].map((el) => ({
@@ -483,7 +502,7 @@ function displayCurrentType(
   type: Observable<DocumentType|null>,
 ) {
   const typeObs = Computed.create(owner, use => {
-    const typeCode = use(type)??"";
+    const typeCode = use(type) ?? "";
     const typeName = typeList.find(ty => ty.type === typeCode)?.label || typeCode;
     return typeName;
   });
