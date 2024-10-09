@@ -131,6 +131,7 @@ export type IconName = "ChartArea" |
   "Robot" |
   "Script" |
   "Search" |
+  "SearchSmall" |
   "Section" |
   "Separator" |
   "Settings" |

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons / UI / SearchMenu</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-SearchMenu" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M13.9182 13.2818L11.2169 10.5805C11.9863 9.66721 12.45 8.48769 12.45 7.2C12.45 4.30051 10.0995 1.95 7.2 1.95C4.30051 1.95 1.95 4.30051 1.95 7.2C1.95 10.0995 4.30051 12.45 7.2 12.45C8.48769 12.45 9.66721 11.9863 10.5805 11.2169L13.2818 13.9182C13.4575 14.0939 13.7425 14.0939 13.9182 13.9182C14.0939 13.7425 14.0939 13.4575 13.9182 13.2818ZM11.55 7.2C11.55 8.39243 11.0703 9.47271 10.2932 10.2585C10.2871 10.264 10.2812 10.2696 10.2754 10.2754C10.2696 10.2812 10.264 10.2871 10.2585 10.2932C9.47271 11.0703 8.39243 11.55 7.2 11.55C4.79756 11.55 2.85 9.60244 2.85 7.2C2.85 4.79756 4.79756 2.85 7.2 2.85C9.60244 2.85 11.55 4.79756 11.55 7.2Z" fill="black" stroke="black" stroke-width="0.1"/>
+    </g>
+</svg>
