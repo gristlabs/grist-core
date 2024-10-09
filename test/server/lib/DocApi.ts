@@ -3483,13 +3483,20 @@ function testDocApi(settings: {
   });
 
   describe('webhooks related endpoints', async function () {
-    const serving: Serving = await serveSomething(app => {
-      app.use(express.json());
-      app.post('/200', ({body}, res) => {
-        res.sendStatus(200);
-        res.end();
-      });
-    }, webhooksTestPort);
+    let serving: Serving;
+    before(async function () {
+      serving = await serveSomething(app => {
+        app.use(express.json());
+        app.post('/200', ({body}, res) => {
+          res.sendStatus(200);
+          res.end();
+        });
+      }, webhooksTestPort);
+    });
+
+    after(async function () {
+      await serving.shutdown();
+    });
 
     /*
       Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
@@ -4130,10 +4137,6 @@ function testDocApi(settings: {
           }
         });
       }, webhooksTestPort);
-    });
-
-    after(async function () {
-      await serving.shutdown();
     });
 
     describe('table endpoints', function () {
