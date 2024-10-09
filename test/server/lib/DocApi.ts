@@ -76,6 +76,8 @@ function makeConfig(username: string): AxiosRequestConfig {
 }
 
 describe('DocApi', function () {
+  const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
+
   this.timeout(30000);
   testUtils.setTmpLogLevel('error');
   let oldEnv: testUtils.EnvironmentSnapshot;
@@ -121,7 +123,7 @@ describe('DocApi', function () {
       homeUrl = serverUrl = home.serverUrl;
       hasHomeApi = true;
     });
-    testDocApi();
+    testDocApi({webhooksTestPort});
   });
 
   describe('With GRIST_ANON_PLAYGROUND disabled', async () => {
@@ -157,7 +159,7 @@ describe('DocApi', function () {
         homeUrl = serverUrl = home.serverUrl;
         hasHomeApi = true;
       });
-      testDocApi();
+      testDocApi({webhooksTestPort});
     });
 
     describe('behind a reverse-proxy', function () {
@@ -206,7 +208,7 @@ describe('DocApi', function () {
 
         after(() => tearDown(proxy, [home, docs]));
 
-        testDocApi();
+        testDocApi({webhooksTestPort});
       });
 
       async function testCompareDocs(proxy: TestServerReverseProxy, home: TestServer) {
@@ -261,7 +263,7 @@ describe('DocApi', function () {
         serverUrl = docs.serverUrl;
         hasHomeApi = false;
       });
-      testDocApi();
+      testDocApi({webhooksTestPort});
     });
   }
 
@@ -323,7 +325,10 @@ describe('DocApi', function () {
 });
 
 // Contains the tests. This is where you want to add more test.
-function testDocApi() {
+function testDocApi(settings: {
+  webhooksTestPort: number,
+}) {
+  const { webhooksTestPort } = settings;
   let chimpy: AxiosRequestConfig, kiwi: AxiosRequestConfig,
     charon: AxiosRequestConfig, nobody: AxiosRequestConfig, support: AxiosRequestConfig;
 
@@ -5384,8 +5389,6 @@ async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces('current');
   return workspaces.find((w) => w.name === name)!.id;
 }
-
-const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
 async function setupDataDir(dir: string) {
   // we'll be serving Hello.grist content for various document ids, so let's make copies of it in
