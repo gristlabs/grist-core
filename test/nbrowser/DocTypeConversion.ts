@@ -28,7 +28,7 @@ describe("Document Type Conversion", function () {
     assert.isTrue(await button.visible());
   }
 
-  async function convert(from: String, to: TypeLabels) {
+  async function convert(from: TypeLabels, to: TypeLabels) {
     await gu.openDocumentSettings();
 
     // Ensure that initial document type is the expected one.
@@ -145,6 +145,8 @@ describe("Document Type Conversion", function () {
 
     // Check that we have an informative tooltip.
     await start.mouseMove();
+    // Note that .test-tooltip may appear blank a first time,
+    // hence the necessity to use waitToPass instead of findWait.
     await gu.waitToPass(async () => {
       assert.match(await driver.find('.test-tooltip').getText(), /Only available to document owners/);
     });
