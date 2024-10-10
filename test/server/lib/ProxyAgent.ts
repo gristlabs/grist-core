@@ -93,8 +93,8 @@ describe("ProxyAgent", function () {
       // We rely on "ProxyAgent error" message to detect issues with the proxy server.
       // Error message depends a little on node version.
       assertMatchArray(logMessages2, [
-        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED))/,
-        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED))/,
+        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
+        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
       ]);
     });
   });
