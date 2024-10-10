@@ -75,8 +75,9 @@ export class GristClientSocket {
     // if so, secure in the fact that we were in the browser and
     // the browser would pass along cookie information. But recent
     // node defines WebSocket, so we narrow down this path to when
-    // window is defined.
-    if (typeof window !== 'undefined') {
+    // a global document is defined (window doesn't work because
+    // some tests mock it).
+    if (typeof document !== 'undefined') {
       this._wsSocket = new WebSocket(this._url);
     } else {
       this._wsSocket = new WS(this._url, undefined, this._options);
