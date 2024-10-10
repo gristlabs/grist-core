@@ -71,7 +71,12 @@ export class GristClientSocket {
   }
 
   private _createWSSocket() {
-    if (typeof WebSocket !== 'undefined') {
+    // We used to check if WebSocket was defined here, and use it
+    // if so, secure in the fact that we were in the browser and
+    // the browser would pass along cookie information. But recent
+    // node defines WebSocket, so we narrow down this path to when
+    // window is defined.
+    if (typeof window !== 'undefined') {
       this._wsSocket = new WebSocket(this._url);
     } else {
       this._wsSocket = new WS(this._url, undefined, this._options);
