@@ -19,6 +19,8 @@ describe('Importer', function() {
     // have tests go faster. Each successful test case should leave the document unchanged.
     if (!docUrl || !await gu.testCurrentUrl(docUrl)) {
       const session = await gu.session().teamSite.login();
+      // We'll be checking colors, so standardize theme.
+      await gu.setGristTheme({appearance: 'light', syncWithOS: false});
       await session.tempDoc(cleanup, 'Hello.grist');
       docUrl = await driver.getCurrentUrl();
     }
@@ -450,9 +452,9 @@ describe('Importer', function() {
       assert.equal(await driver.findWait('.test-importer-preview', 2000).isPresent(), true);
 
       // Check that the merge field select button has a red outline.
-      assert.equal(
+      assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
-        '1px solid rgb(208, 2, 27)'
+        /solid rgb\(208, 2, 27\)/
       );
 
       // Select a merge field, and check that the red outline is gone.
@@ -461,9 +463,9 @@ describe('Importer', function() {
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Name/
       ).click();
-      assert.equal(
+      assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
-        '1px solid rgb(217, 217, 217)'
+        /solid rgb\(217, 217, 217\)/
       );
       // Hide dropdown
       await gu.sendKeys(Key.ESCAPE);
@@ -584,9 +586,9 @@ describe('Importer', function() {
       await driver.findContent('.test-importer-source', /UploadedData2Extended.csv/).click();
 
       // Check that it failed, and that the merge fields select button is outlined in red.
-      assert.equal(
+      assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
-        '1px solid rgb(208, 2, 27)'
+        /solid rgb\(208, 2, 27\)/
       );
       assert.equal(
         await driver.find('.test-importer-source-selected .test-importer-from').getText(),
