@@ -2,13 +2,10 @@
  * Clipboard component manages the copy/cut/paste events by capturing these events from the browser,
  * managing their state, and exposing an API to other components to get/set the data.
  *
- * Because of a lack of standardization of ClipboardEvents between browsers, the way Clipboard
- * captures the events is by creating a hidden textarea element that's always focused with some text
- * selected. Here is a good write-up of this:
- * https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-javascript/
- *
  * When ClipboardEvent is detected, Clipboard captures the event and calls the corresponding
  * copy/cut/paste/input command actions, which will get called on the appropriate component.
+ *
+ * The Clipboard also handles triggering correctly the "input" command when any key is pressed.
  *
  * Usage:
  *    Components need to register copy/cut/paste actions with command.js:
@@ -45,7 +42,6 @@ var {confirmModal} = require('app/client/ui2018/modals');
 var {styled} = require('grainjs');
 
 var commands = require('./commands');
-var dom = require('../lib/dom');
 var Base = require('./Base');
 var tableUtil = require('../lib/tableUtil');
 
@@ -54,27 +50,11 @@ const t = makeT('Clipboard');
 function Clipboard(app) {
   Base.call(this, null);
   this._app = app;
-  this.copypasteField = this.autoDispose(dom('textarea.copypaste.mousetrap', ''));
-  this.timeoutId = null;
-
-  this.onEvent(this.copypasteField, 'input', function(elem, event) {
-    var value = elem.value;
-    elem.value = '';
-    commands.allCommands.input.run(value);
-    return false;
-  });
-  this.onEvent(this.copypasteField, 'copy',  this._onCopy);
-  this.onEvent(this.copypasteField, 'cut',   this._onCut);
-  this.onEvent(this.copypasteField, 'paste', this._onPaste);
-
-  document.body.appendChild(this.copypasteField);
 
   FocusLayer.create(this, {
-    defaultFocusElem: this.copypasteField,
+    defaultFocusElem: document.body,
     allowFocus: allowFocus,
     onDefaultFocus: () => {
-      this.copypasteField.value = ' ';
-      this.copypasteField.select();
       this._app.trigger('clipboard_focus');
     },
     onDefaultBlur: () => {
@@ -91,6 +71,31 @@ function Clipboard(app) {
   this.onEvent(window, 'mousedown', (ev) => {
     if (!document.activeElement || document.activeElement === document.body) {
       FocusLayer.grabFocus();
+    }
+  });
+
+  // Listen for copy/cut/paste events and trigger the corresponding clipboard action.
+  // Note that internally, before triggering the action, we check if the currently active element
+  // doesn't already handle these events itself.
+  // This allows to globally handle copy/cut/paste events, without impacting
+  // inputs/textareas/selects where copy/cut/paste events should be left alone.
+  this.onEvent(document, 'copy', (_, event) => this._onCopy(event));
+  this.onEvent(document, 'cut', (_, event) => this._onCut(event));
+  this.onEvent(document, 'paste', (_, event) => this._onPaste(event));
+
+  // when typing a random printable character while not focusing an interactive element,
+  // trigger the input command with it
+  // @TODO: there is currently an issue, sometimes when typing something, that makes us focus a cell textarea,
+  // and then we can mouseclick on a different cell: dom focus is still on textarea, visual table focus is on new cell.
+  this.onEvent(document.body, 'keydown', (_, event) => {
+    if (shouldAvoidClipboardShortcuts(document.activeElement)) {
+      return;
+    }
+    const key = event.originalEvent.key
+    // @TODO this test may be better, we assume a key length of 1 is a printable character. Maybe not enough? Maybe helpful: https://stackoverflow.com/a/4180715
+    if (key.length === 1 && !commands.keypressMatchesExistingCommand(event)) {
+      // @TODO: for now the key is input twice in a cell. Don't understand. Why?
+      commands.allCommands.input.run(key);
     }
   });
 
@@ -116,7 +121,10 @@ Clipboard.commands = {
  * Internal helper fired on `copy` events. If a callback was registered from a component, calls the
  * callback to get selection data and puts it on the clipboard.
  */
-Clipboard.prototype._onCopy = function(elem, event) {
+Clipboard.prototype._onCopy = function(event) {
+  if (shouldAvoidClipboardShortcuts(document.activeElement)) {
+    return;
+  }
   event.preventDefault();
 
   let pasteObj = commands.allCommands.copy.run();
@@ -136,7 +144,11 @@ Clipboard.prototype._doContextMenuCopyWithHeaders = function() {
   this._copyToClipboard(pasteObj, 'copy', true);
 };
 
-Clipboard.prototype._onCut = function(elem, event) {
+Clipboard.prototype._onCut = function(event) {
+  if (shouldAvoidClipboardShortcuts(document.activeElement)) {
+    return;
+  }
+
   event.preventDefault();
 
   let pasteObj = commands.allCommands.cut.run();
@@ -211,7 +223,11 @@ Clipboard.prototype._setCutCallback = function(pasteObj, cutData) {
  * Internal helper fired on `paste` events. If a callback was registered from a component, calls the
  * callback with data from the clipboard.
  */
-Clipboard.prototype._onPaste = function(elem, event) {
+Clipboard.prototype._onPaste = function(event) {
+  if (shouldAvoidClipboardShortcuts(document.activeElement)) {
+    return;
+  }
+
   event.preventDefault();
   const cb = event.originalEvent.clipboardData;
   const plainText = cb.getData('text/plain');
@@ -220,12 +236,6 @@ Clipboard.prototype._onPaste = function(elem, event) {
   this._doPaste(pasteData, plainText);
 };
 
-var FOCUS_TARGET_TAGS = {
-  'INPUT': true,
-  'TEXTAREA': true,
-  'SELECT': true,
-  'IFRAME': true,
-};
 
 Clipboard.prototype._doContextMenuPaste = async function() {
   let clipboardItem;
@@ -293,6 +303,17 @@ async function getTextFromClipboardItem(clipboardItem, type) {
   }
 }
 
+const CLIPBOARD_TAGS = {
+  'INPUT': true,
+  'TEXTAREA': true,
+  'SELECT': true,
+};
+
+const FOCUS_TARGET_TAGS = {
+  ...CLIPBOARD_TAGS,
+  'IFRAME': true,
+};
+
 /**
  * Helper to determine if the currently active element deserves to keep its own focus, and capture
  * copy-paste events. Besides inputs and textareas, any element can be marked to be a valid
@@ -302,6 +323,16 @@ function allowFocus(elem) {
   return elem && (FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) ||
     elem.hasAttribute("tabindex") ||
     elem.classList.contains('clipboard_focus'));
+}
+
+/**
+ * Helper to determine if the given element is a valid target for copy-cut-paste actions.
+ *
+ * It slightly differs from allowFocus: here we exclusively check for clipboard-related actions,
+ * not focus-related ones.
+ */
+function shouldAvoidClipboardShortcuts(elem) {
+  return elem && CLIPBOARD_TAGS.hasOwnProperty(elem.tagName)
 }
 
 Clipboard.allowFocus = allowFocus;

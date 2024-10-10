@@ -53,6 +53,61 @@ export const allCommands: { [key in CommandName]: Command } = {} as any;
  */
 const _allKeys: Record<string, CommandGroup[]> = {};
 
+export const allShortcuts: Array<string> = [];
+
+const saveShortcut = (keyString: string) => {
+  if (keyString === "+" || !keyString.includes('+')) {
+    allShortcuts.push(keyString);
+  } else {
+    const splitKeys = keyString.split('+');
+    allShortcuts.push(splitKeys.slice(0, -1).sort().join('+') + '+' + splitKeys[splitKeys.length - 1]);
+  }
+};
+
+const _keyAliases: Record<string, string> = {
+  'return': 'enter',
+  'esc': 'escape',
+  '+': 'plus',
+  ' ': 'space',
+};
+
+/**
+ * Helper to know if a given keypress matches an existing command shortcut.
+ *
+ * Helpful when we want to handle specific keypresses without interfering with our commands.
+ */
+export const keypressMatchesExistingCommand = (event: KeyboardEvent) => {
+  let key = event.key.toLowerCase();
+  if (_keyAliases[key]) {
+    key = _keyAliases[key];
+  }
+  const modifiers = [];
+  if (event.shiftKey) {
+    modifiers.push('shift');
+  }
+  if (event.altKey) {
+    modifiers.push('alt');
+  }
+  if (event.ctrlKey) {
+    modifiers.push('ctrl');
+  }
+  if (event.metaKey) {
+    modifiers.push('meta');
+  }
+  if (modifiers.length && ['shift', 'alt', 'ctrl', 'meta', 'mod', 'control', 'option', 'command'].includes(key)) {
+    key = '';
+  }
+  const shortcut = modifiers.sort().join('+') + (modifiers.length && key.length ? '+' : '') + key;
+  const checkModKey = event.ctrlKey && !isMac || event.metaKey && isMac;
+  if (!checkModKey) {
+    return allShortcuts.includes(shortcut);
+  }
+  if (isMac) {
+    return allShortcuts.includes(shortcut.replace('meta', 'mod'));
+  }
+  return allShortcuts.includes(shortcut.replace('ctrl', 'mod'));
+};
+
 /**
  * Populate allCommands from those provided, or listed in commandList.js. Also populates the
  * globally exposed `cmd` object whose properties invoke commands: e.g. typing `cmd.cursorDown` in
@@ -68,6 +123,7 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
   Object.keys(_allKeys).forEach(function(k) {
     delete _allKeys[k as CommandName];
   });
+  allShortcuts.length = 0;
 
   commandGroups.forEach(function(commandGroup) {
     commandGroup.commands.forEach(function(c) {
@@ -328,6 +384,7 @@ export class CommandGroup extends Disposable {
       // Add this CommandGroup to each key combination that it recognizes.
       for (const key in this.knownKeys) {
         (_allKeys[key] || (_allKeys[key] = [])).push(this);
+        saveShortcut(key);
       }
       // Add this CommandGroup to each command that it implements.
       for (const name in this.commands) {
@@ -340,6 +397,7 @@ export class CommandGroup extends Disposable {
       // On disposal, remove the CommandGroup from all the commands and keys.
       for (const key in this.knownKeys) {
         arrayRemove(_allKeys[key], this);
+        // @TODO: remove shortcut
       }
       for (const name in this.commands) {
         allCommands[name as CommandName]!.removeGroup(this);
