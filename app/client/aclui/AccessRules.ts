@@ -1084,6 +1084,16 @@ abstract class ObsRuleSet extends Disposable {
   public getCustomRules(): ObsRulePart[] {
     return this._body.get().filter(rule => !rule.isBuiltInOrEmpty());
   }
+
+  /**
+   * If the set applies to a special column, return its name.
+   */
+  public getSpecialColumn(): string|undefined {
+    if (this._ruleSet?.tableId === SPECIAL_RULES_TABLE_ID &&
+        this._ruleSet.colIds.length === 1) {
+      return this._ruleSet.colIds[0];
+    }
+  }
 }
 
 class ColumnObsRuleSet extends ObsRuleSet {
@@ -1817,9 +1827,12 @@ class ObsRulePart extends Disposable {
   private _warnInvalidColIds(colIds?: string[]) {
     if (!colIds || !colIds.length) { return false; }
     const allValid = new Set(this._ruleSet.getValidColIds());
-    // Don't check column validity if we don't have any.
-    // For example, the seed rule has no columns.
-    if (allValid.size === 0) { return false; }
+    const specialColumn = this._ruleSet.getSpecialColumn();
+    if (specialColumn === 'SeedRule') {
+      // We allow seed rules to refer to columns without checking
+      // them (until the seed rules are used).
+      return false;
+    }
     const invalid = colIds.filter(c => !allValid.has(c));
     if (invalid.length > 0) {
       return `Invalid columns: ${invalid.join(', ')}`;
