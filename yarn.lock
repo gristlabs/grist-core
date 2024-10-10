@@ -3801,7 +3801,7 @@ express-rate-limit@7.2.0:
   resolved "https://registry.yarnpkg.com/express-rate-limit/-/express-rate-limit-7.2.0.tgz#06ce387dd5388f429cab8263c514fc07bf90a445"
   integrity sha512-T7nul1t4TNyfZMJ7pKRKkdeVJWa2CqB8NA1P8BwYaoDI5QSBZARv5oMS43J7b7I5P+4asjVXjb7ONuwDKucahg==
 
-express@4.19.2:
+express@4.19.2, express@^4.19.2:
   version "4.19.2"
   resolved "https://registry.yarnpkg.com/express/-/express-4.19.2.tgz#e25437827a3aa7f2a827bc8171bbbb664a356465"
   integrity sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==
@@ -7345,6 +7345,19 @@ schema-utils@^3.2.0:
     "@types/json-schema" "^7.0.8"
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
+
+scimmy-routers@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/scimmy-routers/-/scimmy-routers-1.2.1.tgz#a535ced83f051b2a0374e8df02da6e17424e8be0"
+  integrity sha512-PDX4/mwOScSd+TjUPX0k3gH6v50WeYVgK1bisZ8f3p3eyJ0Qy4qYebDo6gzHqYCBjXNQniQxGSQvtlvG22NLdA==
+  dependencies:
+    express "^4.19.2"
+    scimmy "^1.2.3"
+
+scimmy@1.2.3, scimmy@^1.2.3:
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/scimmy/-/scimmy-1.2.3.tgz#56ca9dbf11749b272e18090c923f81dbad4bc911"
+  integrity sha512-16oXCvnieVeKxTDQqi275bLuyOCwXci8Jywm2/M+4dWNNYoduUz0Crj1nFY0ETYMsuYvCdareWov6/Mebu92xA==
 
 selenium-webdriver@^4.20.0:
   version "4.20.0"
