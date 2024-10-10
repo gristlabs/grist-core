@@ -2781,11 +2781,11 @@ export function addSamplesForSuite(includeTutorial = false) {
 }
 
 export async function openAccountMenu() {
-  await driver.findWait('.test-dm-account', 1000).click();
+  await driver.findWait('.test-dm-account', 2000).click();
   // Since the AccountWidget loads orgs and the user data asynchronously, the menu
   // can expand itself causing the click to land on a wrong button.
   await waitForServer();
-  await driver.findWait('.test-site-switcher-org', 1000);
+  await driver.findWait('.test-site-switcher-org', 2000);
   await driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
 }
 
