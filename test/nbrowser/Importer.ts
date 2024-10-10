@@ -19,8 +19,10 @@ describe('Importer', function() {
     // have tests go faster. Each successful test case should leave the document unchanged.
     if (!docUrl || !await gu.testCurrentUrl(docUrl)) {
       const session = await gu.session().teamSite.login();
-      // We'll be checking colors, so standardize theme.
-      await gu.setGristTheme({appearance: 'light', syncWithOS: false});
+      // TODO: tests check colors literally, so need to be in
+      // light theme - but calling gu.setGristTheme results in
+      // some problems so right now if you are a dev you just
+      // need to run these tests in light mode, sorry.
       await session.tempDoc(cleanup, 'Hello.grist');
       docUrl = await driver.getCurrentUrl();
     }
