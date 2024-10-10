@@ -2034,9 +2034,8 @@ export class HomeDBManager extends EventEmitter {
       const orgId = ws.org.id;
       let orgQuery = this._buildOrgWithACLRulesQuery(scope, orgId, options);
       orgQuery = this._addFeatures(orgQuery);
-      const orgQueryResult = await verifyEntity(orgQuery);
-      const org: Organization = orgQueryResult.data;
-
+      const orgQueryResult = await orgQuery.getRawAndEntities();
+      const org: Organization = orgQueryResult.entities[0];
       // Get all the non-guest groups on the org.
       const orgGroups = getNonGuestGroups(org);
       // Get all the non-guest groups to be updated by the delta.
