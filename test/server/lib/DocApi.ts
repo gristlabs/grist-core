@@ -77,6 +77,7 @@ function makeConfig(username: string): AxiosRequestConfig {
   };
 }
 
+// Much like home.makeUserApi, except it injects extraHeadersForConfig (for tests with reverse-proxy)
 function makeUserApi(
   org: string,
   username: string,
@@ -3108,11 +3109,7 @@ function testDocApi(settings: {
     // Make two documents with same urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1', urlId: 'urlid'}, ws1);
-    const nasaApi = new UserAPIImpl(`${homeUrl}/o/nasa`, {
-      headers: chimpy.headers as Record<string, string>,
-      fetch: fetch as any,
-      newFormData: () => new FormData() as any,
-    });
+    const nasaApi = makeUserApi('nasa', 'chimpy');
     const ws2 = (await nasaApi.getOrgWorkspaces('current'))[0].id;
     const doc2 = await nasaApi.newDoc({name: 'testdoc2', urlId: 'urlid'}, ws2);
     try {
@@ -3139,11 +3136,7 @@ function testDocApi(settings: {
     // Make two documents
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
-    const nasaApi = new UserAPIImpl(`${homeUrl}/o/nasa`, {
-      headers: chimpy.headers as Record<string, string>,
-      fetch: fetch as any,
-      newFormData: () => new FormData() as any,
-    });
+    const nasaApi = makeUserApi('nasa', 'chimpy');
     const ws2 = (await nasaApi.getOrgWorkspaces('current'))[0].id;
     const doc2 = await nasaApi.newDoc({name: 'testdoc2'}, ws2);
     try {
