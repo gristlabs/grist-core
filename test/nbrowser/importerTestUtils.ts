@@ -35,7 +35,14 @@ export const getPreviewDiffCellValues = stackWrapFunc(async (cols: number[], row
 
 // Helper that waits for the diff preview to finish loading.
 export const waitForDiffPreviewToLoad = stackWrapFunc(async (): Promise<void> => {
+  await gu.waitForServer();
   await driver.wait(() => driver.find('.test-importer-preview').isPresent(), 5000);
+  await gu.waitToPass(async () => {
+    const preview = (await getPreviewDiffCellValues([0], [1]))[0];
+    if (preview[0] === undefined && preview[1] === undefined) {
+      throw new Error('sometimes data is a little slow to show up?');
+    }
+  }, 2000);
 });
 
 // Helper that gets the list of visible column matching rows to the left of the preview.

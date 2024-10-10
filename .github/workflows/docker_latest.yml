@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.11]
-        node-version: [18.x]
+        node-version: [22.x]
         image:
           # We build two images, `grist-oss` and `grist`.
           # See https://github.com/gristlabs/grist-core?tab=readme-ov-file#available-docker-images

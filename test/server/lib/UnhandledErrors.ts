@@ -51,7 +51,8 @@ describe('UnhandledErrors', function() {
         }, 1000, 100);
 
         // We expect the server to be dead now.
-        await assert.isRejected(fetch(`${server.serverUrl}/status`), /failed.*ECONNREFUSED/);
+        // Error message depends a little on node version.
+        await assert.isRejected(fetch(`${server.serverUrl}/status`), /(request.*failed)|(ECONNREFUSED)/);
 
       } finally {
         await server.stop();

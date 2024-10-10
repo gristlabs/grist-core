@@ -76,6 +76,8 @@ function makeConfig(username: string): AxiosRequestConfig {
 }
 
 describe('DocApi', function () {
+  const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
+
   this.timeout(30000);
   testUtils.setTmpLogLevel('error');
   let oldEnv: testUtils.EnvironmentSnapshot;
@@ -121,7 +123,7 @@ describe('DocApi', function () {
       homeUrl = serverUrl = home.serverUrl;
       hasHomeApi = true;
     });
-    testDocApi();
+    testDocApi({webhooksTestPort});
   });
 
   describe('With GRIST_ANON_PLAYGROUND disabled', async () => {
@@ -157,7 +159,7 @@ describe('DocApi', function () {
         homeUrl = serverUrl = home.serverUrl;
         hasHomeApi = true;
       });
-      testDocApi();
+      testDocApi({webhooksTestPort});
     });
 
     describe('behind a reverse-proxy', function () {
@@ -206,7 +208,7 @@ describe('DocApi', function () {
 
         after(() => tearDown(proxy, [home, docs]));
 
-        testDocApi();
+        testDocApi({webhooksTestPort});
       });
 
       async function testCompareDocs(proxy: TestServerReverseProxy, home: TestServer) {
@@ -261,7 +263,7 @@ describe('DocApi', function () {
         serverUrl = docs.serverUrl;
         hasHomeApi = false;
       });
-      testDocApi();
+      testDocApi({webhooksTestPort});
     });
   }
 
@@ -323,7 +325,10 @@ describe('DocApi', function () {
 });
 
 // Contains the tests. This is where you want to add more test.
-function testDocApi() {
+function testDocApi(settings: {
+  webhooksTestPort: number,
+}) {
+  const { webhooksTestPort } = settings;
   let chimpy: AxiosRequestConfig, kiwi: AxiosRequestConfig,
     charon: AxiosRequestConfig, nobody: AxiosRequestConfig, support: AxiosRequestConfig;
 
@@ -3478,13 +3483,20 @@ function testDocApi() {
   });
 
   describe('webhooks related endpoints', async function () {
-    const serving: Serving = await serveSomething(app => {
-      app.use(express.json());
-      app.post('/200', ({body}, res) => {
-        res.sendStatus(200);
-        res.end();
-      });
-    }, webhooksTestPort);
+    let serving: Serving;
+    before(async function () {
+      serving = await serveSomething(app => {
+        app.use(express.json());
+        app.post('/200', ({body}, res) => {
+          res.sendStatus(200);
+          res.end();
+        });
+      }, webhooksTestPort);
+    });
+
+    after(async function () {
+      await serving.shutdown();
+    });
 
     /*
       Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
@@ -3577,7 +3589,8 @@ function testDocApi() {
           }
         }]
       },
-        403, /Column not found notExisting/);
+        // this check was previously just wrong, was the test not running somehow??
+        404, /Column not found "notExisting"/);
 
     });
 
@@ -5384,8 +5397,6 @@ async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces('current');
   return workspaces.find((w) => w.name === name)!.id;
 }
-
-const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
 async function setupDataDir(dir: string) {
   // we'll be serving Hello.grist content for various document ids, so let's make copies of it in

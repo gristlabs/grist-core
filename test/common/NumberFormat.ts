@@ -6,7 +6,17 @@ describe("NumberFormat", function() {
     locale: 'en-US'
   };
 
+  // useGrouping became more nuanced in recent node.
+  // Its old 'true' value may now be 'always' or 'auto'.
+  const useGroupingAlways = buildNumberFormat(
+    {numMode: 'decimal'},
+    defaultDocSettings
+  ).resolvedOptions().useGrouping as boolean|string;
+  const useGroupingAuto = (useGroupingAlways === 'always') ? 'auto' : true;
+
   it("should convert Grist options into Intr.NumberFormat", function() {
+    assert.include([true, 'always'], String(useGroupingAlways));
+
     assert.ownInclude(buildNumberFormat({}, defaultDocSettings).resolvedOptions(), {
       minimumFractionDigits: 0,
       maximumFractionDigits: 10,
@@ -17,21 +27,21 @@ describe("NumberFormat", function() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 3,
       style: 'decimal',
-      useGrouping: true,
+      useGrouping: useGroupingAlways,
     });
     assert.ownInclude(buildNumberFormat({numMode: 'percent'}, defaultDocSettings).resolvedOptions(), {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
       // style: 'percent',  // In node v14.17.0 style is 'decimal' (unclear why)
                             // so we check final formatting instead in this case.
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
     });
     assert.equal(buildNumberFormat({numMode: 'percent'}, defaultDocSettings).format(0.5), '50%');
     assert.ownInclude(buildNumberFormat({numMode: 'currency'}, defaultDocSettings).resolvedOptions(), {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       style: 'currency',
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
       currency: 'USD',
     });
     assert.ownInclude(buildNumberFormat({numMode: 'scientific'}, defaultDocSettings).resolvedOptions(), {
@@ -73,42 +83,42 @@ describe("NumberFormat", function() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       style: 'currency',
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
       currency: 'EUR',
     });
     assert.ownInclude(buildNumberFormat({numMode: 'currency'}, {locale: 'en-NZ'}).resolvedOptions(), {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       style: 'currency',
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
       currency: 'NZD',
     });
     assert.ownInclude(buildNumberFormat({numMode: 'currency'}, {locale: 'de-CH'}).resolvedOptions(), {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       style: 'currency',
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
       currency: 'CHF',
     });
     assert.ownInclude(buildNumberFormat({numMode: 'currency'}, {locale: 'es-AR'}).resolvedOptions(), {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       style: 'currency',
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
       currency: 'ARS',
     });
     assert.ownInclude(buildNumberFormat({numMode: 'currency'}, {locale: 'zh-TW'}).resolvedOptions(), {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       style: 'currency',
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
       currency: 'TWD',
     });
     assert.ownInclude(buildNumberFormat({numMode: 'currency'}, {locale: 'en-AU'}).resolvedOptions(), {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       style: 'currency',
-      useGrouping: true,
+      useGrouping: useGroupingAuto,
       currency: 'AUD',
     });
   });
