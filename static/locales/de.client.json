@@ -154,7 +154,8 @@
         "Comment": "Kommentar",
         "Copy": "Kopieren",
         "Cut": "Schneiden",
-        "Paste": "Einfügen"
+        "Paste": "Einfügen",
+        "Copy with headers": "Kopieren mit Kopfzeilen"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Erstellen Sie separate Datenreihen für jeden Wert der ausgewählten Spalte.",
@@ -212,7 +213,15 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "Spalte {{wrongTypeCount}} Nicht-{{columnType}} wird nicht angezeigt",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "Spalten {{wrongTypeCount}} Nicht-{{columnType}} werden nicht angezeigt",
         "No {{columnType}} columns in table.": "Keine {{columnType}} Spalten in der Tabelle.",
-        "Clear selection": "Auswahl löschen"
+        "Clear selection": "Auswahl löschen",
+        "ACCESS LEVEL": "ZUGRIFFSEBENE",
+        "Custom URL": "Benutzerdefinierte URL",
+        "Last updated:": "Letzte Aktualisierung:",
+        "Missing description and author information.": "Fehlende Beschreibung und Autorenangaben.",
+        "Reject": "Ablehnen",
+        "Widget": "Widget",
+        "Developer:": "Entwickler:",
+        "Accept": "Akzeptieren"
     },
     "DataTables": {
         "Click to copy": "Zum Kopieren anklicken",
@@ -277,7 +286,11 @@
         "Workspace not found": "Arbeitsbereich nicht gefunden",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Sie sind auf der {{siteName}} Seite. Sie haben auch Zugriff auf die folgenden Seiten:",
         "You are on your personal site. You also have access to the following sites:": "Sie sind auf Ihrer persönlichen Seite. Sie haben auch Zugriff auf die folgenden Seiten:",
-        "You may delete a workspace forever once it has no documents in it.": "Sie können einen Arbeitsbereich für immer löschen, sobald er keine Dokumente enthält."
+        "You may delete a workspace forever once it has no documents in it.": "Sie können einen Arbeitsbereich für immer löschen, sobald er keine Dokumente enthält.",
+        "Any documents created in this site will appear here.": "Alle Dokumente, die auf dieser Seite erstellt wurden, werden hier angezeigt.",
+        "Create my first document": "Mein erstes Dokument erstellen",
+        "You have read-only access to this site. Currently there are no documents.": "Sie haben nur Lesezugriff auf diese Seite. Derzeit sind keine Dokumente vorhanden.",
+        "personal site": "persönliche Seite"
     },
     "DocPageModel": {
         "Add Empty Table": "Leere Tabelle hinzufügen",
@@ -555,7 +568,8 @@
         "Visit our {{link}} to learn more about Grist.": "Besuchen Sie unsere {{link}}, um mehr über Grist zu erfahren.",
         "Sign in": "Anmelden",
         "To use Grist, please either sign up or sign in.": "Um Grist zu nutzen, melden Sie sich bitte an oder registrieren Sie sich.",
-        "Learn more in our {{helpCenterLink}}.": "Erfahren Sie mehr in unserem {{helpCenterLink}}."
+        "Learn more in our {{helpCenterLink}}.": "Erfahren Sie mehr in unserem {{helpCenterLink}}.",
+        "Only show documents": "Nur Dokumente anzeigen"
     },
     "HomeLeftPane": {
         "Access Details": "Zugangsdetails",
@@ -838,7 +852,8 @@
         "API Console": "API-Konsole"
     },
     "TopBar": {
-        "Manage Team": "Team verwalten"
+        "Manage Team": "Team verwalten",
+        "Manage team": "Team verwalten"
     },
     "TriggerFormulas": {
         "(data cleaning)": "(Datenreinigung)",
@@ -991,7 +1006,9 @@
         "An unknown error occurred.": "Ein unbekannter Fehler ist aufgetreten.",
         "Powered by": "Angetrieben durch",
         "Build your own form": "Erstellen Sie Ihr eigenes Formular",
-        "Form not found": "Formular nicht gefunden"
+        "Form not found": "Formular nicht gefunden",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Die Anmeldung ist fehlgeschlagen.{{separator}}Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+        "Sign-in failed{{suffix}}": "Anmelden fehlgeschlagen{{suffix}}"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",
@@ -1257,7 +1274,14 @@
         "Forms are here!": "Die Formulare sind da!",
         "These rules are applied after all column rules have been processed, if applicable.": "Diese Regeln werden angewendet, nachdem alle Spaltenregeln abgearbeitet wurden, falls zutreffend.",
         "Example: {{example}}": "Beispiel: {{example}}",
-        "Filter displayed dropdown values with a condition.": "Filtern angezeigte Dropdown-Werte mit einer Bedingung."
+        "Filter displayed dropdown values with a condition.": "Filtern angezeigte Dropdown-Werte mit einer Bedingung.",
+        "Community widgets are created and maintained by Grist community members.": "Community Widgets werden von Mitgliedern der Grist Community erstellt und gepflegt.",
+        "Creates a reverse column in target table that can be edited from either end.": "Erzeugt eine umgekehrte Spalte in der Zieltabelle, die von beiden Seiten bearbeitet werden kann.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Um mehrere Zuordnungen zu ermöglichen, ändern Sie den Typ der Referenzspalte auf Referenzliste.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Um mehrere Zuordnungen zu ermöglichen, ändern Sie den Typ der referenzierten Spalte auf Referenzliste.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Diese Einschränkung tritt auf, wenn ein Ende einer Zwei-Wege-Referenz als Einzelreferenz konfiguriert ist.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Diese Einschränkung tritt auf, wenn eine Spalte in einer zweiseitigen Referenz den Typ Referenz hat.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Zwei-Wege-Referenzen werden derzeit nicht für Formel- oder Trigger-Formelspalten unterstützt"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1620,7 +1644,8 @@
         "Key to sign sessions with": "Schlüssel zum Anmelden von Sitzungen mit",
         "Session Secret": "Sitzungsgeheimnis",
         "Enterprise": "Unternehmen",
-        "Enable Grist Enterprise": "Aktivieren Sie Grist Enterprise"
+        "Enable Grist Enterprise": "Aktivieren Sie Grist Enterprise",
+        "checking": "Überprüfung"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -1730,7 +1755,8 @@
         "Complete the tutorial": "Fertigen Sie das Tutorial",
         "3 minute video tour": "3 Minuten Video-Tour",
         "Learn the basic of reference columns, linked widgets, column types, & cards.": "Lernen Sie die Grundlagen von Referenzspalten, verknüpften Widgets, Spaltentypen und Karten kennen.",
-        "Complete our basics tutorial": "Vervollständigen Sie unser Grundlagen-Tutorial"
+        "Complete our basics tutorial": "Vervollständigen Sie unser Grundlagen-Tutorial",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Lernen Sie die Grundlagen der Referenzspalten, verknüpfte Widgets, Spaltentypen, & Karten."
     },
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Grist Enterprise deaktivieren",
@@ -1744,5 +1770,87 @@
         "raw data page": "Rohdaten-Seite",
         "Delete data and this widget.": "Daten und dieses Widget löschen.",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Daten behalten und Widget löschen. Die Tabelle bleibt verfügbar in {{rawDataLink}}"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Verwaltungsbereich"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Fehlende Informationen)",
+        "Add Widget": "Widget hinzufügen",
+        "Add Your Own Widget": "Eigenes Widget hinzufügen",
+        "Cancel": "Abbrechen",
+        "Change Widget": "Widget ändern",
+        "Choose Custom Widget": "Benutzerdefiniertes Widget auswählen",
+        "Developer:": "Entwickler:",
+        "Grist Widget": "Grist Widget",
+        "Last updated:": "Letzte Aktualisierung:",
+        "No matching widgets": "Keine passenden Widgets",
+        "Search": "Suchen",
+        "Widget URL": "Widget-URL",
+        "Learn more about Custom Widgets": "Erfahren Sie mehr über benutzerdefinierte Widgets",
+        "Add a widget from outside this gallery.": "Fügen Sie ein Widget von außerhalb dieser Galerie hinzu.",
+        "Community Widget": "Community Widget",
+        "Custom URL": "Benutzerdefinierte URL"
+    },
+    "markdown": {
+        "The toggle is **off**": "Der Kippschalter ist **aus**",
+        "The toggle is **on**": "Der Kippschalter ist **an**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Neue Markdown-Funktion\n *\n * Wir können [das übliche Markdown](https://markdownguide.org) _innerhalb*\n * eines Grainjs-Elements schreiben."
+            }
+        }
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Neue Markdown-Funktion\n *\n * Wir können [das übliche Markdown](https://markdownguide.org) _innerhalb*\n * eines Grainjs-Elements schreiben."
+            }
+        },
+        "The toggle is **off**": "Der Kippschalter ist **aus**",
+        "The toggle is **on**": "Der Kippschalter ist **an**"
+    },
+    "HomeIntroCards": {
+        "3 minute video tour": "3 Minuten Video-Tour",
+        "Blank document": "Leeres Dokument",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Lösungen finden und weitere Ressourcen erkunden {{helpCenterLink}}",
+        "Templates": "Vorlagen",
+        "Tutorial": "Tutorial",
+        "Import file": "Datei importieren",
+        "Finish our basics tutorial": "Beenden Sie unser Grundlagen-Tutorial",
+        "Start a new document": "Ein neues Dokument beginnen",
+        "Help center": "Hilfezentrum",
+        "Learn more {{webinarsLinks}}": "Mehr erfahren {{webinarsLinks}}",
+        "Webinars": "Webinare"
+    },
+    "ReverseReferenceConfig": {
+        "Delete column {{column}} in table {{table}}?": "Spalte {{column}} in der Tabelle {{table}} löschen?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Es ist die Umkehrung der Referenzspalte {{column}} in Tabelle {{table}}.",
+        "Table": "Tabelle",
+        "Two-way Reference": "Zwei-Wege-Referenz",
+        "Target table": "Zieltabelle",
+        "Add two-way reference": "Zwei-Wege-Referenz hinzufügen",
+        "Column": "Spalte",
+        "Delete": "Löschen",
+        "Delete two-way reference?": "Zwei-Wege-Referenz löschen?"
+    },
+    "SupportGristButton": {
+        "Admin Panel": "Verwaltungsbereich",
+        "Close": "Schließen",
+        "Opted In": "Angemeldet",
+        "Support Grist": "Unterstützen Sie Grist",
+        "Opt in to Telemetry": "Melden Sie sich für Telemetrie an",
+        "Help Center": "Hilfezentrum",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Danke! Ihr Vertrauen und Ihre Unterstützung ist sehr geschätzt. Sie können sich jederzeit unter {{link}} im Benutzermenü abmelden."
+    },
+    "buildReassignModal": {
+        "Cancel": "Abbrechen",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Jeder {{targetTable}} Datensatz kann nur einem einzigen {{sourceTable}} Datensatz zugeordnet werden.",
+        "Reassign": "Neu zuordnen",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Zuweisen auf {{sourceTable}}-Datensatz {{sourceName}}.",
+        "Record already assigned_one": "Datensatz bereits zugeordnet",
+        "Record already assigned_other": "Datensatz bereits zugeordnet",
+        "Reassign to new {{sourceTable}} records.": "Neuzuordnung zu neuen {{sourceTable}} Datensätzen.",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} Der Datensatz {{targetName}} ist bereits dem Datensatz {{sourceTable}} {{oldSourceName}} zugeordnet."
     }
 }
