@@ -3589,7 +3589,8 @@ function testDocApi(settings: {
           }
         }]
       },
-        403, /Column not found notExisting/);
+        // this check was previously just wrong, was the test not running somehow??
+        404, /Column not found "notExisting"/);
 
     });
 
@@ -4137,6 +4138,10 @@ function testDocApi(settings: {
           }
         });
       }, webhooksTestPort);
+    });
+
+    after(async function () {
+      await serving.shutdown();
     });
 
     describe('table endpoints', function () {
