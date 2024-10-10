@@ -125,6 +125,7 @@ jobs:
           ARTIFACT_NAME=logs-$(echo $TESTS | sed 's/[^-a-zA-Z0-9]/_/g')
           echo "Artifact name is '$ARTIFACT_NAME'"
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+          mkdir -p $TESTDIR
           find $TESTDIR -iname "*.socket" -exec rm {} \;
         env:
           TESTS: ${{ matrix.tests }}
