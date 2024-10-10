@@ -68,11 +68,15 @@ export type IconName = "ChartArea" |
   "EyeHide" |
   "EyeShow" |
   "Feedback" |
+  "FilePrivate" |
+  "FilePublic" |
+  "FileShared" |
   "Filter" |
   "FilterSimple" |
   "Fireworks" |
   "Flag" |
   "Folder" |
+  "FolderPrivate" |
   "FontBold" |
   "FontItalic" |
   "FontStrikethrough" |
@@ -231,11 +235,15 @@ export const IconList: IconName[] = ["ChartArea",
   "EyeHide",
   "EyeShow",
   "Feedback",
+  "FilePrivate",
+  "FilePublic",
+  "FileShared",
   "Filter",
   "FilterSimple",
   "Fireworks",
   "Flag",
   "Folder",
+  "FolderPrivate",
   "FontBold",
   "FontItalic",
   "FontStrikethrough",
