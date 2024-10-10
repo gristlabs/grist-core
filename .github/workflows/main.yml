@@ -23,11 +23,11 @@ jobs:
           - ':lint:python:client:common:smoke:stubs:'
           - ':server-1-of-2:'
           - ':server-2-of-2:'
-          - ':nbrowser-^[A-G]:'
-          - ':nbrowser-^[H-L]:'
-          - ':nbrowser-^[M-O]:'
-          - ':nbrowser-^[P-S]:'
-          - ':nbrowser-^[^A-S]:'
+          - ':nbrowser-^[A-F]:'
+          - ':nbrowser-^[G-L]:'
+          - ':nbrowser-^[M-N]:'
+          - ':nbrowser-^[O-R]:'
+          - ':nbrowser-^[^A-R]:'
         include:
           - tests: ':lint:python:client:common:smoke:'
             node-version: 22.x
