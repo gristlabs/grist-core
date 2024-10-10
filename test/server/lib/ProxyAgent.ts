@@ -84,15 +84,17 @@ describe("ProxyAgent", function () {
     it("should report error when proxy fails", async function() {
       // if the proxy isn't listening, fetches produces error messages.
       await testProxyServer.dispose();
+      // Error message depends a little on node version.
       const logMessages2 = await captureLog('warn', async () => {
-        await assert.isRejected(testFetch('/200'), /ECONNREFUSED/);
-        await assert.isRejected(testFetch('/404'), /ECONNREFUSED/);
+        await assert.isRejected(testFetch('/200'), /(request.*failed)|(ECONNREFUSED)/);
+        await assert.isRejected(testFetch('/404'), /(request.*failed)|(ECONNREFUSED)/);
       });
 
       // We rely on "ProxyAgent error" message to detect issues with the proxy server.
+      // Error message depends a little on node version.
       assertMatchArray(logMessages2, [
-        /warn: ProxyAgent error.*ECONNREFUSED/,
-        /warn: ProxyAgent error.*ECONNREFUSED/,
+        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED))/,
+        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED))/,
       ]);
     });
   });
