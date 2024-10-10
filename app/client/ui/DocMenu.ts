@@ -119,7 +119,6 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
               ]),
 
               dom.maybe(home.available, () => [
-                buildOtherSites(home),
                 page === 'all' && home.app.isPersonal && !home.app.currentValidUser ? null : css.docListHeaderWrap(
                   css.listHeader(
                     (
@@ -274,49 +273,6 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
       buildTemplateDocs(home, workspace.docs, viewSettings),
       css.docBlock.cls((use) => '-' + use(viewSettings.currentView)),
       testId('templates'),
-    );
-  });
-}
-
-/**
- * Builds the Other Sites section if there are any to show. Otherwise, builds nothing.
- */
-function buildOtherSites(home: HomeModel) {
-  return dom.domComputed(home.otherSites, sites => {
-    if (sites.length === 0) { return null; }
-
-    const hideOtherSitesObs = Observable.create(null, false);
-    return css.otherSitesBlock(
-      dom.autoDispose(hideOtherSitesObs),
-      css.otherSitesHeader(
-        t("Other Sites"),
-        dom.domComputed(hideOtherSitesObs, (collapsed) =>
-          collapsed ? css.otherSitesHeaderIcon('Expand') : css.otherSitesHeaderIcon('Collapse')
-        ),
-        dom.on('click', () => hideOtherSitesObs.set(!hideOtherSitesObs.get())),
-        testId('other-sites-header'),
-      ),
-      dom.maybe((use) => !use(hideOtherSitesObs), () => {
-        const personal = Boolean(home.app.currentOrg?.owner);
-        const siteName = home.app.currentOrgName;
-        return [
-          dom('div',
-            personal ? t("You are on your personal site. You also have access to the following sites:") :
-              t("You are on the {{siteName}} site. You also have access to the following sites:", {siteName}),
-            testId('other-sites-message')
-          ),
-          css.otherSitesButtons(
-            dom.forEach(sites, s =>
-              css.siteButton(
-                s.name,
-                urlState().setLinkUrl({org: s.domain ?? undefined}),
-                testId('other-sites-button')
-              )
-            ),
-            testId('other-sites-buttons')
-          ),
-        ];
-      })
     );
   });
 }
