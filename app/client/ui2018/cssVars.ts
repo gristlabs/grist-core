@@ -907,7 +907,7 @@ export const theme = {
   /* App Header */
   appHeaderBg: new CustomProp('theme-app-header-bg', undefined, colors.light),
   appHeaderBorder: new CustomProp('theme-app-header-border', undefined, colors.mediumGreyOpaque),
-  appHeaderHoverBg: new CustomProp('theme-app-header-hover-bg', undefined, colors.hover),
+  appHeaderBorderHover: new CustomProp('theme-app-header-border-hover', undefined, colors.slate),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

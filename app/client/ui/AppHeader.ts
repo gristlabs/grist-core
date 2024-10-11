@@ -16,7 +16,7 @@ import {Computed, Disposable, dom, DomContents, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 import {getGristConfig} from 'app/common/urlUtils';
 import {makeTestId} from 'app/client/lib/domUtils';
-import {createTeamImage, createUserImage, cssUserImage} from 'app/client/ui/UserImage';
+import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 
 const t = makeT('AppHeader');
 const testId = makeTestId('test-dm-');
@@ -89,9 +89,7 @@ export class AppHeader extends Disposable {
                             : createUserImage(this._appModel.currentValidUser, 'medium', variant());
 
     // Team avatar is shown only for team sites (even for anonymous users).
-    const teamAvatar = () => !this._currentOrg
-                            ? cssAppLogo.cls('-grist-logo')
-                            : createTeamImage(this._currentOrg, 'medium', variant());
+    const teamAvatar = () => cssAppLogo.cls('-grist-logo');
 
     // Depending on site the avatar is either personal or team.
     const avatar = () => this._appModel.isPersonal
@@ -285,6 +283,7 @@ const cssAppHeader = styled('div._cssAppHeader', `
   background-color: ${theme.leftPanelBg};
   padding: 0px;
   padding: 8px;
+
   .${cssLeftPane.className}-open & {
     padding: 8px 16px;
   }
@@ -305,10 +304,10 @@ const cssAppHeaderBox = styled('div._cssAppHeaderBox', `
   height: 100%;
   overflow: hidden;
   background-color: ${theme.appHeaderBg};
-  border: 1px solid ${theme.appHeaderBorder};
   border-radius: 4px;
-  &:hover {
-    background-color: ${theme.appHeaderHoverBg};
+  overflow: hidden;
+  &:hover{
+    --middle-border-color: ${theme.appHeaderBorderHover};
   }
   .${cssAppHeader.className}-widelogo & {
     border: none !important;
@@ -326,6 +325,11 @@ const cssAppLogo = styled('a._cssAppLogo', `
   background-color: inherit;
   background-size: cover;
 
+  border: 1px solid ${theme.appHeaderBorder};
+  border-radius: 4px;
+  overflow: hidden;
+  border-right-color: var(--middle-border-color, ${theme.appHeaderBorder});
+
   &-grist-logo {
     background-image: var(--icon-GristLogo);
     background-color: ${vars.logoBg};
@@ -339,13 +343,43 @@ const cssAppLogo = styled('a._cssAppLogo', `
     padding: 8px;
     border-right: none !important;
     background-size: contain;
+    border: 0px !important;
   }
   .${cssLeftPane.className}-open .${cssAppHeader.className}-widelogo & {
     background-image: var(--icon-GristWideLogo, var(--icon-GristLogo));
     background-size: contain;
   }
   &:hover {
+    border-color: ${theme.appHeaderBorderHover};
     text-decoration: none;
+  }
+  .${cssLeftPane.className}-open & {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+`);
+
+const cssOrg = styled('div._cssOrg', `
+  display: none;
+  flex-grow: 1;
+  flex-basis: 0px;
+  overflow: hidden;
+  align-items: center;
+  cursor: pointer;
+  height: 100%;
+  font-weight: 500;
+
+  border: 1px solid ${theme.appHeaderBorder};
+  border-radius: 4px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 0px;
+
+  &:hover {
+    border-color: ${theme.appHeaderBorderHover};
+  }
+  .${cssLeftPane.className}-open & {
+    display: flex;
   }
 `);
 
@@ -361,31 +395,23 @@ const cssSpacer = styled('div', `
   display: block;
 `);
 
-const cssOrg = styled('div._cssOrg', `
-  display: none;
-  flex-grow: 1;
-  flex-basis: 0px;
-  overflow: hidden;
-  align-items: center;
-  cursor: pointer;
-  height: 100%;
-  font-weight: 500;
-  .${cssLeftPane.className}-open & {
-    display: flex;
-    border-left: 1px solid ${theme.appHeaderBorder};
-  }
-`);
-
 const cssOrgLink = styled('a.cssOrgLink', `
   display: none;
   flex-grow: 1;
   align-items: center;
-  max-width: calc(100% - 48px);
+  max-width: calc(100% - 32px);
   cursor: pointer;
   height: 100%;
   font-weight: 500;
   color: ${theme.text};
   user-select: none;
+
+
+  border: 1px solid ${theme.appHeaderBorder};
+  border-radius: 4px;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 
   &, &:hover, &:focus {
     text-decoration: none;

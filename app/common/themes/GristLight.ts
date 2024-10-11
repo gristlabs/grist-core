@@ -572,5 +572,5 @@ export const GristLight: ThemeColors = {
   /* App header */
   'app-header-bg': 'var(--grist-theme-page-panels-main-panel-bg)',
   'app-header-border': 'var(--grist-theme-menu-border)',
-  'app-header-hover-bg': 'var(--grist-theme-hover)',
+  'app-header-border-hover': '#B0B0B0',
 };

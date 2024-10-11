@@ -5,16 +5,6 @@ import {icon} from 'app/client/ui2018/icons';
 
 export type Size = 'small' | 'medium' | 'large';
 
-interface OrgProperties {
-  name: string;
-  domain: string|null;
-}
-
-/** Helper wrapper around OrgProfile that converts it to UserProfile */
-function OrgUser(org: OrgProperties): UserProfile {
-  return {name: org.name, email: org.domain || ''};
-}
-
 /**
  * Returns a DOM element showing a circular icon with a user's picture, or the user's initials if
  * picture is missing. Also varies the color of the circle when using initials.
@@ -43,13 +33,6 @@ export function createUserImage(
     })(),
     ...args,
   );
-}
-
-/**
- * Returns a DOM element showing team's initials as a circular icon.
- */
-export function createTeamImage(org: OrgProperties, size: Size, ...args: DomElementArg[]): HTMLElement {
-  return createUserImage(OrgUser(org), size, ...args);
 }
 
 /**

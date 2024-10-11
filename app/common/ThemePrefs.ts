@@ -592,8 +592,8 @@ export interface ThemeColors {
 
   /* App Header */
   'app-header-bg': string;
-  'app-header-hover-bg': string;
   'app-header-border': string;
+  'app-header-border-hover': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

@@ -452,8 +452,8 @@ export const ThemeColors = t.iface([], {
   "markdown-cell-light-border": "string",
   "markdown-cell-medium-border": "string",
   "app-header-bg": "string",
-  "app-header-hover-bg": "string",
   "app-header-border": "string",
+  "app-header-border-hover": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

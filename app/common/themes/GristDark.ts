@@ -571,6 +571,6 @@ export const GristDark: ThemeColors = {
 
   /* App Header */
   'app-header-bg': '#32323F',
-  'app-header-border': '#FFFFFF00',
-  'app-header-hover-bg': 'rgba(111,111,125,0.6)',
+  'app-header-border': '#32323f',
+  'app-header-border-hover': '#78788c',
 };
