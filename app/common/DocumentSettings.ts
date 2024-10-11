@@ -2,6 +2,7 @@ export interface DocumentSettings {
   locale: string;
   currency?: string;
   engine?: EngineCode;
+  customCode?: string;
 }
 
 /**
