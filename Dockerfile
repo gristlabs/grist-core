@@ -10,7 +10,7 @@ FROM scratch AS ext
 ## Javascript build stage
 ################################################################################
 
-FROM node:22-bookworm AS builder
+FROM node:18-buster AS builder
 
 # Install all node dependencies.
 WORKDIR /grist
@@ -46,7 +46,7 @@ RUN \
 ################################################################################
 
 # Fetch python3.11
-FROM python:3.11-slim-bookworm AS collector-py3
+FROM python:3.11-slim-buster AS collector-py3
 ADD sandbox/requirements3.txt requirements3.txt
 RUN \
   pip3 install -r requirements3.txt
@@ -86,7 +86,7 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 ################################################################################
 
 # Now, start preparing final image.
-FROM node:22-bookworm-slim
+FROM node:18-buster-slim
 
 # Install libexpat1, libsqlite3-0 for python3 library binary dependencies.
 # Install pgrep for managing gvisor processes.
