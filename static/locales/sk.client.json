@@ -200,7 +200,8 @@
         "Missing description and author information.": "Chýba popis a informácie o autorovi.",
         "ACCESS LEVEL": "ÚROVEŇ PRÍSTUPU",
         "Accept": "Prijať",
-        "Reject": "Odmietnuť"
+        "Reject": "Odmietnuť",
+        "Widget": "Widget"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Táto tímová stránka je pozastavená. Dokumenty je možné čítať, ale nie upravovať."
@@ -1094,7 +1095,13 @@
         "Learn more": "Naučiť sa viac",
         "Linking Widgets": "Prepojenie Miniaplikácií",
         "The total size of all data in this document, excluding attachments.": "Celková veľkosť všetkých údajov v tomto dokumente okrem príloh.",
-        "Community widgets are created and maintained by Grist community members.": "Widgety komunity vytvárajú a udržiavajú členovia komunity Grist."
+        "Community widgets are created and maintained by Grist community members.": "Widgety komunity vytvárajú a udržiavajú členovia komunity Grist.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Ak chcete povoliť viacero priradení, zmeňte typ stĺpca Referencie na Zoznam referencií.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Obojsmerné referencie nie sú v súčasnosti podporované pre stĺpce Formula alebo Trigger Formula",
+        "Creates a reverse column in target table that can be edited from either end.": "Vytvorí náprotivný stĺpec v cieľovej tabuľke, ktorý možno upravovať z oboch strán.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Toto obmedzenie nastáva, keď je jedna strana obojsmernej referencie nakonfigurovaná ako jedna referencia.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Toto obmedzenie nastáva, keď jeden stĺpec v obojsmernej referencii má typ referencie.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Ak chcete povoliť viacero priradení, zmeňte typ odkazovaného stĺpca na Referenčný zoznam."
     },
     "ColumnTitle": {
         "Add description": "Pridať popis",
@@ -1328,7 +1335,8 @@
         "Key to sign sessions with": "Kľúč na podpisovanie relácií",
         "Session Secret": "Tajomstvo Relácie",
         "Enable Grist Enterprise": "Povoliť Grist Enterprise",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "checking": "kontrola"
     },
     "TimingPage": {
         "Table ID": "ID Tabuľky",
@@ -1667,7 +1675,8 @@
         "Complete our basics tutorial": "Náš kompletný základný návod",
         "Complete the tutorial": "Dokončiť tutoriál",
         "Learn the basic of reference columns, linked widgets, column types, & cards.": "Naučiť sa základ referenčných stĺpcov, prepojených miniaplikácií, typov stĺpcov a kariet.",
-        "3 minute video tour": "3 minútová videoprehliadka"
+        "3 minute video tour": "3 minútová videoprehliadka",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Naučte sa základy referenčných stĺpcov, prepojených miniaplikácií, typov stĺpcov a kariet."
     },
     "OnboardingPage": {
         "Back": "Späť",
@@ -1698,5 +1707,26 @@
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Uchovať údaje a odstrániť widget. Tabuľka zostane dostupná v {{rawDataLink}}",
         "raw data page": "stránka nespracovaných údajov",
         "Table {{tableName}} will no longer be visible": "Tabuľka {{tableName}} nebude dlho viditeľná"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Admin Panel"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Chýbajúce informácie)",
+        "Add Your Own Widget": "Pridať svoj vlastný Widget",
+        "Add Widget": "Pridať Widget",
+        "Add a widget from outside this gallery.": "Pridajte miniaplikáciu mimo tejto galérie.",
+        "Cancel": "Zrušiť",
+        "Choose Custom Widget": "Zvoliť Vlastný Widget",
+        "Community Widget": "Komunitný Widget",
+        "Custom URL": "Vlastná URL",
+        "Developer:": "Vývojár:",
+        "Grist Widget": "Grist Widget",
+        "Last updated:": "Posledná aktualizácia:",
+        "Learn more about Custom Widgets": "Ďalšie informácie o Vlastných Miniaplikáciách",
+        "No matching widgets": "Žiadne zodpovedajúce miniaplikácie",
+        "Search": "Vyhľadať",
+        "Widget URL": "URL Miniaplikácie",
+        "Change Widget": "Zmeniť Widget"
     }
 }
