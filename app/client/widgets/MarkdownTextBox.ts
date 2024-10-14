@@ -1,3 +1,4 @@
+import { domAsync } from 'app/client/lib/domAsync';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { buildCodeHighlighter } from 'app/client/ui/CodeHighlight';
@@ -6,7 +7,8 @@ import { sanitizeHTML } from 'app/client/ui/sanitizeHTML';
 import { theme, vars } from 'app/client/ui2018/cssVars';
 import { gristThemeObs } from 'app/client/ui2018/theme';
 import { NTextBox } from 'app/client/widgets/NTextBox';
-import { dom, styled, subscribeBindable } from 'grainjs';
+import { AsyncCreate } from 'app/common/AsyncCreate';
+import { dom, styled, subscribeElem } from 'grainjs';
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import markedLinkifyIt from 'marked-linkify-it';
@@ -15,44 +17,59 @@ import markedLinkifyIt from 'marked-linkify-it';
  * Creates a widget for displaying Markdown-formatted text.
  */
 export class MarkdownTextBox extends NTextBox {
-  private _marked: Marked;
+  private static _marked?: AsyncCreate<Marked>;
 
   constructor(field: ViewFieldRec) {
     super(field);
 
-    const highlightCodePromise = buildCodeHighlighter({maxLines: 60});
-    this._marked = new Marked(
-      markedHighlight({
-        async: true,
-        highlight: async (code) => {
-          const highlightCode = await highlightCodePromise;
-          return highlightCode(code);
-        },
-      }),
-      markedLinkifyIt(),
-    );
+    if (!MarkdownTextBox._marked) {
+      MarkdownTextBox._marked = new AsyncCreate(async () => {
+        const highlight = await buildCodeHighlighter({ maxLines: 60 });
+        return new Marked(
+          markedHighlight({
+            highlight: (code) => highlight(code),
+          }),
+          markedLinkifyIt()
+        );
+      });
+    }
   }
 
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId()];
-    return cssFieldClip(
-      cssFieldClip.cls('-text-wrap', this.wrapping),
-      dom.style('text-align', this.alignment),
-      (el) => dom.autoDisposeElem(el, subscribeBindable(value, async () => {
-        el.innerHTML = sanitizeHTML(await this._marked.parse(String(value.peek()), {gfm: false, renderer}));
-        this.field.viewSection().events.trigger('rowHeightChange');
-      })),
-      // Note: the DOM needs to be rebuilt on theme change, as Ace needs to switch between
-      // light and dark themes. If we switch to using a custom Grist Ace theme (with CSS
-      // variables used for highlighting), we can remove the listener below (and elsewhere).
-      (el) => dom.autoDisposeElem(el, subscribeBindable(gristThemeObs(), async () => {
-        el.innerHTML = sanitizeHTML(await this._marked.parse(String(value.peek()), {gfm: false, renderer}));
-      })),
+    return dom(
+      "div.field_clip",
+      domAsync(
+        MarkdownTextBox._marked!.get().then(({ parse }) => {
+          const renderMarkdown = (el: HTMLElement) => {
+            el.innerHTML = sanitizeHTML(
+              parse(String(value.peek()), {
+                async: false,
+                gfm: false,
+                renderer,
+              })
+            );
+          };
+
+          return cssMarkdown(
+            cssMarkdown.cls("-text-wrap", this.wrapping),
+            dom.style("text-align", this.alignment),
+            (el) => {
+              subscribeElem(el, value, () => renderMarkdown(el));
+              // Picking up theme changes currently requires a re-render.
+              // If we switch to using a custom Ace theme with CSS variables
+              // from `cssVars.ts`, we can remove this.
+              subscribeElem(el, gristThemeObs(), () => renderMarkdown(el));
+              this.field.viewSection().events.trigger("rowHeightChange");
+            },
+          );
+        })
+      )
     );
   }
 }
 
-const cssFieldClip = styled('div.field_clip', `
+const cssMarkdown = styled('div', `
   white-space: nowrap;
 
   &-text-wrap {
