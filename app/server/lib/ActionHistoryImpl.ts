@@ -17,8 +17,8 @@ import {ISQLiteDB, ResultRow} from './SQLiteDB';
 // on rows and the maximum total number of bytes in the "body" column.
 // Pruning is done when the history has grown above these limits, to
 // the specified factor.
-const ACTION_HISTORY_MAX_ROWS = process.env.ACTION_HISTORY_MAX_ROWS || 1000;
-const ACTION_HISTORY_MAX_BYTES = process.env.ACTION_HISTORY_MAX_BYTES || 1000 * 1000 * 1000;  // 1 GB.
+const ACTION_HISTORY_MAX_ROWS = parseInt(process.env.ACTION_HISTORY_MAX_ROWS, 10) || 1000;
+const ACTION_HISTORY_MAX_BYTES = parseInt(process.env.ACTION_HISTORY_MAX_BYTES, 10) || 1000 * 1000 * 1000;  // 1 GB.
 const ACTION_HISTORY_GRACE_FACTOR = 1.25;  // allow growth to 1.25 times the above limits.
 const ACTION_HISTORY_CHECK_PERIOD = 10;    // number of actions between size checks.
 
