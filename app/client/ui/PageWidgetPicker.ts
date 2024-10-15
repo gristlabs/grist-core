@@ -4,6 +4,7 @@ import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {columnsOrder} from 'app/client/models/entities/ColumnRec';
 import {PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
 import {linkId, NoLink} from 'app/client/ui/selectBy';
 import {overflowTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
@@ -32,7 +33,6 @@ import {
 import Popper from 'popper.js';
 import {IOpenController, popupOpen, setPopupToCreateDom} from 'popweasel';
 import without = require('lodash/without');
-import {labelsOrder} from 'app/client/models/entities/ColumnRec';
 
 const t = makeT('PageWidgetPicker');
 
@@ -408,7 +408,7 @@ export class PageWidgetSelect extends Disposable {
             (use) => use(this._columns)
               .filter((col) => !col.isHiddenCol() && col.parentId() === use(this._value.table)),
             (cols) => cols ?
-              dom.forEach([...cols].sort(labelsOrder), (col) =>
+              dom.forEach([...cols].sort(columnsOrder), (col) =>
                 cssEntry(cssIcon('FieldColumn'), cssFieldLabel(dom.text(col.label)),
                   dom.on('click', () => this._toggleColumnId(col.id())),
                   cssEntry.cls('-selected', (use) => use(this._value.columns).includes(col.id())),

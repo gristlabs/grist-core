@@ -235,17 +235,13 @@ function peekLabel(info: ColumnInfo): string {
   return typeof info.label === 'string' ? info.label : info.label.peek();
 }
 
-export function labelsOrder(a: ColumnInfo, b: ColumnInfo): number {
-  const left  = peekLabel(a).toLowerCase();
-  const right = peekLabel(b).toLowerCase();
-
-  // Order is as follows:
-  // - First columns with normal labels starting with a letter.
-  // - Second all columns starting with '_' (treated as private)
-  // - Third all columns starting with '#' (treated as private)
-  // - Rest.
-  if (left[0] === '_' && right[0] !== '_') { return 1; }
-  if (left[0] !== '_' && right[0] === '_') { return -1; }
+/**
+ * Helper function to sort columns based on the label. Puts # columns at the end as this is
+ * treated as private columns.
+ */
+export function columnsOrder(a: ColumnInfo, b: ColumnInfo): number {
+  const left  = peekLabel(a)?.toLowerCase() || '';
+  const right = peekLabel(b)?.toLowerCase() || '';
   if (left[0] === '#' && right[0] !== '#') { return 1; }
   if (left[0] !== '#' && right[0] === '#') { return -1; }
   return left.localeCompare(right);
