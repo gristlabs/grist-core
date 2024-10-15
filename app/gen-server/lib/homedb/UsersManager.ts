@@ -484,7 +484,7 @@ export class UsersManager {
    * One for creation
    * the other for retrieving users in order to make it more maintainable
    */
-  public async createUser(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+  public async createUser(email: string, options: GetUserOptions = {}): Promise<User> {
     return await this.getUserByLogin(email, options);
   }
 
@@ -632,15 +632,13 @@ export class UsersManager {
       const existingUsers = await this.getExistingUsersByLogin(emails, transaction);
       const emailsExistingUsers = existingUsers.map(user => user.loginEmail);
       const emailsUsersToCreate = emails.filter(email => !emailsExistingUsers.includes(email));
-      const emailUsers = [...existingUsers];
+      const emailUsers = new Map(existingUsers.map(user => [user.loginEmail, user]));
       for (const email of emailsUsersToCreate) {
         const user = await this.createUser(email, {manager: transaction});
-        if (user !== undefined) {
-          emailUsers.push(user);
-        }
+        emailUsers.set(user.loginEmail, user);
       }
-      emails.forEach((email, i) => {
-        const userIdAffected = emailUsers[i]!.id;
+      emails.forEach((email) => {
+        const userIdAffected = emailUsers.get(email)!.id;
         // Org-level sharing with everyone would allow serious spamming - forbid it.
         if (emailMap[email] !== null &&                    // allow removing anything
             userId !== this.getSupportUserId() &&          // allow support user latitude
