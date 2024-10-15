@@ -141,6 +141,7 @@ export class OIDCConfig {
     });
     const httpTimeout = section.flag('httpTimeout').readInt({
       envVar: 'GRIST_OIDC_SP_HTTP_TIMEOUT',
+      minValue: 0, // 0 means no timeout
     });
     this._namePropertyKey = section.flag('namePropertyKey').readString({
       envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
