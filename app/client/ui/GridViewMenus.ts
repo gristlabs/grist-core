@@ -2,7 +2,7 @@ import {allCommands} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
-import {ColumnRec} from "app/client/models/entities/ColumnRec";
+import {ColumnRec, columnsOrder} from "app/client/models/entities/ColumnRec";
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {isNarrowScreen, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -293,7 +293,7 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
   const {viewSection} = gridView;
   return menuItemSubmenu(
     () => searchableMenu(
-      viewSection.columns().map((col) => {
+      [...viewSection.columns()].sort(columnsOrder).map((col) => {
         function buildFormula() {
           if (isListType(col.type())) {
             return `any([len(${col.table().tableId()}.lookupRecords(${col.colId()}` +
@@ -568,7 +568,9 @@ function buildLookupSection(gridView: GridView, index?: number){
 
     return references.map((ref) => menuItemSubmenu(
       () => searchableMenu(
-        ref.refTable()?.visibleColumns().map(buildRefColMenu.bind(null, ref)) ?? [],
+        (ref.refTable()?.visibleColumns() ?? [])
+          .sort(columnsOrder)
+          .map(buildRefColMenu.bind(null, ref)),
         {
           searchInputPlaceholder: t('Search columns')
         }
