@@ -14,7 +14,7 @@ on:
 jobs:
   destroy:
     name: Remove app from fly.io
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # Remove the deployment when 'preview' label is removed, or the PR is closed.
     if: |
       github.event_name == 'workflow_dispatch' ||

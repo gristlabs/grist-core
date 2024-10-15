@@ -9,7 +9,7 @@ on:
 jobs:
   add-to-project:
     name: Add issue to project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/add-to-project@v1.0.1
         with:
