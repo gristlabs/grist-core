@@ -12,7 +12,7 @@ on:
 jobs:
   build:
     name: Build Docker image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # Build when the 'preview' label is added, or when PR is updated with this label present.
     if: >
       github.event_name == 'workflow_dispatch' ||

@@ -45,7 +45,7 @@ env:
 jobs:
   push_to_registry:
     name: Push latest Docker image to Docker Hub
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: ${{ vars.RUN_DAILY_BUILD }}
     strategy:
       matrix:
@@ -169,7 +169,7 @@ jobs:
 
   update_latest_branch:
     name: Update latest branch
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: push_to_registry
     steps:
       - name: Check out the repo

@@ -13,7 +13,7 @@ env:
 jobs:
   clean:
     name: Clean stale deployed apps
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.repository_owner == 'gristlabs'
     steps:
       - uses: actions/checkout@v3

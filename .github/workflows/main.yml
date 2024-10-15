@@ -11,7 +11,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       # it is helpful to know which sets of tests would have succeeded,
       # even when there is a failure.
@@ -167,7 +167,7 @@ jobs:
   candidate:
     needs: build_and_test
     if: ${{ success() && github.event_name == 'push' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Fetch new candidate branch
         uses: actions/checkout@v3
