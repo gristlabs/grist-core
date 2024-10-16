@@ -338,15 +338,13 @@ export function infoTooltip(
   ...domArgs: DomElementArg[]
 ) {
   const {variant = 'click'} = options;
-  const content = dom.domComputed(tooltip, (t) => GristTooltips[t]());
-  const onOpen = () => logTelemetryEvent('viewedTip', {full: {tipName: tooltip}});
   switch (variant) {
     case 'click': {
       const {popupOptions} = options;
-      return buildClickableInfoTooltip(content, {onOpen, popupOptions}, domArgs);
+      return buildClickableInfoTooltip(tooltip, {popupOptions}, domArgs);
     }
     case 'hover': {
-      return buildHoverableInfoTooltip(content, domArgs);
+      return buildHoverableInfoTooltip(tooltip, domArgs);
     }
   }
 }
@@ -357,50 +355,55 @@ export interface ClickableInfoTooltipOptions {
 }
 
 function buildClickableInfoTooltip(
-  content: DomContents,
+  tooltip: BindableValue<Tooltip>,
   options: ClickableInfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
-  const {onOpen, popupOptions} = options;
-  return cssInfoTooltipButton('?',
-    (elem) => {
-      setPopupToCreateDom(
-        elem,
-        (ctl) => {
-          onOpen?.();
+  const {popupOptions} = options;
+  return dom.domComputed(tooltip, (tip) =>
+    cssInfoTooltipButton('?',
+      (elem) => {
+        setPopupToCreateDom(
+          elem,
+          (ctl) => {
+            logTelemetryEvent("viewedTip", { full: { tipName: tip } });
 
-          return cssInfoTooltipPopup(
-            cssInfoTooltipPopupCloseButton(
-              icon('CrossSmall'),
-              dom.on('click', () => ctl.close()),
-              testId('info-tooltip-close'),
-            ),
-            cssInfoTooltipPopupBody(
-              content,
-              testId('info-tooltip-popup-body'),
-            ),
-            dom.cls(menuCssClass),
-            dom.cls(cssMenu.className),
-            dom.onKeyDown({
-              Enter: () => ctl.close(),
-              Escape: () => ctl.close(),
-            }),
-            (popup) => { setTimeout(() => popup.focus(), 0); },
-            testId('info-tooltip-popup'),
-          );
-        },
-        {...defaultMenuOptions, ...{placement: 'bottom-end'}, ...popupOptions},
-      );
-    },
-    testId('info-tooltip'),
-    ...domArgs,
+            return cssInfoTooltipPopup(
+              cssInfoTooltipPopupCloseButton(
+                icon('CrossSmall'),
+                dom.on('click', () => ctl.close()),
+                testId('info-tooltip-close'),
+              ),
+              cssInfoTooltipPopupBody(
+                GristTooltips[tip](),
+                testId('info-tooltip-popup-body'),
+              ),
+              dom.cls(menuCssClass),
+              dom.cls(cssMenu.className),
+              dom.onKeyDown({
+                Enter: () => ctl.close(),
+                Escape: () => ctl.close(),
+              }),
+              (popup) => { setTimeout(() => popup.focus(), 0); },
+              testId('info-tooltip-popup'),
+            );
+          },
+          {...defaultMenuOptions, ...{placement: 'bottom-end'}, ...popupOptions},
+        );
+      },
+      testId('info-tooltip'),
+      ...domArgs,
+    )
   );
 }
 
-function buildHoverableInfoTooltip(content: DomContents, ...domArgs: DomElementArg[]) {
+function buildHoverableInfoTooltip(
+  tooltip: BindableValue<Tooltip>,
+  ...domArgs: DomElementArg[]
+) {
   return cssInfoTooltipIcon('?',
     hoverTooltip(() => cssInfoTooltipTransientPopup(
-      content,
+      dom.domComputed(tooltip, (tip) => GristTooltips[tip]()),
       cssTooltipCorner(testId('tooltip-origin')),
       {tabIndex: '-1'},
       testId('info-tooltip-popup'),
