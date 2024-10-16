@@ -29,7 +29,7 @@ const ACTION_HISTORY_MAX_ROWS = section.flag('maxRows').requireInt({
 
 const ACTION_HISTORY_MAX_BYTES = section.flag('maxBytes').requireInt({
   envVar: 'GRIST_ACTION_HISTORY_MAX_BYTES',
-  defaultValue: 1_000_0000_0000, // 1 GB.
+  defaultValue: 1e9, // 1 GB.
   minValue: 1,  // 1 B.
 });
 
