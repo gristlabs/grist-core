@@ -79,6 +79,7 @@ import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
 import { StringUnionError } from 'app/common/StringUnion';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
 import { SessionObj } from './BrowserSession';
+import { getOriginUrl } from './requestUtils';
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -289,7 +290,8 @@ export class OIDCConfig {
       return this._endSessionEndpoint;
     }
     return this._client.endSessionUrl({
-      post_logout_redirect_uri: redirectUrl.href,
+      // Ignore redirectUrl because OIDC providers don't allow variable redirect URIs
+      post_logout_redirect_uri: new URL('/signed-out', getOriginUrl(req)).href,
       id_token_hint: session?.oidc?.idToken,
     });
   }
