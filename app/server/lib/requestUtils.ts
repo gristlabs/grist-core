@@ -211,10 +211,11 @@ export async function sendReply<T>(
       result: data,
     });
   }
-  if (result.status === 200) {
+  res.status(result.status);
+  if (result.status >= 200 && result.status < 300) {
     return res.json(data ?? null); // can't handle undefined
   } else {
-    return res.status(result.status).json({error: result.errMessage});
+    return res.json({error: result.errMessage});
   }
 }
 

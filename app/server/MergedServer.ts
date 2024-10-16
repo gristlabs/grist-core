@@ -156,9 +156,12 @@ export class MergedServer {
         if (!this.hasComponent("docs")) {
           this.flexServer.addDocApiForwarder();
         }
+        await this.flexServer.addLandingPages();
+        // Early endpoints use their own json handlers, so they come before
+        // `addJsonSupport`.
+        this.flexServer.addEarlyApi();
         this.flexServer.addJsonSupport();
         this.flexServer.addUpdatesCheck();
-        await this.flexServer.addLandingPages();
         // todo: add support for home api to standalone app
         this.flexServer.addHomeApi();
         this.flexServer.addBillingApi();
@@ -172,7 +175,6 @@ export class MergedServer {
         this.flexServer.addWelcomePaths();
         this.flexServer.addLogEndpoint();
         this.flexServer.addGoogleAuthEndpoint();
-        this.flexServer.addInstallEndpoints();
         this.flexServer.addConfigEndpoints();
       }
 

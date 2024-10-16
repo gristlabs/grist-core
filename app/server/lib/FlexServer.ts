@@ -1,12 +1,11 @@
 import {ApiError} from 'app/common/ApiError';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
-import {commonUrls, encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
+import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {isAffirmative, safeJsonParse} from 'app/common/gutil';
-import {InstallProperties} from 'app/common/InstallAPI';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {SandboxInfo} from 'app/common/SandboxInfo';
 import {tbind} from 'app/common/tbind';
@@ -26,11 +25,11 @@ import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
 import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
+import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
 import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
-import {BootProbes} from 'app/server/lib/BootProbes';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
 import {create} from 'app/server/lib/create';
@@ -57,14 +56,14 @@ import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint'
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
-        optStringParam, RequestWithGristInfo, sendOkReply, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
+        optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
-import {getTelemetryPrefs, ITelemetry} from 'app/server/lib/Telemetry';
+import {ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {UpdateManager} from 'app/server/lib/UpdateManager';
@@ -1548,10 +1547,7 @@ export class FlexServer implements GristServer {
    * we need to get these webhooks in before the bodyParser is added to parse json.
    */
   public addEarlyWebhooks() {
-    if (this._check('webhooks', 'homedb')) { return; }
-    if (this.deps.has('json')) {
-      throw new Error('addEarlyWebhooks called too late');
-    }
+    if (this._check('webhooks', 'homedb', '!json')) { return; }
     this._getBilling();
     this._billing.addWebhooks(this.app);
   }
@@ -1885,99 +1881,26 @@ export class FlexServer implements GristServer {
     addGoogleAuthEndpoint(this.app, messagePage);
   }
 
-  public addInstallEndpoints() {
-    if (this._check('install')) { return; }
+  /**
+   * Adds early API.
+   *
+   * These API endpoints are intentionally added before other middleware to
+   * minimize the impact of failures during startup. This includes, for
+   * example, endpoints used by the Admin Panel for status checks.
+   *
+   * It's also desirable for some endpoints to be loaded early so that they
+   * can set their own middleware, before any defaults are added.
+   * For example, `addJsonSupport` enforces strict parsing of JSON, but a
+   * handful of endpoints need relaxed parsing (e.g. /configs).
+   */
+  public addEarlyApi() {
+    if (this._check('early-api', 'api-mw', 'homedb', '!json')) { return; }
 
-    const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
-
-    // Admin endpoint needs to have very little middleware since each
-    // piece of middleware creates a new way to fail and leave the admin
-    // panel inaccessible. Generally the admin panel should report problems
-    // rather than failing entirely.
-    this.app.get('/admin', this._userIdMiddleware, expressWrap(async (req, resp) => {
-      return this.sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
-    }));
-    const adminMiddleware = [
-      this._userIdMiddleware,
-      requireInstallAdmin,
-    ];
-    const probes = new BootProbes(this.app, this, '/api', adminMiddleware);
-    probes.addEndpoints();
-
-    this.app.post('/api/admin/restart', requireInstallAdmin, expressWrap(async (_, resp) => {
-      resp.on('finish', () => {
-        // If we have IPC with parent process (e.g. when running under
-        // Docker) tell the parent that we have a new environment so it
-        // can restart us.
-        if (process.send) {
-          process.send({ action: 'restart' });
-        }
-      });
-
-      if(!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
-        // On the topic of http response codes, thus spake MDN:
-        // "409: This response is sent when a request conflicts with the current state of the server."
-        return resp.status(409).send({
-          error: "Cannot automatically restart the Grist server to enact changes. Please restart server manually."
-        });
-      }
-      return resp.status(200).send({ msg: 'ok' });
-    }));
-
-    // Restrict this endpoint to install admins
-    this.app.get('/api/install/prefs', requireInstallAdmin, expressWrap(async (_req, resp) => {
-      const activation = await this._activations.current();
-
-      return sendOkReply(null, resp, {
-        telemetry: await getTelemetryPrefs(this._dbManager, activation),
-      });
-    }));
-
-    this.app.patch('/api/install/prefs', requireInstallAdmin, expressWrap(async (req, resp) => {
-      const props = {prefs: req.body};
-      const activation = await this._activations.current();
-      activation.checkProperties(props);
-      activation.updateFromProperties(props);
-      await activation.save();
-
-      if ((props as Partial<InstallProperties>).prefs?.telemetry) {
-        // Make sure the Telemetry singleton picks up the changes to telemetry preferences.
-        // TODO: if there are multiple home server instances, notify them all of changes to
-        // preferences (via Redis Pub/Sub).
-        await this._telemetry.fetchTelemetryPrefs();
-      }
-
-      return resp.status(200).send();
-    }));
-
-    // GET api/checkUpdates
-    // Retrieves the latest version of the client from Grist SAAS endpoint.
-    this.app.get('/api/install/updates', adminMiddleware, expressWrap(async (req, res) => {
-      // Prepare data for the telemetry that endpoint might expect.
-      const installationId = (await this.getActivations().current()).id;
-      const deploymentType = this.getDeploymentType();
-      const currentVersion = version.version;
-      const response = await fetch(process.env.GRIST_TEST_VERSION_CHECK_URL || commonUrls.versionCheck, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          installationId,
-          deploymentType,
-          currentVersion,
-        }),
-      });
-      if (!response.ok) {
-        res.status(response.status);
-        if (response.headers.get('content-type')?.includes('application/json')) {
-          const data = await response.json();
-          res.json(data);
-        } else {
-          res.send(await response.text());
-        }
-      } else {
-        res.json(await response.json());
-      }
-    }));
+    attachEarlyEndpoints({
+      app: this.app,
+      gristServer: this,
+      userIdMiddleware: this._userIdMiddleware,
+    });
   }
 
   public addConfigEndpoints() {

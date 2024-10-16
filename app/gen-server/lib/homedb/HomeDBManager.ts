@@ -1,6 +1,7 @@
 import {ShareInfo} from 'app/common/ActiveDocAPI';
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
+import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
@@ -30,6 +31,7 @@ import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/
 import {Alias} from "app/gen-server/entity/Alias";
 import {BillingAccount} from "app/gen-server/entity/BillingAccount";
 import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
+import {Config} from "app/gen-server/entity/Config";
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
 import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
@@ -459,6 +461,9 @@ export class HomeDBManager extends EventEmitter {
     return await this._usersManager.ensureExternalUser(profile);
   }
 
+  /**
+   * @see UsersManager.prototype.updateUser
+   */
   public async updateUser(
     userId: number,
     props: UserProfileChange
@@ -1234,15 +1239,22 @@ export class HomeDBManager extends EventEmitter {
     return orgResult;
   }
 
-  // If setting anything more than prefs:
-  //   Checks that the user has UPDATE permissions to the given org. If not, throws an
-  //   error. Otherwise updates the given org with the given name. Returns a query
-  //   result with status 200 on success.
-  // For setting userPrefs or userOrgPrefs:
-  //   These are user-specific setting, so are allowed with VIEW access (that includes
-  //   guests).  Prefs are replaced in their entirety, not merged.
-  // For setting orgPrefs:
-  //   These are not user-specific, so require UPDATE permissions.
+  /**
+   * Updates the properties of the specified org.
+   *
+   * - If setting anything more than prefs:
+   *     - Checks that the user has UPDATE permissions to the given org. If
+   *       not, throws an error.
+   * - For setting userPrefs or userOrgPrefs:
+   *     - These are user-specific setting, so are allowed with VIEW access
+   *       (that includes guests). Prefs are replaced in their entirety, not
+   *       merged.
+   * - For setting orgPrefs:
+   *     - These are not user-specific, so require UPDATE permissions.
+   *
+   * Returns a query result with status 200 and the previous and current
+   * versions of the org on success.
+   */
   public async updateOrg(
     scope: Scope,
     orgKey: string|number,
@@ -1432,9 +1444,14 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
-  // Checks that the user has UPDATE permissions to the given workspace. If not, throws an
-  // error. Otherwise updates the given workspace with the given name. Returns a query result
-  // with status 200 on success.
+  /**
+   * Checks that the user has UPDATE permissions to the given workspace. If
+   * not, throws an error. Otherwise updates the given workspace with the given
+   * name.
+   *
+   * Returns a query result with status 200 and the previous and current
+   * versions of the workspace, on success.
+   */
   public async updateWorkspace(
     scope: Scope,
     wsId: number,
@@ -1460,9 +1477,11 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
-  // Checks that the user has REMOVE permissions to the given workspace. If not, throws an
-  // error. Otherwise deletes the given workspace. Returns a query result with status 200
-  // on success.
+  /**
+   * Checks that the user has REMOVE permissions to the given workspace. If not, throws an
+   * error. Otherwise deletes the given workspace. Returns a query result with status 200
+   * and the deleted workspace on success.
+   */
   public async deleteWorkspace(scope: Scope, wsId: number): Promise<QueryResult<Workspace>> {
     return await this._connection.transaction(async manager => {
       const wsQuery = this._workspace(scope, wsId, {
@@ -1706,11 +1725,16 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
-  // Checks that the user has SCHEMA_EDIT permissions to the given doc. If not, throws an
-  // error. Otherwise updates the given doc with the given name. Returns a query result with
-  // status 200 on success.
-  // NOTE: This does not update the updateAt date indicating the last modified time of the doc.
-  // We may want to make it do so.
+  /**
+   * Checks that the user has SCHEMA_EDIT permissions to the given doc. If not,
+   * throws an error. Otherwise updates the given doc with the given name.
+   *
+   * Returns a query result with status 200 and the previous and current
+   * versions of the doc on success.
+   *
+   * NOTE: This does not update the updateAt date indicating the last modified
+   * time of the doc. We may want to make it do so.
+   */
   public async updateDocument(
     scope: DocScope,
     props: Partial<DocumentProperties>,
@@ -2302,6 +2326,12 @@ export class HomeDBManager extends EventEmitter {
     };
   }
 
+  /**
+   * Moves the doc to the specified workspace.
+   *
+   * Returns a query result with status 200 and the previous and current
+   * versions of the doc on success.
+   */
   public async moveDoc(
     scope: DocScope,
     wsId: number
@@ -2816,6 +2846,247 @@ export class HomeDBManager extends EventEmitter {
       .from(Share, 'shares')
       .where('shares.doc_id = :docId and shares.link_id = :linkId', {docId, linkId})
       .getOne();
+  }
+
+  /**
+   * Gets the config with the specified `key`.
+   *
+   * Returns a query result with status 200 and the config on success.
+   *
+   * Fails if a config with the specified `key` does not exist.
+   */
+  public async getInstallConfig(
+    key: ConfigKey,
+    { transaction }: { transaction?: EntityManager } = {}
+  ): Promise<QueryResult<Config>> {
+    return this._runInTransaction(transaction, (manager) => {
+      const query = this._installConfig(key, {
+        manager,
+      });
+      return verifyEntity(query, { skipPermissionCheck: true });
+    });
+  }
+
+  /**
+   * Updates the value of the config with the specified `key`.
+   *
+   * If a config with the specified `key` does not exist, returns a query
+   * result with status 201 and a new config on success.
+   *
+   * Otherwise, returns a query result with status 200 and the previous and
+   * current versions of the config on success.
+   */
+  public async updateInstallConfig(
+    key: ConfigKey,
+    value: ConfigValue
+  ): Promise<QueryResult<Config|PreviousAndCurrent<Config>>> {
+    return await this._connection.transaction(async (manager) => {
+      const queryResult = await this.getInstallConfig(key, {
+        transaction: manager,
+      });
+      if (queryResult.status === 404) {
+        const config: Config = new Config();
+        config.key = key;
+        config.value = value;
+        await manager.save(config);
+        return {
+          status: 201,
+          data: config,
+        };
+      } else {
+        const config: Config = this.unwrapQueryResult(queryResult);
+        const previous = structuredClone(config);
+        config.value = value;
+        await manager.save(config);
+        return {
+          status: 200,
+          data: { previous, current: config },
+        };
+      }
+    });
+  }
+
+  /**
+   * Deletes the config with the specified `key`.
+   *
+   * Returns a query result with status 200 and the deleted config on success.
+   *
+   * Fails if a config with the specified `key` does not exist.
+   */
+  public async deleteInstallConfig(key: ConfigKey): Promise<QueryResult<Config>> {
+    return await this._connection.transaction(async (manager) => {
+      const queryResult = await this.getInstallConfig(key, {
+        transaction: manager,
+      });
+      const config: Config = this.unwrapQueryResult(queryResult);
+      const deletedConfig = structuredClone(config);
+      await manager.remove(config);
+      return {
+        status: 200,
+        data: deletedConfig,
+      };
+    });
+  }
+
+  /**
+   * Gets the config scoped to a particular `org` with the specified `key`.
+   *
+   * Returns a query result with status 200 and the config on success.
+   *
+   * Fails if the scoped user is not an owner of the org, or a config with
+   * the specified `key` does not exist for the org.
+   */
+  public async getOrgConfig(
+    scope: Scope,
+    org: string|number,
+    key: ConfigKey,
+    options: { manager?: EntityManager } = {}
+  ): Promise<QueryResult<Config>> {
+    return this._runInTransaction(options.manager, (manager) => {
+      const query = this._orgConfig(scope, org, key, {
+        manager,
+      });
+      return verifyEntity(query);
+    });
+  }
+
+  /**
+   * Updates the value of the config scoped to a particular `org` with the
+   * specified `key`.
+   *
+   * If a config with the specified `key` does not exist, returns a query
+   * result with status 201 and a new config on success.
+   *
+   * Otherwise, returns a query result with status 200 and the previous and
+   * current versions of the config on success.
+   *
+   * Fails if the user is not an owner of the org.
+   */
+  public async updateOrgConfig(
+    scope: Scope,
+    orgKey: string|number,
+    key: ConfigKey,
+    value: ConfigValue
+  ): Promise<QueryResult<Config|PreviousAndCurrent<Config>>> {
+    return await this._connection.transaction(async (manager) => {
+      const orgQuery = this.org(scope, orgKey, {
+        markPermissions: Permissions.OWNER,
+        needRealOrg: true,
+        manager,
+      });
+      const orgQueryResult = await verifyEntity(orgQuery);
+      const org: Organization = this.unwrapQueryResult(orgQueryResult);
+      const configQueryResult = await this.getOrgConfig(scope, orgKey, key, {
+        manager,
+      });
+      if (configQueryResult.status === 404) {
+        const config: Config = new Config();
+        config.key = key;
+        config.value = value;
+        config.org = org;
+        await manager.save(config);
+        return {
+          status: 201,
+          data: config,
+        };
+      } else {
+        const config: Config = this.unwrapQueryResult(configQueryResult);
+        const previous = structuredClone(config);
+        config.value = value;
+        await manager.save(config);
+        return {
+          status: 200,
+          data: { previous, current: config },
+        };
+      }
+    });
+  }
+
+  /**
+   * Deletes the config scoped to a particular `org` with the specified `key`.
+   *
+   * Returns a query result with status 204 and the deleted config on success.
+   *
+   * Fails if the scoped user is not an owner of the org, or a config with
+   * the specified `key` does not exist for the org.
+   */
+  public async deleteOrgConfig(
+    scope: Scope,
+    org: string|number,
+    key: ConfigKey
+  ): Promise<QueryResult<Config>> {
+    return await this._connection.transaction(async (manager) => {
+      const query = this._orgConfig(scope, org, key, {
+        manager,
+      });
+      const queryResult = await verifyEntity(query);
+      const config: Config = this.unwrapQueryResult(queryResult);
+      const deletedConfig = structuredClone(config);
+      await manager.remove(config);
+      return {
+        status: 200,
+        data: deletedConfig,
+      };
+    });
+  }
+
+  /**
+   * Gets the config with the specified `key` and `orgId`.
+   *
+   * Returns `null` if no matching config is found.
+   */
+  public async getConfigByKeyAndOrgId(
+    key: ConfigKey,
+    orgId: number|null = null,
+    { manager }: { manager?: EntityManager } = {}
+  ) {
+    let query = this._configs(manager).where("configs.key = :key", { key });
+    if (orgId !== null) {
+      query = query.andWhere("configs.org_id = :orgId", { orgId });
+    } else {
+      query = query.andWhere("configs.org_id IS NULL");
+    }
+    return query.getOne();
+  }
+
+  private _installConfig(
+    key: ConfigKey,
+    { manager }: { manager?: EntityManager }
+  ): SelectQueryBuilder<Config> {
+    return this._configs(manager).where(
+      "configs.key = :key AND configs.org_id is NULL",
+      { key }
+    );
+  }
+
+  private _orgConfig(
+    scope: Scope,
+    org: string|number,
+    key: ConfigKey,
+    { manager }: { manager?: EntityManager }
+  ): SelectQueryBuilder<Config> {
+    let query = this._configs(manager)
+      .where("configs.key = :key", { key })
+      .leftJoinAndSelect("configs.org", "orgs");
+    if (this.isMergedOrg(org)) {
+      query = query.where("orgs.owner_id = :userId", { userId: scope.userId });
+    } else {
+      query = this._whereOrg(query, org, false);
+    }
+    const effectiveUserId = scope.userId;
+    const threshold = Permissions.OWNER;
+    query = query.addSelect(
+      this._markIsPermitted("orgs", effectiveUserId, "open", threshold),
+      "is_permitted"
+    );
+    return query;
+  }
+
+  private _configs(manager?: EntityManager) {
+    return (manager || this._connection)
+      .createQueryBuilder()
+      .select("configs")
+      .from(Config, "configs");
   }
 
   private async _getOrgMembers(org: string|number|Organization) {
