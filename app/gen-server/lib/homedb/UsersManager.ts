@@ -638,7 +638,7 @@ export class UsersManager {
         emailUsers.set(user.loginEmail, user);
       }
       emails.forEach((email) => {
-        const userIdAffected = emailUsers.get(email)!.id;
+        const userIdAffected = emailUsers.get(normalizeEmail(email))!.id;
         // Org-level sharing with everyone would allow serious spamming - forbid it.
         if (emailMap[email] !== null &&                    // allow removing anything
             userId !== this.getSupportUserId() &&          // allow support user latitude
