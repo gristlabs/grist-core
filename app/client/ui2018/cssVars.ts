@@ -111,7 +111,7 @@ export const vars = {
   labelTextBg:    new CustomProp('label-text-bg', '#FFFFFF'),
   labelActiveBg:  new CustomProp('label-active-bg', '#F0F0F0'),
 
-  controlMargin:  new CustomProp('normal-margin', '2px'),
+  controlMargin:  new CustomProp('normal-margin',  '2px'),
   controlPadding: new CustomProp('normal-padding', '3px 5px'),
   tightPadding:   new CustomProp('tight-padding',  '1px 2px'),
   loosePadding:   new CustomProp('loose-padding',  '5px 15px'),
@@ -497,7 +497,7 @@ export const theme = {
   documentHistoryTableBorder: new CustomProp('theme-document-history-table-border',
     undefined, 'lightgray'),
   documentHistoryTableBorderLight: new CustomProp('theme-document-history-table-border-light',
-    undefined, '#D9D9D9'),
+    undefined, colors.darkGrey),
 
   /* Accents */
   accentIcon: new CustomProp('theme-accent-icon', undefined, colors.lightGreen),
@@ -554,7 +554,7 @@ export const theme = {
   menuItemFg: new CustomProp('theme-menu-item-fg', undefined, 'black'),
   menuItemSelectedFg: new CustomProp('theme-menu-item-selected-fg', undefined, colors.light),
   menuItemSelectedBg: new CustomProp('theme-menu-item-selected-bg', undefined, vars.primaryBg),
-  menuItemDisabledFg: new CustomProp('theme-menu-item-disabled-fg', undefined, '#D9D9D9'),
+  menuItemDisabledFg: new CustomProp('theme-menu-item-disabled-fg', undefined, colors.darkGrey),
   menuItemIconFg: new CustomProp('theme-menu-item-icon-fg', undefined, colors.slate),
   menuItemIconSelectedFg: new CustomProp('theme-menu-item-icon-selected-fg', undefined, 'white'),
 
@@ -804,7 +804,7 @@ export const theme = {
   colorSelectFontOptionBgSelected: new CustomProp('theme-color-select-font-option-bg-selected',
     undefined, colors.dark),
   colorSelectColorSquareBorder: new CustomProp('theme-color-select-color-square-border',
-    undefined, '#D9D9D9'),
+    undefined, colors.darkGrey),
   colorSelectColorSquareBorderEmpty: new CustomProp('theme-color-select-color-square-border-empty',
     undefined, colors.dark),
   colorSelectInputFg: new CustomProp('theme-color-select-input-fg',
@@ -865,13 +865,13 @@ export const theme = {
   attachmentsCellIconFg: new CustomProp(
     'theme-attachments-cell-icon-fg', undefined, 'white'),
   attachmentsCellIconBg: new CustomProp(
-    'theme-attachments-cell-icon-bg', undefined, '#D9D9D9'),
+    'theme-attachments-cell-icon-bg', undefined, colors.darkGrey),
   attachmentsCellIconHoverBg: new CustomProp(
     'theme-attachments-cell-icon-hover-bg', undefined, '#929299'),
 
   /* Announcement Popups */
   announcementPopupFg: new CustomProp('theme-announcement-popup-fg', undefined, '#000000'),
-  announcementPopupBg: new CustomProp('theme-announcement-popup-bg', undefined, '#DCF4EB'),
+  announcementPopupBg: new CustomProp('theme-announcement-popup-bg', undefined, colors.selectionOpaque),
 
   /* Switches */
   switchSliderFg: new CustomProp('theme-switch-slider-fg', undefined, '#ccc'),
