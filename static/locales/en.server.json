@@ -1,8 +1,8 @@
 {
   "sendAppPage": {
     "Loading...": "Loading...",
-    "gristMetaDescription": "Grist is the evolution of spreadsheets.",
-    "Welcome": "Welcome"
+    "og-description": "A modern, open source spreadsheet that goes beyond the grid",
+    "og-title": "Grist, the evolution of spreadsheet"
   },
   "oidc": {
     "emailNotVerifiedError": "Please verify your email with the identity provider, and log in again."

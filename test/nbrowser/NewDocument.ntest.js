@@ -24,12 +24,12 @@ describe('NewDocument.ntest', function() {
     assert.equal(await driver.find('meta[name="twitter:title"]').getAttribute('content'), expectedTitle);
     assert.equal(await driver.find('meta[property="og:title"]').getAttribute('content'), expectedTitle);
 
-    const expectedDescription = 'Grist is the evolution of spreadsheets.';
+    const expectedDescription = 'A modern, open source spreadsheet that goes beyond the grid';
     assert.equal(await driver.find('meta[name="description"]').getAttribute('content'), expectedDescription);
     assert.equal(await driver.find('meta[name="twitter:description"]').getAttribute('content'), expectedDescription);
     assert.equal(await driver.find('meta[property="og:description"]').getAttribute('content'), expectedDescription);
 
-    const gristIconFileName = 'grist.png';
+    const gristIconFileName = 'opengraph-preview-image.png';
     assert.include(await driver.find('meta[name="thumbnail"]').getAttribute('content'), gristIconFileName);
     assert.include(await driver.find('meta[name="twitter:image"]').getAttribute('content'), gristIconFileName);
     assert.include(await driver.find('meta[property="og:image"]').getAttribute('content'), gristIconFileName);
