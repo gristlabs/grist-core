@@ -99,7 +99,7 @@ export class AppSettings {
   /**
    * As for readInt() but fail if nothing was found.
    */
-  public requireInt(query: AppSettingQuery): number {
+  public requireInt(query: AppSettingQueryInt): number {
     const result = this.readInt(query);
     if (result === undefined) {
       throw new Error(`missing environment variable: ${query.envVar}`);
@@ -122,9 +122,19 @@ export class AppSettings {
    * As for read() but type (and store, and report) the result as
    * an integer (well, a number).
    */
-  public readInt(query: AppSettingQuery): number|undefined {
+  public readInt(query: AppSettingQueryInt): number|undefined {
     this.readString(query);
     const result = this.getAsInt();
+
+    if (result !== undefined) {
+      if (query.minValue !== undefined && result < query.minValue) {
+        throw new Error(`value ${result} is less than minimum ${query.minValue}`);
+      }
+      if (query.maxValue !== undefined && result > query.maxValue) {
+        throw new Error(`value ${result} is greater than maximum ${query.maxValue}`);
+      }
+    }
+
     this._value = result;
     return result;
   }
@@ -213,11 +223,39 @@ export const appSettings = new AppSettings('grist');
  * environment variables and default values.
  */
 export interface AppSettingQuery {
-  envVar: string|string[];  // environment variable(s) to check.
-  preferredEnvVar?: string; // "Canonical" environment variable to suggest.
-                            // Should be in envVar (though this is not checked).
-  defaultValue?: JSONValue; // value to use if variable(s) unavailable.
-  censor?: boolean;   // should the value of the setting be obscured when printed.
+  /**
+   * Environment variable(s) to check.
+   */
+  envVar: string|string[];
+  /**
+   * "Canonical" environment variable to suggest. Should be in envVar (though this is not checked).
+   */
+  preferredEnvVar?: string;
+  /**
+   * Value to use if the variable(s) is/are unavailable.
+   */
+  defaultValue?: JSONValue;
+  /**
+   * When set to true, the value is obscured when printed.
+   */
+  censor?: boolean;
+}
+
+export interface AppSettingQueryInt extends AppSettingQuery {
+  /**
+   * Value to use if variable(s) unavailable.
+   */
+  defaultValue?: number;
+  /**
+   * Minimum value allowed. Raises an error if the value is lower than this.
+   * If the value is undefined, the setting is not checked.
+   */
+  minValue?: number;
+  /**
+   * Maximum value allowed. Raises an error if the value is greater than this.
+   * If the value is undefined, the setting is not checked.
+   */
+  maxValue?: number;
 }
 
 /**
