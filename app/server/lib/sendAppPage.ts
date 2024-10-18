@@ -297,11 +297,8 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
 
   const icon = maybeDoc?.options?.icon ?? new URL('img/opengraph-preview-image.png', staticBaseUrl).href;
   const escapedIcon = handlebars.Utils.escapeExpression(icon);
-  const iconSize = '100';
   metadataElements.push(`<meta name="thumbnail" content="${escapedIcon}">`);
   metadataElements.push(`<meta property="og:image" content="${escapedIcon}">`);
-  metadataElements.push(`<meta property="og:image:width" content="${iconSize}">`);
-  metadataElements.push(`<meta property="og:image:height" content="${iconSize}">`);
   metadataElements.push(`<meta name="twitter:image" content="${escapedIcon}">`);
 
   const maybeDocTitle = getDocName(config);
