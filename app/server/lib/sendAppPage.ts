@@ -288,7 +288,7 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   const maybeDoc = getDocFromConfig(config);
 
   metadataElements.push('<meta property="og:type" content="website">');
-  metadataElements.push('<meta name="twitter:card" name="summary_large_image">');
+  metadataElements.push('<meta name="twitter:card" content="summary_large_image">');
   const description = maybeDoc?.options?.description ?? translate(req, 'og-description');
   const escapedDescription = handlebars.Utils.escapeExpression(description);
   metadataElements.push(`<meta name="description" content="${escapedDescription}">`);
