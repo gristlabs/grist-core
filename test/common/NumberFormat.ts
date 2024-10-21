@@ -15,7 +15,7 @@ describe("NumberFormat", function() {
   const useGroupingAuto = (useGroupingAlways === 'always') ? 'auto' : true;
 
   it("should convert Grist options into Intr.NumberFormat", function() {
-    assert.include([true, 'always'], String(useGroupingAlways));
+    assert.include(['true', 'always'], String(useGroupingAlways));
 
     assert.ownInclude(buildNumberFormat({}, defaultDocSettings).resolvedOptions(), {
       minimumFractionDigits: 0,
