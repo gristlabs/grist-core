@@ -1,2 +1,8 @@
 {
+    "sendAppPage": {
+        "Loading": "Laden"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "Bitte überprüfen Sie Ihre E-Mail mit dem Identitätsanbieter und melden Sie sich erneut an."
+    }
 }

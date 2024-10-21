@@ -1084,6 +1084,16 @@ abstract class ObsRuleSet extends Disposable {
   public getCustomRules(): ObsRulePart[] {
     return this._body.get().filter(rule => !rule.isBuiltInOrEmpty());
   }
+
+  /**
+   * If the set applies to a special column, return its name.
+   */
+  public getSpecialColumn(): string|undefined {
+    if (this._ruleSet?.tableId === SPECIAL_RULES_TABLE_ID &&
+        this._ruleSet.colIds.length === 1) {
+      return this._ruleSet.colIds[0];
+    }
+  }
 }
 
 class ColumnObsRuleSet extends ObsRuleSet {
@@ -1635,6 +1645,14 @@ class ObsRulePart extends Disposable {
         !isEqual(use(this._permissions), this._rulePart?.permissions ?? emptyPerms)
       );
     });
+    // The formula may be invalid from the beginning. Make sure we show errors in this
+    // case.
+    const text = this._aclFormula.get();
+    if (text) {
+      this._setAclFormula(text, true).catch(e => {
+        console.error(e);
+      });
+    }
   }
 
   public getRulePart(): RuleRec {
@@ -1790,8 +1808,8 @@ class ObsRulePart extends Disposable {
     return this.isBuiltIn() && this._ruleSet.getFirstBuiltIn() !== this;
   }
 
-  private async _setAclFormula(text: string) {
-    if (text === this._aclFormula.get()) { return; }
+  private async _setAclFormula(text: string, initial: boolean = false) {
+    if (text === this._aclFormula.get() && !initial) { return; }
     this._aclFormula.set(text);
     this._checkPending.set(true);
     this._formulaProperties.set({});
@@ -1809,6 +1827,12 @@ class ObsRulePart extends Disposable {
   private _warnInvalidColIds(colIds?: string[]) {
     if (!colIds || !colIds.length) { return false; }
     const allValid = new Set(this._ruleSet.getValidColIds());
+    const specialColumn = this._ruleSet.getSpecialColumn();
+    if (specialColumn === 'SeedRule') {
+      // We allow seed rules to refer to columns without checking
+      // them (until the seed rules are used).
+      return false;
+    }
     const invalid = colIds.filter(c => !allValid.has(c));
     if (invalid.length > 0) {
       return `Invalid columns: ${invalid.join(', ')}`;

@@ -411,7 +411,11 @@
         "You are on your personal site. You also have access to the following sites:": "Вы находитесь на своем личном сайте. У вас также есть доступ к следующим сайтам:",
         "You may delete a workspace forever once it has no documents in it.": "Вы можете навсегда удалить рабочую область, если в ней нет документов.",
         "Trash": "Корзина",
-        "Document will be moved to Trash.": "Документ будет перемещен в Корзину."
+        "Document will be moved to Trash.": "Документ будет перемещен в Корзину.",
+        "Any documents created in this site will appear here.": "Все документы, созданные на этом сайте, будут отображаться здесь.",
+        "Create my first document": "Создаю свой первый документ",
+        "You have read-only access to this site. Currently there are no documents.": "У вас есть доступ к этому сайту только для чтения. На данный момент документов нет.",
+        "personal site": "персональный сайт"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Не удается создать тур по документу на основе данных в этом документе. Убедитесь, что существует таблица с именем GristDocTour со столбцами Title, Body, Placement и Location.",
@@ -559,7 +563,8 @@
         "Sign in": "Вход",
         "To use Grist, please either sign up or sign in.": "Для использования Grist, зарегистрируйтесь или войдите в систему.",
         "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Узнайте больше в {{helpCenterLink}}, или найдите специалиста с {{sproutsProgram}}.",
-        "Learn more in our {{helpCenterLink}}.": "Узнайте больше в нашем {{helpCenterLink}}."
+        "Learn more in our {{helpCenterLink}}.": "Узнайте больше в нашем {{helpCenterLink}}.",
+        "Only show documents": "Показывать только документы"
     },
     "HomeLeftPane": {
         "Import Document": "Импорт документа",
@@ -814,7 +819,8 @@
         "Switch Sites": "Переключить сайты"
     },
     "TopBar": {
-        "Manage Team": "Управление командой"
+        "Manage Team": "Управление командой",
+        "Manage team": "Управлять командой"
     },
     "TriggerFormulas": {
         "Any field": "Любое поле",
@@ -913,7 +919,9 @@
         "An unknown error occurred.": "Произошла неизвестная ошибка.",
         "Build your own form": "Создайте свою собственную форму",
         "Form not found": "Форма не найдена",
-        "Powered by": "Разработано"
+        "Powered by": "Разработано",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Не удалось войти в систему.{{separator}}Пожалуйста, повторите попытку или обратитесь в службу поддержки.",
+        "Sign-in failed{{suffix}}": "Не удалось выполнить вход в систему{{suffix}}"
     },
     "CellStyle": {
         "CELL STYLE": "СТИЛЬ ЯЧЕЙКИ",
@@ -1203,7 +1211,12 @@
         "Learn more": "Узнать больше",
         "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо.",
         "Example: {{example}}": "Пример: {{example}}",
-        "Filter displayed dropdown values with a condition.": "Отфильтровать выпадающие значения по условиям."
+        "Filter displayed dropdown values with a condition.": "Отфильтровать выпадающие значения по условиям.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Двусторонние ссылки в настоящее время не поддерживаются для столбцов формулы или триггерных формул",
+        "Community widgets are created and maintained by Grist community members.": "Виджеты сообщества создаются и поддерживаются участниками сообщества Grist.",
+        "Creates a reverse column in target table that can be edited from either end.": "Создает обратный столбец в целевой таблице, который можно редактировать с любого конца.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Это ограничение возникает, когда один конец двусторонней ссылки сконфигурирован как одиночная ссылка.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Это ограничение возникает, когда один столбец в двусторонней ссылке имеет ссылочный тип."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1688,5 +1701,61 @@
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Сохранить данные и удалить виджет. Таблица останется доступной в {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "Таблица {{tableName}} больше не будет видима",
         "raw data page": "Страница исходных данных"
+    },
+    "CustomWidgetGallery": {
+        "Cancel": "Отменить",
+        "Change Widget": "Изменить виджет",
+        "Choose Custom Widget": "Выберите Пользовательский виджет",
+        "Search": "Поиск",
+        "(Missing info)": "(Недостающая информация)",
+        "Add Widget": "Добавить виджет",
+        "Add Your Own Widget": "Добавьте Свой собственный виджет",
+        "Add a widget from outside this gallery.": "Добавьте виджет из-за пределов этой галереи.",
+        "Community Widget": "Виджет от сообщества",
+        "Custom URL": "Пользовательский URL-адрес",
+        "Developer:": "Разработчик:",
+        "Grist Widget": "Grist Виджет",
+        "Last updated:": "Последнее обновление:",
+        "Learn more about Custom Widgets": "Learn more about Custom Widgets",
+        "No matching widgets": "Нет подходящих виджетов",
+        "Widget URL": "URL виджета"
+    },
+    "HomeIntroCards": {
+        "Blank document": "Пустой документ",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Находите решения и изучайте больше ресурсов {{helpCenterLink}}",
+        "Tutorial": "Учебное пособие",
+        "3 minute video tour": "3-минутный видео-тур",
+        "Finish our basics tutorial": "Завершите наше учебное пособие по основам",
+        "Help center": "Справочный центр",
+        "Import file": "Импорт файла",
+        "Learn more {{webinarsLinks}}": "Изучить больше {{webinarsLinks}}",
+        "Start a new document": "Начать новый документ",
+        "Templates": "Шаблоны",
+        "Webinars": "Вебинары"
+    },
+    "ReverseReferenceConfig": {
+        "Delete two-way reference?": "Удалить двустороннюю ссылку?",
+        "Target table": "Целевая таблица",
+        "Column": "Столбец",
+        "Delete": "Удалить",
+        "Delete column {{column}} in table {{table}}?": "Удалить столбец {{column}} в таблице {{table}}?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Это обратная сторона ссылочного столбца. {{column}} в таблице {{table}}.",
+        "Table": "Таблица",
+        "Two-way Reference": "Двусторонняя Ссылка"
+    },
+    "SupportGristButton": {
+        "Help Center": "Справочный центр",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Спасибо! Ваше доверие и поддержка очень ценны. Отказаться в любое время от {{link}} в меню пользователя.",
+        "Admin Panel": "Панель администратора",
+        "Close": "Закрыть",
+        "Opt in to Telemetry": "Включите телеметрию",
+        "Opted In": "Включено",
+        "Support Grist": "Поддержать Grist"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Панель администратора"
+    },
+    "buildReassignModal": {
+        "Cancel": "Отмена"
     }
 }

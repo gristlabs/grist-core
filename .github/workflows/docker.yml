@@ -19,7 +19,7 @@ env:
 jobs:
   push_to_registry:
     name: Push Docker images to Docker Hub
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         image:

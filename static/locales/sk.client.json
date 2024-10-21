@@ -145,7 +145,8 @@
         "Clear cell": "Vymazať bunku",
         "Clear values": "Vyčistiť hodnoty",
         "Copy anchor link": "Kopírovať odkaz na kotvu",
-        "Delete {{count}} rows_one": "Odstrániť riadok"
+        "Delete {{count}} rows_one": "Odstrániť riadok",
+        "Copy with headers": "Kopírovať s hlavičkami"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Vytvoriť samostatné série pre každú hodnotu vybratého stĺpca.",
@@ -179,20 +180,28 @@
         "Add": "Pridať",
         "Enter Custom URL": "Zadať vlastnú adresu URL",
         "Full document access": "Úplný prístup k dokumentu",
-        "Learn more about custom widgets": "Prečítať si viac o vlastných widgetoch",
+        "Learn more about custom widgets": "Prečítať si viac o vlastných miniaplikáciách",
         "Open configuration": "Otvoriť konfiguráciu",
         "Pick a {{columnType}} column": "Vybrať stĺpec {{columnType}}",
-        "Select Custom Widget": "Vybrať Vlastný Widget",
+        "Select Custom Widget": "Vybrať Vlastnú Miniaplikáciu",
         "Pick a column": "Vybrať stĺpec",
         "Read selected table": "Prečítať vybranú tabuľku",
-        "Widget does not require any permissions.": "Widget nevyžaduje žiadne povolenia.",
-        "Widget needs to {{read}} the current table.": "Widget vyžaduje {{read}} aktuálnu tabuľku.",
-        "Widget needs {{fullAccess}} to this document.": "Widget vyžaduje {{fullAccess}} k tomuto dokumentu.",
+        "Widget does not require any permissions.": "Miniaplikácia nevyžaduje žiadne povolenia.",
+        "Widget needs to {{read}} the current table.": "Miniaplikácia vyžaduje {{read}} aktuálnu tabuľku.",
+        "Widget needs {{fullAccess}} to this document.": "Miniaplikácia vyžaduje {{fullAccess}} k tomuto dokumentu.",
         "No document access": "Bez prístupu k dokumentu",
         "Clear selection": "Vyčistiť výber",
         "No {{columnType}} columns in table.": "V tabuľke nie sú žiadne stĺpce {{columnType}}.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "stĺpce {{wrongTypeCount}} iné ako {{columnType}} sa nezobrazujú",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "stĺpec {{wrongTypeCount}} iný ako {{columnType}} sa nezobrazuje"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "stĺpec {{wrongTypeCount}} iný ako {{columnType}} sa nezobrazuje",
+        "Custom URL": "Vlastná URL",
+        "Developer:": "Vývojár:",
+        "Last updated:": "Posledná aktualizácia:",
+        "Missing description and author information.": "Chýba popis a informácie o autorovi.",
+        "ACCESS LEVEL": "ÚROVEŇ PRÍSTUPU",
+        "Accept": "Prijať",
+        "Reject": "Odmietnuť",
+        "Widget": "Miniaplikácia"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Táto tímová stránka je pozastavená. Dokumenty je možné čítať, ale nie upravovať."
@@ -269,7 +278,11 @@
         "Restore": "Obnoviť",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Nachádzate sa na stránke {{siteName}}. Máte tiež prístup k nasledujúcim stránkam:",
         "You may delete a workspace forever once it has no documents in it.": "Keď pracovný priestor neobsahuje žiadne dokumenty, môžete ho natrvalo odstrániť.",
-        "Delete {{name}}": "Odstrániť {{name}}"
+        "Delete {{name}}": "Odstrániť {{name}}",
+        "Create my first document": "Vytvoriť môj prvý dokument",
+        "personal site": "osobná stránka",
+        "Any documents created in this site will appear here.": "Všetky dokumenty vytvorené na tejto stránke sa zobrazia tu.",
+        "You have read-only access to this site. Currently there are no documents.": "Máte prístup len na čítanie tejto stránky. V súčasnosti neexistujú žiadne dokumenty."
     },
     "DocPageModel": {
         "Enter recovery mode": "Spustiť režim obnovenia",
@@ -518,7 +531,8 @@
         "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Viac informácií nájdete v našom {{helpCenterLink}} alebo nájdite odborníka prostredníctvom nášho {{sproutsProgram}}.",
         "Interested in using Grist outside of your team? Visit your free ": "Máte záujem používať Grist mimo váš tím? Navštívte svoje bezplatné ",
         "Sign up": "Prihlásiť sa",
-        "Learn more in our {{helpCenterLink}}.": "Zistiť viac v našom {{helpCenterLink}}."
+        "Learn more in our {{helpCenterLink}}.": "Zistiť viac v našom {{helpCenterLink}}.",
+        "Only show documents": "Dokumenty iba ukázať"
     },
     "Importer": {
         "Merge rows that match these fields:": "Zlúčiť riadky, ktoré zodpovedajú týmto poliam:",
@@ -755,7 +769,8 @@
         "TOOLS": "NÁSTROJE"
     },
     "TopBar": {
-        "Manage Team": "Riadiť Tím"
+        "Manage Team": "Riadiť Tím",
+        "Manage team": "Riadiť tím"
     },
     "TriggerFormulas": {
         "Any field": "Akékoľvek pole",
@@ -876,7 +891,9 @@
         "Account deleted{{suffix}}": "Účet odstránený {{suffix}}",
         "Your account has been deleted.": "Váš účet bol odstránený.",
         "An unknown error occurred.": "Vyskytla sa neznáma chyba.",
-        "Build your own form": "Vytvorte si vlastný formulár"
+        "Build your own form": "Vytvorte si vlastný formulár",
+        "Sign-in failed{{suffix}}": "Prihlásenie zlyhalo{{suffix}}",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Nepodarilo sa prihlásiť.{{separator}}Prosím skúste to znova alebo kontaktujte podporu."
     },
     "menus": {
         "Select fields": "Vybrať polia",
@@ -1025,12 +1042,12 @@
         "Nested Filtering": "Vnorené Filtrovanie",
         "Updates every 5 minutes.": "Aktualizácie každých 5 minút.",
         "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Pomocou ikony \\u{1D6BA} vytvorte súhrnné (alebo kontingenčné) tabuľky pre súčty alebo medzisúčty.",
-        "Custom Widgets": "Vlastná Miniaplikácia",
+        "Custom Widgets": "Vlastné Miniaplikácie",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Pomocou ikony 𝚺 vytvorte súhrnné (alebo kontingenčné) tabuľky pre súčty alebo medzisúčty.",
         "Anchor Links": "Odkaz na Kotvu",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Neviete nájsť správne stĺpce? Kliknite na „Zmeniť miniaplikáciu“ a vyberte tabuľku s údajmi udalostí.",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Neviete nájsť správne stĺpce? Kliknite na „Zmeniť Miniaplikáciu“ a vyberte tabuľku s údajmi udalostí.",
         "Example: {{example}}": "Príklad: {{example}}",
-        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Vytvárajte jednoduché formuláre priamo v Grist a zdieľajte ich jediným kliknutím pomocou nášho nového widgetu. {{learnMoreButton}}",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Vytvárajte jednoduché formuláre priamo v Grist a zdieľajte ich jediným kliknutím pomocou našej novej miniaplikácie. {{learnMoreButton}}",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Kliknutím na {{EyeHideIcon}} v každej bunke skryjete pole v tomto zobrazení bez toho, aby ste ho odstránili.",
         "Link your new widget to an existing widget on this page.": "Prepojte svoju novú miniaplikáciu s existujúcou miniaplikáciou na tejto stránke.",
         "Select the table containing the data to show.": "Vyberte tabuľku obsahujúcu údaje, ktoré chcete zobraziť.",
@@ -1077,7 +1094,14 @@
         "Forms are here!": "Formuláre sú tu!",
         "Learn more": "Naučiť sa viac",
         "Linking Widgets": "Prepojenie Miniaplikácií",
-        "The total size of all data in this document, excluding attachments.": "Celková veľkosť všetkých údajov v tomto dokumente okrem príloh."
+        "The total size of all data in this document, excluding attachments.": "Celková veľkosť všetkých údajov v tomto dokumente okrem príloh.",
+        "Community widgets are created and maintained by Grist community members.": "Miniaplikácie komunity vytvárajú a udržiavajú členovia komunity Grist.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Ak chcete povoliť viacero priradení, zmeňte typ stĺpca Referencie na Zoznam referencií.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Obojsmerné referencie nie sú v súčasnosti podporované pre stĺpce Formula alebo Trigger Formula",
+        "Creates a reverse column in target table that can be edited from either end.": "Vytvorí náprotivný stĺpec v cieľovej tabuľke, ktorý možno upravovať z oboch strán.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Toto obmedzenie nastáva, keď je jedna strana obojsmernej referencie nakonfigurovaná ako jedna referencia.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Toto obmedzenie nastáva, keď jeden stĺpec v obojsmernej referencii má typ referencie.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Ak chcete povoliť viacero priradení, zmeňte typ odkazovaného stĺpca na Referenčný zoznam."
     },
     "ColumnTitle": {
         "Add description": "Pridať popis",
@@ -1311,7 +1335,8 @@
         "Key to sign sessions with": "Kľúč na podpisovanie relácií",
         "Session Secret": "Tajomstvo Relácie",
         "Enable Grist Enterprise": "Povoliť Grist Enterprise",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "checking": "kontrola"
     },
     "TimingPage": {
         "Table ID": "ID Tabuľky",
@@ -1650,7 +1675,8 @@
         "Complete our basics tutorial": "Náš kompletný základný návod",
         "Complete the tutorial": "Dokončiť tutoriál",
         "Learn the basic of reference columns, linked widgets, column types, & cards.": "Naučiť sa základ referenčných stĺpcov, prepojených miniaplikácií, typov stĺpcov a kariet.",
-        "3 minute video tour": "3 minútová videoprehliadka"
+        "3 minute video tour": "3 minútová videoprehliadka",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Naučte sa základy referenčných stĺpcov, prepojených miniaplikácií, typov stĺpcov a kariet."
     },
     "OnboardingPage": {
         "Back": "Späť",
@@ -1677,9 +1703,91 @@
     },
     "ViewLayout": {
         "Delete": "Odstrániť",
-        "Delete data and this widget.": "Odstrániť dáta a tento widget.",
-        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Uchovať údaje a odstrániť widget. Tabuľka zostane dostupná v {{rawDataLink}}",
+        "Delete data and this widget.": "Odstrániť dáta a túto miniaplikáciu.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Uchovať údaje a odstrániť miniaplikáciu. Tabuľka zostane dostupná v {{rawDataLink}}",
         "raw data page": "stránka nespracovaných údajov",
         "Table {{tableName}} will no longer be visible": "Tabuľka {{tableName}} nebude dlho viditeľná"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Admin Panel"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Chýbajúce informácie)",
+        "Add Your Own Widget": "Pridať svoju vlastnú Miniaplikáciu",
+        "Add Widget": "Pridať Miniaplikáciu",
+        "Add a widget from outside this gallery.": "Pridajte miniaplikáciu mimo tejto galérie.",
+        "Cancel": "Zrušiť",
+        "Choose Custom Widget": "Zvoliť Vlastnú Miniaplikáciu",
+        "Community Widget": "Komunitná Miniaplikácia",
+        "Custom URL": "Vlastná URL",
+        "Developer:": "Vývojár:",
+        "Grist Widget": "Grist Miniaplikácia",
+        "Last updated:": "Posledná aktualizácia:",
+        "Learn more about Custom Widgets": "Ďalšie informácie o Vlastných Miniaplikáciách",
+        "No matching widgets": "Žiadne zodpovedajúce miniaplikácie",
+        "Search": "Vyhľadať",
+        "Widget URL": "URL Miniaplikácie",
+        "Change Widget": "Zmeniť Miniaplikáciu"
+    },
+    "SupportGristButton": {
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Ďakujem! Vaša dôvera a podpora je veľmi cenená. Odhlásiť sa kedykoľvek cez {{link}} v užívateľskom menu.",
+        "Opt in to Telemetry": "Pripojiť sa k Telemetrii",
+        "Admin Panel": "Administračný Panel",
+        "Close": "Zavrieť",
+        "Help Center": "Centrum Pomoci",
+        "Opted In": "Pripojený",
+        "Support Grist": "Podporiť Grist"
+    },
+    "markdown": {
+        "The toggle is **on**": "Prepínač je **on**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkcia Markdown\n *\n *      Môžete použiť _write_ [the usual Markdown](https://markdownguide.org) *vo vnútri*\n *      elementu Grainjs."
+            }
+        },
+        "The toggle is **off**": "Prepínač je **off**"
+    },
+    "HomeIntroCards": {
+        "Find solutions and explore more resources {{helpCenterLink}}": "Nájdite riešenia a preskúmajte viac zdrojov {{helpCenterLink}}",
+        "3 minute video tour": "3 minútová videoprehliadka",
+        "Blank document": "Prázdny dokument",
+        "Finish our basics tutorial": "Dokončiť náš základný tutorial",
+        "Help center": "Centrum pomoci",
+        "Import file": "Importovať súbor",
+        "Learn more {{webinarsLinks}}": "Dozvedieť sa viac {{webinarsLinks}}",
+        "Start a new document": "Spustiť nový dokument",
+        "Templates": "Šablóny",
+        "Tutorial": "Tutorial",
+        "Webinars": "Webináre"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkcia Markdown\n *\n *      Môžete použiť _write_ [the usual Markdown](https://markdownguide.org) *vo vnútri*\n *      elementu Grainjs."
+            }
+        },
+        "The toggle is **off**": "Prepínač je **off**",
+        "The toggle is **on**": "Prepínač je **on**"
+    },
+    "ReverseReferenceConfig": {
+        "Add two-way reference": "Pridať obojsmernú referenciu",
+        "Column": "Stĺpec",
+        "Delete": "Odstrániť",
+        "Delete column {{column}} in table {{table}}?": "Odstrániť stĺpec {{column}} v tabuľke {{table}}?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Je to rub referenčného stĺpca {{column}} v tabuľke {{table}}.",
+        "Table": "Tabuľka",
+        "Two-way Reference": "Obojsmerná Referencia",
+        "Delete two-way reference?": "Odstrániť obojsmernú referenciu?",
+        "Target table": "Cieľová tabuľka"
+    },
+    "buildReassignModal": {
+        "Cancel": "Zrušiť",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Každý záznam {{targetTable}} môže byť priradený iba jednému záznamu {{sourceTable}}.",
+        "Reassign": "Preradiť",
+        "Reassign to new {{sourceTable}} records.": "Preradiť do nových záznamov {{sourceTable}}.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Preradiť na {{sourceTable}} záznam {{sourceName}}.",
+        "Record already assigned_one": "Záznam je už priradený",
+        "Record already assigned_other": "Záznam je už priradený",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} záznam {{targetName}} je už priradený k {{sourceTable}} záznam {{oldSourceName}}."
     }
 }
