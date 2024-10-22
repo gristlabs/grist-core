@@ -701,7 +701,7 @@ export class GristDoc extends DisposableWithEvents {
 
                 const {recordCard, rowId} = popupOptions.hash;
                 if (recordCard) {
-                  if (!rowId || rowId === 'new') {
+                  if (!rowId) {
                     // Should be unreachable, but just to be sure (and to satisfy type checking)...
                     throw new Error('Unable to open Record Card: undefined row id');
                   }

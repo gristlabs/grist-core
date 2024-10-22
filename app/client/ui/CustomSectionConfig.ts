@@ -7,6 +7,7 @@ import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {columnsOrder} from 'app/client/models/entities/ColumnRec';
 import {
   cssDeveloperLink,
   cssWidgetMetadata,
@@ -75,11 +76,13 @@ class ColumnPicker extends Disposable {
       void use(refreshTrigger);
 
       const columnsAsOptions: IOption<number|null>[] = use(canBeMapped)
-                                              .map((col) => ({
-                                                value: col.getRowId(),
-                                                label: col.label.peek(),
-                                                icon: 'FieldColumn',
-                                              }));
+        .map((col) => ({
+          value: col.getRowId(),
+          label: col.label.peek() || '',
+          icon: 'FieldColumn' as const,
+        }))
+        .sort(columnsOrder);
+
 
       // For optional mappings, add 'Blank' option but only if the value is set.
       // This option will allow to clear the selection.
@@ -202,7 +205,8 @@ class ColumnListPicker extends Disposable {
           menu(() => {
             const wrongTypeCount = notMapped.get().length - typedColumns.get().length;
             return [
-              ...typedColumns.get()
+              ...typedColumns.get() // returns a temp table.
+              .sort(columnsOrder)
               .map((col) => menuItem(
                 () => this._addColumn(col),
                 col.label.peek(),

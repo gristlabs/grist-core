@@ -230,6 +230,24 @@ export function formatterForRec(
   return func(args);
 }
 
+type ColumnInfo = {label: string}|{label: ko.Observable<string>};
+function peekLabel(info: ColumnInfo): string {
+  return typeof info.label === 'string' ? info.label : info.label.peek();
+}
+
+/**
+ * Helper function to sort columns based on the label. Puts # columns at the end as this is
+ * treated as private columns.
+ */
+export function columnsOrder(a: ColumnInfo, b: ColumnInfo): number {
+  const left  = peekLabel(a)?.toLowerCase() || '';
+  const right = peekLabel(b)?.toLowerCase() || '';
+  if (left[0] === '#' && right[0] !== '#') { return 1; }
+  if (left[0] !== '#' && right[0] === '#') { return -1; }
+  return left.localeCompare(right);
+}
+
+
 /**
  * A chat message. Either send by the user or by the AI.
  */
