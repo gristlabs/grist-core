@@ -54,6 +54,12 @@ export class MarkdownTextBox extends NTextBox {
           return cssMarkdown(
             cssMarkdown.cls("-text-wrap", this.wrapping),
             dom.style("text-align", this.alignment),
+            dom.on("contextmenu", (ev) => {
+              // Disable Grist cell context menu on links.
+              if ((ev.target as HTMLElement).closest("a")) {
+                ev.stopPropagation();
+              }
+            }),
             (el) => {
               subscribeElem(el, value, () => renderMarkdown(el));
               // Picking up theme changes currently requires a re-render.
