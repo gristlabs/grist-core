@@ -752,7 +752,6 @@ describe('OIDCConfig', () => {
   });
 
   describe('getLogoutRedirectUrl', () => {
-    const REDIRECT_URL = new URL('http://localhost:8484/docs/signed-out');
     const STABLE_LOGOUT_URL = new URL('http://localhost:8484/signed-out');
     const URL_RETURNED_BY_CLIENT = 'http://localhost:8484/logout_url_from_issuer';
     const ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT = 'http://localhost:8484/logout';
@@ -800,11 +799,11 @@ describe('OIDCConfig', () => {
         const config = await OIDCConfigStubbed.buildWithStub(clientStub.asClient());
         const req = {
           headers: {
-            host: REDIRECT_URL.host
+            host: STABLE_LOGOUT_URL.host
           },
           session: 'session' in ctx ? ctx.session : FAKE_SESSION
         } as unknown as RequestWithLogin;
-        const url = await config.getLogoutRedirectUrl(req, REDIRECT_URL);
+        const url = await config.getLogoutRedirectUrl(req);
         assert.equal(url, ctx.expectedUrl);
         if (ctx.expectedLogoutParams) {
           assert.isTrue(clientStub.endSessionUrl.calledOnce);
