@@ -768,7 +768,7 @@ describe('OIDCConfig', () => {
         env: {
           GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'true',
         },
-        expectedUrl: REDIRECT_URL.href,
+        expectedUrl: STABLE_LOGOUT_URL.href,
       }, {
         itMsg: 'should use the GRIST_OIDC_IDP_END_SESSION_ENDPOINT when it is set',
         env: {
