@@ -17,6 +17,7 @@ import datetime
 import json
 import logging
 import math
+from collections import OrderedDict
 
 import six
 from six import integer_types
@@ -488,6 +489,16 @@ class ReferenceList(BaseColumnType):
     elif not value:
       # Represent an empty ReferenceList as None (also its default value). Formulas will see [].
       return None
+
+    # We can also have a list of RecordSet, in that case just flatten this list. This is used by
+    # formulas like `Table1.lookupRecords().OtherRecords' which returns a list of RecordSets.
+    elif isinstance(value, list) and all(
+         isinstance(rset, RecordSet) and rset._table.table_id == self.table_id for rset in value
+      ):
+      row_ids_flat_list = [rec.id for rset in value for rec in rset]
+      row_ids_unique_list = list(OrderedDict((el, None) for el in row_ids_flat_list).keys())
+      return row_ids_unique_list
+
     return [Reference.do_convert(val) for val in value]
 
   @classmethod
