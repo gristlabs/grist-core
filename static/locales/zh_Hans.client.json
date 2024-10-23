@@ -36,7 +36,8 @@
         "Remove column {{- colId }} from {{- tableId }} rules": "从 {{- tableId }} 规则中删除列 {{- colId }}",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "添加表规则时，自动添加规则以授予 OWNER 完全访问权限。",
         "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "允许编辑者编辑结构（例如修改和删除表、列、布局）和编写公式，无论读取限制如何，都可以访问所有数据。",
-        "This default should be changed if editors' access is to be limited. ": "如果要限制编辑者的访问权限，则应更改此默认值。 "
+        "This default should be changed if editors' access is to be limited. ": "如果要限制编辑者的访问权限，则应更改此默认值。 ",
+        "Add Table-wide Rule": "添加全表规则"
     },
     "AccountPage": {
         "API": "API",
@@ -212,7 +213,9 @@
         "Legacy": "遗产",
         "Personal Site": "个人网站",
         "Team Site": "团队网站",
-        "Grist Templates": "Grist 模板"
+        "Grist Templates": "Grist 模板",
+        "Billing Account": "计费账户",
+        "Manage Team": "管理团队"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "此团队网站已挂起。可以读取文档，但不能修改文档。"
