@@ -4,6 +4,7 @@ The data engine ties the code generated from the schema with the document data, 
 dependency tracking.
 """
 import itertools
+import json
 import logging
 import re
 import rlcompleter
@@ -345,6 +346,11 @@ class Engine(object):
 
     # Add the records.
     self.add_records(data.table_id, data.row_ids, columns)
+
+    if data.table_id == "_grist_DocInfo":
+      # when loading the DocInfo table, update the usercode module with the new doc settings.
+      # otherwise the custom code will not be loaded until the model is rebuilt due to other events.
+      self.rebuild_usercode()
 
   def load_done(self):
     """
@@ -1137,7 +1143,14 @@ class Engine(object):
     if not self._should_rebuild_usercode:
       return
 
-    self.gencode.make_module(self.schema)
+    doc_info = None
+    try:
+      doc_info = self.docmodel.doc_info.lookupOne()
+      doc_settings = json.loads(doc_info.documentSettings)
+    except (AttributeError, ValueError) as e:
+      doc_settings = {"customCode": "## ERROR: " +
+                      repr(e).replace("\n", "\n# ")}
+    self.gencode.make_module(self.schema, doc_settings)
 
     # Re-populate self.tables, reusing existing tables whenever possible.
     old_tables = self.tables

@@ -2,6 +2,7 @@
  * This module export a component for editing some document settings consisting of the timezone,
  * (new settings to be added here ...).
  */
+import * as AceEditor from 'app/client/components/AceEditor';
 import {cssPrimarySmallLink, cssSmallButton, cssSmallLinkButton} from 'app/client/components/Forms/styles';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ACIndexImpl} from 'app/client/lib/ACIndex';
@@ -41,6 +42,7 @@ export class DocSettingsPage extends Disposable {
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
+  private _customCode: KoSaveableObservable<string | undefined> = this._docInfo.documentSettingsJson.prop('customCode');
   private _engine: Computed<EngineCode|undefined> = Computed.create(this, (
     use => use(this._docInfo.documentSettingsJson.prop('engine'))
   ))
@@ -84,6 +86,16 @@ export class DocSettingsPage extends Disposable {
             dom.create(cssCurrencyPicker, fromKo(this._currency), (val) => this._currency.saveOnly(val),
               {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
           )
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'custom_code',
+          name: t('CustomCode'),
+          expandedContent: dom('div',
+            t('Custom python code to include when generating the model. Useful for defining custom functions.'),
+            AceEditor.create({ observable: this._customCode }).buildDom((aceObj: any) => {
+              aceObj.renderer.setShowGutter(true);
+            }),
+          ),
         }),
       ]),
 

@@ -99,6 +99,13 @@ class DocActions(object):
        ("recalcWhen" in columns or "recalcDeps" in columns)):
       self._engine.trigger_columns_changed()
 
+    # If we're updating documentSettings, rebuild usercode as the code might have changed.
+    if table_id == "_grist_DocInfo" and "documentSettings" in columns:
+      self._engine.rebuild_usercode()
+      for table in self._engine.tables.keys():
+        # I guess we invalidate everything, as we do not analyze in which regards the code may have changed :S
+        self._engine.invalidate_records(table)
+
   def ReplaceTableData(self, table_id, row_ids, column_values):
     old_data = self._engine.fetch_table(table_id, formulas=False)
     self._engine.out_actions.undo.append(actions.ReplaceTableData(*old_data))
