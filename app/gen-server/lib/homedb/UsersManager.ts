@@ -337,13 +337,19 @@ export class UsersManager {
     email: string,
     manager?: EntityManager
   ): Promise<User|undefined> {
-    const normalizedEmail = normalizeEmail(email);
-    return await (manager || this._connection).createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .leftJoinAndSelect('user.logins', 'logins')
-      .where('email = :email', {email: normalizedEmail})
+    return await this._buildExistingUsersByLoginRequest([email], manager)
       .getOne() || undefined;
+  }
+
+  /**
+   * Find some users by their emails. Don't create the users if they don't already exist.
+   */
+  public async getExistingUsersByLogin(
+    emails: string[],
+    manager?: EntityManager
+  ): Promise<User[]> {
+    return await this._buildExistingUsersByLoginRequest(emails, manager)
+      .getMany();
   }
 
   /**
@@ -471,7 +477,18 @@ export class UsersManager {
     });
   }
 
-  /**
+  /*
+   * This function is an alias of getUserByLogin
+   * Its purpose is to be more expressive and avoid confusion when reading code.
+   * FIXME :In the future it may be used to split getUserByLogin in two distinct functions
+   * One for creation
+   * the other for retrieving users in order to make it more maintainable
+   */
+  public async createUser(email: string, options: GetUserOptions = {}): Promise<User> {
+    return await this.getUserByLogin(email, options);
+  }
+
+  /*
    * Deletes a user from the database. For the moment, the only person with the right
    * to delete a user is the user themselves.
    * Users have logins, a personal org, and entries in the group_users table. All are
@@ -612,11 +629,16 @@ export class UsersManager {
       // Lookup emails
       const emailMap = delta.users;
       const emails = Object.keys(emailMap);
-      const emailUsers = await Promise.all(
-        emails.map(async email => await this.getUserByLogin(email, {manager: transaction}))
-      );
-      emails.forEach((email, i) => {
-        const userIdAffected = emailUsers[i]!.id;
+      const existingUsers = await this.getExistingUsersByLogin(emails, transaction);
+      const emailsExistingUsers = existingUsers.map(user => user.loginEmail);
+      const emailsUsersToCreate = emails.filter(email => !emailsExistingUsers.includes(email));
+      const emailUsers = new Map(existingUsers.map(user => [user.loginEmail, user]));
+      for (const email of emailsUsersToCreate) {
+        const user = await this.createUser(email, {manager: transaction});
+        emailUsers.set(user.loginEmail, user);
+      }
+      emails.forEach((email) => {
+        const userIdAffected = emailUsers.get(normalizeEmail(email))!.id;
         // Org-level sharing with everyone would allow serious spamming - forbid it.
         if (emailMap[email] !== null &&                    // allow removing anything
             userId !== this.getSupportUserId() &&          // allow support user latitude
@@ -765,5 +787,17 @@ export class UsersManager {
       users[key] = users[key] ? roles.getStrongestRole(users[key], role) : role;
     }
     delta.users = users;
+  }
+
+  private _buildExistingUsersByLoginRequest(
+    emails: string[],
+    manager?: EntityManager
+  ) {
+    const normalizedEmails = emails.map(email=> normalizeEmail(email));
+    return (manager || this._connection).createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .leftJoinAndSelect('user.logins', 'logins')
+      .where('email IN (:...emails)', {emails: normalizedEmails});
   }
 }

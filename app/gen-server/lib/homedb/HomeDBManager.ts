@@ -2016,30 +2016,28 @@ export class HomeDBManager extends EventEmitter {
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       let {userIdDelta} = analysis;
-      let wsQuery = this._workspace(scope, wsId, {
+      const options = {
         manager,
         markPermissions: analysis.permissionThreshold,
-      })
-      // Join the workspace's ACL rules and groups/users so we can edit them.
-      .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'workspace_groups')
-      .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_users')
-      // Join the workspace's org and org member groups so we know what should be inherited.
-      .leftJoinAndSelect('workspaces.org', 'org')
-      .leftJoinAndSelect('org.aclRules', 'org_acl_rules')
-      .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
-      .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
-      wsQuery = this._addFeatures(wsQuery, 'org');
+      };
+      let wsQuery = this._buildWorkspaceWithACLRules(scope, wsId, options);
       wsQuery = this._withAccess(wsQuery, userId, 'workspaces');
-      const queryResult = await verifyEntity(wsQuery);
-      if (queryResult.status !== 200) {
+      const wsQueryResult = await verifyEntity(wsQuery);
+
+      if (wsQueryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
-        return queryResult;
+        return wsQueryResult;
       }
-      this._failIfPowerfulAndChangingSelf(analysis, queryResult);
-      const ws: Workspace = queryResult.data;
+      this._failIfPowerfulAndChangingSelf(analysis, wsQueryResult);
+      const ws: Workspace = wsQueryResult.data;
+
+      const orgId = ws.org.id;
+      let orgQuery = this._buildOrgWithACLRulesQuery(scope, orgId, options);
+      orgQuery = this._addFeatures(orgQuery);
+      const orgQueryResult = await orgQuery.getRawAndEntities();
+      const org: Organization = orgQueryResult.entities[0];
       // Get all the non-guest groups on the org.
-      const orgGroups = getNonGuestGroups(ws.org);
+      const orgGroups = getNonGuestGroups(org);
       // Get all the non-guest groups to be updated by the delta.
       const groups = getNonGuestGroups(ws);
       if ('maxInheritedRole' in delta) {
@@ -2062,7 +2060,7 @@ export class HomeDBManager extends EventEmitter {
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
         const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
-        const features = ws.org.billingAccount.getFeatures();
+        const features = org.billingAccount.getFeatures();
         const limit = features.maxSharesPerWorkspace;
         if (limit !== undefined) {
           this._restrictShares(null, limit, removeRole(nonOrgMembersBefore),
@@ -2072,7 +2070,7 @@ export class HomeDBManager extends EventEmitter {
       await manager.save(groups);
       // If the users in workspace were changed, make a call to repair the guests in the org.
       if (userIdDelta) {
-        await this._repairOrgGuests(scope, ws.org.id, manager);
+        await this._repairOrgGuests(scope, orgId, manager);
         notifications.push(this._inviteNotification(userId, ws, userIdDelta, membersBefore));
       }
       return {
@@ -4652,9 +4650,8 @@ export class HomeDBManager extends EventEmitter {
     return { personal: true, public: !realAccess };
   }
 
-  private _getWorkspaceWithACLRules(scope: Scope, wsId: number, options: Partial<QueryOptions> = {}) {
-    const query = this._workspace(scope, wsId, {
-      markPermissions: Permissions.VIEW,
+  private _buildWorkspaceWithACLRules(scope: Scope, wsId: number, options: Partial<QueryOptions> = {}) {
+    return this._workspace(scope, wsId, {
       ...options
     })
     // Join the workspace's ACL rules (with 1st level groups/users listed).
@@ -4664,6 +4661,13 @@ export class HomeDBManager extends EventEmitter {
     .leftJoinAndSelect('workspace_groups.memberGroups', 'workspace_group_groups')
     .leftJoinAndSelect('workspace_group_users.logins', 'workspace_user_logins')
     .leftJoinAndSelect('workspaces.org', 'org');
+  }
+
+  private _getWorkspaceWithACLRules(scope: Scope, wsId: number, options: Partial<QueryOptions> = {}) {
+    const query = this._buildWorkspaceWithACLRules(scope, wsId, {
+      markPermissions: Permissions.VIEW,
+      ...options
+    });
     return verifyEntity(query);
   }
 
