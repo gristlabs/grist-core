@@ -1,27 +1,36 @@
-import {makeT} from 'app/client/lib/localization';
 import {loadUserManager} from 'app/client/lib/imports';
+import {makeT} from 'app/client/lib/localization';
 import {urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
-import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
-import * as roles from 'app/common/roles';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
-import {newDocMethods} from 'app/client/ui/NewDocMethods';
-import {createHelpTools, cssLeftPanel, cssScrollPane,
-  cssSectionHeader, cssTools} from 'app/client/ui/LeftPanelCommon';
-import {
-  cssLinkText, cssMenuTrigger, cssPageEntry, cssPageIcon, cssPageLink, cssSpacer
-} from 'app/client/ui/LeftPanelCommon';
-import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {confirmModal} from 'app/client/ui2018/modals';
+import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
-import {getGristConfig} from 'app/common/urlUtils';
-import {icon} from 'app/client/ui2018/icons';
 import {transientInput} from 'app/client/ui/transientInput';
+import {testId, theme} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
+import {
+  createHelpTools,
+  cssHomeTools,
+  cssLeftPanel,
+  cssLinkText,
+  cssMenuTrigger,
+  cssPageColorIcon,
+  cssPageEntry,
+  cssPageIcon,
+  cssPageLink,
+  cssScrollPane,
+  cssSectionHeader,
+  cssSectionHeaderText
+} from 'app/client/ui/LeftPanelCommon';
+import {newDocMethods} from 'app/client/ui/NewDocMethods';
+import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
+import {confirmModal} from 'app/client/ui2018/modals';
+import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import * as roles from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Workspace} from 'app/common/UserAPI';
+import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
 
 const t = makeT('HomeLeftPane');
 
@@ -55,7 +64,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       ),
       dom.maybe(use => !use(home.singleWorkspace), () =>
         cssSectionHeader(
-          t("Workspaces"),
+          cssSectionHeaderText(t("Workspaces")),
           // Give it a testId, because it's a good element to simulate "click-away" in tests.
           testId('dm-ws-label')
         ),
@@ -111,7 +120,11 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           }, testId('dm-ws-name-editor'))
         )
       )),
-      cssTools(
+      cssHomeTools(
+        cssSectionHeader(
+          cssPageColorIcon('GristLogo'),
+          cssSectionHeaderText(t("Grist Resources"))
+        ),
         cssPageEntry(
           dom.show(isFeatureEnabled("templates") && Boolean(templateOrg)),
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
@@ -127,7 +140,6 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
             testId('dm-trash'),
           ),
         ),
-        cssSpacer(),
         cssPageEntry(
           dom.show(isFeatureEnabled('tutorials') && Boolean(templateOrg && onboardingTutorialDocId)),
           cssPageLink(cssPageIcon('Bookmark'), cssLinkText(t("Tutorial")),
