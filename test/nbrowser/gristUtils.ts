@@ -264,6 +264,50 @@ export function getSection(sectionOrTitle: string|WebElement): WebElement|WebEle
 }
 
 /**
+ * Detaches section from the layout. Used for manipulating sections in the layout.
+ */
+export async function detachFromLayout(section?: string) {
+  section ??= await getActiveSectionTitle();
+    const handle = getSection(section).find('.viewsection_drag_indicator');
+    await driver.withActions((actions) => actions
+      .move({origin: handle}));
+    await driver.withActions((actions) => actions
+      .move({origin: handle, x : 1}) // This is needed to show the drag element.
+      .press());
+  await driver.withActions(actions => actions.move({origin: handle, ...{x : 10, y: 10}}));
+  return {
+    /** Moves this leave over another section + offset. */
+    async moveTo(otherSection: string, offset?: {x?: number, y?: number}) {
+      const otherSectionElement = await getSection(otherSection).find('.viewsection_drag_indicator');
+      await driver.withActions(actions => actions.move({
+        origin: otherSectionElement,
+        ...offset
+      }));
+      return this;
+    },
+    /** Releases the dragged section. */
+    async release() {
+      await driver.withActions(actions => actions.release());
+      return this;
+    },
+    /**
+     * Waits for Grist to save this section. The save is debounced, so we need to wait
+     * for couple of events.
+     */
+    async waitForSave() {
+      // Wait for the test class that indicates we have pending save.
+      await driver.findWait(".test-viewLayout-save-pending", 100);
+      // Then wait for that class to be removed (which means Grist has started saving editor).
+      await waitToPass(async () => {
+        assert.isFalse(await driver.find(".test-viewLayout-save-pending").isPresent());
+      });
+      // And wait for the server to process.
+      await waitForServer();
+    }
+  };
+}
+
+/**
  * Click into a section without disrupting cursor positions.
  */
 export async function selectSectionByTitle(title: string|RegExp) {
@@ -3916,10 +3960,15 @@ export async function waitForAccessDenied() {
 export async function deleteWidget(title: string) {
   const menu = await openSectionMenu('viewLayout', title);
   await menu.findContent('.test-cmd-name', 'Delete widget').click();
-  if (await driver.findWait('.test-option-deleteOnlyWidget', 100).isPresent()) {
-    await driver.find('.test-option-deleteOnlyWidget').click();
-    await driver.find('.test-modal-confirm').click();
-  }
+  await waitForServer();
+}
+
+export async function deleteWidgetWithData(title?: string) {
+  title ??= await getActiveSectionTitle();
+  const menu = await openSectionMenu('viewLayout', title);
+  await menu.findContent('.test-cmd-name', 'Delete widget').click();
+  await driver.findWait('.test-option-deleteOnlyWidget', 100).click();
+  await driver.find('.test-modal-confirm').click();
   await waitForServer();
 }
 

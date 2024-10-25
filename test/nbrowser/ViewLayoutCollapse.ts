@@ -15,7 +15,7 @@ describe("ViewLayoutCollapse", function() {
   let session: gu.Session;
 
   before(async () => {
-    session = await gu.session().login();
+    session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
   });
 
@@ -58,6 +58,8 @@ describe("ViewLayoutCollapse", function() {
 
     // Now on this page we saw two uncollapsed sections (make sure this is not the case).
     assert.deepEqual(await gu.getSectionTitles(), ['NotCollapsed']);
+    // And one collapsed.
+    assert.deepEqual(await collapsedSectionTitles(), ['Collapsed']);
   });
 
   it('fix:can delete root section', async function() {
@@ -395,7 +397,7 @@ describe("ViewLayoutCollapse", function() {
     assert.equal(cursor.col, 1);
     assert.equal(await gu.getActiveCell().getText(), 'angel');
     assert.equal(await gu.getActiveSectionTitle(), 'INVESTMENTS');
-    assert.match(await driver.getCurrentUrl(), /\/o\/docs\/[^/]+\/Investment-Research\/p\/1$/);
+    assert.match(await driver.getCurrentUrl(), /Investment-Research\/p\/1$/);
     await revert();
   });
 

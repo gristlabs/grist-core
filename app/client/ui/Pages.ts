@@ -1,5 +1,5 @@
 import {createGroup} from 'app/client/components/commands';
-import {duplicatePage} from 'app/client/components/duplicatePage';
+import {buildDuplicatePageDialog} from 'app/client/components/duplicatePage';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
@@ -73,8 +73,7 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
   const actions: PageActions = {
     onRename: (newName: string) => newName.length && pageName.saveOnly(newName),
     onRemove: () => removeView(activeDoc, viewId, pageName.peek()),
-    // TODO: duplicate should prompt user for confirmation
-    onDuplicate: () => duplicatePage(activeDoc, pageId),
+    onDuplicate: () => buildDuplicatePageDialog(activeDoc, pageId),
     // Can't remove last visible page
     isRemoveDisabled: () => activeDoc.docModel.visibleDocPages.peek().length <= 1,
     isReadonly

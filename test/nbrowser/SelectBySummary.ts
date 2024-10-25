@@ -178,7 +178,7 @@ describe('SelectBySummary', function() {
 
   it('should filter a summary table selected by a less detailed summary table', async function() {
     // Delete the Table1 widget so that we can hide the table in ACL without hiding the whole page.
-    await gu.deleteWidget('TABLE1');
+    await gu.deleteWidgetWithData('TABLE1');
 
     // Open the ACL UI
     await driver.find('.test-tools-access-rules').click();
