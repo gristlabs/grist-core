@@ -21,7 +21,6 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import assert from 'assert';
 import * as bluebird from 'bluebird';
-import * as fse from 'fs-extra';
 import * as _ from 'underscore';
 import * as util from 'util';
 import uuidv4 from "uuid/v4";
@@ -773,14 +772,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    *    checksum of the file's contents with the original extension.
    * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
    */
-  public findOrAttachFile(sourcePath: string, fileIdent: string): Promise<boolean> {
+  public findOrAttachFile(fileIdent: string, fileData: Buffer | undefined, ): Promise<boolean> {
     return this.execTransaction(db => {
       // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
       return db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent)
       // Only if this succeeded, do the work of reading the file and inserting its data.
-        .then(() => fse.readFile(sourcePath))
-        .then(data =>
-              db.run('UPDATE _gristsys_Files SET data=? WHERE ident=?', data, fileIdent))
+        .then(() =>
+              db.run('UPDATE _gristsys_Files SET data=? WHERE ident=?', fileData, fileIdent))
         .then(() => true)
       // If UNIQUE constraint failed, this ident must already exists, so return false.
         .catch(err => {

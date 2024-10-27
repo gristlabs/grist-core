@@ -95,7 +95,6 @@ import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {AuditEventProperties} from 'app/server/lib/AuditLogger';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
@@ -137,6 +136,7 @@ import tmp from 'tmp';
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
+import {AttachmentFileManager} from "./AttachmentFileManager";
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
 import {DocSession, makeExceptionalDocSession, OptDocSession} from './DocSession';
@@ -154,6 +154,7 @@ import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
 import zipObject = require('lodash/zipObject');
+import { readFile } from "fs-extra";
 
 bluebird.promisifyAll(tmp);
 
@@ -268,6 +269,7 @@ export class ActiveDoc extends EventEmitter {
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
   // Cache of which columns are attachment columns.
   private _attachmentColumns?: AttachmentColumns;
+  private _attachmentFileManager: AttachmentFileManager;
 
   // Client watching for 'product changed' event published by Billing to update usage
   private _redisSubscriber?: RedisClient;
@@ -283,7 +285,11 @@ export class ActiveDoc extends EventEmitter {
   private _doShutdown?: Promise<void>;
   private _intervals: Interval[] = [];
 
-  constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
+  constructor(
+    docManager: DocManager,
+    docName: string,
+    private _options?: ICreateActiveDocOptions,
+  ) {
     super();
     const {forkId, snapshotId} = parseUrlId(docName);
     this._isSnapshot = Boolean(snapshotId);
@@ -377,6 +383,8 @@ export class ActiveDoc extends EventEmitter {
       loadMetaTables: this._rawPyCall.bind(this, 'load_meta_tables'),
       loadTable: this._rawPyCall.bind(this, 'load_table'),
     });
+
+    this._attachmentFileManager = new AttachmentFileManager(this.docStorage);
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
     // corresponding to one process for pynbox, more for gvisor).
@@ -912,7 +920,7 @@ export class ActiveDoc extends EventEmitter {
         }
       }
     }
-    const data = await this.docStorage.getFileData(fileIdent);
+    const data = await this._attachmentFileManager.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
@@ -2347,13 +2355,11 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
-    const checksum = await checksumFile(fileData.absPath);
-    const fileIdent = checksum + fileData.ext;
-    const ret: boolean = await this.docStorage.findOrAttachFile(fileData.absPath, fileIdent);
-    this._log.info(docSession, "addAttachment: file %s (image %sx%s) %s", fileIdent,
-      dimensions.width, dimensions.height, ret ? "attached" : "already exists");
+    const addFileResult = await this._attachmentFileManager.addFile(fileData.ext, await readFile(fileData.absPath));
+    this._log.info(docSession, "addAttachment: file %s (image %sx%s) %s", addFileResult.fileIdent,
+      dimensions.width, dimensions.height, addFileResult.alreadyExisted ? "attached" : "already exists");
     return ['AddRecord', '_grist_Attachments', null, {
-      fileIdent,
+      fileIdent: addFileResult.fileIdent,
       fileName: fileData.origName,
       // We used to set fileType, but it's not easily available for native types. Since it's
       // also entirely unused, we just skip it until it becomes relevant.
