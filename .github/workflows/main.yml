@@ -21,8 +21,10 @@ jobs:
         node-version: [22.x]
         tests:
           - ':lint:python:client:common:smoke:stubs:'
-          - ':server-1-of-2:'
-          - ':server-2-of-2:'
+          - ':server-1-of-4:'
+          - ':server-2-of-4:'
+          - ':server-3-of-4:'
+          - ':server-4-of-4:'
           - ':nbrowser-^[A-D]:'
           - ':nbrowser-^[E-L]:'
           - ':nbrowser-^[M-N]:'
@@ -93,7 +95,7 @@ jobs:
         if: contains(matrix.tests, ':stubs:')
         run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:stubs
 
-      - name: Run server tests with minio and redis
+      - name: Run server tests with sqlite, minio and redis
         if: contains(matrix.tests, ':server-')
         run: |
           export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
@@ -107,6 +109,26 @@ jobs:
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
+
+      - name: Run server tests with postgresql, minio and redis
+        if: contains(matrix.tests, ':server-')
+        run: |
+          export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:server
+        env:
+          TESTS: ${{ matrix.tests }}
+          GRIST_DOCS_MINIO_ACCESS_KEY: administrator
+          GRIST_DOCS_MINIO_SECRET_KEY: administrator
+          TEST_REDIS_URL: "redis://localhost/11"
+          GRIST_DOCS_MINIO_USE_SSL: 0
+          GRIST_DOCS_MINIO_ENDPOINT: localhost
+          GRIST_DOCS_MINIO_PORT: 9000
+          GRIST_DOCS_MINIO_BUCKET: grist-docs-test
+          TYPEORM_TYPE: postgres
+          TYPEORM_HOST: localhost
+          TYPEORM_DATABASE: db_name
+          TYPEORM_USERNAME: db_user
+          TYPEORM_PASSWORD: db_password
 
       - name: Run main tests without minio and redis
         if: contains(matrix.tests, ':nbrowser-')
@@ -160,6 +182,20 @@ jobs:
           - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      postgresql:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: db_user
+          POSTGRES_PASSWORD: db_password
+          POSTGRES_DB: db_name
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U db_user"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
