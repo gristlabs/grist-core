@@ -16,7 +16,7 @@
  * first-failure for debugging and quick reruns.
  */
 import log from 'app/server/lib/log';
-import {addToRepl, assert, driver, enableDebugCapture, ITimeouts,
+import {addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
   Key, setOptionsModifyFunc, useServer} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server} from 'test/nbrowser/testServer';
@@ -43,6 +43,7 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
   // eslint-disable-next-line max-len
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
   chromeOpts.set('webSocketUrl', true);
+  chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
 
   chromeOpts.setUserPreferences({
     // Don't show popups to save passwords, which are shown when running against a deployment when
