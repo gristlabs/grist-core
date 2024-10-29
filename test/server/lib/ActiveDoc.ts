@@ -912,6 +912,7 @@ describe('ActiveDoc', async function() {
           ShareRef: null,
           UserID: 567,
           UserRef: 'randomString',
+          Type: null,
         }
       );
 
@@ -967,6 +968,7 @@ describe('ActiveDoc', async function() {
           Name: 'testUser',
           SessionID: 'u567',
           ShareRef: null,
+          Type: null,
           UserID: 567,
           UserRef: `randomString`,
           Residences: ['Residences', 4],
