@@ -502,6 +502,14 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
+   * @see UsersManager.prototype.getExistingUsersByLogin
+   * Find users by emails.
+   */
+  public async getExistingUsersByLogin(emails: string[], manager?: EntityManager): Promise<User[]> {
+    return await this._usersManager.getExistingUsersByLogin(emails, manager);
+  }
+
+  /**
    * Returns true if the given domain string is available, and false if it is not available.
    * NOTE that the endpoint only checks if the domain string is taken in the database, it does
    * not check whether the string contains invalid characters.

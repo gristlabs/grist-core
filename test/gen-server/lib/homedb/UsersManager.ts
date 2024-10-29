@@ -10,7 +10,7 @@ import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
-import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
+import { SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import { updateDb } from 'app/server/lib/dbUtils';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
 import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
@@ -653,6 +653,40 @@ describe('UsersManager', function () {
         const retrievedUser = await db.getExistingUserByLogin(nonExistingEmail);
 
         assert.isUndefined(retrievedUser);
+      });
+    });
+
+    describe('getExistingUsersByLogin()', function () {
+      it('should return existing users', async function () {
+        const emails = [PREVIEWER_EMAIL, EVERYONE_EMAIL];
+        const retrievedUsers = await db.getExistingUsersByLogin(emails);
+        assertExists(retrievedUsers);
+
+        assert.equal(retrievedUsers[0].id, db.getPreviewerUserId());
+        assert.equal(retrievedUsers[0].name, 'Preview');
+        assert.equal(retrievedUsers[1].id, db.getEveryoneUserId());
+        assert.equal(retrievedUsers[1].name, 'Everyone');
+      });
+
+      it('should normalize the passed users email', async function () {
+        const emails = [PREVIEWER_EMAIL.toUpperCase(), EVERYONE_EMAIL.toUpperCase()];
+        const retrievedUsers = await db.getExistingUsersByLogin(emails);
+
+        assert.isNotEmpty(retrievedUsers);
+      });
+
+      it('should return an empty array when no user is found', async function () {
+        const nonExistingEmails = ['i-dont-exist@getgrist.com', 'me-neither@getgrist.com'];
+        const retrievedUsers = await db.getExistingUsersByLogin(nonExistingEmails);
+
+        assert.isEmpty(retrievedUsers);
+      });
+
+      it('should return an empty array when no emails/logins are given', async function () {
+        const nonExistingEmails: string[] = [];
+        const retrievedUsers = await db.getExistingUsersByLogin(nonExistingEmails);
+
+        assert.isEmpty(retrievedUsers);
       });
     });
 
