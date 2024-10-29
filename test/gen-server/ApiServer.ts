@@ -2351,6 +2351,104 @@ describe('ApiServer', function() {
     // Assert that the response status is 404 because the templates org doesn't exist.
     assert.equal(resp.status, 404);
   });
+
+  describe('Service Accounts', function() {
+   let oldEnv: testUtils.EnvironmentSnapshot;
+
+    testUtils.setTmpLogLevel('error');
+
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_TEMPLATE_ORG = 'templates';
+      server = new TestServer(this);
+      homeUrl = await server.start(['home', 'docs']);
+      dbManager = server.dbManager;
+
+      chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
+      kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user.ref);
+      charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user.ref);
+
+      // Listen to user count updates and add them to an array.
+      dbManager.on('userChange', ({org, countBefore, countAfter}: UserChange) => {
+        if (countBefore === countAfter) { return; }
+        userCountUpdates[org.id] = userCountUpdates[org.id] || [];
+        userCountUpdates[org.id].push(countAfter);
+      });
+    });
+
+    afterEach(async function() {
+      oldEnv.restore();
+      // FIXME create the new method to delete services accounts
+      //const did = await dbManager.testGetId('Curiosity');
+      // await dbManager.deleteServices(did as string);
+    });
+
+    after(async function() {
+      await server.stop();
+    });
+
+    it('Endpoint POST /api/service-accounts is operational', async function() {
+
+    });
+
+    it('Endpoint POST /api/service-accounts returns 400 when missing parameter in request body', async function() {
+
+    });
+
+    it('Endpoint POST /api/service-accounts returns 400 on invalid endOfLife', async function() {
+
+    });
+
+    it('Endpoint GET /api/service-accounts is operational', async function() {
+
+    });
+
+    it("Endpoint GET /api/service-accounts returns 404 when user don't own any service account", async function() {
+
+    });
+
+    it('Endpoint GET /api/service-accounts/{saId} is operational', async function() {
+
+    });
+
+    it('Endpoint GET /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
+
+    });
+
+    it('Endpoint UPDATE /api/service-accounts/{saId} is operational', async function() {
+
+    });
+
+    it('Endpoint UPDATE /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
+
+    });
+
+    it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 on empty label', async function() {
+
+    });
+
+    // What are we doing about empty description ?
+
+    it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 on invalid endOfLife', async function() {
+
+    });
+
+    it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 if trying to update owner', async function() {
+
+    });
+
+    it('Endpoint DELETE /api/service-accounts/{saId} is operational', async function() {
+
+    });
+
+    it('Endpoint DELETE /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
+
+    });
+
+    // it('Endpoint UPDATE /api/service-accounts/{saId}/transfer-to/{userId}', async function() {
+
+    // });
+  });
 });
 
 
