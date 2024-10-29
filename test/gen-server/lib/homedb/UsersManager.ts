@@ -672,7 +672,7 @@ describe('UsersManager', function () {
         const emails = [PREVIEWER_EMAIL.toUpperCase(), EVERYONE_EMAIL.toUpperCase()];
         const retrievedUsers = await db.getExistingUsersByLogin(emails);
 
-        assert.isNotEmpty(retrievedUsers);
+        assert.lengthOf(retrievedUsers, 2);
       });
 
       it('should return an empty array when no user is found', async function () {
@@ -683,8 +683,8 @@ describe('UsersManager', function () {
       });
 
       it('should return an empty array when no emails/logins are given', async function () {
-        const nonExistingEmails: string[] = [];
-        const retrievedUsers = await db.getExistingUsersByLogin(nonExistingEmails);
+        const emptyEmailsList: string[] = [];
+        const retrievedUsers = await db.getExistingUsersByLogin(emptyEmailsList);
 
         assert.isEmpty(retrievedUsers);
       });
