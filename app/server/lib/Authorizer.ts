@@ -203,6 +203,12 @@ export async function addRequestUser(
       if (!user) {
         return res.status(401).send('Bad request: invalid API key');
       }
+      if (user.type === "service") {
+        const isAlive = Boolean(user.loginEmail && await dbManager.isAliveServiceAccount(user.loginEmail));
+        if (!isAlive) {
+          return res.status(401).send('Service Account has reached its end of life');
+        }
+      }
       if (user.id === dbManager.getAnonymousUserId()) {
         // We forbid the anonymous user to present an api key.  That saves us
         // having to think through the consequences of authorized access to the

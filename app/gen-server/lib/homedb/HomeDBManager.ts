@@ -18,6 +18,8 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
+import {StringUnion} from 'app/common/StringUnion';
+import {UserTypes} from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
   DocumentProperties,
@@ -52,6 +54,7 @@ import {
   Product
 } from 'app/gen-server/entity/Product';
 import {Secret} from 'app/gen-server/entity/Secret';
+import {ServiceAccount} from 'app/gen-server/entity/ServiceAccount';
 import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
@@ -64,6 +67,7 @@ import {
   DocumentAccessChanges,
   GetUserOptions,
   GroupWithMembersDescriptor,
+  HomeDBAuth,
   NonGuestGroup,
   OrgAccessChanges,
   PreviousAndCurrent,
@@ -74,6 +78,7 @@ import {
   WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
+import {ServiceAccountsManager} from 'app/gen-server/lib/homedb/ServiceAccountsManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
 import {applyPatch, maybePrepareStatement} from 'app/gen-server/lib/TypeORMPatches';
@@ -110,7 +115,6 @@ import {
   WhereExpressionBuilder
 } from 'typeorm';
 import {v4 as uuidv4} from 'uuid';
-
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -273,11 +277,13 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * HomeDBManager handles interaction between the ApiServer and the Home database,
  * encapsulating the typeorm logic.
  */
-export class HomeDBManager {
+export class HomeDBManager implements HomeDBAuth {
   public caches: HomeDBCaches|null;
-
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager(this._usersManager, this.runInTransaction.bind(this));
+  private _serviceAccountsManager = new ServiceAccountsManager(
+    this, this.runInTransaction.bind(this)
+  );
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -495,8 +501,8 @@ export class HomeDBManager {
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
-    return this._usersManager.getUserByLogin(email, options);
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserTypes = 'login'): Promise<User> {
+    return this._usersManager.getUserByLogin(email, options, type);
   }
 
   /**
@@ -3415,6 +3421,64 @@ export class HomeDBManager {
   public makeJsonArray(content: string): string { return makeJsonArray(this._dbType, content); }
   public readJson(selection: any) { return readJson(this._dbType, selection); }
 
+  // This method is implemented for test purpose only
+  // Using it outside of tests context will lead to partial db
+  // destruction
+  public async deleteAllServiceAccounts() {
+    return this._serviceAccountsManager.deleteAllServiceAccounts();
+  }
+
+  public async createServiceAccount(
+    ownerId: number,
+    label?: string,
+    description?: string,
+    endOfLife?: Date
+  ) {
+    return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
+  }
+
+  public async getAllServiceAccounts(ownerId: number) {
+    return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
+  }
+
+  public async getServiceAccount(serviceLogin: string) {
+    return this._serviceAccountsManager.getServiceAccount(serviceLogin);
+  }
+
+  public async updateServiceAccount(
+    serviceLogin: string, partial: Partial<ServiceAccount>, options: { expectedOwnerId?: number } = {}
+  ) {
+    return this._serviceAccountsManager.updateServiceAccount(serviceLogin, partial, options);
+  }
+
+  public async deleteServiceAccount(serviceLogin: string, options: { expectedOwnerId?: number } = {}){
+    return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, options);
+  }
+
+  public async regenerateServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.regenerateServiceAccountApiKey(serviceLogin, options);
+  }
+
+  public async revokeServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceLogin, options);
+  }
+
+  public async isAliveServiceAccount(serviceLogin: string) {
+    return this._serviceAccountsManager.isAliveServiceAccount(serviceLogin);
+  }
+
+  public async getApiKey(userId: number) {
+    return this._usersManager.getApiKey(userId);
+  }
+
+  public async createApiKey(userId: number, force: boolean, transaction?: EntityManager) {
+    return this._usersManager.createApiKey(userId, force, transaction);
+  }
+
+  public async deleteApiKey(userId: number, transaction?: EntityManager) {
+    return this._usersManager.deleteApiKey(userId, transaction);
+  }
+
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
     const {urlId: docId, userId} = scope;
     const docQb = this._doc(scope, {accessStyle: 'openNoPublic', manager});
@@ -3449,7 +3513,6 @@ export class HomeDBManager {
       users: [...foundUsers, ...notFoundUsers],
     };
   }
-
   private _installConfig(
     key: ConfigKey,
     { manager }: { manager?: EntityManager }
