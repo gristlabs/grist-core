@@ -12,6 +12,7 @@ import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
+import { UserTypes } from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
   DocumentProperties,
@@ -61,6 +62,7 @@ import {
   WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
+import { ServiceAccountsManager } from 'app/gen-server/lib/homedb/ServiceAccountsManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
@@ -94,9 +96,8 @@ import {
   ObjectLiteral,
   SelectQueryBuilder,
   WhereExpressionBuilder
-} from 'typeorm';
-import {v4 as uuidv4} from 'uuid';
-
+} from "typeorm";
+import {v4 as uuidv4} from "uuid";
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -271,6 +272,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
 export class HomeDBManager {
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
+  private _serviceAccountsManager = new ServiceAccountsManager(this, this.runInTransaction.bind(this));
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -480,8 +482,8 @@ export class HomeDBManager {
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
-    return this._usersManager.getUserByLogin(email, options);
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserTypes = 'login'): Promise<User> {
+    return this._usersManager.getUserByLogin(email, options, type);
   }
 
   /**
@@ -3282,6 +3284,62 @@ export class HomeDBManager {
   public makeJsonArray(content: string): string { return makeJsonArray(this._dbType, content); }
   public readJson(selection: any) { return readJson(this._dbType, selection); }
 
+  // This method is implemented for test purpose only
+  // Using it outside of tests context will lead to partial db
+  // destruction
+  public async deleteAllServiceAccounts() {
+    return this._serviceAccountsManager.deleteAllServiceAccounts();
+  }
+
+  public async createServiceAccount(
+    ownerId: number,
+    label?: string,
+    description?: string,
+    endOfLife?: string
+  ) {
+    return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
+  }
+
+  public async getAllServiceAccounts(ownerId: number) {
+    return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
+  }
+
+  public async getServiceAccount(serviceLogin: string, ownerId: number) {
+    return this._serviceAccountsManager.readServiceAccount(serviceLogin, ownerId);
+  }
+
+  public async updateServiceAccount(serviceLogin: string, ownerId: any, partial: any) {
+    return this._serviceAccountsManager.updateServiceAccount(serviceLogin, ownerId, partial);
+  }
+
+  public async deleteServiceAccount(serviceLogin: string, ownerId: number) {
+    return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, ownerId);
+  }
+
+  public async rotateServiceAccountApiKey(serviceLogin: string, ownerId: number) {
+    return this._serviceAccountsManager.rotateServiceAccountApiKey(serviceLogin, ownerId);
+  }
+
+  public async revokeServiceAccountApiKey(serviceLogin: string, ownerId: number) {
+    return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceLogin, ownerId);
+  }
+
+  public async isAliveServiceAccount(serviceLogin: string) {
+    return this._serviceAccountsManager.isAliveServiceAccount(serviceLogin);
+  }
+
+  public async getApiKey(userId: number) {
+    return this._usersManager.getApiKey(userId);
+  }
+
+  public async createApiKey(userId: number, force: boolean, transaction?: EntityManager) {
+    return this._usersManager.createApiKey(userId, force, transaction);
+  }
+
+  public async deleteApiKey(userId: number, transaction?: EntityManager) {
+    return this._usersManager.deleteApiKey(userId, transaction);
+  }
+
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
     const {urlId: docId, userId} = scope;
     const docQb = this._doc(scope, {accessStyle: 'openNoPublic', manager});
@@ -3316,7 +3374,6 @@ export class HomeDBManager {
       users: [...foundUsers, ...notFoundUsers],
     };
   }
-
   private _installConfig(
     key: ConfigKey,
     { manager }: { manager?: EntityManager }

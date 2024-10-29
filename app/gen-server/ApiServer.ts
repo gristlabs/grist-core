@@ -1,6 +1,5 @@
 import * as crypto from 'crypto';
 import * as express from 'express';
-import {EntityManager} from 'typeorm';
 import * as cookie from 'cookie';
 import {Request} from 'express';
 import pick from 'lodash/pick';
@@ -26,16 +25,10 @@ import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getTemplateOrg} from 'app/server/lib/gristSettings';
-import log from 'app/server/lib/log';
 import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
-
-// exposed for testing purposes
-export const Deps = {
-  apiKeyGenerator: () => crypto.randomBytes(20).toString('hex')
-};
 
 // Fetch the org this request was made for, or null if it isn't tied to a particular org.
 // Early middleware should have put the org in the request object for us.
@@ -487,14 +480,13 @@ export class ApiServer {
     // GET /api/profile/apikey
     // Get user's apiKey
     this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
-      const userId = getUserId(req);
-      const user = await User.findOne({where: {id: userId}});
-      if (user) {
-        // The null value is of no interest to the user, let's show empty string instead.
-        res.send(user.apiKey || '');
-        return;
+      try {
+        const userId = getUserId(req);
+        const apiKey = await this._dbManager.getApiKey(userId);
+        res.status(200).send(apiKey);
+      } catch (e){
+        throw new ApiError(e, 400);
       }
-      handleDeletedUser();
     }));
 
     // POST /api/profile/apikey
@@ -502,30 +494,22 @@ export class ApiServer {
     this._app.post('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const force = req.body ? req.body.force : false;
-      const manager = this._dbManager.connection.manager;
-      let user = await manager.findOne(User, {where: {id: userId}});
-      if (!user) { return handleDeletedUser(); }
-      if (!user.apiKey || force) {
-        user = await updateApiKeyWithRetry(manager, user);
-        this._logCreateUserAPIKeyEvents(req, user);
-        res.status(200).send(user.apiKey);
-      } else {
-        res.status(400).send({error: "An apikey is already set, use `{force: true}` to override it."});
-      }
+      const user = await this._dbManager.createApiKey(userId, force);
+      this._logCreateUserAPIKeyEvents(req, user);
+      res.status(200).send(user.apiKey);
     }));
 
     // DELETE /api/profile/apiKey
     // Delete apiKey
     this._app.delete('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      await this._dbManager.connection.transaction(async manager => {
-        const user = await manager.findOne(User, {where: {id: userId}});
-        if (!user) { return handleDeletedUser(); }
-        user.apiKey = null;
-        await manager.save(User, user);
+      try {
+        const user = await this._dbManager.deleteApiKey(userId);
         this._logDeleteUserAPIKeyEvents(req, user);
-      });
-      res.sendStatus(200);
+        res.sendStatus(200);
+      } catch (e) {
+        throw new ApiError(e, 400);
+      }
     }));
 
     // GET /api/session/access/active
@@ -598,6 +582,78 @@ export class ApiServer {
       const {data, ...result} = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
       if (data) { this._logDeleteUserEvents(req, data); }
       return sendReply(req, res, result);
+    }));
+
+    // POST /service-accounts/
+    // Creates a new service account attached to the user making the api call.
+    this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const {label, description, endOfLife} = req.body;
+      const apiKey: any = await this._dbManager.createServiceAccount(userId, label, description, endOfLife);
+      return sendOkReply(req, res, apiKey);
+    }));
+
+    // GET /service-accounts/
+    // Reads all service accounts attached to the user making the api call.
+    this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const data = await this._dbManager.getAllServiceAccounts(userId);
+        if (Array.isArray(data) && data.length === 0){
+          throw new ApiError('no service accounts', 404);
+        }
+        return sendOkReply(req, res, data);
+    }));
+
+    // GET /service-accounts/:said
+    // Reads one particular service account of the user making the api call.
+    this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const serviceAccountLogin = req.params.said;
+      const data = await this._dbManager.getServiceAccount(serviceAccountLogin, userId);
+      return sendOkReply(req, res, data);
+    }));
+
+    // PATCH /service-accounts/:said
+    // Modifies one particular service account of the user making the api call.
+    this._app.patch('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const serviceAccountLogin = req.params.said;
+      const partial = req.body;
+      const respData = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, partial);
+      if (respData.affected == 0){
+        throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+      }
+      return sendOkReply(req, res, respData);
+    }));
+
+    // DELETE /service-accounts/:said
+    // Deletes one particular service account of the user making the api call.
+    this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const serviceAccountLogin = req.params.said;
+      const respData = await this._dbManager.deleteServiceAccount(serviceAccountLogin, userId);
+      if (respData.affected == 0){
+        throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+      }
+      return sendOkReply(req, res, respData);
+    }));
+
+    // POST /service-accounts/:said/key/regenerate
+    // Regenerate and return the apikey of a given Service Account
+    this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const serviceAccountLogin = req.params.said;
+      const respData = await this._dbManager.rotateServiceAccountApiKey(serviceAccountLogin, userId);
+      return sendOkReply(req, res, respData);
+    }));
+
+    // POST /service-accounts/:said/key/revoke
+    // Revokes the apikey of a given Service Account by deleting it
+    this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const serviceAccountLogin = req.params.said;
+      const respData = await this._dbManager.revokeServiceAccountApiKey(serviceAccountLogin, userId);
+      return sendOkReply(req, res, respData);
     }));
   }
 
@@ -1056,28 +1112,4 @@ export class ApiServer {
  */
 function handleDeletedUser(): never {
   throw new ApiError("user not known", 401);
-}
-
-/**
- * Helper to update a user's apiKey. Update might fail because of the DB uniqueness constraint on
- * the apiKey (although it is very unlikely according to `crypto`), we retry until success. Fails
- * after 5 unsuccessful attempts.
- */
-async function updateApiKeyWithRetry(manager: EntityManager, user: User): Promise<User> {
-  const currentKey = user.apiKey;
-  for (let i = 0; i < 5; ++i) {
-    user.apiKey = Deps.apiKeyGenerator();
-    try {
-      // if new key is the same as the current, the db update won't fail so we check it here (very
-      // unlikely to happen but but still better to handle)
-      if (user.apiKey === currentKey) {
-        throw new Error('the new key is the same as the current key');
-      }
-      return await manager.save(User, user);
-    } catch (e) {
-      // swallow and retry
-      log.warn(`updateApiKeyWithRetry: failed attempt ${i}/5, %s`, e);
-    }
-  }
-  throw new Error('Could not generate a valid api key.');
 }

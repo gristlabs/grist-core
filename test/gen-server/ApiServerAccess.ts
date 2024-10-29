@@ -1,6 +1,6 @@
 import {Role} from 'app/common/roles';
 import {getRealAccess, PermissionData, PermissionDelta, UserAPI} from 'app/common/UserAPI';
-import {Deps} from 'app/gen-server/ApiServer';
+import {Deps} from 'app/gen-server/lib/homedb/UsersManager';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {User} from 'app/gen-server/entity/User';
