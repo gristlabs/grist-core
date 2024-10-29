@@ -440,6 +440,13 @@ TYPEORM_TYPE     | set to 'sqlite' or 'postgres'
 TYPEORM_USERNAME | username to connect as
 TYPEORM_EXTRA    | any other properties to pass to TypeORM in JSON format
 
+#### Docker-only variables:
+
+Variable | Purpose
+---------|--------
+GRIST_DOCKER_USER  | optional. When the container runs as the root user, this is the user the Grist services run as. Overrides the default.
+GRIST_DOCKER_GROUP | optional. When the container runs as the root user, this is the group the Grist services run as. Overrides the default.
+
 #### Testing:
 
 Variable | Purpose
