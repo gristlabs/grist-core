@@ -1,9 +1,11 @@
+import * as crypto from 'crypto';
 import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
 import { PERSONAL_FREE_PLAN } from 'app/common/Features';
 import { buildUrlId } from 'app/common/gristUrls';
 import { UserOrgPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
+import { UserTypes } from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
   EVERYONE_EMAIL,
@@ -29,6 +31,10 @@ import { Pref } from 'app/gen-server/entity/Pref';
 import flatten from 'lodash/flatten';
 import { EntityManager, IsNull, Not } from 'typeorm';
 import crypto from 'crypto';
+
+function apiKeyGenerator(): string {
+  return crypto.randomBytes(20).toString('hex');
+}
 
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -399,7 +405,7 @@ export class UsersManager {
    * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}) {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserTypes = 'login') {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
     return await this._runInTransaction(transaction, async manager => {
@@ -417,6 +423,7 @@ export class UsersManager {
         // Special users do not have first time user set so that they don't get redirected to the
         // welcome page.
         user.isFirstTimeUser = !NON_LOGIN_EMAILS.includes(normalizedEmail);
+        user.type = type;
         login = new Login();
         login.email = normalizedEmail;
         login.user = user;
@@ -910,6 +917,41 @@ export class UsersManager {
     if (ids.has(this.getEveryoneUserId()) && ids.has(this.getAnonymousUserId())) {
       throw new Error('this user cannot share with everyone and anonymous');
     }
+  }
+
+  public async getApiKey(userId: number){
+    const user = await User.findOne({where: {id: userId}});
+    if (user) {
+      // The null value is of no interest to the user, let's show empty string instead.
+      return user.apiKey || '';
+    }
+    throw new Error("user not known");
+  }
+
+  public async createApiKey(userId: number, force: boolean, transaction?: EntityManager): Promise<User> {
+    return await this._runInTransaction(transaction, async manager => {
+      const user = await manager.findOne(User, {where: {id: userId}});
+      if (!user) {
+        throw new ApiError("user not known", 404);
+      }
+      if (!user.apiKey || force) {
+        user.apiKey = apiKeyGenerator();
+        return await manager.save(User, user);
+      } else {
+        throw new ApiError("An apikey is already set, use `{force: true}` to override it.", 400);
+      }
+    });
+  }
+
+  public async deleteApiKey(userId: number, transaction?: EntityManager): Promise<User> {
+    return await this._runInTransaction(transaction, async manager => {
+      const user = await manager.findOne(User, {where: {id: userId}});
+      if (!user) {
+        throw new Error("user not known");
+      }
+      user.apiKey = null;
+      return await manager.save(User, user);
+    });
   }
 
   /**
