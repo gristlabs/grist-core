@@ -1216,7 +1216,9 @@
         "Community widgets are created and maintained by Grist community members.": "Виджеты сообщества создаются и поддерживаются участниками сообщества Grist.",
         "Creates a reverse column in target table that can be edited from either end.": "Создает обратный столбец в целевой таблице, который можно редактировать с любого конца.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Это ограничение возникает, когда один конец двусторонней ссылки сконфигурирован как одиночная ссылка.",
-        "This limitation occurs when one column in a two-way reference has the Reference type.": "Это ограничение возникает, когда один столбец в двусторонней ссылке имеет ссылочный тип."
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Это ограничение возникает, когда один столбец в двусторонней ссылке имеет ссылочный тип.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Чтобы разрешить несколько значений, измените тип столбца с типа «Ссылка» на «Ссылки списком».",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Чтобы разрешить несколько назначений, измените тип указанного столбца на Ссылки списком."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1581,7 +1583,9 @@
         "Session Secret": "Session Secret",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist подписывает файлы cookie сеанса пользователя секретным ключом. Установите этот ключ через переменную среды GRIST_SESSION_SECRET. Grist возвращается к жестко запрограммированному значению по умолчанию, если оно не установлено. Мы можем удалить это уведомление в будущем, поскольку идентификаторы сеансов, созданные начиная с версии 1.1.16, по своей сути криптографически безопасны.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist подписывает файлы cookie сеанса пользователя секретным ключом. Установите этот ключ через переменную среды GRIST_SESSION_SECRET. Grist возвращается к жестко запрограммированному значению по умолчанию, если оно не установлено. Мы можем удалить это уведомление в будущем, поскольку идентификаторы сеансов, созданные начиная с версии 1.1.16, по своей сути криптографически безопасны.",
-        "Enable Grist Enterprise": "Включить Grist Enterprise"
+        "Enable Grist Enterprise": "Включить Grist Enterprise",
+        "checking": "проверка",
+        "Enterprise": "Корпоративный"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1670,7 +1674,8 @@
         "Learn the basic of reference columns, linked widgets, column types, & cards.": "Изучите основы ссылочных столбцов, связанных виджетов, типов столбцов и карточек.",
         "3 minute video tour": "3-минутный видеотур",
         "Complete the tutorial": "Завершить обучение",
-        "Complete our basics tutorial": "Завершите наше базовое обучение"
+        "Complete our basics tutorial": "Завершите наше базовое обучение",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Изучите основы ссылочных столбцов, связанные виджеты, типы столбцов, & карточки."
     },
     "OnboardingPage": {
         "Go hands-on with the Grist Basics tutorial": "Познакомьтесь с учебным пособием по основам Grist",
@@ -1716,7 +1721,7 @@
         "Developer:": "Разработчик:",
         "Grist Widget": "Grist Виджет",
         "Last updated:": "Последнее обновление:",
-        "Learn more about Custom Widgets": "Learn more about Custom Widgets",
+        "Learn more about Custom Widgets": "Узнайте больше о пользовательских виджетах",
         "No matching widgets": "Нет подходящих виджетов",
         "Widget URL": "URL виджета"
     },
@@ -1741,7 +1746,8 @@
         "Delete column {{column}} in table {{table}}?": "Удалить столбец {{column}} в таблице {{table}}?",
         "It is the reverse of the reference column {{column}} in table {{table}}.": "Это обратная сторона ссылочного столбца. {{column}} в таблице {{table}}.",
         "Table": "Таблица",
-        "Two-way Reference": "Двусторонняя Ссылка"
+        "Two-way Reference": "Двусторонняя Ссылка",
+        "Add two-way reference": "Добавить двусторонную ссылку"
     },
     "SupportGristButton": {
         "Help Center": "Справочный центр",
@@ -1756,6 +1762,21 @@
         "Admin Panel": "Панель администратора"
     },
     "buildReassignModal": {
-        "Cancel": "Отмена"
+        "Cancel": "Отмена",
+        "Record already assigned_other": "Запись уже назначена",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Каждая {{targetTable}} запись может быть назначен только одной {{sourceTable}} записи.",
+        "Reassign": "Переназначить",
+        "Reassign to new {{sourceTable}} records.": "Переназначить на новые {{sourceTable}} записи.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Переназначить на {{sourceTable}} запись {{sourceName}}.",
+        "Record already assigned_one": "Запись уже назначена",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} запись {{targetName}} уже назначена {{sourceTable}} запись          {{oldSourceName}}."
+    },
+    "markdown": {
+        "The toggle is **off**": "Переключатель **Выключен**",
+        "The toggle is **on**": "Переключатель **Включен**"
+    },
+    "markdown.d": {
+        "The toggle is **off**": "Переключатель **Выключен**",
+        "The toggle is **on**": "Переключатель **Включен**"
     }
 }
