@@ -3,6 +3,14 @@ import {EmptyRecordView, RecordView} from 'app/common/RecordView';
 import {Role} from 'app/common/roles';
 
 /**
+ * User type to distinguish beetween Users and service accounts
+ */
+export enum UserTypes {
+  'login',
+  'service'
+}
+
+/**
  * Information about a user, including any user attributes.
  */
 export interface UserInfo {
@@ -19,6 +27,7 @@ export interface UserInfo {
    * via a share. Otherwise null.
    */
   ShareRef: number | null;
+  Type: UserTypes | null;
   [attributes: string]: unknown;
 }
 
@@ -37,6 +46,7 @@ export class User implements UserInfo {
   public SessionID: string | null = null;
   public UserRef: string | null = null;
   public ShareRef: number | null = null;
+  public Type: UserTypes | null = null;
   [attribute: string]: any;
 
   constructor(info: Record<string, unknown> = {}) {
