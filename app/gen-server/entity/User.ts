@@ -1,4 +1,5 @@
 import {UserOptions} from 'app/common/UserAPI';
+import {UserTypes} from 'app/common/User';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {makeId} from 'app/server/lib/idUtils';
 import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
@@ -63,6 +64,9 @@ export class User extends BaseEntity {
    */
   @Column({name: 'ref', type: String, nullable: false})
   public ref: string;
+
+  @Column({name: 'type', type: String, default: 'login'})
+  public type: UserTypes | null;
 
   @BeforeInsert()
   public async beforeInsert() {
