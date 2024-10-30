@@ -256,6 +256,7 @@ export class OpenAIAssistant implements Assistant {
         headers: {
           ...(this._apiKey ? {
             "Authorization": `Bearer ${this._apiKey}`,
+            "api-key": this._apiKey,
           } : undefined),
           "Content-Type": "application/json",
         },
