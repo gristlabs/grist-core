@@ -106,7 +106,7 @@ export class DocSettingsPage extends Disposable {
               docPageModel.type,
             ),
             cssSmallButton(t('Edit'),
-              dom.on('click', this._doSetDocumentType.bind(this, true)),
+              dom.on('click', this._buildDocumentTypeModal.bind(this, true)),
               testId('doctype-edit')
             )
           ),
@@ -313,7 +313,7 @@ export class DocSettingsPage extends Disposable {
     });
   }
 
-  private async _doSetDocumentType() {
+  private _buildDocumentTypeModal() {
     const docPageModel = this._gristDoc.docPageModel;
     modal((ctl, owner) => {
       this.onDispose(() => ctl.close());
