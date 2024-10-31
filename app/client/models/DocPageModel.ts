@@ -88,7 +88,7 @@ export interface DocPageModel {
   isTutorialTrunk: Observable<boolean>;
   isTutorialFork: Observable<boolean>;
   isTemplate: Observable<boolean>;
-  type: Observable<DocumentType|null>;
+  type: Observable<DocumentType>;
   importSources: ImportSource[];
 
   undoState: Observable<IUndoState|null>;          // See UndoStack for details.
