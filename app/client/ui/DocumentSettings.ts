@@ -41,7 +41,7 @@ import {
   styled
 } from 'grainjs';
 import * as moment from 'moment-timezone';
-import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType} from 'app/common/UserAPI';
+import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType, persistType} from 'app/common/UserAPI';
 
 const t = makeT('DocumentSettings');
 const testId = makeTestId('test-settings-');
@@ -425,16 +425,6 @@ export class DocSettingsPage extends Disposable {
       await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
     }
   }
-}
-
-function persistType(type: DocumentType, docId: string|undefined){
-  docId = docId?.split("~")[0];
-  return fetch(`/o/docs/api/docs/${docId}`, {
-    method: 'PATCH',
-    headers: {"Content-Type": "application/json"},
-    credentials: 'include',
-    body: JSON.stringify({type})
-  });
 }
 
 function getApiConsoleLink(docPageModel: DocPageModel) {
