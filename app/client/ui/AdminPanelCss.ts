@@ -106,7 +106,7 @@ const cssItem = styled('div', `
 
 const cssItemShort = styled('div', `
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   padding: 8px;
   margin: 0 -8px;
@@ -131,7 +131,7 @@ const cssItemShort = styled('div', `
 `);
 
 const cssItemName = styled('div', `
-  width: 230px;
+  width: 150px;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -159,7 +159,6 @@ const cssItemName = styled('div', `
 `);
 
 const cssItemDescription = styled('div', `
-  max-width: 250px;
   margin-right: auto;
   margin-bottom: -1px; /* aligns with the value */
 `);
