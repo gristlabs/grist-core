@@ -1159,7 +1159,7 @@ export async function hideBanners() {
 
 export async function assertBannerText(text: string | null) {
   if (text === null) {
-    assert.isFalse(await driver.find('.test-banner').isPresent());
+    assert.isFalse(await driver.find('.test-banner-element').isPresent());
   } else {
     assert.equal(await driver.findWait('.test-doc-usage-banner-text', 2000).getText(), text);
   }

@@ -12,6 +12,9 @@ describe('ColumnOps.ntest', function() {
     await gu.supportOldTimeyTestCode();
     await gu.useFixtureDoc(cleanup, "World.grist", true);
     await gu.toggleSidePanel('left', 'close');
+    // The banner appearing mid-test occasionally interferes with the rest of
+    // the tests (for some unknown reason), so wait for it to appear first.
+    await $('.test-banner-element').wait();
   });
 
   afterEach(function() {

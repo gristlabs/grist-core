@@ -11,7 +11,7 @@ describe('RecordCards', function() {
   const cleanup = setupTestSuite();
 
   before(async function() {
-    session = await gu.session().login();
+    session = await gu.session().teamSite.login();
     docId = (await session.tempDoc(cleanup, 'World-v39.grist')).id;
     api = session.createHomeApi();
     await gu.openPage('Country');
