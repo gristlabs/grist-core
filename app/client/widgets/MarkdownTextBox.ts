@@ -140,10 +140,10 @@ const cssMarkdown = styled('div', `
   & code {
     padding: .2em .4em;
     margin: 0;
-    white-space: nowrap;
+    white-space: pre;
   }
   &-text-wrap code {
-    white-space: break-spaces;
+    white-space: pre-wrap;
   }
   & pre {
     padding: 16px;
@@ -168,9 +168,6 @@ const cssMarkdown = styled('div', `
     margin: 0;
     padding: 0;
   }
-  &-text-wrap pre > code {
-    white-space: normal;
-  }
   & pre .ace-chrome, & pre .ace-dracula {
     background: ${theme.markdownCellLightBg} !important;
   }
@@ -178,7 +175,10 @@ const cssMarkdown = styled('div', `
     background: none;
   }
   & .ace_static_highlight {
-    white-space: nowrap;
+    white-space: pre;
+  }
+  &-text-wrap .ace_static_highlight {
+    white-space: pre-wrap;
   }
   & ul, & ol {
     padding-left: 2em;
