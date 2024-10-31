@@ -135,6 +135,16 @@ export const DOCTYPE_TUTORIAL = 'tutorial';
 // null stands for normal document type, the one set by default at document creation.
 export type DocumentType = 'template'|'tutorial'|null;
 
+export function persistType(type: DocumentType, docId: string|undefined){
+  docId = docId?.split("~")[0];
+  return fetch(`/o/docs/api/docs/${docId}`, {
+    method: 'PATCH',
+    headers: {"Content-Type": "application/json"},
+    credentials: 'include',
+    body: JSON.stringify({type})
+  });
+}
+
 // Non-core options for a document.
 // "Non-core" means bundled into a single options column in the database.
 // TODO: consider smoothing over this distinction in the API.
