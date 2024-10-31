@@ -25,8 +25,6 @@ export const cssLabel = styled('label', `
   margin-bottom: 0px;
   flex-shrink: 0;
 
-  align-items: center;
-
   outline: none;
   user-select: none;
 
@@ -108,7 +106,6 @@ export const cssCheckboxCircle = styled(cssCheckboxSquare, `
 `);
 
 export const cssLabelText = styled('span', `
-  margin-left: 16px;
   color: ${theme.text};
   font-weight: initial;   /* negate bootstrap */
   overflow: hidden;
@@ -215,11 +212,10 @@ export function toggle(value: Observable<boolean|null>, ...domArgs: DomElementAr
 // checkbox doesn't support two-way binding.
 const cssBlockCheckbox = styled('div', `
   display: flex;
-  padding: 16px;
+  padding: 10px 8px;
   border: 1px solid ${theme.controlSecondaryDisabledFg};
   border-radius: 3px;
   cursor: pointer;
-
   & input::before, & input::after  {
     top: unset;
     left: unset;
@@ -229,20 +225,9 @@ const cssBlockCheckbox = styled('div', `
   }
   &-block {
     pointer-events: none;
-    border-color: ${theme.controlFg};
-    border-width: 2px;
   }
   &-block a {
     pointer-events: all;
-  }
-
-  & input:checked::before, & input:disabled::before, & input:indeterminate::before {
-    background-color: ${theme.checkboxBg};
-  }
-
-  & input:checked::after, & input:indeterminate::after {
-    -webkit-mask-image: var(--icon-RadioButtonInnerCircle);
-    background-color: ${theme.checkboxSelectedFg};
   }
 `);
 
