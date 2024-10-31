@@ -7,6 +7,7 @@ import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
+import {Deps} from 'app/server/lib/ActiveDoc';
 import {
   applyQueryParameters,
   docApiUsagePeriods,
@@ -29,6 +30,7 @@ import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import {createClient, RedisClient} from 'redis';
+import * as sinon from 'sinon';
 import {configForUser} from 'test/gen-server/testUtils';
 import {serveSomething, Serving} from 'test/server/customUtil';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
@@ -39,7 +41,7 @@ import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
-import { getDatabase } from 'test/testUtils';
+import {getDatabase} from 'test/testUtils';
 import {testDailyApiLimitFeatures} from 'test/gen-server/seed';
 
 // some doc ids
@@ -80,9 +82,11 @@ describe('DocApi', function () {
 
   this.timeout(30000);
   testUtils.setTmpLogLevel('error');
+  const sandbox = sinon.createSandbox();
   let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function () {
+    sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(30);
     oldEnv = new testUtils.EnvironmentSnapshot();
 
     await flushAllRedis();
@@ -100,6 +104,7 @@ describe('DocApi', function () {
   });
 
   after(() => {
+    sandbox.restore();
     oldEnv.restore();
   });
 

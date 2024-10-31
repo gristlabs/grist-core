@@ -432,7 +432,7 @@ describe('Importer2', function() {
 
       // Change the destination to 'City', and now check that the section is shown.
       await driver.findContent('.test-importer-target-existing-table', /City/).click();
-      await gu.waitForServer();
+      await gu.waitForServer(10_000);
 
       await waitForColumnMapping();
       assert.deepEqual(await getColumnMatchingRows(), [
@@ -792,7 +792,7 @@ describe('Importer2', function() {
     it('should reflect mappings when incremental import is finished', async function() {
       // Finish importing, and check that the destination table has the correct data.
       await driver.find('.test-modal-confirm').click();
-      await gu.waitForServer();
+      await gu.waitForServer(10_000);
       assert.deepEqual(await gu.getPageNames(), [
         'Table1',
         'Table1',

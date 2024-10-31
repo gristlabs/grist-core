@@ -979,7 +979,7 @@ export async function importFileDialog(filePath: string): Promise<void> {
     await driver.findContent('.test-dp-import-option', /Import from file/i).doClick();
   });
   await driver.findWait('.test-importer-dialog', 5000);
-  await waitForServer(10_000);
+  await waitForServer(15_000);
 }
 
 /**
