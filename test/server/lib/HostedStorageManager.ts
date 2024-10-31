@@ -33,7 +33,7 @@ import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
 import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
-import uuidv4 from "uuid/v4";
+import {v4 as uuidv4} from 'uuid';
 
 bluebird.promisifyAll(RedisClient.prototype);
 

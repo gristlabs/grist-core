@@ -1173,12 +1173,10 @@
   resolved "https://registry.npmjs.org/@types/underscore/-/underscore-1.11.0.tgz"
   integrity sha512-ipNAQLgRnG0EWN1cTtfdVHp5AyTW/PAMJ1PxLN4bAKSHbusSZbj48mIHiydQpN7GgQrYqwfnvZ573OVfJm5Nzg==
 
-"@types/uuid@3.4.4":
-  version "3.4.4"
-  resolved "https://registry.npmjs.org/@types/uuid/-/uuid-3.4.4.tgz"
-  integrity sha512-tPIgT0GUmdJQNSHxp0X2jnpQfBSTfGxUMc/2CXBU2mnyTFVYVa2ojpoQ74w0U2yn2vw3jnC640+77lkFFpdVDw==
-  dependencies:
-    "@types/node" "*"
+"@types/uuid@10.0.0":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-10.0.0.tgz#e9c07fe50da0f53dc24970cca94d619ff03f6f6d"
+  integrity sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==
 
 "@types/which@2.0.1":
   version "2.0.1"
@@ -7523,6 +7521,11 @@ side-channel@^1.0.6:
     get-intrinsic "^1.2.4"
     object-inspect "^1.13.1"
 
+siginfo@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/siginfo/-/siginfo-2.0.0.tgz#32e76c70b79724e3bb567cb9d543eb858ccfaf30"
+  integrity sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==
+
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.3"
   resolved "https://registry.npmjs.org/signal-exit/-/signal-exit-3.0.3.tgz"
@@ -8433,10 +8436,10 @@ utils-merge@1.0.1:
   resolved "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
-uuid@3.3.2:
-  version "3.3.2"
-  resolved "https://registry.npmjs.org/uuid/-/uuid-3.3.2.tgz"
-  integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
+uuid@10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-10.0.0.tgz#5a95aa454e6e002725c79055fd42aaba30ca6294"
+  integrity sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==
 
 uuid@^3.3.2:
   version "3.4.0"
@@ -8681,11 +8684,12 @@ which@^2.0.1, which@^2.0.2:
   dependencies:
     isexe "^2.0.0"
 
-why-is-node-running@2.0.3:
-  version "2.0.3"
-  resolved "https://registry.npmjs.org/why-is-node-running/-/why-is-node-running-2.0.3.tgz"
-  integrity sha512-XmzbFN2T859avcs5qAsiiK1iu0nUpSUXRgiGsoHPcNijxhIlp1bPQWQk6ANUljDWqBtAbIR2jF1HxR0y2l2kCA==
+why-is-node-running@2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/why-is-node-running/-/why-is-node-running-2.2.2.tgz#4185b2b4699117819e7154594271e7e344c9973e"
+  integrity sha512-6tSwToZxTOcotxHeA+qGCq1mVzKR3CwcJGmVcY+QE8SHy6TnpFnh8PAvPNHYr7EcuVeG0QSMxtYCuO1ta/G/oA==
   dependencies:
+    siginfo "^2.0.0"
     stackback "0.0.2"
 
 wide-align@^1.1.2, wide-align@^1.1.5:

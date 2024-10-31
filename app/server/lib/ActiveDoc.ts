@@ -36,7 +36,6 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
-import {AuditEventName} from 'app/common/AuditEvent';
 import {WebhookMessageType} from 'app/common/CommTypes';
 import {
   BulkAddRecord,
@@ -93,6 +92,7 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
+import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {AuditEventProperties} from 'app/server/lib/AuditLogger';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
@@ -225,6 +225,7 @@ export class ActiveDoc extends EventEmitter {
     };
   }
 
+  public readonly doc: Document|undefined = this._options?.doc;
   public readonly docStorage: DocStorage;
   public readonly docPluginManager: DocPluginManager|null;
   public readonly docClients: DocClients;               // Only exposed for Sharing.ts
@@ -234,14 +235,13 @@ export class ActiveDoc extends EventEmitter {
   public isTimingOn = false;
 
   protected _actionHistory: ActionHistory;
-  protected _docManager: DocManager;
-  protected _docName: string;
   protected _sharing: Sharing;
   // This lock is used to avoid reading sandbox state while it is being modified but before
   // the result has been confirmed to pass granular access rules (which may depend on the
   // result).
   protected _modificationLock: Mutex = new Mutex();
 
+  private readonly _server: GristServer = this._docManager.gristServer;
   private _log = new LogMethods('ActiveDoc ', (s: OptDocSession | null) => this.getLogMeta(s));
   private _triggers: DocTriggers;
   private _requests: DocRequests;
@@ -259,7 +259,6 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
   private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
-  private _doc: Document|undefined;
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
   private _gracePeriodStart: Date|null = null;
@@ -283,9 +282,13 @@ export class ActiveDoc extends EventEmitter {
   private _doShutdown?: Promise<void>;
   private _intervals: Interval[] = [];
 
-  constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
+  constructor(
+    private readonly _docManager: DocManager,
+    private _docName: string,
+    private _options?: ICreateActiveDocOptions
+  ) {
     super();
-    const {forkId, snapshotId} = parseUrlId(docName);
+    const { forkId, snapshotId } = parseUrlId(_docName);
     this._isSnapshot = Boolean(snapshotId);
     this._isForkOrSnapshot = Boolean(forkId || snapshotId);
     if (!this._isSnapshot) {
@@ -326,8 +329,7 @@ export class ActiveDoc extends EventEmitter {
     }
     if (_options?.safeMode) { this._recoveryMode = true; }
     if (_options?.doc) {
-      this._doc = _options.doc;
-      const {gracePeriodStart, workspace, usage} = this._doc;
+      const { gracePeriodStart, workspace, usage } = _options.doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
       this._gracePeriodStart = gracePeriodStart;
@@ -342,6 +344,13 @@ export class ActiveDoc extends EventEmitter {
           // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
           this._log.debug(null, 'reload after product change');
           await this.reloadDoc();
+        });
+        this._redisSubscriber.on("error", async (error) => {
+          this._log.error(
+            null,
+            `encountered error while subscribed to channel ${channel}`,
+            error
+          );
         });
       }
 
@@ -361,16 +370,19 @@ export class ActiveDoc extends EventEmitter {
         this._docUsage = usage;
       }
     }
-    this._docManager = docManager;
-    this._docName = docName;
-    this.docStorage = new DocStorage(docManager.storageManager, docName);
+    this.docStorage = new DocStorage(_docManager.storageManager, _docName);
     this.docClients = new DocClients(this);
     this._triggers = new DocTriggers(this);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
-    this.docPluginManager = docManager.pluginManager ?
-      new DocPluginManager(docManager.pluginManager.getPlugins(),
-                           docManager.pluginManager.appRoot!, this, this._docManager.gristServer) : null;
+    this.docPluginManager = _docManager.pluginManager
+      ? new DocPluginManager(
+          _docManager.pluginManager.getPlugins(),
+          _docManager.pluginManager.appRoot!,
+          this,
+          this._server
+        )
+      : null;
     this._tableMetadataLoader = new TableMetadataLoader({
       decodeBuffer: this.docStorage.decodeMarshalledData.bind(this.docStorage),
       fetchTable: this.docStorage.fetchTable.bind(this.docStorage),
@@ -1435,12 +1447,14 @@ export class ActiveDoc extends EventEmitter {
     // To actually create the fork, we call an endpoint.  This is so the fork
     // can be associated with an arbitrary doc worker, rather than tied to the
     // same worker as the trunk.  We use a Permit for authorization.
-    const permitStore = this._docManager.gristServer.getPermitStore();
+    const permitStore = this._server.getPermitStore();
     const permitKey = await permitStore.setPermit({docId: forkIds.docId,
                                                    otherDocId: this.docName});
     try {
-      const url = await this._docManager.gristServer.getHomeUrlByDocId(
-        forkIds.docId, `/api/docs/${forkIds.docId}/create-fork`);
+      const url = await this._server.getHomeUrlByDocId(
+        forkIds.docId,
+        `/api/docs/${forkIds.docId}/create-fork`
+      );
       const resp = await fetch(url, {
         method: 'POST',
         body: JSON.stringify({ srcDocId: this.docName }),
@@ -1454,7 +1468,7 @@ export class ActiveDoc extends EventEmitter {
       }
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
-      this._logForkDocumentEvents(docSession, {originalDocument: doc, forkIds});
+      this._logForkDocumentEvents(docSession, { document: doc, fork: forkIds });
     } finally {
       await permitStore.removePermit(permitKey);
     }
@@ -1463,7 +1477,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async getAccessToken(docSession: OptDocSession, options: AccessTokenOptions): Promise<AccessTokenResult> {
-    const tokens = this._docManager.gristServer.getAccessTokens();
+    const tokens = this._server.getAccessTokens();
     const userId = getUserId(docSession);
     const docId = this.docName;
     const access = getDocSessionAccess(docSession);
@@ -1858,11 +1872,16 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
-  public logAuditEvent<Name extends AuditEventName>(
+  public logAuditEvent<Action extends AuditEventAction>(
     requestOrSession: RequestOrSession,
-    properties: AuditEventProperties<Name>
+    properties: AuditEventProperties<Action>
   ) {
-    this._docManager.gristServer.getAuditLogger().logEvent(requestOrSession, properties);
+    this._server
+      .getAuditLogger()
+      .logEvent(
+        requestOrSession,
+        merge(this._getAuditEventProperties<Action>(), properties)
+      );
   }
 
   public logTelemetryEvent(
@@ -2547,7 +2566,7 @@ export class ActiveDoc extends EventEmitter {
     this.logTelemetryEvent(docSession, 'documentUsage', {
       limited: {
         triggeredBy,
-        isPublic: ((this._doc as unknown) as APIDocument)?.public ?? false,
+        isPublic: (this.doc as unknown as APIDocument)?.public ?? false,
         rowCount: this._docUsage?.rowCount?.total,
         dataSizeBytes: this._docUsage?.dataSizeBytes,
         attachmentsSize: this._docUsage?.attachmentsSizeBytes,
@@ -2746,6 +2765,15 @@ export class ActiveDoc extends EventEmitter {
     this._logDocMetrics(docSession, 'docOpen');
   }
 
+  private _getAuditEventProperties<Action extends AuditEventAction>(): Partial<AuditEventProperties<Action>> {
+    const org = this.doc?.workspace.org;
+    return {
+      context: {
+        site: org ? pick(org, "id") : undefined,
+      },
+    };
+  }
+
   private _getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
     const altSessionId = getAltSessionId(docSession);
     return merge(
@@ -2756,7 +2784,7 @@ export class ActiveDoc extends EventEmitter {
           docIdDigest: this._docName,
         },
         full: {
-          siteId: this._doc?.workspace.org.id,
+          siteId: this.doc?.workspace.org.id,
           siteType: this._product?.name,
         },
       },
@@ -2844,7 +2872,7 @@ export class ActiveDoc extends EventEmitter {
       }
     }
     return createSandbox({
-      server: this._docManager.gristServer,
+      server: this._server,
       docId: this._docName,
       preferredPythonVersion,
       sandboxOptions: {
@@ -2961,35 +2989,28 @@ export class ActiveDoc extends EventEmitter {
     return  this._pyCall('start_timing');
   }
 
-  private _logForkDocumentEvents(docSession: OptDocSession, options: {
-    originalDocument: Document;
-    forkIds: ForkResult;
-  }) {
-    const {originalDocument, forkIds} = options;
+  private _logForkDocumentEvents(
+    docSession: OptDocSession,
+    { document, fork }: { document: Document; fork: ForkResult }
+  ) {
     this.logAuditEvent(docSession, {
-      event: {
-        name: 'forkDocument',
-        details: {
-          original: {
-            id: originalDocument.id,
-            name: originalDocument.name,
-          },
-          fork: {
-            id: forkIds.forkId,
-            documentId: forkIds.docId,
-            urlId: forkIds.urlId,
-          },
+      action: "document.fork",
+      details: {
+        document: pick(document, "id", "name"),
+        fork: {
+          id: fork.forkId,
+          document_id: fork.docId,
+          url_id: fork.urlId,
         },
-        context: {documentId: originalDocument.id},
       },
     });
     this.logTelemetryEvent(docSession, 'documentForked', {
       limited: {
-        forkIdDigest: forkIds.forkId,
-        forkDocIdDigest: forkIds.docId,
-        trunkIdDigest: originalDocument.trunkId,
-        isTemplate: originalDocument.type === 'template',
-        lastActivity: originalDocument.updatedAt,
+        forkIdDigest: fork.forkId,
+        forkDocIdDigest: fork.docId,
+        trunkIdDigest: document.trunkId,
+        isTemplate: document.type === "template",
+        lastActivity: document.updatedAt,
       },
     });
   }

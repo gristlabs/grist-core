@@ -174,7 +174,7 @@ export function createDummyGristServer(): GristServer {
 export function createDummyAuditLogger(): IAuditLogger {
   return {
     logEvent() { /* do nothing */ },
-    logEventAsync() { return Promise.resolve(); },
+    logEventOrThrow() { return Promise.resolve(); },
   };
 }
 

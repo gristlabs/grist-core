@@ -1,14 +1,17 @@
 import { Config } from "app/gen-server/entity/Config";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { AuditLogger } from "app/server/lib/AuditLogger";
 import axios from "axios";
 import * as chai from "chai";
 import omit from "lodash/omit";
+import * as sinon from "sinon";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 
 describe("InstallConfig", function () {
   const assert = chai.assert;
+  const sandbox: sinon.SinonSandbox = sinon.createSandbox();
 
   let server: TestServer;
   let dbManager: HomeDBManager;
@@ -26,6 +29,7 @@ describe("InstallConfig", function () {
   testUtils.setTmpLogLevel("error");
 
   before(async function () {
+    sandbox.stub(AuditLogger.prototype, 'logEvent');
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = chimpyEmail;
     server = new TestServer(this);
@@ -34,6 +38,7 @@ describe("InstallConfig", function () {
   });
 
   after(async function () {
+    sandbox.restore();
     oldEnv.restore();
     await server.stop();
   });

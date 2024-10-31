@@ -3,6 +3,7 @@ import * as chokidar from 'chokidar';
 import * as fse from 'fs-extra';
 import moment from 'moment';
 import * as path from 'path';
+import {v4 as uuidv4} from 'uuid';
 
 import {DocEntry, DocEntryTag} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
@@ -13,7 +14,6 @@ import * as docUtils from 'app/server/lib/docUtils';
 import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {IShell} from 'app/server/lib/IShell';
 import log from 'app/server/lib/log';
-import uuidv4 from "uuid/v4";
 
 
 /**

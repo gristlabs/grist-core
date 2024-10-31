@@ -1,4 +1,5 @@
-import { checkGristAuditLogger, configureGristAuditLogger } from 'app/server/lib/configureGristAuditLogger';
+import { GenericEventFormatter } from 'app/server/lib/AuditEventFormatter';
+import { AuditLogger } from 'app/server/lib/AuditLogger';
 import { checkMinIOBucket, checkMinIOExternalStorage,
          configureMinIOExternalStorage } from 'app/server/lib/configureMinIOExternalStorage';
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
@@ -14,13 +15,12 @@ export const makeCoreCreator = () => makeSimpleCreator({
       create: configureMinIOExternalStorage,
     },
   ],
-  auditLogger: [
-    {
-      name: 'grist',
-      check: () => checkGristAuditLogger() !== undefined,
-      create: configureGristAuditLogger,
-    },
-  ],
+  auditLogger: {
+    create: (dbManager) =>
+      new AuditLogger(dbManager, {
+        formatters: [new GenericEventFormatter()],
+      }),
+  },
   telemetry: {
     create: (dbManager, gristServer) => new Telemetry(dbManager, gristServer),
   }

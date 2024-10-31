@@ -4,6 +4,21 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
+export const Config = t.iface([], {
+  "id": "string",
+  "key": "ConfigKey",
+  "value": "ConfigValue",
+  "createdAt": "string",
+  "updatedAt": "string",
+  "org": t.opt("ConfigOrg"),
+});
+
+export const ConfigOrg = t.iface([], {
+  "id": "number",
+  "name": "string",
+  "domain": t.union("string", "null"),
+});
+
 export const ConfigKey = t.lit("audit_log_streaming_destinations");
 
 export const ConfigValue = t.name("AuditLogStreamingDestinations");
@@ -12,15 +27,20 @@ export const AuditLogStreamingDestinations = t.array("AuditLogStreamingDestinati
 
 export const AuditLogStreamingDestination = t.iface([], {
   "id": "string",
-  "name": t.lit("splunk"),
+  "name": "AuditLogStreamingDestinationName",
   "url": "string",
   "token": t.opt("string"),
 });
 
+export const AuditLogStreamingDestinationName = t.union(t.lit("splunk"), t.lit("other"));
+
 const exportedTypeSuite: t.ITypeSuite = {
+  Config,
+  ConfigOrg,
   ConfigKey,
   ConfigValue,
   AuditLogStreamingDestinations,
   AuditLogStreamingDestination,
+  AuditLogStreamingDestinationName,
 };
 export default exportedTypeSuite;

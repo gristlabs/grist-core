@@ -7,7 +7,7 @@ import {promisifyAll} from 'bluebird';
 import mapValues = require('lodash/mapValues');
 import {createClient, Multi, RedisClient} from 'redis';
 import Redlock from 'redlock';
-import uuidv4 from 'uuid/v4';
+import {v4 as uuidv4} from 'uuid';
 
 promisifyAll(RedisClient.prototype);
 promisifyAll(Multi.prototype);

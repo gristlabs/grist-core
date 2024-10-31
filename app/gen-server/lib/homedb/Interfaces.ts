@@ -4,6 +4,7 @@ import * as roles from 'app/common/roles';
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { Organization } from "app/gen-server/entity/Organization";
+import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
@@ -43,3 +44,29 @@ export type RunInTransaction = <T>(
   transaction: EntityManager|undefined,
   op: ((manager: EntityManager) => Promise<T>)
 ) => Promise<T>;
+
+export interface DocumentAccessChanges {
+  document: Document;
+  accessChanges: Partial<AccessChanges>;
+}
+
+export interface WorkspaceAccessChanges {
+  workspace: Workspace;
+  accessChanges: Partial<Omit<AccessChanges, "publicAccess">>;
+
+}
+
+export interface OrgAccessChanges {
+  org: Organization;
+  accessChanges: Omit<AccessChanges, "publicAccess" | "maxInheritedAccess">;
+}
+
+interface AccessChanges {
+  publicAccess: roles.NonGuestRole | null;
+  maxInheritedAccess: roles.BasicRole | null;
+  users: Array<
+    Pick<User, "id" | "name"> & { email?: string } & {
+      access: roles.NonGuestRole | null;
+    }
+  >;
+}

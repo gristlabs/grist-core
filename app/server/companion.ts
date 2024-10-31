@@ -60,9 +60,13 @@ function addAuditLogsCommand(program: commander.Command, options: CommandOptions
     sectionDescription: 'show information about audit logs',
     ...options,
   });
-  sub('events')
-    .description('show audit log events')
-    .addOption(new commander.Option('--type <type>').choices(['installation', 'site']))
+  sub("events")
+    .description("show audit log events")
+    .addOption(
+      new commander.Option("--type <type>")
+        .choices(["installation", "site"])
+        .makeOptionMandatory()
+    )
     .action(showAuditLogEvents);
 }
 

@@ -24,7 +24,7 @@ import {LogMethods} from "app/server/lib/LogMethods";
 import {fromCallback} from 'app/server/lib/serverUtils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import uuidv4 from "uuid/v4";
+import {v4 as uuidv4} from 'uuid';
 import {OpenMode, SQLiteDB} from './SQLiteDB';
 import {Features} from "app/common/Features";
 

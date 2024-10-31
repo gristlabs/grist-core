@@ -13,6 +13,7 @@ import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from "app/gen-server/entity/Organization";
+import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {Activations} from 'app/gen-server/lib/Activations';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
@@ -79,6 +80,7 @@ import * as https from 'https';
 import {i18n} from 'i18next';
 import i18Middleware from "i18next-http-middleware";
 import mapValues = require('lodash/mapValues');
+import pick = require('lodash/pick');
 import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
@@ -1490,8 +1492,8 @@ export class FlexServer implements GristServer {
         // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
         // to other (not public) team sites.
         const doom = await createDoom();
-        await doom.deleteUser(userId);
-        this._logDeleteUserEvents(req as RequestWithLogin);
+        const {data} = await doom.deleteUser(userId);
+        if (data) { this._logDeleteUserEvents(req as RequestWithLogin, data); }
         return resp.status(200).json(true);
       }));
 
@@ -2466,25 +2468,29 @@ export class FlexServer implements GristServer {
     return isGristLogHttpEnabled || deprecatedOptionEnablesLog;
   }
 
-  private _logDeleteUserEvents(req: RequestWithLogin) {
+  private _logDeleteUserEvents(req: RequestWithLogin, user: User) {
     this.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'deleteUser',
+      action: "user.delete",
+      details: {
+        user: {
+          ...pick(user, "id", "name"),
+          email: user.loginEmail,
+        },
       },
     });
-    this.getTelemetry().logEvent(req, 'deletedAccount');
+    this.getTelemetry().logEvent(req, "deletedAccount");
   }
 
-  private _logDeleteSiteEvents(req: RequestWithLogin, {id, name}: Organization) {
+  private _logDeleteSiteEvents(req: RequestWithLogin, org: Organization) {
     this.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'deleteSite',
-        details: {id, name},
-      }
+      action: "site.delete",
+      details: {
+        site: pick(org, "id", "name", "domain"),
+      },
     });
-    this.getTelemetry().logEvent(req, 'deletedSite', {
+    this.getTelemetry().logEvent(req, "deletedSite", {
       full: {
-        siteId: id,
+        siteId: org.id,
         userId: req.userId,
       },
     });

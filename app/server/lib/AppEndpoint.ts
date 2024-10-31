@@ -4,6 +4,7 @@
  * of the client-side code.
  */
 import * as express from 'express';
+import pick from 'lodash/pick';
 
 import {ApiError} from 'app/common/ApiError';
 import {getSlugIfNeeded, parseUrlId, SHARE_KEY_PREFIX} from 'app/common/gristUrls';
@@ -219,9 +220,17 @@ function logOpenDocumentEvents(req: RequestWithLogin, options: {
   const {server, doc, urlId} = options;
   const {forkId, snapshotId} = parseUrlId(urlId);
   server.getAuditLogger().logEvent(req, {
-    event: {
-      name: 'openDocument',
-      details: {id: doc.id, name: doc.name, urlId, forkId, snapshotId},
+    action: "document.open",
+    context: {
+      site: pick(doc.workspace.org, "id", "name", "domain"),
+    },
+    details: {
+      document: {
+        ...pick(doc, "id", "name"),
+        url_id: urlId,
+        fork_id: forkId,
+        snapshot_id: snapshotId,
+      },
     },
   });
 

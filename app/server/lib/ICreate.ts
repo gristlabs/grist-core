@@ -118,8 +118,6 @@ export interface ICreateBillingOptions {
 }
 
 export interface ICreateAuditLoggerOptions {
-  name: 'grist'|'hec';
-  check(): boolean;
   create(dbManager: HomeDBManager): IAuditLogger|undefined;
 }
 
@@ -142,7 +140,7 @@ export function makeSimpleCreator(opts: {
   storage?: ICreateStorageOptions[],
   billing?: ICreateBillingOptions,
   notifier?: ICreateNotifierOptions,
-  auditLogger?: ICreateAuditLoggerOptions[],
+  auditLogger?: ICreateAuditLoggerOptions,
   telemetry?: ICreateTelemetryOptions,
   sandboxFlavor?: string,
   shell?: IShell,
@@ -178,7 +176,7 @@ export function makeSimpleCreator(opts: {
       return undefined;
     },
     AuditLogger(dbManager) {
-      return auditLogger?.find(({check}) => check())?.create(dbManager) ?? createDummyAuditLogger();
+      return auditLogger?.create(dbManager) ?? createDummyAuditLogger();
     },
     Telemetry(dbManager, gristConfig) {
       return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();
@@ -232,16 +230,31 @@ export function makeSimpleCreator(opts: {
   };
 }
 
-const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = async (
-      docsRoot,
-      docWorkerId,
-      disableS3,
-      docWorkerMap,
-      dbManager,
-      createExternalStorage, options
-) =>
-  new HostedStorageManager(docsRoot, docWorkerId, disableS3, docWorkerMap, dbManager, createExternalStorage, options);
+async function createDefaultHostedStorageManager(
+  docsRoot: string,
+  docWorkerId: string,
+  disableS3: boolean,
+  docWorkerMap: IDocWorkerMap,
+  dbManager: HomeDBManager,
+  createExternalStorage: ExternalStorageCreator,
+  options?: HostedStorageOptions
+) {
+  return new HostedStorageManager(
+    docsRoot,
+    docWorkerId,
+    disableS3,
+    docWorkerMap,
+    dbManager,
+    createExternalStorage,
+    options
+  );
+}
 
-const createDefaultLocalStorageManager: LocalDocStorageManagerCreator = async (
-  docsRoot, samplesRoot, comm, shell
-) => new DocStorageManager(docsRoot, samplesRoot, comm, shell);
+async function createDefaultLocalStorageManager(
+  docsRoot: string,
+  samplesRoot?: string,
+  comm?: Comm,
+  shell?: IShell
+) {
+  return new DocStorageManager(docsRoot, samplesRoot, comm, shell);
+}
