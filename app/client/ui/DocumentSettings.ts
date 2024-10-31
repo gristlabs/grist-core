@@ -41,7 +41,7 @@ import {
   styled
 } from 'grainjs';
 import * as moment from 'moment-timezone';
-import {DocumentType} from 'app/common/UserAPI';
+import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType} from 'app/common/UserAPI';
 
 const t = makeT('DocumentSettings');
 const testId = makeTestId('test-settings-');
@@ -320,10 +320,10 @@ export class DocSettingsPage extends Disposable {
       const currentDocType = docPageModel.type.get() as string;
       let currentDocTypeOption;
       switch (currentDocType) {
-        case "template":
+        case DOCTYPE_TEMPLATE:
           currentDocTypeOption = DocTypeOption.Template;
           break;
-        case "tutorial":
+        case DOCTYPE_TUTORIAL:
           currentDocTypeOption = DocTypeOption.Tutorial;
           break;
         default:
@@ -334,13 +334,13 @@ export class DocSettingsPage extends Disposable {
 
       const doSetDocumentType = async () => {
         const docId = docPageModel.currentDocId.get();
-        let docType;
+        let docType: DocumentType;
         if (selected.get() === DocTypeOption.Regular) {
-          docType = "";
+          docType = DOCTYPE_NORMAL;
         } else if (selected.get() === DocTypeOption.Template) {
-          docType = "template";
+          docType = DOCTYPE_TEMPLATE;
         } else {
-          docType = "tutorial";
+          docType = DOCTYPE_TUTORIAL;
         }
         await persistType(docType, docId);
         const {trunkId} = docPageModel.currentDoc.get()!.idParts;
@@ -427,7 +427,7 @@ export class DocSettingsPage extends Disposable {
   }
 }
 
-function persistType(type: string|null, docId: string|undefined){
+function persistType(type: DocumentType, docId: string|undefined){
   docId = docId?.split("~")[0];
   return fetch(`/o/docs/api/docs/${docId}`, {
     method: 'PATCH',
