@@ -524,7 +524,8 @@
         "Workspace will be moved to Trash.": "Lan-eremua zakarrontzira mugituko da.",
         "Workspaces": "Lan-eremuak",
         "Delete {{workspace}} and all included documents?": "{{workspace}} eta barne dituen dokumentu guztiak ezabatu?",
-        "Tutorial": "Tutoriala"
+        "Tutorial": "Tutoriala",
+        "Grist Resources": "Gristen baliabideak"
     },
     "LeftPanelCommon": {
         "Help Center": "Laguntza Gunea"
