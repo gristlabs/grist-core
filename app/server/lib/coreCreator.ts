@@ -3,7 +3,9 @@ import { checkMinIOBucket, checkMinIOExternalStorage,
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
 import { Telemetry } from 'app/server/lib/Telemetry';
 
-export const makeCoreCreator = () => makeSimpleCreator({
+export type CreatorOptions = Parameters<typeof makeSimpleCreator>[0];
+
+export const makeCoreCreator = (opts: Partial<CreatorOptions> = {}) => makeSimpleCreator({
   deploymentType: 'core',
   storage: [
     {
@@ -15,5 +17,6 @@ export const makeCoreCreator = () => makeSimpleCreator({
   ],
   telemetry: {
     create: (dbManager, gristServer) => new Telemetry(dbManager, gristServer),
-  }
+  },
+  ...opts,
 });
