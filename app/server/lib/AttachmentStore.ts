@@ -2,7 +2,7 @@ import * as path from "path";
 import * as fse from "fs-extra";
 
 export type DocPoolId = string;
-type AttachmentId = string;
+type FileId = string;
 
 
 /**
@@ -20,13 +20,13 @@ export interface IAttachmentStore {
   readonly id: string;
 
   // Check if attachment exists in the store.
-  exists(docPoolId: DocPoolId, attachmentId: AttachmentId): Promise<boolean>;
+  exists(docPoolId: DocPoolId, fileId: FileId): Promise<boolean>;
 
   // Upload attachment to the store.
-  upload(docPoolId: DocPoolId, attachmentId: AttachmentId, fileData: Buffer): Promise<void>;
+  upload(docPoolId: DocPoolId, fileId: FileId, fileData: Buffer): Promise<void>;
 
   // Download attachment to an in-memory buffer
-  download(docPoolId: DocPoolId, attachmentId: AttachmentId): Promise<Buffer>;
+  download(docPoolId: DocPoolId, fileId: FileId): Promise<Buffer>;
 
   // Remove attachments for all documents in the given document pool.
   removePool(docPoolId: DocPoolId): Promise<void>;
@@ -39,22 +39,22 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
   constructor(public readonly id: string, private _rootFolderPath: string) {
   }
 
-  public async exists(docPoolId: string, attachmentId: string): Promise<boolean> {
-    return fse.pathExists(this._createPath(docPoolId, attachmentId))
+  public async exists(docPoolId: DocPoolId, fileId: FileId): Promise<boolean> {
+    return fse.pathExists(this._createPath(docPoolId, fileId))
       .catch(() => false);
   }
 
-  public async upload(docPoolId: string, attachmentId: string, fileData: Buffer): Promise<void> {
-    const filePath = this._createPath(docPoolId, attachmentId);
+  public async upload(docPoolId: DocPoolId, fileId: FileId, fileData: Buffer): Promise<void> {
+    const filePath = this._createPath(docPoolId, fileId);
     await fse.ensureDir(path.dirname(filePath));
     await fse.writeFile(filePath, fileData);
   }
 
-  public async download(docPoolId: string, attachmentId: string): Promise<Buffer> {
-    return fse.readFile(this._createPath(docPoolId, attachmentId));
+  public async download(docPoolId: DocPoolId, fileId: FileId): Promise<Buffer> {
+    return fse.readFile(this._createPath(docPoolId, fileId));
   }
 
-  public async removePool(docPoolId: string): Promise<void> {
+  public async removePool(docPoolId: DocPoolId): Promise<void> {
     await fse.remove(this._createPath(docPoolId));
   }
 
@@ -62,8 +62,8 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
     // Not needed here, no resources held.
   }
 
-  private _createPath(docPoolId: string, attachmentId: string = ""): string {
-    return path.join(this._rootFolderPath, docPoolId, attachmentId);
+  private _createPath(docPoolId: DocPoolId, fileId: FileId = ""): string {
+    return path.join(this._rootFolderPath, docPoolId, fileId);
   }
 
 }
