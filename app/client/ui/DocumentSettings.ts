@@ -99,7 +99,7 @@ export class DocSettingsPage extends Disposable {
         dom.create(AdminSectionItem, {
           id: 'templateMode',
           name: t('Template mode'),
-          description: t('Change document mode'),
+          description: t('Change type of document'),
           value: cssDocTypeContainer(
             dom.create(
               displayCurrentType,
@@ -381,7 +381,7 @@ export class DocSettingsPage extends Disposable {
           docTypeOption({
             type: DocTypeOption.Regular,
             label: t('Regular document'),
-            description: t('Regular document behavior, all users work on the same copy of the document.'),
+            description: t('Normal document behavior. All users work on the same copy of the document.'),
             itemTestId: testId('doctype-modal-option-regular'),
           }),
           docTypeOption({
