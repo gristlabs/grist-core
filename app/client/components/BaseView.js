@@ -82,6 +82,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
 
   // Create a section filter and a filtered row source that subscribes to its changes.
   // `sectionFilter` also provides `setFilterOverride()` to allow controlling a filter from a column menu.
+  // TODO: SectionFilter won't work for DBRowSource as is; needs to affect the underlying source
+  // instead, somehow...
   this._sectionFilter = SectionFilter.create(this, this.viewSection, this.tableModel.tableData);
   this._filteredRowSource = rowset.FilteredRowSource.create(this, this._sectionFilter.sectionFilterFunc.get());
   this._filteredRowSource.subscribeTo(this._mainRowSource);
@@ -93,17 +95,32 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.rowSource = UnionRowSource.create(this, [this._filteredRowSource, this._exemptFromFilterRows]);
 
   // Sorted collection of all rows to show in this view.
-  this.sortedRows = rowset.SortedRowSet.create(this, null, this.tableModel.tableData);
+  const useMegaData = Boolean(this.gristDoc.megaDocModel);
+  if (useMegaData) {
+    this.sortedRows = this.gristDoc.megaDocModel.createSortedRowSet(this,
+      this.tableModel.tableData, this.gristDoc.docData.getTable('_grist_Tables_column'));
+    this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribe(spec => {
+      // TODO this is a funky messy pattern that repeats multiple times. Would be nice to abstract
+      // out, clean up, make type-safe, etc.
+      this._isLoading(true);
+      this.sortedRows.updateSortSpec(spec, () => {
+        if (!this.isDisposed()) { this.onTableLoaded(); }
+      });
+    }));
+    this.sortedRows.updateSortSpec(this.viewSection.activeDisplaySortSpec.peek(), () => {});
+  } else {
+    this.sortedRows = rowset.SortedRowSet.create(this, null, this.tableModel.tableData);
 
-  // Re-sort when sortSpec changes.
-  this.sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, {unversioned: true}));
-  this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribeInit(function(spec) {
-    this.sortFunc.updateSpec(spec);
-    this.sortedRows.updateSort((rowId1, rowId2) => {
-      var value = nativeCompare(rowId1 === "new", rowId2 === "new");
-      return value || this.sortFunc.compare(rowId1, rowId2);
-    });
-  }, this));
+    // Re-sort when sortSpec changes.
+    this.sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, {unversioned: true}));
+    this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribeInit(function(spec) {
+      this.sortFunc.updateSpec(spec);
+      this.sortedRows.updateSort((rowId1, rowId2) => {
+        var value = nativeCompare(rowId1 === "new", rowId2 === "new");
+        return value || this.sortFunc.compare(rowId1, rowId2);
+      });
+    }, this));
+  }
 
   // Here we are subscribed to the bulk of the data (main table, possibly filtered).
   this.sortedRows.subscribeTo(this.rowSource);
@@ -113,7 +130,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.newRowSource.getAllRows = function() { return ['new']; };
 
   // This is the LazyArrayModel containing DataRowModels, for rendering, e.g. with scrolly.
-  this.viewData = this.autoDispose(this.tableModel.createLazyRowsModel(this.sortedRows));
+  this.viewData = this.autoDispose(this.tableModel.createLazyRowsModel(this.sortedRows,
+    useMegaData ? this.gristDoc.megaDocModel?.getRowModelClass(this.sortedRows) : undefined));
 
   // Floating row model that is not destroyed when the row is scrolled out of view. It must be
   // assigned manually to a rowId. Additionally, we override the saving of field values with a
@@ -208,6 +226,13 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.autoDispose(ko.computed(() => {
     this._isLoading(true);
     const linkingFilter = this.viewSection.linkingFilter();
+    if (useMegaData) {
+      // TODO could consider replacing _queryRowSource, to unify with the non-mega branch;
+      this.sortedRows.updateFilters(linkingFilter, () => {
+        if (!this.isDisposed()) { this.onTableLoaded(); }
+      });
+      return;
+    }
     this._queryRowSource.makeQuery(linkingFilter.filters, linkingFilter.operations, (err) => {
       if (this.isDisposed()) { return; }
       if (err) { reportError(err); }

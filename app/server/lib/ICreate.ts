@@ -1,3 +1,4 @@
+import {EngineCode} from 'app/common/DocumentSettings';
 import {GristDeploymentType} from 'app/common/gristUrls';
 import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
@@ -91,6 +92,7 @@ export interface ICreate {
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
+  getSupportedEngineChoices(): EngineCode[]|undefined;
 
   getLoginSystem(): Promise<GristLoginSystem>;
 }
@@ -147,6 +149,7 @@ export function makeSimpleCreator(opts: {
   getExtraHeadHtml?: () => string,
   getSqliteVariant?: () => SqliteVariant,
   getSandboxVariants?: () => Record<string, SpawnFn>,
+  getSupportedEngineChoices?: () => EngineCode[]|undefined;
   createInstallAdmin?: (dbManager: HomeDBManager) => Promise<InstallAdmin>,
   getLoginSystem?: () => Promise<GristLoginSystem>,
   createHostedDocStorageManager?: HostedDocStorageManagerCreator,
@@ -230,6 +233,7 @@ export function makeSimpleCreator(opts: {
     },
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,
+    getSupportedEngineChoices: opts.getSupportedEngineChoices ?? getSupportedEngineChoices,
     createInstallAdmin: opts.createInstallAdmin || (async (dbManager) => new SimpleInstallAdmin(dbManager)),
     getLoginSystem: opts.getLoginSystem || getCoreLoginSystem,
     createLocalDocStorageManager: opts.createLocalDocStorageManager ?? createDefaultLocalStorageManager,
@@ -264,4 +268,15 @@ async function createDefaultLocalStorageManager(
   shell?: IShell
 ) {
   return new DocStorageManager(docsRoot, samplesRoot, comm, shell);
+}
+
+/**
+ * Offer choices of engine on experimental deployments, or when PYTHON_VERSION_ON_CREATION is set.
+ */
+export function getSupportedEngineChoices(): EngineCode[]|undefined {
+  if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1' ||
+      process.env.PYTHON_VERSION_ON_CREATION) {
+    return ['python2', 'python3'];
+  }
+  return undefined;
 }

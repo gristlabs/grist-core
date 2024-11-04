@@ -10,11 +10,15 @@ export abstract class GristServerSocket {
   public abstract terminate(): void;
   public abstract get isOpen(): boolean;
   public abstract send(data: string, cb?: (err?: Error) => void): void;
+  public abstract get bufferedAmount(): number;
 }
 
 export class GristServerSocketEIO extends GristServerSocket {
   private _eventHandlers: Array<{ event: string, handler: (...args: any[]) => void }> = [];
   private _messageCounter = 0;
+
+  // TODO: None of the logic around _bufferedAmount has been tested in the slightest.
+  private _bufferedAmount = 0;
 
   // Engine.IO only invokes send() callbacks on success. We keep a map of
   // send callbacks for messages in flight so that we can invoke them for
@@ -31,6 +35,7 @@ export class GristServerSocketEIO extends GristServerSocket {
   }
 
   public set onclose(handler: () => void) {
+
     const wrappedHandler = (reason: string, description: any) => {
       // In practice, when available, description has more error details,
       // possibly in the form of an Error object.
@@ -40,6 +45,7 @@ export class GristServerSocketEIO extends GristServerSocket {
         cb(err);
       }
       this._messageCallbacks.clear();
+      this._bufferedAmount = 0;
 
       handler();
     };
@@ -81,12 +87,19 @@ export class GristServerSocketEIO extends GristServerSocket {
     if (cb) {
       this._messageCallbacks.set(msgNum, cb);
     }
+    const length = Buffer.byteLength(data, 'utf8');
+    this._bufferedAmount += length;
     this._socket.send(data, {}, () => {
+      this._bufferedAmount -= length;
       if (cb && this._messageCallbacks.delete(msgNum)) {
         // send was successful: pass no Error to callback
         cb();
       }
     });
+  }
+
+  public get bufferedAmount(): number {
+    return this._bufferedAmount;
   }
 }
 
@@ -134,5 +147,9 @@ export class GristServerSocketWS extends GristServerSocket {
 
   public send(data: string, cb?: (err?: Error) => void) {
     this._ws.send(data, cb);
+  }
+
+  public get bufferedAmount(): number {
+    return this._ws.bufferedAmount;
   }
 }

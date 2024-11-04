@@ -38,6 +38,7 @@ import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/c
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
+import {MegaDocModel} from 'app/client/models/MegaDocModel';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import TableModel from 'app/client/models/TableModel';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
@@ -217,6 +218,8 @@ export class GristDoc extends DisposableWithEvents {
    */
   public canShowRawData: Computed<boolean>;
 
+  public readonly megaDocModel: MegaDocModel|null;
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos | null = null;
@@ -262,6 +265,8 @@ export class GristDoc extends DisposableWithEvents {
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.
     this.docInfo = this.docModel.docInfoRow;
+
+    this.megaDocModel = MegaDocModel.maybeCreate(docComm.getConnection(), this.docData.docSettings().engine);
 
     const defaultViewId = this.docInfo.newDefaultViewId;
 

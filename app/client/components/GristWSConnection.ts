@@ -5,6 +5,7 @@ import {newUserAPIImpl} from 'app/client/models/AppModel';
 import {getWorker} from 'app/client/models/gristConfigCache';
 import {CommResponseBase} from 'app/common/CommTypes';
 import * as gutil from 'app/common/gutil';
+import {MinimalWebSocket, splitOffAuxSocket} from 'app/common/MinimalWebSocket';
 import {addOrgToPath, docUrl, getGristConfig} from 'app/common/urlUtils';
 import {UserAPI} from 'app/common/UserAPI';
 import {Events as BackboneEvents} from 'backbone';
@@ -127,6 +128,7 @@ export class GristWSConnection extends Disposable {
   private _reconnectAttempts: number = 0;
   private _wantReconnect: boolean = true;
   private _ws: GristClientSocket|null = null;
+  private _aux: MinimalWebSocket|null = null;
 
   // The server sends incremental seqId numbers with each message on the connection, starting with
   // 0. We keep track of them to allow for seamless reconnects.
@@ -178,6 +180,7 @@ export class GristWSConnection extends Disposable {
     if (this._ws) {
       this._ws.close();
       this._ws = null;
+      this._aux = null;
       this._clientId = null;
     }
     this._clearHeartbeat();
@@ -209,6 +212,14 @@ export class GristWSConnection extends Disposable {
    */
   public getDocWorkerUrlOrNull(): string | null {
     return this._docWorkerUrl;
+  }
+
+  /**
+   * Auxiliary socket that allows sending/receiving non-JSON messages.
+   * Used in some experiments.
+   */
+  public getAuxSocket(): MinimalWebSocket|null {
+    return this._aux;
   }
 
   /**
@@ -347,7 +358,9 @@ export class GristWSConnection extends Disposable {
     // which then establishes that the WebSocket connection is closed,
     // which fires the close event."
     this._log("GristWSConnection connecting to: " + url);
-    this._ws = this._settings.makeWebSocket(url);
+    const {main, aux} = splitOffAuxSocket(this._settings.makeWebSocket(url));
+    this._ws = main;
+    this._aux = aux;
 
     this._ws.onopen = () => {
       const connectMessage = isReconnecting ? 'Reconnected' : 'Connected';
@@ -372,6 +385,7 @@ export class GristWSConnection extends Disposable {
       this._log('GristWSConnection: onclose');
       this._established = false;
       this._ws = null;
+      this._aux = null;
       this.trigger('connectState', false);
 
       if (!this._wantReconnect) { return; }

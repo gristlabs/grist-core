@@ -5,6 +5,7 @@ import {delay} from 'app/common/delay';
 import {normalizeEmail} from 'app/common/emails';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
+import {MinimalWebSocket, splitOffAuxSocket} from 'app/common/MinimalWebSocket';
 import {TelemetryMetadata} from 'app/common/Telemetry';
 import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
@@ -99,6 +100,7 @@ export class Client {
   private _destroyTimer: NodeJS.Timer|null = null;
   private _destroyed: boolean = false;
   private _websocket: GristServerSocket|null = null;
+  private _auxSocket: MinimalWebSocket|null = null;
   private _req: IncomingMessage|null = null;
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
@@ -139,14 +141,16 @@ export class Client {
     browserSettings: BrowserSettings;
   }) {
     const {websocket, req, counter, browserSettings} = options;
-    this._websocket = websocket;
+    const {main, aux} = splitOffAuxSocket(websocket);
+    this._websocket = main;
+    this._auxSocket = aux;
     this._req = req;
     this._counter = counter;
     this.browserSettings = browserSettings;
 
-    websocket.onerror = (err: Error) => this._onError(err);
-    websocket.onclose = () => this._onClose();
-    websocket.onmessage = (msg: string) => this._onMessage(msg);
+    this._websocket.onerror = (err: Error) => this._onError(err);
+    this._websocket.onclose = () => this._onClose();
+    this._websocket.onmessage = (msg: string) => this._onMessage(msg);
   }
 
   public getConnectionRequest(): IncomingMessage|null {
@@ -166,6 +170,16 @@ export class Client {
 
   // Adds a new DocSession to this Client, and returns the new FD for it.
   public addDocSession(activeDoc: ActiveDoc, authorizer: Authorizer): DocSession {
+
+    // We use aux for the mega data engine experiment. Here we assume that a Client always
+    // has at most one ActiveDoc.
+    if (activeDoc.megaDataEngine && this._auxSocket) {
+      if (this._docFDs.filter(s => (s !== null)).length > 1) {
+        throw new Error("For MegaDataEngine, we assume a single doc per client");
+      }
+      activeDoc.megaDataEngine.serve(this._auxSocket);
+    }
+
     const fd = this._getNextDocFD();
     const docSession = new DocSession(activeDoc, this, fd, authorizer);
     this._docFDs[fd] = docSession;

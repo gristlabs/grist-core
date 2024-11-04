@@ -697,6 +697,11 @@ export class SortedRowSet extends RowListener {
   }
 }
 
+export type PublicInterface<T> = {[K in keyof T]: T[K]};
+
+export type ISortedRowSet = PublicInterface<SortedRowSet>;
+
+
 type RowTester = (rowId: UIRowId) => boolean;
 /**
  * RowWatcher is a RowListener that maintains an observable function that checks whether a row

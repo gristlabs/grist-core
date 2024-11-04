@@ -169,7 +169,11 @@ function Scrolly(dataModel) {
   this.rowHeights = [];
   this.rowOffsetTree = new BinaryIndexedTree();
   // TODO: Reconsider row height for rendering layouts / other tall elements in a scrolly.
-  this.minRowHeight = 23;   // In pixels. Rows will be forced to be at least this tall.
+  // TODO XXX if this height * num rows exceeds certain thresholds (in Firefix in particular),
+  // various problems appear in the browser. But the smaller the number, the more impossible to
+  // scroll to the end. This is close to the highest that works for 1m rows. This should be doable
+  // much better, but may need bigger changes to scrolly.
+  this.minRowHeight = 7;   // In pixels. Rows will be forced to be at least this tall.
 
   this.numBuffered = 1;     // How many rows to render outside the visible area.
   this.numRendered = 1;     // Total rows to render.

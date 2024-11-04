@@ -48,7 +48,8 @@ export class DocSettingsPage extends Disposable {
 
   private _engines = getSupportedEngineChoices().map((engine) => ({
     value: engine,
-    label: engine === 'python3' ? t(`python3 (recommended)`) : t(`python2 (legacy)`),
+    label: (engine === 'python3' ? t(`python3 (recommended)`) :
+            engine === 'python2' ? t(`python2 (legacy)`) : engine),
   }));
 
   constructor(private _gristDoc: GristDoc) {

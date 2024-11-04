@@ -40,6 +40,16 @@ export class GristClientSocket {
     this._closeHandler = cb;
   }
 
+  public get bufferedAmount(): number {
+    if (this._wsSocket) {
+      return this._wsSocket.bufferedAmount;
+    } else {
+      // Not available in engine-io. Not critical to get right on the browser side (on
+      // server-side, it would be more important to handle backpressure).
+      return 0;
+    }
+  }
+
   public close() {
     if (this._wsSocket) {
       this._wsSocket.close();

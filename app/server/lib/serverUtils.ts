@@ -1,4 +1,3 @@
-import {EngineCode} from 'app/common/DocumentSettings';
 import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import {getLogMeta} from 'app/server/lib/sessionUtils';
@@ -139,17 +138,6 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
   } finally {
     await db.close();
   }
-}
-
-/**
- * Only offer choices of engine on experimental deployments (staging/dev).
- */
-export function getSupportedEngineChoices(): EngineCode[]|undefined {
-  if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1' ||
-      process.env.PYTHON_VERSION_ON_CREATION) {
-    return ['python2', 'python3'];
-  }
-  return undefined;
 }
 
 /**

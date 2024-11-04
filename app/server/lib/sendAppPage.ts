@@ -17,7 +17,6 @@ import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/li
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getOnboardingTutorialDocId, getTemplateOrg} from 'app/server/lib/gristSettings';
-import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
 import * as express from 'express';
 import * as fse from 'fs-extra';
@@ -69,7 +68,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     pathOnly,
     supportAnon: shouldSupportAnon(),
     enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true),
-    supportEngines: getSupportedEngineChoices(),
+    supportEngines: server?.create.getSupportedEngineChoices(),
     features: getFeatures(),
     pageTitleSuffix: configuredPageTitleSuffix(),
     pluginUrl,

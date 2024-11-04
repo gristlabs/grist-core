@@ -1,4 +1,5 @@
 import {Comm} from 'app/client/components/Comm';
+import {GristWSConnection} from 'app/client/components/GristWSConnection';
 import {reportError, reportMessage} from 'app/client/models/errors';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {ActiveDocAPI, ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
@@ -59,6 +60,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   private _docFD: number;
   private _forkPromise: Promise<void>|null = null;
   private _isClosed: boolean = false;
+  private _connection: GristWSConnection|null = null;
   private listenTo: BackboneEvents['listenTo'];  // set by Backbone
 
   constructor(private _comm: Comm, openResponse: OpenLocalDocResult, private _docId: string,
@@ -129,6 +131,10 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     await (this._forkPromise || (this._forkPromise = this._doForkDoc()));
   }
 
+  public getConnection() {
+    return this._connection!;   // Connection is only null once DocComm is disposed.
+  }
+
   // Clean up connection after closing doc.
   private async _shutdown() {
     console.log(`DocComm: shutdown clientId ${this._clientId} docFD ${this._docFD}`);
@@ -142,6 +148,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     } finally {
       if (!this._comm.isDisposed()) {
         this._comm.releaseDocConnection(this._docId);
+        this._connection = null;
       }
     }
   }
@@ -155,7 +162,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   private _setOpenResponse(openResponse: OpenLocalDocResult) {
     this._docFD = openResponse.docFD;
     this._clientId = openResponse.clientId;
-    this._comm.useDocConnection(this._docId);
+    this._connection = this._comm.useDocConnection(this._docId);
   }
 
   private _wrapMethod<Name extends keyof ActiveDocAPI>(name: Name): ActiveDocAPI[Name] {
@@ -199,6 +206,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     // to fail, since we close the websocket immediately after it. So let it fail silently.
     this.closeDoc().catch(() => null);
     this._comm.releaseDocConnection(this._docId);
+    this._connection = null;
     this._docId = docId;
     this._setOpenResponse(openResponse);
     this.changeUrlIdEmitter.emit(urlId);

@@ -153,6 +153,8 @@ import pick = require('lodash/pick');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
 
+import {MegaDataEngine} from 'app/server/lib/MegaDataEngine';
+
 bluebird.promisifyAll(tmp);
 
 const MAX_RECENT_ACTIONS = 100;
@@ -265,6 +267,8 @@ export class ActiveDoc extends EventEmitter {
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
   // Cache of which columns are attachment columns.
   private _attachmentColumns?: AttachmentColumns;
+
+  private _megaDataEngine: MegaDataEngine|null = null;
 
   // Client watching for 'product changed' event published by Billing to update usage
   private _redisSubscriber?: RedisClient;
@@ -415,6 +419,8 @@ export class ActiveDoc extends EventEmitter {
   public get isShuttingDown(): boolean { return this._shuttingDown; }
 
   public get triggers(): DocTriggers { return this._triggers; }
+
+  public get megaDataEngine() { return this._megaDataEngine; }
 
   public get rowLimitRatio(): number {
     return getUsageRatio(
@@ -2836,7 +2842,7 @@ export class ActiveDoc extends EventEmitter {
       if (engine) {
         if (engine === 'python2') {
           preferredPythonVersion = '2';
-        } else if (engine === 'python3') {
+        } else if (engine === 'python3' || `:${engine}:`.includes(':python3:')) {
           preferredPythonVersion = '3';
         } else {
           throw new Error(`engine type not recognized: ${engine}`);

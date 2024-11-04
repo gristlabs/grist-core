@@ -29,6 +29,7 @@
 import {ClientColumnGettersByColId} from 'app/client/models/ClientColumnGetters';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DocModel} from 'app/client/models/DocModel';
+import {MegaDocModel} from 'app/client/models/MegaDocModel';
 import {BaseFilteredRowSource, RowList, RowSource} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
 import {ActiveDocAPI, ClientQuery, QueryOperation} from 'app/common/ActiveDocAPI';
@@ -255,7 +256,12 @@ export class QuerySet extends BaseFilteredRowSource {
     }
 
     let fetchPromise: Promise<void>;
-    if (tableModel.tableMetaRow.onDemand()) {
+
+    const useMegaData = MegaDocModel.isEnabled(docModel.docData.docSettings().engine);
+    if (useMegaData) {
+      // Do nothing. Mega tables fetch data at a different point.
+      fetchPromise = Promise.resolve();
+    } else if (tableModel.tableMetaRow.onDemand()) {
       const tableQS = tableModel.tableQuerySets;
       fetchPromise = docComm.useQuerySet({limit: ON_DEMAND_ROW_LIMIT, ...query}).then((data) => {
         // We assume that if we fetched the max number of rows, that there are likely more and the
