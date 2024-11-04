@@ -1,1 +1,8 @@
-{}
+{
+    "oidc": {
+        "emailNotVerifiedError": "Overte svoj e-mail u poskytovateľa identity a prihláste sa znova."
+    },
+    "sendAppPage": {
+        "Loading": "Načítanie"
+    }
+}
