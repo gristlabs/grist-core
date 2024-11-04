@@ -28,11 +28,21 @@ describe("Document Type Conversion", function () {
     assert.isTrue(await button.visible());
   }
 
+  async function checkDisplayedLabel(typeLabel: TypeLabels) {
+    // Wait in case of page reload
+    await displayedLabel.wait();
+
+    assert.equal(await displayedLabel.element().getText(), typeLabel);
+  }
+
   async function convert(from: TypeLabels, to: TypeLabels) {
     await gu.openDocumentSettings();
 
     // Ensure that initial document type is the expected one.
-    assert.equal(await displayedLabel.element().getText(), from);
+    const displayedLabelElement = displayedLabel.element();
+
+    // Check initially displayed label value
+    await checkDisplayedLabel(from);
 
     // Click to open the modal
     await editButton.click();
@@ -48,12 +58,11 @@ describe("Document Type Conversion", function () {
     // Confirm the choice
     await modalConfirm.click();
 
-    // Wait for the page to be reloaded
-    await driver.wait(until.stalenessOf(displayedLabel.element()));
-    await displayedLabel.wait();
+    // Wait for the page to be unloaded
+    await driver.wait(until.stalenessOf(displayedLabelElement), 3000);
 
-    // check that the displayedLabel is now equal to convert destination
-    assert.equal(await displayedLabel.element().getText(), to);
+    // checks that the displayedLabel is now equal to convert destination
+    await checkDisplayedLabel(to);
   }
 
   async function isRegular(){

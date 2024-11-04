@@ -135,9 +135,8 @@ export const DOCTYPE_TUTORIAL = 'tutorial';
 // null stands for normal document type, the one set by default at document creation.
 export type DocumentType = 'template'|'tutorial'|null;
 
-export function persistType(doctype: DocumentType, docId: string|undefined){
+export function persistType(type: DocumentType, docId: string|undefined) {
   docId = docId?.split("~")[0];
-  const type = doctype === null ? "" : doctype;
   return fetch(`/o/docs/api/docs/${docId}`, {
     method: 'PATCH',
     headers: {"Content-Type": "application/json"},
