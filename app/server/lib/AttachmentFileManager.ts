@@ -16,7 +16,7 @@ export interface IAttachmentFileManager {
 
 export interface AddFileResult {
   fileIdent: string;
-  alreadyExisted: boolean;
+  isNewFile: boolean;
 }
 
 export class StoresNotConfiguredError extends Error {
@@ -91,11 +91,11 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private async _addFileToLocalStorage(fileIdent: string, fileData: Buffer): Promise<AddFileResult> {
-    const existed = await this._docStorage.findOrAttachFile(fileIdent, fileData);
+    const isNewFile = await this._docStorage.findOrAttachFile(fileIdent, fileData);
 
     return {
       fileIdent,
-      alreadyExisted: existed,
+      isNewFile,
     };
   }
 
@@ -119,15 +119,26 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private async _addFileToAttachmentStore(store: IAttachmentStore, fileIdent: string, fileData: Buffer): Promise<AddFileResult> {
-    // TODO - Register it in doc storage?
-    // Upload to the remote storage
-    // TODO Error handling?
+    const isNewFile = await this._docStorage.findOrAttachFile(fileIdent, fileData, store.id);
+
+    // Verify the file exists in the store. This allows for a second attempt to correct a failed upload.
+    const existsInRemoteStorage = !isNewFile && await store.exists(this._getDocPoolId(), fileIdent);
+
+    if (!isNewFile && existsInRemoteStorage) {
+      return {
+        fileIdent,
+        isNewFile: false,
+      };
+    }
+
+    // Possible issue if this upload fails - we have the file tracked in the document, but not available in the store.
+    // TODO - Decide if we keep an entry in SQLite after an upload error or not. Probably not?
     await store.upload(this._getDocPoolId(), fileIdent, fileData);
+
     // TODO - Confirm in doc storage that it's successfully uploaded? Need to decide how to handle a failed upload.
     return {
       fileIdent,
-      // TODO - Actually check this value. Do we really even need this?
-      alreadyExisted: false,
+      isNewFile,
     };
   }
 

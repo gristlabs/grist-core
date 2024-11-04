@@ -2364,9 +2364,9 @@ export class ActiveDoc extends EventEmitter {
       dimensions.width = 0;
     }
     const addFileResult = await this._attachmentFileManager
-      .addFile(undefined, fileData.ext, await readFile(fileData.absPath));
+      .addFile("TEST-FILESYSTEM-STORE", fileData.ext, await readFile(fileData.absPath));
     this._log.info(docSession, "addAttachment: file %s (image %sx%s) %s", addFileResult.fileIdent,
-      dimensions.width, dimensions.height, addFileResult.alreadyExisted ? "attached" : "already exists");
+      dimensions.width, dimensions.height, addFileResult.isNewFile ? "attached" : "already exists");
     return ['AddRecord', '_grist_Attachments', null, {
       fileIdent: addFileResult.fileIdent,
       fileName: fileData.origName,

@@ -774,18 +774,23 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * would be (very?) inefficient until node-sqlite3 adds support for incremental reading from a
    * blob: https://github.com/mapbox/node-sqlite3/issues/424.
    *
-   * @param {String} sourcePath: The path of the file containing the attachment data.
-   * @param {String} fileIdent: The unique identifier of the file in the database. ActiveDoc uses the
+   * @param {string} fileIdent - The unique identifier of the file in the database. ActiveDoc uses the
    *    checksum of the file's contents with the original extension.
+   * @param {Buffer | undefined} fileData - Contents of the file.
+   * @param {string | undefined} storageId - Identifier of the store that file is stored in.
    * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
    */
-  public findOrAttachFile(fileIdent: string, fileData: Buffer | undefined, ): Promise<boolean> {
+  public findOrAttachFile(
+    fileIdent: string,
+    fileData: Buffer | undefined,
+    storageId?: string,
+  ): Promise<boolean> {
     return this.execTransaction(db => {
       // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
       return db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent)
       // Only if this succeeded, do the work of reading the file and inserting its data.
         .then(() =>
-              db.run('UPDATE _gristsys_Files SET data=? WHERE ident=?', fileData, fileIdent))
+              db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent))
         .then(() => true)
       // If UNIQUE constraint failed, this ident must already exists, so return false.
         .catch(err => {
@@ -799,7 +804,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Reads and returns the data for the given attachment.
-   * @param {String} fileIdent: The unique identifier of a file, as used by findOrAttachFile.
+   * @param {string} fileIdent - The unique identifier of a file, as used by findOrAttachFile.
    * @returns {Promise[Buffer]} The data buffer associated with fileIdent.
    */
   public getFileInfo(fileIdent: string): Promise<FileInfo | null> {

@@ -1,3 +1,6 @@
+import * as path from "path";
+import * as fse from "fs-extra";
+
 export type DocPoolId = string;
 type AttachmentId = string;
 
@@ -14,6 +17,8 @@ type AttachmentId = string;
  * This is distinct from `ExternalStorage`, in that it's more generic and doesn't support versioning.
  */
 export interface IAttachmentStore {
+  readonly id: string;
+
   // Check if attachment exists in the store.
   exists(docPoolId: DocPoolId, attachmentId: AttachmentId): Promise<boolean>;
 
@@ -30,3 +35,35 @@ export interface IAttachmentStore {
   close(): Promise<void>;
 }
 
+export class FilesystemAttachmentStore implements IAttachmentStore {
+  constructor(public readonly id: string, private _rootFolderPath: string) {
+  }
+
+  public async exists(docPoolId: string, attachmentId: string): Promise<boolean> {
+    return fse.pathExists(this._createPath(docPoolId, attachmentId))
+      .catch(() => false);
+  }
+
+  public async upload(docPoolId: string, attachmentId: string, fileData: Buffer): Promise<void> {
+    const filePath = this._createPath(docPoolId, attachmentId);
+    await fse.ensureDir(path.dirname(filePath));
+    await fse.writeFile(filePath, fileData);
+  }
+
+  public async download(docPoolId: string, attachmentId: string): Promise<Buffer> {
+    return fse.readFile(this._createPath(docPoolId, attachmentId));
+  }
+
+  public async removePool(docPoolId: string): Promise<void> {
+    await fse.remove(this._createPath(docPoolId));
+  }
+
+  public async close(): Promise<void> {
+    // Not needed here, no resources held.
+  }
+
+  private _createPath(docPoolId: string, attachmentId: string = ""): string {
+    return path.join(this._rootFolderPath, docPoolId, attachmentId);
+  }
+
+}

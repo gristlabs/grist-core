@@ -32,6 +32,7 @@ import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
 import merge = require('lodash/merge');
 import noop = require('lodash/noop');
+import { AttachmentStoreProvider } from "./AttachmentStoreProvider";
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
 // but is a bit of a burden under heavy traffic.
@@ -615,7 +616,8 @@ export class DocManager extends EventEmitter {
     const doc = await this._getDoc(docSession, docName);
     // Get URL for document for use with SELF_HYPERLINK().
     const docUrls = doc && await this._getDocUrls(doc);
-    const activeDoc = new ActiveDoc(this, docName, {...docUrls, safeMode, doc});
+    // TODO - Use an actual attachment store provider, this is placeholder
+    const activeDoc = new ActiveDoc(this, docName, {...docUrls, safeMode, doc}, new AttachmentStoreProvider());
     // Restore the timing mode of the document.
     activeDoc.isTimingOn = this._inTimingOn.get(docName) || false;
     return activeDoc;

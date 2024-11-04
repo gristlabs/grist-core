@@ -1,4 +1,4 @@
-import { IAttachmentStore } from "./AttachmentStore";
+import { FilesystemAttachmentStore, IAttachmentStore } from "./AttachmentStore";
 
 export type AttachmentStoreId = string
 
@@ -9,17 +9,15 @@ export interface IAttachmentStoreProvider {
   storeExists(id: AttachmentStoreId): Promise<boolean>;
 }
 
-/*
 export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   constructor() {
   }
 
-  public getStore(id: string): Promise<IAttachmentStore | null> {
-
+  public async getStore(id: string): Promise<IAttachmentStore | null> {
+    return new FilesystemAttachmentStore(id, "/home/spoffy/Downloads/Grist/TEST ATTACHMENTS");
   }
 
-  public storeExists(id: string): Promise<boolean> {
-
+  public async storeExists(id: string): Promise<boolean> {
+    return true;
   }
 }
-*/
