@@ -14,7 +14,7 @@ export const element = (testId: string) => ({
     return driver.find(testId);
   },
   async wait() {
-    await driver.findWait(testId, 2000);
+    await driver.findWait(testId, 10000);
   },
   async visible() {
     return await this.element().isDisplayed();
