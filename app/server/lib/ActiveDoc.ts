@@ -142,6 +142,7 @@ import {DocPluginManager} from './DocPluginManager';
 import {DocSession, makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
 import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
+import {IAttachmentStoreProvider} from "./AttachmentStoreProvider";
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {getPubSubPrefix} from './serverUtils';
@@ -289,6 +290,7 @@ export class ActiveDoc extends EventEmitter {
     docManager: DocManager,
     docName: string,
     private _options?: ICreateActiveDocOptions,
+    externalAttachmentStoreProvider?: IAttachmentStoreProvider
   ) {
     super();
     const {forkId, snapshotId} = parseUrlId(docName);
@@ -384,7 +386,13 @@ export class ActiveDoc extends EventEmitter {
       loadTable: this._rawPyCall.bind(this, 'load_table'),
     });
 
-    this._attachmentFileManager = new AttachmentFileManager(this.docStorage);
+    // This will throw errors if _doc or externalAttachmentStoreProvider aren't provided, and ActiveDoc tries to use
+    // an external attachment store.
+    this._attachmentFileManager = new AttachmentFileManager(
+      this.docStorage,
+      externalAttachmentStoreProvider,
+      this._doc
+    );
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
     // corresponding to one process for pynbox, more for gvisor).
@@ -2355,7 +2363,8 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
-    const addFileResult = await this._attachmentFileManager.addFile(fileData.ext, await readFile(fileData.absPath));
+    const addFileResult = await this._attachmentFileManager
+      .addFile(undefined, fileData.ext, await readFile(fileData.absPath));
     this._log.info(docSession, "addAttachment: file %s (image %sx%s) %s", addFileResult.fileIdent,
       dimensions.width, dimensions.height, addFileResult.alreadyExisted ? "attached" : "already exists");
     return ['AddRecord', '_grist_Attachments', null, {

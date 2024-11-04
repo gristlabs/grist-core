@@ -72,6 +72,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       await db.exec(`CREATE TABLE _gristsys_Files (
         id INTEGER PRIMARY KEY,
         ident TEXT UNIQUE,
+        storageId TEXT,
         data BLOB
        )`);
       await db.exec(`CREATE TABLE _gristsys_Action (
@@ -393,7 +394,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         }
         await createAttachmentsIndex(db);
       },
-
+      async function(db: SQLiteDB): Promise<void> {
+        // Storage version 9.
+        // Migration to add `storage` column to _gristsys_files, which can optionally refer to an external storage
+        // where the file is stored.
+        // Default should be NULL.
+        await db.exec(`ALTER TABLE _gristsys_files ADD COLUMN storageId TEXT`);
+      },
     ]
   };
 
@@ -795,9 +802,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @param {String} fileIdent: The unique identifier of a file, as used by findOrAttachFile.
    * @returns {Promise[Buffer]} The data buffer associated with fileIdent.
    */
-  public getFileData(fileIdent: string): Promise<Buffer> {
-    return this.get('SELECT data FROM _gristsys_Files WHERE ident=?', fileIdent)
-      .then(row => row && row.data);
+  public getFileInfo(fileIdent: string): Promise<FileInfo | null> {
+    return this.get('SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?', fileIdent)
+      .then(row => row ? ({
+        ident: row.ident as string,
+        storageId: row.storageId as string,
+        data: row.data as Buffer,
+      }) : null);
   }
 
 
@@ -1848,4 +1859,11 @@ export async function createAttachmentsIndex(db: ISQLiteDB) {
 // material as we run into it.
 function fixDefault(def: string) {
   return (def === '""') ? "''" : def;
+}
+
+// Information on an attached file from _gristsys_files
+export interface FileInfo {
+  ident: string;
+  storageId: string;
+  data: Buffer;
 }
