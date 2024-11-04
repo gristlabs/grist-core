@@ -99,7 +99,7 @@ export class DocSettingsPage extends Disposable {
         dom.create(AdminSectionItem, {
           id: 'templateMode',
           name: t('Template mode'),
-          description: t('Special document mode'),
+          description: t('Change document mode'),
           value: cssDocTypeContainer(
             dom.create(
               displayCurrentType,
@@ -388,7 +388,7 @@ export class DocSettingsPage extends Disposable {
             type: DocTypeOption.Template,
             label: t('Template'),
             description:  t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
-              'Any edit (open to anybody) will create a new unsaved copy.',
+              'Anyone may edit, which will create a new unsaved copy.',
               {
                 fiddleModeDocUrl: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('fiddle mode'))
               }
@@ -398,7 +398,7 @@ export class DocSettingsPage extends Disposable {
           docTypeOption({
             type: DocTypeOption.Tutorial,
             label: t('Tutorial'),
-            description: t('Document automatically opens with a new copy.'),
+            description: t('Document automatically opens as a user-specific copy.'),
             itemTestId: testId('doctype-modal-option-tutorial'),
           }),
         ),
