@@ -119,7 +119,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private async _addFileToAttachmentStore(store: IAttachmentStore, fileIdent: string, fileData: Buffer): Promise<AddFileResult> {
-    const isNewFile = await this._docStorage.findOrAttachFile(fileIdent, fileData, store.id);
+    const isNewFile = await this._docStorage.findOrAttachFile(fileIdent, undefined, store.id);
 
     // Verify the file exists in the store. This allows for a second attempt to correct a failed upload.
     const existsInRemoteStorage = !isNewFile && await store.exists(this._getDocPoolId(), fileIdent);
