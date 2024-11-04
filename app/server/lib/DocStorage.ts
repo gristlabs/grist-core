@@ -396,10 +396,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       },
       async function(db: SQLiteDB): Promise<void> {
         // Storage version 9.
-        // Migration to add `storage` column to _gristsys_files, which can optionally refer to an external storage
+        // Migration to add `storage` column to _gristsys_Files, which can optionally refer to an external storage
         // where the file is stored.
         // Default should be NULL.
-        await db.exec(`ALTER TABLE _gristsys_files ADD COLUMN storageId TEXT`);
+        await db.exec(`ALTER TABLE _gristsys_Files ADD COLUMN storageId TEXT`);
       },
     ]
   };
