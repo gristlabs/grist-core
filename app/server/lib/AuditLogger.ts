@@ -45,6 +45,9 @@ export interface IAuditLogger {
     properties: AuditEventProperties<Action>
   ): Promise<void>;
 
+  /**
+   * Close any resources used by the logger.
+   */
   close(): Promise<void>;
 }
 
@@ -98,7 +101,7 @@ export class AuditLogger implements IAuditLogger {
   );
   private _redisSubscriber: RedisClient | undefined;
   private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
-  private _jobs: Promise<void>[] = [];
+  private _logsInProgress: Promise<void>[] = [];
 
   constructor(
     private _db: HomeDBManager,
@@ -109,14 +112,19 @@ export class AuditLogger implements IAuditLogger {
   }
 
   public async close() {
-    // for (const job of this._jobs) {
-    //   await job.catch((error) => {
-    //     this._logger.error(null, `failed to close audit logger`, error);
-    //   });
-    // }
-    this._jobs = [];
     this._installStreamingDestinations.clear();
     this._orgStreamingDestinations.clear();
+    const listToClear = this._logsInProgress.slice();
+    this._logsInProgress = [];
+    for (const logCall of listToClear) {
+      // All log calls should be awaited already and errors should be logged.
+      await logCall.catch(() => {});
+    }
+    if (this._logsInProgress.length > 0) {
+      this._logger.error(null, "logEvent called after close", {
+        count: this._logsInProgress.length,
+      });
+    }
   }
 
   /**
@@ -145,9 +153,9 @@ export class AuditLogger implements IAuditLogger {
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties
   ) {
-    const work = this._logEventOrThrow(requestOrSession, properties);
-    this._jobs.push(work);
-    return work;
+    const logInProgress = this._logEventOrThrow(requestOrSession, properties);
+    this._logsInProgress.push(logInProgress);
+    return logInProgress;
   }
 
     /**
@@ -177,7 +185,7 @@ export class AuditLogger implements IAuditLogger {
         );
       }
     }
-  
+
 
   private _buildEventFromProperties(
     requestOrSession: RequestOrSession,
@@ -208,22 +216,16 @@ export class AuditLogger implements IAuditLogger {
       ),
     ]);
 
-
-    const rejectd = destinations.filter(
+    const rejected = destinations.filter(
       (d): d is PromiseRejectedResult => d.status === "rejected"
     );
-    if (rejectd.length > 0) {
-      throw new Error(
-        `failed to fetch streaming destinations: ${rejectd
-          .map(({ reason }) => reason.message)
-          .join(", ")}`
-      );
+    if (rejected.length > 0) {
+      throw new Error(`failed to fetch streaming destinations: ${rejected.map(({ reason }) => reason)}`);
     }
     const fulfilled = destinations.filter(
       (d): d is PromiseFulfilledResult<AuditLogStreamingDestination[]> =>
         d.status === "fulfilled"
     ).map(({ value }) => value);
-
 
     return fulfilled
       .filter((d): d is AuditLogStreamingDestination[] => d !== null)
