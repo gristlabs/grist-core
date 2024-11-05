@@ -86,7 +86,6 @@ export class TestServer {
 
     const env: NodeJS.ProcessEnv = {
       APP_HOME_URL: homeUrl,
-      APP_HOME_INTERNAL_URL: homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
       GRIST_PORT: String(this.port),
       ...this._defaultEnv,
@@ -195,6 +194,8 @@ export class TestServer {
   }
 }
 
+const FROM_OUTSIDE_HEADER_KEY = "X-FROM-OUTSIDE";
+
 /**
  * Creates a reverse-proxy for a home and a doc worker.
  *
@@ -203,7 +204,7 @@ export class TestServer {
  *
  * You may use it like follow:
  * ```ts
- * const proxy = new TestServerReverseProxy();
+ * const proxy = await TestServerReverseProxy.build();
  * // Create here a doc and a home workers with their env variables
  * proxy.requireFromOutsideHeader(); // Optional
  * await proxy.start(home, docs);
@@ -217,7 +218,7 @@ export class TestServerReverseProxy {
   // https://github.com/gristlabs/grist-core/blob/24b39c651b9590cc360cc91b587d3e1b301a9c63/app/server/lib/requestUtils.ts#L85-L98
   public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
 
-  public static FROM_OUTSIDE_HEADER = {"X-FROM-OUTSIDE": true};
+  public static FROM_OUTSIDE_HEADER = {[FROM_OUTSIDE_HEADER_KEY]: true};
 
   public static async build() {
     const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
@@ -277,7 +278,7 @@ export class TestServerReverseProxy {
       log.debug(`[proxy] Requesting (method=${oreq.method}): ${new URL(oreq.url, serverUrl).href}`);
 
       // See the requireFromOutsideHeader() method for the explanation
-      if (this._requireFromOutsideHeader && !isAffirmative(oreq.get("X-FROM-OUTSIDE"))) {
+      if (this._requireFromOutsideHeader && !isAffirmative(oreq.get(FROM_OUTSIDE_HEADER_KEY))) {
         log.error('TestServerReverseProxy: called public URL from internal');
         return ores.status(403).json({error: "TestServerReverseProxy: called public URL from internal "});
       }
