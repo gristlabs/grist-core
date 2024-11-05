@@ -14,6 +14,7 @@ processes = []
   GRIST_SINGLE_ORG="docs"
   PORT = "8080"
   FLY_DEPLOY_EXPIRATION = "{FLY_DEPLOY_EXPIRATION}"
+  # <FLY_ENV__> -- fly-deploy.js will insert extra env variables here.
 
 [experimental]
   allowed_public_ports = []

@@ -98,8 +98,23 @@ async function prepConfig(name, volName) {
   const config = template
     .replace(/{APP_NAME}/g, name)
     .replace(/{VOLUME_NAME}/g, volName)
-    .replace(/{FLY_DEPLOY_EXPIRATION}/g, expiration);
+    .replace(/{FLY_DEPLOY_EXPIRATION}/g, expiration)
+
+    // If there are any env vars starting with "FLY_ENV__", append them (without the suffix) at
+    // the point after the line with the <FLY_ENV__> tag.
+    .replace(/<FLY_ENV__>.*/, `$&\n${extraVars()}`);
+
   await fs.writeFile(configPath, config);
+}
+
+function extraVars() {
+  const lines = [];
+  for (const name of Object.keys(process.env)) {
+    if (name.startsWith('FLY_ENV__')) {
+      lines.push(`  ${name.slice('FLY_ENV__'.length)} = ${process.env[name]}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 function runFetch(cmd) {
