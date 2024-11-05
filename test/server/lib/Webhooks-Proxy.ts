@@ -135,9 +135,8 @@ describe('Webhooks-Proxy', function () {
       describe("should work with a home server and a docworker", async () => {
         setupMockServers('separated', tmpDir, async () => {
           home = await TestServer.startServer('home', tmpDir, suitename, additionaEnvConfiguration);
-          const homeUrl = home.serverUrl;
-          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, homeUrl);
-          serverUrl = homeUrl;
+          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, home.serverUrl);
+          serverUrl = home.serverUrl;
         });
         subTestCall();
       });

@@ -208,7 +208,7 @@ describe('DocApi', function () {
 
         proxy.requireFromOutsideHeader();
 
-        await proxy.start(home, docs);
+        proxy.start(home, docs);
 
         homeUrl = serverUrl = proxy.serverUrl;
         hasHomeApi = true;

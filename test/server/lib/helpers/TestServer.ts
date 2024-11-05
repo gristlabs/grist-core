@@ -249,9 +249,9 @@ export class TestServerReverseProxy {
     this._requireFromOutsideHeader = true;
   }
 
-  public async start(homeServer: TestServer, docServer: TestServer) {
-    this._app.all(['/dw/dw1', '/dw/dw1/*'], await this._getRequestHandlerFor(docServer));
-    this._app.all('/*', await this._getRequestHandlerFor(homeServer));
+  public start(homeServer: TestServer, docServer: TestServer) {
+    this._app.all(['/dw/dw1', '/dw/dw1/*'], this._getRequestHandlerFor(docServer));
+    this._app.all('/*', this._getRequestHandlerFor(homeServer));
 
     // Forbid now the use of serverUrl property, so we don't allow the tests to
     // call the workers directly
@@ -270,7 +270,7 @@ export class TestServerReverseProxy {
     this._proxy.close();
   }
 
-  private async _getRequestHandlerFor(server: TestServer) {
+  private _getRequestHandlerFor(server: TestServer) {
     const serverUrl = new URL(server.serverUrl);
 
     return (oreq: express.Request, ores: express.Response) => {
