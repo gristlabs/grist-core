@@ -960,6 +960,7 @@ export class FlexServer implements GristServer {
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.
     if (this._docWorkerMap) { await this._docWorkerMap.close(); }
     if (this._sessionStore) { await this._sessionStore.close(); }
+    if (this._auditLogger) { await this._auditLogger.close(); }
   }
 
   public addDocApiForwarder() {

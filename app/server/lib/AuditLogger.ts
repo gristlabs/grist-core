@@ -44,6 +44,8 @@ export interface IAuditLogger {
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties<Action>
   ): Promise<void>;
+
+  close(): Promise<void>;
 }
 
 export interface AuditEventProperties<
@@ -96,6 +98,7 @@ export class AuditLogger implements IAuditLogger {
   );
   private _redisSubscriber: RedisClient | undefined;
   private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
+  private _jobs: Promise<void>[] = [];
 
   constructor(
     private _db: HomeDBManager,
@@ -103,6 +106,17 @@ export class AuditLogger implements IAuditLogger {
   ) {
     this._initializeFormatters();
     this._subscribeToStreamingDestinations();
+  }
+
+  public async close() {
+    // for (const job of this._jobs) {
+    //   await job.catch((error) => {
+    //     this._logger.error(null, `failed to close audit logger`, error);
+    //   });
+    // }
+    this._jobs = [];
+    this._installStreamingDestinations.clear();
+    this._orgStreamingDestinations.clear();
   }
 
   /**
@@ -127,30 +141,43 @@ export class AuditLogger implements IAuditLogger {
   /**
    * Logs an audit event or throws an error on failure.
    */
-  public async logEventOrThrow(
+  public logEventOrThrow(
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties
   ) {
-    const event = this._buildEventFromProperties(requestOrSession, properties);
-    const destinations = await this._getOrSetStreamingDestinations(event);
-    const requests = await Promise.allSettled(
-      destinations.map((destination: AuditLogStreamingDestination) =>
-        this._streamEventToDestination(event, destination)
-      )
-    );
-    const errors = requests
-      .filter(
-        (request): request is PromiseRejectedResult =>
-          request.status === "rejected"
-      )
-      .map(({ reason }) => reason);
-    if (errors.length > 0) {
-      throw new LogAuditEventError(
-        "encountered errors while streaming audit event",
-        { event, errors }
-      );
-    }
+    const work = this._logEventOrThrow(requestOrSession, properties);
+    this._jobs.push(work);
+    return work;
   }
+
+    /**
+   * Logs an audit event or throws an error on failure.
+   */
+    private async _logEventOrThrow(
+      requestOrSession: RequestOrSession,
+      properties: AuditEventProperties
+    ) {
+      const event = this._buildEventFromProperties(requestOrSession, properties);
+      const destinations = await this._getOrSetStreamingDestinations(event);
+      const requests = await Promise.allSettled(
+        destinations.map((destination: AuditLogStreamingDestination) =>
+          this._streamEventToDestination(event, destination)
+        )
+      );
+      const errors = requests
+        .filter(
+          (request): request is PromiseRejectedResult =>
+            request.status === "rejected"
+        )
+        .map(({ reason }) => reason);
+      if (errors.length > 0) {
+        throw new LogAuditEventError(
+          "encountered errors while streaming audit event",
+          { event, errors }
+        );
+      }
+    }
+  
 
   private _buildEventFromProperties(
     requestOrSession: RequestOrSession,
@@ -172,7 +199,7 @@ export class AuditLogger implements IAuditLogger {
 
   private async _getOrSetStreamingDestinations(event: AuditEvent) {
     const orgId = event.context.site?.id;
-    const destinations = await Promise.all([
+    const destinations = await Promise.allSettled([
       mapGetOrSet(this._installStreamingDestinations, true, () =>
         this._fetchStreamingDestinations()
       ),
@@ -180,7 +207,25 @@ export class AuditLogger implements IAuditLogger {
         this._fetchStreamingDestinations(orgId)
       ),
     ]);
-    return destinations
+
+
+    const rejectd = destinations.filter(
+      (d): d is PromiseRejectedResult => d.status === "rejected"
+    );
+    if (rejectd.length > 0) {
+      throw new Error(
+        `failed to fetch streaming destinations: ${rejectd
+          .map(({ reason }) => reason.message)
+          .join(", ")}`
+      );
+    }
+    const fulfilled = destinations.filter(
+      (d): d is PromiseFulfilledResult<AuditLogStreamingDestination[]> =>
+        d.status === "fulfilled"
+    ).map(({ value }) => value);
+
+
+    return fulfilled
       .filter((d): d is AuditLogStreamingDestination[] => d !== null)
       .flat();
   }

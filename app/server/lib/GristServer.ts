@@ -175,6 +175,7 @@ export function createDummyAuditLogger(): IAuditLogger {
   return {
     logEvent() { /* do nothing */ },
     logEventOrThrow() { return Promise.resolve(); },
+    close() { return Promise.resolve(); },
   };
 }
 
