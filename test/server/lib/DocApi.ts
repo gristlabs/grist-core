@@ -15,7 +15,7 @@ import {
   getDocApiUsageKeysToIncr,
   WebhookSubscription
 } from 'app/server/lib/DocApi';
-import {delayAbort} from 'app/server/lib/serverUtils';
+import {delayAbort, getAvailablePort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import {assert} from 'chai';
@@ -141,7 +141,7 @@ describe('DocApi', function () {
         GRIST_DATA_DIR: dataDir
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
-      homeUrl = serverUrl = await home.getServerUrl();
+      homeUrl = serverUrl = home.serverUrl;
       hasHomeApi = true;
     });
     testDocApi({webhooksTestPort});
@@ -155,7 +155,7 @@ describe('DocApi', function () {
         GRIST_ANON_PLAYGROUND: 'false'
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
-      homeUrl = serverUrl = await home.getServerUrl();
+      homeUrl = serverUrl = home.serverUrl;
       hasHomeApi = true;
     });
 
@@ -176,7 +176,7 @@ describe('DocApi', function () {
         };
 
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        homeUrl = serverUrl = await home.getServerUrl();
+        homeUrl = serverUrl = home.serverUrl;
         docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, homeUrl);
         hasHomeApi = true;
       });
@@ -185,30 +185,32 @@ describe('DocApi', function () {
 
     describe('behind a reverse-proxy', function () {
       async function setupServersWithProxy(suitename: string, overrideEnvConf?: NodeJS.ProcessEnv) {
-        const proxy = new TestServerReverseProxy();
+        const proxy = await TestServerReverseProxy.build();
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
           GRIST_DATA_DIR: dataDir,
-          APP_HOME_URL: await proxy.getServerUrl(),
+          APP_HOME_URL: proxy.serverUrl,
           GRIST_ORG_IN_PATH: 'true',
           GRIST_SINGLE_PORT: '0',
           ...overrideEnvConf
         };
 
-        const home = new TestServer('home', tmpDir, suitename);
-        await home.start(await home.getServerUrl(), additionalEnvConfiguration);
-        const docs = new TestServer('docs', tmpDir, suitename);
-        await docs.start(await home.getServerUrl(), {
+        const homePort = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+        const home = new TestServer('home', homePort, tmpDir, suitename);
+        await home.start(home.serverUrl, additionalEnvConfiguration);
+        const docPort = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+        const docs = new TestServer('docs', docPort, tmpDir, suitename);
+        await docs.start(home.serverUrl, {
           ...additionalEnvConfiguration,
-          APP_DOC_URL: `${await proxy.getServerUrl()}/dw/dw1`,
-          APP_DOC_INTERNAL_URL: await docs.getServerUrl(),
+          APP_DOC_URL: `${proxy.serverUrl}/dw/dw1`,
+          APP_DOC_INTERNAL_URL: docs.serverUrl,
         });
 
         proxy.requireFromOutsideHeader();
 
         await proxy.start(home, docs);
 
-        homeUrl = serverUrl = await proxy.getServerUrl();
+        homeUrl = serverUrl = proxy.serverUrl;
         hasHomeApi = true;
         extraHeadersForConfig = {
           Origin: serverUrl,
@@ -281,9 +283,9 @@ describe('DocApi', function () {
           GRIST_DATA_DIR: dataDir
         };
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        homeUrl = await home.getServerUrl();
+        homeUrl = home.serverUrl;
         docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, homeUrl);
-        serverUrl = await docs.getServerUrl();
+        serverUrl = docs.serverUrl;
         hasHomeApi = false;
       });
       testDocApi({webhooksTestPort});
@@ -3469,7 +3471,7 @@ function testDocApi(settings: {
     if (docs.proxiedServer) {
       this.skip();
     }
-    const docWorkerUrl = await docs.getServerUrl();
+    const docWorkerUrl = docs.serverUrl;
     let resp = await axios.get(`${docWorkerUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 200);
     assert.containsAllKeys(resp.data, ['A', 'B', 'C']);

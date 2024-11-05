@@ -12,7 +12,6 @@ import {delay} from "bluebird";
 import fetch from "node-fetch";
 import {Writable} from "stream";
 import express from "express";
-import { AddressInfo } from "net";
 import { isAffirmative } from "app/common/gutil";
 import httpProxy from 'http-proxy';
 
@@ -28,8 +27,8 @@ export class TestServer {
     _homeUrl?: string,
     options: {output?: Writable} = {},      // Pipe server output to the given stream
   ): Promise<TestServer> {
-
-    const server = new this(serverTypes, tempDirectory, suitename);
+    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+    const server = new this(serverTypes, port, tempDirectory, suitename);
     await server.start(_homeUrl, customEnv, options);
     return server;
   }
@@ -38,15 +37,26 @@ export class TestServer {
   public testingHooks: TestingHooksClient;
   public stopped = false;
   public get proxiedServer() { return this._proxiedServer; }
+  public get serverUrl() {
+    if (this._proxiedServer) {
+      throw new Error('Direct access to this test server is disallowed');
+    }
 
-  private _serverUrl: Promise<string>;
+    return `http://localhost:${this.port}`;
+  }
+
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
   private _proxiedServer: boolean = false;
 
   private readonly _defaultEnv;
 
-  constructor(private _serverTypes: string, public readonly rootDir: string, private _suiteName: string) {
+  constructor(
+    private _serverTypes: string,
+    public readonly port: number,
+    public readonly rootDir: string,
+    private _suiteName: string
+  ) {
     this._defaultEnv = {
       GRIST_INST_DIR: this.rootDir,
       GRIST_DATA_DIR: path.join(this.rootDir, "data"),
@@ -59,18 +69,6 @@ export class TestServer {
       GRIST_MAX_QUEUE_SIZE: '10',
       ...process.env
     };
-    this._serverUrl = new Promise((resolve) => {
-      return getAvailablePort(Number(process.env.GET_AVAILABLE_PORT_START || '8000')).then((port) => {
-        resolve(`http://localhost:${port}`);
-      });
-    });
-  }
-
-  public getServerUrl() {
-    if (this._proxiedServer) {
-      throw new Error('Direct access to this test server is disallowed');
-    }
-    return this._serverUrl;
   }
 
   public async start(homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
@@ -86,14 +84,11 @@ export class TestServer {
       throw new Error(`Path of testingSocket too long: ${this.testingSocket.length} (${this.testingSocket})`);
     }
 
-    const serverUrl = await this.getServerUrl();
-    const port = new URL(serverUrl).port;
-
     const env: NodeJS.ProcessEnv = {
       APP_HOME_URL: homeUrl,
       APP_HOME_INTERNAL_URL: homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
-      GRIST_PORT: port,
+      GRIST_PORT: String(this.port),
       ...this._defaultEnv,
       ...customEnv
     };
@@ -121,7 +116,7 @@ export class TestServer {
       .catch(() => undefined);
 
     await this._waitServerReady();
-    log.info(`server ${this._serverTypes} up and listening on ${this._serverUrl}`);
+    log.info(`server ${this._serverTypes} up and listening on ${this.serverUrl}`);
   }
 
   public async stop() {
@@ -150,7 +145,7 @@ export class TestServer {
       this.testingHooks = await connectTestingHooks(this.testingSocket);
 
       // wait for check
-      return (await fetch(`${this._serverUrl}/status/hooks`, {timeout: 1000})).ok;
+      return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
     } catch (err) {
       log.warn("Failed to initialize server", err);
       return false;
@@ -163,8 +158,8 @@ export class TestServer {
   // Returns the promise for the ChildProcess's signal or exit code.
   public getExitPromise(): Promise<string|number> { return this._exitPromise; }
 
-  public async makeUserApi(org: string, user: string = 'chimpy'): Promise<UserAPIImpl> {
-    return new UserAPIImpl(`${await this.getServerUrl()}/o/${org}`, {
+  public makeUserApi(org: string, user: string = 'chimpy'): UserAPIImpl {
+    return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {
       headers: {Authorization: `Bearer api_key_for_${user}`},
       fetch: fetch as unknown as typeof globalThis.fetch,
       newFormData: () => new FormData() as any,
@@ -224,21 +219,22 @@ export class TestServerReverseProxy {
 
   public static FROM_OUTSIDE_HEADER = {"X-FROM-OUTSIDE": true};
 
+  public static async build() {
+    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+    return new this(port);
+  }
+
+  public get serverUrl() { return `http://${TestServerReverseProxy.HOSTNAME}:${this.port}`; }
+
   private _app = express();
   private _proxyServer: http.Server;
   private _proxy: httpProxy = httpProxy.createProxy();
-  private _address: Promise<AddressInfo>;
   private _requireFromOutsideHeader = false;
 
   public get stopped() { return !this._proxyServer.listening; }
 
-  public constructor() {
-    this._proxyServer = this._app.listen(0);
-    this._address = new Promise((resolve) => {
-      this._proxyServer.once('listening', () => {
-        resolve(this._proxyServer.address() as AddressInfo);
-      });
-    });
+  public constructor(public readonly port: number) {
+    this._proxyServer = this._app.listen(port);
   }
 
   /**
@@ -262,16 +258,7 @@ export class TestServerReverseProxy {
     homeServer.disallowDirectAccess();
     docServer.disallowDirectAccess();
 
-    log.info('proxy server running on ', await this.getServerUrl());
-  }
-
-  public async getAddress() {
-    return this._address;
-  }
-
-  public async getServerUrl() {
-    const address = await this.getAddress();
-    return `http://${TestServerReverseProxy.HOSTNAME}:${address.port}`;
+    log.info('proxy server running on ', this.serverUrl);
   }
 
   public stop() {
@@ -284,7 +271,7 @@ export class TestServerReverseProxy {
   }
 
   private async _getRequestHandlerFor(server: TestServer) {
-    const serverUrl = new URL(await server.getServerUrl());
+    const serverUrl = new URL(server.serverUrl);
 
     return (oreq: express.Request, ores: express.Response) => {
       log.debug(`[proxy] Requesting (method=${oreq.method}): ${new URL(oreq.url, serverUrl).href}`);
