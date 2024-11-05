@@ -101,7 +101,8 @@ export class AuditLogger implements IAuditLogger {
   );
   private _redisSubscriber: RedisClient | undefined;
   private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
-  private _logsInProgress: Promise<void>[] = [];
+  private _createdPromises: Promise<any>[] = [];
+  private _closed = false;
 
   constructor(
     private _db: HomeDBManager,
@@ -112,19 +113,14 @@ export class AuditLogger implements IAuditLogger {
   }
 
   public async close() {
+    this._closed = true;
     this._installStreamingDestinations.clear();
     this._orgStreamingDestinations.clear();
-    const listToClear = this._logsInProgress.slice();
-    this._logsInProgress = [];
-    for (const logCall of listToClear) {
-      // All log calls should be awaited already and errors should be logged.
-      await logCall.catch(() => {});
-    }
-    if (this._logsInProgress.length > 0) {
-      this._logger.error(null, "logEvent called after close", {
-        count: this._logsInProgress.length,
-      });
-    }
+    const promises = this._createdPromises;
+    this._createdPromises = [];
+    await Promise.allSettled(promises).catch((error) => {
+      this._logger.error(null, "failed to close audit logger", error);
+    });
   }
 
   /**
@@ -134,7 +130,11 @@ export class AuditLogger implements IAuditLogger {
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties
   ): void {
-    this.logEventOrThrow(requestOrSession, properties).catch((error) => {
+    if (this._closed) {
+      throw new Error("audit logger is closed");
+    }
+
+    this._track(this.logEventOrThrow(requestOrSession, properties)).catch((error) => {
       this._logger.error(requestOrSession, `failed to log audit event`, error);
       this._logger.warn(
         requestOrSession,
@@ -149,43 +149,33 @@ export class AuditLogger implements IAuditLogger {
   /**
    * Logs an audit event or throws an error on failure.
    */
-  public logEventOrThrow(
+  public async logEventOrThrow(
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties
   ) {
-    const logInProgress = this._logEventOrThrow(requestOrSession, properties);
-    this._logsInProgress.push(logInProgress);
-    return logInProgress;
-  }
-
-    /**
-   * Logs an audit event or throws an error on failure.
-   */
-    private async _logEventOrThrow(
-      requestOrSession: RequestOrSession,
-      properties: AuditEventProperties
-    ) {
-      const event = this._buildEventFromProperties(requestOrSession, properties);
-      const destinations = await this._getOrSetStreamingDestinations(event);
-      const requests = await Promise.allSettled(
-        destinations.map((destination: AuditLogStreamingDestination) =>
-          this._streamEventToDestination(event, destination)
-        )
-      );
-      const errors = requests
-        .filter(
-          (request): request is PromiseRejectedResult =>
-            request.status === "rejected"
-        )
-        .map(({ reason }) => reason);
-      if (errors.length > 0) {
-        throw new LogAuditEventError(
-          "encountered errors while streaming audit event",
-          { event, errors }
-        );
-      }
+    if (this._closed) {
+      throw new Error("audit logger is closed");
     }
-
+    const event = this._buildEventFromProperties(requestOrSession, properties);
+    const destinations = await this._getOrSetStreamingDestinations(event);
+    const requests = await Promise.allSettled(
+      destinations.map((destination: AuditLogStreamingDestination) =>
+        this._streamEventToDestination(event, destination)
+      )
+    );
+    const errors = requests
+      .filter(
+        (request): request is PromiseRejectedResult =>
+          request.status === "rejected"
+      )
+      .map(({ reason }) => reason);
+    if (errors.length > 0) {
+      throw new LogAuditEventError(
+        "encountered errors while streaming audit event",
+        { event, errors }
+      );
+    }
+  }
 
   private _buildEventFromProperties(
     requestOrSession: RequestOrSession,
@@ -207,27 +197,15 @@ export class AuditLogger implements IAuditLogger {
 
   private async _getOrSetStreamingDestinations(event: AuditEvent) {
     const orgId = event.context.site?.id;
-    const destinations = await Promise.allSettled([
+    const destinations = await Promise.all([
       mapGetOrSet(this._installStreamingDestinations, true, () =>
-        this._fetchStreamingDestinations()
+        this._track(this._fetchStreamingDestinations()),
       ),
       !orgId ? null : mapGetOrSet(this._orgStreamingDestinations, orgId, () =>
-        this._fetchStreamingDestinations(orgId)
+        this._track(this._fetchStreamingDestinations(orgId))
       ),
     ]);
-
-    const rejected = destinations.filter(
-      (d): d is PromiseRejectedResult => d.status === "rejected"
-    );
-    if (rejected.length > 0) {
-      throw new Error(`failed to fetch streaming destinations: ${rejected.map(({ reason }) => reason)}`);
-    }
-    const fulfilled = destinations.filter(
-      (d): d is PromiseFulfilledResult<AuditLogStreamingDestination[]> =>
-        d.status === "fulfilled"
-    ).map(({ value }) => value);
-
-    return fulfilled
+    return destinations
       .filter((d): d is AuditLogStreamingDestination[] => d !== null)
       .flat();
   }
@@ -371,6 +349,16 @@ export class AuditLogger implements IAuditLogger {
     } finally {
       await redis.quitAsync();
     }
+  }
+
+  private _track(prom: Promise<any>) {
+    this._createdPromises.push(prom);
+    return prom.finally(() => {
+      const index = this._createdPromises.indexOf(prom);
+      if (index !== -1) {
+        this._createdPromises.splice(index, 1);
+      }
+    });
   }
 }
 
