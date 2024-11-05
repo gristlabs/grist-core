@@ -276,7 +276,7 @@ describe('DocApi', function () {
 
         after(() => tearDown(proxy, [home, docs]));
 
-        it('should succeed to compare docs', async function () {
+        it('should fail to compare docs', async function () {
           const promise = testCompareDocs(proxy, home);
           await assert.isRejected(promise, /TestServerReverseProxy: called public URL/);
         });
