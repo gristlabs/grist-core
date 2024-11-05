@@ -82,12 +82,11 @@ function makeUserApi(
   org: string,
   username: string,
   options?: {
-    headers?: Record<string, string>,
     baseUrl?: string
   }
 ) {
   return new UserAPIImpl(`${options?.baseUrl ?? homeUrl}/o/${org}`, {
-    headers: options?.headers ?? makeConfig(username).headers as Record<string, string>,
+    headers: makeConfig(username).headers as Record<string, string>,
     fetch: fetch as unknown as typeof globalThis.fetch,
     newFormData: () => new FormData() as any,
   });
