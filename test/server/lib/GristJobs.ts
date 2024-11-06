@@ -1,4 +1,4 @@
-import { delay } from 'app/common/delay';
+import { delay, waitToPass } from 'app/common/delay';
 import { GristBullMQJobs, GristJobs } from 'app/server/lib/GristJobs';
 import { assert } from 'chai';
 
@@ -133,19 +133,3 @@ describe('GristJobs', function() {
     }
   });
 });
-
-async function waitToPass(fn: () => Promise<void>,
-                          maxWaitMs: number = 2000) {
-  const start = Date.now();
-  while (Date.now() - start < maxWaitMs) {
-    try {
-      await fn();
-      return true;
-    } catch (e) {
-      // continue after a small delay.
-      await delay(10);
-    }
-  }
-  await fn();
-  return true;
-}

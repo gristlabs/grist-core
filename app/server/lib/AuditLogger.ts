@@ -177,6 +177,10 @@ export class AuditLogger implements IAuditLogger {
     }
   }
 
+  public length() {
+    return this._createdPromises.length;
+  }
+
   private _buildEventFromProperties(
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties
