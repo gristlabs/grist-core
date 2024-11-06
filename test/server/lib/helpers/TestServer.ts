@@ -36,7 +36,6 @@ export class TestServer {
   public testingSocket: string;
   public testingHooks: TestingHooksClient;
   public stopped = false;
-  public get proxiedServer() { return this._proxiedServer; }
   public get serverUrl() {
     if (this._proxiedServer) {
       throw new Error('Direct access to this test server is disallowed');
@@ -44,6 +43,7 @@ export class TestServer {
 
     return `http://localhost:${this.port}`;
   }
+  public get proxiedServer() { return this._proxiedServer; }
 
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
