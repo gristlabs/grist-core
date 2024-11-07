@@ -59,16 +59,15 @@ RUN \
 # the workarounds needed to keep it are getting silly.
 # It doesn't exist in recent Debian, so we need to reach back
 # to buster.
-FROM python:2.7-slim-buster AS collector-py2
+FROM debian:buster-slim AS collector-py2
 ADD sandbox/requirements.txt requirements.txt
 RUN \
   apt update && \
   apt install -y --no-install-recommends python2 python-pip python-setuptools \
   build-essential libxml2-dev libxslt-dev python-dev zlib1g-dev && \
   pip2 install wheel && \
-  pip2 install -r requirements.txt && \
-  pip2 install six && \
-  find /usr/lib -iname "libffi.so.6*" -exec cp {} /usr/local/lib \;
+  pip2 install -r requirements.txt 
+
 
 ################################################################################
 ## Sandbox collection stage
@@ -108,10 +107,6 @@ COPY --from=builder /grist/static /grist/static-built
 COPY --from=collector-py2 /usr/bin/python2.7 /usr/bin/python2.7
 COPY --from=collector-py2 /usr/lib/python2.7 /usr/lib/python2.7
 COPY --from=collector-py2 /usr/local/lib/python2.7 /usr/local/lib/python2.7
-# Make a small python2 tweak so that material in /usr/local/lib is found.
-RUN \
-  mkdir /etc/python2.7 && \
-  echo "import sys\nsys.path.append('/usr/local/lib/python2.7/site-packages')" > /etc/python2.7/sitecustomize.py
 # Copy across an older libffi library binary needed by python2.
 # We moved it a bit sleazily to a predictable location to avoid awkward
 # architecture-dependent logic.
