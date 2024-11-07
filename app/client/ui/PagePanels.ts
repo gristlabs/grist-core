@@ -532,6 +532,7 @@ const cssLeftPaneHeader = styled(cssHeader, `
 `);
 const cssRightPaneHeader = styled(cssHeader, `
   background-color: ${theme.rightPanelBg};
+  border-bottom: 0;
 `);
 const cssBottomFooter = styled ('div', `
   height: ${bottomFooterHeightPx}px;
