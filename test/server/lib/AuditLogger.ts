@@ -1,4 +1,3 @@
-import {waitToPass} from 'app/common/delay';
 import { GenericEventFormatter } from "app/server/lib/AuditEventFormatter";
 import { AuditLogger, Deps, IAuditLogger } from "app/server/lib/AuditLogger";
 import axios from "axios";
@@ -12,6 +11,7 @@ import {
   isCreateSiteEvent,
 } from "test/server/lib/helpers/AuditLoggerUtils";
 import { EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
+import { waitForIt } from 'test/server/wait';
 
 const MAX_CONCURRENT_REQUESTS = 10;
 
@@ -336,11 +336,11 @@ describe("AuditLogger", function () {
       repeat(sendEvent);
 
       // Ensure the scope is done.
-      await waitToPass(() => assert.isTrue(firstScope.isDone(), 'Scope should be done'));
+      await waitForIt(() => assert.isTrue(firstScope.isDone(), 'Scope should be done'));
 
       // When the scope is done, the logger should clear all the pending requests, as they
       // are done (event the destination fetchers)
-      await waitToPass(() => assert.equal(logger.length(), 0));
+      await waitForIt(() => assert.equal(logger.length(), 0));
     });
 
     // Now test the same but by closing the logger.

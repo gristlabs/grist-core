@@ -101,7 +101,7 @@ export class AuditLogger implements IAuditLogger {
   );
   private _redisSubscriber: RedisClient | undefined;
   private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
-  private _createdPromises: Promise<any>[] = [];
+  private _createdPromises: Set<Promise<any>> = new Set();
   private _closed = false;
 
   constructor(
@@ -117,7 +117,7 @@ export class AuditLogger implements IAuditLogger {
     this._installStreamingDestinations.clear();
     this._orgStreamingDestinations.clear();
     const promises = this._createdPromises;
-    this._createdPromises = [];
+    this._createdPromises = new Set();
     await Promise.allSettled(promises).catch((error) => {
       this._logger.error(null, "failed to close audit logger", error);
     });
@@ -178,7 +178,7 @@ export class AuditLogger implements IAuditLogger {
   }
 
   public length() {
-    return this._createdPromises.length;
+    return this._createdPromises.size;
   }
 
   private _buildEventFromProperties(
@@ -356,12 +356,9 @@ export class AuditLogger implements IAuditLogger {
   }
 
   private _track(prom: Promise<any>) {
-    this._createdPromises.push(prom);
+    this._createdPromises.add(prom);
     return prom.finally(() => {
-      const index = this._createdPromises.indexOf(prom);
-      if (index !== -1) {
-        this._createdPromises.splice(index, 1);
-      }
+      this._createdPromises.delete(prom);
     });
   }
 }

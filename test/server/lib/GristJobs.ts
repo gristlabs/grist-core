@@ -1,6 +1,7 @@
-import { delay, waitToPass } from 'app/common/delay';
-import { GristBullMQJobs, GristJobs } from 'app/server/lib/GristJobs';
-import { assert } from 'chai';
+import {delay} from 'app/common/delay';
+import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
+import {assert} from 'chai';
+import {waitForIt} from 'test/server/wait';
 
 describe('GristJobs', function() {
   this.timeout(20000);
@@ -26,17 +27,17 @@ describe('GristJobs', function() {
         defaultCt++;
       });
       await q.add('add', {delta: 2});
-      await waitToPass(async () => {
+      await waitForIt(async () => {
         assert.equal(ct, 2);
         assert.equal(defaultCt, 0);
       });
       await q.add('add', {delta: 3});
-      await waitToPass(async () => {
+      await waitForIt(async () => {
         assert.equal(ct, 5);
         assert.equal(defaultCt, 0);
       });
       await q.add('badd', {delta: 4});
-      await waitToPass(async () => {
+      await waitForIt(async () => {
         assert.equal(ct, 5);
         assert.equal(defaultCt, 1);
       });
