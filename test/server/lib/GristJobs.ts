@@ -1,7 +1,8 @@
 import {delay} from 'app/common/delay';
 import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {assert} from 'chai';
-import {waitForIt} from 'test/server/wait';
+import {partialRight} from 'lodash';
+import {waitForIt as origWaitForIt} from 'test/server/wait';
 
 describe('GristJobs', function() {
   this.timeout(20000);
@@ -134,3 +135,5 @@ describe('GristJobs', function() {
     }
   });
 });
+
+const waitForIt = partialRight(origWaitForIt, 2000, 10);

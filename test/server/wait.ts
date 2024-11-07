@@ -12,7 +12,7 @@ import {MaybePromise} from 'app/plugin/gutil';
  * @param stepWaitMs Time to wait between attempts to check the condition.
  */
 export async function waitForIt(fn: () => MaybePromise<any>, maxWaitMs: number = 2000,
-    stepWaitMs: number = 100) {
+                                stepWaitMs: number = 1000) {
   const start = Date.now();
   const timePassed = () => Date.now() - start;
   // eslint-disable-next-line no-constant-condition

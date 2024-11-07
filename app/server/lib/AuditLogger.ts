@@ -28,6 +28,8 @@ import fetch from "node-fetch";
 import { createClient, RedisClient } from "redis";
 import { inspect } from "util";
 import { v4 as uuidv4 } from "uuid";
+import {AbortController} from 'node-abort-controller';
+
 
 export interface IAuditLogger {
   /**
@@ -103,6 +105,7 @@ export class AuditLogger implements IAuditLogger {
   private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
   private _createdPromises: Set<Promise<any>> = new Set();
   private _closed = false;
+  private _abortController = new AbortController();
 
   constructor(
     private _db: HomeDBManager,
@@ -113,6 +116,7 @@ export class AuditLogger implements IAuditLogger {
   }
 
   public async close() {
+    this._abortController.abort();
     this._closed = true;
     this._installStreamingDestinations.clear();
     this._orgStreamingDestinations.clear();
@@ -244,6 +248,7 @@ export class AuditLogger implements IAuditLogger {
         body: this._buildStreamingDestinationPayload(event, destination),
         agent: proxyAgent(new URL(url)),
         timeout: 10_000,
+        signal: this._abortController.signal,
       });
       if (!resp.ok) {
         throw new Error(
