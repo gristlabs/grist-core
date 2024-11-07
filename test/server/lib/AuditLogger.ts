@@ -336,11 +336,11 @@ describe("AuditLogger", function () {
       repeat(sendEvent);
 
       // Ensure the scope is done.
-      await waitForIt(() => assert.isTrue(firstScope.isDone(), 'Scope should be done'), 1000, 100);
+      await waitForIt(() => assert.isTrue(firstScope.isDone(), 'Scope should be done'), 1000, 10);
 
       // When the scope is done, the logger should clear all the pending requests, as they
       // are done (event the destination fetchers)
-      await waitForIt(() => assert.equal(logger.length(), 0), 1000, 100);
+      await waitForIt(() => assert.equal(logger.length(), 0), 1000, 10);
     });
 
     // Now test the same but by closing the logger.

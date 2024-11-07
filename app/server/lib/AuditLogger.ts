@@ -28,8 +28,6 @@ import fetch from "node-fetch";
 import { createClient, RedisClient } from "redis";
 import { inspect } from "util";
 import { v4 as uuidv4 } from "uuid";
-import {AbortController} from 'node-abort-controller';
-
 
 export interface IAuditLogger {
   /**
@@ -103,9 +101,8 @@ export class AuditLogger implements IAuditLogger {
   );
   private _redisSubscriber: RedisClient | undefined;
   private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
-  private _createdPromises: Set<Promise<any>> = new Set();
+  private _createdPromises: Set<Promise<any>>|null = new Set();
   private _closed = false;
-  private _abortController = new AbortController();
 
   constructor(
     private _db: HomeDBManager,
@@ -115,16 +112,24 @@ export class AuditLogger implements IAuditLogger {
     this._subscribeToStreamingDestinations();
   }
 
-  public async close() {
-    this._abortController.abort();
+  public async close(timeout = 10_000) {
+    const start = Date.now();
     this._closed = true;
+    while(this._createdPromises?.size) {
+      if (Date.now() - start > timeout) {
+        this._logger.error(null, "timed out waiting for promises created by audit logger to complete");
+        break;
+      }
+      const promises = Array.from(this._createdPromises);
+      this._createdPromises.clear();
+      await Promise.allSettled(promises).catch((error) => {
+        this._logger.error(null, "failed to close audit logger", error);
+      });
+    }
+    this._createdPromises = null;
     this._installStreamingDestinations.clear();
     this._orgStreamingDestinations.clear();
-    const promises = this._createdPromises;
-    this._createdPromises = new Set();
-    await Promise.allSettled(promises).catch((error) => {
-      this._logger.error(null, "failed to close audit logger", error);
-    });
+    await this._redisSubscriber?.quitAsync();
   }
 
   /**
@@ -182,7 +187,7 @@ export class AuditLogger implements IAuditLogger {
   }
 
   public length() {
-    return this._createdPromises.size;
+    return this._createdPromises?.size ?? 0;
   }
 
   private _buildEventFromProperties(
@@ -248,7 +253,6 @@ export class AuditLogger implements IAuditLogger {
         body: this._buildStreamingDestinationPayload(event, destination),
         agent: proxyAgent(new URL(url)),
         timeout: 10_000,
-        signal: this._abortController.signal,
       });
       if (!resp.ok) {
         throw new Error(
@@ -361,9 +365,12 @@ export class AuditLogger implements IAuditLogger {
   }
 
   private _track(prom: Promise<any>) {
+    if (!this._createdPromises) {
+      throw new Error("audit logger is closed");
+    }
     this._createdPromises.add(prom);
     return prom.finally(() => {
-      this._createdPromises.delete(prom);
+      this._createdPromises?.delete(prom);
     });
   }
 }

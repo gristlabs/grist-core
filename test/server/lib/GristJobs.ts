@@ -1,8 +1,7 @@
 import {delay} from 'app/common/delay';
 import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {assert} from 'chai';
-import {partialRight} from 'lodash';
-import {waitForIt as origWaitForIt} from 'test/server/wait';
+import {waitForIt} from 'test/server/wait';
 
 describe('GristJobs', function() {
   this.timeout(20000);
@@ -31,17 +30,17 @@ describe('GristJobs', function() {
       await waitForIt(async () => {
         assert.equal(ct, 2);
         assert.equal(defaultCt, 0);
-      });
+      }, 2000, 10);
       await q.add('add', {delta: 3});
       await waitForIt(async () => {
         assert.equal(ct, 5);
         assert.equal(defaultCt, 0);
-      });
+      }, 2000, 10);
       await q.add('badd', {delta: 4});
       await waitForIt(async () => {
         assert.equal(ct, 5);
         assert.equal(defaultCt, 1);
-      });
+      }, 2000, 10);
     } finally {
       await jobs.stop({obliterate: true});
     }
@@ -136,4 +135,3 @@ describe('GristJobs', function() {
   });
 });
 
-const waitForIt = partialRight(origWaitForIt, 2000, 10);
