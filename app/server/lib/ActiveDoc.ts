@@ -421,6 +421,7 @@ export class ActiveDoc extends EventEmitter {
   public get triggers(): DocTriggers { return this._triggers; }
 
   public get megaDataEngine() { return this._megaDataEngine; }
+  public useMegaDataEngine(): boolean { return Boolean(this._megaDataEngine); }
 
   public get rowLimitRatio(): number {
     return getUsageRatio(
@@ -663,9 +664,14 @@ export class ActiveDoc extends EventEmitter {
       }
 
       await this._loadOpenDoc(docSession);
+
       const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
       const docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId),
         metaTableData);
+
+      // Initialize the experimental alternative data engine, if the 'engine' setting asks for it.
+      // It is stubbed out and unavailable in most builds.
+      this._megaDataEngine = MegaDataEngine.maybeCreate(this.docStorage.docPath, docData);
 
       await this._initDoc(docSession, docData);
 
@@ -713,7 +719,7 @@ export class ActiveDoc extends EventEmitter {
   public async _initDoc(docSession: OptDocSession, docData: DocData): Promise<void> {
     this.docData = docData;
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData,
-                                                this._recoveryMode);
+                                                this._recoveryMode || this.useMegaDataEngine());
 
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, this.docStorage, this.docClients, (query) => {
@@ -2454,7 +2460,7 @@ export class ActiveDoc extends EventEmitter {
       await this._tableMetadataLoader.clean();
 
       const tables = docData.getMetaTable('_grist_Tables');
-      const skipLoadingUserTables = this._recoveryMode;
+      const skipLoadingUserTables = this._recoveryMode || this.useMegaDataEngine();
       const onDemandCount = skipLoadingUserTables ? tables.numRecords() : tables.filterRowIds({onDemand: true}).length;
 
       if (this._isSnapshot) {
