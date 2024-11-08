@@ -60,8 +60,6 @@ function runCleanupHandlers() {
       return Promise.try(handler.method.bind(handler.context)).timeout(handler.timeout)
       .catch(function(err) {
         log.warn(`Cleanup error for '${handler.name}' handler: ` + err);
-        // console.error(`Cleanup error for '${handler.name}' handler:`);
-        // console.error(err.stack || err);
       });
     }));
   }
