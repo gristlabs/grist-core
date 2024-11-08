@@ -44,6 +44,11 @@ export interface IAuditLogger {
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties<Action>
   ): Promise<void>;
+
+  /**
+   * Close any resources used by the logger.
+   */
+  close(): Promise<void>;
 }
 
 export interface AuditEventProperties<
@@ -94,8 +99,10 @@ export class AuditLogger implements IAuditLogger {
     "AuditLogger ",
     (requestOrSession) => getLogMeta(requestOrSession)
   );
-  private _redisSubscriber: RedisClient | undefined;
+  private _redisClient: RedisClient | null = null;
   private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
+  private _createdPromises: Set<Promise<any>>|null = new Set();
+  private _closed = false;
 
   constructor(
     private _db: HomeDBManager,
@@ -105,6 +112,34 @@ export class AuditLogger implements IAuditLogger {
     this._subscribeToStreamingDestinations();
   }
 
+  public async close(timeout = 10_000) {
+    // Wait 10 seconds for all promises to complete
+    const start = Date.now();
+    this._closed = true;
+    while(this._createdPromises?.size) {
+      if (Date.now() - start > timeout) {
+        this._logger.error(null, "timed out waiting for promises created by audit logger to complete");
+        break;
+      }
+      const promises = Array.from(this._createdPromises);
+      this._createdPromises.clear();
+      await Promise.allSettled(promises).catch((error) => {
+        this._logger.error(null, "failed to close audit logger", error);
+      });
+    }
+
+    // Remove the set, it will prevent from adding new promises. This is just sanity check, as
+    // code already tests for this._closed before adding new promises.
+    this._createdPromises = null;
+
+    // Clear up TTL Maps that have timers associated with them.
+    this._installStreamingDestinations.clear();
+    this._orgStreamingDestinations.clear();
+
+    // Close the redis clients if they weren't already.
+    await this._redisClient?.quitAsync();
+  }
+
   /**
    * Logs an audit event.
    */
@@ -112,7 +147,11 @@ export class AuditLogger implements IAuditLogger {
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties
   ): void {
-    this.logEventOrThrow(requestOrSession, properties).catch((error) => {
+    if (this._closed) {
+      throw new Error("audit logger is closed");
+    }
+
+    this._track(this.logEventOrThrow(requestOrSession, properties)).catch((error) => {
       this._logger.error(requestOrSession, `failed to log audit event`, error);
       this._logger.warn(
         requestOrSession,
@@ -131,6 +170,9 @@ export class AuditLogger implements IAuditLogger {
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties
   ) {
+    if (this._closed) {
+      throw new Error("audit logger is closed");
+    }
     const event = this._buildEventFromProperties(requestOrSession, properties);
     const destinations = await this._getOrSetStreamingDestinations(event);
     const requests = await Promise.allSettled(
@@ -150,6 +192,10 @@ export class AuditLogger implements IAuditLogger {
         { event, errors }
       );
     }
+  }
+
+  public length() {
+    return this._createdPromises?.size ?? 0;
   }
 
   private _buildEventFromProperties(
@@ -174,10 +220,10 @@ export class AuditLogger implements IAuditLogger {
     const orgId = event.context.site?.id;
     const destinations = await Promise.all([
       mapGetOrSet(this._installStreamingDestinations, true, () =>
-        this._fetchStreamingDestinations()
+        this._track(this._fetchStreamingDestinations()),
       ),
       !orgId ? null : mapGetOrSet(this._orgStreamingDestinations, orgId, () =>
-        this._fetchStreamingDestinations(orgId)
+        this._track(this._fetchStreamingDestinations(orgId))
       ),
     ]);
     return destinations
@@ -289,13 +335,13 @@ export class AuditLogger implements IAuditLogger {
       return;
     }
 
-    this._redisSubscriber = createClient(process.env.REDIS_URL);
-    this._redisSubscriber.subscribe(this._redisChannel);
-    this._redisSubscriber.on("message", async (message) => {
+    this._redisClient ??= createClient(process.env.REDIS_URL);
+    this._redisClient.subscribe(this._redisChannel);
+    this._redisClient.on("message", async (message) => {
       const { orgId } = JSON.parse(message);
       this._invalidateStreamingDestinations(orgId);
     });
-    this._redisSubscriber.on("error", async (error) => {
+    this._redisClient.on("error", async (error) => {
       this._logger.error(
         null,
         `encountered error while subscribed to channel ${this._redisChannel}`,
@@ -308,10 +354,9 @@ export class AuditLogger implements IAuditLogger {
     if (!process.env.REDIS_URL) {
       return;
     }
-
-    const redis = createClient(process.env.REDIS_URL);
+    this._redisClient ??= createClient(process.env.REDIS_URL);
     try {
-      await redis.publishAsync(this._redisChannel, JSON.stringify({ orgId }));
+      await this._redisClient.publishAsync(this._redisChannel, JSON.stringify({ orgId }));
     } catch (error) {
       this._logger.error(
         null,
@@ -321,9 +366,17 @@ export class AuditLogger implements IAuditLogger {
           orgId,
         }
       );
-    } finally {
-      await redis.quitAsync();
     }
+  }
+
+  private _track(prom: Promise<any>) {
+    if (!this._createdPromises) {
+      throw new Error("audit logger is closed");
+    }
+    this._createdPromises.add(prom);
+    return prom.finally(() => {
+      this._createdPromises?.delete(prom);
+    });
   }
 }
 

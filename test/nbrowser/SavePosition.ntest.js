@@ -9,9 +9,6 @@ describe('SavePosition.ntest', function() {
     this.timeout(Math.max(this.timeout(), 20000)); // Long-running test, unfortunately
     await gu.supportOldTimeyTestCode();
     await gu.useFixtureDoc(cleanup, "World.grist", true);
-    // The banner appearing mid-test occasionally interferes with the rest of
-    // the tests (for some unknown reason), so wait for it to appear first.
-    await $('.test-banner-element').wait();
   });
 
   afterEach(function() {

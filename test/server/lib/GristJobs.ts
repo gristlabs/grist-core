@@ -1,6 +1,7 @@
-import { delay } from 'app/common/delay';
-import { GristBullMQJobs, GristJobs } from 'app/server/lib/GristJobs';
-import { assert } from 'chai';
+import {delay} from 'app/common/delay';
+import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
+import {assert} from 'chai';
+import {waitForIt} from 'test/server/wait';
 
 describe('GristJobs', function() {
   this.timeout(20000);
@@ -26,20 +27,20 @@ describe('GristJobs', function() {
         defaultCt++;
       });
       await q.add('add', {delta: 2});
-      await waitToPass(async () => {
+      await waitForIt(async () => {
         assert.equal(ct, 2);
         assert.equal(defaultCt, 0);
-      });
+      }, 2000, 10);
       await q.add('add', {delta: 3});
-      await waitToPass(async () => {
+      await waitForIt(async () => {
         assert.equal(ct, 5);
         assert.equal(defaultCt, 0);
-      });
+      }, 2000, 10);
       await q.add('badd', {delta: 4});
-      await waitToPass(async () => {
+      await waitForIt(async () => {
         assert.equal(ct, 5);
         assert.equal(defaultCt, 1);
-      });
+      }, 2000, 10);
     } finally {
       await jobs.stop({obliterate: true});
     }
@@ -134,18 +135,3 @@ describe('GristJobs', function() {
   });
 });
 
-async function waitToPass(fn: () => Promise<void>,
-                          maxWaitMs: number = 2000) {
-  const start = Date.now();
-  while (Date.now() - start < maxWaitMs) {
-    try {
-      await fn();
-      return true;
-    } catch (e) {
-      // continue after a small delay.
-      await delay(10);
-    }
-  }
-  await fn();
-  return true;
-}

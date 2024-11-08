@@ -11,9 +11,12 @@ import {
   isCreateSiteEvent,
 } from "test/server/lib/helpers/AuditLoggerUtils";
 import { EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
+import { waitForIt } from 'test/server/wait';
+
+const MAX_CONCURRENT_REQUESTS = 10;
 
 describe("AuditLogger", function () {
-  this.timeout(10000);
+  this.timeout('10s');
   setTmpLogLevel("error");
 
   let oldEnv: EnvironmentSnapshot;
@@ -31,7 +34,7 @@ describe("AuditLogger", function () {
     process.env.TYPEORM_DATABASE = ":memory:";
     process.env.GRIST_DEFAULT_EMAIL = chimpyEmail;
     sandbox.stub(Deps, "CACHE_TTL_MS").value(0);
-    sandbox.stub(Deps, "MAX_CONCURRENT_REQUESTS").value(10);
+    sandbox.stub(Deps, "MAX_CONCURRENT_REQUESTS").value(MAX_CONCURRENT_REQUESTS);
     server = new TestServer(this);
     homeUrl = await server.start();
     oid = (await server.dbManager.testGetId("NASA")) as number;
@@ -43,6 +46,10 @@ describe("AuditLogger", function () {
     });
   });
 
+  afterEach(async function () {
+    await auditLogger.close();
+  });
+
   after(async function () {
     sandbox.restore();
     oldEnv.restore();
@@ -50,14 +57,7 @@ describe("AuditLogger", function () {
   });
 
   describe("logEventOrThrow", function () {
-    beforeEach(async function () {
-      // Ignore "config.*" audit events; some tests call the `/configs`
-      // endpoint as part of setup, which triggers them.
-      nock("https://audit.example.com")
-        .persist()
-        .post(/\/events\/.*/, (body) => body.action?.startsWith("config."))
-        .reply(200);
-    });
+    beforeEach(ignoreConfigEvents);
 
     afterEach(function () {
       nock.abortPendingRequests();
@@ -295,4 +295,106 @@ describe("AuditLogger", function () {
       );
     });
   });
+  describe('closes resources properly', function() {
+    before(async function() {
+      // Create the AuditLogger instance that we will close eventually.
+      logger = new AuditLogger(server.dbManager, {
+        formatters: [new GenericEventFormatter()],
+      });
+
+      ignoreConfigEvents();
+
+      // Wire up the destinations.
+      await axios.put(
+        `${homeUrl}/api/install/configs/audit_log_streaming_destinations`,
+        [
+          {
+            id: "62c9e725-1195-48e7-a9f6-0ba164128c20",
+            name: "other",
+            url: "https://audit.example.com/events/install",
+          },
+        ],
+        chimpy
+      );
+    });
+
+    afterEach(function () {
+      nock.cleanAll();
+    });
+
+    after(async function() {
+      await logger.close();
+    });
+
+    // Start the first test. We test here that audit logger properly clears its queue, without
+    // closing.
+    it('on its own', async function() {
+      // Start a scope to track the requests.
+      const firstScope = installScope();
+
+      // Fire up MAX_CONCURRENT_REQUESTS events to test the logger.
+      repeat(sendEvent);
+
+      // Ensure the scope is done.
+      await waitForIt(() => assert.isTrue(firstScope.isDone(), 'Scope should be done'), 1000, 10);
+
+      // When the scope is done, the logger should clear all the pending requests, as they
+      // are done (event the destination fetchers)
+      await waitForIt(() => assert.equal(logger.length(), 0), 1000, 10);
+    });
+
+    // Now test the same but by closing the logger.
+    it('when closed', async function() {
+      // Start a scope to track the requests.
+      const secondScope = installScope();
+
+      // Send all events (without waiting for the result)
+      repeat(sendEvent);
+
+      // Now close the logger and wait for all created promises to resolve.
+      await logger.close();
+
+      // Scope should be done.
+      assert.isTrue(secondScope.isDone());
+
+      // And the logger should have cleared all the pending requests.
+      assert.equal(logger.length(), 0);
+    });
+
+    // Dummy destination creator.
+    const installScope = () => nock("https://audit.example.com")
+      .post("/events/install")
+      .times(MAX_CONCURRENT_REQUESTS)
+      .reply(200);
+
+    // The AuditLogger instance that we will close eventually.
+    let logger: AuditLogger;
+
+    // Helper to send events.
+    const sendEvent = () => logger.logEvent(null, {
+      action: "site.create",
+      details: {
+        site: {
+          id: oid,
+          name: "Grist Labs",
+          domain: "gristlabs",
+        },
+      },
+    });
+  });
 });
+
+function repeat(fn: (i: number) => void) {
+  for (let i = 0; i < MAX_CONCURRENT_REQUESTS; i++) {
+    fn(i);
+  }
+}
+
+function ignoreConfigEvents() {
+  // Ignore "config.*" audit events; some tests call the `/configs`
+  // endpoint as part of setup, which triggers them.
+  nock("https://audit.example.com")
+    .persist()
+    .post(/\/events\/.*/, (body) => body.action?.startsWith("config."))
+    .reply(200);
+}
