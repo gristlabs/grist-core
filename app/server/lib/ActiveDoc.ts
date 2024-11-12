@@ -1677,17 +1677,26 @@ export class ActiveDoc extends EventEmitter {
 
     if (onDemandActions.length > 0) {
       const allIndex = findOrAddAllEnvelope(sandboxActionBundle.envelopes);
-      await this.docStorage.execTransaction(async () => {
-        for (const action of onDemandActions) {
-          const {stored, undo, retValues} = await this._onDemandActions.processUserAction(action);
-          // Note: onDemand stored/undo actions are arbitrarily processed/added after normal actions
-          // and do not support access control.
-          sandboxActionBundle.stored.push(...stored.map(a => [allIndex, a] as [number, DocAction]));
-          sandboxActionBundle.direct.push(...stored.map(a => [allIndex, true] as [number, boolean]));
-          sandboxActionBundle.undo.push(...undo.map(a => [allIndex, a] as [number, DocAction]));
-          sandboxActionBundle.retValues.push(retValues);
-        }
-      });
+      const megaDataEngine = this.megaDataEngine;
+      if (megaDataEngine) {
+        const {stored, undo, retValues} = await megaDataEngine.applyUserActions(onDemandActions);
+        sandboxActionBundle.stored.push(...stored.map(a => [allIndex, a] as [number, DocAction]));
+        sandboxActionBundle.direct.push(...stored.map(a => [allIndex, true] as [number, boolean]));
+        sandboxActionBundle.undo.push(...undo.map(a => [allIndex, a] as [number, DocAction]));
+        sandboxActionBundle.retValues.push(...retValues);
+      } else {
+        await this.docStorage.execTransaction(async () => {
+          for (const action of onDemandActions) {
+            const {stored, undo, retValues} = await this._onDemandActions.processUserAction(action);
+            // Note: onDemand stored/undo actions are arbitrarily processed/added after normal actions
+            // and do not support access control.
+            sandboxActionBundle.stored.push(...stored.map(a => [allIndex, a] as [number, DocAction]));
+            sandboxActionBundle.direct.push(...stored.map(a => [allIndex, true] as [number, boolean]));
+            sandboxActionBundle.undo.push(...undo.map(a => [allIndex, a] as [number, DocAction]));
+            sandboxActionBundle.retValues.push(retValues);
+          }
+        });
+      }
     }
 
     return sandboxActionBundle;

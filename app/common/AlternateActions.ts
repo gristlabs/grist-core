@@ -16,6 +16,16 @@ export interface ProcessedAction {
 }
 
 /**
+ * The result of processing a list of UserActions.
+ */
+export interface ProcessedActionBundle {
+  stored: DocAction[];
+  undo: DocAction[];
+  retValues: unknown[];
+}
+
+
+/**
  * A minimal interface for interpreting UserActions in the context of
  * some current state. We need to know the next free rowId for each
  * table, and also the current state of cells. This interface was

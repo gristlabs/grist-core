@@ -101,7 +101,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
       } else if (formula.kind === 'column') {
         const altColumn = columns.filterRecords({parentId: tableRef, isFormula: false, colId: formula.colId});
         // TODO: deal with a formula column.
-        if (altColumn.length > 0) {
+        if (altColumn.length > 0 || formula.colId === 'id') {
           sqlFormula = `${quoteIdent(query.tableId)}.${quoteIdent(formula.colId)}`;
         } else {
           error = "Cannot find column";
