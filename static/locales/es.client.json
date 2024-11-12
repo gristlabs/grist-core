@@ -188,7 +188,7 @@
         "Custom URL": "URL personalizada",
         "Developer:": "Desarrollador:",
         "Last updated:": "Última actualización:",
-        "Missing description and author information.": "Falta descripción e información sobre el autor.",
+        "Missing description and author information.": "Falta la descripción y la información del autor.",
         "Reject": "Rechazar"
     },
     "DocHistory": {
@@ -241,7 +241,7 @@
         "You are on the {{siteName}} site. You also have access to the following sites:": "Usted está en el sitio {{siteName}}. También tiene acceso a los siguientes sitios:",
         "You are on your personal site. You also have access to the following sites:": "Estás en tu sitio personal. También tiene acceso a los siguientes sitios:",
         "You may delete a workspace forever once it has no documents in it.": "Puede eliminar un espacio de trabajo para siempre una vez que no tenga documentos en él.",
-        "Any documents created in this site will appear here.": "Cualquier documento creado en este sitio aparecerá aquí.",
+        "Any documents created in this site will appear here.": "Todos los documentos creados en este sitio aparecerán aquí.",
         "You have read-only access to this site. Currently there are no documents.": "Tienes acceso de solo lectura en esta página. Actualmente no hay documentos.",
         "personal site": "sitio personal",
         "Create my first document": "Crear mi primer documento"
@@ -1269,7 +1269,8 @@
         "Creates a reverse column in target table that can be edited from either end.": "Crea una columna inversa en la tabla de destino que puede editarse desde cualquier extremo.",
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "Para permitir asignaciones múltiples, cambie el tipo de la Columna Referencia a Lista de referencias.",
         "Community widgets are created and maintained by Grist community members.": "Los widgets comunitarios son creados y mantenidos por los miembros de la comunidad Grist.",
-        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Esta limitación se produce cuando uno de los extremos de una referencia bidireccional se configura como Referencia única."
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Esta limitación se produce cuando uno de los extremos de una referencia bidireccional se configura como Referencia única.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Esta limitación ocurre cuando una columna en una referencia bidireccional es de tipo Referencia."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
