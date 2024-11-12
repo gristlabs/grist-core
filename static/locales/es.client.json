@@ -1840,6 +1840,8 @@
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Reasignar al registro {{sourceTable}} {{sourceName}}.",
         "Reassign": "Reasignar",
         "Reassign to new {{sourceTable}} records.": "Reasignar a nuevos registros {{sourceTable}}.",
-        "Record already assigned_one": "Registro ya asignado"
+        "Record already assigned_one": "Registro ya asignado",
+        "Record already assigned_other": "Registro ya asignado",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} registro {{targetName}} ya está asignado a {{sourceTable}} registro          {{oldSourceName}}."
     }
 }
