@@ -1811,9 +1811,10 @@
         "Delete": "Borrar",
         "Delete column {{column}} in table {{table}}?": "¿Eliminar la columna {{column}} en la tabla {{table}}?",
         "Table": "Tabla",
-        "Add two-way reference": "Añadir referencia doble",
+        "Add two-way reference": "Añadir referencia de dos vías",
         "Two-way Reference": "Referencia de dos vías",
-        "Delete two-way reference?": "¿Eliminar referencia de dos vías?"
+        "Delete two-way reference?": "¿Eliminar referencia de dos vías?",
+        "Target table": "Tabla destino"
     },
     "markdown.d": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
@@ -1823,5 +1824,22 @@
         },
         "The toggle is **off**": "El conmutador está **desactivado**",
         "The toggle is **on**": "El conmutador está **activado**"
+    },
+    "SupportGristButton": {
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "¡Muchas gracias!. Su confianza y apoyo son muy apreciados. Puedes darte de baja en cualquier momento desde el {{link}} del menú de usuario.",
+        "Help Center": "Centro de ayuda",
+        "Admin Panel": "Panel de administración",
+        "Close": "Cerrar",
+        "Opt in to Telemetry": "Optar por la telemetría",
+        "Support Grist": "Soporte Grist",
+        "Opted In": "Optó por participar"
+    },
+    "buildReassignModal": {
+        "Cancel": "Cancelar",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Cada registro {{targetTable}} sólo puede asignarse a un único registro {{sourceTable}}.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Reasignar al registro {{sourceTable}} {{sourceName}}.",
+        "Reassign": "Reasignar",
+        "Reassign to new {{sourceTable}} records.": "Reasignar a nuevos registros {{sourceTable}}.",
+        "Record already assigned_one": "Registro ya asignado"
     }
 }
