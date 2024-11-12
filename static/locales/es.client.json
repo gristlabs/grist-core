@@ -724,7 +724,8 @@
         "API Console": "Consola de la API"
     },
     "TopBar": {
-        "Manage Team": "Administrar equipo"
+        "Manage Team": "Administrar equipo",
+        "Manage team": "Administrar equipo"
     },
     "TriggerFormulas": {
         "(data cleaning)": "(limpieza de datos)",
