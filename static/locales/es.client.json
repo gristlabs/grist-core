@@ -1803,13 +1803,13 @@
         "Start a new document": "Iniciar un nuevo documento",
         "Templates": "Plantillas",
         "Tutorial": "Tutorial",
-        "Webinars": "Webinars"
+        "Webinars": "Webinar"
     },
     "ReverseReferenceConfig": {
         "Column": "Columna",
         "It is the reverse of the reference column {{column}} in table {{table}}.": "Es el reverso de la columna de referencia {{column}} en la tabla {{table}}.",
         "Delete": "Borrar",
-        "Delete column {{column}} in table {{table}}?": "Eliminar la columna {{column}} en la tabla {{table}}?",
+        "Delete column {{column}} in table {{table}}?": "¿Eliminar la columna {{column}} en la tabla {{table}}?",
         "Table": "Tabla",
         "Add two-way reference": "Añadir referencia doble",
         "Two-way Reference": "Referencia de dos vías",
