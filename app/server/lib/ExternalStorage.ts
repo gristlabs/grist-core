@@ -39,6 +39,9 @@ export interface ExternalStorage {
   // newest should be given first.
   remove(key: string, snapshotIds?: string[]): Promise<void>;
 
+  // Removes all keys which start with the given prefix
+  removeAllWithPrefix?(prefix: string): Promise<void>;
+
   // List content versions that exist for the given key.  More recent versions should
   // come earlier in the result list.
   versions(key: string): Promise<ObjSnapshot[]>;

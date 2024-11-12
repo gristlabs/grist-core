@@ -122,10 +122,19 @@ export class MinIOExternalStorage implements ExternalStorage {
 
   public async remove(key: string, snapshotIds?: string[]) {
     if (snapshotIds) {
-      await this._deleteBatch(key, snapshotIds);
+      await this._deleteVersions(key, snapshotIds);
     } else {
       await this._deleteAllVersions(key);
     }
+  }
+
+  public async removeAllWithPrefix(prefix: string) {
+    const objects = await this._listObjects(this.bucket, prefix, false, { IncludeVersion: true });
+    const objectsToDelete = objects.filter(o => o.name !== undefined).map(o => ({
+      name: o.name!,
+      versionId: (o as any).versionId as (string | undefined),
+    }));
+    await this._deleteObjects(objectsToDelete);
   }
 
   public async hasVersioning(): Promise<Boolean> {
@@ -136,18 +145,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async versions(key: string, options?: { includeDeleteMarkers?: boolean }) {
-    const results: minio.BucketItem[] = [];
-    await new Promise((resolve, reject) => {
-      const stream = this._s3.listObjects(this.bucket, key, false, {IncludeVersion: true});
-      stream
-        .on('error', reject)
-        .on('end', () => {
-          resolve(results);
-        })
-        .on('data', data => {
-          results.push(data);
-        });
-    });
+    const results = await this._listObjects(this.bucket, key, false, {IncludeVersion: true});
     return results
       .filter(v => v.name === key &&
         v.lastModified && (v as any).versionId &&
@@ -182,21 +180,44 @@ export class MinIOExternalStorage implements ExternalStorage {
   // Delete all versions of an object.
   public async _deleteAllVersions(key: string) {
     const vs = await this.versions(key, {includeDeleteMarkers: true});
-    await this._deleteBatch(key, vs.map(v => v.snapshotId));
+    await this._deleteVersions(key, vs.map(v => v.snapshotId));
   }
 
   // Delete a batch of versions for an object.
-  private async _deleteBatch(key: string, versions: Array<string | undefined>) {
+  private async _deleteVersions(key: string, versions: Array<string | undefined>) {
+    return this._deleteObjects(
+      versions.filter(v => v).map(versionId => ({
+        name: key,
+        versionId,
+      }))
+    );
+  }
+
+  // Delete an arbitrary number of objects, batched appropriately.
+  private async _deleteObjects(objects: { name: string, versionId?: string }[]): Promise<void> {
     // Max number of keys per request for AWS S3 is 1000, see:
     //   https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html
     // Stick to this maximum in case we are using this client to talk to AWS.
     const N = this._batchSize || 1000;
-    for (let i = 0; i < versions.length; i += N) {
-      const iVersions = versions.slice(i, i + N).filter(v => v) as string[];
-      if (iVersions.length === 0) { continue; }
-      await this._s3.removeObjects(this.bucket, iVersions.map(versionId => {
-        return { name: key, versionId };
-      }));
+    for (let i = 0; i < objects.length; i += N) {
+      const batch = objects.slice(i, i + N);
+      if (batch.length === 0) { continue; }
+      await this._s3.removeObjects(this.bucket, batch);
     }
+  }
+
+  private async _listObjects(...args: Parameters<MinIOClient["listObjects"]>): Promise<minio.BucketItem[]> {
+    return new Promise((resolve, reject) => {
+      const stream = this._s3.listObjects(...args);
+      const results: minio.BucketItem[] = []
+      stream
+        .on('error', reject)
+        .on('end', () => {
+          resolve(results);
+        })
+        .on('data', data => {
+          results.push(data);
+        });
+    })
   }
 }
