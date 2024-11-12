@@ -1774,9 +1774,54 @@
         "Community Widget": "Widget comunitario",
         "Custom URL": "URL personalizada",
         "Developer:": "Desarrollador:",
-        "Grist Widget": "Widget Grist"
+        "Grist Widget": "Widget Grist",
+        "Widget URL": "URL del widget",
+        "Learn more about Custom Widgets": "Más información sobre los widgets personalizados",
+        "No matching widgets": "No hay widgets coincidentes",
+        "Search": "Búsqueda"
     },
     "AdminPanelName": {
         "Admin Panel": "Panel de administración"
+    },
+    "markdown": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs."
+            }
+        },
+        "The toggle is **off**": "El conmutador está **desactivado**",
+        "The toggle is **on**": "El conmutador está **activado**"
+    },
+    "HomeIntroCards": {
+        "Blank document": "Documento en blanco",
+        "3 minute video tour": "Tour de vídeo de 3 minutos",
+        "Help center": "Centro de ayuda",
+        "Finish our basics tutorial": "Termina nuestro tutorial básico",
+        "Import file": "Importar archivo",
+        "Learn more {{webinarsLinks}}": "Aprende más {{webinarsLinks}}",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Encontra soluciones y explora más recursos {{helpCenterLink}}",
+        "Start a new document": "Iniciar un nuevo documento",
+        "Templates": "Plantillas",
+        "Tutorial": "Tutorial",
+        "Webinars": "Webinars"
+    },
+    "ReverseReferenceConfig": {
+        "Column": "Columna",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Es el reverso de la columna de referencia {{column}} en la tabla {{table}}.",
+        "Delete": "Borrar",
+        "Delete column {{column}} in table {{table}}?": "Eliminar la columna {{column}} en la tabla {{table}}?",
+        "Table": "Tabla",
+        "Add two-way reference": "Añadir referencia doble",
+        "Two-way Reference": "Referencia de dos vías",
+        "Delete two-way reference?": "¿Eliminar referencia de dos vías?"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs."
+            }
+        },
+        "The toggle is **off**": "El conmutador está **desactivado**",
+        "The toggle is **on**": "El conmutador está **activado**"
     }
 }
