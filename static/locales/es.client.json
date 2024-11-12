@@ -829,7 +829,9 @@
         "Form not found": "Formulario no encontrado",
         "Powered by": "Desarrollado por",
         "An unknown error occurred.": "Ha ocurrido un error desconocido.",
-        "Build your own form": "Cree su propio formulario"
+        "Build your own form": "Cree su propio formulario",
+        "Sign-in failed{{suffix}}": "Fallo al iniciar sesión{{suffix}}",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Error al iniciar sesión.{{separator}}Por favor, inténtelo de nuevo o póngase en contacto con el soporte."
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Enviar archivo a Google Drive"
@@ -1263,7 +1265,11 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Cree formularios sencillos directamente en Grist y compártalos en un clic con nuestro nuevo widget. {{learnMoreButton}}",
         "These rules are applied after all column rules have been processed, if applicable.": "Estas reglas se aplican después de que se hayan procesado todas las reglas de columna, si procede.",
         "Filter displayed dropdown values with a condition.": "Filtra los valores desplegables mostrados con una condición.",
-        "Example: {{example}}": "Ejemplo: {{example}}"
+        "Example: {{example}}": "Ejemplo: {{example}}",
+        "Creates a reverse column in target table that can be edited from either end.": "Crea una columna inversa en la tabla de destino que puede editarse desde cualquier extremo.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Para permitir asignaciones múltiples, cambie el tipo de la Columna Referencia a Lista de referencias.",
+        "Community widgets are created and maintained by Grist community members.": "Los widgets comunitarios son creados y mantenidos por los miembros de la comunidad Grist.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Esta limitación se produce cuando uno de los extremos de una referencia bidireccional se configura como Referencia única."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
