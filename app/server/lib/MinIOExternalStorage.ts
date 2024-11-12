@@ -4,6 +4,7 @@ import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
+import * as stream from 'node:stream';
 
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
@@ -86,18 +87,21 @@ export class MinIOExternalStorage implements ExternalStorage {
     }
   }
 
-  public async upload(key: string, fname: string, metadata?: ObjMetadata) {
-    const stream = fse.createReadStream(fname);
+  public async uploadStream(key: string, inStream: stream.Readable, metadata?: ObjMetadata) {
     const result = await this._s3.putObject(
-      this.bucket, key, stream, undefined,
+      this.bucket, key, inStream, undefined,
       metadata ? {Metadata: toExternalMetadata(metadata)} : undefined
     );
     // Empirically VersionId is available in result for buckets with versioning enabled.
     return result.versionId || null;
   }
 
-  public async download(key: string, fname: string, snapshotId?: string) {
-    const stream = fse.createWriteStream(fname);
+  public async upload(key: string, fname: string, metadata?: ObjMetadata) {
+    const filestream = fse.createReadStream(fname);
+    return this.uploadStream(key, filestream, metadata);
+  }
+
+  public async downloadStream(key: string, outStream: stream.Writable, snapshotId?: string ) {
     const request = await this._s3.getObject(
       this.bucket, key,
       snapshotId ? {versionId: snapshotId} : {}
@@ -114,10 +118,15 @@ export class MinIOExternalStorage implements ExternalStorage {
     return new Promise<string>((resolve, reject) => {
       request
         .on('error', reject)    // handle errors on the read stream
-        .pipe(stream)
+        .pipe(outStream)
         .on('error', reject)    // handle errors on the write stream
         .on('finish', () => resolve(downloadedSnapshotId));
     });
+  }
+
+  public async download(key: string, fname: string, snapshotId?: string) {
+    const fileStream = fse.createWriteStream(fname);
+    return this.downloadStream(key, fileStream, snapshotId);
   }
 
   public async remove(key: string, snapshotIds?: string[]) {
