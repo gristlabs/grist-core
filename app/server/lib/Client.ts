@@ -5,7 +5,7 @@ import {delay} from 'app/common/delay';
 import {normalizeEmail} from 'app/common/emails';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
-import {MinimalWebSocket, splitOffAuxSocket} from 'app/common/MinimalWebSocket';
+import {splitOffAuxSocket} from 'app/common/MinimalWebSocket';
 import {TelemetryMetadata} from 'app/common/Telemetry';
 import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
@@ -15,6 +15,7 @@ import {ScopedSession} from 'app/server/lib/BrowserSession';
 import type {Comm} from 'app/server/lib/Comm';
 import {DocSession} from 'app/server/lib/DocSession';
 import {GristServerSocket} from 'app/server/lib/GristServerSocket';
+import {MegaDataEngine} from 'app/server/lib/MegaDataEngine';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
@@ -100,7 +101,7 @@ export class Client {
   private _destroyTimer: NodeJS.Timer|null = null;
   private _destroyed: boolean = false;
   private _websocket: GristServerSocket|null = null;
-  private _auxSocket: MinimalWebSocket|null = null;
+  private _auxChannel: MegaDataEngine.Channel|null = null;
   private _req: IncomingMessage|null = null;
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
@@ -143,7 +144,7 @@ export class Client {
     const {websocket, req, counter, browserSettings} = options;
     const {main, aux} = splitOffAuxSocket(websocket);
     this._websocket = main;
-    this._auxSocket = aux;
+    this._auxChannel = MegaDataEngine.maybeMakeChannel(aux);
     this._req = req;
     this._counter = counter;
     this.browserSettings = browserSettings;
@@ -155,6 +156,10 @@ export class Client {
 
   public getConnectionRequest(): IncomingMessage|null {
     return this._req;
+  }
+
+  public getAuxChannel(): MegaDataEngine.Channel|undefined {
+    return this._auxChannel || undefined;
   }
 
   /**
@@ -173,11 +178,11 @@ export class Client {
 
     // We use aux for the mega data engine experiment. Here we assume that a Client always
     // has at most one ActiveDoc.
-    if (activeDoc.megaDataEngine && this._auxSocket) {
+    if (activeDoc.megaDataEngine && this._auxChannel) {
       if (this._docFDs.filter(s => (s !== null)).length > 1) {
         throw new Error("For MegaDataEngine, we assume a single doc per client");
       }
-      activeDoc.megaDataEngine.serve(this._auxSocket);
+      activeDoc.megaDataEngine.serve(this._auxChannel);
     }
 
     const fd = this._getNextDocFD();

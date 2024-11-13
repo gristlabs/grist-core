@@ -1679,7 +1679,7 @@ export class ActiveDoc extends EventEmitter {
       const allIndex = findOrAddAllEnvelope(sandboxActionBundle.envelopes);
       const megaDataEngine = this.megaDataEngine;
       if (megaDataEngine) {
-        const {stored, undo, retValues} = await megaDataEngine.applyUserActions(onDemandActions);
+        const {stored, undo, retValues} = await megaDataEngine.applyUserActions(docSession, onDemandActions);
         sandboxActionBundle.stored.push(...stored.map(a => [allIndex, a] as [number, DocAction]));
         sandboxActionBundle.direct.push(...stored.map(a => [allIndex, true] as [number, boolean]));
         sandboxActionBundle.undo.push(...undo.map(a => [allIndex, a] as [number, DocAction]));
