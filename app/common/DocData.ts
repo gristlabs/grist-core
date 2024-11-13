@@ -47,7 +47,7 @@ export class DocData extends ActionDispatcher {
     for (const tableId in schema) {
       if (schema.hasOwnProperty(tableId)) {
         const colTypes: ColTypeMap = (schema as any)[tableId];
-        this._tables.set(tableId, this.createTableData(tableId, metaTableData[tableId], colTypes));
+        this._tables.set(tableId, this.createTableData(tableId, metaTableData[tableId] || null, colTypes));
       }
     }
 

@@ -150,10 +150,8 @@ import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import merge = require('lodash/merge');
 import pick = require('lodash/pick');
-import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
-import zipObject = require('lodash/zipObject');
 
 bluebird.promisifyAll(tmp);
 
@@ -600,7 +598,9 @@ export class ActiveDoc extends EventEmitter {
     // because the table _grist_Attachments doesn't exist at that point - it's created by InitNewDoc.
     await createAttachmentsIndex(this.docStorage);
 
-    await this._initDoc(docSession);
+    // A DocData object is needed, but for this purpose, it's OK that it has no data loaded.
+    const docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), {});
+    await this._initDoc(docSession, docData);
     await this._tableMetadataLoader.clean();
     // Makes sure docPluginManager is ready in case new doc is used to import new data
     await this.docPluginManager?.ready;
@@ -655,13 +655,15 @@ export class ActiveDoc extends EventEmitter {
           },
         });
       }
-      const [tableNames, onDemandNames] = await this._loadOpenDoc(docSession);
-      const desiredTableNames = tableNames.filter(name => name.startsWith('_grist_'));
-      this._startLoadingTables(docSession, desiredTableNames);
-      const pendingTableNames = tableNames.filter(name => !name.startsWith('_grist_'));
-      await this._initDoc(docSession);
-      this._initializationPromise = this._finishInitialization(docSession, pendingTableNames,
-                                                               onDemandNames, startTime).catch(async (err) => {
+
+      await this._loadOpenDoc(docSession);
+      const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
+      const docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId),
+        metaTableData);
+
+      await this._initDoc(docSession, docData);
+
+      this._initializationPromise = this._finishInitialization(docSession, docData, startTime).catch(async (err) => {
         await this.docClients.broadcastDocMessage(null, 'docError', {
           when: 'initialization',
           message: String(err),
@@ -702,9 +704,8 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Finish initializing ActiveDoc, by initializing ActionHistory, Sharing, and docData.
    */
-  public async _initDoc(docSession: OptDocSession): Promise<void> {
-    const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
-    this.docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), metaTableData);
+  public async _initDoc(docSession: OptDocSession, docData: DocData): Promise<void> {
+    this.docData = docData;
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData,
                                                 this._recoveryMode);
 
@@ -1969,9 +1970,10 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Loads an open document from DocStorage.  Returns a list of the tables it contains.
+   * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
+   * metadata.
    */
-  protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[][]> {
+  protected async _loadOpenDoc(docSession: OptDocSession): Promise<void> {
     // Check the schema version of document and sandbox, and migrate if the sandbox is newer.
     const schemaVersion = SCHEMA_VERSION;
 
@@ -2006,28 +2008,10 @@ export class ActiveDoc extends EventEmitter {
       this._tableMetadataLoader.startStreamingToEngine();
     }
 
-    // Start loading the initial meta tables which determine the document schema.
-    this._tableMetadataLoader.startFetchingTable('_grist_Tables');
-    this._tableMetadataLoader.startFetchingTable('_grist_Tables_column');
-
-    // Get names of remaining tables.
-    const tablesParsed = await this._tableMetadataLoader.fetchBulkColValuesWithoutIds('_grist_Tables');
-    const tableNames = (tablesParsed.tableId as string[])
-      .concat(Object.keys(schema))
-      .filter(tableId => tableId !== '_grist_Tables' && tableId !== '_grist_Tables_column')
-      .sort();
-
-    // Figure out which tables are on-demand.
-    const onDemandMap = zipObject(tablesParsed.tableId as string[], tablesParsed.onDemand);
-    const onDemandNames = remove(tableNames, (t) => (onDemandMap[t] ||
-      (this._recoveryMode && !t.startsWith('_grist_'))));
-
-    this._log.debug(docSession, "Loading %s normal tables, skipping %s on-demand tables",
-      tableNames.length, onDemandNames.length);
-    this._log.debug(docSession, "Normal tables: %s", tableNames.join(", "));
-    this._log.debug(docSession, "On-demand tables: %s",  onDemandNames.join(", "));
-
-    return [tableNames, onDemandNames];
+    // Start loading the meta tables.
+    for (const tableId of Object.keys(schema)) {
+      this._tableMetadataLoader.startFetchingTable(tableId);
+    }
   }
 
   /**
@@ -2449,18 +2433,6 @@ export class ActiveDoc extends EventEmitter {
     return this;
   }
 
-  /**
-   * Start loading the specified tables from the db, without waiting for completion.
-   * The loader can be directed to stream the tables on to the engine.
-   */
-  private _startLoadingTables(docSession: OptDocSession, tableNames: string[]) {
-    this._log.debug(docSession, "starting to load %s tables: %s", tableNames.length,
-                  tableNames.join(", "));
-    for (const tableId of tableNames) {
-      this._tableMetadataLoader.startFetchingTable(tableId);
-    }
-  }
-
   // Fetches and returns the requested table, or null if it's missing. This allows documents to
   // load with missing metadata tables (should only matter if migrations are also broken).
   private async _fetchTableIfPresent(tableName: string): Promise<Buffer|null> {
@@ -2476,25 +2448,31 @@ export class ActiveDoc extends EventEmitter {
   // inactivityTimer, since a user formulas with an infinite loop can disable it forever.
   // TODO find a solution to this issue.
   @ActiveDoc.keepDocOpen
-  private async _finishInitialization(
-    docSession: OptDocSession, pendingTableNames: string[], onDemandNames: string[], startTime: number
-  ): Promise<void> {
+  private async _finishInitialization(docSession: OptDocSession, docData: DocData, startTime: number): Promise<void> {
     try {
       await this._tableMetadataLoader.wait();
       await this._tableMetadataLoader.clean();
 
+      const tables = docData.getMetaTable('_grist_Tables');
+      const skipLoadingUserTables = this._recoveryMode;
+      const onDemandCount = skipLoadingUserTables ? tables.numRecords() : tables.filterRowIds({onDemand: true}).length;
+
       if (this._isSnapshot) {
         log.rawInfo("Loading complete", {
           ...this.getLogMeta(docSession),
-          num_on_demand_tables: onDemandNames.length,
+          num_on_demand_tables: onDemandCount,
         });
       } else {
-        await this._loadTables(docSession, pendingTableNames);
+        if (!skipLoadingUserTables) {
+          const pendingTableNames = tables.filterRecords({onDemand: false}).map(r => r.tableId);
+          pendingTableNames.sort();   // Sort for a consistent order (affects DocRegressionTest)
+          await this._loadTables(docSession, pendingTableNames);
+        }
         const tableStats = await this._pyCall('get_table_stats');
         log.rawInfo("Loading complete, table statistics retrieved...", {
           ...this.getLogMeta(docSession),
           ...tableStats,
-          num_on_demand_tables: onDemandNames.length,
+          num_on_demand_tables: onDemandCount,
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
