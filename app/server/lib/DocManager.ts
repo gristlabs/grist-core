@@ -617,7 +617,11 @@ export class DocManager extends EventEmitter {
     // Get URL for document for use with SELF_HYPERLINK().
     const docUrls = doc && await this._getDocUrls(doc);
     // TODO - Use an actual attachment store provider, this is placeholder
-    const activeDoc = new ActiveDoc(this, docName, {...docUrls, safeMode, doc}, new AttachmentStoreProvider());
+    const attachmentStoreProvider = new AttachmentStoreProvider(
+      this.gristServer.create.getAttachmentStoreBackends(),
+      (await this.gristServer.getActivations().current()).id,
+    );
+    const activeDoc = new ActiveDoc(this, docName, attachmentStoreProvider, {...docUrls, safeMode, doc});
     // Restore the timing mode of the document.
     activeDoc.isTimingOn = this._inTimingOn.get(docName) || false;
     return activeDoc;

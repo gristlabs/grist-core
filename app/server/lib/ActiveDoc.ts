@@ -289,8 +289,8 @@ export class ActiveDoc extends EventEmitter {
   constructor(
     docManager: DocManager,
     docName: string,
+    externalAttachmentStoreProvider?: IAttachmentStoreProvider,
     private _options?: ICreateActiveDocOptions,
-    externalAttachmentStoreProvider?: IAttachmentStoreProvider
   ) {
     super();
     const {forkId, snapshotId} = parseUrlId(docName);
