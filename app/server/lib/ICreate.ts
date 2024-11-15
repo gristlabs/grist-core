@@ -15,10 +15,11 @@ import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
 import {IDocStorageManager} from './IDocStorageManager';
-import { Comm } from "./Comm";
-import { IDocWorkerMap } from "./DocWorkerMap";
-import { HostedStorageManager, HostedStorageOptions } from "./HostedStorageManager";
-import { DocStorageManager } from "./DocStorageManager";
+import {Comm} from "./Comm";
+import {IDocWorkerMap} from "./DocWorkerMap";
+import {HostedStorageManager, HostedStorageOptions} from "./HostedStorageManager";
+import {DocStorageManager} from "./DocStorageManager";
+import {IAttachmentStore} from "./AttachmentStore";
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -89,6 +90,7 @@ export interface ICreate {
   // static page.
   getExtraHeadHtml?(): string;
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
+  getAttachmentStoreBackends(): ICreateAttachmentStoreOptions[];
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
 
@@ -127,6 +129,13 @@ export interface ICreateTelemetryOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry|undefined;
 }
 
+export interface ICreateAttachmentStoreOptions {
+  name: string;
+  check(): boolean;
+  checkBackend?(): Promise<void>;
+  create(): IAttachmentStore|undefined;
+}
+
 /**
  * This function returns a `create` object that defines various core
  * aspects of a Grist installation, such as what kind of billing or
@@ -153,6 +162,7 @@ export function makeSimpleCreator(opts: {
   getLoginSystem?: () => Promise<GristLoginSystem>,
   createHostedDocStorageManager?: HostedDocStorageManagerCreator,
   createLocalDocStorageManager?: LocalDocStorageManagerCreator,
+  attachmentStoreBackends?: ICreateAttachmentStoreOptions[],
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, auditLogger, telemetry} = opts;
   return {
@@ -222,6 +232,9 @@ export function makeSimpleCreator(opts: {
     },
     getStorageOptions(name: string) {
       return storage?.find(s => s.name === name);
+    },
+    getAttachmentStoreBackends(): ICreateAttachmentStoreOptions[] {
+      return opts.attachmentStoreBackends ?? [];
     },
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,

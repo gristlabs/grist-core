@@ -1,9 +1,11 @@
 import * as path from "path";
 import * as fse from "fs-extra";
+import { MinIOExternalStorage } from "./MinIOExternalStorage";
+import { joinKeySegments } from "./ExternalStorage";
+import * as stream from "node:stream";
 
 export type DocPoolId = string;
 type FileId = string;
-
 
 /**
  * Provides access to external storage, specifically for storing attachments.
@@ -33,6 +35,60 @@ export interface IAttachmentStore {
 
   // Close the storage object.
   close(): Promise<void>;
+}
+
+// TODO - Can make this generic if *Stream methods become part of an interface.
+export class MinIOAttachmentStore implements IAttachmentStore {
+  constructor(
+    public id: string,
+    private _storage: MinIOExternalStorage,
+    private _prefixParts: string[]
+  ) {
+
+  }
+
+  public exists(docPoolId: string, fileId: string): Promise<boolean> {
+    return this._storage.exists(this._getKey(docPoolId, fileId));
+  }
+
+  public async upload(docPoolId: string, fileId: string, fileData: Buffer): Promise<void> {
+    await this._storage.uploadStream(this._getKey(docPoolId, fileId), stream.Readable.from(fileData));
+  }
+
+  public async download(docPoolId: string, fileId: string): Promise<Buffer> {
+    // Need to read a stream into a buffer - this is a bit dirty, but does the job.
+    const chunks: Buffer[] = [];
+    let buffer: Buffer | undefined = undefined;
+    const readStream = new stream.PassThrough();
+    const readComplete = new Promise<void>((resolve, reject) => {
+      readStream.on("data", (data) => chunks.push(data));
+      readStream.on("end", () => { buffer = Buffer.concat(chunks); resolve(); });
+      readStream.on("error", (err) => { reject(err); });
+    });
+    await this._storage.downloadStream(this._getKey(docPoolId, fileId), readStream);
+    // Shouldn't need to wait for PassThrough stream to finish, but doing it in case it somehow finishes later than
+    // downloadStream resolves.
+    await readComplete;
+
+    // If an error happens, it's thrown by the above `await`. This should safely be a buffer.
+    return buffer!;
+  }
+
+  public async removePool(docPoolId: string): Promise<void> {
+    await this._storage.removeAllWithPrefix(this._getPoolPrefix(docPoolId));
+  }
+
+  public async close(): Promise<void> {
+    await this._storage.close();
+  }
+
+  private _getPoolPrefix(docPoolId: string): string {
+    return joinKeySegments([...this._prefixParts, docPoolId]);
+  }
+
+  private _getKey(docPoolId: string, fileId: string): string {
+    return joinKeySegments([this._getPoolPrefix(docPoolId), fileId]);
+  }
 }
 
 export class FilesystemAttachmentStore implements IAttachmentStore {
@@ -65,5 +121,4 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
   private _createPath(docPoolId: DocPoolId, fileId: FileId = ""): string {
     return path.join(this._rootFolderPath, docPoolId, fileId);
   }
-
 }

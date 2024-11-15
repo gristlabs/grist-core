@@ -389,6 +389,27 @@ export interface ExternalStorageSettings {
 export type ExternalStorageCreator =
   (purpose: ExternalStorageSettings["purpose"], extraPrefix: string) => ExternalStorage | undefined;
 
+function stripTrailingSlash(text: string): string {
+  return text.endsWith("/") ? text.slice(0, -1) : text;
+}
+
+function stripLeadingSlash(text: string): string {
+  return text[0] === "/" ? text.slice(1) : text;
+}
+
+export function joinKeySegments(keySegments: string[]): string {
+  if (keySegments.length < 1) {
+    return "";
+  }
+  const firstPart = keySegments[0];
+  const remainingParts = keySegments.slice(1);
+  const strippedParts = [
+    stripTrailingSlash(firstPart),
+    ...remainingParts.map(stripTrailingSlash).map(stripLeadingSlash)
+  ];
+  return strippedParts.join("/");
+}
+
 /**
  * The storage mapping we use for our SaaS. A reasonable default, but relies
  * on appropriate lifecycle rules being set up in the bucket.

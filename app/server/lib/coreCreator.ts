@@ -3,6 +3,8 @@ import { checkMinIOBucket, checkMinIOExternalStorage,
          configureMinIOExternalStorage } from 'app/server/lib/configureMinIOExternalStorage';
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
 import { Telemetry } from 'app/server/lib/Telemetry';
+import { MinIOAttachmentStore } from "./AttachmentStore";
+import { MinIOExternalStorage } from "./MinIOExternalStorage";
 
 export const makeCoreCreator = () => makeSimpleCreator({
   deploymentType: 'core',
@@ -20,6 +22,24 @@ export const makeCoreCreator = () => makeSimpleCreator({
       check: () => checkGristAuditLogger() !== undefined,
       create: configureGristAuditLogger,
     },
+  ],
+  attachmentStoreBackends: [
+    {
+      name: 'minio',
+      check: () => checkMinIOExternalStorage() !== undefined,
+      checkBackend: () => checkMinIOBucket(),
+      create: () => {
+        const options = checkMinIOExternalStorage();
+        if (!options) {
+          return undefined;
+        }
+        return new MinIOAttachmentStore(
+          "minio",
+          new MinIOExternalStorage(options.bucket, options),
+          [options?.prefix || "", "attachments"]
+        );
+      }
+    }
   ],
   telemetry: {
     create: (dbManager, gristServer) => new Telemetry(dbManager, gristServer),
