@@ -133,7 +133,7 @@ export interface ICreateAttachmentStoreOptions {
   name: string;
   check(): boolean;
   checkBackend?(): Promise<void>;
-  create(): IAttachmentStore|undefined;
+  create(storeId: string): IAttachmentStore|undefined;
 }
 
 /**

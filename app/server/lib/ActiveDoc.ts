@@ -2363,10 +2363,14 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
+    const attachmentStoreId = (await this._getDocumentSettings())?.idOfDefaultAttachmentStore;
     const addFileResult = await this._attachmentFileManager
-      .addFile("TEST-FILESYSTEM-STORE", fileData.ext, await readFile(fileData.absPath));
-    this._log.info(docSession, "addAttachment: file %s (image %sx%s) %s", addFileResult.fileIdent,
-      dimensions.width, dimensions.height, addFileResult.isNewFile ? "attached" : "already exists");
+      .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
+    this._log.info(
+      docSession, "addAttachment: store: '%s', file: '%s' (image %sx%s) %s",
+      attachmentStoreId ?? 'local document', addFileResult.fileIdent, dimensions.width, dimensions.height,
+      addFileResult.isNewFile ? "attached" : "already exists"
+    );
     return ['AddRecord', '_grist_Attachments', null, {
       fileIdent: addFileResult.fileIdent,
       fileName: fileData.origName,
@@ -2837,17 +2841,21 @@ export class ActiveDoc extends EventEmitter {
     return this._dataEngine;
   }
 
+  private async _getDocumentSettings(): Promise<DocumentSettings | undefined> {
+    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo');
+    const docSettingsString = docInfo?.documentSettings;
+    return docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
+  }
+
   private async _makeEngine(): Promise<ISandbox> {
     // Figure out what kind of engine we need for this document.
     let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '3' ? '3' : '2';
 
     // Careful, migrations may not have run on this document and it may not have a
     // documentSettings column.  Failures are treated as lack of an engine preference.
-    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(e => undefined);
-    const docSettingsString = docInfo?.documentSettings;
-    if (docSettingsString) {
-      const docSettings: DocumentSettings|undefined = safeJsonParse(docSettingsString, undefined);
-      const engine = docSettings?.engine;
+    const docSettings = await this._getDocumentSettings().catch(e => undefined);
+    if (docSettings) {
+      const engine = docSettings.engine;
       if (engine) {
         if (engine === 'python2') {
           preferredPythonVersion = '2';

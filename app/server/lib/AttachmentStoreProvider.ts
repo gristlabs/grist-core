@@ -11,7 +11,7 @@ export interface IAttachmentStoreProvider {
 
 export interface IAttachmentStoreBackendFactory {
   name: string,
-  create: () => IAttachmentStore | undefined,
+  create: (storeId: string) => IAttachmentStore | undefined,
 }
 
 interface IAttachmentStoreDetails {
@@ -41,7 +41,7 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   public async getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null> {
     const storeDetails = this._storeDetailsById[id];
     if (!storeDetails) { return null; }
-    return storeDetails.factory.create() || null;
+    return storeDetails.factory.create(id) || null;
   }
 
   public async storeExists(id: AttachmentStoreId): Promise<boolean> {

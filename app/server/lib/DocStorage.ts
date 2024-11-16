@@ -1417,6 +1417,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Delete attachments from _gristsys_Files that have no matching metadata row in _grist_Attachments.
+   * This leaves any attachment files in any remote attachment stores, which will be cleaned up separately.
    */
   public async removeUnusedAttachments() {
     const result = await this._getDB().run(`

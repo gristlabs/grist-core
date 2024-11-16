@@ -1,6 +1,9 @@
 import { checkGristAuditLogger, configureGristAuditLogger } from 'app/server/lib/configureGristAuditLogger';
-import { checkMinIOBucket, checkMinIOExternalStorage,
-         configureMinIOExternalStorage } from 'app/server/lib/configureMinIOExternalStorage';
+import {
+  checkMinIOBucket,
+  checkMinIOExternalStorage,
+  configureMinIOExternalStorage
+} from 'app/server/lib/configureMinIOExternalStorage';
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
 import { Telemetry } from 'app/server/lib/Telemetry';
 import { MinIOAttachmentStore } from "./AttachmentStore";
@@ -28,13 +31,13 @@ export const makeCoreCreator = () => makeSimpleCreator({
       name: 'minio',
       check: () => checkMinIOExternalStorage() !== undefined,
       checkBackend: () => checkMinIOBucket(),
-      create: () => {
+      create: (storeId: string) => {
         const options = checkMinIOExternalStorage();
         if (!options) {
           return undefined;
         }
         return new MinIOAttachmentStore(
-          "minio",
+          storeId,
           new MinIOExternalStorage(options.bucket, options),
           [options?.prefix || "", "attachments"]
         );
