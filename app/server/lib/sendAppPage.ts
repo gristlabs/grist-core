@@ -27,8 +27,12 @@ import jsesc from 'jsesc';
 import * as path from 'path';
 import { difference, trimEnd } from 'lodash';
 
-const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args)?.toString();
 const { escapeExpression } = handlebars.Utils;
+
+const translateEscaped = (req: express.Request, key: string, args?: any) => {
+  const res = req.t(`sendAppPage.${key}`, args)?.toString();
+  return res ? escapeExpression(res) : res;
+};
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
@@ -176,7 +180,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? translate(req, 'Loading...'))
+      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? escapeExpression(translateEscaped(req, 'Loading')))
       .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
@@ -291,11 +295,13 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
 
   metadataElements.push('<meta property="og:type" content="website">');
   metadataElements.push('<meta name="twitter:card" content="summary_large_image">');
-  const description = maybeDoc?.options?.description ?? translate(req, 'og-description');
-  const escapedDescription = escapeExpression(description);
-  metadataElements.push(`<meta name="description" content="${escapedDescription}">`);
-  metadataElements.push(`<meta property="og:description" content="${escapedDescription}">`);
-  metadataElements.push(`<meta name="twitter:description" content="${escapedDescription}">`);
+
+  const description = maybeDoc?.options?.description ?
+    escapeExpression(maybeDoc.options.description) :
+    translateEscaped(req, 'og-description');
+  metadataElements.push(`<meta name="description" content="${description}">`);
+  metadataElements.push(`<meta property="og:description" content="${description}">`);
+  metadataElements.push(`<meta name="twitter:description" content="${description}">`);
 
   const image = escapeExpression(maybeDoc?.options?.icon ?? commonUrls.openGraphPreviewImage);
   metadataElements.push(`<meta name="thumbnail" content="${image}">`);
@@ -303,9 +309,7 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   metadataElements.push(`<meta name="twitter:image" content="${image}">`);
 
   const maybeDocTitle = getDocName(config);
-  const title = escapeExpression(
-    maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translate(req, 'og-title')
-  );
+  const title = maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translateEscaped(req, 'og-title');
   // NB: We don't generate the content of the <title> tag here.
   metadataElements.push(`<meta property="og:title" content="${title}">`);
   metadataElements.push(`<meta name="twitter:title" content="${title}">`);
