@@ -37,6 +37,13 @@ export interface IAttachmentStore {
   close(): Promise<void>;
 }
 
+export class AttachmentStoreCreationError extends Error {
+  constructor(storeBackend: string, storeId: string, context?: string) {
+    const formattedContext = context ? `: ${context}` : "";
+    super(`Unable to create ${storeBackend} store '${storeId}'` + formattedContext);
+  }
+}
+
 // TODO - Can make this generic if *Stream methods become part of an interface.
 export class MinIOAttachmentStore implements IAttachmentStore {
   constructor(

@@ -6,7 +6,7 @@ import {
 } from 'app/server/lib/configureMinIOExternalStorage';
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
 import { Telemetry } from 'app/server/lib/Telemetry';
-import { MinIOAttachmentStore } from "./AttachmentStore";
+import { AttachmentStoreCreationError, MinIOAttachmentStore } from "./AttachmentStore";
 import { MinIOExternalStorage } from "./MinIOExternalStorage";
 
 export const makeCoreCreator = () => makeSimpleCreator({
@@ -34,7 +34,7 @@ export const makeCoreCreator = () => makeSimpleCreator({
       create: (storeId: string) => {
         const options = checkMinIOExternalStorage();
         if (!options) {
-          return undefined;
+          throw new AttachmentStoreCreationError('minio', storeId, 'MinIO storage not configured');
         }
         return new MinIOAttachmentStore(
           storeId,

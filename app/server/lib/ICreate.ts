@@ -133,7 +133,8 @@ export interface ICreateAttachmentStoreOptions {
   name: string;
   check(): boolean;
   checkBackend?(): Promise<void>;
-  create(storeId: string): IAttachmentStore|undefined;
+  // Avoid undefined returns - `check()` should be called to ensure creation is valid.
+  create(storeId: string): IAttachmentStore;
 }
 
 /**

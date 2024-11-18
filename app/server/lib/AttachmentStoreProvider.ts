@@ -3,15 +3,17 @@ import { IAttachmentStore } from "./AttachmentStore";
 export type AttachmentStoreId = string
 
 export interface IAttachmentStoreProvider {
-  // Returns the store associated with the given id
+  // Returns the store associated with the given id, returning null if no store with that id exists.
   getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null>
+
+  getAllStores(): Promise<IAttachmentStore[]>;
 
   storeExists(id: AttachmentStoreId): Promise<boolean>;
 }
 
 export interface IAttachmentStoreBackendFactory {
   name: string,
-  create: (storeId: string) => IAttachmentStore | undefined,
+  create: (storeId: string) => IAttachmentStore,
 }
 
 interface IAttachmentStoreDetails {
@@ -41,7 +43,11 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   public async getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null> {
     const storeDetails = this._storeDetailsById[id];
     if (!storeDetails) { return null; }
-    return storeDetails.factory.create(id) || null;
+    return storeDetails.factory.create(id);
+  }
+
+  public async getAllStores(): Promise<IAttachmentStore[]> {
+    return Object.values(this._storeDetailsById).map(storeDetails => storeDetails.factory.create(storeDetails.id));
   }
 
   public async storeExists(id: AttachmentStoreId): Promise<boolean> {
