@@ -10,7 +10,7 @@ FROM scratch AS ext
 ## Javascript build stage
 ################################################################################
 
-FROM node:18-buster AS builder
+FROM node:22-bookworm AS builder
 
 # Install all node dependencies.
 WORKDIR /grist
@@ -46,7 +46,7 @@ RUN \
 ################################################################################
 
 # Fetch python3.11
-FROM python:3.11-slim-buster AS collector-py3
+FROM python:3.11-slim-bookworm AS collector-py3
 ADD sandbox/requirements3.txt requirements3.txt
 RUN \
   pip3 install -r requirements3.txt
@@ -66,8 +66,8 @@ RUN \
   apt install -y --no-install-recommends python2 python-pip python-setuptools \
   build-essential libxml2-dev libxslt-dev python-dev zlib1g-dev && \
   pip2 install wheel && \
-  pip2 install -r requirements.txt 
-
+  pip2 install -r requirements.txt && \
+  find /usr/lib -iname "libffi.so.6*" -exec cp {} /usr/local/lib \;
 
 ################################################################################
 ## Sandbox collection stage
@@ -76,8 +76,11 @@ RUN \
 # Fetch gvisor-based sandbox. Note, to enable it to run within default
 # unprivileged docker, layers of protection that require privilege have
 # been stripped away, see https://github.com/google/gvisor/issues/4371
-# The sandbox binary is built on buster, but remains compatible with recent
-# Debian.
+# The standalone sandbox binary is built on buster, but remains compatible
+# with recent Debian.
+# If you'd like to use unmodified gvisor, you should be able to just drop
+# in the standard runsc binary and run the container with any extra permissions
+# it needs.
 FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 
 ################################################################################
@@ -85,7 +88,7 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 ################################################################################
 
 # Now, start preparing final image.
-FROM node:18-buster-slim
+FROM node:22-bookworm-slim
 
 # Install libexpat1, libsqlite3-0 for python3 library binary dependencies.
 # Install pgrep for managing gvisor processes.
