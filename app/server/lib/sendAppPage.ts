@@ -1,4 +1,5 @@
 import {
+  commonUrls,
   Features,
   getContactSupportUrl,
   getFreeCoachingCallUrl,
@@ -24,7 +25,7 @@ import * as fse from 'fs-extra';
 import * as handlebars from 'handlebars';
 import jsesc from 'jsesc';
 import * as path from 'path';
-import { trimEnd, difference } from 'lodash';
+import { difference, trimEnd } from 'lodash';
 
 const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args)?.toString();
 
@@ -295,14 +296,15 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   metadataElements.push(`<meta property="og:description" content="${escapedDescription}">`);
   metadataElements.push(`<meta name="twitter:description" content="${escapedDescription}">`);
 
-  const icon = maybeDoc?.options?.icon ?? new URL('img/opengraph-preview-image.png', staticBaseUrl).href;
-  const escapedIcon = handlebars.Utils.escapeExpression(icon);
-  metadataElements.push(`<meta name="thumbnail" content="${escapedIcon}">`);
-  metadataElements.push(`<meta property="og:image" content="${escapedIcon}">`);
-  metadataElements.push(`<meta name="twitter:image" content="${escapedIcon}">`);
+  const image = handlebars.Utils.escapeExpression(commonUrls.openGraphPreviewImage);
+  metadataElements.push(`<meta name="thumbnail" content="${image}">`);
+  metadataElements.push(`<meta property="og:image" content="${image}">`);
+  metadataElements.push(`<meta name="twitter:image" content="${image}">`);
 
   const maybeDocTitle = getDocName(config);
-  const title = (maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translate(req, 'og-title'));
+  const title = handlebars.Utils.escapeExpression(
+    maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translate(req, 'og-title')
+  );
   // NB: We don't generate the content of the <title> tag here.
   metadataElements.push(`<meta property="og:title" content="${title}">`);
   metadataElements.push(`<meta name="twitter:title" content="${title}">`);
