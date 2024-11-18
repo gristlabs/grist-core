@@ -166,6 +166,12 @@ WORKDIR /grist
 # settings, you can get sandboxing as follows:
 #   docker run --env GRIST_SANDBOX_FLAVOR=gvisor -p 8484:8484 -it <image>
 #
+# "NODE_OPTIONS=--no-deprecation" is set because there is a punycode
+# deprecation nag that is relevant to developers but not to users.
+# TODO: upgrade package.json to avoid using all package versions
+# using the punycode functionality that may be removed in future
+# versions of node.
+#
 ENV \
   PYTHON_VERSION_ON_CREATION=3 \
   GRIST_ORG_IN_PATH=true \
@@ -177,6 +183,7 @@ ENV \
   GRIST_SESSION_COOKIE=grist_core \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
   GRIST_SANDBOX_FLAVOR=unsandboxed \
+  NODE_OPTIONS="--no-deprecation" \
   TYPEORM_DATABASE=/persist/home.sqlite3
 
 EXPOSE 8484
