@@ -24,9 +24,9 @@ import * as fse from 'fs-extra';
 import * as handlebars from 'handlebars';
 import jsesc from 'jsesc';
 import * as path from 'path';
-import difference = require('lodash/difference');
+import { trimEnd, difference } from 'lodash';
 
-const translate = (req: express.Request, key: string, args?: any) => String(req.t(`sendAppPage.${key}`, args));
+const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args)?.toString();
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
@@ -160,7 +160,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     // If boot tag is used, serve assets locally, otherwise respect
     // APP_STATIC_URL or APP_HOME_URL.
     const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || config.homeUrl || '');
-    const staticBaseUrl = `${staticOrigin.replace(/\/*$/, '')}/v/${staticTag}/`;
+    const staticBaseUrl = `${trimEnd(staticOrigin, '/')}/v/${staticTag}/`;
     const customHeadHtmlSnippet = server.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     // Preload all languages that will be used or are requested by client.
