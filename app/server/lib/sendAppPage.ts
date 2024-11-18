@@ -176,7 +176,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
       .replace("<!-- INSERT TITLE -->", getDocName(config) ?? translate(req, 'Loading...'))
-      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config, staticBaseUrl))
+      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
       .replace("<!-- INSERT LOCALE -->", preloads)
@@ -284,7 +284,7 @@ function getDocName(config: GristLoadConfig): string|null {
  *
  * Note: The string returned is escaped and safe to insert into HTML.
  */
-function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfig, staticBaseUrl: string): string {
+function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfig): string {
   const metadataElements: string[] = [];
   const maybeDoc = getDocFromConfig(config);
 
