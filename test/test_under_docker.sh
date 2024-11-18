@@ -37,6 +37,7 @@ if [[ "${DEBUG:-}" == 1 ]]; then
   GRIST_LOG_HTTP_BODY="true"
 fi
 
+set -x
 docker run --name $DOCKER_CONTAINER --rm \
   --env VERBOSE=${DEBUG:-} \
   -p $PORT:$PORT --env PORT=$PORT \
@@ -47,7 +48,9 @@ docker run --name $DOCKER_CONTAINER --rm \
   --env GRIST_LOG_HTTP_BODY=${GRIST_LOG_HTTP_BODY:-false} \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
   --env GRIST_TEMPLATE_ORG=templates \
+  ${TEST_DOCKER_OPTIONS:-} \
   ${TEST_IMAGE:-gristlabs/grist} &
+set +x
 
 DOCKER_PID="$!"
 
