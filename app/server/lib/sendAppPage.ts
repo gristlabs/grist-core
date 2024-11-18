@@ -28,6 +28,7 @@ import * as path from 'path';
 import { difference, trimEnd } from 'lodash';
 
 const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args)?.toString();
+const { escapeExpression } = handlebars.Utils;
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
@@ -273,7 +274,7 @@ function configuredPageTitleSuffix() {
 function getDocName(config: GristLoadConfig): string|null {
   const maybeDoc = getDocFromConfig(config);
 
-  return maybeDoc && handlebars.Utils.escapeExpression(maybeDoc.name);
+  return maybeDoc && escapeExpression(maybeDoc.name);
 }
 
 /**
@@ -291,18 +292,18 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   metadataElements.push('<meta property="og:type" content="website">');
   metadataElements.push('<meta name="twitter:card" content="summary_large_image">');
   const description = maybeDoc?.options?.description ?? translate(req, 'og-description');
-  const escapedDescription = handlebars.Utils.escapeExpression(description);
+  const escapedDescription = escapeExpression(description);
   metadataElements.push(`<meta name="description" content="${escapedDescription}">`);
   metadataElements.push(`<meta property="og:description" content="${escapedDescription}">`);
   metadataElements.push(`<meta name="twitter:description" content="${escapedDescription}">`);
 
-  const image = handlebars.Utils.escapeExpression(commonUrls.openGraphPreviewImage);
+  const image = escapeExpression(maybeDoc?.options?.icon ?? commonUrls.openGraphPreviewImage);
   metadataElements.push(`<meta name="thumbnail" content="${image}">`);
   metadataElements.push(`<meta property="og:image" content="${image}">`);
   metadataElements.push(`<meta name="twitter:image" content="${image}">`);
 
   const maybeDocTitle = getDocName(config);
-  const title = handlebars.Utils.escapeExpression(
+  const title = escapeExpression(
     maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translate(req, 'og-title')
   );
   // NB: We don't generate the content of the <title> tag here.
