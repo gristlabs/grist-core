@@ -99,7 +99,7 @@ export class DocSettingsPage extends Disposable {
         dom.create(AdminSectionItem, {
           id: 'templateMode',
           name: t('Template mode'),
-          description: t('Change type of document'),
+          description: t('Change document type'),
           value: cssDocTypeContainer(
             dom.create(
               displayCurrentType,
@@ -268,6 +268,7 @@ export class DocSettingsPage extends Disposable {
         cssRadioCheckboxOptions(
           dom.style('max-width', '400px'),
           radioCheckboxOption(selected, TimingModalOption.Adhoc, dom('div',
+            dom.style('margin-left', '8px'),
             dom('div',
               dom('strong', t('Start timing')),
             ),
@@ -278,6 +279,7 @@ export class DocSettingsPage extends Disposable {
             testId('timing-modal-option-adhoc'),
           )),
           radioCheckboxOption(selected, TimingModalOption.Reload, dom('div',
+            dom.style('margin-left', '8px'),
             dom('div',
               dom('strong', t('Time reload')),
             ),
@@ -364,6 +366,7 @@ export class DocSettingsPage extends Disposable {
           itemTestId: DomElementMethod | null
         }) => {
         return radioCheckboxOption(selected, type, dom('div',
+          dom.style('margin-left', '8px'),
           dom('div',
             dom('strong', label),
           ),
@@ -411,7 +414,7 @@ export class DocSettingsPage extends Disposable {
         )
       ];
       return [
-        cssModalTitle(t(`Change nature of document`)),
+        cssModalTitle(t(`Change document type`)),
         documentTypeOptions(),
         testId('doctype-modal'),
       ];
