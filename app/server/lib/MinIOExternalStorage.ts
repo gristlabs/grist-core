@@ -138,7 +138,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async removeAllWithPrefix(prefix: string) {
-    const objects = await this._listObjects(this.bucket, prefix, false, { IncludeVersion: true });
+    const objects = await this._listObjects(this.bucket, prefix, true, { IncludeVersion: true });
     const objectsToDelete = objects.filter(o => o.name !== undefined).map(o => ({
       name: o.name!,
       versionId: (o as any).versionId as (string | undefined),
@@ -218,7 +218,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   private async _listObjects(...args: Parameters<MinIOClient["listObjects"]>): Promise<minio.BucketItem[]> {
     return new Promise((resolve, reject) => {
       const stream = this._s3.listObjects(...args);
-      const results: minio.BucketItem[] = []
+      const results: minio.BucketItem[] = [];
       stream
         .on('error', reject)
         .on('end', () => {
@@ -227,6 +227,6 @@ export class MinIOExternalStorage implements ExternalStorage {
         .on('data', data => {
           results.push(data);
         });
-    })
+    });
   }
 }
