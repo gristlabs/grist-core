@@ -7,6 +7,26 @@ import * as stream from "node:stream";
 export type DocPoolId = string;
 type FileId = string;
 
+
+// Minimum required info from a document
+// Compatible with Document entity for ease of use
+export interface AttachmentStoreDocInfo {
+  id: string;
+  trunkId: string | null | undefined;
+}
+
+
+/**
+ * Gets the correct pool id for a given document, given the document's id and trunk id.
+ * Avoids other areas of the codebase having to understand how documents are mapped to pools.
+ * @param {string} docId - Document's ID
+ * @param {string | null} trunkId - Document's Trunk ID (if it's a fork)
+ * @returns {string} - ID of the pool the attachments will be stored in.
+ */
+export function getDocPoolIdFromDocInfo(docInfo: AttachmentStoreDocInfo): string {
+  return docInfo.trunkId ?? docInfo.id;
+}
+
 /**
  * Provides access to external storage, specifically for storing attachments.
  *

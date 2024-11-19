@@ -2,7 +2,8 @@ import { DocStorage } from "app/server/lib/DocStorage";
 import { checksumFileStream } from "app/server/lib/checksumFile";
 import { Readable } from "node:stream";
 import {
-  DocPoolId, IAttachmentStore
+  AttachmentStoreDocInfo,
+  DocPoolId, getDocPoolIdFromDocInfo, IAttachmentStore
 } from "app/server/lib/AttachmentStore";
 import {
   AttachmentStoreId,
@@ -34,13 +35,6 @@ export class StoreNotAvailableError extends Error {
   }
 }
 
-// Minimum required info from a document
-// Compatible with Document entity for ease of use
-interface DocInfo {
-  id: string;
-  trunkId: string | null | undefined;
-}
-
 /**
  * Provides management of a specific document's attachments.
  */
@@ -56,9 +50,9 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     private _docStorage: DocStorage,
     // TODO - Pull these into a "StoreAccess" module-private type
     private _storeProvider: IAttachmentStoreProvider | undefined,
-    _docInfo: DocInfo | undefined,
+    _docInfo: AttachmentStoreDocInfo | undefined,
   ) {
-    this._docPoolId = _docInfo?.trunkId ?? _docInfo?.id ?? null;
+    this._docPoolId = _docInfo ? getDocPoolIdFromDocInfo(_docInfo) : null;
   }
 
   public async addFile(
