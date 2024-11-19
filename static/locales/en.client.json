@@ -356,7 +356,7 @@
         "Only available to document editors": "Only available to document editors",
         "Only available to document owners": "Only available to document owners",
         "Template mode": "Template mode",
-        "Change type of document": "Change type of document",
+        "Change document type": "Change document type",
         "Edit": "Edit",
         "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.",
         "Change nature of document": "Change nature of document",
