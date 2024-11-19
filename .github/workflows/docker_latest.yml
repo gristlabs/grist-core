@@ -127,9 +127,36 @@ jobs:
       - name: Install Google Chrome for Testing
         run: ./test/test_env.sh node_modules/selenium-webdriver/bin/linux/selenium-manager
 
-      - name: Run tests
+      - name: Run tests with default settings
         if: ${{ !inputs.disable_tests }}
-        run: TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }} VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
+        run: |
+          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
+          export VERBOSE=1
+          export DEBUG=1
+          export MOCHA_WEBDRIVER_HEADLESS=1
+          yarn run test:docker
+
+      - name: Run some tests with gvisor and python2
+        if: ${{ !inputs.disable_tests }}
+        run: |
+          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
+          export VERBOSE=1
+          export DEBUG=1
+          export MOCHA_WEBDRIVER_HEADLESS=1
+          export GREP_TESTS='should support basic editing'
+          export TEST_DOCKER_OPTIONS='-e GRIST_SANDBOX_FLAVOR=gvisor -e PYTHON_VERSION_ON_CREATION=2'
+          yarn run test:docker
+
+      - name: Run some tests with gvisor and python3
+        if: ${{ !inputs.disable_tests }}
+        run: |
+          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
+          export VERBOSE=1
+          export DEBUG=1
+          export MOCHA_WEBDRIVER_HEADLESS=1
+          export GREP_TESTS='should support basic editing'
+          export TEST_DOCKER_OPTIONS='-e GRIST_SANDBOX_FLAVOR=gvisor -e PYTHON_VERSION_ON_CREATION=3'
+          yarn run test:docker
 
       - name: Re-enable the ext/ directory
         if: ${{ !inputs.disable_tests }}
