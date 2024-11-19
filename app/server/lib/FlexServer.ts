@@ -86,6 +86,7 @@ import * as path from 'path';
 import * as serveStatic from "serve-static";
 import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
 import {IGristCoreConfig} from "app/server/lib/configCore";
+import { AttachmentStoreProvider, IAttachmentStoreProvider } from "./AttachmentStoreProvider";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -141,6 +142,7 @@ export class FlexServer implements GristServer {
   private _billing: IBilling;
   private _installAdmin: InstallAdmin;
   private _instanceRoot: string;
+  private _attachmentStoreProvider: IAttachmentStoreProvider;
   private _docManager: DocManager;
   private _docWorker: DocWorker;
   private _hosts: Hosts;
@@ -1361,8 +1363,16 @@ export class FlexServer implements GristServer {
     }
 
     const pluginManager = await this._addPluginManager();
-    this._docManager = this._docManager || new DocManager(this._storageManager, pluginManager,
-                                                          this._dbManager, this);
+    // TODO - Validity checks on the backends.
+    this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
+        this.create.getAttachmentStoreBackends(),
+        (await this.getActivations().current()).id,
+    );
+    this._docManager = this._docManager || new DocManager(this._storageManager,
+      pluginManager,
+      this._dbManager,
+      this,
+      this._attachmentStoreProvider);
     const docManager = this._docManager;
 
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');
@@ -1392,7 +1402,8 @@ export class FlexServer implements GristServer {
     this._addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
-      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this);
+      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager,
+                      this._attachmentStoreProvider, this);
     }
   }
 
