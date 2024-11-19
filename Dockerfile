@@ -59,6 +59,13 @@ RUN \
 # the workarounds needed to keep it are getting silly.
 # It doesn't exist in recent Debian, so we need to reach back
 # to buster.
+# Many Python2 imports require the ffi foreign-function interface
+# library binary, of course present on modern debian but with
+# a different ABI (currently version 8, versus version 6 for this
+# version of Python2). We move it from an achitecture-specific location
+# to a standard location so we can pick it up and copy it across later.
+# This will no longer be necessary when support for Python2 is dropped.
+# The Grist data engine code will not work without it.
 FROM debian:buster-slim AS collector-py2
 ADD sandbox/requirements.txt requirements.txt
 RUN \
