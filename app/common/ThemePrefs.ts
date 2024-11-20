@@ -254,9 +254,12 @@ export interface ThemeColors {
   'right-panel-tab-bg': string;
   'right-panel-tab-icon': string;
   'right-panel-tab-icon-hover': string;
+  'right-panel-tab-border': string;
   'right-panel-tab-hover-bg': string;
+  'right-panel-tab-hover-fg': string;
   'right-panel-tab-selected-fg': string;
   'right-panel-tab-selected-bg': string;
+  'right-panel-tab-selected-icon': string;
   'right-panel-tab-button-hover-bg': string;
   'right-panel-subtab-fg': string;
   'right-panel-subtab-selected-fg': string;

@@ -161,7 +161,12 @@ if include_bash or start:
   preserve("/usr/bin")
 
 preserve("/usr/local/lib")
-if os.path.exists('/lib64'):
+
+# Do not attempt to include symlink directories, they are not supported
+# and will cause obscure failures. On debian bookworm /lib64 is a
+# symlink and we do not appear to need it, relative to debian buster
+# where it is a real directory.
+if os.path.exists('/lib64') and not os.path.islink('/lib64'):
   preserve("/lib64")
 if os.path.exists('/usr/lib64'):
   preserve("/usr/lib64")
