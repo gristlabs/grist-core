@@ -7,11 +7,10 @@ export class ServiceAccount extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-
   @Column({type: String})
   public description: string;
 
-  @Column({type: Date, default: Date.now()})
+  @Column({type: Date, nullable: false})
   public endOfLife: string;
 
   @ManyToOne(type => User)

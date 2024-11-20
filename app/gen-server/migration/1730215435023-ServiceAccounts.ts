@@ -1,8 +1,12 @@
 import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey, TableIndex } from "typeorm";
+import * as sqlUtils from "app/gen-server/sqlUtils";
 
 export class ServiceAccounts1730215435023 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<any> {
+    const dbType = queryRunner.connection.driver.options.type;
+    const datetime = sqlUtils.datetime(dbType);
+
     await queryRunner.addColumn('users', new TableColumn({
       name: 'type',
       type: 'varchar',
@@ -24,8 +28,8 @@ export class ServiceAccounts1730215435023 implements MigrationInterface {
           },
           {
             name: 'endOfLife',
-            type: 'date',
-            default: 'now()',
+            type: datetime,
+            isNullable: false,
           },
         ],
       })
