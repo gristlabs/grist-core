@@ -1292,10 +1292,6 @@ export class ActiveDoc extends EventEmitter {
     await this.docStorage.updateIndexes(indexes);
   }
 
-  public async removeInstanceFromDoc(docSession: DocSession): Promise<void> {
-    await this._sharing.removeInstanceFromDoc();
-  }
-
   public async renameDocTo(docSession: OptDocSession, newName: string): Promise<void> {
     this._log.debug(docSession, 'renameDoc', newName);
     await this.docStorage.renameDocTo(newName);
@@ -2064,9 +2060,7 @@ export class ActiveDoc extends EventEmitter {
       userActions: actions,
     };
 
-    const result: ApplyUAResult = await new Promise<ApplyUAResult>(
-      (resolve, reject) =>
-        this._sharing.addUserAction({action, docSession, resolve, reject}));
+    const result: ApplyUAResult = await this._sharing.addUserAction(docSession, action);
     this._log.debug(docSession, "_applyUserActions returning %s", shortDesc(result));
 
     if (result.isModification) {
