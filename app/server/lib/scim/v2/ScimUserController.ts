@@ -3,6 +3,7 @@ import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import SCIMMY from 'scimmy';
 import { toSCIMMYUser, toUserProfile } from './ScimUserUtils';
 import { RequestContext } from './ScimTypes';
+import log from 'app/server/lib/log';
 
 class ScimUserController {
   private static _getIdFromResource(resource: any) {
@@ -111,15 +112,18 @@ class ScimUserController {
       return await cb();
     } catch (err) {
       if (err instanceof ApiError) {
+        log.error('[ScimUserController] ApiError: ', err.status, err.message);
         if (err.status === 409) {
           throw new SCIMMY.Types.Error(err.status, 'uniqueness', err.message);
         }
         throw new SCIMMY.Types.Error(err.status, null!, err.message);
       }
       if (err instanceof SCIMMY.Types.Error) {
+        log.error('[ScimUserController] SCIMMY.Types.Error: ', err.message);
         throw err;
       }
       // By default, return a 500 error
+      log.error('[ScimUserController] Error: ', err.message);
       throw new SCIMMY.Types.Error(500, null!, err.message);
     }
   }
