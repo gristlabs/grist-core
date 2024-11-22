@@ -31,6 +31,7 @@ export const makeCoreCreator = () => makeSimpleCreator({
       name: 'minio',
       check: () => checkMinIOExternalStorage() !== undefined,
       checkBackend: () => checkMinIOBucket(),
+      // TODO - Move this to another file
       create: (storeId: string) => {
         const options = checkMinIOExternalStorage();
         if (!options) {

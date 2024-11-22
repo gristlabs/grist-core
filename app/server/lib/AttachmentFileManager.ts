@@ -39,7 +39,9 @@ export class StoreNotAvailableError extends Error {
  * Provides management of a specific document's attachments.
  */
 export class AttachmentFileManager implements IAttachmentFileManager {
+  // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
   private readonly _docPoolId: DocPoolId | null;
+  private readonly _docName: string;
 
   /**
    * @param _docStorage - Storage of this manager's document.
@@ -48,10 +50,10 @@ export class AttachmentFileManager implements IAttachmentFileManager {
    */
   constructor(
     private _docStorage: DocStorage,
-    // TODO - Pull these into a "StoreAccess" module-private type
     private _storeProvider: IAttachmentStoreProvider | undefined,
     _docInfo: AttachmentStoreDocInfo | undefined,
   ) {
+    this._docName = _docStorage.docName;
     this._docPoolId = _docInfo ? getDocPoolIdFromDocInfo(_docInfo) : null;
   }
 
@@ -62,7 +64,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   ): Promise<AddFileResult> {
     const fileIdent = await this._getFileIdentifier(fileExtension, Readable.from(fileData));
     if (storeId === undefined) {
-      log.info(`AttachmentFileManager adding ${fileIdent} to document storage`);
+      log.info(`AttachmentFileManager adding ${fileIdent} to local document storage in '${this._docName}'`);
       return this._addFileToLocalStorage(fileIdent, fileData);
     }
     const store = await this._getStore(storeId);
@@ -76,11 +78,11 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   public async getFileData(fileIdent: string): Promise<Buffer | null> {
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
     if (!fileInfo) {
-      log.info(`AttachmentFileManager file ${fileIdent} does not exist`);
+      log.info(`AttachmentFileManager file ${fileIdent} does not exist in doc '${this._docName}'`);
       return null;
     }
     if (!fileInfo.storageId) {
-      log.info(`AttachmentFileManager retrieving ${fileIdent} from document storage`);
+      log.info(`AttachmentFileManager retrieving ${fileIdent} from document storage in ${this._docName}`);
       return fileInfo.data;
     }
     const store = await this._getStore(fileInfo.storageId);

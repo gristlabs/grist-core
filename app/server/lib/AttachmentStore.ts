@@ -19,6 +19,9 @@ export interface AttachmentStoreDocInfo {
 /**
  * Gets the correct pool id for a given document, given the document's id and trunk id.
  * Avoids other areas of the codebase having to understand how documents are mapped to pools.
+ * This is a key security point - documents which share a pool can access each others' attachments.
+ * Therefore documents with different security domains (e.g from different teams) need to be sure not to share
+ * a pool.
  * @param {string} docId - Document's ID
  * @param {string | null} trunkId - Document's Trunk ID (if it's a fork)
  * @returns {string} - ID of the pool the attachments will be stored in.
@@ -65,6 +68,7 @@ export class AttachmentStoreCreationError extends Error {
 }
 
 // TODO - Can make this generic if *Stream methods become part of an interface.
+// TODO - Put this into another file.
 export class MinIOAttachmentStore implements IAttachmentStore {
   constructor(
     public id: string,
