@@ -1371,8 +1371,8 @@ export class FlexServer implements GristServer {
     this._docManager = this._docManager || new DocManager(this._storageManager,
       pluginManager,
       this._dbManager,
-      this,
-      this._attachmentStoreProvider);
+      this._attachmentStoreProvider,
+      this);
     const docManager = this._docManager;
 
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');

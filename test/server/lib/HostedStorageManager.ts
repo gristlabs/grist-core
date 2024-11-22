@@ -34,6 +34,7 @@ import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import uuidv4 from "uuid/v4";
+import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
 
 bluebird.promisifyAll(RedisClient.prototype);
 
@@ -276,7 +277,8 @@ class TestStore {
     private _localDirectory: string,
     private _workerId: string,
     private _workers: IDocWorkerMap,
-    private _externalStorageCreate: ExternalStorageCreator) {
+    private _externalStorageCreate: ExternalStorageCreator,
+    private _attachmentStoreProvider?: IAttachmentStoreProvider) {
   }
 
   public async run<T>(fn: () => Promise<T>): Promise<T> {
@@ -310,6 +312,8 @@ class TestStore {
         return result;
     };
 
+    const attachmentStoreProvider = this._attachmentStoreProvider ?? new AttachmentStoreProvider([], "TESTINSTALL");
+
     const storageManager = new HostedStorageManager(this._localDirectory,
                                                     this._workerId,
                                                     false,
@@ -318,8 +322,8 @@ class TestStore {
                                                     externalStorageCreator,
                                                     options);
     this.storageManager = storageManager;
-    this.docManager = new DocManager(storageManager, await getGlobalPluginManager(),
-                                     dbManager, {
+    this.docManager = new DocManager(storageManager, await getGlobalPluginManager(), dbManager, attachmentStoreProvider,
+                                     {
                                        ...createDummyGristServer(),
                                        getStorageManager() { return storageManager; },
                                      });

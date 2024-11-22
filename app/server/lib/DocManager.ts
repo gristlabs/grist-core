@@ -63,8 +63,8 @@ export class DocManager extends EventEmitter {
     public readonly storageManager: IDocStorageManager,
     public readonly pluginManager: PluginManager|null,
     private _homeDbManager: HomeDBManager|null,
-    public gristServer: GristServer,
     private _attachmentStoreProvider: IAttachmentStoreProvider,
+    public gristServer: GristServer,
   ) {
     super();
   }

@@ -33,12 +33,12 @@ export async function main(baseName: string) {
     if (await fse.pathExists(fname)) {
       await fse.remove(fname);
     }
-    const docManager = new DocManager(storageManager, pluginManager, null as any, {
+    const docManager = new DocManager(storageManager, pluginManager, null as any, new AttachmentStoreProvider([], ""), {
         create,
         getAuditLogger() { return createDummyAuditLogger(); },
         getTelemetry() { return createDummyTelemetry(); },
-      } as any,
-      new AttachmentStoreProvider([], ""));
+      } as any
+    );
     const activeDoc = new ActiveDoc(docManager, baseName);
     const session = makeExceptionalDocSession('nascent');
     await activeDoc.createEmptyDocWithDataEngine(session);
