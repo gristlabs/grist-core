@@ -41,6 +41,9 @@ export type AccountPage = typeof AccountPage.type;
 export const ActivationPage = StringUnion('activation');
 export type ActivationPage = typeof ActivationPage.type;
 
+export const AuditLogsPage = StringUnion('audit-logs');
+export type AuditLogsPage = typeof AuditLogsPage.type;
+
 export const LoginPage = StringUnion('signup', 'login', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
@@ -83,6 +86,8 @@ export const commonUrls = {
   helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
+  helpInstallAuditLogs: "https://support.getgrist.com/install/audit-logs",
+  helpTeamAuditLogs: "https://support.getgrist.com/teams/audit-logs",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-activate-grist-enterprise",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
@@ -129,6 +134,7 @@ export interface IGristUrlState {
   account?: AccountPage;
   billing?: BillingPage;
   activation?: ActivationPage;
+  auditLogs?: AuditLogsPage;
   login?: LoginPage;
   welcome?: WelcomePage;
   adminPanel?: AdminPanelPage;
@@ -328,6 +334,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
 
   if (state.activation) { parts.push(state.activation); }
 
+  if (state.auditLogs) { parts.push(state.auditLogs); }
+
   if (state.login) { parts.push(state.login); }
 
   if (state.welcome) {
@@ -478,6 +486,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (map.has('billing')) { state.billing = BillingSubPage.parse(map.get('billing')) || 'billing'; }
   if (map.has('activation')) {
     state.activation = ActivationPage.parse(map.get('activation')) || 'activation';
+  }
+  if (map.has('audit-logs')) {
+    state.auditLogs = AuditLogsPage.parse(map.get('audit-logs')) || 'audit-logs';
   }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
   if (map.has('admin')) { state.adminPanel = AdminPanelPage.parse(map.get('admin')) || 'admin'; }

@@ -21,11 +21,10 @@ export function showAuditLogEvents({ type }: Options) {
 }
 
 function showInstallationEvents() {
+  console.log("---\ntitle: Audit log events\n---\n");
   console.log(
-    "# Audit log events for your self-managed instance {: .tag-core .tag-ee }\n"
+    "# Audit log events for your self-managed instance {: .tag-ee }"
   );
-  console.log(`!!! note
-    The events on this page appear in the audit log of a [Self-Managed Grist instance](https://support.getgrist.com/self-managed/). For events that appear in a [team site](https://support.getgrist.com/teams/), see ["Audit log events for your team site"](https://support.getgrist.com/team/audit-log-events/).\n`);
   const events = Object.entries(AuditEvents).filter(([, { type }]) => {
     const types = Array.isArray(type) ? type : [type];
     return types.includes("installation");
@@ -34,9 +33,15 @@ function showInstallationEvents() {
 }
 
 function showSiteEvents() {
-  console.log("# Audit log events for your team site\n");
-  console.log(`!!! note
-    The events on this page appear in the audit log of a [team site](https://support.getgrist.com/teams/). For events that appear in a [Self-Managed Grist instance](https://support.getgrist.com/self-managed/), see ["Audit log events for your self-managed instance"](https://support.getgrist.com/install/audit-log-events/).\n`);
+  console.log("---\ntitle: Audit log events\n---\n");
+  console.log("# Audit log events for your team site {: .tag-business .tag-ee }");
+  console.log(
+    `!!! note
+    The events on this page appear in the audit log of a [team site]` +
+      `(../teams.md). For events that appear in a [Self-Managed Grist instance]` +
+      `(../self-managed.md), see ["Audit log events for your self-managed instance"]` +
+      `(../install/audit-log-events.md).\n`
+  );
   const events = Object.entries(AuditEvents).filter(([, { type }]) => {
     const types = Array.isArray(type) ? type : [type];
     return types.includes("site");
@@ -52,12 +57,12 @@ function showEvents(events: [string, AuditEvent<AuditEventAction>][]) {
   for (const [category, categoryEvents] of Object.entries(
     eventsByCategory
   ).sort((a, b) => a[0].localeCompare(b[0]))) {
-    console.log(`## ${category}\n`);
+    console.log(`\n## ${category}`);
     for (const [action, event] of categoryEvents.sort((a, b) =>
       a[0].localeCompare(b[0])
     )) {
       const { description, properties, sample } = event;
-      console.log(`### ${action}\n`);
+      console.log(`\n### ${action}\n`);
       console.log(`${description}\n`);
       if (Object.keys(properties).length === 0) {
         continue;
@@ -512,6 +517,20 @@ const AuditEvents: AuditEvents = {
           name: {
             type: "string",
             description: "The document name.",
+          },
+          workspace: {
+            type: "object",
+            description: "The document's workspace.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The workspace ID.",
+              },
+              name: {
+                type: "string",
+                description: "The workspace name.",
+              },
+            },
           },
         },
       },

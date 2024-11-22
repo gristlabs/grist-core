@@ -180,7 +180,7 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data.map((org: any) => org.name),
       ['Chimpyland', 'EmptyOrg', 'EmptyWsOrg', 'Fish', 'Flightless',
-        'FreeTeam', 'NASA', 'Primately', 'TestDailyApiLimit']);
+        'FreeTeam', 'NASA', 'Primately', 'TestAuditLogs', 'TestDailyApiLimit']);
     // personal orgs should have an owner and no domain
     // createdAt and updatedAt are omitted since exact times cannot be predicted.
     assert.deepEqual(omit(resp.data[0], 'createdAt', 'updatedAt'), {

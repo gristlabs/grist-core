@@ -3,6 +3,7 @@ import {
   AuditLogStreamingDestination,
   AuditLogStreamingDestinationName,
 } from "app/common/Config";
+import { Organization } from "app/gen-server/entity/Organization";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import {
   AuditEvent,
@@ -25,6 +26,7 @@ import {
 } from "app/server/lib/sessionUtils";
 import moment from "moment-timezone";
 import fetch from "node-fetch";
+import { AbortSignal } from "node-fetch/externals";
 import { createClient, RedisClient } from "redis";
 import { inspect } from "util";
 import { v4 as uuidv4 } from "uuid";
@@ -44,7 +46,6 @@ export interface IAuditLogger {
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties<Action>
   ): Promise<void>;
-
   /**
    * Close any resources used by the logger.
    */
@@ -79,10 +80,15 @@ export const Deps = {
 
 interface AuditLoggerOptions {
   formatters: AuditEventFormatter[];
+  allowDestination(
+    destination: AuditLogStreamingDestination,
+    org: Organization | null
+  ): boolean;
 }
 
 export class AuditLogger implements IAuditLogger {
   private _numPendingRequests = 0;
+  private readonly _abortController = new AbortController();
   private readonly _formatters: Map<
     AuditLogStreamingDestinationName,
     AuditEventFormatter
@@ -100,14 +106,12 @@ export class AuditLogger implements IAuditLogger {
     (requestOrSession) => getLogMeta(requestOrSession)
   );
   private _redisClient: RedisClient | null = null;
-  private _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
+  private readonly _redisChannel = `${getPubSubPrefix()}-audit-logger-streaming-destinations:change`;
   private _createdPromises: Set<Promise<any>>|null = new Set();
   private _closed = false;
+  private _allowDestination = this._options.allowDestination;
 
-  constructor(
-    private _db: HomeDBManager,
-    private _options: AuditLoggerOptions
-  ) {
+  constructor(private _db: HomeDBManager, private _options: AuditLoggerOptions) {
     this._initializeFormatters();
     this._subscribeToStreamingDestinations();
   }
@@ -138,6 +142,9 @@ export class AuditLogger implements IAuditLogger {
 
     // Close the redis clients if they weren't already.
     await this._redisClient?.quitAsync();
+
+    // Abort all pending requests.
+    this._abortController.abort();
   }
 
   /**
@@ -217,26 +224,38 @@ export class AuditLogger implements IAuditLogger {
   }
 
   private async _getOrSetStreamingDestinations(event: AuditEvent) {
-    const orgId = event.context.site?.id;
     const destinations = await Promise.all([
       mapGetOrSet(this._installStreamingDestinations, true, () =>
         this._track(this._fetchStreamingDestinations()),
       ),
-      !orgId ? null : mapGetOrSet(this._orgStreamingDestinations, orgId, () =>
-        this._track(this._fetchStreamingDestinations(orgId))
-      ),
+      // TODO: Uncomment when team audit logs are ready to use.
+      // !event.context.site?.id ? null : mapGetOrSet(this._orgStreamingDestinations, event.context.site.id, () =>
+      //   this._track(this._fetchStreamingDestinations(event.context.site.id))
+      // ),
     ]);
     return destinations
       .filter((d): d is AuditLogStreamingDestination[] => d !== null)
       .flat();
   }
 
-  private async _fetchStreamingDestinations(orgId?: number) {
+  private async _fetchStreamingDestinations(
+    orgId?: number
+  ): Promise<AuditLogStreamingDestination[]> {
+    if (this._db.isMergedOrg(orgId ?? null)) {
+      return [];
+    }
+
     const config = await this._db.getConfigByKeyAndOrgId(
       "audit_log_streaming_destinations",
       orgId
     );
-    return config?.value ?? [];
+    if (!config) {
+      return [];
+    }
+
+    return config.value.filter((destination) =>
+      this._allowDestination(destination, config.org)
+    );
   }
 
   private async _streamEventToDestination(
@@ -261,6 +280,7 @@ export class AuditLogger implements IAuditLogger {
         body: this._buildStreamingDestinationPayload(event, destination),
         agent: proxyAgent(new URL(url)),
         timeout: 10_000,
+        signal: this._abortController.signal as AbortSignal,
       });
       if (!resp.ok) {
         throw new Error(
@@ -327,8 +347,8 @@ export class AuditLogger implements IAuditLogger {
   }
 
   private _subscribeToStreamingDestinations() {
-    this._db.on("streamingDestinationsChange", async (orgId: number | null) => {
-      await this._handleStreamingDestinationsChange(orgId);
+    this._db.on("streamingDestinationsChange", async (orgId?: number) => {
+      await this._handleStreamingDestinationsChange(orgId ?? null);
     });
 
     if (!process.env.REDIS_URL) {
@@ -337,7 +357,7 @@ export class AuditLogger implements IAuditLogger {
 
     this._redisClient ??= createClient(process.env.REDIS_URL);
     this._redisClient.subscribe(this._redisChannel);
-    this._redisClient.on("message", async (message) => {
+    this._redisClient.on("message", async (_, message) => {
       const { orgId } = JSON.parse(message);
       this._invalidateStreamingDestinations(orgId);
     });

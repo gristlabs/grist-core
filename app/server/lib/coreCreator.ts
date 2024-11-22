@@ -1,7 +1,6 @@
-import { GenericEventFormatter } from 'app/server/lib/AuditEventFormatter';
-import { AuditLogger } from 'app/server/lib/AuditLogger';
 import { checkMinIOBucket, checkMinIOExternalStorage,
          configureMinIOExternalStorage } from 'app/server/lib/configureMinIOExternalStorage';
+import { configureCoreAuditLogger } from 'app/server/lib/configureCoreAuditLogger';
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
 import { Telemetry } from 'app/server/lib/Telemetry';
 
@@ -16,10 +15,7 @@ export const makeCoreCreator = () => makeSimpleCreator({
     },
   ],
   auditLogger: {
-    create: (dbManager) =>
-      new AuditLogger(dbManager, {
-        formatters: [new GenericEventFormatter()],
-      }),
+    create: configureCoreAuditLogger,
   },
   telemetry: {
     create: (dbManager, gristServer) => new Telemetry(dbManager, gristServer),

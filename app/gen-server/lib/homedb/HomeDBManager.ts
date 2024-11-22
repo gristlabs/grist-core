@@ -265,8 +265,7 @@ export class HomeDBManager extends EventEmitter {
                                    // deployments on same subdomain.
 
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
-  // In restricted mode, documents should be read-only.
-  private _restrictedMode: boolean = false;
+  private _readonly: boolean = false;
 
   private get _dbType(): DatabaseType {
     return this._connection.driver.options.type;
@@ -356,8 +355,8 @@ export class HomeDBManager extends EventEmitter {
     this._idPrefix = prefix;
   }
 
-  public setRestrictedMode(restricted: boolean) {
-    this._restrictedMode = restricted;
+  public setReadonly(readonly = true) {
+    this._readonly = readonly;
   }
 
   public async connect(): Promise<void> {
@@ -967,7 +966,7 @@ export class HomeDBManager extends EventEmitter {
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
       const features = doc.workspace.org.billingAccount.getFeatures();
-      if (features.readOnlyDocs || this._restrictedMode) {
+      if (features.readOnlyDocs || this._readonly) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
       }
@@ -3054,7 +3053,7 @@ export class HomeDBManager extends EventEmitter {
   /**
    * Deletes the config scoped to a particular `org` with the specified `key`.
    *
-   * Returns a query result with status 204 and the deleted config on success.
+   * Returns a query result with status 200 and the deleted config on success.
    *
    * Fails if the scoped user is not an owner of the org, or a config with
    * the specified `key` does not exist for the org.
@@ -3097,7 +3096,10 @@ export class HomeDBManager extends EventEmitter {
   ) {
     let query = this._configs(manager).where("configs.key = :key", { key });
     if (orgId !== null) {
-      query = query.andWhere("configs.org_id = :orgId", { orgId });
+      query = query
+        .leftJoinAndSelect("configs.org", "orgs")
+        .andWhere("configs.org_id = :orgId", { orgId });
+      query = this._addFeatures(query);
     } else {
       query = query.andWhere("configs.org_id IS NULL");
     }

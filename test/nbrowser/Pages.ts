@@ -570,7 +570,7 @@ describe('Pages', function() {
     // Create and open new document
     const docId = await session.tempNewDoc(cleanup, "test-page-removal-js-error");
     await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);
-    await gu.waitForUrl('test-page-removal-js-error');
+    await gu.waitForDocToLoad();
 
     // Add two additional tables
     await gu.addNewTable();
@@ -579,6 +579,7 @@ describe('Pages', function() {
 
     // Open the default page (no p/<...> in the URL)
     await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);
+    await gu.waitForDocToLoad();
 
     // Check that Table1 is now selected
     await driver.findContentWait('.test-treeview-itemHeader.selected', /Table1/, 2000);
@@ -609,7 +610,7 @@ describe('Pages', function() {
     // Create and open new document
     const docId = await session.tempNewDoc(cleanup, "prompts");
     await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);
-    await gu.waitForUrl('prompts');
+    await gu.waitForDocToLoad();
 
     // Add two additional tables, with custom names.
     await gu.addNewTable('Table B');

@@ -248,6 +248,7 @@ describe('HomeDBManager', function() {
       'FreeTeam',
       'NASA',
       'Primately',
+      'TestAuditLogs',
       'TestDailyApiLimit',
       'Charonland',
       'Chimpyland',

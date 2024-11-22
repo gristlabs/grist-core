@@ -1,6 +1,6 @@
 import { Disposable, dom, domComputed, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
-import { handleSubmit, submitForm } from "app/client/lib/formUtils";
+import { handleSubmit } from "app/client/lib/formUtils";
 import { AppModel } from "app/client/models/AppModel";
 import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
@@ -31,7 +31,7 @@ function handleSubmitForm(
   onSuccess: (v: any) => void,
   onError?: (e: unknown) => void
 ): (elem: HTMLFormElement) => void {
-  return handleSubmit(pending, submitForm, onSuccess, onError);
+  return handleSubmit({pending, onSuccess, onError});
 }
 
 export class WelcomePage extends Disposable {

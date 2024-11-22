@@ -70,7 +70,7 @@ export interface ICreate {
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
-  AuditLogger(dbManager: HomeDBManager): IAuditLogger;
+  AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
   Shell?(): IShell;  // relevant to electron version of Grist only.
 
@@ -118,7 +118,7 @@ export interface ICreateBillingOptions {
 }
 
 export interface ICreateAuditLoggerOptions {
-  create(dbManager: HomeDBManager): IAuditLogger|undefined;
+  create(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger|undefined;
 }
 
 export interface ICreateTelemetryOptions {
@@ -162,6 +162,13 @@ export function makeSimpleCreator(opts: {
         addWebhooks() { /* do nothing */ },
         async addMiddleware() { /* do nothing */ },
         addPages() { /* do nothing */ },
+        getActivationStatus() {
+          return {
+            inGoodStanding: true,
+            isInTrial: false,
+            expirationDate: null,
+          };
+        },
       };
     },
     Notifier(dbManager, gristConfig) {
@@ -175,8 +182,8 @@ export function makeSimpleCreator(opts: {
       }
       return undefined;
     },
-    AuditLogger(dbManager) {
-      return auditLogger?.create(dbManager) ?? createDummyAuditLogger();
+    AuditLogger(dbManager, gristConfig) {
+      return auditLogger?.create(dbManager, gristConfig) ?? createDummyAuditLogger();
     },
     Telemetry(dbManager, gristConfig) {
       return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();

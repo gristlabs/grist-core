@@ -576,4 +576,9 @@ export const GristDark: ThemeColors = {
   'app-header-bg': '#32323F',
   'app-header-border': '#32323f',
   'app-header-border-hover': '#78788c',
+
+  /* Card Button */
+  'card-button-border': '#555563',
+  'card-button-border-selected': '#17B378',
+  'card-button-shadow': '#0000001A',
 };

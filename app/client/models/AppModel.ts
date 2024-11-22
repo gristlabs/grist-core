@@ -40,7 +40,8 @@ export type PageType =
   | "welcome"
   | "account"
   | "admin"
-  | "activation";
+  | "activation"
+  | "audit-logs";
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -327,6 +328,8 @@ export class AppModelImpl extends Disposable implements AppModel {
         return 'admin';
       } else if (state.activation) {
         return 'activation';
+      } else if (state.auditLogs) {
+        return 'audit-logs';
       } else {
         return 'home';
       }

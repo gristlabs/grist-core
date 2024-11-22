@@ -911,6 +911,12 @@ export const theme = {
   appHeaderBg: new CustomProp('theme-app-header-bg', undefined, colors.light),
   appHeaderBorder: new CustomProp('theme-app-header-border', undefined, colors.mediumGreyOpaque),
   appHeaderBorderHover: new CustomProp('theme-app-header-border-hover', undefined, colors.slate),
+
+  /* Card Button */
+  cardButtonBorder: new CustomProp('theme-card-button-border', undefined, colors.darkGrey),
+  cardButtonBorderSelected: new CustomProp('theme-card-button-border-selected', undefined,
+    colors.lightGreen),
+  cardButtonShadow: new CustomProp('theme-card-button-shadow', undefined, "#0000001A"),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

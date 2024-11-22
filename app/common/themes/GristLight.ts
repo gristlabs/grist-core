@@ -576,4 +576,9 @@ export const GristLight: ThemeColors = {
   'app-header-bg': 'var(--grist-theme-page-panels-main-panel-bg)',
   'app-header-border': 'var(--grist-theme-menu-border)',
   'app-header-border-hover': '#B0B0B0',
+
+  /* Card Button */
+  'card-button-border': '#D9D9D9',
+  'card-button-border-selected': '#16B378',
+  'card-button-shadow': '#0000001A',
 };

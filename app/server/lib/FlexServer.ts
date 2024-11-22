@@ -449,6 +449,14 @@ export class FlexServer implements GristServer {
     return this._updateManager;
   }
 
+  public getBilling(): IBilling {
+    if (!this._billing) {
+      if (!this._dbManager) { throw new Error("need dbManager"); }
+      this._billing = this.create.Billing(this._dbManager, this);
+    }
+    return this._billing;
+  }
+
   public sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void> {
     if (!this._sendAppPage) { throw new Error('no _sendAppPage method available'); }
     return this._sendAppPage(req, resp, options);
@@ -890,15 +898,13 @@ export class FlexServer implements GristServer {
 
   public addBillingApi() {
     if (this._check('billing-api', 'homedb', 'json', 'api-mw')) { return; }
-    this._getBilling();
-    this._billing.addEndpoints(this.app);
-    this._billing.addEventHandlers();
+    this.getBilling().addEndpoints(this.app);
+    this.getBilling().addEventHandlers();
   }
 
   public async addBillingMiddleware() {
     if (this._check('activation', 'homedb')) { return; }
-    this._getBilling();
-    await this._billing.addMiddleware?.(this.app);
+    await this.getBilling().addMiddleware?.(this.app);
   }
 
   /**
@@ -928,7 +934,7 @@ export class FlexServer implements GristServer {
   public addAuditLogger() {
     if (this._check('audit-logger', 'homedb')) { return; }
 
-    this._auditLogger = this.create.AuditLogger(this._dbManager);
+    this._auditLogger = this.create.AuditLogger(this._dbManager, this);
   }
 
   public async addTelemetry() {
@@ -1541,8 +1547,7 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware
     ];
 
-    this._getBilling();
-    this._billing.addPages(this.app, middleware);
+    this.getBilling().addPages(this.app, middleware);
   }
 
   /**
@@ -1551,8 +1556,7 @@ export class FlexServer implements GristServer {
    */
   public addEarlyWebhooks() {
     if (this._check('webhooks', 'homedb', '!json')) { return; }
-    this._getBilling();
-    this._billing.addWebhooks(this.app);
+    this.getBilling().addWebhooks(this.app);
   }
 
   public addWelcomePaths() {
@@ -1956,6 +1960,10 @@ export class FlexServer implements GristServer {
     this._updateManager.addEndpoints();
   }
 
+  public setRestrictedMode(restrictedMode = true) {
+    this.getHomeDBManager().setReadonly(restrictedMode);
+  }
+
   // Adds endpoints that support imports and exports.
   private _addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
     if (!this._docWorker) { throw new Error("need DocWorker"); }
@@ -2208,14 +2216,6 @@ export class FlexServer implements GristServer {
     this.app.get('/:docId/app.html', this._userIdMiddleware, expressWrap(async (req, res) => {
       res.json(await this.getDocTemplate());
     }));
-  }
-
-  private _getBilling(): IBilling {
-    if (!this._billing) {
-      if (!this._dbManager) { throw new Error("need dbManager"); }
-      this._billing = this.create.Billing(this._dbManager, this);
-    }
-    return this._billing;
   }
 
   // Check whether logger should skip a line.  Careful, req and res are morgan-specific

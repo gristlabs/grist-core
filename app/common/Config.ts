@@ -31,10 +31,16 @@ export interface AuditLogStreamingDestination {
 
 export type AuditLogStreamingDestinationName = "splunk" | "other";
 
-export const ConfigKeyChecker = createCheckers(ConfigsTI)
-  .ConfigKey as CheckerT<ConfigKey>;
+const {
+  AuditLogStreamingDestinations,
+  AuditLogStreamingDestinationName,
+  ConfigKey,
+} = createCheckers(ConfigsTI);
 
-const { AuditLogStreamingDestinations } = createCheckers(ConfigsTI);
+export const AuditLogStreamingDestinationNameChecker =
+  AuditLogStreamingDestinationName as CheckerT<AuditLogStreamingDestinationName>;
+
+export const ConfigKeyChecker = ConfigKey as CheckerT<ConfigKey>;
 
 export const ConfigValueCheckers = {
   audit_log_streaming_destinations:

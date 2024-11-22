@@ -16,6 +16,7 @@ import { Comm } from 'app/server/lib/Comm';
 import { create } from 'app/server/lib/create';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { GristJobs } from 'app/server/lib/GristJobs';
+import { IBilling } from 'app/server/lib/IBilling';
 import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import { INotifier } from 'app/server/lib/INotifier';
@@ -73,6 +74,8 @@ export interface GristServer {
   getSandboxInfo(): Promise<SandboxInfo>;
   getInfo(key: string): any;
   getJobs(): GristJobs;
+  getBilling(): IBilling;
+  setRestrictedMode(restrictedMode?: boolean): void;
 }
 
 export interface GristLoginSystem {
@@ -168,6 +171,8 @@ export function createDummyGristServer(): GristServer {
     getSandboxInfo() { throw new Error('no sandbox'); },
     getInfo(key: string) { return undefined; },
     getJobs(): GristJobs { throw new Error('no job system'); },
+    getBilling() { throw new Error('no billing'); },
+    setRestrictedMode() { /* do nothing */ },
   };
 }
 

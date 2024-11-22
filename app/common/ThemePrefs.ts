@@ -597,6 +597,11 @@ export interface ThemeColors {
   'app-header-bg': string;
   'app-header-border': string;
   'app-header-border-hover': string;
+
+  /* Card Button */
+  'card-button-border': string;
+  'card-button-border-selected': string;
+  'card-button-shadow': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

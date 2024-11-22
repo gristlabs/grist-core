@@ -636,7 +636,10 @@ export class ApiServer {
         site: pick(document.workspace.org, "id", "name", "domain"),
       },
       details: {
-        document: pick(document, "id", "name"),
+        document: {
+          ...pick(document, "id", "name"),
+          workspace: pick(document.workspace, "id", "name"),
+        },
       },
     });
     this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {

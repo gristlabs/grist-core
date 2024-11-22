@@ -3,6 +3,17 @@ import {ApiError} from 'app/common/ApiError';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {dom, Observable} from 'grainjs';
 
+interface SubmitOptions<T> {
+  pending: Observable<boolean>;
+  disabled?: Observable<boolean>;
+  onSubmit?: (
+    fields: { [key: string]: string },
+    form: HTMLFormElement
+  ) => Promise<T>;
+  onSuccess?: (v: T) => void;
+  onError?: (e: unknown) => void;
+}
+
 /**
  * Handles submission of an HTML form element.
  *
@@ -12,15 +23,23 @@ import {dom, Observable} from 'grainjs';
  * resolves.
  */
 export function handleSubmit<T>(
-  pending: Observable<boolean>,
-  onSubmit: (fields: { [key: string]: string }, form: HTMLFormElement) => Promise<T> = submitForm,
-  onSuccess: (v: T) => void = () => { /* noop */ },
-  onError: (e: unknown) => void = (e) => reportError(e as string | Error)
+  options: SubmitOptions<T>
 ): (elem: HTMLFormElement) => void {
+  const {
+    pending,
+    disabled,
+    onSubmit = submitForm,
+    onSuccess = () => {
+      /* noop */
+    },
+    onError = (e) => reportError(e as string | Error),
+  } = options;
   return dom.on('submit', async (e, form) => {
     e.preventDefault();
     try {
-      if (pending.get()) { return; }
+      if (pending.get() || disabled?.get()) {
+        return;
+      }
 
       pending.set(true);
       const result = await onSubmit(formDataToObj(form), form).finally(() => pending.set(false));
@@ -50,7 +69,7 @@ export function formDataToObj(formElem: HTMLFormElement): { [key: string]: strin
 /**
  * Submit a form using BaseAPI. Send inputs as JSON, and interpret any reply as JSON.
  */
-export async function submitForm(fields: { [key: string]: string }, form: HTMLFormElement): Promise<any> {
+async function submitForm(fields: { [key: string]: string }, form: HTMLFormElement): Promise<any> {
   return BaseAPI.requestJson(form.action, {method: 'POST', body: JSON.stringify(fields)});
 }
 
