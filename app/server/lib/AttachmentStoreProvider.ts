@@ -1,4 +1,5 @@
-import { IAttachmentStore } from "./AttachmentStore";
+import { IAttachmentStore } from "app/server/lib/AttachmentStore";
+import log from 'app/server/lib/log';
 
 export type AttachmentStoreId = string
 
@@ -38,6 +39,9 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
         factory,
       };
     });
+
+    const storeIds = Object.values(this._storeDetailsById).map(storeDetails => storeDetails.id);
+    log.info(`AttachmentStoreProvider initialised with stores: ${storeIds}`);
   }
 
   public async getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null> {

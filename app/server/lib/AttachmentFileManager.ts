@@ -3,12 +3,12 @@ import { checksumFileStream } from "app/server/lib/checksumFile";
 import { Readable } from "node:stream";
 import {
   AttachmentStoreDocInfo,
-  DocPoolId, getDocPoolIdFromDocInfo, IAttachmentStore
+  DocPoolId,
+  getDocPoolIdFromDocInfo,
+  IAttachmentStore
 } from "app/server/lib/AttachmentStore";
-import {
-  AttachmentStoreId,
-  IAttachmentStoreProvider
-} from "app/server/lib/AttachmentStoreProvider";
+import { AttachmentStoreId, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import log from 'app/server/lib/log';
 
 export interface IAttachmentFileManager {
   addFile(storeId: AttachmentStoreId, fileExtension: string, fileData: Buffer): Promise<AddFileResult>;
@@ -62,25 +62,34 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   ): Promise<AddFileResult> {
     const fileIdent = await this._getFileIdentifier(fileExtension, Readable.from(fileData));
     if (storeId === undefined) {
+      log.info(`AttachmentFileManager adding ${fileIdent} to document storage`);
       return this._addFileToLocalStorage(fileIdent, fileData);
     }
     const store = await this._getStore(storeId);
     if (!store) {
       throw new StoreNotAvailableError(storeId);
     }
+    log.info(`AttachmentFileManager adding ${fileIdent} to attachment store '${store?.id}', pool ${this._docPoolId}`);
     return this._addFileToAttachmentStore(store, fileIdent, fileData);
   }
 
   public async getFileData(fileIdent: string): Promise<Buffer | null> {
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
-    if (!fileInfo) { return null; }
+    if (!fileInfo) {
+      log.info(`AttachmentFileManager file ${fileIdent} does not exist`);
+      return null;
+    }
     if (!fileInfo.storageId) {
+      log.info(`AttachmentFileManager retrieving ${fileIdent} from document storage`);
       return fileInfo.data;
     }
     const store = await this._getStore(fileInfo.storageId);
     if (!store) {
       throw new StoreNotAvailableError(fileInfo.storageId);
     }
+    log.info(
+      `AttachmentFileManager retrieving ${fileIdent} from attachment store '${store?.id}', pool ${this._docPoolId}`
+    );
     return this._getFileDataFromAttachmentStore(store, fileIdent);
   }
 
