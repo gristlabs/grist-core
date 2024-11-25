@@ -358,7 +358,6 @@
         "Template mode": "Template mode",
         "Change document type": "Change document type",
         "Edit": "Edit",
-        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.",
         "Change nature of document": "Change nature of document",
         "Regular document": "Regular document",
         "Normal document behavior. All users work on the same copy of the document.": "Normal document behavior. All users work on the same copy of the document.",
@@ -1238,7 +1237,8 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "To allow multiple assignments, change the type of the Reference column to Reference List.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "This limitation occurs when one column in a two-way reference has the Reference type.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "To allow multiple assignments, change the referenced column's type to Reference List.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns",
+        "Change document type can be useful to transform it into a template or a tutorial": "Change document type can be useful to transform it into a template or a tutorial",
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
