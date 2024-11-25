@@ -23,8 +23,16 @@ export class ServiceAccounts1730215435023 implements MigrationInterface {
             isPrimary: true,
           },
           {
+            name: 'owner_id',
+            type: 'int',
+          },
+          {
+            name: 'service_user_id',
+            type: 'int',
+          },
+          {
             name: 'description',
-            type: 'varchar'
+            type: 'varchar',
           },
           {
             name: 'endOfLife',
@@ -34,44 +42,29 @@ export class ServiceAccounts1730215435023 implements MigrationInterface {
         ],
       })
     );
-    await queryRunner.createTable(
-      new Table({
-        name: 'service_account_user',
-        columns: [
-          {
-            name: 'service_account_id',
-            type: 'int',
-          },
-          {
-            name: 'user_id',
-            type: 'int'
-          },
-        ],
-      })
-    );
     await queryRunner.createForeignKey(
-      'service_account_user',
+      'service_accounts',
       new TableForeignKey({
-        columnNames: ['service_account_id'],
+        columnNames: ['service_user_id'],
         referencedColumnNames: ['id'],
-        referencedTableName: 'service_accounts',
+        referencedTableName: 'users',
         onDelete: 'CASCADE',
       })
     );
     await queryRunner.createForeignKey(
-      'service_account_user',
+      'service_accounts',
       new TableForeignKey({
-        columnNames: ['user_id'],
+        columnNames: ['owner_id'],
         referencedColumnNames: ['id'],
         referencedTableName: 'users',
         onDelete: 'CASCADE',
       })
     );
     await queryRunner.createIndex(
-      'service_account_user',
+      'service_accounts',
       new TableIndex({
-        name: 'service_account__user',
-        columnNames: ['service_account_id', 'user_id'],
+        name: 'service_account__owner',
+        columnNames: ['service_accounts_owner', 'user_id'],
       })
     );
   }
@@ -79,6 +72,5 @@ export class ServiceAccounts1730215435023 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.dropColumn('users', 'type');
     await queryRunner.dropTable('service_accounts');
-    await queryRunner.dropTable('service_account_user');
   }
 }

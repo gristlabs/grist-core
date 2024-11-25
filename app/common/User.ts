@@ -10,6 +10,8 @@ export enum UserTypes {
   'service'
 }
 
+export type UserTypesStrings = keyof typeof UserTypes;
+
 /**
  * Information about a user, including any user attributes.
  */

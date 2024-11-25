@@ -87,6 +87,7 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 import {v4 as uuidv4} from "uuid";
+import { ServiceAccountsManager } from './ServiceAccountsManager';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -258,6 +259,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  */
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
+  private _serviceAccountsManager = new ServiceAccountsManager(this);
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -3102,6 +3104,18 @@ export class HomeDBManager extends EventEmitter {
       query = query.andWhere("configs.org_id IS NULL");
     }
     return query.getOne();
+  }
+
+  public async deleteAllServiceAccounts(){
+    return this._serviceAccountsManager.deleteAllServiceAccounts();
+  }
+
+  public async createServiceAccount(
+    ownerId: number,
+    description?: string,
+    endOfLife?: Date
+  ){
+  return this._serviceAccountsManager.createServiceAccount(ownerId, description, endOfLife);
   }
 
   private _installConfig(
