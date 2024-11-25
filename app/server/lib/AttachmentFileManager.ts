@@ -1,6 +1,3 @@
-import { DocStorage } from "app/server/lib/DocStorage";
-import { checksumFileStream } from "app/server/lib/checksumFile";
-import { Readable } from "node:stream";
 import {
   AttachmentStoreDocInfo,
   DocPoolId,
@@ -8,7 +5,10 @@ import {
   IAttachmentStore
 } from "app/server/lib/AttachmentStore";
 import { AttachmentStoreId, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import log from 'app/server/lib/log';
+import { checksumFileStream } from "app/server/lib/checksumFile";
+import { DocStorage } from "app/server/lib/DocStorage";
+import log from "app/server/lib/log";
+import { Readable } from "node:stream";
 
 export interface IAttachmentFileManager {
   addFile(storeId: AttachmentStoreId, fileExtension: string, fileData: Buffer): Promise<AddFileResult>;
@@ -22,7 +22,7 @@ export interface AddFileResult {
 
 export class StoresNotConfiguredError extends Error {
   constructor() {
-    super('Attempted to access a file store, but AttachmentFileManager was initialised without store access');
+    super('Attempted to access a file store, but AttachmentFileManager was initialized without store access');
   }
 }
 

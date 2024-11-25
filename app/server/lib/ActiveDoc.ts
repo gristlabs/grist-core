@@ -126,6 +126,7 @@ import assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
+import { readFile } from 'fs-extra';
 import {IMessage, MsgType} from 'grain-rpc';
 import imageSize from 'image-size';
 import * as moment from 'moment-timezone';
@@ -155,7 +156,6 @@ import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
 import zipObject = require('lodash/zipObject');
-import { readFile } from "fs-extra";
 
 bluebird.promisifyAll(tmp);
 
