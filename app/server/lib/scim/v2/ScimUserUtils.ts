@@ -2,6 +2,7 @@ import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { User } from "app/gen-server/entity/User.js";
 import SCIMMY from "scimmy";
+import log from 'app/server/lib/log';
 
 /**
  * Converts a user from your database to a SCIMMY user
@@ -35,7 +36,8 @@ export function toSCIMMYUser(user: User) {
 export function toUserProfile(scimUser: any, existingUser?: User): UserProfile {
   const emailValue = scimUser.emails?.[0]?.value;
   if (emailValue && normalizeEmail(emailValue) !== normalizeEmail(scimUser.userName)) {
-    throw new SCIMMY.Types.Error(400, 'invalidValue', 'Email and userName must be the same');
+    log.warn(`userName "${scimUser.userName}" differ from passed primary email "${emailValue}".` +
+      'That should be OK, but be aware that the userName will be ignored in favor of the email to identify the user.');
   }
   return {
     name: scimUser.displayName ?? existingUser?.name,

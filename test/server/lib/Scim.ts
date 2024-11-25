@@ -2,6 +2,7 @@ import axios from 'axios';
 import capitalize from 'lodash/capitalize';
 import { assert } from 'chai';
 import Sinon from 'sinon';
+import log from 'app/server/lib/log';
 
 import { TestServer } from 'test/gen-server/apiUtils';
 import { configForUser } from 'test/gen-server/testUtils';
@@ -75,12 +76,24 @@ describe('Scim', () => {
       GRIST_SCIM_EMAIL: 'charon@getgrist.com',
     });
     const userIdByName: {[name in keyof UserConfigByName]?: number} = {};
+    let logWarnStub: Sinon.SinonStub;
+    let logErrorStub: Sinon.SinonStub;
 
     before(async function () {
       const userNames = Object.keys(USER_CONFIG_BY_NAME) as Array<keyof UserConfigByName>;
       for (const user of userNames) {
         userIdByName[user] = await getOrCreateUserId(user);
       }
+    });
+
+    beforeEach(() => {
+      logWarnStub = Sinon.stub(log, 'warn');
+      logErrorStub = Sinon.stub(log, 'error');
+    });
+
+    afterEach(() => {
+      logWarnStub.restore();
+      logErrorStub.restore();
     });
 
     function personaToSCIMMYUserWithId(user: keyof UserConfigByName) {
@@ -348,20 +361,32 @@ describe('Scim', () => {
         });
       });
 
-      it('should reject when passed email differs from username', async function () {
+      it('should warn when passed email differs from username, and ignore the username', async function () {
         await withUserName('username', async (userName) => {
           const res = await axios.post(scimUrl('/Users'), {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-            userName: userName + '@getgrist.com',
+            userName: userName,
             emails: [{ value: 'emails.value@getgrist.com' }],
           }, chimpy);
           assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '400',
-            detail: 'Email and userName must be the same',
-            scimType: 'invalidValue'
+            schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
+            id: '12',
+            meta: { resourceType: 'User', location: '/api/scim/v2/Users/12' },
+            userName: 'emails.value@getgrist.com',
+            name: { formatted: 'emails.value' },
+            displayName: 'emails.value',
+            preferredLanguage: 'en',
+            locale: 'en',
+            emails: [
+              { value: 'emails.value@getgrist.com', primary: true }
+            ]
           });
-          assert.equal(res.status, 400);
+          assert.equal(res.status, 201);
+          assert.equal(logWarnStub.callCount, 1, "A warning should have been raised");
+          assert.match(
+            logWarnStub.getCalls()[0].args[0],
+            new RegExp(`userName "${userName}" differ from passed primary email`)
+          );
         });
       });
 
@@ -411,19 +436,15 @@ describe('Scim', () => {
         });
       });
 
-      it('should reject when passed email differs from username', async function () {
+      it('should warn when passed email differs from username', async function () {
         const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
           schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          userName: userToUpdateEmailLocalPart + '@getgrist.com',
-          emails: [{ value: 'whatever@getgrist.com', primary: true }],
+          userName: 'whatever@getgrist.com',
+          emails: [{ value: userToUpdateEmailLocalPart + '@getgrist.com', primary: true }],
         }, chimpy);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '400',
-          detail: 'Email and userName must be the same',
-          scimType: 'invalidValue'
-        });
-        assert.equal(res.status, 400);
+        assert.equal(res.status, 200);
+        assert.equal(logWarnStub.callCount, 1, "A warning should have been raised");
+        assert.match(logWarnStub.getCalls()[0].args[0], /differ from passed primary email/);
       });
 
       it('should disallow updating a user with the same email as another user\'s', async function () {
