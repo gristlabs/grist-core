@@ -36,7 +36,11 @@ export class StoreNotAvailableError extends Error {
 }
 
 /**
- * Provides management of a specific document's attachments.
+ * Instantiated on a per-document to basis to provide a document with access to its attachments.
+ * Handles attachment uploading / fetching, as well as trying to ensure consistency with the local document database,
+ * which tracks attachments and where they're stored.
+ *
+ * This class should prevent the document code from having to worry about accessing the underlying stores.
  */
 export class AttachmentFileManager implements IAttachmentFileManager {
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
