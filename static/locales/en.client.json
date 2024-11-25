@@ -1600,7 +1600,13 @@
         "Session Secret": "Session Secret",
         "Enable Grist Enterprise": "Enable Grist Enterprise",
         "Enterprise": "Enterprise",
-        "checking": "checking"
+        "checking": "checking",
+        "Audit Logs": "Audit Logs",
+        "Contact us": "Contact us",
+        "Log Streaming": "Log Streaming",
+        "New, Enterprise": "New, Enterprise",
+        "Off": "Off",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1789,5 +1795,35 @@
         "Record already assigned_one": "Record already assigned",
         "Record already assigned_other": "Record already assigned",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}."
+    },
+    "AuditLogStreamingConfig": {
+        "Add destination": "Add destination",
+        "Add streaming destination": "Add streaming destination",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Are you sure you want to delete this streaming destination? This action cannot be undone.",
+        "Cancel": "Cancel",
+        "Delete": "Delete",
+        "Delete streaming destination?": "Delete streaming destination?",
+        "Destination": "Destination",
+        "Destinations": "Destinations",
+        "Edit": "Edit",
+        "Edit streaming destination": "Edit streaming destination",
+        "Enter URL": "Enter URL",
+        "Enter token": "Enter token",
+        "Learn more": "Learn more",
+        "Other": "Other",
+        "Save": "Save",
+        "Splunk": "Splunk",
+        "Start streaming": "Start streaming",
+        "Token": "Token",
+        "URL": "URL"
+    },
+    "AuditLogsPage": {
+        "Audit Logs": "Audit Logs",
+        "Audit logs for {{siteName}}": "Audit logs for {{siteName}}",
+        "Contact us": "Contact us",
+        "Home": "Home",
+        "Log streaming": "Log streaming",
+        "Only site owners may access audit logs.": "Only site owners may access audit logs.",
+        "upgrade your plan": "upgrade your plan"
     }
 }
