@@ -376,7 +376,7 @@ export class UsersManager {
    * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}) {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type?: UserTypesStrings) {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
     return await this._runInTransaction(transaction, async manager => {
@@ -394,6 +394,8 @@ export class UsersManager {
         // Special users do not have first time user set so that they don't get redirected to the
         // welcome page.
         user.isFirstTimeUser = !NON_LOGIN_EMAILS.includes(normalizedEmail);
+        // redémarrer lundi ici TODO
+        user.type = typeof type === 'undefined' ? 'login' : type;
         login = new Login();
         login.email = normalizedEmail;
         login.user = user;
