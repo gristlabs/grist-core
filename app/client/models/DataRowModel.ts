@@ -113,7 +113,7 @@ export class DataRowModel extends BaseRowModel {
   /**
    * Helper method to assign a particular column of this row to the associated tabledata.
    */
-  private _assignColumn(colName: string) {
+  protected _assignColumn(colName: string) {
     if (!this.isDisposed() && this.hasOwnProperty(colName)) {
       const value =
         (this._rowId === 'new' || !this._rowId) ? '' : this._table.tableData.getValue(this._rowId, colName);

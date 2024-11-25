@@ -1679,11 +1679,10 @@ export class ActiveDoc extends EventEmitter {
       const allIndex = findOrAddAllEnvelope(sandboxActionBundle.envelopes);
       const megaDataEngine = this.megaDataEngine;
       if (megaDataEngine) {
-        const {stored, undo, retValues} = await megaDataEngine.applyUserActions(docSession, onDemandActions);
-        sandboxActionBundle.stored.push(...stored.map(a => [allIndex, a] as [number, DocAction]));
-        sandboxActionBundle.direct.push(...stored.map(a => [allIndex, true] as [number, boolean]));
-        sandboxActionBundle.undo.push(...undo.map(a => [allIndex, a] as [number, DocAction]));
-        sandboxActionBundle.retValues.push(...retValues);
+        // TODO We aren't including these into sandboxActionBundle, so no other normal processing
+        // applies to them (not going through DocStorage, GranularAccess, or normal broadcast).
+        // We need a way for all that processing to apply to both old-style and "mega" actions.
+        await megaDataEngine.applyUserActions(docSession, onDemandActions);
       } else {
         await this.docStorage.execTransaction(async () => {
           for (const action of onDemandActions) {
