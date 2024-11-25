@@ -623,11 +623,10 @@ export const cssModalBody = styled('div', `
 
 export const cssModalButtons = styled('div', `
   margin: 40px 0 0 0;
-  text-align: right;
 
   & > button,
   & > .${cssButton.className} {
-    margin: 0 0 0 8px;
+    margin: 0 8px 0 0;
   }
 `);
 

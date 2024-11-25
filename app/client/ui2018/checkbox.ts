@@ -106,6 +106,7 @@ export const cssCheckboxCircle = styled(cssCheckboxSquare, `
 `);
 
 export const cssLabelText = styled('span', `
+  margin-left: 8px;
   color: ${theme.text};
   font-weight: initial;   /* negate bootstrap */
   overflow: hidden;

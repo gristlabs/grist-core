@@ -13,7 +13,7 @@ import type {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
-import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
+import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
@@ -29,6 +29,7 @@ import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
+import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType, persistType} from 'app/common/UserAPI';
 import {
   Computed,
   Disposable,
@@ -41,7 +42,6 @@ import {
   styled
 } from 'grainjs';
 import * as moment from 'moment-timezone';
-import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType, persistType} from 'app/common/UserAPI';
 
 const t = makeT('DocumentSettings');
 const testId = makeTestId('test-settings-');
@@ -98,7 +98,11 @@ export class DocSettingsPage extends Disposable {
         }),
         dom.create(AdminSectionItem, {
           id: 'templateMode',
-          name: t('Template mode'),
+          name: withInfoTooltip(
+            t('Template mode'),
+            'documentType',
+            {variant: 'hover'}
+          ),
           description: t('Change document type'),
           value: cssDocTypeContainer(
             dom.create(
@@ -108,7 +112,7 @@ export class DocSettingsPage extends Disposable {
             cssSmallButton(t('Edit'),
               dom.on('click', this._buildDocumentTypeModal.bind(this, true)),
               testId('doctype-edit')
-            )
+            ),
           ),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
@@ -268,7 +272,6 @@ export class DocSettingsPage extends Disposable {
         cssRadioCheckboxOptions(
           dom.style('max-width', '400px'),
           radioCheckboxOption(selected, TimingModalOption.Adhoc, dom('div',
-            dom.style('margin-left', '8px'),
             dom('div',
               dom('strong', t('Start timing')),
             ),
@@ -279,7 +282,6 @@ export class DocSettingsPage extends Disposable {
             testId('timing-modal-option-adhoc'),
           )),
           radioCheckboxOption(selected, TimingModalOption.Reload, dom('div',
-            dom.style('margin-left', '8px'),
             dom('div',
               dom('strong', t('Time reload')),
             ),
@@ -366,7 +368,6 @@ export class DocSettingsPage extends Disposable {
           itemTestId: DomElementMethod | null
         }) => {
         return radioCheckboxOption(selected, type, dom('div',
-          dom.style('margin-left', '8px'),
           dom('div',
             dom('strong', label),
           ),
