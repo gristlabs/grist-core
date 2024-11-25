@@ -1,5 +1,4 @@
-import {BaseEntity, Column, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
-import { User } from './User';
+import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity({name: 'service_accounts'})
 export class ServiceAccount extends BaseEntity {
@@ -7,17 +6,15 @@ export class ServiceAccount extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
+  @Column({type: Number})
+  public owner_id: number;
+
+  @Column({type: Number})
+  public service_user_id: number;
+
   @Column({type: String})
   public description: string;
 
   @Column({type: Date, nullable: false})
   public endOfLife: string;
-
-  @ManyToOne(type => User)
-  @JoinTable({
-    name: 'service_account_user',
-    joinColumn: {name: 'service_account_id'},
-    inverseJoinColumn: {name: 'user_id'}
-  })
-  public service_account_owner: User;
 }

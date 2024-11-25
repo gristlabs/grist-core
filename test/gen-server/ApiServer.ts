@@ -2378,9 +2378,7 @@ describe('ApiServer', function() {
 
     afterEach(async function() {
       oldEnv.restore();
-      // FIXME create the new method to delete services accounts
-      //const did = await dbManager.testGetId('Curiosity');
-      // await dbManager.deleteServices(did as string);
+      await dbManager.deleteAllServiceAccounts();
     });
 
     after(async function() {
@@ -2448,6 +2446,10 @@ describe('ApiServer', function() {
     // it('Endpoint UPDATE /api/service-accounts/{saId}/transfer-to/{userId}', async function() {
 
     // });
+
+    // it('MUSN'T connect as a login user, async function() {
+
+    //});
   });
 });
 
