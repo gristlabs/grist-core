@@ -11,7 +11,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       # it is helpful to know which sets of tests would have succeeded,
       # even when there is a failure.
@@ -54,6 +54,9 @@ jobs:
 
       - name: Install Node.js packages
         run: yarn install
+
+      - name: Install gvisor
+        run: sudo apt install runsc
 
       - name: Run eslint
         if: contains(matrix.tests, ':lint:')
