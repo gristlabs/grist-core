@@ -27,7 +27,6 @@ import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
-import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
@@ -46,6 +45,7 @@ import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
+import {IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';

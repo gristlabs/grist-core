@@ -3,9 +3,9 @@ import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
-import {createDummyAuditLogger, createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -183,7 +183,7 @@ export function makeSimpleCreator(opts: {
       return undefined;
     },
     AuditLogger(dbManager, gristConfig) {
-      return auditLogger?.create(dbManager, gristConfig) ?? createDummyAuditLogger();
+      return auditLogger?.create(dbManager, gristConfig) ?? createNullAuditLogger();
     },
     Telemetry(dbManager, gristConfig) {
       return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();

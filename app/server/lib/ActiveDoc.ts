@@ -93,13 +93,13 @@ import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/p
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
-import {AuditEventProperties} from 'app/server/lib/AuditLogger';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';
+import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
 import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';

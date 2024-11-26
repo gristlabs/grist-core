@@ -141,7 +141,7 @@ describe('Pages', function() {
 
     // load page and check all pages are listed
     await driver.get(`${server.getHost()}/o/test-grist/doc/${doc.id}`);
-    await driver.findWait('.test-treeview-container', 1000);
+    await gu.waitForDocToLoad();
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
   });
 
@@ -157,7 +157,7 @@ describe('Pages', function() {
   it('should select first page if /p/<docPage> is omitted in the url', async () => {
 
     await driver.get(`${server.getHost()}/o/test-grist/doc/${doc.id}`);
-    await driver.findWait('.test-treeview-container', 1000);
+    await gu.waitForDocToLoad();
     assert.match(await driver.find('.test-treeview-itemHeader').getText(), /Interactions/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Interactions/);
     assert.match(await gu.getActiveSectionTitle(), /Interactions/i);
@@ -168,10 +168,7 @@ describe('Pages', function() {
 
   it('clicking page should set /p/<docPage> in the url', async () => {
     await driver.get(`${server.getHost()}/o/test-grist/doc/${doc.id}`);
-
-    // Wait for data to load.
-    assert.equal(await driver.findWait('.viewsection_title', 3000).isDisplayed(), true);
-    await gu.waitForServer();
+    await gu.waitForDocToLoad();
 
     // Click on a page; check the URL, selected item, and the title of the view section.
     await gu.openPage(/Documents/);
@@ -461,6 +458,7 @@ describe('Pages', function() {
     // Create and open new document
     const docId = await session.tempNewDoc(cleanup, "test-page-removal");
     await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);
+    await gu.waitForDocToLoad();
     await gu.waitForUrl('test-page-removal');
 
     // Add a new page using Table1

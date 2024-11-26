@@ -3,7 +3,8 @@ import { create } from 'app/server/lib/create';
 import { DocManager } from 'app/server/lib/DocManager';
 import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
 import { DocStorageManager } from 'app/server/lib/DocStorageManager';
-import { createDummyAuditLogger, createDummyTelemetry } from 'app/server/lib/GristServer';
+import { createDummyTelemetry } from 'app/server/lib/GristServer';
+import { createNullAuditLogger } from 'app/server/lib/IAuditLogger';
 import { PluginManager } from 'app/server/lib/PluginManager';
 
 import * as childProcess from 'child_process';
@@ -34,7 +35,7 @@ export async function main(baseName: string) {
     }
     const docManager = new DocManager(storageManager, pluginManager, null as any, {
       create,
-      getAuditLogger() { return createDummyAuditLogger(); },
+      getAuditLogger() { return createNullAuditLogger(); },
       getTelemetry() { return createDummyTelemetry(); },
     } as any);
     const activeDoc = new ActiveDoc(docManager, baseName);

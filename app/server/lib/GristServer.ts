@@ -9,13 +9,13 @@ import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { Activations } from 'app/gen-server/lib/Activations';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { IAuditLogger } from 'app/server/lib/AuditLogger';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';
 import { create } from 'app/server/lib/create';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { GristJobs } from 'app/server/lib/GristJobs';
+import { createNullAuditLogger, IAuditLogger } from 'app/server/lib/IAuditLogger';
 import { IBilling } from 'app/server/lib/IBilling';
 import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
@@ -154,7 +154,7 @@ export function createDummyGristServer(): GristServer {
     getInstallAdmin() { throw new Error('no install admin'); },
     getHomeDBManager() { throw new Error('no db'); },
     getStorageManager() { throw new Error('no storage manager'); },
-    getAuditLogger() { return createDummyAuditLogger(); },
+    getAuditLogger() { return createNullAuditLogger(); },
     getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
     hasNotifier() { return false; },
@@ -173,14 +173,6 @@ export function createDummyGristServer(): GristServer {
     getJobs(): GristJobs { throw new Error('no job system'); },
     getBilling() { throw new Error('no billing'); },
     setRestrictedMode() { /* do nothing */ },
-  };
-}
-
-export function createDummyAuditLogger(): IAuditLogger {
-  return {
-    logEvent() { /* do nothing */ },
-    logEventOrThrow() { return Promise.resolve(); },
-    close() { return Promise.resolve(); },
   };
 }
 
