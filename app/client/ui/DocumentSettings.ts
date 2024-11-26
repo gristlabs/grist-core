@@ -13,7 +13,7 @@ import type {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
-import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
+import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
@@ -98,11 +98,7 @@ export class DocSettingsPage extends Disposable {
         }),
         dom.create(AdminSectionItem, {
           id: 'templateMode',
-          name: withInfoTooltip(
-            t('Template mode'),
-            'documentType',
-            {variant: 'hover'}
-          ),
+          name: t('Template mode'),
           description: t('Change document type'),
           value: cssDocTypeContainer(
             dom.create(
