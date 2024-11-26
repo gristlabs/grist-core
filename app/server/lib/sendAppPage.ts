@@ -25,14 +25,22 @@ import * as fse from 'fs-extra';
 import * as handlebars from 'handlebars';
 import jsesc from 'jsesc';
 import * as path from 'path';
-import { difference, trimEnd } from 'lodash';
+import difference from 'lodash/difference';
 
 const { escapeExpression } = handlebars.Utils;
 
-const translateEscaped = (req: express.Request, key: string, args?: any) => {
-  const res = req.t(`sendAppPage.${key}`, args)?.toString();
-  return res ? escapeExpression(res) : res;
-};
+/**
+ * Return the translation given the key, but also ensure that the return value is HTML-escaped
+ * in order to avoid possible script injection (that we don't need in any case).
+ *
+ * @param req
+ * @param key The key of the translation (which will be prefixed by `sendAppPage`)
+ * @param args The args to pass to the translation string (optional)
+ */
+function translateEscaped(req: express.Request, key: string, args?: any) {
+  const translation = req.t(`sendAppPage.${key}`, args)?.toString();
+  return translation ? escapeExpression(translation) : translation;
+}
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
