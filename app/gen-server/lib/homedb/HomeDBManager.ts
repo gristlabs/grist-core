@@ -563,8 +563,8 @@ export class HomeDBManager extends EventEmitter {
     return this._usersManager.deleteUser(scope, userIdToDelete, name);
   }
 
-  public async overrideUser(userId: number, props: UserProfile) {
-    return this._usersManager.overrideUser(userId, props);
+  public async overwriteUser(userId: number, props: UserProfile) {
+    return this._usersManager.overwriteUser(userId, props);
   }
 
   /**

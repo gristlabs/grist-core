@@ -585,7 +585,7 @@ export class UsersManager {
   /**
    * Update users with passed property. Optional user properties that are missing will be reset to their default value.
    */
-  public async overrideUser(userId: number, props: UserProfile): Promise<User> {
+  public async overwriteUser(userId: number, props: UserProfile): Promise<User> {
     return await this._connection.transaction(async manager => {
       const user = await this.getUser(userId, {includePrefs: true});
       if (!user) { throw new ApiError("unable to find user to update", 404); }

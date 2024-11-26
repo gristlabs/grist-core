@@ -1,8 +1,8 @@
 import { ApiError } from 'app/common/ApiError';
 import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import SCIMMY from 'scimmy';
-import { toSCIMMYUser, toUserProfile } from './ScimUserUtils';
-import { RequestContext } from './ScimTypes';
+import { toSCIMMYUser, toUserProfile } from 'app/server/lib/scim/v2/ScimUserUtils';
+import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 import log from 'app/server/lib/log';
 
 class ScimUserController {
@@ -74,11 +74,11 @@ class ScimUserController {
    * @param data The data to override the user with
    * @param context The request context
    */
-  public async overrideUser(resource: any, data: any, context: RequestContext) {
+  public async overwriteUser(resource: any, data: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
       await this._checkEmailCanBeUsed(data.userName, id);
-      const updatedUser = await this._dbManager.overrideUser(id, toUserProfile(data));
+      const updatedUser = await this._dbManager.overwriteUser(id, toUserProfile(data));
       return toSCIMMYUser(updatedUser);
     });
   }
@@ -157,7 +157,7 @@ export const getScimUserConfig = (
     },
     ingress: async (resource: any, data: any, context: RequestContext) => {
       if (resource.id) {
-        return await controller.overrideUser(resource, data, context);
+        return await controller.overwriteUser(resource, data, context);
       }
       return await controller.createUser(data, context);
     },

@@ -166,7 +166,7 @@ describe('Scim', () => {
           sandbox.stub(getDbManager(), 'getUsers').throws(error);
           sandbox.stub(getDbManager(), 'getUser').throws(error);
           sandbox.stub(getDbManager(), 'getUserByLoginWithRetry').throws(error);
-          sandbox.stub(getDbManager(), 'overrideUser').throws(error);
+          sandbox.stub(getDbManager(), 'overwriteUser').throws(error);
           sandbox.stub(getDbManager(), 'deleteUser').throws(error);
 
           const res = await makeCallWith('chimpy');

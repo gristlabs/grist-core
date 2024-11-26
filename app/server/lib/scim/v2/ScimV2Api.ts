@@ -4,8 +4,8 @@ import SCIMMY from "scimmy";
 import SCIMMYRouters from "scimmy-routers";
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { InstallAdmin } from 'app/server/lib/InstallAdmin';
-import { RequestContext } from './ScimTypes';
-import { getScimUserConfig } from './ScimUserController';
+import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
+import { getScimUserConfig } from 'app/server/lib/scim/v2/ScimUserController';
 
 const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
 
