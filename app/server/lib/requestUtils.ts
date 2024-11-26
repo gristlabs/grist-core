@@ -40,7 +40,7 @@ export function adaptServerUrl(url: URL, req: RequestWithOrg): void {
   const reqBaseDomain = parseSubdomain(req.hostname).base;
 
   if (process.env.GRIST_SERVE_SAME_ORIGIN === 'true' || req.isCustomHost) {
-    url.host = req.headers.host || req.hostname;
+    url.hostname = req.hostname;
   } else if (reqBaseDomain) {
     const subdomain: string|undefined = parseSubdomain(url.hostname).org || DEFAULT_HOME_SUBDOMAIN;
     url.hostname = `${subdomain}${reqBaseDomain}`;
