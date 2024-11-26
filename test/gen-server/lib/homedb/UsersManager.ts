@@ -984,11 +984,11 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('overrideUser()', function () {
+    describe('overwriteUser()', function () {
       it('should reject when user is not found', async function () {
         disableLoggingLevel('debug');
 
-        const promise = db.overrideUser(NON_EXISTING_USER_ID, {
+        const promise = db.overwriteUser(NON_EXISTING_USER_ID, {
           email: 'whatever@getgrist.com',
           name: 'whatever',
         });
@@ -997,8 +997,8 @@ describe('UsersManager', function () {
       });
 
       it('should update user information', async function () {
-        const localPart = 'overrideuser-updates-user-info';
-        const newLocalPart = 'overrideuser-updates-user-info-new';
+        const localPart = 'overwriteUser-updates-user-info';
+        const newLocalPart = 'overwriteUser-updates-user-info-new';
         const user = await createUniqueUser(localPart);
         const newInfo: UserProfile = {
           name: 'new name',
@@ -1007,7 +1007,7 @@ describe('UsersManager', function () {
           locale: 'fr-FR',
         };
 
-        await db.overrideUser(user.id, newInfo);
+        await db.overwriteUser(user.id, newInfo);
 
         const updatedUser = await getOrCreateUser(newLocalPart);
         assert.deepInclude(updatedUser, {
