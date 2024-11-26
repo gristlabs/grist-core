@@ -90,7 +90,7 @@ export interface ICreate {
   // static page.
   getExtraHeadHtml?(): string;
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
-  getAttachmentStoreBackends(): ICreateAttachmentStoreOptions[];
+  getAttachmentStoreOptions(): ICreateAttachmentStoreOptions[];
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
 
@@ -163,7 +163,7 @@ export function makeSimpleCreator(opts: {
   getLoginSystem?: () => Promise<GristLoginSystem>,
   createHostedDocStorageManager?: HostedDocStorageManagerCreator,
   createLocalDocStorageManager?: LocalDocStorageManagerCreator,
-  attachmentStoreBackends?: ICreateAttachmentStoreOptions[],
+  attachmentStoreOptions?: ICreateAttachmentStoreOptions[],
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, auditLogger, telemetry} = opts;
   return {
@@ -234,8 +234,8 @@ export function makeSimpleCreator(opts: {
     getStorageOptions(name: string) {
       return storage?.find(s => s.name === name);
     },
-    getAttachmentStoreBackends(): ICreateAttachmentStoreOptions[] {
-      return opts.attachmentStoreBackends ?? [];
+    getAttachmentStoreOptions(): ICreateAttachmentStoreOptions[] {
+      return opts.attachmentStoreOptions ?? [];
     },
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,

@@ -12,31 +12,31 @@ export interface IAttachmentStoreProvider {
   storeExists(id: AttachmentStoreId): Promise<boolean>;
 }
 
-export interface IAttachmentStoreBackendFactory {
+export interface IAttachmentStoreSpecification {
   name: string,
   create: (storeId: string) => IAttachmentStore,
 }
 
 interface IAttachmentStoreDetails {
   id: string;
-  factory: IAttachmentStoreBackendFactory;
+  spec: IAttachmentStoreSpecification;
 }
 
 export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   private _storeDetailsById: { [storeId: string]: IAttachmentStoreDetails } = {};
 
   constructor(
-    _backendFactories: IAttachmentStoreBackendFactory[],
+    _backends: IAttachmentStoreSpecification[],
     _installationUuid: string
   ) {
     // In the current setup, we automatically generate store IDs based on the installation ID.
     // The installation ID is guaranteed to be unique, and we only allow one store of each backend type.
     // This gives us a way to reproducibly generate a unique ID for the stores.
-    _backendFactories.forEach((factory) => {
-      const storeId = `${_installationUuid}-${factory.name}`;
+    _backends.forEach((storeSpec) => {
+      const storeId = `${_installationUuid}-${storeSpec.name}`;
       this._storeDetailsById[storeId] = {
         id: storeId,
-        factory,
+        spec: storeSpec,
       };
     });
 
@@ -47,11 +47,11 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   public async getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null> {
     const storeDetails = this._storeDetailsById[id];
     if (!storeDetails) { return null; }
-    return storeDetails.factory.create(id);
+    return storeDetails.spec.create(id);
   }
 
   public async getAllStores(): Promise<IAttachmentStore[]> {
-    return Object.values(this._storeDetailsById).map(storeDetails => storeDetails.factory.create(storeDetails.id));
+    return Object.values(this._storeDetailsById).map(storeDetails => storeDetails.spec.create(storeDetails.id));
   }
 
   public async storeExists(id: AttachmentStoreId): Promise<boolean> {

@@ -26,7 +26,7 @@ export const makeCoreCreator = () => makeSimpleCreator({
       create: configureGristAuditLogger,
     },
   ],
-  attachmentStoreBackends: [
+  attachmentStoreOptions: [
     {
       name: 'minio',
       check: () => checkMinIOExternalStorage() !== undefined,

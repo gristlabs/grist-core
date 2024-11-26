@@ -1365,7 +1365,7 @@ export class FlexServer implements GristServer {
     const pluginManager = await this._addPluginManager();
     // TODO - Validity checks on the backends.
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
-        this.create.getAttachmentStoreBackends(),
+        this.create.getAttachmentStoreOptions(),
         (await this.getActivations().current()).id,
     );
     this._docManager = this._docManager || new DocManager(this._storageManager,
