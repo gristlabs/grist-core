@@ -8,6 +8,7 @@ import { AttachmentStoreId, IAttachmentStoreProvider } from "app/server/lib/Atta
 import { checksumFileStream } from "app/server/lib/checksumFile";
 import { DocStorage } from "app/server/lib/DocStorage";
 import log from "app/server/lib/log";
+import { LogMethods } from "app/server/lib/LogMethods";
 import { Readable } from "node:stream";
 
 export interface IAttachmentFileManager {
@@ -35,6 +36,12 @@ export class StoreNotAvailableError extends Error {
   }
 }
 
+
+interface AttachmentFileManagerLogInfo {
+  fileIdent?: string;
+  storeId?: string;
+}
+
 /**
  * Instantiated on a per-document to basis to provide a document with access to its attachments.
  * Handles attachment uploading / fetching, as well as trying to ensure consistency with the local document database,
@@ -46,6 +53,10 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
   private readonly _docPoolId: DocPoolId | null;
   private readonly _docName: string;
+  private _log = new LogMethods(
+    "AttachmentFileManager ",
+    (logInfo: AttachmentFileManagerLogInfo) => this._getLogMeta(logInfo)
+  );
 
   /**
    * @param _docStorage - Storage of this manager's document.
@@ -67,35 +78,37 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     fileData: Buffer
   ): Promise<AddFileResult> {
     const fileIdent = await this._getFileIdentifier(fileExtension, Readable.from(fileData));
+    this._log.info({ fileIdent, storeId }, `adding file to ${storeId ? "external" : "document"} storage`);
     if (storeId === undefined) {
-      log.info(`AttachmentFileManager adding ${fileIdent} to local document storage in '${this._docName}'`);
       return this._addFileToLocalStorage(fileIdent, fileData);
     }
     const store = await this._getStore(storeId);
     if (!store) {
+      this._log.info({ fileIdent, storeId }, "tried to fetch attachment from an unavailable store");
       throw new StoreNotAvailableError(storeId);
     }
-    log.info(`AttachmentFileManager adding ${fileIdent} to attachment store '${store?.id}', pool ${this._docPoolId}`);
     return this._addFileToAttachmentStore(store, fileIdent, fileData);
   }
 
   public async getFileData(fileIdent: string): Promise<Buffer | null> {
+    this._log.debug({ fileIdent }, "retrieving file data");
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
     if (!fileInfo) {
-      log.info(`AttachmentFileManager file ${fileIdent} does not exist in doc '${this._docName}'`);
+      this._log.warn({ fileIdent }, "cannot find file metadata in document");
       return null;
     }
+    this._log.debug(
+      { fileIdent, storeId: fileInfo.storageId },
+      `fetching attachment from ${fileInfo.storageId ? "external" : "document "} storage`
+    );
     if (!fileInfo.storageId) {
-      log.info(`AttachmentFileManager retrieving ${fileIdent} from document storage in ${this._docName}`);
       return fileInfo.data;
     }
     const store = await this._getStore(fileInfo.storageId);
     if (!store) {
+      this._log.warn({ fileIdent, storeId: fileInfo.storageId }, `unable to retrieve file, store is unavailable`);
       throw new StoreNotAvailableError(fileInfo.storageId);
     }
-    log.info(
-      `AttachmentFileManager retrieving ${fileIdent} from attachment store '${store?.id}', pool ${this._docPoolId}`
-    );
     return this._getFileDataFromAttachmentStore(store, fileIdent);
   }
 
@@ -127,7 +140,9 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return `${checksum}${fileExtension}`;
   }
 
-  private async _addFileToAttachmentStore(store: IAttachmentStore, fileIdent: string, fileData: Buffer): Promise<AddFileResult> {
+  private async _addFileToAttachmentStore(
+    store: IAttachmentStore, fileIdent: string, fileData: Buffer
+  ): Promise<AddFileResult> {
     const isNewFile = await this._docStorage.findOrAttachFile(fileIdent, undefined, store.id);
 
     // Verify the file exists in the store. This allows for a second attempt to correct a failed upload.
@@ -153,5 +168,13 @@ export class AttachmentFileManager implements IAttachmentFileManager {
 
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<Buffer> {
     return await store.download(this._getDocPoolId(), fileIdent);
+  }
+
+  private _getLogMeta(logInfo?: AttachmentFileManagerLogInfo): log.ILogMeta {
+    return {
+      docName: this._docName,
+      docPoolId: this._docPoolId,
+      ...logInfo,
+    };
   }
 }
