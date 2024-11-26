@@ -1,8 +1,8 @@
-import * as path from "path";
+import { joinKeySegments } from "app/server/lib/ExternalStorage";
+import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
 import * as fse from "fs-extra";
-import { MinIOExternalStorage } from "./MinIOExternalStorage";
-import { joinKeySegments } from "./ExternalStorage";
 import * as stream from "node:stream";
+import * as path from "path";
 
 export type DocPoolId = string;
 type FileId = string;

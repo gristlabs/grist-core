@@ -26,12 +26,15 @@ import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
+import {AttachmentStoreProvider, IAttachmentStoreProvider} from "app/server/lib/AttachmentStoreProvider";
 import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
+import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
+import {IGristCoreConfig} from "app/server/lib/configCore";
 import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
@@ -84,9 +87,6 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
-import {IGristCoreConfig} from "app/server/lib/configCore";
-import { AttachmentStoreProvider, IAttachmentStoreProvider } from "./AttachmentStoreProvider";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
