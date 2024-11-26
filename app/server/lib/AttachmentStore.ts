@@ -43,8 +43,8 @@ export function getDocPoolIdFromDocInfo(docInfo: AttachmentStoreDocInfo): string
 }
 
 /**
- * Provides access to external storage, specifically for storing attachments.
- *
+ * Provides access to external storage, specifically for storing attachments. Each store represents a specific
+ * location to store attachments, e.g. "/srv/grist/attachments" on the filesystem.
  *
  * This is a general-purpose interface that should abstract over many different storage providers,
  * so shouldn't have methods which rely on one the features of one specific provider.
@@ -57,6 +57,9 @@ export function getDocPoolIdFromDocInfo(docInfo: AttachmentStoreDocInfo): string
  * See {@link getDocPoolIdFromDocInfo} for more details.
  */
 export interface IAttachmentStore {
+  // Universally unique id, such that no two Grist installations should have the same store ids, if they're for
+  // different stores.
+  // This allows for explicit detection of unavailable stores.
   readonly id: string;
 
   // Check if attachment exists in the store.
