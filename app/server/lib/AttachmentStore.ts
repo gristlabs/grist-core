@@ -1,5 +1,4 @@
-import { joinKeySegments } from "app/server/lib/ExternalStorage";
-import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
+import { joinKeySegments, StreamingExternalStorage } from "app/server/lib/ExternalStorage";
 import * as fse from "fs-extra";
 import * as stream from "node:stream";
 import * as path from "path";
@@ -78,6 +77,13 @@ export interface IAttachmentStore {
   close(): Promise<void>;
 }
 
+export class InvalidAttachmentExternalStorageError extends Error {
+  constructor(storeId: string, context?: string) {
+    const formattedContext = context ? `: ${context}` : "";
+    super(`External Storage for store '${storeId}' is invalid` + formattedContext);
+  }
+}
+
 export class AttachmentStoreCreationError extends Error {
   constructor(storeBackend: string, storeId: string, context?: string) {
     const formattedContext = context ? `: ${context}` : "";
@@ -85,15 +91,15 @@ export class AttachmentStoreCreationError extends Error {
   }
 }
 
-// TODO - Can make this generic if *Stream methods become part of an interface.
-// TODO - Put this into another file.
-export class MinIOAttachmentStore implements IAttachmentStore {
+export class ExternalStorageAttachmentStore implements IAttachmentStore {
   constructor(
     public id: string,
-    private _storage: MinIOExternalStorage,
+    private _storage: StreamingExternalStorage,
     private _prefixParts: string[]
   ) {
-
+    if (_storage.removeAllWithPrefix == undefined) {
+      throw new InvalidAttachmentExternalStorageError("ExternalStorage does not support removeAllWithPrefix");
+    }
   }
 
   public exists(docPoolId: string, fileId: string): Promise<boolean> {
@@ -124,7 +130,8 @@ export class MinIOAttachmentStore implements IAttachmentStore {
   }
 
   public async removePool(docPoolId: string): Promise<void> {
-    await this._storage.removeAllWithPrefix(this._getPoolPrefix(docPoolId));
+    // Null assertion is safe because this should be checked before this class is instantiated.
+    await this._storage.removeAllWithPrefix!(this._getPoolPrefix(docPoolId));
   }
 
   public async close(): Promise<void> {

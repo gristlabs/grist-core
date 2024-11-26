@@ -1,6 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata} from 'app/common/DocSnapshot';
-import {ExternalStorage} from 'app/server/lib/ExternalStorage';
+import {StreamingExternalStorage} from 'app/server/lib/ExternalStorage';
 import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
@@ -44,7 +44,7 @@ type RemoveObjectsResponse = null | undefined | {
  * An external store implemented using the MinIO client, which
  * will work with MinIO and other S3-compatible storage.
  */
-export class MinIOExternalStorage implements ExternalStorage {
+export class MinIOExternalStorage implements StreamingExternalStorage {
   // Specify bucket to use, and optionally the max number of keys to request
   // in any call to listObjectVersions (used for testing)
   constructor(

@@ -5,6 +5,7 @@ import {createTmpDir} from 'app/server/lib/uploads';
 import {delay} from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
+import stream from "node:stream";
 
 // A special token representing a deleted document, used in places where a
 // checksum is expected otherwise.
@@ -56,6 +57,11 @@ export interface ExternalStorage {
 
   // Close the storage object.
   close(): Promise<void>;
+}
+
+export interface StreamingExternalStorage extends ExternalStorage {
+  uploadStream(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
+  downloadStream(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
 }
 
 /**
