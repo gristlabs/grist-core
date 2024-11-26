@@ -563,7 +563,7 @@ describe('Scim', () => {
         await cleanupUser(userToDeleteId);
       });
 
-      it('should delete some user', async function () {
+      it('should delete a user', async function () {
         const res = await axios.delete(scimUrl(`/Users/${userToDeleteId}`), chimpy);
         assert.equal(res.status, 204);
         const refreshedUser = await axios.get(scimUrl(`/Users/${userToDeleteId}`), chimpy);
