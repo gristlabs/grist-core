@@ -31,7 +31,7 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
       }
 
       if (mreq.userId === dbManager.getAnonymousUserId()) {
-        throw new Error('Anonymous user cannot access SCIM resources');
+        throw new Error('Anonymous users cannot access SCIM resources');
       }
 
       return String(mreq.userId); // SCIMMYRouters requires the userId to be a string.
