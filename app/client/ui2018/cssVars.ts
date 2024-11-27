@@ -8,7 +8,8 @@
  */
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
-import {dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
+import {getOrCreateStyleElement} from 'app/client/lib/getOrCreateStyleElement';
+import {DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
 import debounce = require('lodash/debounce');
 import values = require('lodash/values');
 
@@ -924,12 +925,6 @@ export const theme = {
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');
 const cssVars = values(vars).map(v => v.decl()).join('\n');
-const cssFontParams = `
-  font-family: ${vars.fontFamily};
-  font-size: ${vars.mediumFontSize};
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-`;
 
 // We set box-sizing globally to match bootstrap's setting of border-box, since we are integrating
 // into an app which already has it set, and it's impossible to make things look consistently with
@@ -971,8 +966,8 @@ const cssFontStyles = `
   }
 `;
 
-const cssVarsOnly = styled('div', cssColors + cssVars);
-const cssBodyVars = styled('div', cssFontParams + cssColors + cssVars + cssBorderBox + cssInputFonts + cssFontStyles);
+const cssRootVars = cssColors + cssVars;
+const cssReset = cssBorderBox + cssInputFonts + cssFontStyles;
 
 const cssBody = styled('body', `
   margin: 0;
@@ -982,9 +977,11 @@ const cssBody = styled('body', `
 const cssRoot = styled('html', `
   height: 100%;
   overflow: hidden;
+  font-family: ${vars.fontFamily};
+  font-size: ${vars.mediumFontSize};
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
 `);
-
-export const cssRootVars = cssBodyVars.className;
 
 // Also make a globally available testId, with a simple "test-" prefix (i.e. in tests, query css
 // class ".test-{name}". Ideally, we'd use noTestId() instead in production.
@@ -1062,7 +1059,15 @@ export function isScreenResizing(): Observable<boolean> {
  * Attaches the global css properties to the document's root to make them available in the page.
  */
 export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
-  dom.update(document.documentElement, varsOnly ? dom.cls(cssVarsOnly.className) : dom.cls(cssRootVars));
+  /* apply each group of rules and variables in the correct css layer
+   * see app/client/app.css for layers order */
+  getOrCreateStyleElement('grist-root-css').textContent = `
+@layer grist-base {
+  :root {
+    ${cssRootVars}
+  }
+  ${!varsOnly && cssReset}
+}`;
   document.documentElement.classList.add(cssRoot.className);
   document.body.classList.add(cssBody.className);
   const customTheme = getTheme(productFlavor);
