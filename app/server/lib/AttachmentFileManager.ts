@@ -10,6 +10,7 @@ import { DocStorage } from "app/server/lib/DocStorage";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
 import { Readable } from "node:stream";
+import { Writable } from "stream";
 
 export interface IAttachmentFileManager {
   addFile(storeId: AttachmentStoreId, fileExtension: string, fileData: Buffer): Promise<AddFileResult>;
@@ -157,7 +158,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
 
     // Possible issue if this upload fails - we have the file tracked in the document, but not available in the store.
     // TODO - Decide if we keep an entry in SQLite after an upload error or not. Probably not?
-    await store.upload(this._getDocPoolId(), fileIdent, fileData);
+    await store.upload(this._getDocPoolId(), fileIdent, Readable.from(fileData));
 
     // TODO - Confirm in doc storage that it's successfully uploaded? Need to decide how to handle a failed upload.
     return {
@@ -167,7 +168,19 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<Buffer> {
-    return await store.download(this._getDocPoolId(), fileIdent);
+    // Sub-optimal implementation, as we end up with *at least* two copies in memory one in `buffers`, and one
+    // produced by `Buffer.concat` at the end.
+    const buffers: Buffer[] = [];
+    const writableStream = new Writable({
+      write(chunk, encoding, callback) {
+        buffers.push(chunk);
+        callback();
+      }
+    });
+
+    await store.download(this._getDocPoolId(), fileIdent, writableStream);
+
+    return Buffer.concat(buffers);
   }
 
   private _getLogMeta(logInfo?: AttachmentFileManagerLogInfo): log.ILogMeta {

@@ -65,10 +65,12 @@ export interface IAttachmentStore {
   exists(docPoolId: DocPoolId, fileId: FileId): Promise<boolean>;
 
   // Upload attachment to the store.
-  upload(docPoolId: DocPoolId, fileId: FileId, fileData: Buffer): Promise<void>;
+  upload(docPoolId: DocPoolId, fileId: FileId, fileData: stream.Readable): Promise<void>;
 
-  // Download attachment to an in-memory buffer
-  download(docPoolId: DocPoolId, fileId: FileId): Promise<Buffer>;
+  // Download attachment to an in-memory buffer.
+  // It's preferable to accept an output stream as a parameter, as it simplifies attachment store implementation
+  // and gives them control over local buffering.
+  download(docPoolId: DocPoolId, fileId: FileId, outputStream: stream.Writable): Promise<void>;
 
   // Remove attachments for all documents in the given document pool.
   removePool(docPoolId: DocPoolId): Promise<void>;
@@ -106,27 +108,12 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
     return this._storage.exists(this._getKey(docPoolId, fileId));
   }
 
-  public async upload(docPoolId: string, fileId: string, fileData: Buffer): Promise<void> {
-    await this._storage.uploadStream(this._getKey(docPoolId, fileId), stream.Readable.from(fileData));
+  public async upload(docPoolId: string, fileId: string, fileData: stream.Readable): Promise<void> {
+    await this._storage.uploadStream(this._getKey(docPoolId, fileId), fileData);
   }
 
-  public async download(docPoolId: string, fileId: string): Promise<Buffer> {
-    // Need to read a stream into a buffer - this is a bit dirty, but does the job.
-    const chunks: Buffer[] = [];
-    let buffer: Buffer | undefined = undefined;
-    const readStream = new stream.PassThrough();
-    const readComplete = new Promise<void>((resolve, reject) => {
-      readStream.on("data", (data) => chunks.push(data));
-      readStream.on("end", () => { buffer = Buffer.concat(chunks); resolve(); });
-      readStream.on("error", (err) => { reject(err); });
-    });
-    await this._storage.downloadStream(this._getKey(docPoolId, fileId), readStream);
-    // Shouldn't need to wait for PassThrough stream to finish, but doing it in case it somehow finishes later than
-    // downloadStream resolves.
-    await readComplete;
-
-    // If an error happens, it's thrown by the above `await`. This should safely be a buffer.
-    return buffer!;
+  public async download(docPoolId: string, fileId: string, outputStream: stream.Writable): Promise<void> {
+    await this._storage.downloadStream(this._getKey(docPoolId, fileId), outputStream);
   }
 
   public async removePool(docPoolId: string): Promise<void> {
@@ -156,14 +143,14 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
       .catch(() => false);
   }
 
-  public async upload(docPoolId: DocPoolId, fileId: FileId, fileData: Buffer): Promise<void> {
+  public async upload(docPoolId: DocPoolId, fileId: FileId, fileData: stream.Readable): Promise<void> {
     const filePath = this._createPath(docPoolId, fileId);
     await fse.ensureDir(path.dirname(filePath));
     await fse.writeFile(filePath, fileData);
   }
 
-  public async download(docPoolId: DocPoolId, fileId: FileId): Promise<Buffer> {
-    return fse.readFile(this._createPath(docPoolId, fileId));
+  public async download(docPoolId: DocPoolId, fileId: FileId, output: stream.Writable): Promise<void> {
+    fse.createReadStream(this._createPath(docPoolId, fileId)).pipe(output);
   }
 
   public async removePool(docPoolId: DocPoolId): Promise<void> {
