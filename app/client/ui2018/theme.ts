@@ -1,5 +1,6 @@
 import { createPausableObs, PausableObservable } from 'app/client/lib/pausableObs';
 import { getStorage } from 'app/client/lib/storage';
+import { getOrCreateStyleElement } from 'app/client/lib/getOrCreateStyleElement';
 import { urlState } from 'app/client/models/gristUrlState';
 import { Theme, ThemeAppearance, ThemeColors, ThemePrefs } from 'app/common/ThemePrefs';
 import { getThemeColors } from 'app/common/Themes';
@@ -130,9 +131,13 @@ function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
   properties.push(...getCssThemeBackgroundProperties(appearance));
 
   // Apply the properties to the theme style element.
-  getOrCreateStyleElement('grist-theme').textContent = `:root {
+  // The 'grist-theme' layer takes precedence over the 'grist-base' layer where
+  // default CSS variables are defined.
+  getOrCreateStyleElement('grist-theme').textContent = `@layer grist-theme {
+  :root {
 ${properties.join('\n')}
-  }`;
+  }
+}`;
 
   // Make the browser aware of the color scheme.
   document.documentElement.style.setProperty(`color-scheme`, appearance);
@@ -173,19 +178,4 @@ function getCssThemeBackgroundProperties(appearance: ThemeAppearance) {
     ? 'url("img/prismpattern.png")'
     : 'url("img/gplaypattern.png")';
   return [`--grist-theme-bg: ${value};`];
-}
-
-/**
- * Gets or creates a style element in the head of the document with the given `id`.
- *
- * Useful for grouping CSS values such as theme custom properties without needing to
- * pollute the document with in-line styles.
- */
-function getOrCreateStyleElement(id: string) {
-  let style = document.head.querySelector(`#${id}`);
-  if (style) { return style; }
-  style = document.createElement('style');
-  style.setAttribute('id', id);
-  document.head.append(style);
-  return style;
 }
