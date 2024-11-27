@@ -1,13 +1,13 @@
-import {ThemeColors, ThemeName} from 'app/common/ThemePrefs';
+import {ThemeName, ThemeTokens} from 'app/common/ThemePrefs';
 import {GristDark} from 'app/common/themes/GristDark';
 import {GristLight} from 'app/common/themes/GristLight';
 
-const THEMES: Readonly<Record<ThemeName, ThemeColors>> = {
+const THEMES: Readonly<Record<ThemeName, ThemeTokens>> = {
   GristLight,
   GristDark,
 };
 
-export function getThemeColors(themeName: ThemeName): ThemeColors {
+export function getThemeTokens(themeName: ThemeName): ThemeTokens {
   return THEMES[themeName];
 }
 
