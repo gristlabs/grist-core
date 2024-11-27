@@ -37,7 +37,7 @@ import { gristThemeObs } from 'app/client/ui2018/theme';
 import { ActionRouter } from 'app/common/ActionRouter';
 import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from 'app/common/PluginInstance';
 import { tbind } from 'app/common/tbind';
-import { Theme } from 'app/common/ThemePrefs';
+import { convertThemeKeysToCssVars, Theme } from 'app/common/ThemePrefs';
 import { getOriginUrl } from 'app/common/urlUtils';
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
 import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
@@ -334,7 +334,7 @@ class IframeProcess extends ViewProcess {
   }
 
   private async _sendTheme({theme, fromReady = false}: {theme: Theme, fromReady?: boolean}) {
-    await this.rpc.postMessage({theme, fromReady});
+    await this.rpc.postMessage({theme: convertThemeKeysToCssVars(theme), fromReady});
   }
 }
 
