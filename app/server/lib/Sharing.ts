@@ -89,6 +89,16 @@ export class Sharing {
     const undo = getEnvContent(result.bundle.undo);
 
     try {
+      if (sandboxActionBundle.stored.length === 0 &&
+        sandboxActionBundle.calc.length === 0 &&
+        sandboxActionBundle.undo.length === 0) {
+        this._log.debug(docSession, "_doApplyUserAction skipping empty action");
+        return {
+          actionNum: 0,
+          retValues: [],
+          isModification: false
+        };
+      }
 
       const isSystemAction = (userActions.length === 1 && SYSTEM_ACTIONS.has(userActions[0][0] as string));
       // `internal` is true if users shouldn't be able to undo the actions. Applies to:
