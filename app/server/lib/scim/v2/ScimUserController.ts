@@ -92,6 +92,9 @@ class ScimUserController {
   public async deleteUser(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
+      if (this._dbManager.getSpecialUserIds().includes(id)) {
+        throw new SCIMMY.Types.Error(403, null!, 'Cannot delete technical user');
+      }
       const fakeScope: Scope = { userId: id };
       // FIXME: deleteUser should probably better not requiring a scope.
       await this._dbManager.deleteUser(fakeScope, id);

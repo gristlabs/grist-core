@@ -579,6 +579,26 @@ describe('Scim', () => {
         });
         assert.equal(res.status, 404);
       });
+
+      it('should return 404 for technical users', async function () {
+        const db = getDbManager();
+        const specialUsers = {
+          'anonymous': db.getAnonymousUserId(),
+          'support': db.getSupportUserId(),
+          'everyone': db.getEveryoneUserId(),
+          'preview': db.getPreviewerUserId(),
+        };
+        for (const [label, id] of Object.entries(specialUsers)) {
+          const res = await axios.delete(scimUrl(`/Users/${id}`), chimpy);
+          assert.equal(res.status, 403, 'should forbid deletion of the special user ' + label);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '403',
+            detail: 'Cannot delete technical user'
+          });
+        }
+      });
+
       checkCommonErrors('delete', '/Users/1');
     });
 

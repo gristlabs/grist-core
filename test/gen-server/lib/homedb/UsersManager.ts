@@ -22,7 +22,7 @@ import { EntityManager } from 'typeorm';
 import winston from 'winston';
 import omit from 'lodash/omit';
 
-import {delay} from 'app/common/delay';
+import { delay } from 'app/common/delay';
 
 describe('UsersManager', function () {
   this.timeout('3m');
@@ -292,6 +292,15 @@ describe('UsersManager', function () {
 
       it("getSupportUserId() should retrieve 'support' user id", function () {
         assert.strictEqual(db.getSupportUserId(), SUPPORT_USER_ID);
+      });
+
+      it("getSpecialUserIds() should retrieve all the special user ids", function () {
+        assert.deepEqual(db.getSpecialUserIds(), [
+          ANONYMOUS_USER_ID,
+          PREVIEWER_USER_ID,
+          EVERYONE_USER_ID,
+          SUPPORT_USER_ID
+        ]);
       });
     });
 

@@ -2618,6 +2618,10 @@ export class HomeDBManager extends EventEmitter {
     return this._usersManager.getAnonymousUser();
   }
 
+  public getSpecialUserIds() {
+    return this._usersManager.getSpecialUserIds();
+  }
+
   public getAnonymousUserId() {
     return this._usersManager.getAnonymousUserId();
   }

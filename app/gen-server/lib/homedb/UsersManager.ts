@@ -110,6 +110,13 @@ export class UsersManager {
   }
 
   /**
+   * Return the special user ids.
+   */
+  public getSpecialUserIds() {
+    return Object.values(this._specialUserIds);
+  }
+
+  /**
    *
    * Get the id of the anonymous user.
    *
