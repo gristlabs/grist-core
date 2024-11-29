@@ -146,7 +146,7 @@ describe('Scim', () => {
         assert.deepEqual(res.data, {
           schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
           status: '403',
-          detail: `Technical user ${opType} not permitted.`
+          detail: `System user ${opType} not permitted.`
         });
       }
     }
@@ -489,7 +489,7 @@ describe('Scim', () => {
         assert.equal(res.status, 404);
       });
 
-      it('should return 403 for technical users', async function () {
+      it('should return 403 for system users', async function () {
         const data = toSCIMUserWithoutId('whoever');
         await checkOperationOnTechUserDisallowed({
           op: (id) => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
@@ -610,7 +610,7 @@ describe('Scim', () => {
         assert.equal(res.status, 404);
       });
 
-      it('should return 403 for technical users', async function () {
+      it('should return 403 for system users', async function () {
         await checkOperationOnTechUserDisallowed({
           op: (id) => axios.delete(scimUrl(`/Users/${id}`), chimpy),
           opType: 'deletion'
