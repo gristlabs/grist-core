@@ -77,6 +77,9 @@ class ScimUserController {
   public async overwriteUser(resource: any, data: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
+      if (this._dbManager.getSpecialUserIds().includes(id)) {
+        throw new SCIMMY.Types.Error(403, null!, 'Technical user modification not permitted.');
+      }
       await this._checkEmailCanBeUsed(data.userName, id);
       const updatedUser = await this._dbManager.overwriteUser(id, toUserProfile(data));
       return toSCIMMYUser(updatedUser);
@@ -93,7 +96,7 @@ class ScimUserController {
     return this._runAndHandleErrors(context, async () => {
       const id = ScimUserController._getIdFromResource(resource);
       if (this._dbManager.getSpecialUserIds().includes(id)) {
-        throw new SCIMMY.Types.Error(403, null!, 'Cannot delete technical user');
+        throw new SCIMMY.Types.Error(403, null!, 'Technical user deletion not permitted.');
       }
       const fakeScope: Scope = { userId: id };
       // FIXME: deleteUser should probably better not requiring a scope.

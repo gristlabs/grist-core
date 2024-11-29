@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import capitalize from 'lodash/capitalize';
 import { assert } from 'chai';
 import Sinon from 'sinon';
@@ -127,6 +127,27 @@ describe('Scim', () => {
     async function cleanupUser(userId: number) {
       if (await getDbManager().getUser(userId)) {
         await getDbManager().deleteUser({ userId: userId }, userId);
+      }
+    }
+    async function checkOperationOnTechUserDisallowed({op, opType}: {
+      op: (id: number) => Promise<AxiosResponse>,
+      opType: string
+    }) {
+      const db = getDbManager();
+      const specialUsers = {
+        'anonymous': db.getAnonymousUserId(),
+        'support': db.getSupportUserId(),
+        'everyone': db.getEveryoneUserId(),
+        'preview': db.getPreviewerUserId(),
+      };
+      for (const [label, id] of Object.entries(specialUsers)) {
+        const res = await op(id);
+        assert.equal(res.status, 403, `should forbid ${opType} of the special user ${label}`);
+        assert.deepEqual(res.data, {
+          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+          status: '403',
+          detail: `Technical user ${opType} not permitted.`
+        });
       }
     }
 
@@ -468,6 +489,15 @@ describe('Scim', () => {
         assert.equal(res.status, 404);
       });
 
+      it('should return 403 for technical users', async function () {
+        const data = toSCIMUserWithoutId('whoever');
+        await checkOperationOnTechUserDisallowed({
+          op: (id) => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
+          opType: 'modification'
+        });
+      });
+
+
       it('should deduce the name from the displayEmail when not provided', async function () {
         const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
           schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
@@ -580,23 +610,11 @@ describe('Scim', () => {
         assert.equal(res.status, 404);
       });
 
-      it('should return 404 for technical users', async function () {
-        const db = getDbManager();
-        const specialUsers = {
-          'anonymous': db.getAnonymousUserId(),
-          'support': db.getSupportUserId(),
-          'everyone': db.getEveryoneUserId(),
-          'preview': db.getPreviewerUserId(),
-        };
-        for (const [label, id] of Object.entries(specialUsers)) {
-          const res = await axios.delete(scimUrl(`/Users/${id}`), chimpy);
-          assert.equal(res.status, 403, 'should forbid deletion of the special user ' + label);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '403',
-            detail: 'Cannot delete technical user'
-          });
-        }
+      it('should return 403 for technical users', async function () {
+        await checkOperationOnTechUserDisallowed({
+          op: (id) => axios.delete(scimUrl(`/Users/${id}`), chimpy),
+          opType: 'deletion'
+        });
       });
 
       checkCommonErrors('delete', '/Users/1');
