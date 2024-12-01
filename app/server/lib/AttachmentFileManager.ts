@@ -9,8 +9,8 @@ import { checksumFileStream } from "app/server/lib/checksumFile";
 import { DocStorage } from "app/server/lib/DocStorage";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
+import { MemoryWritableStream } from "app/server/utils/MemoryWritableStream";
 import { Readable } from "node:stream";
-import { Writable } from "stream";
 
 export interface IAttachmentFileManager {
   addFile(storeId: AttachmentStoreId, fileExtension: string, fileData: Buffer): Promise<AddFileResult>;
@@ -168,19 +168,9 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<Buffer> {
-    // Sub-optimal implementation, as we end up with *at least* two copies in memory one in `buffers`, and one
-    // produced by `Buffer.concat` at the end.
-    const buffers: Buffer[] = [];
-    const writableStream = new Writable({
-      write(chunk, encoding, callback) {
-        buffers.push(chunk);
-        callback();
-      }
-    });
-
-    await store.download(this._getDocPoolId(), fileIdent, writableStream);
-
-    return Buffer.concat(buffers);
+    const outputStream = new MemoryWritableStream();
+    await store.download(this._getDocPoolId(), fileIdent, outputStream);
+    return outputStream.getBuffer();
   }
 
   private _getLogMeta(logInfo?: AttachmentFileManagerLogInfo): log.ILogMeta {

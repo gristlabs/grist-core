@@ -146,11 +146,18 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
   public async upload(docPoolId: DocPoolId, fileId: FileId, fileData: stream.Readable): Promise<void> {
     const filePath = this._createPath(docPoolId, fileId);
     await fse.ensureDir(path.dirname(filePath));
-    await fse.writeFile(filePath, fileData);
+    const writeStream = fse.createWriteStream(filePath);
+    await stream.promises.pipeline(
+      fileData,
+      writeStream,
+    );
   }
 
   public async download(docPoolId: DocPoolId, fileId: FileId, output: stream.Writable): Promise<void> {
-    fse.createReadStream(this._createPath(docPoolId, fileId)).pipe(output);
+    await stream.promises.pipeline(
+      fse.createReadStream(this._createPath(docPoolId, fileId)),
+      output,
+    );
   }
 
   public async removePool(docPoolId: DocPoolId): Promise<void> {
