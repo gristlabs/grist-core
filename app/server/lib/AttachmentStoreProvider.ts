@@ -20,6 +20,8 @@ export interface IAttachmentStoreProvider {
   getAllStores(): Promise<IAttachmentStore[]>;
 
   storeExists(id: AttachmentStoreId): Promise<boolean>;
+
+  listAllStoreIds(): AttachmentStoreId[];
 }
 
 export interface IAttachmentStoreSpecification {
@@ -70,7 +72,7 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
     return id in this._storeDetailsById;
   }
 
-  public listStoreIds(): string[] {
+  public listAllStoreIds(): string[] {
     return Object.keys(this._storeDetailsById);
   }
 }
