@@ -29,10 +29,8 @@ export const makeCoreCreator = () => makeSimpleCreator({
   attachmentStoreOptions: [
     {
       name: 'minio',
-      check: () => checkMinIOExternalStorage() !== undefined,
-      checkBackend: () => checkMinIOBucket(),
       // TODO - Move this to another file
-      create: (storeId: string) => {
+      create: async (storeId: string) => {
         const options = checkMinIOExternalStorage();
         if (!options) {
           throw new AttachmentStoreCreationError('minio', storeId, 'MinIO storage not configured');

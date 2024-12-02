@@ -24,7 +24,7 @@ export interface IAttachmentStoreProvider {
 
 export interface IAttachmentStoreSpecification {
   name: string,
-  create: (storeId: string) => IAttachmentStore,
+  create: (storeId: string) => Promise<IAttachmentStore>,
 }
 
 interface IAttachmentStoreDetails {
@@ -61,7 +61,9 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   }
 
   public async getAllStores(): Promise<IAttachmentStore[]> {
-    return Object.values(this._storeDetailsById).map(storeDetails => storeDetails.spec.create(storeDetails.id));
+    return await Promise.all(
+      Object.values(this._storeDetailsById).map(storeDetails => storeDetails.spec.create(storeDetails.id))
+    );
   }
 
   public async storeExists(id: AttachmentStoreId): Promise<boolean> {

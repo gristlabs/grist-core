@@ -131,10 +131,7 @@ export interface ICreateTelemetryOptions {
 
 export interface ICreateAttachmentStoreOptions {
   name: string;
-  check(): boolean;
-  checkBackend?(): Promise<void>;
-  // Avoid undefined returns - `check()` should be called to ensure creation is valid.
-  create(storeId: string): IAttachmentStore;
+  create(storeId: string): Promise<IAttachmentStore>;
 }
 
 /**

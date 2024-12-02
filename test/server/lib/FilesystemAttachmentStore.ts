@@ -18,11 +18,13 @@ function getTestingFileAsReadableStream(contents?: string): stream.Readable {
   return stream.Readable.from(getTestingFileAsBuffer(contents));
 }
 
-async function makeTestingFilesystemStore(): Promise<{ store: IAttachmentStore, dir: string }> {
+export async function makeTestingFilesystemStore(
+  storeId: string = "test-filesystem-store"
+): Promise<{ store: IAttachmentStore, dir: string }> {
   const tempFolder = await createTmpDir();
   const tempDir = await mkdtemp(path.join(tempFolder, 'filesystem-store-test-'));
   return {
-    store: new FilesystemAttachmentStore("test-filesystem-store", tempDir),
+    store: new FilesystemAttachmentStore(storeId, tempDir),
     dir: tempDir,
   };
 }
