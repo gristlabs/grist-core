@@ -40,7 +40,7 @@ export class StoreNotAvailableError extends Error {
 
 interface AttachmentFileManagerLogInfo {
   fileIdent?: string;
-  storeId?: string;
+  storeId?: string | null;
 }
 
 /**
