@@ -811,7 +811,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this.get('SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?', fileIdent)
       .then(row => row ? ({
         ident: row.ident as string,
-        storageId: row.storageId as string,
+        storageId: (row.storageId ?? null) as (string | null),
         data: row.data as Buffer,
       }) : null);
   }
@@ -1870,6 +1870,6 @@ function fixDefault(def: string) {
 // Information on an attached file from _gristsys_files
 export interface FileInfo {
   ident: string;
-  storageId: string;
+  storageId: string | null;
   data: Buffer;
 }
