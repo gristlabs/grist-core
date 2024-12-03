@@ -131,6 +131,7 @@ export interface ICreateTelemetryOptions {
 
 export interface ICreateAttachmentStoreOptions {
   name: string;
+  isAvailable(): Promise<boolean>;
   create(storeId: string): Promise<IAttachmentStore>;
 }
 

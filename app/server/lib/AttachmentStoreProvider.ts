@@ -1,5 +1,6 @@
 import { IAttachmentStore } from "app/server/lib/AttachmentStore";
 import log from 'app/server/lib/log';
+import { ICreateAttachmentStoreOptions } from "./ICreate";
 
 export type AttachmentStoreId = string
 
@@ -75,4 +76,22 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   public listAllStoreIds(): string[] {
     return Object.keys(this._storeDetailsById);
   }
+}
+
+async function checkAvailabilityAttachmentStoreOption(option: ICreateAttachmentStoreOptions) {
+  try {
+    return await option.isAvailable();
+  } catch (error) {
+    log.error(`Error checking availability of store option '${option}'`, error);
+    return false;
+  }
+}
+
+export async function checkAvailabilityAttachmentStoreOptions(options: ICreateAttachmentStoreOptions[]) {
+  const availability = await Promise.all(options.map(checkAvailabilityAttachmentStoreOption));
+
+  return {
+    available: options.filter((option, index) => availability[index]),
+    unavailable: options.filter((option, index) => !availability[index]),
+  };
 }
