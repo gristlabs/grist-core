@@ -37,6 +37,20 @@ export class StoreNotAvailableError extends Error {
   }
 }
 
+export class AttachmentRetrievalError extends Error {
+  public readonly storeId: AttachmentStoreId;
+  public readonly fileId: string;
+
+  constructor(storeId: AttachmentStoreId, fileId: string, cause?: any) {
+    const causeError = cause instanceof Error ? cause : undefined;
+    const causeDescriptor = causeError ? `: ${cause.message}` : '';
+    super(`Unable to retrieve '${fileId}' from '${storeId}'${causeDescriptor}`);
+    this.storeId = storeId;
+    this.fileId = fileId;
+    this.cause = causeError;
+  }
+}
+
 
 interface AttachmentFileManagerLogInfo {
   fileIdent?: string;
@@ -91,6 +105,9 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return this._addFileToAttachmentStore(store, fileIdent, fileData);
   }
 
+  // TODO Given we throw if the underlying store can't retrieve the file, maybe this should throw if we're missing
+  // the fileInfo from doc storage too, instead of returning null?
+  // That, or we return a result type which might have an error in.
   public async getFileData(fileIdent: string): Promise<Buffer | null> {
     this._log.debug({ fileIdent }, "retrieving file data");
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
@@ -168,9 +185,13 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<Buffer> {
-    const outputStream = new MemoryWritableStream();
-    await store.download(this._getDocPoolId(), fileIdent, outputStream);
-    return outputStream.getBuffer();
+    try {
+      const outputStream = new MemoryWritableStream();
+      await store.download(this._getDocPoolId(), fileIdent, outputStream);
+      return outputStream.getBuffer();
+    } catch(e) {
+      throw new AttachmentRetrievalError(store.id, fileIdent, e);
+    }
   }
 
   private _getLogMeta(logInfo?: AttachmentFileManagerLogInfo): log.ILogMeta {
