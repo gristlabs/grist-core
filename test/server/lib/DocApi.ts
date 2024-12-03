@@ -7,6 +7,7 @@ import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
+import {Deps} from 'app/server/lib/ActiveDoc';
 import {
   applyQueryParameters,
   docApiUsagePeriods,
@@ -14,7 +15,7 @@ import {
   getDocApiUsageKeysToIncr,
   WebhookSubscription
 } from 'app/server/lib/DocApi';
-import {delayAbort} from 'app/server/lib/serverUtils';
+import {delayAbort, getAvailablePort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import {assert} from 'chai';
@@ -29,6 +30,7 @@ import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import {createClient, RedisClient} from 'redis';
+import * as sinon from 'sinon';
 import {configForUser} from 'test/gen-server/testUtils';
 import {serveSomething, Serving} from 'test/server/customUtil';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
@@ -39,7 +41,7 @@ import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
-import { getDatabase } from 'test/testUtils';
+import {getDatabase} from 'test/testUtils';
 import {testDailyApiLimitFeatures} from 'test/gen-server/seed';
 
 // some doc ids
@@ -75,14 +77,31 @@ function makeConfig(username: string): AxiosRequestConfig {
   };
 }
 
+// Much like home.makeUserApi, except it injects extraHeadersForConfig (for tests with reverse-proxy)
+function makeUserApi(
+  org: string,
+  username: string,
+  options?: {
+    baseUrl?: string
+  }
+) {
+  return new UserAPIImpl(`${options?.baseUrl ?? homeUrl}/o/${org}`, {
+    headers: makeConfig(username).headers as Record<string, string>,
+    fetch: fetch as unknown as typeof globalThis.fetch,
+    newFormData: () => new FormData() as any,
+  });
+}
+
 describe('DocApi', function () {
   const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
   this.timeout(30000);
   testUtils.setTmpLogLevel('error');
+  const sandbox = sinon.createSandbox();
   let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function () {
+    sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(30);
     oldEnv = new testUtils.EnvironmentSnapshot();
 
     await flushAllRedis();
@@ -100,6 +119,7 @@ describe('DocApi', function () {
   });
 
   after(() => {
+    sandbox.restore();
     oldEnv.restore();
   });
 
@@ -155,33 +175,47 @@ describe('DocApi', function () {
         };
 
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
         homeUrl = serverUrl = home.serverUrl;
+        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, homeUrl);
         hasHomeApi = true;
       });
       testDocApi({webhooksTestPort});
     });
 
     describe('behind a reverse-proxy', function () {
-      async function setupServersWithProxy(suitename: string, overrideEnvConf?: NodeJS.ProcessEnv) {
-        const proxy = new TestServerReverseProxy();
+      async function setupServersWithProxy(
+        suitename: string,
+        { withAppHomeInternalUrl }: { withAppHomeInternalUrl: boolean }
+      ) {
+        const proxy = await TestServerReverseProxy.build();
+
+        const homePort = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+        const home = new TestServer('home', homePort, tmpDir, suitename);
+
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
           GRIST_DATA_DIR: dataDir,
-          APP_HOME_URL: await proxy.getServerUrl(),
+          APP_HOME_URL: proxy.serverUrl,
           GRIST_ORG_IN_PATH: 'true',
           GRIST_SINGLE_PORT: '0',
-          ...overrideEnvConf
+          APP_HOME_INTERNAL_URL: withAppHomeInternalUrl ? home.serverUrl : '',
         };
-        const home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        const docs = await TestServer.startServer(
-          'docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl
-        );
+
+        await home.start(home.serverUrl, additionalEnvConfiguration);
+
+        const docPort = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+        const docs = new TestServer('docs', docPort, tmpDir, suitename);
+        await docs.start(home.serverUrl, {
+          ...additionalEnvConfiguration,
+          APP_DOC_URL: `${proxy.serverUrl}/dw/dw1`,
+          APP_DOC_INTERNAL_URL: docs.serverUrl,
+        });
+
         proxy.requireFromOutsideHeader();
 
-        await proxy.start(home, docs);
+        proxy.start(home, docs);
 
-        homeUrl = serverUrl = await proxy.getServerUrl();
+        homeUrl = serverUrl = proxy.serverUrl;
         hasHomeApi = true;
         extraHeadersForConfig = {
           Origin: serverUrl,
@@ -201,9 +235,9 @@ describe('DocApi', function () {
 
       let proxy: TestServerReverseProxy;
 
-      describe('should run usual DocApi test', function () {
+      describe('with APP_HOME_INTERNAL_URL set', function () {
         setup('behind-proxy-testdocs', async () => {
-          ({proxy, home, docs} = await setupServersWithProxy(suitename));
+          ({proxy, home, docs} = await setupServersWithProxy(suitename, {withAppHomeInternalUrl: true}));
         });
 
         after(() => tearDown(proxy, [home, docs]));
@@ -212,11 +246,7 @@ describe('DocApi', function () {
       });
 
       async function testCompareDocs(proxy: TestServerReverseProxy, home: TestServer) {
-        const chimpy = makeConfig('chimpy');
-        const userApiServerUrl = await proxy.getServerUrl();
-        const chimpyApi = home.makeUserApi(
-          ORG_NAME, 'chimpy', { serverUrl: userApiServerUrl, headers: chimpy.headers as Record<string, string> }
-        );
+        const chimpyApi = makeUserApi(ORG_NAME, 'chimpy');
         const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
         const docId1 = await chimpyApi.newDoc({name: 'testdoc1'}, ws1);
         const docId2 = await chimpyApi.newDoc({name: 'testdoc2'}, ws1);
@@ -225,11 +255,12 @@ describe('DocApi', function () {
         return doc1.compareDoc(docId2);
       }
 
-      describe('with APP_HOME_INTERNAL_URL', function () {
+      describe('specific tests with APP_HOME_INTERNAL_URL', function () {
         setup('behind-proxy-with-apphomeinternalurl', async () => {
           // APP_HOME_INTERNAL_URL will be set by TestServer.
-          ({proxy, home, docs} = await setupServersWithProxy(suitename));
+          ({proxy, home, docs} = await setupServersWithProxy(suitename, {withAppHomeInternalUrl: true}));
         });
+
         after(() => tearDown(proxy, [home, docs]));
 
         it('should succeed to compare docs', async function () {
@@ -238,13 +269,14 @@ describe('DocApi', function () {
         });
       });
 
-      describe('without APP_HOME_INTERNAL_URL', function () {
+      describe('specific tests without APP_HOME_INTERNAL_URL', function () {
         setup('behind-proxy-without-apphomeinternalurl', async () => {
-          ({proxy, home, docs} = await setupServersWithProxy(suitename, {APP_HOME_INTERNAL_URL: ''}));
+          ({proxy, home, docs} = await setupServersWithProxy(suitename, {withAppHomeInternalUrl: false}));
         });
+
         after(() => tearDown(proxy, [home, docs]));
 
-        it('should succeed to compare docs', async function () {
+        it('should fail to compare docs', async function () {
           const promise = testCompareDocs(proxy, home);
           await assert.isRejected(promise, /TestServerReverseProxy: called public URL/);
         });
@@ -258,8 +290,8 @@ describe('DocApi', function () {
           GRIST_DATA_DIR: dataDir
         };
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
         homeUrl = home.serverUrl;
+        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, homeUrl);
         serverUrl = docs.serverUrl;
         hasHomeApi = false;
       });
@@ -353,7 +385,7 @@ function testDocApi(settings: {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     // Make sure kiwi isn't allowed here.
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor for the org.
     await assert.isRejected(kiwiApi.getOrgAccess(ORG_NAME), /Forbidden/);
@@ -373,7 +405,7 @@ function testDocApi(settings: {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
     // Make sure kiwi isn't allowed here.
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor of this workspace.
     await userApi.updateWorkspacePermissions(ws1, {users: {[kiwiEmail]: 'editors'}});
@@ -392,7 +424,7 @@ function testDocApi(settings: {
   it("should allow only owners to remove a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdeleteme1'}, ws1);
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't delete it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -408,7 +440,7 @@ function testDocApi(settings: {
   it("should allow only owners to rename a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testrenameme1'}, ws1);
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't rename it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -2926,7 +2958,7 @@ function testDocApi(settings: {
   });
 
   it('POST /workspaces/{wid}/import handles empty filenames', async function () {
-    if (!process.env.TEST_REDIS_URL || docs.proxiedServer) {
+    if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
     const worker1 = await userApi.getWorkerAPI('import');
@@ -2980,15 +3012,11 @@ function testDocApi(settings: {
   });
 
   it("document is protected during upload-and-import sequence", async function () {
-    if (!process.env.TEST_REDIS_URL || home.proxiedServer) {
+    if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
     // Prepare an API for a different user.
-    const kiwiApi = new UserAPIImpl(`${homeUrl}/o/Fish`, {
-      headers: {Authorization: 'Bearer api_key_for_kiwi'},
-      fetch: fetch as any,
-      newFormData: () => new FormData() as any,
-    });
+    const kiwiApi = makeUserApi('Fish', 'kiwi');
     // upload something for Chimpy and something else for Kiwi.
     const worker1 = await userApi.getWorkerAPI('import');
     const fakeData1 = await testUtils.readFixtureDoc('Hello.grist');
@@ -3088,15 +3116,10 @@ function testDocApi(settings: {
   });
 
   it('filters urlIds by org', async function () {
-    if (home.proxiedServer) { this.skip(); }
     // Make two documents with same urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1', urlId: 'urlid'}, ws1);
-    const nasaApi = new UserAPIImpl(`${homeUrl}/o/nasa`, {
-      headers: {Authorization: 'Bearer api_key_for_chimpy'},
-      fetch: fetch as any,
-      newFormData: () => new FormData() as any,
-    });
+    const nasaApi = makeUserApi('nasa', 'chimpy');
     const ws2 = (await nasaApi.getOrgWorkspaces('current'))[0].id;
     const doc2 = await nasaApi.newDoc({name: 'testdoc2', urlId: 'urlid'}, ws2);
     try {
@@ -3121,14 +3144,9 @@ function testDocApi(settings: {
 
   it('allows docId access to any document from merged org', async function () {
     // Make two documents
-    if (home.proxiedServer) { this.skip(); }
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
-    const nasaApi = new UserAPIImpl(`${homeUrl}/o/nasa`, {
-      headers: {Authorization: 'Bearer api_key_for_chimpy'},
-      fetch: fetch as any,
-      newFormData: () => new FormData() as any,
-    });
+    const nasaApi = makeUserApi('nasa', 'chimpy');
     const ws2 = (await nasaApi.getOrgWorkspaces('current'))[0].id;
     const doc2 = await nasaApi.newDoc({name: 'testdoc2'}, ws2);
     try {
@@ -3255,9 +3273,7 @@ function testDocApi(settings: {
     // Pass kiwi's headers as it contains both Authorization and Origin headers
     // if run behind a proxy, so we can ensure that the Origin header check is not made.
     const userApiServerUrl = docs.proxiedServer ? serverUrl : undefined;
-    const chimpyApi = home.makeUserApi(
-      ORG_NAME, 'chimpy', { serverUrl: userApiServerUrl, headers: chimpy.headers as Record<string, string> }
-    );
+    const chimpyApi = makeUserApi(ORG_NAME, 'chimpy', { baseUrl: userApiServerUrl });
     const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
     const docId1 = await chimpyApi.newDoc({name: 'testdoc1'}, ws1);
     const docId2 = await chimpyApi.newDoc({name: 'testdoc2'}, ws1);
@@ -3775,7 +3791,7 @@ function testDocApi(settings: {
 
     it("limits daily API usage", async function () {
       // Make a new document in a test product with a low daily limit
-      const api = home.makeUserApi('testdailyapilimit');
+      const api = makeUserApi('testdailyapilimit', 'chimpy');
       const workspaceId = await getWorkspaceId(api, 'TestDailyApiLimitWs');
       const docId = await api.newDoc({name: 'TestDoc1'}, workspaceId);
       const max = testDailyApiLimitFeatures.baseMaxApiUnitsPerDocumentPerDay;
@@ -3803,7 +3819,7 @@ function testDocApi(settings: {
     it("limits daily API usage and sets the correct keys in redis", async function () {
       this.retries(3);
       // Make a new document in a free team site, currently the only real product which limits daily API usage.
-      const freeTeamApi = home.makeUserApi('freeteam');
+      const freeTeamApi = makeUserApi('freeteam', 'chimpy');
       const workspaceId = await getWorkspaceId(freeTeamApi, 'FreeTeamWs');
       const docId = await freeTeamApi.newDoc({name: 'TestDoc2'}, workspaceId);
       // Rather than making 5000 requests, set high counts directly for the current and next daily and hourly keys
@@ -5376,7 +5392,7 @@ function setup(name: string, cb: () => Promise<void>) {
     await cb();
 
     // create TestDoc as an empty doc into Private workspace
-    userApi = api = home.makeUserApi(ORG_NAME);
+    userApi = api = makeUserApi(ORG_NAME, 'chimpy');
     const wid = await getWorkspaceId(api, 'Private');
     docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
   });

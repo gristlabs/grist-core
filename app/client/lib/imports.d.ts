@@ -1,5 +1,6 @@
 import * as AccountPageModule from 'app/client/ui/AccountPage';
 import * as ActivationPageModule from 'app/client/ui/ActivationPage';
+import * as AuditLogsPageModule from 'app/client/ui/AuditLogsPage';
 import * as BillingPageModule from 'app/client/ui/BillingPage';
 import * as AdminPanelModule from 'app/client/ui/AdminPanel';
 import * as GristDocModule from 'app/client/components/GristDoc';
@@ -16,6 +17,7 @@ export type PlotlyType = typeof plotly;
 
 export function loadAccountPage(): Promise<typeof AccountPageModule>;
 export function loadActivationPage(): Promise<typeof ActivationPageModule>;
+export function loadAuditLogsPage(): Promise<typeof AuditLogsPageModule>;
 export function loadBillingPage(): Promise<typeof BillingPageModule>;
 export function loadAdminPanel(): Promise<typeof AdminPanelModule>;
 export function loadGristDoc(): Promise<typeof GristDocModule>;

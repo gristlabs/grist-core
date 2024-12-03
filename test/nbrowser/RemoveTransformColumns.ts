@@ -4,7 +4,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from "test/nbrowser/testUtils";
 
 describe('RemoveTransformColumns', function () {
-  this.timeout(10000);
+  this.timeout(20000);
   setupTestSuite();
 
   it('should remove transform columns when the doc shuts down', async function () {

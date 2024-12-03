@@ -1,1 +1,8 @@
-{}
+{
+    "sendAppPage": {
+        "Loading": "載入中"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "請透過身份驗證提供者驗證您的電子郵件，然後重新登入。"
+    }
+}

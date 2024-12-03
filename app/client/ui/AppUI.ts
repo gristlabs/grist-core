@@ -1,7 +1,13 @@
 import {buildDocumentBanners, buildHomeBanners} from 'app/client/components/Banners';
 import {ViewAsBanner} from 'app/client/components/ViewAsBanner';
 import {domAsync} from 'app/client/lib/domAsync';
-import {loadAccountPage, loadActivationPage, loadAdminPanel, loadBillingPage} from 'app/client/lib/imports';
+import {
+  loadAccountPage,
+  loadActivationPage,
+  loadAdminPanel,
+  loadAuditLogsPage,
+  loadBillingPage,
+} from 'app/client/lib/imports';
 import {createSessionObs, isBoolean, isNumber} from 'app/client/lib/sessionObs';
 import {AppModel, TopAppModel} from 'app/client/models/AppModel';
 import {DocPageModelImpl} from 'app/client/models/DocPageModel';
@@ -84,6 +90,8 @@ function createMainPage(appModel: AppModel, appObj: App) {
       return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel)));
     } else if (pageType === 'activation') {
       return domAsync(loadActivationPage().then(ap => dom.create(ap.getActivationPage(), appModel)));
+    } else if (pageType === 'audit-logs') {
+      return domAsync(loadAuditLogsPage().then(m => dom.create(m.AuditLogsPage, appModel)));
     } else {
       return dom.create(pagePanelsDoc, appModel, appObj);
     }

@@ -8,7 +8,13 @@ import * as viewport from 'app/client/ui/viewport';
 import {bigPrimaryButtonLink, primaryButtonLink} from 'app/client/ui2018/buttons';
 import {mediaDeviceNotSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
+import {
+  menu,
+  menuDivider,
+  menuItem,
+  menuItemLink,
+  menuSubHeader,
+} from 'app/client/ui2018/menus';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
@@ -149,6 +155,10 @@ export class AccountWidget extends Disposable {
       this._maybeBuildActivationPageMenuItem(),
       this._maybeBuildAdminPanelMenuItem(),
       this._maybeBuildSupportGristButton(),
+
+      // TODO: Uncomment when team audit logs are ready to use.
+      // this._maybeBuildAuditLogsMenuItem(),
+
       mobileModeToggle,
 
       // TODO Add section ("Here right now") listing icons of other users currently on this doc.
@@ -243,6 +253,25 @@ export class AccountWidget extends Disposable {
       );
     }
   }
+
+  // TODO: Uncomment when team audit logs are ready to use.
+  // private _maybeBuildAuditLogsMenuItem() {
+  //   const { deploymentType } = getGristConfig();
+  //   if (
+  //     !this._appModel.isOwner() ||
+  //     !this._appModel.isTeamSite ||
+  //     !deploymentType ||
+  //     !["saas", "core", "enterprise"].includes(deploymentType)
+  //   ) {
+  //     return null;
+  //   }
+
+  //   return menuItemLink(
+  //     t("Audit Logs"),
+  //     menuAnnotate(t("New")),
+  //     urlState().setLinkUrl({ auditLogs: "audit-logs" })
+  //   );
+  // }
 }
 
 const cssAccountWidget = styled('div', `

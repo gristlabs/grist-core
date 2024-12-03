@@ -11,7 +11,6 @@ import {BrowserSettings} from 'app/common/BrowserSettings';
 import {DocCreationInfo, DocEntry, DocListAPI, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {parseUrlId} from 'app/common/gristUrls';
-import {Invite} from 'app/common/sharing';
 import {tbind} from 'app/common/tbind';
 import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -129,13 +128,6 @@ export class DocManager extends EventEmitter {
   public async listDocs(client: Client): Promise<{docs: DocEntry[], docInvites: DocEntry[]}> {
     const docs = await this.storageManager.listDocs();
     return {docs, docInvites: []};
-  }
-
-  /**
-   * Returns a promise for invites to docs which have not been downloaded.
-   */
-  public async getLocalInvites(client: Client): Promise<Invite[]> {
-    return [];
   }
 
   /**

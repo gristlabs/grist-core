@@ -15,7 +15,7 @@ describe("ViewLayoutCollapse", function() {
   let session: gu.Session;
 
   before(async () => {
-    session = await gu.session().login();
+    session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
   });
 
@@ -58,6 +58,8 @@ describe("ViewLayoutCollapse", function() {
 
     // Now on this page we saw two uncollapsed sections (make sure this is not the case).
     assert.deepEqual(await gu.getSectionTitles(), ['NotCollapsed']);
+    // And one collapsed.
+    assert.deepEqual(await collapsedSectionTitles(), ['Collapsed']);
   });
 
   it('fix:can delete root section', async function() {
@@ -93,7 +95,7 @@ describe("ViewLayoutCollapse", function() {
   });
 
   it('fix: custom widget should restart when added back after collapsing', async function() {
-    await session.tempDoc(cleanup, 'Investment Research.grist');
+    await session.tempDoc(cleanup, 'Investment Research (smaller).grist');
     await gu.openPage("Overview");
 
     const revert = await gu.begin();
@@ -250,8 +252,7 @@ describe("ViewLayoutCollapse", function() {
     await gu.checkForErrors();
 
     assert.equal(await gu.getActiveSectionTitle(), INVESTMENTS);
-    // Make sure we are in 1column 9th row.
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 9, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 8, col: 0});
 
     // Hide companies chart, and search for mobile (should show no results).
     await collapseByMenu(COMPANIES_CHART);
@@ -267,10 +268,10 @@ describe("ViewLayoutCollapse", function() {
     // Now search for web.
     await gu.closeSearch();
     await gu.search('web');
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 5, col: 0});
+    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 2, col: 0});
 
     // Recreate document (can't undo).
-    await session.tempDoc(cleanup, 'Investment Research.grist');
+    await session.tempDoc(cleanup, 'Investment Research (smaller).grist');
   });
 
 
@@ -395,7 +396,7 @@ describe("ViewLayoutCollapse", function() {
     assert.equal(cursor.col, 1);
     assert.equal(await gu.getActiveCell().getText(), 'angel');
     assert.equal(await gu.getActiveSectionTitle(), 'INVESTMENTS');
-    assert.match(await driver.getCurrentUrl(), /\/o\/docs\/[^/]+\/Investment-Research\/p\/1$/);
+    assert.match(await driver.getCurrentUrl(), /Investment-Research-smaller\/p\/1$/);
     await revert();
   });
 

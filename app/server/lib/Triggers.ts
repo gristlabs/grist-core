@@ -744,10 +744,21 @@ export class DocTriggers {
           this._log("Successfully sent batch of webhook events", meta);
           const {webhookId, host, quantity} = meta;
           this._activeDoc.logAuditEvent(null, {
-            event: {
-              name: 'deliverWebhookEvents',
-              details: {id: webhookId, host, quantity},
-              user: {type: 'system'},
+            action: "document.deliver_webhook_events",
+            actor: {
+              type: "system",
+            },
+            details: {
+              document: {
+                id: this._docId,
+              },
+              webhook: {
+                id: webhookId,
+                events: {
+                  delivered_to: host,
+                  quantity,
+                },
+              },
             },
           });
         }

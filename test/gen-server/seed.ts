@@ -37,7 +37,7 @@ import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
 import {Login} from "app/gen-server/entity/Login";
 import {Organization} from "app/gen-server/entity/Organization";
-import {Product, PRODUCTS, synchronizeProducts, teamFreeFeatures} from "app/gen-server/entity/Product";
+import {Product, PRODUCTS, synchronizeProducts, teamFeatures, teamFreeFeatures} from "app/gen-server/entity/Product";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {EXAMPLE_WORKSPACE_NAME} from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -56,12 +56,20 @@ export const testDailyApiLimitFeatures = {
   baseMaxApiUnitsPerDocumentPerDay: 3,
 };
 
+export const testAuditLogsFeatures = {
+  ...teamFeatures,
+  installationAuditLogs: true,
+};
 
 const testProducts = [
   ...PRODUCTS,
-    {
+  {
     name: 'testDailyApiLimit',
     features: testDailyApiLimitFeatures,
+  },
+  {
+    name: 'testAuditLogs',
+    features: testAuditLogsFeatures,
   },
 ];
 
@@ -229,12 +237,23 @@ export const exampleOrgs = [
       }
     ]
   },
+  {
+    name: 'TestAuditLogs',
+    domain: 'testauditlogs',
+    product: 'testAuditLogs',
+    workspaces: [
+      {
+        name: 'TestAuditLogsWs',
+        docs: [],
+      }
+    ]
+  },
 ];
-
 
 const exampleUsers: {[user: string]: {[org: string]: string}} = {
   Chimpy: {
     TestDailyApiLimit: 'owners',
+    TestAuditLogs: 'owners',
     FreeTeam: 'owners',
     Chimpyland: 'owners',
     NASA: 'owners',

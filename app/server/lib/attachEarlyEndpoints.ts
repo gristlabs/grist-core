@@ -14,6 +14,7 @@ import {
   PreviousAndCurrent,
   QueryResult,
 } from "app/gen-server/lib/homedb/Interfaces";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
@@ -41,6 +42,19 @@ export interface AttachOptions {
   userIdMiddleware: RequestHandler;
 }
 
+/**
+ * Attaches endpoints that should be available as early as possible
+ * in the Grist startup process.
+ *
+ * These endpoints comprise a baseline for troubleshooting a faulty
+ * installation of Grist. Currently, this includes the landing page
+ * for the Admin Panel, and API endpoints for restarting the install,
+ * checking the status of various install probes, reading/writing install
+ * prefs, and reading/writing install and org configuration.
+ *
+ * Only the bare minimum middleware needed for these endpoints to function
+ * should be added beforehand (e.g. `userIdMiddleware`).
+ */
 export function attachEarlyEndpoints(options: AttachOptions) {
   const { app, gristServer, userIdMiddleware } = options;
 
@@ -190,6 +204,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       const configResult = await gristServer
         .getHomeDBManager()
         .updateInstallConfig(key, value);
+      if (configResult.data) {
+        logCreateOrUpdateConfigEvents(req, configResult.data);
+      }
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
     })
@@ -200,10 +217,13 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     hasValidConfigKey,
     expressWrap(async (req, res) => {
       const key = stringParam(req.params.key, "key") as ConfigKey;
-      const { status } = await gristServer
+      const { data, ...result } = await gristServer
         .getHomeDBManager()
         .deleteInstallConfig(key);
-      return sendReply(req, res, { status });
+      if (data) {
+        logDeleteConfigEvents(req, data);
+      }
+      return sendReply(req, res, result);
     })
   );
 
@@ -232,6 +252,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       const configResult = await gristServer
         .getHomeDBManager()
         .updateOrgConfig(getScope(req), org, key, value);
+      if (configResult.data) {
+        logCreateOrUpdateConfigEvents(req, configResult.data);
+      }
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
     })
@@ -243,12 +266,85 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (req, res) => {
       const org = getOrgKey(req);
       const key = stringParam(req.params.key, "key") as ConfigKey;
-      const { status } = await gristServer
+      const { data, status } = await gristServer
         .getHomeDBManager()
         .deleteOrgConfig(getScope(req), org, key);
+      if (data) {
+        logDeleteConfigEvents(req, data);
+      }
       return sendReply(req, res, { status });
     })
   );
+
+  function logCreateOrUpdateConfigEvents(
+    req: Request,
+    config: Config | PreviousAndCurrent<Config>
+  ) {
+    const mreq = req as RequestWithLogin;
+    if ("previous" in config) {
+      const { previous, current } = config;
+      gristServer.getAuditLogger().logEvent(mreq, {
+        action: "config.update",
+        context: {
+          site: current.org
+            ? pick(current.org, "id", "name", "domain")
+            : undefined,
+        },
+        details: {
+          previous: {
+            config: {
+              ...pick(previous, "id", "key", "value"),
+              site: previous.org
+                ? pick(previous.org, "id", "name", "domain")
+                : undefined,
+            },
+          },
+          current: {
+            config: {
+              ...pick(current, "id", "key", "value"),
+              site: current.org
+                ? pick(current.org, "id", "name", "domain")
+                : undefined,
+            },
+          },
+        },
+      });
+    } else {
+      gristServer.getAuditLogger().logEvent(mreq, {
+        action: "config.create",
+        context: {
+          site: config.org
+            ? pick(config.org, "id", "name", "domain")
+            : undefined,
+        },
+        details: {
+          config: {
+            ...pick(config, "id", "key", "value"),
+            site: config.org
+              ? pick(config.org, "id", "name", "domain")
+              : undefined,
+          },
+        },
+      });
+    }
+  }
+
+  function logDeleteConfigEvents(req: Request, config: Config) {
+    gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
+      action: "config.delete",
+      context: {
+        site: config.org ? pick(config.org, "id", "name", "domain") : undefined,
+      },
+      details: {
+        config: {
+          ...pick(config, "id", "key", "value"),
+          site: config.org
+            ? pick(config.org, "id", "name", "domain")
+            : undefined,
+        },
+      },
+    });
+  }
 }
 
 function pruneConfigAPIResult(

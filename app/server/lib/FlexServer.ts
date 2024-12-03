@@ -13,6 +13,7 @@ import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from "app/gen-server/entity/Organization";
+import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {Activations} from 'app/gen-server/lib/Activations';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
@@ -29,7 +30,6 @@ import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
 import {
   AttachmentStoreProvider, checkAvailabilityAttachmentStoreOptions, IAttachmentStoreProvider
 } from "app/server/lib/AttachmentStoreProvider";
-import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
@@ -50,6 +50,7 @@ import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
+import {IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
@@ -84,6 +85,7 @@ import * as https from 'https';
 import {i18n} from 'i18next';
 import i18Middleware from "i18next-http-middleware";
 import mapValues = require('lodash/mapValues');
+import pick = require('lodash/pick');
 import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
@@ -449,6 +451,14 @@ export class FlexServer implements GristServer {
   public getUpdateManager() {
     if (!this._updateManager) { throw new Error('no UpdateManager available'); }
     return this._updateManager;
+  }
+
+  public getBilling(): IBilling {
+    if (!this._billing) {
+      if (!this._dbManager) { throw new Error("need dbManager"); }
+      this._billing = this.create.Billing(this._dbManager, this);
+    }
+    return this._billing;
   }
 
   public sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void> {
@@ -892,15 +902,13 @@ export class FlexServer implements GristServer {
 
   public addBillingApi() {
     if (this._check('billing-api', 'homedb', 'json', 'api-mw')) { return; }
-    this._getBilling();
-    this._billing.addEndpoints(this.app);
-    this._billing.addEventHandlers();
+    this.getBilling().addEndpoints(this.app);
+    this.getBilling().addEventHandlers();
   }
 
   public async addBillingMiddleware() {
     if (this._check('activation', 'homedb')) { return; }
-    this._getBilling();
-    await this._billing.addMiddleware?.(this.app);
+    await this.getBilling().addMiddleware?.(this.app);
   }
 
   /**
@@ -930,7 +938,7 @@ export class FlexServer implements GristServer {
   public addAuditLogger() {
     if (this._check('audit-logger', 'homedb')) { return; }
 
-    this._auditLogger = this.create.AuditLogger(this._dbManager);
+    this._auditLogger = this.create.AuditLogger(this._dbManager, this);
   }
 
   public async addTelemetry() {
@@ -962,6 +970,7 @@ export class FlexServer implements GristServer {
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.
     if (this._docWorkerMap) { await this._docWorkerMap.close(); }
     if (this._sessionStore) { await this._sessionStore.close(); }
+    if (this._auditLogger) { await this._auditLogger.close(); }
   }
 
   public addDocApiForwarder() {
@@ -1509,8 +1518,8 @@ export class FlexServer implements GristServer {
         // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
         // to other (not public) team sites.
         const doom = await createDoom();
-        await doom.deleteUser(userId);
-        this._logDeleteUserEvents(req as RequestWithLogin);
+        const {data} = await doom.deleteUser(userId);
+        if (data) { this._logDeleteUserEvents(req as RequestWithLogin, data); }
         return resp.status(200).json(true);
       }));
 
@@ -1557,8 +1566,7 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware
     ];
 
-    this._getBilling();
-    this._billing.addPages(this.app, middleware);
+    this.getBilling().addPages(this.app, middleware);
   }
 
   /**
@@ -1567,8 +1575,7 @@ export class FlexServer implements GristServer {
    */
   public addEarlyWebhooks() {
     if (this._check('webhooks', 'homedb', '!json')) { return; }
-    this._getBilling();
-    this._billing.addWebhooks(this.app);
+    this.getBilling().addWebhooks(this.app);
   }
 
   public addWelcomePaths() {
@@ -1972,6 +1979,10 @@ export class FlexServer implements GristServer {
     this._updateManager.addEndpoints();
   }
 
+  public setRestrictedMode(restrictedMode = true) {
+    this.getHomeDBManager().setReadonly(restrictedMode);
+  }
+
   // Adds endpoints that support imports and exports.
   private _addSupportPaths(docAccessMiddleware: express.RequestHandler[]) {
     if (!this._docWorker) { throw new Error("need DocWorker"); }
@@ -2226,14 +2237,6 @@ export class FlexServer implements GristServer {
     }));
   }
 
-  private _getBilling(): IBilling {
-    if (!this._billing) {
-      if (!this._dbManager) { throw new Error("need dbManager"); }
-      this._billing = this.create.Billing(this._dbManager, this);
-    }
-    return this._billing;
-  }
-
   // Check whether logger should skip a line.  Careful, req and res are morgan-specific
   // types, not Express.
   private _shouldSkipRequestLogging(req: {url: string}, res: {statusCode: number}) {
@@ -2485,25 +2488,29 @@ export class FlexServer implements GristServer {
     return isGristLogHttpEnabled || deprecatedOptionEnablesLog;
   }
 
-  private _logDeleteUserEvents(req: RequestWithLogin) {
+  private _logDeleteUserEvents(req: RequestWithLogin, user: User) {
     this.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'deleteUser',
+      action: "user.delete",
+      details: {
+        user: {
+          ...pick(user, "id", "name"),
+          email: user.loginEmail,
+        },
       },
     });
-    this.getTelemetry().logEvent(req, 'deletedAccount');
+    this.getTelemetry().logEvent(req, "deletedAccount");
   }
 
-  private _logDeleteSiteEvents(req: RequestWithLogin, {id, name}: Organization) {
+  private _logDeleteSiteEvents(req: RequestWithLogin, org: Organization) {
     this.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'deleteSite',
-        details: {id, name},
-      }
+      action: "site.delete",
+      details: {
+        site: pick(org, "id", "name", "domain"),
+      },
     });
-    this.getTelemetry().logEvent(req, 'deletedSite', {
+    this.getTelemetry().logEvent(req, "deletedSite", {
       full: {
-        siteId: id,
+        siteId: org.id,
         userId: req.userId,
       },
     });

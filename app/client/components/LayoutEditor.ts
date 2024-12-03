@@ -838,8 +838,11 @@ function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string|DOMRect
     // usable and not cause errors elsewhere.
   })
   .finally(function() {
-    layoutBox.dom!.classList.remove('layout_editor_resize_transition');
-    layoutBox.dom!.style.flexGrow = prevFlexGrow;
+    if (!layoutBox.dom) {
+      return;
+    }
+    layoutBox.dom.classList.remove('layout_editor_resize_transition');
+    layoutBox.dom.style.flexGrow = prevFlexGrow;
   });
 }
 

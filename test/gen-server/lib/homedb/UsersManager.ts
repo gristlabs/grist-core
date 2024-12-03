@@ -656,6 +656,40 @@ describe('UsersManager', function () {
       });
     });
 
+    describe('getExistingUsersByLogin()', function () {
+      it('should return existing users', async function () {
+        const emails = [PREVIEWER_EMAIL, EVERYONE_EMAIL];
+        const retrievedUsers = await db.getExistingUsersByLogin(emails);
+        assertExists(retrievedUsers);
+
+        assert.equal(retrievedUsers[0].id, db.getPreviewerUserId());
+        assert.equal(retrievedUsers[0].name, 'Preview');
+        assert.equal(retrievedUsers[1].id, db.getEveryoneUserId());
+        assert.equal(retrievedUsers[1].name, 'Everyone');
+      });
+
+      it('should normalize the passed users email', async function () {
+        const emails = [PREVIEWER_EMAIL.toUpperCase(), EVERYONE_EMAIL.toUpperCase()];
+        const retrievedUsers = await db.getExistingUsersByLogin(emails);
+
+        assert.lengthOf(retrievedUsers, 2);
+      });
+
+      it('should return an empty array when no user is found', async function () {
+        const nonExistingEmails = ['i-dont-exist@getgrist.com', 'me-neither@getgrist.com'];
+        const retrievedUsers = await db.getExistingUsersByLogin(nonExistingEmails);
+
+        assert.isEmpty(retrievedUsers);
+      });
+
+      it('should return an empty array when no emails/logins are given', async function () {
+        const emptyEmailsList: string[] = [];
+        const retrievedUsers = await db.getExistingUsersByLogin(emptyEmailsList);
+
+        assert.isEmpty(retrievedUsers);
+      });
+    });
+
     describe('getUserByLogin()', function () {
       it('should create a user when none exist with the corresponding email', async function () {
         const localPart = ensureUnique('getuserbylogin-creates-user-when-not-already-exists');

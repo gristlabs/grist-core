@@ -586,7 +586,8 @@
         "Workspace will be moved to Trash.": "A Área de Trabalho será movida pra Lixeira.",
         "Workspaces": "Áreas de Trabalho",
         "Tutorial": "Tutorial",
-        "Terms of service": "Termos de serviço"
+        "Terms of service": "Termos de serviço",
+        "Grist Resources": "Recursos do Grist"
     },
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",

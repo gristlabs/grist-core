@@ -33,6 +33,8 @@ export const Features = t.iface([], {
   "gracePeriodDays": t.opt("number"),
   "baseMaxAssistantCalls": t.opt("number"),
   "minimumUnits": t.opt("number"),
+  "installationAuditLogs": t.opt("boolean"),
+  "teamAuditLogs": t.opt("boolean"),
 });
 
 export const StripeMetaValues = t.iface([], {

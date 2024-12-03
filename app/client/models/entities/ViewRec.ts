@@ -1,4 +1,4 @@
-import {BoxSpec} from 'app/client/components/Layout';
+import {BoxSpec} from 'app/client/lib/BoxSpec';
 import {KoArray} from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
 import {DocModel, IRowModel, PageRec, recordSet, refRecord} from 'app/client/models/DocModel';

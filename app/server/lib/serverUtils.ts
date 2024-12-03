@@ -9,7 +9,7 @@ import * as net from 'net';
 import {AbortSignal} from 'node-abort-controller';
 import * as path from 'path';
 import {ConnectionOptions} from 'typeorm';
-import uuidv4 from 'uuid/v4';
+import {v4 as uuidv4} from 'uuid';
 
 // This method previously lived in this file. Re-export to avoid changing imports all over.
 export {timeoutReached} from 'app/common/gutil';

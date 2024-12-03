@@ -68,6 +68,8 @@ export interface Features {
                                   // value for the limits table. To create a per-month limit, there must be a separate
                                   // task that resets the usage in the limits table.
   minimumUnits?: number; // Minimum number of units for the plan. Default no minimum.
+  installationAuditLogs?: boolean; // Access to installation-level audit logging.
+  teamAuditLogs?: boolean; // Access to team-level audit logging.
 }
 
 /**

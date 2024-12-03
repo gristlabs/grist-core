@@ -139,7 +139,8 @@
         "Paste": "Pegar",
         "Comment": "Comentario",
         "Copy": "Copiar",
-        "Cut": "Cortar"
+        "Cut": "Cortar",
+        "Copy with headers": "Copia con cabeceras"
     },
     "ColumnFilterMenu": {
         "All": "Todo",
@@ -180,7 +181,15 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} no se muestra la columna {{columnType}}",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} no se muestran las columnas {{columnType}}",
         "No {{columnType}} columns in table.": "No hay columnas {{columnType}} en la tabla.",
-        "Clear selection": "Borrar la selección"
+        "Clear selection": "Borrar la selección",
+        "Widget": "Widget",
+        "ACCESS LEVEL": "NIVEL DE ACCESO",
+        "Accept": "Aceptar",
+        "Custom URL": "URL personalizada",
+        "Developer:": "Desarrollador:",
+        "Last updated:": "Última actualización:",
+        "Missing description and author information.": "Falta la descripción y la información del autor.",
+        "Reject": "Rechazar"
     },
     "DocHistory": {
         "Activity": "Actividad",
@@ -231,7 +240,11 @@
         "Workspace not found": "Espacio de trabajo no encontrado",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Usted está en el sitio {{siteName}}. También tiene acceso a los siguientes sitios:",
         "You are on your personal site. You also have access to the following sites:": "Estás en tu sitio personal. También tiene acceso a los siguientes sitios:",
-        "You may delete a workspace forever once it has no documents in it.": "Puede eliminar un espacio de trabajo para siempre una vez que no tenga documentos en él."
+        "You may delete a workspace forever once it has no documents in it.": "Puede eliminar un espacio de trabajo para siempre una vez que no tenga documentos en él.",
+        "Any documents created in this site will appear here.": "Todos los documentos creados en este sitio aparecerán aquí.",
+        "You have read-only access to this site. Currently there are no documents.": "Tienes acceso de solo lectura en esta página. Actualmente no hay documentos.",
+        "personal site": "sitio personal",
+        "Create my first document": "Crear mi primer documento"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "No se puede construir un recorrido del documento a partir de los datos de este documento. Asegúrese de que existe una tabla denominada GristDocTour con las columnas Title, Body, Placement y Location.",
@@ -471,7 +484,8 @@
         "Visit our {{link}} to learn more about Grist.": "Visita nuestra {{link}} para obtener más información sobre Grist.",
         "Sign in": "Iniciar sesión",
         "To use Grist, please either sign up or sign in.": "Para utilizar Grist, regístrate o inicia sesión.",
-        "Learn more in our {{helpCenterLink}}.": "Obtenga más información en nuestro {{helpCenterLink}}."
+        "Learn more in our {{helpCenterLink}}.": "Obtenga más información en nuestro {{helpCenterLink}}.",
+        "Only show documents": "Sólo mostrar documentos"
     },
     "HomeLeftPane": {
         "Access Details": "Detalles de Acceso",
@@ -488,7 +502,8 @@
         "Workspace will be moved to Trash.": "El espacio de trabajo se moverá a la papelera.",
         "Workspaces": "Espacios de trabajo",
         "Tutorial": "Tutorial",
-        "Terms of service": "Términos del servicio"
+        "Terms of service": "Términos del servicio",
+        "Grist Resources": "Recursos de Grist"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de ayuda"
@@ -709,7 +724,8 @@
         "API Console": "Consola de la API"
     },
     "TopBar": {
-        "Manage Team": "Administrar equipo"
+        "Manage Team": "Administrar equipo",
+        "Manage team": "Administrar equipo"
     },
     "TriggerFormulas": {
         "(data cleaning)": "(limpieza de datos)",
@@ -813,7 +829,9 @@
         "Form not found": "Formulario no encontrado",
         "Powered by": "Desarrollado por",
         "An unknown error occurred.": "Ha ocurrido un error desconocido.",
-        "Build your own form": "Cree su propio formulario"
+        "Build your own form": "Cree su propio formulario",
+        "Sign-in failed{{suffix}}": "Error al iniciar sesión{{suffix}}",
+        "Failed to log in.{{separator}}Please try again or contact support.": "Error al iniciar sesión.{{separator}}Por favor, inténtelo de nuevo o póngase en contacto con el soporte."
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Enviar archivo a Google Drive"
@@ -1247,7 +1265,14 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Cree formularios sencillos directamente en Grist y compártalos en un clic con nuestro nuevo widget. {{learnMoreButton}}",
         "These rules are applied after all column rules have been processed, if applicable.": "Estas reglas se aplican después de que se hayan procesado todas las reglas de columna, si procede.",
         "Filter displayed dropdown values with a condition.": "Filtra los valores desplegables mostrados con una condición.",
-        "Example: {{example}}": "Ejemplo: {{example}}"
+        "Example: {{example}}": "Ejemplo: {{example}}",
+        "Creates a reverse column in target table that can be edited from either end.": "Crea una columna inversa en la tabla de destino que puede editarse desde cualquier extremo.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Para permitir asignaciones múltiples, cambie el tipo de la columna Referencia a Lista de referencias.",
+        "Community widgets are created and maintained by Grist community members.": "Los widgets comunitarios son creados y mantenidos por los miembros de la comunidad Grist.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Esta limitación se produce cuando uno de los extremos de una referencia bidireccional se configura como Referencia única.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Esta limitación ocurre cuando una columna en una referencia bidireccional es de tipo Referencia.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Para permitir asignaciones múltiples, cambie el tipo de la Columna referenciada a Lista de referencias.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Las referencias bidireccionales no son compatibles actualmente con las columnas de fórmula o fórmula de activación"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1614,7 +1639,8 @@
         "Key to sign sessions with": "Clave para firmar sesiones con",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist firma las cookies de sesión de usuario con una clave secreta. Establezca esta clave mediante la variable de entorno GRIST_SESSION_SECRET. Si no se establece, Grist vuelve a un valor predeterminado. Es posible que quitemos este aviso en el futuro, ya que los identificadores de sesión generados desde la versión 1.1.16 son intrínsecamente seguros desde el punto de vista criptográfico.",
         "Enterprise": "Empresarial",
-        "Enable Grist Enterprise": "Activar Grist Enterprise"
+        "Enable Grist Enterprise": "Activar Grist Enterprise",
+        "checking": "comprobando"
     },
     "CreateTeamModal": {
         "Cancel": "Cancelar",
@@ -1703,7 +1729,8 @@
         "Complete our basics tutorial": "Completa nuestro tutorial básico",
         "Complete the tutorial": "Completa el tutorial",
         "3 minute video tour": "La duración del vídeo es de 3 minutos",
-        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Aprende los conceptos básicos de las columnas de referencia, widgets vinculados, tipos de columnas y tarjetas."
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Aprende los conceptos básicos de las columnas de referencia, widgets vinculados, tipos de columnas y tarjetas.",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Aprende los conceptos básicos de columnas de referencia, widgets vinculados, tipos de columna y tarjetas."
     },
     "OnboardingPage": {
         "Discover Grist in 3 minutes": "Descubre Grist en 3 minutos",
@@ -1734,5 +1761,87 @@
         "Disable Grist Enterprise": "Desactivar Grist Enterprise",
         "Enable Grist Enterprise": "Activar Grist Enterprise",
         "Grist Enterprise is **enabled**.": "Grist Enterprise está **activado**."
+    },
+    "CustomWidgetGallery": {
+        "Add Widget": "Agregar widget",
+        "Add a widget from outside this gallery.": "Agregar un widget desde fuera de esta galería.",
+        "Last updated:": "Última actualización:",
+        "(Missing info)": "(Falta información)",
+        "Add Your Own Widget": "Agregar su propio widget",
+        "Cancel": "Cancelar",
+        "Change Widget": "Cambiar widget",
+        "Choose Custom Widget": "Elija Widget personalizado",
+        "Community Widget": "Widget comunitario",
+        "Custom URL": "URL personalizada",
+        "Developer:": "Desarrollador:",
+        "Grist Widget": "Widget Grist",
+        "Widget URL": "URL del widget",
+        "Learn more about Custom Widgets": "Más información sobre los widgets personalizados",
+        "No matching widgets": "No hay widgets coincidentes",
+        "Search": "Búsqueda"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Panel de administración"
+    },
+    "markdown": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs."
+            }
+        },
+        "The toggle is **off**": "El conmutador está **desactivado**",
+        "The toggle is **on**": "El conmutador está **activado**"
+    },
+    "HomeIntroCards": {
+        "Blank document": "Documento en blanco",
+        "3 minute video tour": "Tour de vídeo de 3 minutos",
+        "Help center": "Centro de ayuda",
+        "Finish our basics tutorial": "Termina nuestro tutorial básico",
+        "Import file": "Importar archivo",
+        "Learn more {{webinarsLinks}}": "Aprende más {{webinarsLinks}}",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Encontra soluciones y explora más recursos {{helpCenterLink}}",
+        "Start a new document": "Iniciar un nuevo documento",
+        "Templates": "Plantillas",
+        "Tutorial": "Tutorial",
+        "Webinars": "Webinar"
+    },
+    "ReverseReferenceConfig": {
+        "Column": "Columna",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Es el reverso de la columna de referencia {{column}} en la tabla {{table}}.",
+        "Delete": "Borrar",
+        "Delete column {{column}} in table {{table}}?": "¿Eliminar la columna {{column}} en la tabla {{table}}?",
+        "Table": "Tabla",
+        "Add two-way reference": "Añadir referencia de dos vías",
+        "Two-way Reference": "Referencia de dos vías",
+        "Delete two-way reference?": "¿Eliminar referencia de dos vías?",
+        "Target table": "Tabla destino"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs."
+            }
+        },
+        "The toggle is **off**": "El conmutador está **desactivado**",
+        "The toggle is **on**": "El conmutador está **activado**"
+    },
+    "SupportGristButton": {
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "¡Muchas gracias!. Su confianza y apoyo son muy apreciados. Puedes darte de baja en cualquier momento desde {{link}} del menú de usuario.",
+        "Help Center": "Centro de ayuda",
+        "Admin Panel": "Panel de administración",
+        "Close": "Cerrar",
+        "Opt in to Telemetry": "Optar por la telemetría",
+        "Support Grist": "Soporte Grist",
+        "Opted In": "Optó por participar"
+    },
+    "buildReassignModal": {
+        "Cancel": "Cancelar",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Cada registro {{targetTable}} solo puede asignarse a un único registro {{sourceTable}}.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Reasignar al registro {{sourceTable}} {{sourceName}}.",
+        "Reassign": "Reasignar",
+        "Reassign to new {{sourceTable}} records.": "Reasignar a nuevos registros {{sourceTable}}.",
+        "Record already assigned_one": "Registro ya asignado",
+        "Record already assigned_other": "Registro ya asignado",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} registro {{targetName}} ya está asignado a {{sourceTable}} registro          {{oldSourceName}}."
     }
 }

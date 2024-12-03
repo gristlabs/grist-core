@@ -111,7 +111,7 @@ export const vars = {
   labelTextBg:    new CustomProp('label-text-bg', '#FFFFFF'),
   labelActiveBg:  new CustomProp('label-active-bg', '#F0F0F0'),
 
-  controlMargin:  new CustomProp('normal-margin', '2px'),
+  controlMargin:  new CustomProp('normal-margin',  '2px'),
   controlPadding: new CustomProp('normal-padding', '3px 5px'),
   tightPadding:   new CustomProp('tight-padding',  '1px 2px'),
   loosePadding:   new CustomProp('loose-padding',  '5px 15px'),
@@ -386,6 +386,7 @@ export const theme = {
 
   /* Checkboxes */
   checkboxBg: new CustomProp('theme-checkbox-bg', undefined, colors.light),
+  checkboxSelectedFg: new CustomProp('theme-checkbox-selected-bg', undefined, colors.lightGreen),
   checkboxDisabledBg: new CustomProp('theme-checkbox-disabled-bg', undefined, colors.darkGrey),
   checkboxBorder: new CustomProp('theme-checkbox-border', undefined, colors.darkGrey),
   checkboxBorderHover: new CustomProp('theme-checkbox-border-hover', undefined, colors.hover),
@@ -436,16 +437,19 @@ export const theme = {
     colors.darkGrey),
 
   /* Right Panel */
-  rightPanelTabFg: new CustomProp('theme-right-panel-tab-fg', undefined, colors.dark),
-  rightPanelTabBg: new CustomProp('theme-right-panel-tab-bg', undefined, colors.lightGrey),
+  rightPanelTabFg: new CustomProp('theme-right-panel-tab-fg', undefined, colors.slate),
+  rightPanelTabBg: new CustomProp('theme-right-panel-tab-bg', undefined, colors.light),
   rightPanelTabIcon: new CustomProp('theme-right-panel-tab-icon', undefined, colors.slate),
   rightPanelTabIconHover: new CustomProp('theme-right-panel-tab-icon-hover', undefined,
-    colors.lightGreen),
-  rightPanelTabHoverBg: new CustomProp('theme-right-panel-tab-hover-bg', undefined,
-    colors.mediumGrey),
+    colors.dark),
+  rightPanelTabBorder: new CustomProp('theme-right-panel-tab-border', undefined, colors.mediumGrey),
+  rightPanelTabHoverBg: new CustomProp('theme-right-panel-tab-hover-bg', undefined, colors.light),
+  rightPanelTabHoverFg: new CustomProp('theme-right-panel-tab-hover-fg', undefined, colors.dark),
   rightPanelTabSelectedFg: new CustomProp('theme-right-panel-tab-selected-fg', undefined,
-    colors.light),
+    colors.dark),
   rightPanelTabSelectedBg: new CustomProp('theme-right-panel-tab-selected-bg', undefined,
+    colors.lightGrey),
+  rightPanelTabSelectedIcon: new CustomProp('theme-right-panel-tab-selected-icon', undefined,
     colors.lightGreen),
   rightPanelTabButtonHoverBg: new CustomProp('theme-right-panel-tab-button-hover-bg',
     undefined, colors.darkGreen),
@@ -497,7 +501,7 @@ export const theme = {
   documentHistoryTableBorder: new CustomProp('theme-document-history-table-border',
     undefined, 'lightgray'),
   documentHistoryTableBorderLight: new CustomProp('theme-document-history-table-border-light',
-    undefined, '#D9D9D9'),
+    undefined, colors.darkGrey),
 
   /* Accents */
   accentIcon: new CustomProp('theme-accent-icon', undefined, colors.lightGreen),
@@ -554,7 +558,7 @@ export const theme = {
   menuItemFg: new CustomProp('theme-menu-item-fg', undefined, 'black'),
   menuItemSelectedFg: new CustomProp('theme-menu-item-selected-fg', undefined, colors.light),
   menuItemSelectedBg: new CustomProp('theme-menu-item-selected-bg', undefined, vars.primaryBg),
-  menuItemDisabledFg: new CustomProp('theme-menu-item-disabled-fg', undefined, '#D9D9D9'),
+  menuItemDisabledFg: new CustomProp('theme-menu-item-disabled-fg', undefined, colors.darkGrey),
   menuItemIconFg: new CustomProp('theme-menu-item-icon-fg', undefined, colors.slate),
   menuItemIconSelectedFg: new CustomProp('theme-menu-item-icon-selected-fg', undefined, 'white'),
 
@@ -804,7 +808,7 @@ export const theme = {
   colorSelectFontOptionBgSelected: new CustomProp('theme-color-select-font-option-bg-selected',
     undefined, colors.dark),
   colorSelectColorSquareBorder: new CustomProp('theme-color-select-color-square-border',
-    undefined, '#D9D9D9'),
+    undefined, colors.darkGrey),
   colorSelectColorSquareBorderEmpty: new CustomProp('theme-color-select-color-square-border-empty',
     undefined, colors.dark),
   colorSelectInputFg: new CustomProp('theme-color-select-input-fg',
@@ -865,13 +869,13 @@ export const theme = {
   attachmentsCellIconFg: new CustomProp(
     'theme-attachments-cell-icon-fg', undefined, 'white'),
   attachmentsCellIconBg: new CustomProp(
-    'theme-attachments-cell-icon-bg', undefined, '#D9D9D9'),
+    'theme-attachments-cell-icon-bg', undefined, colors.darkGrey),
   attachmentsCellIconHoverBg: new CustomProp(
     'theme-attachments-cell-icon-hover-bg', undefined, '#929299'),
 
   /* Announcement Popups */
   announcementPopupFg: new CustomProp('theme-announcement-popup-fg', undefined, '#000000'),
-  announcementPopupBg: new CustomProp('theme-announcement-popup-bg', undefined, '#DCF4EB'),
+  announcementPopupBg: new CustomProp('theme-announcement-popup-bg', undefined, colors.selectionOpaque),
 
   /* Switches */
   switchSliderFg: new CustomProp('theme-switch-slider-fg', undefined, '#ccc'),
@@ -908,6 +912,12 @@ export const theme = {
   appHeaderBg: new CustomProp('theme-app-header-bg', undefined, colors.light),
   appHeaderBorder: new CustomProp('theme-app-header-border', undefined, colors.mediumGreyOpaque),
   appHeaderBorderHover: new CustomProp('theme-app-header-border-hover', undefined, colors.slate),
+
+  /* Card Button */
+  cardButtonBorder: new CustomProp('theme-card-button-border', undefined, colors.darkGrey),
+  cardButtonBorderSelected: new CustomProp('theme-card-button-border-selected', undefined,
+    colors.lightGreen),
+  cardButtonShadow: new CustomProp('theme-card-button-shadow', undefined, "#0000001A"),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

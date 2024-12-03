@@ -4,7 +4,7 @@ import {FREE_PLAN, STUB_PLAN, TEAM_PLAN} from 'app/common/Features';
 import {assert} from 'chai';
 import {TestServer} from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
-import uuidv4 from 'uuid/v4';
+import {v4 as uuidv4} from 'uuid';
 import omit = require('lodash/omit');
 
 const charonProfile = {email: 'charon@getgrist.com', name: 'Charon'};
@@ -248,6 +248,7 @@ describe('HomeDBManager', function() {
       'FreeTeam',
       'NASA',
       'Primately',
+      'TestAuditLogs',
       'TestDailyApiLimit',
       'Charonland',
       'Chimpyland',

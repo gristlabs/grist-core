@@ -1,91 +1,119 @@
-import {AuditEventDetails, AuditEventName, SiteAuditEventName} from 'app/common/AuditEvent';
+import { AuditEventAction, AuditEventDetails } from "app/server/lib/AuditEvent";
+import groupBy from "lodash/groupBy";
 
 interface Options {
-  /**
-   * The type of audit log events to show.
-   *
-   * Defaults to `"installation"`.
-   */
-  type?: AuditEventType;
+  type: AuditEventType;
 }
 
-type AuditEventType = 'installation' | 'site';
+type AuditEventType = "installation" | "site";
 
-export function showAuditLogEvents({type = 'installation'}: Options) {
-  showTitle(type);
-  const events = getAuditEvents(type);
-  showTableOfContents(events);
+export function showAuditLogEvents({ type }: Options) {
+  switch (type) {
+    case "installation": {
+      showInstallationEvents();
+      break;
+    }
+    case "site": {
+      showSiteEvents();
+      break;
+    }
+  }
+}
+
+function showInstallationEvents() {
+  console.log("---\ntitle: Audit log events\n---\n");
+  console.log(
+    "# Audit log events for your self-managed instance {: .tag-ee }"
+  );
+  const events = Object.entries(AuditEvents).filter(([, { type }]) => {
+    const types = Array.isArray(type) ? type : [type];
+    return types.includes("installation");
+  });
   showEvents(events);
 }
 
-function showTitle(type: AuditEventType) {
-  if (type === 'installation') {
-    console.log('# Installation audit log events {: .tag-core .tag-ee }\n');
-  } else {
-    console.log('# Site audit log events\n');
-  }
+function showSiteEvents() {
+  console.log("---\ntitle: Audit log events\n---\n");
+  console.log("# Audit log events for your team site {: .tag-business .tag-ee }");
+  console.log(
+    `!!! note
+    The events on this page appear in the audit log of a [team site]` +
+      `(../teams.md). For events that appear in a [Self-Managed Grist instance]` +
+      `(../self-managed.md), see ["Audit log events for your self-managed instance"]` +
+      `(../install/audit-log-events.md).\n`
+  );
+  const events = Object.entries(AuditEvents).filter(([, { type }]) => {
+    const types = Array.isArray(type) ? type : [type];
+    return types.includes("site");
+  });
+  showEvents(events);
 }
 
-function getAuditEvents(type: AuditEventType): [string, AuditEvent<AuditEventName>][] {
-  if (type === 'installation') {
-    return Object.entries(AuditEvents).filter(([name]) => AuditEventName.guard(name));
-  } else {
-    return Object.entries(AuditEvents).filter(([name]) => SiteAuditEventName.guard(name));
-  }
-}
+function showEvents(events: [string, AuditEvent<AuditEventAction>][]) {
+  const eventsByCategory = groupBy(
+    events,
+    ([name]) => name.split(".")?.[0] ?? "other"
+  );
+  for (const [category, categoryEvents] of Object.entries(
+    eventsByCategory
+  ).sort((a, b) => a[0].localeCompare(b[0]))) {
+    console.log(`\n## ${category}`);
+    for (const [action, event] of categoryEvents.sort((a, b) =>
+      a[0].localeCompare(b[0])
+    )) {
+      const { description, properties, sample } = event;
+      console.log(`\n### ${action}\n`);
+      console.log(`${description}\n`);
+      if (Object.keys(properties).length === 0) {
+        continue;
+      }
 
-function showTableOfContents(events: [string, AuditEvent<AuditEventName>][]) {
-  for (const [name] of events) {
-    console.log(` - [${name}](#${name.toLowerCase()})`);
-  }
-  console.log('');
-}
-
-function showEvents(events: [string, AuditEvent<AuditEventName>][]) {
-  for (const [name, event] of events) {
-    const {description, properties} = event;
-    console.log(`## ${name}\n`);
-    console.log(`${description}\n`);
-    if (Object.keys(properties).length === 0) { continue; }
-
-    console.log('### Properties\n');
-    console.log('| Name | Type | Description |');
-    console.log('| ---- | ---- | ----------- |');
-    showEventProperties(properties);
-    console.log('');
+      console.log("#### Details\n");
+      console.log("| Property | Type | Description |");
+      console.log("| -------- | ---- | ----------- |");
+      showEventProperties(properties);
+      console.log("\n#### Sample\n");
+      console.log("```json");
+      console.log(JSON.stringify(sample, null, 2));
+      console.log("```");
+    }
   }
 }
 
 function showEventProperties(
   properties: AuditEventProperties<object>,
-  prefix = ''
+  prefix = ""
 ) {
-  for (const [key, {type, description, optional, ...rest}] of Object.entries(properties)) {
-    const name = prefix + key + (optional ? ' *(optional)*' : '');
-    const types = (Array.isArray(type) ? type : [type]).map(t => `\`${t}\``);
-    console.log(`| ${name} | ${types.join(' or ')} | ${description} |`);
-    if ('properties' in rest) {
-      showEventProperties(rest.properties, prefix + `${name}.`);
+  for (const [key, { type, description, optional, ...rest }] of Object.entries(
+    properties
+  )) {
+    const name = prefix + key + (optional ? " *(optional)*" : "");
+    const types = (Array.isArray(type) ? type : [type]).map((t) => `\`${t}\``);
+    console.log(`| ${name} | ${types.join(" or ")} | ${description} |`);
+    if ("properties" in rest) {
+      showEventProperties(rest.properties, `${prefix + key}.`);
     }
   }
 }
 
 type AuditEvents = {
-  [Name in keyof AuditEventDetails]: Name extends AuditEventName
-  ? AuditEvent<Name>
-  : never
-}
+  [Action in keyof AuditEventDetails]: Action extends AuditEventAction
+    ? AuditEvent<Action>
+    : never;
+};
 
-interface AuditEvent<Name extends AuditEventName> {
+interface AuditEvent<Action extends AuditEventAction> {
+  type: AuditEventType | AuditEventType[];
   description: string;
-  properties: AuditEventProperties<AuditEventDetails[Name]>;
+  properties: AuditEventProperties<AuditEventDetails[Action]>;
+  sample: AuditEventDetails[Action];
 }
 
 type AuditEventProperties<T> = {
-  [K in keyof T]: T[K] extends object
-  ? AuditEventProperty & {properties: AuditEventProperties<T[K]>}
-  : AuditEventProperty
-}
+  [K in keyof T]: T[K] extends (object & { length?: never }) | undefined
+    ? AuditEventProperty & { properties: AuditEventProperties<T[K]> }
+    : AuditEventProperty & { properties?: AuditEventProperties<T[K]> };
+};
 
 interface AuditEventProperty {
   type: string | string[];
@@ -94,595 +122,1709 @@ interface AuditEventProperty {
 }
 
 const AuditEvents: AuditEvents = {
-  createDocument: {
-    description: 'A new document was created.',
+  "config.create": {
+    type: ["installation", "site"],
+    description: "A configuration item was created.",
     properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the document.',
-        optional: true,
-      },
-    },
-  },
-  sendToGoogleDrive: {
-    description: 'A document was sent to Google Drive.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-    },
-  },
-  renameDocument: {
-    description: 'A document was renamed.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      previousName: {
-        type: 'string',
-        description: 'The previous name of the document.',
-      },
-      currentName: {
-        type: 'string',
-        description: 'The current name of the document.',
-      },
-    },
-  },
-  pinDocument: {
-    description: 'A document was pinned.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the document.',
-      },
-    },
-  },
-  unpinDocument: {
-    description: 'A document was unpinned.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the document.',
-      },
-    },
-  },
-  moveDocument: {
-    description: 'A document was moved to a new workspace.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      previousWorkspace: {
-        type: 'object',
-        description: 'The workspace the document was moved from.',
+      config: {
+        type: "object",
+        description: "The created configuration item.",
         properties: {
           id: {
-            type: 'number',
-            description: 'The ID of the workspace.',
+            type: "number",
+            description: "The configuration item ID.",
           },
-          name: {
-            type: 'string',
-            description: 'The name of the workspace.',
+          key: {
+            type: "string",
+            description: "The configuration item key.",
           },
-        },
-      },
-      newWorkspace: {
-        type: 'object',
-        description: 'The workspace the document was moved to.',
-        properties: {
-          id: {
-            type: 'number',
-            description: 'The ID of the workspace.',
+          value: {
+            type: "any",
+            description: "The configuration item value.",
+            properties: {} as any,
           },
-          name: {
-            type: 'string',
-            description: 'The name of the workspace.',
+          site: {
+            type: "object",
+            description: "The site this configuration item belongs to.",
+            optional: true,
+            properties: {
+              id: {
+                type: "number",
+                description: "The site ID.",
+              },
+              name: {
+                type: "string",
+                description: "The site name.",
+              },
+              domain: {
+                type: "string",
+                description: "The site domain.",
+              },
+            },
           },
         },
       },
     },
-  },
-  removeDocument: {
-    description: 'A document was moved to the trash.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the document.',
-      },
-    },
-  },
-  deleteDocument: {
-    description: 'A document was permanently deleted.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the document.',
+    sample: {
+      config: {
+        id: 18,
+        key: "audit_log_streaming_destinations",
+        value: [
+          {
+            id: "ee6971af-80f5-4654-9bd2-5c6ab33e7ccf",
+            name: "splunk",
+            url: "https://hec.example.com:8088/services/collector/event",
+            token: "Splunk B5A79AAD-D822-46CC-80D1-819F80D7BFB0",
+          },
+        ],
+        site: {
+          id: 42,
+          name: "Grist Labs",
+          domain: "gristlabs",
+        },
       },
     },
   },
-  restoreDocumentFromTrash: {
-    description: 'A document was restored from the trash.',
+  "config.delete": {
+    type: ["installation", "site"],
+    description: "A configuration item was deleted.",
     properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the document.',
-      },
-      workspace: {
-        type: 'object',
-        description: 'The workspace of the document.',
+      config: {
+        type: "object",
+        description: "The deleted configuration item.",
         properties: {
           id: {
-            type: 'number',
-            description: 'The ID of the workspace.',
+            type: "number",
+            description: "The configuration item ID.",
           },
-          name: {
-            type: 'string',
-            description: 'The name of the workspace.',
+          key: {
+            type: "string",
+            description: "The configuration item key.",
+          },
+          value: {
+            type: "any",
+            description: "The configuration item value.",
+            properties: {} as any,
+          },
+          site: {
+            type: "object",
+            description: "The site this configuration item belonged to.",
+            optional: true,
+            properties: {
+              id: {
+                type: "number",
+                description: "The site ID.",
+              },
+              name: {
+                type: "string",
+                description: "The site name.",
+              },
+              domain: {
+                type: "string",
+                description: "The site domain.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      config: {
+        id: 18,
+        key: "audit_log_streaming_destinations",
+        value: [
+          {
+            id: "ee6971af-80f5-4654-9bd2-5c6ab33e7ccf",
+            name: "splunk",
+            url: "https://hec.example.com:8088/services/collector/event",
+            token: "Splunk B5A79AAD-D822-46CC-80D1-819F80D7BFB0",
+          },
+        ],
+        site: {
+          id: 42,
+          name: "Grist Labs",
+          domain: "gristlabs",
+        },
+      },
+    },
+  },
+  "config.update": {
+    type: ["installation", "site"],
+    description: "A configuration item was updated.",
+    properties: {
+      previous: {
+        type: "object",
+        description: "The previous versions of affected resources.",
+        properties: {
+          config: {
+            type: "object",
+            description: "The previous configuration item.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The configuration item ID.",
+              },
+              key: {
+                type: "string",
+                description: "The configuration item key.",
+              },
+              value: {
+                type: "any",
+                description: "The configuration item value.",
+                properties: {} as any,
+              },
+              site: {
+                type: "object",
+                description: "The site this configuration item belongs to.",
+                optional: true,
+                properties: {
+                  id: {
+                    type: "number",
+                    description: "The site ID.",
+                  },
+                  name: {
+                    type: "string",
+                    description: "The site name.",
+                  },
+                  domain: {
+                    type: "string",
+                    description: "The site domain.",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      current: {
+        type: "object",
+        description: "The current versions of affected resources.",
+        properties: {
+          config: {
+            type: "object",
+            description: "The current configuration item.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The configuration item ID.",
+              },
+              key: {
+                type: "string",
+                description: "The configuration item key.",
+              },
+              value: {
+                type: "any",
+                description: "The configuration item value.",
+                properties: {} as any,
+              },
+              site: {
+                type: "object",
+                description: "The site this configuration item belongs to.",
+                optional: true,
+                properties: {
+                  id: {
+                    type: "number",
+                    description: "The site ID.",
+                  },
+                  name: {
+                    type: "string",
+                    description: "The site name.",
+                  },
+                  domain: {
+                    type: "string",
+                    description: "The site domain.",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      previous: {
+        config: {
+          id: 18,
+          key: "audit_log_streaming_destinations",
+          value: [
+            {
+              id: "ee6971af-80f5-4654-9bd2-5c6ab33e7ccf",
+              name: "splunk",
+              url: "https://hec.example.com:8088/services/collector/event",
+              token: "Splunk B5A79AAD-D822-46CC-80D1-819F80D7BFB0",
+            },
+          ],
+          site: {
+            id: 42,
+            name: "Grist Labs",
+            domain: "gristlabs",
+          },
+        },
+      },
+      current: {
+        config: {
+          id: 18,
+          key: "audit_log_streaming_destinations",
+          value: [
+            {
+              id: "ee6971af-80f5-4654-9bd2-5c6ab33e7ccf",
+              name: "splunk",
+              url: "https://hec.example.com:8088/services/collector/event",
+              token: "Splunk B5A79AAD-D822-46CC-80D1-819F80D7BFB0",
+            },
+            {
+              id: "8f421760-14e9-4d11-b10a-f51d82041e0f",
+              name: "other",
+              url: "https://other.example.com/events",
+            },
+          ],
+          site: {
+            id: 42,
+            name: "Grist Labs",
+            domain: "gristlabs",
           },
         },
       },
     },
   },
-  changeDocumentAccess: {
-    description: 'Access to a document was changed.',
+  "document.change_access": {
+    type: ["installation", "site"],
+    description: "A document's access was changed.",
     properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
-      },
-      access: {
-        type: 'object',
-        description: 'The access level of the document.',
+      document: {
+        type: "object",
+        description: "The document.",
         properties: {
-          maxInheritedRole: {
-            type: ['"owners"', '"editors"', '"viewers"', 'null'],
-            description: 'The max inherited role.',
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+        },
+      },
+      access_changes: {
+        type: "object",
+        description: "The access changes.",
+        properties: {
+          public_access: {
+            type: ["string", "null"],
+            description: "The new public access level.",
+            optional: true,
+          },
+          max_inherited_access: {
+            type: ["string", "null"],
+            description:
+              "The new maximum access level that can be inherited from the document's workspace or site.",
             optional: true,
           },
           users: {
-            type: 'object',
-            description: 'The access level by user ID.',
+            type: "Array<object>",
+            description: "The new access levels of individual users.",
             optional: true,
           },
         },
       },
     },
-  },
-  openDocument: {
-    description: 'A document was opened.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the document.',
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
       },
-      name: {
-        type: 'string',
-        description: 'The name of the document.',
-      },
-      urlId: {
-        type: 'string',
-        description: 'The URL ID of the document.',
-      },
-      forkId: {
-        type: 'string',
-        description: 'The fork ID of the document, if the document is a fork.',
-      },
-      snapshotId: {
-        type: 'string',
-        description: 'The snapshot ID of the document, if the document is a snapshot.',
+      access_changes: {
+        public_access: "viewers",
+        max_inherited_access: null,
+        users: [
+          {
+            id: 146,
+            name: "Flapjack Toasty",
+            email: "flapjack@example.com",
+            access: "owners",
+          },
+        ],
       },
     },
   },
-  duplicateDocument: {
-    description: 'A document was duplicated.',
+  "document.clear_all_webhook_queues": {
+    type: ["installation", "site"],
+    description: "A document's webhook queues were cleared.",
     properties: {
-      original: {
-        type: 'object',
-        description: 'The document that was duplicated.',
+      document: {
+        type: "object",
+        description: "The created document.",
         properties: {
           id: {
-            type: 'string',
-            description: 'The ID of the document.',
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+    },
+  },
+  "document.clear_webhook_queue": {
+    type: ["installation", "site"],
+    description: "A document's webhook queue was cleared.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+      webhook: {
+        type: "object",
+        description: "The webhook.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The webhook ID.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+      webhook: {
+        id: "17f8328e-0523-41fe-89aa-ae180bebb26e",
+      },
+    },
+  },
+  "document.create": {
+    type: ["installation", "site"],
+    description: "A document was created.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The created document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
           },
           name: {
-            type: 'string',
-            description: 'The name of the document.',
+            type: "string",
+            description: "The document name.",
           },
           workspace: {
-            type: 'object',
-            description: 'The workspace of the document.',
+            type: "object",
+            description: "The document's workspace.",
             properties: {
               id: {
-                type: 'number',
-                description: 'The ID of the workspace',
+                type: "number",
+                description: "The workspace ID.",
               },
               name: {
-                type: 'string',
-                description: 'The name of the workspace.',
+                type: "string",
+                description: "The workspace name.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+        workspace: {
+          id: 97,
+          name: "Secret Plans",
+        },
+      },
+    },
+  },
+  "document.delete": {
+    type: ["installation", "site"],
+    description: "A document was permanently deleted.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The deleted document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+      },
+    },
+  },
+  "document.deliver_webhook_events": {
+    type: ["installation", "site"],
+    description: "A document's webhook successfully delivered events.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+      webhook: {
+        type: "object",
+        description: "The webhook.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The webhook ID.",
+          },
+          events: {
+            type: "object",
+            description: "The delivered webhook events.",
+            properties: {
+              delivered_to: {
+                type: "string",
+                description: "Where the webhook events were delivered to.",
+              },
+              quantity: {
+                type: "number",
+                description:
+                  "The number of webhook events that were delivered.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+      webhook: {
+        id: "17f8328e-0523-41fe-89aa-ae180bebb26e",
+        events: {
+          delivered_to: "example.com",
+          quantity: 3,
+        },
+      },
+    },
+  },
+  "document.duplicate": {
+    type: ["installation", "site"],
+    description: "A document was duplicated.",
+    properties: {
+      original: {
+        type: "object",
+        description: "The resources that were duplicated.",
+        properties: {
+          document: {
+            type: "object",
+            description: "The document that was duplicated.",
+            properties: {
+              id: {
+                type: "string",
+                description: "The document ID.",
+              },
+              name: {
+                type: "string",
+                description: "The document name.",
               },
             },
           },
         },
       },
       duplicate: {
-        description: 'The newly-duplicated document.',
-        type: 'object',
+        type: "object",
+        description: "The newly-duplicated resources.",
         properties: {
-          id: {
-            type: 'string',
-            description: 'The ID of the document.',
-          },
-          name: {
-            type: 'string',
-            description: 'The name of the document.',
+          document: {
+            type: "object",
+            description: "The newly-duplicated document.",
+            properties: {
+              id: {
+                type: "string",
+                description: "The document ID.",
+              },
+              name: {
+                type: "string",
+                description: "The document name.",
+              },
+              workspace: {
+                type: "object",
+                description: "The document's workspace.",
+                properties: {
+                  id: {
+                    type: "number",
+                    description: "The workspace ID",
+                  },
+                },
+              },
+            },
           },
         },
       },
-      asTemplate: {
-        type: 'boolean',
-        description: 'If the document was duplicated without any data.',
+      options: {
+        type: "object",
+        description: "The options used to duplicate the document.",
+        properties: {
+          as_template: {
+            type: "boolean",
+            description: "Include the structure without any data.",
+          },
+        },
+      },
+    },
+    sample: {
+      original: {
+        document: {
+          id: "mRM8ydxxLkc6Ewo56jsDGx",
+          name: "Project Lollipop",
+        },
+      },
+      duplicate: {
+        document: {
+          id: "fFKKA6qjXJd9sNLhpw6iPn",
+          name: "Project Lollipop V2",
+          workspace: {
+            id: 92,
+          },
+        },
+      },
+      options: {
+        as_template: false,
       },
     },
   },
-  forkDocument: {
-    description: 'A document was forked.',
+  "document.fork": {
+    type: ["installation", "site"],
+    description: "A document was forked.",
     properties: {
-      original: {
-        type: 'object',
-        description: 'The document that was forked.',
+      document: {
+        type: "object",
+        description: "The document that was forked.",
         properties: {
           id: {
-            type: 'string',
-            description: 'The ID of the document.',
+            type: "string",
+            description: "The document ID.",
           },
           name: {
-            type: 'string',
-            description: 'The name of the document.',
+            type: "string",
+            description: "The document name.",
           },
         },
       },
       fork: {
-        type: 'object',
-        description: 'The newly-forked document.',
+        type: "object",
+        description: "The newly-forked document.",
         properties: {
           id: {
-            type: 'string',
-            description: 'The ID of the fork.',
+            type: "string",
+            description: "The fork ID.",
           },
-          documentId: {
-            type: 'string',
-            description: 'The ID of the fork with the trunk ID.',
+          document_id: {
+            type: "string",
+            description: "The document ID.",
           },
-          urlId: {
-            type: 'string',
-            description: 'The ID of the fork with the trunk URL ID.',
+          url_id: {
+            type: "string",
+            description: "The URL ID.",
           },
         },
       },
     },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+      },
+      fork: {
+        id: "fGGyPYea1ueFiVW382uuAY",
+        document_id: "mRM8ydxxLkc6Ewo56jsDGx~fGGyPYea1ueFiVW382uuAY~9",
+        url_id: "mRM8ydxxLkc6~fGGyPYea1ueFiVW382uuAY~9",
+      },
+    },
   },
-  replaceDocument: {
-    description: 'A document was replaced.',
+  "document.move": {
+    type: ["installation", "site"],
+    description: "A document was moved to a different workspace.",
     properties: {
       previous: {
-        type: 'object',
-        description: 'The document that was replaced.',
+        type: "object",
+        description: "The previous versions of affected resources.",
         properties: {
-          id: {
-            type: 'string',
-            description: 'The ID of the document.',
+          document: {
+            type: "object",
+            description: "The previous document.",
+            properties: {
+              id: {
+                type: "string",
+                description: "The document ID.",
+              },
+              name: {
+                type: "string",
+                description: "The document name.",
+              },
+              workspace: {
+                type: "object",
+                description: "The document's workspace.",
+                properties: {
+                  id: {
+                    type: "number",
+                    description: "The workspace ID.",
+                  },
+                  name: {
+                    type: "string",
+                    description: "The workspace name.",
+                  },
+                },
+              },
+            },
           },
         },
       },
       current: {
-        type: 'object',
-        description: 'The newly-replaced document.',
+        type: "object",
+        description: "The current versions of affected resources.",
         properties: {
-          id: {
-            type: 'string',
-            description: 'The ID of the document.',
+          document: {
+            type: "object",
+            description: "The current document.",
+            properties: {
+              id: {
+                type: "string",
+                description: "The document ID.",
+              },
+              name: {
+                type: "string",
+                description: "The document name.",
+              },
+              workspace: {
+                type: "object",
+                description: "The document's workspace.",
+                properties: {
+                  id: {
+                    type: "number",
+                    description: "The workspace ID.",
+                  },
+                  name: {
+                    type: "string",
+                    description: "The workspace name.",
+                  },
+                },
+              },
+            },
           },
-          snapshotId: {
-            type: 'string',
-            description: 'The ID of the snapshot, if the document was replaced with one.',
+        },
+      },
+    },
+    sample: {
+      previous: {
+        document: {
+          id: "mRM8ydxxLkc6Ewo56jsDGx",
+          name: "Project Lollipop",
+          workspace: {
+            id: 97,
+            name: "Secret Plans",
+          },
+        },
+      },
+      current: {
+        document: {
+          id: "mRM8ydxxLkc6Ewo56jsDGx",
+          name: "Project Lollipop",
+          workspace: {
+            id: 98,
+            name: "Not So Secret Plans",
           },
         },
       },
     },
   },
-  reloadDocument: {
-    description: 'A document was reloaded.',
-    properties: {},
+  "document.move_to_trash": {
+    type: ["installation", "site"],
+    description: "A document was moved to the trash.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The removed document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+      },
+    },
   },
-  truncateDocumentHistory: {
+  "document.open": {
+    type: ["installation", "site"],
+    description: "A document was opened.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The opened document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+          url_id: {
+            type: "string",
+            description: "The URL ID.",
+          },
+          fork_id: {
+            type: "string",
+            description: "The fork ID.",
+            optional: true,
+          },
+          snapshot_id: {
+            type: "string",
+            description: "The snapshot ID.",
+            optional: true,
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+        url_id: "mRM8ydxxLkc6~fGGyPYea1ueFiVW382uuAY~9",
+        fork_id: "fGGyPYea1ueFiVW382uuAY",
+      },
+    },
+  },
+  "document.pin": {
+    type: ["installation", "site"],
+    description: "A document was pinned.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The pinned document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+      },
+    },
+  },
+  "document.reload": {
+    type: ["installation", "site"],
+    description: "A document was reloaded.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The reloaded document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+    },
+  },
+  "document.rename": {
+    type: ["installation", "site"],
+    description: "A document was renamed.",
+    properties: {
+      previous: {
+        type: "object",
+        description: "The previous versions of affected resources.",
+        properties: {
+          document: {
+            type: "object",
+            description: "The previous document.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The document ID.",
+              },
+              name: {
+                type: "string",
+                description: "The document name.",
+              },
+            },
+          },
+        },
+      },
+      current: {
+        type: "object",
+        description: "The current versions of affected resources.",
+        properties: {
+          document: {
+            type: "object",
+            description: "The current document.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The document ID.",
+              },
+              name: {
+                type: "string",
+                description: "The document name.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      previous: {
+        document: {
+          id: "mRM8ydxxLkc6Ewo56jsDGx",
+          name: "Project Lollipop",
+        },
+      },
+      current: {
+        document: {
+          id: "mRM8ydxxLkc6Ewo56jsDGx",
+          name: "Competitive Analysis",
+        },
+      },
+    },
+  },
+  "document.replace": {
+    type: ["installation", "site"],
+    description: "A document was replaced.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The document that was replaced.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+      fork: {
+        type: "object",
+        description: "The fork that the document was replaced with.",
+        optional: true,
+        properties: {
+          document_id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+      snapshot: {
+        type: "object",
+        description: "The snapshot that the document was replaced with.",
+        optional: true,
+        properties: {
+          id: {
+            type: "string",
+            description: "The snapshot ID.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+      fork: {
+        document_id: "mRM8ydxxLkc6Ewo56jsDGx~fGGyPYea1ueFiVW382uuAY~9",
+      },
+    },
+  },
+  "document.restore_from_trash": {
+    type: ["installation", "site"],
+    description: "A document was restored from the trash.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The restored document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+          workspace: {
+            type: "object",
+            description: "The document's workspace.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The workspace ID.",
+              },
+              name: {
+                type: "string",
+                description: "The workspace name.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+        workspace: {
+          id: 97,
+          name: "Secret Plans",
+        },
+      },
+    },
+  },
+  "document.run_sql_query": {
+    type: ["installation", "site"],
+    description: "A SQL query was run against a document.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The queried document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+      sql_query: {
+        type: "object",
+        description: "The SQL query.",
+        properties: {
+          statement: {
+            type: "string",
+            description: "The SQL statement.",
+          },
+          arguments: {
+            type: "Array<string | number>",
+            description:
+              "The arguments passed to parameters in the SQL statement.",
+            optional: true,
+          },
+        },
+      },
+      options: {
+        type: "object",
+        description: "The options used to query the document.",
+        properties: {
+          timeout_ms: {
+            type: "number",
+            description:
+              "Timeout in milliseconds after which operations on the document will be interrupted.",
+            optional: true,
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+      sql_query: {
+        statement: "SELECT * FROM Pets WHERE popularity >= ?",
+        arguments: [50],
+      },
+      options: {
+        timeout_ms: 500,
+      },
+    },
+  },
+  "document.send_to_google_drive": {
+    type: ["installation", "site"],
+    description: "A document was sent to Google Drive.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The sent document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+    },
+  },
+  "document.truncate_history": {
+    type: ["installation", "site"],
     description: "A document's history was truncated.",
     properties: {
-      keep: {
-        type: 'number',
-        description: 'The number of history items kept.',
-      },
-    },
-  },
-  deliverWebhookEvents: {
-    description: 'A batch of webhook events was delivered.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the webhook.',
-      },
-      host: {
-        type: 'string',
-        description: 'The host the webhook events were delivered to.',
-      },
-      quantity: {
-        type: 'number',
-        description: 'The number of webhook events delivered.',
-      },
-    },
-  },
-  clearWebhookQueue: {
-    description: 'A webhook queue was cleared.',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'The ID of the webhook.',
-      },
-    },
-  },
-  clearAllWebhookQueues: {
-    description: 'All webhook queues were cleared.',
-    properties: {},
-  },
-  runSQLQuery: {
-    description: 'A SQL query was run on a document.',
-    properties: {
-      query: {
-        type: 'string',
-        description: 'The SQL query.'
-      },
-      arguments: {
-        type: 'Array<string | number>',
-        description: 'The arguments used for query parameters, if any.',
-        optional: true,
-      },
-      timeoutMs: {
-        type: 'number',
-        description: 'The query execution timeout duration in milliseconds.',
-        optional: true,
-      },
-    },
-  },
-  createWorkspace: {
-    description: 'A new workspace was created.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the workspace.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the workspace.',
-      },
-    },
-  },
-  renameWorkspace: {
-    description: 'A workspace was renamed.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the workspace.',
-      },
-      previousName: {
-        type: 'string',
-        description: 'The previous name of the workspace.',
-      },
-      currentName: {
-        type: 'string',
-        description: 'The current name of the workspace.',
-      },
-    },
-  },
-  removeWorkspace: {
-    description: 'A workspace was moved to the trash.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the workspace.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the workspace.',
-      },
-    },
-  },
-  deleteWorkspace: {
-    description: 'A workspace was permanently deleted.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the workspace.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the workspace.',
-      },
-    },
-  },
-  restoreWorkspaceFromTrash: {
-    description: 'A workspace was restored from the trash.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the workspace.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the workspace.',
-      },
-    },
-  },
-  changeWorkspaceAccess: {
-    description: 'Access to a workspace was changed.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the workspace.',
-      },
-      access: {
-        type: 'object',
-        description: 'The access level of the workspace.',
+      document: {
+        type: "object",
+        description: "The document.",
         properties: {
-          maxInheritedRole: {
-            type: ['"owners"', '"editors"', '"viewers"', 'null'],
-            description: 'The max inherited role.',
-            optional: true,
+          id: {
+            type: "string",
+            description: "The document ID.",
           },
-          users: {
-            type: 'object',
-            description: 'The access level by user ID.',
-            optional: true,
+        },
+      },
+      options: {
+        type: "object",
+        description: "The options used to truncate the document's history.",
+        properties: {
+          keep_n_most_recent: {
+            type: "number",
+            description: "The number of recent history actions to keep.",
           },
         },
       },
     },
-  },
-  createSite: {
-    description: 'A new site was created.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the site.',
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
       },
-      name: {
-        type: 'string',
-        description: 'The name of the site.',
-      },
-      domain: {
-        type: 'string',
-        description: 'The domain of the site.',
+      options: {
+        keep_n_most_recent: 3,
       },
     },
   },
-  renameSite: {
-    description: 'A site was renamed.',
+  "document.unpin": {
+    type: ["installation", "site"],
+    description: "A document was unpinned.",
     properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the site.',
-      },
-      previous: {
-        type: 'object',
-        description: 'The previous name and domain of the site.',
+      document: {
+        type: "object",
+        description: "The unpinned document.",
         properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
           name: {
-            type: 'string',
-            description: 'The name of the site.',
+            type: "string",
+            description: "The document name.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+      },
+    },
+  },
+  "site.change_access": {
+    type: ["installation", "site"],
+    description: "A site's access was changed.",
+    properties: {
+      site: {
+        type: "object",
+        description: "The site.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The site ID.",
+          },
+          name: {
+            type: "string",
+            description: "The site name.",
           },
           domain: {
-            type: 'string',
-            description: 'The domain of the site.',
+            type: "string",
+            description: "The site domain.",
+          },
+        },
+      },
+      access_changes: {
+        type: "object",
+        description: "The access changes.",
+        properties: {
+          users: {
+            type: "Array<object>",
+            description: "The new access levels of individual users.",
+          },
+        },
+      },
+    },
+    sample: {
+      site: {
+        id: 42,
+        name: "Grist Labs",
+        domain: "gristlabs",
+      },
+      access_changes: {
+        users: [
+          {
+            id: 146,
+            name: "Flapjack Toasty",
+            email: "flapjack@example.com",
+            access: "owners",
+          },
+        ],
+      },
+    },
+  },
+  "site.create": {
+    type: ["installation"],
+    description: "A site was created.",
+    properties: {
+      site: {
+        type: "object",
+        description: "The created site.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The site ID.",
+          },
+          name: {
+            type: "string",
+            description: "The site name.",
+          },
+          domain: {
+            type: "string",
+            description: "The site domain.",
+          },
+        },
+      },
+    },
+    sample: {
+      site: {
+        id: 42,
+        name: "Grist Labs",
+        domain: "gristlabs",
+      },
+    },
+  },
+  "site.delete": {
+    type: ["installation"],
+    description: "A site was permanently deleted.",
+    properties: {
+      site: {
+        type: "object",
+        description: "The deleted site.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The site ID.",
+          },
+          name: {
+            type: "string",
+            description: "The site name.",
+          },
+          domain: {
+            type: "string",
+            description: "The site domain.",
+          },
+        },
+      },
+    },
+    sample: {
+      site: {
+        id: 42,
+        name: "Grist Labs",
+        domain: "gristlabs",
+      },
+    },
+  },
+  "site.rename": {
+    type: ["installation", "site"],
+    description: "A site was renamed.",
+    properties: {
+      previous: {
+        type: "object",
+        description: "The previous versions of affected resources.",
+        properties: {
+          site: {
+            type: "object",
+            description: "The previous site.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The site ID.",
+              },
+              name: {
+                type: "string",
+                description: "The site name.",
+              },
+              domain: {
+                type: "string",
+                description: "The site domain.",
+              },
+            },
           },
         },
       },
       current: {
-        type: 'object',
-        description: 'The current name and domain of the site.',
+        type: "object",
+        description: "The current versions of affected resources.",
         properties: {
-          name: {
-            type: 'string',
-            description: 'The name of the site.',
-          },
-          domain: {
-            type: 'string',
-            description: 'The domain of the site.',
+          site: {
+            type: "object",
+            description: "The current site.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The site ID.",
+              },
+              name: {
+                type: "string",
+                description: "The site name.",
+              },
+              domain: {
+                type: "string",
+                description: "The site domain.",
+              },
+            },
           },
         },
       },
     },
-  },
-  changeSiteAccess: {
-    description: 'Access to a site was changed.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the site.',
+    sample: {
+      previous: {
+        site: {
+          id: 42,
+          name: "Grist Labs",
+          domain: "gristlabs",
+        },
       },
-      access: {
-        type: 'object',
-        description: 'The access level of the site.',
+      current: {
+        site: {
+          id: 42,
+          name: "ACME Unlimited",
+          domain: "acme",
+        },
+      },
+    },
+  },
+  "user.change_name": {
+    type: ["installation"],
+    description: "A user's name was changed.",
+    properties: {
+      previous: {
+        type: "object",
+        description: "The previous versions of affected resources.",
         properties: {
-          users: {
-            type: 'object',
-            description: 'The access level by user ID.',
+          user: {
+            type: "object",
+            description: "The previous user.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The user ID.",
+              },
+              name: {
+                type: "string",
+                description: "The user's name.",
+              },
+              email: {
+                type: "string",
+                description: "The user's email.",
+                optional: true,
+              },
+            },
+          },
+        },
+      },
+      current: {
+        type: "object",
+        description: "The current versions of affected resources.",
+        properties: {
+          user: {
+            type: "object",
+            description: "The current user.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The user ID.",
+              },
+              name: {
+                type: "string",
+                description: "The user's name.",
+              },
+              email: {
+                type: "string",
+                description: "The user's email.",
+                optional: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      previous: {
+        user: {
+          id: 146,
+          name: "Flapjack Waffleflap",
+          email: "flapjack@example.com",
+        },
+      },
+      current: {
+        user: {
+          id: 146,
+          name: "Flapjack Toasty",
+          email: "flapjack@example.com",
+        },
+      },
+    },
+  },
+  "user.create_api_key": {
+    type: ["installation"],
+    description: "A user API key was created.",
+    properties: {
+      user: {
+        type: "object",
+        description: "The user.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The user ID.",
+          },
+          name: {
+            type: "string",
+            description: "The user's name.",
+          },
+          email: {
+            type: "string",
+            description: "The user's email.",
             optional: true,
           },
         },
       },
     },
-  },
-  deleteSite: {
-    description: 'A site was deleted.',
-    properties: {
-      id: {
-        type: 'number',
-        description: 'The ID of the site.',
-      },
-      name: {
-        type: 'string',
-        description: 'The name of the site.',
+    sample: {
+      user: {
+        id: 146,
+        name: "Flapjack Waffleflap",
+        email: "flapjack@example.com",
       },
     },
   },
-  changeUserName: {
-    description: 'The name of a user was changed.',
+  "user.delete": {
+    type: ["installation"],
+    description: "A user was permanently deleted.",
     properties: {
-      previousName: {
-        type: 'string',
-        description: 'The previous name of the user.',
+      user: {
+        type: "object",
+        description: "The user.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The user ID.",
+          },
+          name: {
+            type: "string",
+            description: "The user's name.",
+          },
+          email: {
+            type: "string",
+            description: "The user's email.",
+            optional: true,
+          },
+        },
       },
-      currentName: {
-        type: 'string',
-        description: 'The current name of the user.',
+    },
+    sample: {
+      user: {
+        id: 146,
+        name: "Flapjack Waffleflap",
+        email: "flapjack@example.com",
       },
     },
   },
-  createUserAPIKey: {
-    description: 'A user API key was created.',
-    properties: {},
+  "user.delete_api_key": {
+    type: ["installation"],
+    description: "A user API key was deleted.",
+    properties: {
+      user: {
+        type: "object",
+        description: "The user.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The user ID.",
+          },
+          name: {
+            type: "string",
+            description: "The user's name.",
+          },
+          email: {
+            type: "string",
+            description: "The user's email.",
+            optional: true,
+          },
+        },
+      },
+    },
+    sample: {
+      user: {
+        id: 146,
+        name: "Flapjack Waffleflap",
+        email: "flapjack@example.com",
+      },
+    },
   },
-  deleteUserAPIKey: {
-    description: 'A user API key was deleted.',
-    properties: {},
+  "workspace.change_access": {
+    type: ["installation", "site"],
+    description: "A workspace's access was changed.",
+    properties: {
+      workspace: {
+        type: "object",
+        description: "The workspace.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The workspace ID.",
+          },
+          name: {
+            type: "string",
+            description: "The workspace name.",
+          },
+        },
+      },
+      access_changes: {
+        type: "object",
+        description: "The access changes.",
+        properties: {
+          max_inherited_access: {
+            type: ["string", "null"],
+            description:
+              "The new maximum access level that can be inherited from the workspace's site.",
+            optional: true,
+          },
+          users: {
+            type: "Array<object>",
+            description: "The new access levels of individual users.",
+            optional: true,
+          },
+        },
+      },
+    },
+    sample: {
+      workspace: {
+        id: 97,
+        name: "Secret Plans",
+      },
+      access_changes: {
+        max_inherited_access: "editors",
+        users: [
+          {
+            id: 146,
+            name: "Flapjack Toasty",
+            email: "flapjack@example.com",
+            access: "editors",
+          },
+        ],
+      },
+    },
   },
-  deleteUser: {
-    description: 'A user was deleted.',
-    properties: {},
+  "workspace.create": {
+    type: ["installation", "site"],
+    description: "A workspace was created.",
+    properties: {
+      workspace: {
+        type: "object",
+        description: "The created workspace.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The workspace ID.",
+          },
+          name: {
+            type: "string",
+            description: "The workspace name.",
+          },
+        },
+      },
+    },
+    sample: {
+      workspace: {
+        id: 97,
+        name: "Secret Plans",
+      },
+    },
+  },
+  "workspace.delete": {
+    type: ["installation", "site"],
+    description: "A workspace was permanently deleted.",
+    properties: {
+      workspace: {
+        type: "object",
+        description: "The deleted workspace.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The workspace ID.",
+          },
+          name: {
+            type: "string",
+            description: "The workspace name.",
+          },
+        },
+      },
+    },
+    sample: {
+      workspace: {
+        id: 97,
+        name: "Secret Plans",
+      },
+    },
+  },
+  "workspace.move_to_trash": {
+    type: ["installation", "site"],
+    description: "A workspace was moved to the trash.",
+    properties: {
+      workspace: {
+        type: "object",
+        description: "The removed workspace.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The workspace ID.",
+          },
+          name: {
+            type: "string",
+            description: "The workspace name.",
+          },
+        },
+      },
+    },
+    sample: {
+      workspace: {
+        id: 97,
+        name: "Secret Plans",
+      },
+    },
+  },
+  "workspace.rename": {
+    type: ["installation", "site"],
+    description: "A workspace was renamed.",
+    properties: {
+      previous: {
+        type: "object",
+        description: "The previous versions of affected resources.",
+        properties: {
+          workspace: {
+            type: "object",
+            description: "The previous workspace.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The workspace ID.",
+              },
+              name: {
+                type: "string",
+                description: "The workspace name.",
+              },
+            },
+          },
+        },
+      },
+      current: {
+        type: "object",
+        description: "The current versions of affected resources.",
+        properties: {
+          workspace: {
+            type: "object",
+            description: "The current workspace.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The workspace ID.",
+              },
+              name: {
+                type: "string",
+                description: "The workspace name.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      previous: {
+        workspace: {
+          id: 97,
+          name: "Secret Plans",
+        },
+      },
+      current: {
+        workspace: {
+          id: 97,
+          name: "Retreat Docs",
+        },
+      },
+    },
+  },
+  "workspace.restore_from_trash": {
+    type: ["installation", "site"],
+    description: "A workspace was restored from the trash.",
+    properties: {
+      workspace: {
+        type: "object",
+        description: "The restored workspace.",
+        properties: {
+          id: {
+            type: "number",
+            description: "The workspace ID.",
+          },
+          name: {
+            type: "string",
+            description: "The workspace name.",
+          },
+        },
+      },
+    },
+    sample: {
+      workspace: {
+        id: 97,
+        name: "Secret Plans",
+      },
+    },
   },
 };

@@ -3,17 +3,23 @@ import * as express from 'express';
 import {EntityManager} from 'typeorm';
 import * as cookie from 'cookie';
 import {Request} from 'express';
+import pick from 'lodash/pick';
 
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
-import {OrganizationProperties, PermissionDelta} from 'app/common/UserAPI';
+import {DOCTYPE_NORMAL,
+  DOCTYPE_TEMPLATE,
+  DOCTYPE_TUTORIAL,
+  OrganizationProperties,
+  PermissionDelta} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from 'app/gen-server/entity/Organization';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {BillingOptions, HomeDBManager, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {PreviousAndCurrent, QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
+import {DocumentAccessChanges, OrgAccessChanges, PreviousAndCurrent,
+        QueryResult, WorkspaceAccessChanges} from 'app/gen-server/lib/homedb/Interfaces';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -293,7 +299,20 @@ export class ApiServer {
     // PATCH /api/docs/:did
     // Update the specified doc.
     this._app.patch('/api/docs/:did', expressWrap(async (req, res) => {
+      const validDocTypes = [
+        DOCTYPE_NORMAL,
+        DOCTYPE_TEMPLATE,
+        DOCTYPE_TUTORIAL
+      ];
+
+      if ('type' in req.body && ! validDocTypes.includes(req.body.type)){
+        const errMsg = "Bad Request. 'type' key authorized values : "
+                        + `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
+        return res.status(400).send({error: errMsg});
+      }
+
       const {data, ...result} = await this._dbManager.updateDocument(getDocScope(req), req.body);
+
       if (data && 'name' in req.body) { this._logRenameDocumentEvents(req, data); }
       return sendReply(req, res, {...result, data: data?.current.id});
     }));
@@ -339,7 +358,8 @@ export class ApiServer {
     this._app.patch('/api/docs/:did/access', expressWrap(async (req, res) => {
       const delta = req.body.delta;
       const {data, ...result} = await this._dbManager.updateDocPermissions(getDocScope(req), delta);
-      if (data) { this._logChangeDocumentAccessEvents(req as RequestWithLogin, data); }
+      if (data) { this._logChangeDocumentAccessEvents(req, data); }
+      this._logInvitedDocUserTelemetryEvents(req, delta);
       return sendReply(req, res, result);
     }));
 
@@ -487,7 +507,7 @@ export class ApiServer {
       if (!user) { return handleDeletedUser(); }
       if (!user.apiKey || force) {
         user = await updateApiKeyWithRetry(manager, user);
-        this._logCreateUserAPIKeyEvents(req);
+        this._logCreateUserAPIKeyEvents(req, user);
         res.status(200).send(user.apiKey);
       } else {
         res.status(400).send({error: "An apikey is already set, use `{force: true}` to override it."});
@@ -503,7 +523,7 @@ export class ApiServer {
         if (!user) { return handleDeletedUser(); }
         user.apiKey = null;
         await manager.save(User, user);
-        this._logDeleteUserAPIKeyEvents(req);
+        this._logDeleteUserAPIKeyEvents(req, user);
       });
       res.sendStatus(200);
     }));
@@ -575,8 +595,9 @@ export class ApiServer {
       if (!(req.body && req.body.name !== undefined)) {
         throw new ApiError('to confirm deletion of a user, provide their name', 400);
       }
-      const query = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
-      return sendReply(req, res, query);
+      const {data, ...result} = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
+      if (data) { this._logDeleteUserEvents(req, data); }
+      return sendReply(req, res, result);
     }));
   }
 
@@ -626,17 +647,21 @@ export class ApiServer {
 
   private _logCreateDocumentEvents(req: Request, document: Document) {
     const mreq = req as RequestWithLogin;
-    const {id, name, workspace: {id: workspaceId}} = document;
     this._gristServer.getAuditLogger().logEvent(mreq, {
-      event: {
-        name: 'createDocument',
-        details: {id, name},
-        context: {workspaceId},
+      action: "document.create",
+      context: {
+        site: pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: {
+          ...pick(document, "id", "name"),
+          workspace: pick(document.workspace, "id", "name"),
+        },
       },
     });
     this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {
       limited: {
-        docIdDigest: id,
+        docIdDigest: document.id,
         sourceDocIdDigest: undefined,
         isImport: false,
         fileType: undefined,
@@ -649,7 +674,7 @@ export class ApiServer {
     });
     this._gristServer.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
       full: {
-        docIdDigest: id,
+        docIdDigest: document.id,
         userId: mreq.userId,
         altSessionId: mreq.altSessionId,
       },
@@ -658,62 +683,66 @@ export class ApiServer {
 
   private _logRenameDocumentEvents(
     req: Request,
-    {previous, current}: PreviousAndCurrent<Document>
+    { previous, current }: PreviousAndCurrent<Document>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'renameDocument',
-        details: {
-          id: current.id,
-          previousName: previous.name,
-          currentName: current.name,
+      action: "document.rename",
+      context: {
+        site: pick(current.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        previous: {
+          document: pick(previous, "id", "name"),
         },
-        context: {workspaceId: current.workspace.id},
+        current: {
+          document: pick(current, "id", "name"),
+        },
       },
     });
   }
 
   private _logRestoreDocumentEvents(req: Request, document: Document) {
-    const {id, name, workspace} = document;
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'restoreDocumentFromTrash',
-        details: {
-          id,
-          name,
-          workspace: {
-            id: workspace.id,
-            name: workspace.name,
-          },
+      action: "document.restore_from_trash",
+      context: {
+        site: pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: {
+          ...pick(document, "id", "name"),
+          workspace: pick(document.workspace, "id", "name"),
         },
       },
     });
   }
 
   private _logChangeDocumentAccessEvents(
-    req: RequestWithLogin,
-    {document, maxInheritedRole, users}: PermissionDelta & {document: Document}
+    req: Request,
+    {
+      document,
+      accessChanges: { publicAccess, maxInheritedAccess, users },
+    }: DocumentAccessChanges
   ) {
-    const {id, workspace: {id: workspaceId}} = document;
-    this._gristServer.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'changeDocumentAccess',
-        details: {
-          id,
-          access: {
-            maxInheritedRole,
-            users,
-          },
+    this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
+      action: "document.change_access",
+      context: {
+        site: pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: pick(document, "id", "name"),
+        access_changes: {
+          public_access: publicAccess,
+          max_inherited_access: maxInheritedAccess,
+          users,
         },
-        context: {workspaceId},
       },
     });
-    this._logInvitedDocUserTelemetryEvents(req, {maxInheritedRole, users});
   }
 
-  private _logInvitedDocUserTelemetryEvents(mreq: RequestWithLogin, delta: PermissionDelta) {
+  private _logInvitedDocUserTelemetryEvents(req: Request, delta: PermissionDelta) {
     if (!delta.users) { return; }
 
+    const mreq = req as RequestWithLogin;
     const numInvitedUsersByAccess: Record<BasicRole, number> = {
       'viewers': 0,
       'editors': 0,
@@ -752,61 +781,70 @@ export class ApiServer {
     }
   }
 
-  private _logMoveDocumentEvents(req: Request, {previous, current}: PreviousAndCurrent<Document>) {
+  private _logMoveDocumentEvents(
+    req: Request,
+    { previous, current }: PreviousAndCurrent<Document>
+  ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'moveDocument',
-        details: {
-          id: current.id,
-          previousWorkspace: {
-            id: previous.workspace.id,
-            name: previous.workspace.name,
-          },
-          newWorkspace: {
-            id: current.workspace.id,
-            name: current.workspace.name,
+      action: "document.move",
+      context: {
+        site: pick(current.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        previous: {
+          document: {
+            ...pick(previous, "id", "name"),
+            workspace: pick(previous.workspace, "id", "name"),
           },
         },
-        context: {
-          workspaceId: previous.workspace.id,
+        current: {
+          document: {
+            ...pick(current, "id", "name"),
+            workspace: pick(current.workspace, "id", "name"),
+          },
         },
       },
     });
   }
 
   private _logPinDocumentEvents(req: Request, document: Document) {
-    const {id, name, workspace: {id: workspaceId}} = document;
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'pinDocument',
-        details: {id, name},
-        context: {workspaceId},
+      action: "document.pin",
+      context: {
+        site: pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: pick(document, "id", "name"),
       },
     });
   }
 
   private _logUnpinDocumentEvents(req: Request, document: Document) {
-    const {id, name, workspace: {id: workspaceId}} = document;
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'unpinDocument',
-        details: {id, name},
-        context: {workspaceId},
+      action: "document.unpin",
+      context: {
+        site: pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: pick(document, "id", "name"),
       },
     });
   }
 
-  private _logCreateWorkspaceEvents(req: Request, {id, name}: Workspace) {
+  private _logCreateWorkspaceEvents(req: Request, workspace: Workspace) {
     const mreq = req as RequestWithLogin;
     this._gristServer.getAuditLogger().logEvent(mreq, {
-      event: {
-        name: 'createWorkspace',
-        details: {id, name},
+      action: "workspace.create",
+      context: {
+        site: pick(workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        workspace: pick(workspace, "id", "name"),
       },
     });
     this._gristServer.getTelemetry().logEvent(mreq, 'createdWorkspace', {
       full: {
-        workspaceId: id,
+        workspaceId: workspace.id,
         userId: mreq.userId,
       },
     });
@@ -814,148 +852,200 @@ export class ApiServer {
 
   private _logRenameWorkspaceEvents(
     req: Request,
-    {previous, current}: PreviousAndCurrent<Workspace>
+    { previous, current }: PreviousAndCurrent<Workspace>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'renameWorkspace',
-        details: {
-          id: current.id,
-          previousName: previous.name,
-          currentName: current.name,
+      action: "workspace.rename",
+      context: {
+        site: pick(current.org, "id", "name", "domain"),
+      },
+      details: {
+        previous: {
+          workspace: pick(previous, "id", "name"),
+        },
+        current: {
+          workspace: pick(current, "id", "name"),
         },
       },
     });
   }
 
-  private _logRemoveWorkspaceEvents(req: Request, {id, name}: Workspace) {
+  private _logRemoveWorkspaceEvents(req: Request, workspace: Workspace) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'removeWorkspace',
-        details: {id, name},
+      action: "workspace.move_to_trash",
+      context: {
+        site: pick(workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        workspace: pick(workspace, "id", "name"),
       },
     });
   }
 
-  private _logDeleteWorkspaceEvents(req: Request, {id, name}: Workspace) {
+  private _logDeleteWorkspaceEvents(req: Request, workspace: Workspace) {
     const mreq = req as RequestWithLogin;
     this._gristServer.getAuditLogger().logEvent(mreq, {
-      event: {
-        name: 'deleteWorkspace',
-        details: {id, name},
+      action: "workspace.delete",
+      context: {
+        site: pick(workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        workspace: pick(workspace, "id", "name"),
       },
     });
     this._gristServer.getTelemetry().logEvent(mreq, 'deletedWorkspace', {
       full: {
-        workspaceId: id,
+        workspaceId: workspace.id,
         userId: mreq.userId,
       },
     });
   }
 
-  private _logRestoreWorkspaceEvents(req: Request, {id, name}: Workspace) {
+  private _logRestoreWorkspaceEvents(req: Request, workspace: Workspace) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'restoreWorkspaceFromTrash',
-        details: {id, name},
+      action: "workspace.restore_from_trash",
+      context: {
+        site: pick(workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        workspace: pick(workspace, "id", "name"),
       },
     });
   }
 
   private _logChangeWorkspaceAccessEvents(
     req: RequestWithLogin,
-    {workspace: {id}, maxInheritedRole, users}: PermissionDelta & {workspace: Workspace}
+    {
+      workspace,
+      accessChanges: { maxInheritedAccess, users },
+    }: WorkspaceAccessChanges
   ) {
     this._gristServer.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'changeWorkspaceAccess',
-        details: {
-          id,
-          access: {
-            maxInheritedRole,
-            users,
-          },
+      action: "workspace.change_access",
+      context: {
+        site: pick(workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        workspace: pick(workspace, "id", "name"),
+        access_changes: {
+          max_inherited_access: maxInheritedAccess,
+          users,
         },
       },
     });
   }
 
-  private _logCreateSiteEvents(req: Request, {id, name, domain}: Organization) {
+  private _logCreateSiteEvents(req: Request, org: Organization) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'createSite',
-        details: {id, name, domain},
+      action: "site.create",
+      details: {
+        site: pick(org, "id", "name", "domain"),
       },
     });
   }
 
   private _logRenameSiteEvents(
     req: Request,
-    {previous, current}: PreviousAndCurrent<Organization>
+    { previous, current }: PreviousAndCurrent<Organization>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'renameSite',
-        details: {
-          id: current.id,
-          previous: {
-            name: previous.name,
-            domain: previous.domain,
-          },
-          current: {
-            name: current.name,
-            domain: current.domain,
-          },
+      action: "site.rename",
+      context: {
+        site: pick(current, "id", "name", "domain"),
+      },
+      details: {
+        previous: {
+          site: pick(previous, "id", "name", "domain"),
+        },
+        current: {
+          site: pick(current, "id", "name", "domain"),
         },
       },
     });
   }
 
-  private _logDeleteSiteEvents(req: Request, {id, name}: Organization) {
+  private _logDeleteSiteEvents(req: Request, org: Organization) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'deleteSite',
-        details: {id, name},
+      action: "site.delete",
+      details: {
+        site: pick(org, "id", "name", "domain"),
       },
     });
   }
 
   private _logChangeSiteAccessEvents(
     req: RequestWithLogin,
-    {organization: {id}, users}: PermissionDelta & {organization: Organization}
+    { org, accessChanges: { users } }: OrgAccessChanges
   ) {
     this._gristServer.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'changeSiteAccess',
-        details: {id, access: {users}},
+      action: "site.change_access",
+      context: {
+        site: pick(org, "id", "name", "domain"),
+      },
+      details: {
+        site: pick(org, "id", "name", "domain"),
+        access_changes: {
+          users,
+        },
       },
     });
   }
 
   private _logChangeUserNameEvents(
     req: Request,
-    {previous: {name: previousName}, current: {name: currentName}}: PreviousAndCurrent<User>
+    { previous, current }: PreviousAndCurrent<User>
   ) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'changeUserName',
-        details: {previousName, currentName},
+      action: "user.change_name",
+      details: {
+        previous: {
+          user: {
+            ...pick(previous, "id", "name"),
+            email: previous.loginEmail,
+          },
+        },
+        current: {
+          user: {
+            ...pick(current, "id", "name"),
+            email: current.loginEmail,
+          },
+        },
       },
     });
   }
 
-  private _logCreateUserAPIKeyEvents(req: Request) {
+  private _logCreateUserAPIKeyEvents(req: Request, user: User) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'createUserAPIKey',
+      action: "user.create_api_key",
+      details: {
+        user: {
+          ...pick(user, "id", "name"),
+          email: user.loginEmail,
+        },
       },
     });
   }
 
-  private _logDeleteUserAPIKeyEvents(req: Request) {
+  private _logDeleteUserAPIKeyEvents(req: Request, user: User) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
-      event: {
-        name: 'deleteUserAPIKey',
+      action: "user.delete_api_key",
+      details: {
+        user: {
+          ...pick(user, "id", "name"),
+          email: user.loginEmail,
+        },
+      },
+    });
+  }
+
+  private _logDeleteUserEvents(req: Request, user: User) {
+    this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
+      action: "user.delete",
+      details: {
+        user: {
+          ...pick(user, "id", "name"),
+          email: user.loginEmail,
+        },
       },
     });
   }

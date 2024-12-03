@@ -42,12 +42,11 @@ export class ToggleEnterpriseWidget extends Disposable {
             ) : null,
           cssParagraph(
             markdown(t(`An activation key is used to run Grist Enterprise after a trial period
-of 30 days has expired. Get an activation key by [signing up for Grist
-Enterprise]({{signupLink}}). You do not need an activation key to run
-Grist Core.
+of 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do
+not need an activation key to run Grist Core.
 
 Learn more in our [Help Center]({{helpCenter}}).`, {
-                signupLink: commonUrls.plans,
+                contactLink: commonUrls.contact,
                 helpCenter: commonUrls.helpEnterpriseOptIn
             }))
           ),

@@ -1182,21 +1182,35 @@ const cssTopBarItem = styled('div', `
   flex: 1 1 0px;
   height: 100%;
   background-color: ${theme.rightPanelTabBg};
-  font-weight: ${vars.headerControlTextWeight};
+  border-right: 1px solid ${theme.rightPanelTabBg};
+  border-left: 1px solid ${theme.rightPanelTabBg};
+  border-bottom: 1px solid ${theme.rightPanelTabBorder};
+  font-weight: initial;
   color: ${theme.rightPanelTabFg};
   --icon-color: ${theme.rightPanelTabIcon};
   display: flex;
   align-items: center;
   cursor: default;
-
+  &:first-child {
+    border-left: 0;
+  }
+  &:last-child {
+    border-right: 0;
+  }
   &-selected {
     background-color: ${theme.rightPanelTabSelectedBg};
-    font-weight: initial;
+    font-weight: ${vars.headerControlTextWeight};
     color: ${theme.rightPanelTabSelectedFg};
-    --icon-color: ${theme.rightPanelTabSelectedFg};
+    --icon-color: ${theme.rightPanelTabSelectedIcon};
+    border-bottom-color: ${theme.rightPanelTabSelectedBg};
+    border-left-color: ${theme.rightPanelTabBorder};
+    border-right-color: ${theme.rightPanelTabBorder};
   }
   &:not(&-selected):hover {
     background-color: ${theme.rightPanelTabHoverBg};
+    border-left-color: ${theme.rightPanelTabHoverBg};
+    border-right-color: ${theme.rightPanelTabHoverBg};
+    color: ${theme.rightPanelTabHoverFg};
     --icon-color: ${theme.rightPanelTabIconHover};
   }
 `);

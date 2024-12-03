@@ -6,7 +6,7 @@
  *
  */
 
-import { assert, driver } from 'mocha-webdriver';
+import { assert, driver, Key} from 'mocha-webdriver';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 
@@ -35,6 +35,10 @@ describe("Smoke", function() {
     await gu.waitForDocToLoad(20000);
     await gu.dismissWelcomeTourIfNeeded();
     await gu.getCell('A', 1).click();
+
+    // Shouldn't be necessary, but an attempt to reduce flakiness that has shown up about opening the cell for editing.
+    await gu.sendKeys(Key.ENTER);
+
     await gu.enterCell('123');
     await gu.refreshDismiss();
     assert.equal(await gu.getCell('A', 1).getText(), '123');

@@ -8,6 +8,7 @@
 
 exports.loadAccountPage = () => import('app/client/ui/AccountPage' /* webpackChunkName: "AccountPage" */);
 exports.loadActivationPage = () => import('app/client/ui/ActivationPage' /* webpackChunkName: "ActivationPage" */);
+exports.loadAuditLogsPage = () => import('app/client/ui/AuditLogsPage' /* webpackChunkName: "AuditLogsPage" */);
 exports.loadBillingPage = () => import('app/client/ui/BillingPage' /* webpackChunkName: "BillingModule" */);
 exports.loadAdminPanel = () => import('app/client/ui/AdminPanel' /* webpackChunkName: "AdminPanel" */);
 exports.loadGristDoc = () => import('app/client/components/GristDoc' /* webpackChunkName: "GristDoc" */);

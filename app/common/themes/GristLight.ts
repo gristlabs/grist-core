@@ -229,13 +229,16 @@ export const GristLight: ThemeColors = {
   'left-panel-page-emoji-outline': '#BDBDBD',
 
   /* Right Panel */
-  'right-panel-tab-fg': '#262633',
-  'right-panel-tab-bg': '#F7F7F7',
+  'right-panel-tab-fg': '#929299',
+  'right-panel-tab-bg': 'white',
   'right-panel-tab-icon': '#929299',
-  'right-panel-tab-icon-hover': '#16B378',
-  'right-panel-tab-hover-bg': 'rgba(217,217,217,0.6)',
-  'right-panel-tab-selected-fg': '#FFFFFF',
-  'right-panel-tab-selected-bg': '#16B378',
+  'right-panel-tab-icon-hover': '#262633',
+  'right-panel-tab-border': 'rgba(217,217,217,0.6)',
+  'right-panel-tab-hover-bg': 'white',
+  'right-panel-tab-hover-fg': '#262633',
+  'right-panel-tab-selected-fg': '#262633',
+  'right-panel-tab-selected-bg': '#F7F7F7',
+  'right-panel-tab-selected-icon': '#16B378',
   'right-panel-tab-button-hover-bg': '#009058',
   'right-panel-subtab-fg': '#16B378',
   'right-panel-subtab-selected-fg': '#262633',
@@ -573,4 +576,9 @@ export const GristLight: ThemeColors = {
   'app-header-bg': 'var(--grist-theme-page-panels-main-panel-bg)',
   'app-header-border': 'var(--grist-theme-menu-border)',
   'app-header-border-hover': '#B0B0B0',
+
+  /* Card Button */
+  'card-button-border': '#D9D9D9',
+  'card-button-border-selected': '#16B378',
+  'card-button-shadow': '#0000001A',
 };

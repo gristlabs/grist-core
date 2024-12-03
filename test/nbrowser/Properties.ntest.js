@@ -47,6 +47,7 @@ describe('Properties.ntest', function() {
     assert.equal(await $(".test-field-label").val(), 'B');
     await gu.setType('Numeric');
     await $('.test-type-transform-apply').wait().click();
+    await gu.waitForServer();
 
     assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4]),
       ["17", "foo", "", "-100"]);
@@ -58,9 +59,8 @@ describe('Properties.ntest', function() {
       ["17", "foo", "", "-100"]);
 
     // Redo should work too.
-    await $(".test-redo").click();
+    await gu.redo();
     await $(".test-fbuilder-type-select .test-select-row:contains(Numeric)").wait();
-    await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4]),
       ["17", "foo", "", "-100"]);
   });
@@ -69,9 +69,7 @@ describe('Properties.ntest', function() {
     // Go to column "c", and change type to Numeric.
     await $("$GridView_columnLabel:nth-child(3)").click();
     assert.equal(await $(".test-field-label").val(), 'C');
-    await gu.setType('Numeric');
-    await $('.test-type-transform-apply').wait().click();
-    await gu.waitForServer();
+    await gu.setType('Numeric', {apply: true})
 
     // Remove focus from FieldBuilder type dropdown, so that sentKeys go to the main app.
     await $("body").click();

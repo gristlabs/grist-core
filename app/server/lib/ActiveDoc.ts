@@ -36,7 +36,6 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
-import {AuditEventName} from 'app/common/AuditEvent';
 import {WebhookMessageType} from 'app/common/CommTypes';
 import {
   BulkAddRecord,
@@ -93,12 +92,13 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
-import {AuditEventProperties} from 'app/server/lib/AuditLogger';
+import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';
+import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
 import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
@@ -126,7 +126,7 @@ import assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
-import { readFile } from 'fs-extra';
+import {readFile} from 'fs-extra';
 import {IMessage, MsgType} from 'grain-rpc';
 import imageSize from 'image-size';
 import * as moment from 'moment-timezone';
@@ -152,10 +152,8 @@ import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import merge = require('lodash/merge');
 import pick = require('lodash/pick');
-import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
-import zipObject = require('lodash/zipObject');
 
 bluebird.promisifyAll(tmp);
 
@@ -227,6 +225,7 @@ export class ActiveDoc extends EventEmitter {
     };
   }
 
+  public readonly doc: Document|undefined = this._options?.doc;
   public readonly docStorage: DocStorage;
   public readonly docPluginManager: DocPluginManager|null;
   public readonly docClients: DocClients;               // Only exposed for Sharing.ts
@@ -236,14 +235,13 @@ export class ActiveDoc extends EventEmitter {
   public isTimingOn = false;
 
   protected _actionHistory: ActionHistory;
-  protected _docManager: DocManager;
-  protected _docName: string;
   protected _sharing: Sharing;
   // This lock is used to avoid reading sandbox state while it is being modified but before
   // the result has been confirmed to pass granular access rules (which may depend on the
   // result).
   protected _modificationLock: Mutex = new Mutex();
 
+  private readonly _server: GristServer = this._docManager.gristServer;
   private _log = new LogMethods('ActiveDoc ', (s: OptDocSession | null) => this.getLogMeta(s));
   private _triggers: DocTriggers;
   private _requests: DocRequests;
@@ -261,7 +259,6 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
   private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
-  private _doc: Document|undefined;
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
   private _gracePeriodStart: Date|null = null;
@@ -287,13 +284,13 @@ export class ActiveDoc extends EventEmitter {
   private _intervals: Interval[] = [];
 
   constructor(
-    docManager: DocManager,
-    docName: string,
+    private readonly _docManager: DocManager,
+    private _docName: string,
     externalAttachmentStoreProvider?: IAttachmentStoreProvider,
-    private _options?: ICreateActiveDocOptions,
+    private _options?: ICreateActiveDocOptions
   ) {
     super();
-    const {forkId, snapshotId} = parseUrlId(docName);
+    const { forkId, snapshotId } = parseUrlId(_docName);
     this._isSnapshot = Boolean(snapshotId);
     this._isForkOrSnapshot = Boolean(forkId || snapshotId);
     if (!this._isSnapshot) {
@@ -334,8 +331,7 @@ export class ActiveDoc extends EventEmitter {
     }
     if (_options?.safeMode) { this._recoveryMode = true; }
     if (_options?.doc) {
-      this._doc = _options.doc;
-      const {gracePeriodStart, workspace, usage} = this._doc;
+      const { gracePeriodStart, workspace, usage } = _options.doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
       this._gracePeriodStart = gracePeriodStart;
@@ -350,6 +346,13 @@ export class ActiveDoc extends EventEmitter {
           // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
           this._log.debug(null, 'reload after product change');
           await this.reloadDoc();
+        });
+        this._redisSubscriber.on("error", async (error) => {
+          this._log.error(
+            null,
+            `encountered error while subscribed to channel ${channel}`,
+            error
+          );
         });
       }
 
@@ -369,16 +372,19 @@ export class ActiveDoc extends EventEmitter {
         this._docUsage = usage;
       }
     }
-    this._docManager = docManager;
-    this._docName = docName;
-    this.docStorage = new DocStorage(docManager.storageManager, docName);
+    this.docStorage = new DocStorage(_docManager.storageManager, _docName);
     this.docClients = new DocClients(this);
     this._triggers = new DocTriggers(this);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
-    this.docPluginManager = docManager.pluginManager ?
-      new DocPluginManager(docManager.pluginManager.getPlugins(),
-                           docManager.pluginManager.appRoot!, this, this._docManager.gristServer) : null;
+    this.docPluginManager = _docManager.pluginManager
+      ? new DocPluginManager(
+          _docManager.pluginManager.getPlugins(),
+          _docManager.pluginManager.appRoot!,
+          this,
+          this._server
+        )
+      : null;
     this._tableMetadataLoader = new TableMetadataLoader({
       decodeBuffer: this.docStorage.decodeMarshalledData.bind(this.docStorage),
       fetchTable: this.docStorage.fetchTable.bind(this.docStorage),
@@ -391,7 +397,7 @@ export class ActiveDoc extends EventEmitter {
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
       externalAttachmentStoreProvider,
-      this._doc
+      _options?.doc,
     );
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
@@ -604,7 +610,9 @@ export class ActiveDoc extends EventEmitter {
     // because the table _grist_Attachments doesn't exist at that point - it's created by InitNewDoc.
     await createAttachmentsIndex(this.docStorage);
 
-    await this._initDoc(docSession);
+    // A DocData object is needed, but for this purpose, it's OK that it has no data loaded.
+    const docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), {});
+    await this._initDoc(docSession, docData);
     await this._tableMetadataLoader.clean();
     // Makes sure docPluginManager is ready in case new doc is used to import new data
     await this.docPluginManager?.ready;
@@ -659,13 +667,15 @@ export class ActiveDoc extends EventEmitter {
           },
         });
       }
-      const [tableNames, onDemandNames] = await this._loadOpenDoc(docSession);
-      const desiredTableNames = tableNames.filter(name => name.startsWith('_grist_'));
-      this._startLoadingTables(docSession, desiredTableNames);
-      const pendingTableNames = tableNames.filter(name => !name.startsWith('_grist_'));
-      await this._initDoc(docSession);
-      this._initializationPromise = this._finishInitialization(docSession, pendingTableNames,
-                                                               onDemandNames, startTime).catch(async (err) => {
+
+      await this._loadOpenDoc(docSession);
+      const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
+      const docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId),
+        metaTableData);
+
+      await this._initDoc(docSession, docData);
+
+      this._initializationPromise = this._finishInitialization(docSession, docData, startTime).catch(async (err) => {
         await this.docClients.broadcastDocMessage(null, 'docError', {
           when: 'initialization',
           message: String(err),
@@ -706,9 +716,8 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Finish initializing ActiveDoc, by initializing ActionHistory, Sharing, and docData.
    */
-  public async _initDoc(docSession: OptDocSession): Promise<void> {
-    const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
-    this.docData = new DocData(tableId => this.fetchTable(makeExceptionalDocSession('system'), tableId), metaTableData);
+  public async _initDoc(docSession: OptDocSession, docData: DocData): Promise<void> {
+    this.docData = docData;
     this._onDemandActions = new OnDemandActions(this.docStorage, this.docData,
                                                 this._recoveryMode);
 
@@ -1295,10 +1304,6 @@ export class ActiveDoc extends EventEmitter {
     await this.docStorage.updateIndexes(indexes);
   }
 
-  public async removeInstanceFromDoc(docSession: DocSession): Promise<void> {
-    await this._sharing.removeInstanceFromDoc();
-  }
-
   public async renameDocTo(docSession: OptDocSession, newName: string): Promise<void> {
     this._log.debug(docSession, 'renameDoc', newName);
     await this.docStorage.renameDocTo(newName);
@@ -1451,12 +1456,14 @@ export class ActiveDoc extends EventEmitter {
     // To actually create the fork, we call an endpoint.  This is so the fork
     // can be associated with an arbitrary doc worker, rather than tied to the
     // same worker as the trunk.  We use a Permit for authorization.
-    const permitStore = this._docManager.gristServer.getPermitStore();
+    const permitStore = this._server.getPermitStore();
     const permitKey = await permitStore.setPermit({docId: forkIds.docId,
                                                    otherDocId: this.docName});
     try {
-      const url = await this._docManager.gristServer.getHomeUrlByDocId(
-        forkIds.docId, `/api/docs/${forkIds.docId}/create-fork`);
+      const url = await this._server.getHomeUrlByDocId(
+        forkIds.docId,
+        `/api/docs/${forkIds.docId}/create-fork`
+      );
       const resp = await fetch(url, {
         method: 'POST',
         body: JSON.stringify({ srcDocId: this.docName }),
@@ -1470,7 +1477,7 @@ export class ActiveDoc extends EventEmitter {
       }
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
-      this._logForkDocumentEvents(docSession, {originalDocument: doc, forkIds});
+      this._logForkDocumentEvents(docSession, { document: doc, fork: forkIds });
     } finally {
       await permitStore.removePermit(permitKey);
     }
@@ -1479,7 +1486,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async getAccessToken(docSession: OptDocSession, options: AccessTokenOptions): Promise<AccessTokenResult> {
-    const tokens = this._docManager.gristServer.getAccessTokens();
+    const tokens = this._server.getAccessTokens();
     const userId = getUserId(docSession);
     const docId = this.docName;
     const access = getDocSessionAccess(docSession);
@@ -1874,11 +1881,16 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
-  public logAuditEvent<Name extends AuditEventName>(
+  public logAuditEvent<Action extends AuditEventAction>(
     requestOrSession: RequestOrSession,
-    properties: AuditEventProperties<Name>
+    properties: AuditEventProperties<Action>
   ) {
-    this._docManager.gristServer.getAuditLogger().logEvent(requestOrSession, properties);
+    this._server
+      .getAuditLogger()
+      .logEvent(
+        requestOrSession,
+        merge(this._getAuditEventProperties<Action>(), properties)
+      );
   }
 
   public logTelemetryEvent(
@@ -1966,9 +1978,10 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Loads an open document from DocStorage.  Returns a list of the tables it contains.
+   * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
+   * metadata.
    */
-  protected async _loadOpenDoc(docSession: OptDocSession): Promise<string[][]> {
+  protected async _loadOpenDoc(docSession: OptDocSession): Promise<void> {
     // Check the schema version of document and sandbox, and migrate if the sandbox is newer.
     const schemaVersion = SCHEMA_VERSION;
 
@@ -2003,28 +2016,10 @@ export class ActiveDoc extends EventEmitter {
       this._tableMetadataLoader.startStreamingToEngine();
     }
 
-    // Start loading the initial meta tables which determine the document schema.
-    this._tableMetadataLoader.startFetchingTable('_grist_Tables');
-    this._tableMetadataLoader.startFetchingTable('_grist_Tables_column');
-
-    // Get names of remaining tables.
-    const tablesParsed = await this._tableMetadataLoader.fetchBulkColValuesWithoutIds('_grist_Tables');
-    const tableNames = (tablesParsed.tableId as string[])
-      .concat(Object.keys(schema))
-      .filter(tableId => tableId !== '_grist_Tables' && tableId !== '_grist_Tables_column')
-      .sort();
-
-    // Figure out which tables are on-demand.
-    const onDemandMap = zipObject(tablesParsed.tableId as string[], tablesParsed.onDemand);
-    const onDemandNames = remove(tableNames, (t) => (onDemandMap[t] ||
-      (this._recoveryMode && !t.startsWith('_grist_'))));
-
-    this._log.debug(docSession, "Loading %s normal tables, skipping %s on-demand tables",
-      tableNames.length, onDemandNames.length);
-    this._log.debug(docSession, "Normal tables: %s", tableNames.join(", "));
-    this._log.debug(docSession, "On-demand tables: %s",  onDemandNames.join(", "));
-
-    return [tableNames, onDemandNames];
+    // Start loading the meta tables.
+    for (const tableId of Object.keys(schema)) {
+      this._tableMetadataLoader.startFetchingTable(tableId);
+    }
   }
 
   /**
@@ -2077,9 +2072,7 @@ export class ActiveDoc extends EventEmitter {
       userActions: actions,
     };
 
-    const result: ApplyUAResult = await new Promise<ApplyUAResult>(
-      (resolve, reject) =>
-        this._sharing.addUserAction({action, docSession, resolve, reject}));
+    const result: ApplyUAResult = await this._sharing.addUserAction(docSession, action);
     this._log.debug(docSession, "_applyUserActions returning %s", shortDesc(result));
 
     if (result.isModification) {
@@ -2449,18 +2442,6 @@ export class ActiveDoc extends EventEmitter {
     return this;
   }
 
-  /**
-   * Start loading the specified tables from the db, without waiting for completion.
-   * The loader can be directed to stream the tables on to the engine.
-   */
-  private _startLoadingTables(docSession: OptDocSession, tableNames: string[]) {
-    this._log.debug(docSession, "starting to load %s tables: %s", tableNames.length,
-                  tableNames.join(", "));
-    for (const tableId of tableNames) {
-      this._tableMetadataLoader.startFetchingTable(tableId);
-    }
-  }
-
   // Fetches and returns the requested table, or null if it's missing. This allows documents to
   // load with missing metadata tables (should only matter if migrations are also broken).
   private async _fetchTableIfPresent(tableName: string): Promise<Buffer|null> {
@@ -2476,25 +2457,31 @@ export class ActiveDoc extends EventEmitter {
   // inactivityTimer, since a user formulas with an infinite loop can disable it forever.
   // TODO find a solution to this issue.
   @ActiveDoc.keepDocOpen
-  private async _finishInitialization(
-    docSession: OptDocSession, pendingTableNames: string[], onDemandNames: string[], startTime: number
-  ): Promise<void> {
+  private async _finishInitialization(docSession: OptDocSession, docData: DocData, startTime: number): Promise<void> {
     try {
       await this._tableMetadataLoader.wait();
       await this._tableMetadataLoader.clean();
 
+      const tables = docData.getMetaTable('_grist_Tables');
+      const skipLoadingUserTables = this._recoveryMode;
+      const onDemandCount = skipLoadingUserTables ? tables.numRecords() : tables.filterRowIds({onDemand: true}).length;
+
       if (this._isSnapshot) {
         log.rawInfo("Loading complete", {
           ...this.getLogMeta(docSession),
-          num_on_demand_tables: onDemandNames.length,
+          num_on_demand_tables: onDemandCount,
         });
       } else {
-        await this._loadTables(docSession, pendingTableNames);
+        if (!skipLoadingUserTables) {
+          const pendingTableNames = tables.filterRecords({onDemand: false}).map(r => r.tableId);
+          pendingTableNames.sort();   // Sort for a consistent order (affects DocRegressionTest)
+          await this._loadTables(docSession, pendingTableNames);
+        }
         const tableStats = await this._pyCall('get_table_stats');
         log.rawInfo("Loading complete, table statistics retrieved...", {
           ...this.getLogMeta(docSession),
           ...tableStats,
-          num_on_demand_tables: onDemandNames.length,
+          num_on_demand_tables: onDemandCount,
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
@@ -2566,7 +2553,7 @@ export class ActiveDoc extends EventEmitter {
     this.logTelemetryEvent(docSession, 'documentUsage', {
       limited: {
         triggeredBy,
-        isPublic: ((this._doc as unknown) as APIDocument)?.public ?? false,
+        isPublic: (this.doc as unknown as APIDocument)?.public ?? false,
         rowCount: this._docUsage?.rowCount?.total,
         dataSizeBytes: this._docUsage?.dataSizeBytes,
         attachmentsSize: this._docUsage?.attachmentsSizeBytes,
@@ -2765,6 +2752,15 @@ export class ActiveDoc extends EventEmitter {
     this._logDocMetrics(docSession, 'docOpen');
   }
 
+  private _getAuditEventProperties<Action extends AuditEventAction>(): Partial<AuditEventProperties<Action>> {
+    const org = this.doc?.workspace.org;
+    return {
+      context: {
+        site: org ? pick(org, "id") : undefined,
+      },
+    };
+  }
+
   private _getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
     const altSessionId = getAltSessionId(docSession);
     return merge(
@@ -2775,7 +2771,7 @@ export class ActiveDoc extends EventEmitter {
           docIdDigest: this._docName,
         },
         full: {
-          siteId: this._doc?.workspace.org.id,
+          siteId: this.doc?.workspace.org.id,
           siteType: this._product?.name,
         },
       },
@@ -2849,7 +2845,7 @@ export class ActiveDoc extends EventEmitter {
 
   private async _makeEngine(): Promise<ISandbox> {
     // Figure out what kind of engine we need for this document.
-    let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '3' ? '3' : '2';
+    let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '2' ? '2' : '3';
 
     // Careful, migrations may not have run on this document and it may not have a
     // documentSettings column.  Failures are treated as lack of an engine preference.
@@ -2867,7 +2863,7 @@ export class ActiveDoc extends EventEmitter {
       }
     }
     return createSandbox({
-      server: this._docManager.gristServer,
+      server: this._server,
       docId: this._docName,
       preferredPythonVersion,
       sandboxOptions: {
@@ -2984,35 +2980,28 @@ export class ActiveDoc extends EventEmitter {
     return  this._pyCall('start_timing');
   }
 
-  private _logForkDocumentEvents(docSession: OptDocSession, options: {
-    originalDocument: Document;
-    forkIds: ForkResult;
-  }) {
-    const {originalDocument, forkIds} = options;
+  private _logForkDocumentEvents(
+    docSession: OptDocSession,
+    { document, fork }: { document: Document; fork: ForkResult }
+  ) {
     this.logAuditEvent(docSession, {
-      event: {
-        name: 'forkDocument',
-        details: {
-          original: {
-            id: originalDocument.id,
-            name: originalDocument.name,
-          },
-          fork: {
-            id: forkIds.forkId,
-            documentId: forkIds.docId,
-            urlId: forkIds.urlId,
-          },
+      action: "document.fork",
+      details: {
+        document: pick(document, "id", "name"),
+        fork: {
+          id: fork.forkId,
+          document_id: fork.docId,
+          url_id: fork.urlId,
         },
-        context: {documentId: originalDocument.id},
       },
     });
     this.logTelemetryEvent(docSession, 'documentForked', {
       limited: {
-        forkIdDigest: forkIds.forkId,
-        forkDocIdDigest: forkIds.docId,
-        trunkIdDigest: originalDocument.trunkId,
-        isTemplate: originalDocument.type === 'template',
-        lastActivity: originalDocument.updatedAt,
+        forkIdDigest: fork.forkId,
+        forkDocIdDigest: fork.docId,
+        trunkIdDigest: document.trunkId,
+        isTemplate: document.type === "template",
+        lastActivity: document.updatedAt,
       },
     });
   }

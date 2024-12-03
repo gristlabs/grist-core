@@ -3,7 +3,7 @@ import {UserAPI} from 'app/common/UserAPI';
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import uuidv4 from "uuid/v4";
+import {v4 as uuidv4} from 'uuid';
 
 describe("Fork", function() {
 

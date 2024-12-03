@@ -20,7 +20,7 @@ export async function getChartData(chartElem?: WebElement|string): Promise<Chart
     const section = isString(chartElem) ?
       await gu.getSection(chartElem) :
       await driver.findWait('.active_section', 4000);
-    chartElem = await section.find('.test-chart-container');
+    chartElem = await section.findWait('.test-chart-container.js-plotly-plot', 5_000);
   }
   return driver.executeScript((el: any) => ({data: el.data, layout: el.layout}), chartElem);
 }

@@ -425,11 +425,6 @@ export interface ActiveDocAPI {
   autocomplete(txt: string, tableId: string, columnId: string, rowId: UIRowId | null): Promise<ISuggestionWithValue[]>;
 
   /**
-   * Removes the current instance from the doc.
-   */
-  removeInstanceFromDoc(): Promise<void>;
-
-  /**
    * Get recent actions in ActionGroup format with summaries included.
    */
   getActionSummaries(): Promise<ActionGroup[]>;

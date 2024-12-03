@@ -184,7 +184,7 @@ describe('Assistance', function () {
       checkSendForCompletion(),
       "Sorry, the assistant is unavailable right now. " +
       "Try again in a few minutes. \n" +
-      '(Error: OpenAI API returned status 500: {"status":500})',
+      '(Error: AI service provider API returned status 500: {"status":500})',
     );
     assert.equal(fakeFetch.callCount, 3);
   });

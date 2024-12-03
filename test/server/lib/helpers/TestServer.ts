@@ -12,7 +12,6 @@ import {delay} from "bluebird";
 import fetch from "node-fetch";
 import {Writable} from "stream";
 import express from "express";
-import { AddressInfo } from "net";
 import { isAffirmative } from "app/common/gutil";
 import httpProxy from 'http-proxy';
 
@@ -28,8 +27,8 @@ export class TestServer {
     _homeUrl?: string,
     options: {output?: Writable} = {},      // Pipe server output to the given stream
   ): Promise<TestServer> {
-
-    const server = new this(serverTypes, tempDirectory, suitename);
+    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+    const server = new this(serverTypes, port, tempDirectory, suitename);
     await server.start(_homeUrl, customEnv, options);
     return server;
   }
@@ -41,18 +40,23 @@ export class TestServer {
     if (this._proxiedServer) {
       throw new Error('Direct access to this test server is disallowed');
     }
-    return this._serverUrl;
+
+    return `http://localhost:${this.port}`;
   }
   public get proxiedServer() { return this._proxiedServer; }
 
-  private _serverUrl: string;
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
   private _proxiedServer: boolean = false;
 
   private readonly _defaultEnv;
 
-  constructor(private _serverTypes: string, public readonly rootDir: string, private _suiteName: string) {
+  constructor(
+    private _serverTypes: string,
+    public readonly port: number,
+    public readonly rootDir: string,
+    private _suiteName: string
+  ) {
     this._defaultEnv = {
       GRIST_INST_DIR: this.rootDir,
       GRIST_DATA_DIR: path.join(this.rootDir, "data"),
@@ -66,7 +70,8 @@ export class TestServer {
       ...process.env
     };
   }
-  public async start(_homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
+
+  public async start(homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
     // put node logs into files with meaningful name that relate to the suite name and server type
     const fixedName = this._serverTypes.replace(/,/, '_');
     const nodeLogPath = path.join(this.rootDir, `${this._suiteName}-${fixedName}-node.log`);
@@ -79,15 +84,10 @@ export class TestServer {
       throw new Error(`Path of testingSocket too long: ${this.testingSocket.length} (${this.testingSocket})`);
     }
 
-    const port = await getAvailablePort(Number(process.env.GET_AVAILABLE_PORT_START || '8000'));
-    this._serverUrl = `http://localhost:${port}`;
-    const homeUrl = _homeUrl ?? (this._serverTypes.includes('home') ? this._serverUrl : undefined);
-
     const env: NodeJS.ProcessEnv = {
       APP_HOME_URL: homeUrl,
-      APP_HOME_INTERNAL_URL: homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
-      GRIST_PORT: String(port),
+      GRIST_PORT: String(this.port),
       ...this._defaultEnv,
       ...customEnv
     };
@@ -115,7 +115,7 @@ export class TestServer {
       .catch(() => undefined);
 
     await this._waitServerReady();
-    log.info(`server ${this._serverTypes} up and listening on ${this._serverUrl}`);
+    log.info(`server ${this._serverTypes} up and listening on ${this.serverUrl}`);
   }
 
   public async stop() {
@@ -144,7 +144,7 @@ export class TestServer {
       this.testingHooks = await connectTestingHooks(this.testingSocket);
 
       // wait for check
-      return (await fetch(`${this._serverUrl}/status/hooks`, {timeout: 1000})).ok;
+      return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
     } catch (err) {
       log.warn("Failed to initialize server", err);
       return false;
@@ -157,19 +157,9 @@ export class TestServer {
   // Returns the promise for the ChildProcess's signal or exit code.
   public getExitPromise(): Promise<string|number> { return this._exitPromise; }
 
-  public makeUserApi(
-    org: string,
-    user: string = 'chimpy',
-    {
-      headers = {Authorization: `Bearer api_key_for_${user}`},
-      serverUrl = this._serverUrl,
-    }: {
-      headers?: Record<string, string>
-      serverUrl?: string,
-    } = { headers: undefined, serverUrl: undefined },
-  ): UserAPIImpl {
-    return new UserAPIImpl(`${serverUrl}/o/${org}`, {
-      headers,
+  public makeUserApi(org: string, user: string = 'chimpy'): UserAPIImpl {
+    return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {
+      headers: {Authorization: `Bearer api_key_for_${user}`},
       fetch: fetch as unknown as typeof globalThis.fetch,
       newFormData: () => new FormData() as any,
     });
@@ -204,6 +194,8 @@ export class TestServer {
   }
 }
 
+const FROM_OUTSIDE_HEADER_KEY = "X-FROM-OUTSIDE";
+
 /**
  * Creates a reverse-proxy for a home and a doc worker.
  *
@@ -212,7 +204,7 @@ export class TestServer {
  *
  * You may use it like follow:
  * ```ts
- * const proxy = new TestServerReverseProxy();
+ * const proxy = await TestServerReverseProxy.build();
  * // Create here a doc and a home workers with their env variables
  * proxy.requireFromOutsideHeader(); // Optional
  * await proxy.start(home, docs);
@@ -226,23 +218,24 @@ export class TestServerReverseProxy {
   // https://github.com/gristlabs/grist-core/blob/24b39c651b9590cc360cc91b587d3e1b301a9c63/app/server/lib/requestUtils.ts#L85-L98
   public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
 
-  public static FROM_OUTSIDE_HEADER = {"X-FROM-OUTSIDE": true};
+  public static FROM_OUTSIDE_HEADER = {[FROM_OUTSIDE_HEADER_KEY]: true};
+
+  public static async build() {
+    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+    return new this(port);
+  }
+
+  public get serverUrl() { return `http://${TestServerReverseProxy.HOSTNAME}:${this.port}`; }
 
   private _app = express();
   private _proxyServer: http.Server;
   private _proxy: httpProxy = httpProxy.createProxy();
-  private _address: Promise<AddressInfo>;
   private _requireFromOutsideHeader = false;
 
   public get stopped() { return !this._proxyServer.listening; }
 
-  public constructor() {
-    this._proxyServer = this._app.listen(0);
-    this._address = new Promise((resolve) => {
-      this._proxyServer.once('listening', () => {
-        resolve(this._proxyServer.address() as AddressInfo);
-      });
-    });
+  public constructor(public readonly port: number) {
+    this._proxyServer = this._app.listen(port);
   }
 
   /**
@@ -257,8 +250,8 @@ export class TestServerReverseProxy {
     this._requireFromOutsideHeader = true;
   }
 
-  public async start(homeServer: TestServer, docServer: TestServer) {
-    this._app.all(['/dw/dw1', '/dw/dw1/*'], (oreq, ores) => this._getRequestHandlerFor(docServer));
+  public start(homeServer: TestServer, docServer: TestServer) {
+    this._app.all(['/dw/dw1', '/dw/dw1/*'], this._getRequestHandlerFor(docServer));
     this._app.all('/*', this._getRequestHandlerFor(homeServer));
 
     // Forbid now the use of serverUrl property, so we don't allow the tests to
@@ -266,16 +259,7 @@ export class TestServerReverseProxy {
     homeServer.disallowDirectAccess();
     docServer.disallowDirectAccess();
 
-    log.info('proxy server running on ', await this.getServerUrl());
-  }
-
-  public async getAddress() {
-    return this._address;
-  }
-
-  public async getServerUrl() {
-    const address = await this.getAddress();
-    return `http://${TestServerReverseProxy.HOSTNAME}:${address.port}`;
+    log.info('proxy server running on ', this.serverUrl);
   }
 
   public stop() {
@@ -294,7 +278,7 @@ export class TestServerReverseProxy {
       log.debug(`[proxy] Requesting (method=${oreq.method}): ${new URL(oreq.url, serverUrl).href}`);
 
       // See the requireFromOutsideHeader() method for the explanation
-      if (this._requireFromOutsideHeader && !isAffirmative(oreq.get("X-FROM-OUTSIDE"))) {
+      if (this._requireFromOutsideHeader && !isAffirmative(oreq.get(FROM_OUTSIDE_HEADER_KEY))) {
         log.error('TestServerReverseProxy: called public URL from internal');
         return ores.status(403).json({error: "TestServerReverseProxy: called public URL from internal "});
       }

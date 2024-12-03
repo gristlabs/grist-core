@@ -120,7 +120,7 @@ export class Doom {
     await this._loginSystem.deleteUser(user);
 
     // Remove user from our db
-    await this._dbManager.deleteUser({userId}, userId);
+    return await this._dbManager.deleteUser({ userId }, userId);
   }
 
   /**

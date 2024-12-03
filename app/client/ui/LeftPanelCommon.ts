@@ -17,7 +17,7 @@ import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
+import {colorIcon, icon} from 'app/client/ui2018/icons';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, Observable, styled} from 'grainjs';
@@ -86,18 +86,34 @@ export const cssTools = styled('div', `
   flex: none;
   margin-top: auto;
   padding: 16px 0 16px 0;
+  cursor: default;
 `);
+
+
+export const cssHomeTools = styled(cssTools, `
+  padding-top: 0px;
+  border-top: 1px solid ${theme.pagePanelsBorder};
+`);
+
 
 export const cssSectionHeader = styled('div', `
   margin: 24px 0 8px 24px;
+  display: flex;
+  align-items: center;
+  .${cssTools.className}-collapsed > & {
+    visibility: hidden;
+  }
+`);
+
+export const cssSectionHeaderText = styled('span', `
   color: ${theme.lightText};
   text-transform: uppercase;
   font-weight: 500;
   font-size: ${vars.xsmallFontSize};
   letter-spacing: 1px;
-  .${cssTools.className}-collapsed > & {
-    visibility: hidden;
-  }
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `);
 
 export const cssPageEntry = styled('div', `
@@ -153,6 +169,14 @@ export const cssLinkText = styled('span', `
 `);
 
 export const cssPageIcon = styled(icon, `
+  flex: none;
+  margin-right: var(--page-icon-margin, 8px);
+  .${cssTools.className}-collapsed & {
+    margin-right: 0;
+  }
+`);
+
+export const cssPageColorIcon = styled(colorIcon, `
   flex: none;
   margin-right: var(--page-icon-margin, 8px);
   .${cssTools.className}-collapsed & {

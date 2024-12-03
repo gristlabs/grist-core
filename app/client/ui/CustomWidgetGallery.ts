@@ -102,20 +102,9 @@ class CustomWidgetGallery extends Disposable {
       }
     });
 
-    this._saveDisabled = Computed.create(this, use => {
+    this._saveDisabled = Computed.create(this, (use) => {
       const selectedWidgetId = use(this._selectedWidgetId);
-      if (!selectedWidgetId) { return true; }
-      if (!this._section) { return false; }
-
-      const savedWidgetId = use(this._savedWidgetId);
-      if (selectedWidgetId === CUSTOM_URL_WIDGET_ID) {
-        return (
-          use(this._savedWidgetId) === CUSTOM_URL_WIDGET_ID &&
-          use(this._customUrl) === use(this._section.customDef.url)
-        );
-      } else {
-        return selectedWidgetId === savedWidgetId;
-      }
+      return selectedWidgetId === null;
     });
 
     this._initializeWidgets().catch(reportError);

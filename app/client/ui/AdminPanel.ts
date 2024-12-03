@@ -4,8 +4,11 @@ import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
+import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
+import {AuditLogStreamingConfig, getDestinationDisplayName} from 'app/client/ui/AuditLogStreamingConfig';
+import {InstallConfigsAPI} from 'app/client/ui/ConfigsAPI';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {SupportGristPage} from 'app/client/ui/SupportGristPage';
@@ -152,6 +155,7 @@ Please log in as an administrator.`)),
           expandedContent: this._buildSessionSecretNotice(owner),
         })
       ]),
+      this._buildAuditLogsSection(),
       dom.create(AdminSection, t('Version'), [
         dom.create(AdminSectionItem, {
           id: 'version',
@@ -595,8 +599,87 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         return '??';
     }
   }
-}
 
+  private _buildAuditLogsSection() {
+    const { deploymentType } = getGristConfig();
+    switch (deploymentType) {
+      // Note: SaaS builds are only included to streamline UI testing.
+      case "core":
+      case "enterprise":
+      case "saas": {
+        return dom.create(
+          AdminSection,
+          [t("Audit Logs"), cssSectionTag(t("New, Enterprise"))],
+          [this._buildLogStreamingSection(deploymentType)]
+        );
+      }
+      default: {
+        return null;
+      }
+    }
+  }
+
+  private _buildLogStreamingSection(
+    deploymentType: "core" | "enterprise" | "saas"
+  ) {
+    if (deploymentType === "core") {
+      return dom.create(AdminSectionItem, {
+        id: "log-streaming",
+        name: t("Log Streaming"),
+        expandedContent: t(
+          "You can set up streaming of audit events from Grist to an " +
+            "external security information and event management (SIEM) " +
+            "system if you enable Grist Enterprise. {{contactUsLink}} to " +
+            "learn more.",
+          {
+            contactUsLink: cssLink(
+              { href: commonUrls.contact, target: "_blank" },
+              t("Contact us")
+            ),
+          }
+        ),
+      });
+    } else {
+      const model = new AuditLogsModel({
+        configsAPI: new InstallConfigsAPI(),
+      });
+      model.fetchStreamingDestinations().catch(reportError);
+
+      return dom.create(AdminSectionItem, {
+        id: "log-streaming",
+        name: t("Log Streaming"),
+        value: this._buildLogStreamingStatus(model),
+        expandedContent: dom.create(AuditLogStreamingConfig, model),
+      });
+    }
+  }
+
+  private _buildLogStreamingStatus(model: AuditLogsModel) {
+    return dom.domComputed((use) => {
+      const destinations = use(model.streamingDestinations);
+      if (!destinations) {
+        return null;
+      } else if (destinations.length === 0) {
+        return cssValueLabel(cssDangerText(t("Off")));
+      } else {
+        const [first, ...rest] = destinations;
+        let status: string;
+        if (rest.length > 0) {
+          status = t(
+            "{{firstDestinationName}} + {{- remainingDestinationsCount}} more",
+            {
+              firstDestinationName: getDestinationDisplayName(first.name),
+              remainingDestinationsCount: rest.length,
+            }
+          );
+        } else {
+          status = getDestinationDisplayName(first.name);
+        }
+        return cssValueLabel(cssHappyText(status));
+      }
+    });
+  }
+}
 
 // Ugh I'm not a front end person. h5 small-caps, sure why not.
 // Hopefully someone with taste will edit someday!
@@ -697,6 +780,15 @@ export const cssLabel = styled('div', `
   padding-right: 5px;
 `);
 
+const cssSectionTag = styled('span', `
+  color: ${theme.accentText};
+  text-transform: uppercase;
+  font-size: 8px;
+  vertical-align: super;
+  margin-top: -4px;
+  margin-left: 4px;
+  font-weight: bold;
+`);
 
 /**
  * Make a long code to use in the example, so that if people copy

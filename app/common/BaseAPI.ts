@@ -123,7 +123,7 @@ export class BaseAPI {
       }
     }
     const resp = await this.fetch(input, init);
-    if (resp.status !== 200) {
+    if (!resp.ok) {
       const body = await resp.json().catch(() => ({}));
       throwApiError(input, resp, body);
     }

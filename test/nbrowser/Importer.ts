@@ -706,7 +706,7 @@ describe('Importer', function() {
       await gu.importFileDialog('./uploads/World-v0.xlsx');
       assert.equal(await driver.findWait('.test-importer-preview', 2000).isPresent(), true);
       await driver.find('.test-modal-confirm').click();
-      await gu.waitForServer();
+      await gu.waitForServer(10_000);
 
       // Now import a new version of the Excel file with updated data.
       await gu.importFileDialog('./uploads/World-v1.xlsx');

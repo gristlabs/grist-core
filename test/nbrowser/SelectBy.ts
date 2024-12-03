@@ -41,6 +41,7 @@ describe("SelectBy", function() {
 
     // open document
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
+    await gu.waitForDocToLoad();
 
     // create a new page with table1 and table2 as 2 tables
     await gu.addNewPage(/Table/, /Table1/);
@@ -128,6 +129,7 @@ describe("SelectBy", function() {
 
     // open Summary page
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}/p/4`);
+    await gu.waitForDocToLoad();
 
     // add new widget to page
     await driver.findWait('.test-dp-add-new', 2000).doClick();

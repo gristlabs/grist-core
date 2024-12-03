@@ -229,13 +229,16 @@ export const GristDark: ThemeColors = {
   'left-panel-page-emoji-outline': '#70707D',
 
   /* Right Panel */
-  'right-panel-tab-fg': '#EFEFEF',
-  'right-panel-tab-bg': '#262633',
+  'right-panel-tab-fg': '#A4A4B1',
+  'right-panel-tab-bg': '#32323f',
   'right-panel-tab-icon': '#A4A4B1',
-  'right-panel-tab-icon-hover': '#13D78D',
-  'right-panel-tab-hover-bg': 'rgba(111,111,117,0.6)',
-  'right-panel-tab-selected-fg': '#FFFFFF',
-  'right-panel-tab-selected-bg': '#157A54',
+  'right-panel-tab-icon-hover': '#EFEFEF',
+  'right-panel-tab-border': '#60606D',
+  'right-panel-tab-hover-bg': '#32323f',
+  'right-panel-tab-hover-fg': '#EFEFEF',
+  'right-panel-tab-selected-fg': '#EFEFEF',
+  'right-panel-tab-selected-bg': '#262633',
+  'right-panel-tab-selected-icon': '#16B378',
   'right-panel-tab-button-hover-bg': '#0A5438',
   'right-panel-subtab-fg': '#17B378',
   'right-panel-subtab-selected-fg': '#EFEFEF',
@@ -573,4 +576,9 @@ export const GristDark: ThemeColors = {
   'app-header-bg': '#32323F',
   'app-header-border': '#32323f',
   'app-header-border-hover': '#78788c',
+
+  /* Card Button */
+  'card-button-border': '#555563',
+  'card-button-border-selected': '#17B378',
+  'card-button-shadow': '#0000001A',
 };

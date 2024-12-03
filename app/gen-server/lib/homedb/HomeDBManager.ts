@@ -44,12 +44,15 @@ import {Workspace} from "app/gen-server/entity/Workspace";
 import {Limit} from 'app/gen-server/entity/Limit';
 import {
   AvailableUsers,
+  DocumentAccessChanges,
   GetUserOptions,
   NonGuestGroup,
+  OrgAccessChanges,
   PreviousAndCurrent,
   QueryResult,
   Resource,
   UserProfileChange,
+  WorkspaceAccessChanges,
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
@@ -83,7 +86,7 @@ import {
   SelectQueryBuilder,
   WhereExpressionBuilder
 } from "typeorm";
-import uuidv4 from "uuid/v4";
+import {v4 as uuidv4} from "uuid";
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -104,6 +107,12 @@ export const NotifierEvents = StringUnion(
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
+
+const AuditLoggerEvents = StringUnion(
+  'streamingDestinationsChange',
+);
+
+type AuditLoggerEvent = typeof AuditLoggerEvents.type;
 
 // Name of a special workspace with examples in it.
 export const EXAMPLE_WORKSPACE_NAME = 'Examples & Templates';
@@ -128,6 +137,7 @@ export interface UserIdDelta {
 // a change of users) and a user.
 export interface PermissionDeltaAnalysis {
   userIdDelta: UserIdDelta | null;   // New roles for users, indexed by user id.
+  users: User[];                     // Users from userIdDelta.
   permissionThreshold: Permissions;  // The permissions needed to make the change.
                                      // Usually Permissions.ACL_EDIT, but
                                      // Permissions.ACL_VIEW is enough for a user
@@ -255,8 +265,7 @@ export class HomeDBManager extends EventEmitter {
                                    // deployments on same subdomain.
 
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
-  // In restricted mode, documents should be read-only.
-  private _restrictedMode: boolean = false;
+  private _readonly: boolean = false;
 
   private get _dbType(): DatabaseType {
     return this._connection.driver.options.type;
@@ -301,7 +310,7 @@ export class HomeDBManager extends EventEmitter {
     orgOnly: true
   }];
 
-  public emit(event: NotifierEvent, ...args: any[]): boolean {
+  public emit(event: NotifierEvent|AuditLoggerEvent, ...args: any[]): boolean {
     return super.emit(event, ...args);
   }
 
@@ -346,8 +355,8 @@ export class HomeDBManager extends EventEmitter {
     this._idPrefix = prefix;
   }
 
-  public setRestrictedMode(restricted: boolean) {
-    this._restrictedMode = restricted;
+  public setReadonly(readonly = true) {
+    this._readonly = readonly;
   }
 
   public async connect(): Promise<void> {
@@ -502,6 +511,14 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
+   * @see UsersManager.prototype.getExistingUsersByLogin
+   * Find users by emails.
+   */
+  public async getExistingUsersByLogin(emails: string[], manager?: EntityManager): Promise<User[]> {
+    return await this._usersManager.getExistingUsersByLogin(emails, manager);
+  }
+
+  /**
    * Returns true if the given domain string is available, and false if it is not available.
    * NOTE that the endpoint only checks if the domain string is taken in the database, it does
    * not check whether the string contains invalid characters.
@@ -538,7 +555,7 @@ export class HomeDBManager extends EventEmitter {
    * @see UsersManager.prototype.deleteUser
    */
   public async deleteUser(scope: Scope, userIdToDelete: number,
-                          name?: string): Promise<QueryResult<void>> {
+                          name?: string): Promise<QueryResult<User>> {
     return this._usersManager.deleteUser(scope, userIdToDelete, name);
   }
 
@@ -949,7 +966,7 @@ export class HomeDBManager extends EventEmitter {
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
       const features = doc.workspace.org.billingAccount.getFeatures();
-      if (features.readOnlyDocs || this._restrictedMode) {
+      if (features.readOnlyDocs || this._readonly) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
       }
@@ -1461,7 +1478,8 @@ export class HomeDBManager extends EventEmitter {
       const wsQuery = this._workspace(scope, wsId, {
         manager,
         markPermissions: Permissions.UPDATE
-      });
+      })
+      .leftJoinAndSelect('workspaces.org', 'orgs');
       const queryResult = await verifyEntity(wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
@@ -1950,12 +1968,12 @@ export class HomeDBManager extends EventEmitter {
     scope: Scope,
     orgKey: string|number,
     delta: PermissionDelta
-  ): Promise<QueryResult<PermissionDelta & {organization: Organization}>> {
+  ): Promise<QueryResult<OrgAccessChanges>> {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
-      const {userIdDelta} = analysis;
+      const {userIdDelta, users} = analysis;
       let orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions: analysis.permissionThreshold,
@@ -1996,10 +2014,15 @@ export class HomeDBManager extends EventEmitter {
         // Notify any added users that they've been added to this resource.
         notifications.push(this._inviteNotification(userId, org, userIdDelta, membersBefore));
       }
-      return {status: 200, data: {
-        organization: org,
-        users: userIdDelta ?? undefined,
-      }};
+      return {
+        status: 200,
+        data: {
+          org,
+          accessChanges: {
+            users: getUserAccessChanges({users, userIdDelta}),
+          },
+        },
+      };
     });
     for (const notification of notifications) { notification(); }
     return result;
@@ -2010,11 +2033,12 @@ export class HomeDBManager extends EventEmitter {
     scope: Scope,
     wsId: number,
     delta: PermissionDelta
-  ): Promise<QueryResult<PermissionDelta & {workspace: Workspace}>> {
+  ): Promise<QueryResult<WorkspaceAccessChanges>> {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
+      const {users} = analysis;
       let {userIdDelta} = analysis;
       const options = {
         manager,
@@ -2077,8 +2101,10 @@ export class HomeDBManager extends EventEmitter {
         status: 200,
         data: {
           workspace: ws,
-          maxInheritedRole: delta.maxInheritedRole,
-          users: userIdDelta ?? undefined,
+          accessChanges: {
+            maxInheritedAccess: delta.maxInheritedRole,
+            users: getUserAccessChanges({users, userIdDelta}),
+          },
         },
       };
     });
@@ -2090,11 +2116,12 @@ export class HomeDBManager extends EventEmitter {
   public async updateDocPermissions(
     scope: DocScope,
     delta: PermissionDelta
-  ): Promise<QueryResult<PermissionDelta & {document: Document}>> {
+  ): Promise<QueryResult<DocumentAccessChanges>> {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const {userId} = scope;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
+      const {users} = analysis;
       let {userIdDelta} = analysis;
       const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
       this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
@@ -2135,8 +2162,11 @@ export class HomeDBManager extends EventEmitter {
         status: 200,
         data: {
           document: doc,
-          maxInheritedRole: delta.maxInheritedRole,
-          users: userIdDelta ?? undefined,
+          accessChanges: {
+            publicAccess: userIdDelta?.[this.getEveryoneUserId()],
+            maxInheritedAccess: delta.maxInheritedRole,
+            users: getUserAccessChanges({users, userIdDelta}),
+          },
         },
       };
     });
@@ -2878,7 +2908,8 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     value: ConfigValue
   ): Promise<QueryResult<Config|PreviousAndCurrent<Config>>> {
-    return await this._connection.transaction(async (manager) => {
+    const events: AuditLoggerEvent[] = [];
+    const result = await this._connection.transaction(async (manager) => {
       const queryResult = await this.getInstallConfig(key, {
         transaction: manager,
       });
@@ -2887,6 +2918,7 @@ export class HomeDBManager extends EventEmitter {
         config.key = key;
         config.value = value;
         await manager.save(config);
+        events.push("streamingDestinationsChange");
         return {
           status: 201,
           data: config,
@@ -2896,12 +2928,17 @@ export class HomeDBManager extends EventEmitter {
         const previous = structuredClone(config);
         config.value = value;
         await manager.save(config);
+        events.push("streamingDestinationsChange");
         return {
           status: 200,
           data: { previous, current: config },
         };
       }
     });
+    for (const event of events) {
+      this.emit(event);
+    }
+    return result;
   }
 
   /**
@@ -2912,18 +2949,24 @@ export class HomeDBManager extends EventEmitter {
    * Fails if a config with the specified `key` does not exist.
    */
   public async deleteInstallConfig(key: ConfigKey): Promise<QueryResult<Config>> {
-    return await this._connection.transaction(async (manager) => {
+    const events: AuditLoggerEvent[] = [];
+    const result = await this._connection.transaction(async (manager) => {
       const queryResult = await this.getInstallConfig(key, {
         transaction: manager,
       });
       const config: Config = this.unwrapQueryResult(queryResult);
       const deletedConfig = structuredClone(config);
       await manager.remove(config);
+      events.push("streamingDestinationsChange");
       return {
         status: 200,
         data: deletedConfig,
       };
     });
+    for (const event of events) {
+      this.emit(event);
+    }
+    return result;
   }
 
   /**
@@ -2966,7 +3009,8 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     value: ConfigValue
   ): Promise<QueryResult<Config|PreviousAndCurrent<Config>>> {
-    return await this._connection.transaction(async (manager) => {
+    const eventsWithArgs: [AuditLoggerEvent, ...any][] = [];
+    const result = await this._connection.transaction(async (manager) => {
       const orgQuery = this.org(scope, orgKey, {
         markPermissions: Permissions.OWNER,
         needRealOrg: true,
@@ -2983,6 +3027,7 @@ export class HomeDBManager extends EventEmitter {
         config.value = value;
         config.org = org;
         await manager.save(config);
+        eventsWithArgs.push(["streamingDestinationsChange", org.id]);
         return {
           status: 201,
           data: config,
@@ -2992,18 +3037,23 @@ export class HomeDBManager extends EventEmitter {
         const previous = structuredClone(config);
         config.value = value;
         await manager.save(config);
+        eventsWithArgs.push(["streamingDestinationsChange", org.id]);
         return {
           status: 200,
           data: { previous, current: config },
         };
       }
     });
+    for (const [event, ...args] of eventsWithArgs) {
+      this.emit(event, ...args);
+    }
+    return result;
   }
 
   /**
    * Deletes the config scoped to a particular `org` with the specified `key`.
    *
-   * Returns a query result with status 204 and the deleted config on success.
+   * Returns a query result with status 200 and the deleted config on success.
    *
    * Fails if the scoped user is not an owner of the org, or a config with
    * the specified `key` does not exist for the org.
@@ -3013,7 +3063,8 @@ export class HomeDBManager extends EventEmitter {
     org: string|number,
     key: ConfigKey
   ): Promise<QueryResult<Config>> {
-    return await this._connection.transaction(async (manager) => {
+    const eventsWithArgs: [AuditLoggerEvent, ...any][] = [];
+    const result = await this._connection.transaction(async (manager) => {
       const query = this._orgConfig(scope, org, key, {
         manager,
       });
@@ -3021,11 +3072,16 @@ export class HomeDBManager extends EventEmitter {
       const config: Config = this.unwrapQueryResult(queryResult);
       const deletedConfig = structuredClone(config);
       await manager.remove(config);
+      eventsWithArgs.push(["streamingDestinationsChange", deletedConfig.org!.id]);
       return {
         status: 200,
         data: deletedConfig,
       };
     });
+    for (const [event, ...args] of eventsWithArgs) {
+      this.emit(event, ...args);
+    }
+    return result;
   }
 
   /**
@@ -3040,7 +3096,10 @@ export class HomeDBManager extends EventEmitter {
   ) {
     let query = this._configs(manager).where("configs.key = :key", { key });
     if (orgId !== null) {
-      query = query.andWhere("configs.org_id = :orgId", { orgId });
+      query = query
+        .leftJoinAndSelect("configs.org", "orgs")
+        .andWhere("configs.org_id = :orgId", { orgId });
+      query = this._addFeatures(query);
     } else {
       query = query.andWhere("configs.org_id IS NULL");
     }
@@ -4592,7 +4651,8 @@ export class HomeDBManager extends EventEmitter {
       const wsQuery = this._workspace({...scope, showAll: true}, wsId, {
         manager,
         markPermissions: Permissions.REMOVE
-      });
+      })
+      .leftJoinAndSelect('workspaces.org', 'orgs');
       const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(wsQuery));
       workspace.removedAt = removedAt;
       await manager.createQueryBuilder()
@@ -4790,4 +4850,26 @@ function isNonGuestGroup(group: Group): group is NonGuestGroup {
 
 function getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
   return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(isNonGuestGroup);
+}
+
+function getUserAccessChanges({
+  users,
+  userIdDelta,
+}: {
+  users: User[];
+  userIdDelta: UserIdDelta | null;
+}) {
+  if (
+    !userIdDelta ||
+    Object.keys(userIdDelta).length === 0 ||
+    users.length === 0
+  ) {
+    return undefined;
+  }
+
+  return users.map((user) => ({
+    ...pick(user, "id", "name"),
+    email: user.loginEmail,
+    access: userIdDelta[user.id],
+  }));
 }

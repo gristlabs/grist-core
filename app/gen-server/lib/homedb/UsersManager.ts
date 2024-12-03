@@ -348,6 +348,9 @@ export class UsersManager {
     emails: string[],
     manager?: EntityManager
   ): Promise<User[]> {
+    if (emails.length === 0){
+      return [];
+    }
     return await this._buildExistingUsersByLoginRequest(emails, manager)
       .getMany();
   }
@@ -499,12 +502,12 @@ export class UsersManager {
    * @param name: optional cross-check, delete only if user name matches this
    */
   public async deleteUser(scope: Scope, userIdToDelete: number,
-                          name?: string): Promise<QueryResult<void>> {
+                          name?: string): Promise<QueryResult<User>> {
     const userIdDeleting = scope.userId;
     if (userIdDeleting !== userIdToDelete) {
       throw new ApiError('not permitted to delete this user', 403);
     }
-    await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async manager => {
       const user = await manager.findOne(User, {where: {id: userIdToDelete},
                                                 relations: ["logins", "personalOrg", "prefs"]});
       if (!user) { throw new ApiError('user not found', 404); }
@@ -524,10 +527,11 @@ export class UsersManager {
         .execute();
 
       await manager.delete(User, userIdToDelete);
+      return {
+        status: 200,
+        data: user,
+      };
     });
-    return {
-      status: 200
-    };
   }
 
   public async initializeSpecialIds(): Promise<void> {
@@ -616,6 +620,7 @@ export class UsersManager {
         throw new ApiError(`Invalid maxInheritedRole ${role}`, 400);
       }
     }
+    let users: User[] = [];
     if (delta.users) {
       // Verify roles
       const deltaRoles = Object.keys(delta.users).map(_userId => delta.users![_userId]);
@@ -629,10 +634,10 @@ export class UsersManager {
       // Lookup emails
       const emailMap = delta.users;
       const emails = Object.keys(emailMap);
-      const existingUsers = await this.getExistingUsersByLogin(emails, transaction);
-      const emailsExistingUsers = existingUsers.map(user => user.loginEmail);
+      users = await this.getExistingUsersByLogin(emails, transaction);
+      const emailsExistingUsers = users.map(user => user.loginEmail);
       const emailsUsersToCreate = emails.filter(email => !emailsExistingUsers.includes(email));
-      const emailUsers = new Map(existingUsers.map(user => [user.loginEmail, user]));
+      const emailUsers = new Map(users.map(user => [user.loginEmail, user]));
       for (const email of emailsUsersToCreate) {
         const user = await this.createUser(email, {manager: transaction});
         emailUsers.set(user.loginEmail, user);
@@ -656,6 +661,7 @@ export class UsersManager {
     const permissionThreshold = removingSelf ? Permissions.VIEW : Permissions.ACL_EDIT;
     return {
       userIdDelta,
+      users,
       permissionThreshold,
       affectsSelf: userId in userIdMap,
     };

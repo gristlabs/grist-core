@@ -196,9 +196,12 @@ export const ThemeColors = t.iface([], {
   "right-panel-tab-bg": "string",
   "right-panel-tab-icon": "string",
   "right-panel-tab-icon-hover": "string",
+  "right-panel-tab-border": "string",
   "right-panel-tab-hover-bg": "string",
+  "right-panel-tab-hover-fg": "string",
   "right-panel-tab-selected-fg": "string",
   "right-panel-tab-selected-bg": "string",
+  "right-panel-tab-selected-icon": "string",
   "right-panel-tab-button-hover-bg": "string",
   "right-panel-subtab-fg": "string",
   "right-panel-subtab-selected-fg": "string",
@@ -454,6 +457,9 @@ export const ThemeColors = t.iface([], {
   "app-header-bg": "string",
   "app-header-border": "string",
   "app-header-border-hover": "string",
+  "card-button-border": "string",
+  "card-button-border-selected": "string",
+  "card-button-shadow": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

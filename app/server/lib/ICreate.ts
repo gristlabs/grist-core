@@ -3,9 +3,9 @@ import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {IAuditLogger} from 'app/server/lib/AuditLogger';
 import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
-import {createDummyAuditLogger, createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -71,7 +71,7 @@ export interface ICreate {
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
-  AuditLogger(dbManager: HomeDBManager): IAuditLogger;
+  AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
   Shell?(): IShell;  // relevant to electron version of Grist only.
 
@@ -120,9 +120,7 @@ export interface ICreateBillingOptions {
 }
 
 export interface ICreateAuditLoggerOptions {
-  name: 'grist'|'hec';
-  check(): boolean;
-  create(dbManager: HomeDBManager): IAuditLogger|undefined;
+  create(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger|undefined;
 }
 
 export interface ICreateTelemetryOptions {
@@ -150,7 +148,7 @@ export function makeSimpleCreator(opts: {
   storage?: ICreateStorageOptions[],
   billing?: ICreateBillingOptions,
   notifier?: ICreateNotifierOptions,
-  auditLogger?: ICreateAuditLoggerOptions[],
+  auditLogger?: ICreateAuditLoggerOptions,
   telemetry?: ICreateTelemetryOptions,
   sandboxFlavor?: string,
   shell?: IShell,
@@ -173,6 +171,13 @@ export function makeSimpleCreator(opts: {
         addWebhooks() { /* do nothing */ },
         async addMiddleware() { /* do nothing */ },
         addPages() { /* do nothing */ },
+        getActivationStatus() {
+          return {
+            inGoodStanding: true,
+            isInTrial: false,
+            expirationDate: null,
+          };
+        },
       };
     },
     Notifier(dbManager, gristConfig) {
@@ -186,8 +191,8 @@ export function makeSimpleCreator(opts: {
       }
       return undefined;
     },
-    AuditLogger(dbManager) {
-      return auditLogger?.find(({check}) => check())?.create(dbManager) ?? createDummyAuditLogger();
+    AuditLogger(dbManager, gristConfig) {
+      return auditLogger?.create(dbManager, gristConfig) ?? createNullAuditLogger();
     },
     Telemetry(dbManager, gristConfig) {
       return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();
@@ -244,16 +249,31 @@ export function makeSimpleCreator(opts: {
   };
 }
 
-const createDefaultHostedStorageManager: HostedDocStorageManagerCreator = async (
-      docsRoot,
-      docWorkerId,
-      disableS3,
-      docWorkerMap,
-      dbManager,
-      createExternalStorage, options
-) =>
-  new HostedStorageManager(docsRoot, docWorkerId, disableS3, docWorkerMap, dbManager, createExternalStorage, options);
+async function createDefaultHostedStorageManager(
+  docsRoot: string,
+  docWorkerId: string,
+  disableS3: boolean,
+  docWorkerMap: IDocWorkerMap,
+  dbManager: HomeDBManager,
+  createExternalStorage: ExternalStorageCreator,
+  options?: HostedStorageOptions
+) {
+  return new HostedStorageManager(
+    docsRoot,
+    docWorkerId,
+    disableS3,
+    docWorkerMap,
+    dbManager,
+    createExternalStorage,
+    options
+  );
+}
 
-const createDefaultLocalStorageManager: LocalDocStorageManagerCreator = async (
-  docsRoot, samplesRoot, comm, shell
-) => new DocStorageManager(docsRoot, samplesRoot, comm, shell);
+async function createDefaultLocalStorageManager(
+  docsRoot: string,
+  samplesRoot?: string,
+  comm?: Comm,
+  shell?: IShell
+) {
+  return new DocStorageManager(docsRoot, samplesRoot, comm, shell);
+}

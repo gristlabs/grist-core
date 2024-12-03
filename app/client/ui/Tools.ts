@@ -1,13 +1,25 @@
 import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
-import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {makeT} from 'app/client/lib/localization';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {showExampleCard} from 'app/client/ui/ExampleCard';
 import {buildExamples} from 'app/client/ui/ExampleInfo';
-import {createHelpTools, cssLinkText, cssMenuTrigger, cssPageEntry, cssPageEntryMain, cssPageEntrySmall,
-        cssPageIcon, cssPageLink, cssSectionHeader, cssSpacer, cssSplitPageEntry,
-        cssTools} from 'app/client/ui/LeftPanelCommon';
+import {
+  createHelpTools,
+  cssLinkText,
+  cssMenuTrigger,
+  cssPageEntry,
+  cssPageEntryMain,
+  cssPageEntrySmall,
+  cssPageIcon,
+  cssPageLink,
+  cssSectionHeader,
+  cssSectionHeaderText,
+  cssSpacer,
+  cssSplitPageEntry,
+  cssTools
+} from 'app/client/ui/LeftPanelCommon';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
@@ -31,7 +43,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   updateCanViewAccessRules();
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
-    cssSectionHeader(t("TOOLS")),
+    cssSectionHeader(cssSectionHeaderText(t("TOOLS"))),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
       cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),

@@ -68,9 +68,22 @@ const iconStyles = `
   background-color: var(--icon-color, var(--grist-theme-text, black));
 `;
 
+const iconColorStyles = `
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+`;
+
 const cssIconDiv = styled('div', iconStyles);
 
 const cssIconSpan = styled('span', iconStyles);
+
+const cssColorIcon = styled('div', iconColorStyles);
 
 export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconDiv(
@@ -82,6 +95,13 @@ export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
 export function iconSpan(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconSpan(
     dom.style('-webkit-mask-image', `var(--icon-${name})`),
+    ...domArgs
+  );
+}
+
+export function colorIcon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
+  return cssColorIcon(
+    dom.style('background-image', `var(--icon-${name})`),
     ...domArgs
   );
 }

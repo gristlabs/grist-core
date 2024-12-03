@@ -1,7 +1,6 @@
 import {BasketClientAPI} from 'app/common/BasketClientAPI';
 import {DocListAPI} from 'app/common/DocListAPI';
 import {LoginSessionAPI} from 'app/common/LoginSessionAPI';
-import {EmailResult, Invite} from 'app/common/sharing';
 import {UserConfig} from 'app/common/UserConfig';
 
 export interface GristServerAPI extends
@@ -9,7 +8,6 @@ export interface GristServerAPI extends
   LoginSessionAPI,
   BasketClientAPI,
   UserAPI,
-  SharingAPI,
   MiscAPI {}
 
 
@@ -31,31 +29,6 @@ interface UserAPI {
    * Re-load plugins.
    */
   reloadPlugins(): Promise<void>;
-}
-
-interface SharingAPI {
-  /**
-   * Looks up a user account by email, return an object with basic user profile information.
-   */
-  lookupEmail(email: string): Promise<EmailResult|null>;
-
-  /**
-   * Fetches and saves invites from the hub which are not already present locally.
-   * Returns the new invites from the hub only.
-   */
-  getNewInvites(): Promise<Invite[]>;
-
-  /**
-   * Fetches local invites and marks them all as read.
-   */
-  getLocalInvites(): Promise<Invite[]>;
-
-  /**
-   * Marks the stored local invite belonging to the calling instance as ignored.
-   * Called when the user declines an invite.
-   */
-  ignoreLocalInvite(docId: string): Promise<void>;
-
 }
 
 interface MiscAPI {

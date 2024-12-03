@@ -63,11 +63,12 @@ export class FormPage extends Disposable {
             cssFormContent(
               dom.autoDispose(formRenderer),
               formRenderer.render(),
-              handleSubmit(this._model.submitting,
-                (_formData, formElement) => this._handleFormSubmit(formElement),
-                () => this._handleFormSubmitSuccess(),
-                (e) => this._handleFormError(e),
-              ),
+              handleSubmit({
+                pending: this._model.submitting,
+                onSubmit: (_formData, formElement) => this._handleFormSubmit(formElement),
+                onSuccess: () => this._handleFormSubmitSuccess(),
+                onError: (e) => this._handleFormError(e),
+              }),
             ),
           ),
           cssFormFooter(

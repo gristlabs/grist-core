@@ -29,6 +29,8 @@ import {MetaRowRecord} from 'app/common/TableData';
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {Document} from "app/gen-server/entity/Document";
+import {Workspace} from "app/gen-server/entity/Workspace";
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
 import * as Types from "app/plugin/DocApiTypes";
@@ -44,6 +46,8 @@ import {
 import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
+import { getDocPoolIdFromDocInfo } from "app/server/lib/AttachmentStore";
+import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
 import {
   assertAccess,
   getAuthorizedUserId,
@@ -102,10 +106,7 @@ import fetch from 'node-fetch';
 import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
-import uuidv4 from "uuid/v4";
-import { Document } from "app/gen-server/entity/Document";
-import { IAttachmentStoreProvider } from "./AttachmentStoreProvider";
-import { getDocPoolIdFromDocInfo } from "./AttachmentStore";
+import {v4 as uuidv4} from "uuid";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -909,10 +910,9 @@ export class DocWorkerApi {
     // Clears all outgoing webhooks in the queue for this document.
     this._app.delete('/api/docs/:docId/webhooks/queue', isOwner,
       withDocTriggersLock(async (activeDoc, req, res) => {
-        const docId = getDocId(req);
         await activeDoc.clearWebhookQueue();
         await activeDoc.sendWebhookNotification();
-        this._logClearAllWebhookQueueEvents(req, {docId});
+        this._logClearAllWebhookQueueEvents(activeDoc, req);
         res.json({success: true});
       })
     );
@@ -965,11 +965,10 @@ export class DocWorkerApi {
     // Clears a single webhook in the queue for this document.
     this._app.delete('/api/docs/:docId/webhooks/queue/:webhookId', isOwner,
       withDocTriggersLock(async (activeDoc, req, res) => {
-        const docId = getDocId(req);
         const webhookId = req.params.webhookId;
         await activeDoc.clearSingleWebhookQueue(webhookId);
         await activeDoc.sendWebhookNotification();
-        this._logClearWebhookQueueEvents(req, {docId, webhookId});
+        this._logClearWebhookQueueEvents(activeDoc, req, webhookId);
         res.json({success: true});
       })
     );
@@ -985,10 +984,10 @@ export class DocWorkerApi {
     // reopened on use).
     this._app.post('/api/docs/:docId/force-reload', canEdit, async (req, res) => {
       const mreq = req as RequestWithLogin;
-      const docId = getDocId(req);
       const activeDoc = await this._getActiveDoc(mreq);
+      const document = activeDoc.doc || { id: activeDoc.docName };
       await activeDoc.reloadDoc();
-      this._logReloadDocumentEvents(mreq, {docId});
+      this._logReloadDocumentEvents(mreq, document);
       res.json(null);
     });
 
@@ -1109,7 +1108,6 @@ export class DocWorkerApi {
     // This endpoint cannot use withDoc since it is expected behavior for the ActiveDoc it
     // starts with to become muted.
     this._app.post('/api/docs/:docId/replace', canEdit, throttled(async (req, res) => {
-      const docId = getDocId(req);
       const docSession = docSessionFromRequest(req);
       const activeDoc = await this._getActiveDoc(req);
       const options: DocReplacementOptions = {};
@@ -1169,10 +1167,9 @@ export class DocWorkerApi {
       if (req.body.snapshotId) {
         options.snapshotId = String(req.body.snapshotId);
       }
+      const document = activeDoc.doc || { id: activeDoc.docName };
       await activeDoc.replace(docSession, options);
-      const previous = {id: docId};
-      const current = {id: options.sourceDocId || docId, snapshotId: options.snapshotId};
-      this._logReplaceDocumentEvents(req, {previous, current});
+      this._logReplaceDocumentEvents(req, document, options);
       res.json(null);
     }));
 
@@ -1182,11 +1179,10 @@ export class DocWorkerApi {
     }));
 
     this._app.post('/api/docs/:docId/states/remove', isOwner, withDoc(async (activeDoc, req, res) => {
-      const docId = getDocId(req);
       const docSession = docSessionFromRequest(req);
       const keep = integerParam(req.body.keep, 'keep');
       await activeDoc.deleteActions(docSession, keep);
-      this._logTruncateDocumentHistoryEvents(req, {docId, keep});
+      this._logTruncateDocumentHistoryEvents(activeDoc, req, { keep });
       res.json(null);
     }));
 
@@ -1692,8 +1688,8 @@ export class DocWorkerApi {
       },
     });
     this._logDuplicateDocumentEvents(mreq, {
-      originalDocument: {id: sourceDocumentId},
-      duplicateDocument: {id, name},
+      original: { id: sourceDocumentId },
+      duplicate: { id, name, workspace: { id: workspaceId } },
       asTemplate,
     })
       .catch(e => log.error('DocApi failed to log duplicate document events', e));
@@ -1712,9 +1708,8 @@ export class DocWorkerApi {
       throw new ApiError(errMessage || 'unable to create document', status);
     }
 
-    const {id, name, workspace} = data!;
-    this._logCreateDocumentEvents(req, {id, name, workspaceId: workspace.id});
-    return id;
+    this._logCreateDocumentEvents(req, data!);
+    return data!.id;
   }
 
   private async _createNewUnsavedDoc(req: Request, options: {
@@ -1731,11 +1726,11 @@ export class DocWorkerApi {
       trunkUrlId: NEW_DOCUMENT_CODE,
     });
     const id = result.docId;
-    const name = await this._docManager.createNamedDoc(
+    await this._docManager.createNamedDoc(
       makeExceptionalDocSession('nascent', {req: mreq, browserSettings}),
       id
     );
-    this._logCreateDocumentEvents(req as RequestWithLogin, {id, name});
+    this._logCreateDocumentEvents(req as RequestWithLogin, { id, name: "Untitled" });
     return id;
   }
 
@@ -2065,7 +2060,6 @@ export class DocWorkerApi {
     res: Response,
     options: Types.SqlPost
   ) {
-    const docId = getDocId(req);
     if (!await activeDoc.canCopyEverything(docSessionFromRequest(req))) {
       throw new ApiError('insufficient document access', 403);
     }
@@ -2106,7 +2100,7 @@ export class DocWorkerApi {
     try {
       const records = await activeDoc.docStorage.all(wrappedStatement,
                                                      ...(options.args || []));
-      this._logRunSQLQueryEvents(req, {docId, ...options});
+      this._logRunSQLQueryEvents(activeDoc, req, options);
       res.status(200).json({
         statement,
         records: records.map(
@@ -2134,15 +2128,22 @@ export class DocWorkerApi {
 
   private _logCreateDocumentEvents(
     req: Request,
-    document: {id: string; name?: string; workspaceId?: number}
+    document: { id: string; name: string; workspace?: Workspace }
   ) {
     const mreq = req as RequestWithLogin;
-    const {id, name, workspaceId} = document;
+    const { id, name, workspace } = document;
+    const org = workspace?.org;
     this._grist.getAuditLogger().logEvent(mreq, {
-      event: {
-        name: 'createDocument',
-        details: {id, name},
-        context: {workspaceId},
+      action: "document.create",
+      context: {
+        site: org ? _.pick(org, "id", "name", "domain") : undefined,
+      },
+      details: {
+        document: {
+          id,
+          name,
+          workspace: workspace ? _.pick(workspace, "id", "name") : undefined,
+        },
       },
     });
     this._grist.getTelemetry().logEvent(mreq, 'documentCreated', {
@@ -2151,7 +2152,7 @@ export class DocWorkerApi {
         sourceDocIdDigest: undefined,
         isImport: false,
         fileType: undefined,
-        isSaved: workspaceId !== undefined,
+        isSaved: workspace !== undefined,
       },
       full: {
         userId: mreq.userId,
@@ -2168,26 +2169,30 @@ export class DocWorkerApi {
   }
 
   private _logRemoveDocumentEvents(req: RequestWithLogin, document: Document) {
-    const {id, name, workspace: {id: workspaceId}} = document;
     this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'removeDocument',
-        details: {id, name},
-        context: {workspaceId},
+      action: "document.move_to_trash",
+      context: {
+        site: _.pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: _.pick(document, "id", "name"),
       },
     });
   }
 
-  private _logDeleteDocumentEvents(req: RequestWithLogin, {id, name}: Document) {
+  private _logDeleteDocumentEvents(req: RequestWithLogin, document: Document) {
     this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'deleteDocument',
-        details: {id, name},
+      action: "document.delete",
+      context: {
+        site: _.pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: _.pick(document, "id", "name"),
       },
     });
     this._grist.getTelemetry().logEvent(req, 'deletedDoc', {
       full: {
-        docIdDigest: id,
+        docIdDigest: document.id,
         userId: req.userId,
         altSessionId: req.altSessionId,
       },
@@ -2207,64 +2212,60 @@ export class DocWorkerApi {
     });
   }
 
-  private _logReplaceDocumentEvents(req: RequestWithLogin, options: {
-    previous: {id: string};
-    current: {id: string; snapshotId?: string};
-  }) {
-    const {previous, current} = options;
+  private _logReplaceDocumentEvents(
+    req: RequestWithLogin,
+    document: { id: string; workspace?: Workspace },
+    { sourceDocId, snapshotId }: DocReplacementOptions
+  ) {
+    const org = document.workspace?.org;
     this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'replaceDocument',
-        details: {
-          previous: {
-            id: previous.id,
-          },
-          current: {
-            id: current.id,
-            snapshotId: current.snapshotId,
-          },
-        },
-        context: {documentId: previous.id},
+      action: "document.replace",
+      context: {
+        site: org ? _.pick(org, "id") : undefined,
+      },
+      details: {
+        document: _.pick(document, "id"),
+        ...(snapshotId
+          ? { snapshot: { id: snapshotId } }
+          : sourceDocId
+          ? { fork: { document_id: sourceDocId } }
+          : undefined),
       },
     });
   }
 
   private async _logDuplicateDocumentEvents(req: RequestWithLogin, options: {
-    originalDocument: {id: string};
-    duplicateDocument: {id: string; name: string};
+    original: { id: string },
+    duplicate: { id: string; name: string; workspace: { id: number } },
     asTemplate: boolean;
   }) {
-    const {originalDocument: {id}, duplicateDocument, asTemplate} = options;
-    const originalDocument = await this._dbManager.getRawDocById(id);
+    const original = await this._dbManager.getRawDocById(options.original.id);
+    const {duplicate, asTemplate} = options;
     this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'duplicateDocument',
-        details: {
-          original: {
-            id: originalDocument.id,
-            name: originalDocument.name,
-            workspace: {
-              id: originalDocument.workspace.id,
-              name: originalDocument.workspace.name,
-            },
-          },
-          duplicate: {
-            id: duplicateDocument.id,
-            name: duplicateDocument.name,
-          },
-          asTemplate,
+      action: "document.duplicate",
+      context: {
+        site: _.pick(original.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        original: {
+          document: _.pick(original, "id", "name"),
         },
-        context: {
-          workspaceId: originalDocument.workspace.id,
-          documentId: originalDocument.id,
+        duplicate: {
+          document: {
+            ..._.pick(duplicate, "id", "name"),
+            workspace: _.pick(duplicate.workspace, "id"),
+          },
+        },
+        options: {
+          as_template: asTemplate,
         },
       },
     });
-    const isTemplateCopy = originalDocument.type === 'template';
+    const isTemplateCopy = original.type === 'template';
     if (isTemplateCopy) {
       this._grist.getTelemetry().logEvent(req, 'copiedTemplate', {
         full: {
-          templateId: parseUrlId(originalDocument.urlId || originalDocument.id).trunkId,
+          templateId: parseUrlId(original.urlId || original.id).trunkId,
           userId: req.userId,
           altSessionId: req.altSessionId,
         },
@@ -2275,7 +2276,7 @@ export class DocWorkerApi {
       `createdDoc-${isTemplateCopy ? 'CopyTemplate' : 'CopyDoc'}`,
       {
         full: {
-          docIdDigest: duplicateDocument.id,
+          docIdDigest: duplicate.id,
           userId: req.userId,
           altSessionId: req.altSessionId,
         },
@@ -2283,60 +2284,87 @@ export class DocWorkerApi {
     );
   }
 
-  private _logReloadDocumentEvents(req: RequestWithLogin, {docId: documentId}: {docId: string}) {
+  private _logReloadDocumentEvents(
+    req: RequestWithLogin,
+    document: { id: string; workspace?: Workspace },
+  ) {
+    const org = document.workspace?.org;
     this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'reloadDocument',
-        context: {documentId},
+      action: "document.reload",
+      context: {
+        site: org ? _.pick(org, "id") : undefined,
       },
+      details: {
+        document: _.pick(document, "id"),
+      }
     });
   }
 
   private _logTruncateDocumentHistoryEvents(
+    activeDoc: ActiveDoc,
     req: RequestWithLogin,
-    {docId: documentId, keep}: {docId: string; keep: number}
+    { keep }: { keep: number }
   ) {
-    this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'truncateDocumentHistory',
-        details: {keep},
-        context: {documentId},
+    const document = activeDoc.doc || { id: activeDoc.docName };
+    activeDoc.logAuditEvent(req, {
+      action: "document.truncate_history",
+      details: {
+        document: _.pick(document, "id"),
+        options: {
+          keep_n_most_recent: keep,
+        },
       },
     });
   }
 
   private _logClearWebhookQueueEvents(
+    activeDoc: ActiveDoc,
     req: RequestWithLogin,
-    {docId: documentId, webhookId: id}: {docId: string; webhookId: string}
+    webhookId: string
   ) {
-    this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'clearWebhookQueue',
-        details: {id},
-        context: {documentId},
+    const document = activeDoc.doc || { id: activeDoc.docName };
+    activeDoc.logAuditEvent(req, {
+      action: "document.clear_webhook_queue",
+      details: {
+        document: _.pick(document, "id"),
+        webhook: {
+          id: webhookId,
+        },
       },
     });
   }
 
   private _logClearAllWebhookQueueEvents(
-    req: RequestWithLogin,
-    {docId: documentId}: {docId: string}
+    activeDoc: ActiveDoc,
+    req: RequestWithLogin
   ) {
-    this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'clearAllWebhookQueues',
-        context: {documentId},
+    const document = activeDoc.doc || { id: activeDoc.docName };
+    activeDoc.logAuditEvent(req, {
+      action: "document.clear_all_webhook_queues",
+      details: {
+        document: _.pick(document, "id"),
       },
     });
   }
 
-  private _logRunSQLQueryEvents(req: RequestWithLogin, options: {docId: string} & Types.SqlPost) {
-    const {docId: documentId, sql: query, args, timeout: timeoutMs} = options;
-    this._grist.getAuditLogger().logEvent(req, {
-      event: {
-        name: 'runSQLQuery',
-        details: {query, arguments: args, timeoutMs},
-        context: {documentId},
+  private _logRunSQLQueryEvents(
+    activeDoc: ActiveDoc,
+    req: RequestWithLogin,
+    { sql: statement, args, timeout: timeout_ms }: Types.SqlPost
+  ) {
+    activeDoc.logAuditEvent(req, {
+      action: "document.run_sql_query",
+      details: {
+        document: {
+          id: activeDoc.docName,
+        },
+        sql_query: {
+          statement,
+          arguments: args,
+        },
+        options: {
+          timeout_ms,
+        }
       },
     });
   }

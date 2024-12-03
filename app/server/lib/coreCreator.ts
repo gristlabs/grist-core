@@ -1,13 +1,12 @@
-import { checkGristAuditLogger, configureGristAuditLogger } from 'app/server/lib/configureGristAuditLogger';
+import { AttachmentStoreCreationError, ExternalStorageAttachmentStore } from "app/server/lib/AttachmentStore";
 import {
   checkMinIOBucket,
   checkMinIOExternalStorage,
   configureMinIOExternalStorage
 } from 'app/server/lib/configureMinIOExternalStorage';
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
+import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
 import { Telemetry } from 'app/server/lib/Telemetry';
-import { AttachmentStoreCreationError, ExternalStorageAttachmentStore } from "./AttachmentStore";
-import { MinIOExternalStorage } from "./MinIOExternalStorage";
 
 export const makeCoreCreator = () => makeSimpleCreator({
   deploymentType: 'core',
@@ -17,13 +16,6 @@ export const makeCoreCreator = () => makeSimpleCreator({
       check: () => checkMinIOExternalStorage() !== undefined,
       checkBackend: () => checkMinIOBucket(),
       create: configureMinIOExternalStorage,
-    },
-  ],
-  auditLogger: [
-    {
-      name: 'grist',
-      check: () => checkGristAuditLogger() !== undefined,
-      create: configureGristAuditLogger,
     },
   ],
   attachmentStoreOptions: [

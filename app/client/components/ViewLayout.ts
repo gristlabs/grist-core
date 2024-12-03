@@ -8,10 +8,11 @@ import * as DetailView from 'app/client/components/DetailView';
 import {FormView} from 'app/client/components/Forms/FormView';
 import * as GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {BoxSpec, Layout} from 'app/client/components/Layout';
+import {Layout} from 'app/client/components/Layout';
 import {LayoutEditor} from 'app/client/components/LayoutEditor';
 import {LayoutTray} from 'app/client/components/LayoutTray';
 import {printViewSection} from 'app/client/components/Printing';
+import {BoxSpec, purgeBoxSpec} from 'app/client/lib/BoxSpec';
 import {Delay} from 'app/client/lib/Delay';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
@@ -42,7 +43,6 @@ import {
 } from 'grainjs';
 import * as ko from 'knockout';
 import debounce from 'lodash/debounce';
-import * as _ from 'underscore';
 
 const t = makeT('ViewLayout');
 
@@ -385,52 +385,9 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
    * this view section. By default we just arrange them into a list of rows, two fields per row.
    */
   private _updateLayoutSpecWithSections(spec: BoxSpec) {
-    // We use tmpLayout as a way to manipulate the layout before we get a final spec from it.
-    const tmpLayout = Layout.create(spec, () => dom('div'), true);
-
-    const specFieldIds = tmpLayout.getAllLeafIds();
     const viewSectionIds = this.viewModel.viewSections().all().map(function(f) { return f.getRowId(); });
-
-    function addToSpec(leafId: number) {
-      const newBox = tmpLayout.buildLayoutBox({ leaf: leafId });
-      const root = tmpLayout.rootBox();
-      if (!root || root.isDisposed()) {
-        tmpLayout.setRoot(newBox);
-        return newBox;
-      }
-      const rows = root.childBoxes.peek();
-      const lastRow = rows[rows.length - 1];
-      if (rows.length >= 1 && lastRow.isLeaf()) {
-        // Add a new child to the last row.
-        lastRow.addChild(newBox, true);
-      } else {
-        // Add a new row.
-        tmpLayout.rootBox()!.addChild(newBox, true);
-      }
-      return newBox;
-    }
-
-    // For any stale fields (no longer among viewFields), remove them from tmpLayout.
-    _.difference(specFieldIds, viewSectionIds).forEach(function(leafId: string|number) {
-      tmpLayout.getLeafBox(leafId)?.dispose();
-    });
-
-    // For all fields that should be in the spec but aren't, add them to tmpLayout. We maintain a
-    // two-column layout, so add a new row, or a second box to the last row if it's a leaf.
-    const missingLeafs = _.difference(viewSectionIds, specFieldIds);
-    const collapsedLeafs = new Set((spec.collapsed || []).map(c => c.leaf));
-    missingLeafs.forEach(function(leafId: any) {
-      if (!collapsedLeafs.has(leafId)) {
-        addToSpec(leafId);
-      }
-    });
-
-    spec = tmpLayout.getLayoutSpec();
-    tmpLayout.dispose();
-    return spec;
+    return purgeBoxSpec({spec, validLeafIds: viewSectionIds});
   }
-
-
 
   // Resizes the scrolly windows of all viewSection classes with a 'scrolly' property.
   private _onResize() {

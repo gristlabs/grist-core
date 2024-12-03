@@ -3,7 +3,7 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {streamXLSX} from 'app/server/lib/ExportXLSX';
 import log from 'app/server/lib/log';
-import {getDocId, optStringParam} from 'app/server/lib/requestUtils';
+import {optStringParam} from 'app/server/lib/requestUtils';
 import {Request, Response} from 'express';
 import {PassThrough, Stream} from 'stream';
 
@@ -22,7 +22,6 @@ export async function exportToDrive(
     throw new Error("No access token - Can't send file to Google Drive");
   }
 
-  const docId = getDocId(req);
   const mreq = req as RequestWithLogin;
   const meta = {
     docId: activeDoc.docName,
@@ -41,10 +40,11 @@ export async function exportToDrive(
       sendFileToDrive(name, stream, access_token),
     ]);
     activeDoc.logAuditEvent(mreq, {
-      event: {
-        name: 'sendToGoogleDrive',
-        details: {id: docId},
-        context: {documentId: docId},
+      action: "document.send_to_google_drive",
+      details: {
+        document: {
+          id: activeDoc.docName,
+        },
       },
     });
     log.debug(`Export to drive - File exported, redirecting to Google Spreadsheet ${url}`, meta);

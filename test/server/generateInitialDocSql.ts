@@ -33,9 +33,14 @@ describe('generateInitialDocSql', function() {
     await execFile(path.join(getAppRoot(), 'buildtools/update_schema.sh'), [
       newSchemaTs, newSqlTs,
     ], { env: process.env });
-    assert.equal((await fse.readFile(newSchemaTs)).toString(),
-                 (await fse.readFile(currentSchemaTs)).toString());
-    assert.equal((await fse.readFile(newSqlTs)).toString(),
-                 (await fse.readFile(currentSqlTs)).toString());
+
+    assert.equal(normaliseSQLiteInfinity((await fse.readFile(newSchemaTs)).toString()),
+                 normaliseSQLiteInfinity((await fse.readFile(currentSchemaTs)).toString()));
+    assert.equal(normaliseSQLiteInfinity((await fse.readFile(newSqlTs)).toString()),
+                 normaliseSQLiteInfinity((await fse.readFile(currentSqlTs)).toString()));
   });
 });
+
+function normaliseSQLiteInfinity(sql: string) {
+  return sql.replace(/\b1e\+?999\b/g, '9.0e+999');
+}

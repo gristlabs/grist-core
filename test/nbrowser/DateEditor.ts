@@ -150,6 +150,7 @@ describe('DateEditor', function() {
     // Check that the datepicker now opens to show the new language.
     cell = await gu.getCell({col: 'A', rowNum: 1});
     await openCellEditor(cell);
+    await driver.findWait('.datepicker', 200);
     assert.equal(await driver.find('.datepicker .datepicker-days .datepicker-switch').getText(),
       'février 2020');
     assert.deepEqual(await driver.findAll('.datepicker .datepicker-days .dow', el => el.getText()),

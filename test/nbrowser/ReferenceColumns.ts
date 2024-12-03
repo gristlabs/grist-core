@@ -5,6 +5,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('ReferenceColumns', function() {
   this.timeout(20000);
+  gu.bigScreen();
   let session: Session;
   const cleanup = setupTestSuite({team: true});
 

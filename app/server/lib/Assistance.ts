@@ -256,6 +256,7 @@ export class OpenAIAssistant implements Assistant {
         headers: {
           ...(this._apiKey ? {
             "Authorization": `Bearer ${this._apiKey}`,
+            "api-key": this._apiKey,
           } : undefined),
           "Content-Type": "application/json",
         },
@@ -275,7 +276,7 @@ export class OpenAIAssistant implements Assistant {
     const errorCode = result.error?.code;
     const errorMessage = result.error?.message;
     if (errorCode === "context_length_exceeded" || result.choices?.[0].finish_reason === "length") {
-      log.warn("OpenAI context length exceeded: ", errorMessage);
+      log.warn("AI context length exceeded: ", errorMessage);
       if (messages.length <= 2) {
         throw new TokensExceededFirstMessageError();
       } else {
@@ -283,11 +284,11 @@ export class OpenAIAssistant implements Assistant {
       }
     }
     if (errorCode === "insufficient_quota") {
-      log.error("OpenAI billing quota exceeded!!!");
+      log.error("AI service provider billing quota exceeded!!!");
       throw new QuotaExceededError();
     }
     if (apiResponse.status !== 200) {
-      throw new Error(`OpenAI API returned status ${apiResponse.status}: ${resultText}`);
+      throw new Error(`AI service provider API returned status ${apiResponse.status}: ${resultText}`);
     }
     return result.choices[0].message.content;
   }

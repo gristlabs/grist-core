@@ -60,4 +60,5 @@
 .ace_autocomplete .ace_line .ace_ {
   /* Ace collapses whitespace by default, which breaks alignment changes made in AceEditorCompletions.ts. */
   white-space: pre !important;
+  flex-shrink: 0;
 }

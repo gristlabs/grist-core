@@ -23,7 +23,7 @@ import assert from 'assert';
 import * as bluebird from 'bluebird';
 import * as _ from 'underscore';
 import * as util from 'util';
-import uuidv4 from "uuid/v4";
+import {v4 as uuidv4} from 'uuid';
 import {OnDemandStorage} from './OnDemandActions';
 import {ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
         ResultRow, RunResult, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';

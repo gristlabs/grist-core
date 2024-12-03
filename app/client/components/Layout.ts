@@ -53,6 +53,7 @@
  */
 
 
+import {BoxSpec} from 'app/client/lib/BoxSpec';
 import dom, {detachNode, findAncestor} from 'app/client/lib/dom';
 import koArray, {isKoArray, KoArray} from 'app/client/lib/koArray';
 import {cssClass, domData, foreach, scope, style, toggleClass} from 'app/client/lib/koDom';
@@ -67,13 +68,6 @@ export interface ContentBox {
   leafId: ko.Observable<any>;
   leafContent: ko.Observable<Element|null>;
   dom: HTMLElement|null;
-}
-
-export interface BoxSpec {
-  leaf?: string|number;
-  size?: number;
-  children?: BoxSpec[];
-  collapsed?: BoxSpec[];
 }
 
 /**
