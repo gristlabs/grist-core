@@ -674,6 +674,13 @@ describe('CustomWidgets', function () {
         (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done()
       );
     });
+
+    it("allows picking the same widget", async () => {
+      await gu.setCustomWidget(/W1/);
+      assert.equal(await gu.getCustomWidgetName(), "W1");
+      await gu.setCustomWidget(/W1/);
+      assert.equal(await gu.getCustomWidgetName(), "W1");
+    });
   });
 
   describe('gristApiSupport', async ()=>{
