@@ -102,10 +102,10 @@ class CustomWidgetGallery extends Disposable {
       }
     });
 
-    this._saveDisabled = Computed.create(
-      this,
-      (use) => !use(this._selectedWidgetId)
-    );
+    this._saveDisabled = Computed.create(this, (use) => {
+      const selectedWidgetId = use(this._selectedWidgetId);
+      return selectedWidgetId === null;
+    });
 
     this._initializeWidgets().catch(reportError);
 
