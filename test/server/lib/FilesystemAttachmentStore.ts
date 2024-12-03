@@ -1,4 +1,4 @@
-import { FilesystemAttachmentStore, IAttachmentStore } from "app/server/lib/AttachmentStore";
+import { FilesystemAttachmentStore } from "app/server/lib/AttachmentStore";
 import { MemoryWritableStream } from "app/server/utils/MemoryWritableStream";
 import { assert } from "chai";
 import { createTmpDir } from "../docTools";
@@ -18,28 +18,31 @@ function getTestingFileAsReadableStream(contents?: string): stream.Readable {
   return stream.Readable.from(getTestingFileAsBuffer(contents));
 }
 
-export async function makeTestingFilesystemStore(
-  storeId: string = "test-filesystem-store"
-): Promise<{ store: IAttachmentStore, dir: string }> {
+export async function makeTestingFilesystemStoreSpec(
+  name: string = "filesystem"
+) {
   const tempFolder = await createTmpDir();
   const tempDir = await mkdtemp(path.join(tempFolder, 'filesystem-store-test-'));
   return {
-    store: new FilesystemAttachmentStore(storeId, tempDir),
-    dir: tempDir,
+    rootDirectory: tempDir,
+    name,
+    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir))
   };
 }
 
 describe('FilesystemAttachmentStore', () => {
   it('can upload a file', async () => {
-    const { store, dir } = await makeTestingFilesystemStore();
+    const spec = await makeTestingFilesystemStoreSpec();
+    const store = await spec.create("test-filesystem-store");
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
 
-    const exists = await pathExists(path.join(dir, testingDocPoolId, testingFileId));
+    const exists = await pathExists(path.join(spec.rootDirectory, testingDocPoolId, testingFileId));
     assert.isTrue(exists, "uploaded file does not exist on the filesystem");
   });
 
   it('can download a file', async () => {
-    const { store } = await makeTestingFilesystemStore();
+    const spec = await makeTestingFilesystemStoreSpec();
+    const store = await spec.create("test-filesystem-store");
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
 
     const outputBuffer = new MemoryWritableStream();
@@ -49,7 +52,8 @@ describe('FilesystemAttachmentStore', () => {
   });
 
   it('can check if a file exists', async () => {
-    const { store } = await makeTestingFilesystemStore();
+    const spec = await makeTestingFilesystemStoreSpec();
+    const store = await spec.create("test-filesystem-store");
 
     assert.isFalse(await store.exists(testingDocPoolId, testingFileId));
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
@@ -57,7 +61,8 @@ describe('FilesystemAttachmentStore', () => {
   });
 
   it('can remove an entire pool', async () => {
-    const { store } = await makeTestingFilesystemStore();
+    const spec = await makeTestingFilesystemStoreSpec();
+    const store = await spec.create("test-filesystem-store");
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
     assert.isTrue(await store.exists(testingDocPoolId, testingFileId));
 
