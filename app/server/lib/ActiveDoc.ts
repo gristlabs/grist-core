@@ -2356,7 +2356,7 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
-    const attachmentStoreId = (await this._getDocumentSettings())?.idOfDefaultAttachmentStore;
+    const attachmentStoreId = (await this._getDocumentSettings()).idOfDefaultAttachmentStore;
     const addFileResult = await this._attachmentFileManager
       .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
     this._log.info(
@@ -2837,10 +2837,14 @@ export class ActiveDoc extends EventEmitter {
     return this._dataEngine;
   }
 
-  private async _getDocumentSettings(): Promise<DocumentSettings | undefined> {
+  private async _getDocumentSettings(): Promise<DocumentSettings> {
     const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo');
     const docSettingsString = docInfo?.documentSettings;
-    return docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
+    const docSettings = docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
+    if (docSettings) {
+      throw new Error("No document settings found");
+    }
+    return docSettings;
   }
 
   private async _makeEngine(): Promise<ISandbox> {
