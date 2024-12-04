@@ -72,7 +72,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       await db.exec(`CREATE TABLE _gristsys_Files (
         id INTEGER PRIMARY KEY,
         ident TEXT UNIQUE,
-        storageId TEXT,
         data BLOB
        )`);
       await db.exec(`CREATE TABLE _gristsys_Action (
