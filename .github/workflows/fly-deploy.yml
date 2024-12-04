@@ -42,6 +42,11 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/docker-image.zip', Buffer.from(download.data));
+            await github.rest.actions.deleteArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+            });
       - name: Extract artifacts
         id: extract_artifacts
         run: |
