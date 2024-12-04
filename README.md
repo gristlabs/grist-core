@@ -491,3 +491,4 @@ env GREP_TESTS=summary yarn test:python
 ## License
 
 This repository, `grist-core`, is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which is an [OSI](https://opensource.org/)-approved free software license. See LICENSE.txt and NOTICE.txt for more information.
+Just a meaningless change
