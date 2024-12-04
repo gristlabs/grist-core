@@ -393,14 +393,14 @@ describe('DocStorage', function() {
       .then(() => testUtils.writeTmpFile("Hello, world!"))
       .then(tmpPath => docStorage.findOrAttachFile(tmpPath, "hello_world.txt"))
       .then(result => assert.isTrue(result))
-      .then(() => docStorage.getFileData("hello_world.txt"))
+      .then(() => docStorage.getFileInfo("hello_world.txt"))
       .then(data => assert.equal(data.toString('utf8'), "Hello, world!"))
 
       // If we use the same fileIdent for another file, it should not get attached.
       .then(() => testUtils.writeTmpFile("Another file"))
       .then(tmpPath => docStorage.findOrAttachFile(tmpPath, "hello_world.txt"))
       .then(result => assert.isFalse(result))
-      .then(() => docStorage.getFileData("hello_world.txt"))
+      .then(() => docStorage.getFileInfo("hello_world.txt"))
       .then(data => assert.equal(data.toString('utf8'), "Hello, world!"));
     });
   });
