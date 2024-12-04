@@ -109,7 +109,6 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   // the fileInfo from doc storage too, instead of returning null?
   // That, or we return a result type which might have an error in.
   public async getFileData(fileIdent: string): Promise<Buffer | null> {
-    this._log.debug({ fileIdent }, "retrieving file data");
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
     if (!fileInfo) {
       this._log.warn({ fileIdent }, "cannot find file metadata in document");
