@@ -88,6 +88,7 @@ import * as path from 'path';
 import * as serveStatic from "serve-static";
 import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
 import {IGristCoreConfig} from "app/server/lib/configCore";
+import {buildScimRouter} from 'app/server/lib/scim';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -895,6 +896,19 @@ export class FlexServer implements GristServer {
     // tslint:disable-next-line:no-unused-expression
     new ApiServer(this, this.app, this._dbManager, this._widgetRepository = buildWidgetRepository(this));
   }
+
+  public addScimApi() {
+    if (this._check('scim', 'api', 'homedb', 'json', 'api-mw')) { return; }
+
+    const scimRouter = isAffirmative(process.env.GRIST_ENABLE_SCIM) ?
+      buildScimRouter(this._dbManager, this._installAdmin) :
+      () => {
+        throw new ApiError('SCIM API is not enabled', 501);
+      };
+
+    this.app.use('/api/scim', scimRouter);
+  }
+
 
   public addBillingApi() {
     if (this._check('billing-api', 'homedb', 'json', 'api-mw')) { return; }
