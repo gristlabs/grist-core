@@ -137,7 +137,7 @@ describe("AttachmentFileManager", function() {
     const result = await manager.addFile(undefined, ".txt", Buffer.from(defaultTestFileContent));
     const fileData = await manager.getFileData(result.fileIdent);
 
-    assert.equal(fileData?.toString(), defaultTestFileContent, "downloaded file contents do not match original file")
+    assert.equal(fileData?.toString(), defaultTestFileContent, "downloaded file contents do not match original file");
   });
 
   it("should get a file from an attachment store", async function() {
@@ -177,7 +177,7 @@ describe("AttachmentFileManager", function() {
     sinon.replace(defaultProvider, 'getStore', sinon.fake(
       async function(...args: Parameters<IAttachmentStoreProvider['getStore']>) {
         const store = (await originalGetStore(...args))!;
-        sinon.replace(store, 'upload', () => { throw new Error("Upload should never be called") });
+        sinon.replace(store, 'upload', () => { throw new Error("Upload should never be called"); });
         return store;
       }
     ));

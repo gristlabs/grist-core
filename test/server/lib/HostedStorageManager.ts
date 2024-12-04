@@ -18,7 +18,7 @@ import {
 import {createDummyGristServer} from 'app/server/lib/GristServer';
 import {
   BackupEvent,
-  backupSqliteDatabase, HostedStorageCallbacks,
+  backupSqliteDatabase,
   HostedStorageManager,
   HostedStorageOptions
 } from 'app/server/lib/HostedStorageManager';
@@ -1004,23 +1004,15 @@ describe('HostedStorageManager', function() {
       });
       await docWorkerMap.setWorkerAvailability(workerId, true);
 
-      class Callbacks implements HostedStorageCallbacks {
-          private _internalSet(metadata: any) {}
-          public async setDocsMetadata(metadata: any) {
-            // Access `this` to ensure the callback is being bound correctly when passed to HostedMetadataManager.
-            this._internalSet(metadata);
-          }
-          public async getDocFeatures(docId: any) {
-            return undefined;
-          }
-      }
-
       defaultParams = [
         tmpDir,
         workerId,
         false,
         docWorkerMap,
-        new Callbacks(),
+        {
+          setDocsMetadata: async (metadata) => {},
+          getDocFeatures: async (docId) => undefined,
+        },
         externalStorageCreate,
       ];
     });
