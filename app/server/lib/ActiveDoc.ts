@@ -2841,7 +2841,7 @@ export class ActiveDoc extends EventEmitter {
     const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo');
     const docSettingsString = docInfo?.documentSettings;
     const docSettings = docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
-    if (docSettings) {
+    if (!docSettings) {
       throw new Error("No document settings found");
     }
     return docSettings;
