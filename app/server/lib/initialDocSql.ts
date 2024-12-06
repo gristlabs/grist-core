@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS "_grist_REPL_Hist" (id INTEGER PRIMARY KEY, "code" TE
 CREATE TABLE IF NOT EXISTS "_grist_Attachments" (id INTEGER PRIMARY KEY, "fileIdent" TEXT DEFAULT '', "fileName" TEXT DEFAULT '', "fileType" TEXT DEFAULT '', "fileSize" INTEGER DEFAULT 0, "fileExt" TEXT DEFAULT '', "imageHeight" INTEGER DEFAULT 0, "imageWidth" INTEGER DEFAULT 0, "timeDeleted" DATETIME DEFAULT NULL, "timeUploaded" DATETIME DEFAULT NULL);
 CREATE TABLE IF NOT EXISTS "_grist_Triggers" (id INTEGER PRIMARY KEY, "tableRef" INTEGER DEFAULT 0, "eventTypes" TEXT DEFAULT NULL, "isReadyColRef" INTEGER DEFAULT 0, "actions" TEXT DEFAULT '', "label" TEXT DEFAULT '', "memo" TEXT DEFAULT '', "enabled" BOOLEAN DEFAULT 0, "watchedColRefList" TEXT DEFAULT NULL, "options" TEXT DEFAULT '');
 CREATE TABLE IF NOT EXISTS "_grist_ACLRules" (id INTEGER PRIMARY KEY, "resource" INTEGER DEFAULT 0, "permissions" INTEGER DEFAULT 0, "principals" TEXT DEFAULT '', "aclFormula" TEXT DEFAULT '', "aclColumn" INTEGER DEFAULT 0, "aclFormulaParsed" TEXT DEFAULT '', "permissionsText" TEXT DEFAULT '', "rulePos" NUMERIC DEFAULT 1e999, "userAttributes" TEXT DEFAULT '', "memo" TEXT DEFAULT '');
-INSERT INTO _grist_ACLRules VALUES(1,1,63,'[1]','',0,'','',1e999,'','');
+INSERT INTO _grist_ACLRules VALUES(1,1,63,'[1]','',0,'','',9.0e+999,'','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLResources" (id INTEGER PRIMARY KEY, "tableId" TEXT DEFAULT '', "colIds" TEXT DEFAULT '');
 INSERT INTO _grist_ACLResources VALUES(1,'','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLPrincipals" (id INTEGER PRIMARY KEY, "type" TEXT DEFAULT '', "userEmail" TEXT DEFAULT '', "userName" TEXT DEFAULT '', "groupName" TEXT DEFAULT '', "instanceId" TEXT DEFAULT '');
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS "_grist_REPL_Hist" (id INTEGER PRIMARY KEY, "code" TE
 CREATE TABLE IF NOT EXISTS "_grist_Attachments" (id INTEGER PRIMARY KEY, "fileIdent" TEXT DEFAULT '', "fileName" TEXT DEFAULT '', "fileType" TEXT DEFAULT '', "fileSize" INTEGER DEFAULT 0, "fileExt" TEXT DEFAULT '', "imageHeight" INTEGER DEFAULT 0, "imageWidth" INTEGER DEFAULT 0, "timeDeleted" DATETIME DEFAULT NULL, "timeUploaded" DATETIME DEFAULT NULL);
 CREATE TABLE IF NOT EXISTS "_grist_Triggers" (id INTEGER PRIMARY KEY, "tableRef" INTEGER DEFAULT 0, "eventTypes" TEXT DEFAULT NULL, "isReadyColRef" INTEGER DEFAULT 0, "actions" TEXT DEFAULT '', "label" TEXT DEFAULT '', "memo" TEXT DEFAULT '', "enabled" BOOLEAN DEFAULT 0, "watchedColRefList" TEXT DEFAULT NULL, "options" TEXT DEFAULT '');
 CREATE TABLE IF NOT EXISTS "_grist_ACLRules" (id INTEGER PRIMARY KEY, "resource" INTEGER DEFAULT 0, "permissions" INTEGER DEFAULT 0, "principals" TEXT DEFAULT '', "aclFormula" TEXT DEFAULT '', "aclColumn" INTEGER DEFAULT 0, "aclFormulaParsed" TEXT DEFAULT '', "permissionsText" TEXT DEFAULT '', "rulePos" NUMERIC DEFAULT 1e999, "userAttributes" TEXT DEFAULT '', "memo" TEXT DEFAULT '');
-INSERT INTO _grist_ACLRules VALUES(1,1,63,'[1]','',0,'','',1e999,'','');
+INSERT INTO _grist_ACLRules VALUES(1,1,63,'[1]','',0,'','',9.0e+999,'','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLResources" (id INTEGER PRIMARY KEY, "tableId" TEXT DEFAULT '', "colIds" TEXT DEFAULT '');
 INSERT INTO _grist_ACLResources VALUES(1,'','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLPrincipals" (id INTEGER PRIMARY KEY, "type" TEXT DEFAULT '', "userEmail" TEXT DEFAULT '', "userName" TEXT DEFAULT '', "groupName" TEXT DEFAULT '', "instanceId" TEXT DEFAULT '');
