@@ -1,4 +1,5 @@
 import {UserOptions} from 'app/common/UserAPI';
+import {UserTypesStrings} from 'app/common/User';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {makeId} from 'app/server/lib/idUtils';
 import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
@@ -8,6 +9,7 @@ import {Group} from "./Group";
 import {Login} from "./Login";
 import {Organization} from "./Organization";
 import {Pref} from './Pref';
+import {ServiceAccount} from './ServiceAccount';
 
 @Entity({name: 'users'})
 export class User extends BaseEntity {
@@ -58,11 +60,21 @@ export class User extends BaseEntity {
   @Column({name: 'connect_id', type: String, nullable: true})
   public connectId: string | null;
 
+  @OneToMany(type => User, user => user.serviceAccounts)
+  @JoinTable({
+    name: 'service_account_user',
+    joinColumn: {name: 'user_id'},
+    inverseJoinColumn: {name: 'service_account_id'}
+  })
+  public serviceAccounts: ServiceAccount[];
   /**
    * Unique reference for this user. Primarily used as an ownership key in a cell metadata (comments).
    */
   @Column({name: 'ref', type: String, nullable: false})
   public ref: string;
+
+  @Column({name: 'type', type: String, default: 'login'})
+  public type: UserTypesStrings | null;
 
   @BeforeInsert()
   public async beforeInsert() {
