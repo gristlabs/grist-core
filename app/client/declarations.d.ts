@@ -143,7 +143,7 @@ declare module "app/client/components/ViewConfigTab" {
 declare module "app/client/models/BaseRowModel" {
   import {Disposable} from 'app/client/lib/dispose';
   import TableModel from 'app/client/models/TableModel';
-  import {ColValues} from 'app/common/DocActions';
+  import {ColValues, DocAction} from 'app/common/DocActions';
 
   namespace BaseRowModel {}
   class BaseRowModel extends Disposable {
@@ -154,6 +154,7 @@ declare module "app/client/models/BaseRowModel" {
     protected _fields: string[];
     public getRowId(): number;
     public updateColValues(colValues: ColValues): Promise<void>;
+    protected dispatchAction(action: DocAction): void;
   }
   export = BaseRowModel;
 }
