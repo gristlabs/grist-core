@@ -101,6 +101,7 @@ jobs:
       - name: Run gen-server tests with minio and redis
         if: contains(matrix.tests, ':gen-server-')
         run: |
+          PGPASSWORD=db_password psql -h localhost -U db_user -w db_name -c "SHOW ALL;" | grep ' jit '
           export TEST_SPLITS=$(echo $TESTS | sed "s/.*:gen-server-\([^:]*\).*/\1/")
           yarn run test:gen-server
           TYPEORM_TYPE=postgres TYPEORM_HOST=localhost TYPEORM_DATABASE=db_name TYPEORM_USERNAME=db_user TYPEORM_PASSWORD=db_password yarn run test:gen-server
