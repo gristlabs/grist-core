@@ -21,10 +21,10 @@ jobs:
         node-version: [22.x]
         tests:
           - ':lint:python:client:common:smoke:stubs:'
-          - ':server-1-of-4:'
-          - ':server-2-of-4:'
-          - ':server-3-of-4:'
-          - ':server-4-of-4:'
+          - ':server-1-of-2:'
+          - ':server-2-of-2:'
+          - ':gen-server-1-of-2:'
+          - ':gen-server-2-of-2:'
           - ':nbrowser-^[A-D]:'
           - ':nbrowser-^[E-L]:'
           - ':nbrowser-^[M-N]:'
@@ -65,7 +65,7 @@ jobs:
         run: yarn run lint:ci
 
       - name: Make sure bucket is versioned
-        if: contains(matrix.tests, ':server-')
+        if: contains(matrix.tests, ':server-') || contains(matrix.tests, ':gen-server-')
         env:
           AWS_ACCESS_KEY_ID: administrator
           AWS_SECRET_ACCESS_KEY: administrator
@@ -98,12 +98,14 @@ jobs:
         if: contains(matrix.tests, ':stubs:')
         run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:stubs
 
-      - name: Run server tests with sqlite, minio and redis
-        if: contains(matrix.tests, ':server-')
+      - name: Run gen-server tests with minio and redis
+        if: contains(matrix.tests, ':gen-server-')
         run: |
-          export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:server
+          export TEST_SPLITS=$(echo $TESTS | sed "s/.*:gen-server-\([^:]*\).*/\1/")
+          yarn run test:gen-server
+          TYPEORM_TYPE=postgres TYPEORM_HOST=localhost TYPEORM_DATABASE=db_name TYPEORM_USERNAME=db_user TYPEORM_PASSWORD=db_password yarn run test:gen-server
         env:
+          MOCHA_WEBDRIVER_HEADLESS: 1
           TESTS: ${{ matrix.tests }}
           GRIST_DOCS_MINIO_ACCESS_KEY: administrator
           GRIST_DOCS_MINIO_SECRET_KEY: administrator
@@ -113,12 +115,13 @@ jobs:
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
 
-      - name: Run server tests with postgresql, minio and redis
+      - name: Run server tests with minio and redis
         if: contains(matrix.tests, ':server-')
         run: |
           export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:server
+          yarn run test:server
         env:
+          MOCHA_WEBDRIVER_HEADLESS: 1
           TESTS: ${{ matrix.tests }}
           GRIST_DOCS_MINIO_ACCESS_KEY: administrator
           GRIST_DOCS_MINIO_SECRET_KEY: administrator
@@ -127,11 +130,6 @@ jobs:
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
-          TYPEORM_TYPE: postgres
-          TYPEORM_HOST: localhost
-          TYPEORM_DATABASE: db_name
-          TYPEORM_USERNAME: db_user
-          TYPEORM_PASSWORD: db_password
 
       - name: Run main tests without minio and redis
         if: contains(matrix.tests, ':nbrowser-')
