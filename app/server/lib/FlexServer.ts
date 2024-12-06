@@ -64,6 +64,7 @@ import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
         optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
+import {buildScimRouter} from 'app/server/lib/scim';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
@@ -899,6 +900,19 @@ export class FlexServer implements GristServer {
     // tslint:disable-next-line:no-unused-expression
     new ApiServer(this, this.app, this._dbManager, this._widgetRepository = buildWidgetRepository(this));
   }
+
+  public addScimApi() {
+    if (this._check('scim', 'api', 'homedb', 'json', 'api-mw')) { return; }
+
+    const scimRouter = isAffirmative(process.env.GRIST_ENABLE_SCIM) ?
+      buildScimRouter(this._dbManager, this._installAdmin) :
+      () => {
+        throw new ApiError('SCIM API is not enabled', 501);
+      };
+
+    this.app.use('/api/scim', scimRouter);
+  }
+
 
   public addBillingApi() {
     if (this._check('billing-api', 'homedb', 'json', 'api-mw')) { return; }

@@ -7344,6 +7344,16 @@ schema-utils@^3.2.0:
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
 
+scimmy-routers@1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/scimmy-routers/-/scimmy-routers-1.2.2.tgz#e1fa506a8cdb0ba04a25e09a365bd726cd781585"
+  integrity sha512-qDB7DKb2cnujJzEgVdON8EnjZfs6oY+MJQkkCHbihNrQeRjSaEOAC9ohb6dGfMZdahYS0CZIJwGhvZlS6rkKsg==
+
+scimmy@1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/scimmy/-/scimmy-1.2.4.tgz#3d708d9a5f3c7b3e00d848dcb8f0910d7c409509"
+  integrity sha512-5i+LwGL7ON61jH+KxL6flpy5h/ABhgx7tc9AdL3KMh9TfHidWl7KHrbD0cJN5bJ5Fb1nOTze8d+PbFl2bZYEJQ==
+
 selenium-webdriver@^4.20.0:
   version "4.20.0"
   resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.20.0.tgz#14941ab4a59e8956a5e4b4491a8ba2bd6619d1ac"
