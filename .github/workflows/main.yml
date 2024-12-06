@@ -197,7 +197,7 @@ jobs:
           # JIT is enabled by default since Postgres 17 and has a huge negative impact on performance,
           # making many tests timeout.
           # https://support.getgrist.com/self-managed/#what-is-a-home-database
-          PGOPTIONS: "-c jit=off"
+          POSTGRES_INITDB_ARGS: "-c jit=off"
         ports:
           - 5432:5432
         options: >-
