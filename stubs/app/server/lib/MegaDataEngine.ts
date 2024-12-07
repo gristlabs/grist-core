@@ -9,6 +9,7 @@ export abstract class MegaDataEngine {
   public static maybeMakeChannel(socket: MinimalWebSocket): MegaDataEngine.Channel|null { return null; }
   public abstract applyUserActions(docSession: OptDocSession|null, actions: UserAction[]): Promise<ProcessedActionBundle>;
   public abstract serve(channel: MegaDataEngine.Channel): void;
+  public abstract getSandboxExtDir(): string;
 }
 
 export namespace MegaDataEngine {

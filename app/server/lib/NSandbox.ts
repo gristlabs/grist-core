@@ -53,6 +53,9 @@ export interface ISandboxOptions {
   // mounts (e.g. for unsandboxed operation).
   importDir?: string;  // a directory containing data file(s) to import by plugins
 
+  // Optional directory to mount and include into PYTHONPATH.
+  extDir?: string;
+
   minimalPipeMode?: boolean;     // Whether to use newer 3-pipe operation
   deterministicMode?: boolean;   // Whether to override time + randomness
 
@@ -628,7 +631,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   const spawnOptions = {
     stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
     env: {
-      PYTHONPATH: paths.engine,
+      PYTHONPATH: paths.pythonPath,
       IMPORTDIR: importDir,
       ...getInsertedEnv(options),
       ...getWrappingEnv(options),
@@ -654,7 +657,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   const spawnOptions = {
     stdio: ['ignore', 'ignore', 'pipe', 'ipc', 'pipe', 'pipe'] as Array<'pipe'|'ipc'>,
     env: {
-      PYTHONPATH: paths.engine,
+      PYTHONPATH: paths.pythonPath,
       IMPORTDIR: options.importDir,
       ...getInsertedEnv(options),
       ...getWrappingEnv(options),
@@ -708,9 +711,12 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   }
   const paths = getAbsolutePaths(options);
   const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
-  wrapperArgs.addEnv('PYTHONPATH', paths.engine);
+  wrapperArgs.addEnv('PYTHONPATH', paths.pythonPath);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
   wrapperArgs.addMount(paths.sandboxDir);
+  if (paths.extDir) {
+    wrapperArgs.addMount(paths.extDir);
+  }
   if (paths.importDir) {
     wrapperArgs.addMount(paths.importDir);
     wrapperArgs.addEnv('IMPORTDIR', paths.importDir);
@@ -839,7 +845,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
     pythonArgs.unshift(paths.main);
   }
   const env = {
-    PYTHONPATH: paths.engine,
+    PYTHONPATH: paths.pythonPath,
     IMPORTDIR: paths.importDir,
     ...getInsertedEnv(options),
     ...getWrappingEnv(options),
@@ -901,6 +907,9 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const cwd = path.join(process.cwd(), 'sandbox');
   profile.push(`(allow file-read* (subpath ${JSON.stringify(paths.sandboxDir)}))`);
   profile.push(`(allow file-read* (subpath ${JSON.stringify(cwd)}))`);
+  if (paths.extDir) {
+    profile.push(`(allow file-read* (subpath ${JSON.stringify(paths.extDir)}))`);
+  }
   if (options.importDir) {
     profile.push(`(allow file-read* (subpath ${JSON.stringify(paths.importDir)}))`);
   }
@@ -969,11 +978,19 @@ function getAbsolutePaths(options: ISandboxOptions) {
   if (options.importDir) {
     options.importDir = realpathSync(options.importDir);
   }
+  const engine = path.join(sandboxDir, 'grist');
+  const pythonPaths = [engine];
+  const extDir = options.extDir && realpathSync(options.extDir);
+  if (extDir) {
+    pythonPaths.unshift(extDir);
+  }
   return {
     sandboxDir,
     importDir: options.importDir,
+    extDir,
     main: path.join(sandboxDir, 'grist/main.py'),
-    engine: path.join(sandboxDir, 'grist'),
+    engine,
+    pythonPath: pythonPaths.join(':'),
   };
 }
 

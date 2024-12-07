@@ -2868,6 +2868,7 @@ export class ActiveDoc extends EventEmitter {
       docId: this._docName,
       preferredPythonVersion,
       sandboxOptions: {
+        extDir: this.megaDataEngine?.getSandboxExtDir(),
         exports: {
           request: (key: string, args: SandboxRequest) => this._requests.handleSingleRequestWithCache(key, args),
           guessColInfo,
