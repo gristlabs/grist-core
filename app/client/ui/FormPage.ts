@@ -8,7 +8,7 @@ import {FormSuccessPage} from 'app/client/ui/FormSuccessPage';
 import {colors} from 'app/client/ui2018/cssVars';
 import {ApiError} from 'app/common/ApiError';
 import {getPageTitleSuffix} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
+import {getGristConfig, sanitizeUrl} from 'app/common/urlUtils';
 import {Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
 
 const t = makeT('FormPage');
@@ -90,12 +90,9 @@ export class FormPage extends Disposable {
 
     const {successURL} = formLayout;
     if (successURL) {
-      try {
-        const url = new URL(successURL);
-        window.location.href = url.href;
-        return;
-      } catch {
-        // If the URL is invalid, just ignore it.
+      const url = sanitizeUrl(successURL);
+      if (url) {
+        window.location.href = url;
       }
     }
 

@@ -17,6 +17,7 @@ const READ_WIDGET = 'Read';
 const FULL_WIDGET = 'Full';
 const COLUMN_WIDGET = 'COLUMN_WIDGET';
 const REQUIRED_WIDGET = 'REQUIRED_WIDGET';
+const INVALID_URL_WIDGET = 'INVALID_URL_WIDGET';
 // Custom URL label.
 const CUSTOM_URL = 'Custom URL';
 // Holds url for sample widget server.
@@ -178,6 +179,11 @@ describe('CustomWidgetsConfig', function () {
             url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name:'Column', optional: false}]}),
             widgetId: 'tester6',
           },
+          {
+            name: INVALID_URL_WIDGET,
+            url: 'ftp://getgrist.com/path',
+            widgetId: 'tester7'
+          }
         ]);
       });
       addStatic(app);
@@ -1077,6 +1083,12 @@ describe('CustomWidgetsConfig', function () {
     await mainSession.loadDoc(`/doc/${docId}`);
     await refresh();
   });
+
+  it('should display the empty widget page if the URL is invalid', async function () {
+    await gu.setCustomWidget(INVALID_URL_WIDGET);
+    await widget.waitForFrame();
+    assert.match(await widget.url(), /custom-widget\.html$/);
+  });
 });
 
 // Poor man widget rpc. Class that invokes various parts in the tester widget.
@@ -1094,6 +1106,9 @@ const widget = {
     await this._inWidgetIframe(async () => {
       await driver.executeScript('grist.testWaitForPendingRequests();');
     });
+  },
+  async url() {
+    return await driver.find('iframe').getAttribute('src');
   },
   async content() {
     return await this._read('body');

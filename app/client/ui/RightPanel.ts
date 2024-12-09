@@ -963,11 +963,20 @@ export class RightPanel extends Disposable {
       ),
       cssLabel(t("Redirection")),
       cssRow(
-        labeledSquareCheckbox(redirection, t('Redirect automatically after submission')),
+        labeledSquareCheckbox(
+          redirection,
+          t("Redirect automatically after submission"),
+          testId("form-redirect")
+        )
       ),
       cssRow(
-        cssTextInput(successURL, (val) => successURL.set(val), {placeholder: t('Enter redirect URL')}),
-        dom.show(redirection),
+        cssTextInput(
+          successURL,
+          (val) => successURL.set(val),
+          { placeholder: t("Enter redirect URL") },
+          testId("form-redirect-url")
+        ),
+        dom.show(redirection)
       ),
     ];
   }

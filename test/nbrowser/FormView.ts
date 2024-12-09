@@ -20,16 +20,41 @@ describe('FormView', function() {
 
   afterEach(() => gu.checkForErrors());
 
-  async function createFormWith(type: string, more = false) {
+  async function createFormWith(
+    type: string,
+    options: {
+      redirectUrl?: string;
+    } = {}
+  ) {
+    const {redirectUrl} = options;
+
     await gu.addNewSection('Form', 'Table1');
+
+    if (redirectUrl) {
+      await gu.openWidgetPanel();
+      await driver.find(".test-config-submission").click();
+      await driver.find(".test-form-redirect").click();
+      await gu.waitForServer();
+      await driver.find(".test-form-redirect-url").click();
+      await gu.sendKeys(redirectUrl, Key.ENTER);
+      await gu.waitForServer();
+    }
 
     // Make sure column D is not there.
     assert.isUndefined(await api.getTable(docId, 'Table1').then(t => t.D));
 
     // Add a text question
     await plusButton().click();
-    if (more) {
-      await clickMenu('More');
+    if (
+      [
+        "Integer",
+        "Toggle",
+        "Choice List",
+        "Reference",
+        "Reference List",
+      ].includes(type)
+    ) {
+      await clickMenu("More");
     }
     await clickMenu(type);
     await gu.waitForServer();
@@ -366,7 +391,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with text Integer field', async function() {
-      const formUrl = await createFormWith('Integer', true);
+      const formUrl = await createFormWith('Integer');
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
@@ -388,7 +413,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with spinner Integer field', async function() {
-      const formUrl = await createFormWith('Integer', true);
+      const formUrl = await createFormWith('Integer');
       await driver.findContent('.test-numeric-form-field-format .test-select-button', /Spinner/).click();
       await gu.waitForServer();
       // We are in a new window.
@@ -419,7 +444,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with switch Toggle field', async function() {
-      const formUrl = await createFormWith('Toggle', true);
+      const formUrl = await createFormWith('Toggle');
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
@@ -449,7 +474,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with checkbox Toggle field', async function() {
-      const formUrl = await createFormWith('Toggle', true);
+      const formUrl = await createFormWith('Toggle');
       await driver.findContent('.test-toggle-form-field-format .test-select-button', /Checkbox/).click();
       await gu.waitForServer();
       // We are in a new window.
@@ -481,7 +506,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with ChoiceList field', async function() {
-      const formUrl = await createFormWith('Choice List', true);
+      const formUrl = await createFormWith('Choice List');
       // Add some options.
       await gu.openColumnPanel();
 
@@ -511,7 +536,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with select Ref field', async function() {
-      const formUrl = await createFormWith('Reference', true);
+      const formUrl = await createFormWith('Reference');
       // Add some options.
       await gu.openColumnPanel();
       await gu.setRefShowColumn('A');
@@ -564,7 +589,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with radio Ref field', async function() {
-      const formUrl = await createFormWith('Reference', true);
+      const formUrl = await createFormWith('Reference');
       await driver.findContent('.test-form-field-format .test-select-button', /Radio/).click();
       await gu.waitForServer();
       await gu.setRefShowColumn('A');
@@ -603,7 +628,7 @@ describe('FormView', function() {
     });
 
     it('can submit a form with RefList field', async function() {
-      const formUrl = await createFormWith('Reference List', true);
+      const formUrl = await createFormWith('Reference List');
       // Add some options.
       await gu.setRefShowColumn('A');
       // Add 3 records to this table (it is now empty).
@@ -637,6 +662,31 @@ describe('FormView', function() {
         ['BulkRemoveRecord', 'Table1', [1, 2, 3, 4]],
       ]);
 
+      await removeForm();
+    });
+
+    it('redirects to valid URLs on submission', async function() {
+      const url = await createFormWith('Text', {
+        redirectUrl: "https://example.com",
+      });
+      await gu.onNewTab(async () => {
+        await driver.get(url);
+        await driver.findWait('input[type="submit"]', 2000).click();
+        await gu.waitForUrl(/example\.com/);
+      });
+      await removeForm();
+    });
+
+    it('does not redirect to invalid URLs on submission', async function() {
+      const url = await createFormWith('Text', {
+        redirectUrl: "javascript:alert()",
+      });
+      await gu.onNewTab(async () => {
+        await driver.get(url);
+        await driver.findWait('input[type="submit"]', 2000).click();
+        await waitForConfirm();
+        assert.isFalse(await gu.isAlertShown());
+      });
       await removeForm();
     });
 
