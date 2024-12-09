@@ -120,9 +120,12 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
 }
 
 function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
-  // Prepare the custom properties needed for applying the theme.
-  const properties = Object.entries(themeColors)
+  const properties = Object.entries(themeColors.legacyVariables || {})
     .map(([name, value]) => `--grist-theme-${name}: ${value};`);
+
+  properties.push(...Object.entries(themeColors || {})
+    .filter(([name]) => name !== 'legacyVariables')
+    .map(([name, value]) => `--grist-${name}: ${value};`));
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssThemeScrollbarProperties(appearance));
@@ -131,7 +134,7 @@ function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
   properties.push(...getCssThemeBackgroundProperties(appearance));
 
   // Apply the properties to the theme style element.
-  // The 'grist-theme' layer takes precedence over the 'grist-base' layer where
+  // The 'grist-theme' layer takes precedence over the 'grist-base' and 'grist-tokens'layers where
   // default CSS variables are defined.
   getOrCreateStyleElement('grist-theme').textContent = `@layer grist-theme {
   :root {
