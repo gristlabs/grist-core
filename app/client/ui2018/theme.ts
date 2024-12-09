@@ -2,14 +2,14 @@ import { createPausableObs, PausableObservable } from 'app/client/lib/pausableOb
 import { getStorage } from 'app/client/lib/storage';
 import { getOrCreateStyleElement } from 'app/client/lib/getOrCreateStyleElement';
 import { urlState } from 'app/client/models/gristUrlState';
-import { Theme, ThemeAppearance, ThemeColors, ThemePrefs } from 'app/common/ThemePrefs';
-import { getThemeColors } from 'app/common/Themes';
+import { components, Theme, ThemeAppearance, ThemePrefs, ThemeTokens, tokens } from 'app/common/ThemePrefs';
+import { getThemeTokens } from 'app/common/Themes';
 import { getGristConfig } from 'app/common/urlUtils';
 import { Computed, Observable } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
-const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', colors: getThemeColors('GristLight')};
-const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', colors: getThemeColors('GristDark')};
+const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', colors: getThemeTokens('GristLight')};
+const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', colors: getThemeTokens('GristDark')};
 
 /**
  * A singleton observable for the current user's Grist theme preferences.
@@ -67,11 +67,11 @@ export function gristThemeObs() {
 /**
  * Attaches the current theme's CSS variables to the document, and
  * re-attaches them whenever the theme changes.
+ *
+ * When custom CSS is enabled (and theme selection is then unavailable in the UI),
+ * default light theme variables are attached.
  */
 export function attachTheme() {
-  // Custom CSS is incompatible with custom themes.
-  if (getGristConfig().enableCustomCss) { return; }
-
   // Attach the current theme's variables to the DOM.
   attachCssThemeVars(gristThemeObs().get());
 
@@ -81,6 +81,16 @@ export function attachTheme() {
 
     attachCssThemeVars(newTheme);
   });
+}
+
+/**
+ * Attaches the default light theme to the DOM.
+ *
+ * In some cases, theme choice is disabled (for example, in forms), but we still need to
+ * append the theme vars to the DOM so that the UI works.
+ */
+export function attachDefaultLightTheme() {
+  attachCssThemeVars(DEFAULT_LIGHT_THEME);
 }
 
 /**
@@ -104,25 +114,44 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     appearance = userAgentPrefersDarkTheme ? 'dark' : 'light';
   }
 
-  let nameOrColors = themePrefs.colors[appearance];
+  let nameOrTokens = themePrefs.colors[appearance];
   if (urlParams?.themeName) {
-    nameOrColors = urlParams?.themeName;
+    nameOrTokens = urlParams?.themeName;
   }
 
-  let colors: ThemeColors;
-  if (typeof nameOrColors === 'string') {
-    colors = getThemeColors(nameOrColors);
+  let themeTokens: ThemeTokens;
+  if (typeof nameOrTokens === 'string') {
+    themeTokens = getThemeTokens(nameOrTokens);
   } else {
-    colors = nameOrColors;
+    themeTokens = nameOrTokens;
   }
 
-  return {appearance, colors};
+  return {appearance, colors: themeTokens};
 }
 
-function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
-  // Prepare the custom properties needed for applying the theme.
-  const properties = Object.entries(themeColors)
-    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
+function attachCssThemeVars({appearance, colors: themeTokens}: Theme) {
+  const properties = Object.entries(themeTokens || {})
+    .filter(([name]) => name !== 'components')
+    .map(([tokenName, value]) => {
+      if (tokenName in tokens) {
+        const cssProp = tokens[tokenName as keyof typeof tokens];
+        cssProp.value = value;
+        return cssProp.decl();
+      }
+      return undefined;
+    })
+    .filter((prop): prop is string => prop !== undefined);
+
+  properties.push(...Object.entries(themeTokens.components || {})
+    .map(([tokenName, value]) => {
+      if (tokenName in components) {
+        const cssProp = components[tokenName as keyof typeof components];
+        cssProp.value = value;
+        return cssProp.decl();
+      }
+      return undefined;
+    })
+    .filter((prop): prop is string => prop !== undefined));
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssThemeScrollbarProperties(appearance));

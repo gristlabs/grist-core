@@ -32,6 +32,7 @@ import { TableOperations } from './TableOperations';
 import { TableOperationsImpl } from './TableOperationsImpl';
 import { checkers } from './TypeCheckers';
 import { WidgetAPI } from './WidgetAPI';
+import { components, tokens } from 'app/common/ThemePrefs';
 
 export * from './TypeCheckers';
 export * from './FileParserAPI';
@@ -594,18 +595,42 @@ onThemeChange((newTheme) => {
   attachCssThemeVars(_theme);
 });
 
-function attachCssThemeVars({appearance, colors}: any) {
-  // Prepare the custom properties needed for applying the theme.
-  const properties = Object.entries(colors)
-    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
+function attachCssThemeVars({appearance, colors: themeTokens}: any) {
+  const properties = Object.entries(themeTokens || {})
+    .filter(([name]) => name !== 'components')
+    .map(([tokenName, value]: [string, any]) => {
+      if (tokenName in tokens) {
+        const cssProp = tokens[tokenName as keyof typeof tokens];
+        cssProp.value = value.name ? `var(--grist-${value.name})` : value;
+        return cssProp.decl();
+      }
+      return undefined;
+    })
+    .filter((prop): prop is string => prop !== undefined);
+
+  properties.push(...Object.entries(themeTokens.components || {})
+    .map(([tokenName, value]: [string, any]) => {
+      if (tokenName in components) {
+        const cssProp = components[tokenName as keyof typeof components];
+        cssProp.value = value.name ? `var(--grist-${value.name})` : value as string;
+        return cssProp.decl();
+      }
+      return undefined;
+    })
+    .filter((prop): prop is string => prop !== undefined));
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssScrollbarProperties(appearance));
 
   // Apply the properties to the theme style element.
-  getOrCreateStyleElement('grist-theme').textContent = `:root {
+  // The 'grist-theme' layer takes precedence over the 'grist-base' layer where
+  // default CSS variables are defined.
+  getOrCreateStyleElement('grist-theme').textContent = `@layer grist-theme {
+  :root {
 ${properties.join('\n')}
-  }`;
+  }
+}
+`;
 
   // Make the browser aware of the color scheme.
   document.documentElement.style.setProperty(`color-scheme`, appearance);

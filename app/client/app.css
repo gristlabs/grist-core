@@ -1,5 +1,4 @@
 /* global variables */
-@layer grist-base, grist-theme, grist-custom;
 :root {
   --color-logo-row:  #F9AE41;
   --color-logo-col:  #2CB0AF;
