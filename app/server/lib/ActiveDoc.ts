@@ -648,6 +648,7 @@ export class ActiveDoc extends EventEmitter {
     useExisting?: boolean,       // If set, document can be created as an overlay on
                                  // an existing sqlite file.
   }): Promise<ActiveDoc> {
+    console.log(`OPENOPENOPENOPENOPENOPENOPENOPEN ${this.docName} ANYTHING ELSE`);
     const startTime = Date.now();
     this._log.debug(docSession, "loadDoc");
     try {
@@ -2356,7 +2357,7 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
-    const attachmentStoreId = (await this._getDocumentSettings()).idOfDefaultAttachmentStore;
+    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
     const addFileResult = await this._attachmentFileManager
       .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
     this._log.info(

@@ -2,7 +2,7 @@ export interface DocumentSettings {
   locale: string;
   currency?: string;
   engine?: EngineCode;
-  idOfDefaultAttachmentStore?: string;
+  attachmentStoreId?: string;
 }
 
 /**
