@@ -37,6 +37,15 @@ export class StoreNotAvailableError extends Error {
   }
 }
 
+export class MissingAttachmentError extends Error {
+  public readonly fileIdent: string;
+
+  constructor(fileIdent: string) {
+    super(`Attachment file '${fileIdent}' could not be found in this document`);
+    this.fileIdent = fileIdent;
+  }
+}
+
 export class AttachmentRetrievalError extends Error {
   public readonly storeId: AttachmentStoreId;
   public readonly fileId: string;
@@ -93,6 +102,14 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     fileData: Buffer
   ): Promise<AddFileResult> {
     const fileIdent = await this._getFileIdentifier(fileExtension, Readable.from(fileData));
+    return this._addFile(storeId, fileIdent, fileData);
+  }
+
+  public async _addFile(
+    storeId: AttachmentStoreId | undefined,
+    fileIdent: string,
+    fileData: Buffer
+  ): Promise<AddFileResult> {
     this._log.info({ fileIdent, storeId }, `adding file to ${storeId ? "external" : "document"} storage`);
     if (storeId === undefined) {
       return this._addFileToLocalStorage(fileIdent, fileData);
@@ -105,14 +122,11 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return this._addFileToAttachmentStore(store, fileIdent, fileData);
   }
 
-  // TODO Given we throw if the underlying store can't retrieve the file, maybe this should throw if we're missing
-  // the fileInfo from doc storage too, instead of returning null?
-  // That, or we return a result type which might have an error in.
-  public async getFileData(fileIdent: string): Promise<Buffer | null> {
+  public async getFileData(fileIdent: string): Promise<Buffer> {
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
     if (!fileInfo) {
-      this._log.warn({ fileIdent }, "cannot find file metadata in document");
-      return null;
+      this._log.error({ fileIdent }, "cannot find file metadata in document");
+      throw new MissingAttachmentError(fileIdent);
     }
     this._log.debug(
       { fileIdent, storeId: fileInfo.storageId },
