@@ -23,6 +23,7 @@ import { createDocTools } from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
 import * as tmp from 'tmp';
+import { AttachmentStoreProvider } from "../../../app/server/lib/AttachmentStoreProvider";
 
 const execFileAsync = promisify(child_process.execFile);
 
@@ -1132,7 +1133,8 @@ describe('ActiveDoc', function() {
       'https://templates!.getgrist.com/doc/lightweight-crm 8sJPiNkWZo68KFJkc5Ukbr~4'
     ] as const) {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'docUrlTest' + docUrl.length,
-                                         { docUrl });
+                                      new AttachmentStoreProvider([], "TEST-INSTALL-ID"),
+                                      { docUrl });
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
         ["AddTable", "Info", [{id: 'Url', formula: 'SELF_HYPERLINK()'}]],
