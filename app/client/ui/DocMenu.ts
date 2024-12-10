@@ -128,7 +128,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                           hasFeaturedTemplates ? t("More Examples and Templates") : t("Examples and Templates")
                       ) :
                       page === 'trash' ? t("Trash") :
-                      workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
+                      workspace && [css.docHeaderIcon(workspace.shareType === 'public' ? 'Folder' : 'FolderPrivate'), workspaceName(home.app, workspace)]
                     ),
                     testId('doc-header'),
                   ),
@@ -179,8 +179,7 @@ function buildAllDocsBlock(
 
     return css.docBlock(
       css.docBlockHeaderLink(
-        css.wsLeft(
-          css.docHeaderIcon('Folder'),
+        css.wsLeft(css.docHeaderIcon(ws.shareType === 'public' ? 'Folder' : 'FolderPrivate'),
           workspaceName(home.app, ws),
         ),
 
@@ -265,7 +264,7 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
     return css.templatesDocBlock(
       css.templateBlockHeader(
         css.wsLeft(
-          css.docHeaderIcon('Folder'),
+          css.docHeaderIcon(workspace.shareType === 'public' ? 'Folder' : 'FolderPrivate'),
           workspace.name,
         ),
         testId('templates-header'),
@@ -338,7 +337,12 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
           css.docLeft(
             css.docName(doc.name, testId('doc-name')),
             css.docPinIcon('PinSmall', dom.show(doc.isPinned)),
-            doc.public ? css.docPublicIcon('Public', testId('public')) : null,
+            css.docPublicIcon(doc.shareType === 'public'
+                ? 'FilePublic' : doc.shareType === 'shared'
+                  ? 'FileShared'
+                  : 'FilePrivate',
+              css.docPublicIcon.cls(`-${doc.shareType}`),
+              testId('public'))
           ),
           css.docRowUpdatedAt(
             (doc.removedAt ?
