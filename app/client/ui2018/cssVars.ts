@@ -386,7 +386,6 @@ export const theme = {
 
   /* Checkboxes */
   checkboxBg: new CustomProp('theme-checkbox-bg', undefined, colors.light),
-  checkboxSelectedFg: new CustomProp('theme-checkbox-selected-bg', undefined, colors.lightGreen),
   checkboxDisabledBg: new CustomProp('theme-checkbox-disabled-bg', undefined, colors.darkGrey),
   checkboxBorder: new CustomProp('theme-checkbox-border', undefined, colors.darkGrey),
   checkboxBorderHover: new CustomProp('theme-checkbox-border-hover', undefined, colors.hover),

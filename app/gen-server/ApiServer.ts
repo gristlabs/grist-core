@@ -8,11 +8,7 @@ import pick from 'lodash/pick';
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
-import {DOCTYPE_NORMAL,
-  DOCTYPE_TEMPLATE,
-  DOCTYPE_TUTORIAL,
-  OrganizationProperties,
-  PermissionDelta} from 'app/common/UserAPI';
+import {OrganizationProperties, PermissionDelta} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from 'app/gen-server/entity/Organization';
 import {User} from 'app/gen-server/entity/User';
@@ -299,20 +295,7 @@ export class ApiServer {
     // PATCH /api/docs/:did
     // Update the specified doc.
     this._app.patch('/api/docs/:did', expressWrap(async (req, res) => {
-      const validDocTypes = [
-        DOCTYPE_NORMAL,
-        DOCTYPE_TEMPLATE,
-        DOCTYPE_TUTORIAL
-      ];
-
-      if ('type' in req.body && ! validDocTypes.includes(req.body.type)){
-        const errMsg = "Bad Request. 'type' key authorized values : "
-                        + `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
-        return res.status(400).send({error: errMsg});
-      }
-
       const {data, ...result} = await this._dbManager.updateDocument(getDocScope(req), req.body);
-
       if (data && 'name' in req.body) { this._logRenameDocumentEvents(req, data); }
       return sendReply(req, res, {...result, data: data?.current.id});
     }));

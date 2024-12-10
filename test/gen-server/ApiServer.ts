@@ -5,7 +5,7 @@ import {configForUser, configWithPermit, getRowCounts as getRowCountsForDb} from
 import * as testUtils from 'test/server/testUtils';
 
 import {createEmptyOrgUsageSummary, OrgUsageSummary} from 'app/common/DocUsage';
-import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, Document, Workspace} from 'app/common/UserAPI';
+import {Document, Workspace} from 'app/common/UserAPI';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -1274,21 +1274,6 @@ describe('ApiServer', function() {
     assert.deepEqual(resp.data?.options, undefined);
   });
 
-  it('PATCH /api/docs/{did} supports proper values for type key', async function() {
-    const did = await dbManager.testGetId('Surprise2');
-    // Check setting null for normal document type
-    let resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {type: DOCTYPE_NORMAL}, chimpy);
-    assert.equal(resp.status, 200);
-
-    // check setting template as document type
-    resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {type: DOCTYPE_TEMPLATE}, chimpy);
-    assert.equal(resp.status, 200);
-
-    // check setting tutorial as document type
-    resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {type: DOCTYPE_TUTORIAL}, chimpy);
-    assert.equal(resp.status, 200);
-  });
-
   it('PATCH /api/docs/{did} returns 404 appropriately', async function() {
     // Attempt to rename a doc that doesn't exist.
     const resp = await axios.patch(`${homeUrl}/api/docs/9999`, {
@@ -1310,13 +1295,6 @@ describe('ApiServer', function() {
     // Use an unavailable property and check that the operation fails with 400.
     const did = await dbManager.testGetId('Surprise2');
     const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {x: 1}, chimpy);
-    assert.equal(resp.status, 400);
-  });
-
-  it('PATCH /api/docs/{did} returns 400 on wrong type values', async function() {
-    // Use an unavailable property and check that the operation fails with 400.
-    const did = await dbManager.testGetId('Surprise2');
-    const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {"type": "invalid"}, chimpy);
     assert.equal(resp.status, 400);
   });
 

@@ -3,7 +3,6 @@ import difference from 'lodash/difference';
 import { assert, driver } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { button, element, label, option } from "test/nbrowser/elementUtils";
 
 describe("Timing", function () {
   this.timeout(20000);
@@ -191,6 +190,43 @@ describe("Timing", function () {
     await driver.sleep(100);
     assert.equal(await driver.find(".test-settings-timing-modal").isPresent(), false);
   });
+});
+
+const element = (testId: string) => ({
+  element() {
+    return driver.find(testId);
+  },
+  async wait() {
+    await driver.findWait(testId, 1000);
+  },
+  async visible() {
+    return await this.element().isDisplayed();
+  },
+  async present() {
+    return await this.element().isPresent();
+  }
+});
+
+const label = (testId: string) => ({
+  ...element(testId),
+  async text() {
+    return this.element().getText();
+  },
+});
+
+const button = (testId: string) => ({
+  ...element(testId),
+  async click() {
+    await gu.scrollIntoView(this.element());
+    await this.element().click();
+  },
+});
+
+const option = (testId: string) => ({
+  ...button(testId),
+  async checked() {
+    return 'true' === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute('checked');
+  }
 });
 
 const startTiming = button(".test-settings-timing-start");

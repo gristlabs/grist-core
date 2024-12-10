@@ -9,6 +9,7 @@ describe('SavePosition.ntest', function() {
     this.timeout(Math.max(this.timeout(), 20000)); // Long-running test, unfortunately
     await gu.supportOldTimeyTestCode();
     await gu.useFixtureDoc(cleanup, "World.grist", true);
+    await gu.hideBanners();
   });
 
   afterEach(function() {
