@@ -624,7 +624,10 @@
         "Ok": "好的",
         "Manage Webhooks": "管理 Webhooks",
         "Webhooks": "Webhook",
-        "API Console": "API 控制台"
+        "API Console": "API 控制台",
+        "Find slow formulas": "查找慢公式",
+        "Data Engine": "数据引擎",
+        "Document ID": "文档 ID"
     },
     "DocumentUsage": {
         "Attachments Size": "附件大小",
