@@ -1,6 +1,12 @@
 import {ThemeColors} from 'app/common/ThemePrefs';
 
 export const GristDark: ThemeColors = {
+  // example of overriding default designTokens instead of specific component ones (used on right panel header tabs)
+  'main-bg': '#32323f',
+  'panel-bg': '#262633',
+  'panel-fg': '#EFEFEF',
+  'panel-border': '#60606D',
+  'text-light': '#A4A4B1',
   legacyVariables: {
     /* Text */
     'text': '#EFEFEF',
@@ -230,16 +236,6 @@ export const GristDark: ThemeColors = {
     'left-panel-page-emoji-outline': '#70707D',
 
     /* Right Panel */
-    'right-panel-tab-fg': '#A4A4B1',
-    'right-panel-tab-bg': '#32323f',
-    'right-panel-tab-icon': '#A4A4B1',
-    'right-panel-tab-icon-hover': '#EFEFEF',
-    'right-panel-tab-border': '#60606D',
-    'right-panel-tab-hover-bg': '#32323f',
-    'right-panel-tab-hover-fg': '#EFEFEF',
-    'right-panel-tab-selected-fg': '#EFEFEF',
-    'right-panel-tab-selected-bg': '#262633',
-    'right-panel-tab-selected-icon': '#16B378',
     'right-panel-tab-button-hover-bg': '#0A5438',
     'right-panel-subtab-fg': '#17B378',
     'right-panel-subtab-selected-fg': '#EFEFEF',
