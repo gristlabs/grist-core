@@ -1198,6 +1198,11 @@ const cssCollapsedTray = styled('div.collapsed_layout', `
     outline: 2px dashed #7B8CEA;
     background: rgba(123, 140, 234, 0.1);
   }
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `
 );
 
