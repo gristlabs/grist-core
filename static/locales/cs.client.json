@@ -34,7 +34,8 @@
         "Seed rules": "Seed pravidla",
         "Save": "Ulož",
         "Rules for table ": "Pravidla pro tabulku ",
-        "Special Rules": "Speciální Pravidla"
+        "Special Rules": "Speciální Pravidla",
+        "This default should be changed if editors' access is to be limited. ": "Toto výchozí nastavení by mělo být změněno, pokud má být přístup editorů omezen. "
     },
     "ACUserManager": {
         "Invite new member": "Pozvat nového uživatele",
