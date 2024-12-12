@@ -22,7 +22,7 @@
     "test:server": "TEST_SUITE=server TEST_SUITE_FOR_TIMINGS=server TIMINGS_FILE=test/timings/server.txt ./test/test_env.sh mocha ${DEBUG:+'-b'} -g \"${GREP_TESTS}\" -R test/xunit-file '_build/test/server/**/*.js' '_build/test/gen-server/**/*.js'",
     "test:smoke": "./test/test_env.sh mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh",
-    "test:python": "sandbox_venv3/bin/python sandbox/grist/runtests.py ${GREP_TESTS:+discover -p \"test*${GREP_TESTS}*.py\"}",
+    "test:python": "sandbox_venv3/bin/python sandbox/grist/runtests.py ${GREP_TESTS:+discover -p \"test*${GREP_TESTS}*.py\"} ${DEBUG:+-f}",
     "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js",
     "lint": "eslint --cache --cache-strategy content .",
     "lint:fix": "eslint  --cache --cache-strategy=content --fix .",
