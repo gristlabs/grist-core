@@ -27,11 +27,16 @@ import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
+import {
+  AttachmentStoreProvider, checkAvailabilityAttachmentStoreOptions, IAttachmentStoreProvider
+} from "app/server/lib/AttachmentStoreProvider";
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
+import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
+import {IGristCoreConfig} from "app/server/lib/configCore";
 import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
@@ -59,6 +64,7 @@ import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
         optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
+import {buildScimRouter} from 'app/server/lib/scim';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
@@ -86,9 +92,6 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
-import {IGristCoreConfig} from "app/server/lib/configCore";
-import {buildScimRouter} from 'app/server/lib/scim';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -144,6 +147,7 @@ export class FlexServer implements GristServer {
   private _billing: IBilling;
   private _installAdmin: InstallAdmin;
   private _instanceRoot: string;
+  private _attachmentStoreProvider: IAttachmentStoreProvider;
   private _docManager: DocManager;
   private _docWorker: DocWorker;
   private _hosts: Hosts;
@@ -1384,8 +1388,22 @@ export class FlexServer implements GristServer {
     }
 
     const pluginManager = await this._addPluginManager();
-    this._docManager = this._docManager || new DocManager(this._storageManager, pluginManager,
-                                                          this._dbManager, this);
+
+    const storeOptions = await checkAvailabilityAttachmentStoreOptions(this.create.getAttachmentStoreOptions());
+    log.info("Attachment store backend availability", {
+      available: storeOptions.available.map(option => option.name),
+      unavailable: storeOptions.unavailable.map(option => option.name),
+    });
+
+    this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
+      storeOptions.available,
+      (await this.getActivations().current()).id,
+    );
+    this._docManager = this._docManager || new DocManager(this._storageManager,
+      pluginManager,
+      this._dbManager,
+      this._attachmentStoreProvider,
+      this);
     const docManager = this._docManager;
 
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');
@@ -1415,7 +1433,8 @@ export class FlexServer implements GristServer {
     this._addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
-      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this);
+      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager,
+                      this._attachmentStoreProvider, this);
     }
   }
 

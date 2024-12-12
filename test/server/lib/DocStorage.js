@@ -389,19 +389,18 @@ describe('DocStorage', function() {
     var docStorage;
     it("should create attachment blob", function() {
       docStorage = new DocStorage(docStorageManager, 'test_Attachments');
+      const correctFileContents = "Hello, world!"
       return docStorage.createFile()
-      .then(() => testUtils.writeTmpFile("Hello, world!"))
-      .then(tmpPath => docStorage.findOrAttachFile(tmpPath, "hello_world.txt"))
+      .then(() => docStorage.findOrAttachFile( "hello_world.txt", Buffer.from(correctFileContents)))
       .then(result => assert.isTrue(result))
-      .then(() => docStorage.getFileData("hello_world.txt"))
-      .then(data => assert.equal(data.toString('utf8'), "Hello, world!"))
+      .then(() => docStorage.getFileInfo("hello_world.txt"))
+      .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), correctFileContents))
 
       // If we use the same fileIdent for another file, it should not get attached.
-      .then(() => testUtils.writeTmpFile("Another file"))
-      .then(tmpPath => docStorage.findOrAttachFile(tmpPath, "hello_world.txt"))
+      .then(() => docStorage.findOrAttachFile("hello_world.txt", Buffer.from("Another file")))
       .then(result => assert.isFalse(result))
-      .then(() => docStorage.getFileData("hello_world.txt"))
-      .then(data => assert.equal(data.toString('utf8'), "Hello, world!"));
+      .then(() => docStorage.getFileInfo("hello_world.txt"))
+      .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), correctFileContents));
     });
   });
 
