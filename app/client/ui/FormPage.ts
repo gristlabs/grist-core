@@ -1,6 +1,7 @@
 import {FormRenderer} from 'app/client/components/FormRenderer';
 import {handleSubmit, TypedFormData} from 'app/client/lib/formUtils';
 import {makeT} from 'app/client/lib/localization';
+import {sanitizeHttpUrl} from 'app/client/lib/sanitizeUrl';
 import {FormModel, FormModelImpl} from 'app/client/models/FormModel';
 import {buildFormFooter} from 'app/client/ui/FormContainer';
 import {FormErrorPage} from 'app/client/ui/FormErrorPage';
@@ -8,7 +9,7 @@ import {FormSuccessPage} from 'app/client/ui/FormSuccessPage';
 import {colors} from 'app/client/ui2018/cssVars';
 import {ApiError} from 'app/common/ApiError';
 import {getPageTitleSuffix} from 'app/common/gristUrls';
-import {getGristConfig, sanitizeUrl} from 'app/common/urlUtils';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
 
 const t = makeT('FormPage');
@@ -90,7 +91,7 @@ export class FormPage extends Disposable {
 
     const {successURL} = formLayout;
     if (successURL) {
-      const url = sanitizeUrl(successURL);
+      const url = sanitizeHttpUrl(successURL);
       if (url) {
         window.location.href = url;
       }

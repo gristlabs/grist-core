@@ -79,20 +79,3 @@ export function fetchFromHome(path: string, opts: RequestInit): Promise<Response
   const baseUrl = addCurrentOrgToPath(getGristConfig().homeUrl!);
   return window.fetch(`${baseUrl}${path}`, opts);
 }
-
-/**
- * Returns the provided URL if it has a valid protocol (`http:` or `https:`), or
- * `null` otherwise.
- */
-export function sanitizeUrl(url: string): string | null {
-  try {
-    const parsedUrl = new URL(url);
-    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      return null;
-    }
-
-    return parsedUrl.href;
-  } catch (e) {
-    return null;
-  }
-}

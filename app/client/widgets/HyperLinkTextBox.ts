@@ -1,3 +1,4 @@
+import { sanitizeLinkUrl } from 'app/client/lib/sanitizeUrl';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { constructUrl } from 'app/client/models/gristUrlState';
@@ -20,7 +21,10 @@ export class HyperLinkTextBox extends NTextBox {
 
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId()];
-    const url = Computed.create(null, (use) => constructUrl(use(value)));
+    const url = Computed.create(
+      null,
+      (use) => sanitizeLinkUrl(constructUrl(use(value))) ?? "about:blank"
+    );
     return cssFieldClip(
       dom.autoDispose(url),
       dom.style('text-align', this.alignment),

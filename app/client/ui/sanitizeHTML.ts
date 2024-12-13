@@ -24,10 +24,10 @@ function handleSanitizeAttribute(node: Element) {
   node.setAttribute('target', '_blank');
 }
 
-function handleSanitizeTutorialElement(node: Element, data: createDOMPurifier.SanitizeElementHookEvent) {
+function handleSanitizeTutorialElement(node: Node, data: createDOMPurifier.UponSanitizeElementHookEvent) {
   if (data.tagName !== 'iframe') { return; }
 
-  const src = node.getAttribute('src');
+  const src = (node as Element).getAttribute('src');
   if (src?.startsWith('https://www.youtube.com/embed/')) {
     return;
   }

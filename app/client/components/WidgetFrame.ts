@@ -5,6 +5,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeTestId} from 'app/client/lib/domUtils';
+import {sanitizeHttpUrl} from 'app/client/lib/sanitizeUrl';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {gristThemeObs} from 'app/client/ui2018/theme';
@@ -12,7 +13,7 @@ import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/C
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {getGristConfig, sanitizeUrl} from 'app/common/urlUtils';
+import {getGristConfig} from 'app/common/urlUtils';
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
   InteractionOptionsRequest, WidgetAPI, WidgetColumnMap
@@ -242,7 +243,7 @@ export class WidgetFrame extends DisposableWithEvents {
     // Append user and document preferences to query string.
     const settingsParams = new URLSearchParams(this._options.preferences);
     settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
-    return sanitizeUrl(urlObj.href);
+    return sanitizeHttpUrl(urlObj.href);
   }
 
   private _getEmptyWidgetPage(): string {

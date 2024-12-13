@@ -61,6 +61,7 @@ export class DocWorker {
         .type(ext)
         .set('Content-Disposition', contentDispHeader)
         .set('Cache-Control', 'private, max-age=3600')
+        .set("Content-Security-Policy", "sandbox; default-src: 'none'")
         .send(data);
     } catch (err) {
       res.status(404).send({error: err.toString()});
