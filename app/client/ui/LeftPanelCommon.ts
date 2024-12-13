@@ -170,7 +170,10 @@ export const cssLinkText = styled('span', `
 
 export const cssPageIcon = styled(icon, `
   flex: none;
+  width: 24px;
+  height: 24px;
   margin-right: var(--page-icon-margin, 8px);
+  --icon-color: ${theme.lightText};
   .${cssTools.className}-collapsed & {
     margin-right: 0;
   }

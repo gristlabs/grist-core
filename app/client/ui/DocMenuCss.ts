@@ -1,5 +1,5 @@
 import {transientInput} from 'app/client/ui/transientInput';
-import {mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {styled} from 'grainjs';
 import {bigBasicButton} from 'app/client/ui2018/buttons';
@@ -130,6 +130,8 @@ export const siteButton = styled(bigBasicButton, `
 `);
 
 export const docHeaderIcon = styled(icon, `
+  width: 24px;
+  height: 24px;
   margin-right: 8px;
   margin-top: -3px;
   --icon-color: ${theme.lightText};
@@ -237,7 +239,10 @@ export const docPinIcon = styled(icon, `
 export const docPublicIcon = styled(icon, `
   flex: none;
   margin-left: auto;
-  --icon-color: ${theme.accentIcon};
+  --icon-color: ${theme.lightText};
+  &-public {
+    --icon-color: ${colors.lightGreen};
+  }
 `);
 
 export const docEditorInput = styled(transientInput, `

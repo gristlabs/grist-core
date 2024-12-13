@@ -727,6 +727,36 @@ export class HomeDBManager extends EventEmitter {
           ws.owner = o.owner;
           // Include the org's domain so that the UI can build doc URLs that include the org.
           ws.orgDomain = o.domain;
+
+          // Include shareType based on users permissions to set icon color
+          const {maxInheritedRole, users } =  this.unwrapQueryResult(
+            await this.getWorkspaceAccess({userId: scope.userId}, ws.id, true)
+          );
+          const permissionDataUsers = users.filter((user) => {
+            // effectiveRole - Gives the effective role of the member on the resource, taking everything into account.
+            return !!roles.getStrongestRole(user.access,
+              roles.getWeakestRole(<roles.Role>user.parentAccess, <roles.Role>maxInheritedRole));
+          });
+          if (permissionDataUsers?.length > 1) {
+            ws.shareType = permissionDataUsers.find((user) => user.email === EVERYONE_EMAIL || user.email === ANONYMOUS_USER_EMAIL || user.id !== scope.userId)
+              ? 'public'
+              : 'private';
+
+            for(const doc of ws.docs) {
+              const permissionDataUsersDoc = this.unwrapQueryResult(
+                await this.getDocAccess({userId: scope.userId, urlId: doc.urlId}, {
+                  flatten: true, excludeUsersWithoutAccess: true, realAccess: true
+                })).users;
+              if (permissionDataUsersDoc && permissionDataUsersDoc.length > 1) {
+                doc.shareType = permissionDataUsersDoc.find((user) => user.email === EVERYONE_EMAIL
+                  || user.email === ANONYMOUS_USER_EMAIL)
+                  ? 'public'
+                  : permissionDataUsersDoc.find((user) => user.id !== scope.userId)
+                    ? 'shared'
+                    : 'private';
+              }
+            }
+          }
         }
       }
       // For org-specific requests, we still have the org's workspaces, plus the Samples workspace
@@ -2213,7 +2243,8 @@ export class HomeDBManager extends EventEmitter {
   // Returns UserAccessData for all users with any permissions on the ORG, as well as the
   // maxInheritedRole set on the workspace. Note that information for all users in the org
   // is given to indicate which users have access to the org but not to this particular workspace.
-  public async getWorkspaceAccess(scope: Scope, wsId: number): Promise<QueryResult<PermissionData>> {
+  public async getWorkspaceAccess(scope: Scope, wsId: number,
+                                  realAccess?: boolean): Promise<QueryResult<PermissionData>> {
     // Run the query for the workspace and org in a transaction. This brings some isolation protection
     // against changes to the workspace or org while we are querying.
     const { workspace, org, queryFailure } = await this._connection.transaction(async manager => {
@@ -2259,7 +2290,7 @@ export class HomeDBManager extends EventEmitter {
       };
     });
     const maxInheritedRole = this._getMaxInheritedRole(workspace);
-    const personal = this._filterAccessData(scope, users, maxInheritedRole);
+    const personal = this._filterAccessData(scope, users, maxInheritedRole, realAccess);
     return {
       status: 200,
       data: {
@@ -2290,6 +2321,7 @@ export class HomeDBManager extends EventEmitter {
   public async getDocAccess(scope: DocScope, options?: {
     flatten?: boolean,
     excludeUsersWithoutAccess?: boolean,
+    realAccess?: boolean
   }): Promise<QueryResult<PermissionData>> {
     // Doc permissions of forks are based on the "trunk" document, so make sure
     // we look up permissions of trunk if we are on a fork (we'll fix the permissions
@@ -2342,7 +2374,7 @@ export class HomeDBManager extends EventEmitter {
       maxInheritedRole = null;
     }
 
-    const personal = this._filterAccessData(scope, users, maxInheritedRole, doc.id);
+    const personal = this._filterAccessData(scope, users, maxInheritedRole, options?.realAccess, doc.id);
 
     // If we are on a fork, make any access changes needed. Assumes results
     // have been flattened.
@@ -4701,6 +4733,7 @@ export class HomeDBManager extends EventEmitter {
     scope: Scope,
     users: UserAccessData[],
     maxInheritedRole: roles.BasicRole|null,
+    realAccess?: boolean,
     docId?: string
   ): {personal: true, public: boolean}|undefined {
     if (scope.userId === this._usersManager.getPreviewerUserId()) { return; }
@@ -4711,15 +4744,15 @@ export class HomeDBManager extends EventEmitter {
     const thisUser = this._usersManager.getAnonymousUserId() === scope.userId
       ? null
       : users.find(user => user.id === scope.userId);
-    const realAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole, users }) : null;
+    const realAccessUser = thisUser ? getRealAccess(thisUser, { maxInheritedRole, users }) : null;
 
     // If we are an owner, don't filter user information.
-    if (thisUser && realAccess === 'owners') { return; }
+    if ((thisUser && realAccessUser === 'owners') || realAccess) { return; }
 
     // Limit user information returned to being about the current user.
     users.length = 0;
     if (thisUser) { users.push(thisUser); }
-    return { personal: true, public: !realAccess };
+    return { personal: true, public: !realAccessUser };
   }
 
   private _buildWorkspaceWithACLRules(scope: Scope, wsId: number, options: Partial<QueryOptions> = {}) {
