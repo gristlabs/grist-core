@@ -61,6 +61,13 @@ export interface OrgAccessChanges {
   accessChanges: Omit<AccessChanges, "publicAccess" | "maxInheritedAccess">;
 }
 
+export interface GroupDescriptor {
+  readonly name: roles.Role;
+  readonly permissions: number;
+  readonly nestParent: boolean;
+  readonly orgOnly?: boolean;
+}
+
 interface AccessChanges {
   publicAccess: roles.NonGuestRole | null;
   maxInheritedAccess: roles.BasicRole | null;
@@ -70,3 +77,4 @@ interface AccessChanges {
     }
   >;
 }
+

@@ -46,6 +46,7 @@ import {
   AvailableUsers,
   DocumentAccessChanges,
   GetUserOptions,
+  GroupDescriptor,
   NonGuestGroup,
   OrgAccessChanges,
   PreviousAndCurrent,
@@ -87,6 +88,7 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 import {v4 as uuidv4} from "uuid";
+import { GroupsManager } from './GroupsManager';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -153,13 +155,6 @@ interface QueryOptions {
   needRealOrg?: boolean;  // Set if pseudo-org should be collapsed to user's personal org
   allowSpecialPermit?: boolean;  // Set if specialPermit in Scope object should be respected,
                                  // potentially overriding markPermissions.
-}
-
-interface GroupDescriptor {
-  readonly name: roles.Role;
-  readonly permissions: number;
-  readonly nestParent: boolean;
-  readonly orgOnly?: boolean;
 }
 
 // Information about a change in billable users.
@@ -258,6 +253,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  */
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
+  private _groupsManager = new GroupsManager();
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -271,79 +267,32 @@ export class HomeDBManager extends EventEmitter {
     return this._connection.driver.options.type;
   }
 
-  /**
-   * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
-   * 'guests', and 'members') are created by default on every new entity (Organization,
-   * Workspace, Document). These special groups are documented in the _defaultGroups
-   * constant below.
-   *
-   * When a child resource is created under a parent (i.e. when a new Workspace is created
-   * under an Organization), special groups with a truthy 'nestParent' property are set up
-   * to include in their memberGroups a single group on initialization - the parent's
-   * corresponding special group. Special groups with a falsy 'nextParent' property are
-   * empty on intialization.
-   *
-   * NOTE: The groups are ordered from most to least permissive, and should remain that way.
-   * TODO: app/common/roles already contains an ordering of the default roles. Usage should
-   * be consolidated.
-   */
-  private readonly _defaultGroups: GroupDescriptor[] = [{
-    name: roles.OWNER,
-    permissions: Permissions.OWNER,
-    nestParent: true
-  }, {
-    name: roles.EDITOR,
-    permissions: Permissions.EDITOR,
-    nestParent: true
-  }, {
-    name: roles.VIEWER,
-    permissions: Permissions.VIEW,
-    nestParent: true
-  }, {
-    name: roles.GUEST,
-    permissions: Permissions.VIEW,
-    nestParent: false
-  }, {
-    name: roles.MEMBER,
-    permissions: Permissions.VIEW,
-    nestParent: false,
-    orgOnly: true
-  }];
-
   public emit(event: NotifierEvent|AuditLoggerEvent, ...args: any[]): boolean {
     return super.emit(event, ...args);
   }
 
-  // All groups.
   public get defaultGroups(): GroupDescriptor[] {
-    return this._defaultGroups;
+    return this._groupsManager.defaultGroups;
   }
 
-  // Groups whose permissions are inherited from parent resource to child resources.
   public get defaultBasicGroups(): GroupDescriptor[] {
-    return this._defaultGroups
-      .filter(_grpDesc => _grpDesc.nestParent);
+    return this._groupsManager.defaultBasicGroups;
   }
 
-  // Groups that are common to all resources.
   public get defaultCommonGroups(): GroupDescriptor[] {
-    return this._defaultGroups
-      .filter(_grpDesc => !_grpDesc.orgOnly);
+    return this._groupsManager.defaultCommonGroups;
   }
 
   public get defaultGroupNames(): roles.Role[] {
-    return this._defaultGroups.map(_grpDesc => _grpDesc.name);
+    return this._groupsManager.defaultGroupNames;
   }
 
   public get defaultBasicGroupNames(): roles.BasicRole[] {
-    return this.defaultBasicGroups
-      .map(_grpDesc => _grpDesc.name) as roles.BasicRole[];
+    return this._groupsManager.defaultBasicGroupNames;
   }
 
   public get defaultNonGuestGroupNames(): roles.NonGuestRole[] {
-    return this._defaultGroups
-      .filter(_grpDesc => _grpDesc.name !== roles.GUEST)
-      .map(_grpDesc => _grpDesc.name) as roles.NonGuestRole[];
+    return this._groupsManager.defaultNonGuestGroupNames;
   }
 
   public get defaultCommonGroupNames(): roles.NonMemberRole[] {
@@ -1221,7 +1170,7 @@ export class HomeDBManager extends EventEmitter {
         org.owner = user;
       }
       // Create the special initial permission groups for the new org.
-      const groupMap = this._createGroups();
+      const groupMap = this._groupsManager.createGroups();
       org.aclRules = this.defaultGroups.map(_grpDesc => {
         // Get the special group with the name needed for this ACL Rule
         const group = groupMap[_grpDesc.name];
@@ -1629,7 +1578,7 @@ export class HomeDBManager extends EventEmitter {
       doc.workspace = workspace;
       doc.createdBy = scope.userId;
       // Create the special initial permission groups for the new workspace.
-      const groupMap = this._createGroups(workspace, scope.userId);
+      const groupMap = this._groupsManager.createGroups(workspace, scope.userId);
       doc.aclRules = this.defaultCommonGroups.map(_grpDesc => {
         // Get the special group with the name needed for this ACL Rule
         const group = groupMap[_grpDesc.name];
@@ -2190,7 +2139,7 @@ export class HomeDBManager extends EventEmitter {
       return queryResult;
     }
     const org: Organization = queryResult.data;
-    const userRoleMap = getMemberUserRoles(org, this.defaultGroupNames);
+    const userRoleMap = GroupsManager.getMemberUserRoles(org, this.defaultGroupNames);
     const users = UsersManager.getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => {
       const access = userRoleMap[u.id];
       return {
@@ -2239,13 +2188,13 @@ export class HomeDBManager extends EventEmitter {
       return queryFailure;
     }
 
-    const wsMap = getMemberUserRoles(workspace, this.defaultCommonGroupNames);
+    const wsMap = GroupsManager.getMemberUserRoles(workspace, this.defaultCommonGroupNames);
 
     // Also fetch the organization ACLs so we can determine inherited rights.
 
     // The orgMap gives the org access inherited by each user.
-    const orgMap = getMemberUserRoles(org, this.defaultBasicGroupNames);
-    const orgMapWithMembership = getMemberUserRoles(org, this.defaultGroupNames);
+    const orgMap = GroupsManager.getMemberUserRoles(org, this.defaultBasicGroupNames);
+    const orgMapWithMembership = GroupsManager.getMemberUserRoles(org, this.defaultGroupNames);
     // Iterate through the org since all users will be in the org.
 
     const users: UserAccessData[] = UsersManager.getResourceUsers([workspace, org]).map(u => {
@@ -2258,7 +2207,7 @@ export class HomeDBManager extends EventEmitter {
         isMember: orgAccess && orgAccess !== 'guests',
       };
     });
-    const maxInheritedRole = this._getMaxInheritedRole(workspace);
+    const maxInheritedRole = this._groupsManager.getMaxInheritedRole(workspace);
     const personal = this._filterAccessData(scope, users, maxInheritedRole);
     return {
       status: 200,
@@ -2297,16 +2246,16 @@ export class HomeDBManager extends EventEmitter {
     const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
 
     const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
-    const docMap = getMemberUserRoles(doc, this.defaultCommonGroupNames);
+    const docMap = GroupsManager.getMemberUserRoles(doc, this.defaultCommonGroupNames);
     // The wsMap gives the ws access inherited by each user.
-    const wsMap = getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
+    const wsMap = GroupsManager.getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
     // The orgMap gives the org access inherited by each user.
-    const orgMap = getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
+    const orgMap = GroupsManager.getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
     // The orgMapWithMembership gives the full access to the org for each user, including
     // the "members" level, which grants no default inheritable access but allows the user
     // to be added freely to workspaces and documents.
-    const orgMapWithMembership = getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
-    const wsMaxInheritedRole = this._getMaxInheritedRole(doc.workspace);
+    const orgMapWithMembership = GroupsManager.getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
+    const wsMaxInheritedRole = this._groupsManager.getMaxInheritedRole(doc.workspace);
     // Iterate through the org since all users will be in the org.
     let users: UserAccessData[] = UsersManager.getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
       // Merge the strongest roles from the resource and parent resources. Note that the parent
@@ -2324,7 +2273,7 @@ export class HomeDBManager extends EventEmitter {
         isSupport: u.id === this._usersManager.getSupportUserId() ? true : undefined,
       };
     });
-    let maxInheritedRole = this._getMaxInheritedRole(doc);
+    let maxInheritedRole = this._groupsManager.getMaxInheritedRole(doc);
 
     if (options?.excludeUsersWithoutAccess) {
       users = users.filter(user => {
@@ -2447,7 +2396,7 @@ export class HomeDBManager extends EventEmitter {
       // Update the doc groups to inherit the groups in the new workspace/org.
       // Any previously custom added members remain in the doc groups.
       doc.aclRules.forEach(aclRule => {
-        this._setInheritance(aclRule.group, workspace);
+        this._groupsManager.setInheritance(aclRule.group, workspace);
       });
       // If the org is changing, remove all urlIds for this doc, since there could be
       // conflicts in the new org.
@@ -3360,7 +3309,7 @@ export class HomeDBManager extends EventEmitter {
         .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
         .andWhere('doc_users.id is not null');
       const wsWithDocs = await wsWithDocsQuery.getOne();
-      await this._setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
+      await this._groupsManager.setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
                                 this._usersManager.filterEveryone(
                                    UsersManager.getResourceUsers(wsWithDocs?.docs || [])
                                 )
@@ -3394,39 +3343,9 @@ export class HomeDBManager extends EventEmitter {
         throw new Error(`_repairOrgGuests error: found ${orgGroups.length} ${roles.GUEST} ACL group(s)`);
       }
       const orgGuestGroup = orgGroups[0]!;
-      await this._setGroupUsers(manager, orgGuestGroup.id, orgGuestGroup.memberUsers,
+      await this._groupsManager.setGroupUsers(manager, orgGuestGroup.id, orgGuestGroup.memberUsers,
                                 this._usersManager.filterEveryone(UsersManager.getResourceUsers(org.workspaces)));
     });
-  }
-
-  /**
-   * Update the set of users in a group.  TypeORM's .save() method appears to be
-   * unreliable for a ManyToMany relation with a table with a multi-column primary
-   * key, so we make the update using explicit deletes and inserts.
-   */
-  private async _setGroupUsers(manager: EntityManager, groupId: number, usersBefore: User[],
-                               usersAfter: User[]) {
-    const userIdsBefore = new Set(usersBefore.map(u => u.id));
-    const userIdsAfter = new Set(usersAfter.map(u => u.id));
-    const toDelete = [...userIdsBefore].filter(id => !userIdsAfter.has(id));
-    const toAdd = [...userIdsAfter].filter(id => !userIdsBefore.has(id));
-    if (toDelete.length > 0) {
-      await manager.createQueryBuilder()
-        .delete()
-        .from('group_users')
-        .whereInIds(toDelete.map(id => ({user_id: id, group_id: groupId})))
-        .execute();
-    }
-    if (toAdd.length > 0) {
-      await manager.createQueryBuilder()
-        .insert()
-        // Since we are adding new records in group_users, we may get a duplicate key error if two documents
-        // are added at the same time (even in transaction, since we are not blocking the whole table).
-        .orIgnore()
-        .into('group_users')
-        .values(toAdd.map(id => ({user_id: id, group_id: groupId})))
-        .execute();
-    }
   }
 
   /**
@@ -3446,7 +3365,7 @@ export class HomeDBManager extends EventEmitter {
       workspace.org = org;
       // Create the special initial permission groups for the new workspace.
       // Optionally add the owner to the workspace.
-      const groupMap = this._createGroups(org, ownerId);
+      const groupMap = this._groupsManager.createGroups(org, ownerId);
       workspace.aclRules = this.defaultCommonGroups.map(_grpDesc => {
         // Get the special group with the name needed for this ACL Rule
         const group = groupMap[_grpDesc.name];
@@ -3985,50 +3904,6 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
-  /**
-   * Returns a name to group mapping for the standard groups. Useful when adding a new child
-   * entity. Finds and includes the correct parent groups as member groups.
-   */
-  private _createGroups(inherit?: Organization|Workspace, ownerId?: number): {[name: string]: Group} {
-    const groupMap: {[name: string]: Group} = {};
-    this.defaultGroups.forEach(groupProps => {
-      if (!groupProps.orgOnly || !inherit) {
-        // Skip this group if it's an org only group and the resource inherits from a parent.
-        const group = new Group();
-        group.name = groupProps.name;
-        if (inherit) {
-          this._setInheritance(group, inherit);
-        }
-        groupMap[groupProps.name] = group;
-      }
-    });
-    // Add the owner explicitly to the owner group.
-    if (ownerId) {
-      const ownerGroup = groupMap[roles.OWNER];
-      const user = new User();
-      user.id = ownerId;
-      ownerGroup.memberUsers = [user];
-    }
-    return groupMap;
-  }
-
-  // Sets the given group to inherit the groups in the given parent resource.
-  private _setInheritance(group: Group, parent: Organization|Workspace) {
-    // Add the parent groups to the group
-    const groupProps = this.defaultGroups.find(special => special.name === group.name);
-    if (!groupProps) {
-      throw new Error(`Non-standard group passed to _addInheritance: ${group.name}`);
-    }
-    if (groupProps.nestParent) {
-      const parentGroups = (parent.aclRules as AclRule[]).map((_aclRule: AclRule) => _aclRule.group);
-      const inheritGroup = parentGroups.find((_parentGroup: Group) => _parentGroup.name === group.name);
-      if (!inheritGroup) {
-        throw new Error(`Special group ${group.name} not found in ${parent.name} for inheritance`);
-      }
-      group.memberGroups = [inheritGroup];
-    }
-  }
-
   // Return a QueryResult reflecting the output of a query builder.
   // If a rawQueryBuilder is supplied, it is used to make the query,
   // but then the original queryBuilder is used to interpret the results
@@ -4183,7 +4058,7 @@ export class HomeDBManager extends EventEmitter {
       }
       if (typeof subValue === 'number' || !subValue) {
         // Find the first special group for which the user has all permissions.
-        value.access = this._getRoleFromPermissions(subValue || 0);
+        value.access = this._groupsManager.getRoleFromPermissions(subValue || 0);
         if (subValue & Permissions.PUBLIC) { // tslint:disable-line:no-bitwise
           value.public = true;
         }
@@ -4191,7 +4066,7 @@ export class HomeDBManager extends EventEmitter {
         // Resource may be accessed by multiple users, encoded in JSON.
         const accessOptions: AccessOption[] = readJson(this._dbType, subValue);
         value.accessOptions = accessOptions.map(option => ({
-          access: this._getRoleFromPermissions(option.perms), ...option
+          access: this._groupsManager.getRoleFromPermissions(option.perms), ...option
         }));
       }
       delete value.permissions;  // permissions is not specified in the api, so we drop it.
@@ -4215,33 +4090,6 @@ export class HomeDBManager extends EventEmitter {
     if (entity.access === null) { return true; }
     if (!entity.accessOptions) { return false; }
     return entity.accessOptions.length === 0;
-  }
-
-  // Returns the most permissive default role that does not have more permissions than the passed
-  // in argument.
-  private _getRoleFromPermissions(permissions: number): roles.Role|null {
-    permissions &= ~Permissions.PUBLIC; // tslint:disable-line:no-bitwise
-    const group = this.defaultBasicGroups.find(grp =>
-      (permissions & grp.permissions) === grp.permissions); // tslint:disable-line:no-bitwise
-    return group ? group.name : null;
-  }
-
-  // Returns the maxInheritedRole group name set on a resource.
-  // The resource's aclRules, groups, and memberGroups must be populated.
-  private _getMaxInheritedRole(res: Workspace|Document): roles.BasicRole|null {
-    const groups = (res.aclRules as AclRule[]).map((_aclRule: AclRule) => _aclRule.group);
-    let maxInheritedRole: roles.NonGuestRole|null = null;
-    for (const name of this.defaultBasicGroupNames) {
-      const group = groups.find(_grp => _grp.name === name);
-      if (!group) {
-        throw new Error(`Error in _getMaxInheritedRole: group ${name} not found in ${res.name}`);
-      }
-      if (group.memberGroups.length > 0) {
-        maxInheritedRole = name;
-        break;
-      }
-    }
-    return roles.getEffectiveRole(maxInheritedRole);
   }
 
   /**
@@ -4801,27 +4649,6 @@ async function verifyEntity(
     status: 200,
     data: results.entities[0]
   };
-}
-
-// Returns a map of userIds to the user's strongest default role on the given resource.
-// The resource's aclRules, groups, and memberUsers must be populated.
-function getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
-  // Add the users to a map to ensure uniqueness. (A user may be present in
-  // more than one group)
-  const userMap: {[userId: string]: T} = {};
-  (res.aclRules as AclRule[]).forEach((aclRule: AclRule) => {
-    const role = aclRule.group.name as T;
-    if (allowRoles.includes(role)) {
-      // Map the users to remove sensitive information from the result and
-      // to add the group names.
-      aclRule.group.memberUsers.forEach((u: User) => {
-        // If the user is already present in another group, use the more
-        // powerful role name.
-        userMap[u.id] = userMap[u.id] ? roles.getStrongestRole(userMap[u.id], role) : role;
-      });
-    }
-  });
-  return userMap;
 }
 
 // Extract a human-readable name for the type of entity being selected.
