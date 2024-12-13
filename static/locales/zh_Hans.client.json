@@ -103,7 +103,15 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} 非 {{columnType}} 列未显示",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} 非 {{columnType}} 列未显示",
         "No {{columnType}} columns in table.": "表格中没有{{columnType}} 列。",
-        "Clear selection": "清除选择"
+        "Clear selection": "清除选择",
+        "Last updated:": "上次更新：",
+        "Reject": "拒绝",
+        "ACCESS LEVEL": "访问级别",
+        "Accept": "接受",
+        "Custom URL": "自定义 URL",
+        "Developer:": "开发者：",
+        "Missing description and author information.": "缺少描述和作者信息。",
+        "Widget": "小部件"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "为所选列的每个值创建单独的系列。",
@@ -150,7 +158,8 @@
         "Paste": "粘贴",
         "Comment": "评论",
         "Copy": "拷贝",
-        "Cut": "剪切"
+        "Cut": "剪切",
+        "Copy with headers": "带表头复制"
     },
     "ACUserManager": {
         "Enter email address": "请输入电子邮件地址",
@@ -260,7 +269,10 @@
         "You are on the {{siteName}} site. You also have access to the following sites:": "您在 {{siteName}} 网站上。 您还可以访问以下站点：",
         "You may delete a workspace forever once it has no documents in it.": "一旦其中没有文档，您可以永远删除工作区。",
         "Delete {{name}}": "删除 {{name}}",
-        "personal site": "个人站点"
+        "personal site": "个人站点",
+        "Any documents created in this site will appear here.": "在此站点上创建的任何文档都将显示在此处。",
+        "Create my first document": "创建我的首个文档",
+        "You have read-only access to this site. Currently there are no documents.": "您对此站点具有只读访问权限。目前没有任何文件。"
     },
     "DocPageModel": {
         "Add Empty Table": "添加空表",
@@ -654,7 +666,7 @@
         "python3 (recommended)": "python3(推荐)",
         "Try API calls from the browser": "尝试从浏览器调用API",
         "Cancel": "取消",
-        "Force reload the document while timing formulas, and show the result.": "在计算公式时强制重新加载文档，并显示结果。",
+        "Force reload the document while timing formulas, and show the result.": "在计时公式时强制重新加载文档，并显示结果。",
         "Template mode": "模板模式",
         "Confirm change": "确认更改",
         "Edit": "编辑",
@@ -670,7 +682,26 @@
         "Reload data engine": "重新加载数据引擎",
         "Reload data engine?": "重新加载数据引擎？",
         "Only available to document editors": "仅适用于文档编辑者",
-        "Only available to document owners": "仅适用于文档所有者"
+        "Only available to document owners": "仅适用于文档所有者",
+        "Copy to clipboard": "复制到剪贴板",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "REST API调用 {{docId}} 时使用的文档 ID。参见 {{apiURL}}",
+        "Time reload": "重新加载时间",
+        "API URL copied to clipboard": "复制 API URL 到剪贴板",
+        "API console": "API 控制台",
+        "For currency columns": "对于货币列",
+        "Hard reset of data engine": "强制重置数据引擎",
+        "ID for API use": "API 使用的 ID",
+        "For number and date formats": "对于数字和日期格式",
+        "Notify other services on doc changes": "在文档更改时通知其他服务",
+        "fiddle mode": "演示模式",
+        "API documentation.": "API 文档。",
+        "Base doc URL: {{docApiUrl}}": "基于文档 URL：{{docApiUrl}}",
+        "Coming soon": "即将推出",
+        "Currency": "货币",
+        "Default for DateTime columns": "DateTime 列的默认值",
+        "Locale": "区域设置",
+        "Manage webhooks": "管理 Webhooks",
+        "Timing is on": "正在计时"
     },
     "DocumentUsage": {
         "Attachments Size": "附件大小",
@@ -851,7 +882,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "结束",
-        "Next": "下一个"
+        "Next": "下一个",
+        "Previous": "上一个"
     },
     "PageWidgetPicker": {
         "Add to Page": "添加到页面",
@@ -1003,7 +1035,8 @@
         "Search columns": "搜索列",
         "By Name": "按名称",
         "By Date Modified": "按修改日期",
-        "Custom": "自定义"
+        "Custom": "自定义",
+        "Light": "浅色"
     },
     "errorPages": {
         "Add account": "新增帐户",
@@ -1046,7 +1079,8 @@
         "Are you sure you want to delete these records?": "确定要删除这些纪录吗？",
         "Don't show again": "不再显示",
         "Don't show tips": "不要显示提示",
-        "Undo to restore": "撤消以恢复"
+        "Undo to restore": "撤消以恢复",
+        "TIP": "提示"
     },
     "pages": {
         "Duplicate Page": "复制页面",
@@ -1069,7 +1103,8 @@
         "true": "真的",
         "Field Format": "字段格式",
         "Multi line": "多行",
-        "Single line": "单行"
+        "Single line": "单行",
+        "Lines": "行"
     },
     "ACLUsers": {
         "Example Users": "示例用户",
@@ -1283,7 +1318,8 @@
         "Columns to check when update (separated by ;)": "更新时要检查的列（以 ; 分隔）",
         "Sorry, not all fields can be edited.": "抱歉，并非所有字段都可编辑。",
         "Header Authorization": "Header Authorization",
-        "Memo": "备忘录"
+        "Memo": "备忘录",
+        "Ready Column": "就绪列"
     },
     "WelcomeSitePicker": {
         "Welcome back": "欢迎回来",
@@ -1502,7 +1538,8 @@
         "checking": "检查中",
         "Administrator Panel Unavailable": "管理员面板不可用",
         "No information available": "无可用信息",
-        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist 允许配置不同类型的身份验证，包括 SAML 和 OIDC。如果 Grist 可通过网络访问或供多人使用，我们建议启用其中一种。"
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist 允许配置不同类型的身份验证，包括 SAML 和 OIDC。如果 Grist 可通过网络访问或供多人使用，我们建议启用其中一种。",
+        "Log Streaming": "日志流式传输"
     },
     "Menu": {
         "Copy": "拷贝",
@@ -1518,7 +1555,9 @@
         "Building blocks": "构建区块"
     },
     "Toggle": {
-        "Field Format": "字段格式"
+        "Field Format": "字段格式",
+        "Switch": "切换",
+        "Checkbox": "复选框"
     },
     "CreateTeamModal": {
         "Cancel": "取消",
@@ -1595,7 +1634,18 @@
         "Other": "其他",
         "Start streaming": "开始流式传输",
         "Save": "保存",
-        "Learn more": "了解更多"
+        "Learn more": "了解更多",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "否确实要删除此流式传输目标？此操作无法撤消。",
+        "Destination": "目标",
+        "Add streaming destination": "添加流式传输目标",
+        "Add destination": "添加目标",
+        "Cancel": "取消",
+        "Delete": "删除",
+        "Delete streaming destination?": "是否删除流式传输目标？",
+        "Destinations": "目标",
+        "Edit": "编辑",
+        "Splunk": "Splunk",
+        "Edit streaming destination": "编辑流式传输目标"
     },
     "AuditLogsPage": {
         "Contact us": "联系我们",
@@ -1616,6 +1666,172 @@
     },
     "SupportGristButton": {
         "Help Center": "帮助中心",
-        "Close": "关闭"
+        "Close": "关闭",
+        "Opted In": "选择加入",
+        "Admin Panel": "管理面板",
+        "Opt in to Telemetry": "选择加入 Telemetry",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "谢谢！非常感谢您的信任和支持。您可以通过用户菜单中的{{link}}随时退出。",
+        "Support Grist": "支持 Grist"
+    },
+    "Field": {
+        "No choices configured": "未配置任何选项",
+        "No values in show column of referenced table": "引用表的显示列中没有值"
+    },
+    "FormRenderer": {
+        "Reset": "重置",
+        "Select...": "选择...",
+        "Submit": "提交",
+        "Search": "搜索"
+    },
+    "TimingPage": {
+        "Column ID": "列 ID",
+        "Max Time (s)": "最大时间 (s)",
+        "Loading timing data. Don't close this tab.": "加载计时数据。不要关闭此选项卡。",
+        "Total Time (s)": "总时间 (s)",
+        "Table ID": "表 ID",
+        "Average Time (s)": "平均时间 (s)",
+        "Formula timer": "公式计时器"
+    },
+    "ChoiceEditor": {
+        "No choices matching condition": "没有符合条件的选择",
+        "Error in dropdown condition": "下拉框条件出错",
+        "No choices to select": "没有可供选择的选项"
+    },
+    "ReferenceUtils": {
+        "No choices to select": "没有可选的选项",
+        "Error in dropdown condition": "下拉框条件出错",
+        "No choices matching condition": "没有符合条件的选项"
+    },
+    "widgetTypesMap": {
+        "Custom": "自定义",
+        "Form": "表单",
+        "Table": "表",
+        "Card List": "卡片列表",
+        "Calendar": "日历",
+        "Card": "卡片",
+        "Chart": "图表"
+    },
+    "DocTutorial": {
+        "Finish": "完成",
+        "Do you want to restart the tutorial? All progress will be lost.": "你想重新开始教程吗？所有进度将会丢失。",
+        "Click to expand": "点击展开",
+        "End tutorial": "结束教程",
+        "Next": "下一个",
+        "Previous": "上一个",
+        "Restart": "重启"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "下拉框条件出错",
+        "No choices matching condition": "没有符合条件的选项",
+        "No choices to select": "没有可选的选项"
+    },
+    "OnboardingPage": {
+        "Tell us who you are": "告诉我们你是谁",
+        "Type here": "在此处输入",
+        "Welcome": "欢迎",
+        "Back": "返回",
+        "Discover Grist in 3 minutes": "3分钟快速入门Grist",
+        "Go hands-on with the Grist Basics tutorial": "动手实践 Grist 基础教程",
+        "Go to the tutorial!": "进入教程！",
+        "Next step": "下一步",
+        "Skip step": "跳过步骤",
+        "Skip tutorial": "跳过教程",
+        "Your role": "您的角色",
+        "What is your role?": "您的角色是什么？",
+        "What organization are you with?": "您所在的组织是？",
+        "What brings you to Grist (you can select multiple)?": "是什么吸引您使用Grist（您可以多选）？",
+        "Your organization": "您的组织"
+    },
+    "ToggleEnterpriseWidget": {
+        "Grist Enterprise is **enabled**.": "Grist 企业版**已启用**。",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "激活密钥用于在30天试用期结束后运行 Grist 企业版。\n立即通过[联系我们]({{contactLink}})获取激活密钥。\n您不需要激活密钥来运行 Grist Core。\n\n在我们的[帮助中心]({{helpCenter}})了解更多。",
+        "Disable Grist Enterprise": "禁用 Grist 企业版",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "激活密钥用于在30天试用期结束后运行 Grist 企业版。\n通过[注册 Grist 企业版]({{signupLink}})获取激活密钥。\n您不需要激活密钥来运行 Grist Core。\n\n在我们的[帮助中心]({{helpCenter}})了解更多信息。",
+        "Enable Grist Enterprise": "启用 Grist 企业版"
+    },
+    "CustomWidgetGallery": {
+        "Custom URL": "自定义 URL",
+        "Developer:": "开发者：",
+        "(Missing info)": "（缺少信息）",
+        "Add Widget": "添加小部件",
+        "Add Your Own Widget": "添加您自己的小部件",
+        "Add a widget from outside this gallery.": "从这个图库之外添加一个小部件。",
+        "Cancel": "取消",
+        "Change Widget": "更改小部件",
+        "Choose Custom Widget": "选择自定义小部件",
+        "Community Widget": "社区小部件",
+        "Grist Widget": "Grist 小部件",
+        "Last updated:": "上次更新：",
+        "Learn more about Custom Widgets": "了解有关自定义小部件的更多信息",
+        "No matching widgets": "没有匹配的小部件",
+        "Widget URL": "小部件 URL",
+        "Search": "搜索"
+    },
+    "HomeIntroCards": {
+        "Finish our basics tutorial": "完成我们的基础教程",
+        "Help center": "帮助中心",
+        "Import file": "导入文件",
+        "Blank document": "空白文档",
+        "Find solutions and explore more resources {{helpCenterLink}}": "查找解决方案并探索更多资源 {{helpCenterLink}}",
+        "3 minute video tour": "3分钟视频速览",
+        "Webinars": "Webinars",
+        "Templates": "模版",
+        "Tutorial": "教程",
+        "Learn more {{webinarsLinks}}": "了解更多 {{webinarsLinks}}",
+        "Start a new document": "从一个新的文档开始吧"
+    },
+    "ReverseReferenceConfig": {
+        "Table": "表",
+        "Target table": "目标表",
+        "Add two-way reference": "添加双向引用",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "它是表{{table}}中引用列{{column}}的反向。",
+        "Two-way Reference": "双向引用",
+        "Delete two-way reference?": "是否删除双向引用？",
+        "Column": "列",
+        "Delete": "删除",
+        "Delete column {{column}} in table {{table}}?": "是否删除表{{table}}中的列{{column}}？"
+    },
+    "DropdownConditionConfig": {
+        "Dropdown Condition": "下拉框条件",
+        "Invalid columns: {{colIds}}": "无效的列：{{colIds}}",
+        "Set dropdown condition": "设置下拉框条件"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "输入条件。"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3分钟视频速览",
+        "Complete our basics tutorial": "完成我们的基础教程",
+        "Complete the tutorial": "完成本教程",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "学习参考列、关联小部件、列类型和卡片的基础知识。",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "学习参考列、关联小部件、列类型和卡片的基础知识。"
+    },
+    "ViewLayout": {
+        "Delete": "删除",
+        "Delete data and this widget.": "删除数据和此小部件。",
+        "Table {{tableName}} will no longer be visible": "表{{tableName}}将不再可见",
+        "raw data page": "原始数据页",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "保留数据并删除小部件。表格将在{{rawDataLink}}中仍然可用"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "管理面板"
+    },
+    "markdown": {
+        "The toggle is **on**": "此开关已**打开**",
+        "The toggle is **off**": "此开关已**关闭**"
+    },
+    "markdown.d": {
+        "The toggle is **off**": "此开关已**关闭**",
+        "The toggle is **on**": "此开关已**打开**"
+    },
+    "buildReassignModal": {
+        "Cancel": "取消",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "每个{{targetTable}}记录只能分配给单个{{sourceTable}}记录。",
+        "Reassign": "重新分配",
+        "Reassign to new {{sourceTable}} records.": "重新分配给新的{{sourceTable}}记录。",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "重新分配给{{sourceTable}}记录{{sourceName}}。",
+        "Record already assigned_other": "记录已分配",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}}记录{{targetName}}已分配给{{sourceTable}}记录           {{oldSourceName}}。",
+        "Record already assigned_one": "记录已分配"
     }
 }
