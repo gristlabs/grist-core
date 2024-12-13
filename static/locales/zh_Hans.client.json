@@ -259,7 +259,8 @@
         "Workspace not found": "找不到工作区",
         "You are on the {{siteName}} site. You also have access to the following sites:": "您在 {{siteName}} 网站上。 您还可以访问以下站点：",
         "You may delete a workspace forever once it has no documents in it.": "一旦其中没有文档，您可以永远删除工作区。",
-        "Delete {{name}}": "删除 {{name}}"
+        "Delete {{name}}": "删除 {{name}}",
+        "personal site": "个人站点"
     },
     "DocPageModel": {
         "Add Empty Table": "添加空表",
@@ -341,7 +342,9 @@
         "Welcome to Grist, {{- name}}!": "欢迎来到 Grist，{{- name}}！",
         "Visit our {{link}} to learn more about Grist.": "访问我们的{{link}} ，了解有关 Grist 的更多信息。",
         "Sign in": "登录",
-        "To use Grist, please either sign up or sign in.": "要使用 Grist，请注册或登录。"
+        "To use Grist, please either sign up or sign in.": "要使用 Grist，请注册或登录。",
+        "Only show documents": "仅显示文档",
+        "Learn more in our {{helpCenterLink}}.": "在我们的 {{helpCenterLink}} 中了解更多信息。"
     },
     "HomeLeftPane": {
         "Delete": "删除",
@@ -357,7 +360,9 @@
         "Rename": "重命名",
         "Workspace will be moved to Trash.": "工作区将移至回收站。",
         "Workspaces": "工作区",
-        "Tutorial": "教程"
+        "Tutorial": "教程",
+        "Grist Resources": "Grist 资源",
+        "Terms of service": "服务条款"
     },
     "MakeCopyMenu": {
         "Cancel": "取消",
@@ -455,7 +460,11 @@
         "Field title": "字段标题",
         "Submission": "提交",
         "Enter redirect URL": "输入重定向 URL",
-        "Select a field in the form widget to configure.": "在表单小部件中选中要配置的字段。"
+        "Select a field in the form widget to configure.": "在表单小部件中选中要配置的字段。",
+        "Display button": "显示按钮",
+        "Default field value": "默认字段值",
+        "Table column name": "表格的列名",
+        "Submit another response": "提交其他响应"
     },
     "RowContextMenu": {
         "Insert row below": "在下方插入行",
@@ -465,7 +474,8 @@
         "Duplicate rows_other": "重复行",
         "Insert row": "插入行",
         "Insert row above": "在上方插入行",
-        "View as card": "以卡片形式查看"
+        "View as card": "以卡片形式查看",
+        "Use as table headers": "作为表头使用"
     },
     "UserManagerModel": {
         "In Full": "在全",
@@ -559,7 +569,9 @@
         "Rule must return True or False": "规则必须返回 True 或 False",
         "Add another rule": "添加另一条规则",
         "Add conditional style": "添加条件样式",
-        "Error in style rule": "样式规则错误"
+        "Error in style rule": "样式规则错误",
+        "Conditional Style": "条件样式",
+        "IF...": "如果..."
     },
     "CurrencyPicker": {
         "Invalid currency": "货币无效"
@@ -627,7 +639,38 @@
         "API Console": "API 控制台",
         "Find slow formulas": "查找慢公式",
         "Data Engine": "数据引擎",
-        "Document ID": "文档 ID"
+        "Document ID": "文档 ID",
+        "Formula timer": "公式计时器",
+        "Start timing": "开始计时",
+        "Stop timing...": "停止计时...",
+        "You can make changes to the document, then stop timing to see the results.": "您可以对文档进行更改，然后停止计时以查看结果。",
+        "Template": "模版",
+        "Regular document": "常规文档",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "文档自动在{{fiddleModeDocUrl}}中打开。任何人都可以编辑，这将创建一个新的未保存的副本。",
+        "Python": "Python",
+        "Reload": "重新加载",
+        "Time Zone": "时区",
+        "python2 (legacy)": "python2(过时）",
+        "python3 (recommended)": "python3(推荐)",
+        "Try API calls from the browser": "尝试从浏览器调用API",
+        "Cancel": "取消",
+        "Force reload the document while timing formulas, and show the result.": "在计算公式时强制重新加载文档，并显示结果。",
+        "Template mode": "模板模式",
+        "Confirm change": "确认更改",
+        "Edit": "编辑",
+        "Change nature of document": "更改文件性质",
+        "Normal document behavior. All users work on the same copy of the document.": "正常文档行为。所有用户都使用文档的同一副本。",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "这将执行数据引擎的强制重新加载。如果数据引擎陷入无限循环、无限期地处理最新更改或已崩溃，这可能会有所帮助。除可能当前待处理的操作外，不会丢失任何数据。",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "一旦你开始计时，Grist将测量评估每个公式所需的时间。这有助于诊断在首次打开文档或文档响应更改时，哪些公式导致了性能降低。",
+        "Change document type": "更改文档类型",
+        "Regular": "常规",
+        "Tutorial": "教程",
+        "Document automatically opens as a user-specific copy.": "文档自动作为用户特定副本打开。",
+        "Python version used": "Python版本",
+        "Reload data engine": "重新加载数据引擎",
+        "Reload data engine?": "重新加载数据引擎？",
+        "Only available to document editors": "仅适用于文档编辑者",
+        "Only available to document owners": "仅适用于文档所有者"
     },
     "DocumentUsage": {
         "Attachments Size": "附件大小",
@@ -764,7 +807,18 @@
         "Attachment": "附件",
         "Add column": "添加列",
         "Numeric": "数值",
-        "Detect duplicates in...": "在……中检测重复"
+        "Detect duplicates in...": "在……中检测重复",
+        "Created at": "创建于",
+        "Toggle": "切换",
+        "Reference": "引用",
+        "DateTime": "日期时间",
+        "Choice": "选择",
+        "Choice List": "选择列表",
+        "Reference List": "引用列表",
+        "Created by": "创建者",
+        "Last updated at": "最后更新于",
+        "Last updated by": "最后更新者",
+        "Any": "任何"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "添加了新的链接部分以查看 {{viewName}}",
@@ -859,7 +913,8 @@
         "Comma Separated Values (.csv)": "逗号分隔值 (.csv)",
         "Tab Separated Values (.tsv)": "制表符分隔值 (.tsv)",
         "Export as...": "导出为……",
-        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)"
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "DOO Separated Values (.dsv)": "分隔符分隔值 (.dsv)"
     },
     "SiteSwitcher": {
         "Create new team site": "创建新的团队网站",
@@ -893,7 +948,8 @@
         "API Console": "API 控制台"
     },
     "TopBar": {
-        "Manage Team": "管理团队"
+        "Manage Team": "管理团队",
+        "Manage team": "管理团队"
     },
     "TriggerFormulas": {
         "Any field": "任何领域",
@@ -944,7 +1000,10 @@
         "Numeric": "数值",
         "Text": "文本",
         "Integer": "整数",
-        "Search columns": "搜索列"
+        "Search columns": "搜索列",
+        "By Name": "按名称",
+        "By Date Modified": "按修改日期",
+        "Custom": "自定义"
     },
     "errorPages": {
         "Add account": "新增帐户",
@@ -969,7 +1028,10 @@
         "Sign up": "注册",
         "An unknown error occurred.": "发生未知错误。",
         "Form not found": "未找到表单",
-        "Build your own form": "创建自己的表单"
+        "Build your own form": "创建自己的表单",
+        "Sign-in failed{{suffix}}": "登录失败{{suffix}}",
+        "Powered by": "驱动自",
+        "Failed to log in.{{separator}}Please try again or contact support.": "登录失败。{{separator}}请重试或联系支持人员。"
     },
     "modals": {
         "Cancel": "取消",
@@ -983,7 +1045,8 @@
         "Don't show again.": "不再显示。",
         "Are you sure you want to delete these records?": "确定要删除这些纪录吗？",
         "Don't show again": "不再显示",
-        "Don't show tips": "不要显示提示"
+        "Don't show tips": "不要显示提示",
+        "Undo to restore": "撤消以恢复"
     },
     "pages": {
         "Duplicate Page": "复制页面",
@@ -1061,7 +1124,9 @@
         "Number Format": "数字格式",
         "Field Format": "字段格式",
         "Text": "文本",
-        "Spinner": "下拉列表"
+        "Spinner": "下拉列表",
+        "max": "最大",
+        "min": "最小"
     },
     "Reference": {
         "CELL FORMAT": "单元格格式",
@@ -1126,7 +1191,17 @@
         "Use reference columns to relate data in different tables.": "使用参考列来关联不同表格中的数据。",
         "Forms are here!": "表单来了！",
         "Learn more": "了解更多",
-        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "直接在 Grist 中构建简单的表单，并使用我们全新的小部件一键共享。{{learnMoreButton}}"
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "直接在 Grist 中构建简单的表单，并使用我们全新的小部件一键共享。{{learnMoreButton}}",
+        "Example: {{example}}": "示例： {{example}}",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "若要允许多个值，请将“引用”列的类型更改为“引用列表”。",
+        "These rules are applied after all column rules have been processed, if applicable.": "这些规则在处理完所有列规则后应用（如果适用）。",
+        "Creates a reverse column in target table that can be edited from either end.": "在目标表中创建一个反向列，该列可以从任意一端进行编辑。",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "当双向引用的一端配置为单个引用时，就会出现此限制。",
+        "Filter displayed dropdown values with a condition.": "过滤器显示带有条件的下拉值。",
+        "Community widgets are created and maintained by Grist community members.": "社区小部件由Grist社区成员创建和维护。",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "公式或触发器公式列当前不支持双向引用",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "当双向引用中的一列具有“引用”类型时，会出现此限制。",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "若要允许多个值，请将引用列的类型更改为“引用列表”。"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "描述"
@@ -1196,7 +1271,19 @@
         "Clear Queue": "清除队列",
         "Webhook Settings": "Webhook设置",
         "URL": "URL",
-        "Status": "状态"
+        "Status": "状态",
+        "Enabled": "启用",
+        "Name": "名称",
+        "Event Types": "事件类型",
+        "Removed webhook.": "已删除的 webhook。",
+        "Table": "表",
+        "Webhook Id": "Webhook Id",
+        "Filter for changes in these columns (semicolon-separated ids)": "筛选这些列中的更改（以分号分隔的id）",
+        "Cleared webhook queue.": "已清除webhook队列。",
+        "Columns to check when update (separated by ;)": "更新时要检查的列（以 ; 分隔）",
+        "Sorry, not all fields can be edited.": "抱歉，并非所有字段都可编辑。",
+        "Header Authorization": "Header Authorization",
+        "Memo": "备忘录"
     },
     "WelcomeSitePicker": {
         "Welcome back": "欢迎回来",
@@ -1331,13 +1418,24 @@
         "Unpublish your form?": "要取消发布表单吗？",
         "Unpublish": "取消发布",
         "Publish": "发布",
-        "Publish your form?": "要发布表单吗？"
+        "Publish your form?": "要发布表单吗？",
+        "Embed this form": "嵌入此表单",
+        "View": "视图"
     },
     "FormConfig": {
         "Field Rules": "字段规则",
         "Field Format": "字段格式",
         "Field rules": "字段规则",
-        "Required field": "必填字段"
+        "Required field": "必填字段",
+        "Ascending": "升序",
+        "Options Alignment": "选项对齐",
+        "Select": "选择",
+        "Vertical": "垂直",
+        "Horizontal": "水平的",
+        "Descending": "降序",
+        "Options Sort Order": "选项排序顺序",
+        "Default": "默认的",
+        "Radio": "单选"
     },
     "DateRangeOptions": {
         "Last 30 days": "最近 30 天",
@@ -1345,7 +1443,9 @@
         "Last 7 days": "最近 7 天",
         "This week": "本周",
         "This year": "今年",
-        "Today": "今天"
+        "Today": "今天",
+        "Next 7 days": "未来7天",
+        "Last Week": "上周"
     },
     "AdminPanel": {
         "Support Grist Labs on GitHub": "在 GitHub 上支持 Grist Labs",
@@ -1371,7 +1471,38 @@
         "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist可以利用Python支持非常强大的公式。如果您的硬件支持的话（大多数都支持），我们建议将环境变量 GRIST_SANDBOX_FLAVOR 设置为 gvisor，这样就可以在沙盒中运行文档中的公式，沙盒将与其他文档隔离、并与网络隔离。",
         "unknown": "未知",
         "Current version of Grist": "Grist的当前版本",
-        "Support Grist": "支持 Grist"
+        "Support Grist": "支持 Grist",
+        "Telemetry": "遥测",
+        "Sandboxing": "沙盒",
+        "Error checking for updates": "检查更新时出错",
+        "Check failed.": "检查失败。",
+        "Check succeeded.": "检查成功。",
+        "Current authentication method": "当前认证方式",
+        "No fault detected.": "未检测到故障。",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "或者，作为后备方案，您可以在环境中设置：{{bootKey}}，然后访问：{{url}}",
+        "Results": "结果",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "您无权访问管理员面板。\n请以管理员身份登录。",
+        "Details": "详情",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist 允许配置不同类型的身份验证，包括 SAML 和 OIDC。如果 Grist 可通过网络访问或供多人使用，我们建议启用其中一种。",
+        "New, Enterprise": "新,企业版",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} 更多",
+        "Authentication": "认证",
+        "Notes": "注意",
+        "Audit Logs": "审计日志",
+        "Contact us": "联系我们",
+        "Off": "关闭",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist 使用密钥对用户会话 cookie 进行签名。请通过环境变量 GRIST_SESSION_SECRET 设置此密钥。当它未设置时，Grist 会回退到硬编码的默认值。由于自 v1.1.16 以来生成的会话 ID 本身就具有密码学安全性，因此我们可能会在未来删除此通知。",
+        "Key to sign sessions with": "密钥用于会话签署",
+        "Session Secret": "会话机密",
+        "Sandbox settings for data engine": "数据引擎的沙盒设置",
+        "Self Checks": "自检",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist 使用密钥对用户会话 cookie 进行签名。请通过环境变量 GRIST_SESSION_SECRET 设置此密钥。当未设置时，Grist 会回退到硬编码的默认值。由于自 v1.1.16 以来生成的会话 ID 本身就具有密码学安全性，因此我们可能会在未来删除此通知。",
+        "Enable Grist Enterprise": "启用Grist企业版",
+        "Enterprise": "企业",
+        "checking": "检查中",
+        "Administrator Panel Unavailable": "管理员面板不可用",
+        "No information available": "无可用信息",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist 允许配置不同类型的身份验证，包括 SAML 和 OIDC。如果 Grist 可通过网络访问或供多人使用，我们建议启用其中一种。"
     },
     "Menu": {
         "Copy": "拷贝",
@@ -1381,13 +1512,27 @@
         "Paragraph": "段落",
         "Cut": "剪切",
         "Insert question above": "在上方插入问题",
-        "Separator": "分割线"
+        "Separator": "分割线",
+        "Columns": "列",
+        "Unmapped fields": "未映射的字段",
+        "Building blocks": "构建区块"
     },
     "Toggle": {
         "Field Format": "字段格式"
     },
     "CreateTeamModal": {
-        "Cancel": "取消"
+        "Cancel": "取消",
+        "Team name": "团队名称",
+        "Team name is required": "团队名称是必填项",
+        "Choose a name and url for your team site": "为你的团队站点选择名称和url",
+        "Create site": "创建站点",
+        "Go to your site": "转到您的站点",
+        "Work as a Team": "作为一个团队工作",
+        "Billing is not supported in grist-core": "grist-core不支持计费",
+        "Team site created": "团队站点已创建",
+        "Team url": "团队 url",
+        "Domain name is invalid": "域名无效",
+        "Domain name is required": "域名为必填项"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "隐藏的字段"
@@ -1401,16 +1546,76 @@
     "FormModel": {
         "Oops! The form you're looking for doesn't exist.": "抱歉！您要找的表单不存在。",
         "There was a problem loading the form.": "加载表格时出现问题。",
-        "You don't have access to this form.": "您无权访问此表单。"
+        "You don't have access to this form.": "您无权访问此表单。",
+        "Oops! This form is no longer published.": "啊哦！此表单现已不公开。"
     },
     "FormPage": {
         "There was an error submitting your form. Please try again.": "提交表单时出现错误。请再试一次。"
     },
     "FormSuccessPage": {
         "Form Submitted": "表单已提交",
-        "Thank you! Your response has been recorded.": "谢谢！您的回复已被记录。"
+        "Thank you! Your response has been recorded.": "谢谢！您的回复已被记录。",
+        "Submit new response": "提交新的响应"
     },
     "FormContainer": {
-        "Build your own form": "创建自己的表单"
+        "Build your own form": "创建自己的表单",
+        "Powered by": "驱动自"
+    },
+    "Columns": {
+        "Remove Column": "删除列"
+    },
+    "UnmappedFieldsConfig": {
+        "Map fields": "映射字段",
+        "Select All": "选择全部",
+        "Unmap fields": "取消映射字段",
+        "Unmapped": "未映射的",
+        "Clear": "清空",
+        "Mapped": "已映射的"
+    },
+    "MappedFieldsConfig": {
+        "Map fields": "映射字段",
+        "Mapped": "映射",
+        "Select All": "全选",
+        "Clear": "清空",
+        "Unmap fields": "取消映射字段",
+        "Unmapped": "未映射的"
+    },
+    "WelcomeCoachingCall": {
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "在通话中，我们会花时间了解您的需求，并为您量身定制通话内容。我们可以向您介绍 Grist 的基础知识，或者立即开始使用您的数据构建所需的仪表板。",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "与我们的团队成员预约您的 {{freeCoachingCall}} 。",
+        "Schedule Call": "预约通话",
+        "Maybe Later": "或许稍后",
+        "free coaching call": "免费辅助热线"
+    },
+    "AuditLogStreamingConfig": {
+        "Enter token": "输入令牌",
+        "Token": "令牌",
+        "URL": "URL",
+        "Enter URL": "输入URL",
+        "Other": "其他",
+        "Start streaming": "开始流式传输",
+        "Save": "保存",
+        "Learn more": "了解更多"
+    },
+    "AuditLogsPage": {
+        "Contact us": "联系我们",
+        "Home": "Home",
+        "Only site owners may access audit logs.": "只有站点所有者可以访问审计日志。",
+        "Audit Logs": "审计日志",
+        "Audit logs for {{siteName}}": "{{siteName}}的审计日志",
+        "Log streaming": "日志流",
+        "upgrade your plan": "升级您的计划"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "部分必要的列尚未映射",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "要使用此小部件，请从右侧创建者面板映射所有非可选列。"
+    },
+    "Section": {
+        "Insert section below": "在下面插入部分",
+        "Insert section above": "在上面插入部分"
+    },
+    "SupportGristButton": {
+        "Help Center": "帮助中心",
+        "Close": "关闭"
     }
 }
