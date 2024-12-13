@@ -1,12 +1,12 @@
+import * as roles from "app/common/roles";
+import { AclRule } from "app/gen-server/entity/AclRule";
+import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { GroupDescriptor, NonGuestGroup, Resource } from "app/gen-server/lib/homedb/Interfaces";
-import * as roles from 'app/common/roles';
+import { Organization } from "app/gen-server/entity/Organization";
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { User } from "app/gen-server/entity/User";
-import { Organization } from "app/gen-server/entity/Organization";
 import { Workspace } from "app/gen-server/entity/Workspace";
-import { Document } from "app/gen-server/entity/Document";
-import { AclRule } from "app/gen-server/entity/AclRule";
 
 import { EntityManager } from "typeorm";
 
