@@ -148,7 +148,8 @@
     "App": {
         "Description": "Popis",
         "Memory Error": "Chyba paměti",
-        "Key": "Klíč"
+        "Key": "Klíč",
+        "Translators: please translate this only when your language is ready to be offered to users": "Překladatelé: Překládejte, prosím, až když je váš jazyk připraven k nabídce uživatelům"
     },
     "FilterBar": {
         "SearchColumns": "Prohledej sloupce",
@@ -619,7 +620,10 @@
         "Enter redirect URL": "Zadejte adresu URL přesměrování",
         "No field selected": "Není vybráno žádné pole",
         "Field title": "Název pole",
-        "Columns_other": "Sloupce"
+        "Columns_other": "Sloupce",
+        "SELECTOR FOR": "SELEKTOR PRO",
+        "SOURCE DATA": "ZDROJ DAT",
+        "SELECT BY": "VYBRAT PODLE"
     },
     "Tools": {
         "Delete document tour?": "Smazat prohlídku dokumentu?",
@@ -728,7 +732,9 @@
         "OK": "OK"
     },
     "WelcomeSitePicker": {
-        "You have access to the following Grist sites.": "Máte přístup k následujícím stránkám Grist."
+        "You have access to the following Grist sites.": "Máte přístup k následujícím stránkám Grist.",
+        "Welcome back": "Vítejte zpět",
+        "You can always switch sites using the account menu.": "Můžete vždy přepnout mezi stránkami pomocí nabídky účtu."
     },
     "DuplicateTable": {
         "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Místo duplikování tabulek je obvykle lepší segmentovat data pomocí propojených zobrazení. {{link}}",
@@ -739,7 +745,7 @@
     "GridOptions": {
         "Horizontal Gridlines": "Vodorovné mřížky",
         "Grid Options": "Možnosti mřížky",
-        "Zebra Stripes": "Zebří pruhy",
+        "Zebra Stripes": "Pruhované řádky",
         "Vertical Gridlines": "Svislé mřížky"
     },
     "ShareMenu": {
@@ -785,7 +791,30 @@
         "Revise": "Revize"
     },
     "WelcomeTour": {
-        "convert to card view, select data, and more.": "Převést na zobrazení karet, vybrat data a další."
+        "convert to card view, select data, and more.": "Převést na zobrazení karet, vybrat data a další.",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Dvojklikněte nebo stiskněte {{enter}} na buňce pro její úpravu. ",
+        "Help Center": "Centrum podpory",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Udělejte to relačně! Použijte typ {{ref}} pro propojení tabulek. ",
+        "Sharing": "Sdílení",
+        "Welcome to Grist!": "Vítejte na Grist!",
+        "template library": "knihovna šablon",
+        "Building up": "Budování",
+        "Toggle the {{creatorPanel}} to format columns, ": "Přepněte {{creatorPanel}} pro formátování sloupců, ",
+        "Flying higher": "Letíme výš",
+        "Reference": "Reference",
+        "Start with {{equal}} to enter a formula.": "Začněte s {{equal}} pro zadání vzorce.",
+        "Add New": "Přidat nový",
+        "Configuring your document": "Konfigurace vašeho dokumentu",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Použijte {{addNew}} pro přidání widgetů, stránek nebo import více dat. ",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Nastavte možnosti formátování, vzorce nebo typy sloupců, jako jsou data, volby nebo přílohy. ",
+        "Customizing columns": "Přizpůsobení sloupců",
+        "Use {{helpCenter}} for documentation or questions.": "Použijte {{helpCenter}} pro dokumentaci nebo dotazy.",
+        "Use the Share button ({{share}}) to share the document or export data.": "Použijte tlačítko Sdílet ({{share}}) pro sdílení dokumentu nebo export dat.",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Prozkoumejte naši {{templateLibrary}}, abyste zjistili, co je možné, a získali inspiraci.",
+        "Enter": "Enter",
+        "Editing Data": "Úprava dat",
+        "Share": "Sdílet",
+        "creator panel": "panel tvůrce"
     },
     "OnBoardingPopups": {
         "Next": "Další",
@@ -818,15 +847,116 @@
         "No valid document tour": "Žádná platná prohlídka dokumentu"
     },
     "errorPages": {
-        "Failed to log in.{{separator}}Please try again or contact support.": "Přihlášení se nezdařilo.{{separator}}Zkuste to znovu nebo kontaktujte podporu."
+        "Failed to log in.{{separator}}Please try again or contact support.": "Přihlášení se nezdařilo.{{separator}}Zkuste to znovu nebo kontaktujte podporu.",
+        "An unknown error occurred.": "Došlo k neznámé chybě.",
+        "There was an error: {{message}}": "Došlo k chybě: {{message}}",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Jste přihlášeni jako {{email}}. Můžete se přihlásit pomocí jiného účtu nebo požádat správce o přístup.",
+        "You do not have access to this organization's documents.": "K dokumentům této organizace nemáte přístup.",
+        "Form not found": "Formulář nebyl nalezen",
+        "Powered by": "Powered by",
+        "Page not found{{suffix}}": "Stránka nebyla nalezena{{suffix}}",
+        "You are now signed out.": "Nyní jste odhlášeni.",
+        "Account deleted{{suffix}}": "Účet smazán{{suffix}}",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Požadovanou stránku se nepodařilo najít.{{separator}}Zkontrolujte prosím adresu URL a zkuste to znovu.",
+        "Contact support": "Kontaktovat podporu",
+        "Sign up": "Zaregistrovat se",
+        "Build your own form": "Vytvořte si vlastní formulář",
+        "Sign-in failed{{suffix}}": "Přihlášení se nezdařilo{{suffix}}",
+        "Access denied{{suffix}}": "Přístup odepřen{{suffix}}",
+        "Error{{suffix}}": "Chyba{{suffix}}",
+        "Go to main page": "Přejít na hlavní stránku",
+        "Your account has been deleted.": "Váš účet byl smazán.",
+        "Sign in": "Přihlásit se",
+        "Sign in again": "Znovu se přihlaste",
+        "Sign in to access this organization's documents.": "Pro přístup k dokumentům této organizace se přihlaste.",
+        "Signed out{{suffix}}": "Odhlášen{{suffix}}",
+        "Something went wrong": "Něco se pokazilo",
+        "Add account": "Přidat účet",
+        "There was an unknown error.": "Došlo k neznámé chybě."
     },
     "GristTooltips": {
         "You can filter by more than one column.": "Můžete filtrovat podle více než jednoho sloupce.",
         "Apply conditional formatting to rows based on formulas.": "Použít podmíněné formátování na řádky na základě vzorců.",
-        "Select the table containing the data to show.": "Vyberte tabulku obsahující data, která chcete zobrazit."
+        "Select the table containing the data to show.": "Vyberte tabulku obsahující data, která chcete zobrazit.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Můžete si vybrat z widgetů, které jsou vám k dispozici v rozevíracím seznamu, nebo vložit svůj vlastní poskytnutím jeho úplné URL.",
+        "Selecting Data": "Výběr dat",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID je náhodně generovaný řetězec, který je užitečný pro unikátní identifikátory a klíče odkazů.",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Vytvářejte jednoduché formuláře přímo v Grist a sdílejte je jedním kliknutím s naším novým widgetem. {{learnMoreButton}}",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Pro konfiguraci vašeho kalendáře vyberte sloupce pro začáteční a koncové datum a názvy událostí. Poznamenejte si typ každého sloupce."
+        },
+        "Editing Card Layout": "Úprava rozvržení karty",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Použijte ikonu 𝚺 pro vytvoření souhrnných (nebo kontingenčních) tabulek, pro součty nebo mezisoučty.",
+        "Pinning Filters": "Připnutí filtrů",
+        "They allow for one record to point (or refer) to another.": "Umožňují jednomu záznamu odkazovat (nebo ukazovat) na jiný.",
+        "entire": "celý",
+        "Calendar": "Kalendář",
+        "Forms are here!": "Formuláře jsou zde!",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Použijte ikonu \\u{1D6BA} pro vytvoření souhrnných (nebo kontingenčních) tabulek, pro součty nebo mezisoučty.",
+        "Add New": "Přidat nový",
+        "Anchor Links": "Odkazy na kotvy",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Toto omezení nastává, když má jeden sloupec v obousměrné referenci typ Reference.",
+        "Nested Filtering": "Vnořené filtrování",
+        "Only those rows will appear which match all of the filters.": "Zobrazí se pouze ty řádky, které odpovídají všem filtrům.",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Nemůžete najít správné sloupce? Klikněte na „Změnit widget“ a vyberte tabulku s daty o událostech.",
+        "Custom Widgets": "Vlastní widgety",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Pro umožnění více přiřazení změňte typ sloupce Reference na Reference List.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Toto omezení nastává, když je jeden konec obousměrné reference nakonfigurován jako jednotlivá reference.",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Použijte podmíněné formátování pro buňky v tomto sloupci, když jsou splněny podmínky vzorce.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Buňky ve sloupci reference vždy identifikují {{entire}} záznam v té tabulce, ale můžete vybrat, který sloupec z tohoto záznamu se má zobrazit.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Klikněte na „Otevřít styly řádků“ pro aplikování podmíněného formátování na řádky.",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Vzorce podporují mnoho funkcí Excelu, plnou syntaxi Pythonu a zahrnují užitečného asistenta AI.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Klikněte na tlačítko Přidat nový pro vytvoření nových dokumentů nebo pracovních prostorů, nebo import dat.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Užitečné pro ukládání časového razítka nebo autora nového záznamu, čištění dat a další.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Vzorce, které se spustí v určitých případech, a uloží vypočítanou hodnotu jako data.",
+        "Link your new widget to an existing widget on this page.": "Propojte svůj nový widget s existujícím widgetem na této stránce.",
+        "Linking Widgets": "Propojení widgetů",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Přeuspořádejte pole ve své kartě tažením a změnou velikosti buněk.",
+        "Community widgets are created and maintained by Grist community members.": "Community widgety jsou vytvářeny a udržovány členy komunity Grist.",
+        "Creates a reverse column in target table that can be edited from either end.": "Vytvoří zpětný sloupec v cílové tabulce, který lze upravovat z obou stran.",
+        "Reference Columns": "Referenční sloupce",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Můžete si vybrat jeden z našich předpřipravených widgetů nebo vložit svůj vlastní poskytnutím jeho úplné URL.",
+        "Reference columns are the key to {{relational}} data in Grist.": "Referenční sloupce jsou klíčem k {{relational}} datům v aplikaci.",
+        "Select the table to link to.": "Vyberte tabulku, na kterou chcete odkázat.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "Stránka s neopracovanými daty zobrazuje všechny datové tabulky ve vašem dokumentu, včetně souhrnných tabulek a tabulek, které nejsou zahrnuty v rozvrženích stránek.",
+        "The total size of all data in this document, excluding attachments.": "Celková velikost všech dat v tomto dokumentu, kromě příloh.",
+        "Raw Data page": "Stránka s neopracovanými daty",
+        "Updates every 5 minutes.": "Aktualizuje se každých 5 minut.",
+        "Lookups return data from related tables.": "Vyhledávání vrací data z příbuzných tabulek.",
+        "Pinned filters are displayed as buttons above the widget.": "Připnuté filtry jsou zobrazeny jako tlačítka nad widgetem.",
+        "Example: {{example}}": "Příklad: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Filtrujte zobrazené hodnoty v rozevíracím seznamu podle podmínky.",
+        "Learn more": "Zjistěte více",
+        "These rules are applied after all column rules have been processed, if applicable.": "Tato pravidla jsou aplikována po zpracování všech pravidel sloupců, pokud je to relevantní.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Kliknutím na {{EyeHideIcon}} v každé buňce skryjete pole z tohoto zobrazení, aniž byste jej smazali.",
+        "Learn more.": "Další informace.",
+        "This is the secret to Grist's dynamic and productive layouts.": "To je tajemství dynamických a produktivních rozvržení v Grist.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Vyzkoušejte změny v kopii a poté se rozhodněte, zda nahradíte originál vašimi úpravami.",
+        "Unpin to hide the the button while keeping the filter.": "Odepnout, aby se tlačítko skrylo, ale filtr zůstal.",
+        "relational": "relační",
+        "Access Rules": "Pravidla přístupu",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Pravidla přístupu vám dávají možnost vytvářet jemně laděná pravidla, která určují, kdo může vidět nebo upravovat které části vašeho dokumentu.",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Pro vytvoření odkazu na kotvu, který přenese uživatele na konkrétní buňku, klikněte na řádek a stiskněte {{shortcut}}.",
+        "Use reference columns to relate data in different tables.": "Použijte reference sloupce k propojení dat v různých tabulkách.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Pro umožnění více přiřazení změňte typ referencovaného sloupce na Reference List.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Obousměrné odkazy nejsou v současné době podporovány pro sloupce vzorců a spouštěcích vzorců"
     },
     "OnboardingPage": {
-        "What brings you to Grist (you can select multiple)?": "Co vás přivedlo k Grist (můžete vybrat více možností)?"
+        "What brings you to Grist (you can select multiple)?": "Co vás přivedlo k Grist (můžete vybrat více možností)?",
+        "Discover Grist in 3 minutes": "Objevte Grist ve 3 minutách",
+        "Skip tutorial": "Přeskočit výukový program",
+        "Welcome": "Vítejte",
+        "What is your role?": "Jaká je vaše role?",
+        "Back": "Zpět",
+        "Next step": "Další krok",
+        "Go hands-on with the Grist Basics tutorial": "Vyzkoušejte si výukový program Grist Basics v praxi",
+        "Go to the tutorial!": "Přejděte na výukový program!",
+        "Skip step": "Přeskočit krok",
+        "Tell us who you are": "Řekněte nám něco o sobě",
+        "Type here": "Zadejte zde",
+        "What organization are you with?": "V jaké organizaci pracujete?",
+        "Your organization": "Vaše organizace",
+        "Your role": "Vaše role"
     },
     "SiteSwitcher": {
         "Create new team site": "Vytvořit nové stránky týmu",
@@ -843,15 +973,874 @@
         "Import failed: ": "Import se nezdařil: "
     },
     "CreateTeamModal": {
-        "Choose a name and url for your team site": "Vyberte název a URL pro váš týmový web"
+        "Choose a name and url for your team site": "Vyberte název a URL pro svůj týmový web",
+        "Domain name is invalid": "Název domény je neplatný",
+        "Domain name is required": "Název domény je vyžadován",
+        "Team name is required": "Název týmu je povinný",
+        "Work as a Team": "Pracujte jako tým",
+        "Billing is not supported in grist-core": "Fakturace není v jádře grist podporována",
+        "Go to your site": "Přejděte na stránku",
+        "Team name": "Název týmu",
+        "Create site": "Vytvořit stránku",
+        "Team site created": "Týmový web vytvořen",
+        "Team url": "URL adresa týmu",
+        "Cancel": "Zrušit"
     },
     "LeftPanelCommon": {
         "Help Center": "Centrum nápovědy"
     },
     "UserManagerModel": {
-        "Editor": "Editor"
+        "Editor": "Editor",
+        "View Only": "Pouze zobrazení",
+        "View & Edit": "Zobrazit & upravovat",
+        "Owner": "Majitel",
+        "In Full": "V plném znění",
+        "No Default Access": "Bez výchozího přístupu",
+        "None": "Žádné",
+        "Viewer": "Návštěvník"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Zkopírováno do schránky"
+    },
+    "WelcomeQuestions": {
+        "Welcome to Grist!": "Vítejte na Grist!",
+        "Other": "Ostatní",
+        "Sales": "Prodej",
+        "Finance & Accounting": "Finance a účetnictví",
+        "Education": "Vzdělávání",
+        "Media Production": "Mediální produkce",
+        "Marketing": "Marketing",
+        "Research": "Výzkum",
+        "What brings you to Grist? Please help us serve you better.": "Co vás přivedlo ke Grist? Pomozte nám, abychom vám mohli lépe sloužit.",
+        "Product Development": "Vývoj produktu",
+        "Type here": "Zadejte zde",
+        "HR & Management": "Lidské zdroje a řízení",
+        "IT & Technology": "IT a technologie"
+    },
+    "ConditionalStyle": {
+        "Row Style": "Styl řádku",
+        "Add another rule": "Přidat další pravidlo",
+        "Add conditional style": "Přidat podmíněný styl",
+        "Error in style rule": "Chyba v pravidle stylu",
+        "Rule must return True or False": "Pravidlo musí vracet hodnotu Pravda nebo Nepravda",
+        "Conditional Style": "Podmíněný styl",
+        "IF...": "KDYŽ..."
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Neplatná měna"
+    },
+    "DiscussionEditor": {
+        "Reply": "Odpovědět",
+        "Reply to a comment": "Odpovědět na komentář",
+        "Show resolved comments": "Zobrazit vyřešené komentáře",
+        "Only current page": "Pouze aktuální stránka",
+        "Write a comment": "Napsat komentář",
+        "Comment": "Komentář",
+        "Edit": "Upravit",
+        "Marked as resolved": "Označit jako vyřešené",
+        "Open": "Otevřít",
+        "Cancel": "Zrušit",
+        "Only my threads": "Pouze moje vlákna",
+        "Save": "Uložit",
+        "Remove": "Odstranit",
+        "Resolve": "Vyřešit",
+        "Started discussion": "Diskuse zahájena",
+        "Showing last {{nb}} comments": "Zobrazuje se posledních {{nb}} komentářů"
+    },
+    "FieldEditor": {
+        "Unable to finish saving edited cell": "Nelze dokončit uložení upravené buňky",
+        "It should be impossible to save a plain data value into a formula column": "Mělo by být nemožné uložit běžnou datovou hodnotu do sloupce s vzorcem"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[označení odkazu] URL"
+    },
+    "WebhookPage": {
+        "Enabled": "Povoleno",
+        "Status": "Stav",
+        "Columns to check when update (separated by ;)": "Sloupce ke kontrole při aktualizaci (oddělené ; )",
+        "URL": "URL",
+        "Event Types": "Typy událostí",
+        "Table": "Tabulka",
+        "Sorry, not all fields can be edited.": "Omlouváme se, ne všechna pole lze upravit.",
+        "Removed webhook.": "Webhook odstraněn.",
+        "Ready Column": "Připravený sloupec",
+        "Name": "Název",
+        "Clear Queue": "Vymazat frontu",
+        "Cleared webhook queue.": "Vymazána fronta webhooků.",
+        "Webhook Settings": "Nastavení webhooku",
+        "Memo": "Memo",
+        "Webhook Id": "ID Webhooku",
+        "Filter for changes in these columns (semicolon-separated ids)": "Filtrujte změny v těchto sloupcích (id oddělená středníkem)",
+        "Header Authorization": "Hlavička autorizace"
+    },
+    "UserManager": {
+        "Invite multiple": "Pozvat další",
+        "{{collaborator}} limit exceeded": "{{collaborator}} překročil limit",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Žádný výchozí přístup neumožňuje přístup k jednotlivým dokumentům nebo pracovním prostorům, místo k celému týmovému webu.",
+        "Your role for this team site": "Vaše úloha na tomto týmovém webu",
+        "Close": "Zavřít",
+        "Confirm": "Potvrdit",
+        "Guest": "Host",
+        "Invite people to {{resourceType}}": "Pozvat lidi do {{resourceType}}",
+        "On": "Zapnuto",
+        "Outside collaborator": "Externí spolupracovník",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} z {{limitTop}} {{collaborator}}ů",
+        "Team member": "Člen týmu",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Uživatel dědí oprávnění od {{rodiče})}. Chcete-li je odebrat, nastavte možnost 'Zdědit přístup' na hodnotu 'Žádný'.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Žádný výchozí přístup neumožňuje přístup k         jednotlivým dokumentům nebo pracovním prostorům, místo k celému týmovému webu.",
+        "Public access": "Veřejný přístup",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Po odebrání vlastního přístupu jej nebudete moci získat zpět bez pomoci někoho jiného, kdo má dostatečný přístup k webu {{name}}.",
+        "Public access: ": "Veřejný přístup: ",
+        "Save & ": "Uložit & ",
+        "free collaborator": "volný spolupracovník",
+        "guest": "host",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Uživatel dědí oprávnění z {{parent}}. Chcete-li odebrat, nastavte možnost „Dědit přístup“ na „Žádný“.",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Veřejný přístup zděděný z {{parent}}. Chcete-li odebrat, nastavte možnost „Dědit přístup“ na „Žádný“.",
+        "Open Access Rules": "Pravidla otevřeného přístupu",
+        "You are about to remove your own access to this {{resourceType}}": "Chystáte se odstranit svůj vlastní přístup k tomuto {{resourceType}}",
+        "Public Access": "Veřejný přístup",
+        "Create a team to share with more people": "Vytvořte tým pro sdílení s více lidmi",
+        "Grist support": "Podpora Grist",
+        "Link copied to clipboard": "Odkaz zkopírován do schránky",
+        "Manage members of team site": "Správa členů týmu",
+        "Off": "Vypnuto",
+        "Copy Link": "Kopírovat odkaz",
+        "Allow anyone with the link to open.": "Povolit komukoli s odkazem otevřít.",
+        "Anyone with link ": "Kdokoli s odkazem ",
+        "Cancel": "Zrušit",
+        "Remove my access": "Odebrat můj přístup",
+        "member": "člen",
+        "team site": "Stránka Týmu",
+        "Add {{member}} to your team": "Přidejte {{member}} do svého týmu",
+        "User may not modify their own access.": "Uživatel nesmí upravovat svůj vlastní přístup.",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Uživatel má přístup k zobrazení {{resource}}, který vyplývá z ručně nastaveného přístupu k vnitřním zdrojům. Pokud bude tento přístup odstraněn, uživatel ztratí přístup k vnitřním zdrojům.",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Jakmile odstraníte svůj vlastní přístup, nebudete ho moci získat zpět bez pomoci někoho jiného s dostatečným přístupem k {{resourceType}}.",
+        "Collaborator": "Spolupracovník",
+        "Your role for this {{resourceType}}": "Vaše úloha v této oblasti {{resourceType}}"
+    },
+    "SupportGristNudge": {
+        "Close": "Zavřít",
+        "Contribute": "Přispět",
+        "Support Grist": "Podpoř Grist",
+        "Admin Panel": "Panel správce",
+        "Support Grist page": "Podpořte stránku Grist",
+        "Opt in to Telemetry": "Přihlášení k telemetrii",
+        "Opted In": "Opted In",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Děkujeme! Vaše důvěra a podpora jsou velmi ceněny. Kdykoli se můžete odhlásit pomocí {{link}} v nabídce uživatele.",
+        "Help Center": "Centrum nápovědy"
+    },
+    "SupportGristPage": {
+        "Support Grist": "Podpoř Grist",
+        "Telemetry": "Telemetrie",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Tato instance je odhlášena z telemetrie. Pouze správce webu má oprávnění to změnit.",
+        "GitHub": "GitHub",
+        "Manage Sponsorship": "Správa sponzorství",
+        "Opt out of Telemetry": "Odhlášení od telemetrie",
+        "You can opt out of telemetry at any time from this page.": "Z telemetrie se můžete odhlásit kdykoli z této stránky.",
+        "You have opted in to telemetry. Thank you!": "Přihlásili jste se k telemetrii. Děkujeme!",
+        "Sponsor": "Sponzor",
+        "Help Center": "Centrum nápovědy",
+        "Home": "Úvod",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Shromažďujeme pouze statistiky používání, jak je podrobně uvedeno v našem {{link}}, nikdy ne obsah dokumentů.",
+        "Sponsor Grist Labs on GitHub": "Sponzor Grist Labs na GitHubu",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Tato instance je přihlášena k telemetrii. Pouze správce webu má oprávnění to změnit.",
+        "Opt in to Telemetry": "Přihlášení k telemetrii",
+        "GitHub Sponsors page": "Stránka sponzorů GitHub",
+        "You have opted out of telemetry.": "Odhlásili jste se z telemetrie."
+    },
+    "FloatingPopup": {
+        "Minimize": "Minimalizovat",
+        "Maximize": "Maximalizovat"
+    },
+    "MappedFieldsConfig": {
+        "Select All": "Vybrat vše",
+        "Unmapped": "Nepřiřazeno",
+        "Map fields": "Přiřadit pole",
+        "Mapped": "Přiřazeno",
+        "Clear": "Vyčistit",
+        "Unmap fields": "Zrušit přiřazení polí"
+    },
+    "Section": {
+        "Insert section above": "Vložit sekci nad tuto",
+        "Insert section below": "Vložit sekci pod tuto"
+    },
+    "ViewLayoutMenu": {
+        "Copy anchor link": "Kopírovat odkaz kotvy",
+        "Edit Card Layout": "Úprava rozvržení karty",
+        "Download as CSV": "Stáhnout jako CSV",
+        "Delete record": "Odstranit záznam",
+        "Data selection": "Výběr dat",
+        "Add to page": "Přidat na stránku",
+        "Open configuration": "Otevřít konfiguraci",
+        "Advanced Sort & Filter": "Pokročilé třídění a filtrování",
+        "Download as XLSX": "Stáhnout jako XLSX",
+        "Widget options": "Možnosti widgetu",
+        "Create a form": "Vytvořit formulář",
+        "Delete widget": "Odstranit widget",
+        "Show raw data": "Zobrazit surová data",
+        "Collapse widget": "Sbalit widget",
+        "Print widget": "Tisknout widget"
+    },
+    "WidgetTitle": {
+        "Cancel": "Zrušit",
+        "DATA TABLE NAME": "NÁZEV DATOVÉ TABULKY",
+        "Save": "Uložit",
+        "WIDGET DESCRIPTION": "POPIS WIDGETU",
+        "Override widget title": "Přepsat název widgetu",
+        "Provide a table name": "Zadejte název tabulky",
+        "WIDGET TITLE": "NÁZEV WIDGETU"
+    },
+    "menus": {
+        "Select fields": "Vyberte pole",
+        "Any": "Jakékoli",
+        "Choice List": "Seznam možností",
+        "Reference": "Reference",
+        "Toggle": "Přepínač",
+        "Numeric": "Číselné",
+        "Search columns": "Prohledat sloupce",
+        "Reference List": "Seznam referencí",
+        "Attachment": "Příloha",
+        "Upgrade now": "Upgradujte nyní",
+        "Date": "Datum",
+        "DateTime": "Datum a čas",
+        "* Workspaces are available on team plans. ": "* Pracovní prostory jsou k dispozici v týmových plánech. ",
+        "Light": "Světlé",
+        "Integer": "Celé číslo",
+        "By Name": "Podle názvu",
+        "Custom": "Vlastní",
+        "Choice": "Výběr",
+        "Text": "Text",
+        "By Date Modified": "Podle data úpravy"
+    },
+    "modals": {
+        "Delete": "Smazat",
+        "Are you sure you want to delete this record?": "Opravdu chcete tento záznam odstranit?",
+        "Don't ask again.": "Neptat se znovu.",
+        "Don't show again.": "Znovu nezobrazovat.",
+        "Undo to restore": "Zpět pro obnovení",
+        "Don't show tips": "Nezobrazovat tipy",
+        "Cancel": "Zrušit",
+        "TIP": "TIP",
+        "Don't show again": "Znovu nezobrazovat",
+        "Are you sure you want to delete these records?": "Opravdu chcete tyto záznamy odstranit?",
+        "Got it": "Mám to",
+        "Ok": "OK",
+        "Save": "Uložit",
+        "Dismiss": "Zahodit"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "MOŽNOSTI"
+    },
+    "FieldBuilder": {
+        "Changing multiple column types": "Změna více typů sloupců",
+        "CELL FORMAT": "FORMÁT BUŇKY",
+        "Save field settings for {{colId}} as common": "Uložit nastavení pole pro {{colId}} jako běžné",
+        "DATA FROM TABLE": "DATA Z TABULKY",
+        "Apply Formula to Data": "Použít vzorec na data",
+        "Revert field settings for {{colId}} to common": "Vrátit nastavení pole pro {{colId}} na běžné",
+        "Use separate field settings for {{colId}}": "Použít oddělená nastavení pole pro {{colId}}",
+        "Mixed format": "Smíšený formát",
+        "Changing column type": "Změna typu sloupce",
+        "Mixed types": "Smíšené typy"
+    },
+    "FormView": {
+        "Unpublish your form?": "Zrušit zveřejnění formuláře?",
+        "Unpublish": "Zrušit zveřejnění",
+        "Save your document to publish this form.": "Uložte svůj dokument pro zveřejnění tohoto formuláře.",
+        "Publish": "Zveřejnit",
+        "Are you sure you want to reset your form?": "Jste si jisti, že chcete resetovat svůj formulář?",
+        "Copy code": "Kopírovat kód",
+        "Copy link": "Kopírovat odkaz",
+        "Embed this form": "Vložit tento formulář",
+        "Link copied to clipboard": "Odkaz zkopírován do schránky",
+        "Preview": "Náhled",
+        "Share": "Sdílet",
+        "View": "Zobrazit",
+        "Publish your form?": "Zveřejnit formulář?",
+        "Reset form": "Obnovit formulář",
+        "Share this form": "Sdílet tento formulář",
+        "Reset": "Resetuj",
+        "Code copied to clipboard": "Kód zkopírovaný do schránky",
+        "Anyone with the link below can see the empty form and submit a response.": "Kdokoli s níže uvedeným odkazem může zobrazit prázdný formulář a odeslat odpověď."
+    },
+    "UnmappedFieldsConfig": {
+        "Mapped": "Přiřazeno",
+        "Unmapped": "Nepřiřazeno",
+        "Select All": "Vybrat vše",
+        "Unmap fields": "Zrušit přiřazení polí",
+        "Clear": "Vyčistit",
+        "Map fields": "Přiřadit pole"
+    },
+    "VisibleFieldsConfig": {
+        "Show {{label}}": "Zobrazit {{label}}",
+        "Cannot drop items into Hidden Fields": "Není možné přetahovat položky do skrytých polí",
+        "Hide {{label}}": "Skrýt {{label}}",
+        "Hidden Fields cannot be reordered": "Skrytá pole nelze přeřazovat",
+        "Clear": "Vyčistit",
+        "Hidden {{label}}": "Skryté {{label}}",
+        "Select All": "Vybrat vše",
+        "Visible {{label}}": "Viditelné {{label}}"
+    },
+    "ACLUsers": {
+        "Example Users": "Příklad uživatelů",
+        "View As": "Zobraz Jako",
+        "Users from table": "Uživatelé z tabulky"
+    },
+    "CellStyle": {
+        "Default header style": "Výchozí styl záhlaví",
+        "Mixed style": "Smíšený styl",
+        "Open row styles": "Otevřené styly řádku",
+        "HEADER STYLE": "STYL ZÁHLAVÍ",
+        "Cell Style": "Styl buňky",
+        "Header Style": "Styl záhlaví",
+        "CELL STYLE": "STYL BUŇKY",
+        "Default cell style": "Výchozí styl buňky"
+    },
+    "ColumnInfo": {
+        "COLUMN LABEL": "ŠTÍTEK SLOUPCE",
+        "Cancel": "Zrušit",
+        "COLUMN DESCRIPTION": "POPIS SLOUPCE",
+        "COLUMN ID: ": "ID SLOUPCE: ",
+        "Save": "Uložit"
+    },
+    "FormulaEditor": {
+        "Expand Editor": "Rozšířit editor",
+        "use AI Assistant": "použít AI asistenta",
+        "Enter formula or {{button}}.": "Zadejte vzorec nebo {{button}}.",
+        "editingFormula is required": "Úprava vzorce je povinná",
+        "Enter formula.": "Vložit vzorec.",
+        "Column or field is required": "Sloupec nebo pole je povinné",
+        "Error in the cell": "Chyba v buňce",
+        "Errors in all {{numErrors}} cells": "Chyby ve všech {{numErrors}} buňkách",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Chyby v {{numErrors}} z {{numCells}} buněk"
+    },
+    "ColumnTitle": {
+        "Add description": "Přidat popis",
+        "Column ID copied to clipboard": "ID sloupce zkopírováno do schránky",
+        "Column description": "Popis sloupce",
+        "Column label": "Štítek sloupce",
+        "Provide a column label": "Zadejte název sloupce",
+        "Save": "Uložit",
+        "Close": "Zavřít",
+        "COLUMN ID: ": "ID SLOUPCE: ",
+        "Cancel": "Zrušit"
+    },
+    "FormulaAssistant": {
+        "Function List": "Seznam funkcí",
+        "Clear Conversation": "Vymazat konverzaci",
+        "Data": "Data",
+        "Cancel": "Zrušit",
+        "Formula Help. ": "Nápověda k vzorci. ",
+        "Save": "Uložit",
+        "You have {{numCredits}} remaining credits.": "Máte {{numCredits}} zbývajících kreditů.",
+        "Hi, I'm the Grist Formula AI Assistant.": "Ahoj, jsem AI asistent pro Grist vzorce.",
+        "Code View": "Zobrazit kód",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Mohu pomoci pouze s vzorci. Nemohu vytvářet tabulky, sloupce a zobrazení ani psát pravidla přístupu.",
+        "Learn more": "Zjistěte více",
+        "For higher limits, contact the site owner.": "Pro vyšší limity se obraťte na majitele webu.",
+        "For higher limits, {{upgradeNudge}}.": "Pro vyšší limity {{upgradeNudge}}.",
+        "Grist's AI Formula Assistance. ": "Pomoc s umělou inteligencí Grist's AI Formula. ",
+        "What do you need help with?": "S čím potřebujete pomoci?",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Podívejte se na naši {{helpFunction}} a {{formulaCheat}}, nebo navštivte naši {{community}} pro více pomoci.",
+        "Apply": "Použít",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Zaregistrujte si bezplatný účet Grist a začněte používat asistenta Formula AI.",
+        "Ask the bot.": "Zeptejte se bota.",
+        "New Chat": "Nový chat",
+        "Preview": "Náhled",
+        "Regenerate": "Přegenerovat",
+        "Tips": "Tipy",
+        "There are some things you should know when working with me:": "Existuje několik věcí, které byste měli vědět, když se mnou pracujete:",
+        "Grist's AI Assistance": "Pomoc s umělou inteligencí společnosti Grist",
+        "Need help? Our AI assistant can help.": "Potřebujete pomoc? Náš AI asistent vám pomůže.",
+        "Formula AI Assistant is only available for logged in users.": "AI Asistent pro vzorce je k dispozici pouze pro přihlášené uživatele.",
+        "You have used all available credits.": "Využili jste všechny dostupné kredity.",
+        "upgrade your plan": "aktualizujte svůj plán",
+        "Capabilities": "Schopnosti",
+        "Community": "Komunita",
+        "Formula Cheat Sheet": "Přehled vzorců",
+        "AI Assistant": "AI Asistent",
+        "Press Enter to apply suggested formula.": "Stisknutím klávesy Enter použijete navržený vzorec.",
+        "Sign Up for Free": "Zaregistrujte se zdarma",
+        "upgrade to the Pro Team plan": "přejít na tarif Pro Team"
+    },
+    "SearchModel": {
+        "Search all tables": "Prohledat všechny tabulky",
+        "Search all pages": "Prohledat všechny stránky"
+    },
+    "AdminPanel": {
+        "Checking for updates...": "Kontrola aktualizací...",
+        "Error": "Chyba",
+        "Sandbox settings for data engine": "Nastavení Sandboxu pro datový engine",
+        "Sandboxing": "Sandboxing",
+        "OK": "OK",
+        "Updates": "Aktualizace",
+        "unconfigured": "nekonfigurované",
+        "Admin Panel": "Panel správce",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Nemáte přístup k panelu správce.\nPřihlaste se jako správce.",
+        "New, Enterprise": "Nové, Enterprise",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} více",
+        "Session Secret": "Tajný klíč relace (session secret)",
+        "Key to sign sessions with": "Klíč pro podepisování relací",
+        "Home": "Úvod",
+        "Sponsor": "Sponzor",
+        "Telemetry": "Telemetrie",
+        "Error checking for updates": "Chyba při kontrole aktualizací",
+        "Last checked {{time}}": "Poslední kontrola {{time}}",
+        "Grist is up to date": "Grist je aktuální",
+        "Learn more.": "Další informace.",
+        "Newer version available": "K dispozici je novější verze",
+        "unknown": "neznámý",
+        "Security Settings": "Nastavení zabezpečení",
+        "checking": "kontroluji",
+        "Administrator Panel Unavailable": "Panel správce není k dispozici",
+        "Log Streaming": "Streamování logů",
+        "Check failed.": "Kontrola se nezdařila.",
+        "Results": "Výsledky",
+        "Contact us": "Kontaktujte nás",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist umožňuje velmi mocné vzorce s použitím Pythonu. Doporučujeme nastavit proměnnou prostředí GRIST_SANDBOX_FLAVOR na gvisor, pokud to váš hardware podporuje (většinou ano), aby vzorce v každém dokumentu běžely v pískovišti izolovaném od ostatních dokumentů a izolovaném od sítě.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Služba Grist umožňuje konfigurovat různé typy ověřování, včetně SAML a OIDC.     Pokud je systém Grist přístupný po síti nebo je zpřístupněn více osobám, doporučujeme jeden z nich povolit.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist podepisuje cookies uživatelských relací tajným klíčem. Tento klíč nastavte pomocí proměnné prostředí GRIST_SESSION_SECRET. Pokud není nastaven, Grist použije přednastavený tvrdě zakódovaný výchozí klíč. Tuto poznámku můžeme v budoucnu odstranit, protože ID relací generované od verze v1.1.16 jsou inherentně kryptograficky bezpečné.",
+        "Enable Grist Enterprise": "Povolení Grist Enterprise",
+        "Audit Logs": "Auditní záznamy",
+        "Off": "Vypnuto",
+        "Current": "Aktuální",
+        "Current version of Grist": "Aktuální verze Grist",
+        "Help us make Grist better": "Pomozte nám vylepšit Grist",
+        "Support Grist": "Podpoř Grist",
+        "Support Grist Labs on GitHub": "Podpořte Grist Labs na GitHubu",
+        "Version": "Verze",
+        "Auto-check when this page loads": "Automatická kontrola při načtení této stránky",
+        "Check now": "Zkontrolovat nyní",
+        "Grist releases are at ": "Vydání Grist jsou na ",
+        "No information available": "Nejsou k dispozici žádné informace",
+        "Authentication": "Autentizace",
+        "Current authentication method": "Aktuální metoda ověřování",
+        "Check succeeded.": "Kontrola byla úspěšná.",
+        "Details": "Podrobnosti",
+        "No fault detected.": "Žádná chyba nebyla zjištěna.",
+        "Notes": "Poznámky",
+        "Self Checks": "Vlastní kontroly",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Služba Grist umožňuje konfigurovat různé typy ověřování, včetně SAML a OIDC. Pokud je systém Grist přístupný po síti nebo je zpřístupněn více osobám, doporučujeme jeden z nich povolit.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podepisuje soubory cookie relace uživatele tajným klíčem. Tento klíč nastavte pomocí proměnné prostředí GRIST_SESSION_SECRET. Pokud není nastavena, Grist se vrátí k pevně nastavenému výchozímu klíči. Toto upozornění můžeme v budoucnu odstranit, protože identifikátory relací generované od verze 1.1.16 jsou ze své podstaty kryptograficky bezpečné.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Nebo můžete jako náhradní řešení nastavit: {{bootKey}} v prostředí a navštívit jej: {{url}}"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Nastavení rozbalovací podmínky",
+        "Invalid columns: {{colIds}}": "Neplatné sloupce: {{colIds}}",
+        "Dropdown Condition": "Podmínka pro rozevírací seznam"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Zadejte podmínku."
+    },
+    "duplicatePage": {
+        "Duplicate page {{pageName}}": "Duplicitní stránka {{pageName}}",
+        "Note that this does not copy data, but creates another view of the same data.": "Všimněte si, že se nejedná o kopírování dat, ale o vytvoření jiného zobrazení stejných dat."
+    },
+    "breadcrumbs": {
+        "unsaved": "neuložené",
+        "fiddle": "Pokusný režim",
+        "override": "přepsat",
+        "recovery mode": "režim obnovy",
+        "snapshot": "snímek",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Úpravy můžete provádět, ale vytvoří se nová kopie a\nneovlivní původní dokument."
+    },
+    "search": {
+        "Find Previous ": "Najít Předchozí ",
+        "Find Next ": "Najít další ",
+        "Search": "Hledat",
+        "Search in document": "Hledat v dokumentu",
+        "No results": "Žádné výsledky"
+    },
+    "NTextBox": {
+        "false": "nepravda",
+        "Field Format": "Formát pole",
+        "true": "pravda",
+        "Single line": "Jedno řádkový",
+        "Lines": "Řádků",
+        "Multi line": "Více řádkový"
+    },
+    "TypeTransform": {
+        "Apply": "Použít",
+        "Update formula (Shift+Enter)": "Aktualizovat vzorec (Shift+Enter)",
+        "Cancel": "Zrušit",
+        "Preview": "Náhled",
+        "Revise": "Revize"
+    },
+    "NumericTextBox": {
+        "max": "max",
+        "Field Format": "Formát pole",
+        "Text": "Text",
+        "min": "min",
+        "Spinner": "Spinner",
+        "Currency": "Měna",
+        "Default currency ({{defaultCurrency}})": "Výchozí měna ({{defaultCurrency}})",
+        "Number Format": "Formát čísla",
+        "Decimals": "Desetinná čísla"
+    },
+    "PagePanels": {
+        "Open Creator Panel": "Otevřít panel tvůrce",
+        "Close Creator Panel": "Zavřít panel tvůrce"
+    },
+    "CardContextMenu": {
+        "Duplicate card": "Duplikovat kartu",
+        "Insert card above": "Vložte kartu výše",
+        "Insert card below": "Vložte kartu níže",
+        "Copy anchor link": "Kopírovat odkaz kotvy",
+        "Delete card": "Smazat kartu",
+        "Insert card": "Vložit kartu"
+    },
+    "FormConfig": {
+        "Default": "Výchozí",
+        "Options Sort Order": "Možnosti řazení",
+        "Vertical": "Vertikální",
+        "Field rules": "Pravidla pole",
+        "Required field": "Povinné pole",
+        "Descending": "Sestupně",
+        "Options Alignment": "Možnosti zarovnání",
+        "Ascending": "Vzestupně",
+        "Field Format": "Formát pole",
+        "Horizontal": "Horizontální",
+        "Field Rules": "Pravidla pole",
+        "Select": "Výběr"
+    },
+    "FormErrorPage": {
+        "Error": "Chyba"
+    },
+    "DateRangeOptions": {
+        "This week": "Tento týden",
+        "This year": "Tento rok",
+        "Last 7 days": "Posledních 7 dní",
+        "This month": "Tento měsíc",
+        "Next 7 days": "Příštích 7 dní",
+        "Last 30 days": "Posledních 30 dní",
+        "Today": "Dnes",
+        "Last Week": "Minulý týden"
+    },
+    "FormRenderer": {
+        "Search": "Hledat",
+        "Select...": "Vybrat...",
+        "Submit": "Odeslat",
+        "Reset": "Resetuj"
+    },
+    "ViewConfigTab": {
+        "Compact": "Kompaktní",
+        "Plugin: ": "Plugin: ",
+        "Edit Card Layout": "Úprava rozvržení karty",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Velké tabulky mohou být označeny jako \"na požádání\", aby se zabránilo jejich načítání do datového engine.",
+        "Advanced settings": "Pokročilá nastavení",
+        "Form": "Formulář",
+        "Unmark On-Demand": "Zrušit označení na vyžádání",
+        "Make On-Demand": "Vytvářet na vyžádání",
+        "Blocks": "Bloky",
+        "Section: ": "Sekce: "
+    },
+    "pages": {
+        "You do not have edit access to this document": "Nemáte přístup k úpravám tohoto dokumentu",
+        "Duplicate Page": "Duplicitní stránka",
+        "Remove": "Odstranit",
+        "Rename": "Přejmenovat"
+    },
+    "ViewSectionMenu": {
+        "(modified)": "(upraveno)",
+        "SORT": "ŘADIT",
+        "Save": "Uložit",
+        "FILTER": "FILTR",
+        "(customized)": "(přizpůsobeno)",
+        "(empty)": "(prázdný)",
+        "Revert": "Vrátit",
+        "Update Sort&Filter settings": "Aktualizovat nastavení řazení a filtru",
+        "Custom options": "Vlastní možnosti"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "POPIS SLOUPCE",
+        "COLUMN LABEL": "ŠTÍTEK SLOUPCE"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Převést sloupec na vzorec"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Kalendář",
+        "Card": "Karta",
+        "Card List": "Seznam karet",
+        "Chart": "Graf",
+        "Custom": "Vlastní",
+        "Form": "Formulář",
+        "Table": "Tabulka"
+    },
+    "LanguageMenu": {
+        "Language": "Jazyk"
+    },
+    "buildViewSectionDom": {
+        "No row selected in {{title}}": "Žádný řádek není vybrán v {{title}}",
+        "Not all data is shown": "Nejsou zobrazeny všechny údaje",
+        "No data": "Žádné údaje"
+    },
+    "Editor": {
+        "Delete": "Smazat"
+    },
+    "Menu": {
+        "Unmapped fields": "Nepřiřazená pole",
+        "Building blocks": "Stavební bloky",
+        "Columns": "Sloupce",
+        "Copy": "Kopírovat",
+        "Cut": "Vyjmout",
+        "Insert question below": "Vložit otázku pod tuto",
+        "Paragraph": "Odstavec",
+        "Separator": "Oddělovač",
+        "Paste": "Vložit",
+        "Insert question above": "Vložit otázku nad tuto",
+        "Header": "Záhlaví"
+    },
+    "FormContainer": {
+        "Build your own form": "Vytvořte si vlastní formulář",
+        "Powered by": "Powered by"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "Oops! Formulář, který hledáte, neexistuje.",
+        "You don't have access to this form.": "K tomuto formuláři nemáte přístup.",
+        "There was a problem loading the form.": "Při načítání formuláře došlo k problému.",
+        "Oops! This form is no longer published.": "Oops! Tento formulář již není publikován."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Při odesílání formuláře došlo k chybě. Zkuste to prosím znovu."
+    },
+    "TimingPage": {
+        "Max Time (s)": "Maximální čas (s)",
+        "Average Time (s)": "Průměrný čas (s)",
+        "Table ID": "ID tabulky",
+        "Number of Calls": "Počet volání",
+        "Column ID": "ID sloupce",
+        "Formula timer": "Časovač vzorce",
+        "Total Time (s)": "Celkový čas (s)",
+        "Loading timing data. Don't close this tab.": "Načítání časových údajů. Nezavírejte tuto kartu."
+    },
+    "ViewLayout": {
+        "Delete": "Smazat",
+        "Table {{tableName}} will no longer be visible": "Tabulka {{tableName}} již nebude viditelná",
+        "raw data page": "stránka se surovými daty",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Data si ponechte a widget odstraňte. Tabulka zůstane k dispozici v {{rawDataLink}}",
+        "Delete data and this widget.": "Odstranění dat a tohoto widgetu."
+    },
+    "CustomWidgetGallery": {
+        "Change Widget": "Změnit widget",
+        "Last updated:": "Poslední aktualizace:",
+        "(Missing info)": "(Chybějící informace)",
+        "Add Widget": "Přidat widget",
+        "Cancel": "Zrušit",
+        "Add Your Own Widget": "Přidejte svůj vlastní widget",
+        "Add a widget from outside this gallery.": "Přidání widgetu mimo tuto galerii.",
+        "Custom URL": "Vlastní URL",
+        "Search": "Hledat",
+        "Widget URL": "Adresa URL widgetu",
+        "Developer:": "Vývojář:",
+        "No matching widgets": "Žádné odpovídající widgety",
+        "Grist Widget": "Widget Grist",
+        "Choose Custom Widget": "Vybrat vlastní widget",
+        "Community Widget": "Widget komunity",
+        "Learn more about Custom Widgets": "Zjistit více o vlastních widgetech"
+    },
+    "ReverseReferenceConfig": {
+        "Add two-way reference": "Přidání obousměrného odkazu",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Jedná se o opačnou stranu referenčního sloupce {{column}} v tabulce {{table}}.",
+        "Column": "Sloupec",
+        "Delete": "Smazat",
+        "Table": "Tabulka",
+        "Delete two-way reference?": "Odstranit obousměrný odkaz?",
+        "Target table": "Cílová tabulka",
+        "Two-way Reference": "Dvoucestná reference (odkaz)",
+        "Delete column {{column}} in table {{table}}?": "Smazání sloupce {{column}} v tabulce {{table}}?"
+    },
+    "SupportGristButton": {
+        "Opt in to Telemetry": "Přihlášení k telemetrii",
+        "Close": "Zavřít",
+        "Help Center": "Centrum podpory",
+        "Admin Panel": "Panel správce",
+        "Opted In": "Opted In",
+        "Support Grist": "Podpoř Grist",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Děkujeme! Velmi si vážíme vaší důvěry a podpory. Odhlásit se můžete kdykoli na stránce {{link}} v uživatelské nabídce."
+    },
+    "AuditLogStreamingConfig": {
+        "Add streaming destination": "Přidat cíl streamování",
+        "Delete": "Smazat",
+        "Destination": "Cíl",
+        "Destinations": "Cíle",
+        "Edit": "Upravit",
+        "Edit streaming destination": "Upravit cíl streamování",
+        "Enter URL": "Zadejte adresu URL",
+        "Save": "Uložit",
+        "URL": "URL",
+        "Delete streaming destination?": "Smazat cíl streamování?",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Opravdu chcete tento cíl streamování odstranit? Tuto akci nelze vzít zpět.",
+        "Start streaming": "Spustit streamování",
+        "Other": "Ostatní",
+        "Cancel": "Zrušit",
+        "Token": "Token",
+        "Add destination": "Přidat cíl",
+        "Enter token": "Zadejte token",
+        "Learn more": "Další informace"
+    },
+    "AuditLogsPage": {
+        "Contact us": "Kontaktujte nás",
+        "Audit logs for {{siteName}}": "Protokoly auditu pro {{siteName}}",
+        "Only site owners may access audit logs.": "K protokolům auditu mají přístup pouze vlastníci stránek.",
+        "Audit Logs": "Auditní záznamy",
+        "Log streaming": "Streamování logů",
+        "Home": "Úvod",
+        "upgrade your plan": "aktualizujte svůj plán"
+    },
+    "ChoiceListEditor": {
+        "No choices to select": "Žádné možnosti výběru",
+        "Error in dropdown condition": "Chyba v rozbalovací podmínce",
+        "No choices matching condition": "Žádné možnosti odpovídající podmínce"
+    },
+    "Reference": {
+        "CELL FORMAT": "FORMÁT BUŇKY",
+        "Row ID": "ID řádku",
+        "SHOW COLUMN": "ZOBRAZIT SLOUPEC"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Odeslání souboru na Disk Google"
+    },
+    "GridView": {
+        "Click to insert": "Klikněte pro vložení"
+    },
+    "WelcomeCoachingCall": {
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Během hovoru si uděláme čas na pochopení vašich potřeb a přizpůsobíme hovor vám. Můžeme vám ukázat základy Grist, nebo rovnou začít pracovat s vašimi daty a vytvořit potřebné dashboardy.",
+        "free coaching call": "Bezplatná konzultace",
+        "Maybe Later": "Možná později",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Naplánujte si svou {{freeCoachingCall}} s členem našeho týmu.",
+        "Schedule Call": "Naplánovat hovor"
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Formulář odeslán",
+        "Thank you! Your response has been recorded.": "Děkujeme! Vaše odpověď byla zaznamenána.",
+        "Submit new response": "Odeslat novou odpověď"
+    },
+    "Columns": {
+        "Remove Column": "Odstranit sloupec"
+    },
+    "ChoiceEditor": {
+        "No choices to select": "Žádné možnosti výběru",
+        "Error in dropdown condition": "Chyba v rozbalovací podmínce",
+        "No choices matching condition": "Žádné možnosti odpovídající podmínce"
+    },
+    "Field": {
+        "No choices configured": "Žádné možnosti nejsou nakonfigurovány",
+        "No values in show column of referenced table": "Žádné hodnoty ve sloupci zobrazení odkazované tabulky"
+    },
+    "DocTutorial": {
+        "End tutorial": "Konec výukového programu",
+        "Finish": "Dokončit",
+        "Next": "Další",
+        "Previous": "Předchozí",
+        "Restart": "Restartovat",
+        "Click to expand": "Klikněte pro rozšíření",
+        "Do you want to restart the tutorial? All progress will be lost.": "Chcete znovu spustit výukový program? Veškerý pokrok bude ztracen."
+    },
+    "OnboardingCards": {
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Naučte se základy referenčních sloupců, propojených widgetů, typů sloupců a karet.",
+        "Complete the tutorial": "Dokončete výukový program",
+        "3 minute video tour": "3minutová videoprohlídka",
+        "Complete our basics tutorial": "Dokončete náš základní tutoriál",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Naučte se základy referenčních sloupců, propojených widgetů, typů sloupců a karet."
+    },
+    "ToggleEnterpriseWidget": {
+        "Disable Grist Enterprise": "Zakázat Grist Enterprise",
+        "Enable Grist Enterprise": "Povolení Grist Enterprise",
+        "Grist Enterprise is **enabled**.": "Služba Grist Enterprise je **povolena**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivační klíč slouží ke spuštění aplikace Grist Enterprise po zkušební době.\npo uplynutí 30denní zkušební doby. Aktivační klíč získáte [přihlášením se k odběru služby Grist\nEnterprise]({{signupLink}}). Aktivační klíč nepotřebujete k tomu, abyste mohli spustit službu\nGrist Core.\n\nVíce informací najdete v našem [Centru nápovědy]({{helpCenter}}).",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivační klíč slouží ke spuštění aplikace Grist Enterprise po zkušební době.\npo uplynutí 30denní zkušební doby. Aktivační klíč získáte [kontaktujte nás]({{contactLink}}) ještě dnes. Uděláte to\naktivační klíč nepotřebujete ke spuštění aplikace Grist Core.\n\nVíce informací se dozvíte v našem [Centru nápovědy]({{helpCenter}})."
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Panel správce"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkce Markdown\n *\n * Můžeme _zapsat_ [obvyklý Markdown](https://markdownguide.org) *vnitř*\n * prvku Grainjs."
+            }
+        },
+        "The toggle is **on**": "Přepínač je **zapnutý**",
+        "The toggle is **off**": "Přepínač je **vypnutý**"
+    },
+    "HomeIntroCards": {
+        "Learn more {{webinarsLinks}}": "Zjistěte více {{webinarsLinks}}",
+        "Templates": "Šablony",
+        "Start a new document": "Začněte novým dokumentem",
+        "Blank document": "Prázdný dokument",
+        "Find solutions and explore more resources {{helpCenterLink}}": "Najděte řešení a prozkoumejte další zdroje {{helpCenterLink}}",
+        "3 minute video tour": "3 minutová videoprohlídka",
+        "Finish our basics tutorial": "Dokončete náš základní výukový návod",
+        "Help center": "Centrum podpory",
+        "Tutorial": "Návod",
+        "Webinars": "Webináře",
+        "Import file": "Importovat soubor"
+    },
+    "buildReassignModal": {
+        "Cancel": "Zrušit",
+        "Reassign": "Nové přiřazení",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Každý záznam na {{targetTable}} může být přiřazen pouze jednomu záznamu na {{sourceTable}}.",
+        "Reassign to new {{sourceTable}} records.": "Přeřazení do nových záznamů {{sourceTable}}.",
+        "Record already assigned_one": "Záznam je již přiřazen",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Přeřazení do tabulky {{sourceTable}} do záznamu {{sourceName}} .",
+        "Record already assigned_other": "Záznam je již přiřazen",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} záznam {{targetName}} je již přiřazen k záznamu {{sourceTable}}           {{oldSourceName}} ."
+    },
+    "ValidationPanel": {
+        "Update formula (Shift+Enter)": "Aktualizovat vzorec (Shift+Enter)",
+        "Rule {{length}}": "Pravidlo {{length}}"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Sbalit editor"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Skrytá pole"
+    },
+    "CustomView": {
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Pro použití tohoto widgetu prosím přiřaďte všechna nepovinná pole v panelu tvůrce na pravé straně.",
+        "Some required columns aren't mapped": "Některá požadovaná pole nejsou přiřazena"
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Chyba v rozbalovací podmínce",
+        "No choices matching condition": "Žádné možnosti neodpovídají podmínce",
+        "No choices to select": "Žádné možnosti výběru"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Neznámý uživatel"
+    },
+    "Clipboard": {
+        "Unavailable Command": "Nedostupný příkaz",
+        "Got it": "Mám to"
+    },
+    "FieldContextMenu": {
+        "Clear field": "Vymazat pole",
+        "Copy anchor link": "Kopírovat odkaz kotvy",
+        "Cut": "Vyjmout",
+        "Hide field": "Skrýt pole",
+        "Paste": "Vložit",
+        "Copy": "Kopírovat"
+    },
+    "searchDropdown": {
+        "Search": "Hledat"
+    },
+    "Toggle": {
+        "Checkbox": "Zaškrtávací tlačítko",
+        "Field Format": "Formát pole",
+        "Switch": "Přepínač"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "POPIS"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "POPIS"
+    },
+    "markdown": {
+        "The toggle is **on**": "Přepínač je **zapnutý**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkce Markdown\n *\n * Můžeme _zapsat_ [obvyklý Markdown](https://markdownguide.org) *vnitř*\n * prvku Grainjs."
+            }
+        },
+        "The toggle is **off**": "Přepínač je **vypnut**"
     }
 }
