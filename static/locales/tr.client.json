@@ -8,5 +8,17 @@
         "Add Column Rule": "Sütuna Kural ekle",
         "Add Default Rule": "Kural ekle (genel)",
         "Add Table Rules": "Tabloya kural ekle"
+    },
+    "AdminPanel": {
+        "Off": "Kapalı",
+        "Log Streaming": "Günlük Akışları",
+        "Audit Logs": "Denetim Günlükleri",
+        "Contact us": "Bize Ulaşın"
+    },
+    "Columns": {
+        "Remove Column": "Sütunu Sil"
+    },
+    "Field": {
+        "No choices configured": "Seçim yapılmamış"
     }
 }
