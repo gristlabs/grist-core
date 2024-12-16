@@ -32,6 +32,15 @@
  *        Comma-separated list of paths for certificates from identity provider, PEM format.
  *    env GRIST_SAML_IDP_UNENCRYPTED
  *        If set and non-empty, allow unencrypted assertions, relying on https for privacy.
+ *    env GRIST_SAML_ATTR_FIRSTNAME
+ *        If set and non-empty, determines the user's firstname attribute from the IdP response.
+ *        e.g. "urn:oid:2.5.4.4"
+ *    env GRIST_SAML_ATTR_LASTNAME
+ *        If set and non-empty, determines the user's lastname attribute from the IdP response.
+ *        e.g. "urn:oid:1.3.6.1.4.1.5923.1.1.1.6"
+ *    env GRIST_SAML_ATTR_EMAIL
+ *        If set and non-empty, determines the user's email attribute from the IdP response.
+ *        e.g. "urn:oid:0.9.2342.19200300.100.1.3"
  *
  * This version of SamlConfig has been tested with Auth0 SAML IdP following the instructions
  * at:
@@ -181,9 +190,15 @@ export class SamlConfig {
         // An example IdP response is at https://github.com/Clever/saml2#assert_response. Saml2-js
         // maps some standard attributes as user.given_name, user.surname, which we use if
         // available. Otherwise we use user.attributes which has the form {Name: [Value]}.
-        const fname = samlUser.given_name || samlUser.attributes.FirstName || '';
-        const lname = samlUser.surname || samlUser.attributes.LastName || '';
-        const email = samlUser.email || samlUser.name_id;
+        const fnameAttribute = process.env.GRIST_SAML_ATTR_FIRSTNAME || '';
+        const lnameAttribute = process.env.GRIST_SAML_ATTR_LASTNAME || '';
+        const emailAttribute = process.env.GRIST_SAML_ATTR_EMAIL || '';
+        const fname = samlUser.attributes[fnameAttribute] ||
+          samlUser.given_name || samlUser.attributes.FirstName || '';
+        const lname = samlUser.attributes[lnameAttribute] ||
+          samlUser.surname || samlUser.attributes.LastName || '';
+        const email = samlUser.attributes[emailAttribute] ||
+          samlUser.email ||  samlUser.name_id;
         const profile = {
           email,
           name: `${fname} ${lname}`.trim(),
