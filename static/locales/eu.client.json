@@ -338,7 +338,15 @@
         "Notify other services on doc changes": "Jakinarazi beste zerbitzu batzuei dokumentuak aldatzerakoan",
         "python2 (legacy)": "python2 (legatua)",
         "python3 (recommended)": "python3 (gomendatua)",
-        "Time reload": "Kronometratu birkarga"
+        "Time reload": "Kronometratu birkarga",
+        "Normal document behavior. All users work on the same copy of the document.": "Dokumentu arruntaren jokaera. Erabiltzaile guztiek egiten dute lan dokumentuaren kopia berberean.",
+        "Template": "Txantiloia",
+        "Change document type": "Aldatu dokumentu mota",
+        "Change nature of document": "Aldatu dokumentuaren natura",
+        "Regular document": "Dokumentu arrunta",
+        "Regular": "Arrunta",
+        "Confirm change": "Baieztatu aldaketa",
+        "Edit": "Editatu"
     },
     "DocumentUsage": {
         "Attachments Size": "Eranskinen tamaina",
@@ -880,7 +888,11 @@
         "DateTime": "Data eta Ordua",
         "Reference": "Erreferentzia",
         "Reference List": "Erreferentzia-zerrenda",
-        "Search columns": "Bilaketa-zutabeak"
+        "Search columns": "Bilaketa-zutabeak",
+        "Custom": "Norberak ezarritakoa",
+        "By Name": "Izenaren arabera",
+        "By Date Modified": "Moldatutako dataren arabera",
+        "Light": "Argia"
     },
     "modals": {
         "Cancel": "Utzi",
@@ -1563,7 +1575,9 @@
         "Session Secret": "Saioaren gakoa",
         "Enable Grist Enterprise": "Gaitu Grist Enterprise",
         "Enterprise": "Enterprise",
-        "checking": "egiaztatzen"
+        "checking": "egiaztatzen",
+        "Contact us": "Jarri harremanetan",
+        "Off": "Itzalita"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -1789,5 +1803,23 @@
         },
         "The toggle is **off**": "Ezaugarria **desaktibatuta** dago",
         "The toggle is **on**": "Ezaugarria **aktibatuta** dago"
+    },
+    "AuditLogStreamingConfig": {
+        "Cancel": "Utzi",
+        "Edit": "Editatu",
+        "Delete": "Ezabatu",
+        "Add destination": "Gehitu helburua",
+        "Destination": "Helburua",
+        "Destinations": "Helburuak",
+        "Enter URL": "Sartu URLa",
+        "Enter token": "Sartu tokena",
+        "Learn more": "Ikasi gehiago",
+        "Save": "Gorde",
+        "Splunk": "Splunk",
+        "Token": "Tokena",
+        "URL": "URLa"
+    },
+    "AuditLogsPage": {
+        "Contact us": "Jarri harremanetan"
     }
 }
