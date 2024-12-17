@@ -76,6 +76,9 @@ export interface IAttachmentStore {
   // implementation and gives them control over local buffering.
   download(docPoolId: DocPoolId, fileId: FileId, outputStream: stream.Writable): Promise<void>;
 
+  // Remove attachment from the store
+  delete(docPoolId: DocPoolId, fileId: FileId): Promise<void>;
+
   // Remove attachments for all documents in the given document pool.
   removePool(docPoolId: DocPoolId): Promise<void>;
 
@@ -120,6 +123,10 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
     await this._storage.downloadStream(this._getKey(docPoolId, fileId), outputStream);
   }
 
+  public async delete(docPoolId: string, fileId: string): Promise<void> {
+    await this._storage.remove(this._getKey(docPoolId, fileId));
+  }
+
   public async removePool(docPoolId: string): Promise<void> {
     // Null assertion is safe because this should be checked before this class is instantiated.
     await this._storage.removeAllWithPrefix!(this._getPoolPrefix(docPoolId));
@@ -162,6 +169,10 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
       fse.createReadStream(this._createPath(docPoolId, fileId)),
       output,
     );
+  }
+
+  public async delete(docPoolId: string, fileId: string): Promise<void> {
+    await fse.remove(this._createPath(docPoolId, fileId));
   }
 
   public async removePool(docPoolId: DocPoolId): Promise<void> {

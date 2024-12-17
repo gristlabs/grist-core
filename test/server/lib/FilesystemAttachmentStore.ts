@@ -61,6 +61,17 @@ describe('FilesystemAttachmentStore', () => {
     assert.isTrue(await store.exists(testingDocPoolId, testingFileId));
   });
 
+  it('can delete a file', async () => {
+    const spec = await makeTestingFilesystemStoreSpec();
+    const store = await spec.create("test-filesystem-store");
+
+    assert.isFalse(await store.exists(testingDocPoolId, testingFileId));
+    await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
+    assert.isTrue(await store.exists(testingDocPoolId, testingFileId));
+    await store.delete(testingDocPoolId, testingFileId);
+    assert.isFalse(await store.exists(testingDocPoolId, testingFileId));
+  });
+
   it('can remove an entire pool', async () => {
     const spec = await makeTestingFilesystemStoreSpec();
     const store = await spec.create("test-filesystem-store");
