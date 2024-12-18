@@ -780,27 +780,37 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    *    checksum of the file's contents with the original extension.
    * @param {Buffer | undefined} fileData - Contents of the file.
    * @param {string | undefined} storageId - Identifier of the store that file is stored in.
+   * @param {boolean} shouldUpdate - Update the file record if found.
    * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
    */
   public findOrAttachFile(
     fileIdent: string,
     fileData: Buffer | undefined,
     storageId?: string,
+    shouldUpdate: boolean = false,
   ): Promise<boolean> {
-    return this.execTransaction(db => {
-      // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
-      return db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent)
-      // Only if this succeeded, do the work of reading the file and inserting its data.
-        .then(() =>
-              db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent))
-        .then(() => true)
-      // If UNIQUE constraint failed, this ident must already exists, so return false.
-        .catch(err => {
-          if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
-            return false;
-          }
+    return this.execTransaction(async (db) => {
+      let isNewFile = true;
+
+      try {
+        // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
+        await db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent);
+      } catch(err) {
+        // If UNIQUE constraint failed, this ident must already exist.
+        if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
+          isNewFile = false;
+        } else {
           throw err;
-        });
+        }
+      }
+
+      if (!isNewFile && !shouldUpdate) {
+        return false;
+      }
+
+      await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
+
+      return isNewFile;
     });
   }
 
