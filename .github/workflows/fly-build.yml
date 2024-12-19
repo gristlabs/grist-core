@@ -41,4 +41,5 @@ jobs:
           path: |
             ./grist-core.tar
             ./pr-info.txt
+            ./buildtools/fly-template.env
           if-no-files-found: "error"

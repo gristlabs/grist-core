@@ -50,7 +50,7 @@ jobs:
       - name: Extract artifacts
         id: extract_artifacts
         run: |
-          unzip docker-image.zip
+          unzip -o docker-image.zip grist-core.tar pr-info.txt buildtools/fly-template.env
           cat ./pr-info.txt >> $GITHUB_OUTPUT
       - name: Load Docker image
         run: docker load --input grist-core.tar
