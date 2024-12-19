@@ -12,11 +12,14 @@ export function sanitizeTutorialHTML(source: string | Node): string {
 }
 
 const defaultPurifier = createDOMPurifier();
-defaultPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
-
 const tutorialPurifier = createDOMPurifier();
-tutorialPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
-tutorialPurifier.addHook('uponSanitizeElement', handleSanitizeTutorialElement);
+
+// If we are executed in a browser, we can add hooks to the purifiers to customize their behavior.
+if (typeof window !== 'undefined') {
+  defaultPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
+  tutorialPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
+  tutorialPurifier.addHook('uponSanitizeElement', handleSanitizeTutorialElement);
+}
 
 function handleSanitizeAttribute(node: Element) {
   if (!('target' in node)) { return; }
