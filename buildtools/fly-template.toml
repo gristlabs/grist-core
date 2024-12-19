@@ -1,3 +1,7 @@
+# When deploying from a Github Action (i.e. for previews), this file is taken from the main
+# branch, rather than from the branch with your changes. I.e. your changes to this file will not
+# be used. However, environment variable from fly-template.env will get used from your branch.
+
 app = "{APP_NAME}"
 primary_region = "ewr"
 kill_signal = "SIGINT"
@@ -5,13 +9,11 @@ kill_timeout = 5
 processes = []
 
 [env]
+  # <fly-template.env> -- this tag gets replaced with values from fly-template.env.
   APP_DOC_URL="https://{APP_NAME}.fly.dev"
   APP_HOME_URL="https://{APP_NAME}.fly.dev"
   APP_STATIC_URL="https://{APP_NAME}.fly.dev"
   ALLOWED_WEBHOOK_DOMAINS="webhook.site"
-  PERMITTED_CUSTOM_WIDGETS="calendar"
-  GRIST_EXPERIMENTAL_PLUGINS="1"
-  GRIST_SINGLE_ORG="docs"
   PORT = "8080"
   FLY_DEPLOY_EXPIRATION = "{FLY_DEPLOY_EXPIRATION}"
 

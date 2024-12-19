@@ -91,15 +91,42 @@ async function appDestroy(name) {
 async function prepConfig(name, volName) {
   const configPath = "./fly.toml";
   const configTemplatePath = "./buildtools/fly-template.toml";
+  const envVarsPath = "./buildtools/fly-template.env";
   const template = await fs.readFile(configTemplatePath, {encoding: 'utf8'});
+
+  // Parse envVarsPath manually to avoid the need to install npm modules. It supports comments,
+  // strips whitespace, and splits on "=". (If not for comments, we could've used json.)
+  // The reason it's separate is to allow it to come from untrusted branches.
+  const envVars = [];
+  const envVarsContent = await fs.readFile(envVarsPath, {encoding: 'utf8'});
+  for (const line of envVarsContent.split(/\n/)) {
+    const match = /^(?:\s*([^#=]+?)\s*=\s*([^#]*?))?\s*(?:#.*)?$/.exec(line);
+    if (!match) {
+      throw new Error(`Invalid syntax in ${envVarsPath}, in ${line}`);
+    }
+    // The regexp also matches empty lines, but if match[1] is present, then we have key=value.
+    if (match[1]) {
+      envVars.push(`  ${stringifyTomlString(match[1])} = ${stringifyTomlString(match[2])}`);
+    }
+  }
 
   // Calculate the time when we can destroy the app, used by findStaleApps.
   const expiration = new Date(Date.now() + expirationSec * 1000).toISOString();
   const config = template
     .replace(/{APP_NAME}/g, name)
     .replace(/{VOLUME_NAME}/g, volName)
-    .replace(/{FLY_DEPLOY_EXPIRATION}/g, expiration);
+    .replace(/{FLY_DEPLOY_EXPIRATION}/g, expiration)
+    // If there are any env vars, append them after line with <fly-template.env> tag.
+    .replace(/<fly-template.env>.*/, `$&\n${envVars.join("\n")}`);
+
   await fs.writeFile(configPath, config);
+}
+
+// Stringify a string for safe inclusion into toml. (We are careful not to allow it to escape
+// being a string.)
+function stringifyTomlString(str) {
+  // JSON.stringify() is sufficient to produce a safe TOML string.
+  return JSON.stringify(String(str));
 }
 
 function runFetch(cmd) {
