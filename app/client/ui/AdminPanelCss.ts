@@ -30,6 +30,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       options.name,
       testId(`admin-panel-item-name-${options.id}`),
       prefix.length ? cssItemName.cls('-prefixed') : null,
+      cssItemName.cls('-full', options.description === undefined),
     ),
     cssItemDescription(options.description),
     cssItemValue(options.value,
@@ -72,7 +73,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
 
 const cssSection = styled('div', `
   padding: 24px;
-  max-width: 600px;
+  max-width: 700px;
   width: 100%;
   margin: 16px auto;
   border: 1px solid ${theme.widgetBorder};
@@ -137,15 +138,11 @@ const cssItemName = styled('div', `
   align-items: center;
   margin-right: 14px;
   font-size: ${vars.largeFontSize};
-  padding-left: 24px;
   &-prefixed {
     padding-left: 0;
   }
-
-  @container line (max-width: 500px) {
-    & {
-      padding-left: 0;
-    }
+  &-full {
+    width: unset;
   }
   @media ${mediaSmall} {
     & {
