@@ -8,14 +8,15 @@
  */
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
-import {dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
+import {getOrCreateStyleElement} from 'app/client/lib/getOrCreateStyleElement';
+import {DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
 import debounce = require('lodash/debounce');
 import values = require('lodash/values');
 
 const VAR_PREFIX = 'grist';
 
 class CustomProp {
-  constructor(public name: string, public value?: string, public fallback?: string | CustomProp) {
+  constructor(public name: string, public value?: string | CustomProp, public fallback?: string | CustomProp) {
 
   }
 
@@ -75,6 +76,89 @@ export const colors = {
   warningBg: new CustomProp('color-warning-bg', '#dd962c'),
   backdrop: new CustomProp('color-backdrop', 'rgba(38,38,51,0.9)')
 
+};
+
+/**
+ * Example of new "design tokens" that are a mix of current `colors`, `vars` and `theme` props.
+ *
+ * The css variables defined here take precedence over the ones in `colors` and `vars`, but are
+ * overriden by variables re-declared in a theme or a custom css file.
+ *
+ * The idea is we would not need `colors` and `vars` anymore.
+ *
+ * 1) List the `colors` above but rename them to have more abstracted names, ie "lightGreen" becomes "primaryLight".
+ * Grays are an exception here as I assume they will always be targetted as such, but we could name them differently
+ * if we want to stick to non-visual names here, like "shadeXX", "neutralXX". Or "secondaryXX", renaming the current
+ * "secondary" color to "tertiary" or "accent"? I just followed original naming for now.
+ *
+ * 2) Whenever possible, design tokens target other design tokens instead of copying color codes, ie "primaryBg"
+ * directly targets "primaryLight" instead of being "#16B378". Here I use getters to define tokens that target other
+ * tokens to prevent having to define multiple temporary vars.
+ *
+ * 3) Follow the `vars` object idea and add more semantic/global tokens to the list.
+ * What I have in mind is to move most of `vars` props here, and some of the pretty-much global things listed in `theme`
+ * (like text colors or panel global things). The endgoal would be to list all colors and tokens globally used in
+ * Grist here. I guess it might not make sense to list here a few really specific components (for example, code view).
+ *
+ * 4) Either have component-specific variables listed in `theme` below consume these designTokens, *or* remove
+ * them and make it so that components directly consume the designTokens in their own code.
+ *
+ * Colors listed here default to Grist light theme colors.
+ * Contrary to `colors` and `vars`, all tokens here are meant to be overridable by a theme,
+ * allowing a theme to only override what it wants instead of having to redefine everything.
+ */
+export const designTokens = {
+  /* first list hard-coded colors, then other colors consuming them and other non-color tokens */
+  white: new CustomProp('color-white', '#FFFFFF'),
+  greyLight: new CustomProp('color-grey-light', '#F7F7F7'),
+  greyMediumOpaque: new CustomProp('color-grey-medium-opaque', '#E8E8E8'),
+  greyMedium: new CustomProp('color-grey-medium', 'rgba(217,217,217,0.6)'),
+  greyDark: new CustomProp('color-grey-dark', '#D9D9D9'),
+  slate: new CustomProp('color-slate', '#929299'),
+  darkText: new CustomProp('color-dark-text', '#494949'),
+  dark: new CustomProp('color-dark', '#262633'),
+  black: new CustomProp('color-black', '#000000'),
+
+  primaryLighter: new CustomProp('color-primary-lighter', '#b1ffe2'),
+  primaryLight: new CustomProp('color-primary-light', '#16B378'),
+  primaryDark: new CustomProp('color-primary-dark', '#009058'),
+  primaryDarker: new CustomProp('color-primary-darker', '#007548'),
+
+  secondaryLighter: new CustomProp('color-secondary-lighter', '#87b2f9'),
+  secondaryLight: new CustomProp('color-secondary-light', '#3B82F6'),
+
+  error: new CustomProp('color-error', '#D0021B'),
+  warningLight: new CustomProp('color-warning-light', '#F9AE41'),
+  warningDark: new CustomProp('color-warning-dark', '#dd962c'),
+
+  cursorInactive: new CustomProp('color-cursor-inactive', '#A2E1C9'),
+  selection: new CustomProp('color-selection', 'rgba(22,179,120,0.15)'),
+  selectionOpaque: new CustomProp('color-selection-opaque', '#DCF4EB'),
+  selectionDarkerOpaque: new CustomProp('color-selection-darker-opaque', '#d6eee5'),
+  hover: new CustomProp('color-hover', '#bfbfbf'),
+  backdrop: new CustomProp('color-backdrop', 'rgba(38,38,51,0.9)'),
+
+  get warningBg() { return new CustomProp('color-warning-bg', this.warningDark); },
+
+  get primaryBg() { return new CustomProp('primary-bg', this.primaryLight); },
+  get primaryBgHover() { return new CustomProp('primary-bg-hover', this.primaryDark); },
+  get primaryFg() { return new CustomProp('primary-fg', this.white); },
+
+  get controlBg() { return new CustomProp('control-bg', this.white); },
+  get controlFg() { return new CustomProp('control-fg', this.primaryLight); },
+  get controlFgHover() { return new CustomProp('primary-fg-hover', this.primaryDark); },
+  get controlBorderColor() { return new CustomProp('control-border-color', this.primaryLight); },
+  controlBorderRadius: new CustomProp('border-radius', '4px'),
+
+  get cursor() { return new CustomProp('color-cursor', this.primaryLight); },
+
+  get mainBg() { return new CustomProp('main-bg', this.white); },
+  get text() { return new CustomProp('text', this.dark); },
+  get textLight() { return new CustomProp('text-light', this.slate); },
+
+  get panelBg() { return new CustomProp('panel-bg', this.greyLight); },
+  get panelFg() { return new CustomProp('panel-fg', this.dark); },
+  get panelBorder() { return new CustomProp('panel-border', this.greyMedium); },
 };
 
 export const vars = {
@@ -177,11 +261,11 @@ export const theme = {
   pageBackdrop: new CustomProp('theme-page-backdrop', undefined, 'grey'),
 
   /* Page Panels */
-  mainPanelBg: new CustomProp('theme-page-panels-main-panel-bg', undefined, 'white'),
-  leftPanelBg: new CustomProp('theme-page-panels-left-panel-bg', undefined, colors.lightGrey),
-  rightPanelBg: new CustomProp('theme-page-panels-right-panel-bg', undefined, colors.lightGrey),
-  topHeaderBg: new CustomProp('theme-page-panels-top-header-bg', undefined, 'white'),
-  bottomFooterBg: new CustomProp('theme-page-panels-bottom-footer-bg', undefined, 'white'),
+  mainPanelBg: new CustomProp('theme-page-panels-main-panel-bg', undefined, designTokens.mainBg),
+  leftPanelBg: new CustomProp('theme-page-panels-left-panel-bg', undefined, designTokens.panelBg),
+  rightPanelBg: new CustomProp('theme-page-panels-right-panel-bg', undefined, designTokens.panelBg),
+  topHeaderBg: new CustomProp('theme-page-panels-top-header-bg', undefined, designTokens.mainBg),
+  bottomFooterBg: new CustomProp('theme-page-panels-bottom-footer-bg', undefined, designTokens.mainBg),
   pagePanelsBorder: new CustomProp('theme-page-panels-border', undefined, colors.mediumGrey),
   pagePanelsBorderResizing: new CustomProp('theme-page-panels-border-resizing', undefined,
     colors.lightGreen),
@@ -436,20 +520,20 @@ export const theme = {
     colors.darkGrey),
 
   /* Right Panel */
-  rightPanelTabFg: new CustomProp('theme-right-panel-tab-fg', undefined, colors.slate),
-  rightPanelTabBg: new CustomProp('theme-right-panel-tab-bg', undefined, colors.light),
-  rightPanelTabIcon: new CustomProp('theme-right-panel-tab-icon', undefined, colors.slate),
+  rightPanelTabFg: new CustomProp('theme-right-panel-tab-fg', undefined, designTokens.textLight),
+  rightPanelTabBg: new CustomProp('theme-right-panel-tab-bg', undefined, designTokens.mainBg),
+  rightPanelTabIcon: new CustomProp('theme-right-panel-tab-icon', undefined, designTokens.textLight),
   rightPanelTabIconHover: new CustomProp('theme-right-panel-tab-icon-hover', undefined,
-    colors.dark),
-  rightPanelTabBorder: new CustomProp('theme-right-panel-tab-border', undefined, colors.mediumGrey),
-  rightPanelTabHoverBg: new CustomProp('theme-right-panel-tab-hover-bg', undefined, colors.light),
-  rightPanelTabHoverFg: new CustomProp('theme-right-panel-tab-hover-fg', undefined, colors.dark),
+    designTokens.panelFg),
+  rightPanelTabBorder: new CustomProp('theme-right-panel-tab-border', undefined, designTokens.panelBorder),
+  rightPanelTabHoverBg: new CustomProp('theme-right-panel-tab-hover-bg', undefined, designTokens.mainBg),
+  rightPanelTabHoverFg: new CustomProp('theme-right-panel-tab-hover-fg', undefined, designTokens.panelFg),
   rightPanelTabSelectedFg: new CustomProp('theme-right-panel-tab-selected-fg', undefined,
-    colors.dark),
+    designTokens.panelFg),
   rightPanelTabSelectedBg: new CustomProp('theme-right-panel-tab-selected-bg', undefined,
-    colors.lightGrey),
+    designTokens.panelBg),
   rightPanelTabSelectedIcon: new CustomProp('theme-right-panel-tab-selected-icon', undefined,
-    colors.lightGreen),
+    designTokens.primaryBg),
   rightPanelTabButtonHoverBg: new CustomProp('theme-right-panel-tab-button-hover-bg',
     undefined, colors.darkGreen),
   rightPanelSubtabFg: new CustomProp('theme-right-panel-subtab-fg', undefined, colors.lightGreen),
@@ -921,12 +1005,7 @@ export const theme = {
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');
 const cssVars = values(vars).map(v => v.decl()).join('\n');
-const cssFontParams = `
-  font-family: ${vars.fontFamily};
-  font-size: ${vars.mediumFontSize};
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-`;
+const cssTokens = values(designTokens).map(v => v.decl()).join('\n');
 
 // We set box-sizing globally to match bootstrap's setting of border-box, since we are integrating
 // into an app which already has it set, and it's impossible to make things look consistently with
@@ -968,8 +1047,8 @@ const cssFontStyles = `
   }
 `;
 
-const cssVarsOnly = styled('div', cssColors + cssVars);
-const cssBodyVars = styled('div', cssFontParams + cssColors + cssVars + cssBorderBox + cssInputFonts + cssFontStyles);
+const cssRootVars = cssColors + cssVars;
+const cssReset = cssBorderBox + cssInputFonts + cssFontStyles;
 
 const cssBody = styled('body', `
   margin: 0;
@@ -979,9 +1058,11 @@ const cssBody = styled('body', `
 const cssRoot = styled('html', `
   height: 100%;
   overflow: hidden;
+  font-family: ${vars.fontFamily};
+  font-size: ${vars.mediumFontSize};
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
 `);
-
-export const cssRootVars = cssBodyVars.className;
 
 // Also make a globally available testId, with a simple "test-" prefix (i.e. in tests, query css
 // class ".test-{name}". Ideally, we'd use noTestId() instead in production.
@@ -1059,7 +1140,20 @@ export function isScreenResizing(): Observable<boolean> {
  * Attaches the global css properties to the document's root to make them available in the page.
  */
 export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
-  dom.update(document.documentElement, varsOnly ? dom.cls(cssVarsOnly.className) : dom.cls(cssRootVars));
+  /* apply each group of rules and variables in the correct css layer
+   * see app/client/app.css for layers order */
+  getOrCreateStyleElement('grist-root-css').textContent = `
+@layer grist-base {
+  :root {
+    ${cssRootVars}
+  }
+  ${!varsOnly && cssReset}
+}
+@layer grist-tokens {
+  :root {
+    ${cssTokens}
+  }
+}`;
   document.documentElement.classList.add(cssRoot.className);
   document.body.classList.add(cssBody.className);
   const customTheme = getTheme(productFlavor);

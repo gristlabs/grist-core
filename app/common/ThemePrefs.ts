@@ -22,6 +22,11 @@ export interface Theme {
 }
 
 export interface ThemeColors {
+  legacyVariables?: Partial<LegacyThemeVariables>;
+  [key: string]: any; /* TODO: improve typings, we should list explicit list of designTokens */
+}
+
+interface LegacyThemeVariables {
   /* Text */
   'text': string;
   'text-light': string;
