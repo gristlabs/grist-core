@@ -164,7 +164,7 @@ class GenCode(object):
 
     return textbuilder.Combiner(parts)
 
-  def make_module(self, schema):
+  def make_module(self, schema, doc_settings):
     """Regenerates the code text and usercode module from updated document schema."""
     # Collect summary tables to group them by source table.
     summary_tables = {}
@@ -176,6 +176,13 @@ class GenCode(object):
     fullparts = ["import grist\n" +
                  "from functions import *       # global uppercase functions\n" +
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
+
+    user_code = doc_settings.get('customCode', '')
+    if user_code:
+      fullparts.append("\n### BEGIN CUSTOM USER CODE ###\n")
+      fullparts.append(user_code)
+      fullparts.append("\n### END CUSTOM USER CODE ###\n")
+
     userparts = fullparts[:]
     for table_info in six.itervalues(schema):
       fullparts.append("\n\n")
