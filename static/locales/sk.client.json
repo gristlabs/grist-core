@@ -1337,7 +1337,13 @@
         "Session Secret": "Tajomstvo Relácie",
         "Enable Grist Enterprise": "Povoliť Grist Enterprise",
         "Enterprise": "Enterprise",
-        "checking": "kontrola"
+        "checking": "kontrola",
+        "Contact us": "Kontaktujte nás",
+        "Log Streaming": "Streamovanie denníka",
+        "Audit Logs": "Denníky auditu",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} viac",
+        "New, Enterprise": "Nové, Enterprise",
+        "Off": "Vypnúť"
     },
     "TimingPage": {
         "Table ID": "ID Tabuľky",
@@ -1700,7 +1706,8 @@
         "Disable Grist Enterprise": "Zakázať Grist Enterprise",
         "Enable Grist Enterprise": "Povoliť Grist Enterprise",
         "Grist Enterprise is **enabled**.": "Grist Enterprise je **povolený**.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivačný kľúč sa používa na spustenie Grist Enterprise po uplynutí skúšobnej\ndoby 30 dní. Získajte aktivačný kľúč [registráciou pre Grist\nPodnik]({{signupLink}}). Na spustenie nepotrebujete aktivačný kľúč\nGrist Core.\n\nZistite viac v našom [Help Center] ({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivačný kľúč sa používa na spustenie Grist Enterprise po uplynutí skúšobnej\ndoby 30 dní. Získajte aktivačný kľúč [registráciou pre Grist\nPodnik]({{signupLink}}). Na spustenie nepotrebujete aktivačný kľúč\nGrist Core.\n\nZistite viac v našom [Help Center] ({{helpCenter}}).",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivačný klúč slúží na spustenie aplikace Grist Enterprise po skúšobnej dobe.\npo uplynutí 30dennej zkúšobnej dobe. Aktivačný klúč získate [kontaktujte nás]({{contactLink}}) ešte dnes.\nAktivačný klúč nepotrebujete na spustenie aplikáce Grist Core.\n\nViac informacií sa dozviete v našom [Centre nápovedy]({{helpCenter}})."
     },
     "ViewLayout": {
         "Delete": "Odstrániť",
@@ -1790,5 +1797,35 @@
         "Record already assigned_one": "Záznam je už priradený",
         "Record already assigned_other": "Záznam je už priradený",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} záznam {{targetName}} je už priradený k {{sourceTable}} záznam {{oldSourceName}}."
+    },
+    "AuditLogStreamingConfig": {
+        "Add destination": "Pridať cieľ",
+        "Add streaming destination": "Pridať cieľ streamingu",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Naozaj chcete odstrániť tento cieľ streamovania? Túto akciu nie je možné vrátiť späť.",
+        "Cancel": "Zrušiť",
+        "Delete": "Zmazať",
+        "Delete streaming destination?": "Zmazať cieľ streamingu?",
+        "Destination": "Cieľ",
+        "Destinations": "Ciele",
+        "Edit": "Zmeniť",
+        "Edit streaming destination": "Zmeniť cieľ streamingu",
+        "Enter URL": "Zadať URL",
+        "Enter token": "Zadať token",
+        "Learn more": "Ďaľšie informácie",
+        "Save": "Uložiť",
+        "Splunk": "Splunk",
+        "Start streaming": "Spustiť streaming",
+        "Token": "Token",
+        "URL": "URL",
+        "Other": "Ostatné"
+    },
+    "AuditLogsPage": {
+        "Contact us": "Kontaktujte nás",
+        "Home": "Domov",
+        "Log streaming": "Streaming logov",
+        "Only site owners may access audit logs.": "Ku denníkom auditu môžu pristupovať iba vlastníci stránok.",
+        "upgrade your plan": "aktualizovať svoj plán",
+        "Audit logs for {{siteName}}": "Záznami auditu pre {{siteName}}",
+        "Audit Logs": "Záznami auditu"
     }
 }
