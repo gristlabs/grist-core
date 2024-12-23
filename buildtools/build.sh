@@ -18,6 +18,7 @@ if [[ -e ext/buildtools/webpack.config.js ]]; then
 fi
 
 set -x
+node buildtools/sanitize_translations.js
 tsc --build $PROJECT
 buildtools/update_type_info.sh app
 webpack --config $WEBPACK_CONFIG --mode production
