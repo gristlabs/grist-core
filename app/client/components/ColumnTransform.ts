@@ -234,9 +234,10 @@ export class ColumnTransform extends Disposable {
     } finally {
       // Wait until the change completed to set column back, to avoid value flickering.
       field.colRef(origRef);
-      void tableData.sendTableAction(['RemoveColumn', transformColId]);
+      const cleanupProm = tableData.sendTableAction(['RemoveColumn', transformColId]);
       this.cleanup();
       this.dispose();
+      await cleanupProm;
     }
   }
 
