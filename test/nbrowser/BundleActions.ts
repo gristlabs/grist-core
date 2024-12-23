@@ -6,8 +6,7 @@
  */
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {server} from "test/nbrowser/testUtils";
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {SQLiteDB} from 'app/server/lib/SQLiteDB';
 import fs from 'fs';
 
