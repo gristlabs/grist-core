@@ -1,0 +1,26 @@
+{
+    "ACUserManager": {
+        "We'll email an invite to {{email}}": "Küldünk egy meghívó e-mailt ide: {{email}}",
+        "Enter email address": "Adja meg az e-mail címet",
+        "Invite new member": "Új tag meghívása"
+    },
+    "AccessRules": {
+        "Add User Attributes": "Új felhasználó attribútum",
+        "Everyone": "Mindenki",
+        "Default Rules": "Alapértelmezett szabályok",
+        "Invalid": "Érvénytelen",
+        "Add Table Rules": "Új táblázat szabály",
+        "Add Column Rule": "Új oszlop szabály",
+        "Add Default Rule": "Új alapértelmezett szabály",
+        "Attribute name": "Attribútum neve",
+        "Allow everyone to view Access Rules.": "Mindeki láthassa a hozzáférési szabályokat.",
+        "Attribute to Look Up": "Keresendő attribútum",
+        "Checking...": "Ellenőrzés…",
+        "Condition": "Feltétel",
+        "Delete Table Rules": "Táblázat szabályok törlése",
+        "Enter Condition": "Írja be a feltételt",
+        "Everyone Else": "Mindenki más",
+        "Lookup Column": "Keresési oszlop",
+        "Lookup Table": "Keresési táblázat"
+    }
+}
