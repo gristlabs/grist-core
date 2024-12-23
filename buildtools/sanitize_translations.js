@@ -21,9 +21,9 @@ const fileStream = fs.readdirSync(directoryPath)
                      // Make sure it's a file
                      .filter((file) => fs.lstatSync(file).isFile())
                      // Make sure it is json file
-                    .filter((file) => file.endsWith(".json"))
+                     .filter((file) => file.endsWith(".json"))
                      // Read the contents and put it into an array [path, json]
-                    .map((file) => [file, JSON.parse(fs.readFileSync(file, "utf8"))]);
+                     .map((file) => [file, JSON.parse(fs.readFileSync(file, "utf8"))]);
 
 console.debug(`Found ${fileStream.length} files to sanitize`);
 
@@ -40,7 +40,7 @@ console.debug(`Found ${onlyDifferent.length} files that need sanitizing`);
 // Write the sanitized json back to the files
 onlyDifferent.forEach(([file, json, sanitizedJson]) => {
   console.info(`Sanitizing ${file}`);
-  fs.writeFileSync(file, JSON.stringify(sanitizedJson, null, 2));
+  fs.writeFileSync(file, JSON.stringify(sanitizedJson, null, 4) + "\n");
 });
 
 console.info("Sanitization complete");
