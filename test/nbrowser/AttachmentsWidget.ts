@@ -11,21 +11,13 @@ import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
 describe("AttachmentsWidget", function () {
   this.timeout(20000);
-  setupTestSuite();
+  const cleanup = setupTestSuite();
   let docId: string;
+  let session: gu.Session;
 
   before(async function () {
-    docId = (
-      await gu.importFixturesDoc(
-        "chimpy",
-        "nasa",
-        "Horizon",
-        "Hello.grist",
-        false
-      )
-    ).id;
-    await server.simulateLogin("Chimpy", "chimpy@getgrist.com", "nasa");
-    await gu.loadDoc(`/o/nasa/doc/${docId}`);
+    session = await gu.session().user("user1").teamSite.login();
+    docId = (await session.tempDoc(cleanup, "Hello.grist")).id;
   });
 
   afterEach(async function () {
@@ -114,8 +106,9 @@ describe("AttachmentsWidget", function () {
       // Here we check that after checking for unused attachments and removing expired ones
       // (as should happen automatically every hour)
       // the metadata records (and thus files) are still there, but appropriately marked as soft deleted.
-      const headers = { Authorization: "Bearer api_key_for_chimpy" };
-      const url = server.getUrl("nasa", `/api/docs/${docId}`);
+
+      const headers = { Authorization: `Bearer ${session.getApiKey()}` };
+      const url = server.getUrl(session.orgDomain, `/api/docs/${docId}`);
       let resp = await fetch(
         url + "/attachments/removeUnused?verifyfiles=1&expiredonly=1",
         { headers, method: "POST" }
@@ -194,7 +187,7 @@ describe("AttachmentsWidget", function () {
     await driver.sendKeys(Key.ENTER);
 
     const fetchOptions = {
-      headers: { Authorization: "Bearer api_key_for_chimpy" },
+      headers: { Authorization: `Bearer ${session.getApiKey()}` },
     };
     const hrefDownload = await driver
       .findWait(".test-pw-download", 500)
@@ -293,6 +286,7 @@ describe("AttachmentsWidget", function () {
     assert.equal(await gu.getCell({ col: 0, rowNum: 6 }).isPresent(), false);
     const cell = await gu.getCell({ col: 0, rowNum: 5 });
 
+    // First upload via the attachment icon.
     await gu.fileDialogUpload("uploads/grist.png", () =>
       cell.find(".test-attachment-icon").click()
     );
@@ -302,13 +296,36 @@ describe("AttachmentsWidget", function () {
         1
       )
     );
-
     assert.deepEqual(
       await getCellThumbnailTitles(gu.getCell({ col: 0, rowNum: 5 })),
       ["grist.png"]
     );
-    // Assert that a row is added
     assert.equal(await gu.getCell({ col: 0, rowNum: 6 }).isPresent(), true);
+
+    // Then do it again via the attachment editor.
+    await gu.fileDialogUpload("uploads/grist.png", async () => {
+      await gu.getCell({ col: 0, rowNum: 6 }).click();
+      await driver.sendKeys(Key.ENTER);
+      await driver.sleep(500);
+      await driver.find(".test-pw-add").click();
+    });
+    await gu.waitToPass(async () =>
+      assert.isTrue(
+        await driver.find(".test-pw-attachment-content").isDisplayed()
+      )
+    );
+    assert.isFalse(
+      await driver
+        .findContent(".test-pw-attachment-content", /Preview not available/)
+        .isPresent()
+    );
+    await driver.find(".test-pw-close").click();
+    await gu.waitForServer();
+    assert.deepEqual(
+      await getCellThumbnailTitles(gu.getCell({ col: 0, rowNum: 6 })),
+      ["grist.png"]
+    );
+    assert.equal(await gu.getCell({ col: 0, rowNum: 7 }).isPresent(), true);
   });
 
   it("should not initialize as invalid when a row is added", async function () {
@@ -421,7 +438,7 @@ describe("AttachmentsWidget", function () {
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=file1.mov&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=5&inline=1/
+      /name=file1.mov&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=6&inline=1/
     );
 
     await driver.sendKeys(Key.RIGHT);
@@ -432,7 +449,7 @@ describe("AttachmentsWidget", function () {
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=file2.mp3&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=6&inline=1/
+      /name=file2.mp3&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=7&inline=1/
     );
 
     // Test that for an unsupported file, the extension is shown along with a message.
@@ -444,7 +461,7 @@ describe("AttachmentsWidget", function () {
     );
     assert.match(
       await driver.find(".test-pw-attachment-content").getAttribute("data"),
-      /name=file3.zip&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=7&inline=1/
+      /name=file3.zip&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=8&inline=1/
     );
     assert.equal(
       await driver.find(".test-pw-attachment-content").getText(),
@@ -544,5 +561,31 @@ describe("AttachmentsWidget", function () {
     await driver.withActions((a) => a.doubleClick(cell));
     await driver.findWait(".test-pw-attachment-content", 1000);
     assert.isFalse(await gu.isAlertShown());
+    await gu.sendKeys(Key.ESCAPE);
+  });
+
+  it("should allow uploading from card view", async function () {
+    // This was a little broken - the click event on the upload icon would
+    // trigger an edit action on the field if the field had focus prior
+    // to the click, causing both the file picker and the editor to be
+    // shown at the same time.
+    await gu.changeWidget("Card");
+    const field = await gu.getCardCell("A");
+    await field.click();
+    await gu.fileDialogUpload("uploads/grist.png", () =>
+      field.mouseMove().find(".test-attachment-icon").click()
+    );
+    await gu.waitToPass(async () =>
+      assert.lengthOf(
+        await gu.getCardCell("A").findAll(".test-pw-thumbnail"),
+        4
+      )
+    );
+    assert.deepEqual(await getCellThumbnailTitles(gu.getCardCell("A")), [
+      "renamed.pdf",
+      "grist.png",
+      "image_with_script.svg",
+      "grist.png",
+    ]);
   });
 });

@@ -18,7 +18,7 @@ export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
     menuItemCmd(allCommands.contextMenuCopy, t('Copy')),
     menuItemCmd(allCommands.contextMenuPaste, t('Paste'), disableForReadonlyColumn),
     menuDivider(),
-    menuItemCmd(allCommands.clearCardFields, t('Clear field'), disableForReadonlyColumn),
+    menuItemCmd(allCommands.clearValues, t('Clear field'), disableForReadonlyColumn),
     menuItemCmd(allCommands.hideCardFields, t('Hide field')),
     menuDivider(),
     menuItemCmd(allCommands.copyLink, t('Copy anchor link')),

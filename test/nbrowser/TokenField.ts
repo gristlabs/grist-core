@@ -24,12 +24,13 @@ describe('TokenField', function() {
 
   it('should clear choice list on card view', async function() {
     // Test for a bug. In Card or Card List widgets, if the cursor is on a Ref List or Choice List field and you
-    // hit Backspace or Delete , the behavior is the same as hitting enter (pulls up list of references/choices to add
+    // hit Backspace or Delete, the behavior was the same as hitting Enter (pulls up list of references/choices to add
     // one more, does not clear cell).
 
     // The bug was there because choice list editor and ref list editor didn't handle empty string as an edit value,
     // which is a signal to clear the value. In a grid view, DELETE and BACKSPACE were handled by the grid itself.
 
+    // As of November 26, 2024, the behavior now matches GridView.
     const revert = await gu.begin();
     await gu.getCell('A', 1).click();
 
@@ -49,24 +50,25 @@ describe('TokenField', function() {
     // Change it to card view.
     await gu.changeWidget('Card');
 
-    // Test that DELETE opens the editor and clears the value.
+    // Test that DELETE clears the value.
     // Clicking on the cell twice will put it in edit mode, so we will first click other cell.
     await gu.getDetailCell('B', 1).click();
     await gu.getDetailCell('A', 1).click();
     await gu.sendKeys(Key.DELETE);
-    await gu.checkTokenEditor('');
-    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitForServer();
+    assert.isEmpty(await gu.getDetailCell('A', 1).getText());
 
     // Now test BACKSPACE.
+    await gu.undo();
+    assert.equal(await gu.getDetailCell('A', 1).getText(), 'one\ntwo');
     await gu.getDetailCell('B', 1).click();
     await gu.getDetailCell('A', 1).click();
     await gu.sendKeys(Key.BACK_SPACE);
-    await gu.checkTokenEditor('');
-    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitForServer();
+    assert.isEmpty(await gu.getDetailCell('A', 1).getText());
 
-    // Value should still be there.
-    assert.equal(await gu.getDetailCell('A', 1).getText(), 'one\ntwo');
     // But ENTER works fine, it just opens the editor.
+    await gu.undo();
     await gu.sendKeys(Key.ENTER);
     await gu.checkTokenEditor('one\ntwo');
     await gu.sendKeys(Key.ESCAPE);
@@ -111,13 +113,12 @@ describe('TokenField', function() {
     await gu.changeWidget('Card');
     assert.equal(await gu.getDetailCell('A', 1).getText(), 'Toy Story\nAlien');
     await gu.sendKeys(Key.DELETE);
-    await gu.checkTokenEditor('');
-    await gu.sendKeys(Key.ESCAPE);
-    await gu.sendKeys(Key.BACK_SPACE);
-    await gu.checkTokenEditor('');
-    await gu.sendKeys(Key.ESCAPE);
     await gu.waitForServer();
-    // Nothing should have changed.
+    assert.isEmpty(await gu.getDetailCell('A', 1).getText());
+    await gu.undo();
     assert.equal(await gu.getDetailCell('A', 1).getText(), 'Toy Story\nAlien');
+    await gu.sendKeys(Key.BACK_SPACE);
+    await gu.waitForServer();
+    assert.isEmpty(await gu.getDetailCell('A', 1).getText());
   });
 });

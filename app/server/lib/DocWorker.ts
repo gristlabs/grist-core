@@ -13,7 +13,7 @@ import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
-import {getDocId, integerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
+import {getDocId, integerParam, optIntegerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import {OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import contentDisposition from 'content-disposition';
 import * as express from 'express';
@@ -39,10 +39,11 @@ export class DocWorker {
       const docSession = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
                                              integerParam(req.query.docFD, 'docFD'));
       const activeDoc = docSession.activeDoc;
-      const colId = stringParam(req.query.colId, 'colId');
-      const tableId = stringParam(req.query.tableId, 'tableId');
-      const rowId = integerParam(req.query.rowId, 'rowId');
-      const cell = {colId, tableId, rowId};
+      const colId = optStringParam(req.query.colId, 'colId');
+      const tableId = optStringParam(req.query.tableId, 'tableId');
+      const rowId = optIntegerParam(req.query.rowId, 'rowId');
+      const cell =
+        colId && tableId && rowId ? { colId, tableId, rowId } : undefined;
       const maybeNew = isAffirmative(req.query.maybeNew);
       const attId = integerParam(req.query.attId, 'attId');
       const attRecord = activeDoc.getAttachmentMetadata(attId);

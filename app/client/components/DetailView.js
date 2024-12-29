@@ -168,7 +168,7 @@ DetailView.generalCommands = {
 };
 
 DetailView.fieldCommands = {
-  clearCardFields: function() { this._clearCardFields(); },
+  clearValues: function() { this._clearCardFields(); },
   hideCardFields: function() { this._hideCardFields(); },
 };
 

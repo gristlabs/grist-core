@@ -1,6 +1,7 @@
 import {CellValue} from "app/common/DocActions";
 import * as commands from 'app/client/components/commands';
 import {dragOverClass} from 'app/client/lib/dom';
+import {stopEvent} from 'app/client/lib/domUtils';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {cssRow} from 'app/client/ui/RightPanelStyles';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -55,7 +56,10 @@ export class AttachmentsWidget extends NewAbstractWidget {
       dragOverClass('attachment_drag_over'),
       cssAttachmentIcon(
         cssAttachmentIcon.cls('-hover', (use) => use(values).length > 0),
-        dom.on('click', () => this._selectAndSave(row, cellValue)),
+        dom.on('click', async (ev) => {
+          stopEvent(ev);
+          await this._selectAndSave(row, cellValue);
+        }),
         testId('attachment-icon'),
       ),
       dom.maybe<number>(row.id, rowId => {

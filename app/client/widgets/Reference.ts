@@ -5,6 +5,7 @@ import {
   FormSelectConfig
 } from 'app/client/components/Forms/FormConfig';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {stopEvent} from 'app/client/lib/domUtils';
 import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {TableRec} from 'app/client/models/DocModel';
@@ -143,7 +144,9 @@ export class Reference extends NTextBox {
       cssRefIcon('FieldReference',
         cssRefIcon.cls('-view-as-card', use =>
           use(referenceId) !== 0 && use(formattedValue).hasRecordCard),
-        dom.on('click', async () => {
+        dom.on('click', async (ev) => {
+          stopEvent(ev);
+
           if (referenceId.get() === 0 || !formattedValue.get().hasRecordCard) { return; }
 
           const rowId = referenceId.get() as UIRowId;
@@ -155,10 +158,7 @@ export class Reference extends NTextBox {
           const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
           await urlState().pushUrl(anchorUrlState, {replace: true});
         }),
-        dom.on('mousedown', (ev) => {
-          ev.stopPropagation();
-          ev.preventDefault();
-        }),
+        dom.on('mousedown', (ev) => stopEvent(ev)),
         hideInPrintView(),
         testId('ref-link-icon'),
       ),

@@ -591,10 +591,6 @@ export const groups: CommendGroupDef[] = [{
       keys: [],
       desc: 'Clear the selected columns'
     }, {
-      name: 'clearCardFields',
-      keys: [],
-      desc: 'Clear the selected fields'
-    }, {
       name: 'convertFormulasToData',
       keys: [],
       desc: 'Convert the selected columns from formula to data'

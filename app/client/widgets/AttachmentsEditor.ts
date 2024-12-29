@@ -67,11 +67,11 @@ export class AttachmentsEditor extends NewBaseEditor {
 
     const docData: DocData = options.gristDoc.docData;
     const cellValue: CellValue = options.cellValue;
-    const cell: SingleCell = {
+    const cell: SingleCell | null = options.rowId ? {
       rowId: options.rowId,
       colId: options.field.colId(),
       tableId: options.field.column().table().tableId(),
-    };
+    } : null;
 
     // editValue is abused slightly to indicate a 1-based index of the attachment.
     const initRowIndex: number|undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
@@ -204,7 +204,12 @@ export class AttachmentsEditor extends NewBaseEditor {
     att.filename.set(this._attachmentsTable.getValue(att.rowId, 'fileName')!);
   }
 
-  private _getUrl(cell: SingleCell, attId: number, filename: string, inline?: boolean): string {
+  private _getUrl(
+    cell: SingleCell | null,
+    attId: number,
+    filename: string,
+    inline?: boolean
+  ): string {
     return this._docComm.docUrl('attachment') + '?' + encodeQueryParams({
       ...this._docComm.getUrlParams(),
       name: filename,

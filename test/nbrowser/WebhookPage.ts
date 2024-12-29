@@ -133,7 +133,7 @@ describe('WebhookPage', function () {
       assert.equal(await getField(1, 'Header Authorization'), 'Bearer 1234');
     });
     await gu.getDetailCell({col:'Header Authorization', rowNum: 1}).click();
-    await gu.enterCell(Key.DELETE, Key.ENTER);
+    await gu.sendKeys(Key.DELETE);
     await gu.waitForServer();
   });
 
