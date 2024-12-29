@@ -1646,7 +1646,13 @@
         "Session Secret": "Sitzungsgeheimnis",
         "Enterprise": "Unternehmen",
         "Enable Grist Enterprise": "Aktivieren Sie Grist Enterprise",
-        "checking": "Überprüfung"
+        "checking": "Überprüfung",
+        "Audit Logs": "Audit-Protokolle",
+        "Contact us": "Kontakt",
+        "New, Enterprise": "Neu, Enterprise",
+        "Off": "Aus",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mehr",
+        "Log Streaming": "Log Streaming"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -1763,7 +1769,8 @@
         "Disable Grist Enterprise": "Grist Enterprise deaktivieren",
         "Enable Grist Enterprise": "Grist Enterprise aktivieren",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Testphase\nvon 30 Tagen. Sie erhalten einen Aktivierungsschlüssel, indem Sie [sich für Grist\nEnterprise anmelden]({{signupLink}}). Sie brauchen keinen Aktivierungsschlüssel, um\nGrist Core zu benutzen.\n\nErfahren Sie mehr in unserem [Help Center]({{helpCenter}}).",
-        "Grist Enterprise is **enabled**.": "Grist Enterprise ist **aktiviert**."
+        "Grist Enterprise is **enabled**.": "Grist Enterprise ist **aktiviert**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Probezeit\nvon 30 Tagen. Holen Sie sich noch heute einen Aktivierungsschlüssel, indem Sie uns [kontaktieren]({{contactLink}}). Sie benötigen\nkeinen Aktivierungsschlüssel, um Grist Core auszuführen.\n\nErfahren Sie mehr in unserem [Hilfe-Center]({{helpCenter}})."
     },
     "ViewLayout": {
         "Delete": "Löschen",
@@ -1853,5 +1860,35 @@
         "Record already assigned_other": "Datensatz bereits zugeordnet",
         "Reassign to new {{sourceTable}} records.": "Neuzuordnung zu neuen {{sourceTable}} Datensätzen.",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} Der Datensatz {{targetName}} ist bereits dem Datensatz {{sourceTable}} {{oldSourceName}} zugeordnet."
+    },
+    "AuditLogStreamingConfig": {
+        "Add destination": "Ziel hinzufügen",
+        "Delete streaming destination?": "Streaming-Ziel löschen?",
+        "Edit streaming destination": "Streaming-Ziel bearbeiten",
+        "Enter URL": "URL eingeben",
+        "Other": "Sonstiges",
+        "Save": "Speichern",
+        "Splunk": "Splunk",
+        "Add streaming destination": "Streaming-Ziel hinzufügen",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Sind Sie sicher, dass Sie dieses Streaming-Ziel löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+        "Cancel": "Abbrechen",
+        "Delete": "Löschen",
+        "Destination": "Ziel",
+        "Destinations": "Ziele",
+        "Edit": "Bearbeiten",
+        "Enter token": "Token eingeben",
+        "Learn more": "Mehr erfahren",
+        "Start streaming": "Streaming starten",
+        "Token": "Token",
+        "URL": "URL"
+    },
+    "AuditLogsPage": {
+        "Audit Logs": "Audit-Protokolle",
+        "Contact us": "Kontakt",
+        "Home": "Startseite",
+        "Only site owners may access audit logs.": "Nur Website-Besitzer können auf Audit-Protokolle zugreifen.",
+        "Log streaming": "Log Streaming",
+        "upgrade your plan": "aktualisieren Sie Ihren Plan",
+        "Audit logs for {{siteName}}": "Audit-Protokolle für {{siteName}}"
     }
 }
