@@ -804,11 +804,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         }
       }
 
-      if (!isNewFile && !shouldUpdate) {
-        return false;
+      if (isNewFile || shouldUpdate) {
+        await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
       }
-
-      await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
 
       return isNewFile;
     });
@@ -817,14 +815,17 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   /**
    * Reads and returns the data for the given attachment.
    * @param {string} fileIdent - The unique identifier of a file, as used by findOrAttachFile.
-   * @returns {Promise[Buffer]} The data buffer associated with fileIdent.
+   * @param {boolean} includeData - Load file contents from the database, in addition to metadata
+   * @returns {Promise[FileInfo | null]} - File information, or null if no record exists for that file identifier.
    */
-  public getFileInfo(fileIdent: string): Promise<FileInfo | null> {
-    return this.get('SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?', fileIdent)
+  public getFileInfo(fileIdent: string, includeData: boolean = true): Promise<FileInfo | null> {
+    const columns = includeData ? 'ident, storageId, data' : 'ident, storageId';
+    return this.get(`SELECT ${columns} FROM _gristsys_Files WHERE ident=?`, fileIdent)
       .then(row => row ? ({
         ident: row.ident as string,
         storageId: (row.storageId ?? null) as (string | null),
-        data: row.data as Buffer,
+        // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
+        data: row.data ? row.data as Buffer : Buffer.alloc(0),
       }) : null);
   }
 

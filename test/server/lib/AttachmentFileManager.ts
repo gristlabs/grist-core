@@ -1,6 +1,7 @@
 import { DocStorage, FileInfo } from "app/server/lib/DocStorage";
 import {
-  AttachmentFileManager, AttachmentRetrievalError,
+  AttachmentFileManager,
+  AttachmentRetrievalError,
   StoreNotAvailableError,
   StoresNotConfiguredError
 } from "app/server/lib/AttachmentFileManager";
@@ -8,6 +9,7 @@ import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/li
 import { makeTestingFilesystemStoreSpec } from "./FilesystemAttachmentStore";
 import { assert } from "chai";
 import * as sinon from "sinon";
+import { getDocPoolIdFromDocInfo } from "../../../app/server/lib/AttachmentStore";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<DocStorage, 'docName' | 'getFileInfo' | 'findOrAttachFile'>
@@ -48,7 +50,10 @@ function createDocStorageFake(docName: string): DocStorage {
 
 async function createFakeAttachmentStoreProvider(): Promise<IAttachmentStoreProvider> {
   return new AttachmentStoreProvider(
-    [await makeTestingFilesystemStoreSpec("filesystem")],
+    [
+      await makeTestingFilesystemStoreSpec("filesystem"),
+      await makeTestingFilesystemStoreSpec("filesystem-alt"),
+    ],
     "TEST-INSTALLATION-UUID"
   );
 }
@@ -209,5 +214,45 @@ describe("AttachmentFileManager", function() {
     const fileData = await manager.getFileData(addFileResult.fileIdent);
     assert(fileData);
     assert.equal(fileData.toString(), defaultTestFileContent);
+  });
+
+  async function testStoreTransfer(sourceStore?: string, destStore?: string) {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const fileAddResult = await manager.addFile(sourceStore, ".txt", Buffer.from(defaultTestFileContent));
+    await manager.transferFileToOtherStore(fileAddResult.fileIdent, destStore);
+
+    if (!destStore) {
+      const contents = (await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent));
+      console.log(contents);
+      assert.equal(
+        (await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent))?.data?.toString(),
+        defaultTestFileContent,
+      );
+      return;
+    }
+
+    const store = (await defaultProvider.getStore(destStore))!;
+    assert(
+      await store.exists(getDocPoolIdFromDocInfo(docInfo), fileAddResult.fileIdent),
+      "file does not exist in new store"
+    );
+  }
+
+  it("can transfer a file from internal to external storage", async function() {
+    await testStoreTransfer(undefined, defaultProvider.listAllStoreIds()[0]);
+  });
+
+  it("can transfer a file from external to internal storage", async function() {
+    await testStoreTransfer(defaultProvider.listAllStoreIds()[0], undefined);
+  });
+
+  it("can transfer a file from external to a different external storage", async function() {
+    await testStoreTransfer(defaultProvider.listAllStoreIds()[0], defaultProvider.listAllStoreIds()[1]);
   });
 });
