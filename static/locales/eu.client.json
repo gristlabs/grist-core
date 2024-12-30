@@ -80,7 +80,7 @@
         "Activation": "Aktibazioa",
         "Billing Account": "Fakturazio-kontua",
         "Toggle Mobile Mode": "Sakelako modua bai/ez",
-        "Upgrade Plan": "Hobekuntza-plana"
+        "Upgrade Plan": "Hobetu kontratua"
     },
     "ViewAsDropdown": {
         "View As": "Ikusi honela",
@@ -354,7 +354,7 @@
         "Data Size": "Datuen tamaina",
         "For higher limits, ": "Muga altuetarako, ",
         "Rows": "Errenkadak",
-        "Contact the site owner to upgrade the plan to raise limits.": "Jarri gunearen jabearekin harremanetan planaren mugak handitzeko.",
+        "Contact the site owner to upgrade the plan to raise limits.": "Jarri gunearen jabearekin harremanetan kontratuaren mugak handitzeko.",
         "Usage statistics are only available to users with full access to the document data.": "Erabilera-estatistikak dokumentuen datuetarako sarbide osoa duten erabiltzaileentzat baino ez dira.",
         "start your 30-day free trial of the Pro plan.": "Hasi 30 eguneko Pro planaren doako proba."
     },
@@ -578,7 +578,7 @@
         "Renew": "Berriztu",
         "Report a problem": "Eman akats baten berri",
         "Manage billing": "Kudeatu fakturazioa",
-        "Upgrade Plan": "Hobetu plana"
+        "Upgrade Plan": "Hobetu kontratua"
     },
     "OnBoardingPopups": {
         "Finish": "Amaitu",
@@ -882,7 +882,7 @@
         "Choice List": "Aukeren zerrenda",
         "Attachment": "Eranskina",
         "* Workspaces are available on team plans. ": "* Lan-eremuak TEAM planean daude eskuragarri. ",
-        "Upgrade now": "Eguneratu orain",
+        "Upgrade now": "Hobetu orain",
         "Numeric": "Zenbakizkoa",
         "Integer": "Osoa",
         "DateTime": "Data eta Ordua",
@@ -1196,11 +1196,11 @@
         "Formula AI Assistant is only available for logged in users.": "AA formula-laguntzailea saioa hasitako erabiltzaileentzat bakarrik dago eskuragarri.",
         "For higher limits, contact the site owner.": "Muga handiagoetarako, jarri harremanetan gunearen jabearekin.",
         "For higher limits, {{upgradeNudge}}.": "Muga handiagoetarako, {{upgradeNudge}}.",
-        "upgrade to the Pro Team plan": "Pro Team planera pasa zaitez",
+        "upgrade to the Pro Team plan": "Pro Team kontratura pasa zaitez",
         "You have {{numCredits}} remaining credits.": "{{numCredits}} kreditu gelditzen zaizkizu.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Formulekin bakarrik lagundu dezaket. Ezin ditut taulak, zutabeak eta bistak sortu, ezta sarbide-arauak idatzi ere.",
         "You have used all available credits.": "Kreditu guztiak erabili dituzu.",
-        "upgrade your plan": "hobetu zure plana"
+        "upgrade your plan": "hobetu zure kontratua"
     },
     "ChartView": {
         "Pick a column": "Hautatu zutabea",
@@ -1577,7 +1577,11 @@
         "Enterprise": "Enterprise",
         "checking": "egiaztatzen",
         "Contact us": "Jarri harremanetan",
-        "Off": "Itzalita"
+        "Off": "Itzalita",
+        "Log Streaming": "Erregistro-jarioa",
+        "New, Enterprise": "Berria, Enpresa",
+        "Audit Logs": "Erregistro-auditoretza",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} gehiago"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -1713,7 +1717,8 @@
         "Grist Enterprise is **enabled**.": "Grist Enterprise **gaituta** dago.",
         "Disable Grist Enterprise": "Ezgaitu Grist Enterprise",
         "Enable Grist Enterprise": "Gaitu Grist Enterprise",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren ondoren Grist Enterprise exekutatzeko.\nEskuratu aktibazio-gako bat gaur bertan [gurekin harremanetan jarri]({{contactLink}})z.\nEz duzu aktibazio-gakorik behar Grist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n."
     },
     "ViewLayout": {
         "Delete data and this widget.": "Ezabatu datuak eta widgeta.",
@@ -1817,9 +1822,21 @@
         "Save": "Gorde",
         "Splunk": "Splunk",
         "Token": "Tokena",
-        "URL": "URLa"
+        "URL": "URLa",
+        "Delete streaming destination?": "Jarioaren helburua ezabatu?",
+        "Add streaming destination": "Gehitu jariorako helburua",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Ziur jarioaren helmuga ezabatu nahi duzula? Eragiketa ezin da desegin.",
+        "Edit streaming destination": "Editatu jarioaren helmuga",
+        "Other": "Besteren bat",
+        "Start streaming": "Hasi jarioa"
     },
     "AuditLogsPage": {
-        "Contact us": "Jarri harremanetan"
+        "Contact us": "Jarri harremanetan",
+        "Audit logs for {{siteName}}": "Auditatu {{siteName}} guneko erregistroak",
+        "Log streaming": "Erregistroen jarioa",
+        "Only site owners may access audit logs.": "Guneko jabeek bakarrik atzitu ditzakete errgistro-auditoretzak.",
+        "Audit Logs": "Erregistro-auditoretza",
+        "Home": "Hasiera",
+        "upgrade your plan": "hobetu zure kontratua"
     }
 }
