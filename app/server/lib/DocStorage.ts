@@ -32,7 +32,6 @@ import cloneDeep = require('lodash/cloneDeep');
 import groupBy = require('lodash/groupBy');
 import { MinDBOptions } from './SqliteCommon';
 
-
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)
 // for verbose logging.
 const debuglog = util.debuglog('db');
@@ -803,7 +802,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           throw err;
         }
       }
-
       if (isNewFile || shouldUpdate) {
         await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
       }
