@@ -10,6 +10,7 @@ import { makeTestingFilesystemStoreSpec } from "./FilesystemAttachmentStore";
 import { assert } from "chai";
 import * as sinon from "sinon";
 import { getDocPoolIdFromDocInfo } from "../../../app/server/lib/AttachmentStore";
+import * as stream from "node:stream";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<DocStorage, 'docName' | 'getFileInfo' | 'findOrAttachFile'>
@@ -259,6 +260,7 @@ describe("AttachmentFileManager", function() {
     }
 
     const store = (await defaultProvider.getStore(destStore))!;
+
     assert(
       await store.exists(getDocPoolIdFromDocInfo(docInfo), fileAddResult.fileIdent),
       "file does not exist in new store"
@@ -275,5 +277,25 @@ describe("AttachmentFileManager", function() {
 
   it("can transfer a file from external to a different external storage", async function() {
     await testStoreTransfer(defaultProvider.listAllStoreIds()[0], defaultProvider.listAllStoreIds()[1]);
+  });
+
+  it("throws an error if the downloaded file is corrupted", async function() {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const sourceStoreId = defaultProvider.listAllStoreIds()[0];
+    const fileAddResult = await manager.addFile(sourceStoreId, ".txt", Buffer.from(defaultTestFileContent));
+
+    const sourceStore = await defaultProvider.getStore(defaultProvider.listAllStoreIds()[0]);
+    const badData = stream.Readable.from(Buffer.from("I am corrupted"));
+    await sourceStore?.upload(getDocPoolIdFromDocInfo(docInfo), fileAddResult.fileIdent, badData);
+
+    const transferPromise =
+      manager.transferFileToOtherStore(fileAddResult.fileIdent, defaultProvider.listAllStoreIds()[1]);
+    await assert.isRejected(transferPromise, AttachmentRetrievalError, "should throw an error if file is corrupted");
   });
 });

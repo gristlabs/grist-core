@@ -54,7 +54,7 @@ export class AttachmentRetrievalError extends Error {
     const causeError = cause instanceof Error ? cause : undefined;
     const reason = (causeError ? causeError.message : cause) ?? "";
     const storeName = storeId? `'${storeId}'` : "internal storage";
-    super(`Unable to retrieve '${fileId}' from ${storeName}${reason}`);
+    super(`Unable to retrieve '${fileId}' from ${storeName} ${reason}`);
     this.storeId = storeId;
     this.fileId = fileId;
     this.cause = causeError;
@@ -148,7 +148,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     }
     const newStore = await this._getStore(newStoreId);
     if (!newStore) {
-      this._log.warn({ fileIdent, storeId: newStoreId }, `Unable to transfer file to unavailable store`);
+      this._log.warn({ fileIdent, storeId: newStoreId }, `unable to transfer file to unavailable store`);
       throw new StoreNotAvailableError(newStoreId);
     }
     // Store should error if the upload fails in any way.
