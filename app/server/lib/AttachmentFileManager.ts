@@ -67,7 +67,7 @@ interface AttachmentFileManagerLogInfo {
 }
 
 /**
- * Instantiated on a per-document to basis to provide a document with access to its attachments.
+ * Instantiated on a per-document basis to provide a document with access to its attachments.
  * Handles attachment uploading / fetching, as well as trying to ensure consistency with the local document database,
  * which tracks attachments and where they're stored.
  *

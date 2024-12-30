@@ -7,7 +7,7 @@ export type DocPoolId = string;
 type FileId = string;
 
 
-// Minimum required info from a document
+// Minimum document info needed to know which document pool to use.
 // Compatible with Document entity for ease of use
 export interface AttachmentStoreDocInfo {
   id: string;

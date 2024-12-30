@@ -392,8 +392,8 @@ export class ActiveDoc extends EventEmitter {
       loadTable: this._rawPyCall.bind(this, 'load_table'),
     });
 
-    // This will throw errors if _doc or externalAttachmentStoreProvider aren't provided, and ActiveDoc tries to use
-    // an external attachment store.
+    // This will throw errors if _options?.doc or externalAttachmentStoreProvider aren't provided,
+    // and ActiveDoc tries to use an external attachment store.
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
       externalAttachmentStoreProvider,
