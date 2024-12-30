@@ -25,11 +25,11 @@ class DocStorageFake implements IMinimalDocStorage {
     return this._files[fileIdent] ?? null;
   }
 
-  // Return value is true if the file was newly added.
+  // Needs to match the semantics of DocStorage's implementation.
   public async findOrAttachFile(
-    fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined
+    fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined, shouldUpdate: boolean = true
   ): Promise<boolean> {
-    if (fileIdent in this._files) {
+    if (fileIdent in this._files && !shouldUpdate) {
       return false;
     }
     this._files[fileIdent] = {
@@ -131,6 +131,28 @@ describe("AttachmentFileManager", function() {
     assert.isTrue(await store!.exists(docId, result.fileIdent), "file does not exist in store");
   });
 
+  it("shouldn't do anything when trying to add an existing attachment to a new store", async function() {
+    const docId = "12345";
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      { id: docId, trunkId: null  },
+    );
+
+    const allStoreIds = defaultProvider.listAllStoreIds();
+    const result1 = await manager.addFile(allStoreIds[0], ".txt", Buffer.from(defaultTestFileContent));
+    const store1 = await defaultProvider.getStore(allStoreIds[0]);
+    assert.isTrue(await store1!.exists(docId, result1.fileIdent), "file does not exist in store");
+
+    const result2 = await manager.addFile(allStoreIds[1], ".txt", Buffer.from(defaultTestFileContent));
+    const store2 = await defaultProvider.getStore(allStoreIds[1]);
+    // File shouldn't exist in the new store
+    assert.isFalse(await store2!.exists(docId, result2.fileIdent));
+
+    const fileInfo = await defaultDocStorageFake.getFileInfo(result2.fileIdent);
+    assert.equal(fileInfo?.storageId, allStoreIds[0], "file record should not refer to the new store");
+  });
+
   it("should get a file from local storage", async function() {
     const docId = "12345";
     const manager = new AttachmentFileManager(
@@ -228,8 +250,7 @@ describe("AttachmentFileManager", function() {
     await manager.transferFileToOtherStore(fileAddResult.fileIdent, destStore);
 
     if (!destStore) {
-      const contents = (await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent));
-      console.log(contents);
+      await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent);
       assert.equal(
         (await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent))?.data?.toString(),
         defaultTestFileContent,
