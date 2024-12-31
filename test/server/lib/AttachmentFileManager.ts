@@ -13,13 +13,22 @@ import { getDocPoolIdFromDocInfo } from "../../../app/server/lib/AttachmentStore
 import * as stream from "node:stream";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
-type IMinimalDocStorage = Pick<DocStorage, 'docName' | 'getFileInfo' | 'findOrAttachFile'>
+type IMinimalDocStorage = Pick<DocStorage, 'docName' | 'getFileInfo' | 'findOrAttachFile' | 'listAllFiles'>
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.
 class DocStorageFake implements IMinimalDocStorage {
   private _files: { [key: string]: FileInfo  } = {};
 
   constructor(public docName: string) {
+  }
+
+  public async listAllFiles(): Promise<FileInfo[]> {
+    const fileInfoPromises = Object.keys(this._files).map(key => this.getFileInfo(key));
+    const fileInfo = await Promise.all(fileInfoPromises);
+
+    const isFileInfo = (item: FileInfo | null): item is FileInfo => item !== null;
+
+    return fileInfo.filter(isFileInfo);
   }
 
   public async getFileInfo(fileIdent: string): Promise<FileInfo | null> {
@@ -299,5 +308,32 @@ describe("AttachmentFileManager", function() {
     const transferPromise =
       manager.transferFileToOtherStore(fileAddResult.fileIdent, defaultProvider.listAllStoreIds()[1]);
     await assert.isRejected(transferPromise, AttachmentRetrievalError, "checksum verification failed");
+  });
+
+  it("transfers all files in the background", async function() {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const allStoreIds = defaultProvider.listAllStoreIds();
+    const sourceStoreId = allStoreIds[0];
+    const fileAddResult1 = await manager.addFile(sourceStoreId, ".txt", Buffer.from("A"));
+    const fileAddResult2 = await manager.addFile(sourceStoreId, ".txt", Buffer.from("B"));
+    const fileAddResult3 = await manager.addFile(sourceStoreId, ".txt", Buffer.from("C"));
+
+    await manager.startTransferringAllFilesToOtherStore(allStoreIds[1]);
+    assert.isFalse(manager.isAllFileTransferCompleted());
+    await manager.allTransfersCompleted();
+    assert.isTrue(manager.isAllFileTransferCompleted());
+
+
+    const destStore = (await defaultProvider.getStore(allStoreIds[1]))!;
+    const poolId = getDocPoolIdFromDocInfo(docInfo);
+    assert(await destStore.exists(poolId, fileAddResult1.fileIdent));
+    assert(await destStore.exists(poolId, fileAddResult2.fileIdent));
+    assert(await destStore.exists(poolId, fileAddResult3.fileIdent));
   });
 });
