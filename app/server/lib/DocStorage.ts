@@ -827,6 +827,16 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       }) : null);
   }
 
+  public async listAllFiles(): Promise<FileInfo[]> {
+    const rows = await this.all(`SELECT ident, storageId FROM _gristsys_Files`);
+
+    return rows.map(row => ({
+      ident: row.ident as string,
+      storageId: (row.storageId ?? null) as (string | null),
+      // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
+      data: Buffer.alloc(0),
+    }));
+  }
 
   /**
    * Fetches the given table from the database. See fetchQuery() for return value.
