@@ -263,7 +263,10 @@ export class AttachmentFileManager implements IAttachmentFileManager {
           this._log.warn({ fileIdent, storeId: targetStoreId }, `transfer failed: ${e.message}`);
         }
         finally {
-          this._pendingFileTransfers.delete(fileIdent);
+          // If a transfer request comes in mid-transfer, it will need re-running.
+          if (this._pendingFileTransfers.get(fileIdent) == targetStoreId) {
+            this._pendingFileTransfers.delete(fileIdent);
+          }
         }
       }
     }
