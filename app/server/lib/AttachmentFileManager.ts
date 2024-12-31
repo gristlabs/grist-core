@@ -137,6 +137,13 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   // file will be deleted, as the default _addFileToX behaviour is to avoid re-uploading files.
   public async transferFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined): Promise<void> {
     this._log.info({ fileIdent, storeId: newStoreId }, `transferring file to new store`);
+    const fileMetadata = await this._docStorage.getFileInfo(fileIdent, false);
+    // This check runs before the file is retrieved as an optimisation to avoid loading files into memory unnecessarily.
+    if (!fileMetadata || fileMetadata.storageId == newStoreId) {
+      return;
+    }
+    // It's possible that the record has changed between the original metadata check and here. However, the worst
+    // case is we transfer a file that's already been transferred, so no need to re-check.
     // Streaming isn't an option here, as SQLite only supports buffers, so we have at least one copy in memory.
     const file = await this._getFile(fileIdent);
     if (!await validateFileChecksum(fileIdent, file.data)) {
@@ -155,7 +162,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     await this._storeFileInAttachmentStore(newStore, fileIdent, file.data);
 
     // Don't remove the file from the previous store, in case we need to roll back to an earlier snapshot.
-    // Internal storage is the exception, as that's included in snapshots.
+    // Internal storage is the exception (and is automatically erased), as that's included in snapshots.
   }
 
   private async _addFile(
