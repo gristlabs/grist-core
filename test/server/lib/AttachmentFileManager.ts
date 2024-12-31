@@ -248,7 +248,9 @@ describe("AttachmentFileManager", function() {
     );
 
     const fileAddResult = await manager.addFile(sourceStore, ".txt", Buffer.from(defaultTestFileContent));
-    await manager.transferFileToOtherStore(fileAddResult.fileIdent, destStore);
+    manager.startTransferringFileToOtherStore(fileAddResult.fileIdent, destStore);
+
+    await manager.allTransfersCompleted();
 
     if (!destStore) {
       await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent);
@@ -296,6 +298,6 @@ describe("AttachmentFileManager", function() {
 
     const transferPromise =
       manager.transferFileToOtherStore(fileAddResult.fileIdent, defaultProvider.listAllStoreIds()[1]);
-    await assert.isRejected(transferPromise, AttachmentRetrievalError, "should throw an error if file is corrupted");
+    await assert.isRejected(transferPromise, AttachmentRetrievalError, "checksum verification failed");
   });
 });
