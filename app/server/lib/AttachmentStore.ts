@@ -11,8 +11,9 @@ type FileId = string;
 // Compatible with Document entity for ease of use
 export interface AttachmentStoreDocInfo {
   id: string;
-  // This should NOT be an optional: the programmer should make an explicit choice for this value to prevent
-  // accidental omission breaking attachments.
+  // We explicitly make this a union type instead of making the attribute optional because the
+  // programmer must make a conscious choice to mark it as null or undefined, not merely omit it.
+  // Omission could easily result in invalid behaviour.
   trunkId: string | null | undefined;
 }
 
@@ -20,8 +21,9 @@ export interface AttachmentStoreDocInfo {
  * Gets the correct pool id for a given document, given the document's id and trunk id.
  *
  * Attachments are stored in a "Document Pool", which is used to manage the attachments' lifecycle.
- * Document pools are shared between snapshots and forks, but not between documents. This provides quick forking
- * and snapshotting (not having to copy attachments), while avoiding more complex systems like reference tracking.
+ * Document pools are shared between snapshots and forks, but not between documents. This provides
+ * quick forking and snapshotting (not having to copy attachments), while avoiding more complex
+ * systems like reference tracking.
  *
  * Generally, the pool id of a document should be its trunk id if available (because it's a fork),
  * or the document's id (if it isn't a fork).
@@ -29,12 +31,14 @@ export interface AttachmentStoreDocInfo {
  * This means that attachments need copying to a new pool when a document is copied.
  * Avoids other areas of the codebase having to understand how documents are mapped to pools.
  *
- * This is a key security measure, as only a specific document and its forks can access its attachments. This helps
- * prevent malicious documents being uploaded, which might attempt to access another user's attachments.
+ * This is a key security measure, as only a specific document and its forks can access its
+ * attachments. This helps prevent malicious documents being uploaded, which might attempt to
+ * access another user's attachments.
  *
- * Therefore, it is CRITICAL that documents with different security domains (e.g from different teams) do not share a
- * document pool.
- * @param {AttachmentStoreDocInfo} docInfo - Document details needed to calculate the document pool.
+ * Therefore, it is CRITICAL that documents with different security domains (e.g from different
+ * teams) do not share a document pool.
+ * @param {AttachmentStoreDocInfo} docInfo - Document details needed to calculate the document
+ *   pool.
  * @returns {string} - ID of the pool the attachments will be stored in.
  */
 export function getDocPoolIdFromDocInfo(docInfo: AttachmentStoreDocInfo): string {
@@ -42,23 +46,23 @@ export function getDocPoolIdFromDocInfo(docInfo: AttachmentStoreDocInfo): string
 }
 
 /**
- * Provides access to external storage, specifically for storing attachments. Each store represents a specific
- * location to store attachments, e.g. "/srv/grist/attachments" on the filesystem.
+ * Provides access to external storage, specifically for storing attachments. Each store represents
+ * a specific location to store attachments, e.g. "/srv/grist/attachments" on the filesystem.
  *
  * This is a general-purpose interface that should abstract over many different storage providers,
  * so shouldn't have methods which rely on one the features of one specific provider.
  *
- * `IAttachmentStore` is distinct from `ExternalStorage` as it's specific to attachments, and can therefore not concern
- * itself with some features ExternalStorage has (e.g versioning). This means it can present a more straightforward
- * interface for components which need to access attachment files.
+ * `IAttachmentStore` is distinct from `ExternalStorage` as it's specific to attachments, and can
+ * therefore not concern itself with some features ExternalStorage has (e.g versioning). This means
+ * it can present a more straightforward interface for components which need to access attachment
+ * files.
  *
- * A document pool needs specifying for all store operations, which should be calculated with `getDocPoolIdFromDocInfo`
- * See {@link getDocPoolIdFromDocInfo} for more details.
+ * A document pool needs specifying for all store operations, which should be calculated with
+ * `getDocPoolIdFromDocInfo` See {@link getDocPoolIdFromDocInfo} for more details.
  */
 export interface IAttachmentStore {
-  // Universally unique id, such that no two Grist installations should have the same store ids, if they're for
-  // different stores.
-  // This allows for explicit detection of unavailable stores.
+  // Universally unique id, such that no two Grist installations should have the same store ids, if
+  // they're for different stores. This allows for explicit detection of unavailable stores.
   readonly id: string;
 
   // Check if attachment exists in the store.
@@ -68,8 +72,8 @@ export interface IAttachmentStore {
   upload(docPoolId: DocPoolId, fileId: FileId, fileData: stream.Readable): Promise<void>;
 
   // Download attachment to an in-memory buffer.
-  // It's preferable to accept an output stream as a parameter, as it simplifies attachment store implementation
-  // and gives them control over local buffering.
+  // It's preferable to accept an output stream as a parameter, as it simplifies attachment store
+  // implementation and gives them control over local buffering.
   download(docPoolId: DocPoolId, fileId: FileId, outputStream: stream.Writable): Promise<void>;
 
   // Remove attachments for all documents in the given document pool.
