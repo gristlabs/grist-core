@@ -332,8 +332,31 @@ describe("AttachmentFileManager", function() {
 
     const destStore = (await defaultProvider.getStore(allStoreIds[1]))!;
     const poolId = getDocPoolIdFromDocInfo(docInfo);
-    assert(await destStore.exists(poolId, fileAddResult1.fileIdent));
-    assert(await destStore.exists(poolId, fileAddResult2.fileIdent));
-    assert(await destStore.exists(poolId, fileAddResult3.fileIdent));
+    assert.isTrue(await destStore.exists(poolId, fileAddResult1.fileIdent));
+    assert.isTrue(await destStore.exists(poolId, fileAddResult2.fileIdent));
+    assert.isTrue(await destStore.exists(poolId, fileAddResult3.fileIdent));
+  });
+
+  it("uses the most recent transfer destination", async function() {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const allStoreIds = defaultProvider.listAllStoreIds();
+    const fileAddResult1 = await manager.addFile(allStoreIds[0], ".txt", Buffer.from("A"));
+
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[1]);
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[0]);
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[1]);
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[0]);
+    await manager.allTransfersCompleted();
+
+    const fileInfo = await defaultDocStorageFake.getFileInfo(fileAddResult1.fileIdent);
+    assert.equal(fileInfo?.storageId, allStoreIds[0], "the file should be in the original store");
+    // We can't assert on if the files exists in the store, as it might be transferred from A to B and back to A,
+    // and so exist in both stores.
   });
 });
