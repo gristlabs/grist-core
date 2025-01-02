@@ -103,7 +103,7 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
     private _storage: StreamingExternalStorage,
     private _prefixParts: string[]
   ) {
-    if (_storage.removeAllWithPrefix == undefined) {
+    if (!_storage.removeAllWithPrefix) {
       throw new InvalidAttachmentExternalStorageError("ExternalStorage does not support removeAllWithPrefix");
     }
   }
