@@ -20,14 +20,23 @@ const flash = keyframes(`
  * Creates a 32x32 pixel loading spinner. Use by calling `loadingSpinner()`.
  */
 export const loadingSpinner = styled('div', `
+  --loader-fg: ${theme.loaderFg};
+  --loader-bg: ${theme.loaderBg};
   display: inline-block;
   box-sizing: border-box;
   width: 32px;
   height: 32px;
   border-radius: 32px;
-  border: 4px solid ${theme.loaderBg};
-  border-top-color: ${theme.loaderFg};
+  border: 4px solid var(--loader-bg);
+  border-top-color: var(--loader-fg);
   animation: ${rotate360} 1s ease-out infinite;
+  &-inline {
+    width: 1em;
+    height: 1em;
+    line-height: inherit;
+    border-radius: 50%;
+    border-width: 1px;
+  }
 `);
 
 /**
