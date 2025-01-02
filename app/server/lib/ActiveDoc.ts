@@ -648,7 +648,6 @@ export class ActiveDoc extends EventEmitter {
     useExisting?: boolean,       // If set, document can be created as an overlay on
                                  // an existing sqlite file.
   }): Promise<ActiveDoc> {
-    console.log(`OPENOPENOPENOPENOPENOPENOPENOPEN ${this.docName} ANYTHING ELSE`);
     const startTime = Date.now();
     this._log.debug(docSession, "loadDoc");
     try {
