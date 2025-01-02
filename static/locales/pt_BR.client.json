@@ -1650,7 +1650,13 @@
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "O Grist assina os cookies de sessão do usuário com uma chave secreta. Defina essa chave por meio da variável de ambiente GRIST_SESSION_SECRET. O Grist retorna a um padrão codificado quando ele não está definido. Poderemos remover esse aviso no futuro, pois os IDs de sessão gerados desde a versão 1.1.16 são inerentemente seguros em termos de criptografia.",
         "Enterprise": "Empresarial",
         "Enable Grist Enterprise": "Habilitar a Grist Empresarial",
-        "checking": "verificando"
+        "checking": "verificando",
+        "Log Streaming": "Fluxo de registros",
+        "Contact us": "Entre em contato conosco",
+        "New, Enterprise": "Novo, Enterprise",
+        "Off": "Desligado",
+        "Audit Logs": "Registros de auditoria",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mais"
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -1763,7 +1769,8 @@
         "Disable Grist Enterprise": "Desativar o Grist Empresarial",
         "Enable Grist Enterprise": "Habilitar a Grist Empresarial",
         "Grist Enterprise is **enabled**.": "O Grist Empresarial está **habilitado**.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após um período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [inscrevendo-se no Grist\nEmpresarial]({{signupLink}}). Você não precisa de uma chave de ativação para executar o\nGrist Core.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após um período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [inscrevendo-se no Grist\nEmpresarial]({{signupLink}}). Você não precisa de uma chave de ativação para executar o\nGrist Core.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}}).",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após o período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [entrando em contato conosco]({{contactLink}}) hoje mesmo. Você não\nprecisa de uma chave de ativação para executar o Grist Core.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}})."
     },
     "ViewLayout": {
         "Delete": "Excluir",
@@ -1853,5 +1860,35 @@
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Reatribuir para o registro {{sourceTable}} {{sourceName}} .",
         "Record already assigned_other": "Registro já atribuído",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} O registro {{targetName}} já está atribuído ao registro {{sourceTable}} {{oldSourceName}} ."
+    },
+    "AuditLogStreamingConfig": {
+        "Add destination": "Adicionar destino",
+        "Add streaming destination": "Adicionar destino de streaming",
+        "Delete streaming destination?": "Excluir destino de streaming?",
+        "Destinations": "Destinos",
+        "Edit": "Editar",
+        "Edit streaming destination": "Editar destino de streaming",
+        "Enter URL": "Inserir URL",
+        "Enter token": "Inserir token",
+        "Learn more": "Saiba mais",
+        "Other": "Outros",
+        "Save": "Salvar",
+        "Splunk": "Splunk",
+        "URL": "URL",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Tem certeza de que deseja Excluir esse destino de streaming? Essa ação não pode ser desfeita.",
+        "Cancel": "Cancelar",
+        "Delete": "Eliminar",
+        "Destination": "Destino",
+        "Start streaming": "Iniciar o streaming",
+        "Token": "Token"
+    },
+    "AuditLogsPage": {
+        "Audit Logs": "Registros de auditoria",
+        "Log streaming": "Fluxo de registros",
+        "Only site owners may access audit logs.": "Somente os proprietários do site podem acessar os registros de auditoria.",
+        "Contact us": "Entre em contato conosco",
+        "Home": "Início",
+        "Audit logs for {{siteName}}": "Registros de auditoria para {{siteName}}",
+        "upgrade your plan": "atualize seu plano"
     }
 }
