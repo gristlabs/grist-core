@@ -216,17 +216,11 @@ export class MinIOExternalStorage implements StreamingExternalStorage {
   }
 
   private async _listObjects(...args: Parameters<MinIOClient["listObjects"]>): Promise<minio.BucketItem[]> {
-    return new Promise((resolve, reject) => {
-      const bucketItemStream = this._s3.listObjects(...args);
-      const results: minio.BucketItem[] = [];
-      bucketItemStream
-        .on('error', reject)
-        .on('end', () => {
-          resolve(results);
-        })
-        .on('data', data => {
-          results.push(data);
-        });
-    });
+    const bucketItemStream = this._s3.listObjects(...args);
+    const results: minio.BucketItem[] = [];
+    for await (const data of bucketItemStream) {
+      results.push(data);
+    }
+    return results;
   }
 }
