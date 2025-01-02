@@ -6,7 +6,10 @@
  */
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {SQLiteDB} from 'app/server/lib/SQLiteDB';
+import fs from 'fs';
+
 
 describe('BundleActions', function() {
   this.timeout(30000);
@@ -21,6 +24,49 @@ describe('BundleActions', function() {
     assert.equal(await driver.findWait('.test-importer-preview', 2000).isPresent(), true);
     await driver.find('.test-modal-confirm').click();
     await gu.waitForServer();
+  });
+
+  it.skip('bug: bundle is properly finished', async function() {
+    // There was a bug in the finalization of the bundle. There was previously a race condition
+    // as the finalizer was sending the `RemoveAction(column)` without waiting for the result.
+    // So sometimes column was added before removing the transform column. This was causing
+    // undo to fail (known bug in grist, adding and removing columns in two tabs and then undoing
+    // in one tab doesn't work, as `AddColumn` action is not idempotent, undoing and redoing can
+    // result with different PK).
+
+    // I don't have a good way to reproduce it. It can be done by brute force (a while loop)
+    // over the next test (on my machine it fails after 3 seconds). So this test is skipped and
+    // just a documentation of the bug for later use.
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const rollback = await gu.begin();
+      // Start a transform.
+      await gu.getCell({col: 'Name', rowNum: 1}).click();
+      // This does not include a click on the "Apply" button.
+      await gu.setType(/Reference/);
+      assert.equal(await gu.getCell({col: 'Name', rowNum: 1}).matches('.transform_field'), true);
+
+      // Add a column while inside the transform.
+      await driver.find('body').sendKeys(Key.chord(Key.ALT, Key.SHIFT, '='));
+      await gu.waitForServer();
+      const file = fs.readdirSync(server.testDocDir)[0];
+      const fullPath = server.testDocDir + '/' + file;
+      // This is sqlite file, open it and read the last id in the _grist_Tables_column.
+      const db = await SQLiteDB.openDBRaw(fullPath);
+      const rows = await db.get("SELECT id FROM _grist_Tables_column ORDER BY id DESC LIMIT 1");
+      await db.close();
+      const lastId = rows?.id as number;
+
+      await gu.sendKeys(Key.ESCAPE);
+
+      // if the id == 11 break;
+      if (lastId != 9) {
+        throw new Error("The RemoveColumn in the ColumnTransform._doFinalize was processed before adding the column");
+        // So in the test below, the redo used to fail.
+      }
+      await rollback();
+    }
   });
 
   it('should complete transform if column is added during it', async function() {
