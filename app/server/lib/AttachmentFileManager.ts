@@ -169,10 +169,15 @@ export class AttachmentFileManager implements IAttachmentFileManager {
       this.startTransferringFileToOtherStore(fileIdent, newStoreId);
     }
 
-    this._activeAllFileTransfer = {
-      files: filesToTransfer.map(file => file.ident),
-      targetStoreId: newStoreId,
-    };
+    // Update the existing transfer info, if it's targeting the same store.
+    if (this._activeAllFileTransfer && this._activeAllFileTransfer.targetStoreId === newStoreId) {
+      this._activeAllFileTransfer.files = [...new Set(this._activeAllFileTransfer.files.concat(fileIdents))];
+    } else {
+      this._activeAllFileTransfer = {
+        files: fileIdents,
+        targetStoreId: newStoreId,
+      };
+    }
   }
 
   public startTransferringFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined) {
