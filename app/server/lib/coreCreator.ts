@@ -22,7 +22,6 @@ export const makeCoreCreator = () => makeSimpleCreator({
     {
       name: 'minio',
       isAvailable: async () => checkMinIOExternalStorage() !== undefined,
-      // TODO - Move this to another file
       create: async (storeId: string) => {
         const options = checkMinIOExternalStorage();
         if (!options) {
