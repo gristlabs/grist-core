@@ -10,6 +10,8 @@ import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
 
+export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.RESOURCE_USERS_TYPE;
+
 /**
  * Class responsible for Groups and Roles Management.
  *
