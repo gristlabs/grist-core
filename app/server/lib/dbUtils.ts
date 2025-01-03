@@ -105,24 +105,34 @@ export async function getOrCreateConnection(): Promise<DataSource> {
 }
 
 export async function runMigrations(dataSource: DataSource) {
-  // on SQLite, migrations fail if we don't temporarily disable foreign key
-  // constraint checking.  This is because for sqlite typeorm copies each
-  // table and rebuilds it from scratch for each schema change.
-  // Also, we need to disable foreign key constraint checking outside of any
-  // transaction, or it has no effect.
-  const sqlite = dataSource.options.type === 'sqlite';
-  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
-  await dataSource.runMigrations({ transaction: "all" });
-  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
+  return await withSqliteForeignKeyConstraintDisabled(dataSource, async () => {
+    await dataSource.runMigrations({ transaction: "all" });
+  });
 }
 
 export async function undoLastMigration(dataSource: DataSource) {
-  const sqlite = dataSource.options.type === 'sqlite';
-  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
-  await dataSource.transaction(async () => {
-    await dataSource.undoLastMigration();
+  return await withSqliteForeignKeyConstraintDisabled(dataSource, async () => {
+    await dataSource.transaction(async tr => {
+      await tr.connection.undoLastMigration();
+    });
   });
-  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
+}
+
+// on SQLite, migrations fail if we don't temporarily disable foreign key
+// constraint checking.  This is because for sqlite typeorm copies each
+// table and rebuilds it from scratch for each schema change.
+// Also, we need to disable foreign key constraint checking outside of any
+// transaction, or it has no effect.
+export async function withSqliteForeignKeyConstraintDisabled<T>(
+  dataSource: DataSource, cb: () => Promise<T>
+): Promise<T> {
+  const sqlite = dataSource.driver.options.type === 'sqlite';
+  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
+  try {
+    return await cb();
+  } finally {
+    if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
+  }
 }
 
 // Replace the old janky ormconfig.js file, which was always a source of
