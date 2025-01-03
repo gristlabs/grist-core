@@ -2,13 +2,18 @@ import * as roles from "app/common/roles";
 import { AclRule } from "app/gen-server/entity/AclRule";
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
-import { GroupDescriptor, NonGuestGroup, Resource } from "app/gen-server/lib/homedb/Interfaces";
+import { GroupWithMembersDescriptor, NonGuestGroup,
+  Resource, RoleGroupDescriptor, RunInTransaction } from "app/gen-server/lib/homedb/Interfaces";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
+import { UsersManager } from "./UsersManager";
+import { ApiError } from "app/common/ApiError";
+
+export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.TEAM_TYPE;
 
 /**
  * Class responsible for Groups and Roles Management.
@@ -18,18 +23,18 @@ import { EntityManager } from "typeorm";
  */
 export class GroupsManager {
   // All groups.
-  public get defaultGroups(): GroupDescriptor[] {
+  public get defaultGroups(): RoleGroupDescriptor[] {
     return this._defaultGroups;
   }
 
   // Groups whose permissions are inherited from parent resource to child resources.
-  public get defaultBasicGroups(): GroupDescriptor[] {
+  public get defaultBasicGroups(): RoleGroupDescriptor[] {
     return this._defaultGroups
       .filter(_grpDesc => _grpDesc.nestParent);
   }
 
   // Groups that are common to all resources.
-  public get defaultCommonGroups(): GroupDescriptor[] {
+  public get defaultCommonGroups(): RoleGroupDescriptor[] {
     return this._defaultGroups
       .filter(_grpDesc => !_grpDesc.orgOnly);
   }
@@ -87,7 +92,7 @@ export class GroupsManager {
    * TODO: app/common/roles already contains an ordering of the default roles. Usage should
    * be consolidated.
    */
-  private readonly _defaultGroups: GroupDescriptor[] = [{
+  private readonly _defaultGroups: RoleGroupDescriptor[] = [{
     name: roles.OWNER,
     permissions: Permissions.OWNER,
     nestParent: true
@@ -109,6 +114,8 @@ export class GroupsManager {
     nestParent: false,
     orgOnly: true
   }];
+
+  public constructor (private _usersManager: UsersManager, private _runInTransaction: RunInTransaction) {}
 
   /**
    * Helper for adjusting acl inheritance rules. Given an array of top-level groups from the
@@ -207,8 +214,10 @@ export class GroupsManager {
     this.defaultGroups.forEach(groupProps => {
       if (!groupProps.orgOnly || !inherit) {
         // Skip this group if it's an org only group and the resource inherits from a parent.
-        const group = new Group();
-        group.name = groupProps.name;
+        const group = Group.create({
+          name: groupProps.name,
+          type: Group.ROLE_TYPE,
+        });
         if (inherit) {
           this.setInheritance(group, inherit);
         }
@@ -267,5 +276,235 @@ export class GroupsManager {
       }
     }
     return roles.getEffectiveRole(maxInheritedRole);
+  }
+
+  /**
+   * Create a Group.
+   * @param groupDescriptor - The descriptor for the group to be created.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   * @returns The created Group.
+   */
+  public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      if (groupDescriptor.type === Group.TEAM_TYPE) {
+        await this._throwIfTeamNameCollision(groupDescriptor.name, manager);
+      }
+      const group = Group.create({
+        type: groupDescriptor.type,
+        name: groupDescriptor.name,
+        memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], manager),
+        memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], manager),
+      });
+      return await manager.save(group);
+    });
+  }
+
+  /**
+   * Overwrite a Role Group.
+   * @param id - The id of the Role Group to be overwritten.
+   * @param groupDescriptor - The descriptor to overwrite the role with.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns The overwritten Role Group
+   */
+  public async overwriteRoleGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
+      if (!existingGroup || (existingGroup.type !== Group.ROLE_TYPE)) {
+        throw new ApiError(`Role with id ${id} not found`, 404);
+      }
+      return await this._overwriteGroup(existingGroup, groupDescriptor, manager);
+    });
+  }
+
+  /**
+   * Overwrite a Team Group.
+   * @param id - The id of the Team Group to be overwritten.
+   * @param groupDescriptor - The descriptor to overwrite the role with.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns The overwritten Team Group
+   */
+  public async overwriteTeamGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
+      if (!existingGroup || (existingGroup.type !== Group.TEAM_TYPE)) {
+        throw new ApiError(`Group with id ${id} not found`, 404);
+      }
+      await this._throwIfTeamNameCollision(groupDescriptor.name, manager, id);
+      return await this._overwriteGroup(existingGroup, groupDescriptor, manager);
+    });
+  }
+
+  /**
+   * Delete a Group.
+   *
+   * @param id - The id of the Group to be deleted.
+   * @param expectedType - The expected type of the Group to be deleted. If the type is specified,
+   *                      the Group will only be deleted if it has the expected type.
+   *                      If the type is not specified, the Group will be deleted regardless of its type.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   */
+  public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      const group = await this.getGroupWithMembersById(id, {}, manager);
+      if (!group || (expectedType && expectedType !== group.type)) {
+        throw new ApiError(`Group with id ${id} not found`, 404);
+      }
+      await manager.createQueryBuilder()
+        .delete()
+        .from('group_groups')
+        .where('subgroup_id = :id', { id })
+        .execute();
+      await manager.remove(group);
+    });
+  }
+
+  /**
+   * Get all the groups with their members.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   */
+  public getGroupsWithMembers(optManager?: EntityManager): Promise<Group[]> {
+    return this._runInTransaction(optManager, async (manager: EntityManager) => {
+      return this._getGroupsQueryBuilder(manager)
+        .getMany();
+    });
+  }
+
+  /**
+   * Get all the groups with their members of the given type.
+   *
+   * @param type - The type of the groups to be fetched.
+   * @param opts - Optional options to be used for the query.
+   * @param opts.aclRule - Whether to include the aclRule in the query.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns A Promise for an array of Group entities.
+   */
+  public getGroupsWithMembersByType(
+    type: GroupTypes, opts?: {aclRule?: boolean}, optManager?: EntityManager
+  ): Promise<Group[]> {
+    return this._runInTransaction(optManager, async (manager: EntityManager) => {
+      return this._getGroupsQueryBuilder(manager, opts)
+        .where('groups.type = :type', {type})
+        .getMany();
+    });
+  }
+
+  /**
+   * Get a Group with its members by id.
+   *
+   * @param id - The id of the Group to be fetched.
+   * @param opts - Optional options to be used for the query.
+   * @param opts.aclRule - Whether to include the aclRule in the query.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns A Promise for the Group entity.
+   */
+  public async getGroupWithMembersById(
+    id: number, opts?: {aclRule?: boolean}, optManager?: EntityManager
+  ): Promise<Group|null> {
+    return await this._runInTransaction(optManager, async (manager) => {
+      return await this._getGroupsQueryBuilder(manager, opts)
+        .andWhere('groups.id = :groupId', {groupId: id})
+        .getOne();
+    });
+  }
+
+  /**
+   * Common method to overwrite groups of any type.
+   * @param existing - The existing group to be overwritten.
+   * @param groupDescriptor - The descriptor to overwrite the group with.
+   * @param optManager - The EntityManager to use for the transaction.
+   * @returns The overwritten Group.
+   */
+  private async _overwriteGroup(
+    existing: Group, groupDescriptor: GroupWithMembersDescriptor, optManager: EntityManager
+  ) {
+    if (existing.type !== groupDescriptor.type) {
+      throw new ApiError("cannot change type of group", 400);
+    }
+    const updatedGroup = Group.create({
+      id: existing.id,
+      type: groupDescriptor.type,
+      name: groupDescriptor.name,
+      memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], optManager),
+      memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], optManager),
+    });
+    return await optManager.save(updatedGroup);
+  }
+
+  /**
+   * Returns a Promise for an array of Groups for the given groupIds.
+   *
+   * @param groupIds - The ids of the Groups to be fetched.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   * @returns A Promise for an array of Group entities.
+   */
+  private async _getGroupsByIds(groupIds: number[], optManager?: EntityManager): Promise<Group[]> {
+    if (groupIds.length === 0) {
+      return [];
+    }
+    return await this._runInTransaction(optManager, async (manager) => {
+      const queryBuilder = this._getGroupsQueryBuilder(manager)
+        .where('groups.id IN (:...groupIds)', {groupIds});
+      return await queryBuilder.getMany();
+    });
+  }
+
+  /**
+   * Returns a Promise for an array of Groups for the given groupIds.
+   * Throws an ApiError if any of the groups are not found.
+   *
+   * @param groupIds - The ids of the Groups to be fetched.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   */
+  private async _getGroupsByIdsStrict(groupIds: number[], optManager?: EntityManager): Promise<Group[]> {
+    const groups = await this._getGroupsByIds(groupIds, optManager);
+    if (groups.length !== groupIds.length) {
+      const foundGroupIds = new Set(groups.map(group => group.id));
+      const missingGroupIds = groupIds.filter(id => !foundGroupIds.has(id));
+      throw new ApiError('Groups not found: ' + missingGroupIds.join(', '), 404);
+    }
+    return groups;
+  }
+
+  /**
+   * Returns a QueryBuilder for fetching groups with their members.
+   * @param optManager - The EntityManager to use for the query.
+   * @param opts - Optional options to be used for the query.
+   * @param opts.aclRule - Whether to include the aclRule in the query.
+   * @returns The QueryBuilder for fetching groups with their members.
+   */
+  private _getGroupsQueryBuilder(optManager: EntityManager, opts: {aclRule?: boolean} = {}) {
+      let queryBuilder = optManager.createQueryBuilder()
+        .select('groups')
+        .addSelect('groups.type')
+        .addSelect('memberGroups.type')
+        .from(Group, 'groups')
+        .leftJoinAndSelect('groups.memberUsers', 'memberUsers')
+        .leftJoinAndSelect('groups.memberGroups', 'memberGroups');
+    if (opts.aclRule) {
+       queryBuilder = queryBuilder
+        .leftJoinAndSelect('groups.aclRule', 'aclRule');
+    }
+    return queryBuilder;
+  }
+
+  private async _throwIfTeamNameCollision(name: string, manager: EntityManager, existingId?: number) {
+    const query = this._getGroupsQueryBuilder(manager)
+      .where('groups.name = :name', {name})
+      .andWhere('groups.type = :type', {type: Group.TEAM_TYPE});
+    if (existingId !== undefined) {
+      query.andWhere('groups.id != :id', {id: existingId});
+    }
+    const group = await query.getOne();
+    if (group) {
+      throw new ApiError(`Group with name "${name}" already exists`, 409);
+    }
   }
 }

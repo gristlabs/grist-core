@@ -8056,15 +8056,15 @@ schema-utils@^4.0.0, schema-utils@^4.2.0:
     ajv-formats "^2.1.1"
     ajv-keywords "^5.1.0"
 
-scimmy-routers@1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/scimmy-routers/-/scimmy-routers-1.2.2.tgz#e1fa506a8cdb0ba04a25e09a365bd726cd781585"
-  integrity sha512-qDB7DKb2cnujJzEgVdON8EnjZfs6oY+MJQkkCHbihNrQeRjSaEOAC9ohb6dGfMZdahYS0CZIJwGhvZlS6rkKsg==
+scimmy-routers@1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/scimmy-routers/-/scimmy-routers-1.3.1.tgz#db61975001ad647302aab50e7c38c18aee245b29"
+  integrity sha512-YFa4K5AgYKCOtC/sdaWJGX5BvRP81YIWePmGog9QOGRDvLIZN8PbiSrytf2haX389uRQHi4LH7Sez4Q7ObaQ7A==
 
-scimmy@1.2.4:
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/scimmy/-/scimmy-1.2.4.tgz#3d708d9a5f3c7b3e00d848dcb8f0910d7c409509"
-  integrity sha512-5i+LwGL7ON61jH+KxL6flpy5h/ABhgx7tc9AdL3KMh9TfHidWl7KHrbD0cJN5bJ5Fb1nOTze8d+PbFl2bZYEJQ==
+scimmy@1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/scimmy/-/scimmy-1.3.3.tgz#ca70cbcf7f99948e3b264f8ec30407074cddb3a6"
+  integrity sha512-9Yk4qHPDttm881GFUU6WxilECZjkn5m9xy8xFdth7cXuRfpD9HOFx7AJnBPUHGo+5vzvs2eHL0rAnioLyKViUQ==
 
 seek-bzip@^1.0.5:
   version "1.0.6"
