@@ -6,6 +6,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import { GristObjCode } from 'app/plugin/GristData';
 import { TableData } from 'app/common/TableData';
 import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
 import { DummyAuthorizer } from 'app/server/lib/Authorizer';
 import { Client } from 'app/server/lib/Client';
 import { makeExceptionalDocSession, OptDocSession } from 'app/server/lib/DocSession';
@@ -1132,7 +1133,8 @@ describe('ActiveDoc', function() {
       'https://templates!.getgrist.com/doc/lightweight-crm 8sJPiNkWZo68KFJkc5Ukbr~4'
     ] as const) {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'docUrlTest' + docUrl.length,
-                                         { docUrl });
+                                      new AttachmentStoreProvider([], "TEST-INSTALL-ID"),
+                                      { docUrl });
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
         ["AddTable", "Info", [{id: 'Url', formula: 'SELF_HYPERLINK()'}]],
