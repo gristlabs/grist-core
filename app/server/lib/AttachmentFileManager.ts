@@ -72,17 +72,12 @@ interface AttachmentFileInfo {
   data: Buffer,
 }
 
-interface AllFileTransfer {
-  files: string[],
-  targetStoreId: AttachmentStoreId | undefined,
-}
-
 interface TransferJob {
   isFinished: boolean,
   promise: Promise<void>
 }
 
-enum AttachmentsLocationState {
+export enum AttachmentsLocationState {
   INTERNAL = "INTERNAL",
   MIXED = "MIXED",
   EXTERNAL = "EXTERNAL",
@@ -116,8 +111,6 @@ export class AttachmentFileManager implements IAttachmentFileManager {
 
   // Maps each file to the store it should end up in after the transfer.
   private _pendingFileTransfers: Map<string, AttachmentStoreId | undefined> = new Map();
-  // Needed for status tracking when moving all files to a new store.
-  private _activeAllFileTransfer?: AllFileTransfer;
   private _transferJob?: TransferJob;
 
   /**
@@ -191,16 +184,6 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     for(const fileIdent of fileIdents) {
       this.startTransferringFileToOtherStore(fileIdent, newStoreId);
     }
-
-    // Update the existing transfer info, if it's targeting the same store.
-    if (this._activeAllFileTransfer && this._activeAllFileTransfer.targetStoreId === newStoreId) {
-      this._activeAllFileTransfer.files = [...new Set(this._activeAllFileTransfer.files.concat(fileIdents))];
-    } else {
-      this._activeAllFileTransfer = {
-        files: fileIdents,
-        targetStoreId: newStoreId,
-      };
-    }
   }
 
   public startTransferringFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined) {
@@ -248,23 +231,11 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return Promise.resolve();
   }
 
-  public isAllFileTransferRunning(): boolean {
-    if (!this._activeAllFileTransfer) {
-      return false;
-    }
-
-    // Theoretically, there's an edge case where another triggered transfer could "re-activate"
-    // the status of "isAllFileTransferCompleted", so it incorrectly shows as incomplete.
-    // This is probably a sufficiently small edge case that his approach is fine.
-    for (const fileIdent of this._activeAllFileTransfer.files) {
-      if (this._pendingFileTransfers.has(fileIdent)
-          && this._pendingFileTransfers.get(fileIdent) === this._activeAllFileTransfer.targetStoreId
-      ) {
-        return true;
-      }
-    }
-
-    return false;
+  public transferStatus() {
+    return {
+      pendingTransferCount: this._pendingFileTransfers.size,
+      isRunning: this._transferJob && !this._transferJob.isFinished || false
+    };
   }
 
   private _runTransferJob(): TransferJob {
