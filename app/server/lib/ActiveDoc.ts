@@ -943,6 +943,22 @@ export class ActiveDoc extends EventEmitter {
     return data;
   }
 
+  public async startTransferringAllAttachmentsToDefaultStore() {
+    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    await this._attachmentFileManager.startTransferringAllFilesToOtherStore(attachmentStoreId);
+
+    return {
+      status: this._attachmentFileManager.transferStatus(),
+    };
+  }
+
+  /**
+   * Returns a summary of where attachments on this doc are stored.
+   */
+  public async attachmentLocationSummary() {
+    return await this._attachmentFileManager.locationSummary();
+  }
+
   /**
    * Fetches the meta tables to return to the client when first opening a document.
    */
