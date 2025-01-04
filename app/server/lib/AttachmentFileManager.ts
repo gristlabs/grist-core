@@ -82,6 +82,12 @@ interface TransferJob {
   promise: Promise<void>
 }
 
+enum AttachmentsLocationState {
+  INTERNAL = "INTERNAL",
+  MIXED = "MIXED",
+  EXTERNAL = "EXTERNAL",
+}
+
 /**
  * Instantiated on a per-document basis to provide a document with access to its attachments.
  * Handles attachment uploading / fetching, as well as trying to ensure consistency with the local
@@ -147,6 +153,19 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return (await this._getFile(fileIdent)).data;
   }
 
+  public async locationSummary(): Promise<AttachmentsLocationState> {
+    const files = await this._docStorage.listAllFiles();
+    const hasInternal = files.some(file => !file.storageId);
+    const hasExternal = files.some(file => file.storageId);
+    if (hasInternal && hasExternal) {
+      return AttachmentsLocationState.MIXED;
+    }
+    if (hasExternal) {
+      return AttachmentsLocationState.EXTERNAL;
+    }
+    return AttachmentsLocationState.INTERNAL;
+  }
+
   // File transfers are handled by an async job that goes through all pending files, and one-by-one transfers them
   // from their current store to their target store.
   // This ensures that for a given doc, we never accidentally start several transfers at once and load many files
@@ -163,8 +182,12 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     // This "snapshot" approach has few guarantees about final state, but is extremely unlikely to result in any severe
     // problems.
     const filesToTransfer = (await this._docStorage.listAllFiles()).filter(file => file.storageId != newStoreId);
-    const fileIdents = filesToTransfer.map(file => file.ident);
 
+    if (filesToTransfer.length === 0) {
+      return;
+    }
+
+    const fileIdents = filesToTransfer.map(file => file.ident);
     for(const fileIdent of fileIdents) {
       this.startTransferringFileToOtherStore(fileIdent, newStoreId);
     }
@@ -225,18 +248,23 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return Promise.resolve();
   }
 
-  public isAllFileTransferCompleted(): boolean {
+  public isAllFileTransferRunning(): boolean {
     if (!this._activeAllFileTransfer) {
-      return true;
+      return false;
     }
 
+    // Theoretically, there's an edge case where another triggered transfer could "re-activate"
+    // the status of "isAllFileTransferCompleted", so it incorrectly shows as incomplete.
+    // This is probably a sufficiently small edge case that his approach is fine.
     for (const fileIdent of this._activeAllFileTransfer.files) {
-      if (this._pendingFileTransfers.has(fileIdent)) {
-        return false;
+      if (this._pendingFileTransfers.has(fileIdent)
+          && this._pendingFileTransfers.get(fileIdent) === this._activeAllFileTransfer.targetStoreId
+      ) {
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   private _runTransferJob(): TransferJob {
