@@ -32,7 +32,6 @@ import cloneDeep = require('lodash/cloneDeep');
 import groupBy = require('lodash/groupBy');
 import { MinDBOptions } from './SqliteCommon';
 
-
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)
 // for verbose logging.
 const debuglog = util.debuglog('db');
@@ -778,44 +777,64 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    *    checksum of the file's contents with the original extension.
    * @param {Buffer | undefined} fileData - Contents of the file.
    * @param {string | undefined} storageId - Identifier of the store that file is stored in.
+   * @param {boolean} shouldUpdate - Update the file record if found.
    * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
    */
   public findOrAttachFile(
     fileIdent: string,
     fileData: Buffer | undefined,
     storageId?: string,
+    shouldUpdate: boolean = false,
   ): Promise<boolean> {
-    return this.execTransaction(db => {
-      // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
-      return db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent)
-      // Only if this succeeded, do the work of reading the file and inserting its data.
-        .then(() =>
-              db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent))
-        .then(() => true)
-      // If UNIQUE constraint failed, this ident must already exists, so return false.
-        .catch(err => {
-          if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
-            return false;
-          }
+    return this.execTransaction(async (db) => {
+      let isNewFile = true;
+
+      try {
+        // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
+        await db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent);
+      } catch(err) {
+        // If UNIQUE constraint failed, this ident must already exist.
+        if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
+          isNewFile = false;
+        } else {
           throw err;
-        });
+        }
+      }
+      if (isNewFile || shouldUpdate) {
+        await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
+      }
+
+      return isNewFile;
     });
   }
 
   /**
    * Reads and returns the data for the given attachment.
    * @param {string} fileIdent - The unique identifier of a file, as used by findOrAttachFile.
-   * @returns {Promise[Buffer]} The data buffer associated with fileIdent.
+   * @param {boolean} includeData - Load file contents from the database, in addition to metadata
+   * @returns {Promise[FileInfo | null]} - File information, or null if no record exists for that file identifier.
    */
-  public getFileInfo(fileIdent: string): Promise<FileInfo | null> {
-    return this.get('SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?', fileIdent)
+  public getFileInfo(fileIdent: string, includeData: boolean = true): Promise<FileInfo | null> {
+    const columns = includeData ? 'ident, storageId, data' : 'ident, storageId';
+    return this.get(`SELECT ${columns} FROM _gristsys_Files WHERE ident=?`, fileIdent)
       .then(row => row ? ({
         ident: row.ident as string,
         storageId: (row.storageId ?? null) as (string | null),
-        data: row.data as Buffer,
+        // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
+        data: row.data ? row.data as Buffer : Buffer.alloc(0),
       }) : null);
   }
 
+  public async listAllFiles(): Promise<FileInfo[]> {
+    const rows = await this.all(`SELECT ident, storageId FROM _gristsys_Files`);
+
+    return rows.map(row => ({
+      ident: row.ident as string,
+      storageId: (row.storageId ?? null) as (string | null),
+      // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
+      data: Buffer.alloc(0),
+    }));
+  }
 
   /**
    * Fetches the given table from the database. See fetchQuery() for return value.

@@ -548,6 +548,17 @@ export class DocWorkerApi {
         .send(fileData);
     }));
 
+    // Responds with attachment contents, with suitable Content-Type and Content-Disposition.
+    this._app.post('/api/docs/:docId/attachments/transferAll', isOwner, withDoc(async (activeDoc, req, res) => {
+      const { status } = await activeDoc.startTransferringAllAttachmentsToDefaultStore();
+      const locationSummary = await activeDoc.attachmentLocationSummary();
+
+      res.json({
+        status,
+        locationSummary,
+      });
+    }));
+
     // Mostly for testing
     this._app.post('/api/docs/:docId/attachments/updateUsed', canEdit, withDoc(async (activeDoc, req, res) => {
       await activeDoc.updateUsedAttachmentsIfNeeded();
