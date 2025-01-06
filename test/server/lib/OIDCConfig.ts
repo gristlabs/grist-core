@@ -197,7 +197,7 @@ describe('OIDCConfig', () => {
       [
         {
           itMsg: 'when omitted should not override openid-client default value',
-          expectedUserDefinedHttpOptions: {}
+          expectedUserDefinedHttpOptions: { agent: undefined }
         },
         {
           itMsg: 'should reject when the provided value is not a number',
@@ -213,6 +213,7 @@ describe('OIDCConfig', () => {
           },
           shouldSetTimeout: true,
           expectedUserDefinedHttpOptions: {
+            agent: undefined,
             timeout: 10000
           }
         },
@@ -222,6 +223,7 @@ describe('OIDCConfig', () => {
             GRIST_OIDC_SP_HTTP_TIMEOUT: '0',
           },
           expectedUserDefinedHttpOptions: {
+            agent: undefined,
             timeout: 0
           }
         }
