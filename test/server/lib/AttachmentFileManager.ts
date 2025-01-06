@@ -325,9 +325,9 @@ describe("AttachmentFileManager", function() {
     const fileAddResult3 = await manager.addFile(sourceStoreId, ".txt", Buffer.from("C"));
 
     await manager.startTransferringAllFilesToOtherStore(allStoreIds[1]);
-    assert.isFalse(manager.isAllFileTransferCompleted());
+    assert.isFalse(manager.allTransfersCompleted());
     await manager.allTransfersCompleted();
-    assert.isTrue(manager.isAllFileTransferCompleted());
+    assert.isTrue(manager.allTransfersCompleted());
 
 
     const destStore = (await defaultProvider.getStore(allStoreIds[1]))!;
