@@ -208,6 +208,6 @@ describe("AttachmentFileManager", function() {
 
     const fileData = await manager.getFileData(addFileResult.fileIdent);
     assert(fileData);
-    assert.equal(fileData!.toString(), defaultTestFileContent);
+    assert.equal(fileData.toString(), defaultTestFileContent);
   });
 });
