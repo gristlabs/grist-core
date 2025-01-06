@@ -1,5 +1,8 @@
 {
-  "sendAppPage": {
-    "Loading": "Chargement"
-  }
+    "sendAppPage": {
+        "Loading": "Chargement"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "Merci de vérifier la validité de votre adresse mail auprès de votre fournisseur d'identification, avant de vous reconnecter."
+    }
 }
