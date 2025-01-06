@@ -83,24 +83,34 @@ export async function getOrCreateConnection(): Promise<Connection> {
 }
 
 export async function runMigrations(connection: Connection) {
-  // on SQLite, migrations fail if we don't temporarily disable foreign key
-  // constraint checking.  This is because for sqlite typeorm copies each
-  // table and rebuilds it from scratch for each schema change.
-  // Also, we need to disable foreign key constraint checking outside of any
-  // transaction, or it has no effect.
-  const sqlite = connection.driver.options.type === 'sqlite';
-  if (sqlite) { await connection.query("PRAGMA foreign_keys = OFF;"); }
-  await connection.runMigrations({ transaction: "all" });
-  if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
+  return await withSqliteForeignKeyConstraintDisabled(connection, async () => {
+    await connection.runMigrations({ transaction: "all" });
+  });
 }
 
 export async function undoLastMigration(connection: Connection) {
+  return await withSqliteForeignKeyConstraintDisabled(connection, async () => {
+    await connection.transaction(async tr => {
+      await tr.connection.undoLastMigration();
+    });
+  });
+}
+
+// on SQLite, migrations fail if we don't temporarily disable foreign key
+// constraint checking.  This is because for sqlite typeorm copies each
+// table and rebuilds it from scratch for each schema change.
+// Also, we need to disable foreign key constraint checking outside of any
+// transaction, or it has no effect.
+export async function withSqliteForeignKeyConstraintDisabled<T>(
+  connection: Connection, cb: () => Promise<T>
+): Promise<T> {
   const sqlite = connection.driver.options.type === 'sqlite';
   if (sqlite) { await connection.query("PRAGMA foreign_keys = OFF;"); }
-  await connection.transaction(async tr => {
-    await tr.connection.undoLastMigration();
-  });
-  if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
+  try {
+    return await cb();
+  } finally {
+    if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
+  }
 }
 
 // Replace the old janky ormconfig.js file, which was always a source of

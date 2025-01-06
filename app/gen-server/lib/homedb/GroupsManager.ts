@@ -2,13 +2,16 @@ import * as roles from "app/common/roles";
 import { AclRule } from "app/gen-server/entity/AclRule";
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
-import { GroupDescriptor, NonGuestGroup, Resource } from "app/gen-server/lib/homedb/Interfaces";
+import { GroupWithMembersDescriptor, NonGuestGroup,
+  Resource, RoleGroupDescriptor, RunInTransaction } from "app/gen-server/lib/homedb/Interfaces";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
+import { UsersManager } from "./UsersManager";
+import { ApiError } from "app/common/ApiError";
 
 export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.RESOURCE_USERS_TYPE;
 
@@ -20,18 +23,18 @@ export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.RESOURCE_USERS_TY
  */
 export class GroupsManager {
   // All groups.
-  public get defaultGroups(): GroupDescriptor[] {
+  public get defaultGroups(): RoleGroupDescriptor[] {
     return this._defaultGroups;
   }
 
   // Groups whose permissions are inherited from parent resource to child resources.
-  public get defaultBasicGroups(): GroupDescriptor[] {
+  public get defaultBasicGroups(): RoleGroupDescriptor[] {
     return this._defaultGroups
       .filter(_grpDesc => _grpDesc.nestParent);
   }
 
   // Groups that are common to all resources.
-  public get defaultCommonGroups(): GroupDescriptor[] {
+  public get defaultCommonGroups(): RoleGroupDescriptor[] {
     return this._defaultGroups
       .filter(_grpDesc => !_grpDesc.orgOnly);
   }
@@ -93,7 +96,7 @@ export class GroupsManager {
    * TODO: app/common/roles already contains an ordering of the default roles. Usage should
    * be consolidated.
    */
-  private readonly _defaultGroups: GroupDescriptor[] = [{
+  private readonly _defaultGroups: RoleGroupDescriptor[] = [{
     name: roles.OWNER,
     permissions: Permissions.OWNER,
     nestParent: true
@@ -115,6 +118,8 @@ export class GroupsManager {
     nestParent: false,
     orgOnly: true
   }];
+
+  public constructor (private _usersManager: UsersManager, private _runInTransaction: RunInTransaction) {}
 
   /**
    * Helper for adjusting acl inheritance rules. Given an array of top-level groups from the
@@ -273,5 +278,79 @@ export class GroupsManager {
       }
     }
     return roles.getEffectiveRole(maxInheritedRole);
+  }
+
+  public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      const group = Group.create({
+        type: groupDescriptor.type,
+        name: groupDescriptor.name,
+        memberUsers: await this._usersManager.getUsersByIds(groupDescriptor.memberUsers ?? [], manager),
+        memberGroups: await this._getGroupsByIds(groupDescriptor.memberGroups ?? [], manager),
+      });
+      return await manager.save(group);
+    });
+  }
+
+  public async updateGroup(
+    id: number, groupDescriptor: Partial<GroupWithMembersDescriptor>, optManager?: EntityManager
+  ) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      const updatedProperties = Group.create({
+        type: groupDescriptor.type,
+        name: groupDescriptor.name,
+        memberUsers: groupDescriptor.memberUsers ?
+          await this._usersManager.getUsersByIds(groupDescriptor.memberUsers, manager) : [],
+        memberGroups: groupDescriptor.memberGroups ?
+          await this._getGroupsByIds(groupDescriptor.memberGroups, manager) : [],
+      });
+      const existingGroup = await this.getGroupWithMembersById(id, manager);
+      if (!existingGroup) {
+        throw new ApiError(`Group with id ${id} not found`, 404);
+      }
+      const group = Group.merge(existingGroup, updatedProperties);
+      return await manager.save(group);
+    });
+  }
+
+  public getGroupsWithMembers(type: GroupTypes, mamager?: EntityManager): Promise<Group[]> {
+    return this._runInTransaction(mamager, async (manager: EntityManager) => {
+      return this._getGroupByTypeQueryBuilder(manager)
+        .where('groups.type = :type', {type})
+        .getMany();
+    });
+  }
+
+  public async getGroupWithMembersById(groupId: number, optManager?: EntityManager): Promise<Group|null> {
+    return await this._runInTransaction(optManager, async (manager) => {
+      return await this._getGroupByTypeQueryBuilder(manager)
+        .andWhere('groups.id = :groupId', {groupId})
+        .getOne();
+    });
+  }
+
+  /**
+   * Returns a Promise for an array of User entites for the given userIds.
+   */
+  private async _getGroupsByIds(groupIds: number[], optManager?: EntityManager): Promise<Group[]> {
+    if (groupIds.length === 0) {
+      return [];
+    }
+    return await this._runInTransaction(optManager, async (manager) => {
+      const queryBuilder = manager.createQueryBuilder()
+        .select('groups')
+        .from(Group, 'groups')
+        .where('groups.id IN (:...groupIds)', {groupIds});
+      return await queryBuilder.getMany();
+    });
+  }
+
+  private _getGroupByTypeQueryBuilder(manager: EntityManager) {
+      return manager.createQueryBuilder()
+        .select('groups')
+        .addSelect('groups.type')
+        .from(Group, 'groups')
+        .leftJoinAndSelect('groups.memberUsers', 'memberUsers')
+        .leftJoinAndSelect('groups.memberGroups', 'memberGroups');
   }
 }
