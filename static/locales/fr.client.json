@@ -145,7 +145,7 @@
         "Comment": "Commenter",
         "Cut": "Couper",
         "Paste": "Coller",
-        "Copy with headers": "Copier avec les en-têtes"
+        "Copy with headers": "Copier avec les entêtes"
     },
     "ChartView": {
         "Each Y series is followed by a series for the length of error bars.": "Chaque série Y est suivi par une série correspondant à la longueur des barres d'erreur.",
@@ -551,7 +551,8 @@
         "Manage Users": "Gérer les utilisateurs",
         "Access Details": "Détails d'accès",
         "Tutorial": "Tutoriel",
-        "Terms of service": "CGU"
+        "Terms of service": "CGU",
+        "Grist Resources": "Ressources Grist"
     },
     "Importer": {
         "Update existing records": "Mettre à jour les enregistrements existants",
@@ -724,7 +725,7 @@
         "Delete": "Supprimer",
         "Copy anchor link": "Copier l'ancre",
         "View as card": "Voir en fiche",
-        "Use as table headers": "Utiliser en tant qu'en-têtes de table"
+        "Use as table headers": "Utiliser en tant qu'entêtes de table"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copié dans le presse-papier"
@@ -753,9 +754,9 @@
         "Download...": "Télécharger...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
         "Export as...": "Exporter en tant que...",
-        "Comma Separated Values (.csv)": "Comma Separated Values (.csv)",
+        "Comma Separated Values (.csv)": "Valeurs séparées par des virgules (.csv)",
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
-        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)"
+        "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -1587,7 +1588,13 @@
         "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Ou, comme plan B., vous pouvez renseigner : {{bootKey}} dans l'environnement et visiter : {{url}}",
         "Enable Grist Enterprise": "Activer Grist Entreprise",
         "Enterprise": "Entreprise",
-        "checking": "vérification"
+        "checking": "vérification",
+        "Off": "Désactivé",
+        "Contact us": "Nous contacter",
+        "New, Enterprise": "Nouveau, Entreprise",
+        "Log Streaming": "Flux de journalisation",
+        "Audit Logs": "Journaux d'audit",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} supplémentaires"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -1699,7 +1706,9 @@
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Désactiver Grist Entreprise",
         "Enable Grist Enterprise": "Activer Grist Entreprise",
-        "Grist Enterprise is **enabled**.": "Grist Entreprise est **activité**."
+        "Grist Enterprise is **enabled**.": "Grist Entreprise est **activité**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Une clef d'activation est nécessaire pour utiliser Grist Enterprise au delà de la période d'évaluation\nde 30 jours. Obtenez une clef d'activation en [nous contactant]({{contactLink}}) aujourd'hui. Vous\nn'avez pas besoin de clef d'activation pour utiliser Grist Core.\n\nEn savoir plus dans le [Centre d'Aide]({{helpCenter}}).",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Une clef d'activation est nécessaire pour utiliser Grist Enterprise après la période d'évaluation\nde 30 jours. Obtenez une clef d'activation en [vous connectant à Grist\nEnterprise]({{signupLink}}). Vous n'avez pas besoin de clef d'activation pour utiliser\nGrist Core.\n\nEn savoir plus dans notre [Centre d'Aide]({{helpCenter}})."
     },
     "ViewLayout": {
         "Delete": "Supprimer",
@@ -1737,7 +1746,12 @@
     },
     "markdown.d": {
         "The toggle is **off**": "Le switch est **désactivé**",
-        "The toggle is **on**": "Le switch est **actif**"
+        "The toggle is **on**": "Le switch est **actif**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [avec la syntaxe Markdown](https://markdownguide.org) *directement*\n *      dans un élément Grainjs."
+            }
+        }
     },
     "HomeIntroCards": {
         "3 minute video tour": "Visite guidée de 3 minutes",
@@ -1748,7 +1762,7 @@
         "Import file": "Importer un fichier",
         "Learn more {{webinarsLinks}}": "En savoir plus {{webinarsLinks}}",
         "Start a new document": "Commencer un nouveau document",
-        "Templates": "Templates",
+        "Templates": "Modèles",
         "Tutorial": "Tutoriel",
         "Webinars": "Webinaires"
     },
@@ -1760,7 +1774,8 @@
         "Target table": "Table cible",
         "Delete two-way reference?": "Supprimer la référence bi-directionnelle ?",
         "Column": "Colonne",
-        "Table": "Table"
+        "Table": "Table",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Il s'agit de la référence retour de la colonne {{column}} de la table {{table}}."
     },
     "SupportGristButton": {
         "Admin Panel": "Panneau d'administration",
@@ -1777,9 +1792,41 @@
         "Reassign": "Réassigner",
         "Reassign to new {{sourceTable}} records.": "Réassigner à des nouveaux records de {{sourceTable}}.",
         "Record already assigned_one": "Enregistrement déjà assigné",
-        "Record already assigned_other": "Enregistrement déjà assigné"
+        "Record already assigned_other": "Enregistrement déjà assigné",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Réaffecté à {{sourceTable}} de {{sourceName}}.",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "l'enregistrement {{targetName}} de {{targetTable}} est déjà assigné à {{oldSourceName}} de {{sourceTable}}."
     },
     "AdminPanelName": {
         "Admin Panel": "Panneau d'administration"
+    },
+    "AuditLogStreamingConfig": {
+        "Splunk": "Splunk",
+        "Add destination": "Ajouter destination",
+        "Add streaming destination": "Ajouter une destination de streaming",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Êtes-vous certain de vouloir supprimer cette destination de streaming ? Cette action ne pourra pas être annulée.",
+        "Delete streaming destination?": "Effacer la destination de streaming ?",
+        "Delete": "Effacer",
+        "Destination": "Destination",
+        "Destinations": "Destinations",
+        "Edit": "Modifier",
+        "Enter URL": "Entrer une URL",
+        "Enter token": "Entrer un token",
+        "Learn more": "En savoir plus",
+        "Other": "Autre",
+        "Save": "Enregistrer",
+        "Start streaming": "Démarrer le streaming",
+        "Token": "Token",
+        "URL": "URL",
+        "Cancel": "Abandonner",
+        "Edit streaming destination": "Modifier la destination de streaming"
+    },
+    "AuditLogsPage": {
+        "Audit logs for {{siteName}}": "Journaux d'audit pour {{siteName}}",
+        "Audit Logs": "Journaux d'audit",
+        "Home": "Accueil",
+        "Log streaming": "Flux de journalisation",
+        "Contact us": "Nous contacter",
+        "Only site owners may access audit logs.": "Seuls les propriétaires de site peuvent accéder aux journaux d'audit.",
+        "upgrade your plan": "actualiser son contrat"
     }
 }
