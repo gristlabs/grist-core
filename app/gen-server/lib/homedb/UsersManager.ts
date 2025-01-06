@@ -725,12 +725,13 @@ export class UsersManager {
     if (userIds.length === 0) {
       return [];
     }
-    const manager = optManager || new EntityManager(this._connection);
-    const queryBuilder = manager.createQueryBuilder()
-      .select('users')
-      .from(User, 'users')
-      .where('users.id IN (:...userIds)', {userIds});
-    return await queryBuilder.getMany();
+    return await this._runInTransaction(optManager, async (manager) => {
+      const queryBuilder = manager.createQueryBuilder()
+        .select('users')
+        .from(User, 'users')
+        .where('users.id IN (:...userIds)', {userIds});
+      return await queryBuilder.getMany();
+    });
   }
 
   /**

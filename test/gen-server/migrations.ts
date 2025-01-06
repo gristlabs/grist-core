@@ -51,6 +51,7 @@ import {LoginsEmailsIndex1729754662550
         as LoginsEmailsIndex} from 'app/gen-server/migration/1729754662550-LoginsEmailIndex';
 import {GroupTypes1734097274107
         as GroupTypes} from 'app/gen-server/migration/1734097274107-GroupTypes';
+import { withSqliteForeignKeyConstraintDisabled } from "app/server/lib/dbUtils";
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -152,7 +153,7 @@ describe('migrations', function() {
 
   it('can correctly switch display_email column to non-null with data', async function() {
     this.timeout(60000);
-    return disableSqliteForeignKey(async () => {
+    return withSqliteForeignKeyConstraintDisabled(home.connection, async () => {
       const runner = home.connection.createQueryRunner();
       for (const migration of migrations) {
         await (new migration()).up(runner);
@@ -173,7 +174,7 @@ describe('migrations', function() {
   // a test to ensure the TeamMember migration works on databases with existing content
   it('can perform TeamMember migration with seed data set', async function() {
     this.timeout(30000);
-    return await disableSqliteForeignKey(async () => {
+    return await withSqliteForeignKeyConstraintDisabled(home.connection, async () => {
       const runner = home.connection.createQueryRunner();
       // Perform full up migration and add the seed data.
       for (const migration of migrations) {
@@ -224,15 +225,4 @@ async function getAclRowCount(queryRunner: QueryRunner): Promise<number> {
 async function getGroupRowCount(queryRunner: QueryRunner): Promise<number> {
   const rows = await queryRunner.query(`SELECT id FROM groups`);
   return rows.length;
-}
-
-// sqlite migrations need foreign keys turned off temporarily
-async function disableSqliteForeignKey<T>(cb: () => Promise<T>): Promise<T> {
-  const sqlite = home.connection.driver.options.type === 'sqlite';
-  if (sqlite) { await home.connection.query("PRAGMA foreign_keys = OFF;"); }
-  try {
-    return await cb();
-  } finally {
-    if (sqlite) { await home.connection.query("PRAGMA foreign_keys = ON;"); }
-  }
 }
