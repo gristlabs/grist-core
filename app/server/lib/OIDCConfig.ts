@@ -81,6 +81,7 @@ import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from '
 import { SessionObj } from './BrowserSession';
 import { getOriginUrl } from './requestUtils';
 import pick from 'lodash/pick';
+import { proxyAgent } from './ProxyAgent';
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -182,6 +183,7 @@ export class OIDCConfig {
 
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
     custom.setHttpOptionsDefaults({
+      agent: issuerUrl !== undefined ? proxyAgent(new URL(issuerUrl)) : undefined,
       ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
     });
     await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
