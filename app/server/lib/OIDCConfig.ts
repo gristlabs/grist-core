@@ -182,7 +182,7 @@ export class OIDCConfig {
 
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
     custom.setHttpOptionsDefaults({
-      agent: issuerUrl !== undefined ? proxyAgent(new URL(issuerUrl)) : undefined,
+      ...(issuerUrl !== undefined ? {agent: proxyAgent(new URL(issuerUrl))} : {}),
       ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
     });
     await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
