@@ -1,43 +1,99 @@
-import {proxyAgent} from "app/server/lib/ProxyAgent";
-import {getAvailablePort} from "app/server/lib/serverUtils";
-import {assert} from "chai";
-import {HttpsProxyAgent} from "https-proxy-agent";
-import {HttpProxyAgent} from "http-proxy-agent";
-import fetch from 'node-fetch';
-import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
-import {serveSomething, Serving} from 'test/server/customUtil';
 import {assertMatchArray, captureLog, EnvironmentSnapshot} from "test/server/testUtils";
+import {getAvailablePort} from "app/server/lib/serverUtils";
+import log from "app/server/lib/log";
+import {
+  agents, fetchUntrustedWithAgent, GristProxyAgent, test_generateProxyAgents
+} from "app/server/lib/ProxyAgent";
+import {serveSomething, Serving} from 'test/server/customUtil';
+import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
 
+import sinon from "sinon";
+import {assert} from "chai";
 
 describe("ProxyAgent", function () {
   let oldEnv: EnvironmentSnapshot;
-  before(() => {
+  let warnStub: sinon.SinonStub;
+  let sandbox: sinon.SinonSandbox;
+
+  const proxyForTrustedUrlExample = 'https://localhost:9000';
+  const proxyForUntrustedUrlExample = 'https://localhost:9001';
+  beforeEach(function () {
     oldEnv = new EnvironmentSnapshot();
+    sandbox = sinon.createSandbox();
   });
 
-  after(() => {
+  afterEach(function () {
+    sandbox?.restore();
     oldEnv.restore();
   });
 
-  it("should be undefined if no proxy is configured", async function () {
-    delete process.env.GRIST_HTTPS_PROXY;
-    const httpProxy = proxyAgent(new URL("http://localhost:3000"));
-    const httpsProxy = proxyAgent(new URL("https://localhost:3000"));
+  describe('configuration', function () {
+    beforeEach(() => {
+      warnStub = sandbox.stub(log, 'warn');
+    });
 
-    assert.equal(httpProxy, undefined);
-    assert.equal(httpsProxy, undefined);
-  });
+    it('should create a proxy agent for trusted URLs when using https_proxy env var', function () {
+      process.env.https_proxy = proxyForTrustedUrlExample;
 
-  it("should be https proxy if proxy is configured and address is https", async function () {
-    process.env.GRIST_HTTPS_PROXY = "https://localhost:9000";
-    const httpsProxy = proxyAgent(new URL("https://localhost:3000"));
-    assert.instanceOf(httpsProxy, HttpsProxyAgent);
-  });
+      const proxyAgents = test_generateProxyAgents();
 
-  it("should be https proxy if proxy is configured and address is https", async function () {
-    process.env.GRIST_HTTPS_PROXY = "https://localhost:9000";
-    const httpsProxy = proxyAgent(new URL("http://localhost:3000"));
-    assert.instanceOf(httpsProxy, HttpProxyAgent);
+      assert.instanceOf(proxyAgents.trusted, GristProxyAgent);
+      assert.isUndefined(proxyAgents.untrusted);
+      sinon.assert.notCalled(warnStub);
+    });
+
+    it('should create a proxy agent for trusted URLs when using HTTPS_PROXY env var', function () {
+      process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assert.instanceOf(proxyAgents.trusted, GristProxyAgent);
+      assert.isUndefined(proxyAgents.untrusted);
+      sinon.assert.notCalled(warnStub);
+    });
+
+    it('should create a proxy agent for untrusted URLs when using GRIST_PROXY_FOR_UNTRUSTED_URLS env var', function () {
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assert.instanceOf(proxyAgents.untrusted, GristProxyAgent);
+      assert.isUndefined(proxyAgents.trusted);
+      sinon.assert.notCalled(warnStub);
+    });
+
+    it('should create both proxy agents for untrusted and trusted URLS using ' +
+      'GRIST_PROXY_FOR_UNTRUSTED_URLS and HTTPS_PROXY', function () {
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
+      process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assert.instanceOf(proxyAgents.untrusted, GristProxyAgent);
+      assert.instanceOf(proxyAgents.trusted, GristProxyAgent);
+      sinon.assert.notCalled(warnStub);
+    });
+
+    it('should create a proxy agent for untrusted URLs when using GRIST_HTTPS_PROXY env var ' +
+      'and show a deprecation message', function () {
+      process.env.GRIST_HTTPS_PROXY = proxyForUntrustedUrlExample;
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assert.instanceOf(proxyAgents.untrusted, GristProxyAgent);
+      assert.isUndefined(proxyAgents.trusted);
+      sinon.assert.calledWithMatch(
+        warnStub, /GRIST_HTTPS_PROXY.*GRIST_PROXY_FOR_UNTRUSTED_URLS="https:\/\/localhost:9001/,
+      );
+    });
+
+    it('should create no proxy agent when GRIST_PROXY_FOR_UNTRUSTED_URLS is set to "direct"', function () {
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = "direct";
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assert.isUndefined(proxyAgents.untrusted);
+    });
   });
 
   describe('proxy error handling', async function() {
@@ -45,16 +101,6 @@ describe("ProxyAgent", function () {
     let serving: Serving;
     // Proxy server emulation to test possible behaviours of real life server
     let testProxyServer: TestProxyServer;
-
-    // Simple fetch using a proxy.
-    function testFetch(relativePath: string) {
-      const url = serving.url + relativePath;
-      return fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        agent: proxyAgent(new URL(url)),
-      });
-    }
 
     beforeEach(async function () {
       // Set up a server and a proxy.
@@ -64,7 +110,9 @@ describe("ProxyAgent", function () {
         app.post('/200', (_, res) => { res.sendStatus(200); res.end(); });
         app.post('/404', (_, res) => { res.sendStatus(404); res.end(); });
       });
-      process.env.GRIST_HTTPS_PROXY = `http://localhost:${port}`;
+      const proxyUrl = `http://localhost:${testProxyServer.portNumber}`;
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyUrl;
+      sandbox.stub(agents, 'untrusted').value(test_generateProxyAgents().untrusted);
     });
 
     afterEach(async function() {
@@ -75,9 +123,10 @@ describe("ProxyAgent", function () {
     it("should not report error when proxy is working", async function() {
       // Normally fetch through proxy works and produces no errors, even for failing status.
       const logMessages1 = await captureLog('warn', async () => {
-        assert.equal((await testFetch('/200')).status, 200);
-        assert.equal((await testFetch('/404')).status, 404);
+        assert.equal((await fetchUntrustedWithAgent(serving.url + '/200')).status, 200);
+        assert.equal((await fetchUntrustedWithAgent(serving.url + '/404')).status, 404);
       });
+      assert.equal(testProxyServer.proxyCallCounter, 2, 'The proxy should have been called twice');
       assert.deepEqual(logMessages1, []);
     });
 
@@ -86,8 +135,8 @@ describe("ProxyAgent", function () {
       await testProxyServer.dispose();
       // Error message depends a little on node version.
       const logMessages2 = await captureLog('warn', async () => {
-        await assert.isRejected(testFetch('/200'), /(request.*failed)|(ECONNREFUSED)/);
-        await assert.isRejected(testFetch('/404'), /(request.*failed)|(ECONNREFUSED)/);
+        await assert.isRejected(fetchUntrustedWithAgent(serving.url + '/200'), /(request.*failed)|(ECONNREFUSED)/);
+        await assert.isRejected(fetchUntrustedWithAgent(serving.url + '/404'), /(request.*failed)|(ECONNREFUSED)/);
       });
 
       // We rely on "ProxyAgent error" message to detect issues with the proxy server.
