@@ -33,7 +33,9 @@ COPY test/chai-as-promised.js /grist/test/chai-as-promised.js
 COPY app /grist/app
 COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
+COPY static/locales /grist/static/locales
 RUN yarn run build:prod
+RUN rm -rf /grist/static/locales
 
 # Prepare material for optional pyodide sandbox
 COPY sandbox/pyodide /grist/sandbox/pyodide
