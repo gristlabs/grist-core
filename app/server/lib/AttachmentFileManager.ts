@@ -109,7 +109,8 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     (logInfo: AttachmentFileManagerLogInfo) => this._getLogMeta(logInfo)
   );
 
-  // Maps each file to the store it should end up in after the transfer.
+  // Maps file identifiers to their desired store. This may be the same as their current store,
+  // in which case nothing will happen. Map ensures new requests override older pending transfers.
   private _pendingFileTransfers: Map<string, AttachmentStoreId | undefined> = new Map();
   private _transferJob?: TransferJob;
 
@@ -260,7 +261,6 @@ export class AttachmentFileManager implements IAttachmentFileManager {
       // Map.entries() will always return the most recent key/value from the map, even after a long async delay
       // Meaning we can safely iterate here and know the transfer is up to date.
       for (const [fileIdent, targetStoreId] of this._pendingFileTransfers.entries()) {
-        // TODO - catch errors
         try {
           await this.transferFileToOtherStore(fileIdent, targetStoreId);
         } catch(e) {
