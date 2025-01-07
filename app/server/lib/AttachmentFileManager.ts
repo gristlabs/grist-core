@@ -77,7 +77,7 @@ interface TransferJob {
   promise: Promise<void>
 }
 
-export enum AttachmentsLocationState {
+export enum DocAttachmentsLocationSummary {
   INTERNAL = "INTERNAL",
   MIXED = "MIXED",
   EXTERNAL = "EXTERNAL",
@@ -88,16 +88,18 @@ export enum AttachmentsLocationState {
  * Handles attachment uploading / fetching, as well as trying to ensure consistency with the local
  * document database, which tracks attachments and where they're stored.
  *
- * This class should prevent the document code from having to worry about accessing the underlying stores.
+ * This class should prevent the document code from having to worry about accessing the underlying
+ * stores.
  *
- * Before modifying this class, it's suggested to understand document pools (described in AttachmentStore.ts), which
- * are used to perform the (eventual) cleanup of the files in external stores.
+ * Before modifying this class, it's suggested to understand document pools (described in
+ * AttachmentStore.ts), which are used to perform the (eventual) cleanup of the files in external
+ * stores.
  *
  * The general design philosophy for this class is:
  * - Avoid data loss at all costs (missing files in stores, or missing file table entries)
  * - Always be in a valid state if possible (e.g no file entries with missing attachments)
- * - Files in stores with no file record pointing to them is acceptable (but not preferable), as they'll eventually be
- *   cleaned up when the document pool is deleted.
+ * - Files in stores with no file record pointing to them is acceptable (but not preferable), as
+ * they'll eventually be cleaned up when the document pool is deleted.
  *
  */
 export class AttachmentFileManager implements IAttachmentFileManager {
@@ -147,35 +149,29 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return (await this._getFile(fileIdent)).data;
   }
 
-  public async locationSummary(): Promise<AttachmentsLocationState> {
+  public async locationSummary(): Promise<DocAttachmentsLocationSummary> {
     const files = await this._docStorage.listAllFiles();
     const hasInternal = files.some(file => !file.storageId);
     const hasExternal = files.some(file => file.storageId);
     if (hasInternal && hasExternal) {
-      return AttachmentsLocationState.MIXED;
+      return DocAttachmentsLocationSummary.MIXED;
     }
     if (hasExternal) {
-      return AttachmentsLocationState.EXTERNAL;
+      return DocAttachmentsLocationSummary.EXTERNAL;
     }
-    return AttachmentsLocationState.INTERNAL;
+    return DocAttachmentsLocationSummary.INTERNAL;
   }
 
-  // File transfers are handled by an async job that goes through all pending files, and one-by-one transfers them
-  // from their current store to their target store.
-  // This ensures that for a given doc, we never accidentally start several transfers at once and load many files
-  // into memory simultaneously (e.g. a badly written script spamming API calls).
-  // It allows any new transfers to overwrite any scheduled transfers. This provides a well-defined behaviour
-  // where the latest scheduled transfer happens, instead of the last transfer to finish "winning".
-  //
   public async startTransferringAllFilesToOtherStore(newStoreId: AttachmentStoreId | undefined): Promise<void> {
     // Take a "snapshot" of the files we want to transfer, and schedule those files for transfer.
-    // It's probable that the underlying database will change during this process.
-    // As a consequence, after this process completes, some files may still be in their original store.
-    // Simple approaches to solve this (e.g transferring files until everything in the DB shows as
-    // being in the new store) risk livelock issues, such as if two transfers somehow end up running simultaneously.
-    // This "snapshot" approach has few guarantees about final state, but is extremely unlikely to result in any severe
-    // problems.
-    const filesToTransfer = (await this._docStorage.listAllFiles()).filter(file => file.storageId != newStoreId);
+    // It's possibly that other code will modify the file statuses / list during this process.
+    // As a consequence, after this process completes, some files may still be in their original
+    // store. Simple approaches to solve this (e.g transferring files until everything in the DB
+    // shows as being in the new store) risk livelock issues, such as if two transfers somehow end
+    // up running simultaneously. This "snapshot" approach has few guarantees about final state,
+    // but is extremely unlikely to result in any severe problems.
+    const allFiles = await this._docStorage.listAllFiles();
+    const filesToTransfer = allFiles.filter(file => (file.storageId ?? undefined) !== newStoreId);
 
     if (filesToTransfer.length === 0) {
       return;
@@ -187,24 +183,33 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     }
   }
 
+  // File transfers are handled by an async job that goes through all pending files, and one-by-one
+  // transfers them from their current store to their target store. This ensures that for a given
+  // doc, we never accidentally start several transfers at once and load many files into memory
+  // simultaneously (e.g. a badly written script spamming API calls). It allows any new transfers
+  // to overwrite any scheduled transfers. This provides a well-defined behaviour where the latest
+  // scheduled transfer happens, instead of the last transfer to finish "winning".
   public startTransferringFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined) {
     this._pendingFileTransfers.set(fileIdent, newStoreId);
     this._runTransferJob();
   }
 
-  // Generally avoid calling this directly, instead use other methods to schedule and run the transfer job.
-  // If a file with a matching identifier already exists in the new store, no transfer will happen,
-  // as the default _addFileToX behaviour is to avoid re-uploading files.
+  // Generally avoid calling this directly, instead use other methods to schedule and run the
+  // transfer job. If a file with a matching identifier already exists in the new store, no
+  // transfer will happen, as the default _addFileToX behaviour is to avoid re-uploading files.
   public async transferFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined): Promise<void> {
-    this._log.info({ fileIdent, storeId: newStoreId }, `transferring file to new store`);
+    this._log.info({fileIdent, storeId: newStoreId}, `transferring file to new store`);
     const fileMetadata = await this._docStorage.getFileInfo(fileIdent, false);
-    // This check runs before the file is retrieved as an optimisation to avoid loading files into memory unnecessarily.
+    // This check runs before the file is retrieved as an optimisation to avoid loading files into
+    // memory unnecessarily.
     if (!fileMetadata || fileMetadata.storageId == newStoreId) {
       return;
     }
-    // It's possible that the record has changed between the original metadata check and here. However, the worst
-    // case is we transfer a file that's already been transferred, so no need to re-check.
-    // Streaming isn't an option here, as SQLite only supports buffers, so we have at least one copy in memory.
+    // It's possible that the record has changed between the original metadata check and here.
+    // However, the worst case is we transfer a file that's already been transferred, so no need to
+    // re-check.
+    // Streaming isn't an option here, as SQLite only supports buffers (meaning we need to keep at
+    // least 1 full copy of the file in memory during transfers).
     const file = await this._getFile(fileIdent);
     if (!await validateFileChecksum(fileIdent, file.data)) {
       throw new AttachmentRetrievalError(file.storageId, file.ident, "checksum verification failed for retrieved file");
@@ -215,14 +220,19 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     }
     const newStore = await this._getStore(newStoreId);
     if (!newStore) {
-      this._log.warn({ fileIdent, storeId: newStoreId }, `unable to transfer file to unavailable store`);
+      this._log.warn({
+        fileIdent,
+        storeId: newStoreId
+      }, `unable to transfer file to unavailable store`);
       throw new StoreNotAvailableError(newStoreId);
     }
     // Store should error if the upload fails in any way.
     await this._storeFileInAttachmentStore(newStore, fileIdent, file.data);
 
-    // Don't remove the file from the previous store, in case we need to roll back to an earlier snapshot.
-    // Internal storage is the exception (and is automatically erased), as that's included in snapshots.
+    // Don't remove the file from the previous store, in case we need to roll back to an earlier
+    // snapshot.
+    // Internal storage is the exception (and is automatically erased), as that's included in
+    // snapshots.
   }
 
   public allTransfersCompleted(): Promise<void> {
@@ -277,25 +287,26 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private async _addFile(
-    storeId: AttachmentStoreId | undefined,
+    destStoreId: AttachmentStoreId | undefined,
     fileIdent: string,
     fileData: Buffer
   ): Promise<AddFileResult> {
-    this._log.info({ fileIdent, storeId }, `adding file to ${storeId ? "external" : "document"} storage`);
+    this._log.info({ fileIdent, storeId: destStoreId }, `adding file to ${destStoreId ? "external" : "document"} storage`);
+    const isExternal = destStoreId !== undefined;
 
-    const store = storeId !== undefined ? await this._getStore(storeId) : null;
+    const destStore = isExternal ? await this._getStore(destStoreId) : null;
 
-    if (storeId !== undefined && !store) {
-      this._log.warn({ fileIdent, storeId }, "tried to fetch attachment from an unavailable store");
-      throw new StoreNotAvailableError(storeId);
+    if (isExternal && !destStore) {
+      this._log.warn({ fileIdent, storeId: destStoreId }, "tried to fetch attachment from an unavailable store");
+      throw new StoreNotAvailableError(destStoreId);
     }
 
     const fileInfoNoData = await this._docStorage.getFileInfo(fileIdent, false);
     const fileExists = fileInfoNoData != null;
 
     if (fileExists) {
-      const isFileInTargetStore = fileInfoNoData.storageId ?
-        fileInfoNoData.storageId === storeId : storeId === undefined;
+      const isFileInTargetStore = isExternal ?
+        destStoreId === fileInfoNoData.storageId : fileInfoNoData.storageId === null;
 
       // File is already stored in a different store (e.g because store has changed and no migration has happened).
       if (!isFileInTargetStore) {
@@ -307,9 +318,9 @@ export class AttachmentFileManager implements IAttachmentFileManager {
 
       // Only exit early in the file exists in the store, otherwise we should allow users to fix any missing files
       // by proceeding to the normal upload logic.
-      if (store) {
-        const existsInStore = await store.exists(this._getDocPoolId(), fileIdent);
-        if (existsInStore) {
+      if (destStore) {
+        const fileAlreadyExistsInStore = await destStore.exists(this._getDocPoolId(), fileIdent);
+        if (fileAlreadyExistsInStore) {
           return {
             fileIdent,
             isNewFile: false,
@@ -318,13 +329,13 @@ export class AttachmentFileManager implements IAttachmentFileManager {
       }
     }
 
-    // There's a possible race condition if anything changed the record between the initial checks in this
-    // method, and the database being updated below - any changes will be overwritten.
-    // However, the database will always end up referencing a valid file, and the pool-based file deletion guarantees
-    // any files in external storage will be cleaned up eventually.
+    // There's a possible race condition if anything changed the record between the initial checks
+    // in this method, and the database being updated below - any changes will be overwritten.
+    // However, the database will always end up referencing a valid file, and the pool-based file
+    // deletion guarantees any files in external storage will be cleaned up eventually.
 
-    if (store) {
-      await this._storeFileInAttachmentStore(store, fileIdent, fileData);
+    if (destStore) {
+      await this._storeFileInAttachmentStore(destStore, fileIdent, fileData);
     } else {
       await this._storeFileInLocalStorage(fileIdent, fileData);
     }
@@ -399,8 +410,8 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   private async _storeFileInAttachmentStore(
     store: IAttachmentStore, fileIdent: string, fileData: Buffer
   ): Promise<string> {
-    // The underlying store should guarantee the file exists if this method doesn't error, so no extra validation is
-    // needed here.
+    // The underlying store should guarantee the file exists if this method doesn't error,
+    // so no extra validation is needed here.
     await store.upload(this._getDocPoolId(), fileIdent, Readable.from(fileData));
 
     // Insert (or overwrite) the entry for this file in the document database.
