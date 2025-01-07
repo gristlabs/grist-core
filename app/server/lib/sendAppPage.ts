@@ -311,7 +311,8 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   metadataElements.push(`<meta property="og:description" content="${description}">`);
   metadataElements.push(`<meta name="twitter:description" content="${description}">`);
 
-  const image = escapeExpression(maybeDoc?.options?.icon ?? commonUrls.openGraphPreviewImage);
+  const openGraphPreviewImage = process.env.GRIST_OPEN_GRAPH_PREVIEW_IMAGE || commonUrls.openGraphPreviewImage;
+  const image = escapeExpression(maybeDoc?.options?.icon ?? openGraphPreviewImage);
   metadataElements.push(`<meta name="thumbnail" content="${image}">`);
   metadataElements.push(`<meta property="og:image" content="${image}">`);
   metadataElements.push(`<meta name="twitter:image" content="${image}">`);
