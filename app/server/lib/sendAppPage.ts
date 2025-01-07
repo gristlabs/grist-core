@@ -30,17 +30,14 @@ import difference from 'lodash/difference';
 const { escapeExpression } = handlebars.Utils;
 
 /**
- * Return the translation given the key, but also ensure that the return value is HTML-escaped
- * in order to avoid possible script injection (that we don't need in any case).
+ * Return the translation given the key.
  *
  * @param req
  * @param key The key of the translation (which will be prefixed by `sendAppPage`)
  * @param args The args to pass to the translation string (optional)
  */
-function translateEscaped(req: express.Request, key: string, args?: any) {
-  const translation = req.t(`sendAppPage.${key}`, args)?.toString();
-  return translation ? escapeExpression(translation) : translation;
-}
+const translate = (req: express.Request, key: string, args?: any) =>  req.t(`sendAppPage.${key}`, args)?.toString();
+
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
@@ -188,7 +185,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? escapeExpression(translateEscaped(req, 'Loading')))
+      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? escapeExpression(translate(req, 'Loading')))
       .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
@@ -306,7 +303,7 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
 
   const description = maybeDoc?.options?.description ?
     escapeExpression(maybeDoc.options.description) :
-    translateEscaped(req, 'og-description');
+    translate(req, 'og-description');
   metadataElements.push(`<meta name="description" content="${description}">`);
   metadataElements.push(`<meta property="og:description" content="${description}">`);
   metadataElements.push(`<meta name="twitter:description" content="${description}">`);
@@ -318,7 +315,7 @@ function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfi
   metadataElements.push(`<meta name="twitter:image" content="${image}">`);
 
   const maybeDocTitle = getDocName(config);
-  const title = maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translateEscaped(req, 'og-title');
+  const title = maybeDocTitle ? maybeDocTitle + getPageTitleSuffix(config) : translate(req, 'og-title');
   // NB: We don't generate the content of the <title> tag here.
   metadataElements.push(`<meta property="og:title" content="${title}">`);
   metadataElements.push(`<meta name="twitter:title" content="${title}">`);
