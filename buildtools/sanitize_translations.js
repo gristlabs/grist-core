@@ -51,8 +51,7 @@ if (onlyDifferent.length > 0) {
 function invalidValues(json) {
   // This is recursive function as some keys can be objects themselves, but all values are either
   // strings or objects.
-  return Object.keys(json).reduce((acc, key) => {
-    const value = json[key];
+  return Object.values(json).reduce((acc, value) => {
     if (typeof value === "string") {
       const sanitized = purify(value);
       if (value !== sanitized) {
@@ -82,7 +81,6 @@ function purify(inputString) {
 }
 
 function selfTest() {
-  const sys = require('child_process');
   const okDir = createTmpDir();
   const okFile = path.join(okDir, "ok.json");
   fs.writeFileSync(okFile, JSON.stringify({ "key": "value" }));
@@ -92,15 +90,16 @@ function selfTest() {
   fs.writeFileSync(badFile, JSON.stringify({ "key": "<script>alert('xss')</script>" }));
 
   // Run this script in the okDir, it should pass (return value 0)
-  const okResult = exec(`node ${__filename} ${okDir}`);
-  if (!okResult) {
+  const okResult = exitCode(`node ${__filename} ${okDir}`);
+  if (okResult !== 0) {
     console.error("Self test failed, expected 0 for okDir");
     process.exit(1);
   }
 
   // Run this script in the badDir, it should fail (return value 1)
-  const badResult = exec(`node ${__filename} ${badDir}`);
-  if (badResult) {
+  const badResult = exitCode(`node ${__filename} ${badDir}`);
+  if (badResult !== 1) {
+    console.error("Self test failed, expected 1 for badDir");
     process.exit(1);
   }
 
@@ -114,12 +113,13 @@ function selfTest() {
     return tmpFolderPath;
   }
 
-  function exec(args) {
+  function exitCode(args) {
+    const {execSync} = require('child_process');
     try {
-      sys.execSync(args);
-      return true;
+      execSync(args); // will throw if exit code is not 0
+      return 0;
     } catch (e) {
-      return false;
+      return 1;
     }
   }
 }
