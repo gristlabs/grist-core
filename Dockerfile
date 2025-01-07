@@ -33,7 +33,12 @@ COPY test/chai-as-promised.js /grist/test/chai-as-promised.js
 COPY app /grist/app
 COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
+# Copy locales files early. During build process they are validated.
+COPY static/locales /grist/static/locales
 RUN yarn run build:prod
+# We don't need them anymore, they will by copied to the final image.
+RUN rm -rf /grist/static/locales
+
 
 # Prepare material for optional pyodide sandbox
 COPY sandbox/pyodide /grist/sandbox/pyodide
