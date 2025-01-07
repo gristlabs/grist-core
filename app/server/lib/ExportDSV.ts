@@ -3,13 +3,12 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
-import * as bluebird from 'bluebird';
 import contentDisposition from 'content-disposition';
-import csv from 'csv';
+import {stringify} from 'csv';
 import * as express from 'express';
+import {promisify} from 'util';
 
-// promisify csv
-bluebird.promisifyAll(csv);
+const stringifyAsync = promisify(stringify);
 
 export interface DownloadDsvOptions extends DownloadOptions {
   delimiter: Delimiter;
@@ -137,7 +136,7 @@ function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
   rowIds.forEach(row => {
     csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
   });
-  return csv.stringifyAsync(csvMatrix, {delimiter});
+  return stringifyAsync(csvMatrix, {delimiter});
 }
 
 type DSVFileExtension = '.csv' | '.tsv' | '.dsv';
