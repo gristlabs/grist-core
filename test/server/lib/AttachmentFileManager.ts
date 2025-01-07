@@ -5,11 +5,11 @@ import {
   StoreNotAvailableError,
   StoresNotConfiguredError
 } from "app/server/lib/AttachmentFileManager";
+import { getDocPoolIdFromDocInfo } from "app/server/lib/AttachmentStore";
 import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
 import { makeTestingFilesystemStoreSpec } from "./FilesystemAttachmentStore";
 import { assert } from "chai";
 import * as sinon from "sinon";
-import { getDocPoolIdFromDocInfo } from "../../../app/server/lib/AttachmentStore";
 import * as stream from "node:stream";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
