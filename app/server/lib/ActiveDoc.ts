@@ -945,11 +945,15 @@ export class ActiveDoc extends EventEmitter {
 
   public async startTransferringAllAttachmentsToDefaultStore() {
     const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    // If no attachment store is set on the doc, it should transfer everything to internal storage
     await this._attachmentFileManager.startTransferringAllFilesToOtherStore(attachmentStoreId);
+  }
 
-    return {
-      status: this._attachmentFileManager.transferStatus(),
-    };
+  /**
+   * Returns a summary of pending attachment transfers between attachment stores.
+   */
+  public attachmentTransferStatus() {
+    return this._attachmentFileManager.transferStatus();
   }
 
   /**

@@ -833,7 +833,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return rows.map(row => ({
       ident: row.ident as string,
       storageId: (row.storageId ?? null) as (string | null),
-      // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
+      // Use a zero buffer for now to represent no data. Should be refactored to allow null.
       data: Buffer.alloc(0),
     }));
   }
