@@ -3,14 +3,14 @@ import {
   DocPoolId,
   getDocPoolIdFromDocInfo,
   IAttachmentStore
-} from "app/server/lib/AttachmentStore";
-import { AttachmentStoreId, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { checksumFileStream } from "app/server/lib/checksumFile";
-import { DocStorage } from "app/server/lib/DocStorage";
-import log from "app/server/lib/log";
-import { LogMethods } from "app/server/lib/LogMethods";
-import { MemoryWritableStream } from "app/server/utils/MemoryWritableStream";
-import { Readable } from "node:stream";
+} from 'app/server/lib/AttachmentStore';
+import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {checksumFileStream} from 'app/server/lib/checksumFile';
+import {DocStorage} from 'app/server/lib/DocStorage';
+import log from 'app/server/lib/log';
+import {LogMethods} from 'app/server/lib/LogMethods';
+import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
+import {Readable} from 'node:stream';
 
 export interface IAttachmentFileManager {
   addFile(storeId: AttachmentStoreId, fileExtension: string, fileData: Buffer): Promise<AddFileResult>;
@@ -68,10 +68,11 @@ interface AttachmentFileManagerLogInfo {
 
 /**
  * Instantiated on a per-document basis to provide a document with access to its attachments.
- * Handles attachment uploading / fetching, as well as trying to ensure consistency with the local document database,
- * which tracks attachments and where they're stored.
+ * Handles attachment uploading / fetching, as well as trying to ensure consistency with the local
+ * document database, which tracks attachments and where they're stored.
  *
- * This class should prevent the document code from having to worry about accessing the underlying stores.
+ * This class should prevent the document code from having to worry about accessing the underlying
+ * stores.
  */
 export class AttachmentFileManager implements IAttachmentFileManager {
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
@@ -84,8 +85,10 @@ export class AttachmentFileManager implements IAttachmentFileManager {
 
   /**
    * @param _docStorage - Storage of this manager's document.
-   * @param _storeProvider - Allows instantiating of stores. Should be provided except in test scenarios.
-   * @param _docInfo - The document this manager is for. Should be provided except in test scenarios.
+   * @param _storeProvider - Allows instantiating of stores. Should be provided except in test
+   *   scenarios.
+   * @param _docInfo - The document this manager is for. Should be provided except in test
+   *   scenarios.
    */
   constructor(
     private _docStorage: DocStorage,

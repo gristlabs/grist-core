@@ -1,12 +1,15 @@
-import { AttachmentStoreCreationError, ExternalStorageAttachmentStore } from "app/server/lib/AttachmentStore";
+import {
+  AttachmentStoreCreationError,
+  ExternalStorageAttachmentStore
+} from 'app/server/lib/AttachmentStore';
 import {
   checkMinIOBucket,
   checkMinIOExternalStorage,
   configureMinIOExternalStorage
 } from 'app/server/lib/configureMinIOExternalStorage';
-import { makeSimpleCreator } from 'app/server/lib/ICreate';
-import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
-import { Telemetry } from 'app/server/lib/Telemetry';
+import {makeSimpleCreator} from 'app/server/lib/ICreate';
+import {MinIOExternalStorage} from 'app/server/lib/MinIOExternalStorage';
+import {Telemetry} from 'app/server/lib/Telemetry';
 
 export const makeCoreCreator = () => makeSimpleCreator({
   deploymentType: 'core',

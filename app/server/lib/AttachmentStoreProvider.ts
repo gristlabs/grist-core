@@ -1,18 +1,18 @@
-import { IAttachmentStore } from "app/server/lib/AttachmentStore";
+import {IAttachmentStore} from 'app/server/lib/AttachmentStore';
 import log from 'app/server/lib/log';
-import { ICreateAttachmentStoreOptions } from "./ICreate";
+import {ICreateAttachmentStoreOptions} from './ICreate';
 
 export type AttachmentStoreId = string
 
 /**
- * Creates an {@link IAttachmentStore} from a given store id, if the Grist installation is configured with that store's
- * unique id.
+ * Creates an {@link IAttachmentStore} from a given store id, if the Grist installation is
+ * configured with that store's unique id.
  *
- * Each store represents a specific location to store attachments at, for example a "/attachments" bucket on MinIO,
- * or "/srv/grist/attachments" on the filesystem.
+ * Each store represents a specific location to store attachments at, for example a "/attachments"
+ * bucket on MinIO, or "/srv/grist/attachments" on the filesystem.
  *
- * Attachments in Grist Documents are accompanied by the id of the store they're in, allowing Grist to store/retrieve
- * them as long as that store exists on the document's installation.
+ * Attachments in Grist Documents are accompanied by the id of the store they're in, allowing Grist
+ * to store/retrieve them as long as that store exists on the document's installation.
  */
 export interface IAttachmentStoreProvider {
   // Returns the store associated with the given id, returning null if no store with that id exists.

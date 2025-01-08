@@ -17,7 +17,7 @@ import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
-import {IAttachmentStoreProvider} from "app/server/lib/AttachmentStoreProvider";
+import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {Client} from 'app/server/lib/Client';
 import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';

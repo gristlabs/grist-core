@@ -1,7 +1,7 @@
-import { joinKeySegments, StreamingExternalStorage } from "app/server/lib/ExternalStorage";
-import * as fse from "fs-extra";
-import * as stream from "node:stream";
-import * as path from "path";
+import {joinKeySegments, StreamingExternalStorage} from 'app/server/lib/ExternalStorage';
+import * as fse from 'fs-extra';
+import * as stream from 'node:stream';
+import * as path from 'path';
 
 export type DocPoolId = string;
 type FileId = string;

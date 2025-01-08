@@ -1,11 +1,11 @@
-import { ColInfoWithId } from 'app/common/DocActions';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { DocManager } from 'app/server/lib/DocManager';
-import { makeExceptionalDocSession, OptDocSession } from 'app/server/lib/DocSession';
-import { createDummyGristServer } from 'app/server/lib/GristServer';
-import { TrivialDocStorageManager } from 'app/server/lib/IDocStorageManager';
-import { DBMetadata, quoteIdent, SQLiteDB } from 'app/server/lib/SQLiteDB';
-import { AttachmentStoreProvider } from "../lib/AttachmentStoreProvider";
+import {ColInfoWithId} from 'app/common/DocActions';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {DocManager} from 'app/server/lib/DocManager';
+import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {createDummyGristServer} from 'app/server/lib/GristServer';
+import {TrivialDocStorageManager} from 'app/server/lib/IDocStorageManager';
+import {DBMetadata, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
 
 /**
  * A utility class for modifying a SQLite file to be viewed/edited with Grist.

@@ -46,8 +46,8 @@ import {
 import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
-import { getDocPoolIdFromDocInfo } from "app/server/lib/AttachmentStore";
-import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
+import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {
   assertAccess,
   getAuthorizedUserId,

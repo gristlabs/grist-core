@@ -3,7 +3,7 @@ import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {AttachmentStoreProvider, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
-import {create} from "app/server/lib/create";
+import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';

@@ -1,6 +1,6 @@
-import { assert } from 'chai';
-import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { makeTestingFilesystemStoreSpec } from "./FilesystemAttachmentStore";
+import {assert} from 'chai';
+import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {makeTestingFilesystemStoreSpec} from './FilesystemAttachmentStore';
 
 const testInstallationUUID = "FAKE-UUID";
 function expectedStoreId(type: string) {
