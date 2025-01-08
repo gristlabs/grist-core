@@ -291,7 +291,10 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     fileIdent: string,
     fileData: Buffer
   ): Promise<AddFileResult> {
-    this._log.info({ fileIdent, storeId: destStoreId }, `adding file to ${destStoreId ? "external" : "document"} storage`);
+    this._log.info({
+      fileIdent,
+      storeId: destStoreId
+    }, `adding file to ${destStoreId ? "external" : "document"} storage`);
     const isExternal = destStoreId !== undefined;
 
     const destStore = isExternal ? await this._getStore(destStoreId) : null;
