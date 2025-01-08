@@ -118,7 +118,7 @@ You may run the tests using one of these commands:
  - `yarn test:nbrowser` to run the end-to-end tests
  - `yarn test:client` to run the tests for the client libraries
  - `yarn test:common` to run the tests for the common libraries shared between the client and the server
- - `yarn test:server` to run the backend tests
+ - `yarn test:server` and `yarn test:gen-server` to run the backend tests depending on where the feature you would like to test resides (respectively `app/server` or `app/gen-server`)
  - `yarn test:docker` to run some end-to-end tests under docker
  - `yarn test:python` to run the data engine tests
 

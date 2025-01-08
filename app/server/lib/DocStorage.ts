@@ -468,7 +468,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   private static _encodeValue(
     marshaller: marshal.Marshaller, gristType: string, sqlType: string, val: any
-  ): Uint8Array|string|number|boolean {
+  ): Uint8Array|string|number|boolean|null {
     const marshalled = () => {
       marshaller.marshal(val);
       return marshaller.dump();
@@ -490,6 +490,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
     // Leave nulls unchanged.
     if (val === null) { return val; }
+    // Return undefined as null.
+    if (val === undefined) { return null; }
     // At this point, we have a non-null primitive.  Check what is the Sqlite affinity
     // of the destination.  May be NUMERIC, INTEGER, TEXT, or BLOB.  We handle REAL
     // also even though it is not currently used.
