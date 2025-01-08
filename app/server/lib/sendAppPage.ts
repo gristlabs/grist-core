@@ -185,7 +185,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? escapeExpression(translate(req, 'Loading')))
+      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? escapeExpression(translate(req, 'Loading...')))
       .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config))
       .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
