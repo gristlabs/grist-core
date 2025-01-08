@@ -1,7 +1,9 @@
 import {Role} from 'app/common/roles';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {AttachmentStoreProvider, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
+import {create} from "app/server/lib/create";
 import {DocManager} from 'app/server/lib/DocManager';
 import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';
@@ -16,8 +18,6 @@ import * as fse from 'fs-extra';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import {create} from "app/server/lib/create";
-import { AttachmentStoreProvider, IAttachmentStoreProvider } from "../../app/server/lib/AttachmentStoreProvider";
 
 tmp.setGracefulCleanup();
 

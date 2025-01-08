@@ -4,10 +4,10 @@
  * Usage:
  *    test/upgradeDocument <docPaths...>
  */
-import { DocStorage } from "app/server/lib/DocStorage";
-import { DocStorageManager } from "app/server/lib/DocStorageManager";
-import { copyFile } from 'app/server/lib/docUtils';
-import { createDocTools } from 'test/server/docTools';
+import {DocStorage} from 'app/server/lib/DocStorage';
+import {DocStorageManager} from 'app/server/lib/DocStorageManager';
+import {copyFile} from 'app/server/lib/docUtils';
+import {createDocTools} from 'test/server/docTools';
 import log from 'app/server/lib/log';
 import * as fs from "fs";
 import * as fse from "fs-extra";

@@ -3,10 +3,16 @@ import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {IAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {Comm} from 'app/server/lib/Comm';
+import {DocStorageManager} from 'app/server/lib/DocStorageManager';
+import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {HostedStorageManager, HostedStorageOptions} from 'app/server/lib/HostedStorageManager';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
+import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
@@ -14,12 +20,6 @@ import {IShell} from 'app/server/lib/IShell';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
-import {IDocStorageManager} from './IDocStorageManager';
-import {Comm} from "./Comm";
-import {IDocWorkerMap} from "./DocWorkerMap";
-import {HostedStorageManager, HostedStorageOptions} from "./HostedStorageManager";
-import {DocStorageManager} from "./DocStorageManager";
-import {IAttachmentStore} from "./AttachmentStore";
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when

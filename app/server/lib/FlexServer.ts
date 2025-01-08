@@ -11,8 +11,8 @@ import {SandboxInfo} from 'app/common/SandboxInfo';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
-import {Document} from "app/gen-server/entity/Document";
-import {Organization} from "app/gen-server/entity/Organization";
+import {Document} from 'app/gen-server/entity/Document';
+import {Organization} from 'app/gen-server/entity/Organization';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {Activations} from 'app/gen-server/lib/Activations';
@@ -29,14 +29,14 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
 import {
   AttachmentStoreProvider, checkAvailabilityAttachmentStoreOptions, IAttachmentStoreProvider
-} from "app/server/lib/AttachmentStoreProvider";
+} from 'app/server/lib/AttachmentStoreProvider';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
-import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
-import {IGristCoreConfig} from "app/server/lib/configCore";
+import {ConfigBackendAPI} from 'app/server/lib/ConfigBackendAPI';
+import {IGristCoreConfig} from 'app/server/lib/configCore';
 import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
@@ -45,7 +45,7 @@ import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
-import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
+import {addGoogleAuthEndpoint} from 'app/server/lib/GoogleAuth';
 import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
@@ -84,14 +84,14 @@ import * as fse from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
 import {i18n} from 'i18next';
-import i18Middleware from "i18next-http-middleware";
+import i18Middleware from 'i18next-http-middleware';
 import mapValues = require('lodash/mapValues');
 import pick = require('lodash/pick');
 import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
-import * as serveStatic from "serve-static";
+import * as serveStatic from 'serve-static';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
