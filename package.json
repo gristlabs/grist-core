@@ -160,7 +160,7 @@
     "image-size": "0.6.3",
     "jquery": "3.5.0",
     "js-yaml": "3.14.1",
-    "jsdom": "^23.0.0",
+    "jsdom": "^25.0.1",
     "jsesc": "3.0.2",
     "jsonwebtoken": "9.0.2",
     "knockout": "3.5.0",
