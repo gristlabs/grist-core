@@ -5,6 +5,7 @@ import {createTmpDir} from 'app/server/lib/uploads';
 import {delay} from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
+import stream from 'node:stream';
 
 // A special token representing a deleted document, used in places where a
 // checksum is expected otherwise.
@@ -39,6 +40,9 @@ export interface ExternalStorage {
   // newest should be given first.
   remove(key: string, snapshotIds?: string[]): Promise<void>;
 
+  // Removes all keys which start with the given prefix
+  removeAllWithPrefix?(prefix: string): Promise<void>;
+
   // List content versions that exist for the given key.  More recent versions should
   // come earlier in the result list.
   versions(key: string): Promise<ObjSnapshot[]>;
@@ -53,6 +57,11 @@ export interface ExternalStorage {
 
   // Close the storage object.
   close(): Promise<void>;
+}
+
+export interface StreamingExternalStorage extends ExternalStorage {
+  uploadStream(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
+  downloadStream(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
 }
 
 /**
@@ -385,6 +394,27 @@ export interface ExternalStorageSettings {
 */
 export type ExternalStorageCreator =
   (purpose: ExternalStorageSettings["purpose"], extraPrefix: string) => ExternalStorage | undefined;
+
+function stripTrailingSlash(text: string): string {
+  return text.endsWith("/") ? text.slice(0, -1) : text;
+}
+
+function stripLeadingSlash(text: string): string {
+  return text[0] === "/" ? text.slice(1) : text;
+}
+
+export function joinKeySegments(keySegments: string[]): string {
+  if (keySegments.length < 1) {
+    return "";
+  }
+  const firstPart = keySegments[0];
+  const remainingParts = keySegments.slice(1);
+  const strippedParts = [
+    stripTrailingSlash(firstPart),
+    ...remainingParts.map(stripTrailingSlash).map(stripLeadingSlash)
+  ];
+  return strippedParts.join("/");
+}
 
 /**
  * The storage mapping we use for our SaaS. A reasonable default, but relies

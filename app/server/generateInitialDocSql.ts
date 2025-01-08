@@ -1,4 +1,5 @@
 import { ActiveDoc } from 'app/server/lib/ActiveDoc';
+import { AttachmentStoreProvider } from 'app/server/lib/AttachmentStoreProvider';
 import { create } from 'app/server/lib/create';
 import { DocManager } from 'app/server/lib/DocManager';
 import { makeExceptionalDocSession } from 'app/server/lib/DocSession';
@@ -33,7 +34,7 @@ export async function main(baseName: string) {
     if (await fse.pathExists(fname)) {
       await fse.remove(fname);
     }
-    const docManager = new DocManager(storageManager, pluginManager, null as any, {
+    const docManager = new DocManager(storageManager, pluginManager, null as any, new AttachmentStoreProvider([], ""), {
       create,
       getAuditLogger() { return createNullAuditLogger(); },
       getTelemetry() { return createDummyTelemetry(); },

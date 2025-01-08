@@ -21,7 +21,6 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import assert from 'assert';
 import * as bluebird from 'bluebird';
-import * as fse from 'fs-extra';
 import * as _ from 'underscore';
 import * as util from 'util';
 import {v4 as uuidv4} from 'uuid';
@@ -73,7 +72,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       await db.exec(`CREATE TABLE _gristsys_Files (
         id INTEGER PRIMARY KEY,
         ident TEXT UNIQUE,
-        data BLOB
+        data BLOB,
+        storageId TEXT
        )`);
       await db.exec(`CREATE TABLE _gristsys_Action (
         id INTEGER PRIMARY KEY,
@@ -394,7 +394,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         }
         await createAttachmentsIndex(db);
       },
-
+      async function(db: SQLiteDB): Promise<void> {
+        // Storage version 9.
+        // Migration to add `storage` column to _gristsys_Files, which can optionally refer to an external storage
+        // where the file is stored.
+        // Default should be NULL.
+        await db.exec(`ALTER TABLE _gristsys_Files ADD COLUMN storageId TEXT`);
+      },
     ]
   };
 
@@ -770,19 +776,23 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * would be (very?) inefficient until node-sqlite3 adds support for incremental reading from a
    * blob: https://github.com/mapbox/node-sqlite3/issues/424.
    *
-   * @param {String} sourcePath: The path of the file containing the attachment data.
-   * @param {String} fileIdent: The unique identifier of the file in the database. ActiveDoc uses the
+   * @param {string} fileIdent - The unique identifier of the file in the database. ActiveDoc uses the
    *    checksum of the file's contents with the original extension.
+   * @param {Buffer | undefined} fileData - Contents of the file.
+   * @param {string | undefined} storageId - Identifier of the store that file is stored in.
    * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
    */
-  public findOrAttachFile(sourcePath: string, fileIdent: string): Promise<boolean> {
+  public findOrAttachFile(
+    fileIdent: string,
+    fileData: Buffer | undefined,
+    storageId?: string,
+  ): Promise<boolean> {
     return this.execTransaction(db => {
       // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
       return db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent)
       // Only if this succeeded, do the work of reading the file and inserting its data.
-        .then(() => fse.readFile(sourcePath))
-        .then(data =>
-              db.run('UPDATE _gristsys_Files SET data=? WHERE ident=?', data, fileIdent))
+        .then(() =>
+              db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent))
         .then(() => true)
       // If UNIQUE constraint failed, this ident must already exists, so return false.
         .catch(err => {
@@ -796,12 +806,16 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Reads and returns the data for the given attachment.
-   * @param {String} fileIdent: The unique identifier of a file, as used by findOrAttachFile.
+   * @param {string} fileIdent - The unique identifier of a file, as used by findOrAttachFile.
    * @returns {Promise[Buffer]} The data buffer associated with fileIdent.
    */
-  public getFileData(fileIdent: string): Promise<Buffer> {
-    return this.get('SELECT data FROM _gristsys_Files WHERE ident=?', fileIdent)
-      .then(row => row && row.data);
+  public getFileInfo(fileIdent: string): Promise<FileInfo | null> {
+    return this.get('SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?', fileIdent)
+      .then(row => row ? ({
+        ident: row.ident as string,
+        storageId: (row.storageId ?? null) as (string | null),
+        data: row.data as Buffer,
+      }) : null);
   }
 
 
@@ -1405,6 +1419,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Delete attachments from _gristsys_Files that have no matching metadata row in _grist_Attachments.
+   * This leaves any attachment files in any remote attachment stores, which will be cleaned up separately.
    */
   public async removeUnusedAttachments() {
     const result = await this._getDB().run(`
@@ -1852,4 +1867,11 @@ export async function createAttachmentsIndex(db: ISQLiteDB) {
 // material as we run into it.
 function fixDefault(def: string) {
   return (def === '""') ? "''" : def;
+}
+
+// Information on an attached file from _gristsys_files
+export interface FileInfo {
+  ident: string;
+  storageId: string | null;
+  data: Buffer;
 }

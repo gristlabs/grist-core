@@ -11,8 +11,8 @@ import {SandboxInfo} from 'app/common/SandboxInfo';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
-import {Document} from "app/gen-server/entity/Document";
-import {Organization} from "app/gen-server/entity/Organization";
+import {Document} from 'app/gen-server/entity/Document';
+import {Organization} from 'app/gen-server/entity/Organization';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {Activations} from 'app/gen-server/lib/Activations';
@@ -27,11 +27,16 @@ import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
+import {
+  AttachmentStoreProvider, checkAvailabilityAttachmentStoreOptions, IAttachmentStoreProvider
+} from 'app/server/lib/AttachmentStoreProvider';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
+import {ConfigBackendAPI} from 'app/server/lib/ConfigBackendAPI';
+import {IGristCoreConfig} from 'app/server/lib/configCore';
 import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
@@ -40,7 +45,7 @@ import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
-import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
+import {addGoogleAuthEndpoint} from 'app/server/lib/GoogleAuth';
 import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
@@ -59,6 +64,7 @@ import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
         optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
+import {buildScimRouter} from 'app/server/lib/scim';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
@@ -78,17 +84,14 @@ import * as fse from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
 import {i18n} from 'i18next';
-import i18Middleware from "i18next-http-middleware";
+import i18Middleware from 'i18next-http-middleware';
 import mapValues = require('lodash/mapValues');
 import pick = require('lodash/pick');
 import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
-import * as serveStatic from "serve-static";
-import {ConfigBackendAPI} from "app/server/lib/ConfigBackendAPI";
-import {IGristCoreConfig} from "app/server/lib/configCore";
-import {buildScimRouter} from 'app/server/lib/scim';
+import * as serveStatic from 'serve-static';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -144,6 +147,7 @@ export class FlexServer implements GristServer {
   private _billing: IBilling;
   private _installAdmin: InstallAdmin;
   private _instanceRoot: string;
+  private _attachmentStoreProvider: IAttachmentStoreProvider;
   private _docManager: DocManager;
   private _docWorker: DocWorker;
   private _hosts: Hosts;
@@ -1384,8 +1388,22 @@ export class FlexServer implements GristServer {
     }
 
     const pluginManager = await this._addPluginManager();
-    this._docManager = this._docManager || new DocManager(this._storageManager, pluginManager,
-                                                          this._dbManager, this);
+
+    const storeOptions = await checkAvailabilityAttachmentStoreOptions(this.create.getAttachmentStoreOptions());
+    log.info("Attachment store backend availability", {
+      available: storeOptions.available.map(option => option.name),
+      unavailable: storeOptions.unavailable.map(option => option.name),
+    });
+
+    this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
+      storeOptions.available,
+      (await this.getActivations().current()).id,
+    );
+    this._docManager = this._docManager || new DocManager(this._storageManager,
+      pluginManager,
+      this._dbManager,
+      this._attachmentStoreProvider,
+      this);
     const docManager = this._docManager;
 
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');
@@ -1415,7 +1433,8 @@ export class FlexServer implements GristServer {
     this._addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
-      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this);
+      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager,
+                      this._attachmentStoreProvider, this);
     }
   }
 

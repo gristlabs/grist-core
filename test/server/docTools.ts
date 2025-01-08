@@ -1,7 +1,9 @@
 import {Role} from 'app/common/roles';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {AttachmentStoreProvider, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
+import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';
@@ -16,7 +18,6 @@ import * as fse from 'fs-extra';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import {create} from "app/server/lib/create";
 
 tmp.setGracefulCleanup();
 
@@ -135,15 +136,18 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
 export async function createDocManager(
     options: {tmpDir?: string, pluginManager?: PluginManager,
               storageManager?: IDocStorageManager,
-              server?: GristServer} = {}): Promise<DocManager> {
+              server?: GristServer,
+              attachmentStoreProvider?: IAttachmentStoreProvider,
+             } = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
   const docStorageManager = options.storageManager || await create.createLocalDocStorageManager(tmpDir);
   const pluginManager = options.pluginManager || await getGlobalPluginManager();
+  const attachmentStoreProvider = options.attachmentStoreProvider || new AttachmentStoreProvider([], "TEST_INSTALL");
   const store = getDocWorkerMap();
   const internalPermitStore = store.getPermitStore('1');
   const externalPermitStore = store.getPermitStore('2');
-  return new DocManager(docStorageManager, pluginManager, null, options.server || {
+  return new DocManager(docStorageManager, pluginManager, null, attachmentStoreProvider, options.server || {
     ...createDummyGristServer(),
     getPermitStore() { return internalPermitStore; },
     getExternalPermitStore() { return externalPermitStore; },

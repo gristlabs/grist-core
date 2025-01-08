@@ -1,27 +1,28 @@
-import { getEnvContent } from 'app/common/ActionBundle';
-import { ServerQuery } from 'app/common/ActiveDocAPI';
-import { delay } from 'app/common/delay';
-import { BulkColValues, CellValue, fromTableDataAction } from 'app/common/DocActions';
+import {getEnvContent} from 'app/common/ActionBundle';
+import {ServerQuery} from 'app/common/ActiveDocAPI';
+import {delay} from 'app/common/delay';
+import {BulkColValues, CellValue, fromTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
-import { GristObjCode } from 'app/plugin/GristData';
-import { TableData } from 'app/common/TableData';
-import { ActiveDoc } from 'app/server/lib/ActiveDoc';
-import { DummyAuthorizer } from 'app/server/lib/Authorizer';
-import { Client } from 'app/server/lib/Client';
-import { makeExceptionalDocSession, OptDocSession } from 'app/server/lib/DocSession';
+import {GristObjCode} from 'app/plugin/GristData';
+import {TableData} from 'app/common/TableData';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {DummyAuthorizer} from 'app/server/lib/Authorizer';
+import {Client} from 'app/server/lib/Client';
+import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
-import { timeoutReached } from 'app/server/lib/serverUtils';
-import { Throttle } from 'app/server/lib/Throttle';
-import { promisify } from 'bluebird';
-import { assert } from 'chai';
+import {timeoutReached} from 'app/server/lib/serverUtils';
+import {Throttle} from 'app/server/lib/Throttle';
+import {promisify} from 'bluebird';
+import {assert} from 'chai';
 import * as child_process from 'child_process';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
-import { resolve } from 'path';
+import {resolve} from 'path';
 import * as sinon from 'sinon';
-import { createDocTools } from 'test/server/docTools';
+import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
-import { EnvironmentSnapshot } from 'test/server/testUtils';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 import * as tmp from 'tmp';
 
 const execFileAsync = promisify(child_process.execFile);
@@ -1132,7 +1133,8 @@ describe('ActiveDoc', function() {
       'https://templates!.getgrist.com/doc/lightweight-crm 8sJPiNkWZo68KFJkc5Ukbr~4'
     ] as const) {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'docUrlTest' + docUrl.length,
-                                         { docUrl });
+                                      new AttachmentStoreProvider([], "TEST-INSTALL-ID"),
+                                      { docUrl });
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
         ["AddTable", "Info", [{id: 'Url', formula: 'SELF_HYPERLINK()'}]],
