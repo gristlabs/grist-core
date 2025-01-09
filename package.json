@@ -101,7 +101,7 @@
     "nodemon": "^3.1.9",
     "otplib": "12.0.1",
     "proper-lockfile": "4.1.2",
-    "sinon": "17.0.1",
+    "sinon": "19.0.2",
     "source-map-loader": "^0.2.4",
     "tmp-promise": "1.0.5",
     "ts-interface-builder": "0.3.2",
