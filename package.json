@@ -94,7 +94,7 @@
     "eslint": "8.18.0",
     "http-proxy": "1.18.1",
     "i18next-scanner": "4.4.0",
-    "mocha": "10.2.0",
+    "mocha": "11.0.1",
     "mocha-webdriver": "0.3.4",
     "moment-locales-webpack-plugin": "^1.2.0",
     "nock": "13.5.5",
