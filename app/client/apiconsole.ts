@@ -331,7 +331,7 @@ createAppPage((appModel) => {
     swaggerUI = buildSwaggerUI({
       filter: true,
       plugins: [gristPlugin.bind(null, appModel)],
-      url: 'http://127.0.0.1:8080/api/grist.yml',
+      url: 'https://raw.githubusercontent.com/gristlabs/grist-help/master/api/grist.yml',
       domNode: rootNode,
       showMutatedRequest: false,
       requestInterceptor,
