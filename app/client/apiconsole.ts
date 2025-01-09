@@ -117,7 +117,11 @@ function setParamValue(resolvedParam: any, value: ParamValue) {
     // For every endpoint in the spec...
     for (const [pathKey, path] of spec.get("paths").entries()) {
       for (const [method, operation] of path.entries()) {
-
+        // Skip the $ref for now, it is only used in `scim` endpoints witch don't share
+        // parameters with other endpoints.
+        if (method === '$ref') {
+          continue;
+        }
         const parameters = operation.get("parameters");
         if (!parameters) { continue; }
         for (const param of parameters.values()) {
@@ -327,7 +331,7 @@ createAppPage((appModel) => {
     swaggerUI = buildSwaggerUI({
       filter: true,
       plugins: [gristPlugin.bind(null, appModel)],
-      url: 'https://raw.githubusercontent.com/gristlabs/grist-help/master/api/grist.yml',
+      url: 'http://127.0.0.1:8080/api/grist.yml',
       domNode: rootNode,
       showMutatedRequest: false,
       requestInterceptor,
