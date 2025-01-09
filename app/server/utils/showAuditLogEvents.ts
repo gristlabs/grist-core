@@ -760,6 +760,27 @@ const AuditEvents: AuditEvents = {
       },
     },
   },
+  "document.modify": {
+    type: ["installation", "site"],
+    description: "A document was modified.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+      },
+    },
+  },
   "document.move": {
     type: ["installation", "site"],
     description: "A document was moved to a different workspace.",

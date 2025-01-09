@@ -2078,6 +2078,14 @@ export class ActiveDoc extends EventEmitter {
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.
       this._docManager.markAsChanged(this, 'edit');
+      this.logAuditEvent(docSession, {
+        action: "document.modify",
+        details: {
+          document: {
+            id: this.docName,
+          },
+        },
+      });
     }
     return result;
   }
