@@ -135,7 +135,7 @@
     "components-jqueryui": "1.12.1",
     "connect-redis": "3.4.0",
     "cookie": "0.7.0",
-    "cookie-parser": "1.4.3",
+    "cookie-parser": "1.4.7",
     "csv": "6.3.8",
     "currency-symbol-map": "5.1.0",
     "diff-match-patch": "1.0.5",
