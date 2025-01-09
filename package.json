@@ -112,7 +112,7 @@
   },
   "dependencies": {
     "@googleapis/drive": "8.14.0",
-    "@googleapis/oauth2": "0.2.0",
+    "@googleapis/oauth2": "1.0.7",
     "@gristlabs/connect-sqlite3": "0.9.11-grist.5",
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/grist-widget": "^0.0.5",

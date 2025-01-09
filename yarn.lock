@@ -355,12 +355,12 @@
   dependencies:
     googleapis-common "^7.0.0"
 
-"@googleapis/oauth2@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@googleapis/oauth2/-/oauth2-0.2.0.tgz"
-  integrity sha512-QT+beWILtV1lVa//8+tDln3r7uz79EnrRsHf9hYOxZ/EAD61r0WaXo2/sODqQN0az2eR0Z1aldLRRZD7SLpTcQ==
+"@googleapis/oauth2@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@googleapis/oauth2/-/oauth2-1.0.7.tgz#a9e7e373d4b7c2eb8ee25e3914e0652bf25df0fc"
+  integrity sha512-8vElraqqkyOkoGv0BeYZAh3OTlyxuy9Xisv9P+Pekz/PIB3c5GHnxndw5ANxlKuGXf123hgBpToUuG+4qkarlw==
   dependencies:
-    googleapis-common "^5.0.1"
+    googleapis-common "^7.0.0"
 
 "@gristlabs/connect-sqlite3@0.9.11-grist.5":
   version "0.9.11-grist.5"
@@ -1429,13 +1429,6 @@ abbrev@1:
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
   integrity sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==
 
-abort-controller@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/abort-controller/-/abort-controller-3.0.0.tgz"
-  integrity sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==
-  dependencies:
-    event-target-shim "^5.0.0"
-
 accept-language-parser@1.5.0:
   version "1.5.0"
   resolved "https://registry.npmjs.org/accept-language-parser/-/accept-language-parser-1.5.0.tgz"
@@ -1727,11 +1720,6 @@ array-union@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/array-union/-/array-union-2.1.0.tgz#b798420adbeb1de828d84acd8a2e23d3efe85e8d"
   integrity sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==
-
-arrify@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/arrify/-/arrify-2.0.1.tgz"
-  integrity sha512-3duEwti880xqi4eAMN8AyR4a0ByT90zoYdLlevfrvU43vb0YZwZVfxOgxWrLXXXpyugL0hNZc9G6BiB5B3nUug==
 
 asn1.js@^4.0.0, asn1.js@^4.10.1:
   version "4.10.1"
@@ -3571,11 +3559,6 @@ etag@~1.8.1:
   resolved "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz"
   integrity sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
 
-event-target-shim@^5.0.0:
-  version "5.0.1"
-  resolved "https://registry.npmjs.org/event-target-shim/-/event-target-shim-5.0.1.tgz"
-  integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
-
 eventemitter-asyncresource@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/eventemitter-asyncresource/-/eventemitter-asyncresource-1.0.0.tgz#734ff2e44bf448e627f7748f905d6bdd57bdb65b"
@@ -3729,11 +3712,6 @@ fast-safe-stringify@^2.0.7:
   version "2.0.7"
   resolved "https://registry.npmjs.org/fast-safe-stringify/-/fast-safe-stringify-2.0.7.tgz"
   integrity sha512-Utm6CdzT+6xsDk2m8S6uL8VHxNwI6Jub+e9NYTcAms28T84pTa25GJQV9j0CY0N1rM8hK4x6grpF2BQf+2qwVA==
-
-fast-text-encoding@^1.0.0:
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/fast-text-encoding/-/fast-text-encoding-1.0.3.tgz"
-  integrity sha512-dtm4QZH9nZtcDt8qJiOH9fcQd1NAgi+K1O2DbE6GG1PPCK/BWfOH3idCTRQ4ImXRUOyopDEgDEnVEE7Y/2Wrig==
 
 fast-xml-parser@^4.2.2:
   version "4.5.0"
@@ -3994,17 +3972,6 @@ gauge@^4.0.3:
     strip-ansi "^6.0.1"
     wide-align "^1.1.5"
 
-gaxios@^4.0.0:
-  version "4.3.0"
-  resolved "https://registry.npmjs.org/gaxios/-/gaxios-4.3.0.tgz"
-  integrity sha512-pHplNbslpwCLMyII/lHPWFQbJWOX0B3R1hwBEOvzYi1GmdKZruuEHK4N9V6f7tf1EaPYyF80mui1+344p6SmLg==
-  dependencies:
-    abort-controller "^3.0.0"
-    extend "^3.0.2"
-    https-proxy-agent "^5.0.0"
-    is-stream "^2.0.0"
-    node-fetch "^2.3.0"
-
 gaxios@^6.0.0, gaxios@^6.0.3, gaxios@^6.1.1:
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/gaxios/-/gaxios-6.7.1.tgz#ebd9f7093ede3ba502685e73390248bb5b7f71fb"
@@ -4015,14 +3982,6 @@ gaxios@^6.0.0, gaxios@^6.0.3, gaxios@^6.1.1:
     is-stream "^2.0.0"
     node-fetch "^2.6.9"
     uuid "^9.0.1"
-
-gcp-metadata@^4.2.0:
-  version "4.3.0"
-  resolved "https://registry.npmjs.org/gcp-metadata/-/gcp-metadata-4.3.0.tgz"
-  integrity sha512-L9XQUpvKJCM76YRSmcxrR4mFPzPGsgZUH+GgHMxAET8qc6+BhRJq63RLhWakgEO2KKVgeSDVfyiNjkGSADwNTA==
-  dependencies:
-    gaxios "^4.0.0"
-    json-bigint "^1.0.0"
 
 gcp-metadata@^6.1.0:
   version "6.1.0"
@@ -4186,21 +4145,6 @@ globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-google-auth-library@^7.0.2:
-  version "7.3.0"
-  resolved "https://registry.npmjs.org/google-auth-library/-/google-auth-library-7.3.0.tgz"
-  integrity sha512-MPeeMlnsYnoiiVFMwX3hgaS684aiXrSqKoDP+xL4Ejg4Z0qLvIeg4XsaChemyFI8ZUO7ApwDAzNtgmhWSDNh5w==
-  dependencies:
-    arrify "^2.0.0"
-    base64-js "^1.3.0"
-    ecdsa-sig-formatter "^1.0.11"
-    fast-text-encoding "^1.0.0"
-    gaxios "^4.0.0"
-    gcp-metadata "^4.2.0"
-    gtoken "^5.0.4"
-    jws "^4.0.0"
-    lru-cache "^6.0.0"
-
 google-auth-library@^9.7.0:
   version "9.15.0"
   resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-9.15.0.tgz#1b009c08557929c881d72f953f17e839e91b009b"
@@ -4212,25 +4156,6 @@ google-auth-library@^9.7.0:
     gcp-metadata "^6.1.0"
     gtoken "^7.0.0"
     jws "^4.0.0"
-
-google-p12-pem@^3.0.3:
-  version "3.1.1"
-  resolved "https://registry.npmjs.org/google-p12-pem/-/google-p12-pem-3.1.1.tgz"
-  integrity sha512-e9CwdD2QYkpvJsktki3Bm8P8FSGIneF+/42a9F9QHcQvJ73C2RoYZdrwRl6BhwksWtzl65gT4OnBROhUIFw95Q==
-  dependencies:
-    node-forge "^0.10.0"
-
-googleapis-common@^5.0.1:
-  version "5.0.3"
-  resolved "https://registry.npmjs.org/googleapis-common/-/googleapis-common-5.0.3.tgz"
-  integrity sha512-8khlXblLyT9UpB+NTZzrWfKQUW6U7gO6WnfJp51WrLgpzP7zkO+OshwtdArq8z2afj37jdrhbIT8eAxZLdwvwA==
-  dependencies:
-    extend "^3.0.2"
-    gaxios "^4.0.0"
-    google-auth-library "^7.0.2"
-    qs "^6.7.0"
-    url-template "^2.0.8"
-    uuid "^8.0.0"
 
 googleapis-common@^7.0.0:
   version "7.2.0"
@@ -4278,15 +4203,6 @@ grainjs@1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/grainjs/-/grainjs-1.0.2.tgz"
   integrity sha512-wrj8TqpgxTGOKHpTlMBxMeX2uS3lTvXj4ROLKC+EZNM7J6RHQLGjMzMqWtiryBnMhGIBlbCicMNFppCrK1zv9w==
-
-gtoken@^5.0.4:
-  version "5.3.0"
-  resolved "https://registry.npmjs.org/gtoken/-/gtoken-5.3.0.tgz"
-  integrity sha512-mCcISYiaRZrJpfqOs0QWa6lfEM/C1V9ASkzFmuz43XBb5s1Vynh+CZy1ECeeJXVGx2PRByjYzb4Y4/zr1byr0w==
-  dependencies:
-    gaxios "^4.0.0"
-    google-p12-pem "^3.0.3"
-    jws "^4.0.0"
 
 gtoken@^7.0.0:
   version "7.1.0"
@@ -5904,13 +5820,6 @@ node-fetch@2.6.7:
   dependencies:
     whatwg-url "^5.0.0"
 
-node-fetch@^2.3.0, node-fetch@^2.6.9:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.7.0.tgz#d0f0fa6e3e2dc1d27efcd8ad99d550bda94d187d"
-  integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
-  dependencies:
-    whatwg-url "^5.0.0"
-
 node-fetch@^2.6.7:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.9.tgz#7c7f744b5cc6eb5fd404e0c7a9fec630a55657e6"
@@ -5918,10 +5827,12 @@ node-fetch@^2.6.7:
   dependencies:
     whatwg-url "^5.0.0"
 
-node-forge@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.npmjs.org/node-forge/-/node-forge-0.10.0.tgz"
-  integrity sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==
+node-fetch@^2.6.9:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.7.0.tgz#d0f0fa6e3e2dc1d27efcd8ad99d550bda94d187d"
+  integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
+  dependencies:
+    whatwg-url "^5.0.0"
 
 node-gyp-build-optional-packages@5.2.2:
   version "5.2.2"
