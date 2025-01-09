@@ -201,11 +201,11 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         } else {
           FlowRunner.create(
             this._openerHolder,
-            (flow: AsyncFlow) => this._openDoc(flow, urlId, {
+            (flow: AsyncFlow) => this.appModel.notifier.slowNotification(this._openDoc(flow, urlId, {
               openMode: urlOpenMode,
               linkParameters,
               originalUrlId: state.doc,
-            }, state.params?.compare)
+            }, state.params?.compare))
           )
           .resultPromise.catch(err => this._onOpenError(err));
         }
