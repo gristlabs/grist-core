@@ -117,7 +117,7 @@ function setParamValue(resolvedParam: any, value: ParamValue) {
     // For every endpoint in the spec...
     for (const [pathKey, path] of spec.get("paths").entries()) {
       for (const [method, operation] of path.entries()) {
-        // Skip the $ref for now, it is only used in `scim` endpoints witch don't share
+        // Skip the $ref for now, it is only used in `scim` endpoints which don't share
         // parameters with other endpoints.
         if (method === '$ref') {
           continue;
