@@ -200,7 +200,7 @@
     "underscore": "1.12.1",
     "uuid": "10.0.0",
     "winston": "2.4.5",
-    "ws": "8.13.0"
+    "ws": "8.18.0"
   },
   "resolutions": {
     "jquery": "3.5.0",
