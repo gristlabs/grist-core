@@ -13,6 +13,7 @@ import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';
 import { create } from 'app/server/lib/create';
+import { DocManager } from 'app/server/lib/DocManager';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { GristJobs } from 'app/server/lib/GristJobs';
 import { createNullAuditLogger, IAuditLogger } from 'app/server/lib/IAuditLogger';
@@ -76,6 +77,7 @@ export interface GristServer {
   getJobs(): GristJobs;
   getBilling(): IBilling;
   setRestrictedMode(restrictedMode?: boolean): void;
+  getDocManager(): DocManager;
 }
 
 export interface GristLoginSystem {
@@ -173,6 +175,7 @@ export function createDummyGristServer(): GristServer {
     getJobs(): GristJobs { throw new Error('no job system'); },
     getBilling() { throw new Error('no billing'); },
     setRestrictedMode() { /* do nothing */ },
+    getDocManager() { throw new Error('no DocManager'); },
   };
 }
 

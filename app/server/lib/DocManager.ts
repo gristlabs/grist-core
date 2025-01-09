@@ -26,6 +26,7 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
 import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
 import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
+import {SQLiteDB} from 'app/server/lib/SQLiteDB';
 import log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
@@ -49,9 +50,18 @@ export const TIMING_ON_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
  * in-memory, with clients connected to them.
  */
 export class DocManager extends EventEmitter {
-  // Maps docName to promise for ActiveDoc object. Most of the time the promise
-  // will be long since resolved, with the resulting document cached.
+  /**
+   * Maps docName to promise for ActiveDoc object. Most of the time the promise
+   * will be long since resolved, with the resulting document cached.
+   */
   private _activeDocs: Map<string, Promise<ActiveDoc>> = new Map();
+
+  /**
+   * Maps docName to the SQLiteDB object, if available. The db may be
+   * closed by the time you read or use it.
+   */
+  private _sqliteDbs: Map<string, SQLiteDB> = new Map();
+
   // Remember recovery mode of documents.
   private _inRecovery = new MapWithTTL<string, boolean>(RECOVERY_CACHE_TTL);
 
@@ -454,7 +464,31 @@ export class DocManager extends EventEmitter {
     return this._activeDocs.get(docName);
   }
 
+  /**
+   * ActiveDoc uses this to register the SQLiteDB associated with it,
+   * when there is one. It might seem easier just to get it from
+   * activeDoc.docStorage when you need it, but you can end
+   * up in a loop or hung if you are checking during document
+   * initialization.
+   */
+  public registerSQLiteDB(docName: string, db?: SQLiteDB) {
+    if (db) {
+      this._sqliteDbs.set(docName, db);
+    } else {
+      this._sqliteDbs.delete(docName);
+    }
+  }
+
+  /**
+   * Get the SQLiteDB backing an ActiveDoc, if there is one right
+   * now. If you get one, remember it could be closed at any time.
+   */
+  public getSQLiteDB(docName: string): SQLiteDB|undefined {
+    return this._sqliteDbs.get(docName);
+  }
+
   public removeActiveDoc(activeDoc: ActiveDoc): void {
+    this.registerSQLiteDB(activeDoc.docName);
     this._activeDocs.delete(activeDoc.docName);
   }
 
@@ -465,7 +499,12 @@ export class DocManager extends EventEmitter {
       const adoc: ActiveDoc = await docPromise;
       await adoc.renameDocTo({client}, newName);
       this._activeDocs.set(newName, docPromise);
+      const db = this._sqliteDbs.get(oldName);
+      if (db) {
+        this.registerSQLiteDB(newName, db);
+      }
       this._activeDocs.delete(oldName);
+      this.registerSQLiteDB(oldName);
     } else {
       await this.storageManager.renameDoc(oldName, newName);
     }

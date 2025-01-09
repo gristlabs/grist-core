@@ -1376,7 +1376,8 @@ export class FlexServer implements GristServer {
       const docWorkerId = await this._addSelfAsWorker(workers);
 
       const storageManager = await this.create.createHostedDocStorageManager(
-        this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager, this.create.ExternalStorage
+        this, this.docsRoot, docWorkerId, this._disableExternalStorage,
+        workers, this._dbManager, this.create.ExternalStorage
       );
       this._storageManager = storageManager;
     } else {
