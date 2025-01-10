@@ -5,6 +5,7 @@ import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed
 import { Group } from 'app/gen-server/entity/Group';
 import omit from 'lodash/omit';
 import { User } from 'app/gen-server/entity/User';
+import { GroupWithMembersDescriptor } from 'app/gen-server/lib/homedb/Interfaces';
 
 describe("GroupsManager", function () {
   this.timeout('3m');
@@ -30,34 +31,47 @@ describe("GroupsManager", function () {
     return omit(user, 'logins', 'personalOrg');
   }
 
+  const makeInnerGroupName = (groupName: string) => groupName + '-inner';
+  async function createDummyGroup(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}) {
+    const chimpy = (await db.getExistingUserByLogin('chimpy@getgrist.com'))!;
+    const group = await db.createGroup({
+      name: groupName,
+      type: Group.RESOURCE_USERS_TYPE,
+      memberUsers: [chimpy.id],
+      ...extraProps,
+    });
+    return { group, chimpy };
+  }
+
+  async function createDummyGroupAndInnerGroup(upperGroupName: string) {
+    const kiwi = (await db.getExistingUserByLogin('kiwi@getgrist.com'))!;
+    const innerGroupName = makeInnerGroupName(upperGroupName);
+
+    const innerGroup = await db.createGroup({
+      name: innerGroupName,
+      type: Group.RESOURCE_USERS_TYPE,
+      memberUsers: [kiwi.id],
+    });
+    const { group, chimpy } = await createDummyGroup(upperGroupName, { memberGroups: [innerGroup.id] });
+
+    return {chimpy, kiwi, innerGroup, group};
+  }
+
   describe('createGroup()', function () {
     it('should create a new resource users group', async function () {
-      const chimpy = (await db.getExistingUserByLogin('chimpy@getgrist.com'))!;
-      const group = await db.createGroup({
-        name: 'test-creategroup',
-        type: Group.RESOURCE_USERS_TYPE,
-        memberUsers: [chimpy.id],
-      });
+      const groupName = 'test-creategroup';
+      const { group, chimpy } = await createDummyGroup(groupName);
       assert.equal(group.name, 'test-creategroup');
       assert.equal(group.type, 'resource users');
       assert.deepEqual(group.memberUsers, [sanitizeUserPropertiesForMembership(chimpy)]);
     });
 
     it('should create a new resource users group with groupMembers', async function () {
-      const kiwi = (await db.getExistingUserByLogin('kiwi@getgrist.com'))!;
-      const innerGroup = await db.createGroup({
-        name: 'test-creategroup-innerGroup',
-        type: Group.RESOURCE_USERS_TYPE,
-      });
-      const group = await db.createGroup({
-        name: 'test-creategroup-with-groupMembers',
-        type: Group.RESOURCE_USERS_TYPE,
-        memberUsers: [kiwi.id],
-        memberGroups: [innerGroup.id],
-      });
-      assert.equal(group.name, 'test-creategroup-with-groupMembers');
-      assert.equal(group.type, 'resource users');
-      assert.deepEqual(group.memberUsers, [sanitizeUserPropertiesForMembership(kiwi)]);
+      const groupName = 'test-creategroup-with-groupMembers';
+      const { group, innerGroup, chimpy } = await createDummyGroupAndInnerGroup(groupName);
+      assert.equal(group.name, groupName);
+      assert.equal(group.type, Group.RESOURCE_USERS_TYPE);
+      assert.deepEqual(group.memberUsers, [sanitizeUserPropertiesForMembership(chimpy)]);
       assert.equal(group.memberGroups.length, 1);
       assert.equal(group.memberGroups[0].name, innerGroup.name);
     });
@@ -76,22 +90,10 @@ describe("GroupsManager", function () {
     });
 
     it('should return groups and members for resource users', async function () {
-      const chimpy = (await db.getExistingUserByLogin('chimpy@getgrist.com'))!;
-      const kiwi = (await db.getExistingUserByLogin('kiwi@getgrist.com'))!;
-      const innerGroupName = 'test-getGroupsWithMembers-inner';
       const groupName = 'test-getGroupsWithMembers';
+      const innerGroupName = makeInnerGroupName(groupName);
 
-      const innerGroup = await db.createGroup({
-        name: innerGroupName,
-        type: Group.RESOURCE_USERS_TYPE,
-        memberUsers: [kiwi.id],
-      });
-      await db.createGroup({
-        name: groupName,
-        type: Group.RESOURCE_USERS_TYPE,
-        memberUsers: [chimpy.id],
-        memberGroups: [innerGroup.id]
-      });
+      const { chimpy } = await createDummyGroupAndInnerGroup(groupName);
       const groups = await db.getGroupsWithMembers(Group.RESOURCE_USERS_TYPE);
       assert.isTrue(groups.every(g => g.type === Group.RESOURCE_USERS_TYPE),
         `some groups retrieved are not of type "${Group.RESOURCE_USERS_TYPE}"`);
@@ -109,23 +111,9 @@ describe("GroupsManager", function () {
     });
 
     it('should return a group and with its members given an ID', async function () {
-      // FIXME: factorize this piece of code
-      const chimpy = (await db.getExistingUserByLogin('chimpy@getgrist.com'))!;
-      const kiwi = (await db.getExistingUserByLogin('kiwi@getgrist.com'))!;
-      const innerGroupName = 'test-getGroupWithMembers-inner';
       const groupName = 'test-getGroupWithMembers';
 
-      const innerGroup = await db.createGroup({
-        name: innerGroupName,
-        type: Group.RESOURCE_USERS_TYPE,
-        memberUsers: [kiwi.id],
-      });
-      const createdGroup = await db.createGroup({
-        name: groupName,
-        type: Group.RESOURCE_USERS_TYPE,
-        memberUsers: [chimpy.id],
-        memberGroups: [innerGroup.id]
-      });
+      const { group: createdGroup, innerGroup, chimpy } = await createDummyGroupAndInnerGroup(groupName);
 
       const group = (await db.getGroupWithMembersById(createdGroup.id))!;
       assert.exists(group, 'group not found');
