@@ -181,7 +181,7 @@ export class OIDCConfig {
     this._protectionManager = new ProtectionsManager(enabledProtections);
 
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
-    const agent = issuerUrl !== undefined ? proxyAgent(new URL(issuerUrl)) : undefined;
+    const agent = proxyAgent(new URL(issuerUrl));
     custom.setHttpOptionsDefaults({
       ...(agent !== undefined ? {agent} : {}),
       ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
