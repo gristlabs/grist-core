@@ -3073,8 +3073,20 @@ export class HomeDBManager extends EventEmitter {
     return this._groupsManager.createGroup(groupDescriptor, optManager);
   }
 
-  public getGroupsWithMembers(type: GroupTypes, manager?: EntityManager): Promise<Group[]> {
-    return this._groupsManager.getGroupsWithMembers(type, manager);
+  public async overwriteGroup(id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
+    return this._groupsManager.overwriteGroup(id, groupDescriptor, optManager);
+  }
+
+  public async deleteGroup(id: number, optManager?: EntityManager) {
+    return this._groupsManager.deleteGroup(id, optManager);
+  }
+
+  public getGroupsWithMembers(manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembers(manager);
+  }
+
+  public getGroupsWithMembersByType(type: GroupTypes, manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembersByType(type, manager);
   }
 
   public getGroupWithMembersById(id: number, manager?: EntityManager): Promise<Group|null> {
