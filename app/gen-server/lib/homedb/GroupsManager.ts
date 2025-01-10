@@ -292,30 +292,50 @@ export class GroupsManager {
     });
   }
 
-  public async updateGroup(
-    id: number, groupDescriptor: Partial<GroupWithMembersDescriptor>, optManager?: EntityManager
+  public async overwriteGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
-      const updatedProperties = Group.create({
-        type: groupDescriptor.type,
-        name: groupDescriptor.name,
-        memberUsers: groupDescriptor.memberUsers ?
-          await this._usersManager.getUsersByIds(groupDescriptor.memberUsers, manager) : [],
-        memberGroups: groupDescriptor.memberGroups ?
-          await this._getGroupsByIds(groupDescriptor.memberGroups, manager) : [],
-      });
       const existingGroup = await this.getGroupWithMembersById(id, manager);
       if (!existingGroup) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
-      const group = Group.merge(existingGroup, updatedProperties);
-      return await manager.save(group);
+      const updatedGroup = Group.create({
+        id,
+        type: groupDescriptor.type,
+        name: groupDescriptor.name,
+        memberUsers: await this._usersManager.getUsersByIds(groupDescriptor.memberUsers ?? [], manager),
+        memberGroups: await this._getGroupsByIds(groupDescriptor.memberGroups ?? [], manager),
+      });
+      return await manager.save(updatedGroup);
     });
   }
 
-  public getGroupsWithMembers(type: GroupTypes, mamager?: EntityManager): Promise<Group[]> {
+  public async deleteGroup(id: number, optManager?: EntityManager) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      const group = await manager.findOne(Group, { where: { id } });
+      if (!group) {
+        throw new ApiError(`Group with id ${id} not found`, 404);
+      }
+      await manager.createQueryBuilder()
+        .delete()
+        .from('group_groups')
+        .where('subgroup_id = :id', { id })
+        .execute();
+      await manager.remove(group);
+    });
+  }
+
+  public getGroupsWithMembers(mamager?: EntityManager): Promise<Group[]> {
     return this._runInTransaction(mamager, async (manager: EntityManager) => {
-      return this._getGroupByTypeQueryBuilder(manager)
+      return this._getGroupsQueryBuilder(manager)
+        .getMany();
+    });
+  }
+
+  public getGroupsWithMembersByType(type: GroupTypes, mamager?: EntityManager): Promise<Group[]> {
+    return this._runInTransaction(mamager, async (manager: EntityManager) => {
+      return this._getGroupsQueryBuilder(manager)
         .where('groups.type = :type', {type})
         .getMany();
     });
@@ -323,7 +343,7 @@ export class GroupsManager {
 
   public async getGroupWithMembersById(groupId: number, optManager?: EntityManager): Promise<Group|null> {
     return await this._runInTransaction(optManager, async (manager) => {
-      return await this._getGroupByTypeQueryBuilder(manager)
+      return await this._getGroupsQueryBuilder(manager)
         .andWhere('groups.id = :groupId', {groupId})
         .getOne();
     });
@@ -337,18 +357,17 @@ export class GroupsManager {
       return [];
     }
     return await this._runInTransaction(optManager, async (manager) => {
-      const queryBuilder = manager.createQueryBuilder()
-        .select('groups')
-        .from(Group, 'groups')
+      const queryBuilder = this._getGroupsQueryBuilder(manager)
         .where('groups.id IN (:...groupIds)', {groupIds});
       return await queryBuilder.getMany();
     });
   }
 
-  private _getGroupByTypeQueryBuilder(manager: EntityManager) {
+  private _getGroupsQueryBuilder(manager: EntityManager) {
       return manager.createQueryBuilder()
         .select('groups')
         .addSelect('groups.type')
+        .addSelect('memberGroups.type')
         .from(Group, 'groups')
         .leftJoinAndSelect('groups.memberUsers', 'memberUsers')
         .leftJoinAndSelect('groups.memberGroups', 'memberGroups');
