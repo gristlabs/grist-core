@@ -244,7 +244,7 @@ describe('OIDCConfig', () => {
     });
 
   describe('GRIST_HTTPS_PROXY', function () {
-    const proxyURL = 'http://localhost-proxy8080';
+    const proxyURL = 'http://localhost-proxy:8080';
     const httpAgent = new HttpProxyAgent(proxyURL);
     [
         {
