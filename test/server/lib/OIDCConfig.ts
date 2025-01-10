@@ -243,36 +243,36 @@ describe('OIDCConfig', () => {
       });
     });
 
-  describe('GRIST_HTTPS_PROXY', function () {
-    const proxyURL = 'http://localhost-proxy:8080';
-    const httpAgent = new HttpProxyAgent(proxyURL);
-    [
-        {
-          itMsg: 'when omitted should not set proxyAgent to oidc-client',
-          expectedUserDefinedHttpOptions: { }
-        },
-        {
-          itMsg: 'should add proxyAgent to openid-client',
-          env: {
-            GRIST_HTTPS_PROXY: proxyURL,
+    describe('GRIST_HTTPS_PROXY', function () {
+      const proxyURL = 'http://localhost-proxy:8080';
+      const httpAgent = new HttpProxyAgent(proxyURL);
+      [
+          {
+            itMsg: 'when omitted should not set proxyAgent to oidc-client',
+            expectedUserDefinedHttpOptions: { }
           },
-          expectedUserDefinedHttpOptions: {
-            agent: httpAgent
+          {
+            itMsg: 'should add proxyAgent to openid-client',
+            env: {
+              GRIST_HTTPS_PROXY: proxyURL,
+            },
+            expectedUserDefinedHttpOptions: {
+              agent: httpAgent
+            }
           }
-        }
-      ].forEach(ctx => {
-        it(ctx.itMsg, async () => {
-          const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
-          setEnvVars();
-          Object.assign(process.env, ctx.env);
-          const promise = OIDCConfigStubbed.buildWithStub();
-          await assert.isFulfilled(promise, 'initOIDC should have been fulfilled');
-          assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, 'Should have called custom.setHttpOptionsDefaults');
-          const actualHttpOptions = _.omit(setHttpOptionsDefaultsStub.firstCall.args[0], 'agent.callback');
-          assert.deepEqual(actualHttpOptions, ctx.expectedUserDefinedHttpOptions);
+        ].forEach(ctx => {
+          it(ctx.itMsg, async () => {
+            const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
+            setEnvVars();
+            Object.assign(process.env, ctx.env);
+            const promise = OIDCConfigStubbed.buildWithStub();
+            await assert.isFulfilled(promise, 'initOIDC should have been fulfilled');
+            assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, 'Should have called custom.setHttpOptionsDefaults');
+            const actualHttpOptions = _.omit(setHttpOptionsDefaultsStub.firstCall.args[0], 'agent.callback');
+            assert.deepEqual(actualHttpOptions, ctx.expectedUserDefinedHttpOptions);
+          });
         });
-      });
-  });
+    });
   });
 
   describe('GRIST_OIDC_IDP_ENABLED_PROTECTIONS', () => {
