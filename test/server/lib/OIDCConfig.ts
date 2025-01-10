@@ -268,7 +268,8 @@ describe('OIDCConfig', () => {
           const promise = OIDCConfigStubbed.buildWithStub();
           await assert.isFulfilled(promise, 'initOIDC should have been fulfilled');
           assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, 'Should have called custom.setHttpOptionsDefaults');
-          Sinon.assert.match(setHttpOptionsDefaultsStub.firstCall.args[0], ctx.expectedUserDefinedHttpOptions);
+          const actualHttpOptions = _.omit(setHttpOptionsDefaultsStub.firstCall.args[0], 'agent.callback');
+          assert.deepEqual(actualHttpOptions, ctx.expectedUserDefinedHttpOptions);
         });
       });
   });
