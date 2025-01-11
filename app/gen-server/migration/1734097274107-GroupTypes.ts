@@ -21,9 +21,10 @@ export class GroupTypes1734097274107 implements MigrationInterface {
     await queryRunner.manager
       .query('UPDATE groups SET type = $1', [Group.ROLE_TYPE]);
 
-    newColumn.isNullable = false;
+    const newColumnNonNull = newColumn.clone();
+    newColumnNonNull.isNullable = false;
 
-    await queryRunner.changeColumn('groups', newColumn.name, newColumn);
+    await queryRunner.changeColumn('groups', newColumn, newColumnNonNull);
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {

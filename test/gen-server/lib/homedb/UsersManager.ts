@@ -71,12 +71,12 @@ describe('UsersManager', function () {
       const idxIterator = makeUserIdIterator();
       for (const [idx, resource] of resources.entries()) {
         const aclRule = new AclRuleOrg();
-        const group = new Group();
-        if (makeResourceGrpName) {
-          group.name = makeResourceGrpName(idx);
-        }
         const members = makeUsers(nbUsersByResource, idxIterator);
-        group.memberUsers = members;
+        const group = Group.create({
+          name: makeResourceGrpName?.(idx),
+          type: Group.ROLE_TYPE,
+          memberUsers: members
+        });
         aclRule.group = group;
         resource.aclRules = [
           aclRule
