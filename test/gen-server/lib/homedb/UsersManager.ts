@@ -149,13 +149,12 @@ describe('UsersManager', function () {
         const entries = Object.entries(groupDefinition) as [NonGuestGroup['name'], User[] | undefined][];
 
         return entries.map(([groupName, users], index) => {
-          const group = new Group() as NonGuestGroup;
-          group.id = index;
-          group.name = groupName;
-          if (users) {
-            group.memberUsers = users;
-          }
-          return group;
+          return Group.create({
+            id: index,
+            name: groupName,
+            type: Group.ROLE_TYPE,
+            memberUsers: users,
+          }) as NonGuestGroup;
         });
       }
 
