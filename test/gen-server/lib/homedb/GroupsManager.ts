@@ -6,7 +6,6 @@ import { Group } from 'app/gen-server/entity/Group';
 import omit from 'lodash/omit';
 import { User } from 'app/gen-server/entity/User';
 import { GroupWithMembersDescriptor } from 'app/gen-server/lib/homedb/Interfaces';
-import { withSqliteForeignKeyConstraintDisabled } from 'app/server/lib/dbUtils';
 
 describe("GroupsManager", function () {
   this.timeout('3m');
@@ -32,15 +31,21 @@ describe("GroupsManager", function () {
 
   async function cleanupTestGroups() {
     const { connection } = db;
-    // FIXME: is there a cleaner way than disabling the sqlite foreign key constraint?
-    await withSqliteForeignKeyConstraintDisabled(connection, async () => {
-      await connection.transaction(async manager => {
-        await manager.createQueryBuilder()
-        .delete()
+    await connection.transaction(async manager => {
+      const groupsToDelete = await manager.createQueryBuilder()
+        .select('groups')
         .from(Group, "groups")
-        .where("name like 'test-%'")
-        .execute();
-      });
+        .where("groups.name like 'test-%'")
+        .getMany();
+      if (groupsToDelete.length > 0) {
+        const groupsToDeleteIds = groupsToDelete.map(g => g.id);
+        await manager.createQueryBuilder()
+          .delete()
+          .from("group_groups")
+          .where("subgroup_id in (:...groupsToDeleteIds)", { groupsToDeleteIds })
+          .execute();
+        await manager.remove(groupsToDelete);
+      }
     });
   }
 
