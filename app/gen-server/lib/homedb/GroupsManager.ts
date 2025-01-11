@@ -218,8 +218,10 @@ export class GroupsManager {
     this.defaultGroups.forEach(groupProps => {
       if (!groupProps.orgOnly || !inherit) {
         // Skip this group if it's an org only group and the resource inherits from a parent.
-        const group = new Group();
-        group.name = groupProps.name;
+        const group = Group.create({
+          name: groupProps.name,
+          type: Group.ROLE_TYPE,
+        });
         if (inherit) {
           this.setInheritance(group, inherit);
         }
