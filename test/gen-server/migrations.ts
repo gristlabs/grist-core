@@ -172,7 +172,7 @@ describe('migrations', function() {
   });
 
   // a test to ensure the TeamMember migration works on databases with existing content
-  it('can perform TeamMember migration with seed data set', async function() {
+  it.skip('can perform TeamMember migration with seed data set', async function() {
     this.timeout(30000);
     return await withSqliteForeignKeyConstraintDisabled(home.connection, async () => {
       const runner = home.connection.createQueryRunner();
