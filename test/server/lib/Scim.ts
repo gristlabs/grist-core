@@ -222,26 +222,6 @@ describe('Scim', () => {
         const res = await axios.get(scimUrl('/Me'), anon);
         assert.equal(res.status, 401);
       });
-
-      it.skip('should allow operation like PATCH for kiwi', async function () {
-        // SKIPPING this test: only the GET verb is currently implemented by SCIMMY for the /Me endpoint.
-        // Issue created here: https://github.com/scimmyjs/scimmy/issues/47
-        const patchBody = {
-          schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
-          Operations: [{
-            op: "replace",
-            path: 'locale',
-            value: 'fr',
-          }],
-        };
-        const res = await axios.patch(scimUrl('/Me'), patchBody, kiwi);
-        assert.equal(res.status, 200);
-        assert.deepEqual(res.data, {
-          ...personaToSCIMMYUserWithId('kiwi'),
-          locale: 'fr',
-          preferredLanguage: 'en',
-        });
-      });
     });
 
     describe('GET /Users/{id}', function () {
