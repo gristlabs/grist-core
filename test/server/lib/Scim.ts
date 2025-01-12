@@ -224,380 +224,385 @@ describe('Scim', () => {
       });
     });
 
-    describe('GET /Users/{id}', function () {
+    describe('/Users', function () {
+      describe('GET /Users/{id}', function () {
 
-      it('should return the user of id=1 for chimpy', async function () {
-        const res = await axios.get(scimUrl('/Users/1'), chimpy);
+        it('should return the user of id=1 for chimpy', async function () {
+          const res = await axios.get(scimUrl('/Users/1'), chimpy);
 
-        assert.equal(res.status, 200);
-        assert.deepInclude(res.data, {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          id: '1',
-          displayName: 'Chimpy',
-          userName: 'chimpy@getgrist.com'
+          assert.equal(res.status, 200);
+          assert.deepInclude(res.data, {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            id: '1',
+            displayName: 'Chimpy',
+            userName: 'chimpy@getgrist.com'
+          });
         });
-      });
 
-      it('should return 404 when the user is not found', async function () {
-        const res = await axios.get(scimUrl('/Users/1000'), chimpy);
-        assert.equal(res.status, 404);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '404',
-          detail: 'User with ID 1000 not found'
+        it('should return 404 when the user is not found', async function () {
+          const res = await axios.get(scimUrl('/Users/1000'), chimpy);
+          assert.equal(res.status, 404);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'User with ID 1000 not found'
+          });
         });
+
+        checkCommonErrors('get', '/Users/1');
       });
 
-      checkCommonErrors('get', '/Users/1');
-    });
+      describe('GET /Users', function () {
+        it('should return all users for chimpy', async function () {
+          const res = await axios.get(scimUrl('/Users'), chimpy);
+          assert.equal(res.status, 200);
+          assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
+          assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('chimpy'));
+          assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('kiwi'));
+        });
 
-    describe('GET /Users', function () {
-      it('should return all users for chimpy', async function () {
-        const res = await axios.get(scimUrl('/Users'), chimpy);
-        assert.equal(res.status, 200);
-        assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
-        assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('chimpy'));
-        assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('kiwi'));
+        it('should handle pagination', async function () {
+          const endpointPaginated = '/Users?count=1&sortBy=id';
+          {
+            const firstPage = await axios.get(scimUrl(endpointPaginated), chimpy);
+            assert.equal(firstPage.status, 200);
+            assert.lengthOf(firstPage.data.Resources, 1);
+            const firstPageResourceId = parseInt(firstPage.data.Resources[0].id);
+            assert.equal(firstPageResourceId, 1);
+          }
+
+          {
+            const secondPage = await axios.get(scimUrl(endpointPaginated + '&startIndex=2'), chimpy);
+            assert.equal(secondPage.status, 200);
+            assert.lengthOf(secondPage.data.Resources, 1);
+            const secondPageResourceId = parseInt(secondPage.data.Resources[0].id);
+            assert.equal(secondPageResourceId, 2);
+          }
+        });
+
+        checkCommonErrors('get', '/Users');
       });
 
-      it('should handle pagination', async function () {
-        const endpointPaginated = '/Users?count=1&sortBy=id';
-        {
-          const firstPage = await axios.get(scimUrl(endpointPaginated), chimpy);
-          assert.equal(firstPage.status, 200);
-          assert.lengthOf(firstPage.data.Resources, 1);
-          const firstPageResourceId = parseInt(firstPage.data.Resources[0].id);
-          assert.equal(firstPageResourceId, 1);
-        }
+      describe('POST /Users/.search', function () {
+        const SEARCH_SCHEMA = 'urn:ietf:params:scim:api:messages:2.0:SearchRequest';
 
-        {
-          const secondPage = await axios.get(scimUrl(endpointPaginated + '&startIndex=2'), chimpy);
-          assert.equal(secondPage.status, 200);
-          assert.lengthOf(secondPage.data.Resources, 1);
-          const secondPageResourceId = parseInt(secondPage.data.Resources[0].id);
-          assert.equal(secondPageResourceId, 2);
-        }
-      });
-
-      checkCommonErrors('get', '/Users');
-    });
-
-    describe('POST /Users/.search', function () {
-      const SEARCH_SCHEMA = 'urn:ietf:params:scim:api:messages:2.0:SearchRequest';
-
-      const searchExample = {
-        schemas: [SEARCH_SCHEMA],
-        sortBy: 'userName',
-        sortOrder: 'descending',
-      };
-
-      it('should return all users for chimpy order by userName in descending order', async function () {
-        const res = await axios.post(scimUrl('/Users/.search'), searchExample, chimpy);
-        assert.equal(res.status, 200);
-        assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
-        const users = res.data.Resources.map((r: any) => r.userName);
-        assert.include(users, 'chimpy@getgrist.com');
-        assert.include(users, 'kiwi@getgrist.com');
-        const indexOfChimpy = users.indexOf('chimpy@getgrist.com');
-        const indexOfKiwi = users.indexOf('kiwi@getgrist.com');
-        assert.isBelow(indexOfKiwi, indexOfChimpy, 'kiwi should come before chimpy');
-      });
-
-      it('should also allow access for user Charon (the one refered in GRIST_SCIM_EMAIL)', async function () {
-        const res = await axios.post(scimUrl('/Users/.search'), searchExample, charon);
-        assert.equal(res.status, 200);
-      });
-
-      it('should filter the users by userName', async function () {
-        const res = await axios.post(scimUrl('/Users/.search'), {
+        const searchExample = {
           schemas: [SEARCH_SCHEMA],
-          attributes: ['userName'],
-          filter: 'userName sw "chimpy"',
-        }, chimpy);
-        assert.equal(res.status, 200);
-        assert.equal(res.data.totalResults, 1);
-        assert.deepEqual(res.data.Resources[0], { id: String(userIdByName['chimpy']), userName: 'chimpy@getgrist.com' },
-          "should have retrieved only chimpy's username and not other attribute");
+          sortBy: 'userName',
+          sortOrder: 'descending',
+        };
+
+        it('should return all users for chimpy order by userName in descending order', async function () {
+          const res = await axios.post(scimUrl('/Users/.search'), searchExample, chimpy);
+          assert.equal(res.status, 200);
+          assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
+          const users = res.data.Resources.map((r: any) => r.userName);
+          assert.include(users, 'chimpy@getgrist.com');
+          assert.include(users, 'kiwi@getgrist.com');
+          const indexOfChimpy = users.indexOf('chimpy@getgrist.com');
+          const indexOfKiwi = users.indexOf('kiwi@getgrist.com');
+          assert.isBelow(indexOfKiwi, indexOfChimpy, 'kiwi should come before chimpy');
+        });
+
+        it('should also allow access for user Charon (the one refered in GRIST_SCIM_EMAIL)', async function () {
+          const res = await axios.post(scimUrl('/Users/.search'), searchExample, charon);
+          assert.equal(res.status, 200);
+        });
+
+        it('should filter the users by userName', async function () {
+          const res = await axios.post(scimUrl('/Users/.search'), {
+            schemas: [SEARCH_SCHEMA],
+            attributes: ['userName'],
+            filter: 'userName sw "chimpy"',
+          }, chimpy);
+          assert.equal(res.status, 200);
+          assert.equal(res.data.totalResults, 1);
+          assert.deepEqual(res.data.Resources[0], {
+            id: String(userIdByName['chimpy']),
+            userName: 'chimpy@getgrist.com'
+          },
+            "should have retrieved only chimpy's username and not other attribute");
+        });
+
+        checkCommonErrors('post', '/Users/.search', searchExample);
       });
 
-      checkCommonErrors('post', '/Users/.search', searchExample);
-    });
-
-    describe('POST /Users', function () { // Create a new users
-      async function withUserName(userName: string, cb: (userName: string) => Promise<void>) {
-        try {
-          await cb(userName);
-        } finally {
-          const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
-          if (user) {
-            await cleanupUser(user.id);
+      describe('POST /Users', function () { // Create a new users
+        async function withUserName(userName: string, cb: (userName: string) => Promise<void>) {
+          try {
+            await cb(userName);
+          } finally {
+            const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
+            if (user) {
+              await cleanupUser(user.id);
+            }
           }
         }
-      }
-      it('should create a new user', async function () {
-        await withUserName('newuser1', async (userName) => {
-          const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), chimpy);
-          assert.equal(res.status, 201);
-          const newUserId = await getOrCreateUserId(userName);
-          assert.deepEqual(res.data, toSCIMUserWithId(userName, newUserId));
-        });
-      });
-
-      it('should allow creating a new user given only their email passed as username', async function () {
-        await withUserName('new.user2', async (userName) => {
-          const res = await axios.post(scimUrl('/Users'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-            userName: 'new.user2@getgrist.com',
-          }, chimpy);
-          assert.equal(res.status, 201);
-          assert.equal(res.data.userName, userName + '@getgrist.com');
-          assert.equal(res.data.displayName, userName);
-        });
-      });
-
-      it('should also allow user Charon to create a user (the one refered in GRIST_SCIM_EMAIL)', async function () {
-        await withUserName('new.user.by.charon', async (userName) => {
-          const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), charon);
-          assert.equal(res.status, 201);
-        });
-      });
-
-      it('should warn when passed email differs from username, and ignore the username', async function () {
-        await withUserName('username', async (userName) => {
-          const res = await axios.post(scimUrl('/Users'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-            userName: userName,
-            emails: [{ value: 'emails.value@getgrist.com' }],
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
-            id: '12',
-            meta: { resourceType: 'User', location: '/api/scim/v2/Users/12' },
-            userName: 'emails.value@getgrist.com',
-            name: { formatted: 'emails.value' },
-            displayName: 'emails.value',
-            preferredLanguage: 'en',
-            locale: 'en',
-            emails: [
-              { value: 'emails.value@getgrist.com', primary: true }
-            ]
+        it('should create a new user', async function () {
+          await withUserName('newuser1', async (userName) => {
+            const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), chimpy);
+            assert.equal(res.status, 201);
+            const newUserId = await getOrCreateUserId(userName);
+            assert.deepEqual(res.data, toSCIMUserWithId(userName, newUserId));
           });
-          assert.equal(res.status, 201);
+        });
+
+        it('should allow creating a new user given only their email passed as username', async function () {
+          await withUserName('new.user2', async (userName) => {
+            const res = await axios.post(scimUrl('/Users'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+              userName: 'new.user2@getgrist.com',
+            }, chimpy);
+            assert.equal(res.status, 201);
+            assert.equal(res.data.userName, userName + '@getgrist.com');
+            assert.equal(res.data.displayName, userName);
+          });
+        });
+
+        it('should also allow user Charon to create a user (the one refered in GRIST_SCIM_EMAIL)', async function () {
+          await withUserName('new.user.by.charon', async (userName) => {
+            const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), charon);
+            assert.equal(res.status, 201);
+          });
+        });
+
+        it('should warn when passed email differs from username, and ignore the username', async function () {
+          await withUserName('username', async (userName) => {
+            const res = await axios.post(scimUrl('/Users'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+              userName: userName,
+              emails: [{ value: 'emails.value@getgrist.com' }],
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
+              id: '12',
+              meta: { resourceType: 'User', location: '/api/scim/v2/Users/12' },
+              userName: 'emails.value@getgrist.com',
+              name: { formatted: 'emails.value' },
+              displayName: 'emails.value',
+              preferredLanguage: 'en',
+              locale: 'en',
+              emails: [
+                { value: 'emails.value@getgrist.com', primary: true }
+              ]
+            });
+            assert.equal(res.status, 201);
+            assert.equal(logWarnStub.callCount, 1, "A warning should have been raised");
+            assert.match(
+              logWarnStub.getCalls()[0].args[0],
+              new RegExp(`userName "${userName}" differ from passed primary email`)
+            );
+          });
+        });
+
+        it('should disallow creating a user with the same email', async function () {
+          const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId('chimpy'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '409',
+            detail: 'An existing user with the passed email exist.',
+            scimType: 'uniqueness'
+          });
+          assert.equal(res.status, 409);
+        });
+
+        checkCommonErrors('post', '/Users', toSCIMUserWithoutId('some-user'));
+      });
+
+      describe('PUT /Users/{id}', function () {
+        let userToUpdateId: number;
+        const userToUpdateEmailLocalPart = 'user-to-update';
+
+        beforeEach(async function () {
+          userToUpdateId = await getOrCreateUserId(userToUpdateEmailLocalPart);
+        });
+        afterEach(async function () {
+          await cleanupUser(userToUpdateId);
+        });
+
+        it('should update an existing user', async function () {
+          const userToUpdateProperties = {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            userName: userToUpdateEmailLocalPart + '-now-updated@getgrist.com',
+            displayName: 'User to Update',
+            photos: [{ value: 'https://example.com/photo.jpg', type: 'photo', primary: true }],
+            locale: 'fr',
+          };
+          const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), userToUpdateProperties, chimpy);
+          assert.equal(res.status, 200);
+          const refreshedUser = await axios.get(scimUrl(`/Users/${userToUpdateId}`), chimpy);
+          assert.deepEqual(refreshedUser.data, {
+            ...userToUpdateProperties,
+            id: String(userToUpdateId),
+            meta: { resourceType: 'User', location: `/api/scim/v2/Users/${userToUpdateId}` },
+            emails: [ { value: userToUpdateProperties.userName, primary: true } ],
+            name: { formatted: userToUpdateProperties.displayName },
+            preferredLanguage: 'fr',
+          });
+        });
+
+        it('should warn when passed email differs from username', async function () {
+          const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            userName: 'whatever@getgrist.com',
+            emails: [{ value: userToUpdateEmailLocalPart + '@getgrist.com', primary: true }],
+          }, chimpy);
+          assert.equal(res.status, 200);
           assert.equal(logWarnStub.callCount, 1, "A warning should have been raised");
-          assert.match(
-            logWarnStub.getCalls()[0].args[0],
-            new RegExp(`userName "${userName}" differ from passed primary email`)
-          );
+          assert.match(logWarnStub.getCalls()[0].args[0], /differ from passed primary email/);
         });
-      });
 
-      it('should disallow creating a user with the same email', async function () {
-        const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId('chimpy'), chimpy);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '409',
-          detail: 'An existing user with the passed email exist.',
-          scimType: 'uniqueness'
+        it('should disallow updating a user with the same email as another user\'s', async function () {
+          const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), toSCIMUserWithoutId('chimpy'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '409',
+            detail: 'An existing user with the passed email exist.',
+            scimType: 'uniqueness'
+          });
+          assert.equal(res.status, 409);
         });
-        assert.equal(res.status, 409);
-      });
 
-      checkCommonErrors('post', '/Users', toSCIMUserWithoutId('some-user'));
-    });
-
-    describe('PUT /Users/{id}', function () {
-      let userToUpdateId: number;
-      const userToUpdateEmailLocalPart = 'user-to-update';
-
-      beforeEach(async function () {
-        userToUpdateId = await getOrCreateUserId(userToUpdateEmailLocalPart);
-      });
-      afterEach(async function () {
-        await cleanupUser(userToUpdateId);
-      });
-
-      it('should update an existing user', async function () {
-        const userToUpdateProperties = {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          userName: userToUpdateEmailLocalPart + '-now-updated@getgrist.com',
-          displayName: 'User to Update',
-          photos: [{ value: 'https://example.com/photo.jpg', type: 'photo', primary: true }],
-          locale: 'fr',
-        };
-        const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), userToUpdateProperties, chimpy);
-        assert.equal(res.status, 200);
-        const refreshedUser = await axios.get(scimUrl(`/Users/${userToUpdateId}`), chimpy);
-        assert.deepEqual(refreshedUser.data, {
-          ...userToUpdateProperties,
-          id: String(userToUpdateId),
-          meta: { resourceType: 'User', location: `/api/scim/v2/Users/${userToUpdateId}` },
-          emails: [ { value: userToUpdateProperties.userName, primary: true } ],
-          name: { formatted: userToUpdateProperties.displayName },
-          preferredLanguage: 'fr',
+        it('should return 404 when the user is not found', async function () {
+          const res = await axios.put(scimUrl('/Users/1000'), toSCIMUserWithoutId('whoever'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'unable to find user to update'
+          });
+          assert.equal(res.status, 404);
         });
-      });
 
-      it('should warn when passed email differs from username', async function () {
-        const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          userName: 'whatever@getgrist.com',
-          emails: [{ value: userToUpdateEmailLocalPart + '@getgrist.com', primary: true }],
-        }, chimpy);
-        assert.equal(res.status, 200);
-        assert.equal(logWarnStub.callCount, 1, "A warning should have been raised");
-        assert.match(logWarnStub.getCalls()[0].args[0], /differ from passed primary email/);
-      });
-
-      it('should disallow updating a user with the same email as another user\'s', async function () {
-        const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), toSCIMUserWithoutId('chimpy'), chimpy);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '409',
-          detail: 'An existing user with the passed email exist.',
-          scimType: 'uniqueness'
+        it('should return 403 for system users', async function () {
+          const data = toSCIMUserWithoutId('whoever');
+          await checkOperationOnTechUserDisallowed({
+            op: (id) => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
+            opType: 'modification'
+          });
         });
-        assert.equal(res.status, 409);
-      });
 
-      it('should return 404 when the user is not found', async function () {
-        const res = await axios.put(scimUrl('/Users/1000'), toSCIMUserWithoutId('whoever'), chimpy);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '404',
-          detail: 'unable to find user to update'
+
+        it('should deduce the name from the displayEmail when not provided', async function () {
+          const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            userName: 'my-email@getgrist.com',
+          }, chimpy);
+          assert.equal(res.status, 200);
+          assert.deepInclude(res.data, {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            id: String(userToUpdateId),
+            userName: 'my-email@getgrist.com',
+            displayName: 'my-email',
+          });
         });
-        assert.equal(res.status, 404);
-      });
 
-      it('should return 403 for system users', async function () {
-        const data = toSCIMUserWithoutId('whoever');
-        await checkOperationOnTechUserDisallowed({
-          op: (id) => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
-          opType: 'modification'
+        it('should return 400 when the user id is malformed', async function () {
+          const res = await axios.put(scimUrl('/Users/not-an-id'), toSCIMUserWithoutId('whoever'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '400',
+            detail: 'Invalid passed user ID',
+            scimType: 'invalidValue'
+          });
+          assert.equal(res.status, 400);
         });
-      });
 
-
-      it('should deduce the name from the displayEmail when not provided', async function () {
-        const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          userName: 'my-email@getgrist.com',
-        }, chimpy);
-        assert.equal(res.status, 200);
-        assert.deepInclude(res.data, {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          id: String(userToUpdateId),
-          userName: 'my-email@getgrist.com',
-          displayName: 'my-email',
+        it('should normalize the passed email for the userName and keep the case for email.value', async function () {
+          const newEmail = 'my-EMAIL@getgrist.com';
+          const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            userName: newEmail,
+          }, chimpy);
+          assert.equal(res.status, 200);
+          assert.deepInclude(res.data, {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            id: String(userToUpdateId),
+            userName: newEmail.toLowerCase(),
+            displayName: 'my-EMAIL',
+            emails: [{ value: newEmail, primary: true }]
+          });
         });
+
+        checkCommonErrors('put', '/Users/1', toSCIMUserWithoutId('chimpy'));
       });
 
-      it('should return 400 when the user id is malformed', async function () {
-        const res = await axios.put(scimUrl('/Users/not-an-id'), toSCIMUserWithoutId('whoever'), chimpy);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '400',
-          detail: 'Invalid passed user ID',
-          scimType: 'invalidValue'
+      describe('PATCH /Users/{id}', function () {
+        let userToPatchId: number;
+        const userToPatchEmailLocalPart = 'user-to-patch';
+        beforeEach(async function () {
+          userToPatchId = await getOrCreateUserId(userToPatchEmailLocalPart);
         });
-        assert.equal(res.status, 400);
-      });
-
-      it('should normalize the passed email for the userName and keep the case for email.value', async function () {
-        const newEmail = 'my-EMAIL@getgrist.com';
-        const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          userName: newEmail,
-        }, chimpy);
-        assert.equal(res.status, 200);
-        assert.deepInclude(res.data, {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
-          id: String(userToUpdateId),
-          userName: newEmail.toLowerCase(),
-          displayName: 'my-EMAIL',
-          emails: [{ value: newEmail, primary: true }]
+        afterEach(async function () {
+          await cleanupUser(userToPatchId);
         });
-      });
 
-      checkCommonErrors('put', '/Users/1', toSCIMUserWithoutId('chimpy'));
-    });
-
-    describe('PATCH /Users/{id}', function () {
-      let userToPatchId: number;
-      const userToPatchEmailLocalPart = 'user-to-patch';
-      beforeEach(async function () {
-        userToPatchId = await getOrCreateUserId(userToPatchEmailLocalPart);
-      });
-      afterEach(async function () {
-        await cleanupUser(userToPatchId);
-      });
-
-      const validPatchBody = (newName: string) => ({
-        schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
-        Operations: [{
-          op: "replace",
-          path: "displayName",
-          value: newName,
-        }, {
+        const validPatchBody = (newName: string) => ({
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+          Operations: [{
             op: "replace",
-            path: "locale",
-            value: 'fr'
-          }],
-      });
-
-      it('should replace values of an existing user', async function () {
-        const newName = 'User to Patch new Name';
-        const res = await axios.patch(scimUrl(`/Users/${userToPatchId}`), validPatchBody(newName), chimpy);
-        assert.equal(res.status, 200);
-        const refreshedUser = await axios.get(scimUrl(`/Users/${userToPatchId}`), chimpy);
-        assert.deepEqual(refreshedUser.data, {
-          ...toSCIMUserWithId(userToPatchEmailLocalPart, userToPatchId),
-          displayName: newName,
-          name: { formatted: newName },
-          locale: 'fr',
-          preferredLanguage: 'fr',
+            path: "displayName",
+            value: newName,
+          }, {
+              op: "replace",
+              path: "locale",
+              value: 'fr'
+            }],
         });
-      });
 
-      checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
-    });
-
-    describe('DELETE /Users/{id}', function () {
-      let userToDeleteId: number;
-      const userToDeleteEmailLocalPart = 'user-to-delete';
-
-      beforeEach(async function () {
-        userToDeleteId = await getOrCreateUserId(userToDeleteEmailLocalPart);
-      });
-      afterEach(async function () {
-        await cleanupUser(userToDeleteId);
-      });
-
-      it('should delete a user', async function () {
-        const res = await axios.delete(scimUrl(`/Users/${userToDeleteId}`), chimpy);
-        assert.equal(res.status, 204);
-        const refreshedUser = await axios.get(scimUrl(`/Users/${userToDeleteId}`), chimpy);
-        assert.equal(refreshedUser.status, 404);
-      });
-
-      it('should return 404 when the user is not found', async function () {
-        const res = await axios.delete(scimUrl('/Users/1000'), chimpy);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '404',
-          detail: 'user not found'
+        it('should replace values of an existing user', async function () {
+          const newName = 'User to Patch new Name';
+          const res = await axios.patch(scimUrl(`/Users/${userToPatchId}`), validPatchBody(newName), chimpy);
+          assert.equal(res.status, 200);
+          const refreshedUser = await axios.get(scimUrl(`/Users/${userToPatchId}`), chimpy);
+          assert.deepEqual(refreshedUser.data, {
+            ...toSCIMUserWithId(userToPatchEmailLocalPart, userToPatchId),
+            displayName: newName,
+            name: { formatted: newName },
+            locale: 'fr',
+            preferredLanguage: 'fr',
+          });
         });
-        assert.equal(res.status, 404);
+
+        checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
       });
 
-      it('should return 403 for system users', async function () {
-        await checkOperationOnTechUserDisallowed({
-          op: (id) => axios.delete(scimUrl(`/Users/${id}`), chimpy),
-          opType: 'deletion'
+      describe('DELETE /Users/{id}', function () {
+        let userToDeleteId: number;
+        const userToDeleteEmailLocalPart = 'user-to-delete';
+
+        beforeEach(async function () {
+          userToDeleteId = await getOrCreateUserId(userToDeleteEmailLocalPart);
         });
-      });
+        afterEach(async function () {
+          await cleanupUser(userToDeleteId);
+        });
 
-      checkCommonErrors('delete', '/Users/1');
+        it('should delete a user', async function () {
+          const res = await axios.delete(scimUrl(`/Users/${userToDeleteId}`), chimpy);
+          assert.equal(res.status, 204);
+          const refreshedUser = await axios.get(scimUrl(`/Users/${userToDeleteId}`), chimpy);
+          assert.equal(refreshedUser.status, 404);
+        });
+
+        it('should return 404 when the user is not found', async function () {
+          const res = await axios.delete(scimUrl('/Users/1000'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'user not found'
+          });
+          assert.equal(res.status, 404);
+        });
+
+        it('should return 403 for system users', async function () {
+          await checkOperationOnTechUserDisallowed({
+            op: (id) => axios.delete(scimUrl(`/Users/${id}`), chimpy),
+            opType: 'deletion'
+          });
+        });
+
+        checkCommonErrors('delete', '/Users/1');
+      });
     });
 
     describe('POST /Bulk', function () {
