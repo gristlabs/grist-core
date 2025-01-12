@@ -1,8 +1,11 @@
 import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
-import { User } from "app/gen-server/entity/User.js";
+import { User } from "app/gen-server/entity/User";
+import { Group } from "app/gen-server/entity/Group";
 import SCIMMY from "scimmy";
 import log from 'app/server/lib/log';
+
+const SCIM_API_BASE_PATH = '/api/scim/v2';
 
 /**
  * Converts a user from your database to a SCIMMY user
@@ -45,4 +48,26 @@ export function toUserProfile(scimUser: any, existingUser?: User): UserProfile {
     locale: scimUser.locale,
     email: emailValue ?? scimUser.userName ?? existingUser?.loginEmail,
   };
+}
+
+export function toSCIMMYGroup(group: Group) {
+  return new SCIMMY.Schemas.Group({
+    id: String(group.id),
+    displayName: group.name,
+    members: [
+      ...group.memberUsers.map((member: any) => ({
+        value: String(member.id),
+        display: member.name,
+        $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
+        type: 'User',
+      })),
+      // As of 2025-01-12, we don't support nested groups, so it should always be empty
+      ...group.memberGroups.map((member: any) => ({
+        value: String(member.id),
+        display: member.name,
+        $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
+        type: 'Group',
+      })),
+    ],
+  });
 }

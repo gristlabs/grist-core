@@ -7,6 +7,7 @@ import log from 'app/server/lib/log';
 import { TestServer } from 'test/gen-server/apiUtils';
 import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
+import { Group } from 'app/gen-server/entity/Group';
 
 function scimConfigForUser(user: string) {
   const config = configForUser(user);
@@ -42,7 +43,6 @@ describe('Scim', () => {
 
     before(async function () {
       oldEnv = new testUtils.EnvironmentSnapshot();
-      process.env.TYPEORM_DATABASE = ':memory:';
       Object.assign(process.env, env);
       server = new TestServer(this);
       homeUrl = await server.start();
@@ -189,6 +189,9 @@ describe('Scim', () => {
           sandbox.stub(getDbManager(), 'getUserByLoginWithRetry').throws(error);
           sandbox.stub(getDbManager(), 'overwriteUser').throws(error);
           sandbox.stub(getDbManager(), 'deleteUser').throws(error);
+          sandbox.stub(getDbManager(), 'getGroupWithMembersById').throws(error);
+          sandbox.stub(getDbManager(), 'getGroupsWithMembersByType').throws(error);
+          sandbox.stub(getDbManager(), 'getGroupsWithMembers').throws(error);
 
           const res = await makeCallWith('chimpy');
           assert.deepEqual(res.data, {
@@ -333,7 +336,7 @@ describe('Scim', () => {
             await cb(userName);
           } finally {
             const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
-            if (user) {
+            if (user && !process.env.NO_CLEANUP) {
               await cleanupUser(user.id);
             }
           }
@@ -602,6 +605,158 @@ describe('Scim', () => {
         });
 
         checkCommonErrors('delete', '/Users/1');
+      });
+    });
+
+    describe('Groups', function () {
+      async function cleanupGroups(groups: Group[]) {
+        for (const {id} of groups) {
+          await getDbManager().deleteGroup(id);
+        }
+      }
+
+      async function getGroupByNames(groupNames: string[]) {
+        return await getDbManager().connection.createQueryBuilder()
+          .select('g')
+          .from(Group, 'g')
+          .where('g.name IN (:...groupNames)', { groupNames })
+          .getMany();
+      }
+
+      async function withGroupNames(groupNames: string[], cb: (groupNames: string[]) => Promise<void>) {
+        try {
+          const existingGroups = await getGroupByNames(groupNames);
+          if (existingGroups.length > 0) {
+            throw new Error(`Group with name ${existingGroups[0].name} already exists`);
+          }
+          return await cb(groupNames);
+        } finally {
+          if (!process.env.NO_CLEANUP) {
+            const groups = await getGroupByNames(groupNames);
+            await cleanupGroups(groups);
+          }
+        }
+      }
+
+      async function withGroupName(groupName: string, cb: (groupName: string) => Promise<void>) {
+        return await withGroupNames([groupName], (groupNames) => cb(groupNames[0]));
+      }
+
+      describe('GET /Groups/{id}', function () {
+        it(`should return a "${Group.RESOURCE_USERS_TYPE}" group for chimpy`, async function () {
+          await withGroupName('test-get-group-by-id', async (groupName) => {
+            const {id: groupId} = await getDbManager().createGroup({
+              name: groupName,
+              type: Group.RESOURCE_USERS_TYPE,
+              memberUsers: [userIdByName['chimpy']!, userIdByName['kiwi']!]
+            });
+
+            const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
+
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              id: String(groupId),
+              displayName: groupName,
+              members: [
+                { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
+                { value: '2', display: 'Kiwi', $ref: '/api/scim/v2/Users/2', type: 'User' },
+              ],
+              meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${groupId}` }
+            });
+          });
+        });
+
+        it('should return 404 when the group is not found', async function () {
+          const nonExistingId = 10000000;
+          const res = await axios.get(scimUrl(`/Groups/${nonExistingId}`), chimpy);
+          assert.equal(res.status, 404);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: `Group with ID ${nonExistingId} not found`
+          });
+        });
+
+        it(`should return 404 when the group is of type ${Group.ROLE_TYPE}`, async function () {
+          await withGroupName('test-role-group', async (groupName) => {
+            const {id: groupId} = await getDbManager().createGroup({
+              name: groupName,
+              type: Group.ROLE_TYPE,
+              memberUsers: [userIdByName['chimpy']!]
+            });
+
+            const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
+            assert.equal(res.status, 404);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '404',
+              detail: `Group with ID ${groupId} not found`
+            });
+          });
+        });
+
+        it('should return 400 when the group id is malformed', async function () {
+          const res = await axios.get(scimUrl('/Groups/not-an-id'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '400',
+            detail: 'Invalid passed group ID',
+            scimType: 'invalidValue'
+          });
+          assert.equal(res.status, 400);
+        });
+
+        checkCommonErrors('get', '/Groups/1');
+      });
+
+      describe('GET /Groups', function () {
+        it(`should return all ${Group.RESOURCE_USERS_TYPE} groups for chimpy`, async function () {
+          return withGroupNames(
+            ['test-group1', 'test-group2', 'test-role-group'],
+            async ([group1Name, group2Name, roleGroupName]) => {
+              await getDbManager().createGroup({
+                name: roleGroupName,
+                type: Group.ROLE_TYPE,
+                memberUsers: [userIdByName['chimpy']!]
+              });
+              const group1 = await getDbManager().createGroup({
+                name: group1Name,
+                type: Group.RESOURCE_USERS_TYPE,
+                memberUsers: [userIdByName['chimpy']!]
+              });
+              const group2 = await getDbManager().createGroup({
+                name: group2Name,
+                type: Group.RESOURCE_USERS_TYPE,
+                memberUsers: [userIdByName['kiwi']!]
+              });
+
+              const res = await axios.get(scimUrl('/Groups'), chimpy);
+              assert.equal(res.status, 200);
+              assert.isAbove(res.data.totalResults, 0, 'should have retrieved some groups');
+              assert.isFalse(res.data.Resources.some(
+                ({displayName}: {displayName: string}) => displayName === roleGroupName
+              ), 'The API endpoint should not return role Groups');
+              assert.deepEqual(res.data.Resources, [
+                {
+                  schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                  id: String(group1.id),
+                  displayName: group1Name,
+                  members: [{ value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' }],
+                  meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group1.id}` }
+                }, {
+                  schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                  id: String(group2.id),
+                  displayName: group2Name,
+                  members: [{ value: '2', display: 'Kiwi', $ref: '/api/scim/v2/Users/2', type: 'User' }],
+                  meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group2.id}` }
+                }
+              ]);
+            }
+          );
+        });
+
+        checkCommonErrors('get', '/Groups');
       });
     });
 
