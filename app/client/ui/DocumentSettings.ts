@@ -81,7 +81,7 @@ export class DocSettingsPage extends Disposable {
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
 
     return cssContainer(
-      dom.create(AdminSection, t('Document Settings'), [
+      dom.create(cssAdminSection, t('Document Settings'), [
         dom.create(AdminSectionItem, {
           id: 'timezone',
           name: t('Time Zone'),
@@ -121,7 +121,7 @@ export class DocSettingsPage extends Disposable {
         }),
       ]),
 
-      dom.create(AdminSection, t('Data Engine'), [
+      dom.create(cssAdminSection, t('Data Engine'), [
         dom.create(AdminSectionItem, {
           id: 'timings',
           name: t('Formula timer'),
@@ -169,7 +169,7 @@ export class DocSettingsPage extends Disposable {
         }) : null,
       ]),
 
-      dom.create(AdminSection, t('API'), [
+      dom.create(cssAdminSection, t('API'), [
         dom.create(AdminSectionItem, {
           id: 'documentId',
           name: t('Document ID'),
@@ -880,6 +880,7 @@ const cssDocTypeContainer = styled('div', `
     display: inline-block;
   }
 `);
+
 const cssFlex = styled('div', `
   display: flex;
   align-items: center;
@@ -908,4 +909,8 @@ const cssLoadingSpinner = styled(loadingSpinner, `
       --loader-bg: #adadad;
     }
   }
+|`);
+
+const cssAdminSection = styled(AdminSection, `
+  max-width: 750px;
 `);
