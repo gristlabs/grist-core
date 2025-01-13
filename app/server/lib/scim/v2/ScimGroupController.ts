@@ -2,11 +2,18 @@ import { Group } from 'app/gen-server/entity/Group';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { BaseController } from 'app/server/lib/scim/v2/BaseController';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
-import { toSCIMMYGroup } from 'app/server/lib/scim/v2/ScimUtils';
+import { toGroupDescriptor, toSCIMMYGroup } from 'app/server/lib/scim/v2/ScimUtils';
 
 import SCIMMY from 'scimmy';
 
 class ScimGroupController extends BaseController {
+  public constructor(
+    dbManager: HomeDBManager,
+    checkAccess: (context: RequestContext) => void
+  ) {
+    super(dbManager, checkAccess, 'Invalid passed group ID');
+  }
+
   /**
    * Gets a single group with the passed ID.
    *
@@ -15,7 +22,7 @@ class ScimGroupController extends BaseController {
    */
   public async getSingleGroup(resource: any, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
-      const id = ScimGroupController.getIdFromResource(resource);
+      const id = this.getIdFromResource(resource);
       const group = await this.dbManager.getGroupWithMembersById(id);
       if (!group || group.type !== Group.RESOURCE_USERS_TYPE) {
         throw new SCIMMY.Types.Error(404, null!, `Group with ID ${id} not found`);
@@ -38,6 +45,20 @@ class ScimGroupController extends BaseController {
       return filter ? filter.match(scimmyGroup) : scimmyGroup;
     });
   }
+
+  /**
+   * Creates a new group with the passed data.
+   *
+   * @param data The data to create the group with
+   * @param context The request context
+   */
+  public async createGroup(data: any, context: RequestContext) {
+    return this.runAndHandleErrors(context, async () => {
+      const groupDescriptor = toGroupDescriptor(data);
+      const group = await this.dbManager.createGroup(groupDescriptor);
+      return toSCIMMYGroup(group);
+    });
+  }
 }
 
 export const getScimGroupConfig = (
@@ -51,6 +72,9 @@ export const getScimGroupConfig = (
         return await controller.getSingleGroup(resource, context);
       }
       return await controller.getGroups(resource, context);
+    },
+    ingress: async (resource: any, data: any, context: RequestContext) => {
+      return await controller.createGroup(data, context);
     },
   };
 };

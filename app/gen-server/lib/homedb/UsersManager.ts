@@ -735,6 +735,21 @@ export class UsersManager {
   }
 
   /**
+   * Returns a Promise for an array of User entites for the given userIds.
+   * Throws an error if any of the users are not found.
+   * This is useful when we expect all users to exist, and want to throw an error if they don't.
+   */
+  public async getUsersByIdsStrict(userIds: number[], optManager?: EntityManager): Promise<User[]> {
+    const users = await this.getUsersByIds(userIds, optManager);
+    if (users.length !== userIds.length) {
+      const foundUserIds = new Set(users.map(user => user.id));
+      const missingUserIds = userIds.filter(userId => !foundUserIds.has(userId));
+      throw new ApiError('Users not found: ' + missingUserIds.join(', '), 404);
+    }
+    return users;
+  }
+
+  /**
    * Don't add everyone@ as a guest, unless also sharing with anon@.
    * This means that material shared with everyone@ doesn't become
    * listable/discoverable by default.
