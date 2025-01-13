@@ -193,6 +193,8 @@ describe('Scim', () => {
           sandbox.stub(getDbManager(), 'getGroupsWithMembersByType').throws(error);
           sandbox.stub(getDbManager(), 'getGroupsWithMembers').throws(error);
           sandbox.stub(getDbManager(), 'createGroup').throws(error);
+          sandbox.stub(getDbManager(), 'overwriteGroup').throws(error);
+          sandbox.stub(getDbManager(), 'deleteGroup').throws(error);
 
           const res = await makeCallWith('chimpy');
           assert.deepEqual(res.data, {
@@ -485,7 +487,6 @@ describe('Scim', () => {
           });
         });
 
-
         it('should deduce the name from the displayEmail when not provided', async function () {
           const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
@@ -643,6 +644,15 @@ describe('Scim', () => {
         return await withGroupNames([groupName], (groupNames) => cb(groupNames[0]));
       }
 
+      function getUserMember(user: keyof UserConfigByName) {
+        return { value: String(userIdByName[user]), display: capitalize(user), type: 'User' };
+      }
+
+      function getUserMemberWithRef(user: keyof UserConfigByName) {
+        return { ...getUserMember(user), $ref: `/api/scim/v2/Users/${userIdByName[user]}` };
+      }
+
+
       describe('GET /Groups/{id}', function () {
         it(`should return a "${Group.RESOURCE_USERS_TYPE}" group for chimpy`, async function () {
           await withGroupName('test-get-group-by-id', async (groupName) => {
@@ -743,13 +753,13 @@ describe('Scim', () => {
                   schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
                   id: String(group1.id),
                   displayName: group1Name,
-                  members: [{ value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' }],
+                  members: [getUserMemberWithRef('chimpy')],
                   meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group1.id}` }
                 }, {
                   schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
                   id: String(group2.id),
                   displayName: group2Name,
-                  members: [{ value: '2', display: 'Kiwi', $ref: '/api/scim/v2/Users/2', type: 'User' }],
+                  members: [getUserMemberWithRef('kiwi')],
                   meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group2.id}` }
                 }
               ]);
@@ -761,14 +771,14 @@ describe('Scim', () => {
       });
 
       describe('POST /Groups', function () {
-        it(`should create a new ${Group.RESOURCE_USERS_TYPE} group`, async function () {
+        it(`should create a new group of type "${Group.RESOURCE_USERS_TYPE}`, async function () {
           await withGroupName('test-group', async (groupName) => {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               displayName: groupName,
               members: [
-                { value: String(userIdByName['chimpy']), display: 'Chimpy', type: 'User' },
-                { value: String(userIdByName['kiwi']), display: 'Kiwi', type: 'User' },
+                getUserMember('chimpy'),
+                getUserMember('kiwi'),
               ]
             }, chimpy);
             assert.equal(res.status, 201);
@@ -778,8 +788,8 @@ describe('Scim', () => {
               id: String(newGroupId),
               displayName: groupName,
               members: [
-                { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
-                { value: '2', display: 'Kiwi', $ref: '/api/scim/v2/Users/2', type: 'User' },
+                getUserMemberWithRef('chimpy'),
+                getUserMemberWithRef('kiwi'),
               ],
               meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${newGroupId}` }
             });
@@ -858,8 +868,7 @@ describe('Scim', () => {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
             displayName: 'test-group',
             members: [
-              { value: String(userIdByName['chimpy']), display: 'Chimpy',
-                $ref: `/api/scim/v2/Users/${String(userIdByName['chimpy'])}`, type: 'User' },
+              getUserMember('chimpy'),
               { value: '1000', display: 'Non-Existing User', type: 'User' },
             ]
           }, chimpy);
@@ -893,9 +902,100 @@ describe('Scim', () => {
           // We need to differ the moment we call userIdByName['chimpy'] (set during a "before()" hook)
           get members() {
             return [
-              { value: String(userIdByName['chimpy']), display: 'Chimpy', type: 'User' },
-              { value: String(userIdByName['kiwi']), display: 'Kiwi', type: 'User' },
+              getUserMember('chimpy'),
+              getUserMember('kiwi'),
             ];
+          }
+        });
+      });
+
+      describe('PUT /Groups/{id}', function () {
+        beforeEach(async function () {
+          await withGroupName('test-group', async (groupName) => {
+            await getDbManager().createGroup({
+              name: groupName,
+              type: Group.RESOURCE_USERS_TYPE,
+              memberUsers: [userIdByName['chimpy']!]
+            });
+          });
+        });
+
+        it('should update an existing group', async function () {
+          const newGroupName = 'Updated Group Name';
+          const res = await axios.put(scimUrl('/Groups/1'), {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            displayName: newGroupName,
+            members: [
+              getUserMember('kiwi'),
+            ]
+          }, chimpy);
+          assert.equal(res.status, 200);
+          assert.deepEqual(res.data, {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            id: '1',
+            displayName: newGroupName,
+            members: [
+              getUserMemberWithRef('kiwi'),
+            ],
+            meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/1' }
+          });
+        });
+
+        it('should updating a group with members omitted', async function () {
+          const newGroupName = 'Updated Group Name';
+          const res = await axios.put(scimUrl('/Groups/1'), {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            displayName: newGroupName,
+          }, chimpy);
+          assert.equal(res.status, 200);
+          assert.deepEqual(res.data, {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            id: '1',
+            displayName: newGroupName,
+            members: [],
+            meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/1' }
+          });
+        });
+
+        it('should return 404 when the group is not found', async function () {
+          const res = await axios.put(scimUrl('/Groups/1000'), {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            displayName: 'New Group Name',
+            members: [
+              getUserMember('kiwi'),
+            ]
+          }, chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'Group with id 1000 not found'
+          });
+          assert.equal(res.status, 404);
+        });
+
+        it('should return 400 when the group id is malformed', async function () {
+          const res = await axios.put(scimUrl('/Groups/not-an-id'), {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            displayName: 'New Group Name',
+            members: [
+              getUserMember('kiwi'),
+            ]
+          }, chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '400',
+            detail: 'Invalid passed group ID',
+            scimType: 'invalidValue'
+          });
+          assert.equal(res.status, 400);
+        });
+
+        checkCommonErrors('put', '/Groups/1', {
+          schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+          displayName: 'New Group Name',
+          // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
+          get members() {
+            return [ getUserMember('kiwi') ];
           }
         });
       });
