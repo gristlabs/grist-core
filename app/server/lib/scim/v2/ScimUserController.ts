@@ -63,10 +63,10 @@ class ScimUserController extends BaseController {
   }
 
   /**
-   * Overrides a user with the passed data.
+   * Overwrite a user with the passed data.
    *
    * @param resource The SCIMMY user resource performing the operation
-   * @param data The data to override the user with
+   * @param data The data to overwrite the user with
    * @param context The request context
    */
   public async overwriteUser(resource: any, data: any, context: RequestContext) {

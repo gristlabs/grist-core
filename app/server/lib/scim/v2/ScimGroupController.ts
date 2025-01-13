@@ -59,6 +59,22 @@ class ScimGroupController extends BaseController {
       return toSCIMMYGroup(group);
     });
   }
+
+  /**
+   * Overwrites a group with the passed data.
+   *
+   * @param resource The SCIMMY group resource performing the operation
+   * @param data The data to overwrite the group with
+   * @param context The request context
+   */
+  public async overwriteGroup(resource: any, data: any, context: RequestContext) {
+    return this.runAndHandleErrors(context, async () => {
+      const id = this.getIdFromResource(resource);
+      const groupDescriptor = toGroupDescriptor(data);
+      const group = await this.dbManager.overwriteGroup(id, groupDescriptor);
+      return toSCIMMYGroup(group);
+    });
+  }
 }
 
 export const getScimGroupConfig = (
@@ -74,6 +90,9 @@ export const getScimGroupConfig = (
       return await controller.getGroups(resource, context);
     },
     ingress: async (resource: any, data: any, context: RequestContext) => {
+      if (resource.id) {
+        return await controller.overwriteGroup(resource, data, context);
+      }
       return await controller.createGroup(data, context);
     },
   };
