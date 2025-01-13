@@ -61,7 +61,7 @@ describe('HomeIntro', function() {
     it('should link to examples page from the intro', testExamplesPage);
     it('should allow copying examples', testCopyingExamples.bind(null, undefined));
     it('should render selected Examples workspace specially', testSelectedExamplesPage);
-    it('should show empty workspace info', testEmptyWorkspace.bind(null, {buttons: true}));
+    it('should show empty workspace info', testEmptyWorkspace);
   });
 
   describe("Logged-in on team site", function() {
@@ -269,23 +269,22 @@ describe('HomeIntro', function() {
   }
 });
 
-async function testEmptyWorkspace(options = { buttons: false }) {
+async function testEmptyWorkspace() {
   await gu.openWorkspace("Home");
-  assert.equal(await driver.findWait('.test-empty-workspace-info', 400).isDisplayed(), true);
+  assert.isTrue(await driver.findWait('.test-dm-no-docs-message', 400).isDisplayed());
   // Create doc and check it is created.
-  await driver.find('.test-intro-create-doc').click();
+  await driver.find('.test-dm-add-new').click();
+  await driver.find('.test-dm-new-doc').click();
   await waitAndDismiss();
-  await emptyDockChecker();
-  // Check that we don't see empty info.
+  await emptyDocChecker();
+  // Check that we don't see the "No documents..." message anymore.
   await driver.navigate().back();
   await gu.waitForDocMenuToLoad();
   await gu.dismissBehavioralPrompts();
-  assert.equal(await driver.find('.test-empty-workspace-info').isPresent(), false);
+  assert.isFalse(await driver.find('.test-dm-no-docs-message').isPresent());
   // Remove created document, it also checks that document is visible.
   await deleteFirstDoc();
-  assert.equal(await driver.findWait('.test-empty-workspace-info', 400).isDisplayed(), true);
-
-  await checkImportDocButton(true);
+  assert.isTrue(await driver.findWait('.test-dm-no-docs-message', 400).isDisplayed());
 }
 
 // Wait for doc to load, check it, then return to home page, and remove the doc so that we
@@ -317,9 +316,10 @@ async function waitAndDismiss() {
 
 async function deleteFirstDoc() {
   assert.equal(await driver.find('.test-dm-doc').isPresent(), true);
-  await driver.find('.test-dm-doc').mouseMove().find('.test-dm-pinned-doc-options').click();
+  await driver.find('.test-dm-doc').mouseMove().find('.test-dm-doc-options').click();
   await driver.find('.test-dm-delete-doc').click();
   await driver.find('.test-modal-confirm').click();
+  await gu.waitForServer();
   await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
 }
 
@@ -338,9 +338,9 @@ async function checkImportDocButton(isLoggedIn: boolean) {
 
 async function checkCreateDocButton(isLoggedIn: boolean) {
   await driver.find('.test-intro-create-doc').click();
-  await checkDocAndRestore(isLoggedIn, emptyDockChecker);
+  await checkDocAndRestore(isLoggedIn, emptyDocChecker);
 }
 
-async function emptyDockChecker() {
+async function emptyDocChecker() {
   assert.equal(await gu.getCell('A', 1).getText(), '');
 }

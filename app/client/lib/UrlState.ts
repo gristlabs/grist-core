@@ -126,14 +126,17 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * both sets the href (e.g. to allow the link to be opened to a new tab), AND intercepts plain
    * clicks on it to "follow" the link without reloading the page.
    */
-  public setLinkUrl(urlState: IUrlState|UpdateFunc<IUrlState>): DomElementMethod[] {
+  public setLinkUrl(
+    urlState: IUrlState|UpdateFunc<IUrlState>,
+    options?: {replace?: boolean, avoidReload?: boolean}
+  ): DomElementMethod[] {
     return [
       dom.attr('href', (use) => this.makeUrl(urlState, use)),
       dom.on('click', (ev) => {
         // Only override plain-vanilla clicks.
         if (ev.shiftKey || ev.metaKey || ev.ctrlKey || ev.altKey) { return; }
         ev.preventDefault();
-        return this.pushUrl(urlState);
+        return this.pushUrl(urlState, options);
       }),
     ];
   }

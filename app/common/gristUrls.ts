@@ -31,7 +31,9 @@ export function isViewDocPage(docPage: IDocPage): docPage is ViewDocPage {
 export const HomePage = StringUnion('all', 'workspace', 'templates', 'trash');
 export type IHomePage = typeof HomePage.type;
 
-// TODO: Remove 'user' and 'info', since those pages are no longer part of any flow.
+export const HomePageTab = StringUnion('recent', 'pinned', 'all');
+export type HomePageTab = typeof HomePageTab.type;
+
 export const WelcomePage = StringUnion('teams', 'signup', 'verify', 'select-account');
 export type WelcomePage = typeof WelcomePage.type;
 
@@ -125,6 +127,7 @@ export const ONBOARDING_VIDEO_YOUTUBE_EMBED_ID = '56AieR9rpww';
 export interface IGristUrlState {
   org?: string;
   homePage?: IHomePage;
+  homePageTab?: HomePageTab;
   ws?: number;
   doc?: string;
   slug?: string;       // if present, this is based on the document title, and is not a stable id
@@ -375,7 +378,9 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   url.pathname = parts.join('');
   url.search = queryStr;
 
-  if (state.hash) {
+  if (state.homePageTab) {
+    url.hash = state.homePageTab;
+  } else if (state.hash) {
     // Project tests use hashes, so only set hash if there is an anchor.
     url.hash = hashParts.join('.');
   } else if (state.welcomeTour) {
@@ -568,6 +573,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         hashMap.set(part.slice(0, 1), part.slice(1));
       }
     }
+    state.homePageTab = HomePageTab.parse(hashMap.get('#'));
     if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [

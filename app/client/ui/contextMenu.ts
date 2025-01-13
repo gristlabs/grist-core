@@ -9,20 +9,32 @@
  */
 import { Disposable, dom, DomArg, DomContents, Holder } from "grainjs";
 import { cssMenuElem, registerMenuOpen } from 'app/client/ui2018/menus';
-import { IOpenController, Menu } from 'popweasel';
+import { IMenuOptions, IOpenController, Menu } from 'popweasel';
 
 export type IContextMenuContentFunc = (ctx: ContextMenuController) => DomContents;
 
+interface ContextMenuControllerOptions {
+  triggerElem: Element;
+  menuOptions?: IMenuOptions;
+}
+
 class ContextMenuController extends Disposable implements IOpenController {
   private _content: HTMLElement;
-  constructor(private _event: MouseEvent, contentFunc: IContextMenuContentFunc) {
+  private _triggerElem = this._options.triggerElem;
+
+  constructor(
+    private _event: MouseEvent,
+    contentFunc: IContextMenuContentFunc,
+    private _options: ContextMenuControllerOptions
+  ) {
     super();
 
     setTimeout(() => this._updatePosition(), 0);
 
     // Create content and add to the dom but keep hidden until menu gets positioned
     const menu = Menu.create(null, this, [contentFunc(this)], {
-      menuCssClass: cssMenuElem.className + ' grist-floating-menu'
+      menuCssClass: cssMenuElem.className + ' grist-floating-menu',
+      ...this._options.menuOptions,
     });
     const content = this._content = menu.content;
     content.style.visibility = 'hidden';
@@ -57,13 +69,16 @@ class ContextMenuController extends Disposable implements IOpenController {
   public close() {
     this.dispose();
   }
-  public setOpenClass() {}
 
-  // IOpenController expects a trigger elem but context menu has no trigger. Let's return body for
-  // now. As of time of writing the trigger elem is only used by popweasel when certain options are
-  // enabled, ie: strectToSelector, parentSelectoToMark.
-  // TODO: make a PR on popweasel to support using Menu with no trigger element.
-  public getTriggerElem() { return document.body; }
+  public setOpenClass(elem: Element, cls: string = 'weasel-popup-open') {
+    elem.classList.add(cls);
+    this.onDispose(() => elem.classList.remove(cls));
+  }
+
+  public getTriggerElem() {
+    return this._triggerElem;
+  }
+
   public update() {}
 
   private _updatePosition() {
@@ -84,14 +99,20 @@ class ContextMenuController extends Disposable implements IOpenController {
 /**
  * Show a context menu on contextmenu.
  */
-export function contextMenu(contentFunc: IContextMenuContentFunc): DomArg {
+export function contextMenu(
+  contentFunc: IContextMenuContentFunc,
+  options: IMenuOptions = {}
+): DomArg {
   return (elem) => {
     const holder = Holder.create(null);
     dom.autoDisposeElem(elem, holder);
     dom.onElem(elem, 'contextmenu', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      ContextMenuController.create(holder, ev, contentFunc);
+      ContextMenuController.create(holder, ev, contentFunc, {
+        triggerElem: elem as Element,
+        menuOptions: options,
+      });
     });
   };
 }

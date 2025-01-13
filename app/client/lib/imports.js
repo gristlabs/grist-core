@@ -25,6 +25,7 @@ exports.loadAce = () => import('ace-builds')
 
     return m.default;
   });
+exports.loadEmojiPicker = () => import('app/client/ui/EmojiPicker' /* webpackChunkName: "emojipicker" */);
 exports.loadMomentTimezone = () => import('moment-timezone').then(m => m.default);
 exports.loadPlotly = () => import('plotly.js-basic-dist' /* webpackChunkName: "plotly" */);
 exports.loadSearch = () => import('app/client/ui2018/search' /* webpackChunkName: "search" */);

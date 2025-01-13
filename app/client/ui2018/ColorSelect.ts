@@ -15,10 +15,10 @@ const t = makeT('ColorSelect');
 export interface StyleOptions {
   textColor: ColorOption,
   fillColor: ColorOption,
-  fontBold: Observable<boolean|undefined>,
-  fontUnderline: Observable<boolean|undefined>,
-  fontItalic: Observable<boolean|undefined>,
-  fontStrikethrough: Observable<boolean|undefined>,
+  fontBold?: Observable<boolean|undefined>,
+  fontUnderline?: Observable<boolean|undefined>,
+  fontItalic?: Observable<boolean|undefined>,
+  fontStrikethrough?: Observable<boolean|undefined>,
 }
 
 export class ColorOption {
@@ -59,6 +59,10 @@ export function colorSelect(
   const {
     textColor,
     fillColor,
+    fontBold,
+    fontUnderline,
+    fontItalic,
+    fontStrikethrough,
   } = styleOptions;
   const {
     onSave,
@@ -72,10 +76,10 @@ export function colorSelect(
         'T',
         dom.style('color', use => use(textColor.color) || textColor.defaultColor),
         dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
-        dom.cls('font-bold', use => use(styleOptions.fontBold) ?? false),
-        dom.cls('font-italic', use => use(styleOptions.fontItalic) ?? false),
-        dom.cls('font-underline', use => use(styleOptions.fontUnderline) ?? false),
-        dom.cls('font-strikethrough', use => use(styleOptions.fontStrikethrough) ?? false),
+        fontBold ? dom.cls('font-bold', use => use(fontBold) ?? false) : null,
+        fontItalic ? dom.cls('font-italic', use => use(fontItalic) ?? false) : null,
+        fontUnderline ? dom.cls('font-underline', use => use(fontUnderline) ?? false) : null,
+        fontStrikethrough ? dom.cls('font-strikethrough', use => use(fontStrikethrough) ?? false) : null,
         cssLightBorder.cls(''),
         testId('btn-icon'),
       ),
@@ -105,15 +109,22 @@ export interface ColorButtonOptions {
 export function colorButton(options: ColorButtonOptions): Element {
   const { colorPickerDomArgs, ...colorPickerOptions } = options;
   const { styleOptions } = colorPickerOptions;
-  const { textColor, fillColor } = styleOptions;
+  const {
+    textColor,
+    fillColor,
+    fontBold,
+    fontItalic,
+    fontUnderline,
+    fontStrikethrough,
+  } = styleOptions;
   const iconBtn = cssIconBtn(
     'T',
     dom.style('color', use => use(textColor.color) || textColor.defaultColor),
     dom.style('background-color', (use) => use(fillColor.color)?.slice(0, 7) || fillColor.defaultColor),
-    dom.cls('font-bold', use => use(styleOptions.fontBold) ?? false),
-    dom.cls('font-italic', use => use(styleOptions.fontItalic) ?? false),
-    dom.cls('font-underline', use => use(styleOptions.fontUnderline) ?? false),
-    dom.cls('font-strikethrough', use => use(styleOptions.fontStrikethrough) ?? false),
+    fontBold ? dom.cls('font-bold', use => use(fontBold) ?? false) : null,
+    fontItalic ? dom.cls('font-italic', use => use(fontItalic) ?? false) : null,
+    fontUnderline ? dom.cls('font-underline', use => use(fontUnderline) ?? false) : null,
+    fontStrikethrough ? dom.cls('font-strikethrough', use => use(fontStrikethrough) ?? false) : null,
     testId('color-button'),
   );
 
@@ -126,29 +137,49 @@ export function colorButton(options: ColorButtonOptions): Element {
 
 interface ColorPickerOptions {
   styleOptions: StyleOptions;
-  onSave(): Promise<void>;
+  onSave?(): Promise<void>;
   onRevert?(): void;
   onClose?(): void;
 }
 
-function buildColorPicker(
+export function buildColorPicker(
   ctl: IOpenController,
   options: ColorPickerOptions,
   ...domArgs: DomElementArg[]
 ): Element {
   const {styleOptions, onSave, onRevert, onClose} = options;
   const {
-    textColor, fillColor, fontBold, fontUnderline, fontItalic, fontStrikethrough
+    textColor,
+    fillColor,
+    fontBold,
+    fontUnderline,
+    fontItalic,
+    fontStrikethrough,
   } = styleOptions;
   const textColorModel = ColorModel.create(null, textColor.color);
   const fillColorModel = ColorModel.create(null, fillColor.color);
-  const fontBoldModel = BooleanModel.create(null, fontBold);
-  const fontUnderlineModel = BooleanModel.create(null, fontUnderline);
-  const fontItalicModel = BooleanModel.create(null, fontItalic);
-  const fontStrikethroughModel = BooleanModel.create(null, fontStrikethrough);
+  const models: (BooleanModel | ColorModel)[] = [textColorModel, fillColorModel];
 
-  const models = [textColorModel, fillColorModel, fontBoldModel, fontUnderlineModel,
-                  fontItalicModel, fontStrikethroughModel];
+  let fontBoldModel: BooleanModel|undefined;
+  let fontUnderlineModel: BooleanModel|undefined;
+  let fontItalicModel: BooleanModel|undefined;
+  let fontStrikethroughModel: BooleanModel|undefined;
+  if (fontBold) {
+    fontBoldModel = BooleanModel.create(null, fontBold);
+    models.push(fontBoldModel);
+  }
+  if (fontUnderline) {
+    fontUnderlineModel = BooleanModel.create(null, fontUnderline);
+    models.push(fontUnderlineModel);
+  }
+  if (fontItalic) {
+    fontItalicModel = BooleanModel.create(null, fontItalic);
+    models.push(fontItalicModel);
+  }
+  if (fontStrikethrough) {
+    fontStrikethroughModel = BooleanModel.create(null, fontStrikethrough);
+    models.push(fontStrikethroughModel);
+  }
 
   const notChanged = Computed.create(null, use => models.every(m => use(m.needsSaving) === false));
 
@@ -164,7 +195,7 @@ function buildColorPicker(
     if (!notChanged.get()) {
       try {
         // TODO: disable the trigger btn while saving
-        await onSave();
+        await onSave?.();
       } catch (e) {
         onRevert?.();
         if (!onRevert) {
@@ -178,22 +209,22 @@ function buildColorPicker(
   });
 
   return cssContainer(
-    dom.create(FontComponent, {
-      fontBoldModel,
-      fontUnderlineModel,
-      fontItalicModel,
-      fontStrikethroughModel,
-    }),
-    cssVSpacer(),
-    dom.create(PickerComponent, textColorModel, {
-      title: 'text',
-      ...textColor
-    }),
-    cssVSpacer(),
-    dom.create(PickerComponent, fillColorModel, {
-      title: 'fill',
-      ...fillColor
-    }),
+    cssComponents(
+      dom.create(FontComponent, {
+        fontBoldModel,
+        fontUnderlineModel,
+        fontItalicModel,
+        fontStrikethroughModel,
+      }),
+      dom.create(PickerComponent, textColorModel, {
+        title: 'text',
+        ...textColor
+      }),
+      dom.create(PickerComponent, fillColorModel, {
+        title: 'fill',
+        ...fillColor
+      }),
+    ),
     // gives focus and binds keydown events
     (elem: any) => { setTimeout(() => elem.focus(), 0); },
     onKeyDown({
@@ -289,7 +320,7 @@ class PickerComponent extends Disposable {
   public buildDom() {
     const title = this._options.title;
     const colorText = Computed.create(null, use => use(this._colorHex) || this._options.noneText);
-    return [
+    return dom("div",
       cssHeaderRow(title),
       cssControlRow(
         cssColorPreview(
@@ -344,7 +375,7 @@ class PickerComponent extends Disposable {
         )),
         testId(`${title}-palette`),
       ),
-    ];
+    );
   }
 
   private _setValue(val: string|undefined) {
@@ -353,12 +384,17 @@ class PickerComponent extends Disposable {
 }
 
 class FontComponent extends Disposable {
+  private _bold = this._options.fontBoldModel;
+  private _underline = this._options.fontUnderlineModel;
+  private _italic = this._options.fontItalicModel;
+  private _strikethrough = this._options.fontStrikethroughModel;
+
   constructor(
     private _options: {
-      fontBoldModel: BooleanModel,
-      fontUnderlineModel: BooleanModel,
-      fontItalicModel: BooleanModel,
-      fontStrikethroughModel: BooleanModel,
+      fontBoldModel?: BooleanModel,
+      fontUnderlineModel?: BooleanModel,
+      fontItalicModel?: BooleanModel,
+      fontStrikethroughModel?: BooleanModel,
     }
   ) {
     super();
@@ -374,10 +410,10 @@ class FontComponent extends Disposable {
       );
     }
     return cssFontOptions(
-      option('FontBold', this._options.fontBoldModel),
-      option('FontUnderline', this._options.fontUnderlineModel),
-      option('FontItalic', this._options.fontItalicModel),
-      option('FontStrikethrough', this._options.fontStrikethroughModel),
+      this._bold ? option('FontBold', this._bold) : null,
+      this._underline ? option('FontUnderline', this._underline) : null,
+      this._italic ? option('FontItalic', this._italic) : null,
+      this._strikethrough ? option('FontStrikethrough', this._strikethrough) : null,
     );
   }
 }
@@ -385,6 +421,10 @@ class FontComponent extends Disposable {
 const cssFontOptions = styled('div', `
   display: flex;
   border: 1px solid ${theme.colorSelectFontOptionsBorder};
+
+  &:empty {
+    display: none;
+  }
 `);
 
 const cssFontOption = styled('div', `
@@ -445,10 +485,6 @@ const cssPalette = styled('div', `
   align-content: space-between;
 `);
 
-const cssVSpacer = styled('div', `
-  height: 24px;
-`);
-
 const cssContainer = styled('div', `
   padding: 18px 16px;
   background-color: ${theme.colorSelectBg};
@@ -458,6 +494,12 @@ const cssContainer = styled('div', `
   &:focus {
     outline: none;
   }
+`);
+
+const cssComponents = styled('div', `
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 `);
 
 const cssContent = styled('div', `

@@ -906,7 +906,11 @@ export function isColorDark(hexColor: string, isDarkBelow: number = 220): boolea
  * not accept neither short notation nor hex with transparency, ie: #aab, #aabb and #aabbaabb are
  * invalid.
  */
-export function isValidHex(val: string): boolean {
+export function isValidHex(val: unknown): val is string {
+  if (typeof val !== "string") {
+    return false;
+  }
+
   return /^#([0-9A-F]{6})$/i.test(val);
 }
 

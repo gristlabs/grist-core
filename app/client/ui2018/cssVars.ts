@@ -133,7 +133,9 @@ export const vars = {
   toastBg: new CustomProp('toast-bg', '#040404'),
 
   /* Z indexes */
+  stickyHeaderZIndex: new CustomProp('sticky-header-z-index', '20'),
   insertColumnLineZIndex: new CustomProp('insert-column-line-z-index', '20'),
+  emojiPickerZIndex: new CustomProp('modal-z-index', '20'),
   popupSectionBackdropZIndex: new CustomProp('popup-section-backdrop-z-index', '100'),
   menuZIndex: new CustomProp('menu-z-index', '999'),
   modalZIndex: new CustomProp('modal-z-index', '999'),
