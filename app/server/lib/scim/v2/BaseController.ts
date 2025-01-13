@@ -6,20 +6,22 @@ import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 import SCIMMY from "scimmy";
 
 export class BaseController {
-  protected static getIdFromResource(resource: any) {
-    const id = parseInt(resource.id, 10);
-    if (Number.isNaN(id)) {
-      throw new SCIMMY.Types.Error(400, 'invalidValue', 'Invalid passed group ID');
-    }
-    return id;
-  }
-
   protected logger = new LogMethods(this.constructor.name, () => ({}));
 
   constructor(
     protected dbManager: HomeDBManager,
-    protected checkAccess: (context: RequestContext) => void
+    protected checkAccess: (context: RequestContext) => void,
+    private _invalidIdError: string
   ) {}
+
+  protected getIdFromResource(resource: any) {
+    const id = parseInt(resource.id, 10);
+    if (Number.isNaN(id)) {
+      throw new SCIMMY.Types.Error(400, 'invalidValue', this._invalidIdError);
+    }
+    return id;
+  }
+
 
   /**
    * Runs the passed callback and handles any errors that might occur.

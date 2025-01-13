@@ -7,6 +7,13 @@ import { toSCIMMYUser, toUserProfile } from 'app/server/lib/scim/v2/ScimUtils';
 import SCIMMY from 'scimmy';
 
 class ScimUserController extends BaseController {
+  public constructor(
+    dbManager: HomeDBManager,
+    checkAccess: (context: RequestContext) => void
+  ) {
+    super(dbManager, checkAccess, 'Invalid passed user ID');
+  }
+
   /**
    * Gets a single user with the passed ID.
    *
@@ -15,7 +22,7 @@ class ScimUserController extends BaseController {
    */
   public async getSingleUser(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
-      const id = BaseController.getIdFromResource(resource);
+      const id = this.getIdFromResource(resource);
       const user = await this.dbManager.getUser(id);
       if (!user) {
         throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
@@ -64,7 +71,7 @@ class ScimUserController extends BaseController {
    */
   public async overwriteUser(resource: any, data: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
-      const id = BaseController.getIdFromResource(resource);
+      const id = this.getIdFromResource(resource);
       if (this.dbManager.getSpecialUserIds().includes(id)) {
         throw new SCIMMY.Types.Error(403, null!, 'System user modification not permitted.');
       }
@@ -82,7 +89,7 @@ class ScimUserController extends BaseController {
    */
   public async deleteUser(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
-      const id = BaseController.getIdFromResource(resource);
+      const id = this.getIdFromResource(resource);
       if (this.dbManager.getSpecialUserIds().includes(id)) {
         throw new SCIMMY.Types.Error(403, null!, 'System user deletion not permitted.');
       }

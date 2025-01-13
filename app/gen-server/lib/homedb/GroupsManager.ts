@@ -287,8 +287,8 @@ export class GroupsManager {
       const group = Group.create({
         type: groupDescriptor.type,
         name: groupDescriptor.name,
-        memberUsers: await this._usersManager.getUsersByIds(groupDescriptor.memberUsers ?? [], manager),
-        memberGroups: await this._getGroupsByIds(groupDescriptor.memberGroups ?? [], manager),
+        memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], manager),
+        memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], manager),
       });
       return await manager.save(group);
     });
@@ -306,8 +306,8 @@ export class GroupsManager {
         id,
         type: groupDescriptor.type,
         name: groupDescriptor.name,
-        memberUsers: await this._usersManager.getUsersByIds(groupDescriptor.memberUsers ?? [], manager),
-        memberGroups: await this._getGroupsByIds(groupDescriptor.memberGroups ?? [], manager),
+        memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], manager),
+        memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], manager),
       });
       return await manager.save(updatedGroup);
     });
@@ -363,6 +363,16 @@ export class GroupsManager {
         .where('groups.id IN (:...groupIds)', {groupIds});
       return await queryBuilder.getMany();
     });
+  }
+
+  private async _getGroupsByIdsStrict(groupIds: number[], optManager?: EntityManager): Promise<Group[]> {
+    const groups = await this._getGroupsByIds(groupIds, optManager);
+    if (groups.length !== groupIds.length) {
+      const foundGroupIds = new Set(groups.map(group => group.id));
+      const missingGroupIds = groupIds.filter(id => !foundGroupIds.has(id));
+      throw new ApiError('Groups not found: ' + missingGroupIds.join(', '), 404);
+    }
+    return groups;
   }
 
   private _getGroupsQueryBuilder(manager: EntityManager) {

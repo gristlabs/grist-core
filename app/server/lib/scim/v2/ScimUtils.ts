@@ -4,8 +4,11 @@ import { User } from "app/gen-server/entity/User";
 import { Group } from "app/gen-server/entity/Group";
 import SCIMMY from "scimmy";
 import log from 'app/server/lib/log';
+import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
 
 const SCIM_API_BASE_PATH = '/api/scim/v2';
+const SCIMMY_USER_TYPE = 'User';
+const SCIMMY_GROUP_TYPE = 'Group';
 
 /**
  * Converts a user from your database to a SCIMMY user
@@ -59,15 +62,37 @@ export function toSCIMMYGroup(group: Group) {
         value: String(member.id),
         display: member.name,
         $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
-        type: 'User',
+        type: SCIMMY_USER_TYPE,
       })),
       // As of 2025-01-12, we don't support nested groups, so it should always be empty
       ...group.memberGroups.map((member: any) => ({
         value: String(member.id),
         display: member.name,
         $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
-        type: 'Group',
+        type: SCIMMY_GROUP_TYPE,
       })),
     ],
   });
+}
+
+function parseId(id: string, type: typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP_TYPE): number {
+  const parsedId = parseInt(id, 10);
+  if (Number.isNaN(parsedId)) {
+    throw new SCIMMY.Types.Error(400, 'invalidValue', `Invalid ${type} member ID: ${id}`);
+  }
+  return parsedId;
+}
+
+export function toGroupDescriptor(scimGroup: any): GroupWithMembersDescriptor {
+  const members = scimGroup.members ?? [];
+  return {
+    name: scimGroup.displayName,
+    type: Group.RESOURCE_USERS_TYPE,
+    memberUsers: members
+      .filter((member: any) => member.type === SCIMMY_USER_TYPE)
+      .map((member: any) => parseId(member.value, SCIMMY_USER_TYPE)),
+    memberGroups: members
+      .filter((member: any) => member.type === SCIMMY_GROUP_TYPE)
+      .map((member: any) => parseId(member.value, SCIMMY_GROUP_TYPE)),
+  };
 }
