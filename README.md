@@ -2,7 +2,7 @@
 
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
-* `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server.
+* `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server. A version of `grist-core` has been packaged for cloud providers as [Grist Builder Edition](https://support.getgrist.com/install/grist-builder-edition/).
 * [`grist-desktop`](https://github.com/gristlabs/grist-desktop) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
@@ -82,6 +82,7 @@ If you just want a quick demo of Grist:
   * You can try Grist out at the hosted service run by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com) (no registration needed).
   * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
   * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-desktop](https://github.com/gristlabs/grist-desktop).
+  * Or you can try running [Grist Builder Edition](https://support.getgrist.com/install/grist-builder-edition/), a self-hosted version tailored for cloud providers.
 
 To get the default version of `grist-core` running on your computer
 with [Docker](https://www.docker.com/get-started), do:
