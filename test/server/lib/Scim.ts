@@ -625,7 +625,7 @@ describe('Scim', () => {
           .getMany();
       }
 
-      async function withGroupNames(groupNames: string[], cb: (groupNames: string[]) => Promise<void>) {
+      async function withGroupNames<T>(groupNames: string[], cb: (groupNames: string[]) => Promise<T>) {
         try {
           const existingGroups = await getGroupByNames(groupNames);
           if (existingGroups.length > 0) {
@@ -640,7 +640,7 @@ describe('Scim', () => {
         }
       }
 
-      async function withGroupName(groupName: string, cb: (groupName: string) => Promise<void>) {
+      async function withGroupName<T>(groupName: string, cb: (groupName: string) => Promise<T>) {
         return await withGroupNames([groupName], (groupNames) => cb(groupNames[0]));
       }
 
@@ -650,6 +650,17 @@ describe('Scim', () => {
 
       function getUserMemberWithRef(user: keyof UserConfigByName) {
         return { ...getUserMember(user), $ref: `/api/scim/v2/Users/${userIdByName[user]}` };
+      }
+
+      function withGroup<T>(cb: (groupId: string) => Promise<T>) {
+        return withGroupName('test-group', async (groupName) => {
+          const {id} = await getDbManager().createGroup({
+            name: groupName,
+            type: Group.RESOURCE_USERS_TYPE,
+            memberUsers: [userIdByName['chimpy']!]
+          });
+          return await cb(String(id));
+        });
       }
 
 
@@ -910,50 +921,44 @@ describe('Scim', () => {
       });
 
       describe('PUT /Groups/{id}', function () {
-        beforeEach(async function () {
-          await withGroupName('test-group', async (groupName) => {
-            await getDbManager().createGroup({
-              name: groupName,
-              type: Group.RESOURCE_USERS_TYPE,
-              memberUsers: [userIdByName['chimpy']!]
+        it('should update an existing group', async function () {
+          return withGroup(async (groupId) => {
+            const newGroupName = 'Updated Group Name';
+            const res = await axios.put(scimUrl('/Groups/' + groupId), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: newGroupName,
+              members: [
+                getUserMember('kiwi'),
+              ]
+            }, chimpy);
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              id: groupId,
+              displayName: newGroupName,
+              members: [
+                getUserMemberWithRef('kiwi'),
+              ],
+              meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
             });
           });
         });
 
-        it('should update an existing group', async function () {
-          const newGroupName = 'Updated Group Name';
-          const res = await axios.put(scimUrl('/Groups/1'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: newGroupName,
-            members: [
-              getUserMember('kiwi'),
-            ]
-          }, chimpy);
-          assert.equal(res.status, 200);
-          assert.deepEqual(res.data, {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            id: '1',
-            displayName: newGroupName,
-            members: [
-              getUserMemberWithRef('kiwi'),
-            ],
-            meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/1' }
-          });
-        });
-
-        it('should updating a group with members omitted', async function () {
-          const newGroupName = 'Updated Group Name';
-          const res = await axios.put(scimUrl('/Groups/1'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: newGroupName,
-          }, chimpy);
-          assert.equal(res.status, 200);
-          assert.deepEqual(res.data, {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            id: '1',
-            displayName: newGroupName,
-            members: [],
-            meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/1' }
+        it('should update a group with members omitted', async function () {
+          return withGroup(async (groupId) => {
+            const newGroupName = 'Updated Group Name';
+            const res = await axios.put(scimUrl('/Groups/' + groupId), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: newGroupName,
+            }, chimpy);
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              id: groupId,
+              displayName: newGroupName,
+              members: [],
+              meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+            });
           });
         });
 
@@ -1000,6 +1005,52 @@ describe('Scim', () => {
         });
       });
 
+      describe('PATCH /Groups/{id}', function () {
+        it('should update an existing group name', async function () {
+          return withGroup(async (groupId) => {
+            const newGroupName = 'Updated Group Name';
+            const res = await axios.patch(scimUrl('/Groups/' + groupId), {
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+              Operations: [{
+                op: 'replace', path: 'displayName', value: newGroupName
+              }]
+            }, chimpy);
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              id: groupId,
+              displayName: newGroupName,
+              members: [
+                getUserMemberWithRef('chimpy'),
+              ],
+              meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+            });
+          });
+        });
+
+        it('should add a member to a group', async function () {
+          return withGroup(async (groupId) => {
+            const res = await axios.patch(scimUrl('/Groups/' + groupId), {
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+              Operations: [{
+                op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
+              }]
+            }, chimpy);
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data.members, [
+              getUserMemberWithRef('chimpy'),
+              getUserMemberWithRef('kiwi'),
+            ]);
+          });
+        });
+
+        checkCommonErrors('patch', '/Groups/1', {
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+          Operations: [{
+            op: 'replace', path: 'displayName', value: 'Updated Group Name'
+          }]
+        });
+      });
     });
 
     describe('POST /Bulk', function () {
