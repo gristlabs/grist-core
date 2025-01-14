@@ -250,7 +250,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private _runTransferJob(): TransferJob {
-    if (this.transferStatus().isRunning) {
+    if (this._transferJob && this.transferStatus().isRunning) {
       return this._transferJob;
     }
     const transferPromise = this._performPendingTransfers();
