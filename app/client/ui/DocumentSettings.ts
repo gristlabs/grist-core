@@ -29,7 +29,7 @@ import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
-import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType, persistType} from 'app/common/UserAPI';
+import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType} from 'app/common/UserAPI';
 import {
   Computed,
   Disposable,
@@ -333,7 +333,6 @@ export class DocSettingsPage extends Disposable {
       const selected = Observable.create<DocTypeOption>(owner, currentDocTypeOption);
 
       const doSetDocumentType = async () => {
-        const docId = docPageModel.currentDocId.get();
         let docType: DocumentType;
         if (selected.get() === DocTypeOption.Regular) {
           docType = DOCTYPE_NORMAL;
@@ -342,8 +341,9 @@ export class DocSettingsPage extends Disposable {
         } else {
           docType = DOCTYPE_TUTORIAL;
         }
-        await persistType(docType, docId);
+
         const {trunkId} = docPageModel.currentDoc.get()!.idParts;
+        await docPageModel.appModel.api.persistType(docType, trunkId);
         window.location.replace(urlState().makeUrl({
           docPage: "settings",
           fork: undefined, // will be automatically set once the page is reloaded

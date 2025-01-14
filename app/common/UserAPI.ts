@@ -135,16 +135,6 @@ export const DOCTYPE_TUTORIAL = 'tutorial';
 // null stands for normal document type, the one set by default at document creation.
 export type DocumentType = 'template'|'tutorial'|null;
 
-export function persistType(type: DocumentType, docId: string|undefined) {
-  docId = docId?.split("~")[0];
-  return fetch(`/o/docs/api/docs/${docId}`, {
-    method: 'PATCH',
-    headers: {"Content-Type": "application/json"},
-    credentials: 'include',
-    body: JSON.stringify({type})
-  });
-}
-
 // Non-core options for a document.
 // "Non-core" means bundled into a single options column in the database.
 // TODO: consider smoothing over this distinction in the API.
@@ -431,6 +421,7 @@ export interface UserAPI {
     onUploadProgress?: (ev: AxiosProgressEvent) => void,
   }): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
+  persistType(type: DocumentType, docId: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
@@ -887,6 +878,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async closeOrg() {
     await this.request(`${this._url}/api/doom/org`, {method: 'DELETE'});
+  }
+
+  public async persistType(type: DocumentType, trunkId: string) {
+    await this.request(`${this._url}/api/docs/${trunkId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({type})
+    });
   }
 
   public getBaseUrl(): string { return this._url; }
