@@ -401,7 +401,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   // Uploads the file to local storage, overwriting the current DB record for the file.
   private async _storeFileInLocalStorage(fileIdent: string, fileData: Buffer): Promise<AddFileResult> {
     // Insert (or overwrite) the entry for this file in the document database.
-    const isNewFile = await this._docStorage.findOrAttachFile(fileIdent, fileData, undefined, true);
+    const isNewFile = await this._docStorage.attachOrUpdateFile(fileIdent, fileData, undefined);
 
     return {
       fileIdent,
@@ -418,7 +418,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     await store.upload(this._getDocPoolId(), fileIdent, Readable.from(fileData));
 
     // Insert (or overwrite) the entry for this file in the document database.
-    await this._docStorage.findOrAttachFile(fileIdent, undefined, store.id, true);
+    await this._docStorage.attachOrUpdateFile(fileIdent, undefined, store.id);
 
     return fileIdent;
   }

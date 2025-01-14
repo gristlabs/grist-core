@@ -775,37 +775,46 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * would be (very?) inefficient until node-sqlite3 adds support for incremental reading from a
    * blob: https://github.com/mapbox/node-sqlite3/issues/424.
    *
-   * @param {string} fileIdent - The unique identifier of the file in the database. ActiveDoc uses the
-   *    checksum of the file's contents with the original extension.
+   * @param {string} fileIdent - The unique identifier of the file in the database.
    * @param {Buffer | undefined} fileData - Contents of the file.
    * @param {string | undefined} storageId - Identifier of the store that file is stored in.
-   * @param {boolean} shouldUpdate - Update the file record if found.
    * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
    */
   public findOrAttachFile(
     fileIdent: string,
     fileData: Buffer | undefined,
     storageId?: string,
-    shouldUpdate: boolean = false,
   ): Promise<boolean> {
     return this.execTransaction(async (db) => {
-      let isNewFile = true;
-
-      try {
-        // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
-        await db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent);
-      } catch(err) {
-        // If UNIQUE constraint failed, this ident must already exist.
-        if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
-          isNewFile = false;
-        } else {
-          throw err;
-        }
+      const isNewFile = await this._addBasicFileRecord(db, fileIdent);
+      if (isNewFile) {
+        await this._updateFileRecord(db, fileIdent, fileData, storageId);
       }
-      if (isNewFile || shouldUpdate) {
-        await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
-      }
+      return isNewFile;
+    });
+  }
 
+  /**
+   * Attaches a file to the document, updating the file record if it already exists.
+   *
+   * TODO: This currently does not make the attachment available to the sandbox code. This is likely
+   * to be needed in the future, and a suitable API will need to be provided. Note that large blobs
+   * would be (very?) inefficient until node-sqlite3 adds support for incremental reading from a
+   * blob: https://github.com/mapbox/node-sqlite3/issues/424.
+   *
+   * @param {string} fileIdent - The unique identifier of the file in the database.
+   * @param {Buffer | undefined} fileData - Contents of the file.
+   * @param {string | undefined} storageId - Identifier of the store that file is stored in.
+   * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
+   */
+  public attachOrUpdateFile(
+    fileIdent: string,
+    fileData: Buffer | undefined,
+    storageId?: string,
+  ): Promise<boolean> {
+    return this.execTransaction(async (db) => {
+      const isNewFile = await this._addBasicFileRecord(db, fileIdent);
+      await this._updateFileRecord(db, fileIdent, fileData, storageId);
       return isNewFile;
     });
   }
@@ -1856,6 +1865,27 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       return act;
     }
     return null;
+  }
+
+  private async _addBasicFileRecord(db: SQLiteDB, fileIdent: string): Promise<boolean> {
+    try {
+      // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
+      await db.run('INSERT INTO _gristsys_Files (ident, data, storageId) VALUES (?)', fileIdent);
+    } catch(err) {
+      // If UNIQUE constraint failed, this ident must already exist.
+      if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
+        return false;
+      } else {
+        throw err;
+      }
+    }
+    return true;
+  }
+
+  private async _updateFileRecord(
+    db: SQLiteDB, fileIdent: string, fileData?: Buffer, storageId?: string
+  ): Promise<void> {
+    await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
   }
 }
 

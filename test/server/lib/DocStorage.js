@@ -404,7 +404,7 @@ describe('DocStorage', function() {
       .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), correctFileContents))
 
       // The update parameter should allow the record to be overwritten
-      .then(() => docStorage.findOrAttachFile("hello_world.txt", Buffer.from(replacementFileContents), undefined, true))
+      .then(() => docStorage.attachOrUpdateFile("hello_world.txt", Buffer.from(replacementFileContents), undefined))
       .then(result => assert.isFalse(result))
       .then(() => docStorage.getFileInfo("hello_world.txt"))
       .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), replacementFileContents));
