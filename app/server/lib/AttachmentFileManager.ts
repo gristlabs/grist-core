@@ -286,49 +286,26 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     }
   }
 
-  private async _addFile(
-    destStoreId: AttachmentStoreId | undefined,
+  private async _addFileToLocalStorage(
     fileIdent: string,
     fileData: Buffer
   ): Promise<AddFileResult> {
-    this._log.info({
-      fileIdent,
-      storeId: destStoreId
-    }, `adding file to ${destStoreId ? "external" : "document"} storage`);
-    const isExternal = destStoreId !== undefined;
-
-    const destStore = isExternal ? await this._getStore(destStoreId) : null;
-
-    if (isExternal && !destStore) {
-      this._log.warn({ fileIdent, storeId: destStoreId }, "tried to fetch attachment from an unavailable store");
-      throw new StoreNotAvailableError(destStoreId);
-    }
+      this._log.info({
+        fileIdent,
+      }, `adding file to document storage`);
 
     const fileInfoNoData = await this._docStorage.getFileInfoNoData(fileIdent);
     const fileExists = fileInfoNoData !== null;
 
     if (fileExists) {
-      const isFileInTargetStore = isExternal ?
-        destStoreId === fileInfoNoData.storageId : fileInfoNoData.storageId === null;
-
-      // File is already stored in a different store (e.g because store has changed and no migration has happened).
-      if (!isFileInTargetStore) {
+      const isFileInLocalStorage = fileInfoNoData.storageId === null;
+      // File is already stored in a different store, the 'add file' operation shouldn't change that.
+      // One way this could happen, is if the store has changed and no migration has happened.
+      if (!isFileInLocalStorage) {
         return {
           fileIdent,
           isNewFile: false,
         };
-      }
-
-      // Only exit early in the file exists in the store, otherwise we should allow users to fix any missing files
-      // by proceeding to the normal upload logic.
-      if (destStore) {
-        const fileAlreadyExistsInStore = await destStore.exists(this._getDocPoolId(), fileIdent);
-        if (fileAlreadyExistsInStore) {
-          return {
-            fileIdent,
-            isNewFile: false,
-          };
-        }
       }
     }
 
@@ -337,11 +314,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     // However, the database will always end up referencing a valid file, and the pool-based file
     // deletion guarantees any files in external storage will be cleaned up eventually.
 
-    if (destStore) {
-      await this._storeFileInAttachmentStore(destStore, fileIdent, fileData);
-    } else {
-      await this._storeFileInLocalStorage(fileIdent, fileData);
-    }
+    await this._storeFileInLocalStorage(fileIdent, fileData);
 
     return {
       fileIdent,
@@ -349,6 +322,71 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     };
   }
 
+  private async _addFileToExternalStorage(
+    destStoreId: AttachmentStoreId,
+    fileIdent: string,
+    fileData: Buffer
+  ): Promise<AddFileResult> {
+    this._log.info({
+      fileIdent,
+      storeId: destStoreId
+    }, `adding file to external storage`);
+
+    const destStore = await this._getStore(destStoreId);
+
+    if (!destStore) {
+      this._log.warn({ fileIdent, storeId: destStoreId }, "tried to fetch attachment from an unavailable store");
+      throw new StoreNotAvailableError(destStoreId);
+    }
+
+    const fileInfoNoData = await this._docStorage.getFileInfoNoData(fileIdent);
+    const fileExists = fileInfoNoData !== null;
+
+    if (fileExists) {
+      const isFileInTargetStore = destStoreId === fileInfoNoData.storageId;
+      // File is already stored in a different store, the 'add file' operation shouldn't change that.
+      // One way this could happen, is if the store has changed and no migration has happened.
+      if (!isFileInTargetStore) {
+        return {
+          fileIdent,
+          isNewFile: false,
+        };
+      }
+
+      // Only exit early in the file exists in the store, otherwise we should allow users to fix
+      // any missing files by proceeding to the normal upload logic.
+      const fileAlreadyExistsInStore = await destStore.exists(this._getDocPoolId(), fileIdent);
+      if (fileAlreadyExistsInStore) {
+        return {
+          fileIdent,
+          isNewFile: false,
+        };
+      }
+    }
+
+    // There's a possible race condition if anything changed the record between the initial checks
+    // in this method, and the database being updated below - any changes will be overwritten.
+    // However, the database will always end up referencing a valid file, and the pool-based file
+    // deletion guarantees any files in external storage will be cleaned up eventually.
+
+    await this._storeFileInAttachmentStore(destStore, fileIdent, fileData);
+
+    return {
+      fileIdent,
+      isNewFile: !fileExists,
+    };
+  }
+
+  private async _addFile(
+    destStoreId: AttachmentStoreId | undefined,
+    fileIdent: string,
+    fileData: Buffer
+  ): Promise<AddFileResult> {
+    if (destStoreId === undefined) {
+      return this._addFileToLocalStorage(fileIdent, fileData);
+    }
+    return this._addFileToExternalStorage(destStoreId, fileIdent, fileData);
+  }
 
   private async _getFile(fileIdent: string): Promise<AttachmentFileInfo> {
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
