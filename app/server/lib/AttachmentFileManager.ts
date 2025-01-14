@@ -53,7 +53,7 @@ export class AttachmentRetrievalError extends Error {
   constructor(storeId: AttachmentStoreId | null, fileId: string, cause?: any) {
     const causeError = cause instanceof Error ? cause : undefined;
     const reason = (causeError ? causeError.message : cause) ?? "";
-    const storeName = storeId? `'${storeId}'` : "internal storage";
+    const storeName = storeId ? `'${storeId}'` : "internal storage";
     super(`Unable to retrieve '${fileId}' from ${storeName} ${reason}`);
     this.storeId = storeId;
     this.fileId = fileId;
@@ -178,7 +178,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     }
 
     const fileIdents = filesToTransfer.map(file => file.ident);
-    for(const fileIdent of fileIdents) {
+    for (const fileIdent of fileIdents) {
       this.startTransferringFileToOtherStore(fileIdent, newStoreId);
     }
   }
@@ -250,7 +250,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   }
 
   private _runTransferJob(): TransferJob {
-    if (this._transferJob && !this._transferJob.isFinished) {
+    if (this.transferStatus().isRunning) {
       return this._transferJob;
     }
     const transferPromise = this._performPendingTransfers();
@@ -278,7 +278,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
         }
         finally {
           // If a transfer request comes in mid-transfer, it will need re-running.
-          if (this._pendingFileTransfers.get(fileIdent) == targetStoreId) {
+          if (this._pendingFileTransfers.get(fileIdent) === targetStoreId) {
             this._pendingFileTransfers.delete(fileIdent);
           }
         }
@@ -305,7 +305,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     }
 
     const fileInfoNoData = await this._docStorage.getFileInfo(fileIdent, false);
-    const fileExists = fileInfoNoData != null;
+    const fileExists = fileInfoNoData !== null;
 
     if (fileExists) {
       const isFileInTargetStore = isExternal ?
