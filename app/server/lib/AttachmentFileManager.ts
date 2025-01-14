@@ -199,7 +199,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   // transfer will happen, as the default _addFileToX behaviour is to avoid re-uploading files.
   public async transferFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined): Promise<void> {
     this._log.info({fileIdent, storeId: newStoreId}, `transferring file to new store`);
-    const fileMetadata = await this._docStorage.getFileInfo(fileIdent, false);
+    const fileMetadata = await this._docStorage.getFileInfoNoData(fileIdent);
     // This check runs before the file is retrieved as an optimisation to avoid loading files into
     // memory unnecessarily.
     if (!fileMetadata || fileMetadata.storageId == newStoreId) {
@@ -304,7 +304,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
       throw new StoreNotAvailableError(destStoreId);
     }
 
-    const fileInfoNoData = await this._docStorage.getFileInfo(fileIdent, false);
+    const fileInfoNoData = await this._docStorage.getFileInfoNoData(fileIdent);
     const fileExists = fileInfoNoData !== null;
 
     if (fileExists) {
