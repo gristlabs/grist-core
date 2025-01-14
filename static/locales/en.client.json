@@ -1361,7 +1361,8 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
-        "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}"
+        "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}",
+        "Inherit access: ": "Inherit access: "
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
