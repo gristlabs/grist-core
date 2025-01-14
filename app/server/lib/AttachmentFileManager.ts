@@ -309,8 +309,9 @@ export class AttachmentFileManager implements IAttachmentFileManager {
       }
     }
 
-    // There's a possible race condition if anything changed the record between the initial checks
-    // in this method, and the database being updated below - any changes will be overwritten.
+    // A race condition can occur here, if the file's database record is modified between the
+    // `getFileInfoNoData` call earlier in this function and now.
+    // Any changes made after that point will be overwritten below.
     // However, the database will always end up referencing a valid file, and the pool-based file
     // deletion guarantees any files in external storage will be cleaned up eventually.
 
@@ -364,8 +365,9 @@ export class AttachmentFileManager implements IAttachmentFileManager {
       }
     }
 
-    // There's a possible race condition if anything changed the record between the initial checks
-    // in this method, and the database being updated below - any changes will be overwritten.
+    // A race condition can occur here, if the file's database record is modified between the
+    // `getFileInfoNoData` call earlier in this function and now.
+    // Any changes made after that point will be overwritten below.
     // However, the database will always end up referencing a valid file, and the pool-based file
     // deletion guarantees any files in external storage will be cleaned up eventually.
 
