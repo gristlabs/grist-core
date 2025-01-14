@@ -128,12 +128,12 @@ export interface Workspace extends WorkspaceProperties {
   isSupportWorkspace?: boolean;
 }
 
+// null stands for normal document type, the one set by default at document creation.
 export const DOCTYPE_NORMAL = null;
 export const DOCTYPE_TEMPLATE = 'template';
 export const DOCTYPE_TUTORIAL = 'tutorial';
 
-// null stands for normal document type, the one set by default at document creation.
-export type DocumentType = 'template'|'tutorial'|null;
+export type DocumentType = typeof DOCTYPE_NORMAL | typeof DOCTYPE_TEMPLATE | typeof DOCTYPE_TUTORIAL;
 
 // Non-core options for a document.
 // "Non-core" means bundled into a single options column in the database.
