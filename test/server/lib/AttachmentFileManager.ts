@@ -13,7 +13,10 @@ import * as sinon from "sinon";
 import * as stream from "node:stream";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
-type IMinimalDocStorage = Pick<DocStorage, 'docName' | 'getFileInfo' | 'findOrAttachFile' | 'listAllFiles'>
+type IMinimalDocStorage = Pick<
+  DocStorage,
+  'docName' | 'getFileInfo' | 'findOrAttachFile' | 'attachOrUpdateFile' | 'listAllFiles'
+>
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.
 class DocStorageFake implements IMinimalDocStorage {
@@ -37,17 +40,29 @@ class DocStorageFake implements IMinimalDocStorage {
 
   // Needs to match the semantics of DocStorage's implementation.
   public async findOrAttachFile(
-    fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined, shouldUpdate: boolean = true
+    fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined
   ): Promise<boolean> {
-    if (fileIdent in this._files && !shouldUpdate) {
+    if (fileIdent in this._files) {
       return false;
     }
+    this._setFileRecord(fileIdent, fileData, storageId);
+    return true;
+  }
+
+  public async attachOrUpdateFile(
+    fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined
+  ): Promise<boolean> {
+    const exists = fileIdent in this._files;
+    this._setFileRecord(fileIdent, fileData, storageId);
+    return !exists;
+  }
+
+  private _setFileRecord(fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined) {
     this._files[fileIdent] = {
       ident: fileIdent,
       data: fileData ?? Buffer.alloc(0),
       storageId: storageId ?? null,
     };
-    return true;
   }
 }
 
