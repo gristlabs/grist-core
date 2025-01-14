@@ -780,7 +780,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @param {string | undefined} storageId - Identifier of the store that file is stored in.
    * @returns {Promise[Boolean]} True if the file got attached; false if this ident already exists.
    */
-  public findOrAttachFile(
+  public attachFileIfNew(
     fileIdent: string,
     fileData: Buffer | undefined,
     storageId?: string,
@@ -821,7 +821,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   /**
    * Reads and returns the data for the given attachment.
-   * @param {string} fileIdent - The unique identifier of a file, as used by findOrAttachFile.
+   * @param {string} fileIdent - The unique identifier of a file, as used by attachFileIfNew.
    * @param {boolean} includeData - Load file contents from the database, in addition to metadata
    * @returns {Promise[FileInfo | null]} - File information, or null if no record exists for that file identifier.
    */

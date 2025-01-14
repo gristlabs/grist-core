@@ -15,7 +15,7 @@ import * as stream from "node:stream";
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<
   DocStorage,
-  'docName' | 'getFileInfo' | 'findOrAttachFile' | 'attachOrUpdateFile' | 'listAllFiles'
+  'docName' | 'getFileInfo' | 'attachFileIfNew' | 'attachOrUpdateFile' | 'listAllFiles'
 >
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.
@@ -39,7 +39,7 @@ class DocStorageFake implements IMinimalDocStorage {
   }
 
   // Needs to match the semantics of DocStorage's implementation.
-  public async findOrAttachFile(
+  public async attachFileIfNew(
     fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined
   ): Promise<boolean> {
     if (fileIdent in this._files) {
@@ -122,7 +122,7 @@ describe("AttachmentFileManager", function() {
     );
 
     const fileId = "123456.png";
-    await defaultDocStorageFake.findOrAttachFile(fileId, undefined, "SOME-STORE-ID");
+    await defaultDocStorageFake.attachFileIfNew(fileId, undefined, "SOME-STORE-ID");
 
     await assert.isRejected(manager.getFileData(fileId), StoreNotAvailableError);
   });
