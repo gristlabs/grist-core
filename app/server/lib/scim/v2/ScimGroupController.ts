@@ -75,6 +75,20 @@ class ScimGroupController extends BaseController {
       return toSCIMMYGroup(group);
     });
   }
+
+  /**
+   * Deletes a group with the passed ID.
+   *
+   * @param resource The SCIMMY group resource performing the operation
+   * @param context The request context
+   *
+   */
+  public async deleteGroup(resource: any, context: RequestContext) {
+    return this.runAndHandleErrors(context, async () => {
+      const id = this.getIdFromResource(resource);
+      await this.dbManager.deleteGroup(id);
+    });
+  }
 }
 
 export const getScimGroupConfig = (
@@ -95,5 +109,8 @@ export const getScimGroupConfig = (
       }
       return await controller.createGroup(data, context);
     },
+    degress: async (resource: any, context: RequestContext) => {
+      return await controller.deleteGroup(resource, context);
+    }
   };
 };
