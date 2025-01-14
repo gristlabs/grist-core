@@ -1051,6 +1051,40 @@ describe('Scim', () => {
           }]
         });
       });
+
+      describe('DELETE /Groups/{id}', function () {
+        it('should delete a group', async function () {
+          return withGroup(async (groupId) => {
+            const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
+            assert.equal(res.status, 204);
+            const refreshedGroup = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
+            assert.equal(refreshedGroup.status, 404);
+          });
+        });
+
+        it('should return 404 when the group is not found', async function () {
+          const res = await axios.delete(scimUrl('/Groups/1000'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'Group with id 1000 not found'
+          });
+          assert.equal(res.status, 404);
+        });
+
+        it('should return 400 when the group id is malformed', async function () {
+          const res = await axios.delete(scimUrl('/Groups/not-an-id'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '400',
+            detail: 'Invalid passed group ID',
+            scimType: 'invalidValue'
+          });
+          assert.equal(res.status, 400);
+        });
+
+        checkCommonErrors('delete', '/Groups/1');
+      });
     });
 
     describe('POST /Bulk', function () {
