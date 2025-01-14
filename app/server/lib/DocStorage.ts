@@ -820,19 +820,40 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   /**
    * Reads and returns the data for the given attachment.
    * @param {string} fileIdent - The unique identifier of a file, as used by attachFileIfNew.
-   * @param {boolean} includeData - Load file contents from the database, in addition to metadata
+   *   file identifier.
+   */
+  public async getFileInfo(fileIdent: string): Promise<FileInfo | null> {
+    const row = await this.get(`SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?`, fileIdent);
+    if(!row) {
+      return null;
+    }
+
+    return {
+      ident: row.ident as string,
+      storageId: (row.storageId ?? null) as (string | null),
+      // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
+      data: row.data ? row.data as Buffer : Buffer.alloc(0),
+    };
+  }
+
+  /**
+   * Reads and returns the metadata for a file, without retrieving the file's contents.
+   * @param {string} fileIdent - The unique identifier of a file, as used by attachFileIfNew.
    * @returns {Promise[FileInfo | null]} - File information, or null if no record exists for that
    *   file identifier.
    */
-  public getFileInfo(fileIdent: string, includeData: boolean = true): Promise<FileInfo | null> {
-    const columns = includeData ? 'ident, storageId, data' : 'ident, storageId';
-    return this.get(`SELECT ${columns} FROM _gristsys_Files WHERE ident=?`, fileIdent)
-      .then(row => row ? ({
+  public async getFileInfoNoData(fileIdent: string): Promise<FileInfo | null> {
+    const row = await this.get(`SELECT ident, storageId FROM _gristsys_Files WHERE ident=?`, fileIdent);
+    if (!row) {
+      return null;
+    }
+
+    return {
         ident: row.ident as string,
         storageId: (row.storageId ?? null) as (string | null),
         // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
-        data: row.data ? row.data as Buffer : Buffer.alloc(0),
-      }) : null);
+        data: Buffer.alloc(0),
+    };
   }
 
   public async listAllFiles(): Promise<FileInfo[]> {
