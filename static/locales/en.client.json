@@ -1448,7 +1448,9 @@
         "Save your document to publish this form.": "Save your document to publish this form.",
         "Share": "Share",
         "Share this form": "Share this form",
-        "View": "View"
+        "View": "View",
+        "## **Form Title**": "## **Form Title**",
+        "Your form description goes here.": "Your form description goes here."
     },
     "Editor": {
         "Delete": "Delete"
@@ -1464,7 +1466,9 @@
         "Paste": "Paste",
         "Separator": "Separator",
         "Unmapped fields": "Unmapped fields",
-        "Header": "Header"
+        "Header": "Header",
+        "New question": "New question",
+        "More": "More"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Clear",
@@ -1534,7 +1538,9 @@
     },
     "Section": {
         "Insert section above": "Insert section above",
-        "Insert section below": "Insert section below"
+        "Insert section below": "Insert section below",
+        "### **Header**": "### **Header**",
+        "Description": "Description"
     },
     "CreateTeamModal": {
         "Cancel": "Cancel",
@@ -1613,7 +1619,8 @@
     },
     "Field": {
         "No choices configured": "No choices configured",
-        "No values in show column of referenced table": "No values in show column of referenced table"
+        "No values in show column of referenced table": "No values in show column of referenced table",
+        "Hide": "Hide"
     },
     "Toggle": {
         "Checkbox": "Checkbox",
