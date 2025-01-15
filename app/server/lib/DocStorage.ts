@@ -1885,8 +1885,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   private async _addBasicFileRecord(db: SQLiteDB, fileIdent: string): Promise<boolean> {
+    // Try to insert a new record with the given ident. It'll fail the UNIQUE constraint if exists.
+    // Catching the violation is the simplest and most reliable way of doing this.
+    // If this function runs multiple times in parallel (which can happen), nothing guarantees the
+    // order that multiple `db.run` or `db.get` statements will run in (not even .execTransaction).
+    // This means it's not safe to check then insert - we just have to try the insert and see if it
+    // fails.
     try {
-      // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
       await db.run('INSERT INTO _gristsys_Files (ident, data, storageId) VALUES (?)', fileIdent);
     } catch(err) {
       // If UNIQUE constraint failed, this ident must already exist.
