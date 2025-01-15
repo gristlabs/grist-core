@@ -786,7 +786,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     storageId?: string,
   ): Promise<boolean> {
     return this.execTransaction(async (db) => {
-      return await this._addFileRecord(db, fileIdent, fileData, storageId);
+      const isNewFile = await this._addBasicFileRecord(db, fileIdent);
+      if (isNewFile) {
+        await this._updateFileRecord(db, fileIdent, fileData, storageId);
+      }
+      return isNewFile;
     });
   }
 
@@ -809,11 +813,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     storageId?: string,
   ): Promise<boolean> {
     return this.execTransaction(async (db) => {
-      const wasAdded = await this._addFileRecord(db, fileIdent, fileData, storageId);
-      if (!wasAdded) {
-        await this._updateFileRecord(db, fileIdent, fileData, storageId);
-      }
-      return wasAdded;
+      const isNewFile = await this._addBasicFileRecord(db, fileIdent);
+      await this._updateFileRecord(db, fileIdent, fileData, storageId);
+      return isNewFile;
     });
   }
 
@@ -821,6 +823,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Reads and returns the data for the given attachment.
    * @param {string} fileIdent - The unique identifier of a file, as used by attachFileIfNew.
    *   file identifier.
+   * @returns {Promise[FileInfo | null]} - File information, or null if no record exists for that file identifier.
    */
   public async getFileInfo(fileIdent: string): Promise<FileInfo | null> {
     const row = await this.get(`SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?`, fileIdent);
@@ -958,10 +961,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   /**
-   * Unmarshals and decodes data received from db.allMarshal() method (which we added to
-   * node-sqlite3). The data is a dictionary mapping column ids (including 'id') to arrays of
-   * values. This should be used for Grist data, which is encoded. For non-Grist data, use
-   * `marshal.loads()`.
+   * Unmarshals and decodes data received from db.allMarshal() method (which we added to node-sqlite3).
+   * The data is a dictionary mapping column ids (including 'id') to arrays of values. This should
+   * be used for Grist data, which is encoded. For non-Grist data, use `marshal.loads()`.
    *
    * Note that we do NOT use this when loading data from a document, since the whole point of
    * db.allMarshal() is to pass data directly to Python data engine without parsing in Node.
@@ -1467,9 +1469,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   /**
-   * Delete attachments from _gristsys_Files that have no matching metadata row in
-   * _grist_Attachments. This leaves any attachment files in any remote attachment stores, which
-   * will be cleaned up separately.
+   * Delete attachments from _gristsys_Files that have no matching metadata row in _grist_Attachments.
+   * This leaves any attachment files in any remote attachment stores, which will be cleaned up separately.
    */
   public async removeUnusedAttachments() {
     const result = await this._getDB().run(`
@@ -1883,22 +1884,18 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return null;
   }
 
-  // This should be executed inside a transaction.
-  /**
-   * @returns {Promise<boolean>} - True if the file was added, false if a record already exists.
-   * @private
-   */
-  private async _addFileRecord(
-    db: SQLiteDB, fileIdent: string, fileData?: Buffer, storageId?: string
-  ): Promise<boolean> {
-    const result = await db.get("SELECT 1 AS fileExists from _gristsys_Files WHERE ident = ?", fileIdent);
-    if (result?.fileExists) {
-      return false;
+  private async _addBasicFileRecord(db: SQLiteDB, fileIdent: string): Promise<boolean> {
+    try {
+      // Try to insert a new record with the given ident. It'll fail UNIQUE constraint if exists.
+      await db.run('INSERT INTO _gristsys_Files (ident, data, storageId) VALUES (?)', fileIdent);
+    } catch(err) {
+      // If UNIQUE constraint failed, this ident must already exist.
+      if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
+        return false;
+      } else {
+        throw err;
+      }
     }
-    await db.run(
-      'INSERT INTO main._gristsys_Files (ident, data, storageId) VALUES (?, ?, ?)',
-      fileIdent, fileData, storageId
-    );
     return true;
   }
 
@@ -1907,7 +1904,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   ): Promise<void> {
     await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
   }
-
 }
 
 interface RebuildResult {
@@ -1932,8 +1928,7 @@ export interface IndexInfo extends IndexColumns {
 }
 
 /**
- * Creates an index that allows fast SQL JOIN between _grist_Attachments.fileIdent and
- * _gristsys_Files.ident.
+ * Creates an index that allows fast SQL JOIN between _grist_Attachments.fileIdent and _gristsys_Files.ident.
  */
 export async function createAttachmentsIndex(db: ISQLiteDB) {
   await db.exec(`CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent)`);
