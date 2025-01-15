@@ -257,7 +257,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
     menuItem(
       () => showRenameDocModal({ home, doc }),
       t("Rename and set icon"),
-      dom.cls("disabled", !roles.canEdit(doc.access)),
+      dom.cls("disabled", !roles.isOwner(doc)),
       testId("rename-doc")
     ),
     menuItem(
