@@ -8,12 +8,13 @@ import {ACIndexImpl} from 'app/client/lib/ACIndex';
 import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {makeT} from 'app/client/lib/localization';
+import {cssMarkdownSpan} from 'app/client/lib/markdown';
 import {reportError} from 'app/client/models/AppModel';
 import type {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
-import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
+import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
@@ -61,6 +62,29 @@ export class DocSettingsPage extends Disposable {
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
+    const storage = Computed.create(this, use => {
+      return use(this._gristDoc.docInfo.attachmentStorage);
+    });
+    storage.onWrite(async (val) => {
+      await this._gristDoc.docInfo.attachmentStorage.setAndSave(val);
+    });
+    const options = [{value: 'internal', label: 'Internal'}, {value: 'external', label: 'External'}];
+
+
+    const inProgress = Computed.create(this, use => use(this._gristDoc.docInfo.attachmentTransfer) === 'in-progress');
+    const notStarted = Computed.create(this, use => use(this._gristDoc.docInfo.attachmentTransfer) === 'not-started');
+
+    const stillInternal = Computed.create(this, use => {
+      const isExternal = use(storage) === 'external';
+      return isExternal && (use(inProgress) || use(notStarted));
+    });
+
+    const stillExternal = Computed.create(this, use => {
+      const isInternal = use(storage) === 'internal';
+      return isInternal && (use(inProgress) || use(notStarted));
+    });
+
+    (window as any).storage = storage;
 
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
@@ -194,7 +218,43 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallLinkButton(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
         }),
       ]),
+
+      dom.create(AdminSection, t('Attachment storage'), [
+        dom.create(AdminSectionItem, {
+          id: 'preferredStorage',
+          name: withInfoTooltip(
+            dom('span', t('Preferred storage for this document')),
+            'attachmentStorage',
+          ),
+          value: cssFlex(
+            dom.maybe(notStarted, () => [
+              cssButton(t('Start transfer'), dom.on('click', () => this._beginTransfer())),
+            ]),
+            dom.maybe(inProgress, () => [
+              cssButton(
+                cssLoadingSpinner(
+                  loadingSpinner.cls('-inline'),
+                  cssLoadingSpinner.cls('-disabled'),
+                ),
+                t('Being transfer'),
+                dom.prop('disabled', true),
+              ),
+            ]),
+            cssSmallSelect(storage, options, {
+              disabled: inProgress,
+            }),
+          )
+        }),
+        dom('div',
+          dom.maybe(stillInternal, () => stillInternalCopy(inProgress)),
+          dom.maybe(stillExternal, () => stillExternalCopy(inProgress)),
+        ),
+      ]),
     );
+  }
+
+  private async _beginTransfer() {
+    this._gristDoc.docInfo.beginTransfer().catch(reportError);
   }
 
   private async _reloadEngine(ask = true) {
@@ -343,6 +403,59 @@ function buildLocaleSelect(
   );
 }
 
+
+const learnMore = () => t(
+  '[learn more]({{learnLink}})',
+  {learnLink: commonUrls.attachmentStorage}
+);
+
+function stillExternalCopy(inProgress: Observable<boolean>) {
+  const someExternal = () => t(
+    '**Some existing attachments are still [external]({{externalLink}})**.',
+    {externalLink: commonUrls.attachmentStorage}
+  );
+
+  const startToInternal = () => t(
+    'Click "Start transfer" to transfer those to Internal storage (stored in the document SQLite file).'
+  );
+
+  const newInInternal = () => t(
+    'Newly uploaded attachments will be placed in Internal storage.'
+  );
+
+  return dom.domComputed(inProgress, (yes) => {
+    if (yes) {
+      return cssMarkdownSpan(`${someExternal()} ${newInInternal()} ${learnMore()}`);
+    } else {
+      return cssMarkdownSpan(`${someExternal()} ${startToInternal()} ${newInInternal()} ${learnMore()}`);
+    }
+  });
+}
+
+function stillInternalCopy(inProgress: Observable<boolean>) {
+  const someInternal = () => t(
+    '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
+    {internalLink: commonUrls.attachmentStorage}
+  );
+
+  const startToExternal = () => t(
+    'Click "Start transfer" to transfer those to External storage.'
+  );
+
+  const newInExternal = () => t(
+    'Newly uploaded attachments will be placed in External storage.'
+  );
+
+  return dom.domComputed(inProgress, (yes) => {
+    if (yes) {
+      return cssMarkdownSpan(`${someInternal()} ${newInExternal()} ${learnMore()}`);
+    } else {
+      return cssMarkdownSpan(`${someInternal()} ${startToExternal()} ${newInExternal()} ${learnMore()}`);
+    }
+  });
+}
+
+
 const cssContainer = styled('div', `
   overflow-y: auto;
   position: relative;
@@ -412,10 +525,6 @@ export function getSupportedEngineChoices(): EngineCode[] {
   const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
   return gristConfig.supportEngines || [];
 }
-
-const cssSelect = styled(select, `
-  min-width: 170px; /* to match the width of the timezone picker */
-`);
 
 const TOOLTIP_KEY = 'copy-on-settings';
 
@@ -508,4 +617,34 @@ const cssWrap = styled('p', `
 
 const cssRedText = styled('span', `
   color: ${theme.errorText};
+`);
+
+const cssFlex = styled('div', `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`);
+
+const cssButton = styled(cssSmallButton, `
+  white-space: nowrap;
+`);
+
+const cssSmallSelect = styled(select, `
+  width: 100px;
+`);
+
+const cssSelect = styled(select, `
+  min-width: 170px; /* to match the width of the timezone picker */
+`);
+
+const cssLoadingSpinner = styled(loadingSpinner, `
+  &-disabled {
+    --loader-bg: ${theme.loaderBg};
+    --loader-fg: white;
+  }
+  @media (prefers-color-scheme: dark) {
+    &-disabled {
+      --loader-bg: #adadad;
+    }
+  }
 `);
