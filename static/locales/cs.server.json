@@ -1,7 +1,4 @@
 {
-    "sendAppPage": {
-        "Loading": "Načítání"
-    },
     "oidc": {
         "emailNotVerifiedError": "Ověřte prosím svůj e-mail u poskytovatele identit a znovu se přihlaste."
     }
