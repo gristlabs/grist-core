@@ -106,7 +106,7 @@ export class DocSettingsPage extends Disposable {
               docPageModel.type,
             ),
             cssSmallButton(t('Edit'),
-              dom.on('click', this._buildDocumentTypeModal.bind(this, true)),
+              dom.on('click', this._buildDocumentTypeModal.bind(this)),
               testId('doctype-edit')
             ),
           ),
@@ -498,7 +498,7 @@ function displayCurrentType(
   });
   return dom(
     'div',
-    typeObs.get(),
+    dom.text(typeObs),
     testId('doctype-value')
   );
 }
