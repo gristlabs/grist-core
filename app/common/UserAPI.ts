@@ -421,7 +421,6 @@ export interface UserAPI {
     onUploadProgress?: (ev: AxiosProgressEvent) => void,
   }): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
-  persistType(type: DocumentType, docId: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
@@ -878,13 +877,6 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async closeOrg() {
     await this.request(`${this._url}/api/doom/org`, {method: 'DELETE'});
-  }
-
-  public async persistType(type: DocumentType, trunkId: string) {
-    await this.request(`${this._url}/api/docs/${trunkId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({type})
-    });
   }
 
   public getBaseUrl(): string { return this._url; }

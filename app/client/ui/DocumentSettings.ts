@@ -343,7 +343,7 @@ export class DocSettingsPage extends Disposable {
         }
 
         const {trunkId} = docPageModel.currentDoc.get()!.idParts;
-        await docPageModel.appModel.api.persistType(docType, trunkId);
+        await docPageModel.appModel.api.updateDoc(trunkId, {type: docType});
         window.location.replace(urlState().makeUrl({
           docPage: "settings",
           fork: undefined, // will be automatically set once the page is reloaded
