@@ -295,11 +295,11 @@ export class GroupsManager {
   }
 
   public async overwriteGroup(
-    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+    id: number, groupDescriptor: GroupWithMembersDescriptor, expectedType?: GroupTypes, optManager?: EntityManager
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
       const existingGroup = await this.getGroupWithMembersById(id, manager);
-      if (!existingGroup) {
+      if (!existingGroup || (expectedType && expectedType !== existingGroup.type)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
       const updatedGroup = Group.create({
@@ -313,10 +313,10 @@ export class GroupsManager {
     });
   }
 
-  public async deleteGroup(id: number, optManager?: EntityManager) {
+  public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
     return await this._runInTransaction(optManager, async (manager) => {
-      const group = await manager.findOne(Group, { where: { id } });
-      if (!group) {
+      const group = await this.getGroupWithMembersById(id, manager);
+      if (!group || (expectedType && expectedType !== group.type)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
       await manager.createQueryBuilder()

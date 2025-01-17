@@ -663,6 +663,17 @@ describe('Scim', () => {
         });
       }
 
+      function withRole<T>(cb: (groupId: string) => Promise<T>) {
+        return withGroupName('test-group', async (groupName) => {
+          const {id} = await getDbManager().createGroup({
+            name: groupName,
+            type: Group.ROLE_TYPE,
+            memberUsers: [userIdByName['chimpy']!]
+          });
+          return await cb(String(id));
+        });
+      }
+
 
       describe('GET /Groups/{id}', function () {
         it(`should return a "${Group.RESOURCE_USERS_TYPE}" group for chimpy`, async function () {
@@ -962,6 +973,16 @@ describe('Scim', () => {
           });
         });
 
+        it('should refuse to alter a role', async function () {
+          return withRole(async (groupId) => {
+            const res = await axios.put(scimUrl('/Groups/' + groupId), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: 'whatever',
+            }, chimpy);
+            assert.equal(res.status, 404);
+          });
+        });
+
         it('should return 404 when the group is not found', async function () {
           const res = await axios.put(scimUrl('/Groups/1000'), {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -1044,6 +1065,18 @@ describe('Scim', () => {
           });
         });
 
+        it('should refuse to alter a role', async function () {
+          return withRole(async (groupId) => {
+            const res = await axios.patch(scimUrl('/Groups/' + groupId), {
+              schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+              Operations: [{
+                op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
+              }]
+            }, chimpy);
+            assert.equal(res.status, 404);
+          });
+        });
+
         checkCommonErrors('patch', '/Groups/1', {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
           Operations: [{
@@ -1059,6 +1092,13 @@ describe('Scim', () => {
             assert.equal(res.status, 204);
             const refreshedGroup = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
             assert.equal(refreshedGroup.status, 404);
+          });
+        });
+
+        it('should refuse to delete a role', async function () {
+          return withRole(async (groupId) => {
+            const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
+            assert.equal(res.status, 404);
           });
         });
 
