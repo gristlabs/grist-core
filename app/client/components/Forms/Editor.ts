@@ -10,7 +10,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {BindableValue, dom, DomContents, IDomArgs, MultiHolder, Observable} from 'grainjs';
 
 const testId = makeTestId('test-forms-');
-const t = makeT('FormView.Editor');
+const t = makeT('Editor');
 
 interface Props {
   box: BoxModel,

@@ -965,5 +965,5 @@ defaults(FormView.prototype, BaseView.prototype);
 Object.assign(FormView.prototype, BackboneEvents);
 
 // Default values when form is reset.
-const FORM_TITLE = "## **Form Title**";
-const FORM_DESC = "Your form description goes here.";
+const FORM_TITLE = t("## **Form Title**");
+const FORM_DESC = t("Your form description goes here.");

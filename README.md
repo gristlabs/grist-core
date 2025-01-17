@@ -2,7 +2,7 @@
 
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
-* `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server.
+* `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server. A version of `grist-core` has been packaged for cloud providers as [Grist Builder Edition](https://support.getgrist.com/install/grist-builder-edition/).
 * [`grist-desktop`](https://github.com/gristlabs/grist-desktop) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
@@ -82,6 +82,7 @@ If you just want a quick demo of Grist:
   * You can try Grist out at the hosted service run by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com) (no registration needed).
   * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
   * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-desktop](https://github.com/gristlabs/grist-desktop).
+  * Or you can try running [Grist Builder Edition](https://support.getgrist.com/install/grist-builder-edition/), a self-hosted version tailored for cloud providers.
 
 To get the default version of `grist-core` running on your computer
 with [Docker](https://www.docker.com/get-started), do:
@@ -307,6 +308,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_CONTACT_SUPPORT_URL          | set the link to contact support on error pages (example: email adress or online form)                                                                                                                                                                                                                                                                         |
 | GRIST_SUPPORT_ANON                 | if set to 'true', show UI for anonymous access (not shown by default)                                                                                                                                                                                                                                                                                         |
 | GRIST_SUPPORT_EMAIL                | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.                                                                                                                                                                                         |
+| GRIST_OPEN_GRAPH_PREVIEW_IMAGE     | the URL of the preview image when sharing the link on websites like social medias or chat applications.                                                                                                                                                                                                                                                       |
 | GRIST_TELEMETRY_LEVEL              | the telemetry level. Can be set to: `off` (default), `limited`, or `full`.                                                                                                                                                                                                                                                                                    |
 | GRIST_THROTTLE_CPU                 | if set, CPU throttling is enabled                                                                                                                                                                                                                                                                                                                             |
 | GRIST_TRUST_PLUGINS                | if set, plugins are expect to be served from the same host as the rest of the Grist app, rather than from a distinct host. Ordinarily, plugins are served from a distinct host so that the cookies used by the Grist app are not automatically available to them. Enable this only if you understand the security implications.                               |

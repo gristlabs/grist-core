@@ -13,7 +13,7 @@ import {
   UserActionBundle
 } from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {ActionSummary} from "app/common/ActionSummary";
+import {ActionSummary} from 'app/common/ActionSummary';
 import {
   AclResources,
   AclTableDescription,
@@ -94,7 +94,6 @@ import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
@@ -105,7 +104,7 @@ import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
-import {LogMethods} from "app/server/lib/LogMethods";
+import {LogMethods} from 'app/server/lib/LogMethods';
 import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
@@ -121,12 +120,13 @@ import {
 } from 'app/server/lib/sessionUtils';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
-import {DocTriggers} from "app/server/lib/Triggers";
+import {DocTriggers} from 'app/server/lib/Triggers';
 import {fetchURL, FileUploadInfo, globalUploadSet, UploadInfo} from 'app/server/lib/uploads';
 import assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
+import {readFile} from 'fs-extra';
 import {IMessage, MsgType} from 'grain-rpc';
 import imageSize from 'image-size';
 import * as moment from 'moment-timezone';
@@ -137,6 +137,8 @@ import tmp from 'tmp';
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
+import {AttachmentFileManager} from './AttachmentFileManager';
+import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
 import {DocSession, makeExceptionalDocSession, OptDocSession} from './DocSession';
@@ -265,6 +267,7 @@ export class ActiveDoc extends EventEmitter {
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
   // Cache of which columns are attachment columns.
   private _attachmentColumns?: AttachmentColumns;
+  private _attachmentFileManager: AttachmentFileManager;
 
   // Client watching for 'product changed' event published by Billing to update usage
   private _redisSubscriber?: RedisClient;
@@ -283,6 +286,7 @@ export class ActiveDoc extends EventEmitter {
   constructor(
     private readonly _docManager: DocManager,
     private _docName: string,
+    externalAttachmentStoreProvider?: IAttachmentStoreProvider,
     private _options?: ICreateActiveDocOptions
   ) {
     super();
@@ -387,6 +391,14 @@ export class ActiveDoc extends EventEmitter {
       loadMetaTables: this._rawPyCall.bind(this, 'load_meta_tables'),
       loadTable: this._rawPyCall.bind(this, 'load_table'),
     });
+
+    // This will throw errors if _options?.doc or externalAttachmentStoreProvider aren't provided,
+    // and ActiveDoc tries to use an external attachment store.
+    this._attachmentFileManager = new AttachmentFileManager(
+      this.docStorage,
+      externalAttachmentStoreProvider,
+      _options?.doc,
+    );
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
     // corresponding to one process for pynbox, more for gvisor).
@@ -925,7 +937,7 @@ export class ActiveDoc extends EventEmitter {
         }
       }
     }
-    const data = await this.docStorage.getFileData(fileIdent);
+    const data = await this._attachmentFileManager.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
@@ -2344,13 +2356,16 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
-    const checksum = await checksumFile(fileData.absPath);
-    const fileIdent = checksum + fileData.ext;
-    const ret: boolean = await this.docStorage.findOrAttachFile(fileData.absPath, fileIdent);
-    this._log.info(docSession, "addAttachment: file %s (image %sx%s) %s", fileIdent,
-      dimensions.width, dimensions.height, ret ? "attached" : "already exists");
+    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    const addFileResult = await this._attachmentFileManager
+      .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
+    this._log.info(
+      docSession, "addAttachment: store: '%s', file: '%s' (image %sx%s) %s",
+      attachmentStoreId ?? 'local document', addFileResult.fileIdent, dimensions.width, dimensions.height,
+      addFileResult.isNewFile ? "attached" : "already exists"
+    );
     return ['AddRecord', '_grist_Attachments', null, {
-      fileIdent,
+      fileIdent: addFileResult.fileIdent,
       fileName: fileData.origName,
       // We used to set fileType, but it's not easily available for native types. Since it's
       // also entirely unused, we just skip it until it becomes relevant.
@@ -2822,17 +2837,25 @@ export class ActiveDoc extends EventEmitter {
     return this._dataEngine;
   }
 
+  private async _getDocumentSettings(): Promise<DocumentSettings> {
+    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo');
+    const docSettingsString = docInfo?.documentSettings;
+    const docSettings = docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
+    if (!docSettings) {
+      throw new Error("No document settings found");
+    }
+    return docSettings;
+  }
+
   private async _makeEngine(): Promise<ISandbox> {
     // Figure out what kind of engine we need for this document.
     let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '2' ? '2' : '3';
 
     // Careful, migrations may not have run on this document and it may not have a
     // documentSettings column.  Failures are treated as lack of an engine preference.
-    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(e => undefined);
-    const docSettingsString = docInfo?.documentSettings;
-    if (docSettingsString) {
-      const docSettings: DocumentSettings|undefined = safeJsonParse(docSettingsString, undefined);
-      const engine = docSettings?.engine;
+    const docSettings = await this._getDocumentSettings().catch(e => undefined);
+    if (docSettings) {
+      const engine = docSettings.engine;
       if (engine) {
         if (engine === 'python2') {
           preferredPythonVersion = '2';

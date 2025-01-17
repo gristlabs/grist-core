@@ -74,3 +74,32 @@ export function simpleStringHash(str: string) {
   }
   return result;
 }
+
+/**
+ * Formats a timestamp in milliseconds to a short or full date string.
+ * Uses full date format if the year is different from the current year.
+ */
+export function dateFmt(timestampMs: number | null): string {
+  if (!timestampMs) { return "unknown"; }
+  const date = new Date(timestampMs);
+  if (date.getFullYear() !== new Date().getFullYear()) {
+    return dateFmtFull(timestampMs);
+  }
+  return new Date(timestampMs).toLocaleDateString('default', { month: 'long', day: 'numeric' });
+}
+
+/**
+ * Formats a timestamp in milliseconds to a full date string.
+ */
+export function dateFmtFull(timestampMs: number | null): string {
+  if (!timestampMs) { return "unknown"; }
+  return new Date(timestampMs).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * Formats a timestamp in milliseconds to a time string.
+ */
+export function timeFmt(timestampMs: number): string {
+  return new Date(timestampMs).toLocaleString('default',
+    { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' });
+}

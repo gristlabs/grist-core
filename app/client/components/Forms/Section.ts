@@ -13,7 +13,7 @@ import * as menus from 'app/client/ui2018/menus';
 import {dom, styled} from 'grainjs';
 import {v4 as uuidv4} from 'uuid';
 
-const t = makeT('FormView');
+const t = makeT('Section');
 
 const testId = makeTestId('test-forms-');
 
@@ -125,8 +125,8 @@ export function Section(...children: FormLayoutNode[]): FormLayoutNode {
     id: uuidv4(),
     type: 'Section',
     children: [
-      Paragraph('### **Header**'),
-      Paragraph('Description'),
+      Paragraph(t('### **Header**')),
+      Paragraph(t('Description')),
       ...children,
     ],
   };

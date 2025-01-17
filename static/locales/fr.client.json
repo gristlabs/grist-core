@@ -525,7 +525,7 @@
         "Invite Team Members": "Inviter un nouveau membre à l'espace d'équipe",
         "Browse Templates": "Parcourir les modèles",
         "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un Fichier",
+        "Import Document": "Importer un fichier",
         "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
         "{{signUp}} to save your work. ": "{{signUp}} pour enregistrer votre travail. ",
         "Welcome to Grist, {{- name}}!": "Bienvenue sur Grist, {{- name}} !",
@@ -540,7 +540,7 @@
         "All Documents": "Tous les documents",
         "Examples & Templates": "Modèles",
         "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un Fichier",
+        "Import Document": "Importer un fichier",
         "Create Workspace": "Créer un nouveau dossier",
         "Trash": "Corbeille",
         "Rename": "Renommer",
@@ -571,7 +571,7 @@
         "Column Mapping": "Cartographie de Colonne",
         "Destination table": "Table de destination",
         "Skip Table on Import": "Ignorer la table à l'import",
-        "Import from file": "Importer depuis un fichier",
+        "Import from file": "Importer un fichier",
         "Source column": "Colonne source"
     },
     "LeftPanelCommon": {

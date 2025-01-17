@@ -38,7 +38,7 @@ import * as ko from 'knockout';
 
 const testId = makeTestId('test-forms-');
 
-const t = makeT('FormView');
+const t = makeT('Field');
 
 /**
  * Container class for all fields.
@@ -133,7 +133,7 @@ export class FieldModel extends BoxModel {
         box: this,
         overlay,
         removeIcon: 'CrossBig',
-        removeTooltip: 'Hide',
+        removeTooltip: t('Hide'),
         editMode: this.edit,
         content,
       },

@@ -46,6 +46,8 @@ import {
 import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
+import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
+import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {
   assertAccess,
   getAuthorizedUserId,
@@ -179,7 +181,8 @@ export class DocWorkerApi {
 
   constructor(private _app: Application, private _docWorker: DocWorker,
               private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
-              private _dbManager: HomeDBManager, private _grist: GristServer) {}
+              private _dbManager: HomeDBManager, private _attachmentStoreProvider: IAttachmentStoreProvider,
+              private _grist: GristServer) {}
 
   /**
    * Adds endpoints for the doc api.
@@ -2027,6 +2030,16 @@ export class DocWorkerApi {
         ...forks.map((fork) =>
           buildUrlId({forkId: fork.id, forkUserId: fork.createdBy!, trunkId: docId})),
       ];
+      if (!forkId) {
+        // Delete all remote document attachments before the doc itself.
+        // This way we can re-attempt deletion if an error is thrown.
+        const attachmentStores = await this._attachmentStoreProvider.getAllStores();
+        log.debug(`Deleting all attachments for ${docId} from ${attachmentStores.length} stores`);
+        const poolDeletions = attachmentStores.map(
+          store => store.removePool(getDocPoolIdFromDocInfo({ id: docId, trunkId: null }))
+        );
+        await Promise.all(poolDeletions);
+      }
       await Promise.all(docsToDelete.map(docName => this._docManager.deleteDoc(null, docName, true)));
       // Permanently delete from database.
       result = await this._dbManager.deleteDocument(scope);
@@ -2359,9 +2372,9 @@ export class DocWorkerApi {
 
 export function addDocApiRoutes(
   app: Application, docWorker: DocWorker, docWorkerMap: IDocWorkerMap, docManager: DocManager, dbManager: HomeDBManager,
-  grist: GristServer
+  attachmentStoreProvider: IAttachmentStoreProvider, grist: GristServer
 ) {
-  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, grist);
+  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, attachmentStoreProvider, grist);
   api.addEndpoints();
 }
 

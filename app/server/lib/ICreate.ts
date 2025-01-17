@@ -3,10 +3,16 @@ import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {IAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {Comm} from 'app/server/lib/Comm';
+import {DocStorageManager} from 'app/server/lib/DocStorageManager';
+import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
+import {HostedStorageManager, HostedStorageOptions} from 'app/server/lib/HostedStorageManager';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
+import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
@@ -14,11 +20,6 @@ import {IShell} from 'app/server/lib/IShell';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
-import {IDocStorageManager} from './IDocStorageManager';
-import { Comm } from "./Comm";
-import { IDocWorkerMap } from "./DocWorkerMap";
-import { HostedStorageManager, HostedStorageOptions } from "./HostedStorageManager";
-import { DocStorageManager } from "./DocStorageManager";
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -89,6 +90,7 @@ export interface ICreate {
   // static page.
   getExtraHeadHtml?(): string;
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
+  getAttachmentStoreOptions(): ICreateAttachmentStoreOptions[];
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
 
@@ -125,6 +127,12 @@ export interface ICreateTelemetryOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry|undefined;
 }
 
+export interface ICreateAttachmentStoreOptions {
+  name: string;
+  isAvailable(): Promise<boolean>;
+  create(storeId: string): Promise<IAttachmentStore>;
+}
+
 /**
  * This function returns a `create` object that defines various core
  * aspects of a Grist installation, such as what kind of billing or
@@ -151,6 +159,7 @@ export function makeSimpleCreator(opts: {
   getLoginSystem?: () => Promise<GristLoginSystem>,
   createHostedDocStorageManager?: HostedDocStorageManagerCreator,
   createLocalDocStorageManager?: LocalDocStorageManagerCreator,
+  attachmentStoreOptions?: ICreateAttachmentStoreOptions[],
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, auditLogger, telemetry} = opts;
   return {
@@ -227,6 +236,9 @@ export function makeSimpleCreator(opts: {
     },
     getStorageOptions(name: string) {
       return storage?.find(s => s.name === name);
+    },
+    getAttachmentStoreOptions(): ICreateAttachmentStoreOptions[] {
+      return opts.attachmentStoreOptions ?? [];
     },
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,
