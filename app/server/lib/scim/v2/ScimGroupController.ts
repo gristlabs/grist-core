@@ -71,7 +71,7 @@ class ScimGroupController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const groupDescriptor = toGroupDescriptor(data);
-      const group = await this.dbManager.overwriteGroup(id, groupDescriptor);
+      const group = await this.dbManager.overwriteGroup(id, groupDescriptor, Group.RESOURCE_USERS_TYPE);
       return toSCIMMYGroup(group);
     });
   }
@@ -86,7 +86,7 @@ class ScimGroupController extends BaseController {
   public async deleteGroup(resource: any, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      await this.dbManager.deleteGroup(id);
+      await this.dbManager.deleteGroup(id, Group.RESOURCE_USERS_TYPE);
     });
   }
 }

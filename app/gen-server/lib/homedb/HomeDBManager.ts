@@ -74,6 +74,7 @@ import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
+import {GroupsManager, GroupTypes} from 'app/gen-server/lib/homedb/GroupsManager';
 import {WebHookSecret} from "app/server/lib/Triggers";
 
 import {EventEmitter} from 'events';
@@ -89,7 +90,6 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 import {v4 as uuidv4} from "uuid";
-import { GroupsManager, GroupTypes } from './GroupsManager';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -3073,12 +3073,14 @@ export class HomeDBManager extends EventEmitter {
     return this._groupsManager.createGroup(groupDescriptor, optManager);
   }
 
-  public async overwriteGroup(id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
-    return this._groupsManager.overwriteGroup(id, groupDescriptor, optManager);
+  public async overwriteGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, expectedType?: GroupTypes, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteGroup(id, groupDescriptor, expectedType, optManager);
   }
 
-  public async deleteGroup(id: number, optManager?: EntityManager) {
-    return this._groupsManager.deleteGroup(id, optManager);
+  public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
+    return this._groupsManager.deleteGroup(id, expectedType, optManager);
   }
 
   public getGroupsWithMembers(manager?: EntityManager): Promise<Group[]> {
