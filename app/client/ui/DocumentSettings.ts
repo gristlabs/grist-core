@@ -472,25 +472,24 @@ function buildLocaleSelect(
 
 type DocumentTypeItem = ACSelectItem & {type?: string};
 
-const typeList: DocumentTypeItem[] = [{
-  label: t('Regular'),
-  type: ''
-}, {
-  label: t('Template'),
-  type: 'template'
-}, {
-  label: t('Tutorial'),
-  type: 'tutorial'
-}].map((el) => ({
-  ...el,
-  value: el.label,
-  cleanText: el.label.trim().toLowerCase()
-}));
-
 function displayCurrentType(
   owner: IDisposableOwner,
   type: Observable<DocumentType|null>,
 ) {
+  const typeList: DocumentTypeItem[] = [{
+    label: t('Regular'),
+    type: ''
+  }, {
+      label: t('Template'),
+      type: 'template'
+    }, {
+      label: t('Tutorial'),
+      type: 'tutorial'
+    }].map((el) => ({
+    ...el,
+    value: el.label,
+    cleanText: el.label.trim().toLowerCase()
+  }));
   const typeObs = Computed.create(owner, use => {
     const typeCode = use(type) ?? "";
     const typeName = typeList.find(ty => ty.type === typeCode)?.label || typeCode;
