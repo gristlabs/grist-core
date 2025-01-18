@@ -871,8 +871,12 @@ export class ActiveDoc extends EventEmitter {
           }
         }
       );
-      const userActions: UserAction[] = await Promise.all(
-        upload.files.map(file => this._prepAttachment(docSession, file)));
+      const userActions: UserAction[] = [];
+      // Process uploads sequentially to reduce risk of race conditions.
+      // Minimal performance impact due to the main async operation being serialized SQL queries.
+      for (const file of upload.files) {
+        userActions.push(await this._prepAttachment(docSession, file));
+      }
       const result = await this._applyUserActionsWithExtendedOptions(docSession, userActions, {
         attachment: true,
       });
