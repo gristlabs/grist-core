@@ -61,22 +61,6 @@ export class AttachmentRetrievalError extends Error {
   }
 }
 
-interface AttachmentFileManagerLogInfo {
-  fileIdent?: string;
-  storeId?: string | null;
-}
-
-interface AttachmentFileInfo {
-  ident: string,
-  storageId: string | null,
-  data: Buffer,
-}
-
-interface TransferJob {
-  isFinished: boolean,
-  promise: Promise<void>
-}
-
 export enum DocAttachmentsLocationSummary {
   INTERNAL = "INTERNAL",
   MIXED = "MIXED",
@@ -484,4 +468,20 @@ export class AttachmentFileManager implements IAttachmentFileManager {
 
 async function validateFileChecksum(fileIdent: string, fileData: Buffer): Promise<boolean> {
   return fileIdent.startsWith(await checksumFileStream(Readable.from(fileData)));
+}
+
+interface AttachmentFileManagerLogInfo {
+  fileIdent?: string;
+  storeId?: string | null;
+}
+
+interface AttachmentFileInfo {
+  ident: string;
+  storageId: string | null;
+  data: Buffer;
+}
+
+interface TransferJob {
+  isFinished: boolean;
+  promise: Promise<void>;
 }
