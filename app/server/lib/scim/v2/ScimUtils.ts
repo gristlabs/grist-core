@@ -5,6 +5,8 @@ import { Group } from "app/gen-server/entity/Group";
 import SCIMMY from "scimmy";
 import log from 'app/server/lib/log';
 import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
+import { SCIMMYRoleGroupSchema } from "./ScimRoleController";
+import { AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule";
 
 const SCIM_API_BASE_PATH = '/api/scim/v2';
 const SCIMMY_USER_TYPE = 'User';
@@ -72,6 +74,33 @@ export function toSCIMMYGroup(group: Group) {
         type: SCIMMY_GROUP_TYPE,
       })),
     ],
+  });
+}
+
+export function toSCIMMYRole(group: Group) {
+  // FIXME: factorize
+  const { aclRule } = group;
+  return new SCIMMYRoleGroupSchema({
+    id: String(group.id),
+    role: group.name,
+    docId: aclRule instanceof AclRuleDoc ? aclRule.docId : undefined,
+    workspaceId: aclRule instanceof AclRuleWs ? aclRule.workspaceId : undefined,
+    orgId: aclRule instanceof AclRuleOrg ? aclRule.orgId : undefined,
+    members: [
+      ...group.memberUsers.map((member: any) => ({
+        value: String(member.id),
+        display: member.name,
+        $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
+        type: SCIMMY_USER_TYPE,
+      })),
+      // As of 2025-01-12, we don't support nested groups, so it should always be empty
+      ...group.memberGroups.map((member: any) => ({
+        value: String(member.id),
+        display: member.name,
+        $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
+        type: SCIMMY_GROUP_TYPE,
+      })),
+    ]
   });
 }
 

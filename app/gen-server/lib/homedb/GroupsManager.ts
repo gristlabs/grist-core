@@ -298,7 +298,7 @@ export class GroupsManager {
     id: number, groupDescriptor: GroupWithMembersDescriptor, expectedType?: GroupTypes, optManager?: EntityManager
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
-      const existingGroup = await this.getGroupWithMembersById(id, manager);
+      const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
       if (!existingGroup || (expectedType && expectedType !== existingGroup.type)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
@@ -315,7 +315,7 @@ export class GroupsManager {
 
   public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
     return await this._runInTransaction(optManager, async (manager) => {
-      const group = await this.getGroupWithMembersById(id, manager);
+      const group = await this.getGroupWithMembersById(id, {}, manager);
       if (!group || (expectedType && expectedType !== group.type)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
@@ -335,17 +335,21 @@ export class GroupsManager {
     });
   }
 
-  public getGroupsWithMembersByType(type: GroupTypes, mamager?: EntityManager): Promise<Group[]> {
+  public getGroupsWithMembersByType(
+    type: GroupTypes, opts?: {aclRule?: boolean}, mamager?: EntityManager
+  ): Promise<Group[]> {
     return this._runInTransaction(mamager, async (manager: EntityManager) => {
-      return this._getGroupsQueryBuilder(manager)
+      return this._getGroupsQueryBuilder(manager, opts)
         .where('groups.type = :type', {type})
         .getMany();
     });
   }
 
-  public async getGroupWithMembersById(groupId: number, optManager?: EntityManager): Promise<Group|null> {
+  public async getGroupWithMembersById(
+    groupId: number, opts?: {aclRule?: boolean}, optManager?: EntityManager
+  ): Promise<Group|null> {
     return await this._runInTransaction(optManager, async (manager) => {
-      return await this._getGroupsQueryBuilder(manager)
+      return await this._getGroupsQueryBuilder(manager, opts)
         .andWhere('groups.id = :groupId', {groupId})
         .getOne();
     });
@@ -375,13 +379,18 @@ export class GroupsManager {
     return groups;
   }
 
-  private _getGroupsQueryBuilder(manager: EntityManager) {
-      return manager.createQueryBuilder()
+  private _getGroupsQueryBuilder(manager: EntityManager, opts: {aclRule?: boolean} = {}) {
+      let queryBuilder = manager.createQueryBuilder()
         .select('groups')
         .addSelect('groups.type')
         .addSelect('memberGroups.type')
         .from(Group, 'groups')
         .leftJoinAndSelect('groups.memberUsers', 'memberUsers')
         .leftJoinAndSelect('groups.memberGroups', 'memberGroups');
+    if (opts.aclRule) {
+       queryBuilder = queryBuilder
+        .leftJoinAndSelect('groups.aclRule', 'aclRule');
+    }
+    return queryBuilder;
   }
 }

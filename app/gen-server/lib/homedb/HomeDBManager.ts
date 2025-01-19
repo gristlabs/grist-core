@@ -3087,12 +3087,13 @@ export class HomeDBManager extends EventEmitter {
     return this._groupsManager.getGroupsWithMembers(manager);
   }
 
-  public getGroupsWithMembersByType(type: GroupTypes, manager?: EntityManager): Promise<Group[]> {
-    return this._groupsManager.getGroupsWithMembersByType(type, manager);
+  public getGroupsWithMembersByType(
+    type: GroupTypes, opts?: {aclRule?: boolean}, manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembersByType(type, opts, manager);
   }
 
-  public getGroupWithMembersById(id: number, manager?: EntityManager): Promise<Group|null> {
-    return this._groupsManager.getGroupWithMembersById(id, manager);
+  public getGroupWithMembersById(id: number, opts?: {aclRule: boolean}, manager?: EntityManager): Promise<Group|null> {
+    return this._groupsManager.getGroupWithMembersById(id, opts, manager);
   }
 
   private _installConfig(

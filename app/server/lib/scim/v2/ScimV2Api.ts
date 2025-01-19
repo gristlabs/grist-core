@@ -7,6 +7,7 @@ import { InstallAdmin } from 'app/server/lib/InstallAdmin';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 import { getScimUserConfig } from 'app/server/lib/scim/v2/ScimUserController';
 import { getScimGroupConfig } from 'app/server/lib/scim/v2/ScimGroupController';
+import { getScimRoleConfig, SCIMMYRoleGroupResource } from 'app/server/lib/scim/v2/ScimRoleController';
 
 const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
 
@@ -22,6 +23,7 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
 
   SCIMMY.Resources.declare(SCIMMY.Resources.User, getScimUserConfig(dbManager, checkAccess));
   SCIMMY.Resources.declare(SCIMMY.Resources.Group, getScimGroupConfig(dbManager, checkAccess));
+  SCIMMY.Resources.declare(SCIMMYRoleGroupResource, getScimRoleConfig(dbManager, checkAccess));
 
   const scimmyRouter = new SCIMMYRouters({
     type: 'bearer',
