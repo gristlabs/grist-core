@@ -229,23 +229,23 @@ export class AttachmentFileManager implements IAttachmentFileManager {
   public transferStatus() {
     return {
       pendingTransferCount: this._pendingFileTransfers.size,
-      isRunning: this._transferJob && !this._transferJob.isFinished || false
+      isRunning: this._transferJob !== undefined
     };
   }
 
   private _runTransferJob(): TransferJob {
-    if (this._transferJob && this.transferStatus().isRunning) {
+    if (this._transferJob) {
       return this._transferJob;
     }
     const transferPromise = this._performPendingTransfers();
     const newTransferJob: TransferJob = {
-      isFinished: false,
       promise: transferPromise,
     };
 
-    newTransferJob.promise.finally(() => newTransferJob.isFinished = true);
-
     this._transferJob = newTransferJob;
+    newTransferJob.promise.finally(() => {
+      this._transferJob = undefined;
+    });
 
     return newTransferJob;
   }
@@ -482,6 +482,5 @@ interface AttachmentFileInfo {
 }
 
 interface TransferJob {
-  isFinished: boolean;
   promise: Promise<void>;
 }
