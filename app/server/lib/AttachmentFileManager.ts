@@ -219,11 +219,10 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     // snapshots.
   }
 
-  public allTransfersCompleted(): Promise<void> {
+  public async allTransfersCompleted(): Promise<void> {
     if (this._transferJob) {
-      return this._transferJob.promise;
+      await this._transferJob.promise;
     }
-    return Promise.resolve();
   }
 
   public transferStatus() {
