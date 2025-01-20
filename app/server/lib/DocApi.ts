@@ -517,6 +517,36 @@ export class DocWorkerApi {
       res.json({records});
     }));
 
+    this._app.get('/api/docs/:docId/attachments/listAllStoreIds', canView, withDoc(async (activeDoc, req, res) => {
+      res.json(this._attachmentStoreProvider.listAllStoreIds());
+    }));
+
+    // Starts transferring all attachments to the named store, if it exists.
+    this._app.post('/api/docs/:docId/attachments/transferAll', isOwner, withDoc(async (activeDoc, req, res) => {
+      await activeDoc.startTransferringAllAttachmentsToDefaultStore();
+      const locationSummary = await activeDoc.attachmentLocationSummary();
+
+      // Respond with the current status to allow for immediate UI updates.
+      res.json({
+        status: activeDoc.attachmentTransferStatus(),
+        locationSummary,
+      });
+    }));
+
+    // Returns the status of any current / pending attachment transfers
+    this._app.get('/api/docs/:docId/attachments/transferStatus', isOwner, withDoc(async (activeDoc, req, res) => {
+      res.json({
+        status: activeDoc.attachmentTransferStatus(),
+      });
+    }));
+
+    // Returns info about the current attachment store.
+    this._app.get('/api/docs/:docId/attachments/locationSummary', isOwner, withDoc(async (activeDoc, req, res) => {
+      res.json({
+        summary: await activeDoc.attachmentLocationSummary(),
+      });
+    }));
+
     // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
     this._app.get('/api/docs/:docId/attachments/:attId', canView, withDoc(async (activeDoc, req, res) => {
       const attId = integerParam(req.params.attId, 'attId');
@@ -546,25 +576,6 @@ export class DocWorkerApi {
         .set('Content-Disposition', contentDisposition(fileName, {type: 'attachment'}))
         .set('Cache-Control', 'private, max-age=3600')
         .send(fileData);
-    }));
-
-    // Starts transferring all attachments to the named store, if it exists.
-    this._app.post('/api/docs/:docId/attachments/transferAll', isOwner, withDoc(async (activeDoc, req, res) => {
-      await activeDoc.startTransferringAllAttachmentsToDefaultStore();
-      const locationSummary = await activeDoc.attachmentLocationSummary();
-
-      // Respond with the current status to allow for immediate UI updates.
-      res.json({
-        status: activeDoc.attachmentTransferStatus(),
-        locationSummary,
-      });
-    }));
-
-    // Returns the status of any current / pending attachment transfers
-    this._app.get('/api/docs/:docId/attachments/transferStatus', isOwner, withDoc(async (activeDoc, req, res) => {
-      res.json({
-        status: activeDoc.attachmentTransferStatus(),
-      });
     }));
 
     // Mostly for testing

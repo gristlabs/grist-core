@@ -30,6 +30,7 @@ import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
+import {AttachmentLocationSummary, AttachmentTransferStatus} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
 import * as moment from 'moment-timezone';
 
@@ -62,29 +63,75 @@ export class DocSettingsPage extends Disposable {
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
-    const storage = Computed.create(this, use => {
-      return use(this._gristDoc.docInfo.attachmentStorage);
+    const storageId = Computed.create(this, use => {
+      const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
+      return id ? 'EXTERNAL' : 'INTERNAL';
     });
-    storage.onWrite(async (val) => {
-      await this._gristDoc.docInfo.attachmentStorage.setAndSave(val);
+    storageId.onWrite((val) => {
+      // Translate EXTERNAL to proper store ID
+      if (val === 'EXTERNAL') {
+        if (stores.get().length === 0) {
+          throw new Error("No external stores available");
+        }
+        this._docInfo.attachmentStoreId.setAndSave(stores.get()[0]).catch(reportError);
+      }
     });
-    const options = [{value: 'internal', label: 'Internal'}, {value: 'external', label: 'External'}];
+    const storageOptions = [{value: 'INTERNAL', label: 'Internal'}, {value: 'EXTERNAL', label: 'External'}];
 
+    const transferStatus = Observable.create<AttachmentTransferStatus|null>(this, null);
+    const locationSummary = Observable.create<AttachmentLocationSummary|null>(this, null);
 
-    const inProgress = Computed.create(this, use => use(this._gristDoc.docInfo.attachmentTransfer) === 'in-progress');
-    const notStarted = Computed.create(this, use => use(this._gristDoc.docInfo.attachmentTransfer) === 'not-started');
+    const inProgress = Computed.create(this, use => !!use(transferStatus)?.status.isRunning);
+    const isMixed = Computed.create(this, use => use(locationSummary)?.summary === 'MIXED');
+    const stores = Observable.create(this, [] as string[]);
 
     const stillInternal = Computed.create(this, use => {
-      const isExternal = use(storage) === 'external';
-      return isExternal && (use(inProgress) || use(notStarted));
+      const isExternal = use(storageId) === 'EXTERNAL';
+      return isExternal && (use(inProgress) || use(isMixed));
     });
 
     const stillExternal = Computed.create(this, use => {
-      const isInternal = use(storage) === 'internal';
-      return isInternal && (use(inProgress) || use(notStarted));
+      const isInternal = use(storageId) === 'INTERNAL';
+      return isInternal && (use(inProgress) || use(isMixed));
     });
 
-    (window as any).storage = storage;
+    const refreshStatus = () => this._gristDoc.docApi.getAttachmentTransferStatus().then(s => {
+      if (this.isDisposed()) { return; }
+      transferStatus.set(s);
+    });
+
+    const refreshLocation = () => this._gristDoc.docApi.getAttachmentLocationSummary().then(s => {
+      if (this.isDisposed()) { return; }
+      locationSummary.set(s);
+    });
+
+    const refreshStoreIds = async () => {
+      const list = await this._gristDoc.docApi.listAllAttachmentStoreIds();
+      if (this.isDisposed()) { return; }
+      stores.set(list);
+    };
+
+    const beginTransfer = async () => {
+      await this._gristDoc.docApi.transferAllAttachments();
+      // Start polling for status updates every 2 seconds.
+      while(!this.isDisposed()) {
+        await refreshStatus();
+        await refreshLocation();
+        if (!inProgress.get()) {
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    };
+
+    const attachmentsReady = Observable.create(this, false);
+    refreshStatus()
+      .then(refreshLocation)
+      .then(refreshStoreIds)
+      .then(() => attachmentsReady.set(true))
+      .catch(reportError);
+
+    (window as any).storage = storageId;
 
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
@@ -227,8 +274,8 @@ export class DocSettingsPage extends Disposable {
             'attachmentStorage',
           ),
           value: cssFlex(
-            dom.maybe(notStarted, () => [
-              cssButton(t('Start transfer'), dom.on('click', () => this._beginTransfer())),
+            dom.maybe(isMixed, () => [
+              cssButton(t('Start transfer'), dom.on('click', () => beginTransfer())),
             ]),
             dom.maybe(inProgress, () => [
               cssButton(
@@ -240,22 +287,20 @@ export class DocSettingsPage extends Disposable {
                 dom.prop('disabled', true),
               ),
             ]),
-            cssSmallSelect(storage, options, {
-              disabled: inProgress,
+            cssSmallSelect(storageId, storageOptions, {
+              disabled: use => use(inProgress) || !use(attachmentsReady) || use(stores).length === 0,
             }),
           )
         }),
         dom('div',
           dom.maybe(stillInternal, () => stillInternalCopy(inProgress)),
           dom.maybe(stillExternal, () => stillExternalCopy(inProgress)),
+          dom.maybe(use => use(stores).length === 0, () => t('No external stores available')),
         ),
       ]),
     );
   }
 
-  private async _beginTransfer() {
-    this._gristDoc.docInfo.beginTransfer().catch(reportError);
-  }
 
   private async _reloadEngine(ask = true) {
     const docPageModel = this._gristDoc.docPageModel;
