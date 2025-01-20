@@ -3,12 +3,13 @@ import {parseSubdomain} from 'app/common/gristUrls';
 import {isNumber} from 'app/common/gutil';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
+import log from 'app/server/lib/log';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
 import * as crypto from 'crypto';
 import * as express from 'express';
-import assignIn = require('lodash/assignIn');
+import assignIn from 'lodash/assignIn';
 import * as path from 'path';
 
 
@@ -55,17 +56,25 @@ export interface IGristSession {
 function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
   if (process.env.REDIS_URL) {
     // Note that ./build excludes this module from the electron build.
+    const redis = require('redis');
     const RedisStore = require('connect-redis')(session);
     promisifyAll(RedisStore.prototype);
     return () => {
-      const store = new RedisStore({
+      const client = redis.createClient({
         url: process.env.REDIS_URL,
+      });
+      client.unref();
+      client.on('error', (err: any) => {
+        log.warn(`[Redis Client]: ${err}`);
+      });
+      const store = new RedisStore({
+        client
       });
       return assignIn(store, {
         async close() {
           // Quit the client, so that it doesn't attempt to reconnect (which matters for some
           // tests), and so that node becomes close-able.
-          await fromCallback(cb => store.client.quit(cb));
+          await fromCallback(cb => client.quit(cb));
         }});
     };
   } else {
