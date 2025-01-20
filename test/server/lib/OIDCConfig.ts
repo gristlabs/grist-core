@@ -243,7 +243,7 @@ describe('OIDCConfig', () => {
       });
     });
 
-    describe('GRIST_HTTPS_PROXY', function () {
+    describe('HTTPS_PROXY trusted proxy', function () {
       const proxyURL = 'http://localhost-proxy:8080';
       const httpAgent = new HttpProxyAgent(proxyURL);
       [
@@ -254,7 +254,7 @@ describe('OIDCConfig', () => {
           {
             itMsg: 'should add proxyAgent to openid-client',
             env: {
-              GRIST_HTTPS_PROXY: proxyURL,
+              HTTPS_PROXY: proxyURL,
             },
             expectedUserDefinedHttpOptions: {
               agent: httpAgent

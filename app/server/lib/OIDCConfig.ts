@@ -80,7 +80,7 @@ import { StringUnionError } from 'app/common/StringUnion';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
 import { SessionObj } from './BrowserSession';
 import { getOriginUrl } from './requestUtils';
-import { proxyAgent } from './ProxyAgent';
+import { proxyAgentForTrustedRequests } from './ProxyAgent';
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -181,7 +181,7 @@ export class OIDCConfig {
     this._protectionManager = new ProtectionsManager(enabledProtections);
 
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
-    const agent = proxyAgent(new URL(issuerUrl));
+    const agent = proxyAgentForTrustedRequests(new URL(issuerUrl));
     custom.setHttpOptionsDefaults({
       ...(agent !== undefined ? {agent} : {}),
       ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
