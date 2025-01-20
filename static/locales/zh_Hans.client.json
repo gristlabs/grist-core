@@ -1456,7 +1456,9 @@
         "Publish": "发布",
         "Publish your form?": "要发布表单吗？",
         "Embed this form": "嵌入此表单",
-        "View": "视图"
+        "View": "视图",
+        "## **Form Title**": "## **表单标题**",
+        "Your form description goes here.": "您可将表格描述置于此处。"
     },
     "FormConfig": {
         "Field Rules": "字段规则",
@@ -1552,7 +1554,8 @@
         "Separator": "分割线",
         "Columns": "列",
         "Unmapped fields": "未映射的字段",
-        "Building blocks": "构建区块"
+        "Building blocks": "构建区块",
+        "More": "更多"
     },
     "Toggle": {
         "Field Format": "字段格式",
