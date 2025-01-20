@@ -186,7 +186,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     const fileMetadata = await this._docStorage.getFileInfoNoData(fileIdent);
     // This check runs before the file is retrieved as an optimisation to avoid loading files into
     // memory unnecessarily.
-    if (!fileMetadata || fileMetadata.storageId == newStoreId) {
+    if (!fileMetadata || (fileMetadata.storageId ?? undefined) === newStoreId) {
       return;
     }
     // It's possible that the record has changed between the original metadata check and here.
@@ -258,8 +258,7 @@ export class AttachmentFileManager implements IAttachmentFileManager {
           await this.transferFileToOtherStore(fileIdent, targetStoreId);
         } catch(e) {
           this._log.warn({ fileIdent, storeId: targetStoreId }, `transfer failed: ${e.message}`);
-        }
-        finally {
+        } finally {
           // If a transfer request comes in mid-transfer, it will need re-running.
           if (this._pendingFileTransfers.get(fileIdent) === targetStoreId) {
             this._pendingFileTransfers.delete(fileIdent);
