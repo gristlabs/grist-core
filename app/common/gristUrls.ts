@@ -107,6 +107,7 @@ export const commonUrls = {
   formulaSheet: 'https://support.getgrist.com/formula-cheat-sheet',
   formulas: 'https://support.getgrist.com/formulas',
   forms: 'https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer',
+  openGraphPreviewImage: 'https://grist-static.com/icons/opengraph-preview-image.png',
 
   gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',
   gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',

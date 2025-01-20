@@ -284,7 +284,7 @@ export class UserManager extends Disposable {
         // TODO: Consider adding a tooltip explaining inheritance. A brief text caption may
         // be used to fill whitespace in org UserManager.
         this._model.isOrg ? null : dom('span', { style: `float: left;` },
-          dom('span', 'Inherit access: '),
+          dom('span', t('Inherit access: ')),
           this._inheritRoleSelector()
         ),
         publicMember ? dom('span', { style: `float: right;` },
