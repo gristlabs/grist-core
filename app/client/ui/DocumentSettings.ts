@@ -63,36 +63,41 @@ export class DocSettingsPage extends Disposable {
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
-    const storageId = Computed.create(this, use => {
+    const storageType = Computed.create(this, use => {
       const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
       return id ? 'EXTERNAL' : 'INTERNAL';
     });
-    storageId.onWrite((val) => {
-      // Translate EXTERNAL to proper store ID
+    storageType.onWrite(async (val) => {
       if (val === 'EXTERNAL') {
         if (stores.get().length === 0) {
           throw new Error("No external stores available");
         }
-        this._docInfo.attachmentStoreId.setAndSave(stores.get()[0]).catch(reportError);
+        await this._docInfo.attachmentStoreId.setAndSave(stores.get()[0]);
+      } else {
+        await this._docInfo.attachmentStoreId.setAndSave(undefined);
       }
     });
     const storageOptions = [{value: 'INTERNAL', label: 'Internal'}, {value: 'EXTERNAL', label: 'External'}];
 
     const transferStatus = Observable.create<AttachmentTransferStatus|null>(this, null);
-    const locationSummary = Observable.create<AttachmentLocationSummary|null>(this, null);
+    const locationSummary = Observable.create<Partial<AttachmentLocationSummary>>(this, {});
 
     const inProgress = Computed.create(this, use => !!use(transferStatus)?.status.isRunning);
-    const isMixed = Computed.create(this, use => use(locationSummary)?.summary === 'MIXED');
+    const allInCurrent = Computed.create(this, use => {
+      const {summary} = use(locationSummary);
+      const current = use(storageType);
+      return summary && summary === current;
+    });
     const stores = Observable.create(this, [] as string[]);
 
     const stillInternal = Computed.create(this, use => {
-      const isExternal = use(storageId) === 'EXTERNAL';
-      return isExternal && (use(inProgress) || use(isMixed));
+      const currentExternal = use(storageType) === 'EXTERNAL';
+      return currentExternal && (use(inProgress) || !use(allInCurrent));
     });
 
     const stillExternal = Computed.create(this, use => {
-      const isInternal = use(storageId) === 'INTERNAL';
-      return isInternal && (use(inProgress) || use(isMixed));
+      const currentInternal = use(storageType) === 'INTERNAL';
+      return currentInternal && (use(inProgress) || !use(allInCurrent));
     });
 
     const refreshStatus = () => this._gristDoc.docApi.getAttachmentTransferStatus().then(s => {
@@ -100,7 +105,7 @@ export class DocSettingsPage extends Disposable {
       transferStatus.set(s);
     });
 
-    const refreshLocation = () => this._gristDoc.docApi.getAttachmentLocationSummary().then(s => {
+    const refreshLocationSummary = () => this._gristDoc.docApi.getAttachmentLocationSummary().then(s => {
       if (this.isDisposed()) { return; }
       locationSummary.set(s);
     });
@@ -113,25 +118,32 @@ export class DocSettingsPage extends Disposable {
 
     const beginTransfer = async () => {
       await this._gristDoc.docApi.transferAllAttachments();
-      // Start polling for status updates every 2 seconds.
-      while(!this.isDisposed()) {
-        await refreshStatus();
-        await refreshLocation();
-        if (!inProgress.get()) {
-          break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
+      await refreshStatus();
     };
 
     const attachmentsReady = Observable.create(this, false);
     refreshStatus()
-      .then(refreshLocation)
+      .then(refreshLocationSummary)
       .then(refreshStoreIds)
       .then(() => attachmentsReady.set(true))
       .catch(reportError);
 
-    (window as any).storage = storageId;
+    (async () => {
+      // Start polling for status updates every 1 seconds when transfer is in progress.
+      while(!this.isDisposed()) {
+        try {
+          if (inProgress.get()) {
+            await refreshStatus();
+            await refreshLocationSummary();
+            console.log(transferStatus.get());
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (err) {
+          reportError(err);
+          break;
+        }
+      }
+    })().catch(reportError);
 
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
@@ -274,11 +286,21 @@ export class DocSettingsPage extends Disposable {
             'attachmentStorage',
           ),
           value: cssFlex(
-            dom.maybe(isMixed, () => [
+            dom.maybe(use => !use(allInCurrent) && !use(inProgress), () => [
               cssButton(t('Start transfer'), dom.on('click', () => beginTransfer())),
             ]),
             dom.maybe(inProgress, () => [
               cssButton(
+                hoverTooltip(
+                  dom('span',
+                    dom.domComputed(transferStatus, (status) => {
+                      return t(
+                        'There are {{count}} attachments left to transfer',
+                        {count: status?.status.pendingTransferCount}
+                      );
+                    })
+                  )
+                ),
                 cssLoadingSpinner(
                   loadingSpinner.cls('-inline'),
                   cssLoadingSpinner.cls('-disabled'),
@@ -287,7 +309,7 @@ export class DocSettingsPage extends Disposable {
                 dom.prop('disabled', true),
               ),
             ]),
-            cssSmallSelect(storageId, storageOptions, {
+            cssSmallSelect(storageType, storageOptions, {
               disabled: use => use(inProgress) || !use(attachmentsReady) || use(stores).length === 0,
             }),
           )

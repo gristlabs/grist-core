@@ -2,6 +2,10 @@
 
 set -x
 
+. .devenv
+
+"$@"
+
 NO_NODEMON=false
 for arg in $@; do
   if [[ $arg == "--no-nodemon" ]]; then

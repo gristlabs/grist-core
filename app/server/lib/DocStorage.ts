@@ -1892,7 +1892,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // This means it's not safe to check then insert - we just have to try the insert and see if it
     // fails.
     try {
-      await db.run('INSERT INTO _gristsys_Files (ident, data, storageId) VALUES (?)', fileIdent);
+      await db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent);
     } catch(err) {
       // If UNIQUE constraint failed, this ident must already exist.
       if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
