@@ -1116,7 +1116,8 @@
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Uživatel má přístup k zobrazení {{resource}}, který vyplývá z ručně nastaveného přístupu k vnitřním zdrojům. Pokud bude tento přístup odstraněn, uživatel ztratí přístup k vnitřním zdrojům.",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Jakmile odstraníte svůj vlastní přístup, nebudete ho moci získat zpět bez pomoci někoho jiného s dostatečným přístupem k {{resourceType}}.",
         "Collaborator": "Spolupracovník",
-        "Your role for this {{resourceType}}": "Vaše úloha v této oblasti {{resourceType}}"
+        "Your role for this {{resourceType}}": "Vaše úloha v této oblasti {{resourceType}}",
+        "Inherit access: ": "Zděděný přístup: "
     },
     "SupportGristNudge": {
         "Close": "Zavřít",
@@ -1162,7 +1163,9 @@
     },
     "Section": {
         "Insert section above": "Vložit sekci nad tuto",
-        "Insert section below": "Vložit sekci pod tuto"
+        "Insert section below": "Vložit sekci pod tuto",
+        "Description": "Popis",
+        "### **Header**": "### **Záhlaví**"
     },
     "ViewLayoutMenu": {
         "Copy anchor link": "Kopírovat odkaz kotvy",
@@ -1261,7 +1264,9 @@
         "Share this form": "Sdílet tento formulář",
         "Reset": "Resetuj",
         "Code copied to clipboard": "Kód zkopírovaný do schránky",
-        "Anyone with the link below can see the empty form and submit a response.": "Kdokoli s níže uvedeným odkazem může zobrazit prázdný formulář a odeslat odpověď."
+        "Anyone with the link below can see the empty form and submit a response.": "Kdokoli s níže uvedeným odkazem může zobrazit prázdný formulář a odeslat odpověď.",
+        "Your form description goes here.": "Sem patří popis vašeho formuláře.",
+        "## **Form Title**": "## **Název formuláře**"
     },
     "UnmappedFieldsConfig": {
         "Mapped": "Přiřazeno",
@@ -1422,7 +1427,8 @@
         "Self Checks": "Vlastní kontroly",
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Služba Grist umožňuje konfigurovat různé typy ověřování, včetně SAML a OIDC. Pokud je systém Grist přístupný po síti nebo je zpřístupněn více osobám, doporučujeme jeden z nich povolit.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podepisuje soubory cookie relace uživatele tajným klíčem. Tento klíč nastavte pomocí proměnné prostředí GRIST_SESSION_SECRET. Pokud není nastavena, Grist se vrátí k pevně nastavenému výchozímu klíči. Toto upozornění můžeme v budoucnu odstranit, protože identifikátory relací generované od verze 1.1.16 jsou ze své podstaty kryptograficky bezpečné.",
-        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Nebo můžete jako náhradní řešení nastavit: {{bootKey}} v prostředí a navštívit jej: {{url}}"
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Nebo můžete jako náhradní řešení nastavit: {{bootKey}} v prostředí a navštívit jej: {{url}}",
+        "Enterprise": "Enterprise"
     },
     "DropdownConditionConfig": {
         "Set dropdown condition": "Nastavení rozbalovací podmínky",
@@ -1501,7 +1507,8 @@
         "Field Format": "Formát pole",
         "Horizontal": "Horizontální",
         "Field Rules": "Pravidla pole",
-        "Select": "Výběr"
+        "Select": "Výběr",
+        "Radio": "Radio"
     },
     "FormErrorPage": {
         "Error": "Chyba"
@@ -1589,7 +1596,9 @@
         "Separator": "Oddělovač",
         "Paste": "Vložit",
         "Insert question above": "Vložit otázku nad tuto",
-        "Header": "Záhlaví"
+        "Header": "Záhlaví",
+        "New question": "Nová otázka",
+        "More": "Více"
     },
     "FormContainer": {
         "Build your own form": "Vytvořte si vlastní formulář",
@@ -1677,7 +1686,8 @@
         "Token": "Token",
         "Add destination": "Přidat cíl",
         "Enter token": "Zadejte token",
-        "Learn more": "Další informace"
+        "Learn more": "Další informace",
+        "Splunk": "Splunk"
     },
     "AuditLogsPage": {
         "Contact us": "Kontaktujte nás",
@@ -1726,7 +1736,8 @@
     },
     "Field": {
         "No choices configured": "Žádné možnosti nejsou nakonfigurovány",
-        "No values in show column of referenced table": "Žádné hodnoty ve sloupci zobrazení odkazované tabulky"
+        "No values in show column of referenced table": "Žádné hodnoty ve sloupci zobrazení odkazované tabulky",
+        "Hide": "Čeština"
     },
     "DocTutorial": {
         "End tutorial": "Konec výukového programu",
