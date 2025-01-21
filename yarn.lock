@@ -2643,10 +2643,10 @@ concat-stream@~1.5.0, concat-stream@~1.5.1:
     readable-stream "~2.0.0"
     typedarray "~0.0.5"
 
-connect-redis@4.0.4:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/connect-redis/-/connect-redis-4.0.4.tgz#b194abe2f3754551f38086e1a28cb9e68d6c3b28"
-  integrity sha512-aXk7btMlG0J5LqtPNRpFKa5fglzlTzukYNx+Fq8cghbUIQHN/gyK9c3+b0XEROMwiSxMoZDADqjp9tdpUoZLAg==
+connect-redis@7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/connect-redis/-/connect-redis-7.1.1.tgz#b78f91eb6d7509ae9e819bb362b94ba459072a1d"
+  integrity sha512-M+z7alnCJiuzKa8/1qAYdGUXHYfDnLolOGAUjOioB07pP39qxjG+X9ibsud7qUBc4jMV5Mcy3ugGv8eFcgamJQ==
 
 console-browserify@^1.1.0:
   version "1.2.0"
@@ -3633,6 +3633,33 @@ express-rate-limit@7.2.0:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/express-rate-limit/-/express-rate-limit-7.2.0.tgz#06ce387dd5388f429cab8263c514fc07bf90a445"
   integrity sha512-T7nul1t4TNyfZMJ7pKRKkdeVJWa2CqB8NA1P8BwYaoDI5QSBZARv5oMS43J7b7I5P+4asjVXjb7ONuwDKucahg==
+
+express-session@^1.18.1:
+  version "1.18.1"
+  resolved "https://registry.yarnpkg.com/express-session/-/express-session-1.18.1.tgz#88d0bbd41878882840f24ec6227493fcb167e8d5"
+  integrity sha512-a5mtTqEaZvBCL9A9aqkrtfz+3SMDhOVUnjafjo+s7A9Txkq+SVX2DLvSp1Zrv4uCXa3lMSK3viWnh9Gg07PBUA==
+  dependencies:
+    cookie "0.7.2"
+    cookie-signature "1.0.7"
+    debug "2.6.9"
+    depd "~2.0.0"
+    on-headers "~1.0.2"
+    parseurl "~1.3.3"
+    safe-buffer "5.2.1"
+    uid-safe "~2.1.5"
+
+"express-session@https://registry.npmjs.org/@gristlabs/express-session/-/express-session-1.18.1-grist1.tgz":
+  version "1.18.1-grist1"
+  resolved "https://registry.npmjs.org/@gristlabs/express-session/-/express-session-1.18.1-grist1.tgz#8097d2efa29459534fb4706cfc01432d631f701d"
+  dependencies:
+    cookie "0.7.2"
+    cookie-signature "1.0.7"
+    debug "2.6.9"
+    depd "~2.0.0"
+    on-headers "~1.0.2"
+    parseurl "~1.3.3"
+    safe-buffer "5.2.1"
+    uid-safe "~2.1.5"
 
 express@4.20.0:
   version "4.20.0"
