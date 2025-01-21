@@ -2,13 +2,9 @@ import {HttpsProxyAgent} from "https-proxy-agent";
 import {HttpProxyAgent} from "http-proxy-agent";
 import log from 'app/server/lib/log';
 
-export function proxyAgentForTrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
-  const httpsProxy = process.env.HTTPS_PROXY ? process.env.HTTPS_PROXY : process.env.https_proxy;
-  if (!httpsProxy) {
-    return undefined;
-  }
+function proxyAgent(requestUrl: URL, proxy: string): HttpProxyAgent | HttpsProxyAgent | undefined {
   const ProxyAgent = requestUrl.protocol === "https:" ? HttpsProxyAgent : HttpProxyAgent;
-  const agent = new ProxyAgent(httpsProxy);
+  const agent = new ProxyAgent(proxy);
 
   // Wrap the main method of ProxyAgent into a wrapper that logs errors.
   const callback = agent.callback;
@@ -18,11 +14,19 @@ export function proxyAgentForTrustedRequests(requestUrl: URL): HttpProxyAgent | 
     } catch (e) {
       // Include info helpful for diagnosing issues (but not the potentially sensitive full requestUrl).
       log.rawWarn(`ProxyAgent error ${e}`,
-        {proxy: httpsProxy, reqProtocol: requestUrl.protocol, requestOrigin: requestUrl.origin});
+        {proxy, reqProtocol: requestUrl.protocol, requestOrigin: requestUrl.origin});
       throw e;
     }
   };
   return agent;
+}
+
+export function proxyAgentForTrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
+  const httpsProxy = process.env.HTTPS_PROXY ? process.env.HTTPS_PROXY : process.env.https_proxy;
+  if (!httpsProxy) {
+    return undefined;
+  }
+  return proxyAgent(requestUrl, httpsProxy);
 }
 
 export function proxyAgentForUntrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
@@ -30,20 +34,5 @@ export function proxyAgentForUntrustedRequests(requestUrl: URL): HttpProxyAgent 
   if (gristProxy === "direct" || !gristProxy) {
     return undefined;
   }
-  const ProxyAgent = requestUrl.protocol === "https:" ? HttpsProxyAgent : HttpProxyAgent;
-  const agent = new ProxyAgent(gristProxy);
-
-  // Wrap the main method of ProxyAgent into a wrapper that logs errors.
-  const callback = agent.callback;
-  agent.callback = async function () {
-    try {
-      return await callback.apply(this, arguments as any);
-    } catch (e) {
-      // Include info helpful for diagnosing issues (but not the potentially sensitive full requestUrl).
-      log.rawWarn(`ProxyAgent error ${e}`,
-        {proxy: gristProxy, reqProtocol: requestUrl.protocol, requestOrigin: requestUrl.origin});
-      throw e;
-    }
-  };
-  return agent;
+  return proxyAgent(requestUrl, gristProxy);
 }
