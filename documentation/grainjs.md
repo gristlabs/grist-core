@@ -54,13 +54,13 @@ In Knockout, the `.peek()` method allows looking at an observable’s value quic
 
 ### Building DOM
 
-Older Grist code builds DOM using the `dom()` function defined in `app/client/lib/dom.js`. It is entirely analogous to [dom() in GrainJS](https://github.com/gristlabs/grainjs/blob/master/docs/basics.md#dom-construction).
+Older Grist code builds DOM using the `dom()` function defined in [`app/client/lib/dom.js`](../app/client/lib/dom.js). It is entirely analogous to [dom() in GrainJS](https://github.com/gristlabs/grainjs/blob/master/docs/basics.md#dom-construction).
 
 The method `dom.on('click', (ev) => { ... })` allows attaching an event listener during DOM construction. It is similar to the same-named method in GrainJS ([dom.on](https://github.com/gristlabs/grainjs/blob/master/docs/basics.md#dom-events)), but is implemented actually using JQuery.
 
 Methods `dom.onDispose`, and `dom.autoDispose` are analogous to GrainJS, but rely on Knockout’s cleanup.
 
-For DOM bindings, which allow tying DOM properties to observable values, there is a `app/client/lib/koDom.js` module. For example:
+For DOM bindings, which allow tying DOM properties to observable values, there is a [`app/client/lib/koDom.js`](../app/client/lib/koDom.js) module. For example:
 
 ```
 import * as dom from 'app/client/lib/dom';
@@ -79,11 +79,11 @@ In place of GrainJS’s `dom.cls`, older code uses `kd.toggleClass` to toggle a 
 
 What GrainJS calls `dom.domComputed`, is called `kd.scope` in older code; and `dom.forEach` is called `kd.foreach` (all lowercase).
 
-Observable arrays, primarily needed for `kd.foreach`, are implemented in `app/client/lib/koArray.js`. There is an assortment of tools around them, not particularly well organized.
+Observable arrays, primarily needed for `kd.foreach`, are implemented in [`app/client/lib/koArray.js`](../app/client/lib/koArray.js). There is an assortment of tools around them, not particularly well organized.
 
 ### Old Disposables
 
-We had to dispose resources before GrainJS, and the tools to simplify that live in `app/client/lib/dispose.js`. In particular, it provides a `Disposable` class, with a similar `this.autoDispose()` method to that of GrainJS.
+We had to dispose resources before GrainJS, and the tools to simplify that live in [`app/client/lib/dispose.js`](../app/client/lib/dispose.js). In particular, it provides a `Disposable` class, with a similar `this.autoDispose()` method to that of GrainJS.
 
 What GrainJS calls `this.onDispose()`, is called `this.autoDisposeCallback()` in older code.
 
@@ -105,14 +105,14 @@ This should help you understand what you see, and you may use it in new code if 
 
 The metadata of a Grist document, which drives the UI of the Grist application, is organized into a `DocModel`, which contains tables, each table with rows, and each row with a set of observables for each field:
 
-* `DocModel` — in `app/client/models/DocModel`
-* `MetaTableModel` — in `app/client/models/MetaTableModel` (for metadata tables, which Grist frontend understands and uses)
-    * `MetaRowModel` — in `app/client/models/MetaRowModel`. These have particular typed fields, and are enhanced with helpful computeds, according to the table to which they belong to, using classes in `app/client/models/entities`.
-* `DataTableModel` — in `app/client/models/DataTableModel` (for user-data tables, which Grist can only treat generically)
-    * `DataRowModel` — in `app/client/models/DataRowModel`.
+* `DocModel` — in [`app/client/models/DocModel.ts`](../app/client/models/DocModel.ts)
+* `MetaTableModel` — in [`app/client/models/MetaTableModel.js`](../app/client/models/MetaTableModel.js) (for metadata tables, which Grist frontend understands and uses)
+  * `MetaRowModel` — in [`app/client/models/MetaRowModel.js`](../app/client/models/MetaRowModel.js). These have particular typed fields, and are enhanced with helpful computeds, according to the table to which they belong to, using classes in [`app/client/models/entities`](../app/client/models/entities/).
+* `DataTableModel` — in [`app/client/models/DataTableModel.js`](../app/client/models/DataTableModel.js) (for user-data tables, which Grist can only treat generically)
+  * `DataRowModel` — in [`app/client/models/DataRowModel.ts`](../app/client/models/DataRowModel.ts).
 * `BaseRowModel` — base class for `MetaRowModel` and `DataRowModel`.
 
-A RowModel contains an observable for each field. While there is old-style code that uses these observables, they all remain knockout observables.
+A `RowModel` contains an observable for each field. While there is old-style code that uses these observables, they all remain knockout observables.
 
 Note that new code can use these knockout observables fairly seemlessly. For instance, a knockout observable can be used with GrainJS dom-methods, or as a dependency of a GrainJS computed.
 
