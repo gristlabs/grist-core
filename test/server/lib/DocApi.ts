@@ -2738,6 +2738,29 @@ function testDocApi(settings: {
       await checkAttachmentIds([]);
     });
 
+    it("GET /docs/{did}/attachments/transferStatus reports transfer status", async function () {
+      const wid = await getWorkspaceId(userApi, 'Private');
+      const docId = await userApi.newDoc({name: 'TestDoc3'}, wid);
+      const docUrl = `${serverUrl}/api/docs/${docId}`;
+
+      const formData = new FormData();
+      formData.append('upload', 'foobar', "hello.doc");
+      formData.append('upload', '123456', "world.jpg");
+      formData.append('upload', 'foobar', "hello2.doc");
+      let resp = await axios.post(`${docUrl}/attachments`, formData,
+        defaultsDeep({headers: formData.getHeaders()}, chimpy));
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, [1, 2, 3]);
+
+      resp = await axios.get(`${docUrl}/attachments/transferStatus`, chimpy);
+      assert.deepEqual(resp.data, {
+        status: {
+          pendingTransferCount: 0,
+          isRunning: false,
+        },
+        locationSummary: "INTERNAL",
+      });
+    });
   });
 
   it("GET /docs/{did}/download serves document", async function () {
