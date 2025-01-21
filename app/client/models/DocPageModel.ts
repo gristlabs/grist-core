@@ -28,6 +28,7 @@ import {
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
   Document,
+  DocumentType,
   NEW_DOCUMENT_CODE,
   Organization,
   UserAPI,
@@ -37,7 +38,6 @@ import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {DocumentType} from 'app/common/UserAPI';
 
 // tslint:disable:no-console
 

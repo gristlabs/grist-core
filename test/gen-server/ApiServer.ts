@@ -1276,17 +1276,20 @@ describe('ApiServer', function() {
 
   it('PATCH /api/docs/{did} supports proper values for type key', async function() {
     const did = await dbManager.testGetId('Surprise2');
-    // Check setting null for normal document type
-    let resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {type: DOCTYPE_NORMAL}, chimpy);
-    assert.equal(resp.status, 200);
 
-    // check setting template as document type
-    resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {type: DOCTYPE_TEMPLATE}, chimpy);
-    assert.equal(resp.status, 200);
+    // Check that we start with a DOCTYPE_NORMAL document.
+    const resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+    assert.isNull(resp.data.type);
 
-    // check setting tutorial as document type
-    resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {type: DOCTYPE_TUTORIAL}, chimpy);
-    assert.equal(resp.status, 200);
+    const types = [DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DOCTYPE_NORMAL];
+
+    // Tests for all three Document types
+    for (const type of types){
+      const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, { type }, chimpy);
+      assert.equal(resp.status, 200);
+      const resp2 = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.deepEqual(resp2.data.type, type);
+    }
   });
 
   it('PATCH /api/docs/{did} returns 404 appropriately', async function() {
@@ -1318,6 +1321,9 @@ describe('ApiServer', function() {
     const did = await dbManager.testGetId('Surprise2');
     const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, {"type": "invalid"}, chimpy);
     assert.equal(resp.status, 400);
+    assert.isObject(resp.data);
+    assert.hasAllKeys(resp.data, ['error']);
+    assert.equal(resp.data.error, "Bad Request. 'type' key authorized values : 'template', 'tutorial' or null");
   });
 
   it('DELETE /api/docs/{did} is operational', async function() {

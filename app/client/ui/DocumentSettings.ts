@@ -359,7 +359,7 @@ export class DocSettingsPage extends Disposable {
           itemTestId
         }: {
           type: DocTypeOption,
-          label: string | any,
+          label: string,
           description: string,
           itemTestId: DomElementMethod | null
         }) => {
