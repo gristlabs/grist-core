@@ -59,7 +59,7 @@ A user-initiated change to a document is sent to the server as a **User Action**
 * Node forwards the Doc Actions to all browsers connected via websocket, including the client that sent the action originally. All clients update their in-memory representation of the doc using these Doc Actions.
 * Node responds to the original client with return value of the action (e.g. rowId of an added record).
 
-The authoritative list of available User Actions is the list of all the methods of `sandbox/grist/useractions.py` with `@useraction` decorator.
+The authoritative list of available User Actions is the list of all the methods of [`sandbox/grist/useractions.py`](../sandbox/grist/useractions.py) with `@useraction` decorator.
 
 Doc Actions are handled both in Python and Node. Here is the full list of Doc Actions:
 
@@ -103,101 +103,101 @@ Note also that all Doc Actions are themselves valid User Actions, i.e. User Acti
 
 ### Server Side
 
-Most server code lives in **`app/server`**.
+Most server code lives in [**`app/server`**](../app/server/).
 
-* `app/server/lib/`**`FlexServer.ts`**
+* [`app/server/lib/`**`FlexServer.ts`**](../app/server/lib/FlexServer.ts)
     Sets up Express endpoints and initializes all other components to run the home server or doc worker or to serve static files. Hence the “Flex” in the name. The home servers and doc workers run using the same code, and parameters and environment variables determine which type of server it will be. It’s possible to run all servers in the same process.
-* `app/server/lib/`**`ActiveDoc.ts`**
+* [`app/server/lib/`**`ActiveDoc.ts`**](../app/server/lib/ActiveDoc.ts)
     The central dispatcher for everything related to an open document — it connects NSandbox, DocStorage, GranularAccess components (described below), as well as connected clients, and shuttles user actions and doc actions between them.
-* `app/server/lib/`**`GranularAccess.ts`**
+* [`app/server/lib/`**`GranularAccess.ts`**](../app/server/lib/GranularAccess.ts)
     Responsible for granular access control. It checks user actions coming from clients before they are sent to the data engine, then again after the data engine translates them (reversing them if needed), and filters what gets sent to the clients based on what they have permission to see.
-* `app/server/lib/`**`NSandbox.ts`**
+* [`app/server/lib/`**`NSandbox.ts`**](../app/server/lib/NSandbox.ts)
     Starts a subprocess with a sandboxed Python process running the data engine, and sets up pipes to and from it to allow making RPC-like calls to the data engine.
-* `app/server/lib/`**`DocStorage.ts`**
+* [`app/server/lib/`**`DocStorage.ts`**](../app/server/lib/DocStorage.ts)
     Responsible for storing Grist data in a SQLite file. It satisfies fetch requests by retrieving data from SQLite, and knows how to translate every Doc Action into suitable SQL updates.
-* `app/server/lib/`**`HostedStorageManager.ts`**
+* [`app/server/lib/`**`HostedStorageManager.ts`**](../app/server/lib/HostedStorageManager.ts)
     Responsible for getting files to and from storage, syncing docs to S3 (or an S3-compatible store) when they change locally, and creating and pruning snapshots.
 
-Some code related to the Home DB lives in **`app/gen-server`**.
+Some code related to the Home DB lives in [**`app/gen-server`**](../app/gen-server/).
 
-* `app/gen-server/lib/`**`HomeDBManager.ts`**
+* [`app/gen-server/lib/homedb/`**`HomeDBManager.ts`**](../app/gen-server/lib/homedb/HomeDBManager.ts)
     Responsible for dealing with HomeDB: it handles everything related to sharing, as well as finding, listing, updating docs, workspaces, and orgs (aka “team sites”). It also handles authorization needs — checking what objects a user is allowed to access, looking up users by email, etc.
 
 ### Common
 
-The **`app/common`** directory contains files that are included both in the server-side, and in the client-side JS bundle. It’s an assortment of utilities, libraries, and typings.
+The [**`app/common`**](../app/common/) directory contains files that are included both in the server-side, and in the client-side JS bundle. It’s an assortment of utilities, libraries, and typings.
 
-* `app/common/`**`TableData.ts`**
+* [`app/common/`**`TableData.ts`**](../app/common/TableData.ts)
     Maintains data of a Grist table in memory, and knows how to apply Doc Actions to it to keep it up-to-date.
-* `app/common/`**`DocData.ts`**
+* [`app/common/`**`DocData.ts`**](../app/common/DocData.ts)
     Maintains a set of TableData objects, in other words all data for a Grist document, including the logic for applying Doc Actions to keep the in-memory data up-to-date.
-* `app/common/`**`gutil.ts`**
+* [`app/common/`**`gutil.ts`**](../app/common/gutil.ts)
     Assorted functions and helpers like `removePrefix`, `countIf`, or `sortedIndex`.
 
 ### Client Side
 
-Much of the application is on the browser side. The code for that all lives in `app/client`. It uses some lower-level libraries for working with DOM, specifically GrainJS (https://github.com/gristlabs/grainjs#documentation). Older code uses knockout and some library files that are essentially a precursor to GrainJS. These live in `app/client/lib`. See also [GrainJS & Grist Front-End Libraries](grainjs.md).
+Much of the application is on the browser side. The code for that all lives in [`app/client`](../app/client/). It uses some lower-level libraries for working with DOM, specifically GrainJS (https://github.com/gristlabs/grainjs#documentation). Older code uses knockout and some library files that are essentially a precursor to GrainJS. These live in [`app/client/lib`](../app/client/lib/). See also [GrainJS & Grist Front-End Libraries](grainjs.md).
 
-* **`app/client/models`**
+* [**`app/client/models`**](../app/client/models/)
     Contains modules responsible for maintaining client-side data.
-    * `app/client/models/`**`TableData.ts`**, `app/client/models/`**`DocData.ts`**
-        Enhancements of same-named classes in `app/common` (see above) which add some client-side functionality like helpers to send User Actions.
-    * `app/client/models/`**`DocModel.ts`**
-        Maintains *observable* data models, for all metadata and user data tables in a document. For metadata tables, the individual records are enhanced to be specific to each type of metadata, using classes in `app/client/models/entities`. For example, `docModel.columns` is a `MetaTableModel` containing records of type `ColumnRec` (from `app/client/models/entities/ColumnRec.ts`) which are derived from `MetaRowModel`.
-    * `app/client/models/`**`TableModel.js`**
+    * [`app/client/models/`**`TableData.ts`**](../app/client/models/TableData.ts), [`app/client/models/`**`DocData.ts`**](../app/client/models/DocData.ts)
+        Enhancements of same-named classes in [`app/common`](../app/common/) (see [above](#common)) which add some client-side functionality like helpers to send User Actions.
+    * [`app/client/models/`**`DocModel.ts`**](../app/client/models/DocModel.ts)
+        Maintains *observable* data models, for all metadata and user data tables in a document. For metadata tables, the individual records are enhanced to be specific to each type of metadata, using classes in [`app/client/models/entities`](../app/client/models/entities/). For example, `docModel.columns` is a `MetaTableModel` containing records of type `ColumnRec` (from [`app/client/models/entities/ColumnRec.ts`](../app/client/models/entities/ColumnRec.ts)) which are derived from `MetaRowModel`.
+    * [`app/client/models/`**`TableModel.js`**](../app/client/models/TableModel.js)
         Base class for `MetaTableModel` and `DataTableModel`. It wraps `TableData` to make the data observable, i.e. to make it possible to subscribe to changes in it. This is the basis for how we build most UI.
-    * `app/client/models/`**`MetaTableModel.js`**
+    * [`app/client/models/`**`MetaTableModel.js`**](../app/client/models/MetaTableModel.js)
         Maintains data for a metadata table, making it available as observable arrays of `MetaRowModel`s. The difference between metadata tables and user tables is that the Grist app knows what’s in metadata, and relies on it for its functionality. We also assume that metadata tables are small enough that we can instantiate [observables](https://github.com/gristlabs/grainjs/blob/master/docs/basics.md#observables) for all fields of all rows.
-    * `app/client/models/`**`DataTableModel.js`**
+    * [`app/client/models/`**`DataTableModel.js`**](../app/client/models/DataTableModel.js)
         Maintains data for a user table, making it available as `LazyArrayModel`s (defined in the same file), which are used as the basis for `koDomScrolly` (see `app/client/lib/koDomScrolly.js` below).
-    * `app/client/models/`**`BaseRowModel.js`**
+    * [`app/client/models/`**`BaseRowModel.js`**](../app/client/models/BaseRowModel.js)
         An observable model for a record (aka row) of a user-data or metadata table. It takes a reference to the containing TableModel, a rowId, and a list of column names, and creates an observable for each field.
-    * `app/client/models/`**`MetaRowModel.ts`**
-        Extends BaseRowModel for built-in (metadata) tables. It has an observable for every field, and in addition gets enhanced with various table-specific [computeds](https://github.com/gristlabs/grainjs/blob/master/docs/basics.md#computed-observables) and methods. Each module in `app/client/models/entities/` becomes an extension of a `MetaRowModel`.
-    * `app/client/models/`**`DataRowModel.ts`**
+    * [`app/client/models/`**`MetaRowModel.js`**](../app/client/models/MetaRowModel.js)
+        Extends BaseRowModel for built-in (metadata) tables. It has an observable for every field, and in addition gets enhanced with various table-specific [computeds](https://github.com/gristlabs/grainjs/blob/master/docs/basics.md#computed-observables) and methods. Each module in [`app/client/models/entities/`](../app/client/models/entities/) becomes an extension of a `MetaRowModel`.
+    * [`app/client/models/`**`DataRowModel.ts`**](../app/client/models/DataRowModel.ts)
         Extends BaseRowModel for user tables. There are few assumption we can make about those, so it adds little, and is mainly used for the observables it creates for each field. These observables are extended with a “save interface”, so that calling `field.save()` will translate to sending an action to the server. Note that `BaseRowModel` are not instantiated for *all* rows of a table, but only for the visible ones. As a table is scrolled, the same `BaseRowModel` gets updated to reflect a new row, so that the associated DOM gets updated rather than rebuilt (and is moved around to where it’s expected to be in the scrolled position).
-    * **`app/client/models/entities/`**
+    * [**`app/client/models/entities/`**](../app/client/models/entities/)
         Table-specific extensions of `MetaRowModel`, such as `ColumnRec`, `ViewFieldRec`, `ViewSectionRec`, etc.
-* **`app/client/ui`, `app/client/components`, `app/client/ui2018`**
+* **[`app/client/ui`](../app/client/ui/), [`app/client/components`](../app/client/components/), [`app/client/ui2018`](../app/client/ui2018/)**
     For obscure reasons, client-side components are largely shuffled between these three directories. There isn’t a clear rule where to put things, but most new components are placed into `app/client/ui`.
-    * `app/client/components/`**`GristDoc.ts`**
+    * [`app/client/components/`**`GristDoc.ts`**](../app/client/components/GristDoc.ts)
         The hub for everything related to an open document, similar to ActiveDoc on the server side. It contains the objects for communicating with the server, objects containing the in-memory data, it knows the currently active page, cursor, etc.
-    * `app/client/components/`**`GridView.js`**
+    * [`app/client/components/`**`GridView.js`**](../app/client/components/GridView.js)
         The component for the most powerful “page widget” we have: the mighty grid. It’s one of the oldest pieces of code in Grist. And biggest. In code, we often refer to “page widgets” (like grid) as “view sections”, and sometimes also as just “views” (hence “GridView”).
-    * `app/client/components/`**`BaseView.js`**
+    * [`app/client/components/`**`BaseView.js`**](../app/client/components/BaseView.js)
         Base component for all page widgets: GridView, DetailView (used for Cards and Card Lists), ChartView, and CustomView. It’s takes care of setting up various data-related features, such as column filtering and link-filtering, and has some other state and methods shared by different types of page widgets.
-    * `app/client/components/`**`Comm.ts`** and `app/client/components/`**`DocComm.ts`**
+    * [`app/client/components/`**`Comm.ts`**](../app/client/components/Comm.ts) and [`app/client/components/`**`DocComm.ts`**](../app/client/components/DocComm.ts)
         Implement communication with the NodeJS Doc Worker via websocket; specifically they implements an RPC-like interface, so that client-side code can call methods such as `applyUserActions`.
-    * `app/client/components/`**`GristWSConnection.ts`**
+    * [`app/client/components/`**`GristWSConnection.ts`**](../app/client/components/GristWSConnection.ts)
         Implements the lower-level websocket communication, including finding the Doc Worker’s address, connecting the websocket, and reconnecting on disconnects.
-    * `app/client/ui/`**`UserManager.ts`**
+    * [`app/client/ui/`**`UserManager.ts`**](../app/client/ui/UserManager.ts)
         Implements the UI component for managing the access of users to a document, workspace, or team site.
-* **`app/client/aclui`**
+* [**`app/client/aclui`**](../app/client/aclui/)
     Contains the pieces of the UI component for editing granular access control rules.
-* **`app/client/lib`**
+* [**`app/client/lib`**](../app/client/lib/)
     Contains lower-level utilities and widgets. Some highlights:
-    * `app/client/lib/`**`autocomplete.ts`**
+    * [`app/client/lib/`**`autocomplete.ts`**](../app/client/lib/autocomplete.ts)
         The latest of the several autocomplete-like dropdowns we’ve used. It’s what’s used for the dropdowns in Reference columns, for example.
-    * `app/client/lib/`**`TokenField.ts`**
+    * [`app/client/lib/`**`TokenField.ts`**](../app/client/lib/TokenField.ts)
         Our own token-field library, used for ChoiceList columns.
-    * `app/client/lib/`**`dom.js`**, **`koDom.js`**, **`koArray.js`**
+    * [`app/client/lib/`**`dom.js`**](../app/client/lib/dom.js), [**`koDom.js`**](../app/client/lib/koDom.js), [**`koArray.js`**](../app/client/lib/koArray.js)
         Utilities superceded by GrainJS but still used by a bunch of code.
-    * `app/client/lib/`**`koDomScrolly.js`**
+    * [`app/client/lib/`**`koDomScrolly.js`**](../app/client/lib/koDomScrolly.js)
         A special beast used for scrolling a very long list of rows by limiting rendering to those that are visible, and trying to reuse the rendered DOM as much as possible. It is a key component of grid and card-list views that allows them to list tens of thousands of rows fairly easily.
-* `app/client/widgets`
+* [`app/client/widgets`](../app/client/widgets/)
     Contains code for cell widgets, such as `TextBox`, `CheckBox`, or `DateTextBox`, and for the corresponding editors, such as `TextEditor`, `DateEditor`, `ReferenceEditor`, `FormulaEditor`, etc.
-    * `app/client/widgets/`**`FieldBuilder.ts`**
+    * [`app/client/widgets/`**`FieldBuilder.ts`**](../app/client/widgets/FieldBuilder.ts)
         A FieldBuilder is created for each column to render the cells in it (using a widget like `TextBox`), as well as to render the column-specific configuration UI, and to instantiate the editor for this cell when the user starts to edit it.
-    * `app/client/widgets/`**`FieldEditor.ts`**
+    * [`app/client/widgets/`**`FieldEditor.ts`**](../app/client/widgets/FieldEditor.ts)
         Instantiated when the user starts editing a cell. It creates the actual editor (like `TextEditor`), and takes care of various logic that’s shared between editors, such as handling Enter/Escape commands, and actually saving the updated value.
 
 ### Python Data Engine
 
 User-created formulas are evaluated by Python in a process we call the “data engine”, or the “sandbox” (since it runs in a sandboxed environment). Its job is to evaluate formulas and also keep track of dependencies, so that when a cell changes, all affected formula can be automatically recalculated.
 
-* **`sandbox/grist/`**
+* [**`sandbox/grist/`**](../sandbox/grist/)
     Contains all data engine code.
-    * `sandbox/grist/`**`engine.py`**
+    * [`sandbox/grist/`**`engine.py`**](../sandbox/grist/engine.py)
         Central class for the documents data engine. It has the implementation of most methods that Node can call, and is responsible to dispatch User Actions, evaluate formulas, and collect the resulting Doc Actions.
-    * `sandbox/grist/`**`useractions.py`**
+    * [`sandbox/grist/`**`useractions.py`**](../sandbox/grist/useractions.py)
         Contains the implementation of all User Actions. Even simple ones require some work (e.g. a user should not manually set values to a formula column). Actions to metadata tables often trigger other work — e.g. updating metadata for a column may produce an additional schema action such as `RenameColumn` for the user table that corresponds to the metadata. Other complex User Actions (such as `CreateViewSection`) are implemented here because it’s easier and allows for simple single-step undos.
