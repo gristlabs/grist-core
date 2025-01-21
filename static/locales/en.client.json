@@ -354,7 +354,22 @@
         "Timing is on": "Timing is on",
         "You can make changes to the document, then stop timing to see the results.": "You can make changes to the document, then stop timing to see the results.",
         "Only available to document editors": "Only available to document editors",
-        "Only available to document owners": "Only available to document owners"
+        "Only available to document owners": "Only available to document owners",
+        "Template mode": "Template mode",
+        "Change document type": "Change document type",
+        "Edit": "Edit",
+        "Change nature of document": "Change nature of document",
+        "Regular document": "Regular document",
+        "Normal document behavior. All users work on the same copy of the document.": "Normal document behavior. All users work on the same copy of the document.",
+        "Regular": "Regular",
+        "Template": "Template",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.",
+        "fiddle mode": "fiddle mode",
+        "Tutorial": "Tutorial",
+        "Document automatically opens as a user-specific copy.": "Document automatically opens as a user-specific copy.",
+        "Confirm change": "Confirm change",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes."
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -967,7 +982,11 @@
         "Reference": "Reference",
         "Reference List": "Reference List",
         "Attachment": "Attachment",
-        "Search columns": "Search columns"
+        "Search columns": "Search columns",
+        "By Name": "By Name",
+        "By Date Modified": "By date Modified",
+        "Light": "Light",
+        "Custom": "Custom"
     },
     "modals": {
         "Cancel": "Cancel",
