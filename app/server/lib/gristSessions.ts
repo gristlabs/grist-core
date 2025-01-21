@@ -57,7 +57,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
   if (process.env.REDIS_URL) {
     // Note that ./build excludes this module from the electron build.
     const redis = require('redis');
-    const RedisStore = require('connect-redis').default;
+    const {RedisStore} = require('connect-redis');
     promisifyAll(RedisStore.prototype);
     return () => {
       const client = redis.createClient({
