@@ -16,7 +16,7 @@ import * as schema from 'app/common/schema';
 import {SingleCell} from 'app/common/TableData';
 import {GristObjCode} from "app/plugin/GristData";
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {ExpandedQuery} from 'app/server/lib/ExpandedQuery';
+import {combineExpr, ExpandedQuery} from 'app/server/lib/ExpandedQuery';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import assert from 'assert';
@@ -888,15 +888,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
 
     // Convert query to SQL.
-    const params: any[] = [];
-    let whereParts: string[] = [];
+    const params: any[] = query.where?.params || [];
+    const whereParts: string[] = [];
     for (const colId of Object.keys(query.filters)) {
       const values = query.filters[colId];
       // If values is empty, "IN ()" works in SQLite (always false), but wouldn't work in Postgres.
       whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (${values.map(() => '?').join(', ')})`);
       params.push(...values);
     }
-    whereParts = whereParts.concat(query.wheres ?? []);
     const sql = this._getSqlForQuery(query, whereParts);
     return this._getDB().allMarshal(sql, ...params);
   }
@@ -1768,6 +1767,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         const values = query.filters[colId];
         const tableName = `_grist_tmp_${tableNames.length}_${uuidv4().replace(/-/g, '_')}`;
         await db.exec(`CREATE TEMPORARY TABLE ${tableName}(data)`);
+        tableNames.push(tableName);
         for (const valuesChunk of chunk(values, maxSQLiteVariables)) {
           const placeholders = valuesChunk.map(() => '(?)').join(',');
           await db.run(`INSERT INTO ${tableName}(data) VALUES ${placeholders}`, valuesChunk);
@@ -1775,8 +1775,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (SELECT data FROM ${tableName})`);
       }
       const sql = this._getSqlForQuery(query, whereParts);
+      const params = query.where?.params || [];
       try {
-        return await db.allMarshal(sql);
+        return await db.allMarshal(sql, ...params);
       } finally {
         await Promise.all(tableNames.map(tableName => db.exec(`DROP TABLE ${tableName}`)));
       }
@@ -1788,7 +1789,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * a set of WHERE terms that should be ANDed.
    */
   private _getSqlForQuery(query: ExpandedQuery, whereParts: string[]) {
-    const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
+    const whereCondition = combineExpr('AND', [query.where?.clause, ...whereParts]);
+    const whereClause = whereCondition ? `WHERE ${whereCondition}` : '';
     const limitClause = (typeof query.limit === 'number') ? `LIMIT ${query.limit}` : '';
     const joinClauses = query.joins ? query.joins.join(' ') : '';
     const selects = query.selects ? query.selects.join(', ') : '*';

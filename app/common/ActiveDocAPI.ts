@@ -159,6 +159,15 @@ export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
 export interface ServerQuery extends BaseQuery {
   // Queries to server for onDemand tables will set a limit to avoid bringing down the browser.
   limit?: number;
+
+  // A SQL where clause, for advanced filters. Combines with 'filters' using AND. It is only used
+  // when the query is fetched from the SQLite database, and ignored by the Python data engine,
+  // and is only constructed within server code. It is not safe to let users specify their own
+  // where clause.
+  where?: {
+    clause: string;
+    params: unknown[];      // There should be one parameter for each '?' placeholder in clause.
+  }
 }
 
 /**

@@ -1013,6 +1013,10 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fetchQuery(docSession: OptDocSession, query: ServerQuery,
                           waitForFormulas: boolean = false): Promise<TableFetchResult> {
+    // Sanitize the query to ensure it only has parts we are OK accepting from the user.
+    // (In particular, it is not safe to accept an untrusted "where" part.)
+    query = pick(query, ['tableId', 'filters', 'limit']);
+
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     // If user does not have rights to access what this query is asking for, fail.

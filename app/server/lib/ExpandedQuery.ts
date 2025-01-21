@@ -29,9 +29,6 @@ export interface ExpandedQuery extends ServerQuery {
 
   // A list of selections for regular data and data computed via formulas.
   selects?: string[];
-
-  // A list of conditions for filtering query results.
-  wheres?: string[];
 }
 
 /**
@@ -47,7 +44,8 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
   const query: ExpandedQuery = {
     tableId: iquery.tableId,
     filters: iquery.filters,
-    limit: iquery.limit
+    limit: iquery.limit,
+    where: iquery.where,
   };
 
   // Start accumulating a set of joins and selects needed for the query.
@@ -248,12 +246,22 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
     }
   }
   if (whereConditions.length > 0) {
-    wheres.push(`(${whereConditions.join(' OR ')})`);
+    wheres.push(combineExpr('OR', whereConditions));
   }
 
   // Copy decisions to the query object, and return.
   query.joins = joins;
   query.selects = selects;
-  query.wheres = wheres;
+
+  if (wheres) {
+    query.where = {
+      clause: combineExpr('AND', [query.where?.clause, ...wheres]),
+      params: query.where?.params ?? [],
+    };
+  }
   return query;
+}
+
+export function combineExpr(operator: string, parts: Array<string|undefined>): string {
+  return parts.filter(p => Boolean(p)).map(p => `(${p})`).join(` ${operator} `);
 }
