@@ -64,7 +64,6 @@ module.exports = {
         test: /\.(js|ts)?$/,
         loader: 'esbuild-loader',
         options: {
-          loader: 'ts',
           target: 'es2017',
           sourcemap: true,
         },
