@@ -59,7 +59,7 @@ A user-initiated change to a document is sent to the server as a **User Action**
 * Node forwards the Doc Actions to all browsers connected via websocket, including the client that sent the action originally. All clients update their in-memory representation of the doc using these Doc Actions.
 * Node responds to the original client with return value of the action (e.g. rowId of an added record).
 
-The authoritative list of available User Actions is the list of all the methods of `sandbox/grist/useractions.py` with `@useraction` decorator.
+The authoritative list of available User Actions is the list of all the methods of [`sandbox/grist/useractions.py`](../sandbox/grist/useractions.py) with `@useraction` decorator.
 
 Doc Actions are handled both in Python and Node. Here is the full list of Doc Actions:
 
