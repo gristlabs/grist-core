@@ -134,7 +134,7 @@
     "color-convert": "2.0.1",
     "commander": "9.3.0",
     "components-jqueryui": "1.12.1",
-    "connect-redis": "4.0.4",
+    "connect-redis": "7.1.1",
     "cookie": "0.7.0",
     "cookie-parser": "1.4.7",
     "csv": "6.3.8",
@@ -149,6 +149,7 @@
     "exceljs": "4.2.1",
     "express": "4.21.2",
     "express-rate-limit": "7.2.0",
+    "express-session": "^1.18.1",
     "file-type": "16.5.4",
     "fs-extra": "7.0.0",
     "grain-rpc": "0.1.7",
@@ -207,6 +208,7 @@
   },
   "resolutions": {
     "**/ip": "https://registry.npmjs.org/neoip/-/neoip-2.1.0.tgz",
+    "express-session": "https://registry.npmjs.org/@gristlabs/express-session/-/express-session-1.18.1-grist1.tgz",
     "jquery": "3.5.0",
     "ts-interface-checker": "1.0.2",
     "@gristlabs/sqlite3": "5.1.4-grist.8"
