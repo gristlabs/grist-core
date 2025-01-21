@@ -7,19 +7,23 @@ Garbage-collected languages make you think that you don't need to worry about cl
 In the examples, we care about a situation when you have a JS object that is responsible for certain UI, i.e. DOM, listening to DOM changes to update state elsewhere, and listening to outside changes to update state to the DOM.
 
 ### DOM Elements
-So this JS object knows how to create the DOM. Removing the DOM, when the component is to be removed, is usually easy: `parentNode.removeNode(child)`. Since it's a manual operation, you may define some method to do this, named perhaps "destroy" or "dispose" or "cleanup". 
+
+So this JS object knows how to create the DOM. Removing the DOM, when the component is to be removed, is usually easy: `parentNode.removeNode(child)`. Since it's a manual operation, you may define some method to do this, named perhaps "destroy" or "dispose" or "cleanup".
 
 If there is logic tied to your DOM either via JQuery events, or KnockoutJS bindings, you'll want to clean up the node specially: for JQuery, use `.remove()` or `.empty()` methods; for KnockoutJS, use `ko.removeNode()` or `ko.cleanNode()`. KnockoutJS's methods automatically call JQuery-related cleanup functions if JQuery is loaded in the page.
 
 ### Subscriptions and Computed Observables
+
 But there is more. Consider this knockout code, adapted from their simplest example of a computed observable:
 
-    function FullNameWidget(firstName, lastName) { 
-      this.fullName = ko.computed(function() {
-          return firstName() + " " + lastName();
-      });
-      ...
-   }
+```js
+function FullNameWidget(firstName, lastName) {
+   this.fullName = ko.computed(function() {
+      return firstName() + " " + lastName();
+   });
+   // ...
+}
+```
 
 Here we have a constructor for a component which takes two observables as constructor parameters, and creates a new observable which depends on the two inputs. Whenever `firstName` or `lastName` changes, `this.fullName` get recomputed. This makes it easy to create knockout-based bindings, e.g. to have a DOM element reflect the full name when either first or last name changes.
 
@@ -32,21 +36,25 @@ KnockoutJS recognizes it, and makes it easy: just call `this.firstName.dispose()
 This situation would exist without knockout too: the issue is that the component is listening to external changes to update the DOM that it is responsible for. When the component is gone, it should stop listening.
 
 ### Tying life of subscriptions to DOM
+
 Since the situation above is so common in KnockoutJS, it offers some assistance. Specifically, when a computed observable is created using knockout's own binding syntax (by specifying a JS expression in an HTML attribute), knockout will clean it up automatically when the DOM node is removed using `ko.removeNode()` or `ko.cleanNode()`.
 
-Knockout also allows to tie other cleanup to DOM node removal, documented at  [Custom disposal logic](http://knockoutjs.com/documentation/custom-bindings-disposal.html) page.
+Knockout also allows to tie other cleanup to DOM node removal, documented at the [Custom disposal logic](http://knockoutjs.com/documentation/custom-bindings-disposal.html) page.
 
 In the example above, you could use `ko.utils.domNodeDisposal.addDisposeCallback(node, function() { self.fullName.dispose(); })`, and when you destroy the component and remove the `node` via `ko.removeNode()` or `ko.cleanNode()`, the `fullName` observable will be properly disposed.
 
 ### Other knockout subscriptions
+
 There are other situations with subscriptions. For example, we may want to subscribe to a `viewId` observable, and when it changes, replace the currently-rendered View component. This might look like so
 
-     function GristDoc() {
-        this.viewId = ko.observable();
-        this.viewId.subscribe(function(viewId) {
-           this.loadView(viewId);
-        }, this);
-    }
+```js
+function GristDoc() {
+   this.viewId = ko.observable();
+   this.viewId.subscribe(function(viewId) {
+      this.loadView(viewId);
+   }, this);
+}
+```
 
 Once GristDoc is destroyed, the subscription to `this.viewId` still exists, so `this.viewId` retains a reference to `this` (for calling the callback). Technically, there is no problem: as long as there are no references to `this.viewId` from outside this object, the whole cycle should be garbage-collected.
 
@@ -62,32 +70,35 @@ To be clear, the problem isn't with Knockout, it's with the idea of subscribing 
 
 For example, let's say you have a component that listens to an outside event and does stuff. With a made-up example, you might have a constructor like:
 
-    function Game(basket) {
-       basket.on('points:scored', function(team, points) {
-           // Update UI to show updated points for the team.
-       });
-    }
+```js
+function Game(basket) {
+   basket.on('points:scored', function(team, points) {
+      // Update UI to show updated points for the team.
+   });
+}
+```
 
 Let's say that a `Game` object is destroyed, and a new one created, but the `basket` persists across Games. As the user continues to score points on the basket, the old (supposedly destroyed) Game object continues to have that inline callback called. It may not be showing anything, but only because the DOM it's updating is no longer attached to the page. It's still taking resources, and may even continue to send stuff to the server.
 
 We need to clean up when we destroy the Game object. In this example, it's pretty annoying. We'd have to save the `basket` object and callback in member variables (like `this.basket`, `this.callback`), so that in the cleanup method, we could call `this.basket.off('points:scored', this.callback)`.
 
-Many people have gotten bitten with that in Backbone (see this [stackoverflow post](http://stackoverflow.com/questions/14041042/backbone-0-9-9-difference-between-listento-and-on)) with a bunch of links to blog posts about it).
+Many people have gotten bitten with that in Backbone (see this [stackoverflow post](http://stackoverflow.com/questions/14041042/backbone-0-9-9-difference-between-listento-and-on) with a bunch of links to blog posts about it).
 
-Backbone's solution is `listenTo()` method. You'd use it like so:
+Backbone's solution is the `listenTo()` method. You'd use it like so:
 
-    function Game(basket) {
-       this.listenTo(basket, 'points:scored', function(team, points) {
-           // Update UI to show updated points for the team.
-       });
-    }
+```js
+function Game(basket) {
+   this.listenTo(basket, 'points:scored', function(team, points) {
+      // Update UI to show updated points for the team.
+   });
+}
+```
 
 Then when you destroy the Game object, you only have to call `this.stopListening()`. It keeps track of what you listened to, and unsubscribes. You just have to remember to call it. (Certain objects in Backbone will call `stopListening()` automatically when they are being cleaned up.)
 
 ### Internal events
 
 If a component listens to an event on a DOM element it itself owns, and if it's using JQuery, then we don't need to do anything special. If on destruction of the component, we clean up the DOM element using `ko.removeNode()`, the JQuery event bindings should automatically be removed. (This hasn't been rigorously verified, but if correct, is a reason to use JQuery for browser events rather than native `addEventListener`.)
-
 
 ## How to do cleanup uniformly
 
@@ -98,28 +109,30 @@ Since we need to destroy the components' DOM explicitly, the components should p
 - If the component maintains any knockout subscriptions or computed observables, it should call `.dispose()` on them.
 - If the component owns other components, then those should be cleaned up recursively, by calling `.dispose()` on those.
 
-The trick is how to make it easy to remember to do all necessary cleanup. I propose keeping track when the object to clean up first enters the picture. 
+The trick is how to make it easy to remember to do all necessary cleanup. I propose keeping track when the object to clean up first enters the picture.
 
 ## 'Disposable' class
 
 The idea is to have a class that can be mixed into (or inherited by) any object, and whose purpose is to keep track of things this object "owns", that it should be responsible for cleaning up. To combine the examples above:
 
-   function Component(firstName, lastName, basket) {
-      this.fullName = this.autoDispose(ko.computed(function() {
-          return firstName() + " " + lastName();
-      }));
+```js
+function Component(firstName, lastName, basket) {
+   this.fullName = this.autoDispose(ko.computed(function() {
+         return firstName() + " " + lastName();
+   }));
 
-      this.viewId = ko.observable();
-      this.autoDispose(this.viewId.subscribe(function(viewId) {
-         this.loadView(viewId);
-      }, this));
+   this.viewId = ko.observable();
+   this.autoDispose(this.viewId.subscribe(function(viewId) {
+      this.loadView(viewId);
+   }, this));
 
-      this.ourDom = this.autoDispose(somewhere.appendChild(some_dom_we_create));
+   this.ourDom = this.autoDispose(somewhere.appendChild(some_dom_we_create));
 
-      this.listenTo(basket, 'points:scored', function(team, points) {
-         // Update UI to show updated points for the team.
-      });
-   }
+   this.listenTo(basket, 'points:scored', function(team, points) {
+      // Update UI to show updated points for the team.
+   });
+}
+```
 
 Note the `this.autoDispose()` calls. They mark the argument as being owned by `this`. When `this.dispose()` is called, those values get disposed of as well.
 

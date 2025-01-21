@@ -45,6 +45,7 @@ The `name` is the name of the table. The `colinfo` array has an item to describe
 The `name` is the name of the column, and `type` is its type. The field `options` optionally specifies type-specific options that affect the column (e.g. the number of decimal places to display for a floating-point number).
 
 ### ColData
+
 ```javascript
    {
           <colName1>: ColValues,
@@ -53,15 +54,18 @@ The `name` is the name of the column, and `type` is its type. The field `options
    }
 ```
 
-The data in the table is represented as an object mapping a column name to an array of values for the column. This column-oriented representation allows for the representation of data to be more concise. 
+The data in the table is represented as an object mapping a column name to an array of values for the column. This column-oriented representation allows for the representation of data to be more concise.
 
 ### ColValues
+
 ```javascript
    [CellValue, CellValue, ...]
 ```
+
 ColValues is an array of all values for the column. We'll refer to the type of each value as `CellValue`. ColValues has an entry for each row in the table. In particular, each ColValues array in a ColData object has the same number of entries.
 
 ### CellValue
+
 CellValue represents the value in one cell. We support various types of values, documented below. When represented as JSON, CellValue is one  of the following JSON types:
   - string
   - number
@@ -74,6 +78,7 @@ The interpretation of CellValue is affected by the column’s type, and describe
 ## JSON Schema
 
 The description above can be summarized by this JSON Schema:
+
 ```json
 {
   "definitions": {
