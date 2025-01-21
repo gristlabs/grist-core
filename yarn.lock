@@ -2643,10 +2643,10 @@ concat-stream@~1.5.0, concat-stream@~1.5.1:
     readable-stream "~2.0.0"
     typedarray "~0.0.5"
 
-connect-redis@7.1.1:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/connect-redis/-/connect-redis-7.1.1.tgz#b78f91eb6d7509ae9e819bb362b94ba459072a1d"
-  integrity sha512-M+z7alnCJiuzKa8/1qAYdGUXHYfDnLolOGAUjOioB07pP39qxjG+X9ibsud7qUBc4jMV5Mcy3ugGv8eFcgamJQ==
+connect-redis@8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/connect-redis/-/connect-redis-8.0.1.tgz#83d4d829ee968b9d64da9a6f40fe1ea3046bf835"
+  integrity sha512-7iOI214/r15ahvu0rqKCHhsgpMdOgyLwqlw/icSTnnAR75xFvMyfxAE+je4M87rZLjDlKzKcTc48XxQXYFsMgA==
 
 console-browserify@^1.1.0:
   version "1.2.0"
