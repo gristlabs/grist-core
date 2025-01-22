@@ -1,3 +1,4 @@
+import {DocAttachmentsLocation} from 'app/common/UserAPI';
 import {
   AttachmentStoreDocInfo,
   DocPoolId,
@@ -59,12 +60,6 @@ export class AttachmentRetrievalError extends Error {
     this.fileId = fileId;
     this.cause = causeError;
   }
-}
-
-export enum DocAttachmentsLocationSummary {
-  INTERNAL = "INTERNAL",
-  MIXED = "MIXED",
-  EXTERNAL = "EXTERNAL",
 }
 
 /**
@@ -133,17 +128,20 @@ export class AttachmentFileManager implements IAttachmentFileManager {
     return (await this._getFile(fileIdent)).data;
   }
 
-  public async locationSummary(): Promise<DocAttachmentsLocationSummary> {
+  public async locationSummary(): Promise<DocAttachmentsLocation> {
     const files = await this._docStorage.listAllFiles();
+    if (files.length == 0) {
+      return "NO FILES";
+    }
     const hasInternal = files.some(file => !file.storageId);
     const hasExternal = files.some(file => file.storageId);
     if (hasInternal && hasExternal) {
-      return DocAttachmentsLocationSummary.MIXED;
+      return "MIXED";
     }
     if (hasExternal) {
-      return DocAttachmentsLocationSummary.EXTERNAL;
+      return "EXTERNAL";
     }
-    return DocAttachmentsLocationSummary.INTERNAL;
+    return "INTERNAL";
   }
 
   public async startTransferringAllFilesToOtherStore(newStoreId: AttachmentStoreId | undefined): Promise<void> {
