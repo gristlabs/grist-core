@@ -13,11 +13,6 @@ import {LogMethods} from 'app/server/lib/LogMethods';
 import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import {Readable} from 'node:stream';
 
-export interface IAttachmentFileManager {
-  addFile(storeId: AttachmentStoreId, fileExtension: string, fileData: Buffer): Promise<AddFileResult>;
-  getFileData(fileIdent: string): Promise<Buffer | null>;
-}
-
 export interface AddFileResult {
   fileIdent: string;
   isNewFile: boolean;
@@ -81,7 +76,7 @@ export class AttachmentRetrievalError extends Error {
  * they'll eventually be cleaned up when the document pool is deleted.
  *
  */
-export class AttachmentFileManager implements IAttachmentFileManager {
+export class AttachmentFileManager {
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
   private readonly _docPoolId: DocPoolId | null;
   private readonly _docName: string;
