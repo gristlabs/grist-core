@@ -1,612 +1,1129 @@
-import ThemePrefsTI from 'app/common/ThemePrefs-ti';
-import {CheckerT, createCheckers} from 'ts-interface-checker';
+import { CssCustomProp } from './CssCustomProp';
 
 export interface ThemePrefs {
   appearance: ThemeAppearance;
   syncWithOS: boolean;
   colors: {
-    light: ThemeNameOrColors;
-    dark: ThemeNameOrColors;
+    light: ThemeNameOrTokens;
+    dark: ThemeNameOrTokens;
   }
 }
 
-export type ThemeAppearance = 'light' | 'dark';
+export const themeAppearances = ['light', 'dark'] as const;
+export type ThemeAppearance = typeof themeAppearances[number];
 
-export type ThemeNameOrColors = ThemeName | ThemeColors;
+export type ThemeNameOrTokens = ThemeName | ThemeTokens;
 
-export type ThemeName = 'GristLight' | 'GristDark';
+export const themeNames = ['GristLight', 'GristDark'] as const;
+export type ThemeName = typeof themeNames[number];
 
 export interface Theme {
   appearance: ThemeAppearance;
-  colors: ThemeColors;
+  colors: ThemeTokens;
 }
 
-export interface ThemeColors {
-  /* Text */
-  'text': string;
-  'text-light': string;
-  'text-medium': string;
-  'text-dark': string;
-  'text-error': string;
-  'text-error-hover': string;
-  'text-danger': string;
-  'text-disabled': string;
-
-  /* Page */
-  'page-bg': string;
-  'page-backdrop': string;
-
-  /* Page Panels */
-  'page-panels-main-panel-bg': string;
-  'page-panels-left-panel-bg': string;
-  'page-panels-right-panel-bg': string;
-  'page-panels-top-header-bg': string;
-  'page-panels-bottom-footer-bg': string;
-  'page-panels-border': string;
-  'page-panels-border-resizing': string;
-  'page-panels-side-panel-opener-fg': string;
-  'page-panels-side-panel-opener-active-fg': string;
-  'page-panels-side-panel-opener-active-bg': string;
-
-  /* Add New */
-  'add-new-circle-fg': string;
-  'add-new-circle-bg': string;
-  'add-new-circle-hover-bg': string;
-  'add-new-circle-small-fg': string;
-  'add-new-circle-small-bg': string;
-  'add-new-circle-small-hover-bg': string;
-
-  /* Top Bar */
-  'top-bar-button-primary-fg': string;
-  'top-bar-button-secondary-fg': string;
-  'top-bar-button-disabled-fg': string;
-  'top-bar-button-error-fg': string;
-
-  /* Notifications */
-  'notifications-panel-header-bg': string;
-  'notifications-panel-body-bg': string;
-  'notifications-panel-border': string;
-
-  /* Toasts */
-  'toast-text': string;
-  'toast-text-light': string;
-  'toast-bg': string;
-  'toast-memo-text': string;
-  'toast-memo-bg': string;
-  'toast-error-icon': string;
-  'toast-error-bg': string;
-  'toast-success-icon': string;
-  'toast-success-bg': string;
-  'toast-warning-icon': string;
-  'toast-warning-bg': string;
-  'toast-info-icon': string;
-  'toast-info-bg': string;
-  'toast-control-fg': string;
-  'toast-control-info-fg': string;
-
-  /* Tooltips */
-  'tooltip-fg': string;
-  'tooltip-bg': string;
-  'tooltip-icon': string;
-  'tooltip-close-button-fg': string;
-  'tooltip-close-button-hover-fg': string;
-  'tooltip-close-button-hover-bg': string;
-
-  /* Modals */
-  'modal-bg': string;
-  'modal-backdrop': string;
-  'modal-border': string;
-  'modal-border-dark': string;
-  'modal-border-hover': string;
-  'modal-shadow-inner': string;
-  'modal-shadow-outer': string;
-  'modal-close-button-fg': string;
-  'modal-backdrop-close-button-fg': string;
-  'modal-backdrop-close-button-hover-fg': string;
-
-  /* Popups */
-  'popup-bg': string;
-  'popup-secondary-bg': string;
-  'popup-shadow-inner': string;
-  'popup-shadow-outer': string;
-  'popup-close-button-fg': string;
-
-  /* Prompts */
-  'prompt-fg': string;
-
-  /* Progress Bars */
-  'progress-bar-fg': string;
-  'progress-bar-error-fg': string;
-  'progress-bar-bg': string;
-
-  /* Links */
-  'link': string;
-  'link-hover': string;
-
-  /* Hover */
-  'hover': string;
-  'hover-light': string;
-
-  /* Cell Editor */
-  'cell-editor-fg': string;
-  'cell-editor-placeholder-fg': string;
-  'cell-editor-bg': string;
-
-  /* Cursor */
-  'cursor': string;
-  'cursor-inactive': string;
-  'cursor-readonly': string;
-
-  /* Tables */
-  'table-header-fg': string;
-  'table-header-selected-fg': string;
-  'table-header-bg': string;
-  'table-header-selected-bg': string;
-  'table-header-border': string;
-  'table-body-bg': string;
-  'table-body-border': string;
-  'table-add-new-bg': string;
-  'table-scroll-shadow': string;
-  'table-frozen-columns-border': string;
-  'table-drag-drop-indicator': string;
-  'table-drag-drop-shadow': string;
-  'table-cell-summary-bg': string;
-
-  /* Cards */
-  'card-compact-widget-bg': string;
-  'card-compact-record-bg': string;
-  'card-blocks-bg': string;
-  'card-form-label': string;
-  'card-compact-label': string;
-  'card-blocks-label': string;
-  'card-form-border': string;
-  'card-compact-border': string;
-  'card-editing-layout-bg': string;
-  'card-editing-layout-border': string;
-
-  /* Card Lists */
-  'card-list-form-border': string;
-  'card-list-blocks-border': string;
-
-  /* Selection */
-  'selection': string;
-  'selection-darker': string;
-  'selection-darkest': string;
-  'selection-opaque-fg': string;
-  'selection-opaque-bg': string;
-  'selection-opaque-dark-bg': string;
-  'selection-header': string;
-
-  /* Widgets */
-  'widget-bg': string;
-  'widget-border': string;
-  'widget-active-border': string;
-  'widget-inactive-stripes-light': string;
-  'widget-inactive-stripes-dark': string;
-
-  /* Pinned Docs */
-  'pinned-doc-footer-bg': string;
-  'pinned-doc-border': string;
-  'pinned-doc-border-hover': string;
-  'pinned-doc-editor-bg': string;
-
-  /* Raw Data */
-  'raw-data-table-border': string;
-  'raw-data-table-border-hover': string;
-
-  /* Controls */
-  'control-fg': string;
-  'control-primary-fg': string;
-  'control-primary-bg': string;
-  'control-secondary-fg': string;
-  'control-secondary-disabled-fg': string;
-  'control-hover-fg': string;
-  'control-primary-hover-bg': string;
-  'control-secondary-hover-fg': string;
-  'control-secondary-hover-bg': string;
-  'control-disabled-fg': string;
-  'control-disabled-bg': string;
-  'control-border': string;
-
-  /* Checkboxes */
-  'checkbox-bg': string;
-  'checkbox-disabled-bg': string;
-  'checkbox-border': string;
-  'checkbox-border-hover': string;
-
-  /* Move Docs */
-  'move-docs-selected-fg': string;
-  'move-docs-selected-bg': string;
-  'move-docs-disabled-bg': string;
-
-  /* Filter Bar */
-  'filter-bar-button-saved-fg': string;
-  'filter-bar-button-saved-bg': string;
-  'filter-bar-button-saved-hover-bg': string;
-
-  /* Icons */
-  'icon-disabled': string;
-  'icon-error': string;
-
-  /* Icon Buttons */
-  'icon-button-fg': string;
-  'icon-button-primary-bg': string;
-  'icon-button-primary-hover-bg': string;
-  'icon-button-secondary-bg': string;
-  'icon-button-secondary-hover-bg': string;
-
-  /* Left Panel */
-  'left-panel-page-hover-bg': string;
-  'left-panel-active-page-fg': string;
-  'left-panel-active-page-bg': string;
-  'left-panel-disabled-page-fg': string;
-  'left-panel-page-options-fg': string;
-  'left-panel-page-options-hover-fg': string;
-  'left-panel-page-options-hover-bg': string;
-  'left-panel-page-options-selected-hover-bg': string;
-  'left-panel-page-initials-fg': string;
-  'left-panel-page-initials-bg': string;
-  'left-panel-page-emoji-fg': string;
-  'left-panel-page-emoji-outline': string;
-
-  /* Right Panel */
-  'right-panel-tab-fg': string;
-  'right-panel-tab-bg': string;
-  'right-panel-tab-icon': string;
-  'right-panel-tab-icon-hover': string;
-  'right-panel-tab-border': string;
-  'right-panel-tab-hover-bg': string;
-  'right-panel-tab-hover-fg': string;
-  'right-panel-tab-selected-fg': string;
-  'right-panel-tab-selected-bg': string;
-  'right-panel-tab-selected-icon': string;
-  'right-panel-tab-button-hover-bg': string;
-  'right-panel-subtab-fg': string;
-  'right-panel-subtab-selected-fg': string;
-  'right-panel-subtab-selected-underline': string;
-  'right-panel-subtab-hover-fg': string;
-  'right-panel-subtab-hover-underline': string;
-  'right-panel-disabled-overlay': string;
-  'right-panel-toggle-button-enabled-fg': string;
-  'right-panel-toggle-button-enabled-bg': string;
-  'right-panel-toggle-button-disabled-fg': string;
-  'right-panel-toggle-button-disabled-bg': string;
-  'right-panel-field-settings-bg': string;
-  'right-panel-field-settings-button-bg': string;
-  'right-panel-custom-widget-button-fg': string;
-  'right-panel-custom-widget-button-bg': string;
-
-  /* Document History */
-  'document-history-snapshot-fg': string;
-  'document-history-snapshot-selected-fg': string;
-  'document-history-snapshot-bg': string;
-  'document-history-snapshot-selected-bg': string;
-  'document-history-snapshot-border': string;
-  'document-history-activity-text': string;
-  'document-history-activity-text-light': string;
-  'document-history-table-header-fg': string;
-  'document-history-table-border': string;
-  'document-history-table-border-light': string;
-
-  /* Accents */
-  'accent-icon': string;
-  'accent-border': string;
-  'accent-text': string;
-
-  /* Inputs */
-  'input-fg': string;
-  'input-bg': string;
-  'input-disabled-fg': string;
-  'input-disabled-bg': string;
-  'input-placeholder-fg': string;
-  'input-border': string;
-  'input-valid': string;
-  'input-invalid': string;
-  'input-focus': string;
-  'input-readonly-bg': string;
-  'input-readonly-border': string;
-
-  /* Choice Tokens */
-  'choice-token-fg': string;
-  'choice-token-blank-fg': string;
-  'choice-token-bg': string;
-  'choice-token-selected-bg': string;
-  'choice-token-selected-border': string;
-  'choice-token-invalid-fg': string;
-  'choice-token-invalid-bg': string;
-  'choice-token-invalid-border': string;
-
-  /* Choice Entry */
-  'choice-entry-bg': string;
-  'choice-entry-border': string;
-  'choice-entry-border-hover': string;
-
-  /* Select Buttons */
-  'select-button-fg': string;
-  'select-button-placeholder-fg': string;
-  'select-button-bg': string;
-  'select-button-border': string;
-  'select-button-border-invalid': string;
-
-  /* Menus */
-  'menu-text': string;
-  'menu-light-text': string;
-  'menu-bg': string;
-  'menu-subheader-fg': string;
-  'menu-border': string;
-  'menu-shadow': string;
-
-  /* Menu Items */
-  'menu-item-fg': string;
-  'menu-item-selected-fg': string;
-  'menu-item-selected-bg': string;
-  'menu-item-disabled-fg': string;
-  'menu-item-icon-fg': string;
-  'menu-item-icon-selected-fg': string;
-
-  /* Autocomplete */
-  'autocomplete-match-text': string;
-  'autocomplete-selected-match-text': string;
-  'autocomplete-item-selected-bg': string;
-  'autocomplete-add-new-circle-fg': string;
-  'autocomplete-add-new-circle-bg': string;
-  'autocomplete-add-new-circle-selected-bg': string;
-
-  /* Search */
-  'search-border': string;
-  'search-prev-next-button-fg': string;
-  'search-prev-next-button-bg': string;
-
-  /* Loaders */
-  'loader-fg': string;
-  'loader-bg': string;
-
-  /* Site Switcher */
-  'site-switcher-active-fg': string;
-  'site-switcher-active-bg': string;
-
-  /* Doc Menu */
-  'doc-menu-doc-options-fg': string;
-  'doc-menu-doc-options-hover-fg': string;
-  'doc-menu-doc-options-hover-bg': string;
-
-  /* Shortcut Keys */
-  'shortcut-key-fg': string;
-  'shortcut-key-primary-fg': string;
-  'shortcut-key-secondary-fg': string;
-  'shortcut-key-bg': string;
-  'shortcut-key-border': string;
-
-  /* Breadcrumbs */
-  'breadcrumbs-tag-fg': string;
-  'breadcrumbs-tag-bg': string;
-  'breadcrumbs-tag-alert-bg': string;
-
-  /* Page Widget Picker */
-  'widget-picker-primary-bg': string;
-  'widget-picker-secondary-bg': string;
-  'widget-picker-item-fg': string;
-  'widget-picker-item-selected-bg': string;
-  'widget-picker-item-disabled-bg': string;
-  'widget-picker-icon': string;
-  'widget-picker-primary-icon': string;
-  'widget-picker-summary-icon': string;
-  'widget-picker-border': string;
-  'widget-picker-shadow': string;
-
-  /* Code View */
-  'code-view-text': string;
-  'code-view-keyword': string;
-  'code-view-comment': string;
-  'code-view-meta': string;
-  'code-view-title': string;
-  'code-view-params': string;
-  'code-view-string': string;
-  'code-view-number': string;
-  'code-view-builtin': string;
-  'code-view-literal': string;
-
-  /* Importer */
-  'importer-table-info-border': string;
-  'importer-preview-border': string;
-  'importer-skipped-table-overlay': string;
-  'importer-match-icon': string;
-  'importer-outside-bg': string;
-  'importer-main-content-bg': string;
-  'importer-active-file-bg': string;
-  'importer-active-file-fg': string;
-  'importer-inactive-file-bg': string;
-  'importer-inactive-file-fg': string;
-
-  /* Menu Toggles */
-  'menu-toggle-fg': string;
-  'menu-toggle-hover-fg': string;
-  'menu-toggle-active-fg': string;
-  'menu-toggle-bg': string;
-  'menu-toggle-border': string;
-
-  /* Info Button */
-  'info-button-fg': string;
-  'info-button-hover-fg': string;
-  'info-button-active-fg': string;
-
-  /* Button Groups */
-  'button-group-fg': string;
-  'button-group-light-fg': string;
-  'button-group-bg': string;
-  'button-group-bg-hover': string;
-  'button-group-icon': string;
-  'button-group-border': string;
-  'button-group-border-hover': string;
-  'button-group-selected-fg': string;
-  'button-group-light-selected-fg': string;
-  'button-group-selected-bg': string;
-  'button-group-selected-border': string;
-
-  /* Access Rules */
-  'access-rules-table-header-fg': string;
-  'access-rules-table-header-bg': string;
-  'access-rules-table-body-fg': string;
-  'access-rules-table-body-light-fg': string;
-  'access-rules-table-border': string;
-  'access-rules-column-list-border': string;
-  'access-rules-column-item-fg': string;
-  'access-rules-column-item-bg': string;
-  'access-rules-column-item-icon-fg': string;
-  'access-rules-column-item-icon-hover-fg': string;
-  'access-rules-column-item-icon-hover-bg': string;
-  'access-rules-formula-editor-bg': string;
-  'access-rules-formula-editor-border-hover': string;
-  'access-rules-formula-editor-bg-disabled': string;
-  'access-rules-formula-editor-focus': string;
-
-  /* Cells */
-  'cell-fg': string;
-  'cell-bg': string;
-  'cell-zebra-bg': string;
-
-  /* Charts */
-  'chart-fg': string;
-  'chart-bg': string;
-  'chart-legend-bg': string;
-  'chart-x-axis': string;
-  'chart-y-axis': string;
-
-  /* Comments */
-  'comments-popup-header-bg': string;
-  'comments-popup-body-bg': string;
-  'comments-popup-border': string;
-  'comments-user-name-fg': string;
-  'comments-panel-topic-bg': string;
-  'comments-panel-topic-border': string;
-  'comments-panel-resolved-topic-bg': string;
-
-  /* Date Picker */
-  'date-picker-selected-fg': string;
-  'date-picker-selected-bg': string;
-  'date-picker-selected-bg-hover': string;
-  'date-picker-today-fg': string;
-  'date-picker-today-bg': string;
-  'date-picker-today-bg-hover': string;
-  'date-picker-range-start-end-bg': string;
-  'date-picker-range-start-end-bg-hover': string;
-  'date-picker-range-bg': string;
-  'date-picker-range-bg-hover': string;
-
-  /* Tutorials */
-  'tutorials-popup-border': string;
-  'tutorials-popup-header-fg': string;
-  'tutorials-popup-box-bg': string;
-  'tutorials-popup-code-fg': string;
-  'tutorials-popup-code-bg': string;
-  'tutorials-popup-code-border': string;
-
-  /* Ace */
-  'ace-editor-bg': string;
-  'ace-autocomplete-primary-fg': string;
-  'ace-autocomplete-secondary-fg': string;
-  'ace-autocomplete-highlighted-fg': string;
-  'ace-autocomplete-bg': string;
-  'ace-autocomplete-border': string;
-  'ace-autocomplete-link': string;
-  'ace-autocomplete-link-highlighted': string;
-  'ace-autocomplete-active-line-bg': string;
-  'ace-autocomplete-line-border-hover': string;
-  'ace-autocomplete-line-bg-hover': string;
-
-  /* Color Select */
-  'color-select-fg': string;
-  'color-select-bg': string;
-  'color-select-shadow': string;
-  'color-select-font-options-border': string;
-  'color-select-font-option-fg': string;
-  'color-select-font-option-bg-hover': string;
-  'color-select-font-option-fg-selected': string;
-  'color-select-font-option-bg-selected': string;
-  'color-select-color-square-border': string;
-  'color-select-color-square-border-empty': string;
-  'color-select-input-fg': string;
-  'color-select-input-bg': string;
-  'color-select-input-border': string;
-
-  /* Highlighted Code */
-  'highlighted-code-block-bg': string;
-  'highlighted-code-block-bg-disabled': string;
-  'highlighted-code-fg': string;
-  'highlighted-code-border': string;
-  'highlighted-code-bg-disabled': string;
-
-  /* Login Page */
-  'login-page-bg': string;
-  'login-page-backdrop': string;
-  'login-page-line': string;
-  'login-page-google-button-fg': string;
-  'login-page-google-button-bg': string;
-  'login-page-google-button-bg-hover': string;
-  'login-page-google-button-border': string;
-
-  /* Formula Assistant */
-  'formula-assistant-header-bg': string;
-  'formula-assistant-border': string;
-  'formula-assistant-preformatted-text-bg': string;
-
-  /* Attachments */
-  'attachments-editor-button-fg': string;
-  'attachments-editor-button-hover-fg': string;
-  'attachments-editor-button-bg': string;
-  'attachments-editor-button-hover-bg': string;
-  'attachments-editor-button-border': string;
-  'attachments-editor-button-icon': string;
-  'attachments-editor-border': string;
-  'attachments-cell-icon-fg': string;
-  'attachments-cell-icon-bg': string;
-  'attachments-cell-icon-hover-bg': string;
-
-  /* Switches */
-  'switch-slider-fg': string;
-  'switch-circle-fg': string;
-
-  /* Announcement Popups */
-  'announcement-popup-fg': string;
-  'announcement-popup-bg': string;
-
-  /* Scroll Shadow */
-  'scroll-shadow': string;
-
-  /* Toggle Checkboxes */
-  'toggle-checkbox-fg': string;
-
-  /* Numeric Spinners */
-  'numeric-spinner-fg': string;
-
-  /* Custom Widget Gallery */
-  'widget-gallery-border': string;
-  'widget-gallery-border-selected': string;
-  'widget-gallery-shadow': string;
-  'widget-gallery-bg-hover': string;
-  'widget-gallery-secondary-header-fg': string;
-  'widget-gallery-secondary-header-bg': string;
-  'widget-gallery-secondary-header-bg-hover': string;
-
-  /* Markdown Cell */
-  'markdown-cell-light-bg': string;
-  'markdown-cell-light-border': string;
-  'markdown-cell-medium-border': string;
-
-  /* App Header */
-  'app-header-bg': string;
-  'app-header-border': string;
-  'app-header-border-hover': string;
-
-  /* Card Button */
-  'card-button-border': string;
-  'card-button-border-selected': string;
-  'card-button-shadow': string;
+type Token = string | CssCustomProp;
+
+/*
+ * List of all possible theme tokens (except legacy ones, which are more component specific, see below)
+ *
+ * This is used to generate the `tokens` object, that initializes CSS variables for every token.
+ * Actual values are defined in a theme.
+ */
+const tokensCssMapping = {
+  primaryLighter: 'color-primary-lighter',
+  primaryLight: 'color-primary-light',
+  primaryDark: 'color-primary-dark',
+  primaryDarker: 'color-primary-darker',
+
+  secondaryLighter: 'color-secondary-lighter',
+  secondaryLight: 'color-secondary-light',
+
+  cursor: 'color-cursor',
+  inactiveCursor: 'color-inactive-cursor',
+  selection: 'color-selection',
+  selectionOpaque: 'color-selection-opaque',
+  selectionDarkerOpaque: 'color-selection-darker-opaque',
+
+  white: 'color-white',
+  light: 'color-white',
+  lightGrey: 'color-light-grey',
+  mediumGreyOpaque: 'color-medium-grey-opaque',
+  mediumGrey: 'color-medium-grey',
+  darkGrey: 'color-dark-grey',
+  slate: 'color-slate',
+  darkText: 'color-dark-text',
+  dark: 'color-dark',
+  black: 'color-black',
+  hover: 'color-hover',
+  backdrop: 'color-backdrop',
+  error: 'color-error',
+  warningLight: 'color-warning-light',
+  warningDark: 'color-warning-dark',
+
+  fontFamily: 'font-family',
+  fontFamilyData: 'font-family-data',
+  xxsmallFontSize: 'xx-small-font-size',
+  xsmallFontSize: 'x-small-font-size',
+  smallFontSize: 'small-font-size',
+  mediumFontSize: 'medium-font-size',
+  introFontSize: 'intro-font-size',
+  largeFontSize: 'large-font-size',
+  xlargeFontSize: 'x-large-font-size',
+  xxlargeFontSize: 'xx-large-font-size',
+  xxxlargeFontSize: 'xxx-large-font-size',
+
+  controlFontSize: 'control-font-size',
+  smallControlFontSize: 'small-control-font-size',
+  bigControlFontSize: 'big-control-font-size',
+  headerControlFontSize: 'header-control-font-size',
+  bigControlTextWeight: 'big-control-text-weight',
+  headerControlTextWeight: 'header-control-text-weight',
+  labelTextSize: 'label-text-size',
+  labelTextBg: 'label-text-bg',
+  labelActiveBg: 'label-active-bg',
+
+  controlMargin: 'control-margin',
+  controlPadding: 'control-padding',
+  tightPadding: 'tight-padding',
+  loosePadding: 'loose-padding',
+
+  primaryBg: 'primary-bg',
+  primaryBgHover: 'primary-bg-hover',
+  primaryFg: 'primary-fg',
+
+  warningBg: 'warning-bg',
+
+  controlBg: 'control-bg',
+  controlFg: 'control-fg',
+  controlFgHover: 'control-fg-hover',
+  controlBorderColor: 'control-border-color',
+  controlBorder: 'control-border',
+  controlBorderRadius: 'control-border-radius',
+
+  logoBg: 'logo-bg',
+  logoSize: 'logo-size',
+  toastBg: 'toast-bg',
+
+  text: 'color-text',
+  textLight: 'color-text-light',
+  textVeryLight: 'color-text-very-light',
+  textDark: 'color-text-dark',
+
+  mainBg: 'main-bg',
+  panelBg: 'panel-bg',
+  activeBg: 'active-bg',
+  transparentBg: 'transparent-bg',
+
+  borderLight: 'border-light',
+  borderLighter: 'border-lighter',
+  borderLighterTransparent: 'border-lighter-transparent',
+
+  primaryLightBg: 'primary-light-bg',
+  primaryLightFg: 'primary-light-fg',
+};
+
+/*
+ * List of all legacy theme tokens
+ *
+ * This is used to generate the `legacyThemeTokens` object, that initializes CSS variables for every token.
+ * Actual values are defined in a theme.
+ */
+export const legacyVariablesCssMapping = {
+  text: 'theme-text',
+  lightText: 'theme-text-light',
+  mediumText: 'theme-text-medium',
+  darkText: 'theme-text-dark',
+  errorText: 'theme-text-error',
+  errorTextHover: 'theme-text-error-hover',
+  dangerText: 'theme-text-danger',
+  disabledText: 'theme-text-disabled',
+  pageBg: 'theme-page-bg',
+  pageBackdrop: 'theme-page-backdrop',
+  mainPanelBg: 'theme-page-panels-main-panel-bg',
+  leftPanelBg: 'theme-page-panels-left-panel-bg',
+  rightPanelBg: 'theme-page-panels-right-panel-bg',
+  topHeaderBg: 'theme-page-panels-top-header-bg',
+  bottomFooterBg: 'theme-page-panels-bottom-footer-bg',
+  pagePanelsBorder: 'theme-page-panels-border',
+  pagePanelsBorderResizing: 'theme-page-panels-border-resizing',
+  sidePanelOpenerFg: 'theme-page-panels-side-panel-opener-fg',
+  sidePanelOpenerActiveFg: 'theme-page-panels-side-panel-opener-active-fg',
+  sidePanelOpenerActiveBg: 'theme-page-panels-side-panel-opener-active-bg',
+  addNewCircleFg: 'theme-add-new-circle-fg',
+  addNewCircleBg: 'theme-add-new-circle-bg',
+  addNewCircleHoverBg: 'theme-add-new-circle-hover-bg',
+  addNewCircleSmallFg: 'theme-add-new-circle-small-fg',
+  addNewCircleSmallBg: 'theme-add-new-circle-small-bg',
+  addNewCircleSmallHoverBg: 'theme-add-new-circle-small-hover-bg',
+  topBarButtonPrimaryFg: 'theme-top-bar-button-primary-fg',
+  topBarButtonSecondaryFg: 'theme-top-bar-button-secondary-fg',
+  topBarButtonDisabledFg: 'theme-top-bar-button-disabled-fg',
+  topBarButtonErrorFg: 'theme-top-bar-button-error-fg',
+  notificationsPanelHeaderBg: 'theme-notifications-panel-header-bg',
+  notificationsPanelBodyBg: 'theme-notifications-panel-body-bg',
+  notificationsPanelBorder: 'theme-notifications-panel-border',
+  toastText: 'theme-toast-text',
+  toastLightText: 'theme-toast-text-light',
+  toastBg: 'theme-toast-bg',
+  toastMemoText: 'theme-toast-memo-text',
+  toastMemoBg: 'theme-toast-memo-bg',
+  toastErrorIcon: 'theme-toast-error-icon',
+  toastErrorBg: 'theme-toast-error-bg',
+  toastSuccessIcon: 'theme-toast-success-icon',
+  toastSuccessBg: 'theme-toast-success-bg',
+  toastWarningIcon: 'theme-toast-warning-icon',
+  toastWarningBg: 'theme-toast-warning-bg',
+  toastInfoIcon: 'theme-toast-info-icon',
+  toastInfoBg: 'theme-toast-info-bg',
+  toastControlFg: 'theme-toast-control-fg',
+  toastInfoControlFg: 'theme-toast-control-info-fg',
+  tooltipFg: 'theme-tooltip-fg',
+  tooltipBg: 'theme-tooltip-bg',
+  tooltipIcon: 'theme-tooltip-icon',
+  tooltipCloseButtonFg: 'theme-tooltip-close-button-fg',
+  tooltipCloseButtonHoverFg: 'theme-tooltip-close-button-hover-fg',
+  tooltipCloseButtonHoverBg: 'theme-tooltip-close-button-hover-bg',
+  modalBg: 'theme-modal-bg',
+  modalBackdrop: 'theme-modal-backdrop',
+  modalBorder: 'theme-modal-border',
+  modalBorderDark: 'theme-modal-border-dark',
+  modalBorderHover: 'theme-modal-border-hover',
+  modalInnerShadow: 'theme-modal-shadow-inner',
+  modalOuterShadow: 'theme-modal-shadow-outer',
+  modalCloseButtonFg: 'theme-modal-close-button-fg',
+  modalBackdropCloseButtonFg: 'theme-modal-backdrop-close-button-fg',
+  modalBackdropCloseButtonHoverFg: 'theme-modal-backdrop-close-button-hover-fg',
+  popupBg: 'theme-popup-bg',
+  popupSecondaryBg: 'theme-popup-secondary-bg',
+  popupInnerShadow: 'theme-popup-shadow-inner',
+  popupOuterShadow: 'theme-popup-shadow-outer',
+  popupCloseButtonFg: 'theme-popup-close-button-fg',
+  promptFg: 'theme-prompt-fg',
+  progressBarFg: 'theme-progress-bar-fg',
+  progressBarErrorFg: 'theme-progress-bar-error-fg',
+  progressBarBg: 'theme-progress-bar-bg',
+  link: 'theme-link',
+  linkHover: 'theme-link-hover',
+  hover: 'theme-hover',
+  lightHover: 'theme-hover-light',
+  cellEditorFg: 'theme-cell-editor-fg',
+  cellEditorPlaceholderFg: 'theme-cell-editor-placeholder-fg',
+  cellEditorBg: 'theme-cell-editor-bg',
+  cursor: 'theme-cursor',
+  cursorInactive: 'theme-cursor-inactive',
+  cursorReadonly: 'theme-cursor-readonly',
+  tableHeaderFg: 'theme-table-header-fg',
+  tableHeaderSelectedFg: 'theme-table-header-selected-fg',
+  tableHeaderBg: 'theme-table-header-bg',
+  tableHeaderSelectedBg: 'theme-table-header-selected-bg',
+  tableHeaderBorder: 'theme-table-header-border',
+  tableBodyBg: 'theme-table-body-bg',
+  tableBodyBorder: 'theme-table-body-border',
+  tableAddNewBg: 'theme-table-add-new-bg',
+  tableScrollShadow: 'theme-table-scroll-shadow',
+  tableFrozenColumnsBorder: 'theme-table-frozen-columns-border',
+  tableDragDropIndicator: 'theme-table-drag-drop-indicator',
+  tableDragDropShadow: 'theme-table-drag-drop-shadow',
+  tableCellSummaryBg: 'theme-table-cell-summary-bg',
+  cardCompactWidgetBg: 'theme-card-compact-widget-bg',
+  cardCompactRecordBg: 'theme-card-compact-record-bg',
+  cardBlocksBg: 'theme-card-blocks-bg',
+  cardFormLabel: 'theme-card-form-label',
+  cardCompactLabel: 'theme-card-compact-label',
+  cardBlocksLabel: 'theme-card-blocks-label',
+  cardFormBorder: 'theme-card-form-border',
+  cardCompactBorder: 'theme-card-compact-border',
+  cardEditingLayoutBg: 'theme-card-editing-layout-bg',
+  cardEditingLayoutBorder: 'theme-card-editing-layout-border',
+  cardListFormBorder: 'theme-card-list-form-border',
+  cardListBlocksBorder: 'theme-card-list-blocks-border',
+  selection: 'theme-selection',
+  selectionDarker: 'theme-selection-darker',
+  selectionDarkest: 'theme-selection-darkest',
+  selectionOpaqueFg: 'theme-selection-opaque-fg',
+  selectionOpaqueBg: 'theme-selection-opaque-bg',
+  selectionOpaqueDarkBg: 'theme-selection-opaque-dark-bg',
+  selectionHeader: 'theme-selection-header',
+  widgetBg: 'theme-widget-bg',
+  widgetBorder: 'theme-widget-border',
+  widgetActiveBorder: 'theme-widget-active-border',
+  widgetInactiveStripesLight: 'theme-widget-inactive-stripes-light',
+  widgetInactiveStripesDark: 'theme-widget-inactive-stripes-dark',
+  pinnedDocFooterBg: 'theme-pinned-doc-footer-bg',
+  pinnedDocBorder: 'theme-pinned-doc-border',
+  pinnedDocBorderHover: 'theme-pinned-doc-border-hover',
+  pinnedDocEditorBg: 'theme-pinned-doc-editor-bg',
+  rawDataTableBorder: 'theme-raw-data-table-border',
+  rawDataTableBorderHover: 'theme-raw-data-table-border-hover',
+  controlFg: 'theme-control-fg',
+  controlPrimaryFg: 'theme-control-primary-fg',
+  controlPrimaryBg: 'theme-control-primary-bg',
+  controlSecondaryFg: 'theme-control-secondary-fg',
+  controlSecondaryDisabledFg: 'theme-control-secondary-disabled-fg',
+  controlHoverFg: 'theme-control-hover-fg',
+  controlPrimaryHoverBg: 'theme-control-primary-hover-bg',
+  controlSecondaryHoverFg: 'theme-control-secondary-hover-fg',
+  controlSecondaryHoverBg: 'theme-control-secondary-hover-bg',
+  controlDisabledFg: 'theme-control-disabled-fg',
+  controlDisabledBg: 'theme-control-disabled-bg',
+  controlBorder: 'theme-control-border',
+  checkboxBg: 'theme-checkbox-bg',
+  checkboxSelectedFg: 'theme-checkbox-selected-bg',
+  checkboxDisabledBg: 'theme-checkbox-disabled-bg',
+  checkboxBorder: 'theme-checkbox-border',
+  checkboxBorderHover: 'theme-checkbox-border-hover',
+  moveDocsSelectedFg: 'theme-move-docs-selected-fg',
+  moveDocsSelectedBg: 'theme-move-docs-selected-bg',
+  moveDocsDisabledFg: 'theme-move-docs-disabled-bg',
+  filterBarButtonSavedFg: 'theme-filter-bar-button-saved-fg',
+  filterBarButtonSavedBg: 'theme-filter-bar-button-saved-bg',
+  filterBarButtonSavedHoverBg: 'theme-filter-bar-button-saved-hover-bg',
+  iconDisabled: 'theme-icon-disabled',
+  iconError: 'theme-icon-error',
+  iconButtonFg: 'theme-icon-button-fg',
+  iconButtonPrimaryBg: 'theme-icon-button-primary-bg',
+  iconButtonPrimaryHoverBg: 'theme-icon-button-primary-hover-bg',
+  iconButtonSecondaryBg: 'theme-icon-button-secondary-bg',
+  iconButtonSecondaryHoverBg: 'theme-icon-button-secondary-hover-bg',
+  pageHoverBg: 'theme-left-panel-page-hover-bg',
+  activePageFg: 'theme-left-panel-active-page-fg',
+  activePageBg: 'theme-left-panel-active-page-bg',
+  disabledPageFg: 'theme-left-panel-disabled-page-fg',
+  pageOptionsFg: 'theme-left-panel-page-options-bg',
+  pageOptionsHoverFg: 'theme-left-panel-page-options-hover-fg',
+  pageOptionsHoverBg: 'theme-left-panel-page-options-hover-bg',
+  pageOptionsSelectedHoverBg: 'theme-left-panel-page-options-selected-hover-bg',
+  pageInitialsFg: 'theme-left-panel-page-initials-fg',
+  pageInitialsBg: 'theme-left-panel-page-initials-bg',
+  pageInitialsEmojiBg: 'theme-left-panel-page-emoji-fg',
+  pageInitialsEmojiOutline: 'theme-left-panel-page-emoji-outline',
+  rightPanelTabFg: 'theme-right-panel-tab-fg',
+  rightPanelTabBg: 'theme-right-panel-tab-bg',
+  rightPanelTabIcon: 'theme-right-panel-tab-icon',
+  rightPanelTabIconHover: 'theme-right-panel-tab-icon-hover',
+  rightPanelTabBorder: 'theme-right-panel-tab-border',
+  rightPanelTabHoverBg: 'theme-right-panel-tab-hover-bg',
+  rightPanelTabHoverFg: 'theme-right-panel-tab-hover-fg',
+  rightPanelTabSelectedFg: 'theme-right-panel-tab-selected-fg',
+  rightPanelTabSelectedBg: 'theme-right-panel-tab-selected-bg',
+  rightPanelTabSelectedIcon: 'theme-right-panel-tab-selected-icon',
+  rightPanelTabButtonHoverBg: 'theme-right-panel-tab-button-hover-bg',
+  rightPanelSubtabFg: 'theme-right-panel-subtab-fg',
+  rightPanelSubtabSelectedFg: 'theme-right-panel-subtab-selected-fg',
+  rightPanelSubtabSelectedUnderline: 'theme-right-panel-subtab-selected-underline',
+  rightPanelSubtabHoverFg: 'theme-right-panel-subtab-hover-fg',
+  rightPanelSubtabHoverUnderline: 'theme-right-panel-subtab-hover-underline',
+  rightPanelDisabledOverlay: 'theme-right-panel-disabled-overlay',
+  rightPanelToggleButtonEnabledFg: 'theme-right-panel-toggle-button-enabled-fg',
+  rightPanelToggleButtonEnabledBg: 'theme-right-panel-toggle-button-enabled-bg',
+  rightPanelToggleButtonDisabledFg: 'theme-right-panel-toggle-button-disabled-fg',
+  rightPanelToggleButtonDisabledBg: 'theme-right-panel-toggle-button-disabled-bg',
+  rightPanelFieldSettingsBg: 'theme-right-panel-field-settings-bg',
+  rightPanelFieldSettingsButtonBg: 'theme-right-panel-field-settings-button-bg',
+  rightPanelCustomWidgetButtonFg: 'theme-right-panel-custom-widget-button-fg',
+  rightPanelCustomWidgetButtonBg: 'theme-right-panel-custom-widget-button-bg',
+  documentHistorySnapshotFg: 'theme-document-history-snapshot-fg',
+  documentHistorySnapshotSelectedFg: 'theme-document-history-snapshot-selected-fg',
+  documentHistorySnapshotBg: 'theme-document-history-snapshot-bg',
+  documentHistorySnapshotSelectedBg: 'theme-document-history-snapshot-selected-bg',
+  documentHistorySnapshotBorder: 'theme-document-history-snapshot-border',
+  documentHistoryActivityText: 'theme-document-history-activity-text',
+  documentHistoryActivityLightText: 'theme-document-history-activity-text-light',
+  documentHistoryTableHeaderFg: 'theme-document-history-table-header-fg',
+  documentHistoryTableBorder: 'theme-document-history-table-border',
+  documentHistoryTableBorderLight: 'theme-document-history-table-border-light',
+  accentIcon: 'theme-accent-icon',
+  accentBorder: 'theme-accent-border',
+  accentText: 'theme-accent-text',
+  inputFg: 'theme-input-fg',
+  inputBg: 'theme-input-bg',
+  inputDisabledFg: 'theme-input-disabled-fg',
+  inputDisabledBg: 'theme-input-disabled-bg',
+  inputPlaceholderFg: 'theme-input-placeholder-fg',
+  inputBorder: 'theme-input-border',
+  inputValid: 'theme-input-valid',
+  inputInvalid: 'theme-input-invalid',
+  inputFocus: 'theme-input-focus',
+  inputReadonlyBg: 'theme-input-readonly-bg',
+  inputReadonlyBorder: 'theme-input-readonly-border',
+  choiceTokenFg: 'theme-choice-token-fg',
+  choiceTokenBlankFg: 'theme-choice-token-blank-fg',
+  choiceTokenBg: 'theme-choice-token-bg',
+  choiceTokenSelectedBg: 'theme-choice-token-selected-bg',
+  choiceTokenSelectedBorder: 'theme-choice-token-selected-border',
+  choiceTokenInvalidFg: 'theme-choice-token-invalid-fg',
+  choiceTokenInvalidBg: 'theme-choice-token-invalid-bg',
+  choiceTokenInvalidBorder: 'theme-choice-token-invalid-border',
+  choiceEntryBg: 'theme-choice-entry-bg',
+  choiceEntryBorder: 'theme-choice-entry-border',
+  choiceEntryBorderHover: 'theme-choice-entry-border-hover',
+  selectButtonFg: 'theme-select-button-fg',
+  selectButtonPlaceholderFg: 'theme-select-button-placeholder-fg',
+  selectButtonBg: 'theme-select-button-bg',
+  selectButtonBorder: 'theme-select-button-border',
+  selectButtonBorderInvalid: 'theme-select-button-border-invalid',
+  menuText: 'theme-menu-text',
+  menuLightText: 'theme-menu-light-text',
+  menuBg: 'theme-menu-bg',
+  menuSubheaderFg: 'theme-menu-subheader-fg',
+  menuBorder: 'theme-menu-border',
+  menuShadow: 'theme-menu-shadow',
+  menuItemFg: 'theme-menu-item-fg',
+  menuItemSelectedFg: 'theme-menu-item-selected-fg',
+  menuItemSelectedBg: 'theme-menu-item-selected-bg',
+  menuItemDisabledFg: 'theme-menu-item-disabled-fg',
+  menuItemIconFg: 'theme-menu-item-icon-fg',
+  menuItemIconSelectedFg: 'theme-menu-item-icon-selected-fg',
+  autocompleteMatchText: 'theme-autocomplete-match-text',
+  autocompleteSelectedMatchText: 'theme-autocomplete-selected-match-text',
+  autocompleteItemSelectedBg: 'theme-autocomplete-item-selected-bg',
+  autocompleteAddNewCircleFg: 'theme-autocomplete-add-new-circle-fg',
+  autocompleteAddNewCircleBg: 'theme-autocomplete-add-new-circle-bg',
+  autocompleteAddNewCircleSelectedBg: 'theme-autocomplete-add-new-circle-selected-bg',
+  searchBorder: 'theme-search-border',
+  searchPrevNextButtonFg: 'theme-search-prev-next-button-fg',
+  searchPrevNextButtonBg: 'theme-search-prev-next-button-bg',
+  loaderFg: 'theme-loader-fg',
+  loaderBg: 'theme-loader-bg',
+  siteSwitcherActiveFg: 'theme-site-switcher-active-fg',
+  siteSwitcherActiveBg: 'theme-site-switcher-active-bg',
+  docMenuDocOptionsFg: 'theme-doc-menu-doc-options-fg',
+  docMenuDocOptionsHoverFg: 'theme-doc-menu-doc-options-hover-fg',
+  docMenuDocOptionsHoverBg: 'theme-doc-menu-doc-options-hover-bg',
+  shortcutKeyFg: 'theme-shortcut-key-fg',
+  shortcutKeyPrimaryFg: 'theme-shortcut-key-primary-fg',
+  shortcutKeySecondaryFg: 'theme-shortcut-key-secondary-fg',
+  shortcutKeyBg: 'theme-shortcut-key-bg',
+  shortcutKeyBorder: 'theme-shortcut-key-border',
+  breadcrumbsTagFg: 'theme-breadcrumbs-tag-fg',
+  breadcrumbsTagBg: 'theme-breadcrumbs-tag-bg',
+  breadcrumbsTagAlertBg: 'theme-breadcrumbs-tag-alert-fg',
+  widgetPickerPrimaryBg: 'theme-widget-picker-primary-bg',
+  widgetPickerSecondaryBg: 'theme-widget-picker-secondary-bg',
+  widgetPickerItemFg: 'theme-widget-picker-item-fg',
+  widgetPickerItemSelectedBg: 'theme-widget-picker-item-selected-bg',
+  widgetPickerItemDisabledBg: 'theme-widget-picker-item-disabled-bg',
+  widgetPickerIcon: 'theme-widget-picker-icon',
+  widgetPickerPrimaryIcon: 'theme-widget-picker-primary-icon',
+  widgetPickerSummaryIcon: 'theme-widget-picker-summary-icon',
+  widgetPickerBorder: 'theme-widget-picker-border',
+  widgetPickerShadow: 'theme-widget-picker-shadow',
+  codeViewText: 'theme-code-view-text',
+  codeViewKeyword: 'theme-code-view-keyword',
+  codeViewComment: 'theme-code-view-comment',
+  codeViewMeta: 'theme-code-view-meta',
+  codeViewTitle: 'theme-code-view-title',
+  codeViewParams: 'theme-code-view-params',
+  codeViewString: 'theme-code-view-string',
+  codeViewNumber: 'theme-code-view-number',
+  codeViewBuiltin: 'theme-code-view-builtin',
+  codeViewLiteral: 'theme-code-view-literal',
+  importerTableInfoBorder: 'theme-importer-table-info-border',
+  importerPreviewBorder: 'theme-importer-preview-border',
+  importerSkippedTableOverlay: 'theme-importer-skipped-table-overlay',
+  importerMatchIcon: 'theme-importer-match-icon',
+  importerOutsideBg: 'theme-importer-outside-bg',
+  importerMainContentBg: 'theme-importer-main-content-bg',
+  importerActiveFileBg: 'theme-importer-active-file-bg',
+  importerActiveFileFg: 'theme-importer-active-file-fg',
+  importerInactiveFileBg: 'theme-importer-inactive-file-bg',
+  importerInactiveFileFg: 'theme-importer-inactive-file-fg',
+  menuToggleFg: 'theme-menu-toggle-fg',
+  menuToggleHoverFg: 'theme-menu-toggle-hover-fg',
+  menuToggleActiveFg: 'theme-menu-toggle-active-fg',
+  menuToggleBg: 'theme-menu-toggle-bg',
+  menuToggleBorder: 'theme-menu-toggle-border',
+  infoButtonFg: 'theme-info-button-fg',
+  infoButtonHoverFg: 'theme-info-button-hover-fg',
+  infoButtonActiveFg: 'theme-info-button-active-fg',
+  buttonGroupFg: 'theme-button-group-fg',
+  buttonGroupLightFg: 'theme-button-group-light-fg',
+  buttonGroupBg: 'theme-button-group-bg',
+  buttonGroupBgHover: 'theme-button-group-bg-hover',
+  buttonGroupIcon: 'theme-button-group-icon',
+  buttonGroupBorder: 'theme-button-group-border',
+  buttonGroupBorderHover: 'theme-button-group-border-hover',
+  buttonGroupSelectedFg: 'theme-button-group-selected-fg',
+  buttonGroupLightSelectedFg: 'theme-button-group-light-selected-fg',
+  buttonGroupSelectedBg: 'theme-button-group-selected-bg',
+  buttonGroupSelectedBorder: 'theme-button-group-selected-border',
+  accessRulesTableHeaderFg: 'theme-access-rules-table-header-fg',
+  accessRulesTableHeaderBg: 'theme-access-rules-table-header-bg',
+  accessRulesTableBodyFg: 'theme-access-rules-table-body-fg',
+  accessRulesTableBodyLightFg: 'theme-access-rules-table-body-light-fg',
+  accessRulesTableBorder: 'theme-access-rules-table-border',
+  accessRulesColumnListBorder: 'theme-access-rules-column-list-border',
+  accessRulesColumnItemFg: 'theme-access-rules-column-item-fg',
+  accessRulesColumnItemBg: 'theme-access-rules-column-item-bg',
+  accessRulesColumnItemIconFg: 'theme-access-rules-column-item-icon-fg',
+  accessRulesColumnItemIconHoverFg: 'theme-access-rules-column-item-icon-hover-fg',
+  accessRulesColumnItemIconHoverBg: 'theme-access-rules-column-item-icon-hover-bg',
+  accessRulesFormulaEditorBg: 'theme-access-rules-formula-editor-bg',
+  accessRulesFormulaEditorBorderHover: 'theme-access-rules-formula-editor-border-hover',
+  accessRulesFormulaEditorBgDisabled: 'theme-access-rules-formula-editor-bg-disabled',
+  accessRulesFormulaEditorFocus: 'theme-access-rules-formula-editor-focus',
+  cellFg: 'theme-cell-fg',
+  cellBg: 'theme-cell-bg',
+  cellZebraBg: 'theme-cell-zebra-bg',
+  chartFg: 'theme-chart-fg',
+  chartBg: 'theme-chart-bg',
+  chartLegendBg: 'theme-chart-legend-bg',
+  chartXAxis: 'theme-chart-x-axis',
+  chartYAxis: 'theme-chart-y-axis',
+  commentsPopupHeaderBg: 'theme-comments-popup-header-bg',
+  commentsPopupBodyBg: 'theme-comments-popup-body-bg',
+  commentsPopupBorder: 'theme-comments-popup-border',
+  commentsUserNameFg: 'theme-comments-user-name-fg',
+  commentsPanelTopicBg: 'theme-comments-panel-topic-bg',
+  commentsPanelTopicBorder: 'theme-comments-panel-topic-border',
+  commentsPanelResolvedTopicBg: 'theme-comments-panel-resolved-topic-bg',
+  datePickerSelectedFg: 'theme-date-picker-selected-fg',
+  datePickerSelectedBg: 'theme-date-picker-selected-bg',
+  datePickerSelectedBgHover: 'theme-date-picker-selected-bg-hover',
+  datePickerTodayFg: 'theme-date-picker-today-fg',
+  datePickerTodayBg: 'theme-date-picker-today-bg',
+  datePickerTodayBgHover: 'theme-date-picker-today-bg-hover',
+  datePickerRangeStartEndBg: 'theme-date-picker-range-start-end-bg',
+  datePickerRangeStartEndBgHover: 'theme-date-picker-range-start-end-bg-hover',
+  datePickerRangeBg: 'theme-date-picker-range-bg',
+  datePickerRangeBgHover: 'theme-date-picker-range-bg-hover',
+  tutorialsPopupBorder: 'theme-tutorials-popup-border',
+  tutorialsPopupHeaderFg: 'theme-tutorials-popup-header-fg',
+  tutorialsPopupBoxBg: 'theme-tutorials-popup-box-bg',
+  tutorialsPopupCodeFg: 'theme-tutorials-popup-code-fg',
+  tutorialsPopupCodeBg: 'theme-tutorials-popup-code-bg',
+  tutorialsPopupCodeBorder: 'theme-tutorials-popup-code-border',
+  aceEditorBg: 'theme-ace-editor-bg',
+  aceAutocompletePrimaryFg: 'theme-ace-autocomplete-primary-fg',
+  aceAutocompleteSecondaryFg: 'theme-ace-autocomplete-secondary-fg',
+  aceAutocompleteHighlightedFg: 'theme-ace-autocomplete-highlighted-fg',
+  aceAutocompleteBg: 'theme-ace-autocomplete-bg',
+  aceAutocompleteBorder: 'theme-ace-autocomplete-border',
+  aceAutocompleteLink: 'theme-ace-autocomplete-link',
+  aceAutocompleteLinkHighlighted: 'theme-ace-autocomplete-link-highlighted',
+  aceAutocompleteActiveLineBg: 'theme-ace-autocomplete-active-line-bg',
+  aceAutocompleteLineBorderHover: 'theme-ace-autocomplete-line-border-hover',
+  aceAutocompleteLineBgHover: 'theme-ace-autocomplete-line-bg-hover',
+  colorSelectFg: 'theme-color-select-fg',
+  colorSelectBg: 'theme-color-select-bg',
+  colorSelectShadow: 'theme-color-select-shadow',
+  colorSelectFontOptionsBorder: 'theme-color-select-font-options-border',
+  colorSelectFontOptionFg: 'theme-color-select-font-option-fg',
+  colorSelectFontOptionBgHover: 'theme-color-select-font-option-bg-hover',
+  colorSelectFontOptionFgSelected: 'theme-color-select-font-option-fg-selected',
+  colorSelectFontOptionBgSelected: 'theme-color-select-font-option-bg-selected',
+  colorSelectColorSquareBorder: 'theme-color-select-color-square-border',
+  colorSelectColorSquareBorderEmpty: 'theme-color-select-color-square-border-empty',
+  colorSelectInputFg: 'theme-color-select-input-fg',
+  colorSelectInputBg: 'theme-color-select-input-bg',
+  colorSelectInputBorder: 'theme-color-select-input-border',
+  highlightedCodeBlockBg: 'theme-highlighted-code-block-bg',
+  highlightedCodeBlockBgDisabled: 'theme-highlighted-code-block-bg-disabled',
+  highlightedCodeFg: 'theme-highlighted-code-fg',
+  highlightedCodeBorder: 'theme-highlighted-code-border',
+  highlightedCodeBgDisabled: 'theme-highlighted-code-bg-disabled',
+  loginPageBg: 'theme-login-page-bg',
+  loginPageBackdrop: 'theme-login-page-backdrop',
+  loginPageLine: 'theme-login-page-line',
+  loginPageGoogleButtonFg: 'theme-login-page-google-button-fg',
+  loginPageGoogleButtonBg: 'theme-login-page-google-button-bg',
+  loginPageGoogleButtonBgHover: 'theme-login-page-google-button-bg-hover',
+  loginPageGoogleButtonBorder: 'theme-login-page-google-button-border',
+  formulaAssistantHeaderBg: 'theme-formula-assistant-header-bg',
+  formulaAssistantBorder: 'theme-formula-assistant-border',
+  formulaAssistantPreformattedTextBg: 'theme-formula-assistant-preformatted-text-bg',
+  attachmentsEditorButtonFg: 'theme-attachments-editor-button-fg',
+  attachmentsEditorButtonHoverFg: 'theme-attachments-editor-button-hover-fg',
+  attachmentsEditorButtonBg: 'theme-attachments-editor-button-bg',
+  attachmentsEditorButtonHoverBg: 'theme-attachments-editor-button-hover-bg',
+  attachmentsEditorButtonBorder: 'theme-attachments-editor-button-border',
+  attachmentsEditorButtonIcon: 'theme-attachments-editor-button-icon',
+  attachmentsEditorBorder: 'theme-attachments-editor-border',
+  attachmentsCellIconFg: 'theme-attachments-cell-icon-fg',
+  attachmentsCellIconBg: 'theme-attachments-cell-icon-bg',
+  attachmentsCellIconHoverBg: 'theme-attachments-cell-icon-hover-bg',
+  announcementPopupFg: 'theme-announcement-popup-fg',
+  announcementPopupBg: 'theme-announcement-popup-bg',
+  switchSliderFg: 'theme-switch-slider-fg',
+  switchCircleFg: 'theme-switch-circle-fg',
+  scrollShadow: 'theme-scroll-shadow',
+  toggleCheckboxFg: 'theme-toggle-checkbox-fg',
+  numericSpinnerFg: 'theme-numeric-spinner-fg',
+  widgetGalleryBorder: 'theme-widget-gallery-border',
+  widgetGalleryBorderSelected: 'theme-widget-gallery-border-selected',
+  widgetGalleryShadow: 'theme-widget-gallery-shadow',
+  widgetGalleryBgHover: 'theme-widget-gallery-bg-hover',
+  widgetGallerySecondaryHeaderFg: 'theme-widget-gallery-secondary-header-fg',
+  widgetGallerySecondaryHeaderBg: 'theme-widget-gallery-secondary-header-bg',
+  widgetGallerySecondaryHeaderBgHover: 'theme-widget-gallery-secondary-header-bg-hover',
+  markdownCellLightBg: 'theme-markdown-cell-light-bg',
+  markdownCellLightBorder: 'theme-markdown-cell-light-border',
+  markdownCellMediumBorder: 'theme-markdown-cell-medium-border',
+  appHeaderBg: 'theme-app-header-bg',
+  appHeaderBorder: 'theme-app-header-border',
+  appHeaderBorderHover: 'theme-app-header-border-hover',
+  cardButtonBorder: 'theme-card-button-border',
+  cardButtonBorderSelected: 'theme-card-button-border-selected',
+  cardButtonShadow: 'theme-card-button-shadow',
+} as const;
+
+export const tokens = Object.fromEntries(
+  Object.entries(tokensCssMapping).map(([name, value]) => [name, new CssCustomProp(value)])
+) as Record<keyof typeof tokensCssMapping, CssCustomProp>;
+
+export const legacyVariables = Object.fromEntries(
+  Object.entries(legacyVariablesCssMapping).map(([name, value]) => [name, new CssCustomProp(value)])
+) as Record<keyof typeof legacyVariablesCssMapping, CssCustomProp>;
+
+/**
+ * tokens that a given theme must always define
+ */
+export interface SpecificThemeTokens {
+  primaryLighter: Token;
+  primaryLight: Token;
+  primaryDark: Token;
+  primaryDarker: Token;
+
+  secondaryLighter: Token;
+  secondaryLight: Token;
+
+  warningBg: Token;
+
+  cursor: Token;
+  inactiveCursor: Token;
+  selection: Token;
+  selectionOpaque: Token;
+  selectionDarkerOpaque: Token;
+
+  text: Token;
+  textLight: Token;
+  textVeryLight: Token;
+  textDark: Token;
+
+  mainBg: Token;
+  panelBg: Token;
+  activeBg: Token;
+  transparentBg: Token;
+
+  borderLight: Token;
+  borderLighter: Token;
+  borderLighterTransparent: Token;
+
+  legacyVariables: {
+    mediumText: Token;
+    errorText: Token;
+    errorTextHover: Token;
+    dangerText: Token;
+    pageBackdrop: Token;
+    addNewCircleBg: Token;
+    addNewCircleHoverBg: Token;
+    addNewCircleSmallHoverBg: Token;
+    topBarButtonErrorFg: Token;
+    toastLightText: Token;
+    toastBg: Token;
+    toastMemoBg: Token;
+    toastErrorIcon: Token;
+    toastErrorBg: Token;
+    toastSuccessIcon: Token;
+    toastSuccessBg: Token;
+    toastWarningIcon: Token;
+    toastWarningBg: Token;
+    toastInfoIcon: Token;
+    toastInfoBg: Token;
+    toastControlFg: Token;
+    toastInfoControlFg: Token;
+    tooltipBg: Token;
+    tooltipCloseButtonHoverFg: Token;
+    modalBackdrop: Token;
+    modalBorder: Token;
+    modalInnerShadow: Token;
+    modalOuterShadow: Token;
+    modalBackdropCloseButtonHoverFg: Token;
+    popupInnerShadow: Token;
+    popupOuterShadow: Token;
+    promptFg: Token;
+    progressBarErrorFg: Token;
+    hover: Token;
+    lightHover: Token;
+    cellEditorFg: Token;
+    cursor: Token;
+    cursorInactive: Token;
+    tableHeaderFg: Token;
+    tableHeaderSelectedFg: Token;
+    tableHeaderSelectedBg: Token;
+    tableHeaderBorder: Token;
+    tableAddNewBg: Token;
+    tableScrollShadow: Token;
+    tableFrozenColumnsBorder: Token;
+    tableDragDropIndicator: Token;
+    tableDragDropShadow: Token;
+    tableCellSummaryBg: Token;
+    cardCompactWidgetBg: Token;
+    cardBlocksBg: Token;
+    cardFormBorder: Token;
+    cardEditingLayoutBg: Token;
+    selection: Token;
+    selectionDarker: Token;
+    selectionDarkest: Token;
+    selectionOpaqueBg: Token;
+    selectionOpaqueDarkBg: Token;
+    selectionHeader: Token;
+    widgetInactiveStripesDark: Token;
+    controlHoverFg: Token;
+    controlPrimaryHoverBg: Token;
+    controlDisabledFg: Token;
+    controlDisabledBg: Token;
+    controlBorder: Token;
+    checkboxSelectedFg: Token;
+    checkboxBorderHover: Token;
+    filterBarButtonSavedBg: Token;
+    iconError: Token;
+    iconButtonPrimaryHoverBg: Token;
+    pageHoverBg: Token;
+    disabledPageFg: Token;
+    pageOptionsFg: Token;
+    pageInitialsBg: Token;
+    pageInitialsEmojiBg: Token;
+    pageInitialsEmojiOutline: Token;
+    rightPanelTabSelectedIcon: Token;
+    rightPanelTabButtonHoverBg: Token;
+    rightPanelSubtabSelectedUnderline: Token;
+    rightPanelSubtabHoverFg: Token;
+    rightPanelSubtabHoverUnderline: Token;
+    rightPanelToggleButtonDisabledFg: Token;
+    rightPanelToggleButtonDisabledBg: Token;
+    rightPanelFieldSettingsBg: Token;
+    rightPanelFieldSettingsButtonBg: Token;
+    documentHistorySnapshotBorder: Token;
+    documentHistoryTableHeaderFg: Token;
+    documentHistoryTableBorder: Token;
+    inputFg: Token;
+    inputInvalid: Token;
+    inputFocus: Token;
+    inputReadonlyBorder: Token;
+    choiceTokenBg: Token;
+    choiceTokenSelectedBg: Token;
+    choiceTokenInvalidBg: Token;
+    choiceTokenInvalidBorder: Token;
+    choiceEntryBorderHover: Token;
+    selectButtonBorderInvalid: Token;
+    menuBorder: Token;
+    menuShadow: Token;
+    autocompleteSelectedMatchText: Token;
+    autocompleteItemSelectedBg: Token;
+    autocompleteAddNewCircleSelectedBg: Token;
+    searchBorder: Token;
+    searchPrevNextButtonBg: Token;
+    siteSwitcherActiveBg: Token;
+    shortcutKeyPrimaryFg: Token;
+    breadcrumbsTagBg: Token;
+    breadcrumbsTagAlertBg: Token;
+    widgetPickerItemFg: Token;
+    widgetPickerItemSelectedBg: Token;
+    widgetPickerItemDisabledBg: Token;
+    widgetPickerSummaryIcon: Token;
+    widgetPickerBorder: Token;
+    widgetPickerShadow: Token;
+    codeViewText: Token;
+    codeViewKeyword: Token;
+    codeViewComment: Token;
+    codeViewMeta: Token;
+    codeViewTitle: Token;
+    codeViewParams: Token;
+    codeViewString: Token;
+    codeViewNumber: Token;
+    codeViewBuiltin: Token;
+    codeViewLiteral: Token;
+    importerSkippedTableOverlay: Token;
+    importerOutsideBg: Token;
+    importerMainContentBg: Token;
+    importerActiveFileBg: Token;
+    importerInactiveFileBg: Token;
+    menuToggleHoverFg: Token;
+    menuToggleActiveFg: Token;
+    infoButtonFg: Token;
+    infoButtonHoverFg: Token;
+    infoButtonActiveFg: Token;
+    buttonGroupBg: Token;
+    buttonGroupBgHover: Token;
+    buttonGroupBorderHover: Token;
+    accessRulesColumnItemBg: Token;
+    accessRulesFormulaEditorBgDisabled: Token;
+    cellZebraBg: Token;
+    chartFg: Token;
+    chartLegendBg: Token;
+    chartXAxis: Token;
+    chartYAxis: Token;
+    commentsUserNameFg: Token;
+    commentsPanelTopicBorder: Token;
+    commentsPanelResolvedTopicBg: Token;
+    datePickerSelectedFg: Token;
+    datePickerSelectedBg: Token;
+    datePickerSelectedBgHover: Token;
+    datePickerTodayBgHover: Token;
+    datePickerRangeStartEndBg: Token;
+    datePickerRangeStartEndBgHover: Token;
+    datePickerRangeBg: Token;
+    datePickerRangeBgHover: Token;
+    tutorialsPopupBoxBg: Token;
+    tutorialsPopupCodeFg: Token;
+    tutorialsPopupCodeBg: Token;
+    tutorialsPopupCodeBorder: Token;
+    aceAutocompletePrimaryFg: Token;
+    aceAutocompleteSecondaryFg: Token;
+    aceAutocompleteBg: Token;
+    aceAutocompleteBorder: Token;
+    aceAutocompleteLink: Token;
+    aceAutocompleteLinkHighlighted: Token;
+    aceAutocompleteActiveLineBg: Token;
+    aceAutocompleteLineBorderHover: Token;
+    aceAutocompleteLineBgHover: Token;
+    colorSelectFg: Token;
+    colorSelectShadow: Token;
+    colorSelectFontOptionsBorder: Token;
+    colorSelectFontOptionBgHover: Token;
+    colorSelectColorSquareBorder: Token;
+    highlightedCodeBlockBg: Token;
+    highlightedCodeBlockBgDisabled: Token;
+    highlightedCodeBgDisabled: Token;
+    loginPageBackdrop: Token;
+    loginPageLine: Token;
+    loginPageGoogleButtonFg: Token;
+    loginPageGoogleButtonBg: Token;
+    loginPageGoogleButtonBgHover: Token;
+    attachmentsEditorButtonFg: Token;
+    attachmentsEditorButtonHoverFg: Token;
+    attachmentsEditorButtonBg: Token;
+    attachmentsEditorButtonHoverBg: Token;
+    attachmentsEditorBorder: Token;
+    attachmentsCellIconFg: Token;
+    attachmentsCellIconBg: Token;
+    attachmentsCellIconHoverBg: Token;
+    announcementPopupBg: Token;
+    switchSliderFg: Token;
+    scrollShadow: Token;
+    toggleCheckboxFg: Token;
+    numericSpinnerFg: Token;
+    widgetGalleryBorder: Token;
+    widgetGalleryShadow: Token;
+    widgetGallerySecondaryHeaderBg: Token;
+    widgetGallerySecondaryHeaderBgHover: Token;
+    markdownCellLightBg: Token;
+    markdownCellLightBorder: Token;
+    markdownCellMediumBorder: Token;
+    appHeaderBg: Token;
+    appHeaderBorder: Token;
+    appHeaderBorderHover: Token;
+    cardButtonBorder: Token;
+    cardButtonShadow: Token;
+  };
 }
 
-export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;
-export const ThemeAppearanceChecker = createCheckers(ThemePrefsTI).ThemeAppearance as CheckerT<ThemeAppearance>;
-export const ThemeNameChecker = createCheckers(ThemePrefsTI).ThemeName as CheckerT<ThemeName>;
+export interface BaseThemeTokens {
+  white: Token;
+  lightGrey: Token;
+  mediumGreyOpaque: Token;
+  mediumGrey: Token;
+  darkGrey: Token;
+  slate: Token;
+  darkText: Token;
+  dark: Token;
+  black: Token;
+  hover: Token;
+  backdrop: Token;
+  error: Token;
+  warningLight: Token;
+  warningDark: Token;
+
+  fontFamily: Token;
+  fontFamilyData: Token;
+  xxsmallFontSize: Token;
+  xsmallFontSize: Token;
+  smallFontSize: Token;
+  mediumFontSize: Token;
+  introFontSize: Token;
+  largeFontSize: Token;
+  xlargeFontSize: Token;
+  xxlargeFontSize: Token;
+  xxxlargeFontSize: Token;
+
+  controlFontSize: Token;
+  smallControlFontSize: Token;
+  bigControlFontSize: Token;
+  headerControlFontSize: Token;
+  bigControlTextWeight: Token;
+  headerControlTextWeight: Token;
+  labelTextSize: Token;
+  labelTextBg: Token;
+  labelActiveBg: Token;
+
+  controlMargin: Token;
+  controlPadding: Token;
+  tightPadding: Token;
+  loosePadding: Token;
+
+  primaryBg: Token;
+  primaryBgHover: Token;
+  primaryFg: Token;
+
+  controlBg: Token;
+  controlFg: Token;
+  controlFgHover: Token;
+  controlBorderColor: Token;
+  controlBorder: Token;
+  controlBorderRadius: Token;
+
+  logoBg: Token;
+  logoSize: Token;
+  toastBg: Token;
+
+  primaryLightBg: Token;
+  primaryLightFg: Token;
+
+  legacyVariables: {
+    text: Token;
+    lightText: Token;
+    darkText: Token;
+    disabledText: Token;
+    pageBg: Token;
+    mainPanelBg: Token;
+    leftPanelBg: Token;
+    rightPanelBg: Token;
+    topHeaderBg: Token;
+    bottomFooterBg: Token;
+    pagePanelsBorder: Token;
+    pagePanelsBorderResizing: Token;
+    sidePanelOpenerFg: Token;
+    sidePanelOpenerActiveFg: Token;
+    sidePanelOpenerActiveBg: Token;
+    addNewCircleFg: Token;
+    addNewCircleSmallFg: Token;
+    addNewCircleSmallBg: Token;
+    topBarButtonPrimaryFg: Token;
+    topBarButtonSecondaryFg: Token;
+    topBarButtonDisabledFg: Token;
+    notificationsPanelHeaderBg: Token;
+    notificationsPanelBodyBg: Token;
+    notificationsPanelBorder: Token;
+    toastText: Token;
+    toastMemoText: Token;
+    tooltipFg: Token;
+    tooltipIcon: Token;
+    tooltipCloseButtonFg: Token;
+    tooltipCloseButtonHoverBg: Token;
+    modalBg: Token;
+    modalBorderDark: Token;
+    modalBorderHover: Token;
+    modalCloseButtonFg: Token;
+    modalBackdropCloseButtonFg: Token;
+    popupBg: Token;
+    popupSecondaryBg: Token;
+    popupCloseButtonFg: Token;
+    progressBarFg: Token;
+    progressBarBg: Token;
+    link: Token;
+    linkHover: Token;
+    cellEditorPlaceholderFg: Token;
+    cellEditorBg: Token;
+    cursorReadonly: Token;
+    tableHeaderBg: Token;
+    tableBodyBg: Token;
+    tableBodyBorder: Token;
+    cardCompactRecordBg: Token;
+    cardFormLabel: Token;
+    cardCompactLabel: Token;
+    cardBlocksLabel: Token;
+    cardCompactBorder: Token;
+    cardEditingLayoutBorder: Token;
+    cardListFormBorder: Token;
+    cardListBlocksBorder: Token;
+    selectionOpaqueFg: Token;
+    widgetBg: Token;
+    widgetBorder: Token;
+    widgetActiveBorder: Token;
+    widgetInactiveStripesLight: Token;
+    pinnedDocFooterBg: Token;
+    pinnedDocBorder: Token;
+    pinnedDocBorderHover: Token;
+    pinnedDocEditorBg: Token;
+    rawDataTableBorder: Token;
+    rawDataTableBorderHover: Token;
+    controlFg: Token;
+    controlPrimaryFg: Token;
+    controlPrimaryBg: Token;
+    controlSecondaryFg: Token;
+    controlSecondaryDisabledFg: Token;
+    controlSecondaryHoverFg: Token;
+    controlSecondaryHoverBg: Token;
+    checkboxBg: Token;
+    checkboxSelectedFg: Token;
+    checkboxDisabledBg: Token;
+    checkboxBorder: Token;
+    moveDocsSelectedFg: Token;
+    moveDocsSelectedBg: Token;
+    moveDocsDisabledFg: Token;
+    filterBarButtonSavedFg: Token;
+    filterBarButtonSavedHoverBg: Token;
+    iconDisabled: Token;
+    iconButtonFg: Token;
+    iconButtonPrimaryBg: Token;
+    iconButtonSecondaryBg: Token;
+    iconButtonSecondaryHoverBg: Token;
+    activePageFg: Token;
+    activePageBg: Token;
+    pageOptionsFg: Token;
+    pageOptionsHoverFg: Token;
+    pageOptionsHoverBg: Token;
+    pageOptionsSelectedHoverBg: Token;
+    pageInitialsFg: Token;
+    rightPanelTabFg: Token;
+    rightPanelTabBg: Token;
+    rightPanelTabIcon: Token;
+    rightPanelTabIconHover: Token;
+    rightPanelTabBorder: Token;
+    rightPanelTabHoverBg: Token;
+    rightPanelTabHoverFg: Token;
+    rightPanelTabSelectedFg: Token;
+    rightPanelTabSelectedBg: Token;
+    rightPanelSubtabFg: Token;
+    rightPanelSubtabSelectedFg: Token;
+    rightPanelDisabledOverlay: Token;
+    rightPanelToggleButtonEnabledFg: Token;
+    rightPanelToggleButtonEnabledBg: Token;
+    rightPanelCustomWidgetButtonFg: Token;
+    rightPanelCustomWidgetButtonBg: Token;
+    documentHistorySnapshotFg: Token;
+    documentHistorySnapshotSelectedFg: Token;
+    documentHistorySnapshotBg: Token;
+    documentHistorySnapshotSelectedBg: Token;
+    documentHistoryActivityText: Token;
+    documentHistoryActivityLightText: Token;
+    documentHistoryTableBorderLight: Token;
+    accentIcon: Token;
+    accentBorder: Token;
+    accentText: Token;
+    inputBg: Token;
+    inputDisabledFg: Token;
+    inputDisabledBg: Token;
+    inputPlaceholderFg: Token;
+    inputBorder: Token;
+    inputValid: Token;
+    inputReadonlyBg: Token;
+    choiceTokenFg: Token;
+    choiceTokenBlankFg: Token;
+    choiceTokenSelectedBorder: Token;
+    choiceTokenInvalidFg: Token;
+    choiceEntryBg: Token;
+    choiceEntryBorder: Token;
+    selectButtonFg: Token;
+    selectButtonPlaceholderFg: Token;
+    selectButtonBg: Token;
+    selectButtonBorder: Token;
+    menuText: Token;
+    menuLightText: Token;
+    menuBg: Token;
+    menuSubheaderFg: Token;
+    menuItemFg: Token;
+    menuItemSelectedFg: Token;
+    menuItemSelectedBg: Token;
+    menuItemDisabledFg: Token;
+    menuItemIconFg: Token;
+    menuItemIconSelectedFg: Token;
+    autocompleteMatchText: Token;
+    autocompleteAddNewCircleFg: Token;
+    autocompleteAddNewCircleBg: Token;
+    searchPrevNextButtonFg: Token;
+    loaderFg: Token;
+    loaderBg: Token;
+    siteSwitcherActiveFg: Token;
+    docMenuDocOptionsFg: Token;
+    docMenuDocOptionsHoverFg: Token;
+    docMenuDocOptionsHoverBg: Token;
+    shortcutKeyFg: Token;
+    shortcutKeySecondaryFg: Token;
+    shortcutKeyBg: Token;
+    shortcutKeyBorder: Token;
+    breadcrumbsTagFg: Token;
+    breadcrumbsTagAlertBg: Token;
+    widgetPickerPrimaryBg: Token;
+    widgetPickerSecondaryBg: Token;
+    widgetPickerIcon: Token;
+    widgetPickerPrimaryIcon: Token;
+    importerTableInfoBorder: Token;
+    importerPreviewBorder: Token;
+    importerMatchIcon: Token;
+    importerActiveFileFg: Token;
+    importerInactiveFileFg: Token;
+    menuToggleFg: Token;
+    menuToggleBg: Token;
+    menuToggleBorder: Token;
+    buttonGroupFg: Token;
+    buttonGroupLightFg: Token;
+    buttonGroupIcon: Token;
+    buttonGroupBorder: Token;
+    buttonGroupSelectedFg: Token;
+    buttonGroupLightSelectedFg: Token;
+    buttonGroupSelectedBg: Token;
+    buttonGroupSelectedBorder: Token;
+    accessRulesTableHeaderFg: Token;
+    accessRulesTableHeaderBg: Token;
+    accessRulesTableBodyFg: Token;
+    accessRulesTableBodyLightFg: Token;
+    accessRulesTableBorder: Token;
+    accessRulesColumnListBorder: Token;
+    accessRulesColumnItemFg: Token;
+    accessRulesColumnItemIconFg: Token;
+    accessRulesColumnItemIconHoverFg: Token;
+    accessRulesColumnItemIconHoverBg: Token;
+    accessRulesFormulaEditorBg: Token;
+    accessRulesFormulaEditorBorderHover: Token;
+    accessRulesFormulaEditorFocus: Token;
+    cellFg: Token;
+    cellBg: Token;
+    chartBg: Token;
+    commentsPopupHeaderBg: Token;
+    commentsPopupBodyBg: Token;
+    commentsPopupBorder: Token;
+    commentsPanelTopicBg: Token;
+    datePickerTodayFg: Token;
+    datePickerTodayBg: Token;
+    tutorialsPopupBorder: Token;
+    tutorialsPopupHeaderFg: Token;
+    aceEditorBg: Token;
+    aceAutocompleteHighlightedFg: Token;
+    colorSelectBg: Token;
+    colorSelectFontOptionFg: Token;
+    colorSelectFontOptionFgSelected: Token;
+    colorSelectFontOptionBgSelected: Token;
+    colorSelectColorSquareBorderEmpty: Token;
+    colorSelectInputFg: Token;
+    colorSelectInputBg: Token;
+    colorSelectInputBorder: Token;
+    highlightedCodeFg: Token;
+    highlightedCodeBorder: Token;
+    loginPageBg: Token;
+    loginPageGoogleButtonBorder: Token;
+    formulaAssistantHeaderBg: Token;
+    formulaAssistantBorder: Token;
+    formulaAssistantPreformattedTextBg: Token;
+    attachmentsEditorButtonBorder: Token;
+    attachmentsEditorButtonIcon: Token;
+    announcementPopupFg: Token;
+    switchCircleFg: Token;
+    widgetGalleryBorderSelected: Token;
+    widgetGalleryBgHover: Token;
+    widgetGallerySecondaryHeaderFg: Token;
+    cardButtonBorderSelected: Token;
+  };
+}
+
+export interface ThemeTokens extends
+  Omit<BaseThemeTokens, 'legacyVariables'>,
+  Omit<SpecificThemeTokens, 'legacyVariables'> {
+  legacyVariables: BaseThemeTokens['legacyVariables'] & SpecificThemeTokens['legacyVariables'];
+}
+
 
 export function getDefaultThemePrefs(): ThemePrefs {
   return {

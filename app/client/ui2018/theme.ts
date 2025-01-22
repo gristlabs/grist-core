@@ -1,14 +1,15 @@
 import { createPausableObs, PausableObservable } from 'app/client/lib/pausableObs';
 import { getStorage } from 'app/client/lib/storage';
+import { getOrCreateStyleElement } from 'app/client/lib/getOrCreateStyleElement';
 import { urlState } from 'app/client/models/gristUrlState';
-import { Theme, ThemeAppearance, ThemeColors, ThemePrefs } from 'app/common/ThemePrefs';
-import { getThemeColors } from 'app/common/Themes';
+import { legacyVariables, Theme, ThemeAppearance, ThemePrefs, ThemeTokens, tokens } from 'app/common/ThemePrefs';
+import { getThemeTokens } from 'app/common/Themes';
 import { getGristConfig } from 'app/common/urlUtils';
 import { Computed, Observable } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
-const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', colors: getThemeColors('GristLight')};
-const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', colors: getThemeColors('GristDark')};
+const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', colors: getThemeTokens('GristLight')};
+const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', colors: getThemeTokens('GristDark')};
 
 /**
  * A singleton observable for the current user's Grist theme preferences.
@@ -66,11 +67,11 @@ export function gristThemeObs() {
 /**
  * Attaches the current theme's CSS variables to the document, and
  * re-attaches them whenever the theme changes.
+ *
+ * When custom CSS is enabled (and theme selection is then unavailable in the UI),
+ * default light theme variables are attached.
  */
 export function attachTheme() {
-  // Custom CSS is incompatible with custom themes.
-  if (getGristConfig().enableCustomCss) { return; }
-
   // Attach the current theme's variables to the DOM.
   attachCssThemeVars(gristThemeObs().get());
 
@@ -103,25 +104,44 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     appearance = userAgentPrefersDarkTheme ? 'dark' : 'light';
   }
 
-  let nameOrColors = themePrefs.colors[appearance];
+  let nameOrTokens = themePrefs.colors[appearance];
   if (urlParams?.themeName) {
-    nameOrColors = urlParams?.themeName;
+    nameOrTokens = urlParams?.themeName;
   }
 
-  let colors: ThemeColors;
-  if (typeof nameOrColors === 'string') {
-    colors = getThemeColors(nameOrColors);
+  let themeTokens: ThemeTokens;
+  if (typeof nameOrTokens === 'string') {
+    themeTokens = getThemeTokens(nameOrTokens);
   } else {
-    colors = nameOrColors;
+    themeTokens = nameOrTokens;
   }
 
-  return {appearance, colors};
+  return {appearance, colors: themeTokens};
 }
 
-function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
-  // Prepare the custom properties needed for applying the theme.
-  const properties = Object.entries(themeColors)
-    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
+function attachCssThemeVars({appearance, colors: themeTokens}: Theme) {
+  const properties = Object.entries(themeTokens || {})
+    .filter(([name]) => name !== 'legacyVariables')
+    .map(([tokenName, value]) => {
+      if (tokenName in tokens) {
+        const cssProp = tokens[tokenName as keyof typeof tokens];
+        cssProp.value = value;
+        return cssProp.decl();
+      }
+      return undefined;
+    })
+    .filter((prop): prop is string => prop !== undefined);
+
+  properties.push(...Object.entries(themeTokens.legacyVariables || {})
+    .map(([tokenName, value]) => {
+      if (tokenName in legacyVariables) {
+        const cssProp = legacyVariables[tokenName as keyof typeof legacyVariables];
+        cssProp.value = value;
+        return cssProp.decl();
+      }
+      return undefined;
+    })
+    .filter((prop): prop is string => prop !== undefined));
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssThemeScrollbarProperties(appearance));
@@ -130,9 +150,13 @@ function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
   properties.push(...getCssThemeBackgroundProperties(appearance));
 
   // Apply the properties to the theme style element.
-  getOrCreateStyleElement('grist-theme').textContent = `:root {
+  // The 'grist-theme' layer takes precedence over the 'grist-base' layer where
+  // default CSS variables are defined.
+  getOrCreateStyleElement('grist-theme').textContent = `@layer grist-theme {
+  :root {
 ${properties.join('\n')}
-  }`;
+  }
+}`;
 
   // Make the browser aware of the color scheme.
   document.documentElement.style.setProperty(`color-scheme`, appearance);
@@ -173,19 +197,4 @@ function getCssThemeBackgroundProperties(appearance: ThemeAppearance) {
     ? 'url("img/prismpattern.png")'
     : 'url("img/gplaypattern.png")';
   return [`--grist-theme-bg: ${value};`];
-}
-
-/**
- * Gets or creates a style element in the head of the document with the given `id`.
- *
- * Useful for grouping CSS values such as theme custom properties without needing to
- * pollute the document with in-line styles.
- */
-function getOrCreateStyleElement(id: string) {
-  let style = document.head.querySelector(`#${id}`);
-  if (style) { return style; }
-  style = document.createElement('style');
-  style.setAttribute('id', id);
-  document.head.append(style);
-  return style;
 }

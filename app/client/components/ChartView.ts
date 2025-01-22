@@ -395,19 +395,19 @@ export class ChartView extends Disposable {
   private _getPlotlyTheme(): Partial<Layout> {
     const {colors} = gristThemeObs().get();
     return {
-      paper_bgcolor: colors['chart-bg'],
-      plot_bgcolor: colors['chart-bg'],
+      paper_bgcolor: colors.legacyVariables.chartBg.toString(),
+      plot_bgcolor: colors.legacyVariables.chartBg.toString(),
       xaxis: {
-        color: colors['chart-x-axis'],
+        color: colors.legacyVariables.chartXAxis.toString(),
       },
       yaxis: {
-        color: colors['chart-y-axis'],
+        color: colors.legacyVariables.chartYAxis.toString(),
       },
       font: {
-        color: colors['chart-fg'],
+        color: colors.legacyVariables.chartFg.toString(),
       },
       legend: {
-        bgcolor: colors['chart-legend-bg'],
+        bgcolor: colors.legacyVariables.chartLegendBg.toString(),
       },
     };
   }
