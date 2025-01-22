@@ -1853,5 +1853,38 @@
         "Log streaming": "Log streaming",
         "Only site owners may access audit logs.": "Only site owners may access audit logs.",
         "upgrade your plan": "upgrade your plan"
+    },
+    "DocList": {
+        "Access details": "Access details",
+        "All": "All",
+        "Current workspace": "Current workspace",
+        "Delete": "Delete",
+        "Delete {{name}}": "Delete {{name}}",
+        "Document will be moved to Trash.": "Document will be moved to Trash.",
+        "Edited {{at}}": "Edited {{at}}",
+        "Last edited": "Last edited",
+        "Manage users": "Manage users",
+        "Move": "Move",
+        "Move {{name}} to workspace": "Move {{name}} to workspace",
+        "Name": "Name",
+        "No documents to show.": "No documents to show.",
+        "Pin": "Pin",
+        "Pinned": "Pinned",
+        "Recent": "Recent",
+        "Rename and set icon": "Rename and set icon",
+        "Requires edit permissions": "Requires edit permissions",
+        "Sort by date": "Sort by date",
+        "Sort by name": "Sort by name",
+        "Unpin": "Unpin",
+        "Workspace": "Workspace"
+    },
+    "RenameDocModal": {
+        "Choose color": "Choose color",
+        "Choose icon": "Choose icon",
+        "Enter document name": "Enter document name",
+        "Icon": "Icon",
+        "Name": "Name",
+        "Rename and set icon": "Rename and set icon",
+        "Reset icon": "Reset icon"
     }
 }
