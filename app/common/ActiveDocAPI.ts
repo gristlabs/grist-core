@@ -25,9 +25,10 @@ export interface ApplyUAExtendedOptions extends ApplyUAOptions {
 }
 
 export interface ApplyUAResult {
-  actionNum: number;      // number of the action that got recorded.
-  retValues: any[];       // array of return values, one for each of the passed-in user actions.
-  isModification: boolean; // true if document was modified.
+  actionNum: number;         // number of the action that got recorded.
+  actionHash: string | null; // hash of the action that got recorded.
+  retValues: any[];          // array of return values, one for each of the passed-in user actions.
+  isModification: boolean;   // true if document was modified.
 }
 
 export interface DataSourceTransformed {

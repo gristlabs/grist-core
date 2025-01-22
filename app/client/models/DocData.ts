@@ -254,6 +254,7 @@ class BundleSender {
     return this._getSendPromise()
     .then(result => ({
       actionNum: result.actionNum,
+      actionHash: result.actionHash,
       retValues: result.retValues.slice(start, end),
       isModification: result.isModification
     }));

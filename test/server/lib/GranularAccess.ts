@@ -25,7 +25,7 @@ import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {filterColValues, GranularAccess} from 'app/server/lib/GranularAccess';
 import {globalUploadSet} from 'app/server/lib/uploads';
 import {assert} from 'chai';
-import {cloneDeep, isMatch} from 'lodash';
+import {cloneDeep, isMatch, pick} from 'lodash';
 import * as sinon from 'sinon';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {createDocTools} from 'test/server/docTools';
@@ -3381,9 +3381,23 @@ describe('GranularAccess', function() {
     assert.deepEqual((await cliOwner.send('fetchTable', 0, 'Leads')).data.tableData,
                      [ 'TableData', 'Leads', [ 3 ],
                        { manualSort: [ 3 ], Place: [ 'Cambridge' ], Name: [ 'Tao Ping' ] } ]);
-    assert.deepEqual((await cliOwner.send('applyUserActions', 0,
-                                          [['UpdateRecord', 'Leads', 3, {Name: 'Tao'}]])).data,
-                     { actionNum: 4, retValues: [ null ], isModification: true });
+    let res = await cliOwner.send("applyUserActions", 0, [
+      ["UpdateRecord", "Leads", 3, { Name: "Tao" }],
+    ]);
+    assert.hasAllKeys(res.data, [
+      "actionNum",
+      "actionHash",
+      "retValues",
+      "isModification",
+    ]);
+    assert.deepEqual(
+      pick(res.data, "actionNum", "retValues", "isModification"),
+      {
+        actionNum: 4,
+        retValues: [null],
+        isModification: true,
+      }
+    );
     assert.match((await cliOwner.send('applyUserActions', 0,
                                      [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).error!,
                  /Blocked by row update access rules/);
@@ -3409,9 +3423,23 @@ describe('GranularAccess', function() {
                  /Blocked by table update access rules/);
     await reopenClients({linkParameters: {aclAsUser: 'owner@example.com'}});
     cliOwner.flush();
-    assert.deepEqual((await cliOwner.send('applyUserActions', 0,
-                                          [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).data,
-                     { actionNum: 5, retValues: [ null ], isModification: true });
+    res = await cliOwner.send("applyUserActions", 0, [
+      ["UpdateRecord", "Leads", 2, { Name: "Zao" }],
+    ]);
+    assert.hasAllKeys(res.data, [
+      "actionNum",
+      "actionHash",
+      "retValues",
+      "isModification",
+    ]);
+    assert.deepEqual(
+      pick(res.data, "actionNum", "retValues", "isModification"),
+      {
+        actionNum: 5,
+        retValues: [null],
+        isModification: true,
+      }
+    );
     await reopenClients({linkParameters: {aclAsUser: 'unknown@example.com'}});
     cliOwner.flush();
     assert.match((await cliOwner.send('applyUserActions', 0,

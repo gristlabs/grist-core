@@ -188,6 +188,10 @@ export interface AuditEventDetails {
     };
   };
   "document.modify": {
+    action: {
+      num: number;
+      hash: string | null;
+    };
     document: Pick<Document, "id">;
   };
   "document.move": PreviousAndCurrent<{

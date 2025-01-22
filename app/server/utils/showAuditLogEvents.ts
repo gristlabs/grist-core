@@ -764,6 +764,20 @@ const AuditEvents: AuditEvents = {
     type: ["installation", "site"],
     description: "A document was modified.",
     properties: {
+      action: {
+        type: "object",
+        description: "The action.",
+        properties: {
+          num: {
+            type: "number",
+            description: "The action number.",
+          },
+          hash: {
+            type: ["string", "null"],
+            description: "The action hash.",
+          },
+        },
+      },
       document: {
         type: "object",
         description: "The document.",
@@ -776,6 +790,10 @@ const AuditEvents: AuditEvents = {
       },
     },
     sample: {
+      action: {
+        num: 7,
+        hash: "825f859cf9628d9df90c1b25e31c723bb1c05c061cab6d1d9ccfea340e68d638",
+      },
       document: {
         id: "mRM8ydxxLkc6Ewo56jsDGx",
       },

@@ -2081,6 +2081,10 @@ export class ActiveDoc extends EventEmitter {
       this.logAuditEvent(docSession, {
         action: "document.modify",
         details: {
+          action: {
+            num: result.actionNum,
+            hash: result.actionHash,
+          },
           document: {
             id: this.docName,
           },
