@@ -525,7 +525,7 @@
         "Invite Team Members": "Inviter un nouveau membre à l'espace d'équipe",
         "Browse Templates": "Parcourir les modèles",
         "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un Fichier",
+        "Import Document": "Importer un fichier",
         "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
         "{{signUp}} to save your work. ": "{{signUp}} pour enregistrer votre travail. ",
         "Welcome to Grist, {{- name}}!": "Bienvenue sur Grist, {{- name}} !",
@@ -540,7 +540,7 @@
         "All Documents": "Tous les documents",
         "Examples & Templates": "Modèles",
         "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un Fichier",
+        "Import Document": "Importer un fichier",
         "Create Workspace": "Créer un nouveau dossier",
         "Trash": "Corbeille",
         "Rename": "Renommer",
@@ -571,7 +571,7 @@
         "Column Mapping": "Cartographie de Colonne",
         "Destination table": "Table de destination",
         "Skip Table on Import": "Ignorer la table à l'import",
-        "Import from file": "Importer depuis un fichier",
+        "Import from file": "Importer un fichier",
         "Source column": "Colonne source"
     },
     "LeftPanelCommon": {
@@ -1225,8 +1225,8 @@
     "ColumnTitle": {
         "Add description": "Ajouter une description",
         "Cancel": "Annuler",
-        "Column ID copied to clipboard": "Identifiant de la column copié",
-        "COLUMN ID: ": "Identifiant de la column : ",
+        "Column ID copied to clipboard": "Identifiant de la colonne copié",
+        "COLUMN ID: ": "Identifiant de la colonne : ",
         "Column description": "Description de la colonne",
         "Column label": "Libellé de la colonne",
         "Provide a column label": "Donner un nom à la colonne",
@@ -1390,7 +1390,8 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Une fois que vous avez supprimé vos propres accès, vous ne pourrez pas les récupérer sans l'aide d'une autre personne disposant d'un accès suffisant au {{resourceType}}.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utilisateur a un accès en lecture seule à {{resource}} résultant d'un accès des ressources à l'intérieur. S'il est supprimé ici, cet utilisateur perdra l'accès aux ressources à l'intérieur.",
         "You are about to remove your own access to this {{resourceType}}": "Vous êtes sur le point de supprimer votre propre accès à {{resourceType}}",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "L'utilisateur hérite ses permissions de {{parent})}. Pour supprimer cela,            paramétrez 'Héritage d'accès à 'Aucun'."
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "L'utilisateur hérite ses permissions de {{parent})}. Pour supprimer cela,            paramétrez 'Héritage d'accès à 'Aucun'.",
+        "Inherit access: ": "Hériter des droits d'accès : "
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
@@ -1447,7 +1448,9 @@
         "Save your document to publish this form.": "Enregistrez votre document pour publier ce formulaire.",
         "Share this form": "Partager ce formulaire",
         "Reset": "Réinitialiser",
-        "Share": "Partager"
+        "Share": "Partager",
+        "Your form description goes here.": "Vous pouvez écrire une description ici.",
+        "## **Form Title**": "## **Titre du formulaire**"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
@@ -1463,7 +1466,9 @@
         "Paste": "Coller",
         "Separator": "Séparateur",
         "Unmapped fields": "Champs non utilisés",
-        "Header": "Titre"
+        "Header": "Titre",
+        "New question": "Nouvelle question",
+        "More": "Plus"
     },
     "UnmappedFieldsConfig": {
         "Mapped": "Utilisé",
@@ -1536,7 +1541,9 @@
     },
     "Section": {
         "Insert section above": "Ajouter une section ci-dessus",
-        "Insert section below": "Ajouter une section ci-dessous"
+        "Insert section below": "Ajouter une section ci-dessous",
+        "### **Header**": "### **Titre**",
+        "Description": "Description"
     },
     "AdminPanel": {
         "Current": "Actuelle",
@@ -1598,7 +1605,8 @@
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
-        "No values in show column of referenced table": "Pas de valeurs dans la colonne montrée de la table de référence"
+        "No values in show column of referenced table": "Pas de valeurs dans la colonne montrée de la table de référence",
+        "Hide": "Cacher"
     },
     "CreateTeamModal": {
         "Cancel": "Annuler",

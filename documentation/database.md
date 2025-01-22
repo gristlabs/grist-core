@@ -52,14 +52,13 @@ _grist_Shares                     _gristsys_PluginData
 
 ### The migrations
 
-The migrations are handled in the Python sandbox in this code:
-https://github.com/gristlabs/grist-core/blob/main/sandbox/grist/migrations.py
+The migrations are handled in the Python sandbox in [`sandbox/grist/migrations.py`](../sandbox/grist/migrations.py).
 
 For more information, please consult [the documentation for migrations](./migrations.md).
 
 ## The Home Database
 
-The home database may either be a SQLite or a PostgreSQL database depending on how the Grist instance has been installed. For details, please refer to the `TYPEORM_*` env variables in the [README](https://github.com/gristlabs/grist-core/blob/main/README.md#database-variables).
+The home database may either be a SQLite or a PostgreSQL database depending on how the Grist instance has been installed. For details, please refer to the `TYPEORM_*` env variables in the [README](../README.md#database-variables).
 
 Unless otherwise configured, the home database is a SQLite file. In the default Docker image, it is stored at this location: `/persist/home.sqlite3`.
 
@@ -293,5 +292,4 @@ Stores information related to the identification.
 
 ### The migrations
 
-The database migrations are handled by TypeORM ([documentation](https://typeorm.io/migrations)). The migration files are located at `app/gen-server/migration` and are run at startup (so you don't have to worry about running them yourself).
-
+The database migrations are handled by TypeORM ([documentation](https://typeorm.io/migrations)). The migration files are located at [`app/gen-server/migration`](../app/gen-server/migration) and are run at startup (so you don't have to worry about running them yourself).

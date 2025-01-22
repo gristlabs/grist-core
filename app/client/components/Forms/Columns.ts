@@ -14,7 +14,7 @@ import {v4 as uuidv4} from 'uuid';
 
 const testId = makeTestId('test-forms-');
 
-const t = makeT('FormView');
+const t = makeT('Columns');
 
 export class ColumnsModel extends BoxModel {
   private _columnCount = Computed.create(this, use => use(this.children).length);

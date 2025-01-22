@@ -24,7 +24,16 @@ import {buildUrlId, IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gri
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit, isOwner} from 'app/common/roles';
 import {UserInfo} from 'app/common/User';
-import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app/common/UserAPI';
+import {
+  DOCTYPE_TEMPLATE,
+  DOCTYPE_TUTORIAL,
+  Document,
+  DocumentType,
+  NEW_DOCUMENT_CODE,
+  Organization,
+  UserAPI,
+  Workspace
+} from 'app/common/UserAPI';
 import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
@@ -87,7 +96,7 @@ export interface DocPageModel {
   isTutorialTrunk: Observable<boolean>;
   isTutorialFork: Observable<boolean>;
   isTemplate: Observable<boolean>;
-
+  type: Observable<DocumentType>;
   importSources: ImportSource[];
 
   undoState: Observable<IUndoState|null>;          // See UndoStack for details.
@@ -147,6 +156,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     (use, doc) => doc ? doc.isTutorialFork : false);
   public readonly isTemplate = Computed.create(this, this.currentDoc,
     (use, doc) => doc ? doc.isTemplate : false);
+  public readonly type = Computed.create(this, this.currentDoc,
+    (use, doc) => doc?.type ?? null);
 
   public readonly importSources: ImportSource[] = [];
 
@@ -201,11 +212,11 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         } else {
           FlowRunner.create(
             this._openerHolder,
-            (flow: AsyncFlow) => this._openDoc(flow, urlId, {
+            (flow: AsyncFlow) => this.appModel.notifier.slowNotification(this._openDoc(flow, urlId, {
               openMode: urlOpenMode,
               linkParameters,
               originalUrlId: state.doc,
-            }, state.params?.compare)
+            }, state.params?.compare))
           )
           .resultPromise.catch(err => this._onOpenError(err));
         }
@@ -499,7 +510,8 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   const isFork = Boolean(idParts.forkId || idParts.snapshotId);
   const isBareFork = isFork && idParts.trunkId === NEW_DOCUMENT_CODE;
   const isSnapshot = Boolean(idParts.snapshotId);
-  const isTutorial = doc.type === 'tutorial';
+  const type = doc.type;
+  const isTutorial = type === DOCTYPE_TUTORIAL;
   const isTutorialTrunk = isTutorial && !isFork && mode !== 'default';
   const isTutorialFork = isTutorial && isFork;
 
@@ -511,7 +523,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
       // mode. Since the document's 'openMode' has no effect, don't bother trying
       // to set it here, as it'll potentially be confusing for other code reading it.
       openMode = 'default';
-    } else if (!isFork && doc.type === 'template') {
+    } else if (!isFork && type === DOCTYPE_TEMPLATE) {
       // Templates should always open in fork mode by default.
       openMode = 'fork';
     } else {
@@ -521,7 +533,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   }
 
   const isPreFork = openMode === 'fork';
-  const isTemplate = doc.type === 'template' && (isFork || isPreFork);
+  const isTemplate = type === DOCTYPE_TEMPLATE && (isFork || isPreFork);
   const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
   return {
     ...doc,
@@ -534,6 +546,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
     isSnapshot,
     isTutorialTrunk,
     isTutorialFork,
+    type,
     isTemplate,
     isReadonly: !isEditable,
     idParts,

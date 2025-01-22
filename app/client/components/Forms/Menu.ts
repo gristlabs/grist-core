@@ -10,7 +10,7 @@ import {getColumnTypes as getNewColumnTypes} from 'app/client/ui/GridViewMenus';
 import * as menus from 'app/client/ui2018/menus';
 import {Computed, dom, IDomArgs, MultiHolder} from 'grainjs';
 
-const t = makeT('FormView');
+const t = makeT('Menu');
 const testId = makeTestId('test-forms-menu-');
 
 // New box to add, either a new column of type, an existing column (by column id), or a structure.
@@ -105,7 +105,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       const insertMenu = (where: typeof above) => () => {
         return [
-          menus.menuSubHeader('New question'),
+          menus.menuSubHeader(t('New question')),
           ...commonTypes()
             .filter(isQuick)
             .filter(isEnabled)
@@ -122,7 +122,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
               )),
             {},
             menus.menuIcon('Dots'),
-            dom('span', "More", dom.style('margin-right', '8px'))
+            dom('span', t("More"), dom.style('margin-right', '8px'))
           ),
           dom.maybe(oneTo5, () => [
             menus.menuDivider(),
