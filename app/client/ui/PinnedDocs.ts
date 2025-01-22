@@ -1,22 +1,22 @@
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
-import {makeDocOptionsMenu, makeRemovedDocOptionsMenu} from 'app/client/ui/DocMenu';
-import {transientInput} from 'app/client/ui/transientInput';
+import {makeDocOptionsMenu} from 'app/client/ui/DocList';
+import {makeRemovedDocOptionsMenu} from 'app/client/ui/DocMenu';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import * as roles from 'app/common/roles';
 import {Document, Workspace} from 'app/common/UserAPI';
-import {computed, dom, makeTestId, Observable, observable, styled} from 'grainjs';
+import {dom, makeTestId, Observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-dm-');
 
 /**
- * PinnedDocs builds the dom at the top of the doclist showing all the pinned docs in the
- * selectedOrg. Builds nothing if there are no pinned docs.
+ * Builds a list of pinned documents, or nothing if there are no pinned docs.
  *
- * Used only by DocMenu.
+ * A misnomer because it's currently only used on the templates page to show
+ * featured templates, with pinned documents now being shown in DocList.
  */
 export function createPinnedDocs(home: HomeModel, docs: Observable<Document[]>, isExample = false) {
   return pinnedDocList(
@@ -26,51 +26,41 @@ export function createPinnedDocs(home: HomeModel, docs: Observable<Document[]>, 
 }
 
 /**
- * Build a single doc card with a preview and name. A misnomer because it's now used not only for
- * pinned docs, but also for the thumnbails (aka "icons") view mode.
+ * Build a single pinned document, with an optional icon and description.
+ *
+ * A misnomer because it's currently only used on the templates page to show
+ * featured templates, and on the trash page for the thumbnail (aka "icon")
+ * view.
  */
 export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Workspace, isExample = false): HTMLElement {
-  const renaming = observable<Document|null>(null);
-  const isRenamingDoc = computed((use) => use(renaming) === doc);
   return pinnedDocWrapper(
-    dom.autoDispose(isRenamingDoc),
-    dom.domComputed(isRenamingDoc, (isRenaming) =>
-      pinnedDoc(
-        isRenaming || doc.removedAt ?
-          null :
-          urlState().setLinkUrl({...docUrl(doc), ...(isExample ? {org: workspace.orgDomain} : {})}),
-        pinnedDoc.cls('-no-access', !roles.canView(doc.access)),
-        pinnedDocPreview(
-          (doc.options?.icon ?
-            cssImage({src: doc.options.icon}) :
-            [docInitials(doc.name), pinnedDocThumbnail()]
-          ),
-          (doc.public && !isExample ? cssPublicIcon('PublicFilled', testId('public')) : null),
-          pinnedDocPreview.cls('-with-icon', Boolean(doc.options?.icon)),
+    pinnedDoc(
+      doc.removedAt ?
+        null :
+        urlState().setLinkUrl({...docUrl(doc), ...(isExample ? {org: workspace.orgDomain} : {})}),
+      pinnedDoc.cls('-no-access', !roles.canView(doc.access)),
+      pinnedDocPreview(
+        (doc.options?.icon ?
+          cssImage({src: doc.options.icon}) :
+          [docInitials(doc.name), pinnedDocThumbnail()]
         ),
-        pinnedDocFooter(
-          (isRenaming ?
-            pinnedDocEditorInput({
-              initialValue: doc.name || '',
-              save: async (val) => (val !== doc.name) ? home.renameDoc(doc.id, val) : undefined,
-              close: () => renaming.set(null),
-            }, testId('doc-name-editor'))
-            :
-            pinnedDocTitle(
-              dom.text(doc.name),
-              testId('pinned-doc-name'),
-              // Mostly for the sake of tests, allow .test-dm-pinned-doc-name to find documents in
-              // either 'list' or 'icons' views.
-              testId('doc-name')
-            )
-          ),
-          doc.options?.description ?
-            cssPinnedDocDesc(doc.options.description, testId('pinned-doc-desc')) :
-            cssPinnedDocTimestamp(
-              capitalizeFirst(getTimeFromNow(doc.removedAt || doc.updatedAt)),
-              testId('pinned-doc-desc')
-            )
-        )
+        (doc.public && !isExample ? cssPublicIcon('PublicFilled', testId('public')) : null),
+        pinnedDocPreview.cls('-with-icon', Boolean(doc.options?.icon)),
+      ),
+      pinnedDocFooter(
+        pinnedDocTitle(
+          dom.text(doc.name),
+          testId('pinned-doc-name'),
+          // Mostly for the sake of tests, allow .test-dm-pinned-doc-name to find documents in
+          // either 'list' or 'icons' views.
+          testId('doc-name')
+        ),
+        doc.options?.description ?
+          cssPinnedDocDesc(doc.options.description, testId('pinned-doc-desc')) :
+          cssPinnedDocTimestamp(
+            capitalizeFirst(getTimeFromNow(doc.removedAt || doc.updatedAt)),
+            testId('pinned-doc-desc')
+          )
       )
     ),
     isExample ? null : (doc.removedAt ?
@@ -82,7 +72,7 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
         pinnedDocOptions(icon('Dots'), testId('pinned-doc-options')),
       ] :
       pinnedDocOptions(icon('Dots'),
-        menu(() => makeDocOptionsMenu(home, doc, renaming),
+        menu(() => makeDocOptionsMenu(home, doc),
           {placement: 'bottom-start'}),
         // Clicks on the menu trigger shouldn't follow the link that it's contained in.
         dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
@@ -226,22 +216,6 @@ const pinnedDocTitle = styled('div', `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-`);
-
-const pinnedDocEditorInput = styled(transientInput, `
-  margin: 16px 16px 0px 16px;
-  font-weight: bold;
-  min-width: 0px;
-  color: initial;
-  font-size: inherit;
-  line-height: inherit;
-  appearance: none;
-  -moz-appearance: none;
-  padding: 0;
-  border: none;
-  outline: none;
-  color: ${theme.text};
-  background-color: ${theme.pinnedDocEditorBg};
 `);
 
 const cssPinnedDocTimestamp = styled('div', `

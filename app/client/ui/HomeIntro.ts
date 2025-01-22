@@ -3,14 +3,11 @@ import {HomeModel} from 'app/client/models/HomeModel';
 import {productPill} from 'app/client/ui/AppHeader';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntroCards} from 'app/client/ui/HomeIntroCards';
-import {newDocMethods} from 'app/client/ui/NewDocMethods';
-import {bigBasicButton} from 'app/client/ui2018/buttons';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuCssClass} from 'app/client/ui2018/menus';
 import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {FullUser} from 'app/common/LoginSessionAPI';
-import * as roles from 'app/common/roles';
 import {dom, DomContents, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
 
@@ -29,33 +26,18 @@ export function buildHomeIntro(homeModel: HomeModel): DomContents {
   }
 }
 
-export function buildWorkspaceIntro(homeModel: HomeModel): DomContents {
-  const isViewer = homeModel.currentWS.get()?.access === roles.VIEWER;
-  const isAnonym = !homeModel.app.currentValidUser;
-  const emptyLine = css.introLine(testId('empty-workspace-info'), t("This workspace is empty."));
-  if (isAnonym || isViewer) {
-    return emptyLine;
-  } else {
-    return [
-      emptyLine,
-      cssBtnGroup(
-        cssBtn(cssBtnIcon('Import'), t("Import Document"), testId('intro-import-doc'),
-          dom.on('click', () => newDocMethods.importDocAndOpen(homeModel)),
-        ),
-        cssBtn(cssBtnIcon('Page'), t("Create Empty Document"), testId('intro-create-doc'),
-          dom.on('click', () => newDocMethods.createDocAndOpen(homeModel)),
-        ),
-      ),
-    ];
-  }
-}
-
 function makeTeamSiteIntro(homeModel: HomeModel) {
   return [
-    css.docListHeaderWrap(
-      cssHeader(
-        t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
-        productPill(homeModel.app.currentOrg, {large: true}),
+    css.stickyHeader(
+      cssHeaderWithPill(
+        cssHeader(
+          dom.text((use) =>
+            use(isNarrowScreenObs())
+              ? homeModel.app.currentOrgName
+              : t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName})
+          ),
+        ),
+        cssPill(productPill(homeModel.app.currentOrg, {large: true})),
         testId('welcome-title')
       ),
       buildPreferencesMenu(homeModel),
@@ -66,9 +48,13 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
 
 function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   return [
-    css.docListHeaderWrap(
+    css.stickyHeader(
       cssHeader(
-        t("Welcome to Grist, {{- name}}!", {name: user.name}),
+        dom.text((use) =>
+          use(isNarrowScreenObs())
+            ? t("Welcome to Grist!")
+            : t("Welcome to Grist, {{- name}}!", {name: user.name})
+        ),
         testId('welcome-title'),
       ),
       buildPreferencesMenu(homeModel),
@@ -78,7 +64,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
 }
 
 function makeAnonIntro(homeModel: HomeModel) {
-  const welcomeToGrist = css.docListHeaderWrap(
+  const welcomeToGrist = css.stickyHeader(
     cssHeader(
       t("Welcome to Grist!"),
       testId('welcome-title'),
@@ -119,27 +105,19 @@ const cssIntro = styled('div', `
   margin-bottom: 24px;
 `);
 
-const cssHeader = styled(css.listHeader, `
+const cssHeader = styled(css.listHeaderNoWrap, `
   font-size: 24px;
   line-height: 36px;
 `);
 
-const cssBtnGroup = styled('div', `
-  display: inline-flex;
-  flex-direction: column;
-  align-items: stretch;
-`);
-
-const cssBtn = styled(bigBasicButton, `
+const cssHeaderWithPill = styled('div', `
   display: flex;
   align-items: center;
-  margin-right: 16px;
-  margin-top: 16px;
-  text-align: left;
+  overflow: hidden;
 `);
 
-const cssBtnIcon = styled(icon, `
-  margin-right: 8px;
+const cssPill = styled('div', `
+  flex-shrink: 0;
 `);
 
 const cssPreferencesMenu = styled('div', `

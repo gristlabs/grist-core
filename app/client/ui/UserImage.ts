@@ -1,7 +1,8 @@
+import {hashCode} from 'app/client/lib/hashUtils';
 import {colors, theme} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {dom, DomElementArg, styled} from 'grainjs';
-import {icon} from 'app/client/ui2018/icons';
 
 export type Size = 'small' | 'medium' | 'large';
 
@@ -53,18 +54,6 @@ function pickColor(user: Partial<UserProfile>): string {
   let c = hashCode(user.name + ':' + user.email) % someColors.length;
   if (c < 0) { c += someColors.length; }
   return someColors[c];
-}
-
-/**
- * Hash a string into an integer. From https://stackoverflow.com/a/7616484/328565.
- */
-function hashCode(str: string): number {
-  let hash: number = 0;
-  for (let i = 0; i < str.length; i++) {
-    // tslint:disable-next-line:no-bitwise
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
-  }
-  return hash;
 }
 
 // These mostly come from https://clrs.cc/

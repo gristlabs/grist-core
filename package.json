@@ -111,6 +111,7 @@
     "why-is-node-running": "2.2.2"
   },
   "dependencies": {
+    "@emoji-mart/data": "1.2.1",
     "@googleapis/drive": "8.14.0",
     "@googleapis/oauth2": "1.0.7",
     "@gristlabs/connect-sqlite3": "0.9.11-grist.5",
@@ -141,6 +142,8 @@
     "diff-match-patch": "1.0.5",
     "dompurify": "3.2.3",
     "double-ended-queue": "2.1.0-0",
+    "emoji-mart": "5.6.0",
+    "emoji-regex": "10.4.0",
     "engine.io": "6.6.2",
     "engine.io-client": "6.6.2",
     "exceljs": "4.2.1",

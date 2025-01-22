@@ -13,7 +13,7 @@ import {isLongerThan} from 'app/common/gutil';
 import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Document, Organization, Workspace} from 'app/common/UserAPI';
+import {Document, Organization, RenameDocOptions, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 import flatten = require('lodash/flatten');
 import sortBy = require('lodash/sortBy');
@@ -40,8 +40,8 @@ export interface HomeModel {
   // currentWS is undefined when currentPage is not "workspace" or if currentWSId doesn't exist.
   currentWS: Observable<Workspace|undefined>;
 
-  // List of pinned docs to show for currentWS.
-  currentWSPinnedDocs: Observable<Document[]>;
+  // List of docs to show for currentWS.
+  currentWSDocs: Observable<Document[]>;
 
   // List of featured templates from templateWorkspaces.
   featuredTemplates: Observable<Document[]>;
@@ -70,11 +70,12 @@ export interface HomeModel {
   restoreWorkspace(ws: Workspace): Promise<void>;
 
   createDoc(name: string, workspaceId: number|"unsaved"): Promise<string>;
-  renameDoc(docId: string, name: string): Promise<void>;
+  renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void>;
   deleteDoc(docId: string, forever: boolean): Promise<void>;
   restoreDoc(doc: Document): Promise<void>;
   pinUnpinDoc(docId: string, pin: boolean): Promise<void>;
   moveDoc(docId: string, workspaceId: number): Promise<void>;
+  updateWorkspaces(): Promise<void>;
 }
 
 export interface ViewSettings {
@@ -99,12 +100,24 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly currentWS = Computed.create(this, (use) =>
     use(this.workspaces).find(ws => (ws.id === use(this.currentWSId))));
 
-  public readonly currentWSPinnedDocs = Computed.create(this, this.currentPage, this.currentWS, (use, page, ws) => {
-    const docs = (page === 'all') ?
-      flatten((use(this.workspaces).map(w => w.docs))) :
-      (ws ? ws.docs : []);
-    return sortBy(docs.filter(doc => doc.isPinned), (doc) => doc.name.toLowerCase());
-  });
+  public readonly currentWSDocs = Computed.create(
+    this,
+    this.currentPage,
+    this.currentWS,
+    (use, page, ws) => {
+      if (page === 'all') {
+        return flatten(
+          use(this.workspaces)
+            .filter((w) => !w.isSupportWorkspace)
+            .map((w) => w.docs)
+        );
+      } else if (ws) {
+        return ws.docs;
+      } else {
+        return [];
+      }
+    }
+  );
 
   public readonly featuredTemplates = Computed.create(this, this.templateWorkspaces, (_use, templates) => {
     const featuredTemplates = flatten((templates).map(t => t.docs)).filter(t => t.isPinned);
@@ -176,7 +189,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     }
 
     this.autoDispose(subscribe(this.currentPage, this.currentWSId, (use) =>
-      this._updateWorkspaces().catch(reportError)));
+      this.updateWorkspaces().catch(reportError)));
 
     // Defer home plugin initialization
     const pluginManager = new HomePluginManager({
@@ -200,24 +213,24 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     if (!org) { return; }
     this._checkForDuplicates(name);
     await this._app.api.newWorkspace({name}, org.id);
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
   }
 
   public async renameWorkspace(id: number, name: string) {
     this._checkForDuplicates(name);
     await this._app.api.renameWorkspace(id, name);
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
   }
 
   public async deleteWorkspace(id: number, forever: boolean) {
     // TODO: Prevent the last workspace from being removed.
     await (forever ? this._app.api.deleteWorkspace(id) : this._app.api.softDeleteWorkspace(id));
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
   }
 
   public async restoreWorkspace(ws: Workspace) {
     await  this._app.api.undeleteWorkspace(ws.id);
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
     reportMessage(`Workspace "${ws.name}" restored`);
   }
 
@@ -228,91 +241,95 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       return await this._app.api.newUnsavedDoc({timezone});
     }
     const id = await this._app.api.newDoc({name}, workspaceId);
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
     return id;
   }
 
-  public async renameDoc(docId: string, name: string): Promise<void> {
-    await this._app.api.renameDoc(docId, name);
-    await this._updateWorkspaces();
+  public async renameDoc(
+    docId: string,
+    name: string,
+    options?: RenameDocOptions
+  ): Promise<void> {
+    await this._app.api.renameDoc(docId, name, options);
+    await this.updateWorkspaces();
   }
 
   public async deleteDoc(docId: string, forever: boolean): Promise<void> {
     await (forever ? this._app.api.deleteDoc(docId) : this._app.api.softDeleteDoc(docId));
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
   }
 
   public async restoreDoc(doc: Document): Promise<void> {
     await this._app.api.undeleteDoc(doc.id);
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
     reportMessage(`Document "${doc.name}" restored`);
   }
 
   public async pinUnpinDoc(docId: string, pin: boolean): Promise<void> {
     await (pin ? this._app.api.pinDoc(docId) : this._app.api.unpinDoc(docId));
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
   }
 
   public async moveDoc(docId: string, workspaceId: number): Promise<void> {
     await this._app.api.moveDoc(docId, workspaceId);
-    await this._updateWorkspaces();
+    await this.updateWorkspaces();
   }
+
+    // Fetches and updates workspaces, which include contained docs as well.
+    public async updateWorkspaces() {
+      if (this.isDisposed()) {
+        return;
+      }
+      const org = this._app.currentOrg;
+      if (!org) {
+        this.workspaces.set([]);
+        this.trashWorkspaces.set([]);
+        this.templateWorkspaces.set([]);
+        return;
+      }
+
+      this.loading.set(true);
+      const currentPage = this.currentPage.get();
+      const promises = [
+        this._fetchWorkspaces(org.id, false).catch(reportError),
+        currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : null,
+        this._maybeFetchTemplates(),
+      ] as const;
+
+      const promise = Promise.all(promises);
+      if (await isLongerThan(promise, DELAY_BEFORE_SPINNER_MS)) {
+        this.loading.set("slow");
+      }
+      const [wss, trashWss, templateWss] = await promise;
+      if (this.isDisposed()) {
+        return;
+      }
+      // bundleChanges defers computeds' evaluations until all changes have been applied.
+      bundleChanges(() => {
+        this.workspaces.set(wss || []);
+        this.trashWorkspaces.set(trashWss || []);
+        this.templateWorkspaces.set(templateWss || []);
+        this.loading.set(false);
+        this.available.set(!!wss);
+        // Hide workspace name if we are showing a single (non-support) workspace, and active
+        // product doesn't allow adding workspaces.  It is important to check both conditions because:
+        //   * A personal org, where workspaces can't be added, can still have multiple
+        //     workspaces via documents shared by other users.
+        //   * An org with workspace support might happen to just have one workspace right
+        //     now, but it is good to show names to highlight the possibility of adding more.
+        const nonSupportWss = Array.isArray(wss) ? wss.filter(ws => !ws.isSupportWorkspace) : null;
+        this.singleWorkspace.set(
+          // The anon personal site always has 0 non-support workspaces.
+          nonSupportWss?.length === 0 ||
+          nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app)
+        );
+      });
+    }
 
   private _checkForDuplicates(name: string): void {
     if (this.workspaces.get().find(ws => ws.name === name)) {
       throw new UserError('Name already exists. Please choose a different name.');
     }
-  }
-
-  // Fetches and updates workspaces, which include contained docs as well.
-  private async _updateWorkspaces() {
-    if (this.isDisposed()) {
-      return;
-    }
-    const org = this._app.currentOrg;
-    if (!org) {
-      this.workspaces.set([]);
-      this.trashWorkspaces.set([]);
-      this.templateWorkspaces.set([]);
-      return;
-    }
-
-    this.loading.set(true);
-    const currentPage = this.currentPage.get();
-    const promises = [
-      this._fetchWorkspaces(org.id, false).catch(reportError),
-      currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : null,
-      this._maybeFetchTemplates(),
-    ] as const;
-
-    const promise = Promise.all(promises);
-    if (await isLongerThan(promise, DELAY_BEFORE_SPINNER_MS)) {
-      this.loading.set("slow");
-    }
-    const [wss, trashWss, templateWss] = await promise;
-    if (this.isDisposed()) {
-      return;
-    }
-    // bundleChanges defers computeds' evaluations until all changes have been applied.
-    bundleChanges(() => {
-      this.workspaces.set(wss || []);
-      this.trashWorkspaces.set(trashWss || []);
-      this.templateWorkspaces.set(templateWss || []);
-      this.loading.set(false);
-      this.available.set(!!wss);
-      // Hide workspace name if we are showing a single (non-support) workspace, and active
-      // product doesn't allow adding workspaces.  It is important to check both conditions because:
-      //   * A personal org, where workspaces can't be added, can still have multiple
-      //     workspaces via documents shared by other users.
-      //   * An org with workspace support might happen to just have one workspace right
-      //     now, but it is good to show names to highlight the possibility of adding more.
-      const nonSupportWss = Array.isArray(wss) ? wss.filter(ws => !ws.isSupportWorkspace) : null;
-      this.singleWorkspace.set(
-        // The anon personal site always has 0 non-support workspaces.
-        nonSupportWss?.length === 0 ||
-        nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app)
-      );
-    });
   }
 
   private async _fetchWorkspaces(orgId: number, forRemoved: boolean) {

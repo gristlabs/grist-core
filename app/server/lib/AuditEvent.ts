@@ -49,6 +49,7 @@ export const AuditEventAction = StringUnion(
   "document.deliver_webhook_events",
   "document.duplicate",
   "document.fork",
+  "document.modify",
   "document.move",
   "document.move_to_trash",
   "document.open",
@@ -185,6 +186,9 @@ export interface AuditEventDetails {
       document_id: string;
       url_id: string;
     };
+  };
+  "document.modify": {
+    document: Pick<Document, "id">;
   };
   "document.move": PreviousAndCurrent<{
     document: Pick<Document, "id" | "name"> & {

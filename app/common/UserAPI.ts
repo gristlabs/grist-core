@@ -145,11 +145,22 @@ export interface DocumentOptions {
   externalId?: string|null;  // A slot for storing an externally maintained id.
                              // Not used in grist-core, but handy for Electron app.
   tutorial?: TutorialMetadata|null;
+  appearance?: DocumentAppearance|null;
 }
 
 export interface TutorialMetadata {
   lastSlideIndex?: number;
   percentComplete?: number;
+}
+
+interface DocumentAppearance {
+  icon?: DocumentIcon|null;
+}
+
+interface DocumentIcon {
+  backgroundColor?: string;
+  color?: string;
+  emoji?: string|null;
 }
 
 export interface DocumentProperties extends CommonProperties {
@@ -160,7 +171,14 @@ export interface DocumentProperties extends CommonProperties {
   options: DocumentOptions|null;
 }
 
-export const documentPropertyKeys = [...commonPropertyKeys, 'isPinned', 'urlId', 'options', 'type'];
+export const documentPropertyKeys = [
+  ...commonPropertyKeys,
+  'isPinned',
+  'urlId',
+  'options',
+  'type',
+  'appearance',
+];
 
 export interface Document extends DocumentProperties {
   id: string;
@@ -363,6 +381,10 @@ export interface CopyDocOptions {
   asTemplate?: boolean;
 }
 
+export interface RenameDocOptions {
+  icon?: DocumentIcon|null;
+}
+
 export interface UserAPI {
   getSessionActive(): Promise<ActiveSessionInfo>;
   setSessionActive(email: string, org?: string): Promise<void>;
@@ -382,7 +404,7 @@ export interface UserAPI {
   copyDoc(sourceDocumentId: string, workspaceId: number, options: CopyDocOptions): Promise<string>;
   renameOrg(orgId: number|string, name: string): Promise<void>;
   renameWorkspace(workspaceId: number, name: string): Promise<void>;
-  renameDoc(docId: string, name: string): Promise<void>;
+  renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void>;
   updateOrg(orgId: number|string, props: Partial<OrganizationProperties>): Promise<void>;
   updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void>;
   deleteOrg(orgId: number|string): Promise<void>;
@@ -662,8 +684,11 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async renameDoc(docId: string, name: string): Promise<void> {
-    return this.updateDoc(docId, {name});
+  public async renameDoc(docId: string, name: string, { icon }: RenameDocOptions = {}): Promise<void> {
+    return this.updateDoc(docId, {
+      name,
+      ...(icon ? { options: { appearance: { icon } } } : undefined),
+    });
   }
 
   public async updateOrg(orgId: number|string, props: Partial<OrganizationProperties>): Promise<void> {
