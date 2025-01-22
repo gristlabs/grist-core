@@ -949,6 +949,7 @@ export class ActiveDoc extends EventEmitter {
     return data;
   }
 
+  @ActiveDoc.keepDocOpen
   public async startTransferringAllAttachmentsToDefaultStore() {
     const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
     // If no attachment store is set on the doc, it should transfer everything to internal storage
