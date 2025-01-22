@@ -64,19 +64,19 @@ describe("ProxyAgent", function () {
   });
 
   it("should be https proxy if grist proxy is configured and trusted undefined if no proxy", async function () {
-    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000"}, ['untrustedHttpsProxy']);
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000"}, ['untrustedHttpsProxy', 'untrustedHttpProxy']);
   });
 
   it("should be http proxy if grist proxy is configured and trusted undefined if no proxy", async function () {
-    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000"}, ['untrustedHttpProxy']);
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000"}, ['untrustedHttpsProxy', 'untrustedHttpProxy']);
   });
 
   it("should be https proxy if trusted and untrusted proxy are configured and address is https", async function () {
-    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000", HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpsProxy', 'untrustedHttpsProxy']);
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000", HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpsProxy', 'trustedHttpProxy', 'untrustedHttpsProxy', 'untrustedHttpProxy']);
   });
 
   it("should be https proxy if trusted and untrusted proxy are configured and address is http", async function () {
-    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000", HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpProxy', 'untrustedHttpProxy']);
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000", HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpProxy', 'trustedHttpsProxy', 'untrustedHttpProxy', 'untrustedHttpsProxy']);
   });
 
   describe('proxy error handling', async function() {
