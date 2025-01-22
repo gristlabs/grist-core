@@ -243,21 +243,25 @@ export class AttachmentFileManager {
   }
 
   private async _performPendingTransfers() {
-    while (this._pendingFileTransfers.size > 0) {
-      // Map.entries() will always return the most recent key/value from the map, even after a long async delay
-      // Meaning we can safely iterate here and know the transfer is up to date.
-      for (const [fileIdent, targetStoreId] of this._pendingFileTransfers.entries()) {
-        try {
-          await this.transferFileToOtherStore(fileIdent, targetStoreId);
-        } catch(e) {
-          this._log.warn({ fileIdent, storeId: targetStoreId }, `transfer failed: ${e.message}`);
-        } finally {
-          // If a transfer request comes in mid-transfer, it will need re-running.
-          if (this._pendingFileTransfers.get(fileIdent) === targetStoreId) {
-            this._pendingFileTransfers.delete(fileIdent);
+    try {
+      while (this._pendingFileTransfers.size > 0) {
+        // Map.entries() will always return the most recent key/value from the map, even after a long async delay
+        // Meaning we can safely iterate here and know the transfer is up to date.
+        for (const [fileIdent, targetStoreId] of this._pendingFileTransfers.entries()) {
+          try {
+            await this.transferFileToOtherStore(fileIdent, targetStoreId);
+          } catch (e) {
+            this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
+          } finally {
+            // If a transfer request comes in mid-transfer, it will need re-running.
+            if (this._pendingFileTransfers.get(fileIdent) === targetStoreId) {
+              this._pendingFileTransfers.delete(fileIdent);
+            }
           }
         }
       }
+    } finally {
+      await this._docStorage.requestVacuum();
     }
   }
 
