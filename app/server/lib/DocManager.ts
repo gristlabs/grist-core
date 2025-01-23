@@ -471,12 +471,15 @@ export class DocManager extends EventEmitter {
    * up in a loop or hung if you are checking during document
    * initialization.
    */
-  public registerSQLiteDB(docName: string, db?: SQLiteDB) {
-    if (db) {
-      this._sqliteDbs.set(docName, db);
-    } else {
-      this._sqliteDbs.delete(docName);
-    }
+  public registerSQLiteDB(docName: string, db: SQLiteDB) {
+    this._sqliteDbs.set(docName, db);
+  }
+
+  /**
+   * Remove any registered SQLiteDB for the document.
+   */
+  public unregisterSQLiteDB(docName: string) {
+    this._sqliteDbs.delete(docName);
   }
 
   /**
@@ -488,7 +491,7 @@ export class DocManager extends EventEmitter {
   }
 
   public removeActiveDoc(activeDoc: ActiveDoc): void {
-    this.registerSQLiteDB(activeDoc.docName);
+    this.unregisterSQLiteDB(activeDoc.docName);
     this._activeDocs.delete(activeDoc.docName);
   }
 
@@ -504,7 +507,7 @@ export class DocManager extends EventEmitter {
         this.registerSQLiteDB(newName, db);
       }
       this._activeDocs.delete(oldName);
-      this.registerSQLiteDB(oldName);
+      this.unregisterSQLiteDB(oldName);
     } else {
       await this.storageManager.renameDoc(oldName, newName);
     }

@@ -667,8 +667,8 @@ export class ActiveDoc extends EventEmitter {
             return this._afterMigration(docSession, 'storage',  newVersion, success);
           },
         });
-        this._registerSQLiteDB();
       }
+      this._registerSQLiteDB();
 
       await this._loadOpenDoc(docSession);
       const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
@@ -2170,7 +2170,7 @@ export class ActiveDoc extends EventEmitter {
           // tests.
           await timeoutReached(3000, this.waitForInitialization());
         }
-        this._docManager.registerSQLiteDB(this.docName);
+        this._docManager.unregisterSQLiteDB(this.docName);
         await Promise.all([
           this.docStorage.shutdown(),
           this.docPluginManager?.shutdown(),
