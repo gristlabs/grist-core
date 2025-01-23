@@ -269,7 +269,7 @@ export class SQLiteDB implements ISQLiteDB {
     if (!this._db.backup) {
       throw new Error('SQLite wrapper does not support backups');
     }
-    return this._db.backup?.(filename);
+    return this._db.backup(filename);
   }
 
   public getOptions(): MinDBOptions|undefined {
