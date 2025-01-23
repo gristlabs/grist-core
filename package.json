@@ -90,7 +90,7 @@
     "chai-as-promised": "7.1.1",
     "chance": "1.0.16",
     "chokidar-cli": "3.0.0",
-    "esbuild-loader": "2.19.0",
+    "esbuild-loader": "4.2.2",
     "eslint": "8.18.0",
     "http-proxy": "1.18.1",
     "i18next-scanner": "4.4.0",
