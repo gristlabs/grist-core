@@ -71,7 +71,7 @@ class ScimGroupController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const groupDescriptor = toGroupDescriptor(data);
-      const group = await this.dbManager.overwriteGroup(id, groupDescriptor, Group.RESOURCE_USERS_TYPE);
+      const group = await this.dbManager.overwriteResourceUsersGroup(id, groupDescriptor);
       return toSCIMMYGroup(group);
     });
   }

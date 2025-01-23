@@ -3,7 +3,7 @@ import { Group } from 'app/gen-server/entity/Group';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { BaseController } from 'app/server/lib/scim/v2/BaseController';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
-import { toGroupDescriptor, toSCIMMYRole } from 'app/server/lib/scim/v2/ScimUtils';
+import { toRoleDescriptor, toSCIMMYRole } from 'app/server/lib/scim/v2/ScimUtils';
 
 import SCIMMY from 'scimmy';
 
@@ -27,12 +27,11 @@ class ScimRoleController extends BaseController {
   public async getSingleRole(resource: any, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      const group = await this.dbManager.getGroupWithMembersById(id, {aclRule: true});
-      if (!group || group.type !== Group.ROLE_TYPE) {
-        throw new SCIMMY.Types.Error(404, null!, `Group with ID ${id} not found`);
+      const role = await this.dbManager.getGroupWithMembersById(id, {aclRule: true});
+      if (!role || role.type !== Group.ROLE_TYPE) {
+        throw new SCIMMY.Types.Error(404, null!, `Role with ID ${id} not found`);
       }
-      console.log(JSON.stringify(toSCIMMYRole(group), null, 4));
-      return toSCIMMYRole(group);
+      return toSCIMMYRole(role);
     });
   }
 
@@ -46,7 +45,7 @@ class ScimRoleController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const { filter } = resource;
       const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.ROLE_TYPE, {aclRule: true}))
-        .map(group => toSCIMMYRole(group));
+        .map(role => toSCIMMYRole(role));
       return filter ? filter.match(scimmyGroup) : scimmyGroup;
     });
   }
@@ -61,9 +60,12 @@ class ScimRoleController extends BaseController {
   public async overwriteRole(resource: any, data: any, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      const groupDescriptor = toGroupDescriptor(data);
-      const group = await this.dbManager.overwriteGroup(id, groupDescriptor, Group.ROLE_TYPE);
-      return toSCIMMYRole(group);
+      const groupDescriptor = toRoleDescriptor({
+        ...data,
+        name: data.role,
+      });
+      const role = await this.dbManager.overwriteRoleGroup(id, groupDescriptor);
+      return toSCIMMYRole(role);
     });
   }
 }
@@ -97,8 +99,8 @@ export class SCIMMYRoleGroupSchema extends SCIMMY.Types.Schema {
     // Clone the Groups schema definition
     const attrMembers = SCIMMY.Schemas.Group.definition.attribute('members');
     return new SchemaDefinition(
-      "Role", "urn:ietf:params:scim:schemas:Grist:Role", "Role in Grist (Owner)", [
-        new Attribute("string", "role", {/*canonicalValues: ['owner', 'editor', 'viewer', 'member', 'guest'], */
+      "Role", "urn:ietf:params:scim:schemas:Grist:1.0:Role", "Role in Grist (Owner)", [
+        new Attribute("string", "displayName", {/*canonicalValues: ['owner', 'editor', 'viewer', 'member', 'guest'], */
           mutable: false}),
         attrMembers as SCIMMY.Types.Attribute,
         new Attribute("string", "docId", {required: false, description: "The docId associated to this role.",
@@ -126,14 +128,17 @@ export class SCIMMYRoleGroupResource extends SCIMMY.Types.Resource {
     return SCIMMYRoleGroupSchema;
   }
 
+  public static basepath(): string;
+  public static basepath(path: string): typeof SCIMMYRoleGroupResource;
   // Required by SCIMMY. This seems to be a method with the same logic for every Resouces:
   // https://github.com/scimmyjs/scimmy/blob/8b4333edc566a04cd5390ee4aa3272d021610d77/src/lib/resources/user.js#L22-L27
   public static basepath(path?: string) {
-    const { endpoint } = SCIMMYRoleGroupResource;
     if (path === undefined) {
       return SCIMMYRoleGroupResource._basepath;
     } else {
-      SCIMMYRoleGroupResource._basepath = (path.endsWith(endpoint) ? path : `${path}${endpoint}`);
+      SCIMMYRoleGroupResource._basepath = (path.endsWith(SCIMMYRoleGroupResource.endpoint) ?
+        path :
+        `${path}${SCIMMYRoleGroupResource.endpoint}`);
     }
 
     return SCIMMYRoleGroupResource;
@@ -200,12 +205,12 @@ export class SCIMMYRoleGroupResource extends SCIMMY.Types.Resource {
       if (!this.id && Array.isArray(target)) {
         return new SCIMMY.Messages.ListResponse(target
           .map(u => new SCIMMYRoleGroupSchema(
-            u, "out", SCIMMYRoleGroupResource.endpoint, this.attributes)
+            u, "out", SCIMMYRoleGroupResource.basepath(), this.attributes)
           ), this.constraints);
       }
       // For specific resources, make sure egress returned an object
       else if (target instanceof Object) {
-        return new SCIMMYRoleGroupSchema(target, "out", SCIMMYRoleGroupResource.endpoint, this.attributes);
+        return new SCIMMYRoleGroupSchema(target, "out", SCIMMYRoleGroupResource.basepath(), this.attributes);
       }
       // Otherwise, egress has not been implemented correctly
       else {
@@ -253,7 +258,7 @@ export class SCIMMYRoleGroupResource extends SCIMMY.Types.Resource {
 
       // Make sure ingress returned an object
       if (target instanceof Object) {
-        return new SCIMMYRoleGroupResource(target, "out", SCIMMYRoleGroupResource.endpoint, this.attributes);
+        return new SCIMMYRoleGroupSchema(target, "out", SCIMMYRoleGroupResource.basepath(), this.attributes);
       }
         // Otherwise, ingress has not been implemented correctly
       else {
@@ -294,7 +299,7 @@ export class SCIMMYRoleGroupResource extends SCIMMY.Types.Resource {
     return await new SCIMMY.Messages.PatchOp(message)
       .apply((await this.read(ctx)) as any, async (instance) => await this.write(instance, ctx))
       .then(instance => !instance ? undefined :
-        new SCIMMYRoleGroupSchema(instance, "out", SCIMMYRoleGroupResource.endpoint, this.attributes));
+        new SCIMMYRoleGroupSchema(instance, "out", SCIMMYRoleGroupResource.basepath(), this.attributes));
   }
 
   // /**

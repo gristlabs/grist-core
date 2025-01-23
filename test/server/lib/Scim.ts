@@ -193,7 +193,8 @@ describe('Scim', () => {
           sandbox.stub(getDbManager(), 'getGroupsWithMembersByType').throws(error);
           sandbox.stub(getDbManager(), 'getGroupsWithMembers').throws(error);
           sandbox.stub(getDbManager(), 'createGroup').throws(error);
-          sandbox.stub(getDbManager(), 'overwriteGroup').throws(error);
+          sandbox.stub(getDbManager(), 'overwriteResourceUsersGroup').throws(error);
+          sandbox.stub(getDbManager(), 'overwriteRoleGroup').throws(error);
           sandbox.stub(getDbManager(), 'deleteGroup').throws(error);
 
           const res = await makeCallWith('chimpy');
@@ -610,7 +611,7 @@ describe('Scim', () => {
       });
     });
 
-    describe('Groups', function () {
+    describe('Groups and Roles', function () {
       async function cleanupGroups(groups: Group[]) {
         for (const {id} of groups) {
           await getDbManager().deleteGroup(id);
@@ -652,478 +653,721 @@ describe('Scim', () => {
         return { ...getUserMember(user), $ref: `/api/scim/v2/Users/${userIdByName[user]}` };
       }
 
-      function withGroup<T>(cb: (groupId: string) => Promise<T>) {
+      function withGroup<T>(cb: (groupId: string, group: Group) => Promise<T>) {
         return withGroupName('test-group', async (groupName) => {
-          const {id} = await getDbManager().createGroup({
+          const group = await getDbManager().createGroup({
             name: groupName,
             type: Group.RESOURCE_USERS_TYPE,
             memberUsers: [userIdByName['chimpy']!]
           });
-          return await cb(String(id));
+          return await cb(String(group.id), group);
         });
       }
 
-      function withRole<T>(cb: (groupId: string) => Promise<T>) {
-        return withGroupName('test-group', async (groupName) => {
-          const {id} = await getDbManager().createGroup({
+      function withRole<T>(cb: (groupId: string, role: Group) => Promise<T>) {
+        return withGroupName('test-role', async (groupName) => {
+          const role = await getDbManager().createGroup({
             name: groupName,
             type: Group.ROLE_TYPE,
             memberUsers: [userIdByName['chimpy']!]
           });
-          return await cb(String(id));
+          return await cb(String(role.id), role);
         });
       }
 
+      describe('Groups', function () {
+        describe('GET /Groups/{id}', function () {
+          it(`should return a "${Group.RESOURCE_USERS_TYPE}" group for chimpy`, async function () {
+            await withGroupName('test-get-group-by-id', async (groupName) => {
+              const {id: groupId} = await getDbManager().createGroup({
+                name: groupName,
+                type: Group.RESOURCE_USERS_TYPE,
+                memberUsers: [userIdByName['chimpy']!, userIdByName['kiwi']!]
+              });
 
-      describe('GET /Groups/{id}', function () {
-        it(`should return a "${Group.RESOURCE_USERS_TYPE}" group for chimpy`, async function () {
-          await withGroupName('test-get-group-by-id', async (groupName) => {
-            const {id: groupId} = await getDbManager().createGroup({
-              name: groupName,
-              type: Group.RESOURCE_USERS_TYPE,
-              memberUsers: [userIdByName['chimpy']!, userIdByName['kiwi']!]
-            });
+              const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
 
-            const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
-
-            assert.equal(res.status, 200);
-            assert.deepEqual(res.data, {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              id: String(groupId),
-              displayName: groupName,
-              members: [
-                { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
-                { value: '2', display: 'Kiwi', $ref: '/api/scim/v2/Users/2', type: 'User' },
-              ],
-              meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${groupId}` }
+              assert.equal(res.status, 200);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                id: String(groupId),
+                displayName: groupName,
+                members: [
+                  { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
+                  { value: '2', display: 'Kiwi', $ref: '/api/scim/v2/Users/2', type: 'User' },
+                ],
+                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${groupId}` }
+              });
             });
           });
-        });
 
-        it('should return 404 when the group is not found', async function () {
-          const nonExistingId = 10000000;
-          const res = await axios.get(scimUrl(`/Groups/${nonExistingId}`), chimpy);
-          assert.equal(res.status, 404);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '404',
-            detail: `Group with ID ${nonExistingId} not found`
-          });
-        });
-
-        it(`should return 404 when the group is of type ${Group.ROLE_TYPE}`, async function () {
-          await withGroupName('test-role-group', async (groupName) => {
-            const {id: groupId} = await getDbManager().createGroup({
-              name: groupName,
-              type: Group.ROLE_TYPE,
-              memberUsers: [userIdByName['chimpy']!]
-            });
-
-            const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
+          it('should return 404 when the group is not found', async function () {
+            const nonExistingId = 10000000;
+            const res = await axios.get(scimUrl(`/Groups/${nonExistingId}`), chimpy);
             assert.equal(res.status, 404);
             assert.deepEqual(res.data, {
               schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
               status: '404',
-              detail: `Group with ID ${groupId} not found`
+              detail: `Group with ID ${nonExistingId} not found`
             });
           });
-        });
 
-        it('should return 400 when the group id is malformed', async function () {
-          const res = await axios.get(scimUrl('/Groups/not-an-id'), chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '400',
-            detail: 'Invalid passed group ID',
-            scimType: 'invalidValue'
-          });
-          assert.equal(res.status, 400);
-        });
-
-        checkCommonErrors('get', '/Groups/1');
-      });
-
-      describe('GET /Groups', function () {
-        it(`should return all ${Group.RESOURCE_USERS_TYPE} groups for chimpy`, async function () {
-          return withGroupNames(
-            ['test-group1', 'test-group2', 'test-role-group'],
-            async ([group1Name, group2Name, roleGroupName]) => {
-              await getDbManager().createGroup({
-                name: roleGroupName,
+          it(`should return 404 when the group is of type ${Group.ROLE_TYPE}`, async function () {
+            await withGroupName('test-role-group', async (groupName) => {
+              const {id: groupId} = await getDbManager().createGroup({
+                name: groupName,
                 type: Group.ROLE_TYPE,
                 memberUsers: [userIdByName['chimpy']!]
               });
-              const group1 = await getDbManager().createGroup({
-                name: group1Name,
+
+              const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
+              assert.equal(res.status, 404);
+              assert.deepEqual(res.data, {
+                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                status: '404',
+                detail: `Group with ID ${groupId} not found`
+              });
+            });
+          });
+
+          it('should return 400 when the group id is malformed', async function () {
+            const res = await axios.get(scimUrl('/Groups/not-an-id'), chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: 'Invalid passed group ID',
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          checkCommonErrors('get', '/Groups/1');
+        });
+
+        describe('GET /Groups', function () {
+          it(`should return all ${Group.RESOURCE_USERS_TYPE} groups for chimpy`, async function () {
+            return withGroupNames(
+              ['test-group1', 'test-group2', 'test-role-group'],
+              async ([group1Name, group2Name, roleGroupName]) => {
+                await getDbManager().createGroup({
+                  name: roleGroupName,
+                  type: Group.ROLE_TYPE,
+                  memberUsers: [userIdByName['chimpy']!]
+                });
+                const group1 = await getDbManager().createGroup({
+                  name: group1Name,
+                  type: Group.RESOURCE_USERS_TYPE,
+                  memberUsers: [userIdByName['chimpy']!]
+                });
+                const group2 = await getDbManager().createGroup({
+                  name: group2Name,
+                  type: Group.RESOURCE_USERS_TYPE,
+                  memberUsers: [userIdByName['kiwi']!]
+                });
+
+                const res = await axios.get(scimUrl('/Groups'), chimpy);
+                assert.equal(res.status, 200);
+                assert.isAbove(res.data.totalResults, 0, 'should have retrieved some groups');
+                assert.isFalse(res.data.Resources.some(
+                  ({displayName}: {displayName: string}) => displayName === roleGroupName
+                ), 'The API endpoint should not return role Groups');
+                assert.deepEqual(res.data.Resources, [
+                  {
+                    schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                    id: String(group1.id),
+                    displayName: group1Name,
+                    members: [getUserMemberWithRef('chimpy')],
+                    meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group1.id}` }
+                  }, {
+                    schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                    id: String(group2.id),
+                    displayName: group2Name,
+                    members: [getUserMemberWithRef('kiwi')],
+                    meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group2.id}` }
+                  }
+                ]);
+              }
+            );
+          });
+
+          checkCommonErrors('get', '/Groups');
+        });
+
+        describe('POST /Groups', function () {
+          it(`should create a new group of type "${Group.RESOURCE_USERS_TYPE}`, async function () {
+            await withGroupName('test-group', async (groupName) => {
+              const res = await axios.post(scimUrl('/Groups'), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: groupName,
+                members: [
+                  getUserMember('chimpy'),
+                  getUserMember('kiwi'),
+                ]
+              }, chimpy);
+              assert.equal(res.status, 201);
+              const newGroupId = parseInt(res.data.id);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                id: String(newGroupId),
+                displayName: groupName,
+                members: [
+                  getUserMemberWithRef('chimpy'),
+                  getUserMemberWithRef('kiwi'),
+                ],
+                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${newGroupId}` }
+              });
+            });
+          });
+
+          it('should allow to create a group without members', function () {
+            return withGroupName('test-group-without-members', async (groupName) => {
+              const res = await axios.post(scimUrl('/Groups'), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: groupName,
+              }, chimpy);
+              assert.equal(res.status, 201);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                id: res.data.id,
+                displayName: groupName,
+                members: [],
+                meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${res.data.id}` }
+              });
+            });
+          });
+
+          it('should return 400 when the group name is missing', async function () {
+            const res = await axios.post(scimUrl('/Groups'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              members: [
+                { value: String(userIdByName['chimpy']), display: 'Chimpy', type: 'User' },
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: "Required attribute 'displayName' is missing",
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          it('should return 400 when the group members contain an invalid user id', async function () {
+            const res = await axios.post(scimUrl('/Groups'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: 'test-group',
+              members: [
+                { value: 'not-an-id', display: 'Non-Existing User', type: 'User' },
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: 'Invalid User member ID: not-an-id',
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          it('should return 400 when the group members contain an invalid group id', async function () {
+            const res = await axios.post(scimUrl('/Groups'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: 'test-group',
+              members: [
+                { value: 'not-an-id', display: 'Non-Existing Group', type: 'Group' },
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: 'Invalid Group member ID: not-an-id',
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          it('should return 404 when the group members contain a non-existing user id', async function () {
+            const res = await axios.post(scimUrl('/Groups'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: 'test-group',
+              members: [
+                getUserMember('chimpy'),
+                { value: '1000', display: 'Non-Existing User', type: 'User' },
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '404',
+              detail: 'Users not found: 1000'
+            });
+            assert.equal(res.status, 404);
+          });
+
+          it('should return 404 when the group members contain a non-existing group id', async function () {
+            const res = await axios.post(scimUrl('/Groups'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: 'test-group',
+              members: [
+                { value: '1000', display: 'Non-Existing Group', type: 'Group' },
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '404',
+              detail: 'Groups not found: 1000'
+            });
+            assert.equal(res.status, 404);
+          });
+
+          checkCommonErrors('post', '/Groups', {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            displayName: 'test-group',
+            // We need to differ the moment we call userIdByName['chimpy'] (set during a "before()" hook)
+            get members() {
+              return [
+                getUserMember('chimpy'),
+                getUserMember('kiwi'),
+              ];
+            }
+          });
+        });
+
+        describe('PUT /Groups/{id}', function () {
+          it('should update an existing group', async function () {
+            return withGroup(async (groupId) => {
+              const newGroupName = 'Updated Group Name';
+              const res = await axios.put(scimUrl('/Groups/' + groupId), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: newGroupName,
+                members: [
+                  getUserMember('kiwi'),
+                ]
+              }, chimpy);
+              assert.equal(res.status, 200);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                id: groupId,
+                displayName: newGroupName,
+                members: [
+                  getUserMemberWithRef('kiwi'),
+                ],
+                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+              });
+            });
+          });
+
+          it('should update a group with members omitted', async function () {
+            return withGroup(async (groupId) => {
+              const newGroupName = 'Updated Group Name';
+              const res = await axios.put(scimUrl('/Groups/' + groupId), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: newGroupName,
+              }, chimpy);
+              assert.equal(res.status, 200);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                id: groupId,
+                displayName: newGroupName,
+                members: [],
+                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+              });
+            });
+          });
+
+          it('should refuse to alter a role', async function () {
+            return withRole(async (groupId) => {
+              const res = await axios.put(scimUrl('/Groups/' + groupId), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: 'whatever',
+              }, chimpy);
+              assert.equal(res.status, 404);
+            });
+          });
+
+          it('should return 404 when the group is not found', async function () {
+            const res = await axios.put(scimUrl('/Groups/1000'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: 'New Group Name',
+              members: [
+                getUserMember('kiwi'),
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '404',
+              detail: 'Group with id 1000 not found'
+            });
+            assert.equal(res.status, 404);
+          });
+
+          it('should return 400 when the group id is malformed', async function () {
+            const res = await axios.put(scimUrl('/Groups/not-an-id'), {
+              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+              displayName: 'New Group Name',
+              members: [
+                getUserMember('kiwi'),
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: 'Invalid passed group ID',
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          checkCommonErrors('put', '/Groups/1', {
+            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            displayName: 'New Group Name',
+            // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
+            get members() {
+              return [ getUserMember('kiwi') ];
+            }
+          });
+        });
+
+        describe('PATCH /Groups/{id}', function () {
+          it('should update an existing group name', async function () {
+            return withGroup(async (groupId) => {
+              const newGroupName = 'Updated Group Name';
+              const res = await axios.patch(scimUrl('/Groups/' + groupId), {
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+                Operations: [{
+                  op: 'replace', path: 'displayName', value: newGroupName
+                }]
+              }, chimpy);
+              assert.equal(res.status, 200);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                id: groupId,
+                displayName: newGroupName,
+                members: [
+                  getUserMemberWithRef('chimpy'),
+                ],
+                meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
+              });
+            });
+          });
+
+          it('should add a member to a group', async function () {
+            return withGroup(async (groupId) => {
+              const res = await axios.patch(scimUrl('/Groups/' + groupId), {
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+                Operations: [{
+                  op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
+                }]
+              }, chimpy);
+              assert.equal(res.status, 200);
+              assert.deepEqual(res.data.members, [
+                getUserMemberWithRef('chimpy'),
+                getUserMemberWithRef('kiwi'),
+              ]);
+            });
+          });
+
+          it('should refuse to alter a role', async function () {
+            return withRole(async (groupId) => {
+              const res = await axios.patch(scimUrl('/Groups/' + groupId), {
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+                Operations: [{
+                  op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
+                }]
+              }, chimpy);
+              assert.equal(res.status, 404);
+            });
+          });
+
+          checkCommonErrors('patch', '/Groups/1', {
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            Operations: [{
+              op: 'replace', path: 'displayName', value: 'Updated Group Name'
+            }]
+          });
+        });
+
+        describe('DELETE /Groups/{id}', function () {
+          it('should delete a group', async function () {
+            return withGroup(async (groupId) => {
+              const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
+              assert.equal(res.status, 204);
+              const refreshedGroup = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
+              assert.equal(refreshedGroup.status, 404);
+            });
+          });
+
+          it('should refuse to delete a role', async function () {
+            return withRole(async (groupId) => {
+              const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
+              assert.equal(res.status, 404);
+            });
+          });
+
+          it('should return 404 when the group is not found', async function () {
+            const res = await axios.delete(scimUrl('/Groups/1000'), chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '404',
+              detail: 'Group with id 1000 not found'
+            });
+            assert.equal(res.status, 404);
+          });
+
+          it('should return 400 when the group id is malformed', async function () {
+            const res = await axios.delete(scimUrl('/Groups/not-an-id'), chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: 'Invalid passed group ID',
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          checkCommonErrors('delete', '/Groups/1');
+        });
+      });
+
+      describe('Roles', function () {
+        describe('GET /Roles/{id}', function () {
+          it(`should return a "${Group.ROLE_TYPE}" group for chimpy`, async function () {
+            await withRole(async (roleId: string, role: Group) => {
+              const res = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
+
+              assert.equal(res.status, 200);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                id: String(roleId),
+                displayName: role.name,
+                members: [
+                  { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
+                ],
+                meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${roleId}` }
+              });
+            });
+          });
+
+          it('should return 404 when the role is not found', async function () {
+            const nonExistingId = 10000000;
+            const res = await axios.get(scimUrl(`/Roles/${nonExistingId}`), chimpy);
+            assert.equal(res.status, 404);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '404',
+              detail: `Role with ID ${nonExistingId} not found`
+            });
+          });
+
+          it(`should return 404 when the role is of type ${Group.RESOURCE_USERS_TYPE}`, async function () {
+            await withGroupName('test-group', async (groupName) => {
+              const {id: roleId} = await getDbManager().createGroup({
+                name: groupName,
                 type: Group.RESOURCE_USERS_TYPE,
                 memberUsers: [userIdByName['chimpy']!]
               });
-              const group2 = await getDbManager().createGroup({
-                name: group2Name,
-                type: Group.RESOURCE_USERS_TYPE,
-                memberUsers: [userIdByName['kiwi']!]
+
+              const res = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
+              assert.equal(res.status, 404);
+              assert.deepEqual(res.data, {
+                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                status: '404',
+                detail: `Role with ID ${roleId} not found`
               });
+            });
+          });
 
-              const res = await axios.get(scimUrl('/Groups'), chimpy);
+          it('should return 400 when the role id is malformed', async function () {
+            const res = await axios.get(scimUrl('/Roles/not-an-id'), chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: 'Invalid passed role ID',
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          checkCommonErrors('get', '/Roles/1');
+        });
+
+        describe('GET /Roles', function () {
+          it(`should return all ${Group.ROLE_TYPE} groups for chimpy`, async function () {
+            return withGroupNames(
+              ['test-role1', 'test-role2', 'test-group'],
+              async ([role1Name, role2Name, group1Name]) => {
+                const beforeAdditions = await axios.get(scimUrl('/Roles?count=300'), chimpy);
+                const beforeAdditionsIds = new Set(beforeAdditions.data.Resources.map(({id}: {id: number}) => id));
+                await getDbManager().createGroup({
+                  name: group1Name,
+                  type: Group.RESOURCE_USERS_TYPE,
+                  memberUsers: [userIdByName['chimpy']!]
+                });
+                const role1 = await getDbManager().createGroup({
+                  name: role1Name,
+                  type: Group.ROLE_TYPE,
+                  memberUsers: [userIdByName['chimpy']!]
+                });
+                const role2 = await getDbManager().createGroup({
+                  name: role2Name,
+                  type: Group.ROLE_TYPE,
+                  memberUsers: [userIdByName['kiwi']!]
+                });
+
+                const res = await axios.get(scimUrl('/Roles?count=300'), chimpy);
+                const newResources = res.data.Resources.filter(({id}: {id: number}) => !beforeAdditionsIds.has(id));
+                assert.equal(res.status, 200);
+                assert.lengthOf(newResources, 2, 'should have the newly created roles');
+                assert.isFalse(res.data.Resources.some(
+                  ({displayName}: {displayName: string}) => displayName === group1Name
+                ), 'The API endpoint should not return resource Groups');
+                assert.deepEqual(newResources, [
+                  {
+                    schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                    id: String(role1.id),
+                    displayName: role1Name,
+                    members: [getUserMemberWithRef('chimpy')],
+                    meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${role1.id}` }
+                  }, {
+                    schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                    id: String(role2.id),
+                    displayName: role2Name,
+                    members: [getUserMemberWithRef('kiwi')],
+                    meta: { resourceType: 'Role', location: `/api/scim/v2/Roles/${role2.id}` }
+                  }
+                ]);
+              }
+            );
+          });
+
+          checkCommonErrors('get', '/Roles');
+        });
+
+        describe('POST /Roles', function () {
+          it('should return 501 Not implemented', async function () {
+            const res = await axios.post(scimUrl('/Roles'), {
+              schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+              displayName: 'test-role',
+              members: []
+            }, chimpy);
+            console.log(res.data);
+            assert.equal(res.status, 501);
+          });
+        });
+
+        describe('PUT /Roles/{id}', function () {
+          it('should update the role\'s members', async function () {
+            return withRole(async (roleId) => {
+              const res = await axios.put(scimUrl('/Roles/' + roleId), {
+                schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                displayName: 'test-role',
+                members: [
+                  getUserMember('kiwi'),
+                ]
+              }, chimpy);
               assert.equal(res.status, 200);
-              assert.isAbove(res.data.totalResults, 0, 'should have retrieved some groups');
-              assert.isFalse(res.data.Resources.some(
-                ({displayName}: {displayName: string}) => displayName === roleGroupName
-              ), 'The API endpoint should not return role Groups');
-              assert.deepEqual(res.data.Resources, [
-                {
-                  schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-                  id: String(group1.id),
-                  displayName: group1Name,
-                  members: [getUserMemberWithRef('chimpy')],
-                  meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group1.id}` }
-                }, {
-                  schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-                  id: String(group2.id),
-                  displayName: group2Name,
-                  members: [getUserMemberWithRef('kiwi')],
-                  meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${group2.id}` }
-                }
-              ]);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                id: roleId,
+                displayName: 'test-role',
+                members: [
+                  getUserMemberWithRef('kiwi'),
+                ],
+                meta: { resourceType: 'Role', location: '/api/scim/v2/Roles/' + roleId }
+              });
+            });
+          });
+
+          it('should not allow updating the role name', async function () {
+            return withRole(async (roleId) => {
+              const res = await axios.put(scimUrl('/Roles/' + roleId), {
+                schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                displayName: 'new-role',
+                members: [
+                  getUserMember('kiwi'),
+                ]
+              }, chimpy);
+              assert.equal(res.status, 400);
+              assert.deepEqual(res.data, {
+                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                status: '400',
+                detail: 'Role name cannot be updated',
+                scimType: 'invalidValue'
+              });
+            });
+          });
+
+          it('should return 404 when the role is not found', async function () {
+            const res = await axios.put(scimUrl('/Roles/1000'), {
+              schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+              displayName: 'test-role',
+              members: [
+                getUserMember('kiwi'),
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '404',
+              detail: 'Role with id 1000 not found'
+            });
+            assert.equal(res.status, 404);
+          });
+
+          it('should return 400 when the role id is malformed', async function () {
+            const res = await axios.put(scimUrl('/Roles/not-an-id'), {
+              schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+              displayName: 'test-role',
+              members: [
+                getUserMember('kiwi'),
+              ]
+            }, chimpy);
+            assert.deepEqual(res.data, {
+              schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+              status: '400',
+              detail: 'Invalid passed role ID',
+              scimType: 'invalidValue'
+            });
+            assert.equal(res.status, 400);
+          });
+
+          checkCommonErrors('put', '/Roles/1', {
+            schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+            displayName: 'test-role',
+            // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
+            get members() {
+              return [ getUserMember('kiwi') ];
             }
-          );
+          });
         });
 
-        checkCommonErrors('get', '/Groups');
-      });
-
-      describe('POST /Groups', function () {
-        it(`should create a new group of type "${Group.RESOURCE_USERS_TYPE}`, async function () {
-          await withGroupName('test-group', async (groupName) => {
-            const res = await axios.post(scimUrl('/Groups'), {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              displayName: groupName,
-              members: [
-                getUserMember('chimpy'),
-                getUserMember('kiwi'),
-              ]
-            }, chimpy);
-            assert.equal(res.status, 201);
-            const newGroupId = parseInt(res.data.id);
-            assert.deepEqual(res.data, {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              id: String(newGroupId),
-              displayName: groupName,
-              members: [
-                getUserMemberWithRef('chimpy'),
-                getUserMemberWithRef('kiwi'),
-              ],
-              meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${newGroupId}` }
+        describe('PATCH /Roles/{id}', function () {
+          it('should update the role\'s members', async function () {
+            return withRole(async (roleId, role) => {
+              const res = await axios.patch(scimUrl('/Roles/' + roleId), {
+                schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+                Operations: [{
+                  op: 'replace', path: 'members', value: [ getUserMember('kiwi') ]
+                }]
+              }, chimpy);
+              assert.equal(res.status, 200);
+              assert.deepEqual(res.data, {
+                schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                id: roleId,
+                displayName: role.name,
+                members: [
+                  getUserMemberWithRef('kiwi'),
+                ],
+                meta: { resourceType: 'Role', location: '/api/scim/v2/Roles/' + roleId }
+              });
             });
           });
-        });
 
-        it('should allow to create a group without members', function () {
-          return withGroupName('test-group-without-members', async (groupName) => {
-            const res = await axios.post(scimUrl('/Groups'), {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              displayName: groupName,
-            }, chimpy);
-            assert.equal(res.status, 201);
-            assert.deepEqual(res.data, {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              id: res.data.id,
-              displayName: groupName,
-              members: [],
-              meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${res.data.id}` }
-            });
+          checkCommonErrors('patch', '/Roles/1', {
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            Operations: [{
+              op: 'replace', path: 'displayName', value: 'Updated Role Name'
+            }]
           });
         });
-
-        it('should return 400 when the group name is missing', async function () {
-          const res = await axios.post(scimUrl('/Groups'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            members: [
-              { value: String(userIdByName['chimpy']), display: 'Chimpy', type: 'User' },
-            ]
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '400',
-            detail: "Required attribute 'displayName' is missing",
-            scimType: 'invalidValue'
-          });
-          assert.equal(res.status, 400);
-        });
-
-        it('should return 400 when the group members contain an invalid user id', async function () {
-          const res = await axios.post(scimUrl('/Groups'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: 'test-group',
-            members: [
-              { value: 'not-an-id', display: 'Non-Existing User', type: 'User' },
-            ]
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '400',
-            detail: 'Invalid User member ID: not-an-id',
-            scimType: 'invalidValue'
-          });
-          assert.equal(res.status, 400);
-        });
-
-        it('should return 400 when the group members contain an invalid group id', async function () {
-          const res = await axios.post(scimUrl('/Groups'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: 'test-group',
-            members: [
-              { value: 'not-an-id', display: 'Non-Existing Group', type: 'Group' },
-            ]
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '400',
-            detail: 'Invalid Group member ID: not-an-id',
-            scimType: 'invalidValue'
-          });
-          assert.equal(res.status, 400);
-        });
-
-        it('should return 404 when the group members contain a non-existing user id', async function () {
-          const res = await axios.post(scimUrl('/Groups'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: 'test-group',
-            members: [
-              getUserMember('chimpy'),
-              { value: '1000', display: 'Non-Existing User', type: 'User' },
-            ]
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '404',
-            detail: 'Users not found: 1000'
-          });
-          assert.equal(res.status, 404);
-        });
-
-        it('should return 404 when the group members contain a non-existing group id', async function () {
-          const res = await axios.post(scimUrl('/Groups'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: 'test-group',
-            members: [
-              { value: '1000', display: 'Non-Existing Group', type: 'Group' },
-            ]
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '404',
-            detail: 'Groups not found: 1000'
-          });
-          assert.equal(res.status, 404);
-        });
-
-        checkCommonErrors('post', '/Groups', {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-          displayName: 'test-group',
-          // We need to differ the moment we call userIdByName['chimpy'] (set during a "before()" hook)
-          get members() {
-            return [
-              getUserMember('chimpy'),
-              getUserMember('kiwi'),
-            ];
-          }
-        });
-      });
-
-      describe('PUT /Groups/{id}', function () {
-        it('should update an existing group', async function () {
-          return withGroup(async (groupId) => {
-            const newGroupName = 'Updated Group Name';
-            const res = await axios.put(scimUrl('/Groups/' + groupId), {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              displayName: newGroupName,
-              members: [
-                getUserMember('kiwi'),
-              ]
-            }, chimpy);
-            assert.equal(res.status, 200);
-            assert.deepEqual(res.data, {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              id: groupId,
-              displayName: newGroupName,
-              members: [
-                getUserMemberWithRef('kiwi'),
-              ],
-              meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
-            });
-          });
-        });
-
-        it('should update a group with members omitted', async function () {
-          return withGroup(async (groupId) => {
-            const newGroupName = 'Updated Group Name';
-            const res = await axios.put(scimUrl('/Groups/' + groupId), {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              displayName: newGroupName,
-            }, chimpy);
-            assert.equal(res.status, 200);
-            assert.deepEqual(res.data, {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              id: groupId,
-              displayName: newGroupName,
-              members: [],
-              meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
-            });
-          });
-        });
-
-        it('should refuse to alter a role', async function () {
-          return withRole(async (groupId) => {
-            const res = await axios.put(scimUrl('/Groups/' + groupId), {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              displayName: 'whatever',
-            }, chimpy);
-            assert.equal(res.status, 404);
-          });
-        });
-
-        it('should return 404 when the group is not found', async function () {
-          const res = await axios.put(scimUrl('/Groups/1000'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: 'New Group Name',
-            members: [
-              getUserMember('kiwi'),
-            ]
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '404',
-            detail: 'Group with id 1000 not found'
-          });
-          assert.equal(res.status, 404);
-        });
-
-        it('should return 400 when the group id is malformed', async function () {
-          const res = await axios.put(scimUrl('/Groups/not-an-id'), {
-            schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-            displayName: 'New Group Name',
-            members: [
-              getUserMember('kiwi'),
-            ]
-          }, chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '400',
-            detail: 'Invalid passed group ID',
-            scimType: 'invalidValue'
-          });
-          assert.equal(res.status, 400);
-        });
-
-        checkCommonErrors('put', '/Groups/1', {
-          schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-          displayName: 'New Group Name',
-          // We need to differ the moment we call userIdByName['kiwi'] (set during a "before()" hook)
-          get members() {
-            return [ getUserMember('kiwi') ];
-          }
-        });
-      });
-
-      describe('PATCH /Groups/{id}', function () {
-        it('should update an existing group name', async function () {
-          return withGroup(async (groupId) => {
-            const newGroupName = 'Updated Group Name';
-            const res = await axios.patch(scimUrl('/Groups/' + groupId), {
-              schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
-              Operations: [{
-                op: 'replace', path: 'displayName', value: newGroupName
-              }]
-            }, chimpy);
-            assert.equal(res.status, 200);
-            assert.deepEqual(res.data, {
-              schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-              id: groupId,
-              displayName: newGroupName,
-              members: [
-                getUserMemberWithRef('chimpy'),
-              ],
-              meta: { resourceType: 'Group', location: '/api/scim/v2/Groups/' + groupId }
-            });
-          });
-        });
-
-        it('should add a member to a group', async function () {
-          return withGroup(async (groupId) => {
-            const res = await axios.patch(scimUrl('/Groups/' + groupId), {
-              schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
-              Operations: [{
-                op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
-              }]
-            }, chimpy);
-            assert.equal(res.status, 200);
-            assert.deepEqual(res.data.members, [
-              getUserMemberWithRef('chimpy'),
-              getUserMemberWithRef('kiwi'),
-            ]);
-          });
-        });
-
-        it('should refuse to alter a role', async function () {
-          return withRole(async (groupId) => {
-            const res = await axios.patch(scimUrl('/Groups/' + groupId), {
-              schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
-              Operations: [{
-                op: 'add', path: 'members', value: [ getUserMember('kiwi') ]
-              }]
-            }, chimpy);
-            assert.equal(res.status, 404);
-          });
-        });
-
-        checkCommonErrors('patch', '/Groups/1', {
-          schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
-          Operations: [{
-            op: 'replace', path: 'displayName', value: 'Updated Group Name'
-          }]
-        });
-      });
-
-      describe('DELETE /Groups/{id}', function () {
-        it('should delete a group', async function () {
-          return withGroup(async (groupId) => {
-            const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
-            assert.equal(res.status, 204);
-            const refreshedGroup = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
-            assert.equal(refreshedGroup.status, 404);
-          });
-        });
-
-        it('should refuse to delete a role', async function () {
-          return withRole(async (groupId) => {
-            const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
-            assert.equal(res.status, 404);
-          });
-        });
-
-        it('should return 404 when the group is not found', async function () {
-          const res = await axios.delete(scimUrl('/Groups/1000'), chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '404',
-            detail: 'Group with id 1000 not found'
-          });
-          assert.equal(res.status, 404);
-        });
-
-        it('should return 400 when the group id is malformed', async function () {
-          const res = await axios.delete(scimUrl('/Groups/not-an-id'), chimpy);
-          assert.deepEqual(res.data, {
-            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '400',
-            detail: 'Invalid passed group ID',
-            scimType: 'invalidValue'
-          });
-          assert.equal(res.status, 400);
-        });
-
-        checkCommonErrors('delete', '/Groups/1');
       });
     });
 

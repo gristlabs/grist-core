@@ -3073,10 +3073,16 @@ export class HomeDBManager extends EventEmitter {
     return this._groupsManager.createGroup(groupDescriptor, optManager);
   }
 
-  public async overwriteGroup(
-    id: number, groupDescriptor: GroupWithMembersDescriptor, expectedType?: GroupTypes, optManager?: EntityManager
+  public async overwriteResourceUsersGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
   ) {
-    return this._groupsManager.overwriteGroup(id, groupDescriptor, expectedType, optManager);
+    return this._groupsManager.overwriteResourceUsersGroup(id, groupDescriptor, optManager);
+  }
+
+  public async overwriteRoleGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteRoleGroup(id, groupDescriptor, optManager);
   }
 
   public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {

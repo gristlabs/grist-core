@@ -55,52 +55,42 @@ export function toUserProfile(scimUser: any, existingUser?: User): UserProfile {
   };
 }
 
-export function toSCIMMYGroup(group: Group) {
+function toSCIMMYMembers(group: Group) {
+  return [
+    ...group.memberUsers.map((member: any) => ({
+      value: String(member.id),
+      display: member.name,
+      $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
+      type: SCIMMY_USER_TYPE,
+    })),
+    // As of 2025-01-12, we don't support nested groups, so it should always be empty
+    ...group.memberGroups.map((member: any) => ({
+      value: String(member.id),
+      display: member.name,
+      $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
+      type: SCIMMY_GROUP_TYPE,
+    })),
+  ];
+}
+
+
+export function toSCIMMYGroup(group: Group): SCIMMY.Schemas.Group {
   return new SCIMMY.Schemas.Group({
     id: String(group.id),
     displayName: group.name,
-    members: [
-      ...group.memberUsers.map((member: any) => ({
-        value: String(member.id),
-        display: member.name,
-        $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
-        type: SCIMMY_USER_TYPE,
-      })),
-      // As of 2025-01-12, we don't support nested groups, so it should always be empty
-      ...group.memberGroups.map((member: any) => ({
-        value: String(member.id),
-        display: member.name,
-        $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
-        type: SCIMMY_GROUP_TYPE,
-      })),
-    ],
+    members: toSCIMMYMembers(group),
   });
 }
 
-export function toSCIMMYRole(group: Group) {
-  // FIXME: factorize
-  const { aclRule } = group;
+export function toSCIMMYRole(role: Group): SCIMMYRoleGroupSchema {
+  const { aclRule } = role;
   return new SCIMMYRoleGroupSchema({
-    id: String(group.id),
-    role: group.name,
+    id: String(role.id),
+    displayName: role.name,
     docId: aclRule instanceof AclRuleDoc ? aclRule.docId : undefined,
     workspaceId: aclRule instanceof AclRuleWs ? aclRule.workspaceId : undefined,
     orgId: aclRule instanceof AclRuleOrg ? aclRule.orgId : undefined,
-    members: [
-      ...group.memberUsers.map((member: any) => ({
-        value: String(member.id),
-        display: member.name,
-        $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
-        type: SCIMMY_USER_TYPE,
-      })),
-      // As of 2025-01-12, we don't support nested groups, so it should always be empty
-      ...group.memberGroups.map((member: any) => ({
-        value: String(member.id),
-        display: member.name,
-        $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
-        type: SCIMMY_GROUP_TYPE,
-      })),
-    ]
+    members: toSCIMMYMembers(role)
   });
 }
 
@@ -112,16 +102,31 @@ function parseId(id: string, type: typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP
   return parsedId;
 }
 
-export function toGroupDescriptor(scimGroup: any): GroupWithMembersDescriptor {
-  const members = scimGroup.members ?? [];
+function membersDescriptors(members: any[]) {
   return {
-    name: scimGroup.displayName,
-    type: Group.RESOURCE_USERS_TYPE,
     memberUsers: members
       .filter((member: any) => member.type === SCIMMY_USER_TYPE)
       .map((member: any) => parseId(member.value, SCIMMY_USER_TYPE)),
     memberGroups: members
       .filter((member: any) => member.type === SCIMMY_GROUP_TYPE)
       .map((member: any) => parseId(member.value, SCIMMY_GROUP_TYPE)),
+  };
+}
+
+export function toGroupDescriptor(scimGroup: any): GroupWithMembersDescriptor {
+  const members = scimGroup.members ?? [];
+  return {
+    name: scimGroup.displayName,
+    type: Group.RESOURCE_USERS_TYPE,
+    ...membersDescriptors(members)
+  };
+}
+
+export function toRoleDescriptor(scimRole: any): GroupWithMembersDescriptor {
+  const members = scimRole.members ?? [];
+  return {
+    name: scimRole.displayName,
+    type: Group.ROLE_TYPE,
+    ...membersDescriptors(members)
   };
 }

@@ -127,10 +127,10 @@ describe("GroupsManager", function () {
     });
   });
 
-  describe("overwriteGroup()", function () {
+  describe("overwriteResourceUsersGroup()", function () {
     setTmpLogLevel('info');
     it("should fail if the group is not found", function () {
-      const promise = db.overwriteGroup(999, {
+      const promise = db.overwriteResourceUsersGroup(999, {
         name: 'test-overwrite',
         type: Group.ROLE_TYPE,
       });
@@ -140,7 +140,7 @@ describe("GroupsManager", function () {
     it('should fail when setting memberGroups to RESOURCE_USERS_TYPE', async function () {
       const groupName = 'test-overwrite';
       const { group, innerGroup } = await createDummyGroupAndInnerGroup(groupName);
-      const promise = db.overwriteGroup(group.id, {
+      const promise = db.overwriteResourceUsersGroup(group.id, {
         name: groupName,
         type: Group.RESOURCE_USERS_TYPE,
         memberGroups: [innerGroup.id],
@@ -151,7 +151,7 @@ describe("GroupsManager", function () {
     it('should fail when adding itself to memberGroups', async function () {
       const groupName = 'test-overwrite';
       const { group } = await createDummyGroup(groupName);
-      const promise = db.overwriteGroup(group.id, {
+      const promise = db.overwriteResourceUsersGroup(group.id, {
         name: groupName,
         type: Group.ROLE_TYPE,
         memberGroups: [group.id],
@@ -165,7 +165,7 @@ describe("GroupsManager", function () {
       const { group } = await createDummyGroupAndInnerGroup(groupName);
       const { group: newInnerGroup, kiwi } = await createDummyGroupAndInnerGroup(newInnerGroupName);
       const newGroupName = 'test-overwrite-new';
-      await db.overwriteGroup(group.id, {
+      await db.overwriteResourceUsersGroup(group.id, {
         name: newGroupName,
         type: Group.ROLE_TYPE,
         memberUsers: [kiwi.id],
@@ -183,7 +183,7 @@ describe("GroupsManager", function () {
       const groupName = 'test-overwrite';
       const { group } = await createDummyGroupAndInnerGroup(groupName);
       const newGroupName = 'test-overwrite-new';
-      await db.overwriteGroup(group.id, {
+      await db.overwriteResourceUsersGroup(group.id, {
         name: newGroupName,
         type: Group.ROLE_TYPE,
       });
@@ -290,7 +290,7 @@ describe("GroupsManager", function () {
         name: 'test-deleteGroup-inner2',
         type: Group.RESOURCE_USERS_TYPE,
       });
-      await db.overwriteGroup(group.id, {
+      await db.overwriteResourceUsersGroup(group.id, {
         name: groupName,
         type: Group.ROLE_TYPE,
         memberGroups: [innerGroup.id, anotherInnerGroup.id],
