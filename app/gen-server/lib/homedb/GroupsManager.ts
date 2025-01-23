@@ -294,22 +294,27 @@ export class GroupsManager {
     });
   }
 
-  public async overwriteGroup(
-    id: number, groupDescriptor: GroupWithMembersDescriptor, expectedType?: GroupTypes, optManager?: EntityManager
+  public async overwriteRoleGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
       const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
-      if (!existingGroup || (expectedType && expectedType !== existingGroup.type)) {
+      if (!existingGroup || (existingGroup.type !== Group.ROLE_TYPE)) {
+        throw new ApiError(`Role with id ${id} not found`, 404);
+      }
+      return await this._overwriteGroup(id, groupDescriptor, manager);
+    });
+  }
+
+  public async overwriteResourceUsersGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return await this._runInTransaction(optManager, async (manager) => {
+      const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
+      if (!existingGroup || (existingGroup.type !== Group.RESOURCE_USERS_TYPE)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
-      const updatedGroup = Group.create({
-        id,
-        type: groupDescriptor.type,
-        name: groupDescriptor.name,
-        memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], manager),
-        memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], manager),
-      });
-      return await manager.save(updatedGroup);
+      return await this._overwriteGroup(id, groupDescriptor, manager);
     });
   }
 
@@ -353,6 +358,17 @@ export class GroupsManager {
         .andWhere('groups.id = :groupId', {groupId})
         .getOne();
     });
+  }
+
+  private async _overwriteGroup(id: number, groupDescriptor: GroupWithMembersDescriptor, manager: EntityManager) {
+    const updatedGroup = Group.create({
+      id,
+      type: groupDescriptor.type,
+      name: groupDescriptor.name,
+      memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], manager),
+      memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], manager),
+    });
+    return await manager.save(updatedGroup);
   }
 
   /**
