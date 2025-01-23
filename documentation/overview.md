@@ -63,7 +63,7 @@ The authoritative list of available User Actions is the list of all the methods 
 
 Doc Actions are handled both in Python and Node. Here is the full list of Doc Actions:
 
-```
+```typescript
 // Data Actions
 export type AddRecord = ['AddRecord', string, number, ColValues];
 export type BulkAddRecord = ['BulkAddRecord', string, number[], BulkColValues];
@@ -90,7 +90,7 @@ export type RenameTable = ['RenameTable', string, string];
 
 Data actions take a string `tableId` and a numeric `rowId` (or a list of them, for “bulk” actions) and a set of values:
 
-```
+```typescript
 export interface ColValues { [colId: string]: CellValue; }
 export interface BulkColValues { [colId: string]: CellValue[]; }
 ```

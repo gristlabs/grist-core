@@ -3,7 +3,8 @@
 If you change Grist schema, i.e. the schema of the Grist metadata tables (in [`sandbox/grist/schema.py`](../sandbox/grist/schema.py)), you'll have to increment the `SCHEMA_VERSION` (on top of that file) and create a migration. A migration is a set of actions that would get applied to a document at the previous version, to make it satisfy the new schema.
 
 To add a migration, add a function to [`sandbox/grist/migrations.py`](../sandbox/grist/migrations.py), of this form (using the new version number):
-```lang=python
+
+```python
 @migration(schema_version=11)
 def migration11(tdset):
   return tdset.apply_doc_actions([
@@ -29,7 +30,7 @@ WARNING: Do not remove, modify, or rename metadata tables or columns.
 
 Mark old columns and tables as deprecated using a comment. We may want to add a feature to mark them in code, to prevent their use in new versions. For now, it's enough to add a comment and remove references to the deprecated entities throughout code. An important goal is to prevent adding same-named entities in the future, or reusing the same column with a different meaning. So please add a comment of the form:
 
-```lang=python
+```python
 # <columnName> is deprecated as of version XX. Do not remove or reuse.
 ```
 
