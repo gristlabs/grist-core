@@ -18,7 +18,7 @@ You can find full documentation of knockout at https://knockoutjs.com/documentat
 
 Creating and using observables:
 
-```
+```js
 import * as ko from 'knockout';
 
 const kObs = ko.observable(17);
@@ -28,7 +28,7 @@ kObs();      // Returns 8
 kObs.peek(); // Returns 8
 ```
 
-```
+```js
 import {Computed, Observable} from 'grainjs';
 
 const gObs = Observable.create(null, 17)
@@ -40,11 +40,11 @@ gObs.get();     // Returns 8
 
 Creating and using computed observables
 
-```
+```js
 ko.computed(() => kObs() * 10);
 ```
 
-```
+```js
 Computed.create(null, use => use(gObs) * 10);
 ```
 
@@ -62,7 +62,7 @@ Methods `dom.onDispose`, and `dom.autoDispose` are analogous to GrainJS, but rel
 
 For DOM bindings, which allow tying DOM properties to observable values, there is a [`app/client/lib/koDom.js`](../app/client/lib/koDom.js) module. For example:
 
-```
+```js
 import * as dom from 'app/client/lib/dom';
 import * as kd from 'app/client/lib/koDom';
 
