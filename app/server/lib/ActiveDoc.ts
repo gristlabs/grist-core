@@ -968,6 +968,21 @@ export class ActiveDoc extends EventEmitter {
     return await this._attachmentFileManager.locationSummary();
   }
 
+  /*
+   * Wait for all attachment transfers to be finished, keeping the doc open
+   * for as long as possible.
+   */
+  @ActiveDoc.keepDocOpen
+  public async allAttachmentTransfersCompleted() {
+      await this._attachmentFileManager.allTransfersCompleted();
+  }
+
+  public async setAttachmentStore(docSession: OptDocSession, id: string): Promise<void> {
+    const docSettings = await this._getDocumentSettings();
+    docSettings.attachmentStoreId = id;
+    await this._updateDocumentSettings(docSession, docSettings);
+  }
+
   /**
    * Fetches the meta tables to return to the client when first opening a document.
    */
@@ -2863,13 +2878,22 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _getDocumentSettings(): Promise<DocumentSettings> {
-    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo');
-    const docSettingsString = docInfo?.documentSettings;
-    const docSettings = docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
+    const docSettings = this.docData?.docSettings();
     if (!docSettings) {
       throw new Error("No document settings found");
     }
     return docSettings;
+  }
+
+  private async _updateDocumentSettings(docSessions: OptDocSession, settings: DocumentSettings): Promise<void> {
+    const docInfo = this.docData?.docInfo();
+    if (!docInfo) {
+      throw new Error("No document info found");
+    }
+    await this.applyUserActions(docSessions, [
+      // Use docInfo.id to avoid hard-coding a reference to a specific row id, in case it changes.
+      ["UpdateRecord", "_grist_DocInfo", docInfo.id, { documentSettings: JSON.stringify(settings) }]
+    ]);
   }
 
   private async _makeEngine(): Promise<ISandbox> {
