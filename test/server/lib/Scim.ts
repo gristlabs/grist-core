@@ -1259,7 +1259,6 @@ describe('Scim', () => {
             return withRole(async (roleId) => {
               const res = await axios.put(scimUrl('/Roles/' + roleId), {
                 schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
-                displayName: 'test-role',
                 members: [
                   getUserMember('kiwi'),
                 ]
@@ -1268,7 +1267,6 @@ describe('Scim', () => {
               assert.deepEqual(res.data, {
                 schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
                 id: roleId,
-                displayName: 'test-role',
                 members: [
                   getUserMemberWithRef('kiwi'),
                 ],
@@ -1277,22 +1275,21 @@ describe('Scim', () => {
             });
           });
 
-          it('should not allow updating the role name', async function () {
-            return withRole(async (roleId) => {
+          it('should not update the role name', async function () {
+            return withRole(async (roleId, role) => {
+              const newName = 'new-name';
+              const oldName = role.name;
+
               const res = await axios.put(scimUrl('/Roles/' + roleId), {
                 schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
-                displayName: 'new-role',
+                displayName: newName,
                 members: [
                   getUserMember('kiwi'),
                 ]
               }, chimpy);
-              assert.equal(res.status, 400);
-              assert.deepEqual(res.data, {
-                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-                status: '400',
-                detail: 'Role name cannot be updated',
-                scimType: 'invalidValue'
-              });
+              assert.equal(res.status, 200);
+              const updatedRole = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
+              assert.equal(updatedRole.data.displayName, oldName, 'Role name should not have changed');
             });
           });
 
@@ -1329,6 +1326,26 @@ describe('Scim', () => {
             assert.equal(res.status, 400);
           });
 
+          it('should not update the docId, the wsId nor the orgId', async function () {
+            return withRole(async (roleId) => {
+              const res = await axios.put(scimUrl('/Roles/' + roleId), {
+                schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+                docId: 1000,
+                wsId: 1000,
+                orgId: 1000,
+                displayName: 'test-role',
+                members: [
+                  getUserMember('kiwi'),
+                ]
+              }, chimpy);
+              assert.equal(res.status, 200);
+              const updatedRole = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
+              assert.isUndefined(updatedRole.data.docId, 'docId should not have changed');
+              assert.isUndefined(updatedRole.data.wsId, 'wsId should not have changed');
+              assert.isUndefined(updatedRole.data.orgId, 'orgId should not have changed');
+            });
+          });
+
           checkCommonErrors('put', '/Roles/1', {
             schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
             displayName: 'test-role',
@@ -1352,7 +1369,6 @@ describe('Scim', () => {
               assert.deepEqual(res.data, {
                 schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
                 id: roleId,
-                displayName: role.name,
                 members: [
                   getUserMemberWithRef('kiwi'),
                 ],
@@ -1366,6 +1382,18 @@ describe('Scim', () => {
             Operations: [{
               op: 'replace', path: 'displayName', value: 'Updated Role Name'
             }]
+          });
+        });
+
+        describe('DELETE /Roles/{id}', function () {
+          it('should return 501 Not implemented', async function () {
+            const res = await axios.post(scimUrl('/Roles'), {
+              schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
+              displayName: 'test-role',
+              members: []
+            }, chimpy);
+            console.log(res.data);
+            assert.equal(res.status, 501);
           });
         });
       });

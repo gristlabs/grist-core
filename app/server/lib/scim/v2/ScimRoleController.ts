@@ -101,14 +101,14 @@ export class SCIMMYRoleGroupSchema extends SCIMMY.Types.Schema {
     return new SchemaDefinition(
       "Role", "urn:ietf:params:scim:schemas:Grist:1.0:Role", "Role in Grist (Owner)", [
         new Attribute("string", "displayName", {/*canonicalValues: ['owner', 'editor', 'viewer', 'member', 'guest'], */
-          mutable: false}),
+          mutable: false, direction: "out"}),
         attrMembers as SCIMMY.Types.Attribute,
         new Attribute("string", "docId", {required: false, description: "The docId associated to this role.",
-          mutable: false}),
+          mutable: false, direction: 'out'}),
         new Attribute("integer", "workspaceId", {required: false, description: "The workspaceId for this role",
-          mutable: false}),
+          mutable: false, direction: 'out'}),
         new Attribute("integer", "orgId", {required: false, description: "The orgId for this role",
-          mutable: false})
+          mutable: false, direction: 'out'})
       ]);
   })();
 
