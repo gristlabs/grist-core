@@ -124,8 +124,12 @@ jobs:
         if: ${{ !inputs.disable_tests }}
         run: yarn run build:prod
 
-      - name: Install Google Chrome for Testing
-        run: ./test/test_env.sh node_modules/selenium-webdriver/bin/linux/selenium-manager
+      - name: Install Google Chrome and chromedriver
+        run: |
+          curl -sS -o /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_132.0.6834.110-1_amd64.deb \
+            && sudo apt-get install -y /tmp/chrome.deb \
+            && rm /tmp/chrome.deb
+          ./node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
 
       - name: Run tests with default settings
         if: ${{ !inputs.disable_tests }}
