@@ -47,6 +47,7 @@ export const DEFAULT_SESSION_SECRET =
 export type LocalDocStorageManagerCreator =
   (docsRoot: string, samplesRoot?: string, comm?: Comm, shell?: IShell) => Promise<IDocStorageManager>;
 export type HostedDocStorageManagerCreator = (
+    gristServer: GristServer,
     docsRoot: string,
     docWorkerId: string,
     disableS3: boolean,
@@ -250,6 +251,7 @@ export function makeSimpleCreator(opts: {
 }
 
 async function createDefaultHostedStorageManager(
+  gristServer: GristServer,
   docsRoot: string,
   docWorkerId: string,
   disableS3: boolean,
@@ -259,6 +261,7 @@ async function createDefaultHostedStorageManager(
   options?: HostedStorageOptions
 ) {
   return new HostedStorageManager(
+    gristServer,
     docsRoot,
     docWorkerId,
     disableS3,

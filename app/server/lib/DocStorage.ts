@@ -1488,6 +1488,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return undefined;
   }
 
+  public getDB(): SQLiteDB {
+    return this._getDB();
+  }
+
   public async hasPluginDataItem(pluginId: string, key: string): Promise<any> {
     const row = await this.get('SELECT value from _gristsys_PluginData WHERE pluginId=? and key=?', pluginId, key);
     return typeof row !== 'undefined';

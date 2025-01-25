@@ -600,6 +600,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.debug(docSession, "createEmptyDocWithDataEngine");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
+    this._registerSQLiteDB();
     await this._rawPyCall('load_empty');
     // This init action is special. It creates schema tables, and is used to init the DB, but does
     // not go through other steps of a regular action (no ActionHistory or broadcasting).
@@ -667,6 +668,7 @@ export class ActiveDoc extends EventEmitter {
           },
         });
       }
+      this._registerSQLiteDB();
 
       await this._loadOpenDoc(docSession);
       const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
@@ -2168,6 +2170,7 @@ export class ActiveDoc extends EventEmitter {
           // tests.
           await timeoutReached(3000, this.waitForInitialization());
         }
+        this._docManager.unregisterSQLiteDB(this.docName);
         await Promise.all([
           this.docStorage.shutdown(),
           this.docPluginManager?.shutdown(),
@@ -3020,6 +3023,15 @@ export class ActiveDoc extends EventEmitter {
         lastActivity: document.updatedAt,
       },
     });
+  }
+
+  /**
+   * Register the underlying SQLiteDB we have so that it can
+   * be used for backup operations. It is important to use
+   * the same SQLite connection for all operations.
+   */
+  private _registerSQLiteDB() {
+    this._docManager.registerSQLiteDB(this.docName, this.docStorage.getDB());
   }
 }
 
