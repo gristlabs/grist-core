@@ -15,7 +15,7 @@ import * as stream from "node:stream";
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<
   DocStorage,
-  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile' | 'listAllFiles'
+  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile' | 'listAllFiles' | 'requestVacuum'
 >
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.
@@ -23,6 +23,10 @@ class DocStorageFake implements IMinimalDocStorage {
   private _files: { [key: string]: FileInfo  } = {};
 
   constructor(public docName: string) {
+  }
+
+  public async requestVacuum(): Promise<boolean> {
+    return true;
   }
 
   public async listAllFiles(): Promise<FileInfo[]> {
