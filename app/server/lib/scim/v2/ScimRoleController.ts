@@ -1,4 +1,3 @@
-import { ApiError } from 'app/common/ApiError';
 import { Group } from 'app/gen-server/entity/Group';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { BaseController } from 'app/server/lib/scim/v2/BaseController';
@@ -85,7 +84,10 @@ export const getScimRoleConfig = (
       if (resource.id) {
         return await controller.overwriteRole(resource, data, context);
       }
-      throw new ApiError('Cannot create roles', 501);
+      throw new SCIMMY.Types.Error(501, null!, 'Cannot create Roles.');
+    },
+    degress: async () => {
+      throw new SCIMMY.Types.Error(501, null!, 'Cannot delete roles');
     }
   };
 };
@@ -157,10 +159,10 @@ export class SCIMMYRoleGroupResource extends SCIMMY.Types.Resource {
   }
 
   /** @implements {SCIMMY.Types.Resource.degress<typeof SCIMMY.Resources.User>} */
-  // public static degress(handler: any) {
-  //   this._degress = handler;
-  //   return this;
-  // }
+  public static degress(handler: any) {
+    this._degress = handler;
+    return this;
+  }
 
   private static _basepath: string;
 
@@ -175,9 +177,9 @@ export class SCIMMYRoleGroupResource extends SCIMMY.Types.Resource {
   };
 
   /** @private */
-  // private static _degress = (...args: any[]): Promise<any> => {
-  //   throw new SCIMMY.Types.Error(501, null!, `Method 'degress' not implemented by resource '${this.name}'`);
-  // };
+  private static _degress = (...args: any[]): Promise<any> => {
+    throw new SCIMMY.Types.Error(501, null!, `Method 'degress' not implemented by resource '${this.name}'`);
+  };
 
   /**
    * Instantiate a new SCIM User resource and parse any supplied parameters
@@ -302,31 +304,31 @@ export class SCIMMYRoleGroupResource extends SCIMMY.Types.Resource {
         new SCIMMYRoleGroupSchema(instance, "out", SCIMMYRoleGroupResource.basepath(), this.attributes));
   }
 
-  // /**
-  //  * @implements {SCIMMY.Types.Resource#dispose}
-  //  * @example
-  //  * // Delete user with ID "1234"
-  //  * await new SCIMMY.Resources.User("1234").dispose();
-  //  */
-  // public async dispose(ctx: any) {
-  //   if (!this.id) {
-  //     throw new SCIMMY.Types.Error(
-  //       404, null!, "DELETE operation must target a specific resource"
-  //     );
-  //   }
-  //   try {
-  //     await SCIMMYRoleGroupResource._degress(this, ctx);
-  //   } catch (ex) {
-  //     if (ex instanceof SCIMMY.Types.Error) {
-  //       throw ex;
-  //     }
-  //     else if (ex instanceof TypeError) {
-  //       throw new SCIMMY.Types.Error(500, null!, ex.message);
-  //     }
-  //     else {
-  //       throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
-  //     }
-  //   }
-  // }
+  /**
+   * @implements {SCIMMY.Types.Resource#dispose}
+   * @example
+   * // Delete user with ID "1234"
+   * await new SCIMMY.Resources.User("1234").dispose();
+   */
+  public async dispose(ctx: any) {
+    if (!this.id) {
+      throw new SCIMMY.Types.Error(
+        404, null!, "DELETE operation must target a specific resource"
+      );
+    }
+    try {
+      await SCIMMYRoleGroupResource._degress(this, ctx);
+    } catch (ex) {
+      if (ex instanceof SCIMMY.Types.Error) {
+        throw ex;
+      }
+      else if (ex instanceof TypeError) {
+        throw new SCIMMY.Types.Error(500, null!, ex.message);
+      }
+      else {
+        throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
+      }
+    }
+  }
 }
 

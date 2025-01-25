@@ -1249,7 +1249,6 @@ describe('Scim', () => {
               displayName: 'test-role',
               members: []
             }, chimpy);
-            console.log(res.data);
             assert.equal(res.status, 501);
           });
         });
@@ -1387,13 +1386,10 @@ describe('Scim', () => {
 
         describe('DELETE /Roles/{id}', function () {
           it('should return 501 Not implemented', async function () {
-            const res = await axios.post(scimUrl('/Roles'), {
-              schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
-              displayName: 'test-role',
-              members: []
-            }, chimpy);
-            console.log(res.data);
-            assert.equal(res.status, 501);
+            await withRole(async roleId => {
+              const res = await axios.delete(scimUrl('/Roles/' + roleId), chimpy);
+              assert.equal(res.status, 501);
+            });
           });
         });
       });
