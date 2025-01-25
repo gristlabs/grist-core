@@ -7,15 +7,15 @@ import {
 } from "app/server/lib/AttachmentFileManager";
 import { getDocPoolIdFromDocInfo } from "app/server/lib/AttachmentStore";
 import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { makeTestingFilesystemStoreSpec } from "./FilesystemAttachmentStore";
+import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
 import { assert } from "chai";
 import * as sinon from "sinon";
 import * as stream from "node:stream";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
-type IMinimalDocStorage = Pick<
-  DocStorage,
-  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile' | 'listAllFiles' | 'requestVacuum'
+type IMinimalDocStorage = Pick<DocStorage,
+  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile'
+  | 'listAllFiles' | 'requestVacuum'
 >
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.
@@ -84,8 +84,8 @@ function createDocStorageFake(docName: string): DocStorage {
 async function createFakeAttachmentStoreProvider(): Promise<IAttachmentStoreProvider> {
   return new AttachmentStoreProvider(
     [
-      await makeTestingFilesystemStoreSpec("filesystem"),
-      await makeTestingFilesystemStoreSpec("filesystem-alt"),
+      await makeTestingFilesystemStoreConfig("filesystem"),
+      await makeTestingFilesystemStoreConfig("filesystem-alt"),
     ],
     "TEST-INSTALLATION-UUID"
   );

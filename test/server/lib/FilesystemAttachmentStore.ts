@@ -6,6 +6,7 @@ import {assert} from 'chai';
 import {mkdtemp, pathExists} from 'fs-extra';
 import * as stream from 'node:stream';
 import * as path from 'path';
+import {IAttachmentStoreConfig} from 'app/server/lib/AttachmentStoreProvider';
 
 const testingDocPoolId = "1234-5678";
 const testingFileId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.grist";
@@ -28,6 +29,15 @@ export async function makeTestingFilesystemStoreSpec(
     rootDirectory: tempDir,
     name,
     create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir))
+  };
+}
+
+export async function makeTestingFilesystemStoreConfig(
+  name: string = "test-filesystem"
+): Promise<IAttachmentStoreConfig> {
+  return {
+    label: name,
+    spec: await makeTestingFilesystemStoreSpec(name),
   };
 }
 

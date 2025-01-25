@@ -25,7 +25,7 @@ import * as sinon from 'sinon';
 import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {EnvironmentSnapshot} from 'test/server/testUtils';
-import {makeTestingFilesystemStoreSpec} from 'test/server/lib/FilesystemAttachmentStore';
+import {makeTestingFilesystemStoreConfig} from 'test/server/lib/FilesystemAttachmentStore';
 import * as tmp from 'tmp';
 
 const execFileAsync = promisify(child_process.execFile);
@@ -41,11 +41,8 @@ describe('ActiveDoc', async function() {
   testUtils.setTmpLogLevel('warn');
 
   const attachmentStoreProvider = new AttachmentStoreProvider(
-    [
-      await makeTestingFilesystemStoreSpec("filesystem"),
-    ],
+    [await makeTestingFilesystemStoreConfig("filesystem")],
     "TEST-INSTALLATION-UUID"
-    // TEST-INSTALLATION-UUID-filesystem
   );
 
   const docTools = createDocTools({ attachmentStoreProvider });
