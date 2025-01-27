@@ -581,7 +581,8 @@
         "Workspaces": "Рабочие пространства",
         "Workspace will be moved to Trash.": "Рабочее пространство будет перемещено в корзину.",
         "Tutorial": "Обучение",
-        "Terms of service": "Условия использования"
+        "Terms of service": "Условия использования",
+        "Grist Resources": "Ресурсы Grist"
     },
     "GridViewMenus": {
         "Add to sort": "Добавить в сортировку",
@@ -1266,7 +1267,8 @@
         "Status": "Статус",
         "URL": "URL",
         "Webhook Id": "Вебхук Id",
-        "Table": "Таблица"
+        "Table": "Таблица",
+        "Header Authorization": "Заголовок для авторизации"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Спроси у бота.",
@@ -1357,7 +1359,8 @@
         "guest": "гость",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Отсутствие доступа по умолчанию позволяет предоставлять доступ к отдельным документам или рабочим областям, а не ко всему групповому сайту.",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "После того как вы удалили свой собственный доступ, вы не сможете получить его обратно без помощи кого-то еще с достаточным доступом к {{resourceType}}.",
-        "You are about to remove your own access to this {{resourceType}}": "Вы собираетесь лишить себя доступа к {{resourceType}}"
+        "You are about to remove your own access to this {{resourceType}}": "Вы собираетесь лишить себя доступа к {{resourceType}}",
+        "Inherit access: ": "Наследование доступа: "
     },
     "SupportGristNudge": {
         "Close": "Закрыть",
@@ -1433,7 +1436,9 @@
         "Paste": "Вставить",
         "Separator": "Разделитель",
         "Unmapped fields": "Несопоставленные поля",
-        "Header": "Заголовок"
+        "Header": "Заголовок",
+        "New question": "Новый вопрос",
+        "More": "Больше"
     },
     "UnmappedFieldsConfig": {
         "Unmapped": "Несопоставленные",
@@ -1461,7 +1466,9 @@
         "Are you sure you want to reset your form?": "Вы уверены, что хотите сбросить форму?",
         "Copy link": "Копировать ссылку",
         "Reset": "Сброс",
-        "Reset form": "Сброс формы"
+        "Reset form": "Сброс формы",
+        "## **Form Title**": "## **Заголовок формы**",
+        "Your form description goes here.": "Описание формы."
     },
     "WelcomeCoachingCall": {
         "free coaching call": "бесплатный коуч-звонок",
@@ -1533,7 +1540,9 @@
     },
     "Section": {
         "Insert section above": "Вставить секцию выше",
-        "Insert section below": "Вставить секцию ниже"
+        "Insert section below": "Вставить секцию ниже",
+        "Description": "Описание",
+        "### **Header**": "### **Заголовок**"
     },
     "AdminPanel": {
         "Current": "Текущий",
@@ -1580,12 +1589,16 @@
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist позволяет настраивать различные типы аутентификации, включая SAML и OIDC. Мы рекомендуем включить один из них, если Grist доступен по сети или доступен нескольким пользователям.",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "У вас нет доступа к панели администратора.\nПожалуйста, войдите в систему как администратор.",
         "Key to sign sessions with": "Ключ для подписи сеансов с",
-        "Session Secret": "Session Secret",
+        "Session Secret": "Секрет сессии",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist подписывает файлы cookie сеанса пользователя секретным ключом. Установите этот ключ через переменную среды GRIST_SESSION_SECRET. Grist возвращается к жестко запрограммированному значению по умолчанию, если оно не установлено. Мы можем удалить это уведомление в будущем, поскольку идентификаторы сеансов, созданные начиная с версии 1.1.16, по своей сути криптографически безопасны.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist подписывает файлы cookie сеанса пользователя секретным ключом. Установите этот ключ через переменную среды GRIST_SESSION_SECRET. Grist возвращается к жестко запрограммированному значению по умолчанию, если оно не установлено. Мы можем удалить это уведомление в будущем, поскольку идентификаторы сеансов, созданные начиная с версии 1.1.16, по своей сути криптографически безопасны.",
         "Enable Grist Enterprise": "Включить Grist Enterprise",
         "checking": "проверка",
-        "Enterprise": "Корпоративный"
+        "Enterprise": "Корпоративный",
+        "Audit Logs": "Журналы аудита",
+        "Contact us": "Свяжитесь с нами",
+        "Log Streaming": "Потоковая передача журналов",
+        "Off": "Выкл"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1603,7 +1616,8 @@
     },
     "Field": {
         "No choices configured": "Опции отсутствуют",
-        "No values in show column of referenced table": "Нет значений в столбце отображения ссылочной таблицы."
+        "No values in show column of referenced table": "Нет значений в столбце отображения ссылочной таблицы.",
+        "Hide": "Скрыть"
     },
     "Columns": {
         "Remove Column": "Удалить столбец"
@@ -1698,7 +1712,8 @@
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ключ активации используется для запуска Grist Enterprise после окончания\n30 дневного пробного периода. Получите ключ активации по [подписавшись на Grist\nEnterprise]({{signupLink}}). Для запуска Grist Core вам не нужен ключ активации.\n\nУзнайте больше в нашем [Центр помощи]({{helpCenter}}).",
         "Disable Grist Enterprise": "Отключить Grist Enterprise",
         "Enable Grist Enterprise": "Включить Grist Enterprise",
-        "Grist Enterprise is **enabled**.": "Grist Enterprise **включен**."
+        "Grist Enterprise is **enabled**.": "Grist Enterprise **включен**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ключ активации используется для запуска Grist Enterprise после истечения пробного периода\nсроком в 30 дней. Получите ключ активации, [связавшись с нами]({{contactLink}}) сегодня. Вам\nне нужен ключ активации для запуска Grist Core.\n\nУзнайте больше в нашем [Справочном центре]({{helpCenter}})."
     },
     "ViewLayout": {
         "Delete": "Удалить",
