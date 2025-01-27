@@ -46,12 +46,13 @@ import {
   AvailableUsers,
   DocumentAccessChanges,
   GetUserOptions,
-  GroupDescriptor,
+  GroupWithMembersDescriptor,
   NonGuestGroup,
   OrgAccessChanges,
   PreviousAndCurrent,
   QueryResult,
   Resource,
+  RoleGroupDescriptor,
   UserProfileChange,
   WorkspaceAccessChanges,
 } from 'app/gen-server/lib/homedb/Interfaces';
@@ -73,6 +74,7 @@ import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
+import {GroupsManager, GroupTypes} from 'app/gen-server/lib/homedb/GroupsManager';
 import {WebHookSecret} from "app/server/lib/Triggers";
 
 import {EventEmitter} from 'events';
@@ -88,7 +90,6 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 import {v4 as uuidv4} from "uuid";
-import { GroupsManager } from './GroupsManager';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -253,7 +254,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  */
 export class HomeDBManager extends EventEmitter {
   private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
-  private _groupsManager = new GroupsManager();
+  private _groupsManager = new GroupsManager(this._usersManager, this._runInTransaction.bind(this));
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -271,15 +272,15 @@ export class HomeDBManager extends EventEmitter {
     return super.emit(event, ...args);
   }
 
-  public get defaultGroups(): GroupDescriptor[] {
+  public get defaultGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultGroups;
   }
 
-  public get defaultBasicGroups(): GroupDescriptor[] {
+  public get defaultBasicGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultBasicGroups;
   }
 
-  public get defaultCommonGroups(): GroupDescriptor[] {
+  public get defaultCommonGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultCommonGroups;
   }
 
@@ -603,6 +604,7 @@ export class HomeDBManager extends EventEmitter {
                                  includeOrgsAndManagers: boolean,
                                  transaction?: EntityManager): Promise<BillingAccount> {
     const org = this.unwrapQueryResult(await this.getOrg(scope, orgKey, transaction));
+
     if (!org.billingAccount.isManager && scope.userId !== this._usersManager.getPreviewerUserId() &&
       // The special permit (used for the support user) allows access to the billing account.
       scope.specialPermit?.org !== orgKey) {
@@ -3065,6 +3067,39 @@ export class HomeDBManager extends EventEmitter {
       query = query.andWhere("configs.org_id IS NULL");
     }
     return query.getOne();
+  }
+
+  public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
+    return this._groupsManager.createGroup(groupDescriptor, optManager);
+  }
+
+  public async overwriteResourceUsersGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteResourceUsersGroup(id, groupDescriptor, optManager);
+  }
+
+  public async overwriteRoleGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteRoleGroup(id, groupDescriptor, optManager);
+  }
+
+  public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
+    return this._groupsManager.deleteGroup(id, expectedType, optManager);
+  }
+
+  public getGroupsWithMembers(manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembers(manager);
+  }
+
+  public getGroupsWithMembersByType(
+    type: GroupTypes, opts?: {aclRule?: boolean}, manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembersByType(type, opts, manager);
+  }
+
+  public getGroupWithMembersById(id: number, opts?: {aclRule: boolean}, manager?: EntityManager): Promise<Group|null> {
+    return this._groupsManager.getGroupWithMembersById(id, opts, manager);
   }
 
   private _installConfig(

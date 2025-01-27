@@ -1,23 +1,18 @@
 import { ApiError } from 'app/common/ApiError';
 import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
-import SCIMMY from 'scimmy';
-import { toSCIMMYUser, toUserProfile } from 'app/server/lib/scim/v2/ScimUserUtils';
-import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 import log from 'app/server/lib/log';
+import { BaseController } from 'app/server/lib/scim/v2/BaseController';
+import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
+import { toSCIMMYUser, toUserProfile } from 'app/server/lib/scim/v2/ScimUtils';
+import SCIMMY from 'scimmy';
 
-class ScimUserController {
-  private static _getIdFromResource(resource: any) {
-    const id = parseInt(resource.id, 10);
-    if (Number.isNaN(id)) {
-      throw new SCIMMY.Types.Error(400, 'invalidValue', 'Invalid passed user ID');
-    }
-    return id;
+class ScimUserController extends BaseController {
+  public constructor(
+    dbManager: HomeDBManager,
+    checkAccess: (context: RequestContext) => void
+  ) {
+    super(dbManager, checkAccess, 'Invalid passed user ID');
   }
-
-  constructor(
-    private _dbManager: HomeDBManager,
-    private _checkAccess: (context: RequestContext) => void
-  ) {}
 
   /**
    * Gets a single user with the passed ID.
@@ -27,8 +22,8 @@ class ScimUserController {
    */
   public async getSingleUser(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
-      const id = ScimUserController._getIdFromResource(resource);
-      const user = await this._dbManager.getUser(id);
+      const id = this.getIdFromResource(resource);
+      const user = await this.dbManager.getUser(id);
       if (!user) {
         throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
       }
@@ -45,7 +40,7 @@ class ScimUserController {
   public async getUsers(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
       const { filter } = resource;
-      const scimmyUsers = (await this._dbManager.getUsers()).map(user => toSCIMMYUser(user));
+      const scimmyUsers = (await this.dbManager.getUsers()).map(user => toSCIMMYUser(user));
       return filter ? filter.match(scimmyUsers) : scimmyUsers;
     });
   }
@@ -60,7 +55,7 @@ class ScimUserController {
     return this._runAndHandleErrors(context, async () => {
       await this._checkEmailCanBeUsed(data.userName);
       const userProfile = toUserProfile(data);
-      const newUser = await this._dbManager.getUserByLoginWithRetry(userProfile.email, {
+      const newUser = await this.dbManager.getUserByLoginWithRetry(userProfile.email, {
         profile: userProfile
       });
       return toSCIMMYUser(newUser);
@@ -68,20 +63,20 @@ class ScimUserController {
   }
 
   /**
-   * Overrides a user with the passed data.
+   * Overwrite a user with the passed data.
    *
    * @param resource The SCIMMY user resource performing the operation
-   * @param data The data to override the user with
+   * @param data The data to overwrite the user with
    * @param context The request context
    */
   public async overwriteUser(resource: any, data: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
-      const id = ScimUserController._getIdFromResource(resource);
-      if (this._dbManager.getSpecialUserIds().includes(id)) {
+      const id = this.getIdFromResource(resource);
+      if (this.dbManager.getSpecialUserIds().includes(id)) {
         throw new SCIMMY.Types.Error(403, null!, 'System user modification not permitted.');
       }
       await this._checkEmailCanBeUsed(data.userName, id);
-      const updatedUser = await this._dbManager.overwriteUser(id, toUserProfile(data));
+      const updatedUser = await this.dbManager.overwriteUser(id, toUserProfile(data));
       return toSCIMMYUser(updatedUser);
     });
   }
@@ -94,14 +89,14 @@ class ScimUserController {
    */
   public async deleteUser(resource: any, context: RequestContext) {
     return this._runAndHandleErrors(context, async () => {
-      const id = ScimUserController._getIdFromResource(resource);
-      if (this._dbManager.getSpecialUserIds().includes(id)) {
+      const id = this.getIdFromResource(resource);
+      if (this.dbManager.getSpecialUserIds().includes(id)) {
         throw new SCIMMY.Types.Error(403, null!, 'System user deletion not permitted.');
       }
       const fakeScope: Scope = { userId: id };
       // FIXME: deleteUser should probably be rewritten to not require a scope. We should move
       //        the scope creation to a controller.
-      await this._dbManager.deleteUser(fakeScope, id);
+      await this.dbManager.deleteUser(fakeScope, id);
     });
   }
 
@@ -115,7 +110,7 @@ class ScimUserController {
    */
   private async _runAndHandleErrors<T>(context: RequestContext, cb: () => Promise<T>): Promise<T> {
     try {
-      this._checkAccess(context);
+      this.checkAccess(context);
       return await cb();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -143,7 +138,7 @@ class ScimUserController {
    * so it won't raise an error if the passed email is already used by this user.
    */
   private async _checkEmailCanBeUsed(email: string, userIdToUpdate?: number) {
-    const existingUser = await this._dbManager.getExistingUserByLogin(email);
+    const existingUser = await this.dbManager.getExistingUserByLogin(email);
     if (existingUser !== undefined && existingUser.id !== userIdToUpdate) {
       throw new SCIMMY.Types.Error(409, 'uniqueness', 'An existing user with the passed email exist.');
     }
