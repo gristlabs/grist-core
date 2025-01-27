@@ -29,7 +29,7 @@ import {AbortController} from 'node-abort-controller';
 import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
-import {createClient, RedisClient} from 'redis';
+import {createClient, RedisClientType} from 'redis';
 import * as sinon from 'sinon';
 import {configForUser} from 'test/gen-server/testUtils';
 import {serveSomething, Serving} from 'test/server/customUtil';
@@ -3780,13 +3780,13 @@ function testDocApi(settings: {
   });
 
   describe("Daily API Limit", () => {
-    let redisClient: RedisClient;
+    let redisClient: RedisClientType;
 
     before(async function () {
       if (!process.env.TEST_REDIS_URL) {
         this.skip();
       }
-      redisClient = createClient(process.env.TEST_REDIS_URL);
+      redisClient = createClient({url:process.env.TEST_REDIS_URL});
     });
 
     it("limits daily API usage", async function () {
@@ -3834,7 +3834,7 @@ function testDocApi(settings: {
         .set(currentHour, String(used))
         .set(nextDay, String(used))
         .set(nextHour, String(used))
-        .execAsync();
+        .exec();
 
       // Make 9 requests. The first 4 should succeed by fitting into the allocation for the minute.
       // (Free team plans get 5000 requests per day, and 5000/24/60 ~= 3.47 which is rounded up to 4)
@@ -3867,7 +3867,7 @@ function testDocApi(settings: {
                 .ttl(minute)
                 .ttl(hour)
                 .ttl(day)
-                .execAsync(),
+                .exec(),
               [
                 2 * 60,
                 2 * 60 * 60,
@@ -3881,7 +3881,7 @@ function testDocApi(settings: {
               .get(minute)
               .get(hour)
               .get(day)
-              .execAsync(),
+              .exec(),
             [
               String(i),
               String(used + (first ? 1 : i - 1)),
@@ -3942,7 +3942,7 @@ function testDocApi(settings: {
 
     after(async function () {
       if (process.env.TEST_REDIS_URL) {
-        await redisClient.quitAsync();
+        await redisClient.quit();
       }
     });
   });
@@ -4174,7 +4174,7 @@ function testDocApi(settings: {
         };
 
         redisCalls = [];
-        redisMonitor = createClient(process.env.TEST_REDIS_URL);
+        redisMonitor = createClient({url:process.env.TEST_REDIS_URL});
         redisMonitor.monitor();
         redisMonitor.on("monitor", (_time: any, args: any, _rawReply: any) => {
           redisCalls.push(args);
@@ -5436,8 +5436,8 @@ async function flushAuth() {
 async function flushAllRedis() {
   // Clear redis test database if redis is in use.
   if (process.env.TEST_REDIS_URL) {
-    const cli = createClient(process.env.TEST_REDIS_URL);
-    await cli.flushdbAsync();
-    await cli.quitAsync();
+    const cli = createClient({url:process.env.TEST_REDIS_URL});
+    await cli.flushDb();
+    await cli.quit();
   }
 }

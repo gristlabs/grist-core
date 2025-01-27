@@ -6,7 +6,7 @@
 import { IChecksumStore } from 'app/server/lib/IChecksumStore';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
 import { IPermitStores } from 'app/server/lib/Permit';
-import { RedisClient } from 'redis';
+import { RedisClientType } from 'redis';
 
 export interface DocWorkerInfo {
   id: string;
@@ -75,5 +75,5 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
 
   removeDocGroup(docId: string): Promise<void>;
 
-  getRedisClient(): RedisClient|null;
+  getRedisClient(): RedisClientType|null;
 }

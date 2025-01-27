@@ -131,7 +131,7 @@ import {IMessage, MsgType} from 'grain-rpc';
 import imageSize from 'image-size';
 import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
-import {createClient, RedisClient} from 'redis';
+import {createClient, RedisClientType} from 'redis';
 import tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
@@ -270,7 +270,7 @@ export class ActiveDoc extends EventEmitter {
   private _attachmentFileManager: AttachmentFileManager;
 
   // Client watching for 'product changed' event published by Billing to update usage
-  private _redisSubscriber?: RedisClient;
+  private _redisSubscriber?: RedisClientType;
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => {
@@ -339,19 +339,20 @@ export class ActiveDoc extends EventEmitter {
       if (process.env.REDIS_URL && billingAccount) {
         const prefix = getPubSubPrefix();
         const channel = `${prefix}-billingAccount-${billingAccount.id}-product-changed`;
-        this._redisSubscriber = createClient(process.env.REDIS_URL);
-        this._redisSubscriber.subscribe(channel);
-        this._redisSubscriber.on("message", async () => {
+        const listener = async (message: string, chan: string) => {
+          this._log.debug(null, `Reload ActiveDoc: ${message}, ${chan}`);
           // A product change has just happened in Billing.
           // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
           this._log.debug(null, 'reload after product change');
           await this.reloadDoc();
-        });
-        this._redisSubscriber.on("error", async (error) => {
+        };
+        this._redisSubscriber = createClient({url:process.env.REDIS_URL});
+        this._redisSubscriber.SUBSCRIBE(channel, listener)
+        .catch(err=>{
           this._log.error(
             null,
             `encountered error while subscribed to channel ${channel}`,
-            error
+            err
           );
         });
       }
@@ -2108,7 +2109,7 @@ export class ActiveDoc extends EventEmitter {
 
       this._triggers.shutdown();
 
-      this._redisSubscriber?.quitAsync()
+      this._redisSubscriber?.quit()
         .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));
 
       // Clear the MapWithTTL to remove all timers from the event loop.

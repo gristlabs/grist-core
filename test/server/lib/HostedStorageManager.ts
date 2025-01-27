@@ -31,15 +31,13 @@ import * as bluebird from 'bluebird';
 import {assert} from 'chai';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import {createClient, RedisClient} from 'redis';
+import {createClient, RedisClientType} from 'redis';
 import * as sinon from 'sinon';
 import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
 import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import {v4 as uuidv4} from 'uuid';
-
-bluebird.promisifyAll(RedisClient.prototype);
 
 /**
  * An in-memory store, for testing.
@@ -395,16 +393,16 @@ describe('HostedStorageManager', function() {
       let oldEnv: EnvironmentSnapshot;
 
       const workerId = 'dw17';
-      let cli: RedisClient;
+      let cli: RedisClientType;
       let store: TestStore;
       let workers: DocWorkerMap;
       let tmpDir: string;
 
       before(async function() {
         if (!process.env.TEST_REDIS_URL) { this.skip(); return; }
-        cli = createClient(process.env.TEST_REDIS_URL);
+        cli = createClient({url:process.env.TEST_REDIS_URL});
         oldEnv = new EnvironmentSnapshot();
-        await cli.flushdbAsync();
+        await cli.flushDb();
         workers = new DocWorkerMap([cli]);
         await workers.addWorker({
           id: workerId,
@@ -459,7 +457,7 @@ describe('HostedStorageManager', function() {
       after(async function() {
         await store?.storageManager.testStopOperations();
         await workers?.removeWorker(workerId);
-        await cli?.quitAsync();
+        await cli?.quit();
       });
 
       beforeEach(function() {
@@ -476,18 +474,18 @@ describe('HostedStorageManager', function() {
       });
 
       async function getRedisChecksum(docId: string): Promise<string> {
-        return (await cli.getAsync(`doc-${docId}-checksum`)) || '';
+        return (await cli.get(`doc-${docId}-checksum`)) || '';
       }
 
-      async function setRedisChecksum(docId: string, checksum: string): Promise<'OK'> {
-        return cli.setAsync(`doc-${docId}-checksum`, checksum);
+      async function setRedisChecksum(docId: string, checksum: string) {
+        return cli.set(`doc-${docId}-checksum`, checksum);
       }
 
       async function dropAllChecksums() {
         // `keys` is a potentially slow, unrecommended operation - but ok in test scenario
         // against a test instance of redis.
-        for (const key of await cli.keysAsync('*-checksum')) {
-          await cli.delAsync(key);
+        for (const key of await cli.keys('*-checksum')) {
+          await cli.del(key);
         }
       }
 

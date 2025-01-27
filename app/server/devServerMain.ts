@@ -22,12 +22,10 @@ import {updateDb} from 'app/server/lib/dbUtils';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import log from 'app/server/lib/log';
 import {MergedServer} from 'app/server/MergedServer';
-import {promisifyAll} from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import {createClient, RedisClient} from 'redis';
+import {createClient} from 'redis';
 
-promisifyAll(RedisClient.prototype);
 
 function getPort(envVarName: string, fallbackPort: number): number {
   const val = process.env[envVarName];
@@ -61,7 +59,7 @@ export async function main() {
     const {createInitialDb} = require('test/gen-server/seed');
     await createInitialDb();
     if (process.env.REDIS_URL) {
-      await createClient(process.env.REDIS_URL).flushdbAsync();
+      await createClient({url:process.env.REDIS_URL}).flushDb();
     }
   } else {
     await updateDb();

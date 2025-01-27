@@ -32,9 +32,9 @@ let serverUrl: string;
 let userApi: UserAPIImpl;
 
 async function cleanRedisDatabase() {
-  const cli = createClient(process.env.TEST_REDIS_URL);
-  await cli.flushdbAsync();
-  await cli.quitAsync();
+  const cli = createClient({url:process.env.TEST_REDIS_URL});
+  await cli.flushDb();
+  await cli.quit();
 }
 
 function backupEnvironmentVariables() {
@@ -242,7 +242,7 @@ describe('Webhooks-Proxy', function () {
 
         if (process.env.TEST_REDIS_URL) {
 
-          redisMonitor = createClient(process.env.TEST_REDIS_URL);
+          redisMonitor = createClient({url:process.env.TEST_REDIS_URL});
         }
       });
 

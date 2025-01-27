@@ -4,7 +4,7 @@ import { KeyedMutex } from 'app/common/KeyedMutex';
 import { AccessTokenOptions } from 'app/plugin/GristAPI';
 import { makeId } from 'app/server/lib/idUtils';
 import * as jwt from 'jsonwebtoken';
-import { RedisClient } from 'redis';
+import { RedisClientType } from 'redis';
 
 export const Deps = {
   // Signed tokens expire after this length of time.
@@ -87,7 +87,7 @@ export class AccessTokens implements IAccessTokens {
   // tokens must be honored. Cache is of a list of secrets. It is important to allow multiple
   // secrets so we can change the secret we are signing with and still honor tokens signed with
   // a previous secret.
-  constructor(cli: RedisClient|null, private _factor: number = 10) {
+  constructor(cli: RedisClientType|null, private _factor: number = 10) {
     this._store = cli ? new RedisAccessTokenSignerStore(cli) : new InMemoryAccessTokenSignerStore();
     this._dtMsec = Deps.TOKEN_TTL_MSECS;
     this._reads = new MapWithTTL<string, string[]>(this._dtMsec * _factor * 0.5);
@@ -247,15 +247,15 @@ export class InMemoryAccessTokenSignerStore implements IAccessTokenSignerStore {
 // Redis based implementation of IAccessTokenSignerStore, for multi process/instance
 // Grist.
 export class RedisAccessTokenSignerStore implements IAccessTokenSignerStore {
-  constructor(private _cli: RedisClient) { }
+  constructor(private _cli: RedisClientType) { }
 
   public async getSigners(docId: string): Promise<string[]> {
-    const keys = await this._cli.getAsync(this._getKey(docId));
+    const keys = await this._cli.get(this._getKey(docId));
     return keys?.split(',') || [];
   }
 
   public async setSigners(docId: string, secrets: string[], ttlMsec: number): Promise<void> {
-    await this._cli.setexAsync(this._getKey(docId), ttlMsec, secrets.join(','));
+    await this._cli.setEx(this._getKey(docId), ttlMsec, secrets.join(','));
   }
 
   public async close() {
