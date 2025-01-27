@@ -311,6 +311,7 @@ export class GroupsManager {
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
       const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
+      console.log('existingGroup', existingGroup);
       if (!existingGroup || (existingGroup.type !== Group.RESOURCE_USERS_TYPE)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
