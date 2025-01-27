@@ -871,8 +871,12 @@ export class ActiveDoc extends EventEmitter {
           }
         }
       );
-      const userActions: UserAction[] = await Promise.all(
-        upload.files.map(file => this._prepAttachment(docSession, file)));
+      const userActions: UserAction[] = [];
+      // Process uploads sequentially to reduce risk of race conditions.
+      // Minimal performance impact due to the main async operation being serialized SQL queries.
+      for (const file of upload.files) {
+        userActions.push(await this._prepAttachment(docSession, file));
+      }
       const result = await this._applyUserActionsWithExtendedOptions(docSession, userActions, {
         attachment: true,
       });
@@ -943,6 +947,42 @@ export class ActiveDoc extends EventEmitter {
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
+  }
+
+  @ActiveDoc.keepDocOpen
+  public async startTransferringAllAttachmentsToDefaultStore() {
+    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    // If no attachment store is set on the doc, it should transfer everything to internal storage
+    await this._attachmentFileManager.startTransferringAllFilesToOtherStore(attachmentStoreId);
+  }
+
+  /**
+   * Returns a summary of pending attachment transfers between attachment stores.
+   */
+  public attachmentTransferStatus() {
+    return this._attachmentFileManager.transferStatus();
+  }
+
+  /**
+   * Returns a summary of where attachments on this doc are stored.
+   */
+  public async attachmentLocationSummary() {
+    return await this._attachmentFileManager.locationSummary();
+  }
+
+  /*
+   * Wait for all attachment transfers to be finished, keeping the doc open
+   * for as long as possible.
+   */
+  @ActiveDoc.keepDocOpen
+  public async allAttachmentTransfersCompleted() {
+      await this._attachmentFileManager.allTransfersCompleted();
+  }
+
+  public async setAttachmentStore(docSession: OptDocSession, id: string): Promise<void> {
+    const docSettings = await this._getDocumentSettings();
+    docSettings.attachmentStoreId = id;
+    await this._updateDocumentSettings(docSession, docSettings);
   }
 
   /**
@@ -2857,13 +2897,22 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _getDocumentSettings(): Promise<DocumentSettings> {
-    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo');
-    const docSettingsString = docInfo?.documentSettings;
-    const docSettings = docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
+    const docSettings = this.docData?.docSettings();
     if (!docSettings) {
       throw new Error("No document settings found");
     }
     return docSettings;
+  }
+
+  private async _updateDocumentSettings(docSessions: OptDocSession, settings: DocumentSettings): Promise<void> {
+    const docInfo = this.docData?.docInfo();
+    if (!docInfo) {
+      throw new Error("No document info found");
+    }
+    await this.applyUserActions(docSessions, [
+      // Use docInfo.id to avoid hard-coding a reference to a specific row id, in case it changes.
+      ["UpdateRecord", "_grist_DocInfo", docInfo.id, { documentSettings: JSON.stringify(settings) }]
+    ]);
   }
 
   private async _makeEngine(): Promise<ISandbox> {

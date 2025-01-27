@@ -385,22 +385,29 @@ describe('DocStorage', function() {
     });
   });
 
-  describe('findOrAttachFile', function() {
+  describe('attachFileIfNew', function() {
     var docStorage;
     it("should create attachment blob", function() {
       docStorage = new DocStorage(docStorageManager, 'test_Attachments');
       const correctFileContents = "Hello, world!"
+      const replacementFileContents = "Another file"
       return docStorage.createFile()
-      .then(() => docStorage.findOrAttachFile( "hello_world.txt", Buffer.from(correctFileContents)))
+      .then(() => docStorage.attachFileIfNew( "hello_world.txt", Buffer.from(correctFileContents)))
       .then(result => assert.isTrue(result))
       .then(() => docStorage.getFileInfo("hello_world.txt"))
       .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), correctFileContents))
 
       // If we use the same fileIdent for another file, it should not get attached.
-      .then(() => docStorage.findOrAttachFile("hello_world.txt", Buffer.from("Another file")))
+      .then(() => docStorage.attachFileIfNew("hello_world.txt", Buffer.from(replacementFileContents)))
       .then(result => assert.isFalse(result))
       .then(() => docStorage.getFileInfo("hello_world.txt"))
-      .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), correctFileContents));
+      .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), correctFileContents))
+
+      // The update parameter should allow the record to be overwritten
+      .then(() => docStorage.attachOrUpdateFile("hello_world.txt", Buffer.from(replacementFileContents), undefined))
+      .then(result => assert.isFalse(result))
+      .then(() => docStorage.getFileInfo("hello_world.txt"))
+      .then(fileInfo => assert.equal(fileInfo.data.toString('utf8'), replacementFileContents));
     });
   });
 
