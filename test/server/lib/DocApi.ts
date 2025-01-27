@@ -137,7 +137,8 @@ describe('DocApi', function () {
     setup('merged', async () => {
       const additionalEnvConfiguration = {
         ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-        GRIST_DATA_DIR: dataDir
+        GRIST_DATA_DIR: dataDir,
+        GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
       homeUrl = serverUrl = home.serverUrl;
@@ -2738,27 +2739,65 @@ function testDocApi(settings: {
       await checkAttachmentIds([]);
     });
 
-    it("GET /docs/{did}/attachments/transferStatus reports transfer status", async function () {
-      const wid = await getWorkspaceId(userApi, 'Private');
-      const docId = await userApi.newDoc({name: 'TestDoc3'}, wid);
-      const docUrl = `${serverUrl}/api/docs/${docId}`;
+    describe("external attachment stores", async () => {
+      let docId = "";
+      let docUrl = "";
 
-      const formData = new FormData();
-      formData.append('upload', 'foobar', "hello.doc");
-      formData.append('upload', '123456', "world.jpg");
-      formData.append('upload', 'foobar', "hello2.doc");
-      let resp = await axios.post(`${docUrl}/attachments`, formData,
-        defaultsDeep({headers: formData.getHeaders()}, chimpy));
-      assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, [1, 2, 3]);
+      before(async () => {
+        const wid = await getWorkspaceId(userApi, 'Private');
+        docId = await userApi.newDoc({name: 'TestDocExternalAttachments'}, wid);
+        docUrl = `${serverUrl}/api/docs/${docId}`;
 
-      resp = await axios.get(`${docUrl}/attachments/transferStatus`, chimpy);
-      assert.deepEqual(resp.data, {
-        status: {
-          pendingTransferCount: 0,
-          isRunning: false,
-        },
-        locationSummary: "INTERNAL",
+        const formData = new FormData();
+        formData.append('upload', 'foobar', "hello.doc");
+        formData.append('upload', '123456', "world.jpg");
+        formData.append('upload', 'foobar', "hello2.doc");
+        const resp = await axios.post(`${docUrl}/attachments`, formData,
+          defaultsDeep({headers: formData.getHeaders()}, chimpy));
+        assert.equal(resp.status, 200);
+        assert.deepEqual(resp.data, [1, 2, 3]);
+      });
+
+      after(async () => {
+        await userApi?.deleteDoc(docId);
+      });
+
+      it("GET /docs/{did}/attachments/transferStatus reports idle transfer status", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/transferStatus`, chimpy);
+        assert.deepEqual(resp.data, {
+          status: {
+            pendingTransferCount: 0,
+            isRunning: false,
+          },
+          locationSummary: "INTERNAL",
+        });
+      });
+
+      it("GET /docs/{did}/attachments/store gets the external store", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/store`, chimpy);
+        assert.equal(resp.data.type, 'internal');
+      });
+
+      it("POST /docs/{did}/attachments/store sets the external store", async function () {
+        const postResp = await axios.post(`${docUrl}/attachments/store`, {
+          type: 'external',
+        }, chimpy);
+        assert.equal(postResp.status, 200);
+
+        const getResp = await axios.get(`${docUrl}/attachments/store`, chimpy);
+        assert.equal(getResp.data.type, 'external');
+      });
+
+      it("POST /docs/{did}/attachments/transferAll transfers all attachments", async function () {
+        const transferResp = await axios.post(`${docUrl}/attachments/transferAll`, {}, chimpy);
+
+        assert.deepEqual(transferResp.data, {
+          status: {
+            pendingTransferCount: 2,
+            isRunning: true,
+          },
+          locationSummary: "INTERNAL",
+        });
       });
     });
   });

@@ -28,7 +28,10 @@ import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
 import {
-  AttachmentStoreProvider, checkAvailabilityAttachmentStoreOptions, IAttachmentStoreProvider
+  AttachmentStoreProvider,
+  checkAvailabilityAttachmentStoreOptions,
+  getConfiguredAttachmentStoreConfigs,
+  IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
@@ -1396,7 +1399,7 @@ export class FlexServer implements GristServer {
     });
 
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
-      storeOptions.available,
+      await getConfiguredAttachmentStoreConfigs(),
       (await this.getActivations().current()).id,
     );
     this._docManager = this._docManager || new DocManager(this._storageManager,

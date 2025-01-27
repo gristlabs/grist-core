@@ -315,7 +315,8 @@ class TestStore {
         return result;
     };
 
-    const attachmentStoreProvider = this._attachmentStoreProvider ?? new AttachmentStoreProvider([], "TESTINSTALL");
+    const attachmentStoreProvider =
+      this._attachmentStoreProvider ?? new AttachmentStoreProvider([],  "TESTINSTALL");
 
     const storageManager = new HostedStorageManager(this._localDirectory,
                                                     this._workerId,
