@@ -1871,10 +1871,10 @@ export class DocWorkerApi {
       const expiry = 2 * 24 * 60 * 60 / period.periodsPerDay;
       multi.incr(key).expire(key, expiry);
     }
-    multi.execAsync().then(result => {
+    multi.exec().then(result => {
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        const newCount = Number(result![i * 2]);  // incrs are at even positions, expires at odd positions
+        const newCount = Number(result[i * 2]);  // incrs are at even positions, expires at odd positions
         // Theoretically this could be overwritten by a lower count that was requested earlier
         // but somehow arrived after.
         // This doesn't really matter, and the count on redis will still increase reliably.

@@ -3,39 +3,38 @@ import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerM
 import {FlexServer} from 'app/server/lib/FlexServer';
 import {Permit} from 'app/server/lib/Permit';
 import {MergedServer} from "app/server/MergedServer";
-import {delay, promisifyAll} from 'bluebird';
+import {delay} from 'bluebird';
 import {assert, expect} from 'chai';
 import {countBy, values} from 'lodash';
-import {createClient, RedisClient} from 'redis';
+import {createClient, RedisClientType} from 'redis';
 import {TestSession} from 'test/gen-server/apiUtils';
 import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
 import sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
-promisifyAll(RedisClient.prototype);
 
 describe('DocWorkerMap', function() {
 
-  let cli: RedisClient;
+  let cli: RedisClientType;
 
   testUtils.setTmpLogLevel('error');
 
   before(async function() {
     if (!process.env.TEST_REDIS_URL) { this.skip(); }
-    cli = createClient(process.env.TEST_REDIS_URL);
-    await cli.flushdbAsync();
+    cli = createClient({url:process.env.TEST_REDIS_URL});
+    await cli.flushDb();
   });
 
   after(async function() {
-    if (cli) { await cli.quitAsync(); }
+    if (cli) { await cli.quit(); }
   });
 
   beforeEach(async function() {
-    if (cli) { await cli.delAsync('groups'); }
+    if (cli) { await cli.del('groups'); }
   });
 
   afterEach(async function() {
-    if (cli) { await cli.flushdbAsync(); }
+    if (cli) { await cli.flushDb(); }
   });
 
   it('can assign a worker when available', async function() {
@@ -158,25 +157,25 @@ describe('DocWorkerMap', function() {
     this.timeout(5000);
 
     // Say we want one worker reserved for "blizzard" and two for "funkytown"
-    await cli.hmsetAsync('groups', {
+    await cli.hSet('groups', {
       blizzard: 1,
       funkytown: 2,
     });
     for (let i = 0; i < 20; i++) {
-      await cli.setAsync(`doc-blizzard${i}-group`, 'blizzard');
-      await cli.setAsync(`doc-funkytown${i}-group`, 'funkytown');
+      await cli.set(`doc-blizzard${i}-group`, 'blizzard');
+      await cli.set(`doc-funkytown${i}-group`, 'funkytown');
     }
     let workers = new DocWorkerMap([cli], 'ver1');
     for (let i = 0; i < 5; i++) {
       await workers.addWorker({id: `worker${i}`, internalUrl: 'internal', publicUrl: 'public'});
       await workers.setWorkerAvailability(`worker${i}`, true);
     }
-    let elections = await cli.hgetallAsync('elections-ver1');
+    let elections = await cli.hGetAll('elections-ver1');
     assert.deepEqual(elections, { blizzard: '["worker0"]', funkytown: '["worker1","worker2"]' });
-    assert.sameMembers(await cli.smembersAsync('workers-available-blizzard'), ['worker0']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-funkytown'), ['worker1', 'worker2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-default'), ['worker3', 'worker4']);
-    assert.sameMembers(await cli.smembersAsync('workers-available'),
+    assert.sameMembers(await cli.sMembers('workers-available-blizzard'), ['worker0']);
+    assert.sameMembers(await cli.sMembers('workers-available-funkytown'), ['worker1', 'worker2']);
+    assert.sameMembers(await cli.sMembers('workers-available-default'), ['worker3', 'worker4']);
+    assert.sameMembers(await cli.sMembers('workers-available'),
                        ['worker0', 'worker1', 'worker2', 'worker3', 'worker4']);
     for (let i = 0; i < 20; i++) {
       const assignment = await workers.assignDocWorker(`blizzard${i}`);
@@ -215,13 +214,13 @@ describe('DocWorkerMap', function() {
       await workers.addWorker({id: `worker${i}_v2`, internalUrl: 'internal', publicUrl: 'public'});
       await workers.setWorkerAvailability(`worker${i}_v2`, true);
     }
-    assert.sameMembers(await cli.smembersAsync('workers-available-blizzard'),
+    assert.sameMembers(await cli.sMembers('workers-available-blizzard'),
                        ['worker5', 'worker0_v2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-funkytown'),
+    assert.sameMembers(await cli.sMembers('workers-available-funkytown'),
                        ['worker2', 'worker6', 'worker1_v2', 'worker2_v2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-default'),
+    assert.sameMembers(await cli.sMembers('workers-available-default'),
                        ['worker3', 'worker4', 'worker3_v2', 'worker4_v2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available'),
+    assert.sameMembers(await cli.sMembers('workers-available'),
                        ['worker2', 'worker3', 'worker4', 'worker5', 'worker6',
                         'worker0_v2', 'worker1_v2', 'worker2_v2', 'worker3_v2', 'worker4_v2']);
 
@@ -233,13 +232,13 @@ describe('DocWorkerMap', function() {
 
     // check everything looks as expected
     workers = new DocWorkerMap([cli], 'ver2');
-    elections = await cli.hgetallAsync('elections-ver2');
+    elections = await cli.hGetAll('elections-ver2');
     assert.deepEqual(elections, { blizzard: '["worker0_v2"]',
                                   funkytown: '["worker1_v2","worker2_v2"]' });
-    assert.sameMembers(await cli.smembersAsync('workers-available-blizzard'), ['worker0_v2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-funkytown'), ['worker1_v2', 'worker2_v2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-default'), ['worker3_v2', 'worker4_v2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available'),
+    assert.sameMembers(await cli.sMembers('workers-available-blizzard'), ['worker0_v2']);
+    assert.sameMembers(await cli.sMembers('workers-available-funkytown'), ['worker1_v2', 'worker2_v2']);
+    assert.sameMembers(await cli.sMembers('workers-available-default'), ['worker3_v2', 'worker4_v2']);
+    assert.sameMembers(await cli.sMembers('workers-available'),
                        ['worker0_v2', 'worker1_v2', 'worker2_v2', 'worker3_v2', 'worker4_v2']);
     for (let i = 0; i < 20; i++) {
       const assignment = await workers.assignDocWorker(`blizzard${i}`);
@@ -255,7 +254,7 @@ describe('DocWorkerMap', function() {
     }
 
     // check everything about previous deployment got cleaned up
-    assert.equal(await cli.hgetallAsync('elections-ver1'), null);
+    assert.equal(await cli.hGetAll('elections-ver1'), null);
   });
 
   it('can assign workers to groups', async function() {
@@ -274,21 +273,21 @@ describe('DocWorkerMap', function() {
     await workers.setWorkerAvailability('worker_secondary', true);
 
     // Check that worker lists look sane.
-    assert.sameMembers(await cli.smembersAsync('workers'),
+    assert.sameMembers(await cli.sMembers('workers'),
                        ['worker0', 'worker1', 'worker2', 'worker_secondary']);
-    assert.sameMembers(await cli.smembersAsync('workers-available'),
+    assert.sameMembers(await cli.sMembers('workers-available'),
                        ['worker0', 'worker1', 'worker2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-default'),
+    assert.sameMembers(await cli.sMembers('workers-available-default'),
                        ['worker0', 'worker1', 'worker2']);
-    assert.sameMembers(await cli.smembersAsync('workers-available-secondary'),
+    assert.sameMembers(await cli.sMembers('workers-available-secondary'),
                        ['worker_secondary']);
 
     // Check that worker-*-group keys are as expected.
-    assert.equal(await cli.getAsync('worker-worker_secondary-group'), 'secondary');
-    assert.equal(await cli.getAsync('worker-worker0-group'), null);
+    assert.equal(await cli.get('worker-worker_secondary-group'), 'secondary');
+    assert.equal(await cli.get('worker-worker0-group'), null);
 
     // Check that a doc for the special group is assigned to the correct worker.
-    await cli.setAsync('doc-funkydoc-group', 'secondary');
+    await cli.set('doc-funkydoc-group', 'secondary');
     assert.equal((await workers.assignDocWorker('funkydoc')).docWorker.id, 'worker_secondary');
 
     // Check that other docs don't end up on the special group's worker.
@@ -448,7 +447,7 @@ describe('DocWorkerMap', function() {
       assert.equal((await workers.getDocWorker(doc1))?.docWorker.id, 'worker1');
 
       // Set doc to "special" group.
-      await cli.setAsync(`doc-${doc1}-group`, 'special');
+      await cli.set(`doc-${doc1}-group`, 'special');
 
       // Check doc gets reassigned to correct worker.
       assert.equal(await (await api.testRequest(`${api.getBaseUrl()}/api/docs/${doc1}/assign`, {
@@ -458,7 +457,7 @@ describe('DocWorkerMap', function() {
       assert.equal((await workers.getDocWorker(doc1))?.docWorker.id, 'worker2');
 
       // Set doc to "other" group.
-      await cli.setAsync(`doc-${doc1}-group`, 'other');
+      await cli.set(`doc-${doc1}-group`, 'other');
 
       // Check doc gets reassigned to one of the correct workers.
       assert.equal(await (await api.testRequest(`${api.getBaseUrl()}/api/docs/${doc1}/assign`, {
@@ -468,7 +467,7 @@ describe('DocWorkerMap', function() {
       assert.oneOf((await workers.getDocWorker(doc1))?.docWorker.id, ['worker3', 'worker4']);
 
       // Remove doc from groups.
-      await cli.delAsync(`doc-${doc1}-group`);
+      await cli.del(`doc-${doc1}-group`);
       assert.equal(await (await api.testRequest(`${api.getBaseUrl()}/api/docs/${doc1}/assign`, {
         method: 'POST'
       })).json(), true);
