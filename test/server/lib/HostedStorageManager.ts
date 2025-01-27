@@ -18,7 +18,7 @@ import {
   ExternalStorageSettings,
   wrapWithKeyMappedStorage
 } from 'app/server/lib/ExternalStorage';
-import {createDummyGristServer} from 'app/server/lib/GristServer';
+import { createDummyGristServer, GristServer } from 'app/server/lib/GristServer';
 import {
   BackupEvent,
   backupSqliteDatabase,
@@ -317,7 +317,16 @@ class TestStore {
 
     const attachmentStoreProvider = this._attachmentStoreProvider ?? new AttachmentStoreProvider([], "TESTINSTALL");
 
-    const storageManager = new HostedStorageManager(this._localDirectory,
+    const testStore = this;
+    const gristServer: GristServer = {
+      ...createDummyGristServer(),
+      getDocManager() {
+        return testStore.docManager;
+      }
+    };
+
+    const storageManager = new HostedStorageManager(gristServer,
+                                                    this._localDirectory,
                                                     this._workerId,
                                                     false,
                                                     this._workers,
@@ -997,6 +1006,7 @@ describe('HostedStorageManager', function() {
       oldEnv.restore();
     });
 
+    let docManager: DocManager;
     beforeEach(async function() {
       // With Redis disabled, this should be the non-redis version of IDocWorkerMap (DummyDocWorkerMap)
       docWorkerMap = getDocWorkerMap();
@@ -1007,7 +1017,13 @@ describe('HostedStorageManager', function() {
       });
       await docWorkerMap.setWorkerAvailability(workerId, true);
 
+      const gristServer: GristServer = {
+        ...createDummyGristServer(),
+        getDocManager() { return docManager; }
+      };
+
       defaultParams = [
+        gristServer,
         tmpDir,
         workerId,
         false,
@@ -1021,6 +1037,7 @@ describe('HostedStorageManager', function() {
     });
 
     it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
+
       const storageManager = new HostedStorageManager(...defaultParams);
 
       const docId = "NewDoc";
@@ -1066,7 +1083,10 @@ describe('HostedStorageManager', function() {
 
 // This is a performance test, to check if the backup settings are plausible.
 describe('backupSqliteDatabase', async function() {
-  it('backups are robust to locking', async function() {
+
+  for (const mode of ['without-doc', 'with-doc'] as const) {
+
+  it(`backups are robust to locking (${mode})`, async function() {
     // Takes some time to create large db and play with it.
     this.timeout(20000);
 
@@ -1077,7 +1097,7 @@ describe('backupSqliteDatabase', async function() {
     await db.run("create table data(x,y,z)");
     await db.execTransaction(async () => {
       const stmt = await db.prepare("INSERT INTO data VALUES (?,?,?)");
-      for (let i = 0; i < 10000; i++) {
+      for (let i = 0; i < 30000; i++) {
         // Silly code to make a long random string to insert.
         // We can make a big db faster this way.
         const str = (new Array(100)).fill(1).map((_: any) => Math.random().toString(2)).join();
@@ -1091,20 +1111,33 @@ describe('backupSqliteDatabase', async function() {
     let eventStart: number = 0;
     let eventAction: string = "";
     let eventCount: number = 0;
+    let restartCount: number = 0;
+    let slowSteps: number = 0;
+    let slowStepsTotalTime: number = 0;
     function progress(event: BackupEvent) {
       if (event.phase === 'after') {
         // Duration of backup action should never approach the default node-sqlite3 busy_timeout of 1s.
         // If it does, then user actions could be blocked.
         assert.equal(event.action, eventAction);
-        assert.isBelow(Date.now() - eventStart, 100);
+        const dt = Date.now() - eventStart;
+        if (dt > 100) {
+          slowSteps++;
+          slowStepsTotalTime += dt;
+        }
         eventCount++;
       } else if (event.phase === 'before') {
         eventStart = Date.now();
         eventAction = event.action;
+      } else if (event.action === 'restart') {
+        restartCount++;
       }
     }
     let backupError: Error|undefined;
-    const act = backupSqliteDatabase(src, dest, progress).then(() => done = true)
+    const backup =
+        (mode === 'with-doc') ?
+        backupSqliteDatabase(db, src, dest, progress) :
+        backupSqliteDatabase(undefined, src, dest, progress);
+    const act = backup.then(() => done = true)
       .catch((e) => { done = true; backupError = e; });
     assert(!done);
     // Try a series of insertions, to check that db never appears locked to us.
@@ -1140,6 +1173,29 @@ describe('backupSqliteDatabase', async function() {
 
     // Finally, check the backup looks sane.
     const db2 = await SQLiteDB.openDBRaw(dest);
-    assert.lengthOf(await db2.all('select rowid from data'), 10000 + 100);
+    assert.lengthOf(await db2.all('select rowid from data'), 30000 + 100);
+
+    if (mode === 'without-doc') {
+      // If simulating a backup not done via the connection to the source database
+      // then disruption should cause backup restart.
+      assert.isAbove(restartCount, 0);
+      // There should be no slow steps.
+      assert.equal(slowSteps, 0);
+    } else {
+      // If simulating a backup done via the connection to the source database
+      // then disruption should not cause backup restart.
+      assert.equal(restartCount, 0);
+      // There may be one slowish step at the end if a lot of edits
+      // happen during backup.
+      assert.isBelow(slowSteps, 2);
+      // For this test, slow step shouldn't be too long, though
+      // that's hardware dependent.
+      // Could exceed busy time, but that isn't a problem now we
+      // are using the same db object as the rest of Grist - any
+      // work waiting will be held just like any pair of editors
+      // competing.
+      assert.isBelow(slowStepsTotalTime, 5000);
+    }
   });
+  }
 });
