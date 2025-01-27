@@ -5,8 +5,6 @@ import * as commandList from 'app/client/components/commandList';
 import * as commands from 'app/client/components/commands';
 import {unsavedChanges} from 'app/client/components/UnsavedChanges';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {isDesktop} from 'app/client/lib/browserInfo';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
 import * as koUtil from 'app/client/lib/koUtil';
 import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
@@ -65,21 +63,7 @@ export class App extends DisposableWithEvents {
     this._settings = ko.observable({});
     this.features = ko.computed(() => this._settings().features || {});
 
-    if (isDesktop()) {
-      this.autoDispose(Clipboard.create(this));
-    } else {
-      // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted
-      // scrolling and showing of mobile keyboard). But we still rely on 'clipboard_focus' and
-      // 'clipboard_blur' events to know when the "app" has a focus (rather than a particular
-      // input), by making document.body focusable and using a FocusLayer with it as the default.
-      document.body.setAttribute('tabindex', '-1');
-      FocusLayer.create(this, {
-        defaultFocusElem: document.body,
-        allowFocus: Clipboard.allowFocus,
-        onDefaultFocus: () => this.trigger('clipboard_focus'),
-        onDefaultBlur: () => this.trigger('clipboard_blur'),
-      });
-    }
+    this.autoDispose(Clipboard.create(this));
 
     this.topAppModel = this.autoDispose(TopAppModelImpl.create(null, G.window));
 
