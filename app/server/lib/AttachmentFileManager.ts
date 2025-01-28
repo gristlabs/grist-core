@@ -168,7 +168,7 @@ export class AttachmentFileManager {
   // scheduled transfer happens, instead of the last transfer to finish "winning".
   public startTransferringFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined) {
     this._pendingFileTransfers.set(fileIdent, newStoreId);
-    this._runTransferJob()
+    this._runTransferJob();
   }
 
   // Generally avoid calling this directly, instead use other methods to schedule and run the
