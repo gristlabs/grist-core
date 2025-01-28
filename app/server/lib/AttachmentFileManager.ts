@@ -168,7 +168,7 @@ export class AttachmentFileManager {
   // scheduled transfer happens, instead of the last transfer to finish "winning".
   public startTransferringFileToOtherStore(fileIdent: string, newStoreId: AttachmentStoreId | undefined) {
     this._pendingFileTransfers.set(fileIdent, newStoreId);
-    this._runTransferJob();
+    this._runTransferJob()
   }
 
   // Generally avoid calling this directly, instead use other methods to schedule and run the
@@ -214,7 +214,7 @@ export class AttachmentFileManager {
 
   public async allTransfersCompleted(): Promise<void> {
     if (this._transferJob) {
-      await this._transferJob.promise;
+      await this._transferJob;
     }
   }
 
@@ -225,21 +225,17 @@ export class AttachmentFileManager {
     };
   }
 
-  private _runTransferJob(): TransferJob {
+  private _runTransferJob() {
     if (this._transferJob) {
-      return this._transferJob;
+      return;
     }
-    const transferPromise = this._performPendingTransfers();
-    const newTransferJob: TransferJob = {
-      promise: transferPromise,
-    };
+    this._transferJob = this._performPendingTransfers();
 
-    this._transferJob = newTransferJob;
-    newTransferJob.promise.finally(() => {
+    this._transferJob.catch((err) => this._log.error({}, `Error during transfer: ${err}`));
+
+    this._transferJob.finally(() => {
       this._transferJob = undefined;
     });
-
-    return newTransferJob;
   }
 
   private async _performPendingTransfers() {
@@ -476,6 +472,4 @@ interface AttachmentFileInfo {
   data: Buffer;
 }
 
-interface TransferJob {
-  promise: Promise<void>;
-}
+type TransferJob = Promise<void>
