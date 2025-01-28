@@ -2782,7 +2782,7 @@ function testDocApi(settings: {
         const postResp = await axios.post(`${docUrl}/attachments/store`, {
           type: 'external',
         }, chimpy);
-        assert.equal(postResp.status, 200);
+        assert.equal(postResp.status, 200, JSON.stringify(postResp.data));
 
         const getResp = await axios.get(`${docUrl}/attachments/store`, chimpy);
         assert.equal(getResp.data.type, 'external');
