@@ -2773,7 +2773,7 @@ function testDocApi(settings: {
             pendingTransferCount: 0,
             isRunning: false,
           },
-          locationSummary: "INTERNAL",
+          locationSummary: "internal",
         });
       });
 
@@ -2800,7 +2800,7 @@ function testDocApi(settings: {
             pendingTransferCount: 2,
             isRunning: true,
           },
-          locationSummary: "INTERNAL",
+          locationSummary: "internal",
         });
       });
     });

@@ -483,7 +483,7 @@ interface SqlResult extends TableRecordValuesWithoutIds {
 }
 
 export const DocAttachmentsLocation = StringUnion(
-  "NO FILES", "INTERNAL", "MIXED", "EXTERNAL"
+  "none", "internal", "mixed", "external"
 );
 export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 

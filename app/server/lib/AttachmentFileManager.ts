@@ -126,17 +126,17 @@ export class AttachmentFileManager {
   public async locationSummary(): Promise<DocAttachmentsLocation> {
     const files = await this._docStorage.listAllFiles();
     if (files.length == 0) {
-      return "NO FILES";
+      return "none";
     }
     const hasInternal = files.some(file => !file.storageId);
     const hasExternal = files.some(file => file.storageId);
     if (hasInternal && hasExternal) {
-      return "MIXED";
+      return "mixed";
     }
     if (hasExternal) {
-      return "EXTERNAL";
+      return "external";
     }
-    return "INTERNAL";
+    return "internal";
   }
 
   public async startTransferringAllFilesToOtherStore(newStoreId: AttachmentStoreId | undefined): Promise<void> {
