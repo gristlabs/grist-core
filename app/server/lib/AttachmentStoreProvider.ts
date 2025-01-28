@@ -123,7 +123,8 @@ export async function checkAvailabilityAttachmentStoreOptions(options: ICreateAt
 }
 
 // Make a filesystem store that will be cleaned up on process exit.
-// Can be replaced by the full config in the future - this is temporary until then.
+// This is only used when external attachments are in 'test' mode, which is used for some unit tests.
+// TODO: Remove this when setting up a filesystem store is possible using normal configuration options
 export async function makeTempFilesystemStoreSpec(
   name: string = "filesystem"
 ) {

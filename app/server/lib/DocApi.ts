@@ -542,12 +542,11 @@ export class DocWorkerApi {
       });
     }));
 
-    // Returns the status of any current / pending attachment transfers
     this._app.get('/api/docs/:docId/attachments/store', isOwner,
       withDoc(async (activeDoc, req, res) => {
         const storeId = await activeDoc.getAttachmentStore();
         res.json({
-          type: storeId? 'external' : 'internal',
+          type: storeId ? 'external' : 'internal',
         });
       })
     );
@@ -568,7 +567,9 @@ export class DocWorkerApi {
           await activeDoc.setAttachmentStoreFromLabel(docSessionFromRequest(req), storeLabel);
         }
 
-        res.json(null);
+        res.json({
+          store: await activeDoc.getAttachmentStore()
+        });
       })
     );
 
