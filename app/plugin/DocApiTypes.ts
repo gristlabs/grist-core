@@ -120,3 +120,7 @@ export interface SqlPost {
                      // other queued queries on same document, because of
                      // limitations of API node-sqlite3 exposes.
 }
+
+export interface SetAttachmentStorePost {
+  type: "internal" | "external"
+}

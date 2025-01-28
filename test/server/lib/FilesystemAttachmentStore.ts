@@ -1,4 +1,5 @@
 import {FilesystemAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {IAttachmentStoreConfig} from 'app/server/lib/AttachmentStoreProvider';
 import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import {createTmpDir} from 'test/server/docTools';
 
@@ -28,6 +29,15 @@ export async function makeTestingFilesystemStoreSpec(
     rootDirectory: tempDir,
     name,
     create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir))
+  };
+}
+
+export async function makeTestingFilesystemStoreConfig(
+  name: string = "test-filesystem"
+): Promise<IAttachmentStoreConfig> {
+  return {
+    label: name,
+    spec: await makeTestingFilesystemStoreSpec(name),
   };
 }
 

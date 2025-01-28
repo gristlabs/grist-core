@@ -315,7 +315,8 @@ class TestStore {
         return result;
     };
 
-    const attachmentStoreProvider = this._attachmentStoreProvider ?? new AttachmentStoreProvider([], "TESTINSTALL");
+    const attachmentStoreProvider =
+      this._attachmentStoreProvider ?? new AttachmentStoreProvider([],  "TESTINSTALL");
 
     const testStore = this;
     const gristServer: GristServer = {

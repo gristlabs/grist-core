@@ -286,7 +286,7 @@ export class ActiveDoc extends EventEmitter {
   constructor(
     private readonly _docManager: DocManager,
     private _docName: string,
-    externalAttachmentStoreProvider?: IAttachmentStoreProvider,
+    private _attachmentStoreProvider?: IAttachmentStoreProvider,
     private _options?: ICreateActiveDocOptions
   ) {
     super();
@@ -392,11 +392,11 @@ export class ActiveDoc extends EventEmitter {
       loadTable: this._rawPyCall.bind(this, 'load_table'),
     });
 
-    // This will throw errors if _options?.doc or externalAttachmentStoreProvider aren't provided,
+    // This will throw errors if _options?.doc or _attachmentStoreProvider aren't provided,
     // and ActiveDoc tries to use an external attachment store.
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
-      externalAttachmentStoreProvider,
+      _attachmentStoreProvider,
       _options?.doc,
     );
 
@@ -979,10 +979,25 @@ export class ActiveDoc extends EventEmitter {
       await this._attachmentFileManager.allTransfersCompleted();
   }
 
-  public async setAttachmentStore(docSession: OptDocSession, id: string): Promise<void> {
+
+  public async setAttachmentStore(docSession: OptDocSession, id: string | undefined): Promise<void> {
     const docSettings = await this._getDocumentSettings();
     docSettings.attachmentStoreId = id;
     await this._updateDocumentSettings(docSession, docSettings);
+  }
+
+  /**
+   * Sets the document attachment store using the store's label.
+   * This avoids needing to know the exact store ID, which can be challenging to calculate in all
+   * the places we might want to set the store.
+   */
+  public async setAttachmentStoreFromLabel(docSession: OptDocSession, label: string | undefined): Promise<void> {
+    const id = label === undefined ? undefined : this._attachmentStoreProvider?.getStoreIdFromLabel(label);
+    return this.setAttachmentStore(docSession, id);
+  }
+
+  public async getAttachmentStore(): Promise<string | undefined> {
+    return (await this._getDocumentSettings()).attachmentStoreId;
   }
 
   /**
