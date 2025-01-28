@@ -22,7 +22,7 @@ function proxyAgent(requestUrl: URL, proxy: string): HttpProxyAgent | HttpsProxy
 }
 
 export function proxyAgentForTrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
-  const httpsProxy = process.env.HTTPS_PROXY ? process.env.HTTPS_PROXY : process.env.https_proxy;
+  const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
   if (!httpsProxy) {
     return undefined;
   }
