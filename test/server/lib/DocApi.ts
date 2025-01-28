@@ -152,7 +152,8 @@ describe('DocApi', function () {
       const additionalEnvConfiguration = {
         ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
         GRIST_DATA_DIR: dataDir,
-        GRIST_ANON_PLAYGROUND: 'false'
+        GRIST_ANON_PLAYGROUND: 'false',
+        GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
       homeUrl = serverUrl = home.serverUrl;
@@ -172,7 +173,8 @@ describe('DocApi', function () {
       setup('separated', async () => {
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-          GRIST_DATA_DIR: dataDir
+          GRIST_DATA_DIR: dataDir,
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
         };
 
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
@@ -200,6 +202,7 @@ describe('DocApi', function () {
           GRIST_ORG_IN_PATH: 'true',
           GRIST_SINGLE_PORT: '0',
           APP_HOME_INTERNAL_URL: withAppHomeInternalUrl ? home.serverUrl : '',
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
         };
 
         await home.start(home.serverUrl, additionalEnvConfiguration);
@@ -288,7 +291,8 @@ describe('DocApi', function () {
       setup('docs', async () => {
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-          GRIST_DATA_DIR: dataDir
+          GRIST_DATA_DIR: dataDir,
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
         };
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
         homeUrl = home.serverUrl;
