@@ -45,7 +45,8 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
                                          useFixturePlugins?: boolean,
                                          storageManager?: IDocStorageManager,
                                          server?: () => GristServer,
-                                         attachmentStoreProvider?: IAttachmentStoreProvider} = {}) {
+                                         createAttachmentStoreProvider?: () => Promise<IAttachmentStoreProvider>
+                                        } = {}) {
   let tmpDir: string;
   let docManager: DocManager;
 
@@ -54,7 +55,7 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
     const pluginManager = options.useFixturePlugins ? await createFixturePluginManager() : undefined;
     docManager = await createDocManager({tmpDir, pluginManager, storageManager: options.storageManager,
                                          server: options.server?.(),
-                                         attachmentStoreProvider: options.attachmentStoreProvider});
+                                         createAttachmentStoreProvider: options.createAttachmentStoreProvider});
   }
 
   async function doAfter() {
@@ -139,13 +140,15 @@ export async function createDocManager(
     options: {tmpDir?: string, pluginManager?: PluginManager,
               storageManager?: IDocStorageManager,
               server?: GristServer,
-              attachmentStoreProvider?: IAttachmentStoreProvider,
+              createAttachmentStoreProvider?: () => Promise<IAttachmentStoreProvider>,
              } = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
   const docStorageManager = options.storageManager || await create.createLocalDocStorageManager(tmpDir);
   const pluginManager = options.pluginManager || await getGlobalPluginManager();
-  const attachmentStoreProvider = options.attachmentStoreProvider || new AttachmentStoreProvider([], "TEST_INSTALL");
+  const attachmentStoreProvider = options.createAttachmentStoreProvider
+    ? (await options.createAttachmentStoreProvider())
+    : new AttachmentStoreProvider([], "TEST_INSTALL");
   const store = getDocWorkerMap();
   const internalPermitStore = store.getPermitStore('1');
   const externalPermitStore = store.getPermitStore('2');
