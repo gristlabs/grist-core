@@ -599,6 +599,35 @@ export class ApiServer {
       if (data) { this._logDeleteUserEvents(req, data); }
       return sendReply(req, res, result);
     }));
+
+    // POST /service-accounts/
+    // Creates a new service account attached to the user making the api call.
+    this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const serviceAccount: any = await this._dbManager.createServiceAccount(req.body);
+      return sendOkReply(req, res, {
+        key:serviceAccount.key,
+      });
+      throw new ApiError(`${userId} post Not implemented yet ;)`, 501);
+    }));
+
+    // GET /service-accounts/
+    // Reads all service accounts attached to the user making the api call.
+    this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
+      throw new ApiError('get Not implemented yet ;)', 501);
+    }));
+
+    // GET /service-accounts/:said
+    // Reads one particular service account of the user making the api call.
+    this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      throw new ApiError('get by id Not implemented yet ;)', 501);
+    }));
+
+    // DELETE /service-accounts/:said
+    // Deletes one particular service account of the user making the api call.
+    this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      throw new ApiError('delete by id Not implemented yet ;)', 501);
+    }));
   }
 
   private async _getFullUser(req: Request, options: {includePrefs?: boolean} = {}): Promise<FullUser> {
