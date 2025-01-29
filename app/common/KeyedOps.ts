@@ -132,7 +132,7 @@ export class KeyedOps {
     const status = this._getOperationStatus(key);
     if (status.promise) { return; }
     if (status.timeout) {
-      if (this._options.scheduleFromFirstAdd) {
+      if (this._options.scheduleFromFirstAdd && !immediate) {
         return;
       }
       clearTimeout(status.timeout);
