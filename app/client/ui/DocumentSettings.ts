@@ -125,8 +125,8 @@ export class DocSettingsPage extends Disposable {
           ),
           value: dom.domComputed(isTimingOn, (timingOn) => {
             if (timingOn) {
-              return dom('div', {style: 'display: flex; gap: 4px'},
-                cssPrimarySmallLink(
+              return dom('div',
+                cssPrimarySmallLinkSettings(
                   t('Stop timing...'),
                   urlState().setHref({docPage: 'timing'}),
                   {target: '_blank'},
@@ -134,7 +134,7 @@ export class DocSettingsPage extends Disposable {
                 )
               );
             } else {
-              return cssSmallButton(t('Start timing'),
+              return cssSmallButtonSettings(t('Start timing'),
                 dom.on('click', this._startTiming.bind(this)),
                 testId('timing-start')
               );
@@ -151,7 +151,7 @@ export class DocSettingsPage extends Disposable {
           id: 'reload',
           name: t('Reload'),
           description: t('Hard reset of data engine'),
-          value: cssSmallButton(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
+          value: cssSmallButtonSettings(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
           disabled: isDocEditor ? false : t('Only available to document editors'),
         }),
         canChangeEngine ? dom.create(AdminSectionItem, {
@@ -206,7 +206,7 @@ export class DocSettingsPage extends Disposable {
           id: 'api-console',
           name: t('API Console'),
           description: t('Try API calls from the browser'),
-          value: cssSmallLinkButton(t('API console'), {
+          value: cssSmallLinkButtonSettings(t('API console'), {
             target: '_blank',
             href: getApiConsoleLink(docPageModel),
           }),
@@ -215,7 +215,7 @@ export class DocSettingsPage extends Disposable {
           id: 'webhooks',
           name: t('Webhooks'),
           description: t('Notify other services on doc changes'),
-          value: cssSmallLinkButton(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
+          value: cssSmallLinkButtonSettings(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
         }),
       ]),
     );
@@ -561,6 +561,24 @@ const cssHoverWrapper = styled('div', `
   height: 30px;
   align-items: center;
   position: relative;
+`);
+
+const cssSmallButtonSettings = styled(cssSmallButton, `
+  display: block;
+  margin-right: 0;
+  margin-left: auto;
+  width: 100%;
+`);
+
+const cssSmallLinkButtonSettings = styled(cssSmallLinkButton, `
+  display: block;
+  text-align: center;
+`);
+
+const cssPrimarySmallLinkSettings = styled(cssPrimarySmallLink, `
+  display: block;
+  width: 100%;
+  text-align:center;
 `);
 
 // This matches the style used in showProfileModal in app/client/ui/AccountWidget.
