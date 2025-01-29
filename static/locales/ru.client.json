@@ -475,7 +475,21 @@
         "Try API calls from the browser": "Попробуйте вызовы API из браузера",
         "Formula times": "Время вычисления формулы",
         "Only available to document editors": "Доступно только редакторам документов",
-        "Only available to document owners": "Доступно только владельцам документа"
+        "Only available to document owners": "Доступно только владельцам документа",
+        "Template mode": "Режим шаблона",
+        "Change document type": "Изменить тип документа",
+        "Change nature of document": "Изменить характер документа",
+        "Regular": "Обычный",
+        "Template": "Шаблон",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Документ автоматически открывается в {{fiddleModeDocUrl}}. Любой может отредактировать, что создаст новую несохраненную копию.",
+        "Tutorial": "Учебник",
+        "Regular document": "Обычный документ",
+        "Confirm change": "Подтвердите изменение",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Это приведет к полной перезагрузке механизма обработки данных. Это может помочь, если обработчик данных застрял в бесконечном цикле, бесконечно обрабатывает последние изменения или произошел сбой. Никакие данные не будут потеряны, за исключением, возможно, ожидающих выполнения действий в данный момент.",
+        "Normal document behavior. All users work on the same copy of the document.": "Нормальное поведение документа. Все пользователи работают над одной и той же копией документа.",
+        "Edit": "Редактировать",
+        "Document automatically opens as a user-specific copy.": "Документ автоматически открывается как пользовательская копия.",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Как только вы начнете отсчитывать время, Grist измерит время, необходимое для оценки каждой формулы. Это позволяет определить, какие формулы ответственны за низкую производительность при первом открытии документа или когда документ реагирует на изменения."
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -1056,7 +1070,9 @@
         "DateTime": "Дата и Время",
         "Integer": "Целочисленный",
         "Reference": "Ссылка",
-        "Search columns": "Поиск столбцов"
+        "Search columns": "Поиск столбцов",
+        "By Name": "По Имени",
+        "By Date Modified": "По дате Изменения"
     },
     "modals": {
         "Cancel": "Отмена",
