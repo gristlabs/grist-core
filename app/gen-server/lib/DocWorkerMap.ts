@@ -5,7 +5,6 @@ import log from 'app/server/lib/log';
 import {checkPermitKey, formatPermitKey, IPermitStore, Permit} from 'app/server/lib/Permit';
 import mapValues = require('lodash/mapValues');
 import {createClient, RedisClientType} from 'redis';
-import { RedisCommandArgument } from '@redis/client/dist/lib/commands';
 import Redlock from 'redlock';
 import {v4 as uuidv4} from 'uuid';
 
@@ -206,7 +205,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     const lock = await this._redlock.acquire(['workers-lock'], LOCK_TIMEOUT);
     try {
       // Make a worker-{workerId} key with contact info.
-      await this._client.hSet(...[`worker-${info.id}` as RedisCommandArgument, info]);
+      await this._client.hSet(`worker-${info.id}`, {...info});
       // Add this worker to set of workers (but don't make it available for work yet).
       await this._client.sAdd('workers', info.id);
 
