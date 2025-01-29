@@ -113,6 +113,8 @@ const cssItemShort = styled('div', `
   padding: 8px;
   margin: 0 -8px;
   border-radius: 4px;
+  justify-content: space-around;
+  flex-direction: row;
   &-expandable {
     cursor: pointer;
   }
@@ -154,7 +156,6 @@ const cssItemName = styled('div', `
   }
   @media ${mediaSmall} {
     & {
-      width: calc(100% - 28px);
       padding-left: 0;
     }
     &:first-child {
@@ -164,16 +165,17 @@ const cssItemName = styled('div', `
 `);
 
 const cssItemDescription = styled('div', `
-  max-width: 250px;
+  width: 250px;
   margin-right: auto;
   margin-bottom: -1px; /* aligns with the value */
 `);
 
 const cssItemValue = styled('div', `
   flex: none;
-  margin: -16px;
+  margin: -8px;
   padding: 16px;
   cursor: auto;
+  width: 200px;
 
   .${cssItemShort.className}-disabled & {
     pointer-events: none;
