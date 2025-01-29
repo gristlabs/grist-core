@@ -3,14 +3,10 @@ import * as version from 'app/common/version';
 import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import log from 'app/server/lib/log';
 import {checkPermitKey, formatPermitKey, IPermitStore, Permit} from 'app/server/lib/Permit';
-import {promisifyAll} from 'bluebird';
 import mapValues = require('lodash/mapValues');
-import {createClient, Multi, RedisClient} from 'redis';
+import {createClient, RedisClientType} from 'redis';
 import Redlock from 'redlock';
 import {v4 as uuidv4} from 'uuid';
-
-promisifyAll(RedisClient.prototype);
-promisifyAll(Multi.prototype);
 
 // Max time for which we will hold a lock, by default.  In milliseconds.
 const LOCK_TIMEOUT = 3000;
@@ -184,37 +180,39 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  * "default".
  */
 export class DocWorkerMap implements IDocWorkerMap {
-  private _client: RedisClient;
-  private _clients: RedisClient[];
+  private _client: RedisClientType;
+  private _clients: RedisClientType[];
   private _redlock: Redlock;
 
   // Optional deploymentKey argument supplies a key unique to the deployment (this is important
   // for maintaining groups across redeployments only)
-  constructor(_clients?: RedisClient[], private _deploymentKey?: string, private _options?: {
+  constructor(_clients?: RedisClientType[], private _deploymentKey?: string, private _options?: {
     permitMsec?: number
   }) {
     this._deploymentKey = this._deploymentKey || version.version;
-    this._clients = _clients || [createClient(process.env.REDIS_URL)];
+    this._clients = _clients || [createClient({
+      "url":process.env.REDIS_URL
+    })];
     this._redlock = new Redlock(this._clients);
     this._client = this._clients[0]!;
-    this._client.on('error', (err) => log.warn(`DocWorkerMap: redisClient error`, String(err)));
+    this._client.on('error', (err: any) => log.warn(`DocWorkerMap: redisClient error`, String(err)));
     this._client.on('end', () => log.warn(`DocWorkerMap: redisClient connection closed`));
     this._client.on('reconnecting', () => log.warn(`DocWorkerMap: redisClient reconnecting`));
   }
 
   public async addWorker(info: DocWorkerInfo): Promise<void> {
     log.info(`DocWorkerMap.addWorker ${info.id}`);
-    const lock = await this._redlock.lock('workers-lock', LOCK_TIMEOUT);
+    const lock = await this._redlock.acquire(['workers-lock'], LOCK_TIMEOUT);
     try {
       // Make a worker-{workerId} key with contact info.
-      await this._client.hmsetAsync(`worker-${info.id}`, info);
+      await this._client.hSet(`worker-${info.id}`, {...info});
       // Add this worker to set of workers (but don't make it available for work yet).
-      await this._client.saddAsync('workers', info.id);
+      await this._client.sAdd('workers', info.id);
 
       if (info.group) {
         // Accept work only for a specific group.
         // Do not accept work not associated with the specified group.
-        await this._client.setAsync(`worker-${info.id}-group`, info.group);
+        await this._client.set(`worker-${info.id}-group`, info.group);
       } else {
         // Figure out if worker should belong to a group via elections.
         // Be careful: elections happen within a single deployment, so are somewhat
@@ -222,111 +220,111 @@ export class DocWorkerMap implements IDocWorkerMap {
         // but there is no worker available for that group, it may open on any worker.
         // And if a worker is assigned to a group, it may still end up assigned work
         // not associated with that group if it is the only worker available.
-        const groups = await this._client.hgetallAsync('groups');
+        const groups = await this._client.hGetAll('groups');
         if (groups) {
-          const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`) || {};
+          const elections = await this._client.hGetAll(`elections-${this._deploymentKey}`) || {};
           for (const group of Object.keys(groups).sort()) {
             const count = parseInt(groups[group], 10) || 0;
             if (count < 1) { continue; }
             const elected: string[] = JSON.parse(elections[group] || '[]');
             if (elected.length >= count) { continue; }
             elected.push(info.id);
-            await this._client.setAsync(`worker-${info.id}-group`, group);
-            await this._client.hsetAsync(`elections-${this._deploymentKey}`, group, JSON.stringify(elected));
+            await this._client.set(`worker-${info.id}-group`, group);
+            await this._client.hSet(`elections-${this._deploymentKey}`, group, JSON.stringify(elected));
             break;
           }
         }
       }
     } finally {
-      await lock.unlock();
+      await lock.release();
     }
   }
 
   public async removeWorker(workerId: string): Promise<void> {
     log.info(`DocWorkerMap.removeWorker ${workerId}`);
-    const lock = await this._redlock.lock('workers-lock', LOCK_TIMEOUT);
+    const lock = await this._redlock.acquire(['workers-lock'], LOCK_TIMEOUT);
     try {
       // Drop out of available set first.
-      await this._client.sremAsync('workers-available', workerId);
-      const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
-      await this._client.sremAsync(`workers-available-${group}`, workerId);
+      await this._client.sRem('workers-available', workerId);
+      const group = await this._client.get(`worker-${workerId}-group`) || DEFAULT_GROUP;
+      await this._client.sRem(`workers-available-${group}`, workerId);
       // At this point, this worker should no longer be receiving new doc assignments, though
       // clients may still be directed to the worker.
 
       // If we were elected for anything, back out.
-      const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`);
+      const elections = await this._client.hGetAll(`elections-${this._deploymentKey}`);
       if (elections) {
         if (group in elections) {
           const elected: string[] = JSON.parse(elections[group]);
           const newElected = elected.filter(worker => worker !== workerId);
           if (elected.length !== newElected.length) {
             if (newElected.length > 0) {
-              await this._client.hsetAsync(`elections-${this._deploymentKey}`, group,
+              await this._client.hSet(`elections-${this._deploymentKey}`, group,
                                            JSON.stringify(newElected));
             } else {
-              await this._client.hdelAsync(`elections-${this._deploymentKey}`, group);
+              await this._client.hDel(`elections-${this._deploymentKey}`, group);
               delete elections[group];
             }
           }
           // We're the last one involved in elections - remove the key entirely.
           if (Object.keys(elected).length === 0) {
-            await this._client.delAsync(`elections-${this._deploymentKey}`);
+            await this._client.del(`elections-${this._deploymentKey}`);
           }
         }
       }
 
       // Now, we start removing the assignments.
-      const assignments = await this._client.smembersAsync(`worker-${workerId}-docs`);
+      const assignments = await this._client.sMembers(`worker-${workerId}-docs`);
       if (assignments) {
         const op = this._client.multi();
         for (const doc of assignments) { op.del(`doc-${doc}`); }
-        await op.execAsync();
+        await op.exec();
       }
 
       // Now remove worker-{workerId}* keys.
-      await this._client.delAsync(`worker-${workerId}-docs`);
-      await this._client.delAsync(`worker-${workerId}-group`);
-      await this._client.delAsync(`worker-${workerId}`);
+      await this._client.del(`worker-${workerId}-docs`);
+      await this._client.del(`worker-${workerId}-group`);
+      await this._client.del(`worker-${workerId}`);
 
       // Forget about this worker completely.
-      await this._client.sremAsync('workers', workerId);
+      await this._client.sRem('workers', workerId);
     } finally {
-      await lock.unlock();
+      await lock.release();
     }
   }
 
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
     log.info(`DocWorkerMap.setWorkerAvailability ${workerId} ${available}`);
-    const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
+    const group = await this._client.get(`worker-${workerId}-group`) || DEFAULT_GROUP;
     if (available) {
-      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+      const docWorker = await this._client.hGetAll(`worker-${workerId}`) as unknown as DocWorkerInfo|null;
       if (!docWorker) { throw new Error('no doc worker contact info available'); }
-      await this._client.saddAsync(`workers-available-${group}`, workerId);
+      await this._client.sAdd(`workers-available-${group}`, workerId);
       // If we're not assigned exclusively to a group, add this worker also to the general
       // pool of workers.
       if (!docWorker.group) {
-        await this._client.saddAsync('workers-available', workerId);
+        await this._client.sAdd('workers-available', workerId);
       }
     } else {
-      await this._client.sremAsync('workers-available', workerId);
-      await this._client.sremAsync(`workers-available-${group}`, workerId);
+      await this._client.sRem('workers-available', workerId);
+      await this._client.sRem(`workers-available-${group}`, workerId);
     }
   }
 
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
     const group = workerInfo.group || DEFAULT_GROUP;
-    return Boolean(await this._client.sismemberAsync(`workers-available-${group}`, workerInfo.id));
+    return Boolean(await this._client.sIsMember(`workers-available-${group}`, workerInfo.id));
   }
 
   public async releaseAssignment(workerId: string, docId: string): Promise<void> {
     const op = this._client.multi();
     op.del(`doc-${docId}`);
-    op.srem(`worker-${workerId}-docs`, docId);
-    await op.execAsync();
+    op.sRem(`worker-${workerId}-docs`, docId);
+    await op.exec();
   }
 
   public async getAssignments(workerId: string): Promise<string[]> {
-    return this._client.smembersAsync(`worker-${workerId}-docs`);
+    return this._client.sMembers(`worker-${workerId}-docs`);
   }
 
   /**
@@ -362,11 +360,11 @@ export class DocWorkerMap implements IDocWorkerMap {
    */
   public async assignDocWorker(docId: string, workerId?: string): Promise<DocStatus> {
     if (docId === 'import') {
-      const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
+      const lock = await this._redlock.acquire([`workers-lock`], LOCK_TIMEOUT);
       try {
-        const _workerId = await this._client.srandmemberAsync(`workers-available-${DEFAULT_GROUP}`);
+        const _workerId = await this._client.sRandMember(`workers-available-${DEFAULT_GROUP}`);
         if (!_workerId) { throw new Error('no doc worker available'); }
-        const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo|null;
+        const docWorker = await this._client.hGetAll(`worker-${_workerId}`) as unknown as DocWorkerInfo|null;
         if (!docWorker) { throw new Error('no doc worker contact info available'); }
         return {
           docMD5: null,
@@ -374,7 +372,7 @@ export class DocWorkerMap implements IDocWorkerMap {
           isActive: false
         };
       } finally {
-        await lock.unlock();
+        await lock.release();
       }
     }
 
@@ -384,7 +382,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (docStatus) { return docStatus; }
 
     // No assignment yet, so let's lock and set an assignment up.
-    const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
+    const lock = await this._redlock.acquire([`workers-lock`], LOCK_TIMEOUT);
 
     try {
       // Now that we've locked, recheck that the worker hasn't been reassigned
@@ -395,11 +393,11 @@ export class DocWorkerMap implements IDocWorkerMap {
 
       if (!workerId) {
         // Check if document has a preferred worker group set.
-        const group = await this._client.getAsync(`doc-${docId}-group`) || DEFAULT_GROUP;
+        const group = await this._client.get(`doc-${docId}-group`) || DEFAULT_GROUP;
 
         // Let's start off by assigning documents to available workers randomly.
         // TODO: use a smarter algorithm.
-        workerId = await this._client.srandmemberAsync(`workers-available-${group}`) || undefined;
+        workerId = await this._client.sRandMember(`workers-available-${group}`) || undefined;
         if (!workerId) {
           // No workers available in the desired worker group.  Rather than refusing to
           // open the document, we fall back on assigning a worker from any of the workers
@@ -408,17 +406,17 @@ export class DocWorkerMap implements IDocWorkerMap {
           // or not starting enough workers).  It has the downside of potentially disguising
           // problems, so we log a warning.
           log.warn(`DocWorkerMap.assignDocWorker ${docId} found no workers for group ${group}`);
-          workerId = await this._client.srandmemberAsync('workers-available') || undefined;
+          workerId = await this._client.sRandMember('workers-available') || undefined;
         }
         if (!workerId) { throw new Error('no doc workers available'); }
       }  else {
-        if (!await this._client.sismemberAsync('workers-available', workerId)) {
+        if (!await this._client.sIsMember('workers-available', workerId)) {
           throw new Error(`worker ${workerId} not known or not available`);
         }
       }
 
       // Look up how to contact the worker.
-      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+      const docWorker = await this._client.hGetAll(`worker-${workerId}`) as unknown as DocWorkerInfo|null;
       if (!docWorker) { throw new Error('no doc worker contact info available'); }
 
       // We can now construct a DocStatus, preserving any existing checksum.
@@ -427,17 +425,17 @@ export class DocWorkerMap implements IDocWorkerMap {
 
       // We add the assignment to worker-{workerId}-docs and save doc-{docId}.
       const result = await this._client.multi()
-        .sadd(`worker-${workerId}-docs`, docId)
-        .hmset(`doc-${docId}`, {
+        .sAdd(`worker-${workerId}-docs`, docId)
+        .hSet(`doc-${docId}`, {
           docWorker: JSON.stringify(docWorker),  // redis can't store nested objects, strings only
           isActive: JSON.stringify(true)         // redis can't store booleans, strings only
         })
-        .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
-        .execAsync();
+        .setEx(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
+        .exec();
       if (!result) { throw new Error('failed to store new assignment'); }
       return newDocStatus;
     } finally {
-      await lock.unlock();
+      await lock.release();
     }
   }
 
@@ -457,11 +455,11 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   public async updateChecksum(family: string, key: string, checksum: string) {
-    await this._client.setexAsync(`${family}-${key}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum);
+    await this._client.setEx(`${family}-${key}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum);
   }
 
   public async getChecksum(family: string, key: string) {
-    const checksum = await this._client.getAsync(`${family}-${key}-checksum`);
+    const checksum = await this._client.get(`${family}-${key}-checksum`);
     return checksum === 'null' ? null : checksum;
   }
 
@@ -473,17 +471,17 @@ export class DocWorkerMap implements IDocWorkerMap {
         const key = formatPermitKey(uuidv4(), prefix);
         // seems like only integer seconds are supported?
         const duration = ttlMs || permitMsec;
-        await client.setexAsync(key, Math.ceil(duration / 1000.0), JSON.stringify(permit));
+        await client.setEx(key, Math.ceil(duration / 1000.0), JSON.stringify(permit));
         return key;
       },
       async getPermit(key: string): Promise<Permit|null> {
         if (!checkPermitKey(key, prefix)) { throw new Error('permit could not be read'); }
-        const result = await client.getAsync(key);
+        const result = await client.get(key);
         return result && JSON.parse(result);
       },
       async removePermit(key: string): Promise<void> {
         if (!checkPermitKey(key, prefix)) { throw new Error('permit could not be read'); }
-        await client.delAsync(key);
+        await client.del(key);
       },
       async close() {
         // nothing to do
@@ -496,7 +494,7 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async close(): Promise<void> {
     for (const cli of this._clients || []) {
-      await cli.quitAsync();
+      await cli.quit();
     }
   }
 
@@ -505,50 +503,50 @@ export class DocWorkerMap implements IDocWorkerMap {
     // favoring redlock:
     //   https://redis.io/commands/setnx#design-pattern-locking-with-codesetnxcode
     const redisKey = `nomination-${name}`;
-    const lock = await this._redlock.lock(`${redisKey}-lock`, LOCK_TIMEOUT);
+    const lock = await this._redlock.acquire([`${redisKey}-lock`], LOCK_TIMEOUT);
     try {
-      if (await this._client.getAsync(redisKey) !== null) { return null; }
+      if (await this._client.get(redisKey) !== null) { return null; }
       const electionKey = uuidv4();
       // seems like only integer seconds are supported?
-      await this._client.setexAsync(redisKey, Math.ceil(durationInMs / 1000.0), electionKey);
+      await this._client.setEx(redisKey, Math.ceil(durationInMs / 1000.0), electionKey);
       return electionKey;
     } finally {
-      await lock.unlock();
+      await lock.release();
     }
   }
 
   public async removeElection(name: string, electionKey: string): Promise<void> {
     const redisKey = `nomination-${name}`;
-    const lock = await this._redlock.lock(`${redisKey}-lock`, LOCK_TIMEOUT);
+    const lock = await this._redlock.acquire([`${redisKey}-lock`], LOCK_TIMEOUT);
     try {
-      const current = await this._client.getAsync(redisKey);
+      const current = await this._client.get(redisKey);
       if (current === electionKey) {
-        await this._client.delAsync(redisKey);
+        await this._client.del(redisKey);
       } else if (current !== null) {
         throw new Error('could not remove election');
       }
     } finally {
-      await lock.unlock();
+      await lock.release();
     }
   }
 
   public async getWorkerGroup(workerId: string): Promise<string|null> {
-    return this._client.getAsync(`worker-${workerId}-group`);
+    return this._client.get(`worker-${workerId}-group`);
   }
 
   public async getDocGroup(docId: string): Promise<string|null> {
-    return this._client.getAsync(`doc-${docId}-group`);
+    return this._client.get(`doc-${docId}-group`);
   }
 
   public async updateDocGroup(docId: string, docGroup: string): Promise<void> {
-    await this._client.setAsync(`doc-${docId}-group`, docGroup);
+    await this._client.set(`doc-${docId}-group`, docGroup);
   }
 
   public async removeDocGroup(docId: string): Promise<void> {
-    await this._client.delAsync(`doc-${docId}-group`);
+    await this._client.del(`doc-${docId}-group`);
   }
 
-  public getRedisClient(): RedisClient {
+  public getRedisClient(): RedisClientType {
     return this._client;
   }
 
@@ -562,9 +560,9 @@ export class DocWorkerMap implements IDocWorkerMap {
   }> {
     // Fetch the various elements that go into making a DocStatus
     const props = await this._client.multi()
-      .hgetall(`doc-${docId}`)
+      .hGetAll(`doc-${docId}`)
       .get(`doc-${docId}-checksum`)
-      .execAsync() as [{[key: string]: any}|null, string|null]|null;
+      .exec() as [{[key: string]: any}|null, string|null]|null;
     // Fields are JSON encoded since redis cannot store them directly.
     const doc = props?.[0] ? mapValues(props[0], (val) => JSON.parse(val)) as DocStatus : null;
     // Redis cannot store a null value, so we encode it as 'null', which does

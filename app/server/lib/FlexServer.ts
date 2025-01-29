@@ -532,14 +532,14 @@ export class FlexServer implements GristServer {
         checks.set('db', asyncCheck(this._dbManager.connection.query('SELECT 1')));
       }
       if (isParameterOn(req.query.redis)) {
-        checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.pingAsync()));
+        checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.ping()));
       }
       if (isParameterOn(req.query.docWorkerRegistered) && this.worker) {
         // Only check whether the doc worker is registered if we have a worker.
         // The Redis client may not be connected, but in this case this has to
         // be checked with the 'redis' parameter (the user may want to avoid
         // removing workers when connection is unstable).
-        if (this._docWorkerMap.getRedisClient()?.connected) {
+        if (this._docWorkerMap.getRedisClient()?.isReady) {
           checks.set('docWorkerRegistered', asyncCheck(
             this._docWorkerMap.isWorkerRegistered(this.worker).then(isRegistered => {
               if (!isRegistered) { throw new Error('doc worker not registered'); }

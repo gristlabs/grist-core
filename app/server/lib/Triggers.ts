@@ -23,13 +23,10 @@ import {proxyAgent} from 'app/server/lib/ProxyAgent';
 import {matchesBaseDomain} from 'app/server/lib/requestUtils';
 import {delayAbort} from 'app/server/lib/serverUtils';
 import {LogSanitizer} from "app/server/utils/LogSanitizer";
-import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
 import {AbortController, AbortSignal} from 'node-abort-controller';
 import fetch from 'node-fetch';
-import {createClient, Multi, RedisClient} from 'redis';
-
-promisifyAll(RedisClient.prototype);
+import {createClient, RedisClientType} from 'redis';
 
 // Only owners can manage triggers, but any user's activity can trigger them
 // and the corresponding actions get the full values
@@ -126,7 +123,7 @@ export class DocTriggers {
 
   // Client lazily initiated by _redisClient getter, since most documents don't have triggers
   // and therefore don't need a redis connection.
-  private _redisClientField: RedisClient | undefined;
+  private _redisClientField: RedisClientType | undefined;
 
   // Promise which resolves after we finish fetching the backup queue from redis on startup.
   private _getRedisQueuePromise: Promise<void> | undefined;
@@ -142,7 +139,7 @@ export class DocTriggers {
     if (redisUrl) {
       // We create a transient client just for this purpose because it makes it easy
       // to quit it afterwards and avoid keeping a client open for documents without triggers.
-      this._getRedisQueuePromise = this._getRedisQueue(createClient(redisUrl));
+      this._getRedisQueuePromise = this._getRedisQueue(createClient({url:redisUrl}));
     }
     this._stats = new WebhookStatistics(this._docId, _activeDoc, () => this._redisClient ?? null);
   }
@@ -151,7 +148,7 @@ export class DocTriggers {
     this._shuttingDown = true;
     this._loopAbort?.abort();
     if (!this._sending) {
-      void(this._redisClientField?.quitAsync());
+      void(this._redisClientField?.quit());
     }
   }
 
@@ -346,7 +343,7 @@ export class DocTriggers {
     // NOTE: this is subject to a race condition, currently it is not possible, but any future modification probably
     // will require some kind of locking over the queue (or a rewrite)
     if (removed && this._redisClient) {
-      await this._redisClient.multi().del(this._redisQueueKey).execAsync();
+      await this._redisClient.multi().del(this._redisQueueKey).exec();
     }
     await this._stats.clear();
     this._log("Webhook queue cleared", {numRemoved: removed});
@@ -375,9 +372,9 @@ export class DocTriggers {
       // Re-add all the remaining events to the queue.
       if (this._webHookEventQueue.length) {
         const strings = this._webHookEventQueue.map(e => JSON.stringify(e));
-        multi.rpush(this._redisQueueKey, ...strings);
+        multi.rPush(this._redisQueueKey, strings);
       }
-      await multi.execAsync();
+      await multi.exec();
     }
     await this._stats.clear();
     this._log("Single webhook queue cleared", {numRemoved: removed, webhookId});
@@ -444,7 +441,7 @@ export class DocTriggers {
   private async _pushToRedisQueue(events: WebHookEvent[]) {
     const strings = events.map(e => JSON.stringify(e));
     try {
-      await this._redisClient?.rpushAsync(this._redisQueueKey, ...strings);
+      await this._redisClient?.rPush(this._redisQueueKey, strings);
     }
     catch(e){
       // It's very hard to test this with integration tests, because it requires a redis failure.
@@ -454,15 +451,15 @@ export class DocTriggers {
     }
   }
 
-  private async _getRedisQueue(redisClient: RedisClient) {
-    const strings = await redisClient.lrangeAsync(this._redisQueueKey, 0, -1);
+  private async _getRedisQueue(redisClient: RedisClientType) {
+    const strings = await redisClient.lRange(this._redisQueueKey, 0, -1);
     if (strings.length) {
       this._log("Webhook events found on redis queue", {numEvents: strings.length});
       const events = strings.map(s => JSON.parse(s));
       this._webHookEventQueue.unshift(...events);
       this._startSendLoop();
     }
-    await redisClient.quitAsync();
+    await redisClient.quit();
   }
 
   private _getRecordDeltas(tableDelta: TableDelta): RecordDeltas {
@@ -715,10 +712,9 @@ export class DocTriggers {
 
       this._webHookEventQueue.splice(0, batch.length);
 
-      let multi: Multi | null = null;
-      if (this._redisClient) {
-        multi = this._redisClient.multi();
-        multi.ltrim(this._redisQueueKey, batch.length, -1);
+      const multi = this._redisClient?.multi() || null;
+      if (multi) {
+        multi.lTrim(this._redisQueueKey, batch.length, -1);
       }
 
       if (!success) {
@@ -729,8 +725,9 @@ export class DocTriggers {
           this._webHookEventQueue.push(...batch);
           if (multi) {
             const strings = batch.map(e => JSON.stringify(e));
-            multi.rpush(this._redisQueueKey, ...strings);
+            multi.rPush(this._redisQueueKey, strings);
           }
+
           // We are postponed, so mark that.
           await this._stats.logStatus(id, 'postponed');
         } else {
@@ -764,12 +761,12 @@ export class DocTriggers {
         }
       }
 
-      await multi?.execAsync();
+      await multi?.exec();
     }
 
     this._log("Ended _sendLoop");
 
-    this._redisClient?.quitAsync().catch(e =>
+    this._redisClient?.quit().catch(e =>
       // Catch error to prevent sendLoop being restarted
       this._log("Error quitting redis: " + e, {level: 'warn'})
     );
@@ -782,7 +779,7 @@ export class DocTriggers {
     const redisUrl = process.env.REDIS_URL;
     if (redisUrl) {
       this._log("Creating redis client");
-      this._redisClientField = createClient(redisUrl);
+      this._redisClientField = createClient({url:redisUrl});
     }
     return this._redisClientField;
   }
@@ -908,7 +905,7 @@ class PersistedStore<Keys> {
   constructor(
     docId: string,
     private _activeDoc: ActiveDoc,
-    private _redisClientDep: () => RedisClient | null
+    private _redisClientDep: () => RedisClientType | null
     ) {
     this._redisKey = `webhooks:${docId}:statistics`;
   }
@@ -916,7 +913,7 @@ class PersistedStore<Keys> {
   public async clear() {
     this._statsCache.clear();
     if (this._redisClient) {
-      await this._redisClient.delAsync(this._redisKey).catch(() => {});
+      await this._redisClient.del(this._redisKey).catch(() => {});
     }
   }
 
@@ -928,10 +925,10 @@ class PersistedStore<Keys> {
     if (this._redisClient) {
       const multi = this._redisClient.multi();
       for (const [key, value] of keyValues) {
-        multi.hset(this._redisKey, `${id}:${key}`, value);
+        multi.hSet(this._redisKey, `${id}:${key}`, value);
         multi.expire(this._redisKey, WEBHOOK_STATS_CACHE_TTL);
       }
-      await multi.execAsync();
+      await multi.exec();
     } else {
       for (const [key, value] of keyValues) {
         this._statsCache.set(`${id}:${key}`, value);
@@ -941,7 +938,7 @@ class PersistedStore<Keys> {
 
   protected async get(id: string, keys: Keys[]): Promise<[Keys, string][]> {
     if (this._redisClient) {
-      const values = (await this._redisClient.hgetallAsync(this._redisKey)) || {};
+      const values = (await this._redisClient.hGetAll(this._redisKey)) || {};
       return keys.map(key => [key, values[`${id}:${key}`] || '']);
     } else {
       return keys.map(key => [key, this._statsCache.get(`${id}:${key}`) || '']);
