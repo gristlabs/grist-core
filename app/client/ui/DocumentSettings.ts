@@ -744,7 +744,7 @@ const cssInput = styled('div', `
 `);
 
 const cssHoverWrapper = styled('div', `
-  max-width: 280px;
+  max-width: 170px;
   text-overflow: ellipsis;
   overflow: hidden;
   text-wrap: nowrap;
