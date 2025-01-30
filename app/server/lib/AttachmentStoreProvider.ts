@@ -167,8 +167,12 @@ export function getConfiguredStandardAttachmentStore(): string | undefined {
 export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
   if (ATTACHMENT_STORE_MODE === 'snapshots') {
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
-    if (snapshotProvider === undefined || !(await checkAvailabilityAttachmentStoreOption(snapshotProvider))) {
-      return [];
+    // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
+    if (snapshotProvider === undefined) {
+      throw new Error("Snapshot provider is not available on this version of Grist");
+    }
+    if (!(await snapshotProvider.isAvailable())) {
+      throw new Error("The currently configured external storage does not support attachments");
     }
     return [{
       label: 'snapshots',
