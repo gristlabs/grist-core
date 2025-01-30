@@ -1188,6 +1188,10 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/compare/:docId2', canView, withDoc(async (activeDoc, req, res) => {
       const showDetails = isAffirmative(req.query.detail);
+      const maxRows = optIntegerParam(req.query.maxRows, "maxRows", {
+        nullable: true,
+        isValid: (n) => n > 0,
+      });
       const docSession = docSessionFromRequest(req);
       const {states} = await this._getStates(docSession, activeDoc);
       const ref = await fetch(this._grist.getHomeInternalUrl(`/api/docs/${req.params.docId2}/states`), {
@@ -1218,11 +1222,20 @@ export class DocWorkerApi {
       };
       if (showDetails && parent) {
         // Calculate changes from the parent to the current version of this document.
-        const leftChanges = (await this._getChanges(docSession, activeDoc, states, parent.h,
-                                                    'HEAD')).details!.rightChanges;
+        const leftChanges = (
+          await this._getChanges(activeDoc, {
+            states,
+            leftHash: parent.h,
+            rightHash: "HEAD",
+            maxRows,
+          })
+        ).details!.rightChanges;
 
         // Calculate changes from the (common) parent to the current version of the other document.
-        const url = `/api/docs/${req.params.docId2}/compare?left=${parent.h}`;
+        let url = `/api/docs/${req.params.docId2}/compare?left=${parent.h}`;
+        if (maxRows !== undefined) {
+          url += `&maxRows=${maxRows}`;
+        }
         const rightChangesReq = await fetch(this._grist.getHomeInternalUrl(url), {
           headers: {
             ...getTransitiveHeaders(req, { includeOrigin: false }),
@@ -1240,11 +1253,22 @@ export class DocWorkerApi {
     // Give details about what changed between two versions of a document.
     this._app.get('/api/docs/:docId/compare', canView, withDoc(async (activeDoc, req, res) => {
       // This could be a relatively slow operation if actions are large.
-      const left = stringParam(req.query.left || 'HEAD', 'left');
-      const right = stringParam(req.query.right || 'HEAD', 'right');
+      const leftHash = stringParam(req.query.left || 'HEAD', 'left');
+      const rightHash = stringParam(req.query.right || 'HEAD', 'right');
+      const maxRows = optIntegerParam(req.query.maxRows, "maxRows", {
+        nullable: true,
+        isValid: (n) => n > 0,
+      });
       const docSession = docSessionFromRequest(req);
       const {states} = await this._getStates(docSession, activeDoc);
-      res.json(await this._getChanges(docSession, activeDoc, states, left, right));
+      res.json(
+        await this._getChanges(activeDoc, {
+          states,
+          leftHash,
+          rightHash,
+          maxRows,
+        })
+      );
     }));
 
     // Do an import targeted at a specific workspace. Although the URL fits ApiServer, this
@@ -1984,8 +2008,16 @@ export class DocWorkerApi {
    * be lifted, but is adequate for now).
    *
    */
-  private async _getChanges(docSession: OptDocSession, activeDoc: ActiveDoc, states: DocState[],
-                            leftHash: string, rightHash: string): Promise<DocStateComparison> {
+  private async _getChanges(
+    activeDoc: ActiveDoc,
+    options: {
+      states: DocState[];
+      leftHash: string;
+      rightHash: string;
+      maxRows?: number | null;
+    }
+  ): Promise<DocStateComparison> {
+    const { states, leftHash, rightHash, maxRows } = options;
     const finder = new HashUtil(states);
     const leftOffset = finder.hashToOffset(leftHash);
     const rightOffset = finder.hashToOffset(rightHash);
@@ -1997,7 +2029,9 @@ export class DocWorkerApi {
     let totalAction = createEmptyActionSummary();
     for (const action of actions) {
       if (!action) { continue; }
-      const summary = summarizeAction(action);
+      const summary = summarizeAction(action, {
+        maximumInlineRows: maxRows,
+      });
       totalAction = concatenateSummaries([totalAction, summary]);
     }
     const result: DocStateComparison = {

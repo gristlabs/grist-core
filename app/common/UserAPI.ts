@@ -507,7 +507,10 @@ export interface DocAPI {
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
   // Compare two documents, optionally including details of the changes.
-  compareDoc(remoteDocId: string, options?: { detail: boolean }): Promise<DocStateComparison>;
+  compareDoc(
+    remoteDocId: string,
+    options?: { detail?: boolean; maxRows?: number | null }
+  ): Promise<DocStateComparison>;
   // Compare two versions within a document, including details of the changes.
   // Versions are identified by action hashes, or aliases understood by HashUtil.
   // Currently, leftHash is expected to be an ancestor of rightHash.  If rightHash
@@ -1101,11 +1104,22 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async compareDoc(remoteDocId: string, options: {
-    detail?: boolean
-  } = {}): Promise<DocStateComparison> {
-     const q = options.detail ? '?detail=true' : '';
-     return this.requestJson(`${this._url}/compare/${remoteDocId}${q}`);
+  public async compareDoc(
+    remoteDocId: string,
+    options: {
+      detail?: boolean;
+      maxRows?: number | null;
+    } = {}
+  ): Promise<DocStateComparison> {
+    const { detail, maxRows } = options;
+    const url = new URL(`${this._url}/compare/${remoteDocId}`);
+    if (detail) {
+      url.searchParams.set("detail", "true");
+    }
+    if (maxRows !== undefined) {
+      url.searchParams.set("maxRows", String(maxRows));
+    }
+    return this.requestJson(url.href);
   }
 
   public async copyDoc(workspaceId: number, options: CopyDocOptions): Promise<string> {

@@ -41,6 +41,7 @@ import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
+import range = require('lodash/range')
 import {getDatabase} from 'test/testUtils';
 import {testDailyApiLimitFeatures} from 'test/gen-server/seed';
 
@@ -3363,7 +3364,7 @@ function testDocApi(settings: {
       rightChanges: {tableRenames: [], tableDeltas: {}}
     });
 
-    await doc2.addRows('Table1', {A: [2]});
+    await doc2.addRows('Table1', {A: range(2, 100)});
     comp = await doc1.compareDoc(docId2);
     assert.equal(comp.summary, 'right');
     assert.equal(comp.left.n, 3);
@@ -3374,22 +3375,54 @@ function testDocApi(settings: {
     comp = await doc1.compareDoc(docId2, {detail: true});
     assert.deepEqual(comp.details!.leftChanges,
       {tableRenames: [], tableDeltas: {}});
-    const addA2: ActionSummary = {
+    const addA2To99Truncated: ActionSummary = {
       tableRenames: [],
       tableDeltas: {
         Table1: {
           updateRows: [],
           removeRows: [],
-          addRows: [3],
+          addRows: range(3, 101),
           columnDeltas: {
-            A: {[3]: [null, [2]]},
-            manualSort: {[3]: [null, [3]]},
+            A: [...range(3, 12), 100].reduce(
+              (acc, cur) => ({ ...acc, [cur]: [null, [cur - 1]] }),
+              {}
+            ),
+            manualSort: [...range(3, 12), 100].reduce(
+              (acc, cur) => ({ ...acc, [cur]: [null, [cur]] }),
+              {}
+            ),
           },
           columnRenames: [],
-        }
-      }
+        },
+      },
     };
-    assert.deepEqual(comp.details!.rightChanges, addA2);
+    assert.deepEqual(comp.details!.rightChanges, addA2To99Truncated);
+
+    const addA2To99Full: ActionSummary = {
+      tableRenames: [],
+      tableDeltas: {
+        Table1: {
+          updateRows: [],
+          removeRows: [],
+          addRows: range(3, 101),
+          columnDeltas: {
+            A: range(3, 101).reduce(
+              (acc, cur) => ({ ...acc, [cur]: [null, [cur - 1]] }),
+              {}
+            ),
+            manualSort: range(3, 101).reduce(
+              (acc, cur) => ({ ...acc, [cur]: [null, [cur]] }),
+              {}
+            ),
+          },
+          columnRenames: [],
+        },
+      },
+    };
+    for (const maxRows of [100, null]) {
+      comp = await doc1.compareDoc(docId2, {detail: true, maxRows});
+      assert.deepEqual(comp.details!.rightChanges, addA2To99Full);
+    }
   });
 
   it("GET /docs/{did}/compare tracks changes within a doc", async function () {

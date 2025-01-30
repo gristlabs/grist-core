@@ -79,7 +79,7 @@ export class TestServer {
     const serverLog = options.output ? 'pipe' : (process.env.VERBOSE ? 'inherit' : nodeLogFd);
     // use a path for socket that relates to suite name and server types
     this.testingSocket = path.join(this.rootDir, `${this._suiteName}-${fixedName}.socket`);
-    if (this.testingSocket.length >= 108) {
+    if (this.testingSocket.length >= 104) {
       // Unix socket paths typically can't be longer than this. Who knew. Make the error obvious.
       throw new Error(`Path of testingSocket too long: ${this.testingSocket.length} (${this.testingSocket})`);
     }
