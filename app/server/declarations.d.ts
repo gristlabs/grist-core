@@ -21,9 +21,6 @@ declare module "bluebird" {
 // Used in one place, and the typings are almost entirely unhelpful.
 declare module "multiparty";
 
-// Used in one place, for one call.
-declare module "chokidar";
-
 // Used in one place
 declare module "mime-types";
 

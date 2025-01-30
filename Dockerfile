@@ -102,11 +102,11 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 # Now, start preparing final image.
 FROM node:22-bookworm-slim
 
-# Install libexpat1, libsqlite3-0 for python3 library binary dependencies.
-# Install pgrep for managing gvisor processes.
+# Install curl for docker healthchecks, libexpat1 and libsqlite3-0 for python3
+# library binary dependencies, and procps for managing gvisor processes.
 RUN \
   apt-get update && \
-  apt-get install -y --no-install-recommends libexpat1 libsqlite3-0 procps tini && \
+  apt-get install -y --no-install-recommends curl libexpat1 libsqlite3-0 procps tini && \
   rm -rf /var/lib/apt/lists/*
 
 # Keep all storage user may want to persist in a distinct directory
