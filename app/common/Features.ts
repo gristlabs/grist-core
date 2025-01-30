@@ -70,7 +70,14 @@ export interface Features {
   minimumUnits?: number; // Minimum number of units for the plan. Default no minimum.
   installationAuditLogs?: boolean; // Access to installation-level audit logging.
   teamAuditLogs?: boolean; // Access to team-level audit logging.
+  maxNewUserInvitesPerOrg?: number; // Maximum number of site/workspace/doc invites to new users before
+                                    // additional requests are blocked (until invited users log in or are
+                                    // uninvited). Defaults to 50 if not set.
 }
+
+export const Deps = {
+  DEFAULT_MAX_NEW_USER_INVITES_PER_ORG: 50,
+};
 
 /**
  * Returns a merged set of features, combining the features of the given objects.

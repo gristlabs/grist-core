@@ -35,6 +35,7 @@ export const Features = t.iface([], {
   "minimumUnits": t.opt("number"),
   "installationAuditLogs": t.opt("boolean"),
   "teamAuditLogs": t.opt("boolean"),
+  "maxNewUserInvitesPerOrg": t.opt("number"),
 });
 
 export const StripeMetaValues = t.iface([], {

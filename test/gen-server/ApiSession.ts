@@ -62,11 +62,27 @@ describe('ApiSession', function() {
     assert.equal(resp.status, 200);
     assert.hasAllKeys(resp.data.org, ['id', 'name', 'access', 'domain', 'owner', 'billingAccount',
                                       'createdAt', 'updatedAt', 'host']);
-    assert.deepEqual(resp.data.org.billingAccount,
-                     { id: 1, individual: false, inGoodStanding: true, status: null,
-                       externalId: null, externalOptions: null, paymentLink: null,
-                       isManager: true, paid: false, features: null, stripePlanId: null,
-                       product: { id: 1, name: 'Free', features: {workspaces: true, vanityDomain: true} } });
+    assert.deepEqual(resp.data.org.billingAccount, {
+      id: 1,
+      individual: false,
+      inGoodStanding: true,
+      status: null,
+      externalId: null,
+      externalOptions: null,
+      paymentLink: null,
+      isManager: true,
+      paid: false,
+      features: null,
+      stripePlanId: null,
+      product: {
+        id: 1,
+        name: "Free",
+        features: {
+          workspaces: true,
+          vanityDomain: true,
+        },
+      },
+    });
 
     // Check that internally we have access to stripe ids.
     const userId = await server.dbManager.testGetId('Chimpy') as number;

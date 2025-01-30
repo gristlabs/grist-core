@@ -56,6 +56,12 @@ export const testDailyApiLimitFeatures = {
   baseMaxApiUnitsPerDocumentPerDay: 3,
 };
 
+export const testMaxNewUserInvitesFeatures = {
+  ...teamFeatures,
+  maxNewUserInvitesPerOrg: 3,
+  maxSharesPerDoc: 5,
+};
+
 export const testAuditLogsFeatures = {
   ...teamFeatures,
   installationAuditLogs: true,
@@ -66,6 +72,10 @@ const testProducts = [
   {
     name: 'testDailyApiLimit',
     features: testDailyApiLimitFeatures,
+  },
+  {
+    name: 'testMaxNewUserInvites',
+    features: testMaxNewUserInvitesFeatures,
   },
   {
     name: 'testAuditLogs',
@@ -238,6 +248,20 @@ export const exampleOrgs = [
     ]
   },
   {
+    name: 'TestMaxNewUserInvites',
+    domain: 'textmaxnewuserinvites',
+    product: 'testMaxNewUserInvites',
+    workspaces: [
+      {
+        name: 'TestMaxNewUserInvitesWs',
+        docs: [
+          "TestMaxNewUserInvitesDoc1",
+          "TestMaxNewUserInvitesDoc2",
+        ],
+      }
+    ]
+  },
+  {
     name: 'TestAuditLogs',
     domain: 'testauditlogs',
     product: 'testAuditLogs',
@@ -253,6 +277,7 @@ export const exampleOrgs = [
 const exampleUsers: {[user: string]: {[org: string]: string}} = {
   Chimpy: {
     TestDailyApiLimit: 'owners',
+    TestMaxNewUserInvites: 'owners',
     TestAuditLogs: 'owners',
     FreeTeam: 'owners',
     Chimpyland: 'owners',

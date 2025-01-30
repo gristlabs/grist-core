@@ -5,7 +5,7 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Deps, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -77,7 +77,7 @@ import {WebHookSecret} from "app/server/lib/Triggers";
 
 import {EventEmitter} from 'events';
 import {Request} from "express";
-import {defaultsDeep, flatten, pick} from 'lodash';
+import {defaultsDeep, flatten, pick, size} from 'lodash';
 import {
   Brackets,
   DatabaseType,
@@ -138,14 +138,18 @@ export interface UserIdDelta {
 // A collection of fun facts derived from a PermissionDelta (used to describe
 // a change of users) and a user.
 export interface PermissionDeltaAnalysis {
-  userIdDelta: UserIdDelta | null;   // New roles for users, indexed by user id.
-  users: User[];                     // Users from userIdDelta.
-  permissionThreshold: Permissions;  // The permissions needed to make the change.
-                                     // Usually Permissions.ACL_EDIT, but
-                                     // Permissions.ACL_VIEW is enough for a user
-                                     // to removed themselves.
-  affectsSelf: boolean;              // Flags if the user making the change would
-                                     // be affected by the change.
+  // Deltas for existing Grist users.
+  foundUserDelta: UserIdDelta | null;
+  // Users from foundUserDelta.
+  foundUsers: User[];
+  // Deltas for emails not matching any Grist user.
+  notFoundUserDelta: { [email: string]: roles.NonGuestRole; } | null;
+  // The permissions needed to make the change.
+  // Usually Permissions.ACL_EDIT, but Permissions.ACL_VIEW is enough for
+  // a user to remove themselves.
+  permissionThreshold: Permissions;
+  // Flags if the user making the change would be affected by the change.
+  affectsSelf: boolean;
 }
 
 // Options for certain create query helpers private to this file.
@@ -1885,7 +1889,10 @@ export class HomeDBManager extends EventEmitter {
       const billingAccountId = billingAccount.id;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, permissionDelta, true, transaction);
       this._failIfPowerfulAndChangingSelf(analysis);
-      const {userIdDelta} = analysis;
+      const {userIdDelta} = await this._createNotFoundUsers({
+        analysis,
+        transaction,
+      });
       if (!userIdDelta) { throw new ApiError('No userIdDelta', 500); }
       // Any duplicated emails have been merged, and userIdDelta is now keyed by user ids.
       // Now we iterate over users and add/remove them as managers.
@@ -1930,7 +1937,6 @@ export class HomeDBManager extends EventEmitter {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
-      const {userIdDelta, users} = analysis;
       let orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions: analysis.permissionThreshold,
@@ -1949,6 +1955,16 @@ export class HomeDBManager extends EventEmitter {
       }
       this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const org: Organization = queryResult.data;
+      await this._failIfTooManyNewUserInvites({
+        orgKey,
+        analysis,
+        billingAccount: org.billingAccount,
+        manager,
+      });
+      const {userIdDelta, users} = await this._createNotFoundUsers({
+        analysis,
+        transaction: manager,
+      });
       const groups = getNonGuestGroups(org);
       if (userIdDelta) {
         const membersBefore = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
@@ -1995,8 +2011,6 @@ export class HomeDBManager extends EventEmitter {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
-      const {users} = analysis;
-      let {userIdDelta} = analysis;
       const options = {
         manager,
         markPermissions: analysis.permissionThreshold,
@@ -2011,12 +2025,23 @@ export class HomeDBManager extends EventEmitter {
       }
       this._failIfPowerfulAndChangingSelf(analysis, wsQueryResult);
       const ws: Workspace = wsQueryResult.data;
-
       const orgId = ws.org.id;
       let orgQuery = this._buildOrgWithACLRulesQuery(scope, orgId, options);
       orgQuery = this._addFeatures(orgQuery);
       const orgQueryResult = await orgQuery.getRawAndEntities();
       const org: Organization = orgQueryResult.entities[0];
+      await this._failIfTooManyNewUserInvites({
+        orgKey: org.id,
+        analysis,
+        billingAccount: org.billingAccount,
+        manager,
+      });
+      const deltaAndUsers = await this._createNotFoundUsers({
+        analysis,
+        transaction: manager,
+      });
+      let {userIdDelta} = deltaAndUsers;
+      const {users} = deltaAndUsers;
       // Get all the non-guest groups on the org.
       const orgGroups = getNonGuestGroups(org);
       // Get all the non-guest groups to be updated by the delta.
@@ -2078,10 +2103,20 @@ export class HomeDBManager extends EventEmitter {
     const result = await this._connection.transaction(async manager => {
       const {userId} = scope;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
-      const {users} = analysis;
-      let {userIdDelta} = analysis;
       const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
       this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
+      await this._failIfTooManyNewUserInvites({
+        orgKey: doc.workspace.org.id,
+        analysis,
+        billingAccount: doc.workspace.org.billingAccount,
+        manager,
+      });
+      const deltaAndUsers = await this._createNotFoundUsers({
+        analysis,
+        transaction: manager,
+      });
+      let {userIdDelta} = deltaAndUsers;
+      const {users} = deltaAndUsers;
       // Get all the non-guest doc groups to be updated by the delta.
       const groups = getNonGuestGroups(doc);
       if ('maxInheritedRole' in delta) {
@@ -3067,6 +3102,47 @@ export class HomeDBManager extends EventEmitter {
     return query.getOne();
   }
 
+  public async getNewUserInvitesCount(
+    org: string | number,
+    options: {
+      excludedUserIds?: number[];
+      transaction?: EntityManager;
+    } = {}
+  ): Promise<number> {
+    const { excludedUserIds = [], transaction } = options;
+    return this._runInTransaction(transaction, async (manager) => {
+      const { count } = await this._orgMembers(org, manager)
+        // Postgres returns a string representation of a bigint unless we cast.
+        .select("CAST(COUNT(*) AS INTEGER)", "count")
+        .andWhere("org_member_users.is_first_time_user = true")
+        .andWhere("org_member_users.id NOT IN (:...excludedUserIds)", {
+          excludedUserIds: [
+            ...this._usersManager.getExcludedUserIds(),
+            ...excludedUserIds,
+          ],
+        })
+        .getRawOne();
+      return count;
+    });
+  }
+
+  private async _createNotFoundUsers(options: {
+    analysis: PermissionDeltaAnalysis;
+    transaction?: EntityManager;
+  }) {
+    const { analysis, transaction } = options;
+    const { foundUserDelta, foundUsers } = analysis;
+    const { userDelta: notFoundUserDelta, users: notFoundUsers } =
+      await this._usersManager.translateDeltaEmailsToUserIds(
+        analysis.notFoundUserDelta ?? {},
+        transaction
+      );
+    return {
+      userIdDelta: { ...foundUserDelta, ...notFoundUserDelta },
+      users: [...foundUsers, ...notFoundUsers],
+    };
+  }
+
   private _installConfig(
     key: ConfigKey,
     { manager }: { manager?: EntityManager }
@@ -3109,14 +3185,7 @@ export class HomeDBManager extends EventEmitter {
 
   private async _getOrgMembers(org: string|number|Organization) {
     if (!(org instanceof Organization)) {
-      const orgQuery = this._org(null, false, org, {
-        needRealOrg: true
-      })
-      // Join the org's ACL rules (with 1st level groups/users listed).
-        .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
-        .leftJoinAndSelect('acl_rules.group', 'org_groups')
-        .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
-      const result = await orgQuery.getRawAndEntities();
+      const result = await this._orgMembers(org).getRawAndEntities();
       if (result.entities.length === 0) {
         // If the query for the org failed, return the failure result.
         throw new ApiError('org not found', 404);
@@ -3124,6 +3193,22 @@ export class HomeDBManager extends EventEmitter {
       org = result.entities[0];
     }
     return UsersManager.getResourceUsers(org, this.defaultNonGuestGroupNames);
+  }
+
+  private _orgMembers(
+    org: string | number,
+    manager?: EntityManager
+  ) {
+    return (
+      this._org(null, false, org, {
+        needRealOrg: true,
+        manager,
+      })
+        // Join the org's ACL rules (with 1st level groups/users listed).
+        .leftJoinAndSelect("orgs.aclRules", "acl_rules")
+        .leftJoinAndSelect("acl_rules.group", "org_groups")
+        .leftJoinAndSelect("org_groups.memberUsers", "org_member_users")
+    );
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
@@ -3512,6 +3597,34 @@ export class HomeDBManager extends EventEmitter {
       // TODO: Consider when to allow updating own permissions - allowing updating own
       // permissions indiscriminately could lead to orphaned resources.
       throw new ApiError('Bad request: cannot update own permissions', 400);
+    }
+  }
+
+  private async _failIfTooManyNewUserInvites(options: {
+    orgKey: string | number;
+    analysis: PermissionDeltaAnalysis;
+    billingAccount: BillingAccount;
+    manager?: EntityManager;
+  }) {
+    const { orgKey, analysis, billingAccount, manager } = options;
+    const { foundUserDelta, foundUsers, notFoundUserDelta } = analysis;
+    const newUsers = foundUsers.filter(
+      (user) => user.isFirstTimeUser && foundUserDelta?.[user.id]
+    );
+    const delta = size(notFoundUserDelta) + newUsers.length;
+    if (!delta) {
+      return;
+    }
+
+    const max =
+      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
+      Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
+    const current = await this.getNewUserInvitesCount(orgKey, {
+      excludedUserIds: newUsers.map((user) => user.id),
+      transaction: manager,
+    });
+    if (current + delta > max) {
+      throw new ApiError("Your site has too many pending invitations", 403);
     }
   }
 

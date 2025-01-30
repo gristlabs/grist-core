@@ -17,7 +17,7 @@ import { Group } from 'app/gen-server/entity/Group';
 import { Login } from 'app/gen-server/entity/Login';
 import { User } from 'app/gen-server/entity/User';
 import { appSettings } from 'app/server/lib/AppSettings';
-import { HomeDBManager, PermissionDeltaAnalysis, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { HomeDBManager, PermissionDeltaAnalysis, Scope, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
 import {
   AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
 } from 'app/gen-server/lib/homedb/Interfaces';
@@ -488,17 +488,6 @@ export class UsersManager {
   }
 
   /*
-   * This function is an alias of getUserByLogin
-   * Its purpose is to be more expressive and avoid confusion when reading code.
-   * FIXME :In the future it may be used to split getUserByLogin in two distinct functions
-   * One for creation
-   * the other for retrieving users in order to make it more maintainable
-   */
-  public async createUser(email: string, options: GetUserOptions = {}): Promise<User> {
-    return await this.getUserByLogin(email, options);
-  }
-
-  /*
    * Deletes a user from the database. For the moment, the only person with the right
    * to delete a user is the user themselves.
    * Users have logins, a personal org, and entries in the group_users table. All are
@@ -624,7 +613,7 @@ export class UsersManager {
    *
    */
 
-  // Looks up the emails in the permission delta and adds them to the users map in
+  // Looks up the emails in the permission delta and adds them to the users maps in
   // the delta object.
   // Returns a QueryResult based on the validity of the passed in PermissionDelta object.
   public async verifyAndLookupDeltaEmails(
@@ -644,7 +633,8 @@ export class UsersManager {
       throw new ApiError('Bad request: invalid permission delta', 400);
     }
     // Lookup the email access changes and move them to the users object.
-    const userIdMap: {[userId: string]: roles.NonGuestRole|null} = {};
+    const notFoundUserEmailDelta: {[email: string]: roles.NonGuestRole} = {};
+    const foundUserIdDelta: {[userId: string]: roles.NonGuestRole|null} = {};
     if (hasInherit) {
       // Verify maxInheritedRole
       const role = delta.maxInheritedRole;
@@ -653,7 +643,7 @@ export class UsersManager {
         throw new ApiError(`Invalid maxInheritedRole ${role}`, 400);
       }
     }
-    let users: User[] = [];
+    let foundUsers: User[] = [];
     if (delta.users) {
       // Verify roles
       const deltaRoles = Object.keys(delta.users).map(_userId => delta.users![_userId]);
@@ -667,36 +657,72 @@ export class UsersManager {
       // Lookup emails
       const emailMap = delta.users;
       const emails = Object.keys(emailMap);
-      users = await this.getExistingUsersByLogin(emails, transaction);
-      const emailsExistingUsers = users.map(user => user.loginEmail);
-      const emailsUsersToCreate = emails.filter(email => !emailsExistingUsers.includes(email));
-      const emailUsers = new Map(users.map(user => [user.loginEmail, user]));
-      for (const email of emailsUsersToCreate) {
-        const user = await this.createUser(email, {manager: transaction});
-        emailUsers.set(user.loginEmail, user);
-      }
-      emails.forEach((email) => {
-        const userIdAffected = emailUsers.get(normalizeEmail(email))!.id;
-        // Org-level sharing with everyone would allow serious spamming - forbid it.
-        if (emailMap[email] !== null &&                    // allow removing anything
-            userId !== this.getSupportUserId() &&          // allow support user latitude
-            userIdAffected === this.getEveryoneUserId() &&
-            isOrg) {
-            throw new ApiError('This user cannot share with everyone at top level', 403);
+      foundUsers = await this.getExistingUsersByLogin(emails, transaction);
+      const emailUsers = new Map(foundUsers.map(user => [user.loginEmail, user]));
+      for (const email of emails) {
+        const user = emailUsers.get(normalizeEmail(email));
+        const role = emailMap[email];
+        if (!user && role === null) {
+          // Removing access from non-existant users is a no-op.
+          continue;
         }
-        userIdMap[userIdAffected] = emailMap[email];
-      });
+
+        if (user) {
+          // Org-level sharing with everyone would allow serious spamming - forbid it.
+          if (
+            role !== null && // allow removing anything
+            userId !== this.getSupportUserId() && // allow support user latitude
+            user.id === this.getEveryoneUserId() &&
+            isOrg
+          ) {
+            throw new ApiError(
+              "This user cannot share with everyone at top level",
+              403
+            );
+          }
+          foundUserIdDelta[user.id] = role;
+        } else {
+          notFoundUserEmailDelta[email] = role!;
+        }
+      }
     }
-    const userIdDelta = delta.users ? userIdMap : null;
-    const userIds = Object.keys(userIdDelta || {});
-    const removingSelf = userIds.length === 1 && userIds[0] === String(userId) &&
-      delta.maxInheritedRole === undefined && userIdDelta?.[userId] === null;
-    const permissionThreshold = removingSelf ? Permissions.VIEW : Permissions.ACL_EDIT;
+    const userIdsAndEmails = [
+      ...Object.keys(foundUserIdDelta),
+      ...Object.keys(notFoundUserEmailDelta),
+    ];
+    const removingSelf =
+      userIdsAndEmails.length === 1 &&
+      userIdsAndEmails[0] === String(userId) &&
+      delta.maxInheritedRole === undefined &&
+      foundUserIdDelta[userId] === null;
+    const permissionThreshold = removingSelf
+      ? Permissions.VIEW
+      : Permissions.ACL_EDIT;
     return {
-      userIdDelta,
-      users,
+      foundUserDelta: delta.users ? foundUserIdDelta : null,
+      foundUsers,
+      notFoundUserDelta: delta.users ? notFoundUserEmailDelta : null,
       permissionThreshold,
-      affectsSelf: userId in userIdMap,
+      affectsSelf: userId in foundUserIdDelta,
+    };
+  }
+
+  public async translateDeltaEmailsToUserIds(
+    userDelta: { [email: string]: roles.NonGuestRole | null },
+    transaction?: EntityManager
+  ): Promise<{ userDelta: UserIdDelta; users: User[] }> {
+    const newDelta: UserIdDelta = {};
+    const users: User[] = [];
+    for (const [email, value] of Object.entries(userDelta)) {
+      const user = await this.getUserByLogin(email, {
+        manager: transaction,
+      });
+      newDelta[user.id] = value;
+      users.push(user);
+    }
+    return {
+      userDelta: newDelta,
+      users,
     };
   }
 
