@@ -1083,12 +1083,11 @@ describe('HostedStorageManager', function() {
 
 // This is a performance test, to check if the backup settings are plausible.
 describe('backupSqliteDatabase', async function() {
-
   for (const mode of ['without-doc', 'with-doc'] as const) {
 
   it(`backups are robust to locking (${mode})`, async function() {
     // Takes some time to create large db and play with it.
-    this.timeout(20000);
+    this.timeout('30s');
 
     const tmpDir = await createTmpDir();
     const src = path.join(tmpDir, "src.db");
