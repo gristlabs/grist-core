@@ -57,11 +57,9 @@ export interface ExternalStorage {
 
   // Close the storage object.
   close(): Promise<void>;
-}
 
-export interface StreamingExternalStorage extends ExternalStorage {
-  uploadStream(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
-  downloadStream(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
+  uploadStream?(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
+  downloadStream?(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
 }
 
 /**
@@ -381,7 +379,7 @@ export interface PropStorage {
 export const Unchanged = Symbol('Unchanged');
 
 export interface ExternalStorageSettings {
-  purpose: 'doc' | 'meta';
+  purpose: 'doc' | 'meta' | 'attachments';
   basePrefix?: string;
   extraPrefix?: string;
 }

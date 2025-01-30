@@ -1392,10 +1392,11 @@ export class FlexServer implements GristServer {
 
     const pluginManager = await this._addPluginManager();
 
-    const storeOptions = await checkAvailabilityAttachmentStoreOptions(this.create.getAttachmentStoreOptions());
+    const allStoreOptions = Object.values(this.create.getAttachmentStoreOptions());
+    const checkedStoreOptions = await checkAvailabilityAttachmentStoreOptions(allStoreOptions);
     log.info("Attachment store backend availability", {
-      available: storeOptions.available.map(option => option.name),
-      unavailable: storeOptions.unavailable.map(option => option.name),
+      available: checkedStoreOptions.available.map(option => option.name),
+      unavailable: checkedStoreOptions.unavailable.map(option => option.name),
     });
 
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(

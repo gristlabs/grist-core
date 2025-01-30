@@ -1,4 +1,7 @@
-import {joinKeySegments, StreamingExternalStorage} from 'app/server/lib/ExternalStorage';
+import {
+  ExternalStorage,
+  joinKeySegments,
+} from 'app/server/lib/ExternalStorage';
 import * as fse from 'fs-extra';
 import * as stream from 'node:stream';
 import * as path from 'path';
@@ -100,10 +103,19 @@ export class AttachmentStoreCreationError extends Error {
   }
 }
 
+export interface ExternalStorageSupportingAttachments extends ExternalStorage {
+  uploadStream: NonNullable<ExternalStorage['uploadStream']>;
+  downloadStream: NonNullable<ExternalStorage['downloadStream']>;
+}
+
+export function storageSupportsAttachments(storage: ExternalStorage): storage is ExternalStorageSupportingAttachments {
+  return Boolean(storage.uploadStream && storage.downloadStream);
+}
+
 export class ExternalStorageAttachmentStore implements IAttachmentStore {
   constructor(
     public id: string,
-    private _storage: StreamingExternalStorage,
+    private _storage: ExternalStorageSupportingAttachments,
     private _prefixParts: string[]
   ) {
     if (!_storage.removeAllWithPrefix) {

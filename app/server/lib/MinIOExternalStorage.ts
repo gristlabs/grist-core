@@ -1,10 +1,10 @@
 import {ApiError} from 'app/common/ApiError';
 import {ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata} from 'app/common/DocSnapshot';
-import {StreamingExternalStorage} from 'app/server/lib/ExternalStorage';
 import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
 import * as stream from 'node:stream';
+import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
@@ -44,7 +44,7 @@ type RemoveObjectsResponse = null | undefined | {
  * An external store implemented using the MinIO client, which
  * will work with MinIO and other S3-compatible storage.
  */
-export class MinIOExternalStorage implements StreamingExternalStorage {
+export class MinIOExternalStorage implements ExternalStorage {
   // Specify bucket to use, and optionally the max number of keys to request
   // in any call to listObjectVersions (used for testing)
   constructor(
