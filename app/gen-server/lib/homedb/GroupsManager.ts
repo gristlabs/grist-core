@@ -282,6 +282,12 @@ export class GroupsManager {
     return roles.getEffectiveRole(maxInheritedRole);
   }
 
+  /**
+   * Create a Group.
+   * @param groupDescriptor - The descriptor for the group to be created.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   * @returns The created Group.
+   */
   public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
     return await this._runInTransaction(optManager, async (manager) => {
       const group = Group.create({
@@ -294,6 +300,14 @@ export class GroupsManager {
     });
   }
 
+  /**
+   * Overwrite a Role Group.
+   * @param id - The id of the Role Group to be overwritten.
+   * @param groupDescriptor - The descriptor to overwrite the role with.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns The overwritten Role Group
+   */
   public async overwriteRoleGroup(
     id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
   ) {
@@ -306,6 +320,14 @@ export class GroupsManager {
     });
   }
 
+  /**
+   * Overwrite a Resource Users Group.
+   * @param id - The id of the Resource Users Group to be overwritten.
+   * @param groupDescriptor - The descriptor to overwrite the role with.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns The overwritten Resource Users Group
+   */
   public async overwriteResourceUsersGroup(
     id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
   ) {
@@ -318,6 +340,15 @@ export class GroupsManager {
     });
   }
 
+  /**
+   * Delete a Group.
+   *
+   * @param id - The id of the Group to be deleted.
+   * @param expectedType - The expected type of the Group to be deleted. If the type is specified,
+   *                      the Group will only be deleted if it has the expected type.
+   *                      If the type is not specified, the Group will be deleted regardless of its type.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   */
   public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
     return await this._runInTransaction(optManager, async (manager) => {
       const group = await this.getGroupWithMembersById(id, {}, manager);
@@ -333,34 +364,67 @@ export class GroupsManager {
     });
   }
 
-  public getGroupsWithMembers(mamager?: EntityManager): Promise<Group[]> {
-    return this._runInTransaction(mamager, async (manager: EntityManager) => {
+  /**
+   * Get all the groups with their members.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   */
+  public getGroupsWithMembers(optManager?: EntityManager): Promise<Group[]> {
+    return this._runInTransaction(optManager, async (manager: EntityManager) => {
       return this._getGroupsQueryBuilder(manager)
         .getMany();
     });
   }
 
+  /**
+   * Get all the groups with their members of the given type.
+   *
+   * @param type - The type of the groups to be fetched.
+   * @param opts - Optional options to be used for the query.
+   * @param opts.aclRule - Whether to include the aclRule in the query.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns A Promise for an array of Group entities.
+   */
   public getGroupsWithMembersByType(
-    type: GroupTypes, opts?: {aclRule?: boolean}, mamager?: EntityManager
+    type: GroupTypes, opts?: {aclRule?: boolean}, optManager?: EntityManager
   ): Promise<Group[]> {
-    return this._runInTransaction(mamager, async (manager: EntityManager) => {
+    return this._runInTransaction(optManager, async (manager: EntityManager) => {
       return this._getGroupsQueryBuilder(manager, opts)
         .where('groups.type = :type', {type})
         .getMany();
     });
   }
 
+  /**
+   * Get a Group with its members by id.
+   *
+   * @param id - The id of the Group to be fetched.
+   * @param opts - Optional options to be used for the query.
+   * @param opts.aclRule - Whether to include the aclRule in the query.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   *
+   * @returns A Promise for the Group entity.
+   */
   public async getGroupWithMembersById(
-    groupId: number, opts?: {aclRule?: boolean}, optManager?: EntityManager
+    id: number, opts?: {aclRule?: boolean}, optManager?: EntityManager
   ): Promise<Group|null> {
     return await this._runInTransaction(optManager, async (manager) => {
       return await this._getGroupsQueryBuilder(manager, opts)
-        .andWhere('groups.id = :groupId', {groupId})
+        .andWhere('groups.id = :groupId', {groupId: id})
         .getOne();
     });
   }
 
-  private async _overwriteGroup(existing: Group, groupDescriptor: GroupWithMembersDescriptor, manager: EntityManager) {
+  /**
+   * Common method to overwrite groups of any type.
+   * @param existing - The existing group to be overwritten.
+   * @param groupDescriptor - The descriptor to overwrite the group with.
+   * @param optManager - The EntityManager to use for the transaction.
+   * @returns The overwritten Group.
+   */
+  private async _overwriteGroup(
+    existing: Group, groupDescriptor: GroupWithMembersDescriptor, optManager: EntityManager
+  ) {
     if (existing.type !== groupDescriptor.type) {
       throw new ApiError("cannot change type of group", 400);
     }
@@ -368,14 +432,18 @@ export class GroupsManager {
       id: existing.id,
       type: groupDescriptor.type,
       name: groupDescriptor.name,
-      memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], manager),
-      memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], manager),
+      memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], optManager),
+      memberGroups: await this._getGroupsByIdsStrict(groupDescriptor.memberGroups ?? [], optManager),
     });
-    return await manager.save(updatedGroup);
+    return await optManager.save(updatedGroup);
   }
 
   /**
-   * Returns a Promise for an array of User entites for the given userIds.
+   * Returns a Promise for an array of Groups for the given groupIds.
+   *
+   * @param groupIds - The ids of the Groups to be fetched.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   * @returns A Promise for an array of Group entities.
    */
   private async _getGroupsByIds(groupIds: number[], optManager?: EntityManager): Promise<Group[]> {
     if (groupIds.length === 0) {
@@ -388,6 +456,13 @@ export class GroupsManager {
     });
   }
 
+  /**
+   * Returns a Promise for an array of Groups for the given groupIds.
+   * Throws an ApiError if any of the groups are not found.
+   *
+   * @param groupIds - The ids of the Groups to be fetched.
+   * @param optManager - Optional EntityManager to use for the transaction.
+   */
   private async _getGroupsByIdsStrict(groupIds: number[], optManager?: EntityManager): Promise<Group[]> {
     const groups = await this._getGroupsByIds(groupIds, optManager);
     if (groups.length !== groupIds.length) {
@@ -398,8 +473,15 @@ export class GroupsManager {
     return groups;
   }
 
-  private _getGroupsQueryBuilder(manager: EntityManager, opts: {aclRule?: boolean} = {}) {
-      let queryBuilder = manager.createQueryBuilder()
+  /**
+   * Returns a QueryBuilder for fetching groups with their members.
+   * @param optManager - The EntityManager to use for the query.
+   * @param opts - Optional options to be used for the query.
+   * @param opts.aclRule - Whether to include the aclRule in the query.
+   * @returns The QueryBuilder for fetching groups with their members.
+   */
+  private _getGroupsQueryBuilder(optManager: EntityManager, opts: {aclRule?: boolean} = {}) {
+      let queryBuilder = optManager.createQueryBuilder()
         .select('groups')
         .addSelect('groups.type')
         .addSelect('memberGroups.type')
