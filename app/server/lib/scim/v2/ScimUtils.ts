@@ -3,10 +3,10 @@ import { UserProfile } from "app/common/LoginSessionAPI";
 import { User } from "app/gen-server/entity/User";
 import { Group } from "app/gen-server/entity/Group";
 import SCIMMY from "scimmy";
-import log from 'app/server/lib/log';
 import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
-import { SCIMMYRoleGroupSchema } from "./ScimRoleController";
+import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/ScimRoleController";
 import { AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule";
+import log from 'app/server/lib/log';
 
 const SCIM_API_BASE_PATH = '/api/scim/v2';
 const SCIMMY_USER_TYPE = 'User';
@@ -82,9 +82,9 @@ export function toSCIMMYGroup(group: Group): SCIMMY.Schemas.Group {
   });
 }
 
-export function toSCIMMYRole(role: Group): SCIMMYRoleGroupSchema {
+export function toSCIMMYRole(role: Group): SCIMMYRoleSchema {
   const { aclRule } = role;
-  return new SCIMMYRoleGroupSchema({
+  return new SCIMMYRoleSchema({
     id: String(role.id),
     displayName: role.name,
     docId: aclRule instanceof AclRuleDoc ? aclRule.docId : undefined,
