@@ -4,6 +4,7 @@ import * as EIO from 'engine.io';
 import {GristServerSocket, GristServerSocketEIO, GristServerSocketWS} from './GristServerSocket';
 import * as net from 'net';
 import * as stream from 'stream';
+import { EngineRequest } from 'engine.io/build/transport';
 
 const MAX_PAYLOAD = 100e6;
 
@@ -102,7 +103,7 @@ export class GristSocketServer {
           return;
         }
 
-        this._eioServer.handleRequest(req, res);
+        this._eioServer.handleRequest(req as EngineRequest, res);
       } else {
         // Otherwise fallback to the pre-existing listener(s)
         for (const listener of listeners) {

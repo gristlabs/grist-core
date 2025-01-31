@@ -1,6 +1,7 @@
 import * as sqlite3 from '@gristlabs/sqlite3';
 import { fromCallback } from 'app/server/lib/serverUtils';
-import { MinDB, MinDBOptions, PreparedStatement, ResultRow, SqliteVariant } from 'app/server/lib/SqliteCommon';
+import { Backup, MinDB, MinDBOptions, PreparedStatement,
+         ResultRow, SqliteVariant } from 'app/server/lib/SqliteCommon';
 import { OpenMode, RunResult } from 'app/server/lib/SQLiteDB';
 
 export class NodeSqliteVariant implements SqliteVariant {
@@ -86,6 +87,10 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
 
   public async interrupt(): Promise<void> {
     this._db.interrupt();
+  }
+
+  public backup(filename: string): Backup {
+    return (this._db as sqlite3.DatabaseWithBackup).backup(filename);
   }
 
   public getOptions(): MinDBOptions {

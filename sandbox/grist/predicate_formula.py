@@ -157,5 +157,12 @@ class TreeConverter(ast.NodeVisitor):
   def visit_Tuple(self, node):
     return self.visit_List(node)    # We don't distinguish tuples and lists
 
+  def visit_Call(self, node):
+    args = [self.visit(v) for v in node.args]
+    if node.keywords:
+      # E.g. foo(a, b=2, c=3) becomes [Call, foo, a, [keywords, [b, 2], [c, 3]]]
+      args.append(['keywords'] + [[v.arg, self.visit(v.value)] for v in node.keywords])
+    return ["Call", self.visit(node.func)] + args
+
   def generic_visit(self, node):
     raise SyntaxError("Unsupported syntax at %s:%s" % (node.lineno, node.col_offset + 1))

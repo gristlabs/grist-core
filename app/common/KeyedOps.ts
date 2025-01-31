@@ -30,12 +30,18 @@ export class KeyedOps {
    *
    *   - logError: called when errors occur, with a count of number of failures so
    *     far.
+   *   - scheduleFromFirstAdd: if set, a call to addOperation won't
+   *     reschedule work that hasn't started yet. Set this if you
+   *     want the operation to start at a fixed delay from the
+   *     first time it is added, rather than the last. Otherwise,
+   *     by default, adding will reset the delay.
    */
   constructor(private _op: (key: string) => Promise<void>, private _options: {
     delayBeforeOperationMs?: number,
     minDelayBetweenOperationsMs?: number,
     retry?: boolean,
-    logError?: (key: string, failureCount: number, err: Error) => void
+    logError?: (key: string, failureCount: number, err: Error) => void,
+    scheduleFromFirstAdd?: boolean,
   }) {
   }
 
@@ -126,6 +132,9 @@ export class KeyedOps {
     const status = this._getOperationStatus(key);
     if (status.promise) { return; }
     if (status.timeout) {
+      if (this._options.scheduleFromFirstAdd && !immediate) {
+        return;
+      }
       clearTimeout(status.timeout);
       delete status.timeout;
     }

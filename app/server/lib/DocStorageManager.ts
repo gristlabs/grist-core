@@ -1,5 +1,4 @@
 import * as bluebird from 'bluebird';
-import * as chokidar from 'chokidar';
 import * as fse from 'fs-extra';
 import moment from 'moment';
 import * as path from 'path';
@@ -29,7 +28,6 @@ import log from 'app/server/lib/log';
  *
  */
 export class DocStorageManager implements IDocStorageManager {
-  private _watcher: any;  // chokidar filesystem watcher
   private _shell: IShell;
 
   /**
@@ -40,14 +38,10 @@ export class DocStorageManager implements IDocStorageManager {
   constructor(private _docsRoot: string, private _samplesRoot?: string,
               private _comm?: Comm, shell?: IShell) {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
-    this._watcher = null;
     this._shell = shell ?? {
       trashItem() { throw new Error('Unable to move document to trash'); },
       showItemInFolder() { throw new Error('Unable to show item in folder'); }
     };
-    if (_comm) {
-      this._initFileWatcher();
-    }
   }
 
   /**
@@ -306,33 +300,6 @@ export class DocStorageManager implements IDocStorageManager {
 
       const bakName = `${fileName}.${dateString}.${backupTag}.bak`;
       return path.join(fileDir, bakName);
-    });
-  }
-
-  /**
-   * Creates the file watcher and begins monitoring the docsRoot. Returns the created watcher.
-   */
-  private _initFileWatcher(): void {
-    // NOTE: The chokidar watcher reports file renames as unlink then add events.
-    this._watcher = chokidar.watch(this._docsRoot, {
-      ignoreInitial: true,  // Prevent messages for initial adds of all docs when watching begins
-      depth: 0,             // Ignore changes in subdirectories of docPath
-      alwaysStat: true,     // Tells the watcher to always include the stats arg
-      // Waits for a file to remain constant for a short time after changing before triggering
-      // an action. Prevents reporting of incomplete writes.
-      awaitWriteFinish: {
-        stabilityThreshold: 100,  // Waits for the file to remain constant for 100ms
-        pollInterval: 10         // Polls the file every 10ms after a change
-      }
-    });
-    this._watcher.on('add', (docPath: string, fsStats: any) => {
-      this._sendDocListAction('addDocs', docPath, getDocListFileInfo(docPath, fsStats, ""));
-    });
-    this._watcher.on('change', (docPath: string, fsStats: any) => {
-      this._sendDocListAction('changeDocs', docPath, getDocListFileInfo(docPath, fsStats, ""));
-    });
-    this._watcher.on('unlink', (docPath: string) => {
-      this._sendDocListAction('removeDocs', docPath, getDocName(docPath));
     });
   }
 

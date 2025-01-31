@@ -165,10 +165,13 @@ const cssVideoTour = styled('div', `
   overflow: hidden;
   cursor: pointer;
   border-radius: 4px;
+  aspect-ratio: 16 / 9;
 
   @media ${mediaSmall} {
     & {
       width: unset;
+      aspect-ratio: unset;
+      min-height: 120px;
     }
   }
 `);
@@ -287,6 +290,7 @@ const cssNewDocument = styled('div', `
   color: ${theme.announcementPopupFg};
   background-color: ${theme.announcementPopupBg};
   padding: 24px;
+  min-height: 140px;
 `);
 
 const cssNewDocumentHeader = styled('div', `
@@ -339,6 +343,7 @@ const cssSecondaryCard = styled('div', `
   position: relative;
   border-radius: 4px;
   padding: 16px;
+  min-height: 140px;
 `);
 
 const cssSecondaryCardImage = styled('img', `

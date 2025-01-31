@@ -14,3 +14,20 @@ export interface ActivationStatus {
   isInTrial: boolean;
   expirationDate: string | null;
 }
+
+export function createNullBilling(): IBilling {
+  return {
+    addEndpoints() { /* do nothing */ },
+    addEventHandlers() { /* do nothing */ },
+    addWebhooks() { /* do nothing */ },
+    async addMiddleware() { /* do nothing */ },
+    addPages() { /* do nothing */ },
+    getActivationStatus() {
+      return {
+        inGoodStanding: true,
+        isInTrial: false,
+        expirationDate: null,
+      };
+    },
+  };
+}

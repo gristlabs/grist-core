@@ -1,9 +1,10 @@
 # Migrations
 
-If you change Grist schema, i.e. the schema of the Grist metadata tables (in `sandbox/grist/schema.py`), you'll have to increment the `SCHEMA_VERSION` (on top of that file) and create a migration. A migration is a set of actions that would get applied to a document at the previous version, to make it satisfy the new schema.
+If you change Grist schema, i.e. the schema of the Grist metadata tables (in [`sandbox/grist/schema.py`](../sandbox/grist/schema.py)), you'll have to increment the `SCHEMA_VERSION` (on top of that file) and create a migration. A migration is a set of actions that would get applied to a document at the previous version, to make it satisfy the new schema.
 
-To add a migration, add a function to `sandbox/grist/migrations.py`, of this form (using the new version number):
-```lang=python
+To add a migration, add a function to [`sandbox/grist/migrations.py`](../sandbox/grist/migrations.py), of this form (using the new version number):
+
+```python
 @migration(schema_version=11)
 def migration11(tdset):
   return tdset.apply_doc_actions([
@@ -19,7 +20,7 @@ If you are doing anything other than adding a column or a table, you must read t
 
 Migrations are tricky. Normally, we think about the software we are writing, but migrations work with documents that were created by an older version of the software, which may not have the logic you think our software has, and MAY have logic that the current version knows nothing about.
 
-This is why migrations code uses its own "dumb" implementation for loading and examining data (see `sandbox/grist/table_data_set.py`), because trying to load an older document using our primary code base will usually fail, since the document will not satisfy our current assumptions.
+This is why migrations code uses its own "dumb" implementation for loading and examining data (see [`sandbox/grist/table_data_set.py`](../sandbox/grist/table_data_set.py)), because trying to load an older document using our primary code base will usually fail, since the document will not satisfy our current assumptions.
 
 ## Restrictions
 
@@ -29,7 +30,7 @@ WARNING: Do not remove, modify, or rename metadata tables or columns.
 
 Mark old columns and tables as deprecated using a comment. We may want to add a feature to mark them in code, to prevent their use in new versions. For now, it's enough to add a comment and remove references to the deprecated entities throughout code. An important goal is to prevent adding same-named entities in the future, or reusing the same column with a different meaning. So please add a comment of the form:
 
-```lang=python
+```python
 # <columnName> is deprecated as of version XX. Do not remove or reuse.
 ```
 

@@ -142,6 +142,16 @@ export class Document extends Resource {
             }
           }
         }
+        if (props.options.appearance !== undefined) {
+          if (props.options.appearance === null) {
+            this.options.appearance = null;
+          } else {
+            this.options.appearance = this.options.appearance || {};
+            if (props.options.appearance.icon !== undefined) {
+              this.options.appearance.icon = props.options.appearance.icon;
+            }
+          }
+        }
         // Normalize so that null equates with absence.
         for (const key of Object.keys(this.options) as Array<keyof DocumentOptions>) {
           if (this.options[key] === null) {

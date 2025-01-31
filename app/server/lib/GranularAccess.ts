@@ -52,6 +52,7 @@ import {
   getDocSessionShare,
   getFullUser,
 } from 'app/server/lib/sessionUtils';
+import { quoteIdent } from 'app/server/lib/SQLiteDB';
 import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
@@ -422,11 +423,16 @@ export class GranularAccess implements GranularAccessForBundle {
       let rec = new EmptyRecordView();
       let rows: TableDataAction|undefined;
       try {
-        // Use lodash's get() that supports paths, e.g. charId of 'a.b' would look up `user.a.b`.
         // TODO: add indexes to db.
+        const noCase = clause.charId === 'Email' ? ` COLLATE NOCASE` : '';
         rows = await this._fetchQueryFromDB({
           tableId: clause.tableId,
-          filters: { [clause.lookupColId]: [get(user, clause.charId)] }
+          filters: {},
+          where: {
+            clause: `${quoteIdent(clause.lookupColId)}${noCase} = ?`,
+            // Use lodash's get() that supports paths, e.g. charId of 'a.b' would look up `user.a.b`.
+            params: [get(user, clause.charId)],
+          },
         });
       } catch (e) {
         log.warn(`User attribute ${clause.name} failed`, e);
@@ -1199,6 +1205,7 @@ export class GranularAccess implements GranularAccessForBundle {
   // If there is a Name column or an Access column, in the table, we use them.
   public async collectViewAsUsersFromUserAttributeTables(): Promise<Array<Partial<UserAccessData>>> {
     const result: Array<Partial<UserAccessData>> = [];
+    const seenEmails = new Set();
     for (const clause of this._ruler.ruleCollection.getUserAttributeRules().values()) {
       if (clause.charId !== 'Email') { continue; }
       try {
@@ -1210,11 +1217,18 @@ export class GranularAccess implements GranularAccessForBundle {
         const count = users[2].length;
         for (let i = 0; i < count; i++) {
           user.index = i;
-          const email = user.get(clause.lookupColId);
-          const name = user.get('Name') || String(email).split('@')[0];
+          const emailRaw = user.get(clause.lookupColId);
+          if (!emailRaw) { continue; }
+          const email = String(emailRaw);
+          const emailLower = email.toLowerCase();
+          // Avoid adding multiple users that differ only in case of email, since later we match
+          // case-insensitively anyway.
+          if (seenEmails.has(emailLower)) { continue; }
+          seenEmails.add(emailLower);
+          const name = user.get('Name') || email.split('@')[0];
           const access = user.has('Access') ? String(user.get('Access')) : 'editors';
           result.push({
-            email: email ? String(email) : undefined,
+            email,
             name: name ? String(name) : undefined,
             access: isValidRole(access) ? access : null,  // 'null' -> null a bit circuitously
           });

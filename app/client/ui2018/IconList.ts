@@ -48,6 +48,7 @@ export type IconName = "ChartArea" |
   "Bookmark" |
   "CenterAlign" |
   "Chat" |
+  "Clock" |
   "Code" |
   "Collapse" |
   "Columns" |
@@ -73,6 +74,7 @@ export type IconName = "ChartArea" |
   "Fireworks" |
   "Flag" |
   "Folder" |
+  "Folder2" |
   "FontBold" |
   "FontItalic" |
   "FontStrikethrough" |
@@ -89,6 +91,7 @@ export type IconName = "ChartArea" |
   "Import" |
   "ImportArrow" |
   "Info" |
+  "Layers" |
   "LeftAlign" |
   "Lighting" |
   "Lock" |
@@ -110,6 +113,7 @@ export type IconName = "ChartArea" |
   "PanelRight" |
   "Paragraph" |
   "Pencil" |
+  "Pin2" |
   "PinBig" |
   "PinSmall" |
   "PinTilted" |
@@ -136,6 +140,7 @@ export type IconName = "ChartArea" |
   "Settings" |
   "Share" |
   "Skip" |
+  "Smiley" |
   "Sort" |
   "Sparks" |
   "Star" |
@@ -148,6 +153,7 @@ export type IconName = "ChartArea" |
   "VideoPlay2" |
   "Warning" |
   "Widget" |
+  "World" |
   "Wrap" |
   "Zoom" |
   "UseChart" |
@@ -211,6 +217,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Bookmark",
   "CenterAlign",
   "Chat",
+  "Clock",
   "Code",
   "Collapse",
   "Columns",
@@ -236,6 +243,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Fireworks",
   "Flag",
   "Folder",
+  "Folder2",
   "FontBold",
   "FontItalic",
   "FontStrikethrough",
@@ -252,6 +260,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Import",
   "ImportArrow",
   "Info",
+  "Layers",
   "LeftAlign",
   "Lighting",
   "Lock",
@@ -273,6 +282,7 @@ export const IconList: IconName[] = ["ChartArea",
   "PanelRight",
   "Paragraph",
   "Pencil",
+  "Pin2",
   "PinBig",
   "PinSmall",
   "PinTilted",
@@ -299,6 +309,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Settings",
   "Share",
   "Skip",
+  "Smiley",
   "Sort",
   "Sparks",
   "Star",
@@ -311,6 +322,7 @@ export const IconList: IconName[] = ["ChartArea",
   "VideoPlay2",
   "Warning",
   "Widget",
+  "World",
   "Wrap",
   "Zoom",
   "UseChart",

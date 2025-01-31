@@ -1,5 +1,10 @@
 {
     "oidc": {
         "emailNotVerifiedError": "Ověřte prosím svůj e-mail u poskytovatele identit a znovu se přihlaste."
+    },
+    "sendAppPage": {
+        "og-description": "Moderní tabulkový procesor s otevřeným zdrojovým kódem, který přesahuje rámec mřížky",
+        "og-title": "Grist, vývoj tabulkových procesorů",
+        "Loading...": "Načítání..."
     }
 }

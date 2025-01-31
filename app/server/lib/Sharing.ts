@@ -143,6 +143,7 @@ export class Sharing {
       if (this._activeDoc.isShuttingDown && isSystemAction) {
         return {
           actionNum: localActionBundle.actionNum,
+          actionHash: localActionBundle.actionHash,
           retValues: [],
           isModification: false
         };
@@ -204,6 +205,7 @@ export class Sharing {
       }
       return {
         actionNum: localActionBundle.actionNum,
+        actionHash: localActionBundle.actionHash,
         retValues: sandboxActionBundle.retValues,
         isModification: sandboxActionBundle.stored.length > 0
       };

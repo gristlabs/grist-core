@@ -1025,7 +1025,9 @@ export async function doInIframe<T>(frameOrFunc: WebElement|(() => Promise<T>), 
  * a call to userActionsVerify() to check which UserActions were sent to the server. If the
  * argument is false, then stops the collection.
  */
-export function userActionsCollect(yesNo: boolean = true) {
+export async function userActionsCollect(yesNo: boolean = true) {
+  // For determinism, wait for any pending server requests to complete.
+  await waitForServer();
   return driver.executeScript("window.gristApp.comm.userActionsCollect(arguments[0])", yesNo);
 }
 
@@ -1036,6 +1038,8 @@ export function userActionsCollect(yesNo: boolean = true) {
  */
 export async function userActionsVerify(expectedUserActions: unknown[]): Promise<void> {
   try {
+    // For determinism, wait for any pending server requests to complete.
+    await waitForServer();
     assert.deepEqual(
       await driver.executeScript("return window.gristApp.comm.userActionsFetchAndReset()"),
       expectedUserActions);
@@ -1413,10 +1417,11 @@ export async function removeTable(tableId: string, options: {dismissTips?: boole
  * Click the Undo button and wait for server. If optCount is given, click Undo that many times.
  */
 export async function undo(optCount: number = 1, optTimeout?: number) {
+  await waitForServer(optTimeout);
   for (let i = 0; i < optCount; ++i) {
     await driver.find('.test-undo').doClick();
+    await waitForServer(optTimeout);
   }
-  await waitForServer(optTimeout);
 }
 
 
@@ -1506,6 +1511,7 @@ export function revertChanges(test: () => Promise<void>, invariant: () => any = 
  * Click the Redo button and wait for server. If optCount is given, click Redo that many times.
  */
 export async function redo(optCount: number = 1, optTimeout?: number) {
+  await waitForServer(optTimeout);
   for (let i = 0; i < optCount; ++i) {
     await driver.find('.test-redo').doClick();
     await waitForServer(optTimeout);

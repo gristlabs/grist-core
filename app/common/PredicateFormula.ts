@@ -110,6 +110,25 @@ export function compilePredicateFormula(
         const attrName = rawArgs[1] as string;
         return compileAndCombine([args[0]], ([value]) => getAttr(value, attrName, args[0]));
       }
+      case 'Call': {
+        return compileAndCombine(args, (values) => {
+          const func = values[0];
+          if (!(func instanceof SupportedCallable)) {
+            throw new Error(`Not a function: '${describeNode(args[0])}'`);
+          }
+          return func.func(...values.slice(1));
+        });
+      }
+      case 'keywords': {
+        // E.g. foo(a, b=2, c=3) becomes [Call, foo, a, [keywords, [b, 2], [c, 3]]],
+        // which becomes foo(a, {b: 2, c: 3}).
+        const pairs = rawArgs.filter((pair): pair is [string, ParsedPredicateFormula] =>
+          Array.isArray(pair) && pair.length == 2 && typeof pair[0] === 'string');
+        const keys = pairs.map(p => p[0]);
+        const values = pairs.map(p => p[1]);
+        return compileAndCombine(values, (compiledValues) =>
+          Object.fromEntries(keys.map((k, i) => [k, compiledValues[i]])));
+      }
       case 'Comment': return compileNode(args[0]);
     }
     throw new Error(`Unknown node type '${node[0]}'`);
@@ -131,6 +150,20 @@ export function compilePredicateFormula(
   return (input) => Boolean(compiledPredicateFormula(input));
 }
 
+// Wrapper for callables that we explicitly support. We should be careful not to expose anything
+// that could be used unsafely.
+class SupportedCallable {
+  constructor(public readonly func: Function) {}
+}
+
+function getStringMethod(value: string, attrName: string): SupportedCallable|undefined {
+  switch (attrName) {
+    case 'lower': return new SupportedCallable(() => value.toLowerCase());
+    case 'upper': return new SupportedCallable(() => value.toUpperCase());
+  }
+  return undefined;
+}
+
 function describeNode(node: ParsedPredicateFormula): string {
   if (node[0] === 'Name') {
     return node[1] as string;
@@ -149,9 +182,17 @@ function getAttr(value: any, attrName: string, valueNode: ParsedPredicateFormula
     }
     throw new Error(`No value for '${describeNode(valueNode)}'`);
   }
-  return typeof value.get === 'function'
-    ? decodeObject(value.get(attrName)) // InfoView
-    : value[attrName];
+  if (typeof value.get === 'function') {
+    return decodeObject(value.get(attrName));  // InfoView
+  } else if (typeof value === 'string') {
+    return getStringMethod(value, attrName);
+  } else if (value !== null && typeof value === 'object' &&
+      !Array.isArray(value) &&            // We don't support attribute lookups on arrays.
+      value.hasOwnProperty(attrName)) {
+    // Check value and attrName more carefully to reduce the risk of shenanigans.
+    return value[attrName];
+  }
+  return undefined;
 }
 
 /**

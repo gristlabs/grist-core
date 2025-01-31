@@ -197,7 +197,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
-    this._getLoginSystem = create.getLoginSystem;
+    this._getLoginSystem = create.getLoginSystem.bind(create);
     this.settings = options.settings;
     this.app = express();
     this.app.set('port', port);
@@ -599,7 +599,7 @@ export class FlexServer implements GristServer {
    */
   public addBootPage() {
     if (this._check('boot')) { return; }
-    this.app.get('/boot(/(:bootKey/?)?)?$', async (req, res) => {
+    this.app.get('/boot(/*)?', async (req, res) => {
       // Doing a good redirect is actually pretty subtle and we might
       // get it wrong, so just say /boot got moved.
       res.send('The /boot/KEY page is now /admin?boot-key=KEY');
@@ -1376,14 +1376,14 @@ export class FlexServer implements GristServer {
       const docWorkerId = await this._addSelfAsWorker(workers);
 
       const storageManager = await this.create.createHostedDocStorageManager(
-        this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager, this.create.ExternalStorage
+        this, this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager,
+        this.create.ExternalStorage.bind(this.create)
       );
       this._storageManager = storageManager;
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
       const storageManager = await this.create.createLocalDocStorageManager(
-        this.docsRoot, samples, this._comm, this.create.Shell?.()
-      );
+        this.docsRoot, samples, this._comm);
       this._storageManager = storageManager;
     }
 

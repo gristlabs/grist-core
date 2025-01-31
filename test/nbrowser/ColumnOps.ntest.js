@@ -20,7 +20,7 @@ describe('ColumnOps.ntest', function() {
 
   it("should allow adding and deleting columns", async function() {
     await gu.clickColumnMenuItem('Name', 'Insert column to the right');
-    await $('.test-new-columns-menu-add-new').click();
+    await $('.test-new-columns-menu-add-new').wait().click();
     await gu.waitForServer();
     // Newly created columns labels become editable automatically.  The next line checks that the
     // label is editable and then closes the editor.
@@ -31,7 +31,7 @@ describe('ColumnOps.ntest', function() {
     await gu.userActionsVerify([]);
     await gu.userActionsCollect(false);
     await gu.waitAppFocus(true);
-    await assert.isPresent(gu.getColumnHeader('A'), true);
+    await shouldHaveColumnHeader('A');
     await assert.isPresent(gu.getOpenEditingLabel(gu.getColumnHeader('A')), false);
 
     await gu.clickColumnMenuItem('A', 'Delete column');
@@ -40,26 +40,28 @@ describe('ColumnOps.ntest', function() {
   });
 
   it("should allow adding columns with new column menu", async function() {
+    await gu.userActionsCollect(true);
     await assert.isPresent(gu.getColumnHeader('A'), false);
     await $('.mod-add-column').scrollIntoView(true);
     await $('.mod-add-column').click();
     await gu.actions.selectFloatingOption('Add column');
-    await gu.userActionsCollect(true);
     await gu.waitToPass(() => gu.getColumnHeader('A'));
     await gu.getOpenEditingLabel(await gu.getColumnHeader('A')).wait().sendKeys($.ENTER);
     await gu.waitForServer();
-    await gu.userActionsVerify([["AddRecord", "_grist_Views_section_field", null,
-      {"colRef":43, "parentId":4, "parentPos":null}]]);
+    await gu.userActionsVerify([
+      ["AddColumn", "City", null, {"_position":null}],
+      ["AddRecord", "_grist_Views_section_field", null,
+       {"colRef":43, "parentId":4, "parentPos":null}]]);
     await gu.userActionsCollect(false);
     await gu.waitAppFocus(true);
-    await assert.isPresent(gu.getColumnHeader('A'), true);
+    await shouldHaveColumnHeader('A');
     await assert.isPresent(gu.getOpenEditingLabel(gu.getColumnHeader('A')), false);
     assert.deepEqual(await gu.getGridLabels('City'),
        ["Name", "Country", "District", "Population", "A"]);
   });
 
   it("should allow hiding columns", async function() {
-    await assert.isPresent(gu.getColumnHeader('Name'), true);
+    await shouldHaveColumnHeader('Name');
     await gu.getColumnHeader('Name').scrollIntoView(colHeaderScrollOpts);
     await gu.clickColumnMenuItem('Name', 'Hide column');
     await gu.waitForServer();
@@ -67,12 +69,12 @@ describe('ColumnOps.ntest', function() {
 
     await $(".test-undo").click();
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader('Name'), true);
+    await shouldHaveColumnHeader('Name');
   });
 
   it("[+] button should allow showing hidden columns", async function() {
     // Hide a column first
-    await assert.isPresent(gu.getColumnHeader('Name'), true);
+    await shouldHaveColumnHeader('Name');
     await gu.getColumnHeader('Name').scrollIntoView(colHeaderScrollOpts);
     await gu.clickColumnMenuItem('Name', 'Hide column');
     await gu.waitForServer();
@@ -83,7 +85,7 @@ describe('ColumnOps.ntest', function() {
     await $(".mod-add-column").click();
     await showColumn('Name');
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader('Name'), true);
+    await shouldHaveColumnHeader('Name');
   });
 
   it("[+] button show Add column directly if no hidden columns", async function() {
@@ -91,17 +93,17 @@ describe('ColumnOps.ntest', function() {
     await $(".mod-add-column").click();
     await showColumn("Pop");
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader("Pop. '000"), true);
+    await shouldHaveColumnHeader("Pop. '000");
 
     await assert.isPresent(gu.getColumnHeader('B'), false);
     await $('.mod-add-column').scrollIntoView(true);
     await $(".mod-add-column").click();
-    await $('.test-new-columns-menu-add-new').click();
+    await $('.test-new-columns-menu-add-new').wait().click();
     await gu.waitToPass(() => gu.getColumnHeader('B'));
     await gu.getOpenEditingLabel(await gu.getColumnHeader('B')).wait().sendKeys($.ENTER);
     await gu.waitForServer();
     await gu.waitAppFocus(true);
-    await assert.isPresent(gu.getColumnHeader('B'), true);
+    await shouldHaveColumnHeader('B');
   });
 
   it("should allow renaming columns", async function() {
@@ -109,7 +111,7 @@ describe('ColumnOps.ntest', function() {
     await gu.clickColumnMenuItem('Name', 'Rename column');
     await gu.getOpenEditingLabel(await gu.getColumnHeader('Name')).sendKeys('Renamed', $.ENTER);
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader('Renamed'), true);
+    await shouldHaveColumnHeader('Renamed');
     assert.deepEqual(await gu.getGridValues({
       cols: ['Renamed'],
       rowNums: [3, 4, 5],
@@ -117,13 +119,13 @@ describe('ColumnOps.ntest', function() {
 
     // Verify that undo/redo works with renaming
     await gu.undo();
-    await assert.isPresent(gu.getColumnHeader('Name'), true);
+    await shouldHaveColumnHeader('Name');
     assert.deepEqual(await gu.getGridValues({
       cols: ['Name'],
       rowNums: [3, 4, 5],
     }), ['A Coruña (La Coruña)', 'Aachen', 'Aalborg']);
     await gu.redo();
-    await assert.isPresent(gu.getColumnHeader('Renamed'), true);
+    await shouldHaveColumnHeader('Renamed');
     assert.deepEqual(await gu.getGridValues({
       cols: ['Renamed'],
       rowNums: [3, 4, 5],
@@ -134,7 +136,7 @@ describe('ColumnOps.ntest', function() {
     assert.equal(await $('.active_section .test-viewsection-title').wait().text(), 'CITY');
     await gu.waitForServer(5000);
     await gu.clickCellRC(1, 4);
-    await assert.isPresent(gu.getColumnHeader('Renamed'), true);
+    await shouldHaveColumnHeader('Renamed');
 
     // Check that it is renamed in the sidepane
     await gu.openSidePane('field');
@@ -153,7 +155,7 @@ describe('ColumnOps.ntest', function() {
     await gu.clickColumnMenuItem('Renamed', 'Rename column');
     await gu.getOpenEditingLabel(await gu.getColumnHeader('Renamed')).wait().sendKeys('foo', $.ENTER);
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader('foo'), true);
+    await shouldHaveColumnHeader('foo');
     await assert.isPresent(gu.getOpenEditingLabel(gu.getColumnHeader('foo')), false);
     assert.equal(await $(".test-field-label").val(), "foo");
     assert(await $(".test-field-col-id").val(), "Renamed");
@@ -170,15 +172,16 @@ describe('ColumnOps.ntest', function() {
     await gu.waitAppFocus(true);
 
     // Bug T384: Should save the column name after cancelling a rename earlier.
+    await shouldHaveColumnHeader('A');
     await gu.getColumnHeader('A').scrollIntoView(colHeaderScrollOpts);
     await gu.clickColumnMenuItem('A', 'Rename column');
     await gu.getOpenEditingLabel(await gu.getColumnHeader('A')).wait().sendKeys('C', $.ESCAPE);
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader('A'), true);
+    await shouldHaveColumnHeader('A');
     await gu.clickColumnMenuItem('A', 'Rename column');
     await gu.getOpenEditingLabel(await gu.getColumnHeader('A')).sendKeys('C', $.TAB);
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader('C'), true);
+    await shouldHaveColumnHeader('C');
   });
 
   it("should allow renaming columns with a click", async function() {
@@ -192,13 +195,13 @@ describe('ColumnOps.ntest', function() {
     await gu.getColumnHeader('foo').click();
     await gu.getOpenEditingLabel(await gu.getColumnHeader('foo')).sendKeys('foot', $.ENTER);
     await gu.waitForServer();
+    await shouldHaveColumnHeader('foot');
     await assert.isPresent(gu.getColumnHeader('foo'), false);
-    await assert.isPresent(gu.getColumnHeader('foot'), true);
     // Click to rename back again
     await gu.getColumnHeader('foot').click();
     await gu.getOpenEditingLabel(await gu.getColumnHeader('foot')).sendKeys('foo', $.ENTER);
     await gu.waitForServer();
-    await assert.isPresent(gu.getColumnHeader('foo'), true);
+    await shouldHaveColumnHeader('foo');
     await assert.isPresent(gu.getColumnHeader('foot'), false);
   });
 
@@ -278,6 +281,12 @@ describe('ColumnOps.ntest', function() {
   });
 });
 
-function showColumn(name) {
-  return $(`.test-new-columns-menu-hidden-column-inlined:contains(${name})`).click();
+async function showColumn(name) {
+  await gu.waitForServer();
+  await $(`.test-new-columns-menu-hidden-column-inlined:contains(${name})`).click();
+}
+
+async function shouldHaveColumnHeader(name) {
+  await gu.waitToPass(() => gu.getColumnHeader(name));
+  await assert.isPresent(gu.getColumnHeader(name), true);
 }

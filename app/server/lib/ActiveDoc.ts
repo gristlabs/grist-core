@@ -600,6 +600,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.debug(docSession, "createEmptyDocWithDataEngine");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
+    this._registerSQLiteDB();
     await this._rawPyCall('load_empty');
     // This init action is special. It creates schema tables, and is used to init the DB, but does
     // not go through other steps of a regular action (no ActionHistory or broadcasting).
@@ -667,6 +668,7 @@ export class ActiveDoc extends EventEmitter {
           },
         });
       }
+      this._registerSQLiteDB();
 
       await this._loadOpenDoc(docSession);
       const metaTableData = await this._tableMetadataLoader.fetchTablesAsActions();
@@ -1013,6 +1015,10 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fetchQuery(docSession: OptDocSession, query: ServerQuery,
                           waitForFormulas: boolean = false): Promise<TableFetchResult> {
+    // Sanitize the query to ensure it only has parts we are OK accepting from the user.
+    // (In particular, it is not safe to accept an untrusted "where" part.)
+    query = pick(query, ['tableId', 'filters', 'limit']);
+
     this._inactivityTimer.ping();     // The doc is in active use; ping it to stay open longer.
 
     // If user does not have rights to access what this query is asking for, fail.
@@ -2078,6 +2084,18 @@ export class ActiveDoc extends EventEmitter {
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.
       this._docManager.markAsChanged(this, 'edit');
+      this.logAuditEvent(docSession, {
+        action: "document.modify",
+        details: {
+          action: {
+            num: result.actionNum,
+            hash: result.actionHash,
+          },
+          document: {
+            id: this.docName,
+          },
+        },
+      });
     }
     return result;
   }
@@ -2156,6 +2174,7 @@ export class ActiveDoc extends EventEmitter {
           // tests.
           await timeoutReached(3000, this.waitForInitialization());
         }
+        this._docManager.unregisterSQLiteDB(this.docName);
         await Promise.all([
           this.docStorage.shutdown(),
           this.docPluginManager?.shutdown(),
@@ -3008,6 +3027,15 @@ export class ActiveDoc extends EventEmitter {
         lastActivity: document.updatedAt,
       },
     });
+  }
+
+  /**
+   * Register the underlying SQLiteDB we have so that it can
+   * be used for backup operations. It is important to use
+   * the same SQLite connection for all operations.
+   */
+  private _registerSQLiteDB() {
+    this._docManager.registerSQLiteDB(this.docName, this.docStorage.getDB());
   }
 }
 

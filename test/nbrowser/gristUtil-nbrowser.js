@@ -108,7 +108,10 @@ const gu = {
 
   async clickColumnMenuItem(colName, itemText, optRightClick) {
     await gu.openColumnMenu(colName);
-    return gu.actions.selectFloatingOption(itemText);
+    await gu.actions.selectFloatingOption(itemText);
+    // Add a little bit more determinism, if menu item
+    // triggers server action.
+    await gu.waitForServer();
   },
 
   getOpenEditingLabel(parentElem) {

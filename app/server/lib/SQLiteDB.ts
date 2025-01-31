@@ -72,8 +72,9 @@ import {timeFormat} from 'app/common/timeFormat';
 import {create} from 'app/server/lib/create';
 import * as docUtils from 'app/server/lib/docUtils';
 import log from 'app/server/lib/log';
-import {MinDB, MinDBOptions, MinRunResult, PreparedStatement, ResultRow,
-        SqliteVariant, Statement} from 'app/server/lib/SqliteCommon';
+import {
+  Backup, MinDB, MinDBOptions, MinRunResult, PreparedStatement, ResultRow,
+  SqliteVariant, Statement} from 'app/server/lib/SqliteCommon';
 import {NodeSqliteVariant} from 'app/server/lib/SqliteNode';
 import assert from 'assert';
 import * as fse from 'fs-extra';
@@ -141,6 +142,7 @@ export interface ISQLiteDB {
   execTransaction<T>(callback: () => Promise<T>): Promise<T>;
   runAndGetId(sql: string, ...params: any[]): Promise<number>;
   requestVacuum(): Promise<boolean>;
+  backup?(filename: string): Backup;
 }
 
 /**
@@ -254,12 +256,20 @@ export class SQLiteDB implements ISQLiteDB {
   private _migrationBackupPath: string|null = null;
   private _migrationError: Error|null = null;
   private _needVacuum: boolean = false;
+  private _closed: boolean = false;
 
   private constructor(protected _db: MinDB, private _dbPath: string) {
   }
 
   public async interrupt(): Promise<void> {
     return this._db.interrupt?.();
+  }
+
+  public backup(filename: string): Backup {
+    if (!this._db.backup) {
+      throw new Error('SQLite wrapper does not support backups');
+    }
+    return this._db.backup(filename);
   }
 
   public getOptions(): MinDBOptions|undefined {
@@ -351,8 +361,16 @@ export class SQLiteDB implements ISQLiteDB {
   }
 
   public async close(): Promise<void> {
-    await this._db.close();
-    SQLiteDB._addOpens(this._dbPath, -1);
+    const alreadyClosed = this._closed;
+    this._closed = true;
+    if (!alreadyClosed) {
+      await this._db.close();
+      SQLiteDB._addOpens(this._dbPath, -1);
+    }
+  }
+
+  public isClosed(): boolean {
+    return this._closed;
   }
 
   /**
