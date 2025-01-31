@@ -61,16 +61,25 @@ describe("GroupsManager", function () {
 
   const ensureTestGroupName = (groupName: string) => { assert.match(groupName, /^test-/); };
 
-  async function createDummyGroup(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}) {
+  async function createDummyGroup(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> & {type: string}) {
     ensureTestGroupName(groupName);
     const chimpy = (await db.getExistingUserByLogin('chimpy@getgrist.com'))!;
     const group = await db.createGroup({
       name: groupName,
-      type: Group.RESOURCE_USERS_TYPE,
       memberUsers: [chimpy.id],
       ...extraProps,
     });
     return { group, chimpy };
+  }
+
+  async function createDummyResourceUsersGroup(
+    groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}
+  ) {
+    return await createDummyGroup(groupName, {...extraProps, type: Group.RESOURCE_USERS_TYPE});
+  }
+
+  async function createDummyRole(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}) {
+    return await createDummyGroup(groupName, {...extraProps, type: Group.ROLE_TYPE});
   }
 
   async function createDummyGroupAndInnerGroup(upperGroupName: string, opts?: {
@@ -86,12 +95,12 @@ describe("GroupsManager", function () {
       name: innerGroupName,
       type: Group.RESOURCE_USERS_TYPE,
       memberUsers: [kiwi.id],
-      ...upperGroupProps,
+      ...innerGroupProps,
     });
     const { group, chimpy } = await createDummyGroup(upperGroupName, {
-      memberGroups: [innerGroup.id],
       type: Group.ROLE_TYPE,
-      ...innerGroupProps,
+      memberGroups: [innerGroup.id],
+      ...upperGroupProps,
     });
 
     return {chimpy, kiwi, innerGroup, group};
@@ -102,7 +111,7 @@ describe("GroupsManager", function () {
 
     it('should create a new resource users group', async function () {
       const groupName = 'test-creategroup';
-      const { group, chimpy } = await createDummyGroup(groupName);
+      const { group, chimpy } = await createDummyResourceUsersGroup(groupName);
       assert.equal(group.name, groupName);
       assert.equal(group.type, Group.RESOURCE_USERS_TYPE);
       assert.deepEqual(group.memberUsers, [sanitizeUserPropertiesForMembership(chimpy)]);
@@ -120,12 +129,10 @@ describe("GroupsManager", function () {
       assert.equal(group.memberGroups[0].type, Group.RESOURCE_USERS_TYPE);
     });
 
-    it("should refuse adding a RESOURCE_USERS_TYPE group as a member of another one", async function () {
+    it("should refuse adding a member to a RESOURCE_USERS_TYPE group", async function () {
       const groupName = 'test-create-nested-resource-users';
       const promise = createDummyGroupAndInnerGroup(groupName, {
-        innerGroupProps: {
-          type: Group.RESOURCE_USERS_TYPE,
-        }
+        upperGroupProps: { type: Group.RESOURCE_USERS_TYPE }
       });
       await assert.isRejected(promise, /cannot contain groups/);
     });
@@ -143,49 +150,37 @@ describe("GroupsManager", function () {
 
     it('should fail when setting memberGroups to RESOURCE_USERS_TYPE', async function () {
       const groupName = 'test-overwrite';
-      const { group, innerGroup } = await createDummyGroupAndInnerGroup(groupName);
-      const promise = db.overwriteResourceUsersGroup(group.id, {
-        name: groupName,
-        type: Group.RESOURCE_USERS_TYPE,
-        memberGroups: [innerGroup.id],
+      const promise = createDummyGroupAndInnerGroup(groupName, {
+        upperGroupProps: {type: Group.RESOURCE_USERS_TYPE},
+        innerGroupProps: {type: Group.RESOURCE_USERS_TYPE},
       });
-      return assert.isRejected(promise, /cannot contain groups/);
-    });
-
-    it('should fail when adding itself to memberGroups', async function () {
-      const groupName = 'test-overwrite';
-      const { group } = await createDummyGroup(groupName);
-      const promise = db.overwriteResourceUsersGroup(group.id, {
-        name: groupName,
-        type: Group.ROLE_TYPE,
-        memberGroups: [group.id],
+      await assert.isRejected(promise, /cannot contain groups/);
+      const promise2 = createDummyGroupAndInnerGroup(groupName, {
+        upperGroupProps: {type: Group.RESOURCE_USERS_TYPE},
+        innerGroupProps: {type: Group.ROLE_TYPE},
       });
-      return assert.isRejected(promise, /cannot contain itself/);
+      await assert.isRejected(promise2, /cannot contain groups/);
     });
 
     it('should overwrite the group info', async function () {
       const groupName = 'test-overwrite';
-      const newInnerGroupName = 'test-overwrite-inner-new';
-      const { group } = await createDummyGroupAndInnerGroup(groupName);
-      const { group: newInnerGroup, kiwi } = await createDummyGroupAndInnerGroup(newInnerGroupName);
+      const { group } = await createDummyResourceUsersGroup(groupName);
       const newGroupName = 'test-overwrite-new';
+      const kiwi = (await db.getExistingUserByLogin('kiwi@getgrist.com'))!;
       await db.overwriteResourceUsersGroup(group.id, {
         name: newGroupName,
         type: Group.RESOURCE_USERS_TYPE,
         memberUsers: [kiwi.id],
-        memberGroups: [newInnerGroup.id],
       });
       const updatedGroup = (await db.getGroupWithMembersById(group.id))!;
       assert.equal(updatedGroup.name, newGroupName);
-      assert.equal(updatedGroup.type, Group.ROLE_TYPE);
+      assert.equal(updatedGroup.type, Group.RESOURCE_USERS_TYPE);
       assert.deepEqual(updatedGroup.memberUsers, [sanitizeUserPropertiesForMembership(kiwi)]);
-      assert.lengthOf(updatedGroup.memberGroups, 1);
-      assert.equal(updatedGroup.memberGroups[0].id, newInnerGroup.id);
     });
 
     it('should overwrite the group info and unset unspecified properties', async function () {
       const groupName = 'test-overwrite';
-      const { group } = await createDummyGroupAndInnerGroup(groupName);
+      const { group } = await createDummyResourceUsersGroup(groupName);
       const newGroupName = 'test-overwrite-new';
       await db.overwriteResourceUsersGroup(group.id, {
         name: newGroupName,
@@ -200,6 +195,7 @@ describe("GroupsManager", function () {
   });
 
   describe('overwriteRoleGroup()', function () {
+    setTmpLogLevel('info');
     it('should fail if the group is not found', function () {
       const promise = db.overwriteRoleGroup(999, {
         name: 'test-overwrite',
@@ -210,7 +206,7 @@ describe("GroupsManager", function () {
 
     it('should fail when changing type to RESOURCE_USERS_TYPE', async function () {
       const groupName = 'test-overwrite';
-      const { group } = await createDummyGroup(groupName);
+      const { group } = await createDummyRole(groupName);
       const promise = db.overwriteRoleGroup(group.id, {
         name: groupName,
         type: Group.RESOURCE_USERS_TYPE,
@@ -220,7 +216,7 @@ describe("GroupsManager", function () {
 
     it('should fail when adding itself to memberGroups', async function () {
       const groupName = 'test-overwrite';
-      const { group } = await createDummyGroup(groupName);
+      const { group } = await createDummyRole(groupName);
       const promise = db.overwriteRoleGroup(group.id, {
         name: groupName,
         type: Group.ROLE_TYPE,
@@ -232,7 +228,9 @@ describe("GroupsManager", function () {
     it('should overwrite the group info', async function () {
       const groupName = 'test-overwrite';
       const newInnerGroupName = 'test-overwrite-inner-new';
-      const { group } = await createDummyGroupAndInnerGroup(groupName);
+      const { group } = await createDummyGroupAndInnerGroup(groupName, {
+        innerGroupProps: {type: Group.ROLE_TYPE}
+      });
       const { group: newInnerGroup, kiwi } = await createDummyGroupAndInnerGroup(newInnerGroupName);
       await db.overwriteRoleGroup(group.id, {
         name: groupName,
@@ -250,13 +248,14 @@ describe("GroupsManager", function () {
 
     it('should overwrite the group info and unset unspecified properties', async function () {
       const groupName = 'test-overwrite';
-      const { group } = await createDummyGroup(groupName, {type: Group.ROLE_TYPE});
+      const { group } = await createDummyGroupAndInnerGroup(groupName);
+      const newGroupName = 'test-overwrite-new';
       await db.overwriteRoleGroup(group.id, {
-        name: groupName,
+        name: newGroupName,
         type: Group.ROLE_TYPE,
       });
       const updatedGroup = (await db.getGroupWithMembersById(group.id))!;
-      assert.equal(updatedGroup.name, groupName);
+      assert.equal(updatedGroup.name, newGroupName);
       assert.equal(updatedGroup.type, Group.ROLE_TYPE);
       assert.isEmpty(updatedGroup.memberUsers);
       assert.isEmpty(updatedGroup.memberGroups);
@@ -347,7 +346,7 @@ describe("GroupsManager", function () {
 
     it('should delete a group', async function () {
       const groupName = 'test-deleteGroup';
-      const { group } = await createDummyGroup(groupName);
+      const { group } = await createDummyResourceUsersGroup(groupName);
       await db.deleteGroup(group.id);
       const deletedGroup = await db.getGroupWithMembersById(group.id);
       assert.isNull(deletedGroup);

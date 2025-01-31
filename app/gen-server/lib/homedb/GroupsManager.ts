@@ -302,7 +302,7 @@ export class GroupsManager {
       if (!existingGroup || (existingGroup.type !== Group.ROLE_TYPE)) {
         throw new ApiError(`Role with id ${id} not found`, 404);
       }
-      return await this._overwriteGroup(id, groupDescriptor, manager);
+      return await this._overwriteGroup(existingGroup, groupDescriptor, manager);
     });
   }
 
@@ -311,11 +311,10 @@ export class GroupsManager {
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
       const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
-      console.log('existingGroup', existingGroup);
       if (!existingGroup || (existingGroup.type !== Group.RESOURCE_USERS_TYPE)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
-      return await this._overwriteGroup(id, groupDescriptor, manager);
+      return await this._overwriteGroup(existingGroup, groupDescriptor, manager);
     });
   }
 
@@ -361,9 +360,12 @@ export class GroupsManager {
     });
   }
 
-  private async _overwriteGroup(id: number, groupDescriptor: GroupWithMembersDescriptor, manager: EntityManager) {
+  private async _overwriteGroup(existing: Group, groupDescriptor: GroupWithMembersDescriptor, manager: EntityManager) {
+    if (existing.type !== groupDescriptor.type) {
+      throw new ApiError("cannot change type of group", 400);
+    }
     const updatedGroup = Group.create({
-      id,
+      id: existing.id,
       type: groupDescriptor.type,
       name: groupDescriptor.name,
       memberUsers: await this._usersManager.getUsersByIdsStrict(groupDescriptor.memberUsers ?? [], manager),

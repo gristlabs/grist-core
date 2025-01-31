@@ -47,12 +47,14 @@ export class Group extends BaseEntity {
   @BeforeUpdate()
   @BeforeInsert()
   public checkGroupMembers() {
-    if (this.type === Group.RESOURCE_USERS_TYPE && (this.memberGroups ?? []).length > 0) {
+    const memberGroups = this.memberGroups ?? [];
+
+    if (this.type === Group.RESOURCE_USERS_TYPE && memberGroups.length > 0) {
       throw new Error(`Groups of type "${Group.RESOURCE_USERS_TYPE}" cannot contain groups.`);
     }
-    const containItself = (this.memberGroups ?? []).some(group => group.id === this.id);
+    const containItself = memberGroups.some(group => group.id === this.id);
     if (containItself) {
-      throw new Error('Group cannot contain itself.');
+      throw new Error('A group cannot contain itself.');
     }
   }
 }
