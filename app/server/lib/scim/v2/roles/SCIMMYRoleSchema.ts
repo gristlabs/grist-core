@@ -2,6 +2,11 @@ import SCIMMY from "scimmy";
 
 const { Attribute, SchemaDefinition } = SCIMMY.Types;
 
+/**
+ * SCIMMY Role Schema.
+ * Heavily inspired by SCIMMY Group Schema.
+ * https://github.com/scimmyjs/scimmy/blob/8b4333edc566a04cd5390ee4aa3272d021610d77/src/lib/schemas/group.js
+ */
 export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
   public static get definition() {
     return this._definition;

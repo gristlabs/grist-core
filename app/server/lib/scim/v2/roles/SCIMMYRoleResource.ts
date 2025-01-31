@@ -2,6 +2,10 @@ import { SCIMMYRoleSchema } from 'app/server/lib/scim/v2/roles/SCIMMYRoleSchema'
 
 import SCIMMY from 'scimmy';
 
+/**
+ * SCIMMY Role Resource. Heavily inspired by SCIMMY Group Resource.
+ * https://github.com/scimmyjs/scimmy/blob/8b4333edc566a04cd5390ee4aa3272d021610d77/src/lib/resources/group.js
+ */
 export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
   // NB: must be a getter, cannot override this property with readonly attribute
   public static get endpoint() {
@@ -15,7 +19,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
   public static basepath(): string;
   public static basepath(path: string): typeof SCIMMYRoleResource;
   // Required by SCIMMY. This seems to be a method with the same logic for every Resouces:
-  // https://github.com/scimmyjs/scimmy/blob/8b4333edc566a04cd5390ee4aa3272d021610d77/src/lib/resources/user.js#L22-L27
+  // https://github.com/scimmyjs/scimmy/blob/8b4333edc566a04cd5390ee4aa3272d021610d77/src/lib/resources/group.js#L22-L27
   public static basepath(path?: string) {
     if (path === undefined) {
       return SCIMMYRoleResource._basepath;
