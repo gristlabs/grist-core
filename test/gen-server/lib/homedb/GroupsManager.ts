@@ -143,12 +143,12 @@ describe("GroupsManager", function () {
     it("should fail if the group is not found", function () {
       const promise = db.overwriteResourceUsersGroup(999, {
         name: 'test-overwrite',
-        type: Group.ROLE_TYPE,
+        type: Group.RESOURCE_USERS_TYPE,
       });
       return assert.isRejected(promise, /not found/);
     });
 
-    it('should fail when setting memberGroups to RESOURCE_USERS_TYPE', async function () {
+    it(`should fail when setting memberGroups to a ${Group.RESOURCE_USERS_TYPE} group`, async function () {
       const groupName = 'test-overwrite';
       const promise = createDummyGroupAndInnerGroup(groupName, {
         upperGroupProps: {type: Group.RESOURCE_USERS_TYPE},

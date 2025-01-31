@@ -11,7 +11,8 @@ class ScimUserController extends BaseController {
     dbManager: HomeDBManager,
     checkAccess: (context: RequestContext) => void
   ) {
-    super(dbManager, checkAccess, 'Invalid passed user ID');
+    super(dbManager, checkAccess);
+    this.invalidIdError = 'Invalid passed user ID';
   }
 
   /**

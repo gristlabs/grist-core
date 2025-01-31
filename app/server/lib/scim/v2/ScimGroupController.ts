@@ -11,7 +11,8 @@ class ScimGroupController extends BaseController {
     dbManager: HomeDBManager,
     checkAccess: (context: RequestContext) => void
   ) {
-    super(dbManager, checkAccess, 'Invalid passed group ID');
+    super(dbManager, checkAccess);
+    this.invalidIdError = 'Invalid passed group ID';
   }
 
   /**

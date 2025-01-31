@@ -7,17 +7,17 @@ import SCIMMY from "scimmy";
 
 export class BaseController {
   protected logger = new LogMethods(this.constructor.name, () => ({}));
+  protected invalidIdError: string;
 
   constructor(
     protected dbManager: HomeDBManager,
     protected checkAccess: (context: RequestContext) => void,
-    private _invalidIdError: string
   ) {}
 
   protected getIdFromResource(resource: any) {
     const id = parseInt(resource.id, 10);
     if (Number.isNaN(id)) {
-      throw new SCIMMY.Types.Error(400, 'invalidValue', this._invalidIdError);
+      throw new SCIMMY.Types.Error(400, 'invalidValue', this.invalidIdError);
     }
     return id;
   }
