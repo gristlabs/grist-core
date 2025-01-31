@@ -237,6 +237,20 @@ export class SamlConfig {
   }
 }
 
+function checkRedirectUrl(untrustedUrl: string, req: express.Request): URL {
+  const originUrl = new URL(getOriginUrl(req));
+  try {
+    const url = new URL(untrustedUrl);
+    if (url.origin !== originUrl.origin) {
+      throw new Error("unexpected origin");
+    }
+    return url;
+  } catch (e) {
+    log.warn(`SamlConfig: ignoring invalid redirect URL: ${e.message}`);
+  }
+  return originUrl;
+}
+
 /**
  * Return SAML login system if environment looks configured for it, else return undefined.
  */
