@@ -24,7 +24,7 @@ export function getAttachmentColumns(metaDocData: DocData): AttachmentColumns {
     const tableId = table?.tableId;
     if (!tableId) {
       /* should never happen */
-      throw new Error('table not found');
+      throw new Error('table not found: ' + column.parentId);
     }
     if (!attachmentColumns.has(tableId)) {
       attachmentColumns.set(tableId, new Set());
