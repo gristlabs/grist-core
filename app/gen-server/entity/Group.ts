@@ -3,6 +3,7 @@ import {BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, JoinTable, ManyT
 
 import {AclRule} from "./AclRule";
 import {User} from "./User";
+import { ApiError } from "app/common/ApiError";
 
 @Entity({name: 'groups'})
 export class Group extends BaseEntity {
@@ -50,11 +51,11 @@ export class Group extends BaseEntity {
     const memberGroups = this.memberGroups ?? [];
 
     if (this.type === Group.RESOURCE_USERS_TYPE && memberGroups.length > 0) {
-      throw new Error(`Groups of type "${Group.RESOURCE_USERS_TYPE}" cannot contain groups.`);
+      throw new ApiError(`Groups of type "${Group.RESOURCE_USERS_TYPE}" cannot contain groups.`, 400);
     }
     const containItself = memberGroups.some(group => group.id === this.id);
     if (containItself) {
-      throw new Error('A group cannot contain itself.');
+      throw new ApiError('A group cannot contain itself.', 400);
     }
   }
 }

@@ -678,23 +678,16 @@ describe('Scim', () => {
       describe('Groups', function () {
         describe('GET /Groups/{id}', function () {
           it(`should return a "${Group.RESOURCE_USERS_TYPE}" group for chimpy`, async function () {
-            await withGroupName('test-get-group-by-id', async (groupName) => {
-              const {id: groupId} = await getDbManager().createGroup({
-                name: groupName,
-                type: Group.RESOURCE_USERS_TYPE,
-                memberUsers: [userIdByName['chimpy']!, userIdByName['kiwi']!]
-              });
-
+            await withGroup(async (groupId, group) => {
               const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
 
               assert.equal(res.status, 200);
               assert.deepEqual(res.data, {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-                id: String(groupId),
-                displayName: groupName,
+                id: groupId,
+                displayName: group.name,
                 members: [
-                  { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' },
-                  { value: '2', display: 'Kiwi', $ref: '/api/scim/v2/Users/2', type: 'User' },
+                  { value: '1', display: 'Chimpy', $ref: '/api/scim/v2/Users/1', type: 'User' }
                 ],
                 meta: { resourceType: 'Group', location: `/api/scim/v2/Groups/${groupId}` }
               });
@@ -713,13 +706,7 @@ describe('Scim', () => {
           });
 
           it(`should return 404 when the group is of type ${Group.ROLE_TYPE}`, async function () {
-            await withGroupName('test-role-group', async (groupName) => {
-              const {id: groupId} = await getDbManager().createGroup({
-                name: groupName,
-                type: Group.ROLE_TYPE,
-                memberUsers: [userIdByName['chimpy']!]
-              });
-
+            await withRole(async (groupId, groupName) => {
               const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
               assert.equal(res.status, 404);
               assert.deepEqual(res.data, {
@@ -917,6 +904,26 @@ describe('Scim', () => {
               detail: 'Groups not found: 1000'
             });
             assert.equal(res.status, 404);
+          });
+
+          it('should return 400 when the group members contain other groups', async function () {
+            await withRole(async (groupId) => {
+              const res = await axios.post(scimUrl('/Groups'), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: 'test-group',
+                members: [
+                  { value: '1', type: 'User' },
+                  { value: '2', type: 'User' },
+                  { value: groupId, type: 'Group' },
+                ]
+              }, chimpy);
+              assert.deepEqual(res.data, {
+                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                status: '400',
+                detail: 'Groups of type "resource users" cannot contain groups.'
+              });
+              assert.equal(res.status, 400);
+            });
           });
 
           checkCommonErrors('post', '/Groups', {
