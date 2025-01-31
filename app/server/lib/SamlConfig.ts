@@ -204,6 +204,44 @@ export class SamlConfig {
     }));
   }
 
+  private async _processInitialRequest(req: express.Request) {
+    const relayState: string = req.body.RelayState;
+    const sessionId = this._gristServer.getSessions().getSessionIdFromRequest(req) || undefined;
+    const params = {
+      sessionId,
+      redirectUrl: "",
+      unsolicited: true,
+      action: "",
+    };
+
+    if (!relayState) {
+      // Presumably an IdP-inititated signin.
+      params.redirectUrl = getOriginUrl(req);
+      params.action = "login";
+      return params;
+    }
+
+    const permitStore = this._gristServer.getExternalPermitStore();
+    const state = await permitStore.getPermit(relayState);
+    if (!state) {
+      // Presumably an IdP-inititated signin without a permit, but
+      // let's check to see if it has a redirect URL.
+      params.redirectUrl = checkRedirectUrl(relayState, req).href;
+      params.action = "login";
+      return params;
+    }
+
+    params.unsolicited = false;
+
+    await permitStore.removePermit(relayState);
+    // Trust this URL because it could only have come from us (i.e. we should've checked it
+    // earlier if it was untrusted).
+    params.redirectUrl = state.url!;
+    params.sessionId = state.sessionId;
+    params.action = state.action || "";
+    return params;
+  }
+
   /**
    *
    * Login and logout involves redirecting to a SAML IdP, which will then POST some information
