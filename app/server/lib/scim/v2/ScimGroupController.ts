@@ -25,7 +25,7 @@ class ScimGroupController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const group = await this.dbManager.getGroupWithMembersById(id);
-      if (!group || group.type !== Group.RESOURCE_USERS_TYPE) {
+      if (!group || group.type !== Group.TEAM_TYPE) {
         throw new SCIMMY.Types.Error(404, null!, `Group with ID ${id} not found`);
       }
       return toSCIMMYGroup(group);
@@ -41,7 +41,7 @@ class ScimGroupController extends BaseController {
   public async getGroups(resource: any, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const { filter } = resource;
-      const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.RESOURCE_USERS_TYPE))
+      const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.TEAM_TYPE))
         .map(group => toSCIMMYGroup(group));
       return filter ? filter.match(scimmyGroup) : scimmyGroup;
     });
@@ -72,7 +72,7 @@ class ScimGroupController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const groupDescriptor = toGroupDescriptor(data);
-      const group = await this.dbManager.overwriteResourceUsersGroup(id, groupDescriptor);
+      const group = await this.dbManager.overwriteTeamGroup(id, groupDescriptor);
       return toSCIMMYGroup(group);
     });
   }
@@ -87,7 +87,7 @@ class ScimGroupController extends BaseController {
   public async deleteGroup(resource: any, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      await this.dbManager.deleteGroup(id, Group.RESOURCE_USERS_TYPE);
+      await this.dbManager.deleteGroup(id, Group.TEAM_TYPE);
     });
   }
 }

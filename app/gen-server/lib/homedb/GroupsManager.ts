@@ -13,7 +13,7 @@ import { EntityManager } from "typeorm";
 import { UsersManager } from "./UsersManager";
 import { ApiError } from "app/common/ApiError";
 
-export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.RESOURCE_USERS_TYPE;
+export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.TEAM_TYPE;
 
 /**
  * Class responsible for Groups and Roles Management.
@@ -321,19 +321,19 @@ export class GroupsManager {
   }
 
   /**
-   * Overwrite a Resource Users Group.
-   * @param id - The id of the Resource Users Group to be overwritten.
+   * Overwrite a Team Group.
+   * @param id - The id of the Team Group to be overwritten.
    * @param groupDescriptor - The descriptor to overwrite the role with.
    * @param optManager - Optional EntityManager to use for the transaction.
    *
-   * @returns The overwritten Resource Users Group
+   * @returns The overwritten Team Group
    */
-  public async overwriteResourceUsersGroup(
+  public async overwriteTeamGroup(
     id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
   ) {
     return await this._runInTransaction(optManager, async (manager) => {
       const existingGroup = await this.getGroupWithMembersById(id, {}, manager);
-      if (!existingGroup || (existingGroup.type !== Group.RESOURCE_USERS_TYPE)) {
+      if (!existingGroup || (existingGroup.type !== Group.TEAM_TYPE)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
       return await this._overwriteGroup(existingGroup, groupDescriptor, manager);

@@ -193,7 +193,7 @@ describe('Scim', () => {
           sandbox.stub(getDbManager(), 'getGroupsWithMembersByType').throws(error);
           sandbox.stub(getDbManager(), 'getGroupsWithMembers').throws(error);
           sandbox.stub(getDbManager(), 'createGroup').throws(error);
-          sandbox.stub(getDbManager(), 'overwriteResourceUsersGroup').throws(error);
+          sandbox.stub(getDbManager(), 'overwriteTeamGroup').throws(error);
           sandbox.stub(getDbManager(), 'overwriteRoleGroup').throws(error);
           sandbox.stub(getDbManager(), 'deleteGroup').throws(error);
 
@@ -657,7 +657,7 @@ describe('Scim', () => {
         return withGroupName('test-group', async (groupName) => {
           const group = await getDbManager().createGroup({
             name: groupName,
-            type: Group.RESOURCE_USERS_TYPE,
+            type: Group.TEAM_TYPE,
             memberUsers: [userIdByName['chimpy']!]
           });
           return await cb(String(group.id), group);
@@ -677,7 +677,7 @@ describe('Scim', () => {
 
       describe('Groups', function () {
         describe('GET /Groups/{id}', function () {
-          it(`should return a "${Group.RESOURCE_USERS_TYPE}" group for chimpy`, async function () {
+          it(`should return a "${Group.TEAM_TYPE}" group for chimpy`, async function () {
             await withGroup(async (groupId, group) => {
               const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
 
@@ -732,7 +732,7 @@ describe('Scim', () => {
         });
 
         describe('GET /Groups', function () {
-          it(`should return all ${Group.RESOURCE_USERS_TYPE} groups for chimpy`, async function () {
+          it(`should return all ${Group.TEAM_TYPE} groups for chimpy`, async function () {
             return withGroupNames(
               ['test-group1', 'test-group2', 'test-role-group'],
               async ([group1Name, group2Name, roleGroupName]) => {
@@ -743,12 +743,12 @@ describe('Scim', () => {
                 });
                 const group1 = await getDbManager().createGroup({
                   name: group1Name,
-                  type: Group.RESOURCE_USERS_TYPE,
+                  type: Group.TEAM_TYPE,
                   memberUsers: [userIdByName['chimpy']!]
                 });
                 const group2 = await getDbManager().createGroup({
                   name: group2Name,
-                  type: Group.RESOURCE_USERS_TYPE,
+                  type: Group.TEAM_TYPE,
                   memberUsers: [userIdByName['kiwi']!]
                 });
 
@@ -781,7 +781,7 @@ describe('Scim', () => {
         });
 
         describe('POST /Groups', function () {
-          it(`should create a new group of type "${Group.RESOURCE_USERS_TYPE}`, async function () {
+          it(`should create a new group of type "${Group.TEAM_TYPE}`, async function () {
             await withGroupName('test-group', async (groupName) => {
               const res = await axios.post(scimUrl('/Groups'), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -920,7 +920,7 @@ describe('Scim', () => {
               assert.deepEqual(res.data, {
                 schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
                 status: '400',
-                detail: `Groups of type "${Group.RESOURCE_USERS_TYPE}" cannot contain groups.`
+                detail: `Groups of type "${Group.TEAM_TYPE}" cannot contain groups.`
               });
               assert.equal(res.status, 400);
             });
@@ -1165,11 +1165,11 @@ describe('Scim', () => {
             });
           });
 
-          it(`should return 404 when the role is of type ${Group.RESOURCE_USERS_TYPE}`, async function () {
+          it(`should return 404 when the role is of type ${Group.TEAM_TYPE}`, async function () {
             await withGroupName('test-group', async (groupName) => {
               const {id: roleId} = await getDbManager().createGroup({
                 name: groupName,
-                type: Group.RESOURCE_USERS_TYPE,
+                type: Group.TEAM_TYPE,
                 memberUsers: [userIdByName['chimpy']!]
               });
 
@@ -1206,7 +1206,7 @@ describe('Scim', () => {
                 const beforeAdditionsIds = new Set(beforeAdditions.data.Resources.map(({id}: {id: number}) => id));
                 await getDbManager().createGroup({
                   name: group1Name,
-                  type: Group.RESOURCE_USERS_TYPE,
+                  type: Group.TEAM_TYPE,
                   memberUsers: [userIdByName['chimpy']!]
                 });
                 const role1 = await getDbManager().createGroup({

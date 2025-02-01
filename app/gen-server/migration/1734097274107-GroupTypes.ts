@@ -7,12 +7,12 @@ export class GroupTypes1734097274107 implements MigrationInterface {
     const newColumn = new TableColumn({
       name: 'type',
       type: 'varchar',
-      enum: [Group.ROLE_TYPE, Group.RESOURCE_USERS_TYPE],
+      enum: [Group.ROLE_TYPE, Group.TEAM_TYPE],
       comment: `If the type is ${Group.ROLE_TYPE}, the group is meant to assign a role to ` +
         'users for a resource (document, workspace or org).' +
         '\n\n' +
-        `If the type is "${Group.RESOURCE_USERS_TYPE}", the group is meant to gather users together ` +
-        'so they can be granted the same role to some resources (hence this name).',
+        `If the type is "${Group.TEAM_TYPE}", the group is meant to gather users together ` +
+        'so they can be granted the same access (through a role) to some resources.',
       isNullable: true, // Make it not nullable after setting the roles for existing groups
     });
 

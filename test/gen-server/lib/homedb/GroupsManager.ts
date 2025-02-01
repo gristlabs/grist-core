@@ -72,10 +72,10 @@ describe("GroupsManager", function () {
     return { group, chimpy };
   }
 
-  async function createDummyResourceUsersGroup(
+  async function createDummyTeamGroup(
     groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}
   ) {
-    return await createDummyGroup(groupName, {...extraProps, type: Group.RESOURCE_USERS_TYPE});
+    return await createDummyGroup(groupName, {...extraProps, type: Group.TEAM_TYPE});
   }
 
   async function createDummyRole(groupName: string, extraProps: Partial<GroupWithMembersDescriptor> = {}) {
@@ -93,7 +93,7 @@ describe("GroupsManager", function () {
 
     const innerGroup = await db.createGroup({
       name: innerGroupName,
-      type: Group.RESOURCE_USERS_TYPE,
+      type: Group.TEAM_TYPE,
       memberUsers: [kiwi.id],
       ...innerGroupProps,
     });
@@ -109,16 +109,16 @@ describe("GroupsManager", function () {
   describe('createGroup()', function () {
     setTmpLogLevel('info');
 
-    it(`should create a new ${Group.RESOURCE_USERS_TYPE} group`, async function () {
+    it(`should create a new ${Group.TEAM_TYPE} group`, async function () {
       const groupName = 'test-creategroup';
-      const { group, chimpy } = await createDummyResourceUsersGroup(groupName);
+      const { group, chimpy } = await createDummyTeamGroup(groupName);
       assert.equal(group.name, groupName);
-      assert.equal(group.type, Group.RESOURCE_USERS_TYPE);
+      assert.equal(group.type, Group.TEAM_TYPE);
       assert.deepEqual(group.memberUsers, [sanitizeUserPropertiesForMembership(chimpy)]);
       await Group.remove([group]);
     });
 
-    it(`should create a new ${Group.RESOURCE_USERS_TYPE} group with groupMembers`, async function () {
+    it(`should create a new ${Group.TEAM_TYPE} group with groupMembers`, async function () {
       const groupName = 'test-creategroup-with-groupMembers';
       const { group, innerGroup, chimpy } = await createDummyGroupAndInnerGroup(groupName);
       assert.equal(group.name, groupName);
@@ -126,37 +126,37 @@ describe("GroupsManager", function () {
       assert.deepEqual(group.memberUsers, [sanitizeUserPropertiesForMembership(chimpy)]);
       assert.equal(group.memberGroups.length, 1);
       assert.equal(group.memberGroups[0].name, innerGroup.name);
-      assert.equal(group.memberGroups[0].type, Group.RESOURCE_USERS_TYPE);
+      assert.equal(group.memberGroups[0].type, Group.TEAM_TYPE);
     });
 
-    it(`should refuse adding a member to a ${Group.RESOURCE_USERS_TYPE} group`, async function () {
+    it(`should refuse adding a member to a ${Group.TEAM_TYPE} group`, async function () {
       const groupName = 'test-create-nested-resource-users';
       const promise = createDummyGroupAndInnerGroup(groupName, {
-        upperGroupProps: { type: Group.RESOURCE_USERS_TYPE }
+        upperGroupProps: { type: Group.TEAM_TYPE }
       });
       await assert.isRejected(promise, /cannot contain groups/);
     });
   });
 
-  describe("overwriteResourceUsersGroup()", function () {
+  describe("overwriteTeamGroup()", function () {
     setTmpLogLevel('info');
     it("should fail if the group is not found", function () {
-      const promise = db.overwriteResourceUsersGroup(999, {
+      const promise = db.overwriteTeamGroup(999, {
         name: 'test-overwrite',
-        type: Group.RESOURCE_USERS_TYPE,
+        type: Group.TEAM_TYPE,
       });
       return assert.isRejected(promise, /not found/);
     });
 
-    it(`should fail when setting memberGroups to a ${Group.RESOURCE_USERS_TYPE} group`, async function () {
+    it(`should fail when setting memberGroups to a ${Group.TEAM_TYPE} group`, async function () {
       const groupName = 'test-overwrite';
       const promise = createDummyGroupAndInnerGroup(groupName, {
-        upperGroupProps: {type: Group.RESOURCE_USERS_TYPE},
-        innerGroupProps: {type: Group.RESOURCE_USERS_TYPE},
+        upperGroupProps: {type: Group.TEAM_TYPE},
+        innerGroupProps: {type: Group.TEAM_TYPE},
       });
       await assert.isRejected(promise, /cannot contain groups/);
       const promise2 = createDummyGroupAndInnerGroup(groupName, {
-        upperGroupProps: {type: Group.RESOURCE_USERS_TYPE},
+        upperGroupProps: {type: Group.TEAM_TYPE},
         innerGroupProps: {type: Group.ROLE_TYPE},
       });
       await assert.isRejected(promise2, /cannot contain groups/);
@@ -164,31 +164,31 @@ describe("GroupsManager", function () {
 
     it('should overwrite the group info', async function () {
       const groupName = 'test-overwrite';
-      const { group } = await createDummyResourceUsersGroup(groupName);
+      const { group } = await createDummyTeamGroup(groupName);
       const newGroupName = 'test-overwrite-new';
       const kiwi = (await db.getExistingUserByLogin('kiwi@getgrist.com'))!;
-      await db.overwriteResourceUsersGroup(group.id, {
+      await db.overwriteTeamGroup(group.id, {
         name: newGroupName,
-        type: Group.RESOURCE_USERS_TYPE,
+        type: Group.TEAM_TYPE,
         memberUsers: [kiwi.id],
       });
       const updatedGroup = (await db.getGroupWithMembersById(group.id))!;
       assert.equal(updatedGroup.name, newGroupName);
-      assert.equal(updatedGroup.type, Group.RESOURCE_USERS_TYPE);
+      assert.equal(updatedGroup.type, Group.TEAM_TYPE);
       assert.deepEqual(updatedGroup.memberUsers, [sanitizeUserPropertiesForMembership(kiwi)]);
     });
 
     it('should overwrite the group info and unset unspecified properties', async function () {
       const groupName = 'test-overwrite';
-      const { group } = await createDummyResourceUsersGroup(groupName);
+      const { group } = await createDummyTeamGroup(groupName);
       const newGroupName = 'test-overwrite-new';
-      await db.overwriteResourceUsersGroup(group.id, {
+      await db.overwriteTeamGroup(group.id, {
         name: newGroupName,
-        type: Group.RESOURCE_USERS_TYPE,
+        type: Group.TEAM_TYPE,
       });
       const updatedGroup = (await db.getGroupWithMembersById(group.id))!;
       assert.equal(updatedGroup.name, newGroupName);
-      assert.equal(updatedGroup.type, Group.RESOURCE_USERS_TYPE);
+      assert.equal(updatedGroup.type, Group.TEAM_TYPE);
       assert.isEmpty(updatedGroup.memberUsers);
       assert.isEmpty(updatedGroup.memberGroups);
     });
@@ -204,12 +204,12 @@ describe("GroupsManager", function () {
       return assert.isRejected(promise, /not found/);
     });
 
-    it(`should fail when changing type to ${Group.RESOURCE_USERS_TYPE}`, async function () {
+    it(`should fail when changing type to ${Group.TEAM_TYPE}`, async function () {
       const groupName = 'test-overwrite';
       const { group } = await createDummyRole(groupName);
       const promise = db.overwriteRoleGroup(group.id, {
         name: groupName,
-        type: Group.RESOURCE_USERS_TYPE,
+        type: Group.TEAM_TYPE,
       });
       return assert.isRejected(promise, /cannot change type/);
     });
@@ -277,11 +277,11 @@ describe("GroupsManager", function () {
         Group.ROLE_TYPE);
     });
 
-    it(`should return groups for ${Group.RESOURCE_USERS_TYPE}`, async function () {
+    it(`should return groups for ${Group.TEAM_TYPE}`, async function () {
       const groupName = 'test-getGroupsWithMembers';
 
       const { innerGroup } = await createDummyGroupAndInnerGroup(groupName);
-      const groups = await db.getGroupsWithMembersByType(Group.RESOURCE_USERS_TYPE);
+      const groups = await db.getGroupsWithMembersByType(Group.TEAM_TYPE);
       assert.deepEqual(groups, [innerGroup]);
     });
   });
@@ -305,11 +305,11 @@ describe("GroupsManager", function () {
       assert.deepEqual(group.memberGroups.map(g => g.id), [ innerGroup.id ]);
     });
 
-    it(`should return groups for ${Group.RESOURCE_USERS_TYPE}`, async function () {
+    it(`should return groups for ${Group.TEAM_TYPE}`, async function () {
       const groupName = 'test-getGroupsWithMembers';
 
       const { innerGroup } = await createDummyGroupAndInnerGroup(groupName);
-      const groups = await db.getGroupsWithMembersByType(Group.RESOURCE_USERS_TYPE);
+      const groups = await db.getGroupsWithMembersByType(Group.TEAM_TYPE);
       assert.deepEqual(groups, [innerGroup]);
     });
   });
@@ -332,7 +332,7 @@ describe("GroupsManager", function () {
       assert.deepEqual(group.memberUsers, [sanitizeUserPropertiesForMembership(chimpy)]);
       assert.equal(group.memberGroups.length, 1);
       assert.equal(group.memberGroups[0].name, innerGroup.name);
-      assert.equal(group.memberGroups[0].type, Group.RESOURCE_USERS_TYPE);
+      assert.equal(group.memberGroups[0].type, Group.TEAM_TYPE);
     });
   });
 
@@ -346,7 +346,7 @@ describe("GroupsManager", function () {
 
     it('should delete a group', async function () {
       const groupName = 'test-deleteGroup';
-      const { group } = await createDummyResourceUsersGroup(groupName);
+      const { group } = await createDummyTeamGroup(groupName);
       await db.deleteGroup(group.id);
       const deletedGroup = await db.getGroupWithMembersById(group.id);
       assert.isNull(deletedGroup);

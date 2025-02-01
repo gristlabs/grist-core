@@ -3073,10 +3073,10 @@ export class HomeDBManager extends EventEmitter {
     return this._groupsManager.createGroup(groupDescriptor, optManager);
   }
 
-  public async overwriteResourceUsersGroup(
+  public async overwriteTeamGroup(
     id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
   ) {
-    return this._groupsManager.overwriteResourceUsersGroup(id, groupDescriptor, optManager);
+    return this._groupsManager.overwriteTeamGroup(id, groupDescriptor, optManager);
   }
 
   public async overwriteRoleGroup(

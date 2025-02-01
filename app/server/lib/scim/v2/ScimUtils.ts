@@ -117,7 +117,7 @@ export function toGroupDescriptor(scimGroup: any): GroupWithMembersDescriptor {
   const members = scimGroup.members ?? [];
   return {
     name: scimGroup.displayName,
-    type: Group.RESOURCE_USERS_TYPE,
+    type: Group.TEAM_TYPE,
     ...membersDescriptors(members)
   };
 }
