@@ -56,6 +56,7 @@ describe('Scim', () => {
     return {
       scimUrl: (path: string) => (homeUrl + '/api/scim/v2' + path),
       getDbManager: () => server.dbManager,
+      getServer: () => server,
     };
   };
 
@@ -70,7 +71,7 @@ describe('Scim', () => {
   });
 
   describe('when enabled using GRIST_ENABLE_SCIM=1', function () {
-    const { scimUrl, getDbManager } = setupTestServer({
+    const { scimUrl, getDbManager, getServer } = setupTestServer({
       GRIST_ENABLE_SCIM: '1',
       GRIST_DEFAULT_EMAIL: 'chimpy@getgrist.com',
       GRIST_SCIM_EMAIL: 'charon@getgrist.com',
@@ -1244,6 +1245,23 @@ describe('Scim', () => {
                 ]);
               }
             );
+          });
+
+          it('should return describe the docId, workspaceId and orgId associated to the Role', async function () {
+            const api = await getServer().createHomeApi('chimpy', 'docs', true);
+            const newOrgId = await api.newOrg({name: 'someOrg', domain: 'testy'});
+            const newWsId = await api.newWorkspace({name: 'someWs'}, newOrgId);
+            const newDocId = await api.newDoc({name: 'someDoc'}, newWsId);
+
+            const res = await axios.get(scimUrl('/Roles?count=300'), chimpy);
+
+            assert.equal(res.status, 200);
+            assert.isTrue(res.data.Resources.some((role: any) => role.orgId === newOrgId),
+              'no role with orgId=' + newOrgId);
+            assert.isTrue(res.data.Resources.some((role: any) => role.workspaceId === newWsId),
+              'no role with workspaceId=' + newWsId);
+            assert.isTrue(res.data.Resources.some((role: any) => role.docId === newDocId),
+              'no role with docId=' + newDocId);
           });
 
           checkCommonErrors('get', '/Roles');
