@@ -109,7 +109,7 @@ describe("GroupsManager", function () {
   describe('createGroup()', function () {
     setTmpLogLevel('info');
 
-    it('should create a new resource users group', async function () {
+    it(`should create a new ${Group.RESOURCE_USERS_TYPE} group`, async function () {
       const groupName = 'test-creategroup';
       const { group, chimpy } = await createDummyResourceUsersGroup(groupName);
       assert.equal(group.name, groupName);
@@ -118,7 +118,7 @@ describe("GroupsManager", function () {
       await Group.remove([group]);
     });
 
-    it('should create a new resource users group with groupMembers', async function () {
+    it(`should create a new ${Group.RESOURCE_USERS_TYPE} group with groupMembers`, async function () {
       const groupName = 'test-creategroup-with-groupMembers';
       const { group, innerGroup, chimpy } = await createDummyGroupAndInnerGroup(groupName);
       assert.equal(group.name, groupName);
@@ -129,7 +129,7 @@ describe("GroupsManager", function () {
       assert.equal(group.memberGroups[0].type, Group.RESOURCE_USERS_TYPE);
     });
 
-    it("should refuse adding a member to a RESOURCE_USERS_TYPE group", async function () {
+    it(`should refuse adding a member to a ${Group.RESOURCE_USERS_TYPE} group`, async function () {
       const groupName = 'test-create-nested-resource-users';
       const promise = createDummyGroupAndInnerGroup(groupName, {
         upperGroupProps: { type: Group.RESOURCE_USERS_TYPE }
@@ -204,7 +204,7 @@ describe("GroupsManager", function () {
       return assert.isRejected(promise, /not found/);
     });
 
-    it('should fail when changing type to RESOURCE_USERS_TYPE', async function () {
+    it(`should fail when changing type to ${Group.RESOURCE_USERS_TYPE}`, async function () {
       const groupName = 'test-overwrite';
       const { group } = await createDummyRole(groupName);
       const promise = db.overwriteRoleGroup(group.id, {
@@ -277,7 +277,7 @@ describe("GroupsManager", function () {
         Group.ROLE_TYPE);
     });
 
-    it('should return groups for resource users', async function () {
+    it(`should return groups for ${Group.RESOURCE_USERS_TYPE}`, async function () {
       const groupName = 'test-getGroupsWithMembers';
 
       const { innerGroup } = await createDummyGroupAndInnerGroup(groupName);
@@ -305,7 +305,7 @@ describe("GroupsManager", function () {
       assert.deepEqual(group.memberGroups.map(g => g.id), [ innerGroup.id ]);
     });
 
-    it('should return groups for resource users', async function () {
+    it(`should return groups for ${Group.RESOURCE_USERS_TYPE}`, async function () {
       const groupName = 'test-getGroupsWithMembers';
 
       const { innerGroup } = await createDummyGroupAndInnerGroup(groupName);

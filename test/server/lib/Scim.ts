@@ -920,7 +920,7 @@ describe('Scim', () => {
               assert.deepEqual(res.data, {
                 schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
                 status: '400',
-                detail: 'Groups of type "resource users" cannot contain groups.'
+                detail: `Groups of type "${Group.RESOURCE_USERS_TYPE}" cannot contain groups.`
               });
               assert.equal(res.status, 400);
             });
