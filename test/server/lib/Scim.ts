@@ -8,6 +8,7 @@ import { TestServer } from 'test/gen-server/apiUtils';
 import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import { Group } from 'app/gen-server/entity/Group';
+import { isAffirmative } from 'app/common/gutil';
 
 function scimConfigForUser(user: string) {
   const config = configForUser(user);
@@ -149,6 +150,17 @@ describe('Scim', () => {
           status: '403',
           detail: `System user ${opType} not permitted.`
         });
+      }
+    }
+
+    async function withUserName(userName: string, cb: (userName: string) => Promise<void>) {
+      try {
+        await cb(userName);
+      } finally {
+        const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
+        if (user && !isAffirmative(process.env.NO_CLEANUP)) {
+          await cleanupUser(user.id);
+        }
       }
     }
 
@@ -336,16 +348,6 @@ describe('Scim', () => {
       });
 
       describe('POST /Users', function () { // Create a new users
-        async function withUserName(userName: string, cb: (userName: string) => Promise<void>) {
-          try {
-            await cb(userName);
-          } finally {
-            const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
-            if (user && !process.env.NO_CLEANUP) {
-              await cleanupUser(user.id);
-            }
-          }
-        }
         it('should create a new user', async function () {
           await withUserName('newuser1', async (userName) => {
             const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), chimpy);
@@ -375,11 +377,11 @@ describe('Scim', () => {
         });
 
         it('should warn when passed email differs from username, and ignore the username', async function () {
-          await withUserName('username', async (userName) => {
+          await withUserName('emails.value', async (userName) => {
             const res = await axios.post(scimUrl('/Users'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
               userName: userName,
-              emails: [{ value: 'emails.value@getgrist.com' }],
+              emails: [{ value: userName + '@getgrist.com' }],
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
@@ -613,31 +615,23 @@ describe('Scim', () => {
     });
 
     describe('Groups and Roles', function () {
-      async function cleanupGroups(groups: Group[]) {
-        for (const {id} of groups) {
+      async function cleanupGroups() {
+        const groupsToDelete = await getDbManager().connection.createQueryBuilder()
+          .select('groups')
+          .from(Group, "groups")
+          .where("groups.name like 'test-%'")
+          .getMany();
+        for (const {id} of groupsToDelete) {
           await getDbManager().deleteGroup(id);
         }
       }
 
-      async function getGroupByNames(groupNames: string[]) {
-        return await getDbManager().connection.createQueryBuilder()
-          .select('g')
-          .from(Group, 'g')
-          .where('g.name IN (:...groupNames)', { groupNames })
-          .getMany();
-      }
-
       async function withGroupNames<T>(groupNames: string[], cb: (groupNames: string[]) => Promise<T>) {
         try {
-          const existingGroups = await getGroupByNames(groupNames);
-          if (existingGroups.length > 0) {
-            throw new Error(`Group with name ${existingGroups[0].name} already exists`);
-          }
-          return await cb(groupNames);
+          await cb(groupNames);
         } finally {
-          if (!process.env.NO_CLEANUP) {
-            const groups = await getGroupByNames(groupNames);
-            await cleanupGroups(groups);
+          if (!isAffirmative(process.env.NO_CLEANUP)) {
+            await cleanupGroups();
           }
         }
       }
@@ -840,6 +834,27 @@ describe('Scim', () => {
             assert.equal(res.status, 400);
           });
 
+          it('should return 409 when the group name is coliding with an existing group', async function () {
+            await withGroupName('test-group', async (groupName) => {
+              const existingGroupCreationRes = await axios.post(scimUrl('/Groups'), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: groupName,
+              }, chimpy);
+              assert.equal(existingGroupCreationRes.status, 201);
+              const res = await axios.post(scimUrl('/Groups'), {
+                schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+                displayName: groupName,
+              }, chimpy);
+              assert.equal(res.status, 409);
+              assert.deepEqual(res.data, {
+                schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+                status: '409',
+                detail: `Group with name "${groupName}" already exists`,
+                scimType: 'uniqueness'
+              });
+            });
+          });
+
           it('should return 400 when the group members contain an invalid user id', async function () {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -943,7 +958,7 @@ describe('Scim', () => {
         describe('PUT /Groups/{id}', function () {
           it('should update an existing group', async function () {
             return withGroup(async (groupId) => {
-              const newGroupName = 'Updated Group Name';
+              const newGroupName = 'test-new-group-name';
               const res = await axios.put(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
                 displayName: newGroupName,
@@ -966,7 +981,7 @@ describe('Scim', () => {
 
           it('should update a group with members omitted', async function () {
             return withGroup(async (groupId) => {
-              const newGroupName = 'Updated Group Name';
+              const newGroupName = 'test-new-group-name';
               const res = await axios.put(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
                 displayName: newGroupName,
@@ -1038,7 +1053,7 @@ describe('Scim', () => {
         describe('PATCH /Groups/{id}', function () {
           it('should update an existing group name', async function () {
             return withGroup(async (groupId) => {
-              const newGroupName = 'Updated Group Name';
+              const newGroupName = 'test-new-group-name';
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
                 Operations: [{
@@ -1437,59 +1452,61 @@ describe('Scim', () => {
       });
 
       it('should return statuses for each operation', async function () {
-        const putOnUnknownResource = { method: 'PUT', path: '/Users/1000', value: toSCIMUserWithoutId('chimpy') };
-        const validCreateOperation = {
-          method: 'POST', path: '/Users/', data: toSCIMUserWithoutId('bulk-user3'), bulkId: '1'
-        };
-        usersToCleanupEmails.push('bulk-user3');
-        const createOperationWithUserNameConflict = {
-          method: 'POST', path: '/Users/', data: toSCIMUserWithoutId('chimpy'), bulkId: '2'
-        };
-        const res = await axios.post(scimUrl('/Bulk'), {
-          schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
-          Operations: [
-            putOnUnknownResource,
-            validCreateOperation,
-            createOperationWithUserNameConflict,
-          ],
-        }, chimpy);
-        assert.equal(res.status, 200);
+        await withUserName('bulk-user3', async (bulkUserName) => {
+          const putOnUnknownResource = { method: 'PUT', path: '/Users/1000', value: toSCIMUserWithoutId('chimpy') };
+          const validCreateOperation = {
+            method: 'POST', path: '/Users/', data: toSCIMUserWithoutId(bulkUserName), bulkId: '1'
+          };
+          usersToCleanupEmails.push(bulkUserName);
+          const createOperationWithUserNameConflict = {
+            method: 'POST', path: '/Users/', data: toSCIMUserWithoutId('chimpy'), bulkId: '2'
+          };
+          const res = await axios.post(scimUrl('/Bulk'), {
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
+            Operations: [
+              putOnUnknownResource,
+              validCreateOperation,
+              createOperationWithUserNameConflict,
+            ],
+          }, chimpy);
+          assert.equal(res.status, 200);
 
-        const newUserID = await getOrCreateUserId('bulk-user3');
-        assert.deepEqual(res.data, {
-          schemas: [ "urn:ietf:params:scim:api:messages:2.0:BulkResponse" ],
-          Operations: [
-            {
-              method: "PUT",
-              location: "/api/scim/v2/Users/1000",
-              status: "400",
-              response: {
-                schemas: [
-                  "urn:ietf:params:scim:api:messages:2.0:Error"
-                ],
+          const newUserID = await getOrCreateUserId(bulkUserName);
+          assert.deepEqual(res.data, {
+            schemas: [ "urn:ietf:params:scim:api:messages:2.0:BulkResponse" ],
+            Operations: [
+              {
+                method: "PUT",
+                location: "/api/scim/v2/Users/1000",
                 status: "400",
-                scimType: "invalidSyntax",
-                detail: "Expected 'data' to be a single complex value in BulkRequest operation #1"
-              }
-            }, {
-              method: "POST",
-              bulkId: "1",
-              location: "/api/scim/v2/Users/" + newUserID,
-              status: "201"
-            }, {
-              method: "POST",
-              bulkId: "2",
-              status: "409",
-              response: {
-                schemas: [
-                  "urn:ietf:params:scim:api:messages:2.0:Error"
-                ],
+                response: {
+                  schemas: [
+                    "urn:ietf:params:scim:api:messages:2.0:Error"
+                  ],
+                  status: "400",
+                  scimType: "invalidSyntax",
+                  detail: "Expected 'data' to be a single complex value in BulkRequest operation #1"
+                }
+              }, {
+                method: "POST",
+                bulkId: "1",
+                location: "/api/scim/v2/Users/" + newUserID,
+                status: "201"
+              }, {
+                method: "POST",
+                bulkId: "2",
                 status: "409",
-                scimType: "uniqueness",
-                detail: "An existing user with the passed email exist."
+                response: {
+                  schemas: [
+                    "urn:ietf:params:scim:api:messages:2.0:Error"
+                  ],
+                  status: "409",
+                  scimType: "uniqueness",
+                  detail: "An existing user with the passed email exist."
+                }
               }
-            }
-          ]
+            ]
+          });
         });
       });
 

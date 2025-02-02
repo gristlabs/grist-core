@@ -290,6 +290,9 @@ export class GroupsManager {
    */
   public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
     return await this._runInTransaction(optManager, async (manager) => {
+      if (groupDescriptor.type === Group.TEAM_TYPE) {
+        await this._throwIfTeamNameCollision(groupDescriptor.name, manager);
+      }
       const group = Group.create({
         type: groupDescriptor.type,
         name: groupDescriptor.name,
@@ -336,6 +339,7 @@ export class GroupsManager {
       if (!existingGroup || (existingGroup.type !== Group.TEAM_TYPE)) {
         throw new ApiError(`Group with id ${id} not found`, 404);
       }
+      await this._throwIfTeamNameCollision(groupDescriptor.name, manager, id);
       return await this._overwriteGroup(existingGroup, groupDescriptor, manager);
     });
   }
@@ -493,5 +497,18 @@ export class GroupsManager {
         .leftJoinAndSelect('groups.aclRule', 'aclRule');
     }
     return queryBuilder;
+  }
+
+  private async _throwIfTeamNameCollision(name: string, manager: EntityManager, existingId?: number) {
+    const query = this._getGroupsQueryBuilder(manager)
+      .where('groups.name = :name', {name})
+      .andWhere('groups.type = :type', {type: Group.TEAM_TYPE});
+    if (existingId !== undefined) {
+      query.andWhere('groups.id != :id', {id: existingId});
+    }
+    const group = await query.getOne();
+    if (group) {
+      throw new ApiError(`Group with name "${name}" already exists`, 409);
+    }
   }
 }

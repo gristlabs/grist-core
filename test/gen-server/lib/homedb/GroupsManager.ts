@@ -129,6 +129,33 @@ describe("GroupsManager", function () {
       assert.equal(group.memberGroups[0].type, Group.TEAM_TYPE);
     });
 
+    it(`should allow to create a ${Group.ROLE_TYPE} group with the same name as an existing one`, async function () {
+      const groupName = 'test-creategroup-same-name';
+      const { group: firstGroup } = await createDummyRole(groupName);
+      const { group: secondGroup } = await createDummyRole(groupName);
+      assert.equal(firstGroup.name, groupName);
+      assert.equal(secondGroup.name, groupName);
+      assert.notEqual(firstGroup.id, secondGroup.id);
+    });
+
+    it(`should allow to create a ${Group.ROLE_TYPE} group with the same name as an existing ${Group.TEAM_TYPE} group`,
+      async function () {
+      const groupName = 'test-creategroup-same-name';
+      const { group: firstGroup } = await createDummyTeamGroup(groupName);
+      const { group: secondGroup } = await createDummyRole(groupName);
+      assert.equal(firstGroup.name, groupName);
+      assert.equal(secondGroup.name, groupName);
+      assert.notEqual(firstGroup.id, secondGroup.id);
+    });
+
+    it(`should refuse to create a ${Group.TEAM_TYPE} group with the same name as an existing one`, async function () {
+      const groupName = 'test-creategroup-same-name';
+      const { group: firstGroup } = await createDummyTeamGroup(groupName);
+      const promise = createDummyTeamGroup(groupName);
+      await assert.isRejected(promise, /already exists/);
+      assert.equal(firstGroup.name, groupName);
+    });
+
     it(`should refuse adding a member to a ${Group.TEAM_TYPE} group`, async function () {
       const groupName = 'test-create-nested-resource-users';
       const promise = createDummyGroupAndInnerGroup(groupName, {
@@ -160,6 +187,18 @@ describe("GroupsManager", function () {
         innerGroupProps: {type: Group.ROLE_TYPE},
       });
       await assert.isRejected(promise2, /cannot contain groups/);
+    });
+
+    it('should refuse to set the name to an existing group name', async function () {
+      const firstGroupName = 'test-group1';
+      const secondGroupName = 'test-group2';
+      await createDummyTeamGroup(firstGroupName);
+      const { group: secondGroup } = await createDummyTeamGroup(secondGroupName);
+      const promise = db.overwriteTeamGroup(secondGroup.id, {
+        name: firstGroupName,
+        type: Group.TEAM_TYPE,
+      });
+      await assert.isRejected(promise, /already exists/);
     });
 
     it('should overwrite the group info', async function () {

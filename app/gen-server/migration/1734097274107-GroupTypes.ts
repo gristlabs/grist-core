@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
+import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from "typeorm";
 import { Group } from "app/gen-server/entity/Group";
 
 export class GroupTypes1734097274107 implements MigrationInterface {
@@ -25,6 +25,14 @@ export class GroupTypes1734097274107 implements MigrationInterface {
     newColumnNonNull.isNullable = false;
 
     await queryRunner.changeColumn('groups', newColumn, newColumnNonNull);
+
+    // Add a unique index on name to ensure that a team name is unique
+    await queryRunner.createIndex('groups', new TableIndex({
+      name: 'team_name_unique',
+      columnNames: ['name'],
+      isUnique: true,
+      where: `type = '${Group.TEAM_TYPE}'`,
+    }));
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {
