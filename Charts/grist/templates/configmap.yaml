@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grist.fullname" . }}-env
+  labels:
+    {{- include "grist.labels" . | nindent 4 }}
+data:
+  # Server Configuration
+  HOST: "0.0.0.0"
+  PORT: {{ .Values.service.port | toString | quote }}
+  APP_TITLE: {{ .Values.config.APP_TITLE | default "Grist" | quote }}
+  ALLOWED_HOSTS: {{ include "grist.allowedHosts" . | quote }}
+  ALLOWED_WEBHOOK_DOMAINS: "*"
+  # APP_DOC_URL: ""
+  # TZ: America/New_York
+  # COOKIE_MAX_AGE: 86400000
+
+  # Database Configuration
+  TYPEORM_TYPE: "postgres"
+  TYPEORM_DATABASE: {{ (.Values.postgresql.enabled | ternary .Values.postgresql.auth.database .Values.config.database.name) | quote }}
+  TYPEORM_USERNAME: {{ (.Values.postgresql.enabled | ternary .Values.postgresql.auth.username .Values.config.database.user) | quote }}
+  TYPEORM_HOST: {{ include "grist.postgresql.host" . | quote }}
+  TYPEORM_PORT: {{ if .Values.postgresql.enabled }}"5432"{{ else }}{{ .Values.config.database.port | toString | quote }}{{ end }}
+  TYPEORM_LOGGING: "false"
+
+  {{- if or .Values.redis.enabled .Values.config.redis.enabled }}
+  REDIS_URL: {{ include "grist.redis.url" . | quote }}    
+  {{- end }}
+
+  {{- if or .Values.minio.enabled .Values.config.minio.enabled }}
+  # MinIO Configuration
+  GRIST_DOCS_MINIO_BUCKET: {{ (.Values.minio.enabled | ternary .Values.minio.defaultBuckets .Values.config.minio.bucket) | quote }}
+  GRIST_DOCS_MINIO_ENDPOINT: {{ include "grist.minio.host" . | quote }}
+  GRIST_DOCS_MINIO_PORT: {{ if .Values.minio.enabled }} "9000" {{ else }}{{ .Values.config.minio.port | quote }}{{ end }}
+  GRIST_DOCS_MINIO_USE_SSL: {{ if .Values.minio.enabled }}"0"{{ else }}{{ .Values.config.minio.useSSL | quote }}{{ end }}
+  {{- end }}
+
+  # Authentication Configuration
+  GRIST_FORCE_LOGIN: {{ .Values.config.GRIST_FORCE_LOGIN | default "false" | quote }}
+
+  # Organization Configuration
+  {{- if .Values.config.GRIST_SINGLE_ORG }}
+  GRIST_SINGLE_ORG: {{ .Values.config.GRIST_SINGLE_ORG | quote }}
+  {{- end }}
+  GRIST_ORG_IN_PATH: {{ .Values.config.GRIST_ORG_IN_PATH | default "true" | quote }}
+
+  GRIST_SANDBOX_FLAVOR: {{ .Values.config.GRIST_SANDBOX_FLAVOR | default "gvisor" | quote }}
+  GRIST_THROTTLE_CPU: {{ .Values.config.GRIST_THROTTLE_CPU | default "false" | quote }}
