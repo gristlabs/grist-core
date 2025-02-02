@@ -20,8 +20,10 @@ helm install my-grist .
 
 The following table lists the configurable parameters of the Grist chart and their default values.
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
+| Parameter        | Description             | Default        |
+|------------------|-------------------------|----------------|
+| `replicaCount`   | Number of replicas      | `1`            |
+| `image.repository` | Image repository      | `gristlabs/grist` |
 | `replicaCount` | Number of replicas | `1` |
 | `image.repository` | Image repository | `gristlabs/grist` |
 | `image.tag` | Image tag | `latest` |

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "grist.fullname" . }}-env
+  name: "{{ include "grist.fullname" . }}-env"
   labels:
     {{- include "grist.labels" . | nindent 4 }}
 data:

@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -30,6 +30,12 @@ jobs:
 
       - name: Add dependency repositories
         run: |
+          EXPECTED_FINGERPRINT="3ac88d84e4b7c729262796c6d5c7d11d5a6a6b1a3c262c4af8b2bbf5a08d451a"
+          ACTUAL_FINGERPRINT=$(curl -s https://charts.bitnami.com/bitnami/index.yaml | sha256sum | cut -d' ' -f1)
+          if [ "$EXPECTED_FINGERPRINT" != "$ACTUAL_FINGERPRINT" ]; then
+            echo "Repository fingerprint verification failed"
+            exit 1
+          fi
           helm repo add bitnami https://charts.bitnami.com/bitnami
 
       - name: Run chart-releaser

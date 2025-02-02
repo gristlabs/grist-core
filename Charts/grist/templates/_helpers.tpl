@@ -66,6 +66,9 @@ Get the PostgreSQL hostname
 {{- if .Values.postgresql.enabled }}
 {{- printf "%s-postgresql" .Release.Name -}}
 {{- else -}}
+{{- if not .Values.config.database.host }}
+{{- fail "External database host must be provided when postgresql.enabled is false" }}
+{{- end -}}
 {{- .Values.config.database.host -}}
 {{- end -}}
 {{- end -}}
@@ -88,6 +91,9 @@ Get the Redis URL
 {{- if .Values.redis.enabled }}
 {{- printf "redis://%s-redis-master:6379" .Release.Name -}}
 {{- else -}}
+{{- if not (regexMatch "^redis://.+" .Values.config.redis.url) }}
+{{- fail "Invalid Redis URL format. Must start with redis://" }}
+{{- end -}}
 {{- .Values.config.redis.url -}}
 {{- end -}}
 {{- end -}}
@@ -99,6 +105,9 @@ Get the MinIO hostname
 {{- if .Values.minio.enabled }}
 {{- printf "%s-minio" .Release.Name -}}
 {{- else -}}
+{{- if not .Values.config.minio.endpoint }}
+{{- fail "External MinIO endpoint must be provided when minio.enabled is false" }}
+{{- end -}}
 {{- .Values.config.minio.endpoint -}}
 {{- end -}}
 {{- end -}}
