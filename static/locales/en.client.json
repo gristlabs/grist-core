@@ -1239,7 +1239,8 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "To allow multiple assignments, change the type of the Reference column to Reference List.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "This limitation occurs when one column in a two-way reference has the Reference type.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "To allow multiple assignments, change the referenced column's type to Reference List.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns",
+        "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"

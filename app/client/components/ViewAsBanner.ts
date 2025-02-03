@@ -15,6 +15,7 @@ import { cssSelectBtn } from 'app/client/ui2018/select';
 import { ACLUsersPopup } from 'app/client/aclui/ACLUsers';
 import { UserOverride } from 'app/common/DocListAPI';
 import { makeT } from 'app/client/lib/localization';
+import { withInfoTooltip } from 'app/client/ui/tooltips';
 
 const t = makeT('ViewAsBanner');
 const userT = makeT('UserManagerModel');
@@ -63,10 +64,14 @@ export class ViewAsBanner extends Disposable {
         elem => this._usersPopup.attachPopup(elem, {}),
         testId('select-open'),
       ),
-      cssPrimaryButtonLink(
-        t('View as Yourself'), cssIcon('Convert'),
-        urlState().setHref(userOverrideParams(null)),
-        testId('revert'),
+      withInfoTooltip(
+        cssPrimaryButtonLink(
+          t('View as Yourself'), cssIcon('Convert'),
+          urlState().setHref(userOverrideParams(null)),
+          testId('revert'),
+        ),
+        'viewAsBanner',
+        {style: 'banner-info'},
       ),
       testId('view-as-banner'),
     );
