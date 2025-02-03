@@ -67,7 +67,7 @@ jobs:
           cd Charts/grist
           helm unittest .
 
-  kubeval:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -76,14 +76,24 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.8.0
+          version: 'latest'
 
-      - name: Set up kubeval
+      - name: Install kubeconform
         run: |
-          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
-          tar xf kubeval-linux-amd64.tar.gz
-          sudo cp kubeval /usr/local/bin/
+          wget https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/
 
-      - name: Run kubeval
+      - name: Validate Helm Charts
         run: |
-          helm template Charts/grist | kubeval --strict
+          for chart in Charts/*; do
+            if [ -d "$chart" ]; then
+              echo "Validating chart: $chart"
+              helm template "$chart" | kubeconform \
+                -strict \
+                -ignore-missing-schemas \
+                -kubernetes-version "1.19.0" \
+                -schema-location default \
+                -verbose
+            fi
+          done
