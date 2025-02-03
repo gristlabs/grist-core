@@ -918,6 +918,8 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
   let db: sqlite3.DatabaseWithBackup|null = null;
   let success: boolean = false;
   let maxStepTimeMs: number = 0;
+  let maxNonFinalStepTimeMs: number = 0;
+  let finalStepTimeMs: number = 0;
   let numSteps: number = 0;
   try {
     // NOTE: fse.remove succeeds also when the file does not exist.
@@ -979,7 +981,20 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
         if (backup.failed) { throw new Error(`backupSqliteDatabase (${src} ${label}): internal copy failed`); }
       } finally {
         const stepTimeMs = Date.now() - stepStart;
+        // Keep track of the longest step taken.
         if (stepTimeMs > maxStepTimeMs) { maxStepTimeMs = stepTimeMs; }
+        if (isCompleted) {
+          // Keep track of the duration of last step taken, independently.
+          // When backing up using the source connection, the last step does
+          // more than simply copying pages.
+          finalStepTimeMs = stepTimeMs;
+        } else if (stepTimeMs > maxNonFinalStepTimeMs) {
+          // Keep track of the longest step taken that was just copying
+          // pages. Since we bound the number of pages to copy, all else
+          // being equal the timing of these steps should be fairly
+          // consistent, and a long delay is in fact a good sign of problems.
+          maxNonFinalStepTimeMs = stepTimeMs;
+        }
       }
       if (testProgress) { testProgress({action: 'step', phase: 'after'}); }
       if (isCompleted) {
@@ -1006,7 +1021,12 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       }
     }
     if (testProgress) { testProgress({action: 'close', phase: 'after'}); }
-    _log.rawLog('debug', null, `stopped copy of ${src} (${label})`, {maxStepTimeMs, numSteps});
+    _log.rawLog('debug', null, `stopped copy of ${src} (${label})`, {
+      finalStepTimeMs,
+      maxStepTimeMs,
+      maxNonFinalStepTimeMs,
+      numSteps,
+    });
   }
   return dest;
 }
