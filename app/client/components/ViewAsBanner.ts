@@ -17,6 +17,7 @@ import { UserOverride } from 'app/common/DocListAPI';
 import { makeT } from 'app/client/lib/localization';
 
 const t = makeT('ViewAsBanner');
+const userT = makeT('UserManagerModel');
 
 export class ViewAsBanner extends Disposable {
 
@@ -52,7 +53,7 @@ export class ViewAsBanner extends Disposable {
         cssBtnText(
           user ? cssMember(
             user.name || user.email,
-            cssRole('(', getUserRoleText({...user, access}), ')', dom.show(Boolean(access))),
+            cssRole('(', userT(getUserRoleText({...user, access})), ')', dom.show(Boolean(access))),
           ) : t('UnknownUser'),
         ),
         dom(
