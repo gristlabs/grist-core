@@ -89,7 +89,7 @@ Get the Redis URL
 */}}
 {{- define "grist.redis.url" -}}
 {{- if .Values.redis.enabled }}
-{{- printf "redis://%s-redis-master:6379" .Release.Name -}}
+{{- printf "redis://:%s@%s-redis-master:6379" .Values.redis.auth.password .Release.Name -}}
 {{- else -}}
 {{- if not (regexMatch "^redis://.+" .Values.config.redis.url) }}
 {{- fail "Invalid Redis URL format. Must start with redis://" }}
