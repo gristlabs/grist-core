@@ -121,7 +121,6 @@
     "@gristlabs/pidusage": "2.0.17",
     "@gristlabs/sqlite3": "5.1.4-grist.8",
     "@popperjs/core": "2.11.8",
-    "@primer/octicons": "^19.14.0",
     "accept-language-parser": "1.5.0",
     "ace-builds": "1.23.3",
     "async-mutex": "0.2.4",
