@@ -16,7 +16,7 @@ import { ACLUsersPopup } from 'app/client/aclui/ACLUsers';
 import { UserOverride } from 'app/common/DocListAPI';
 import { makeT } from 'app/client/lib/localization';
 
-const t = makeT('components.ViewAsBanner');
+const t = makeT('ViewAsBanner');
 
 export class ViewAsBanner extends Disposable {
 
@@ -45,7 +45,7 @@ export class ViewAsBanner extends Disposable {
     return cssContent(
       cssMessageText(
         cssMessageIcon('EyeShow'),
-        'You are viewing this document as',
+        t('You are viewing this document as'),
       ),
       cssSelectBtn(
         {tabIndex: '0'},
@@ -63,7 +63,7 @@ export class ViewAsBanner extends Disposable {
         testId('select-open'),
       ),
       cssPrimaryButtonLink(
-        'View as Yourself', cssIcon('Convert'),
+        t('View as Yourself'), cssIcon('Convert'),
         urlState().setHref(userOverrideParams(null)),
         testId('revert'),
       ),

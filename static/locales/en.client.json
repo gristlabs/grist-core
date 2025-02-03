@@ -850,7 +850,9 @@
         "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Unknown User"
+        "UnknownUser": "Unknown User",
+        "View as Yourself": "View as Yourself",
+        "You are viewing this document as": "You are viewing this document as"
     },
     "ViewConfigTab": {
         "Advanced settings": "Advanced settings",
