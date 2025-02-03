@@ -77,7 +77,6 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
 
 # Test
 timings.txt
@@ -97,3 +96,4 @@ xunit.xml
 
 # Sample grist documents
 /samples/
+config.bat
