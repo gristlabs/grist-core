@@ -24,8 +24,6 @@ The following table lists the configurable parameters of the Grist chart and the
 |------------------|-------------------------|----------------|
 | `replicaCount`   | Number of replicas      | `1`            |
 | `image.repository` | Image repository      | `gristlabs/grist` |
-| `replicaCount` | Number of replicas | `1` |
-| `image.repository` | Image repository | `gristlabs/grist` |
 | `image.tag` | Image tag | `latest` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `service.type` | Service type | `ClusterIP` |
@@ -35,16 +33,6 @@ The following table lists the configurable parameters of the Grist chart and the
 | `persistence.size` | PVC size | `10Gi` |
 | `config.APP_TITLE` | Custom app title | `"Grist"` |
 | ...
-
-## Usage
-
-1. Modify the values.yaml file to match your requirements
-2. Install the chart
-3. Access Grist through the configured ingress or service
-
-For more information, visit the [Grist documentation](https://support.getgrist.com/self-managed/).
-
-## Configuration
 
 ### Extra Environment Variables
 
@@ -75,15 +63,6 @@ config:
     GRIST_DEFAULT_EMAIL: "admin@example.com"
     GRIST_SINGLE_ORG: "MyOrganization"
     GRIST_FORCE_LOGIN: "true"
-```
-
-### Session Secret
-
-The `GRIST_SESSION_SECRET` is automatically generated if not provided. To set a specific session secret:
-
-```yaml
-config:
-  sessionSecret: "your-custom-secret"
 ```
 
 ### Example: Using External Services
@@ -139,19 +118,4 @@ helm template . | kubectl apply --dry-run=client -f -
 helm install test . --dry-run
 ```
 
-### CI/CD
-
-This chart is automatically tested and published using GitHub Actions:
-
-- Pull Requests: Chart is linted and tested
-- Main branch: Chart is published to GitHub Pages
-- Tags (grist-*): New chart versions are released
-
-To release a new version:
-
-1. Update the `version` in Chart.yaml
-2. Create and push a tag:
-   ```bash
-   git tag grist-0.1.0
-   git push origin grist-0.1.0
-   ```
+For more information, visit the [Grist documentation](https://support.getgrist.com/self-managed/).

@@ -145,6 +145,7 @@ config:
     # # Custom settings
     # GRIST_WIDGET_LIST_URL: ""            # Custom widget list URL
 
+    # APP_HOME_URL: "http://localhost"     # Home URL for the app
     # ALLOWED_HOSTS: "*"  # Only used when ingress is disabled
     # GOOGLE_CLIENT_ID: ""
     # GOOGLE_CLIENT_SECRET: ""

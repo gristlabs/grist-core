@@ -9,6 +9,15 @@ data:
   HOST: "0.0.0.0"
   PORT: {{ .Values.service.port | toString | quote }}
   APP_TITLE: {{ .Values.config.APP_TITLE | default "Grist" | quote }}
+  {{- if and .Values.ingress.enabled (index .Values.ingress.hosts 0).host }}
+  {{- if (index .Values.ingress.hosts 0).tls }}
+  APP_HOME_URL: "https://{{ (index .Values.ingress.hosts 0).host }}"
+  {{- else }}
+  APP_HOME_URL: "http://{{ (index .Values.ingress.hosts 0).host }}"
+  {{- end }}
+  {{- else }}
+  APP_HOME_URL: {{ .Values.config.APP_HOME_URL | default "http://localhost" | quote  }}
+  {{- end }}
   ALLOWED_HOSTS: {{ include "grist.allowedHosts" . | quote }}
   ALLOWED_WEBHOOK_DOMAINS: "*"
   # APP_DOC_URL: ""
@@ -44,5 +53,6 @@ data:
   {{- end }}
   GRIST_ORG_IN_PATH: {{ .Values.config.GRIST_ORG_IN_PATH | default "true" | quote }}
 
-  GRIST_SANDBOX_FLAVOR: {{ .Values.config.GRIST_SANDBOX_FLAVOR | default "gvisor" | quote }}
+  GRIST_SANDBOX_FLAVOR: {{ .Values.config.GRIST_SANDBOX_FLAVOR | default "unsandboxed" | quote }}
+  # gvisor
   GRIST_THROTTLE_CPU: {{ .Values.config.GRIST_THROTTLE_CPU | default "false" | quote }}
