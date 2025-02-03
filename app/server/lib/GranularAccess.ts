@@ -2976,7 +2976,7 @@ export class CensorshipInfo {
       columnRefToColId.set(colRef, colId);
       if (uncensoredTables.has(tableRef)) { continue; }
       const tableId = tableRefToTableId.get(tableRef);
-      if (!tableId) { throw new Error('table not found'); }
+      if (!tableId) { throw new Error('table not found: ' + tableRef); }
       if (this.censoredTables.has(tableRef) ||
           (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
         censoredColumnCodes.add(columnCode(tableRef, colId));
