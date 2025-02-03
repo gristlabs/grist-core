@@ -394,20 +394,21 @@ export class ChartView extends Disposable {
 
   private _getPlotlyTheme(): Partial<Layout> {
     const {colors} = gristThemeObs().get();
+    const {chartBg, chartLegendBg, chartFg, chartXAxis, chartYAxis} = colors.components;
     return {
-      paper_bgcolor: colors.components.chartBg.toString(),
-      plot_bgcolor: colors.components.chartBg.toString(),
+      paper_bgcolor: typeof chartBg === 'string' ? chartBg : chartBg.getRawValue(),
+      plot_bgcolor: typeof chartBg === 'string' ? chartBg : chartBg.getRawValue(),
       xaxis: {
-        color: colors.components.chartXAxis.toString(),
+        color: typeof chartXAxis === 'string' ? chartXAxis : chartXAxis.getRawValue(),
       },
       yaxis: {
-        color: colors.components.chartYAxis.toString(),
+        color: typeof chartYAxis === 'string' ? chartYAxis : chartYAxis.getRawValue(),
       },
       font: {
-        color: colors.components.chartFg.toString(),
+        color: typeof chartFg === 'string' ? chartFg : chartFg.getRawValue(),
       },
       legend: {
-        bgcolor: colors.components.chartLegendBg.toString(),
+        bgcolor: typeof chartLegendBg === 'string' ? chartLegendBg : chartLegendBg.getRawValue(),
       },
     };
   }
