@@ -31,11 +31,12 @@ export class GroupTypes1734097274107 implements MigrationInterface {
       name: 'team_name_unique',
       columnNames: ['name'],
       isUnique: true,
-      where: `type = '${Group.TEAM_TYPE}'`,
+      where: `groups.type = '${Group.TEAM_TYPE}'`,
     }));
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.dropIndex('groups', 'team_name_unique');
     await queryRunner.dropColumn('groups', 'type');
   }
 }
