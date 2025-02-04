@@ -1,16 +1,22 @@
 import { DocStorage, FileInfo } from "app/server/lib/DocStorage";
 import {
-  AttachmentFileManager, AttachmentRetrievalError,
+  AttachmentFileManager,
+  AttachmentRetrievalError,
   StoreNotAvailableError,
   StoresNotConfiguredError
 } from "app/server/lib/AttachmentFileManager";
+import { getDocPoolIdFromDocInfo } from "app/server/lib/AttachmentStore";
 import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { makeTestingFilesystemStoreSpec } from "./FilesystemAttachmentStore";
+import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
 import { assert } from "chai";
 import * as sinon from "sinon";
+import * as stream from "node:stream";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
-type IMinimalDocStorage = Pick<DocStorage, 'docName' | 'getFileInfo' | 'findOrAttachFile'>
+type IMinimalDocStorage = Pick<DocStorage,
+  'docName' | 'getFileInfo' | 'getFileInfoNoData' | 'attachFileIfNew' | 'attachOrUpdateFile'
+  | 'listAllFiles' | 'requestVacuum'
+>
 
 // Implements the minimal functionality needed for the AttachmentFileManager to work.
 class DocStorageFake implements IMinimalDocStorage {
@@ -19,23 +25,52 @@ class DocStorageFake implements IMinimalDocStorage {
   constructor(public docName: string) {
   }
 
+  public async requestVacuum(): Promise<boolean> {
+    return true;
+  }
+
+  public async listAllFiles(): Promise<FileInfo[]> {
+    const fileInfoPromises = Object.keys(this._files).map(key => this.getFileInfo(key));
+    const fileInfo = await Promise.all(fileInfoPromises);
+
+    const isFileInfo = (item: FileInfo | null): item is FileInfo => item !== null;
+
+    return fileInfo.filter(isFileInfo);
+  }
+
   public async getFileInfo(fileIdent: string): Promise<FileInfo | null> {
     return this._files[fileIdent] ?? null;
   }
 
-  // Return value is true if the file was newly added.
-  public async findOrAttachFile(
+  public async getFileInfoNoData(fileIdent: string): Promise<FileInfo | null> {
+    return this.getFileInfo(fileIdent);
+  }
+
+  // Needs to match the semantics of DocStorage's implementation.
+  public async attachFileIfNew(
     fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined
   ): Promise<boolean> {
     if (fileIdent in this._files) {
       return false;
     }
+    this._setFileRecord(fileIdent, fileData, storageId);
+    return true;
+  }
+
+  public async attachOrUpdateFile(
+    fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined
+  ): Promise<boolean> {
+    const exists = fileIdent in this._files;
+    this._setFileRecord(fileIdent, fileData, storageId);
+    return !exists;
+  }
+
+  private _setFileRecord(fileIdent: string, fileData: Buffer | undefined, storageId?: string | undefined) {
     this._files[fileIdent] = {
       ident: fileIdent,
       data: fileData ?? Buffer.alloc(0),
       storageId: storageId ?? null,
     };
-    return true;
   }
 }
 
@@ -48,7 +83,10 @@ function createDocStorageFake(docName: string): DocStorage {
 
 async function createFakeAttachmentStoreProvider(): Promise<IAttachmentStoreProvider> {
   return new AttachmentStoreProvider(
-    [await makeTestingFilesystemStoreSpec("filesystem")],
+    [
+      await makeTestingFilesystemStoreConfig("filesystem"),
+      await makeTestingFilesystemStoreConfig("filesystem-alt"),
+    ],
     "TEST-INSTALLATION-UUID"
   );
 }
@@ -92,7 +130,7 @@ describe("AttachmentFileManager", function() {
     );
 
     const fileId = "123456.png";
-    await defaultDocStorageFake.findOrAttachFile(fileId, undefined, "SOME-STORE-ID");
+    await defaultDocStorageFake.attachFileIfNew(fileId, undefined, "SOME-STORE-ID");
 
     await assert.isRejected(manager.getFileData(fileId), StoreNotAvailableError);
   });
@@ -124,6 +162,28 @@ describe("AttachmentFileManager", function() {
 
     const store = await defaultProvider.getStore(storeId);
     assert.isTrue(await store!.exists(docId, result.fileIdent), "file does not exist in store");
+  });
+
+  it("shouldn't do anything when trying to add an existing attachment to a new store", async function() {
+    const docId = "12345";
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      { id: docId, trunkId: null  },
+    );
+
+    const allStoreIds = defaultProvider.listAllStoreIds();
+    const result1 = await manager.addFile(allStoreIds[0], ".txt", Buffer.from(defaultTestFileContent));
+    const store1 = await defaultProvider.getStore(allStoreIds[0]);
+    assert.isTrue(await store1!.exists(docId, result1.fileIdent), "file does not exist in store");
+
+    const result2 = await manager.addFile(allStoreIds[1], ".txt", Buffer.from(defaultTestFileContent));
+    const store2 = await defaultProvider.getStore(allStoreIds[1]);
+    // File shouldn't exist in the new store
+    assert.isFalse(await store2!.exists(docId, result2.fileIdent));
+
+    const fileInfo = await defaultDocStorageFake.getFileInfo(result2.fileIdent);
+    assert.equal(fileInfo?.storageId, allStoreIds[0], "file record should not refer to the new store");
   });
 
   it("should get a file from local storage", async function() {
@@ -209,5 +269,117 @@ describe("AttachmentFileManager", function() {
     const fileData = await manager.getFileData(addFileResult.fileIdent);
     assert(fileData);
     assert.equal(fileData.toString(), defaultTestFileContent);
+  });
+
+  async function testStoreTransfer(sourceStore?: string, destStore?: string) {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const fileAddResult = await manager.addFile(sourceStore, ".txt", Buffer.from(defaultTestFileContent));
+    manager.startTransferringFileToOtherStore(fileAddResult.fileIdent, destStore);
+
+    await manager.allTransfersCompleted();
+
+    if (!destStore) {
+      await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent);
+      assert.equal(
+        (await defaultDocStorageFake.getFileInfo(fileAddResult.fileIdent))?.data?.toString(),
+        defaultTestFileContent,
+      );
+      return;
+    }
+
+    const store = (await defaultProvider.getStore(destStore))!;
+
+    assert(
+      await store.exists(getDocPoolIdFromDocInfo(docInfo), fileAddResult.fileIdent),
+      "file does not exist in new store"
+    );
+  }
+
+  it("can transfer a file from internal to external storage", async function() {
+    await testStoreTransfer(undefined, defaultProvider.listAllStoreIds()[0]);
+  });
+
+  it("can transfer a file from external to internal storage", async function() {
+    await testStoreTransfer(defaultProvider.listAllStoreIds()[0], undefined);
+  });
+
+  it("can transfer a file from external to a different external storage", async function() {
+    await testStoreTransfer(defaultProvider.listAllStoreIds()[0], defaultProvider.listAllStoreIds()[1]);
+  });
+
+  it("throws an error if the downloaded file is corrupted", async function() {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const sourceStoreId = defaultProvider.listAllStoreIds()[0];
+    const fileAddResult = await manager.addFile(sourceStoreId, ".txt", Buffer.from(defaultTestFileContent));
+
+    const sourceStore = await defaultProvider.getStore(defaultProvider.listAllStoreIds()[0]);
+    const badData = stream.Readable.from(Buffer.from("I am corrupted"));
+    await sourceStore?.upload(getDocPoolIdFromDocInfo(docInfo), fileAddResult.fileIdent, badData);
+
+    const transferPromise =
+      manager.transferFileToOtherStore(fileAddResult.fileIdent, defaultProvider.listAllStoreIds()[1]);
+    await assert.isRejected(transferPromise, AttachmentRetrievalError, "checksum verification failed");
+  });
+
+  it("transfers all files in the background", async function() {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const allStoreIds = defaultProvider.listAllStoreIds();
+    const sourceStoreId = allStoreIds[0];
+    const fileAddResult1 = await manager.addFile(sourceStoreId, ".txt", Buffer.from("A"));
+    const fileAddResult2 = await manager.addFile(sourceStoreId, ".txt", Buffer.from("B"));
+    const fileAddResult3 = await manager.addFile(sourceStoreId, ".txt", Buffer.from("C"));
+
+    await manager.startTransferringAllFilesToOtherStore(allStoreIds[1]);
+    assert.isTrue(manager.transferStatus().isRunning);
+    await manager.allTransfersCompleted();
+    assert.isFalse(manager.transferStatus().isRunning);
+
+
+    const destStore = (await defaultProvider.getStore(allStoreIds[1]))!;
+    const poolId = getDocPoolIdFromDocInfo(docInfo);
+    assert.isTrue(await destStore.exists(poolId, fileAddResult1.fileIdent));
+    assert.isTrue(await destStore.exists(poolId, fileAddResult2.fileIdent));
+    assert.isTrue(await destStore.exists(poolId, fileAddResult3.fileIdent));
+  });
+
+  it("uses the most recent transfer destination", async function() {
+    const docInfo = { id: "12345", trunkId: null  };
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      docInfo,
+    );
+
+    const allStoreIds = defaultProvider.listAllStoreIds();
+    const fileAddResult1 = await manager.addFile(allStoreIds[0], ".txt", Buffer.from("A"));
+
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[1]);
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[0]);
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[1]);
+    manager.startTransferringFileToOtherStore(fileAddResult1.fileIdent, allStoreIds[0]);
+    await manager.allTransfersCompleted();
+
+    const fileInfo = await defaultDocStorageFake.getFileInfo(fileAddResult1.fileIdent);
+    assert.equal(fileInfo?.storageId, allStoreIds[0], "the file should be in the original store");
+    // We can't assert on if the files exists in the store, as it might be transferred from A to B and back to A,
+    // and so exist in both stores.
   });
 });
