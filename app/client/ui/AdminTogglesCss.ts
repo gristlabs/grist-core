@@ -19,6 +19,7 @@ export const cssOptInOutMessage = styled(cssParagraph, `
 `);
 
 export const cssOptInButton = styled(bigPrimaryButton, `
+  display: block;
   margin-top: 24px;
 `);
 

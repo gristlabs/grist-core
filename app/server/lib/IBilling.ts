@@ -4,9 +4,9 @@ export interface IBilling {
   addEndpoints(app: express.Express): void;
   addEventHandlers(): void;
   addWebhooks(app: express.Express): void;
-  addMiddleware?(app: express.Express): Promise<void>;
+  addMiddleware?(app: express.Express): void;
   addPages(app: express.Express, middleware: express.RequestHandler[]): void;
-  getActivationStatus(): ActivationStatus;
+  close?(): Promise<void>;
 }
 
 export interface ActivationStatus {
@@ -15,19 +15,51 @@ export interface ActivationStatus {
   expirationDate: string | null;
 }
 
-export function createNullBilling(): IBilling {
-  return {
-    addEndpoints() { /* do nothing */ },
-    addEventHandlers() { /* do nothing */ },
-    addWebhooks() { /* do nothing */ },
-    async addMiddleware() { /* do nothing */ },
-    addPages() { /* do nothing */ },
-    getActivationStatus() {
-      return {
-        inGoodStanding: true,
-        isInTrial: false,
-        expirationDate: null,
-      };
-    },
-  };
+export class ComposedBilling implements IBilling {
+  private _billings: IBilling[];
+  constructor(billings: (IBilling|null)[] = []) {
+    this._billings = billings.filter(b => !!b) as IBilling[];
+  }
+
+  public async close(): Promise<void> {
+    for (const billing of this._billings) {
+      await billing.close?.();
+    }
+  }
+
+  public addEndpoints(app: express.Express): void {
+    for (const billing of this._billings) {
+      billing.addEndpoints(app);
+    }
+  }
+
+  public addEventHandlers(): void {
+    for (const billing of this._billings) {
+      billing.addEventHandlers();
+    }
+  }
+
+  public addWebhooks(app: express.Express): void {
+    for (const billing of this._billings) {
+      billing.addWebhooks(app);
+    }
+  }
+
+  public addMiddleware(app: express.Express): void {
+    for (const billing of this._billings) {
+      billing.addMiddleware?.(app);
+    }
+  }
+
+  public addPages(app: express.Express, middleware: express.RequestHandler[]): void {
+    for (const billing of this._billings) {
+      billing.addPages(app, middleware);
+    }
+  }
+}
+
+export class EmptyBilling extends ComposedBilling {
+  constructor() {
+    super([]);
+  }
 }

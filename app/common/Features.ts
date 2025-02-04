@@ -13,8 +13,18 @@ export interface Product {
   features: Features;
 }
 
+/**
+ * Used as a placeholder on price level, to replace the actual value with the units from
+ * subscription item.
+ */
+export const UNITS = "{units}";
 
-// A product is essentially a list of flags and limits that we may enforce/support.
+/**
+ * A product is essentially a list of flags and limits that we may enforce/support.
+ *
+ * Features are build by merging features that come from customer, product, and plan.
+ * - units is used to replace the value with the units from subscription item.
+ */
 export interface Features {
   vanityDomain?: boolean;   // are user-selected domains allowed (unenforced) (default: true)
 
@@ -62,33 +72,50 @@ export interface Features {
                                                 // for attached files in a document
 
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
+  noGraceBanner?: boolean;   // If set, a banner is hidden, used for enterprise plans.
 
   baseMaxAssistantCalls?: number; // Maximum number of AI assistant calls. Defaults to 0 if not set, use -1 to indicate
                                   // unbound limit. This is total limit, not per month or per day, it is used as a seed
                                   // value for the limits table. To create a per-month limit, there must be a separate
                                   // task that resets the usage in the limits table.
   minimumUnits?: number; // Minimum number of units for the plan. Default no minimum.
-  installationAuditLogs?: boolean; // Access to installation-level audit logging.
+
+  meteredSeats?: boolean;       // If set, the number of seats is metered, and Grist should
+                                // try to update subscription in Stripe (by increasing the quantity).
+
   teamAuditLogs?: boolean; // Access to team-level audit logging.
+
   maxNewUserInvitesPerOrg?: number; // Maximum number of site/workspace/doc invites to new users before
                                     // additional requests are blocked (until invited users log in or are
                                     // uninvited). Defaults to 50 if not set.
+
+  installationEnabled?: boolean; // Allows self hosted Grist plan. Grist will generate an activation
+                                 // key for the installation, which will unblock enterprise features.
+
+  // The following features are used for self managed Grist instance (called installation).
+
+  installationSeats?: number;           // Number of seats bought (should be filled in by Stripe). Grist won't allow
+                                        // more users than this number.
+
+  installationReadOnly?: boolean;       // If set, docs can only be read, not written.
+
+  installationGracePeriodDays?: number; // Duration of the grace period in days, before entering read-only mode
+
+  installationNoGraceBanner?: boolean;  // If set, a banner is hidden.
 }
 
 export const Deps = {
   DEFAULT_MAX_NEW_USER_INVITES_PER_ORG: 50,
 };
 
+
 /**
  * Returns a merged set of features, combining the features of the given objects.
  * If all objects are null, returns null.
  */
-export function mergedFeatures(...features: (Features|null)[]): Features|null {
-  const filledIn = features.filter(Boolean) as Features[];
-  if (!filledIn.length) { return null; }
-  return filledIn.reduce((acc: Features, f) => defaultsDeep(acc, f), {});
+export function mergedFeatures(...features: (Features|null)[]): Features {
+  return features.filter(Boolean).reduce((acc: Features, f) => defaultsDeep(acc, f), {});
 }
-
 
 /**
  * Other meta values stored in Stripe Price or Product metadata.
@@ -105,13 +132,14 @@ export const FeaturesChecker = createCheckers(Checkers).Features as CheckerT<Fea
 export const StripeMetaValuesChecker = createCheckers(Checkers).StripeMetaValues as CheckerT<StripeMetaValues>;
 
 /**
- * Method takes arbitrary record and returns Features object, trimming any unknown fields.
- * It mutates the input record.
+ * Recreates the Features object from a Record<string, string> (as it is stored in Stripe metadata).
+ * Removes any invalid properties.
  */
-export function parseStripeFeatures(record: Record<string, any>): Features {
+export function parseStripeFeatures(meta: Record<string, string>): Features {
   // Stripe metadata can contain many more values that we don't care about, so we just
   // filter out the ones we do care about.
   const validProps = new Set(FeaturesTi.props.map(p => p.name));
+  const record = parseMetadata(meta);
   for (const key in record) {
 
     // If this is unknown property, remove it.
@@ -140,6 +168,42 @@ export function parseStripeFeatures(record: Record<string, any>): Features {
     }
   }
   return record;
+}
+
+/**
+ * Method that can convert data stored in Stripe metadata (Record<string, string>)
+ * to Record<string, any> with proper types.
+ */
+export function parseMetadata(meta: Record<string, string>): Record<string, any> {
+  const copy = { ...meta } as Record<string, any>;
+  // Values are stored as strings in Stripe, so we need to parse them.
+  // This format is not lossless but it is good enough for our purposes.
+  for(const key in copy) {
+    // We support only booleans, integers, floats, empty strings are nulls.
+    const value = copy[key];
+    if (value === '') {
+      copy[key] = null;
+    } else if (value === 'true' || value === 'false') {
+      copy[key] = value === 'true';
+    } else if (!isNaN(parseFloat(value))) {
+      copy[key] = parseFloat(value);
+    } else if (!isNaN(parseInt(value, 10))) {
+      copy[key] = parseInt(value, 10);
+    }
+
+    if (key.includes('.')) {
+      const [topProp, ...rest] = key.split('.');
+      if (rest.length > 1) {
+        throw new Error(`Only one level of nesting is supported, got ${key}`);
+      }
+      const subProp = rest[0];
+      if (!copy[topProp]) {
+        copy[topProp] = {};
+      }
+      copy[topProp][subProp] = copy[key];
+    }
+  }
+  return copy;
 }
 
 // Check whether it is possible to add members at the org level.  There's no flag

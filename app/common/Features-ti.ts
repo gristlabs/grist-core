@@ -31,11 +31,17 @@ export const Features = t.iface([], {
   "baseMaxDataSizePerDocument": t.opt("number"),
   "baseMaxAttachmentsBytesPerDocument": t.opt("number"),
   "gracePeriodDays": t.opt("number"),
+  "noGraceBanner": t.opt("boolean"),
   "baseMaxAssistantCalls": t.opt("number"),
   "minimumUnits": t.opt("number"),
-  "installationAuditLogs": t.opt("boolean"),
+  "meteredSeats": t.opt("boolean"),
   "teamAuditLogs": t.opt("boolean"),
   "maxNewUserInvitesPerOrg": t.opt("number"),
+  "installationEnabled": t.opt("boolean"),
+  "installationSeats": t.opt("number"),
+  "installationReadOnly": t.opt("boolean"),
+  "installationGracePeriodDays": t.opt("number"),
+  "installationNoGraceBanner": t.opt("boolean"),
 });
 
 export const StripeMetaValues = t.iface([], {

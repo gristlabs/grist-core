@@ -176,7 +176,7 @@ export async function firstDefined<T>(...list: Array<() => Promise<T>>): Promise
 }
 
 /**
- * Returns the number repesentation of `value`, or `defaultVal` if it cannot
+ * Returns the number representation of `value`, or `defaultVal` if it cannot
  * be represented as a valid number.
  */
 export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
@@ -1092,4 +1092,23 @@ export function cached<T>(fn: T): T {
     return dict.get(key);
   };
   return impl as any as T;
+}
+
+/**
+ * Converts a duration string like "1d", "2h", "14m", "10s" to seconds.
+ */
+export function inSeconds(text: string): number {
+  const match = text.match(/^(\d+)([smhd])$/);
+  if (!match) {
+    throw new Error(`Invalid duration: ${text}`);
+  }
+  const [, value, unit] = match;
+  const seconds = parseInt(value, 10);
+  switch (unit) {
+    case 's': return seconds;
+    case 'm': return seconds * 60;
+    case 'h': return seconds * 60 * 60;
+    case 'd': return seconds * 60 * 60 * 24;
+    default: throw new Error(`Invalid duration unit: ${unit}`);
+  }
 }

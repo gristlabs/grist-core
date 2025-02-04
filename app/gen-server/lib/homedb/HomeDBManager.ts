@@ -256,7 +256,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * encapsulating the typeorm logic.
  */
 export class HomeDBManager extends EventEmitter {
-  private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
+  private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
@@ -267,8 +267,13 @@ export class HomeDBManager extends EventEmitter {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   private _readonly: boolean = false;
 
+
   private get _dbType(): DatabaseType {
     return this._connection.driver.options.type;
+  }
+
+  public usersManager() {
+    return this._usersManager;
   }
 
   public emit(event: NotifierEvent|AuditLoggerEvent, ...args: any[]): boolean {
@@ -309,7 +314,14 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public setReadonly(readonly = true) {
-    this._readonly = readonly;
+    if (this._readonly !== readonly) {
+      this._readonly = readonly;
+      this.flushDocAuthCache();
+    }
+  }
+
+  public isReadonly() {
+    return this._readonly;
   }
 
   public async connect(): Promise<void> {
@@ -627,7 +639,7 @@ export class HomeDBManager extends EventEmitter {
    * Gets all information about a billing account, without permission check.
    */
   public getFullBillingAccount(billingAccountId: number, transaction?: EntityManager): Promise<BillingAccount> {
-    return this._runInTransaction(transaction, async tr => {
+    return this.runInTransaction(transaction, async tr => {
       let qb = tr.createQueryBuilder()
         .select('billing_accounts')
         .from(BillingAccount, 'billing_accounts')
@@ -927,7 +939,7 @@ export class HomeDBManager extends EventEmitter {
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
       const features = doc.workspace.org.billingAccount.getFeatures();
-      if (features.readOnlyDocs || this._readonly) {
+      if (features.readOnlyDocs || this.isReadonly()) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
       }
@@ -1080,7 +1092,7 @@ export class HomeDBManager extends EventEmitter {
         errMessage: 'Bad request: name required'
       };
     }
-    const orgResult = await this._runInTransaction(transaction, async manager => {
+    const orgResult = await this.runInTransaction(transaction, async manager => {
       if (domain) {
         try {
           checkSubdomainValidity(domain);
@@ -1260,7 +1272,7 @@ export class HomeDBManager extends EventEmitter {
     }
 
     // TODO: Unsetting a domain will likely have to be supported; also possibly prefs.
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions,
@@ -1321,7 +1333,7 @@ export class HomeDBManager extends EventEmitter {
     orgKey: string|number,
     transaction?: EntityManager
   ): Promise<QueryResult<Organization>> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions: Permissions.REMOVE,
@@ -1657,7 +1669,7 @@ export class HomeDBManager extends EventEmitter {
       outerManager?: EntityManager}
     ) {
     const {id, docId, url, auth, outerManager} = props;
-    return await this._runInTransaction(outerManager, async manager => {
+    return await this.runInTransaction(outerManager, async manager => {
       if (url === undefined && auth === undefined) {
         throw new ApiError('None of the Webhook url and auth are defined', 404);
       }
@@ -1720,7 +1732,7 @@ export class HomeDBManager extends EventEmitter {
     transaction?: EntityManager
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
     const markPermissions = Permissions.SCHEMA_EDIT;
-    return await this._runInTransaction(transaction, async (manager) => {
+    return await this.runInTransaction(transaction, async (manager) => {
       const {forkId} = parseUrlId(scope.urlId);
       let query: SelectQueryBuilder<Document>;
       if (forkId) {
@@ -2883,7 +2895,7 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     { transaction }: { transaction?: EntityManager } = {}
   ): Promise<QueryResult<Config>> {
-    return this._runInTransaction(transaction, (manager) => {
+    return this.runInTransaction(transaction, (manager) => {
       const query = this._installConfig(key, {
         manager,
       });
@@ -2979,7 +2991,7 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     options: { manager?: EntityManager } = {}
   ): Promise<QueryResult<Config>> {
-    return this._runInTransaction(options.manager, (manager) => {
+    return this.runInTransaction(options.manager, (manager) => {
       const query = this._orgConfig(scope, org, key, {
         manager,
       });
@@ -3110,7 +3122,7 @@ export class HomeDBManager extends EventEmitter {
     } = {}
   ): Promise<number> {
     const { excludedUserIds = [], transaction } = options;
-    return this._runInTransaction(transaction, async (manager) => {
+    return this.runInTransaction(transaction, async (manager) => {
       const { count } = await this._orgMembers(org, manager)
         // Postgres returns a string representation of a bigint unless we cast.
         .select("CAST(COUNT(*) AS INTEGER)", "count")
@@ -3124,6 +3136,21 @@ export class HomeDBManager extends EventEmitter {
         .getRawOne();
       return count;
     });
+  }
+
+  /**
+   * Run an operation in an existing transaction if available, otherwise create
+   * a new transaction for it.
+   *
+   * @param transaction: the manager of an existing transaction, or undefined.
+   * @param op: the operation to run in a transaction.
+   */
+  public runInTransaction(
+    transaction: EntityManager|undefined,
+    op: (manager: EntityManager) => Promise<any>
+  ): Promise<any> {
+    if (transaction) { return op(transaction); }
+    return this._connection.transaction(op);
   }
 
   private async _createNotFoundUsers(options: {
@@ -3372,7 +3399,7 @@ export class HomeDBManager extends EventEmitter {
    * Updates the workspace guests with any first-level users of docs inside the workspace.
    */
   private async _repairWorkspaceGuests(scope: Scope, wsId: number, transaction?: EntityManager): Promise<void> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       // Get guest group for workspace.
       const wsQuery = this._workspace(scope, wsId, {manager})
       .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
@@ -3408,7 +3435,7 @@ export class HomeDBManager extends EventEmitter {
    * _repairWorkspaceGuests.
    */
   private async _repairOrgGuests(scope: Scope, orgKey: string|number, transaction?: EntityManager): Promise<void> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {manager})
       .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
       .leftJoinAndSelect('acl_rules.group', 'groups')
@@ -3442,7 +3469,7 @@ export class HomeDBManager extends EventEmitter {
     transaction?: EntityManager
   ): Promise<Workspace> {
     if (!props.name) { throw new ApiError('Bad request: name required', 400); }
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       // Create a new workspace.
       const workspace = new Workspace();
       workspace.checkProperties(props);
@@ -3673,19 +3700,6 @@ export class HomeDBManager extends EventEmitter {
       }
       topGroups[groupName].memberUsers.push(user);
     });
-  }
-
-  /**
-   * Run an operation in an existing transaction if available, otherwise create
-   * a new transaction for it.
-   *
-   * @param transaction: the manager of an existing transaction, or undefined.
-   * @param op: the operation to run in a transaction.
-   */
-  private _runInTransaction(transaction: EntityManager|undefined,
-                            op: (manager: EntityManager) => Promise<any>): Promise<any> {
-    if (transaction) { return op(transaction); }
-    return this._connection.transaction(op);
   }
 
   /**
@@ -4538,7 +4552,7 @@ export class HomeDBManager extends EventEmitter {
   // feature information loaded also.
   private async _loadDocAccess(scope: DocScope, markPermissions: Permissions,
                                transaction?: EntityManager): Promise<Document> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
 
       const docQuery = this._doc(scope, {manager, markPermissions})
       // Join the doc's ACL rules and groups/users so we can edit them.

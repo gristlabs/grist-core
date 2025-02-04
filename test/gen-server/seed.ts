@@ -64,7 +64,6 @@ export const testMaxNewUserInvitesFeatures = {
 
 export const testAuditLogsFeatures = {
   ...teamFeatures,
-  installationAuditLogs: true,
 };
 
 const testProducts = [

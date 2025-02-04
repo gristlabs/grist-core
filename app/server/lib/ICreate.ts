@@ -9,7 +9,7 @@ import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalSt
 import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
-import {createNullBilling, IBilling} from 'app/server/lib/IBilling';
+import {EmptyBilling, IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -123,7 +123,7 @@ export class BaseCreate implements ICreate {
 
   public deploymentType(): GristDeploymentType { return this._deploymentType; }
   public Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling {
-    return createNullBilling();
+    return new EmptyBilling();
   }
   public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier {
     return EmptyNotifier;

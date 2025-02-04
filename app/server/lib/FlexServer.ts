@@ -15,7 +15,7 @@ import {Document} from 'app/gen-server/entity/Document';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
-import {Activations} from 'app/gen-server/lib/Activations';
+import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {Doom} from 'app/gen-server/lib/Doom';
@@ -135,7 +135,7 @@ export class FlexServer implements GristServer {
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
   public readonly i18Instance: i18n;
-  private _activations: Activations;
+  private _activations: ActivationsManager;
   private _comm: Comm;
   private _deploymentType: GristDeploymentType;
   private _dbManager: HomeDBManager;
@@ -392,7 +392,7 @@ export class FlexServer implements GristServer {
     return this._hosts;
   }
 
-  public getActivations(): Activations {
+  public getActivations(): ActivationsManager {
     if (!this._activations) { throw new Error('no activations available'); }
     return this._activations;
   }
@@ -801,7 +801,7 @@ export class FlexServer implements GristServer {
     // Report which database we are using, without sensitive credentials.
     this.info.push(['database', getDatabaseUrl(this._dbManager.connection.options, false)]);
     // If the installation appears to be new, give it an id and a creation date.
-    this._activations = new Activations(this._dbManager);
+    this._activations = new ActivationsManager(this._dbManager);
     await this._activations.current();
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
@@ -920,9 +920,9 @@ export class FlexServer implements GristServer {
     this.getBilling().addEventHandlers();
   }
 
-  public async addBillingMiddleware() {
+  public addBillingMiddleware() {
     if (this._check('activation', 'homedb')) { return; }
-    await this.getBilling().addMiddleware?.(this.app);
+    this.getBilling().addMiddleware?.(this.app);
   }
 
   /**
@@ -985,6 +985,7 @@ export class FlexServer implements GristServer {
     if (this._docWorkerMap) { await this._docWorkerMap.close(); }
     if (this._sessionStore) { await this._sessionStore.close(); }
     if (this._auditLogger) { await this._auditLogger.close(); }
+    if (this._billing) { await this._billing.close?.(); }
   }
 
   public addDocApiForwarder() {
@@ -1995,6 +1996,10 @@ export class FlexServer implements GristServer {
 
   public setRestrictedMode(restrictedMode = true) {
     this.getHomeDBManager().setReadonly(restrictedMode);
+  }
+
+  public isRestrictedMode() {
+    return this.getHomeDBManager().isReadonly();
   }
 
   // Adds endpoints that support imports and exports.

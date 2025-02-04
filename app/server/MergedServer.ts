@@ -126,7 +126,7 @@ export class MergedServer {
 
     ms.flexServer.addAccessMiddleware();
     ms.flexServer.addApiMiddleware();
-    await ms.flexServer.addBillingMiddleware();
+    ms.flexServer.addBillingMiddleware();
 
     return ms;
   }

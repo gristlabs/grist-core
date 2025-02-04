@@ -9,6 +9,7 @@ import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} fr
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import {IAttachedCustomWidget} from "app/common/widgetTypes";
+import {Features as PlanFeatures} from 'app/common/Features';
 import {UIRowId} from 'app/plugin/GristAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
@@ -688,6 +689,34 @@ export function parseSubdomainStrictly(host: string|undefined): {org?: string, b
   return {};
 }
 
+
+/**
+ * For a packaged version of Grist that requires activation, this
+ * summarizes the current state. Not applicable to grist-core.
+ * This is the thing that is send via sendAppPage (so this is embedded in HTML).
+ */
+export interface ActivationState {
+  installationId: string;    // Unique identifier for this installation.
+  key?: {                    // Set when Grist is activated.
+    expirationDate?: string; // ISO8601 date that Grist will need reactivation.
+    daysLeft?: number;       // Number of days until Grist will need reactivation.
+  },
+  trial?: {                  // Present when installation has not yet been activated.
+    days: number;            // Max number of days allowed prior to activation.
+    expirationDate: string;  // ISO8601 date that Grist will get cranky.
+    daysLeft: number;        // Number of days left until Grist will get cranky.
+  },
+  needKey?: boolean;         // Set when Grist is cranky and demanding activation.
+  error?: string;            // Present when there is an error reading the key.
+  features?: PlanFeatures;   // Features available in this installation.
+  current?: Partial<PlanFeatures>; // Usage of features in this installation.
+  grace?: {
+    daysLeft: number;       // Number of days left in grace period.
+    graceStarted: string;   // ISO8601 date when grace period started.
+  }
+}
+
+
 /**
  * These settings get sent to the client along with the loaded page. At the minimum, the browser
  * needs to know the URL of the home API server (e.g. api.getgrist.com).
@@ -878,22 +907,6 @@ export interface TelemetryConfig {
 export const GristDeploymentTypes = StringUnion('saas', 'core', 'enterprise', 'electron', 'static');
 export type GristDeploymentType = typeof GristDeploymentTypes.type;
 
-/**
- * For a packaged version of Grist that requires activation, this
- * summarizes the current state. Not applicable to grist-core.
- */
-export interface ActivationState {
-  trial?: {                  // Present when installation has not yet been activated.
-    days: number;            // Max number of days allowed prior to activation.
-    expirationDate: string;  // ISO8601 date that Grist will get cranky.
-    daysLeft: number;        // Number of days left until Grist will get cranky.
-  }
-  needKey?: boolean;         // Set when Grist is cranky and demanding activation.
-  key?: {                    // Set when Grist is activated.
-    expirationDate?: string; // ISO8601 date that Grist will need reactivation.
-    daysLeft?: number;       // Number of days until Grist will need reactivation.
-  }
-}
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of
 // non-zero length.

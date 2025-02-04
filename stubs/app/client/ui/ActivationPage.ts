@@ -5,8 +5,3 @@ import {
 export function getActivationPage(): IActivationPageCreator {
   return DefaultActivationPage;
 }
-
-export function showEnterpriseToggle() {
-  // To be changed by enterprise module
-  return false;
-}
