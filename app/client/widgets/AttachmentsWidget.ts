@@ -190,7 +190,7 @@ const cssAttachmentWidget = styled('div', `
   }
 `);
 
-const cssAttachmentIcon = styled('div.glyphicon.glyphicon-paperclip', `
+const cssAttachmentIcon = styled('div', `
   position: absolute;
   top: 2px;
   left: 5px;
