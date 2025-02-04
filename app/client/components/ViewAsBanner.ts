@@ -4,7 +4,7 @@ import { DocPageModel } from "app/client/models/DocPageModel";
 import { icon } from "app/client/ui2018/icons";
 import { primaryButtonLink } from 'app/client/ui2018/buttons';
 import { Disposable, dom, styled } from "grainjs";
-import { testId, theme } from 'app/client/ui2018/cssVars';
+import { colors, testId, theme } from 'app/client/ui2018/cssVars';
 import { urlState } from 'app/client/models/gristUrlState';
 import { userOverrideParams } from 'app/common/gristUrls';
 import { cssMenuItem } from 'popweasel';
@@ -46,7 +46,9 @@ export class ViewAsBanner extends Disposable {
     const {user, access} = userOverride;
     return cssContent(
       cssMessageText(
-        cssMessageIcon('EyeShow'),
+        cssMessageIcon('EyeShow', [
+          dom.style('background-color', colors.dark.toString()),
+        ]),
         t('You are viewing this document as'),
       ),
       cssSelectBtn(
