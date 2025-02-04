@@ -428,7 +428,8 @@ describe('HostedStorageManager', function() {
 
         tmpDir = await createTmpDir();
 
-        let externalStorageCreate: (purpose: 'doc'|'meta', extraPrefix: string) => ExternalStorage|undefined;
+        let externalStorageCreate:
+          (purpose: 'doc'|'meta'|'attachments', extraPrefix: string) => ExternalStorage|undefined;
         function requireStorage<T>(storage: T|undefined): T {
           if (storage === undefined) { throw new Error('storage not found'); }
           return storage;

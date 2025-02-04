@@ -1,5 +1,6 @@
 import {appSettings} from 'app/server/lib/AppSettings';
 import {FilesystemAttachmentStore, IAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {create} from 'app/server/lib/create';
 import log from 'app/server/lib/log';
 import {ICreateAttachmentStoreOptions} from './ICreate';
 import * as fse from 'fs-extra';
@@ -113,7 +114,16 @@ async function checkAvailabilityAttachmentStoreOption(option: ICreateAttachmentS
   }
 }
 
-export async function checkAvailabilityAttachmentStoreOptions(options: ICreateAttachmentStoreOptions[]) {
+function storeOptionIsNotUndefined(
+  option: ICreateAttachmentStoreOptions | undefined
+): option is ICreateAttachmentStoreOptions {
+  return option !== undefined;
+}
+
+export async function checkAvailabilityAttachmentStoreOptions(
+  allOptions: (ICreateAttachmentStoreOptions | undefined)[]
+) {
+  const options = allOptions.filter(storeOptionIsNotUndefined);
   const availability = await Promise.all(options.map(checkAvailabilityAttachmentStoreOption));
 
   return {
@@ -145,7 +155,9 @@ const ATTACHMENT_STORE_MODE = settings.flag("mode").readString({
 
 export function getConfiguredStandardAttachmentStore(): string | undefined {
   switch (ATTACHMENT_STORE_MODE) {
-    case "test":
+    case 'snapshots':
+      return 'snapshots';
+    case 'test':
       return 'test-filesystem';
     default:
       return undefined;
@@ -153,14 +165,26 @@ export function getConfiguredStandardAttachmentStore(): string | undefined {
 }
 
 export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
-  switch (ATTACHMENT_STORE_MODE) {
-    // This mode should be removed once stores can be configured fully via env vars.
-    case "test":
-      return [{
-        label: 'test-filesystem',
-        spec: await makeTempFilesystemStoreSpec(),
-      }];
-    default:
-      return [];
+  if (ATTACHMENT_STORE_MODE === 'snapshots') {
+    const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
+    // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
+    if (snapshotProvider === undefined) {
+      throw new Error("Snapshot provider is not available on this version of Grist");
+    }
+    if (!(await snapshotProvider.isAvailable())) {
+      throw new Error("The currently configured external storage does not support attachments");
+    }
+    return [{
+      label: 'snapshots',
+      spec: snapshotProvider,
+    }];
   }
+  // TODO This mode should be removed once stores can be configured fully via env vars.
+  if(ATTACHMENT_STORE_MODE === 'test') {
+    return [{
+      label: 'test-filesystem',
+      spec: await makeTempFilesystemStoreSpec(),
+    }];
+  }
+  return [];
 }

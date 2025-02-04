@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, spoffy/external-attachments-transfers ]
 
   # Allows running this workflow manually from the Actions tab
   workflow_dispatch:

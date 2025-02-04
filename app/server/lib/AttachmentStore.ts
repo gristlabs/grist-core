@@ -1,4 +1,7 @@
-import {joinKeySegments, StreamingExternalStorage} from 'app/server/lib/ExternalStorage';
+import {
+  ExternalStorage,
+  joinKeySegments,
+} from 'app/server/lib/ExternalStorage';
 import * as fse from 'fs-extra';
 import * as stream from 'node:stream';
 import * as path from 'path';
@@ -100,16 +103,22 @@ export class AttachmentStoreCreationError extends Error {
   }
 }
 
+export interface ExternalStorageSupportingAttachments extends ExternalStorage {
+  uploadStream: NonNullable<ExternalStorage['uploadStream']>;
+  downloadStream: NonNullable<ExternalStorage['downloadStream']>;
+  removeAllWithPrefix: NonNullable<ExternalStorage['removeAllWithPrefix']>;
+}
+
+export function storageSupportsAttachments(storage: ExternalStorage): storage is ExternalStorageSupportingAttachments {
+  return Boolean(storage.uploadStream && storage.downloadStream && storage.removeAllWithPrefix);
+}
+
 export class ExternalStorageAttachmentStore implements IAttachmentStore {
   constructor(
     public id: string,
-    private _storage: StreamingExternalStorage,
+    private _storage: ExternalStorageSupportingAttachments,
     private _prefixParts: string[]
-  ) {
-    if (!_storage.removeAllWithPrefix) {
-      throw new InvalidAttachmentExternalStorageError("ExternalStorage does not support removeAllWithPrefix");
-    }
-  }
+  ) {}
 
   public exists(docPoolId: string, fileId: string): Promise<boolean> {
     return this._storage.exists(this._getKey(docPoolId, fileId));
@@ -128,8 +137,7 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
   }
 
   public async removePool(docPoolId: string): Promise<void> {
-    // Null assertion is safe because this should be checked before this class is instantiated.
-    await this._storage.removeAllWithPrefix!(this._getPoolPrefix(docPoolId));
+    await this._storage.removeAllWithPrefix(this._getPoolPrefix(docPoolId));
   }
 
   public async close(): Promise<void> {
