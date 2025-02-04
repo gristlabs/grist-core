@@ -121,7 +121,8 @@ const cssBanner = styled('div', `
   color: white;
 
   &-info {
-    color: black;
+    color: ${colors.dark};
+    --icon-color: ${colors.dark};
     background: #FFFACD;
   }
 
