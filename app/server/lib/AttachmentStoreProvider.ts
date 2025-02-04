@@ -1,11 +1,11 @@
 import {appSettings} from 'app/server/lib/AppSettings';
 import {FilesystemAttachmentStore, IAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {create} from 'app/server/lib/create';
 import log from 'app/server/lib/log';
 import {ICreateAttachmentStoreOptions} from './ICreate';
 import * as fse from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp-promise';
-import {create} from 'app/server/lib/create';
 
 export type AttachmentStoreId = string
 
