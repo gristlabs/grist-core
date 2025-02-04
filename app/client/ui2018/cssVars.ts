@@ -100,34 +100,34 @@ export const zIndexes = {
  * - to make old css variables still work in case people used them in plugins or custom css.
  */
 export const vars = {
-  fontFamily: tokens.fontFamily,
-  fontFamilyData: tokens.fontFamilyData,
+  fontFamily: new CustomProp('font-family', tokens.fontFamily),
+  fontFamilyData: new CustomProp('font-family-data', tokens.fontFamilyData),
 
-  xxsmallFontSize: tokens.xxsmallFontSize,
-  xsmallFontSize: tokens.xsmallFontSize,
-  smallFontSize: tokens.smallFontSize,
-  mediumFontSize: tokens.mediumFontSize,
-  introFontSize: tokens.introFontSize,
-  largeFontSize: tokens.largeFontSize,
-  xlargeFontSize: tokens.xlargeFontSize,
-  xxlargeFontSize: tokens.xxlargeFontSize,
-  xxxlargeFontSize: tokens.xxxlargeFontSize,
+  xxsmallFontSize: new CustomProp('xx-font-size', tokens.xxsmallFontSize),
+  xsmallFontSize: new CustomProp('x-small-font-size', tokens.xsmallFontSize),
+  smallFontSize: new CustomProp('small-font-size', tokens.smallFontSize),
+  mediumFontSize: new CustomProp('medium-font-size', tokens.mediumFontSize),
+  introFontSize: new CustomProp('intro-font-size', tokens.introFontSize),
+  largeFontSize: new CustomProp('large-font-size', tokens.largeFontSize),
+  xlargeFontSize: new CustomProp('x-large-font-size', tokens.xlargeFontSize),
+  xxlargeFontSize: new CustomProp('xx-large-font-size', tokens.xxlargeFontSize),
+  xxxlargeFontSize: new CustomProp('xxx-large-font-size', tokens.xxxlargeFontSize),
 
   controlFontSize: new CustomProp('control-font-size', '12px'),
   smallControlFontSize: new CustomProp('small-control-font-size', '10px'),
-  bigControlFontSize: tokens.bigControlFontSize,
-  headerControlFontSize: tokens.headerControlFontSize,
-  bigControlTextWeight: tokens.bigControlTextWeight,
-  headerControlTextWeight: tokens.headerControlTextWeight,
+  bigControlFontSize: new CustomProp('big-control-font-size', tokens.bigControlFontSize),
+  headerControlFontSize: new CustomProp('header-control-font-size', tokens.headerControlFontSize),
+  bigControlTextWeight: new CustomProp('big-text-weight', tokens.bigControlTextWeight),
+  headerControlTextWeight: new CustomProp('header-text-weight', tokens.headerControlTextWeight),
+
+  labelTextSize: new CustomProp('label-text-size', 'medium'),
+  labelTextBg: new CustomProp('label-text-bg', tokens.emphasis),
+  labelActiveBg: new CustomProp('label-active-bg', '#F0F0F0'),
 
   controlMargin: new CustomProp('normal-margin', '2px'),
   controlPadding: new CustomProp('normal-padding', '3px 5px'),
   tightPadding: new CustomProp('tight-padding', '1px 2px'),
   loosePadding: new CustomProp('loose-padding', '5px 15px'),
-
-  labelTextSize: new CustomProp('label-text-size', 'medium'),
-  labelTextBg: new CustomProp('label-text-bg', tokens.emphasis),
-  labelActiveBg: new CustomProp('label-active-bg', '#F0F0F0'),
 
   primaryBg: new CustomProp('primary-bg', tokens.primary),
   primaryBgHover: new CustomProp('primary-fg-hover', tokens.primaryMuted),
@@ -138,10 +138,10 @@ export const vars = {
   controlFgHover: new CustomProp('primary-fg-hover', tokens.primaryMuted),
 
   controlBorder: new CustomProp('control-border', '1px solid #11B683'),
-  controlBorderRadius: tokens.controlBorderRadius,
+  controlBorderRadius: new CustomProp('border-radius', tokens.controlBorderRadius),
 
-  logoBg: tokens.logoBg,
-  logoSize: tokens.logoSize,
+  logoBg: new CustomProp('logo-bg', tokens.logoBg),
+  logoSize: new CustomProp('logo-size', tokens.logoSize),
   toastBg: new CustomProp('toast-bg', '#040404'),
 
   ...zIndexes,

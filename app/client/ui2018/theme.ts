@@ -2,7 +2,17 @@ import { createPausableObs, PausableObservable } from 'app/client/lib/pausableOb
 import { getStorage } from 'app/client/lib/storage';
 import { getOrCreateStyleElement } from 'app/client/lib/getOrCreateStyleElement';
 import { urlState } from 'app/client/models/gristUrlState';
-import { components, Theme, ThemeAppearance, ThemePrefs, ThemeTokens, tokens } from 'app/common/ThemePrefs';
+import {
+  components,
+  componentsCssMapping,
+  convertThemeKeysToCssVars,
+  Theme,
+  ThemeAppearance,
+  ThemePrefs,
+  ThemeTokens,
+  tokens,
+  tokensCssMapping
+} from 'app/common/ThemePrefs';
 import { getThemeTokens } from 'app/common/Themes';
 import { getGristConfig } from 'app/common/urlUtils';
 import { Computed, Observable } from 'grainjs';
@@ -129,29 +139,24 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
   return {appearance, colors: themeTokens};
 }
 
-function attachCssThemeVars({appearance, colors: themeTokens}: Theme) {
-  const properties = Object.entries(themeTokens || {})
-    .filter(([name]) => name !== 'components')
-    .map(([tokenName, value]) => {
-      if (tokenName in tokens) {
-        const cssProp = tokens[tokenName as keyof typeof tokens];
-        cssProp.value = value;
-        return cssProp.decl();
-      }
-      return undefined;
-    })
-    .filter((prop): prop is string => prop !== undefined);
+function attachCssThemeVars(theme: Theme) {
+  const themeWithCssVars = convertThemeKeysToCssVars(theme);
+  const {appearance, colors: cssVars} = themeWithCssVars;
 
-  properties.push(...Object.entries(themeTokens.components || {})
-    .map(([tokenName, value]) => {
-      if (tokenName in components) {
-        const cssProp = components[tokenName as keyof typeof components];
-        cssProp.value = value;
-        return cssProp.decl();
-      }
-      return undefined;
-    })
-    .filter((prop): prop is string => prop !== undefined));
+  // This way of attaching css vars to the DOM is the same in grist-plugin-api and
+  // should be kept in sync in any case it changes.
+  // Ideally, this should stay as is, to prevent breaking changes in the grist-plugin-api file.
+  const properties = Object.entries(cssVars)
+    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
+
+  // Update tokens and components empty CssCustomProps with actual theme values for when we want
+  // to fetch actual values at runtime instead of relying on css vars.
+  Object.entries(tokens).forEach(([token, cssProp]) => {
+    cssProp.value = cssVars[tokensCssMapping[token as keyof typeof tokensCssMapping]];
+  });
+  Object.entries(components).forEach(([component, cssProp]) => {
+    cssProp.value = cssVars[componentsCssMapping[component as keyof typeof componentsCssMapping]];
+  });
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssThemeScrollbarProperties(appearance));

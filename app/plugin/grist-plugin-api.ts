@@ -32,7 +32,6 @@ import { TableOperations } from './TableOperations';
 import { TableOperationsImpl } from './TableOperationsImpl';
 import { checkers } from './TypeCheckers';
 import { WidgetAPI } from './WidgetAPI';
-import { components, tokens } from 'app/common/ThemePrefs';
 
 export * from './TypeCheckers';
 export * from './FileParserAPI';
@@ -595,29 +594,10 @@ onThemeChange((newTheme) => {
   attachCssThemeVars(_theme);
 });
 
-function attachCssThemeVars({appearance, colors: themeTokens}: any) {
-  const properties = Object.entries(themeTokens || {})
-    .filter(([name]) => name !== 'components')
-    .map(([tokenName, value]: [string, any]) => {
-      if (tokenName in tokens) {
-        const cssProp = tokens[tokenName as keyof typeof tokens];
-        cssProp.value = value.name ? `var(--grist-${value.name})` : value;
-        return cssProp.decl();
-      }
-      return undefined;
-    })
-    .filter((prop): prop is string => prop !== undefined);
-
-  properties.push(...Object.entries(themeTokens.components || {})
-    .map(([tokenName, value]: [string, any]) => {
-      if (tokenName in components) {
-        const cssProp = components[tokenName as keyof typeof components];
-        cssProp.value = value.name ? `var(--grist-${value.name})` : value as string;
-        return cssProp.decl();
-      }
-      return undefined;
-    })
-    .filter((prop): prop is string => prop !== undefined));
+function attachCssThemeVars({appearance, colors: cssVars}: any) {
+  // Prepare the custom properties needed for applying the theme.
+  const properties = Object.entries(cssVars)
+    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssScrollbarProperties(appearance));

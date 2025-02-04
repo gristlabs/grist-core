@@ -1,18 +1,26 @@
 const VAR_PREFIX = 'grist';
 
 export class CssCustomProp {
-  constructor(public name: string, public value?: string | CssCustomProp, public fallback?: string | CssCustomProp) {
+  private _prefix = VAR_PREFIX;
 
+  constructor(
+    public name: string,
+    public value?: string | CssCustomProp,
+    public fallback?: string | CssCustomProp,
+    public type?: 'theme') {
+    if (this.type === 'theme') {
+      this._prefix = `${VAR_PREFIX}-theme`;
+    }
   }
 
   public decl(): string | undefined {
     if (this.value === undefined) { return undefined; }
 
-    return `--${VAR_PREFIX}-${this.name}: ${this.value};`;
+    return `--${this._prefix}-${this.name}: ${this.value};`;
   }
 
   public toString(): string {
-    let value = `--${VAR_PREFIX}-${this.name}`;
+    let value = `--${this._prefix}-${this.name}`;
     if (this.fallback) {
       value += `, ${this.fallback}`;
     }
