@@ -38,7 +38,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Pri pridávaní pravidiel tabuľky automaticky pridať pravidlo na udelenie úplného prístupu VLASTNÍKOVI.",
         "Permission to edit document structure": "Povolenie upravovať štruktúru dokumentu",
         "This default should be changed if editors' access is to be limited. ": "Toto predvolené nastavenie by sa malo zmeniť, ak má byť prístup redaktorov obmedzený. ",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Umožnite každému skopírovať celý dokument alebo ho zobraziť celý vo fiddle móde.\n Užitočné pre príklady a šablóny, ale nie pre citlivé údaje.",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Umožnite každému skopírovať celý dokument alebo ho zobraziť celý v pokusnom móde.\n Užitočné pre príklady a šablóny, ale nie pre citlivé údaje.",
         "Saved": "Uložené",
         "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Umožniť editorom upravovať štruktúru (napr. upravovať a mazať tabuľky, stĺpce, rozloženia) a písať vzorce, ktoré umožňujú prístup ku všetkým údajom bez ohľadu na obmedzenia čítania.",
         "Remove {{- name }} user attribute": "Odstrániť používateľský atribút {{- name }}",
@@ -354,7 +354,22 @@
         "Python": "Python",
         "Notify other services on doc changes": "Upozorniť ostatné služby na zmeny dokumentu",
         "Only available to document editors": "Dostupné iba pre editorov dokumentov",
-        "Only available to document owners": "Dostupné iba pre vlastníkov dokumentov"
+        "Only available to document owners": "Dostupné iba pre vlastníkov dokumentov",
+        "Change document type": "Zmena typu dokumentu",
+        "Template mode": "Režim šablóny",
+        "Edit": "Upraviť",
+        "Change nature of document": "Zmena charakteru dokumentu",
+        "Regular document": "Bežný dokument",
+        "Normal document behavior. All users work on the same copy of the document.": "Normálne správanie dokumentu. Všetci používatelia pracujú na rovnakej kópii dokumentu.",
+        "Regular": "Bežný",
+        "Template": "Šablóna",
+        "fiddle mode": "pokusný mód",
+        "Tutorial": "Návod",
+        "Document automatically opens as a user-specific copy.": "Dokument sa automaticky otvorí ako kópia špecifická pre používateľa.",
+        "Confirm change": "Potvrdiť zmenu",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Akonáhle začnete s časovaním, Grist zmeria čas potrebný na vyhodnotenie každého vzorca. To umožňuje diagnostikovať, ktoré vzorce sú zodpovedné za pomalý výkon pri prvom otvorení dokumentu alebo keď dokument reaguje na zmeny.",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Tým sa vykoná tvrdé opätovné načítanie dátového stroja. To môže pomôcť, ak je dátový stroj uviaznutý v nekonečnej slučke, na neurčito spracováva najnovšiu zmenu alebo zlyhal. Nebudú stratené žiadne údaje, s výnimkou prípadných aktuálne prebiehajúcich akcií.",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Dokument sa automaticky otvorí vo {{fiddleModeDocUrl}}. Každý ho môže upraviť, čo vytvorí novú neuloženú kópiu."
     },
     "DocumentUsage": {
         "Attachments Size": "Veľkosť Príloh",
@@ -912,7 +927,11 @@
         "Reference": "Referencia",
         "Attachment": "Príloha",
         "Reference List": "Zoznam Referencií",
-        "Search columns": "Hľadať stĺpce"
+        "Search columns": "Hľadať stĺpce",
+        "By Name": "Podľa Názvu",
+        "By Date Modified": "Podľa dátumu úpravy",
+        "Light": "Svetlé",
+        "Custom": "Vlastné"
     },
     "modals": {
         "Save": "Uložiť",
@@ -1235,7 +1254,8 @@
         "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Používateľ zdedí povolenia od {{parent})}. Ak to chcete zmeniť, nastavte možnosť „Zdediť prístup“ na „Žiadny“.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Používateľ má prístup na zobrazenie zdroja {{resource}} v dôsledku manuálne nastaveného prístupu k vnútorným zdrojom. Ak sa odstráni, používateľ stratí prístup k vnútorným zdrojom.",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Používateľ zdedí povolenia od {{parent}}. Ak ich chcete odstrániť, nastavte možnosť „Zdediť prístup“ na „Žiadny“.",
-        "You are about to remove your own access to this {{resourceType}}": "Chystáte sa odstrániť svoj vlastný prístup k {{resourceType}}"
+        "You are about to remove your own access to this {{resourceType}}": "Chystáte sa odstrániť svoj vlastný prístup k {{resourceType}}",
+        "Inherit access: ": "Zdedený prístup "
     },
     "SupportGristNudge": {
         "Admin Panel": "Panel Správcu",
@@ -1285,7 +1305,9 @@
         "Code copied to clipboard": "Kód bol skopírovaný do schránky",
         "Copy link": "Skopírovať odkaz",
         "Link copied to clipboard": "Odkaz bol skopírovaný do schránky",
-        "Share": "Zdieľať"
+        "Share": "Zdieľať",
+        "## **Form Title**": "## **Názov Formulára**",
+        "Your form description goes here.": "Tu zadať popis vášho formulára."
     },
     "AdminPanel": {
         "Current version of Grist": "Aktuálna verzia Grist",
@@ -1424,7 +1446,9 @@
         "Paste": "Prilepiť",
         "Separator": "Oddeľovač",
         "Unmapped fields": "Nemapované polia",
-        "Header": "Hlavička"
+        "Header": "Hlavička",
+        "More": "Viac",
+        "New question": "Nová otázka"
     },
     "UnmappedFieldsConfig": {
         "Unmap fields": "Nemapovať polia",
@@ -1440,7 +1464,8 @@
     },
     "Field": {
         "No values in show column of referenced table": "V zobrazenom stĺpci referenčnej tabuľky nie sú žiadne hodnoty",
-        "No choices configured": "Nie sú nakonfigurované žiadne voľby"
+        "No choices configured": "Nie sú nakonfigurované žiadne voľby",
+        "Hide": "Skryť"
     },
     "Toggle": {
         "Field Format": "Formát Poľa",
@@ -1478,7 +1503,9 @@
     },
     "Section": {
         "Insert section below": "Vložiť časť nižšie",
-        "Insert section above": "Vložiť časť vyššie"
+        "Insert section above": "Vložiť časť vyššie",
+        "### **Header**": "### **Hlavička**",
+        "Description": "Popis"
     },
     "DropdownConditionEditor": {
         "Enter condition.": "Zadajte podmienku."
@@ -1491,7 +1518,7 @@
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Môžete vykonať úpravy, ktoré vytvoria novú kópiu\na neovplyvnia pôvodný dokument.",
         "unsaved": "neuložené",
-        "fiddle": "husle",
+        "fiddle": "pokus",
         "override": "prepísať",
         "recovery mode": "režim obnovenia",
         "snapshot": "snímka"
@@ -1827,5 +1854,38 @@
         "upgrade your plan": "aktualizovať svoj plán",
         "Audit logs for {{siteName}}": "Záznami auditu pre {{siteName}}",
         "Audit Logs": "Záznami auditu"
+    },
+    "DocList": {
+        "Access details": "Podrobnosti prístupu",
+        "All": "Všetko",
+        "Current workspace": "Aktuálny pracovný priestor",
+        "Delete {{name}}": "Odstrániť {{name}}",
+        "Last edited": "Posledná úprava",
+        "Manage users": "Spravovať používateľov",
+        "Move": "Presunúť",
+        "Move {{name}} to workspace": "Presunúť {{name}} do pracovného priestoru",
+        "Name": "Meno",
+        "No documents to show.": "Žiadne dokumenty na zobrazenie.",
+        "Pin": "Pripnúť",
+        "Pinned": "Pripnuté",
+        "Recent": "Nedávne",
+        "Rename and set icon": "Premenovať a vybrať ikonu",
+        "Requires edit permissions": "Vyžaduje povolenia na úpravu",
+        "Sort by name": "Zoradiť podľa názvu",
+        "Unpin": "Odopnúť",
+        "Workspace": "Pracovný priestor",
+        "Sort by date": "Zoradiť podľa dátumu",
+        "Delete": "Odstrániť",
+        "Document will be moved to Trash.": "Dokument bude presunutý do Koša.",
+        "Edited {{at}}": "Upravené {{at}}"
+    },
+    "RenameDocModal": {
+        "Choose color": "Vybrať farbu",
+        "Choose icon": "Vybrať ikonu",
+        "Enter document name": "Vložiť názov dokumentu",
+        "Icon": "Ikona",
+        "Name": "Názov",
+        "Rename and set icon": "Premenovať a nastaviť ikonu",
+        "Reset icon": "Obnoviť ikonu"
     }
 }

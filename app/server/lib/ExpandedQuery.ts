@@ -58,7 +58,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
     const tables = docData.getMetaTable('_grist_Tables');
     const columns = docData.getMetaTable('_grist_Tables_column');
     const tableRef = tables.findRow('tableId', query.tableId);
-    if (!tableRef) { throw new ApiError('table not found', 404); }
+    if (!tableRef) { throw new ApiError('table not found: ' + query.tableId, 404); }
 
     // Find any references to other tables.
     const dataColumns = columns.filterRecords({parentId: tableRef, isFormula: false});
