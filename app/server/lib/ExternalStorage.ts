@@ -393,6 +393,12 @@ export interface ExternalStorageSettings {
 export type ExternalStorageCreator =
   (purpose: ExternalStorageSettings["purpose"], extraPrefix: string) => ExternalStorage | undefined;
 
+export class UnsupportedPurposeError extends Error {
+  constructor(purpose: ExternalStorageSettings["purpose"]) {
+    super(`create.ExternalStorage: unsupported purpose '${purpose}'`);
+  }
+}
+
 function stripTrailingSlash(text: string): string {
   return text.endsWith("/") ? text.slice(0, -1) : text;
 }
@@ -434,7 +440,7 @@ export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (do
     // Alternatively, could go in separate bucket.
     fileNaming = docId => `assets/unversioned/${docId}/meta.json`;
   } else {
-    throw new Error('create.ExternalStorage: unrecognized purpose');
+    throw new UnsupportedPurposeError(settings.purpose);
   }
   return docId => (fullPrefix + fileNaming(docId));
 }

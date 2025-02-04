@@ -11,6 +11,7 @@ import {BaseCreate, ICreateStorageOptions} from 'app/server/lib/ICreate';
 import {Telemetry} from 'app/server/lib/Telemetry';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {GristServer} from 'app/server/lib/GristServer';
+import {UnsupportedPurposeError} from 'app/server/lib/ExternalStorage';
 
 export class CoreCreate extends BaseCreate {
   constructor() {
@@ -34,9 +35,11 @@ export class CoreCreate extends BaseCreate {
           try {
             const storage = this.ExternalStorage('attachments', '');
             return storage ? storageSupportsAttachments(storage) : false;
-          } catch {
-            // Need to catch exceptions, as some storages won't support the 'attachments' purpose.
-            return false;
+          } catch(e) {
+            if (e instanceof UnsupportedPurposeError) {
+              return false;
+            }
+            throw e;
           }
         },
         create: async (storeId: string) => {

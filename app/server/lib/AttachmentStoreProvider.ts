@@ -105,7 +105,7 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   }
 }
 
-async function checkAvailabilityAttachmentStoreOption(option: ICreateAttachmentStoreOptions) {
+async function isAttachmentStoreOptionAvailable(option: ICreateAttachmentStoreOptions) {
   try {
     return await option.isAvailable();
   } catch (error) {
@@ -124,7 +124,7 @@ export async function checkAvailabilityAttachmentStoreOptions(
   allOptions: (ICreateAttachmentStoreOptions | undefined)[]
 ) {
   const options = allOptions.filter(storeOptionIsNotUndefined);
-  const availability = await Promise.all(options.map(checkAvailabilityAttachmentStoreOption));
+  const availability = await Promise.all(options.map(isAttachmentStoreOptionAvailable));
 
   return {
     available: options.filter((option, index) => availability[index]),
@@ -171,7 +171,7 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
     if (snapshotProvider === undefined) {
       throw new Error("Snapshot provider is not available on this version of Grist");
     }
-    if (!(await snapshotProvider.isAvailable())) {
+    if (!(await isAttachmentStoreOptionAvailable(snapshotProvider))) {
       throw new Error("The currently configured external storage does not support attachments");
     }
     return [{
