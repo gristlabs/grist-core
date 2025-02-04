@@ -253,4 +253,15 @@ const cssFileType = styled('div', `
   &-small { font-size: ${vars.xxsmallFontSize}; }
   &-medium { font-size: ${vars.smallFontSize}; }
   &-large { font-size: ${vars.mediumFontSize}; }
+
+  &::before {
+    display: block;
+    background-color: var(--grist-control-bg, --grist-theme-text, black);
+    content: ' ';
+    mask-image: var(--icon-FieldAttachment);
+    width: 14px;
+    height: 14px;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
 `);
