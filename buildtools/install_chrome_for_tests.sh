@@ -19,6 +19,6 @@ if [[ "$(uname -m)" != "x86_64" ]]; then
 fi
 
 curl -sS -o /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
-  && sudo apt-get install -y /tmp/chrome.deb \
+  && sudo apt-get install --allow-downgrades -y /tmp/chrome.deb \
   && rm /tmp/chrome.deb \
   && node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
