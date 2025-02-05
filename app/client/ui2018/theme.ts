@@ -167,7 +167,10 @@ function attachCssThemeVars(theme: Theme) {
   // Apply the properties to the theme style element.
   // The 'grist-theme' layer takes precedence over the 'grist-base' layer where
   // default CSS variables are defined.
-  getOrCreateStyleElement('grist-theme').textContent = `@layer grist-theme {
+  getOrCreateStyleElement('grist-theme', {
+    element: document.getElementById('grist-root-css'),
+    position: 'afterend'
+  }).textContent = `@layer grist-theme {
   :root {
 ${properties.join('\n')}
   }

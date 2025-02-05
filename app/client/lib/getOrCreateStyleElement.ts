@@ -3,12 +3,28 @@
  *
  * Useful for grouping CSS values such as theme custom properties without needing to
  * pollute the document with in-line styles.
+ *
+ * @param id - The id of the style element to create.
+ * @param insertOptions - insertAdjacentElement options to specify where to insert the style element.
+ *                        Defaults to before the end of the head.
  */
-export function getOrCreateStyleElement(id: string) {
-  let style = document.head.querySelector(`#${id}`);
-  if (style) { return style; }
+export function getOrCreateStyleElement(id: string, insertOptions: {
+  position: 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend'
+  element: Element | null
+} = { position: 'beforeend', element: null }): HTMLElement {
+  let style = document.getElementById(id);
+  if (style) {
+    return style;
+  }
+
   style = document.createElement('style');
   style.setAttribute('id', id);
-  document.head.append(style);
+
+  (insertOptions.element || document.head).insertAdjacentElement(
+    insertOptions.element
+      ? insertOptions.position
+      : 'beforeend',
+    style
+  );
   return style;
 }

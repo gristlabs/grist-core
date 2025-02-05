@@ -149,11 +149,11 @@ export const vars = {
 
 
 /**
- * @deprecated Consume and update the {@link tokens} object directly
+ * @deprecated Consume and update the {@link components} object directly
  * when handling component-specific theme variables.
  *
  * This is here only to keep the old export and prevent having to update the whole codebase
- * to target the new `tokens` structure.
+ * to target the new `components` structure.
  */
 export const theme = {
   ...components
@@ -295,8 +295,12 @@ export function isScreenResizing(): Observable<boolean> {
  * Attaches the global css properties to the document's root to make them available in the page.
  */
 export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
-  /* Apply all base grist rules and styles in the grist-base layer. */
-  getOrCreateStyleElement('grist-root-css').textContent = `
+  /* Initiate the grist-layers before any other css to make sure it's understood by all styles,
+   * and apply all base grist rules and styles in the grist-base layer. */
+  getOrCreateStyleElement('grist-root-css', {
+    position: 'beforebegin',
+    element: document.head.querySelector('style, link[rel="stylesheet"]')
+  }).textContent = `
 @layer grist-base, grist-theme, grist-custom;
 @layer grist-base {
   :root {
