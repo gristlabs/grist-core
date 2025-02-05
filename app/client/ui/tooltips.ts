@@ -8,7 +8,7 @@
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {GristTooltips, Tooltip} from 'app/client/ui/GristTooltips';
 import {prepareForTransition} from 'app/client/ui/transitions';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {makeLinks} from 'app/client/ui2018/links';
 import {menuCssClass} from 'app/client/ui2018/menus';
@@ -321,6 +321,8 @@ export function tooltipCloseButton(ctl: ITooltipControl): HTMLElement {
 export interface InfoTooltipOptions {
   /** Defaults to `click`. */
   variant?: InfoTooltipVariant;
+  /** Apply a specific style on the info icon */
+  style?: 'banner-info';
   /** Only applicable to the `click` variant. */
   popupOptions?: IPopupOptions;
   /** Only applicable to the `click` variant. */
@@ -337,20 +339,21 @@ export function infoTooltip(
   options: InfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
-  const {variant = 'click'} = options;
+  const {variant = 'click', style} = options;
   switch (variant) {
     case 'click': {
       const {popupOptions} = options;
-      return buildClickableInfoTooltip(tooltip, {popupOptions}, domArgs);
+      return buildClickableInfoTooltip(tooltip, {popupOptions, style}, domArgs);
     }
     case 'hover': {
-      return buildHoverableInfoTooltip(tooltip, domArgs);
+      return buildHoverableInfoTooltip(tooltip, {style}, domArgs);
     }
   }
 }
 
 export interface ClickableInfoTooltipOptions {
   popupOptions?: IPopupOptions;
+  style?: 'banner-info';
   onOpen?: () => void;
 }
 
@@ -359,9 +362,10 @@ function buildClickableInfoTooltip(
   options: ClickableInfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
-  const {popupOptions} = options;
+  const {popupOptions, style} = options;
+  const tooltipButton = style === 'banner-info' ? cssInfoTooltipButtonInBannerInfo : cssInfoTooltipButton;
   return dom.domComputed(tooltip, (tip) =>
-    cssInfoTooltipButton('?',
+    tooltipButton('?',
       (elem) => {
         setPopupToCreateDom(
           elem,
@@ -397,11 +401,18 @@ function buildClickableInfoTooltip(
   );
 }
 
+export interface HoverableInfoTooltipOptions {
+  style?: 'banner-info';
+}
+
 function buildHoverableInfoTooltip(
   tooltip: BindableValue<Tooltip>,
+  options: HoverableInfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
-  return cssInfoTooltipIcon('?',
+  const {style} = options;
+  const tooltipButton = style === 'banner-info' ? cssInfoTooltipButtonInBannerInfo : cssInfoTooltipButton;
+  return tooltipButton('?',
     hoverTooltip(() => cssInfoTooltipTransientPopup(
       dom.domComputed(tooltip, (tip) => GristTooltips[tip]()),
       cssTooltipCorner(testId('tooltip-origin')),
@@ -418,6 +429,11 @@ export interface WithInfoTooltipOptions {
   variant?: InfoTooltipVariant;
   domArgs?: DomElementArg[];
   iconDomArgs?: DomElementArg[];
+  /** Apply a specific style on the info icon
+   *
+   * `banner-info` should be used for tooltips displayed in 'info' styled Banners
+   */
+  style?: 'banner-info';
   /** Only applicable to the `click` variant. */
   popupOptions?: IPopupOptions;
   onOpen?: () => void;
@@ -448,10 +464,10 @@ export function withInfoTooltip(
   tooltip: BindableValue<Tooltip>,
   options: WithInfoTooltipOptions = {},
 ) {
-  const {variant = 'click', domArgs, iconDomArgs, popupOptions} = options;
+  const {variant = 'click', style, domArgs, iconDomArgs, popupOptions} = options;
   return cssInfoTooltip(
     domContents,
-    infoTooltip(tooltip, {variant, popupOptions}, iconDomArgs),
+    infoTooltip(tooltip, {variant, style, popupOptions}, iconDomArgs),
     ...(domArgs ?? [])
   );
 }
@@ -587,12 +603,23 @@ const cssInfoTooltipIcon = styled('div', `
   }
 `);
 
-const cssInfoTooltipButton = styled(cssInfoTooltipIcon, `
+export const cssInfoTooltipButton = styled(cssInfoTooltipIcon, `
   cursor: pointer;
 
   &:hover {
     border: 1px solid ${theme.controlSecondaryHoverFg};
     color: ${theme.controlSecondaryHoverFg};
+  }
+`);
+
+/* styling variant for tooltips displayed in info banners (where background is light yellow) */
+export const cssInfoTooltipButtonInBannerInfo = styled(cssInfoTooltipIcon, `
+  color: ${colors.dark};
+  border-color: ${colors.dark};
+
+  &:hover {
+    border-color: ${colors.lightGreen};
+    color: ${colors.lightGreen};
   }
 `);
 
