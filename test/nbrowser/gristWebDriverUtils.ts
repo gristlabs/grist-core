@@ -164,7 +164,11 @@ export class GristWebDriverUtils {
     if (customWidget) {
       await this.waitForServer();
       await driver.findContent('.test-custom-widget-gallery-widget-name', customWidget).click();
+      await driver.find('.test-custom-widget-gallery-custom-url').click();
+      await driver.sendKeys('https://grist-dummy-custom-widget.com');
       await driver.find('.test-custom-widget-gallery-save').click();
+      await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').click();
+      await driver.find('.test-modal-confirm').click();
     }
 
     await this.waitForServer();
