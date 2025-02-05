@@ -565,6 +565,16 @@ export interface DocAPI {
    */
   startTiming(): Promise<void>;
   stopTiming(): Promise<FormulaTimingInfo[]>;
+  /**
+   * Starts the transfer of all attachments from the old attachment storage to the new one.
+   */
+  transferAllAttachments(): Promise<void>;
+  /**
+   * Returns the status of the attachment transfer.
+   */
+  getAttachmentTransferStatus(): Promise<AttachmentTransferStatus>;
+  getAttachmentLocationSummary(): Promise<AttachmentLocationSummary>;
+  listAllAttachmentStoreIds(): Promise<string[]>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1209,6 +1219,22 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return await this.requestJson(`${this._url}/timing/stop`, {method: 'POST'});
   }
 
+  public async transferAllAttachments(): Promise<void> {
+    await this.request(`${this._url}/attachments/transferAll`, {method: 'POST'});
+  }
+
+  public async getAttachmentTransferStatus(): Promise<AttachmentTransferStatus> {
+    return this.requestJson(`${this._url}/attachments/transferStatus`);
+  }
+
+  public async getAttachmentLocationSummary(): Promise<AttachmentLocationSummary> {
+    return this.requestJson(`${this._url}/attachments/locationSummary`);
+  }
+
+  public async listAllAttachmentStoreIds(): Promise<string[]> {
+    return this.requestJson(`${this._url}/attachments/listAllStoreIds`);
+  }
+
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {
     const url = new URL(`${this._url}/tables/${tableId}/${endpoint}`);
     if (options?.filters) {
@@ -1219,6 +1245,17 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     }
     return this.requestJson(url.href);
   }
+}
+
+export interface AttachmentTransferStatus {
+  status: {
+    pendingTransferCount: number;
+    isRunning: boolean;
+  };
+}
+
+export interface AttachmentLocationSummary {
+  summary: 'INTERNAL'|'EXTERNAL'|'MIXED';
 }
 
 /**

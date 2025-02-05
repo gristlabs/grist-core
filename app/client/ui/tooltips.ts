@@ -491,6 +491,7 @@ const cssInfoTooltip = styled('div', `
   display: flex;
   align-items: center;
   column-gap: 8px;
+  font-weight: unset;
 `);
 
 const cssTooltipCorner = styled('div', `
@@ -580,6 +581,7 @@ const cssInfoTooltipIcon = styled('div', `
   color: ${theme.controlSecondaryFg};
   border-radius: 50%;
   user-select: none;
+  font-weight: initial;
 
   .${cssMenuItem.className}-sel & {
     color: ${theme.menuItemSelectedFg};

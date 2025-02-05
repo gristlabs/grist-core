@@ -8,12 +8,13 @@ import {ACIndexImpl} from 'app/client/lib/ACIndex';
 import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {makeT} from 'app/client/lib/localization';
+import {cssMarkdownSpan} from 'app/client/lib/markdown';
 import {reportError} from 'app/client/models/AppModel';
 import type {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
-import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
+import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
@@ -41,6 +42,8 @@ import {
   Observable,
   styled
 } from 'grainjs';
+import {AttachmentLocationSummary, AttachmentTransferStatus} from 'app/common/UserAPI';
+import {Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
 import * as moment from 'moment-timezone';
 
 const t = makeT('DocumentSettings');
@@ -72,6 +75,87 @@ export class DocSettingsPage extends Disposable {
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
+    const storageType = Computed.create(this, use => {
+      const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
+      return id ? 'EXTERNAL' : 'INTERNAL';
+    });
+    storageType.onWrite(async (val) => {
+      if (val === 'EXTERNAL') {
+        if (stores.get().length === 0) {
+          throw new Error("No external stores available");
+        }
+        await this._docInfo.attachmentStoreId.setAndSave(stores.get()[0]);
+      } else {
+        await this._docInfo.attachmentStoreId.setAndSave(undefined);
+      }
+    });
+    const storageOptions = [{value: 'INTERNAL', label: 'Internal'}, {value: 'EXTERNAL', label: 'External'}];
+
+    const transferStatus = Observable.create<AttachmentTransferStatus|null>(this, null);
+    const locationSummary = Observable.create<Partial<AttachmentLocationSummary>>(this, {});
+
+    const inProgress = Computed.create(this, use => !!use(transferStatus)?.status.isRunning);
+    const allInCurrent = Computed.create(this, use => {
+      const {summary} = use(locationSummary);
+      const current = use(storageType);
+      return summary && summary === current;
+    });
+    const stores = Observable.create(this, [] as string[]);
+
+    const stillInternal = Computed.create(this, use => {
+      const currentExternal = use(storageType) === 'EXTERNAL';
+      return currentExternal && (use(inProgress) || !use(allInCurrent));
+    });
+
+    const stillExternal = Computed.create(this, use => {
+      const currentInternal = use(storageType) === 'INTERNAL';
+      return currentInternal && (use(inProgress) || !use(allInCurrent));
+    });
+
+    const refreshStatus = () => this._gristDoc.docApi.getAttachmentTransferStatus().then(s => {
+      if (this.isDisposed()) { return; }
+      transferStatus.set(s);
+    });
+
+    const refreshLocationSummary = () => this._gristDoc.docApi.getAttachmentLocationSummary().then(s => {
+      if (this.isDisposed()) { return; }
+      locationSummary.set(s);
+    });
+
+    const refreshStoreIds = async () => {
+      const list = await this._gristDoc.docApi.listAllAttachmentStoreIds();
+      if (this.isDisposed()) { return; }
+      stores.set(list);
+    };
+
+    const beginTransfer = async () => {
+      await this._gristDoc.docApi.transferAllAttachments();
+      await refreshStatus();
+    };
+
+    const attachmentsReady = Observable.create(this, false);
+    refreshStatus()
+      .then(refreshLocationSummary)
+      .then(refreshStoreIds)
+      .then(() => attachmentsReady.set(true))
+      .catch(reportError);
+
+    (async () => {
+      // Start polling for status updates every 1 seconds when transfer is in progress.
+      while(!this.isDisposed()) {
+        try {
+          if (inProgress.get()) {
+            await refreshStatus();
+            await refreshLocationSummary();
+            console.log(transferStatus.get());
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (err) {
+          reportError(err);
+          break;
+        }
+      }
+    })().catch(reportError);
 
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
@@ -218,8 +302,52 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallLinkButton(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
         }),
       ]),
+
+      dom.create(AdminSection, t('Attachment storage'), [
+        dom.create(AdminSectionItem, {
+          id: 'preferredStorage',
+          name: withInfoTooltip(
+            dom('span', t('Preferred storage for this document')),
+            'attachmentStorage',
+          ),
+          value: cssFlex(
+            dom.maybe(use => !use(allInCurrent) && !use(inProgress), () => [
+              cssButton(t('Start transfer'), dom.on('click', () => beginTransfer())),
+            ]),
+            dom.maybe(inProgress, () => [
+              cssButton(
+                hoverTooltip(
+                  dom('span',
+                    dom.domComputed(transferStatus, (status) => {
+                      return t(
+                        'There are {{count}} attachments left to transfer',
+                        {count: status?.status.pendingTransferCount}
+                      );
+                    })
+                  )
+                ),
+                cssLoadingSpinner(
+                  loadingSpinner.cls('-inline'),
+                  cssLoadingSpinner.cls('-disabled'),
+                ),
+                t('Being transfer'),
+                dom.prop('disabled', true),
+              ),
+            ]),
+            cssSmallSelect(storageType, storageOptions, {
+              disabled: use => use(inProgress) || !use(attachmentsReady) || use(stores).length === 0,
+            }),
+          )
+        }),
+        dom('div',
+          dom.maybe(stillInternal, () => stillInternalCopy(inProgress)),
+          dom.maybe(stillExternal, () => stillExternalCopy(inProgress)),
+          dom.maybe(use => use(stores).length === 0, () => t('No external stores available')),
+        ),
+      ]),
     );
   }
+
 
   private async _reloadEngine(ask = true) {
     const docPageModel = this._gristDoc.docPageModel;
@@ -502,6 +630,59 @@ function displayCurrentType(
   );
 }
 
+
+const learnMore = () => t(
+  '[learn more]({{learnLink}})',
+  {learnLink: commonUrls.attachmentStorage}
+);
+
+function stillExternalCopy(inProgress: Observable<boolean>) {
+  const someExternal = () => t(
+    '**Some existing attachments are still [external]({{externalLink}})**.',
+    {externalLink: commonUrls.attachmentStorage}
+  );
+
+  const startToInternal = () => t(
+    'Click "Start transfer" to transfer those to Internal storage (stored in the document SQLite file).'
+  );
+
+  const newInInternal = () => t(
+    'Newly uploaded attachments will be placed in Internal storage.'
+  );
+
+  return dom.domComputed(inProgress, (yes) => {
+    if (yes) {
+      return cssMarkdownSpan(`${someExternal()} ${newInInternal()} ${learnMore()}`);
+    } else {
+      return cssMarkdownSpan(`${someExternal()} ${startToInternal()} ${newInInternal()} ${learnMore()}`);
+    }
+  });
+}
+
+function stillInternalCopy(inProgress: Observable<boolean>) {
+  const someInternal = () => t(
+    '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
+    {internalLink: commonUrls.attachmentStorage}
+  );
+
+  const startToExternal = () => t(
+    'Click "Start transfer" to transfer those to External storage.'
+  );
+
+  const newInExternal = () => t(
+    'Newly uploaded attachments will be placed in External storage.'
+  );
+
+  return dom.domComputed(inProgress, (yes) => {
+    if (yes) {
+      return cssMarkdownSpan(`${someInternal()} ${newInExternal()} ${learnMore()}`);
+    } else {
+      return cssMarkdownSpan(`${someInternal()} ${startToExternal()} ${newInExternal()} ${learnMore()}`);
+    }
+  });
+}
+
+
 const cssContainer = styled('div', `
   overflow-y: auto;
   position: relative;
@@ -571,10 +752,6 @@ export function getSupportedEngineChoices(): EngineCode[] {
   const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
   return gristConfig.supportEngines || [];
 }
-
-const cssSelect = styled(select, `
-  min-width: 170px; /* to match the width of the timezone picker */
-`);
 
 const TOOLTIP_KEY = 'copy-on-settings';
 
@@ -685,5 +862,34 @@ const cssDocTypeContainer = styled('div', `
   justify-content: space-between;
   & > * {
     display: inline-block;
+  }
+`);
+const cssFlex = styled('div', `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`);
+
+const cssButton = styled(cssSmallButton, `
+  white-space: nowrap;
+`);
+
+const cssSmallSelect = styled(select, `
+  width: 100px;
+`);
+
+const cssSelect = styled(select, `
+  min-width: 170px; /* to match the width of the timezone picker */
+`);
+
+const cssLoadingSpinner = styled(loadingSpinner, `
+  &-disabled {
+    --loader-bg: ${theme.loaderBg};
+    --loader-fg: white;
+  }
+  @media (prefers-color-scheme: dark) {
+    &-disabled {
+      --loader-bg: #adadad;
+    }
   }
 `);
