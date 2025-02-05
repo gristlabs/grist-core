@@ -9,20 +9,17 @@
 // Use the browser globals in a way that allows replacing them with mocks in tests.
 var G = require('./browserGlobals').get('$', 'window', 'document');
 
-const identity = require('lodash/identity');
-const defaults = require('lodash/defaults');
 const debounce = require('lodash/debounce');
-const pick     = require('lodash/pick');
-var ko      = require('knockout');
-var Promise = require('bluebird');
+const pick = require('lodash/pick');
+var ko = require('knockout');
 
 var gutil = require('app/common/gutil');
 
 var commands = require('../components/commands');
 
-var dom      = require('./dom');
-var kd       = require('./koDom');
-var koArray  = require('./koArray');
+var dom = require('./dom');
+var kd = require('./koDom');
+var koArray = require('./koArray');
 
 var modelUtil = require('../models/modelUtil');
 
@@ -33,9 +30,9 @@ var setSaveValue = modelUtil.setSaveValue;
  * Creates a button-looking div inside a buttonGroup; when clicked, clickFunc() will be called.
  * The button is not clickable if it contains the class 'disabled'.
  */
-exports.button = function(clickFunc, ...moreContentArgs) {
+exports.button = function (clickFunc, ...moreContentArgs) {
   return dom('div.kf_button.flexitem',
-    dom.on('click', function() {
+    dom.on('click', function () {
       if (!this.classList.contains('disabled')) {
         clickFunc();
       }
@@ -48,9 +45,9 @@ exports.button = function(clickFunc, ...moreContentArgs) {
  * Creates a button with an accented appearance.
  * The button is not clickable if it contains the class 'disabled'.
  */
-exports.accentButton = function(clickFunc, ...moreContentArgs) {
+exports.accentButton = function (clickFunc, ...moreContentArgs) {
   return this.button(clickFunc,
-    {'class': 'kf_button flexitem accent'},
+    { 'class': 'kf_button flexitem accent' },
     moreContentArgs
   );
 };
@@ -59,9 +56,9 @@ exports.accentButton = function(clickFunc, ...moreContentArgs) {
  * Creates a button with a minimal appearance for use in prompts.
  * The button is not clickable if it contains the class 'disabled'.
  */
-exports.liteButton = function(clickFunc, ...moreContentArgs) {
+exports.liteButton = function (clickFunc, ...moreContentArgs) {
   return this.button(clickFunc,
-    {'class': 'kf_button flexitem lite'},
+    { 'class': 'kf_button flexitem lite' },
     moreContentArgs
   );
 };
@@ -70,9 +67,9 @@ exports.liteButton = function(clickFunc, ...moreContentArgs) {
  * Creates a bigger button with a logo, used for "sign in with google/github/etc" buttons.
  * The button is not clickable if it contains the class 'disabled'.
  */
-exports.logoButton = function(clickFunc, logoUrl, text, ...moreContentArgs) {
+exports.logoButton = function (clickFunc, logoUrl, text, ...moreContentArgs) {
   return this.button(clickFunc,
-    {'class': 'kf_button kf_logo_button flexitem flexhbox'},
+    { 'class': 'kf_button kf_logo_button flexitem flexhbox' },
     dom('div.kf_btn_logo', { style: `background-image: url(${logoUrl})` }),
     dom('div.kf_btn_text', text),
     moreContentArgs
@@ -82,7 +79,7 @@ exports.logoButton = function(clickFunc, logoUrl, text, ...moreContentArgs) {
 /**
  * Creates a button group. Arguments should be `button` and `checkButton` objects.
  */
-exports.buttonGroup = function(moreButtonArgs) {
+exports.buttonGroup = function (moreButtonArgs) {
   return dom('div.kf_button_group.kf_elem.flexhbox',
     dom.fwdArgs(arguments, 0));
 };
@@ -91,9 +88,9 @@ exports.buttonGroup = function(moreButtonArgs) {
  * Creates a button group with an accented appearance.
  * Arguments should be `button` and `checkButton` objects.
  */
-exports.accentButtonGroup = function(moreButtonArgs) {
+exports.accentButtonGroup = function (moreButtonArgs) {
   return this.buttonGroup(
-    [{'class': 'kf_button_group kf_elem flexhbox accent'}].concat(dom.fwdArgs(arguments, 0))
+    [{ 'class': 'kf_button_group kf_elem flexhbox accent' }].concat(dom.fwdArgs(arguments, 0))
   );
 };
 
@@ -101,19 +98,19 @@ exports.accentButtonGroup = function(moreButtonArgs) {
  * Creates a button group with a minimal appearance.
  * Arguments should be `button` and `checkButton` objects.
  */
-exports.liteButtonGroup = function(moreButtonArgs) {
+exports.liteButtonGroup = function (moreButtonArgs) {
   return this.buttonGroup(
-    [{'class': 'kf_button_group kf_elem flexhbox lite'}].concat(dom.fwdArgs(arguments, 0))
+    [{ 'class': 'kf_button_group kf_elem flexhbox lite' }].concat(dom.fwdArgs(arguments, 0))
   );
 };
 
 /**
  * Creates a button-looking div that acts as a checkbox, toggling `valueObservable` on click.
  */
-exports.checkButton = function(valueObservable, moreContentArgs) {
+exports.checkButton = function (valueObservable, moreContentArgs) {
   return dom('div.kf_button.kf_check_button.flexitem',
     kd.toggleClass('active', valueObservable),
-    dom.on('click', function() {
+    dom.on('click', function () {
       if (!this.classList.contains('disabled')) {
         setSaveValue(valueObservable, !valueObservable());
       }
@@ -128,10 +125,10 @@ exports.checkButton = function(valueObservable, moreContentArgs) {
  * TODO: checkButton and flatCheckButton are identical in function but differ in style and
  *    class name conventions. We should reconcile them.
  */
-exports.flatCheckButton = function(valueObservable, moreContentArgs) {
+exports.flatCheckButton = function (valueObservable, moreContentArgs) {
   return dom('div.flexnone',
     kd.toggleClass('mod-active', valueObservable),
-    dom.on('click', function() {
+    dom.on('click', function () {
       if (!this.classList.contains('mod-disabled')) {
         setSaveValue(valueObservable, !valueObservable());
       }
@@ -143,16 +140,16 @@ exports.flatCheckButton = function(valueObservable, moreContentArgs) {
  * Creates a group of buttons of which only one may be chosen. Arguments should be `optionButton`
  * objects. The single `valueObservable` reflects the value of the selected `optionButton`.
  */
-exports.buttonSelect = function(valueObservable, moreButtonArgs) {
+exports.buttonSelect = function (valueObservable, moreButtonArgs) {
   var groupElem = dom('div.kf_button_group.kf_elem.flexhbox', dom.fwdArgs(arguments, 1));
 
   // TODO: Is adding ":not(.disabled)" the best way to avoid execution?
-  G.$(groupElem).on('click', '.kf_button:not(.disabled)', function() {
-      setSaveValue(valueObservable, ko.utils.domData.get(this, 'kfOptionValue'));
+  G.$(groupElem).on('click', '.kf_button:not(.disabled)', function () {
+    setSaveValue(valueObservable, ko.utils.domData.get(this, 'kfOptionValue'));
   });
 
-  kd.makeBinding(valueObservable, function(groupElem, value) {
-    Array.prototype.forEach.call(groupElem.querySelectorAll('.kf_button'), function(elem, i) {
+  kd.makeBinding(valueObservable, function (groupElem, value) {
+    Array.prototype.forEach.call(groupElem.querySelectorAll('.kf_button'), function (elem, i) {
       var v = ko.utils.domData.get(elem, 'kfOptionValue');
       elem.classList.toggle('active', v === value);
     });
@@ -165,9 +162,9 @@ exports.buttonSelect = function(valueObservable, moreButtonArgs) {
  * Creates a button-like div to use inside a `buttonSelect` group. The `value` will become the
  * value of the `buttonSelect` observable when this button is selected.
  */
-exports.optionButton = function(value, moreContentArgs) {
+exports.optionButton = function (value, moreContentArgs) {
   return dom('div.kf_button.flexitem',
-    function(elem) { ko.utils.domData.set(elem, 'kfOptionValue', value); },
+    function (elem) { ko.utils.domData.set(elem, 'kfOptionValue', value); },
     dom.fwdArgs(arguments, 1));
 };
 
@@ -175,14 +172,14 @@ exports.optionButton = function(value, moreContentArgs) {
  * Creates a speech-bubble-like div intended to give more information and options affecting
  * its parent when hovered.
  */
-exports.toolTip = function(contentArgs) {
+exports.toolTip = function (contentArgs) {
   return dom('div.kf_tooltip',
     dom('div.kf_tooltip_pointer'),
     dom('div.kf_tooltip_content', dom.fwdArgs(arguments, 0)),
-    dom.defer(function(elem) {
+    dom.defer(function (elem) {
       var elemWidth = elem.getBoundingClientRect().width;
       var parentRect = elem.parentNode.getBoundingClientRect();
-      elem.style.left = (-elemWidth/2 + parentRect.width/2) + 'px';
+      elem.style.left = (-elemWidth / 2 + parentRect.width / 2) + 'px';
       elem.style.top = parentRect.height + 'px';
     })
   );
@@ -191,7 +188,7 @@ exports.toolTip = function(contentArgs) {
 /**
  * Creates a prompt to provide feedback or request more information in the sidepane.
  */
-exports.prompt = function(contentArgs) {
+exports.prompt = function (contentArgs) {
   return dom('div.kf_prompt',
     dom('div.kf_prompt_pointer'),
     dom('div.kf_prompt_pointer_overlap'),
@@ -202,13 +199,13 @@ exports.prompt = function(contentArgs) {
 /**
  * Checkbox which toggles `valueObservable`. Other arguments become part of the clickable label.
  */
-exports.checkbox = function(valueObservable, moreContentArgs) {
+exports.checkbox = function (valueObservable, moreContentArgs) {
   return dom('label.kf_checkbox_label.kf_elem',
-    dom('input.kf_checkbox', {type: 'checkbox'},
-      kd.makeBinding(valueObservable, function(elem, value) {
+    dom('input.kf_checkbox', { type: 'checkbox' },
+      kd.makeBinding(valueObservable, function (elem, value) {
         elem.checked = value;
       }),
-      dom.on('change', function() {
+      dom.on('change', function () {
         setSaveValue(valueObservable, this.checked);
       })
     ),
@@ -221,11 +218,11 @@ exports.checkbox = function(valueObservable, moreContentArgs) {
  * matches the value, and selecting it sets the observable to the value. Other arguments become
  * part of the clickable label.
  */
-exports.radio = function(value, valueObservable, ...domArgs) {
+exports.radio = function (value, valueObservable, ...domArgs) {
   return dom('label.kf_radio_label',
-    dom('input.kf_radio', {type: 'radio'},
+    dom('input.kf_radio', { type: 'radio' },
       kd.makeBinding(valueObservable, (elem, val) => { elem.checked = (val === value); }),
-      dom.on('change', function() {
+      dom.on('change', function () {
         if (this.checked) {
           setSaveValue(valueObservable, value);
         }
@@ -292,7 +289,7 @@ function genSpinner(valueObservable, getNewValue, shouldDisable) {
  * @param {Number} optMin - Optional spinner lower bound
  * @param {Number} optMax - Optional spinner upper bound
  */
-exports.spinner = function(valueObservable, stepSizeObservable, optMin, optMax) {
+exports.spinner = function (valueObservable, stepSizeObservable, optMin, optMax) {
   var max = optMax !== undefined ? optMax : Infinity;
   var min = optMin !== undefined ? optMin : -Infinity;
 
@@ -316,7 +313,7 @@ exports.spinner = function(valueObservable, stepSizeObservable, optMin, optMax) 
  * Creates a select spinner item to loop through the `optionObservable` array,
  * setting visible value to `valueObservable`.
  */
-exports.selectSpinner = function(valueObservable, optionObservable) {
+exports.selectSpinner = function (valueObservable, optionObservable) {
   function getNewValue(value, direction) {
     const choices = optionObservable.peek();
     const index = choices.indexOf(value);
@@ -333,14 +330,14 @@ exports.selectSpinner = function(valueObservable, optionObservable) {
  * Label with a collapser triangle in front, which may be clicked to toggle `isCollapsedObs`
  * observable.
  */
-exports.collapserLabel = function(isCollapsedObs, moreContentArgs) {
+exports.collapserLabel = function (isCollapsedObs, moreContentArgs) {
   return dom('div.kf_collapser.kf_elem',
     dom('span.kf_triangle_toggle',
-      kd.text(function() {
+      kd.text(function () {
         return isCollapsedObs() ? '\u25BA' : '\u25BC';
       })
     ),
-    dom.on('click', function() {
+    dom.on('click', function () {
       isCollapsedObs(!isCollapsedObs.peek());
     }),
     dom.fwdArgs(arguments, 1));
@@ -362,7 +359,7 @@ exports.collapserLabel = function(isCollapsedObs, moreContentArgs) {
  *    });
  *  Returns an array of two items: the always-shown element, and a div containing the rest.
  */
-exports.collapsible = function(contentFunc, isMountedCollapsed) {
+exports.collapsible = function (contentFunc, isMountedCollapsed) {
   var isCollapsed = ko.observable(isMountedCollapsed === undefined ? true : isMountedCollapsed);
   var content = contentFunc(isCollapsed);
   return [
@@ -374,237 +371,24 @@ exports.collapsible = function(contentFunc, isMountedCollapsed) {
 };
 
 
-/**
- * Creates a draggable list of rows. The contentArray argument must be an observable array.
- * The callbackObj argument should include some or all of the following methods:
- * reorder, remove, and receive.
- * The reorder callback is executed if an item is dragged and dropped to a new position
- * within the same collection or draggable container. The remove and receive callbacks
- * are executed together only when an item from one collection is dropped on a different
- * collection. The remove callback may be executed alone when users click on the "minus" icon
- * for draggable items. The connectAllDraggables function must be called on draggables to
- * enable the remove/receive operation between separate draggables.
- *
- * Each callback must update the respective model tied to the draggable component,
- * or the equivalency between the UI and the observable array may be broken. When
- * a method is implemented, but the callback cannot update the model for any reason
- * (e.g., failure), then this failure should be communicated to the component either
- * by throwing an Error in the callback, or by returning a rejected Promise.
- *
- *
- *   reorder(item, nextItem)
- *     @param   {Object} item     The item being relocated/moved
- *     @param   {Object} nextItem The next item immediately following the new position,
- *                                or null, when the item is moved to the end of the collection.
- *   remove(item)
- *     @param   {Object} item     The item that should be removed from the collection.
- *     @returns {Object}          The item removed from the observable array. This
- *                                    value is passed to the receive function as the
- *                                    its item parameter. This value must include all the
- *                                    necessary data required for connected draggables
- *                                    to successfully insert the new value within their
- *                                    respective receive functions.
- *   receive(item, nextItem)
- *     @param   {Object} item      The item to insert in the collection.
- *     @param   {Object} nextItem  The next item from item's new position. This value
- *                                 will be null when item is moved to the end of the list.
- *
- * @param {Array}    contentArray         KoArray of model items
- * @param {Function} itemCreateFunc       Identical to koDom.foreach's itemCreateFunc, this
- *                                        function is called as `itemCreateFunc(item)` for each
- *                                        array element. Must return a single Node, or null or
- *                                        undefined to omit that node.
- * @param {Object}   options              An object containing the reorder, remove, receive
- *                                        callback functions, and all other draggable configuration
- *                                        options --
- * @param {Boolean}  options.removeButton Controls whether the clickable remove/minus icon is
- *                                        displayed. If true, this button triggers the remove
- *                                        function on click.
- * @param {String}   options.axis         Determines if the list is displayed vertically 'y' or
- *                                        horizontally 'x'.
- * @param {String}   options.handle       The handle of the draggable. Defaults to the element
- *                                        itself.
- * @param {Boolean|Function} drag_indicator Include the drag indicator. Defaults to true. Accepts
- *                                          also a function that returns a dom element. In which
- *                                          case, it will be used to create the drag indicator.
- * @returns {Node} The DOM Node for the draggable container
- */
-exports.draggableList = function(contentArray, itemCreateFunc, options) {
-  options = options || {};
-  defaults(options, {
-    removeButton: true,
-    axis: "y",
-    drag_indicator: true,
-    itemClass: 'kf_draggable__item'
-  });
-
-  var reorderFunc, removeFunc;
-  itemCreateFunc = itemCreateFunc || identity;
-  var list = dom('div.kf_drag_container',
-    function(elem) {
-      if (options.reorder) {
-        reorderFunc = Promise.method(options.reorder);
-        ko.utils.domData.set(elem, 'reorderFunc', reorderFunc);
-      }
-      if (options.remove) {
-        removeFunc = Promise.method(options.remove);
-        ko.utils.domData.set(elem, 'removeFunc', removeFunc);
-      }
-      if (options.receive) {
-        ko.utils.domData.set(elem, 'receiveFunc', Promise.method(options.receive));
-      }
-    },
-    kd.foreach(contentArray, item => {
-      var row = itemCreateFunc(item);
-      if (row) {
-        return dom('div.kf_draggable',
-          // Fix for JQueryUI bug where mousedown on draggable elements fail to blur
-          // active element. See: https://bugs.jqueryui.com/ticket/4261
-          dom.on('mousedown', () => G.document.activeElement.blur()),
-          kd.toggleClass('kf_draggable--vertical', options.axis === 'y'),
-          kd.cssClass(options.itemClass),
-          (options.drag_indicator ?
-           (typeof options.drag_indicator === 'boolean' ?
-            dom('span.kf_drag_indicator.glyphicon.glyphicon-option-vertical') :
-            options.drag_indicator()
-           ) : null),
-          kd.domData('model', item),
-          kd.maybe(removeFunc !== undefined && options.removeButton, function() {
-            return dom('span.drag_delete.glyphicon.glyphicon-remove',
-              dom.on('click', function() {
-                removeFunc(item)
-                .catch(function(err) {
-                  console.warn('Failed to remove item', err);
-                });
-              })
-            );
-          }),
-          dom('span.kf_draggable_content.flexauto', row));
-      } else {
-        return null;
-      }
-    })
-  );
-
-  G.$(list).sortable({
-    axis: options.axis,
-    tolerance: "pointer",
-    forcePlaceholderSize: true,
-    placeholder: 'kf_draggable__placeholder--' + (options.axis === 'x' ? 'horizontal' : 'vertical'),
-    handle: options.handle,
-  });
-  if (reorderFunc === undefined) {
-    G.$(list).sortable("option", {disabled: true});
-  }
-
-  G.$(list).on('sortstart', function(e, ui) {
-    ko.utils.domData.set(ui.item[0], 'originalParent', ui.item.parent());
-    ko.utils.domData.set(ui.item[0], 'originalPrev', ui.item.prev());
-  });
-  G.$(list).on('sortstop', function(e, ui) {
-    if (!ko.utils.domData.get(ui.item[0], 'crossedContainers')) {
-      handleReorderStop.bind(null, list).call(this, e, ui);
-    } else {
-      handleConnectedStop.call(list, e, ui);
-    }
-  });
-
-  return list;
-};
-
-function handleReorderStop(container, e, ui) {
-  var reorderFunc = ko.utils.domData.get(container, 'reorderFunc');
-  var originalPrev = ko.utils.domData.get(ui.item[0], 'originalPrev');
-  if (reorderFunc && !ui.item.prev().is(originalPrev)) {
-    var movingItem = ko.utils.domData.get(ui.item[0], 'model');
-    reorderFunc(movingItem, getNextDraggableItemModel(ui.item))
-    .catch(function(err) {
-      console.warn('Failed to reorder item', err);
-      G.$(container).sortable('cancel');
-    });
-  }
-  resetDraggedItem(ui.item[0]);
-}
-
-
-function handleConnectedStop(e, ui) {
-  var originalParent = ko.utils.domData.get(ui.item[0], 'originalParent');
-  var removeOriginal = ko.utils.domData.get(originalParent[0], 'removeFunc');
-  var receive = ko.utils.domData.get(ui.item.parent()[0], 'receiveFunc');
-
-  if (removeOriginal && receive) {
-    removeOriginal(ko.utils.domData.get(ui.item[0], 'model'))
-    .then(function(removedItem) {
-      return receive(removedItem, getNextDraggableItemModel(ui.item))
-      .then(function() {
-        ui.item.remove();
-      })
-      .catch(revertRemovedItem.bind(null, ui, originalParent, removedItem));
-    })
-    .catch(function(err) {
-      console.warn('Error removing item', err);
-      G.$(originalParent).sortable('cancel');
-    })
-    .finally(function() {
-      resetDraggedItem(ui.item[0]);
-    });
-  } else {
-    console.warn('Missing remove or receive');
-  }
-}
-
-function revertRemovedItem(ui, parent, item, err) {
-  console.warn('Error receiving item. Trying to return removed item.', err);
-  var originalReceiveFunc = ko.utils.domData.get(parent[0], 'receiveFunc');
-  if (originalReceiveFunc) {
-    var originalPrev = ko.utils.domData.get(ui.item[0], 'originalPrev');
-    var originalNextItem = originalPrev.length > 0 ?
-      getNextDraggableItemModel(originalPrev) :
-      getDraggableItemModel(parent.children('.kf_draggable').first());
-    originalReceiveFunc(item, originalNextItem)
-    .catch(function(err) {
-      console.warn('Failed to receive item in original collection.', err);
-    }).finally(function() {
-      ui.item.remove();
-    });
-  }
-}
-
-function getDraggableItemModel(elem) {
-  if (elem.length && elem.length > 0) {
-    return ko.utils.domData.get(elem[0], 'model');
-  }
-  return null;
-}
-
-function getNextDraggableItemModel(elem) {
-  return elem.next ? getDraggableItemModel(elem.next('.kf_draggable')) : null;
-}
-
-function resetDraggedItem(elem) {
-  ko.utils.domData.set(elem, 'originalPrev', null);
-  ko.utils.domData.set(elem, 'originalParent', null);
-  ko.utils.domData.set(elem, 'crossedContainers', false);
-}
-
 function enableDraggableConnection(draggable) {
-  G.$(draggable).on('sortremove', function(e, ui) {
+  G.$(draggable).on('sortremove', function (e, ui) {
     ko.utils.domData.set(ui.item[0], 'crossedContainers', true);
     ko.utils.domData.set(ui.item[0], 'stopIndex', ui.item.index());
   });
 
   if (G.$(draggable).sortable("option", "disabled") && (
-      ko.utils.domData.get(draggable, 'receiveFunc') ||
-      ko.utils.domData.get(draggable, 'removeFunc')
-      )) {
-    G.$(draggable).sortable( "option", { disabled: false });
+    ko.utils.domData.get(draggable, 'receiveFunc') ||
+    ko.utils.domData.get(draggable, 'removeFunc')
+  )) {
+    G.$(draggable).sortable("option", { disabled: false });
   }
 }
 
 function connectDraggableToClass(draggable, className) {
   enableDraggableConnection(draggable);
   G.$(draggable).addClass(className);
-  G.$(draggable).sortable("option", {connectWith: "." + className});
+  G.$(draggable).sortable("option", { connectWith: "." + className });
 }
 
 /**
@@ -613,12 +397,12 @@ function connectDraggableToClass(draggable, className) {
  * @param  {Object} draggableArgs 2 or more draggableList objects
  */
 var connectedDraggables = 0;
-exports.connectAllDraggables = function(draggableArgs) {
+exports.connectAllDraggables = function (draggableArgs) {
   if (draggableArgs.length < 2) {
     console.warn('connectAllDraggables requires at least 2 draggable components');
   }
   var className = "connected-draggable-" + connectedDraggables++;
-  for (var i=0; i<arguments.length; i++) {
+  for (var i = 0; i < arguments.length; i++) {
     connectDraggableToClass(arguments[i], className);
   }
 };
@@ -629,25 +413,25 @@ exports.connectAllDraggables = function(draggableArgs) {
  * @param  {Object} fromDraggable A source draggableList object
  * @param  {Object} toDraggable   A destination draggableList object
  */
-exports.connectDraggableOneWay = function(fromDraggable, toDraggable) {
-  fromDraggable.id  = "connected-draggable-" + connectedDraggables++;
-  toDraggable.id    = "connected-draggable-" + connectedDraggables++;
+exports.connectDraggableOneWay = function (fromDraggable, toDraggable) {
+  fromDraggable.id = "connected-draggable-" + connectedDraggables++;
+  toDraggable.id = "connected-draggable-" + connectedDraggables++;
   enableDraggableConnection(fromDraggable);
   enableDraggableConnection(toDraggable);
-  G.$(fromDraggable).sortable("option", {connectWith: "#" + toDraggable.id});
+  G.$(fromDraggable).sortable("option", { connectWith: "#" + toDraggable.id });
 };
 
 /**
  * A bold label. Typically takes a string argument, but accepts any children.
  */
-exports.label = function(moreContentArgs) {
+exports.label = function (moreContentArgs) {
   return dom('div.kf_label.kf_elem', dom.fwdArgs(arguments, 0));
 };
 
 /**
  * A regular (not bold) label. Typically takes a string argument, but accepts any children.
  */
-exports.lightLabel = function(moreContentArgs) {
+exports.lightLabel = function (moreContentArgs) {
   return dom('div.kf_light_label.kf_elem', dom.fwdArgs(arguments, 0));
 };
 
@@ -658,7 +442,7 @@ exports.lightLabel = function(moreContentArgs) {
  * @param {Observable} optObservable The observable for the index of the selected tab, will be
  *    created if omitted.
  */
-exports.midTabs = function(optObservable) {
+exports.midTabs = function (optObservable) {
   return _initTabs(optObservable, '.kf_mid_tab_label',
     dom('div.flexitem.kf_mid_tabs',
       dom('div.flexhbox.flexnone.kf_mid_tab_labels'),
@@ -672,7 +456,7 @@ exports.midTabs = function(optObservable) {
  * `label` is a label or Node for the tab label; the rest is the content of the tab.
  * The content is created once, but is hidden when a different tab is selected.
  */
-exports.midTab = function(label, moreContentArgs) {
+exports.midTab = function (label, moreContentArgs) {
   return _addTab('.kf_mid_tabs',
     dom('div.kf_mid_tab_label.flexitem', label),
     dom('div.kf_mid_tab_content', dom.fwdArgs(arguments, 1)));
@@ -687,8 +471,8 @@ exports.midTab = function(label, moreContentArgs) {
  * @param {Object} options.min  The minimum (numeric or date-time) value for the item, which must not be greater than its maximum (max attribute) value.
  * @param {Object} options.max The maximum (numeric or date-time) value for this item, which must not be less than its minimum (min attribute) value.
  */
-exports.numText = function(valueObservable, options) {
-  var attr = {type: 'number'};
+exports.numText = function (valueObservable, options) {
+  var attr = { type: 'number' };
   options = options || {};
   if (options.placeholder) attr.placeholder = options.placeholder;
   if (typeof options.min !== 'undefined') attr.min = options.min;
@@ -697,7 +481,7 @@ exports.numText = function(valueObservable, options) {
     kd.value(valueObservable),
     // while 'change' seems better suited, sometimes it does not fire when user click on the spinner
     // arrow before it moves the cursor away.
-    dom.on('input', function() {
+    dom.on('input', function () {
       setSaveValue(valueObservable, Number(this.value));
     })
   ));
@@ -763,20 +547,20 @@ function textInput(valueObservable, options, moreArgs) {
 /**
  * A regular textbox tied to `valueObservable`.
  */
-exports.text = function(valueObservable, options, ...moreArgs) {
-  options = Object.assign({type: 'text'}, options || {});
+exports.text = function (valueObservable, options, ...moreArgs) {
+  options = Object.assign({ type: 'text' }, options || {});
   return textInput(valueObservable, options, moreArgs);
 };
 
 /**
  * A color picker tied to `valueObservable`.
  */
-exports.color = function(valueObservable, ...moreArgs) {
+exports.color = function (valueObservable, ...moreArgs) {
   // On some machine (seen on chrome running on a Mac) the `change` event fires as many times as the `input` event, hence debounce.
   const saveValue = debounce(e => setSaveValue(valueObservable, e.target.value), 300);
   return dom('div.kf_elem',
     dom('input.kf_color',
-      {type: 'color'},
+      { type: 'color' },
       kd.value(valueObservable),
       dom.on('change', saveValue),
       ...moreArgs
@@ -786,8 +570,8 @@ exports.color = function(valueObservable, ...moreArgs) {
 /**
  * Identical to koForm.text, but with input type=password
  */
-exports.password = function(valueObservable, options, ...moreArgs) {
-  options = Object.assign({type: 'password'}, options || {});
+exports.password = function (valueObservable, options, ...moreArgs) {
+  options = Object.assign({ type: 'password' }, options || {});
   return textInput(valueObservable, options, moreArgs);
 };
 
@@ -821,9 +605,9 @@ exports.password = function(valueObservable, options, ...moreArgs) {
  *                                          status label (if any).
  * @return {Object}                         DOM
  */
-exports.statusPanel = function(valueObservable, options) {
+exports.statusPanel = function (valueObservable, options) {
   var statusMap = {};
-  ['success', 'info', 'warning', 'error'].forEach(function(key) {
+  ['success', 'info', 'warning', 'error'].forEach(function (key) {
     var statusLookupValue;
     if (options[key]) {
       statusLookupValue = options[key].value !== undefined ? options[key].value : options[key];
@@ -832,13 +616,13 @@ exports.statusPanel = function(valueObservable, options) {
       statusMap[statusLookupValue].label = options[key].label || null;
     }
   });
-  var hasLabel = ko.pureComputed(function() {
+  var hasLabel = ko.pureComputed(function () {
     return statusMap[valueObservable()].label !== undefined;
   });
   return dom('div.kf_status_panel.flexhbox',
     dom.autoDispose(hasLabel),
     dom('div.kf_status_indicator.flexauto',
-      kd.cssClass(function() {
+      kd.cssClass(function () {
         if (statusMap[valueObservable()]) {
           return statusMap[valueObservable()].className;
         }
@@ -847,12 +631,12 @@ exports.statusPanel = function(valueObservable, options) {
       '\u25CF' // solid circle
     ),
     dom('div.kf_status_detail.flexauto',
-      kd.maybe(options.heading, function() {
+      kd.maybe(options.heading, function () {
         return exports.row(exports.label(options.heading));
       }),
-      kd.maybe(hasLabel, function() {
+      kd.maybe(hasLabel, function () {
         return exports.row(exports.lightLabel(
-          kd.text(ko.pureComputed(function() {
+          kd.text(ko.pureComputed(function () {
             return statusMap[valueObservable()].label;
           }))
         ));
@@ -872,16 +656,16 @@ exports.statusPanel = function(valueObservable, options) {
  *   toggle whether or not the field is editable. It will also prevent clicks from affecting whether
  *   the label is editable.
  */
-exports.editableLabel = function(valueObservable, optToggleObservable) {
+exports.editableLabel = function (valueObservable, optToggleObservable) {
   var isEditing = optToggleObservable || ko.observable(false);
   var cancelEdit = false;
 
   var editingCommands = {
-    cancel: function() {
+    cancel: function () {
       cancelEdit = true;
       isEditing(false);
     },
-    accept: function() {
+    accept: function () {
       cancelEdit = false;
       isEditing(false);
     }
@@ -895,16 +679,16 @@ exports.editableLabel = function(valueObservable, optToggleObservable) {
     ),
     contentSizer = dom('div.elabel_content_measure'),
     (!optToggleObservable ? dom.on('click', () => isEditing(true)) : null),
-    kd.maybe(isEditing, function() {
+    kd.maybe(isEditing, function () {
       var commandGroup = commands.createGroup(editingCommands, this, true);
-      return dom('input.kf_elabel_input', {type: 'text'},
+      return dom('input.kf_elabel_input', { type: 'text' },
         elem => dom.hide(elem), // Don't display until we've had a chance to resize
         kd.value(valueObservable),
         dom.autoDispose(commandGroup),
         commandGroup.attach(),
-        dom.on('blur', function() { isEditing(false); }),
-        dom.on('change', function() { isEditing(false); }),
-        dom.on('input', function() {
+        dom.on('blur', function () { isEditing(false); }),
+        dom.on('change', function () { isEditing(false); }),
+        dom.on('input', function () {
           // Resize the textbox whenever user types in it.
           _resizeElem(this, contentSizer);
         }),
@@ -913,7 +697,7 @@ exports.editableLabel = function(valueObservable, optToggleObservable) {
             setSaveValue(valueObservable, elem.value);
           }
         }),
-        dom.defer(function(elem) {
+        dom.defer(function (elem) {
           cancelEdit = false;
           _resizeElem(elem, contentSizer);
           dom.show(elem); // Once resized, display the input
@@ -935,7 +719,7 @@ function _resizeElem(elem, contentSizer) {
  * Accepts any number of children. If an argument is numeric, it specifies the number of columns
  * the next child should occupy (defaults to 1). All columns are equally spaced.
  */
-exports.row = function(childOrColSpanArgs) {
+exports.row = function (childOrColSpanArgs) {
   var colSpan = 1;
   var elem = dom('div.kf_row.flexhbox');
   for (var i = 0; i < arguments.length; i++) {
@@ -961,7 +745,7 @@ exports.row = function(childOrColSpanArgs) {
  * short descriptive strings. Use it immediately after a `row()` call, with same column-span
  * values, to place descriptions under the elements of the row.
  */
-exports.helpRow = function(childOrColSpan) {
+exports.helpRow = function (childOrColSpan) {
   var elem = exports.row.apply(null, arguments);
   elem.classList.add('kf_help_row');
   return elem;
@@ -970,14 +754,14 @@ exports.helpRow = function(childOrColSpan) {
 /**
  * Creates a scrollable pane, with a shadow over the top edge.
  */
-exports.scrollable = function(contentArgs) {
+exports.scrollable = function (contentArgs) {
   var elem, shadow;
   return [
     dom('div.flexnone.kf_scroll_shadow_outer',
       shadow = dom('div.kf_scroll_shadow', dom.hide)
     ),
     elem = dom('div.flexitem.kf_scrollable',
-      dom.on('scroll', function() {
+      dom.on('scroll', function () {
         shadow.style.display = (elem.scrollTop > 0 ? '' : 'none');
       }),
       dom.fwdArgs(arguments, 0)
@@ -1012,7 +796,7 @@ exports.scrollable = function(contentArgs) {
  * @property {Boolean} [options.multiple]   Whether the select control supports multiple selection.
  *    If true, `valueObservable` should be an array of values.
  */
-exports.select = function(valueObservable, optionArray, options) {
+exports.select = function (valueObservable, optionArray, options) {
   // Wrap the returned element into a div, since otherwise it doesn't respect
   // dimensions as well.
   options = options || {};
@@ -1028,7 +812,7 @@ exports.select = function(valueObservable, optionArray, options) {
       dom('select.kf_select',
         pick(options, ['size', 'multiple']),
         kd.toggleDisabled(options.disabled || false),
-        kd.foreach(optionArray, function(option) {
+        kd.foreach(optionArray, function (option) {
           if (!option) {
             return null;
           }
@@ -1050,7 +834,7 @@ exports.select = function(valueObservable, optionArray, options) {
         kd.makeBinding(koArray.isKoArray(optionArray) ? optionArray.getObservable() : optionArray,
           elem => setValue(elem, valueObservable())),
         kd.makeBinding(valueObservable, (elem, value) => setValue(elem, value)),
-        dom.on('change', function() {
+        dom.on('change', function () {
           let valuesArray = [];
           let optionElements = this.querySelectorAll('option');
           for (let i = 0; i < optionElements.length; i++) {
@@ -1071,7 +855,7 @@ exports.select = function(valueObservable, optionArray, options) {
 /**
  * A separator (thin horizontal line).
  */
-exports.separator = function() {
+exports.separator = function () {
   return dom('hr.kf_separator');
 };
 
@@ -1081,7 +865,7 @@ exports.separator = function() {
  * @param {Observable} optObservable The observable for the index of the selected tab, will be
  *    created if omitted.
  */
-exports.topTabs = function(optObservable) {
+exports.topTabs = function (optObservable) {
   return _initTabs(optObservable, '.kf_top_tab_label',
     dom('div.flexvbox.kf_top_tabs',
       dom('div.flexhbox.flexnone.kf_top_tab_labels'),
@@ -1095,7 +879,7 @@ exports.topTabs = function(optObservable) {
  * `label` is a label or Node for the tab label; the rest is the content of the tab.
  * The content is created once, but is hidden when a different tab is selected.
  */
-exports.topTab = function(label, moreContentArgs) {
+exports.topTab = function (label, moreContentArgs) {
   return _addTab('.kf_top_tabs',
     dom('div.kf_top_tab_label.flexitem', label),
     dom('div.kf_top_tab_content.flexvbox', dom.fwdArgs(arguments, 1)));
@@ -1112,7 +896,7 @@ exports.topTab = function(label, moreContentArgs) {
  */
 function _initTabs(optObservable, labelSelector, elem) {
   var selectedTab = optObservable || ko.observable(0);
-  G.$(elem).on('click', labelSelector, function() {
+  G.$(elem).on('click', labelSelector, function () {
     selectedTab(dom.childIndex(this));
   });
   ko.utils.domData.set(elem, 'kfSelectedTab', selectedTab);
@@ -1127,7 +911,7 @@ function _initTabs(optObservable, labelSelector, elem) {
  * @param {Node} contentElem The content element to add to the container of content panes.
  */
 function _addTab(tabsSelector, labelElem, contentElem) {
-  return function(elem) {
+  return function (elem) {
     var tabsEl = dom.findLastChild(elem, tabsSelector);
     if (!tabsEl) {
       console.log("koForm: Attempting to add tab without an existing tabs container");
@@ -1137,7 +921,7 @@ function _addTab(tabsSelector, labelElem, contentElem) {
     var labels = tabsEl.firstChild;
     var container = tabsEl.lastChild;
     var index = labels.childNodes.length;
-    var isSelected = ko.computed(function() { return selectedTab() === index; });
+    var isSelected = ko.computed(function () { return selectedTab() === index; });
 
     // These methods are indended to be used as arguments to dom() function, so they return a
     // function that should be applied to the target element.
