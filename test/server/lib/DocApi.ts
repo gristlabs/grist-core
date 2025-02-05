@@ -137,7 +137,8 @@ describe('DocApi', function () {
     setup('merged', async () => {
       const additionalEnvConfiguration = {
         ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-        GRIST_DATA_DIR: dataDir
+        GRIST_DATA_DIR: dataDir,
+        GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
       homeUrl = serverUrl = home.serverUrl;
@@ -151,7 +152,8 @@ describe('DocApi', function () {
       const additionalEnvConfiguration = {
         ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
         GRIST_DATA_DIR: dataDir,
-        GRIST_ANON_PLAYGROUND: 'false'
+        GRIST_ANON_PLAYGROUND: 'false',
+        GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
       homeUrl = serverUrl = home.serverUrl;
@@ -171,7 +173,8 @@ describe('DocApi', function () {
       setup('separated', async () => {
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-          GRIST_DATA_DIR: dataDir
+          GRIST_DATA_DIR: dataDir,
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
         };
 
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
@@ -199,6 +202,7 @@ describe('DocApi', function () {
           GRIST_ORG_IN_PATH: 'true',
           GRIST_SINGLE_PORT: '0',
           APP_HOME_INTERNAL_URL: withAppHomeInternalUrl ? home.serverUrl : '',
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
         };
 
         await home.start(home.serverUrl, additionalEnvConfiguration);
@@ -287,7 +291,8 @@ describe('DocApi', function () {
       setup('docs', async () => {
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-          GRIST_DATA_DIR: dataDir
+          GRIST_DATA_DIR: dataDir,
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
         };
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
         homeUrl = home.serverUrl;
@@ -2738,6 +2743,67 @@ function testDocApi(settings: {
       await checkAttachmentIds([]);
     });
 
+    describe("external attachment stores", async () => {
+      let docId = "";
+      let docUrl = "";
+
+      before(async () => {
+        const wid = await getWorkspaceId(userApi, 'Private');
+        docId = await userApi.newDoc({name: 'TestDocExternalAttachments'}, wid);
+        docUrl = `${serverUrl}/api/docs/${docId}`;
+
+        const formData = new FormData();
+        formData.append('upload', 'foobar', "hello.doc");
+        formData.append('upload', '123456', "world.jpg");
+        formData.append('upload', 'foobar', "hello2.doc");
+        const resp = await axios.post(`${docUrl}/attachments`, formData,
+          defaultsDeep({headers: formData.getHeaders()}, chimpy));
+        assert.equal(resp.status, 200);
+        assert.deepEqual(resp.data, [1, 2, 3]);
+      });
+
+      after(async () => {
+        await userApi?.deleteDoc(docId);
+      });
+
+      it("GET /docs/{did}/attachments/transferStatus reports idle transfer status", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/transferStatus`, chimpy);
+        assert.deepEqual(resp.data, {
+          status: {
+            pendingTransferCount: 0,
+            isRunning: false,
+          },
+          locationSummary: "internal",
+        });
+      });
+
+      it("GET /docs/{did}/attachments/store gets the external store", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/store`, chimpy);
+        assert.equal(resp.data.type, 'internal');
+      });
+
+      it("POST /docs/{did}/attachments/store sets the external store", async function () {
+        const postResp = await axios.post(`${docUrl}/attachments/store`, {
+          type: 'external',
+        }, chimpy);
+        assert.equal(postResp.status, 200, JSON.stringify(postResp.data));
+
+        const getResp = await axios.get(`${docUrl}/attachments/store`, chimpy);
+        assert.equal(getResp.data.type, 'external');
+      });
+
+      it("POST /docs/{did}/attachments/transferAll transfers all attachments", async function () {
+        const transferResp = await axios.post(`${docUrl}/attachments/transferAll`, {}, chimpy);
+
+        assert.deepEqual(transferResp.data, {
+          status: {
+            pendingTransferCount: 2,
+            isRunning: true,
+          },
+          locationSummary: "internal",
+        });
+      });
+    });
   });
 
   it("GET /docs/{did}/download serves document", async function () {

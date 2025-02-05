@@ -53,7 +53,8 @@ export class Gristifier {
     // Open the file as an empty Grist document, creating Grist metadata
     // tables.
     const docManager = new DocManager(
-      new TrivialDocStorageManager(), null, null, new AttachmentStoreProvider([], ""), createDummyGristServer()
+      new TrivialDocStorageManager(), null, null,
+      new AttachmentStoreProvider([], ""), createDummyGristServer()
     );
     const activeDoc = new ActiveDoc(docManager, this._filename);
     const docSession = makeExceptionalDocSession('system');

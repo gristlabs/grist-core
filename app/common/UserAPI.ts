@@ -25,6 +25,7 @@ import {
 import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
 import { AxiosProgressEvent } from 'axios';
 import omitBy from 'lodash/omitBy';
+import {StringUnion} from 'app/common/StringUnion';
 
 
 export type {FullUser, UserProfile};
@@ -480,6 +481,11 @@ interface GetRowsParams {
 interface SqlResult extends TableRecordValuesWithoutIds {
   statement: string;
 }
+
+export const DocAttachmentsLocation = StringUnion(
+  "none", "internal", "mixed", "external"
+);
+export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 
 /**
  * Collect endpoints related to the content of a single document that we've been thinking

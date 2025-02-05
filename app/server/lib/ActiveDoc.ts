@@ -286,7 +286,7 @@ export class ActiveDoc extends EventEmitter {
   constructor(
     private readonly _docManager: DocManager,
     private _docName: string,
-    externalAttachmentStoreProvider?: IAttachmentStoreProvider,
+    private _attachmentStoreProvider?: IAttachmentStoreProvider,
     private _options?: ICreateActiveDocOptions
   ) {
     super();
@@ -392,11 +392,11 @@ export class ActiveDoc extends EventEmitter {
       loadTable: this._rawPyCall.bind(this, 'load_table'),
     });
 
-    // This will throw errors if _options?.doc or externalAttachmentStoreProvider aren't provided,
+    // This will throw errors if _options?.doc or _attachmentStoreProvider aren't provided,
     // and ActiveDoc tries to use an external attachment store.
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
-      externalAttachmentStoreProvider,
+      _attachmentStoreProvider,
       _options?.doc,
     );
 
@@ -871,8 +871,12 @@ export class ActiveDoc extends EventEmitter {
           }
         }
       );
-      const userActions: UserAction[] = await Promise.all(
-        upload.files.map(file => this._prepAttachment(docSession, file)));
+      const userActions: UserAction[] = [];
+      // Process uploads sequentially to reduce risk of race conditions.
+      // Minimal performance impact due to the main async operation being serialized SQL queries.
+      for (const file of upload.files) {
+        userActions.push(await this._prepAttachment(docSession, file));
+      }
       const result = await this._applyUserActionsWithExtendedOptions(docSession, userActions, {
         attachment: true,
       });
@@ -943,6 +947,57 @@ export class ActiveDoc extends EventEmitter {
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
+  }
+
+  @ActiveDoc.keepDocOpen
+  public async startTransferringAllAttachmentsToDefaultStore() {
+    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    // If no attachment store is set on the doc, it should transfer everything to internal storage
+    await this._attachmentFileManager.startTransferringAllFilesToOtherStore(attachmentStoreId);
+  }
+
+  /**
+   * Returns a summary of pending attachment transfers between attachment stores.
+   */
+  public attachmentTransferStatus() {
+    return this._attachmentFileManager.transferStatus();
+  }
+
+  /**
+   * Returns a summary of where attachments on this doc are stored.
+   */
+  public async attachmentLocationSummary() {
+    return await this._attachmentFileManager.locationSummary();
+  }
+
+  /*
+   * Wait for all attachment transfers to be finished, keeping the doc open
+   * for as long as possible.
+   */
+  @ActiveDoc.keepDocOpen
+  public async allAttachmentTransfersCompleted() {
+      await this._attachmentFileManager.allTransfersCompleted();
+  }
+
+
+  public async setAttachmentStore(docSession: OptDocSession, id: string | undefined): Promise<void> {
+    const docSettings = await this._getDocumentSettings();
+    docSettings.attachmentStoreId = id;
+    await this._updateDocumentSettings(docSession, docSettings);
+  }
+
+  /**
+   * Sets the document attachment store using the store's label.
+   * This avoids needing to know the exact store ID, which can be challenging to calculate in all
+   * the places we might want to set the store.
+   */
+  public async setAttachmentStoreFromLabel(docSession: OptDocSession, label: string | undefined): Promise<void> {
+    const id = label === undefined ? undefined : this._attachmentStoreProvider?.getStoreIdFromLabel(label);
+    return this.setAttachmentStore(docSession, id);
+  }
+
+  public async getAttachmentStore(): Promise<string | undefined> {
+    return (await this._getDocumentSettings()).attachmentStoreId;
   }
 
   /**
@@ -2857,13 +2912,22 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _getDocumentSettings(): Promise<DocumentSettings> {
-    const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo');
-    const docSettingsString = docInfo?.documentSettings;
-    const docSettings = docSettingsString ? safeJsonParse(docSettingsString, undefined) : undefined;
+    const docSettings = this.docData?.docSettings();
     if (!docSettings) {
       throw new Error("No document settings found");
     }
     return docSettings;
+  }
+
+  private async _updateDocumentSettings(docSessions: OptDocSession, settings: DocumentSettings): Promise<void> {
+    const docInfo = this.docData?.docInfo();
+    if (!docInfo) {
+      throw new Error("No document info found");
+    }
+    await this.applyUserActions(docSessions, [
+      // Use docInfo.id to avoid hard-coding a reference to a specific row id, in case it changes.
+      ["UpdateRecord", "_grist_DocInfo", docInfo.id, { documentSettings: JSON.stringify(settings) }]
+    ]);
   }
 
   private async _makeEngine(): Promise<ISandbox> {
