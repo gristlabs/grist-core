@@ -23,9 +23,10 @@ import {
   WebhookUpdate
 } from 'app/common/Triggers';
 import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
-import { AxiosProgressEvent } from 'axios';
-import omitBy from 'lodash/omitBy';
 import {StringUnion} from 'app/common/StringUnion';
+import {AttachmentStore} from 'app/plugin/DocApiTypes';
+import {AxiosProgressEvent} from 'axios';
+import omitBy from 'lodash/omitBy';
 
 
 export type {FullUser, UserProfile};
@@ -573,8 +574,14 @@ export interface DocAPI {
    * Returns the status of the attachment transfer.
    */
   getAttachmentTransferStatus(): Promise<AttachmentTransferStatus>;
-  getAttachmentLocationSummary(): Promise<AttachmentLocationSummary>;
-  listAllAttachmentStoreIds(): Promise<string[]>;
+  /**
+   * Retries type of attachment storage used by the document.
+   */
+  getAttachmentStore(): Promise<{type: AttachmentStore}>;
+  /**
+   * Sets the attachment storage used by the document.
+   */
+  setAttachmentStore(type: AttachmentStore): Promise<void>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1227,12 +1234,15 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/attachments/transferStatus`);
   }
 
-  public async getAttachmentLocationSummary(): Promise<AttachmentLocationSummary> {
-    return this.requestJson(`${this._url}/attachments/locationSummary`);
+  public async getAttachmentStore(): Promise<{type: AttachmentStore}> {
+    return this.requestJson(`${this._url}/attachments/store`);
   }
 
-  public async listAllAttachmentStoreIds(): Promise<string[]> {
-    return this.requestJson(`${this._url}/attachments/listAllStoreIds`);
+  public async setAttachmentStore(type: AttachmentStore): Promise<void> {
+    await this.request(`${this._url}/attachments/store`, {
+      method: 'POST',
+      body: JSON.stringify({type}),
+    });
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {
@@ -1252,11 +1262,9 @@ export interface AttachmentTransferStatus {
     pendingTransferCount: number;
     isRunning: boolean;
   };
+  locationSummary: DocAttachmentsLocation;
 }
 
-export interface AttachmentLocationSummary {
-  summary: 'INTERNAL'|'EXTERNAL'|'MIXED';
-}
 
 /**
  * Represents information to build public doc worker url.
