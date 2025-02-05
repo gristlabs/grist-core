@@ -30,7 +30,13 @@ import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
-import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, DocumentType} from 'app/common/UserAPI';
+import {
+  AttachmentTransferStatus,
+  DOCTYPE_NORMAL,
+  DOCTYPE_TEMPLATE,
+  DOCTYPE_TUTORIAL,
+  DocumentType
+} from 'app/common/UserAPI';
 import {
   Computed,
   Disposable,
@@ -42,8 +48,6 @@ import {
   Observable,
   styled
 } from 'grainjs';
-import {AttachmentLocationSummary, AttachmentTransferStatus} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
 import * as moment from 'moment-timezone';
 
 const t = makeT('DocumentSettings');
@@ -70,6 +74,7 @@ export class DocSettingsPage extends Disposable {
   }
 
   public buildDom() {
+    const INTERNAL = 'internal', EXTERNAL = 'external';
     const canChangeEngine = getSupportedEngineChoices().length > 0;
     const docPageModel = this._gristDoc.docPageModel;
     const isTimingOn = this._gristDoc.isTimingOn;
@@ -77,38 +82,31 @@ export class DocSettingsPage extends Disposable {
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
     const storageType = Computed.create(this, use => {
       const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
-      return id ? 'EXTERNAL' : 'INTERNAL';
+      return id ? EXTERNAL : INTERNAL;
     });
     storageType.onWrite(async (val) => {
-      if (val === 'EXTERNAL') {
-        if (stores.get().length === 0) {
-          throw new Error("No external stores available");
-        }
-        await this._docInfo.attachmentStoreId.setAndSave(stores.get()[0]);
-      } else {
-        await this._docInfo.attachmentStoreId.setAndSave(undefined);
-      }
+      await this._gristDoc.docApi.setAttachmentStore(val);
     });
-    const storageOptions = [{value: 'INTERNAL', label: 'Internal'}, {value: 'EXTERNAL', label: 'External'}];
+    const storageOptions = [{value: INTERNAL, label: 'Internal'}, {value: EXTERNAL, label: 'External'}];
 
     const transferStatus = Observable.create<AttachmentTransferStatus|null>(this, null);
-    const locationSummary = Observable.create<Partial<AttachmentLocationSummary>>(this, {});
+    const locationSummary = Computed.create(this, use => use(transferStatus)?.locationSummary || null);
 
     const inProgress = Computed.create(this, use => !!use(transferStatus)?.status.isRunning);
     const allInCurrent = Computed.create(this, use => {
-      const {summary} = use(locationSummary);
+      const summary = use(locationSummary);
       const current = use(storageType);
       return summary && summary === current;
     });
-    const stores = Observable.create(this, [] as string[]);
+    const stores = Observable.create(this, [INTERNAL, EXTERNAL] as string[]);
 
     const stillInternal = Computed.create(this, use => {
-      const currentExternal = use(storageType) === 'EXTERNAL';
+      const currentExternal = use(storageType) === EXTERNAL;
       return currentExternal && (use(inProgress) || !use(allInCurrent));
     });
 
     const stillExternal = Computed.create(this, use => {
-      const currentInternal = use(storageType) === 'INTERNAL';
+      const currentInternal = use(storageType) === INTERNAL;
       return currentInternal && (use(inProgress) || !use(allInCurrent));
     });
 
@@ -117,17 +115,6 @@ export class DocSettingsPage extends Disposable {
       transferStatus.set(s);
     });
 
-    const refreshLocationSummary = () => this._gristDoc.docApi.getAttachmentLocationSummary().then(s => {
-      if (this.isDisposed()) { return; }
-      locationSummary.set(s);
-    });
-
-    const refreshStoreIds = async () => {
-      const list = await this._gristDoc.docApi.listAllAttachmentStoreIds();
-      if (this.isDisposed()) { return; }
-      stores.set(list);
-    };
-
     const beginTransfer = async () => {
       await this._gristDoc.docApi.transferAllAttachments();
       await refreshStatus();
@@ -135,8 +122,7 @@ export class DocSettingsPage extends Disposable {
 
     const attachmentsReady = Observable.create(this, false);
     refreshStatus()
-      .then(refreshLocationSummary)
-      .then(refreshStoreIds)
+      .then(refreshStatus)
       .then(() => attachmentsReady.set(true))
       .catch(reportError);
 
@@ -146,7 +132,6 @@ export class DocSettingsPage extends Disposable {
         try {
           if (inProgress.get()) {
             await refreshStatus();
-            await refreshLocationSummary();
             console.log(transferStatus.get());
           }
           await new Promise(resolve => setTimeout(resolve, 1000));
