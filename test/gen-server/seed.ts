@@ -582,7 +582,7 @@ export async function removeConnection() {
   }
 }
 
-export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean = true) {
+export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean|'migrateOnly' = true) {
   // In jenkins tests, we may want to reset the database to a clean
   // state.  If so, TEST_CLEAN_DATABASE will have been set.  How to
   // clean the database depends on what kind of database it is.  With
@@ -622,7 +622,9 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
   // Finally - actually initialize the database.
   if (migrateAndSeedData) {
     await updateDb(connection);
-    await addSeedData(connection);
+    if (migrateAndSeedData !== 'migrateOnly') {
+      await addSeedData(connection);
+    }
   }
 }
 

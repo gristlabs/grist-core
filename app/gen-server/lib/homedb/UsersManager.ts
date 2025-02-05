@@ -27,7 +27,7 @@ import { Pref } from 'app/gen-server/entity/Pref';
 import flatten from 'lodash/flatten';
 import { EntityManager } from 'typeorm';
 
-// A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
+// A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
   envVar: 'GRIST_SUPPORT_EMAIL',
   defaultValue: 'support@getgrist.com',

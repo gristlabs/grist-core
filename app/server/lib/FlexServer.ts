@@ -1950,6 +1950,9 @@ export class FlexServer implements GristServer {
 
     const configBackendAPI = new ConfigBackendAPI();
     configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
+
+    // Some configurations may add extra endpoints. This seems a fine time to add them.
+    this.create.addExtraHomeEndpoints(this, this.app);
   }
 
   // Get the HTML template sent for document pages.

@@ -4338,31 +4338,17 @@ export class HomeDBManager extends EventEmitter {
           // didn't, we'd need to use distinct parameter names, since
           // we may include this code with different user ids in the
           // same query
-          cond = cond.where(`gu0.user_id = ${users}`);
-          cond = cond.orWhere(`gu1.user_id = ${users}`);
-          cond = cond.orWhere(`gu2.user_id = ${users}`);
-          cond = cond.orWhere(`gu3.user_id = ${users}`);
+          cond = cond.where(`${users} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
           // Support the special "everyone" user.
-          const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
-          if (everyoneId === undefined) {
-            throw new Error("Special user id for EVERYONE_EMAIL not found");
-          }
-          cond = cond.orWhere(`gu0.user_id = ${everyoneId}`);
-          cond = cond.orWhere(`gu1.user_id = ${everyoneId}`);
-          cond = cond.orWhere(`gu2.user_id = ${everyoneId}`);
-          cond = cond.orWhere(`gu3.user_id = ${everyoneId}`);
+          const everyoneId = this._usersManager.getEveryoneUserId();
+          cond = cond.orWhere(`${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
           if (accessStyle === 'list') {
             // Support also the special anonymous user.  Currently, by convention, sharing a
             // resource with anonymous should make it listable.
-            const anonId = this._usersManager.getSpecialUserId(ANONYMOUS_USER_EMAIL);
-            if (anonId === undefined) {
-              throw new Error("Special user id for ANONYMOUS_USER_EMAIL not found");
-            }
-            cond = cond.orWhere(`gu0.user_id = ${anonId}`);
-            cond = cond.orWhere(`gu1.user_id = ${anonId}`);
-            cond = cond.orWhere(`gu2.user_id = ${anonId}`);
-            cond = cond.orWhere(`gu3.user_id = ${anonId}`);
+            const anonId = this._usersManager.getAnonymousUserId();
+            cond = cond.orWhere(`${anonId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
           }
+
           // Add an exception for the previewer user, if present.
           const previewerId = this._usersManager.getSpecialUserId(PREVIEWER_EMAIL);
           if (users === previewerId) {
@@ -4371,10 +4357,7 @@ export class HomeDBManager extends EventEmitter {
                                 {permission: Permissions.VIEW});
           }
         } else {
-          cond = cond.where('gu0.user_id = profiles.id');
-          cond = cond.orWhere('gu1.user_id = profiles.id');
-          cond = cond.orWhere('gu2.user_id = profiles.id');
-          cond = cond.orWhere('gu3.user_id = profiles.id');
+          cond = cond.where(`profiles.id IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
         }
         return cond;
       }));
@@ -4398,6 +4381,14 @@ export class HomeDBManager extends EventEmitter {
       }
     }
     // join the relevant groups and subgroups
+    return this._joinToAllGroupUsers(qb);
+  }
+
+  // Takes a query that includes 'acl_rules' and joins it to all group_users records that are
+  // connected to it directly or via subgroups.
+  // Public for limited use by extensions of HomeDBManager in some flavors of Grist.
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  public _joinToAllGroupUsers<T>(qb: SelectQueryBuilder<T>): SelectQueryBuilder<T> {
     return qb
       .leftJoin('group_groups', 'gg1', 'gg1.group_id = acl_rules.group_id')
       .leftJoin('group_groups', 'gg2', 'gg2.group_id = gg1.subgroup_id')

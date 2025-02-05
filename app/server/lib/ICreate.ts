@@ -17,6 +17,7 @@ import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
+import {Express} from 'express';
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -84,6 +85,8 @@ export interface ICreate {
   getSandboxVariants?(): Record<string, SpawnFn>;
 
   getLoginSystem(): Promise<GristLoginSystem>;
+
+  addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
 }
 
 export interface ICreateActiveDocOptions {
@@ -189,4 +192,5 @@ export class BaseCreate implements ICreate {
   public async createHostedDocStorageManager(...args: ConstructorParameters<typeof HostedStorageManager>) {
     return new HostedStorageManager(...args);
   }
+  public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
 }
