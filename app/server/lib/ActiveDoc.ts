@@ -1934,6 +1934,14 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
+  public async sendAttachmentTransferStatusNotification() {
+    await this.docClients.broadcastDocMessage(null, 'docChatter', {
+      attachmentTransfer: {
+        ...this.attachmentTransferStatus(),
+      },
+    });
+  }
+
   public async sendTimingsNotification() {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
       timing: {
