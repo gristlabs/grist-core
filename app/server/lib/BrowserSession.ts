@@ -230,7 +230,7 @@ export class ScopedSession {
    */
   public async operateOnScopedSession(req: Request, op: (user: SessionUserObj) =>
                                       Promise<SessionUserObj>): Promise<[SessionUserObj, SessionUserObj]> {
-    const session = await this._getSession();
+    const session = await this._getSession(req);
     const user = await this.getScopedSession(session);
     const oldUser = JSON.parse(JSON.stringify(user));            // Old version to compare against.
     const newUser = await op(JSON.parse(JSON.stringify(user)));  // Modify a scratch version.
@@ -247,7 +247,7 @@ export class ScopedSession {
    * @param prev: if supplied, this session object is used rather than querying the session again.
    */
   public async clearScopedSession(req: Request, prev?: SessionObj): Promise<void> {
-    const session = prev || await this._getSession();
+    const session = prev || await this._getSession(req);
     this._clearUser(session);
     await this._setSession(req, session);
   }
@@ -259,9 +259,10 @@ export class ScopedSession {
   /**
    * Read the state of the session.
    */
-  private async _getSession(): Promise<SessionObj> {
+  private async _getSession(req?: Request): Promise<SessionObj> {
     if (this._sessionCache) { return this._sessionCache; }
-    const session = ((await this._sessionStore.getAsync(this._sessionId)) || {}) as SessionObj;
+    const reqSession = (req as any)?.session;
+    const session = ((await this._sessionStore.getAsync(this._sessionId)) || reqSession || {}) as SessionObj;
     if (!this._live) { this._sessionCache = session; }
     this._altSessionId = session.altSessionId;
     return session;
@@ -303,7 +304,7 @@ export class ScopedSession {
       throw new Error("Profile has no email address");
     }
 
-    const session = prev || await this._getSession();
+    const session = prev || await this._getSession(req);
     if (!session.users) { session.users = []; }
     if (!session.orgToUser) { session.orgToUser = {}; }
     let index = session.users.findIndex(u => {

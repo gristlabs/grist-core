@@ -161,17 +161,10 @@ export class SamlConfig {
 
     // Assert endpoint for when the login completes as POST.
     app.post("/saml/assert", express.urlencoded({extended: true}), expressWrap(async (req, res, next) => {
-      const relayState: string = req.body.RelayState;
-      if (!relayState) { throw new Error('Login or logout failed to complete'); }
-      const permitStore = this._gristServer.getExternalPermitStore();
-      const state = await permitStore.getPermit(relayState);
-      if (!state) { throw new Error('Login or logout is stale'); }
-      await permitStore.removePermit(relayState);
-
-      const redirectUrl = state.url!;
-      const samlResponse: any = await fromCallback((cb) => sp.post_assert(idp, {request_body: req.body}, cb));
-
-      if (state.action === 'login') {
+      const {redirectUrl, sessionId, unsolicited, action} = await this._processInitialRequest(req);
+      if (action === 'login') {
+        const samlResponse: saml2.SAMLAssertResponse =
+          await fromCallback((cb) => sp.post_assert(idp, { request_body: req.body }, cb));
         const samlUser = samlResponse.user;
         if (!samlUser || !samlUser.name_id) {
           log.warn(`SamlConfig: bad SAML response: ${JSON.stringify(samlUser)}`);
@@ -181,9 +174,9 @@ export class SamlConfig {
         // An example IdP response is at https://github.com/Clever/saml2#assert_response. Saml2-js
         // maps some standard attributes as user.given_name, user.surname, which we use if
         // available. Otherwise we use user.attributes which has the form {Name: [Value]}.
-        const fname = samlUser.given_name || samlUser.attributes.FirstName || '';
-        const lname = samlUser.surname || samlUser.attributes.LastName || '';
-        const email = samlUser.email || samlUser.name_id;
+        const fname = (samlUser as any).given_name || samlUser.attributes?.FirstName || '';
+        const lname = (samlUser as any).surname || samlUser.attributes?.LastName || '';
+        const email = (samlUser as any).email || samlUser.name_id;
         const profile = {
           email,
           name: `${fname} ${lname}`.trim(),
@@ -191,9 +184,10 @@ export class SamlConfig {
 
         const samlSessionIndex = samlUser.session_index;
         const samlNameId = samlUser.name_id;
-        log.info(`SamlConfig: got SAML response for ${profile.email} (${profile.name}) redirecting to ${redirectUrl}`);
+        log.info(`SamlConfig: got SAML response${unsolicited ? ' (unsolicited)' : ''} for ` +
+          `${profile.email} (${profile.name}) redirecting to ${redirectUrl}`);
 
-        const scopedSession = sessions.getOrCreateSessionFromRequest(req, {sessionId: state.sessionId});
+        const scopedSession = sessions.getOrCreateSessionFromRequest(req, {sessionId});
         await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
           profile,
           samlSessionIndex,
@@ -202,6 +196,44 @@ export class SamlConfig {
       }
       res.redirect(redirectUrl);
     }));
+  }
+
+  private async _processInitialRequest(req: express.Request) {
+    const relayState: string = req.body.RelayState;
+    const sessionId = this._gristServer.getSessions().getSessionIdFromRequest(req) || undefined;
+    const params = {
+      sessionId,
+      redirectUrl: "",
+      unsolicited: true,
+      action: "",
+    };
+
+    if (!relayState) {
+      // Presumably an IdP-inititated signin.
+      params.redirectUrl = getOriginUrl(req);
+      params.action = "login";
+      return params;
+    }
+
+    const permitStore = this._gristServer.getExternalPermitStore();
+    const state = await permitStore.getPermit(relayState);
+    if (!state) {
+      // Presumably an IdP-inititated signin without a permit, but
+      // let's check to see if it has a redirect URL.
+      params.redirectUrl = checkRedirectUrl(relayState, req).href;
+      params.action = "login";
+      return params;
+    }
+
+    params.unsolicited = false;
+
+    await permitStore.removePermit(relayState);
+    // Trust this URL because it could only have come from us (i.e. we should've checked it
+    // earlier if it was untrusted).
+    params.redirectUrl = state.url!;
+    params.sessionId = state.sessionId;
+    params.action = state.action || "";
+    return params;
   }
 
   /**
@@ -235,6 +267,20 @@ export class SamlConfig {
     const permit = await permitStore.setPermit(state, options.waitMinutes * 60 * 1000);
     return { permit, samlNameId, samlSessionIndex };
   }
+}
+
+function checkRedirectUrl(untrustedUrl: string, req: express.Request): URL {
+  const originUrl = new URL(getOriginUrl(req));
+  try {
+    const url = new URL(untrustedUrl);
+    if (url.origin !== originUrl.origin) {
+      throw new Error("unexpected origin");
+    }
+    return url;
+  } catch (e) {
+    log.warn(`SamlConfig: ignoring invalid redirect URL: ${e.message}`);
+  }
+  return originUrl;
 }
 
 /**
