@@ -71,12 +71,12 @@ describe('UsersManager', function () {
       const idxIterator = makeUserIdIterator();
       for (const [idx, resource] of resources.entries()) {
         const aclRule = new AclRuleOrg();
-        const group = new Group();
-        if (makeResourceGrpName) {
-          group.name = makeResourceGrpName(idx);
-        }
         const members = makeUsers(nbUsersByResource, idxIterator);
-        group.memberUsers = members;
+        const group = Group.create({
+          name: makeResourceGrpName?.(idx),
+          type: Group.ROLE_TYPE,
+          memberUsers: members
+        });
         aclRule.group = group;
         resource.aclRules = [
           aclRule
@@ -149,13 +149,12 @@ describe('UsersManager', function () {
         const entries = Object.entries(groupDefinition) as [NonGuestGroup['name'], User[] | undefined][];
 
         return entries.map(([groupName, users], index) => {
-          const group = new Group() as NonGuestGroup;
-          group.id = index;
-          group.name = groupName;
-          if (users) {
-            group.memberUsers = users;
-          }
-          return group;
+          return Group.create({
+            id: index,
+            name: groupName,
+            type: Group.ROLE_TYPE,
+            memberUsers: users,
+          }) as NonGuestGroup;
         });
       }
 

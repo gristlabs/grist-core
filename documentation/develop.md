@@ -122,12 +122,16 @@ You may run the tests using one of these commands:
  - `yarn test:docker` to run some end-to-end tests under docker
  - `yarn test:python` to run the data engine tests
 
-Also some options that may interest you:
+Also some options that may interest you, especially in order to troubleshoot:
  - `GREP_TESTS="pattern"` in order to filter the tests to run, for example: `GREP_TESTS="Boot" yarn test:nbrowser`
  - `VERBOSE=1` in order to view logs when a server is spawned (especially useful to debug the end-to-end and backend tests)
  - `SERVER_NODE_OPTIONS="node options"` in order to pass options to the server being tested,
    for example: `SERVER_NODE_OPTIONS="--inspect --inspect-brk" GREP_TESTS="Boot" yarn test:nbrowser` 
    to run the tests with the debugger (you should close the debugger each time the node process should stop)
+ - `TYPEORM_DATABASE=/path/to/test-database.sqlite` (adapt the path to wherever you want the file to be created) in order to
+   debug tests implying a database. You may then inspect the database using the `sqlite3` command.
+ - `TYPEORM_LOGGING=true` to print every SQL commands during the tests
+
 
 ## Develop widgets
 
