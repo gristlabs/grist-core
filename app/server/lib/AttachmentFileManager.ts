@@ -246,6 +246,10 @@ export class AttachmentFileManager {
         for (const [fileIdent, targetStoreId] of this._pendingFileTransfers.entries()) {
           try {
             await this.transferFileToOtherStore(fileIdent, targetStoreId);
+            // This is exposed just for testing, to allow for a delay between transfers.
+            if (process.env.GRIST_TEST_TRANSFER_DELAY) {
+              await new Promise(resolve => setTimeout(resolve, Number(process.env.GRIST_TEST_TRANSFER_DELAY)));
+            }
           } catch (e) {
             this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
           } finally {

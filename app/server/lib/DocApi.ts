@@ -48,6 +48,7 @@ import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
+  getConfiguredAttachmentStoreConfigs,
   getConfiguredStandardAttachmentStore,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
@@ -570,6 +571,14 @@ export class DocWorkerApi {
         res.json({
           store: await activeDoc.getAttachmentStore()
         });
+      })
+    );
+
+    this._app.get('/api/docs/:docId/attachments/stores', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        const configs = await getConfiguredAttachmentStoreConfigs();
+        const labels = configs.map(c => ({label: c.label}));
+        res.json(labels);
       })
     );
 

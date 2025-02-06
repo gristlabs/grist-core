@@ -139,7 +139,9 @@ export async function makeTempFilesystemStoreSpec(
   name: string = "filesystem"
 ) {
   const tempFolder = await tmp.dir();
-  const tempDir = await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
+  const tempDir = process.env.GRIST_TEST_ATTACHMENTS_DIR ||
+    await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
+
   return {
     rootDirectory: tempDir,
     name,

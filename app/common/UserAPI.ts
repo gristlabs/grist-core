@@ -582,6 +582,12 @@ export interface DocAPI {
    * Sets the attachment storage used by the document.
    */
   setAttachmentStore(type: AttachmentStore): Promise<void>;
+
+  /**
+   * Lists available external attachment stores. For now it contains at most one store.
+   * If there is one store available it means that external storage is configured and can be used by this document.
+   */
+  getAttachmentStores(): Promise<Array<{label: string}>>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1236,6 +1242,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async getAttachmentStore(): Promise<{type: AttachmentStore}> {
     return this.requestJson(`${this._url}/attachments/store`);
+  }
+
+  public async getAttachmentStores(): Promise<Array<{label: string}>> {
+    return this.requestJson(`${this._url}/attachments/stores`);
   }
 
   public async setAttachmentStore(type: AttachmentStore): Promise<void> {
