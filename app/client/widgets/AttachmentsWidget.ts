@@ -213,6 +213,17 @@ const cssAttachmentIcon = styled('div', `
   .${cssAttachmentWidget.className}:hover &-hover {
     display: inline;
   }
+
+  &::before {
+    display: block;
+    background-color: var(--grist-control-bg, --grist-theme-text, black);
+    content: ' ';
+    mask-image: var(--icon-FieldAttachment);
+    width: 14px;
+    height: 14px;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
 `);
 
 const cssAttachmentPreview = styled('div', `
@@ -253,15 +264,4 @@ const cssFileType = styled('div', `
   &-small { font-size: ${vars.xxsmallFontSize}; }
   &-medium { font-size: ${vars.smallFontSize}; }
   &-large { font-size: ${vars.mediumFontSize}; }
-
-  &::before {
-    display: block;
-    background-color: var(--grist-control-bg, --grist-theme-text, black);
-    content: ' ';
-    mask-image: var(--icon-FieldAttachment);
-    width: 14px;
-    height: 14px;
-    mask-size: contain;
-    mask-repeat: no-repeat;
-  }
 `);
