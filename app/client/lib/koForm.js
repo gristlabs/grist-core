@@ -465,12 +465,12 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
           kd.cssClass(options.itemClass),
           (options.drag_indicator ?
            (typeof options.drag_indicator === 'boolean' ?
-            dom('span.kf_drag_indicator.icon-dragdrop') :
+            dom('span.kf_drag_indicator.kf_draggable__icon.icon-dragdrop') :
             options.drag_indicator()
            ) : null),
           kd.domData('model', item),
           kd.maybe(removeFunc !== undefined && options.removeButton, function() {
-            return dom('span.drag_delete.icon-remove',
+            return dom('span.drag_delete.kf_draggable__icon.icon-remove',
               dom.on('click', function() {
                 removeFunc(item)
                 .catch(function(err) {
