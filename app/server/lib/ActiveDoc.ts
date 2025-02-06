@@ -2170,6 +2170,9 @@ export class ActiveDoc extends EventEmitter {
     };
 
     try {
+      await safeCallAndWait('attachmentFileManager',
+        this._attachmentFileManager.shutdown.bind(this._attachmentFileManager));
+
       this.setMuted();
       this._inactivityTimer.disable();
       if (this.docClients.clientCount() > 0) {
