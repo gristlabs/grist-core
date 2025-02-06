@@ -184,6 +184,11 @@ WORKDIR /grist
 # using the punycode functionality that may be removed in future
 # versions of node.
 #
+# "NODE_ENV=production" gives ActiveDoc operations more time to
+# complete, and the express webserver also does some streamlining
+# with this setting. If you don't want these, set NODE_ENV to
+# development.
+#
 ENV \
   PYTHON_VERSION_ON_CREATION=3 \
   GRIST_ORG_IN_PATH=true \
@@ -196,6 +201,7 @@ ENV \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
   GRIST_SANDBOX_FLAVOR=unsandboxed \
   NODE_OPTIONS="--no-deprecation" \
+  NODE_ENV=production \
   TYPEORM_DATABASE=/persist/home.sqlite3
 
 EXPOSE 8484
