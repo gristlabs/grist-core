@@ -4064,41 +4064,6 @@ export function buildSelectComponent(selector: string) {
   };
 }
 
-function extend(selector: string, element: WebElementPromise) {
-  return Object.assign(element, {
-    selector,
-    element() {
-      return find(selector);
-    },
-    async waitForDisplay() {
-      await waitToPass(async () => {
-        assert.isTrue(await driver.findWait(this.selector, 1000).isDisplayed());
-      });
-    },
-    async waitForNotPresent() {
-      await waitToPass(async () => {
-        assert.isFalse(await this.element().isPresent());
-      });
-    }
-  });
-}
-
-/**
- * Returns an extended WebElementPromise with additional methods.
- */
-export function find(selector: string) {
-  const element = driver.find(selector);
-  return extend(selector, element);
-}
-
-/**
- * Returns an extended WebElementPromise with additional methods.
- */
-export function findWait(selector: string, timeout: number) {
-  const element = driver.findWait(selector, timeout);
-  return extend(selector, element);
-}
-
 
 } // end of namespace gristUtils
 

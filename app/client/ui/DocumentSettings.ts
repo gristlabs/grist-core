@@ -295,11 +295,8 @@ export class DocSettingsPage extends Disposable {
       // Start polling for status updates every 1 seconds when transfer is in progress.
       while(!this.isDisposed()) {
         try {
-          if (inProgress.get()) {
-            await refreshStatus();
-            console.log(transferStatus.get());
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await refreshStatus();
+          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (err) {
           reportError(err);
           break;
