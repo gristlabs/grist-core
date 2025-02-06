@@ -185,6 +185,17 @@ div:hover > .kf_tooltip {
   color: #777777;
 }
 
+.kf_drag_indicator.icon-dragdrop::before {
+  display: block;
+  background-color: var(--grist-theme-control-secondary-fg, var(--grist-color-slate));
+  content: ' ';
+  mask-image: var(--icon-DragDrop);
+  width: 14px;
+  height: 14px;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
 .kf_draggable_content {
   display: inline-block;
   margin-left: 2px;
@@ -201,6 +212,17 @@ div:hover > .kf_tooltip {
   font-size: 1.0rem;
   margin: 2px 2px 0 0;
   color: #777777;
+}
+
+.drag_delete.icon-remove::before {
+  display: block;
+  background-color: var(--grist-theme-control-secondary-fg, var(--grist-color-slate));
+  content: ' ';
+  mask-image: var(--icon-Remove);
+  width: 14px;
+  height: 14px;
+  mask-size: contain;
+  mask-repeat: no-repeat;
 }
 
 .kf_button {

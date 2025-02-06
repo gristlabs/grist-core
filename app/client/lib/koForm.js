@@ -9,9 +9,12 @@
 // Use the browser globals in a way that allows replacing them with mocks in tests.
 var G = require('./browserGlobals').get('$', 'window', 'document');
 
+const identity = require('lodash/identity');
+const defaults = require('lodash/defaults');
 const debounce = require('lodash/debounce');
 const pick     = require('lodash/pick');
 var ko      = require('knockout');
+var Promise = require('bluebird');
 
 var gutil = require('app/common/gutil');
 
@@ -370,6 +373,219 @@ exports.collapsible = function(contentFunc, isMountedCollapsed) {
   ];
 };
 
+
+/**
+ * Creates a draggable list of rows. The contentArray argument must be an observable array.
+ * The callbackObj argument should include some or all of the following methods:
+ * reorder, remove, and receive.
+ * The reorder callback is executed if an item is dragged and dropped to a new position
+ * within the same collection or draggable container. The remove and receive callbacks
+ * are executed together only when an item from one collection is dropped on a different
+ * collection. The remove callback may be executed alone when users click on the "minus" icon
+ * for draggable items. The connectAllDraggables function must be called on draggables to
+ * enable the remove/receive operation between separate draggables.
+ *
+ * Each callback must update the respective model tied to the draggable component,
+ * or the equivalency between the UI and the observable array may be broken. When
+ * a method is implemented, but the callback cannot update the model for any reason
+ * (e.g., failure), then this failure should be communicated to the component either
+ * by throwing an Error in the callback, or by returning a rejected Promise.
+ *
+ *
+ *   reorder(item, nextItem)
+ *     @param   {Object} item     The item being relocated/moved
+ *     @param   {Object} nextItem The next item immediately following the new position,
+ *                                or null, when the item is moved to the end of the collection.
+ *   remove(item)
+ *     @param   {Object} item     The item that should be removed from the collection.
+ *     @returns {Object}          The item removed from the observable array. This
+ *                                    value is passed to the receive function as the
+ *                                    its item parameter. This value must include all the
+ *                                    necessary data required for connected draggables
+ *                                    to successfully insert the new value within their
+ *                                    respective receive functions.
+ *   receive(item, nextItem)
+ *     @param   {Object} item      The item to insert in the collection.
+ *     @param   {Object} nextItem  The next item from item's new position. This value
+ *                                 will be null when item is moved to the end of the list.
+ *
+ * @param {Array}    contentArray         KoArray of model items
+ * @param {Function} itemCreateFunc       Identical to koDom.foreach's itemCreateFunc, this
+ *                                        function is called as `itemCreateFunc(item)` for each
+ *                                        array element. Must return a single Node, or null or
+ *                                        undefined to omit that node.
+ * @param {Object}   options              An object containing the reorder, remove, receive
+ *                                        callback functions, and all other draggable configuration
+ *                                        options --
+ * @param {Boolean}  options.removeButton Controls whether the clickable remove/minus icon is
+ *                                        displayed. If true, this button triggers the remove
+ *                                        function on click.
+ * @param {String}   options.axis         Determines if the list is displayed vertically 'y' or
+ *                                        horizontally 'x'.
+ * @param {String}   options.handle       The handle of the draggable. Defaults to the element
+ *                                        itself.
+ * @param {Boolean|Function} drag_indicator Include the drag indicator. Defaults to true. Accepts
+ *                                          also a function that returns a dom element. In which
+ *                                          case, it will be used to create the drag indicator.
+ * @returns {Node} The DOM Node for the draggable container
+ */
+exports.draggableList = function(contentArray, itemCreateFunc, options) {
+  options = options || {};
+  defaults(options, {
+    removeButton: true,
+    axis: "y",
+    drag_indicator: true,
+    itemClass: 'kf_draggable__item'
+  });
+
+  var reorderFunc, removeFunc;
+  itemCreateFunc = itemCreateFunc || identity;
+  var list = dom('div.kf_drag_container',
+    function(elem) {
+      if (options.reorder) {
+        reorderFunc = Promise.method(options.reorder);
+        ko.utils.domData.set(elem, 'reorderFunc', reorderFunc);
+      }
+      if (options.remove) {
+        removeFunc = Promise.method(options.remove);
+        ko.utils.domData.set(elem, 'removeFunc', removeFunc);
+      }
+      if (options.receive) {
+        ko.utils.domData.set(elem, 'receiveFunc', Promise.method(options.receive));
+      }
+    },
+    kd.foreach(contentArray, item => {
+      var row = itemCreateFunc(item);
+      if (row) {
+        return dom('div.kf_draggable',
+          // Fix for JQueryUI bug where mousedown on draggable elements fail to blur
+          // active element. See: https://bugs.jqueryui.com/ticket/4261
+          dom.on('mousedown', () => G.document.activeElement.blur()),
+          kd.toggleClass('kf_draggable--vertical', options.axis === 'y'),
+          kd.cssClass(options.itemClass),
+          (options.drag_indicator ?
+           (typeof options.drag_indicator === 'boolean' ?
+            dom('span.kf_drag_indicator.icon-dragdrop') :
+            options.drag_indicator()
+           ) : null),
+          kd.domData('model', item),
+          kd.maybe(removeFunc !== undefined && options.removeButton, function() {
+            return dom('span.drag_delete.icon-remove',
+              dom.on('click', function() {
+                removeFunc(item)
+                .catch(function(err) {
+                  console.warn('Failed to remove item', err);
+                });
+              })
+            );
+          }),
+          dom('span.kf_draggable_content.flexauto', row));
+      } else {
+        return null;
+      }
+    })
+  );
+
+  G.$(list).sortable({
+    axis: options.axis,
+    tolerance: "pointer",
+    forcePlaceholderSize: true,
+    placeholder: 'kf_draggable__placeholder--' + (options.axis === 'x' ? 'horizontal' : 'vertical'),
+    handle: options.handle,
+  });
+  if (reorderFunc === undefined) {
+    G.$(list).sortable("option", {disabled: true});
+  }
+
+  G.$(list).on('sortstart', function(e, ui) {
+    ko.utils.domData.set(ui.item[0], 'originalParent', ui.item.parent());
+    ko.utils.domData.set(ui.item[0], 'originalPrev', ui.item.prev());
+  });
+  G.$(list).on('sortstop', function(e, ui) {
+    if (!ko.utils.domData.get(ui.item[0], 'crossedContainers')) {
+      handleReorderStop.bind(null, list).call(this, e, ui);
+    } else {
+      handleConnectedStop.call(list, e, ui);
+    }
+  });
+
+  return list;
+};
+
+function handleReorderStop(container, e, ui) {
+  var reorderFunc = ko.utils.domData.get(container, 'reorderFunc');
+  var originalPrev = ko.utils.domData.get(ui.item[0], 'originalPrev');
+  if (reorderFunc && !ui.item.prev().is(originalPrev)) {
+    var movingItem = ko.utils.domData.get(ui.item[0], 'model');
+    reorderFunc(movingItem, getNextDraggableItemModel(ui.item))
+    .catch(function(err) {
+      console.warn('Failed to reorder item', err);
+      G.$(container).sortable('cancel');
+    });
+  }
+  resetDraggedItem(ui.item[0]);
+}
+
+
+function handleConnectedStop(e, ui) {
+  var originalParent = ko.utils.domData.get(ui.item[0], 'originalParent');
+  var removeOriginal = ko.utils.domData.get(originalParent[0], 'removeFunc');
+  var receive = ko.utils.domData.get(ui.item.parent()[0], 'receiveFunc');
+
+  if (removeOriginal && receive) {
+    removeOriginal(ko.utils.domData.get(ui.item[0], 'model'))
+    .then(function(removedItem) {
+      return receive(removedItem, getNextDraggableItemModel(ui.item))
+      .then(function() {
+        ui.item.remove();
+      })
+      .catch(revertRemovedItem.bind(null, ui, originalParent, removedItem));
+    })
+    .catch(function(err) {
+      console.warn('Error removing item', err);
+      G.$(originalParent).sortable('cancel');
+    })
+    .finally(function() {
+      resetDraggedItem(ui.item[0]);
+    });
+  } else {
+    console.warn('Missing remove or receive');
+  }
+}
+
+function revertRemovedItem(ui, parent, item, err) {
+  console.warn('Error receiving item. Trying to return removed item.', err);
+  var originalReceiveFunc = ko.utils.domData.get(parent[0], 'receiveFunc');
+  if (originalReceiveFunc) {
+    var originalPrev = ko.utils.domData.get(ui.item[0], 'originalPrev');
+    var originalNextItem = originalPrev.length > 0 ?
+      getNextDraggableItemModel(originalPrev) :
+      getDraggableItemModel(parent.children('.kf_draggable').first());
+    originalReceiveFunc(item, originalNextItem)
+    .catch(function(err) {
+      console.warn('Failed to receive item in original collection.', err);
+    }).finally(function() {
+      ui.item.remove();
+    });
+  }
+}
+
+function getDraggableItemModel(elem) {
+  if (elem.length && elem.length > 0) {
+    return ko.utils.domData.get(elem[0], 'model');
+  }
+  return null;
+}
+
+function getNextDraggableItemModel(elem) {
+  return elem.next ? getDraggableItemModel(elem.next('.kf_draggable')) : null;
+}
+
+function resetDraggedItem(elem) {
+  ko.utils.domData.set(elem, 'originalPrev', null);
+  ko.utils.domData.set(elem, 'originalParent', null);
+  ko.utils.domData.set(elem, 'crossedContainers', false);
+}
 
 function enableDraggableConnection(draggable) {
   G.$(draggable).on('sortremove', function(e, ui) {
