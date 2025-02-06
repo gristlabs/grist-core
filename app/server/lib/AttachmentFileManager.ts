@@ -154,7 +154,7 @@ export class AttachmentFileManager {
 
   public async startTransferringAllFilesToOtherStore(newStoreId: AttachmentStoreId | undefined): Promise<void> {
     if (this._loopAbort.aborted) {
-      throw new Error("AttachmentFileManager was aborted");
+      throw new Error("AttachmentFileManager was shut down");
     }
     // Take a "snapshot" of the files we want to transfer, and schedule those files for transfer.
     // It's possibly that other code will modify the file statuses / list during this process.
@@ -445,17 +445,17 @@ export class AttachmentFileManager {
   // Uploads the file to an attachment store, overwriting the current DB record for the file if successful.
   private async _storeFileInAttachmentStore(
     store: IAttachmentStore, fileIdent: string, fileData: Buffer
-  ): Promise<string> {
+  ): Promise<void> {
+    if (this._loopAbort.aborted) {
+      throw new Error("AttachmentFileManager was shut down");
+    }
+
     // The underlying store should guarantee the file exists if this method doesn't error,
     // so no extra validation is needed here.
     await store.upload(this._getDocPoolId(), fileIdent, Readable.from(fileData));
 
-    this._loopAbort.throwIfAborted();
-
     // Insert (or overwrite) the entry for this file in the document database.
     await this._docStorage.attachOrUpdateFile(fileIdent, undefined, store.id);
-
-    return fileIdent;
   }
 
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<Buffer> {

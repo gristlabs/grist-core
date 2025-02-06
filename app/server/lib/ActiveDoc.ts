@@ -2170,8 +2170,6 @@ export class ActiveDoc extends EventEmitter {
     };
 
     try {
-      await safeCallAndWait('attachmentFileManager',
-        this._attachmentFileManager.shutdown.bind(this._attachmentFileManager));
 
       this.setMuted();
       this._inactivityTimer.disable();
@@ -2183,6 +2181,9 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._triggers.shutdown();
+
+      await safeCallAndWait('attachmentFileManager',
+        this._attachmentFileManager.shutdown.bind(this._attachmentFileManager));
 
       this._redisSubscriber?.quitAsync()
         .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));
