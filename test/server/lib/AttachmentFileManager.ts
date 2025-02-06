@@ -5,9 +5,14 @@ import {
   StoreNotAvailableError,
   StoresNotConfiguredError
 } from "app/server/lib/AttachmentFileManager";
-import { getDocPoolIdFromDocInfo } from "app/server/lib/AttachmentStore";
-import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { getDocPoolIdFromDocInfo, IAttachmentStore } from "app/server/lib/AttachmentStore";
+import {
+  AttachmentStoreProvider,
+  IAttachmentStoreConfig,
+  IAttachmentStoreProvider,
+} from "app/server/lib/AttachmentStoreProvider";
 import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
+import {waitForIt} from 'test/server/wait';
 import { assert } from "chai";
 import * as sinon from "sinon";
 import * as stream from "node:stream";
@@ -81,11 +86,56 @@ function createDocStorageFake(docName: string): DocStorage {
   return new DocStorageFake(docName) as unknown as DocStorage;
 }
 
+interface TestAttachmentStore extends IAttachmentStore {
+  uploads(): number;
+  finish(): void;
+}
+
+
+/** Creates a fake storage provider that doesn't finish the upload */
+export async function makeTestingControlledStore(
+  name: string = "unfinished"
+): Promise<IAttachmentStoreConfig> {
+  let resolve: () => void;
+  const createProm = () => new Promise<void>((_resolve) => { resolve = _resolve; });
+  let promise = createProm();
+  let uploads = 0;
+  const neverStore = {
+    id: name,
+    async exists() { return false; },
+    async upload() {
+      uploads++;
+      // Every time file is uploaded, we create a new promise that can be resolved to finish the upload.
+      resolve();
+      promise = createProm();
+      return promise;
+    },
+    async download() { return; },
+    async delete() { return; },
+    async removePool() { return; },
+    async close() { return; },
+    finish() { resolve(); },
+    uploads() { return uploads; },
+  };
+  return {
+    label: name,
+    spec: {
+      name: "unfinished",
+      create: async () => {
+        return neverStore;
+      }
+    },
+  };
+}
+
+const UNFINISHED_STORE = "TEST-INSTALLATION-UUID-unfinished";
+
 async function createFakeAttachmentStoreProvider(): Promise<IAttachmentStoreProvider> {
   return new AttachmentStoreProvider(
     [
       await makeTestingFilesystemStoreConfig("filesystem"),
       await makeTestingFilesystemStoreConfig("filesystem-alt"),
+      await makeTestingControlledStore("unfinished"),
     ],
     "TEST-INSTALLATION-UUID"
   );
@@ -95,9 +145,57 @@ describe("AttachmentFileManager", function() {
   let defaultProvider: IAttachmentStoreProvider;
   let defaultDocStorageFake: DocStorage;
 
+  this.timeout('4s');
+
   beforeEach(async function() {
     defaultProvider = await createFakeAttachmentStoreProvider();
     defaultDocStorageFake = createDocStorageFake(defaultTestDocName);
+  });
+
+  it("should stop the loop when aborted", async function() {
+    const manager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      { id: "Unimportant", trunkId: null  },
+    );
+
+    // Add some file.
+    await manager.addFile(undefined, ".txt", Buffer.from("first file"));
+    await manager.addFile(undefined, ".txt", Buffer.from("second file"));
+    await manager.addFile(undefined, ".txt", Buffer.from("third file"));
+
+    // Move this file to a store that never finish uploads.
+    await manager.startTransferringAllFilesToOtherStore(defaultProvider.listAllStoreIds()[2]);
+
+    // Make sure we are running.
+    assert.isTrue(manager.transferStatus().isRunning);
+
+    // Get the store to test if the upload was called. The store is created only once.
+    const store = await defaultProvider.getStore(UNFINISHED_STORE).then((store) => store as TestAttachmentStore);
+
+    // Wait for the first upload to be called.
+    await waitForIt(() => assert.equal(store.uploads(),  1));
+
+    // Finish the upload and go to the next one.
+    store.finish();
+
+    // Wait for the second one to be called.
+    await waitForIt(() => assert.equal(store.uploads(),  2));
+
+    // Now shutdown the manager.
+    const shutdownProm = manager.shutdown();
+
+    // Manager will wait for the loop to finish, so allow the second file to be uploaded.
+    store.finish();
+
+    // Now manager can finish.
+    await shutdownProm;
+
+    // Make sure we are not running.
+    assert.isFalse(manager.transferStatus().isRunning);
+
+    // And make sure that the upload was only called twice.
+    assert.equal(store.uploads(),  2);
   });
 
   it("should throw if uses an external store when no document pool id is available", async function () {
