@@ -330,20 +330,6 @@ exports.selectSpinner = function(valueObservable, optionObservable) {
 };
 
 /**
- * Creates an alignment selector linked to `valueObservable`.
- */
-exports.alignmentSelector = function(valueObservable) {
-  return this.buttonSelect(valueObservable,
-    this.optionButton("left", dom('span.glyphicon.glyphicon-align-left'),
-      dom.testId('koForm_alignLeft')),
-    this.optionButton("center", dom('span.glyphicon.glyphicon-align-center'),
-      dom.testId('koForm_alignCenter')),
-    this.optionButton("right", dom('span.glyphicon.glyphicon-align-right'),
-      dom.testId('koForm_alignRight'))
-  );
-};
-
-/**
  * Label with a collapser triangle in front, which may be clicked to toggle `isCollapsedObs`
  * observable.
  */
@@ -479,12 +465,12 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
           kd.cssClass(options.itemClass),
           (options.drag_indicator ?
            (typeof options.drag_indicator === 'boolean' ?
-            dom('span.kf_drag_indicator.glyphicon.glyphicon-option-vertical') :
+            dom('span.kf_drag_indicator.kf_draggable__icon.icon-dragdrop') :
             options.drag_indicator()
            ) : null),
           kd.domData('model', item),
           kd.maybe(removeFunc !== undefined && options.removeButton, function() {
-            return dom('span.drag_delete.glyphicon.glyphicon-remove',
+            return dom('span.drag_delete.kf_draggable__icon.icon-remove',
               dom.on('click', function() {
                 removeFunc(item)
                 .catch(function(err) {
