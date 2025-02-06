@@ -9,10 +9,12 @@ export interface DocInfoRec extends IRowModel<"_grist_DocInfo"> {
   documentSettingsJson: modelUtil.SaveableObjObservable<DocumentSettings>
   defaultViewId: ko.Computed<number>;
   newDefaultViewId: ko.Computed<number>;
+  attachmentStoreId: modelUtil.KoSaveableObservable<string|undefined>;
 }
 
 export function createDocInfoRec(this: DocInfoRec, docModel: DocModel): void {
   this.documentSettingsJson = jsonObservable(this.documentSettings);
+  this.attachmentStoreId = this.documentSettingsJson.prop('attachmentStoreId');
   this.defaultViewId = this.autoDispose(ko.pureComputed(() => {
     const tab = docModel.allTabs.at(0);
     return tab ? tab.viewRef() : 0;

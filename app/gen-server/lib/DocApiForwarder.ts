@@ -74,6 +74,11 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/timing/start', withDoc);
     app.use('/api/docs/:docId/timing/stop', withDoc);
     app.use('/api/docs/:docId/forms/:vsId', withDoc);
+    app.use('/api/docs/:docId/attachments/transferStatus', withDoc);
+    app.use('/api/docs/:docId/attachments/transferAll', withDoc);
+    app.use('/api/docs/:docId/attachments/store', withDoc);
+    app.use('/api/docs/:docId/attachments/stores', withDoc);
+
     app.use('^/api/docs$', withoutDoc);
   }
 
