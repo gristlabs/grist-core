@@ -681,6 +681,86 @@ describe('CustomWidgets', function () {
       await gu.setCustomWidget(/W1/);
       assert.equal(await gu.getCustomWidgetName(), "W1");
     });
+
+    it("manu should only allow adding a Custom URL widget with a valid url", async () => {
+      await gu.openCustomWidgetGallery();
+      await driver.findContent('.test-custom-widget-gallery-widget-name', 'Custom URL').click();
+
+      const saveBtn = '.test-custom-widget-gallery-save';
+      const urlInput = '.test-custom-widget-gallery-custom-url';
+
+      // empty url should not work
+      await driver.find(urlInput).click();
+      await gu.clearInput();
+      await driver.find(saveBtn).click();
+      assert.equal(await driver.find(urlInput).isPresent(), true);
+
+      // non-url text should not work
+      await driver.find(urlInput).click();
+      await gu.clearInput();
+      await gu.sendKeys('not a url');
+      await driver.find(saveBtn).click();
+      assert.equal(await driver.find(urlInput).isPresent(), true);
+
+      // url should work
+      await driver.find(urlInput).click();
+      await gu.clearInput();
+      await gu.sendKeys('https://grist-dummy-custom-widget.com');
+      await driver.find(saveBtn).click();
+      assert.equal(await driver.find('.test-modal-title').isPresent(), true);
+
+      // cleanup after test: close modal and gallery
+      await driver.find('.test-modal-cancel').click();
+      await driver.find('.test-custom-widget-gallery-cancel').click();
+    });
+
+    it("manu should show a modal explaining the risks when adding a Custom URL widget", async () => {
+      await gu.openCustomWidgetGallery();
+      await driver.find('.test-custom-widget-gallery-custom-url').click();
+      await driver.sendKeys('https://grist-dummy-custom-widget.com');
+      await driver.find('.test-custom-widget-gallery-save').click();
+
+      assert.equal(await driver.findContent(
+        '.test-modal-title',
+        /Be careful with unknown custom widgets/
+      ).isPresent(), true);
+      assert.equal(await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').isPresent(), true);
+
+      assert.equal(await driver.find('.test-modal-cancel').isPresent(), true);
+      assert.equal(await driver.find('.test-modal-confirm').isPresent(), true);
+
+      // cleanup after test: close modal and gallery
+      await driver.find('.test-modal-cancel').click();
+      await driver.find('.test-custom-widget-gallery-cancel').click();
+    });
+
+    it("manu should allow adding a Custom URL widget only when accepting the risks", async () => {
+      await gu.openCustomWidgetGallery();
+      await driver.find('.test-custom-widget-gallery-custom-url').click();
+      await driver.sendKeys('https://grist-dummy-custom-widget.com');
+      await driver.find('.test-custom-widget-gallery-save').click();
+
+      const confirmCb = '.test-custom-widget-warning-modal-confirm-checkbox';
+      const saveBtn = '.test-modal-confirm';
+
+      // make sure confirm checkbox and confirm modal button are linked:
+      // should be both unchecked/disabled at first, then toggle together
+      assert.equal(await driver.find(confirmCb).isSelected(), false);
+      assert.equal(await driver.find(saveBtn).isEnabled(), false);
+
+      await driver.find(confirmCb).click();
+      assert.equal(await driver.find(saveBtn).isEnabled(), true);
+
+      await driver.find(confirmCb).click();
+      assert.equal(await driver.find(saveBtn).isEnabled(), false);
+
+      await driver.find(confirmCb).click();
+      assert.equal(await driver.find(saveBtn).isEnabled(), true);
+
+      await driver.find(saveBtn).click();
+      await gu.openWidgetPanel();
+      await gu.undo(1);
+    });
   });
 
   describe('gristApiSupport', async ()=>{
