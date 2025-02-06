@@ -72,6 +72,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     homeUrl,
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
     baseDomain,
+    singleDomainSetup: !baseDomain && pathOnly,
     singleOrg: process.env.GRIST_SINGLE_ORG,
     helpCenterUrl: getHelpCenterUrl(),
     termsOfServiceUrl: getTermsOfServiceUrl(),
