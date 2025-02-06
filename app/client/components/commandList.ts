@@ -127,6 +127,15 @@ export interface CommandDef {
   desc: string | null;
   bindKeys?: boolean;
   deprecated?: boolean;
+  /**
+   * Whether or not this command stops keyboard event propagation.
+   *
+   * Toggling this doesn't actually make the command stop propagation or not.
+   * It's a representation of what the function called when the command runs does.
+   *
+   * When not set, defaults to true, as 99% of commands do stop propagation.
+   */
+  stopsPropagation?: boolean;
 }
 
 export interface MenuCommand {
@@ -314,7 +323,7 @@ export const groups: CommendGroupDef[] = [{
       name: 'cursorLeft',
       keys: ['Left'],
       desc: 'Move left to the previous field'
-    }, {
+    }, /**/{
       name: 'nextField',
       keys: ['Tab'],
       desc: 'Move to the next field, saving changes if editing a value'
@@ -322,7 +331,7 @@ export const groups: CommendGroupDef[] = [{
       name: 'prevField',
       keys: ['Shift+Tab'],
       desc: 'Move to the previous field, saving changes if editing a value'
-    }, {
+    }, /**/{
       name: 'pageDown',
       keys: ['PageDown'],
       desc: 'Move down one page of records, or to next record in a card list'
@@ -517,6 +526,7 @@ export const groups: CommendGroupDef[] = [{
       name: 'makeFormula',
       keys: ["="],
       desc: 'When typed at the start of a cell, make this a formula column',
+      stopsPropagation: false,
     }, {
       name: 'unmakeFormula',
       keys: ['Backspace'],

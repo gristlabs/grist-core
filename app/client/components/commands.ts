@@ -54,6 +54,93 @@ export const allCommands: { [key in CommandName]: Command } = {} as any;
 const _allKeys: Record<string, CommandGroup[]> = {};
 
 /**
+ * Internal variable listing all shortcuts defined in the app,
+ * and telling whether or not they stop keyboard event propagation.
+ *
+ * Useful to check if a user keypress matches a command shortcut.
+ */
+const _allShortcuts: { [key: string]: { keys: string, stopsPropagation: boolean } } = {};
+
+/**
+ * Gets a shortcut string (like "mod+o", or a shorcut keys list like ["mod", "o"])
+ * and saves it in _allShortcuts, with a boolean indicating whether the command stops propagation.
+ */
+const saveShortcut = (key: string | string[], stopsPropagation?: boolean) => {
+  let shortcut = "";
+  const keyString = typeof key === 'string' ? key.toLowerCase() : key.join('+').toLowerCase();
+  if (keyString === "+" || !keyString.includes('+')) {
+    shortcut = keyString;
+  } else {
+    const splitKeys = keyString.split('+');
+    shortcut = splitKeys.slice(0, -1).sort().join('+') + '+' + splitKeys[splitKeys.length - 1];
+  }
+  // If multiple commands have the same shortcut (but triggered in different contexts),
+  // we assume all commands stop event propagation if at least of them do.
+  // This works for now but I'm afraid it might to lead to issues in the future…
+  _allShortcuts[shortcut] = {
+    keys: shortcut,
+    stopsPropagation: !!_allShortcuts[shortcut] && _allShortcuts[shortcut].stopsPropagation
+      ? true
+      : stopsPropagation ?? true,
+  };
+};
+
+const _keyAliases: Record<string, string> = {
+  'return': 'enter',
+  'esc': 'escape',
+  '+': 'plus',
+  ' ': 'space',
+};
+
+/**
+ * Given a keyboard event, get a string representing the keyboard shortcut of a registered command.
+ *
+ * @returns A string like "mod+o", or null if no command is found
+ */
+export const getShortcutFromKeypress = (event: KeyboardEvent) => {
+  let key = event.key.toLowerCase();
+  if (_keyAliases[key]) {
+    key = _keyAliases[key];
+  }
+  const modifiers = [];
+  if (event.shiftKey) {
+    modifiers.push('shift');
+  }
+  if (event.altKey) {
+    modifiers.push('alt');
+  }
+  if (event.ctrlKey) {
+    modifiers.push('ctrl');
+  }
+  if (event.metaKey) {
+    modifiers.push('meta');
+  }
+  if (
+      modifiers.length
+      && ['shift', 'alt', 'ctrl', 'meta', 'mod', 'control', 'option', 'command'].includes(key)
+  ) {
+    key = '';
+  }
+  const shortcut = modifiers.sort().join('+')
+    + (modifiers.length && key.length ? '+' : '')
+    + key;
+
+  if (isMac && event.metaKey && _allShortcuts[shortcut.replace('meta', 'mod')]) {
+    return shortcut.replace('meta', 'mod');
+  }
+
+  if (!isMac && event.ctrlKey && _allShortcuts[shortcut.replace('ctrl', 'mod')]) {
+    return shortcut.replace('ctrl', 'mod');
+  }
+
+  if (_allShortcuts[shortcut]) {
+    return shortcut;
+  }
+
+  return null;
+};
+
+/**
  * Populate allCommands from those provided, or listed in commandList.js. Also populates the
  * globally exposed `cmd` object whose properties invoke commands: e.g. typing `cmd.cursorDown` in
  * the browser console will run allCommands.cursorDown.run().
@@ -68,6 +155,9 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
   Object.keys(_allKeys).forEach(function(k) {
     delete _allKeys[k as CommandName];
   });
+  Object.keys(_allShortcuts).forEach(function(k) {
+    delete _allShortcuts[k];
+  });
 
   commandGroups.forEach(function(commandGroup) {
     commandGroup.commands.forEach(function(c) {
@@ -78,6 +168,7 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
           bindKeys: c.bindKeys,
           deprecated: c.deprecated,
         });
+        c.keys.forEach(k => saveShortcut(k, c.stopsPropagation));
       }
     });
   });
