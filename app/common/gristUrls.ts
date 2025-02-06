@@ -732,6 +732,10 @@ export interface GristLoadConfig {
   // on this for custom domains, but set it generally for all pages.
   org?: string;
 
+  // Makes the Grist frontend access the Grist instance using its current URL in the browser, rather than APP_HOME_URL.
+  // Used to simplify setup of single-domain (no subdomain / doc worker) installations.
+  serveSameOrigin?: boolean;
+
   // Base domain for constructing new URLs, should start with "." and not include port, e.g.
   // ".getgrist.com". It should be unset for localhost operation and in single-org mode.
   baseDomain?: string;
