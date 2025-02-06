@@ -44,6 +44,7 @@ import {
   DomElementMethod,
   fromKo,
   IDisposableOwner,
+  IDomArgs,
   makeTestId,
   Observable,
   styled
@@ -74,73 +75,12 @@ export class DocSettingsPage extends Disposable {
   }
 
   public buildDom() {
-    const INTERNAL = 'internal', EXTERNAL = 'external';
     const canChangeEngine = getSupportedEngineChoices().length > 0;
     const docPageModel = this._gristDoc.docPageModel;
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
-    const storageType = Computed.create(this, use => {
-      const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
-      return id ? EXTERNAL : INTERNAL;
-    });
-    storageType.onWrite(async (val) => {
-      await this._gristDoc.docApi.setAttachmentStore(val);
-    });
-    const storageOptions = [{value: INTERNAL, label: 'Internal'}, {value: EXTERNAL, label: 'External'}];
 
-    const transferStatus = Observable.create<AttachmentTransferStatus|null>(this, null);
-    const locationSummary = Computed.create(this, use => use(transferStatus)?.locationSummary || null);
-
-    const inProgress = Computed.create(this, use => !!use(transferStatus)?.status.isRunning);
-    const allInCurrent = Computed.create(this, use => {
-      const summary = use(locationSummary);
-      const current = use(storageType);
-      return summary && summary === current;
-    });
-    const stores = Observable.create(this, [INTERNAL, EXTERNAL] as string[]);
-
-    const stillInternal = Computed.create(this, use => {
-      const currentExternal = use(storageType) === EXTERNAL;
-      return currentExternal && (use(inProgress) || !use(allInCurrent));
-    });
-
-    const stillExternal = Computed.create(this, use => {
-      const currentInternal = use(storageType) === INTERNAL;
-      return currentInternal && (use(inProgress) || !use(allInCurrent));
-    });
-
-    const refreshStatus = () => this._gristDoc.docApi.getAttachmentTransferStatus().then(s => {
-      if (this.isDisposed()) { return; }
-      transferStatus.set(s);
-    });
-
-    const beginTransfer = async () => {
-      await this._gristDoc.docApi.transferAllAttachments();
-      await refreshStatus();
-    };
-
-    const attachmentsReady = Observable.create(this, false);
-    refreshStatus()
-      .then(refreshStatus)
-      .then(() => attachmentsReady.set(true))
-      .catch(reportError);
-
-    (async () => {
-      // Start polling for status updates every 1 seconds when transfer is in progress.
-      while(!this.isDisposed()) {
-        try {
-          if (inProgress.get()) {
-            await refreshStatus();
-            console.log(transferStatus.get());
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (err) {
-          reportError(err);
-          break;
-        }
-      }
-    })().catch(reportError);
 
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
@@ -288,51 +228,151 @@ export class DocSettingsPage extends Disposable {
         }),
       ]),
 
-      dom.create(AdminSection, t('Attachment storage'), [
-        dom.create(AdminSectionItem, {
-          id: 'preferredStorage',
-          name: withInfoTooltip(
-            dom('span', t('Preferred storage for this document')),
-            'attachmentStorage',
-          ),
-          value: cssFlex(
-            dom.maybe(use => !use(allInCurrent) && !use(inProgress), () => [
-              cssButton(t('Start transfer'), dom.on('click', () => beginTransfer())),
-            ]),
-            dom.maybe(inProgress, () => [
-              cssButton(
-                hoverTooltip(
-                  dom('span',
-                    dom.domComputed(transferStatus, (status) => {
-                      return t(
-                        'There are {{count}} attachments left to transfer',
-                        {count: status?.status.pendingTransferCount}
-                      );
-                    })
-                  )
-                ),
-                cssLoadingSpinner(
-                  loadingSpinner.cls('-inline'),
-                  cssLoadingSpinner.cls('-disabled'),
-                ),
-                t('Being transfer'),
-                dom.prop('disabled', true),
-              ),
-            ]),
-            cssSmallSelect(storageType, storageOptions, {
-              disabled: use => use(inProgress) || !use(attachmentsReady) || use(stores).length === 0,
-            }),
-          )
-        }),
-        dom('div',
-          dom.maybe(stillInternal, () => stillInternalCopy(inProgress)),
-          dom.maybe(stillExternal, () => stillExternalCopy(inProgress)),
-          dom.maybe(use => use(stores).length === 0, () => t('No external stores available')),
-        ),
-      ]),
+      this._buildTransferDom(),
     );
   }
 
+  private _buildTransferDom() {
+    const INTERNAL = 'internal', EXTERNAL = 'external';
+
+    const storageType = Computed.create(this, use => {
+      const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
+      return id ? EXTERNAL : INTERNAL;
+    });
+    storageType.onWrite(async (val) => {
+      await this._gristDoc.docApi.setAttachmentStore(val);
+    });
+    const storageOptions = [{value: INTERNAL, label: 'Internal'}, {value: EXTERNAL, label: 'External'}];
+
+    const transferStatus = Observable.create<AttachmentTransferStatus|null>(this, null);
+    const locationSummary = Computed.create(this, use => use(transferStatus)?.locationSummary || null);
+
+    const inProgress = Computed.create(this, use => !!use(transferStatus)?.status.isRunning);
+    const allInCurrent = Computed.create(this, use => {
+      const summary = use(locationSummary);
+      const current = use(storageType);
+      return summary && summary === current || summary === 'none';
+    });
+    const stores = Observable.create(this, [] as string[]);
+
+    const stillInternal = Computed.create(this, use => {
+      const currentExternal = use(storageType) === EXTERNAL;
+      return currentExternal && (use(inProgress) || !use(allInCurrent));
+    });
+
+    const stillExternal = Computed.create(this, use => {
+      const currentInternal = use(storageType) === INTERNAL;
+      return currentInternal && (use(inProgress) || !use(allInCurrent));
+    });
+
+    const refreshStatus = () => this._gristDoc.docApi.getAttachmentTransferStatus().then(s => {
+      if (this.isDisposed()) { return; }
+      transferStatus.set(s);
+    });
+
+    const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then(s => {
+      if (s.length === 0) {
+        stores.set([]);
+      } else {
+        stores.set([INTERNAL, EXTERNAL]);
+      }
+    });
+
+    const beginTransfer = async () => {
+      await this._gristDoc.docApi.transferAllAttachments();
+      await refreshStatus();
+    };
+
+    const attachmentsReady = Observable.create(this, false);
+
+    refreshStatus()
+      .then(checkAvailableStores)
+      .then(refreshStatus)
+      .then(() => attachmentsReady.set(true))
+      .catch(reportError);
+
+    (async () => {
+      // Start polling for status updates every 1 seconds when transfer is in progress.
+      while(!this.isDisposed()) {
+        try {
+          if (inProgress.get()) {
+            await refreshStatus();
+            console.log(transferStatus.get());
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (err) {
+          reportError(err);
+          break;
+        }
+      }
+    })().catch(reportError);
+
+    return dom.create(AdminSection, t('Attachment storage'), [
+      dom.create(AdminSectionItem, {
+        id: 'preferredStorage',
+        name: withInfoTooltip(
+          dom('span', t('Preferred storage for this document'), testId('transfer-header')),
+          'attachmentStorage',
+        ),
+        value: cssFlex(
+          dom.maybe(use => !use(allInCurrent) && !use(inProgress), () => [
+            cssButton(
+              t('Start transfer'),
+              dom.on('click', () => beginTransfer()),
+              testId('transfer-start-button')
+            ),
+          ]),
+          dom.maybe(inProgress, () => [
+            cssButton(
+              hoverTooltip(
+                dom('span',
+                  dom.domComputed(transferStatus, (status) => {
+                    return t(
+                      'There are {{count}} attachments left to transfer',
+                      {count: status?.status.pendingTransferCount}
+                    );
+                  }),
+                  testId('transfer-status-tooltip')
+                )
+              ),
+              cssLoadingSpinner(
+                loadingSpinner.cls('-inline'),
+                cssLoadingSpinner.cls('-disabled'),
+                testId('transfer-spinner')
+              ),
+              t('Being transfer'),
+              dom.prop('disabled', true),
+              testId('transfer-button-in-progress')
+            ),
+          ]),
+          dom.update(cssSmallSelect(storageType, storageOptions, {
+            disabled: use => use(inProgress) || !use(attachmentsReady) || use(stores).length === 0,
+          }), testId('transfer-storage-select')),
+        )
+      }),
+      dom('div',
+        dom.maybe(attachmentsReady, () => [
+          dom.maybe(stillInternal, () => stillInternalCopy(
+            inProgress,
+            testId('transfer-message'),
+            testId('transfer-still-internal-copy')
+          )),
+          dom.maybe(stillExternal, () => stillExternalCopy(
+            inProgress,
+            testId('transfer-message'),
+            testId('transfer-still-external-copy')
+          )),
+          dom.maybe(use => use(stores).length === 0, () => [
+            dom('span',
+              t('No external stores available'),
+              testId('transfer-message'),
+              testId('transfer-no-stores-warning')
+            ),
+          ]),
+        ]),
+      ),
+    ]);
+  }
 
   private async _reloadEngine(ask = true) {
     const docPageModel = this._gristDoc.docPageModel;
@@ -621,7 +661,7 @@ const learnMore = () => t(
   {learnLink: commonUrls.attachmentStorage}
 );
 
-function stillExternalCopy(inProgress: Observable<boolean>) {
+function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someExternal = () => t(
     '**Some existing attachments are still [external]({{externalLink}})**.',
     {externalLink: commonUrls.attachmentStorage}
@@ -637,14 +677,18 @@ function stillExternalCopy(inProgress: Observable<boolean>) {
 
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
-      return cssMarkdownSpan(`${someExternal()} ${newInInternal()} ${learnMore()}`);
+      return cssMarkdownSpan(
+        `${someExternal()} ${newInInternal()} ${learnMore()}`, ...args, testId('transfer-message-in-progress'));
     } else {
-      return cssMarkdownSpan(`${someExternal()} ${startToInternal()} ${newInInternal()} ${learnMore()}`);
+      return cssMarkdownSpan(
+        `${someExternal()} ${startToInternal()} ${newInInternal()} ${learnMore()}`,
+        ...args,
+        testId('transfer-message-static'));
     }
   });
 }
 
-function stillInternalCopy(inProgress: Observable<boolean>) {
+function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someInternal = () => t(
     '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
     {internalLink: commonUrls.attachmentStorage}
@@ -660,9 +704,17 @@ function stillInternalCopy(inProgress: Observable<boolean>) {
 
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
-      return cssMarkdownSpan(`${someInternal()} ${newInExternal()} ${learnMore()}`);
+      return cssMarkdownSpan(
+        `${someInternal()} ${newInExternal()} ${learnMore()}`,
+        testId('transfer-message-in-progress'),
+        ...args
+      );
     } else {
-      return cssMarkdownSpan(`${someInternal()} ${startToExternal()} ${newInExternal()} ${learnMore()}`);
+      return cssMarkdownSpan(
+        `${someInternal()} ${startToExternal()} ${newInExternal()} ${learnMore()}`,
+        testId('transfer-message-static'),
+        ...args
+      );
     }
   });
 }
