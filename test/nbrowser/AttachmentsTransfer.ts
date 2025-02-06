@@ -64,7 +64,7 @@ describe("AttachmentsTransfer", function() {
     Object.assign(process.env, {
       GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
       GRIST_TEST_ATTACHMENTS_DIR: tmpFolder,
-      GRIST_TEST_TRANSFER_DELAY: '100'
+      GRIST_TEST_TRANSFER_DELAY: '500'
     });
     await server.restart();
     await session.loadRelPath(`/doc/${docId}`);
@@ -136,10 +136,10 @@ describe("AttachmentsTransfer", function() {
     await gu.waitForServer();
 
     // We should see transfer spinner.
-    assert.isTrue(await transferSpinner(WAIT).isDisplayed());
+    await waitForDisplay(transferSpinner);
 
     // Wait for the spinner to disappear.
-    await transferSpinner().waitForNotPresent();
+    await waitForNotPresent(transferSpinner);
 
     // We now should have those files transfer.
     assert.lengthOf(files(), 4);
@@ -220,7 +220,7 @@ describe("AttachmentsTransfer", function() {
     // Set to external again.
     await api.setAttachmentStore('external');
     await storageType.waitForValue('External');
-    await startTransferButton().waitForDisplay();
+    await waitForDisplay(startTransferButton);
 
     // We are seeing that some files are internal.
     assert.isTrue(await internalCopy().isDisplayed());
@@ -232,16 +232,16 @@ describe("AttachmentsTransfer", function() {
     await api.transferAllAttachments();
 
     // Wait for the spinner to be shown.
-    await transferSpinner(WAIT).waitForDisplay();
+    await waitForDisplay(transferSpinner);
 
     // The internal copy should be changed during the transfer.
     assert.isTrue(await internalCopy().inProgress());
 
     // Wait for the spinner to disappear.
-    await transferSpinner().waitForNotPresent();
+    await waitForNotPresent(transferSpinner);
 
     // Transfer button should also disappear
-    await startTransferButton().waitForNotPresent();
+    await waitForNotPresent(startTransferButton);
 
     // And all messages should be gone.
     assert.lengthOf(await messages(), 0);
@@ -257,10 +257,10 @@ describe("AttachmentsTransfer", function() {
 
     // Start transfer and check components.
     await api.transferAllAttachments();
-    await transferSpinner(WAIT).waitForDisplay();
+    await waitForDisplay(transferSpinner);
     assert.isTrue(await externalCopy().inProgress());
-    await transferSpinner().waitForNotPresent();
-    await startTransferButton().waitForNotPresent();
+    await waitForNotPresent(transferSpinner);
+    await waitForNotPresent(startTransferButton);
     assert.lengthOf(await messages(), 0);
   });
 });
@@ -273,31 +273,45 @@ const messages = () => driver.findAll('.test-settings-transfer-message', e => e.
 const copyWrapper = <T extends WebElementPromise>(el: T) => {
   return Object.assign(el, {
     inProgress() {
-      return el.find('.test-settings-transfer-message-in-progress').isPresent();
+      return el.matches('.test-settings-transfer-message-in-progress');
     },
     isStatic() {
-      return el.find('.test-settings-transfer-message-static').isPresent();
+      return el.matches('.test-settings-transfer-message-static');
     }
   });
 };
 
-const internalCopy = () => copyWrapper(gu.find('.test-settings-transfer-still-internal-copy'));
+const internalCopy = () => copyWrapper(driver.find('.test-settings-transfer-still-internal-copy'));
 
-const externalCopy = () => copyWrapper(gu.find('.test-settings-transfer-still-external-copy'));
+const externalCopy = () => copyWrapper(driver.find('.test-settings-transfer-still-external-copy'));
 
-const noStoresWarning = () => gu.find('.test-settings-transfer-no-stores-warning');
+const noStoresWarning = () => driver.find('.test-settings-transfer-no-stores-warning');
 
 const addRow = async () => {
   await gu.sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
   await gu.waitForServer();
 };
 
-const startTransferButton = () => gu.find('.test-settings-transfer-start-button');
+const startTransferButton = () => driver.find('.test-settings-transfer-start-button');
 
 const WAIT = true;
 const transferSpinner = (wait = false) => wait
-                          ? gu.findWait('.test-settings-transfer-spinner', 500)
-                          : gu.find('.test-settings-transfer-spinner');
+  ? driver.findWait('.test-settings-transfer-spinner', 500)
+  : driver.find('.test-settings-transfer-spinner');
+
+
+async function waitForDisplay(fn: () => WebElementPromise) {
+  await gu.waitToPass(async () => {
+    assert.isTrue(await fn().isDisplayed());
+  });
+}
+
+async function waitForNotPresent(fn: () => WebElementPromise) {
+  await gu.waitToPass(async () => {
+    assert.isFalse(await fn().isPresent());
+  });
+}
+
 
 
 
