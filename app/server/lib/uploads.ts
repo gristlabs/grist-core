@@ -1,7 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
-import {getUrlFromPrefix} from 'app/common/UserAPI';
+import {DocAttachmentsLocation, getUrlFromPrefix} from 'app/common/UserAPI';
 import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -426,9 +426,28 @@ export async function fetchDoc(
   // The backend needs to be well configured for this to work.
   const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());
   const docWorkerUrl = docWorker ? docWorker.internalUrl : getUrlFromPrefix(server.getHomeInternalUrl(), selfPrefix);
+  const apiBaseUrl = docWorkerUrl.replace(/\/*$/, '/');
+
+  // Documents with external attachments can't be copied right now. Check status and alert the user.
+  const transferStatusResponse = await fetch(
+      new URL(`/api/docs/${docId}/attachments/transferStatus`, apiBaseUrl).href,
+    {
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      }
+    }
+  );
+  if (!transferStatusResponse.ok) {
+    throw new ApiError(await transferStatusResponse.text(), transferStatusResponse.status);
+  }
+  const attachmentsLocation: DocAttachmentsLocation = (await transferStatusResponse.json()).locationSummary;
+  if (attachmentsLocation !== 'internal' && attachmentsLocation !== 'none') {
+    throw new ApiError("Cannot copy a document with external attachments", 400);
+  }
+
   // Download the document, in full or as a template.
-  const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`,
-                      docWorkerUrl.replace(/\/*$/, '/'));
+  const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
   return _fetchURL(url.href, accessId, {headers});
 }
 
