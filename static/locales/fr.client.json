@@ -1836,5 +1836,9 @@
         "Contact us": "Nous contacter",
         "Only site owners may access audit logs.": "Seuls les propriétaires de site peuvent accéder aux journaux d'audit.",
         "upgrade your plan": "actualiser son contrat"
+    },
+    "NewRecordButton": {
+        "New card": "Nouvelle fiche",
+        "New record": "Nouvelle ligne"
     }
 }
