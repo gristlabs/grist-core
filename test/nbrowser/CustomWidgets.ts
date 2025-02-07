@@ -682,6 +682,42 @@ describe('CustomWidgets', function () {
       assert.equal(await gu.getCustomWidgetName(), "W1");
     });
 
+    it("should only allow adding a Custom URL widget with a valid url", async () => {
+      await gu.openCustomWidgetGallery();
+      await driver.findContent('.test-custom-widget-gallery-widget-name', 'Custom URL').click();
+
+      const saveBtn = '.test-custom-widget-gallery-save';
+      const urlInput = '.test-custom-widget-gallery-custom-url';
+
+      // empty url should work
+      await driver.find(urlInput).click();
+      await gu.clearInput();
+      await driver.find(saveBtn).click();
+      // security risk modal should be shown
+      assert.equal(await driver.find('.test-modal-title').isPresent(), true);
+      // go back to gallery
+      await driver.find('.test-modal-cancel').click();
+
+      // non-url text should not work
+      await driver.find(urlInput).click();
+      await gu.clearInput();
+      await gu.sendKeys('not a url');
+      await driver.find(saveBtn).click();
+      // security risk modal should not be shown: we are still in the gallery
+      assert.equal(await driver.find('.test-modal-title').isPresent(), false);
+
+      // url should work
+      await driver.find(urlInput).click();
+      await gu.clearInput();
+      await gu.sendKeys('https://grist-dummy-custom-widget.com');
+      await driver.find(saveBtn).click();
+      assert.equal(await driver.find('.test-modal-title').isPresent(), true);
+
+      // cleanup after test: close modal and gallery
+      await driver.find('.test-modal-cancel').click();
+      await driver.find('.test-custom-widget-gallery-cancel').click();
+    });
+
     it("should show a modal explaining the risks when adding a Custom URL widget", async () => {
       await gu.openCustomWidgetGallery();
       await driver.find('.test-custom-widget-gallery-custom-url').click();
