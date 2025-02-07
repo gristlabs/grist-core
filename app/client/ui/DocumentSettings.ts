@@ -80,7 +80,6 @@ export class DocSettingsPage extends Disposable {
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
 
-
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
         dom.create(AdminSectionItem, {
@@ -227,7 +226,7 @@ export class DocSettingsPage extends Disposable {
         }),
       ]),
 
-      this._buildTransferDom(),
+      isDocOwner ? this._buildTransferDom() : null,
     );
   }
 

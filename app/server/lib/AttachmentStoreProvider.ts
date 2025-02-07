@@ -75,7 +75,7 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
     });
 
     const storeIds = Array.from(this._storeDetailsById.keys());
-    log.info(`AttachmentStoreProvider initialized with stores: ${storeIds}`);
+    log.info(`AttachmentStoreProvider initialised with stores: ${storeIds}`);
   }
 
   public getStoreIdFromLabel(label: string): string {
@@ -139,6 +139,8 @@ export async function makeTempFilesystemStoreSpec(
   name: string = "filesystem"
 ) {
   const tempFolder = await tmp.dir();
+  // Allow tests to override the temp directory used for attachments, otherwise Grist will
+  // use different temp directory after restarting the server.
   const tempDir = process.env.GRIST_TEST_ATTACHMENTS_DIR ||
     await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
 

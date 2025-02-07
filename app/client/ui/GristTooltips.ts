@@ -47,7 +47,7 @@ export type Tooltip =
   | 'communityWidgets'
   | 'twoWayReferences'
   | 'twoWayReferencesDisabled'
-  | 'reasignTwoWayReference'
+  | 'reassignTwoWayReference'
   | 'attachmentStorage';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -180,7 +180,7 @@ see or edit which parts of your document.')
     ),
     ...args,
   ),
-  reasignTwoWayReference: (...args: DomElementArg[]) => cssTooltipContent(
+  reassignTwoWayReference: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
       t('This limitation occurs when one column in a two-way reference has the Reference type.')
     ),

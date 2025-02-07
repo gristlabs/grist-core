@@ -1,5 +1,5 @@
 import { sanitizeHTML } from 'app/client/ui/sanitizeHTML';
-import {theme} from 'app/client/ui2018/cssVars';
+import { theme } from 'app/client/ui2018/cssVars';
 import { BindableValue, DomElementMethod, IDomArgs, styled, subscribeElem } from 'grainjs';
 import { marked } from 'marked';
 

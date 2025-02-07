@@ -206,6 +206,13 @@ export class GristDoc extends DisposableWithEvents {
 
   public isTimingOn = Observable.create(this, false);
 
+  /**
+   * Observable for the attachment transfer status. It is send by the ActiveDoc whenever attachments'
+   * transfer job is started or finished or when the external storage is changed through the API.
+   * Note: direct json manipulation (in the DocInfoRec) are not notified by the ActiveDoc.
+   * Note: GristDoc doesn't load it at the start, it just listens to changes, so the user of this API
+   * needs to load the status manually if it is not yet set.
+   */
   public attachmentTransfer = Observable.create(this, null as AttachmentTransferStatus|null);
 
   /**
@@ -896,6 +903,8 @@ export class GristDoc extends DisposableWithEvents {
     } else if (message.data.timing) {
       this.isTimingOn.set(message.data.timing.status !== 'disabled');
     } else if (message.data.attachmentTransfer) {
+      // This is message about the attachments transfer job. Look at the comment
+      // for the observable for more info.
       this.attachmentTransfer.set(message.data.attachmentTransfer);
     }
   }

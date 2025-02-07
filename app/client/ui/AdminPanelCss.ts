@@ -73,7 +73,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
 
 const cssSection = styled('div', `
   padding: 24px;
-  max-width: 700px;
+  max-width: 600px;
   width: 100%;
   margin: 16px auto;
   border: 1px solid ${theme.widgetBorder};
@@ -138,11 +138,18 @@ const cssItemName = styled('div', `
   align-items: center;
   margin-right: 14px;
   font-size: ${vars.largeFontSize};
+  padding-left: 24px;
   &-prefixed {
     padding-left: 0;
   }
   &-full {
+    padding-left: 0;
     width: unset;
+  }
+  @container line (max-width: 500px) {
+    & {
+      padding-left: 0;
+    }
   }
   @media ${mediaSmall} {
     & {

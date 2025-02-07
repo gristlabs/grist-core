@@ -4049,17 +4049,29 @@ export function buildSelectComponent(selector: string) {
     element() {
       return driver.find(selector);
     },
+    /**
+     * Returns the currently selected value (text).
+     */
     async value() {
       return await getSelectValue(this.selector);
     },
+    /**
+     * Waits for the select component to have the given value.
+     */
     async waitForValue(value: string|RegExp) {
       await waitToPass(async () => {
         assert.equal(await getSelectValue(this.selector), value);
       });
     },
+    /**
+     * Selects the given value in the select component.
+     */
     async select(value: string|RegExp) {
       await setSelectValue(this.selector, value);
     },
+    /**
+     * Returns the list of options in the select component (by opening the select menu).
+     */
     async options() {
       await driver.find(`${this.selector} .test-select-row`).click();
       // Wait for the menu.
@@ -4068,11 +4080,17 @@ export function buildSelectComponent(selector: string) {
       await driver.sendKeys(Key.ESCAPE);
       return options;
     },
+    /**
+     * Waits for the select component to be displayed.
+     */
     async waitForDisplay() {
       await waitToPass(async () => {
         assert.isTrue(await driver.findWait(this.selector, 1000).isDisplayed());
       });
     },
+    /**
+     * Waits until the select component is umonuted from dom.
+     */
     async waitForRemoval() {
       await waitToPass(async () => {
         assert.isFalse(await this.element().isPresent());

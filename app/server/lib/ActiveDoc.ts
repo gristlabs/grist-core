@@ -80,8 +80,8 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {Document as APIDocument, DocReplacementOptions,
-        DocState, DocStateComparison, NEW_DOCUMENT_CODE, AttachmentTransferStatus} from 'app/common/UserAPI';
+import {Document as APIDocument, AttachmentTransferStatus,
+        DocReplacementOptions, DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -400,8 +400,11 @@ export class ActiveDoc extends EventEmitter {
       _options?.doc,
     );
 
+    // Every time manager starts the transfer we need to notify clients about it.
     const notifier = this.sendAttachmentTransferStatusNotification.bind(this);
 
+    // Manager emits to events, et the start and at the end, but we don't care here, we
+    // just want to notify about the current status.
     this._attachmentFileManager
       .on(AttachmentFileManager.events.TRANSFER_STARTED, notifier)
       .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
@@ -1944,6 +1947,11 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
+  /**
+   * Sends a message to clients connected to the document that the attachments' transfer
+   * job has started or finished. It is also send when the attachment store is changed
+   * through the API (as it also includes information about attachments' location).
+   */
   public async sendAttachmentTransferStatusNotification(attachmentTransfer: AttachmentTransferStatus) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
       attachmentTransfer

@@ -4,6 +4,7 @@ import {assert, driver, Key, WebElementPromise} from 'mocha-webdriver';
 import os from 'os';
 import path from 'path';
 import * as gu from 'test/nbrowser/gristUtils';
+import {TestUser} from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
@@ -19,8 +20,8 @@ describe("AttachmentsTransfer", function() {
   /** Files will be stored in a folder inside the tmpFolder. Here is a helper that will get files names from it. */
   const files = () => {
     const dirs = fs.readdirSync(tmpFolder).filter(f => fs.statSync(path.join(tmpFolder, f)).isDirectory());
-    if (dirs.length === 0) { return []; }
-    if (dirs.length > 1) { throw new Error("Unexpected number of directories"); }
+    if (dirs.length === 0) {return [];}
+    if (dirs.length > 1) {throw new Error("Unexpected number of directories");}
     const innerFiles = fs.readdirSync(path.join(tmpFolder, dirs[0]));
     return innerFiles;
   };
@@ -46,7 +47,7 @@ describe("AttachmentsTransfer", function() {
   });
 
   it('should show message that transfers are not configured', async function() {
-    session = await gu.session().login();
+    session = await gu.session().teamSite.login();
     docId = await session.tempNewDoc(cleanup);
     api = session.createHomeApi().getDocAPI(docId);
     console.log(docId);
@@ -57,6 +58,31 @@ describe("AttachmentsTransfer", function() {
     // We should see 1 message about no stores.
     await gu.waitToPass(async () => assert.lengthOf(await messages(), 1));
     assert.isTrue(await noStoresWarning().isDisplayed());
+  });
+
+  it('should hide section for non owner', async function() {
+    // Now login as editor and viewer, and make sure section is hidden.
+    const homeApi = session.createHomeApi();
+    await homeApi.updateDocPermissions(docId, {
+      users: {
+        [gu.translateUser("user2").email]: 'viewers',
+        [gu.translateUser("user3").email]: 'editors'
+      }
+    });
+
+    async function checkFor(user: TestUser) {
+      const s = await gu.session().teamSite.user(user).login();
+      await s.loadRelPath(`/doc/${docId}`);
+      await gu.openDocumentSettings();
+      await driver.findWait('.test-admin-panel-item-timezone', 1000);
+      await waitForNotPresent(attachmentSection);
+    }
+
+    await checkFor('user2');
+    await checkFor('user3');
+
+    await session.login();
+    await session.loadRelPath(`/doc/${docId}`);
   });
 
   it("should show transfer menu", async function() {
@@ -312,6 +338,7 @@ async function waitForNotPresent(fn: () => WebElementPromise) {
   });
 }
 
+const attachmentSection = () => driver.find('.test-admin-panel-item-preferredStorage');
 
 
 

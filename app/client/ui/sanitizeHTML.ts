@@ -15,6 +15,7 @@ const defaultPurifier = createDOMPurifier();
 const tutorialPurifier = createDOMPurifier();
 
 // If we are executed in a browser, we can add hooks to the purifiers to customize their behavior.
+// But sometimes this code is included in tests, where `window` is not defined.
 if (typeof window !== 'undefined') {
   defaultPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
   tutorialPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);

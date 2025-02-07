@@ -12,7 +12,7 @@ import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import {EventEmitter} from 'events';
-import {Readable} from 'stream';
+import {Readable} from 'node:stream';
 
 export interface AddFileResult {
   fileIdent: string;
@@ -256,6 +256,7 @@ export class AttachmentFileManager extends EventEmitter {
           try {
             await this.transferFileToOtherStore(fileIdent, targetStoreId);
             // This is exposed just for testing, to allow for a delay between transfers.
+            // One of the test is refreshing the tab to see if the transfer is still running.
             if (process.env.GRIST_TEST_TRANSFER_DELAY) {
               await new Promise(resolve => setTimeout(resolve, Number(process.env.GRIST_TEST_TRANSFER_DELAY)));
             }
@@ -275,6 +276,11 @@ export class AttachmentFileManager extends EventEmitter {
     }
   }
 
+  /**
+   * Sends a notification that a transfer has started.
+   * Note: We calculate arguments ourselves as the status object is not yet available, as
+   * it is calculated from the promise (if it is set or not).
+   */
   private async _notifyAboutStart() {
     this.emit(AttachmentFileManager.events.TRANSFER_STARTED, {
       locationSummary: await this.locationSummary(),
@@ -282,6 +288,11 @@ export class AttachmentFileManager extends EventEmitter {
     } as AttachmentTransferStatus);
   }
 
+  /**
+   * Sends a notification that a transfer has end.
+   * Note: We calculate arguments ourselves as the status object is not yet available, as
+   * it is calculated from the promise (if it is set or not).
+   */
   private async _notifyAboutEnd() {
     this.emit(AttachmentFileManager.events.TRANSFER_COMPLETED, {
       locationSummary: await this.locationSummary(),
