@@ -56,7 +56,6 @@ describe('AuthCaching', function() {
     await homeMS.run();
     homeServer = homeMS.flexServer;
     homeUrl = homeServer.getOwnUrl();
-    process.env.APP_HOME_URL = homeUrl;
     const docsMS = await MergedServer.create(0, ['docs'],
       {logToConsole: false, externalStorage: false});
     await docsMS.run();
@@ -80,7 +79,6 @@ describe('AuthCaching', function() {
 
   after(async function() {
     delete process.env.GRIST_DATA_DIR;
-    delete process.env.APP_HOME_URL;
     sandbox.restore();
     await testUtils.captureLog('warn', async () => {
       await docsServer.close();
