@@ -1,4 +1,4 @@
-import {DocAttachmentsLocation} from 'app/common/UserAPI';
+import {AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
 import {
   AttachmentStoreDocInfo,
   DocPoolId,
@@ -11,7 +11,8 @@ import {DocStorage} from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
-import {Readable} from 'node:stream';
+import {EventEmitter} from 'events';
+import {Readable} from 'stream';
 
 export interface AddFileResult {
   fileIdent: string;
@@ -76,7 +77,13 @@ export class AttachmentRetrievalError extends Error {
  * they'll eventually be cleaned up when the document pool is deleted.
  *
  */
-export class AttachmentFileManager {
+export class AttachmentFileManager extends EventEmitter {
+
+  public static events = {
+    TRANSFER_STARTED: 'transfer-started',
+    TRANSFER_COMPLETED: 'transfer-completed',
+  };
+
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
   private readonly _docPoolId: DocPoolId | null;
   private readonly _docName: string;
@@ -102,6 +109,7 @@ export class AttachmentFileManager {
     private _storeProvider: IAttachmentStoreProvider | undefined,
     _docInfo: AttachmentStoreDocInfo | undefined,
   ) {
+    super();
     this._docName = _docStorage.docName;
     this._docPoolId = _docInfo ? getDocPoolIdFromDocInfo(_docInfo) : null;
   }
@@ -240,6 +248,7 @@ export class AttachmentFileManager {
 
   private async _performPendingTransfers() {
     try {
+      await this._notifyAboutStart();
       while (this._pendingFileTransfers.size > 0) {
         // Map.entries() will always return the most recent key/value from the map, even after a long async delay
         // Meaning we can safely iterate here and know the transfer is up to date.
@@ -262,7 +271,22 @@ export class AttachmentFileManager {
       }
     } finally {
       await this._docStorage.requestVacuum();
+      await this._notifyAboutEnd();
     }
+  }
+
+  private async _notifyAboutStart() {
+    this.emit(AttachmentFileManager.events.TRANSFER_STARTED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: true}
+    } as AttachmentTransferStatus);
+  }
+
+  private async _notifyAboutEnd() {
+    this.emit(AttachmentFileManager.events.TRANSFER_COMPLETED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false}
+    } as AttachmentTransferStatus);
   }
 
   private async _addFileToLocalStorage(

@@ -525,22 +525,13 @@ export class DocWorkerApi {
     // Starts transferring all attachments to the named store, if it exists.
     this._app.post('/api/docs/:docId/attachments/transferAll', isOwner, withDoc(async (activeDoc, req, res) => {
       await activeDoc.startTransferringAllAttachmentsToDefaultStore();
-      const locationSummary = await activeDoc.attachmentLocationSummary();
-
       // Respond with the current status to allow for immediate UI updates.
-      res.json({
-        status: activeDoc.attachmentTransferStatus(),
-        locationSummary,
-      });
+      res.json(await activeDoc.attachmentTransferStatus());
     }));
 
     // Returns the status of any current / pending attachment transfers
     this._app.get('/api/docs/:docId/attachments/transferStatus', isOwner, withDoc(async (activeDoc, req, res) => {
-      const locationSummary = await activeDoc.attachmentLocationSummary();
-      res.json({
-        status: activeDoc.attachmentTransferStatus(),
-        locationSummary,
-      });
+      res.json(await activeDoc.attachmentTransferStatus());
     }));
 
     this._app.get('/api/docs/:docId/attachments/store', isOwner,

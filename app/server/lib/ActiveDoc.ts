@@ -81,7 +81,7 @@ import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {Document as APIDocument, DocReplacementOptions,
-        DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+        DocState, DocStateComparison, NEW_DOCUMENT_CODE, AttachmentTransferStatus} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -399,6 +399,12 @@ export class ActiveDoc extends EventEmitter {
       _attachmentStoreProvider,
       _options?.doc,
     );
+
+    const notifier = this.sendAttachmentTransferStatusNotification.bind(this);
+
+    this._attachmentFileManager
+      .on(AttachmentFileManager.events.TRANSFER_STARTED, notifier)
+      .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
     // corresponding to one process for pynbox, more for gvisor).
@@ -959,8 +965,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Returns a summary of pending attachment transfers between attachment stores.
    */
-  public attachmentTransferStatus() {
-    return this._attachmentFileManager.transferStatus();
+  public async attachmentTransferStatus() {
+    return {
+      status: this._attachmentFileManager.transferStatus(),
+      locationSummary: await this._attachmentFileManager.locationSummary(),
+    };
   }
 
   /**
@@ -976,7 +985,7 @@ export class ActiveDoc extends EventEmitter {
    */
   @ActiveDoc.keepDocOpen
   public async allAttachmentTransfersCompleted() {
-      await this._attachmentFileManager.allTransfersCompleted();
+    await this._attachmentFileManager.allTransfersCompleted();
   }
 
 
@@ -984,6 +993,7 @@ export class ActiveDoc extends EventEmitter {
     const docSettings = await this._getDocumentSettings();
     docSettings.attachmentStoreId = id;
     await this._updateDocumentSettings(docSession, docSettings);
+    await this.sendAttachmentTransferStatusNotification(await this.attachmentTransferStatus());
   }
 
   /**
@@ -993,7 +1003,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async setAttachmentStoreFromLabel(docSession: OptDocSession, label: string | undefined): Promise<void> {
     const id = label === undefined ? undefined : this._attachmentStoreProvider?.getStoreIdFromLabel(label);
-    return this.setAttachmentStore(docSession, id);
+    await this.setAttachmentStore(docSession, id);
   }
 
   public async getAttachmentStore(): Promise<string | undefined> {
@@ -1934,11 +1944,9 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
-  public async sendAttachmentTransferStatusNotification() {
+  public async sendAttachmentTransferStatusNotification(attachmentTransfer: AttachmentTransferStatus) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
-      attachmentTransfer: {
-        ...this.attachmentTransferStatus(),
-      },
+      attachmentTransfer
     });
   }
 

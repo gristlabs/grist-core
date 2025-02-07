@@ -74,7 +74,7 @@ import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {getGristConfig} from 'app/common/urlUtils';
-import {DocStateComparison} from 'app/common/UserAPI';
+import {AttachmentTransferStatus, DocStateComparison} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType} from 'app/common/widgetTypes';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {
@@ -205,6 +205,8 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public isTimingOn = Observable.create(this, false);
+
+  public attachmentTransfer = Observable.create(this, null as AttachmentTransferStatus|null);
 
   /**
    * Checks if it is ok to show raw data popup for currently selected section.
@@ -893,6 +895,8 @@ export class GristDoc extends DisposableWithEvents {
       }
     } else if (message.data.timing) {
       this.isTimingOn.set(message.data.timing.status !== 'disabled');
+    } else if (message.data.attachmentTransfer) {
+      this.attachmentTransfer.set(message.data.attachmentTransfer);
     }
   }
 

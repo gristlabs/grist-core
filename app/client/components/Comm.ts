@@ -370,7 +370,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
 
       // Another asynchronous message that's not a response. Broadcast it as an event.
       if (ValidEvent.guard(message.type)) {
-        log.debug("Comm: Triggering event " + message.type);
+        log.debug("Comm: Triggering event " + message.type, message.data);
         this.trigger(message.type, message);
       } else {
         log.warn("Comm: Server message of unknown type " + message.type);

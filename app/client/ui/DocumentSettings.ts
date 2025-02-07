@@ -31,7 +31,6 @@ import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {
-  AttachmentTransferStatus,
   DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
@@ -239,15 +238,16 @@ export class DocSettingsPage extends Disposable {
       const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
       return id ? EXTERNAL : INTERNAL;
     });
-    storageType.onWrite(async (val) => {
-      await this._gristDoc.docApi.setAttachmentStore(val);
+    storageType.onWrite(async (type) => {
+      // We use this method, instead of updating the observable directly, to ensure that the
+      // active doc has a chance to send us updates about the transfer.
+      await this._gristDoc.docApi.setAttachmentStore(type);
     });
     const storageOptions = [{value: INTERNAL, label: 'Internal'}, {value: EXTERNAL, label: 'External'}];
 
-    const transferStatus = Observable.create<AttachmentTransferStatus|null>(this, null);
-    const locationSummary = Computed.create(this, use => use(transferStatus)?.locationSummary || null);
-
-    const inProgress = Computed.create(this, use => !!use(transferStatus)?.status.isRunning);
+    const transfer = this._gristDoc.attachmentTransfer;
+    const locationSummary = Computed.create(this, use => use(transfer)?.locationSummary);
+    const inProgress = Computed.create(this, use => !!use(transfer)?.status.isRunning);
     const allInCurrent = Computed.create(this, use => {
       const summary = use(locationSummary);
       const current = use(storageType);
@@ -265,10 +265,16 @@ export class DocSettingsPage extends Disposable {
       return currentInternal && (use(inProgress) || !use(allInCurrent));
     });
 
-    const refreshStatus = () => this._gristDoc.docApi.getAttachmentTransferStatus().then(s => {
-      if (this.isDisposed()) { return; }
-      transferStatus.set(s);
-    });
+    const loadStatus = async () => {
+      if (transfer.get()) {
+        return;
+      }
+      const status = await this._gristDoc.docApi.getAttachmentTransferStatus();
+      if (transfer.get()) {
+        return;
+      }
+      transfer.set(status);
+    };
 
     const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then(s => {
       if (s.length === 0) {
@@ -280,29 +286,16 @@ export class DocSettingsPage extends Disposable {
 
     const beginTransfer = async () => {
       await this._gristDoc.docApi.transferAllAttachments();
-      await refreshStatus();
     };
 
     const attachmentsReady = Observable.create(this, false);
 
-    refreshStatus()
-      .then(checkAvailableStores)
-      .then(refreshStatus)
+    Promise.all([
+        loadStatus(),
+        checkAvailableStores(),
+      ])
       .then(() => attachmentsReady.set(true))
       .catch(reportError);
-
-    (async () => {
-      // Start polling for status updates every 1 seconds when transfer is in progress.
-      while(!this.isDisposed()) {
-        try {
-          await refreshStatus();
-          await new Promise(resolve => setTimeout(resolve, 200));
-        } catch (err) {
-          reportError(err);
-          break;
-        }
-      }
-    })().catch(reportError);
 
     return dom.create(AdminSection, t('Attachment storage'), [
       dom.create(AdminSectionItem, {
@@ -321,17 +314,6 @@ export class DocSettingsPage extends Disposable {
           ]),
           dom.maybe(inProgress, () => [
             cssButton(
-              hoverTooltip(
-                dom('span',
-                  dom.domComputed(transferStatus, (status) => {
-                    return t(
-                      'There are {{count}} attachments left to transfer',
-                      {count: status?.status.pendingTransferCount}
-                    );
-                  }),
-                  testId('transfer-status-tooltip')
-                )
-              ),
               cssLoadingSpinner(
                 loadingSpinner.cls('-inline'),
                 cssLoadingSpinner.cls('-disabled'),
