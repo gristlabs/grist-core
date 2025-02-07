@@ -20,8 +20,8 @@ describe("AttachmentsTransfer", function() {
   /** Files will be stored in a folder inside the tmpFolder. Here is a helper that will get files names from it. */
   const files = () => {
     const dirs = fs.readdirSync(tmpFolder).filter(f => fs.statSync(path.join(tmpFolder, f)).isDirectory());
-    if (dirs.length === 0) {return [];}
-    if (dirs.length > 1) {throw new Error("Unexpected number of directories");}
+    if (dirs.length === 0) { return []; }
+    if (dirs.length > 1) { throw new Error("Unexpected number of directories"); }
     const innerFiles = fs.readdirSync(path.join(tmpFolder, dirs[0]));
     return innerFiles;
   };
