@@ -8,6 +8,7 @@ import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
+import { GroupTypes } from "./GroupsManager";
 
 export interface QueryResult<T> {
   status: number;
@@ -61,11 +62,18 @@ export interface OrgAccessChanges {
   accessChanges: Omit<AccessChanges, "publicAccess" | "maxInheritedAccess">;
 }
 
-export interface GroupDescriptor {
+export interface RoleGroupDescriptor {
   readonly name: roles.Role;
   readonly permissions: number;
   readonly nestParent: boolean;
   readonly orgOnly?: boolean;
+}
+
+export interface GroupWithMembersDescriptor {
+  readonly type: GroupTypes;
+  readonly name: string;
+  readonly memberUsers?: number[];
+  readonly memberGroups?: number[];
 }
 
 interface AccessChanges {
