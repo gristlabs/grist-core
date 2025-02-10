@@ -562,7 +562,7 @@
         "Update": "Обнови",
         "Workspace": "Работно пространство",
         "You do not have write access to this site": "Нямате достъп за писане до този сайт",
-        "Download full document and history": "Изтеглете пълния документ и хронология",
+        "Download document and history": "Изтеглете пълния документ и хронология",
         "As Template": "Като образец",
         "Include the structure without any of the data.": "Включете структурата без никакви данни.",
         "The original version of this document will be updated.": "Оригиналната версия на този документ ще бъде обновена.",
@@ -572,9 +572,9 @@
         "You do not have write access to the selected workspace": "Нямате достъп за писане в избраното работно пространство",
         "To save your changes, please sign up, then reload this page.": "За да запазите промените си, моля, регистрирайте се, след което презаредете тази страница.",
         "Update Original": "Обнови оригинала",
-        "Remove all data but keep the structure to use as a template": "Премахни всички данни, но запазете структурата, която да използвате като образец",
+        "Download document structure only (no data, for template use)": "Премахни всички данни, но запазете структурата, която да използвате като образец",
         "Download": "Изтегли",
-        "Remove document history (can significantly reduce file size)": "Премахни на хронологията на документа (може значително да намали размера на файла)",
+        "Download document without history (can significantly reduce file size)": "Премахни на хронологията на документа (може значително да намали размера на файла)",
         "Download document": "Изтегли документ"
     },
     "NotifyUI": {

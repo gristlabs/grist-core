@@ -227,17 +227,17 @@
         "Original Has Modifications": "オリジナルには変更が加えられています",
         "No destination workspace": "宛先ワークスペースがありません",
         "You do not have write access to the selected workspace": "選択したワークスペースの書き込み権限がありません",
-        "Remove all data but keep the structure to use as a template": "全てのデータを削除し、構造をテンプレートとして使う",
+        "Download document structure only (no data, for template use)": "全てのデータを削除し、構造をテンプレートとして使う",
         "Original Looks Identical": "オリジナルは同一のようです",
         "Organization": "組織",
         "Replacing the original requires editing rights on the original document.": "オリジナルを置き換えるには、元のドキュメントに対する編集権限が必要です。",
-        "Remove document history (can significantly reduce file size)": "ドキュメントの履歴を削除（ファイルサイズを大幅に削減できます）",
+        "Download document without history (can significantly reduce file size)": "ドキュメントの履歴を削除（ファイルサイズを大幅に削減できます）",
         "To save your changes, please sign up, then reload this page.": "変更を保存するには、サインアップしてからこのページをリロードしてください。",
         "The original version of this document will be updated.": "このドキュメントの元のバージョンは更新されています。",
         "However, it appears to be already identical.": "しかし、すでに同一であるようです。",
         "Update Original": "オリジナルを更新",
         "You do not have write access to this site": "このサイトへのアクセス権限がありません",
-        "Download full document and history": "全てのドキュメントと履歴をダウンロード"
+        "Download document and history": "全てのドキュメントと履歴をダウンロード"
     },
     "SortConfig": {
         "Add Column": "列を追加",

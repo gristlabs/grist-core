@@ -511,14 +511,14 @@
         "The original version of this document will be updated.": "Tämän dokumetin alkuperäinen versio päivitetään.",
         "To save your changes, please sign up, then reload this page.": "Tallenna muutokset rekisteröitymällä ja sitten lataamalla tämä sivu uudelleen.",
         "You do not have write access to this site": "Sinulla ei ole kirjoitusoikeutta tähän sivustoon",
-        "Download full document and history": "Lataa koko dokumentti ja historia",
+        "Download document and history": "Lataa koko dokumentti ja historia",
         "Cancel": "Peruuta",
         "Update": "Päivitä",
         "Update Original": "Päivitä alkuperäinen",
         "Workspace": "Työtila",
         "You do not have write access to the selected workspace": "Sinulla ei ole kirjoitusoikeutta valittuun työtilaan",
-        "Remove all data but keep the structure to use as a template": "Poista kaikki data, mutta säilytä rakenne mallipohjakäyttöä varten",
-        "Remove document history (can significantly reduce file size)": "Poista dokumentin historia (voi pienentää tiedostokokoa merkittävästi)",
+        "Download document structure only (no data, for template use)": "Poista kaikki data, mutta säilytä rakenne mallipohjakäyttöä varten",
+        "Download document without history (can significantly reduce file size)": "Poista dokumentin historia (voi pienentää tiedostokokoa merkittävästi)",
         "Replacing the original requires editing rights on the original document.": "Alkuperäisen korvaaminen vaatii muokkausoikeuksia alkuperäiseen dokumenttiin."
     },
     "RightPanel": {

@@ -89,9 +89,9 @@
         "You do not have write access to the selected workspace": "Ви не маєте права на запис у вибраному робочому просторі",
         "You do not have write access to this site": "Ви не маєте права на запис на цьому сайті",
         "However, it appears to be already identical.": "Втім, схоже, що вони вже ідентичні.",
-        "Remove all data but keep the structure to use as a template": "Видалити всі дані, але зберегти структуру, щоб використовувати як шаблон",
-        "Remove document history (can significantly reduce file size)": "Видалити історію документа (може значно зменшити розмір файлу)",
-        "Download full document and history": "Завантажити повний документ та історію"
+        "Download document structure only (no data, for template use)": "Видалити всі дані, але зберегти структуру, щоб використовувати як шаблон",
+        "Download document without history (can significantly reduce file size)": "Видалити історію документа (може значно зменшити розмір файлу)",
+        "Download document and history": "Завантажити повний документ та історію"
     },
     "SortConfig": {
         "Add Column": "Додати стовпець",

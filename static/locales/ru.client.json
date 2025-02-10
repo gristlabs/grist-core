@@ -277,9 +277,9 @@
         "To save your changes, please sign up, then reload this page.": "Чтобы сохранить изменения, пожалуйста зарегистрируйтесь, а затем перезагрузите эту страницу.",
         "You do not have write access to the selected workspace": "У вас нет прав на запись в выбранное рабочее пространство",
         "You do not have write access to this site": "У вас нет права записи для этого сайта",
-        "Remove all data but keep the structure to use as a template": "Удалить все данные, но сохранить структуру для использования в качестве шаблона.",
-        "Download full document and history": "Скачать полный документ и историю",
-        "Remove document history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)",
+        "Download document structure only (no data, for template use)": "Удалить все данные, но сохранить структуру для использования в качестве шаблона.",
+        "Download document and history": "Скачать полный документ и историю",
+        "Download document without history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)",
         "Download": "Скачать",
         "Download document": "Скачать документ"
     },

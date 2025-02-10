@@ -480,17 +480,17 @@
         "Original Has Modifications": "Originalul are modificări",
         "No destination workspace": "Fără spațiu de lucru destinație",
         "You do not have write access to the selected workspace": "Nu aveți acces de scriere la spațiul de lucru selectat",
-        "Remove all data but keep the structure to use as a template": "Eliminați toate datele, dar păstrați structura pentru a o folosi ca șablon",
+        "Download document structure only (no data, for template use)": "Eliminați toate datele, dar păstrați structura pentru a o folosi ca șablon",
         "Original Looks Identical": "Originalul arată identic",
         "Organization": "Organizația",
         "Replacing the original requires editing rights on the original document.": "Înlocuirea originalului necesită drepturi de editare asupra documentului original.",
-        "Remove document history (can significantly reduce file size)": "Eliminați istoricul documentelor (poate reduce semnificativ dimensiunea fișierului)",
+        "Download document without history (can significantly reduce file size)": "Eliminați istoricul documentelor (poate reduce semnificativ dimensiunea fișierului)",
         "To save your changes, please sign up, then reload this page.": "Pentru a salva modificările, vă rugăm să vă înscrieți, apoi să reîncărcați această pagină.",
         "The original version of this document will be updated.": "Versiunea originală a acestui document va fi actualizată.",
         "However, it appears to be already identical.": "Cu toate acestea, pare să fie deja identic.",
         "Update Original": "Actualizați originalul",
         "You do not have write access to this site": "Nu aveți acces de scriere la acest spaţiu",
-        "Download full document and history": "Descărcați documentul complet și istoricul"
+        "Download document and history": "Descărcați documentul complet și istoricul"
     },
     "GristTooltips": {
         "They allow for one record to point (or refer) to another.": "Acestea permit ca o înregistrare să indice (sau să se refere) la alta.",

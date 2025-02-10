@@ -1324,9 +1324,9 @@
         "Workspace": "워크스페이스",
         "You do not have write access to the selected workspace": "선택한 워크스페이스에 쓰기 접근 권한이 없습니다.",
         "You do not have write access to this site": "이 사이트에 쓰기 접근 권한이 없습니다.",
-        "Download full document and history": "전체 문서 및 기록 다운로드",
-        "Remove all data but keep the structure to use as a template": "모든 데이터를 제거하되, 템플릿으로 사용할 구조는 유지합니다.",
-        "Remove document history (can significantly reduce file size)": "문서 기록 제거 (파일 크기를 크게 줄일 수 있음)",
+        "Download document and history": "전체 문서 및 기록 다운로드",
+        "Download document structure only (no data, for template use)": "모든 데이터를 제거하되, 템플릿으로 사용할 구조는 유지합니다.",
+        "Download document without history (can significantly reduce file size)": "문서 기록 제거 (파일 크기를 크게 줄일 수 있음)",
         "Download": "다운로드",
         "Download document": "문서 다운로드"
     },

@@ -474,9 +474,9 @@
         "Workspace": "பணியிடம்",
         "You do not have write access to the selected workspace": "தேர்ந்தெடுக்கப்பட்ட பணியிடத்திற்கு உங்களுக்கு எழுத்து அணுகல் இல்லை",
         "You do not have write access to this site": "இந்த தளத்திற்கு உங்களுக்கு எழுத்து அணுகல் இல்லை",
-        "Download full document and history": "முழு ஆவணத்தையும் வரலாற்றையும் பதிவிறக்கவும்",
-        "Remove all data but keep the structure to use as a template": "எல்லா தரவையும் அகற்று, ஆனால் ஒரு வார்ப்புருவாக பயன்படுத்த கட்டமைப்பை வைத்திருங்கள்",
-        "Remove document history (can significantly reduce file size)": "ஆவண வரலாற்றை அகற்று (கோப்பு அளவைக் கணிசமாகக் குறைக்க முடியும்)",
+        "Download document and history": "முழு ஆவணத்தையும் வரலாற்றையும் பதிவிறக்கவும்",
+        "Download document structure only (no data, for template use)": "எல்லா தரவையும் அகற்று, ஆனால் ஒரு வார்ப்புருவாக பயன்படுத்த கட்டமைப்பை வைத்திருங்கள்",
+        "Download document without history (can significantly reduce file size)": "ஆவண வரலாற்றை அகற்று (கோப்பு அளவைக் கணிசமாகக் குறைக்க முடியும்)",
         "Download": "பதிவிறக்கம்",
         "Download document": "ஆவணத்தைப் பதிவிறக்கவும்"
     },

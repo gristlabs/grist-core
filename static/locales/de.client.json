@@ -668,9 +668,9 @@
         "Workspace": "Arbeitsbereich",
         "You do not have write access to the selected workspace": "Sie haben keinen Schreibzugriff auf den ausgewählten Arbeitsbereich",
         "You do not have write access to this site": "Sie haben keinen Schreibzugriff auf diese Seite",
-        "Download full document and history": "Vollständiges Dokument und Geschichte herunterladen",
-        "Remove all data but keep the structure to use as a template": "Entfernen Sie alle Daten, behalten Sie aber die Struktur als Vorlage bei",
-        "Remove document history (can significantly reduce file size)": "Dokumentverlauf entfernen (kann die Dateigröße deutlich reduzieren)",
+        "Download document and history": "Vollständiges Dokument und Geschichte herunterladen",
+        "Download document structure only (no data, for template use)": "Entfernen Sie alle Daten, behalten Sie aber die Struktur als Vorlage bei",
+        "Download document without history (can significantly reduce file size)": "Dokumentverlauf entfernen (kann die Dateigröße deutlich reduzieren)",
         "Download document": "Dokument herunterladen",
         "Download": "Download"
     },

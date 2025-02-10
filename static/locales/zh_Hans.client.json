@@ -400,9 +400,9 @@
         "Workspace": "工作区",
         "You do not have write access to the selected workspace": "您没有对所选工作区的写入权限",
         "You do not have write access to this site": "您没有对此网站的写入权限",
-        "Remove all data but keep the structure to use as a template": "删除所有数据，但保留结构以用作模板",
-        "Remove document history (can significantly reduce file size)": "删除文件历史记录（可大幅减少文件大小）",
-        "Download full document and history": "下载完整文档和历史记录",
+        "Download document structure only (no data, for template use)": "删除所有数据，但保留结构以用作模板",
+        "Download document without history (can significantly reduce file size)": "删除文件历史记录（可大幅减少文件大小）",
+        "Download document and history": "下载完整文档和历史记录",
         "Download": "下载",
         "Download document": "下载文档"
     },

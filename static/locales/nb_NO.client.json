@@ -227,9 +227,9 @@
         "Replacing the original requires editing rights on the original document.": "Erstatting av originalen krever redigeringsrettigheter til originaldokumentet.",
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Vær forsiktig, originalen har endringer som ikke finnes i dette dokumentet. De endringene vil bli overskrevet.",
         "However, it appears to be already identical.": "Dog later det til at det allerede er identisk.",
-        "Remove all data but keep the structure to use as a template": "Fjern all data, men behold strukturen til bruk som mal",
-        "Remove document history (can significantly reduce file size)": "Fjern dokumenthistorikk (kan redusere filstørrelse drastisk)",
-        "Download full document and history": "Last ned hele dokumentet og historikken"
+        "Download document structure only (no data, for template use)": "Fjern all data, men behold strukturen til bruk som mal",
+        "Download document without history (can significantly reduce file size)": "Fjern dokumenthistorikk (kan redusere filstørrelse drastisk)",
+        "Download document and history": "Last ned hele dokumentet og historikken"
     },
     "NotifyUI": {
         "Cannot find personal site, sorry!": "Finner ikke personlig side. Beklager.",

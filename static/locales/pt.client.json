@@ -192,9 +192,9 @@
         "As Template": "Como Modelo",
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Tenha cuidado, o original tem mudanças que não estão neste documento. Essas mudanças serão sobrescritas.",
         "Enter document name": "Digite o nome do documento",
-        "Remove all data but keep the structure to use as a template": "Remova todos os dados, mas mantenha a estrutura para usar como um modelo",
-        "Remove document history (can significantly reduce file size)": "Remova o histórico do documento (pode reduzir significativamente o tamanho do ficheiro)",
-        "Download full document and history": "Descarregue documento completo e histórico",
+        "Download document structure only (no data, for template use)": "Remova todos os dados, mas mantenha a estrutura para usar como um modelo",
+        "Download document without history (can significantly reduce file size)": "Remova o histórico do documento (pode reduzir significativamente o tamanho do ficheiro)",
+        "Download document and history": "Descarregue documento completo e histórico",
         "Download": "Descarregar",
         "Download document": "Descarregar documento"
     },

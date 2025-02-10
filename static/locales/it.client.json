@@ -70,9 +70,9 @@
         "Workspace": "Spazio di lavoro",
         "You do not have write access to the selected workspace": "Non hai accesso in scrittura allo spazio di lavoro selezionato",
         "You do not have write access to this site": "Non hai accesso in scrittura a questo sito",
-        "Remove all data but keep the structure to use as a template": "Rimuovi tutti i dati, mantieni la struttura per usarla come template",
-        "Remove document history (can significantly reduce file size)": "Rimuovi la storia del documento (può ridurre molto le dimensioni del file)",
-        "Download full document and history": "Scarica tutto il documento e la storia",
+        "Download document structure only (no data, for template use)": "Rimuovi tutti i dati, mantieni la struttura per usarla come template",
+        "Download document without history (can significantly reduce file size)": "Rimuovi la storia del documento (può ridurre molto le dimensioni del file)",
+        "Download document and history": "Scarica tutto il documento e la storia",
         "Download": "Scarica",
         "Download document": "Scarica documento"
     },

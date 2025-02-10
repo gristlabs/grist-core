@@ -581,15 +581,15 @@
         "Workspace": "Lan-eremua",
         "You do not have write access to this site": "Ez duzu gune honetarako idazketa-sarbiderik",
         "You do not have write access to the selected workspace": "Ez duzu hautatutako lan-eremurako idazketa-sarbiderik",
-        "Download full document and history": "Jaitsi dokumentu osoa eta historia",
+        "Download document and history": "Jaitsi dokumentu osoa eta historia",
         "However, it appears to be already identical.": "Hala ere, badirudi lehendik berdina dela.",
         "Include the structure without any of the data.": "Sartu egitura, daturik gabe.",
         "It will be overwritten, losing any content not in this document.": "Gainidatziko da, dokumentu honetan ez dagoen edukia galduz.",
         "The original version of this document will be updated.": "Dokumentu honen jatorrizko bertsioa eguneratuko da.",
         "To save your changes, please sign up, then reload this page.": "Aldaketak gordetzeko, eman izena eta ondoren birkargatu orri hau.",
         "Replacing the original requires editing rights on the original document.": "Jatorrizkoa ordezkatzeko, jatorrizko dokumentua editatzeko-eskubidea behar da.",
-        "Remove all data but keep the structure to use as a template": "Kendu datu guztiak baina gorde egitura txantiloi gisa erabiltzeko",
-        "Remove document history (can significantly reduce file size)": "Kendu dokumentuaren historia (fitxategiaren tamaina nabarmen murriztu daiteke)",
+        "Download document structure only (no data, for template use)": "Kendu datu guztiak baina gorde egitura txantiloi gisa erabiltzeko",
+        "Download document without history (can significantly reduce file size)": "Kendu dokumentuaren historia (fitxategiaren tamaina nabarmen murriztu daiteke)",
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Kontuz, jatorrizkoan egindako aldaketa ez daude dokumentu honetan. Aldaketa horiek gainidatziko dira."
     },
     "NotifyUI": {

@@ -237,17 +237,17 @@
         "Original Has Modifications": "原始文件有修改",
         "No destination workspace": "沒有目標工作區",
         "You do not have write access to the selected workspace": "您無法對選定的工作區進行寫入",
-        "Remove all data but keep the structure to use as a template": "移除所有資料但保留結構以作為範本",
+        "Download document structure only (no data, for template use)": "移除所有資料但保留結構以作為範本",
         "Original Looks Identical": "原始文件看起來相同",
         "Organization": "組織",
         "Replacing the original requires editing rights on the original document.": "替換原始文件需要對原始文件有編輯權限。",
-        "Remove document history (can significantly reduce file size)": "移除文件歷史（可以顯著減少檔案大小）",
+        "Download document without history (can significantly reduce file size)": "移除文件歷史（可以顯著減少檔案大小）",
         "To save your changes, please sign up, then reload this page.": "要儲存您的變更，請註冊，然後重新載入此頁面。",
         "The original version of this document will be updated.": "此文件的原始版本將被更新。",
         "However, it appears to be already identical.": "然而，它似乎已經完全相同。",
         "Update Original": "更新原始文件",
         "You do not have write access to this site": "您無法對此網站進行寫入",
-        "Download full document and history": "下載完整文件和歷史"
+        "Download document and history": "下載完整文件和歷史"
     },
     "GristTooltips": {
         "They allow for one record to point (or refer) to another.": "它們允許一個記錄指向（或參考）另一個記錄。",
