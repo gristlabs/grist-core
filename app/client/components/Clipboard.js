@@ -49,6 +49,8 @@ var dom = require('../lib/dom');
 var Base = require('./Base');
 var tableUtil = require('../lib/tableUtil');
 
+var _ = require('underscore');
+
 const t = makeT('Clipboard');
 
 function Clipboard(app) {
@@ -71,7 +73,14 @@ function Clipboard(app) {
 
   FocusLayer.create(this, {
     defaultFocusElem: this.copypasteField,
-    allowFocus: allowFocus,
+    allowFocus: (element) => {
+      // We always allow focus if current screen doesn't have any clipboard events registered.
+      // This basically means the focus grab is disabled if no clipboard command is active.
+      const { copy, cut, paste } = commands.allCommands;
+      return (copy._activeFunc === _.noop && cut._activeFunc === _.noop && paste._activeFunc === _.noop)
+        ? true
+        : allowFocus(element);
+    },
     onDefaultFocus: () => {
       this.copypasteField.value = ' ';
       this.copypasteField.select();
