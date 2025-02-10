@@ -732,6 +732,10 @@ export interface GristLoadConfig {
   // on this for custom domains, but set it generally for all pages.
   org?: string;
 
+  // True if there are no subdomains  or separate servers defined for
+  // the home servers or doc workers.
+  singleDomainSetup: boolean;
+
   // Base domain for constructing new URLs, should start with "." and not include port, e.g.
   // ".getgrist.com". It should be unset for localhost operation and in single-org mode.
   baseDomain?: string;
