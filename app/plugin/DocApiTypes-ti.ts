@@ -90,6 +90,10 @@ export const SqlPost = t.iface([], {
   "timeout": t.opt("number"),
 });
 
+export const SetAttachmentStorePost = t.iface([], {
+  "type": t.union(t.lit("internal"), t.lit("external")),
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   NewRecord,
   NewRecordWithStringId,
@@ -108,5 +112,6 @@ const exportedTypeSuite: t.ITypeSuite = {
   TablesPost,
   TablesPatch,
   SqlPost,
+  SetAttachmentStorePost,
 };
 export default exportedTypeSuite;

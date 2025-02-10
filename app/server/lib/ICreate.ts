@@ -80,7 +80,7 @@ export interface ICreate {
   // static page.
   getExtraHeadHtml?(): string;
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
-  getAttachmentStoreOptions(): ICreateAttachmentStoreOptions[];
+  getAttachmentStoreOptions(): {[key: string]: ICreateAttachmentStoreOptions | undefined};
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
 
@@ -100,7 +100,7 @@ export interface ICreateStorageOptions {
   name: string;
   check(): boolean;
   checkBackend?(): Promise<void>;
-  create(purpose: 'doc'|'meta', extraPrefix: string): ExternalStorage|undefined;
+  create(purpose: 'doc'|'meta'|'attachments', extraPrefix: string): ExternalStorage|undefined;
 }
 
 export interface ICreateAttachmentStoreOptions {
@@ -177,8 +177,8 @@ export class BaseCreate implements ICreate {
   public getStorageOptions(name: string) {
     return this._storage.find(s => s.name === name);
   }
-  public getAttachmentStoreOptions(): ICreateAttachmentStoreOptions[] {
-    return [];
+  public getAttachmentStoreOptions() {
+    return {};
   }
   public async createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin> {
     return new SimpleInstallAdmin(dbManager);

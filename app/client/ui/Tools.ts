@@ -89,12 +89,6 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageLink(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
-    // TODO: polish validation and add it back
-    dom.maybe((use) => use(gristDoc.app.features).validationsTool, () =>
-      cssPageEntry(
-        cssPageLink(cssPageIcon('Validation'), cssLinkText(t("Validate Data")), testId('validate'),
-          dom.on('click', () => gristDoc.showTool('validations'))))
-    ),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),

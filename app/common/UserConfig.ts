@@ -22,8 +22,7 @@ export interface ISupportedFeatures {
   // otherwise they could be spoofed.
   formulaBar?: boolean;
 
-  // Plugin views, REPL, and Validations all need work, but are exposed here to allow existing
+  // Plugin views, and REPL all need work, but are exposed here to allow existing
   // tests to continue running. These only affect client-side code.
   customViewPlugin?: boolean;
-  validationsTool?: boolean;
 }

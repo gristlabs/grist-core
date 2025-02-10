@@ -37,6 +37,16 @@
         "Seed rules": "قواعد دانه(Seed)",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "به همه اجازه دهید کل سند را کپی کنند، یا آن را به صورت کامل در حالت ور رفتن مشاهده کنند.\nمفید برای نمونه‌ها و قالب‌ها، اما نه برای داده‌های حساس.",
         "Lookup Column": "جستجوی ستون",
-        "Lookup Table": "جستجوی جدول"
+        "Lookup Table": "جستجوی جدول",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "هنگام افزودن قوانین جدول، به‌طور خودکار یک قانون برای اعطای دسترسی کامل به مالک اضافه کنید.",
+        "This default should be changed if editors' access is to be limited. ": "این پیش‌فرض باید تغییر کند اگر قرار است دسترسی ویرایشگران محدود شود. ",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "اجازه دهید ویرایشگران ساختار را ویرایش کنند (مانند تغییر و حذف جداول، ستون‌ها، چیدمان‌ها) و فرمول‌ها را بنویسند، که به تمام داده‌ها بدون توجه به محدودیت‌های خواندنی دسترسی دارند.",
+        "Permission to edit document structure": "اجازه‌ی ویرایش ساختار سند",
+        "Add Table-wide Rule": "افزودن قانون سراسری جدول"
+    },
+    "AccountPage": {
+        "API Key": "کلید API",
+        "Account settings": "تنظیمات حساب کاربری",
+        "API": "API"
     }
 }

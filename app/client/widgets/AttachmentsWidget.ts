@@ -190,7 +190,7 @@ const cssAttachmentWidget = styled('div', `
   }
 `);
 
-const cssAttachmentIcon = styled('div.glyphicon.glyphicon-paperclip', `
+const cssAttachmentIcon = styled('div', `
   position: absolute;
   top: 2px;
   left: 5px;
@@ -212,6 +212,17 @@ const cssAttachmentIcon = styled('div.glyphicon.glyphicon-paperclip', `
   }
   .${cssAttachmentWidget.className}:hover &-hover {
     display: inline;
+  }
+
+  &::before {
+    display: block;
+    background-color: var(--grist-control-bg, --grist-theme-text, black);
+    content: ' ';
+    mask-image: var(--icon-FieldAttachment);
+    width: 14px;
+    height: 14px;
+    mask-size: contain;
+    mask-repeat: no-repeat;
   }
 `);
 

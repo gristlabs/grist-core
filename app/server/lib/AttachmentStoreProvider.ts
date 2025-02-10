@@ -1,6 +1,11 @@
-import {IAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {appSettings} from 'app/server/lib/AppSettings';
+import {FilesystemAttachmentStore, IAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {create} from 'app/server/lib/create';
 import log from 'app/server/lib/log';
 import {ICreateAttachmentStoreOptions} from './ICreate';
+import * as fse from 'fs-extra';
+import path from 'path';
+import * as tmp from 'tmp-promise';
 
 export type AttachmentStoreId = string
 
@@ -15,8 +20,10 @@ export type AttachmentStoreId = string
  * to store/retrieve them as long as that store exists on the document's installation.
  */
 export interface IAttachmentStoreProvider {
+  getStoreIdFromLabel(label: string): string;
+
   // Returns the store associated with the given id, returning null if no store with that id exists.
-  getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null>
+  getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null>;
 
   getAllStores(): Promise<IAttachmentStore[]>;
 
@@ -25,60 +32,80 @@ export interface IAttachmentStoreProvider {
   listAllStoreIds(): AttachmentStoreId[];
 }
 
+// All the information needed to instantiate an instance of a particular store type
 export interface IAttachmentStoreSpecification {
   name: string,
   create: (storeId: string) => Promise<IAttachmentStore>,
 }
 
-interface IAttachmentStoreDetails {
-  id: string;
+// All the information needed to create a particular store instance
+export interface IAttachmentStoreConfig {
+  // This is the name for the store, but it also used to construct the store ID.
+  label: string;
   spec: IAttachmentStoreSpecification;
 }
 
+/**
+ * Provides access to instances of attachment stores.
+ *
+ * Stores can be accessed using ID or Label.
+ *
+ * Labels are a convenient/user-friendly way to refer to stores.
+ * Each label is unique within a Grist instance, but other instances may have stores that use
+ * the same label.
+ * E.g "my-s3" or "myFolder".
+ *
+ * IDs are globally unique - and are created by prepending the label with the installation UUID.
+ * E.g "22ec6867-67bc-414e-a707-da9204c84cab-my-s3" or "22ec6867-67bc-414e-a707-da9204c84cab-myFolder"
+ */
 export class AttachmentStoreProvider implements IAttachmentStoreProvider {
-  private _storeDetailsById: { [storeId: string]: IAttachmentStoreDetails } = {};
+  private _storeDetailsById: Map<string, IAttachmentStoreConfig> = new Map();
 
   constructor(
-    _backends: IAttachmentStoreSpecification[],
-    _installationUuid: string
+    storeConfigs: IAttachmentStoreConfig[],
+    private _installationUuid: string
   ) {
-    // In the current setup, we automatically generate store IDs based on the installation ID.
-    // The installation ID is guaranteed to be unique, and we only allow one store of each backend type.
-    // This gives us a way to reproducibly generate a unique ID for the stores.
-    _backends.forEach((storeSpec) => {
-      const storeId = `${_installationUuid}-${storeSpec.name}`;
-      this._storeDetailsById[storeId] = {
-        id: storeId,
-        spec: storeSpec,
-      };
+    // It's convenient to have stores with a globally unique ID, so there aren't conflicts as
+    // documents are moved between installations. This is achieved by prepending the store labels
+    // with the installation ID. Enforcing that using AttachmentStoreProvider makes it
+    // much harder to accidentally bypass this constraint, as the provider should be the only way of
+    // accessing stores.
+    storeConfigs.forEach((storeConfig) => {
+      this._storeDetailsById.set(this.getStoreIdFromLabel(storeConfig.label), storeConfig);
     });
 
-    const storeIds = Object.values(this._storeDetailsById).map(storeDetails => storeDetails.id);
+    const storeIds = Array.from(this._storeDetailsById.keys());
     log.info(`AttachmentStoreProvider initialised with stores: ${storeIds}`);
   }
 
+  public getStoreIdFromLabel(label: string): string {
+    return `${this._installationUuid}-${label}`;
+  }
+
   public async getStore(id: AttachmentStoreId): Promise<IAttachmentStore | null> {
-    const storeDetails = this._storeDetailsById[id];
+    const storeDetails = this._storeDetailsById.get(id);
     if (!storeDetails) { return null; }
     return storeDetails.spec.create(id);
   }
 
   public async getAllStores(): Promise<IAttachmentStore[]> {
     return await Promise.all(
-      Object.values(this._storeDetailsById).map(storeDetails => storeDetails.spec.create(storeDetails.id))
+      Array.from(this._storeDetailsById.entries()).map(
+        ([storeId, storeConfig]) => storeConfig.spec.create(storeId)
+      )
     );
   }
 
   public async storeExists(id: AttachmentStoreId): Promise<boolean> {
-    return id in this._storeDetailsById;
+    return this._storeDetailsById.has(id);
   }
 
   public listAllStoreIds(): string[] {
-    return Object.keys(this._storeDetailsById);
+    return Array.from(this._storeDetailsById.keys());
   }
 }
 
-async function checkAvailabilityAttachmentStoreOption(option: ICreateAttachmentStoreOptions) {
+async function isAttachmentStoreOptionAvailable(option: ICreateAttachmentStoreOptions) {
   try {
     return await option.isAvailable();
   } catch (error) {
@@ -87,11 +114,77 @@ async function checkAvailabilityAttachmentStoreOption(option: ICreateAttachmentS
   }
 }
 
-export async function checkAvailabilityAttachmentStoreOptions(options: ICreateAttachmentStoreOptions[]) {
-  const availability = await Promise.all(options.map(checkAvailabilityAttachmentStoreOption));
+function storeOptionIsNotUndefined(
+  option: ICreateAttachmentStoreOptions | undefined
+): option is ICreateAttachmentStoreOptions {
+  return option !== undefined;
+}
+
+export async function checkAvailabilityAttachmentStoreOptions(
+  allOptions: (ICreateAttachmentStoreOptions | undefined)[]
+) {
+  const options = allOptions.filter(storeOptionIsNotUndefined);
+  const availability = await Promise.all(options.map(isAttachmentStoreOptionAvailable));
 
   return {
     available: options.filter((option, index) => availability[index]),
     unavailable: options.filter((option, index) => !availability[index]),
   };
+}
+
+// Make a filesystem store that will be cleaned up on process exit.
+// This is only used when external attachments are in 'test' mode, which is used for some unit tests.
+// TODO: Remove this when setting up a filesystem store is possible using normal configuration options
+export async function makeTempFilesystemStoreSpec(
+  name: string = "filesystem"
+) {
+  const tempFolder = await tmp.dir();
+  const tempDir = await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
+  return {
+    rootDirectory: tempDir,
+    name,
+    create: async (storeId: string) => (new FilesystemAttachmentStore(storeId, tempDir))
+  };
+}
+
+const settings = appSettings.section("attachmentStores");
+const ATTACHMENT_STORE_MODE = settings.flag("mode").readString({
+  envVar: "GRIST_EXTERNAL_ATTACHMENTS_MODE",
+  defaultValue: "none",
+});
+
+export function getConfiguredStandardAttachmentStore(): string | undefined {
+  switch (ATTACHMENT_STORE_MODE) {
+    case 'snapshots':
+      return 'snapshots';
+    case 'test':
+      return 'test-filesystem';
+    default:
+      return undefined;
+  }
+}
+
+export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
+  if (ATTACHMENT_STORE_MODE === 'snapshots') {
+    const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
+    // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
+    if (snapshotProvider === undefined) {
+      throw new Error("Snapshot provider is not available on this version of Grist");
+    }
+    if (!(await isAttachmentStoreOptionAvailable(snapshotProvider))) {
+      throw new Error("The currently configured external storage does not support attachments");
+    }
+    return [{
+      label: 'snapshots',
+      spec: snapshotProvider,
+    }];
+  }
+  // TODO This mode should be removed once stores can be configured fully via env vars.
+  if(ATTACHMENT_STORE_MODE === 'test') {
+    return [{
+      label: 'test-filesystem',
+      spec: await makeTempFilesystemStoreSpec(),
+    }];
+  }
+  return [];
 }

@@ -47,7 +47,10 @@ import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef}
 import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
-import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {
+  getConfiguredStandardAttachmentStore,
+  IAttachmentStoreProvider
+} from 'app/server/lib/AttachmentStoreProvider';
 import {
   assertAccess,
   getAuthorizedUserId,
@@ -137,6 +140,7 @@ const {
   ColumnsPost, ColumnsPatch, ColumnsPut,
   SqlPost,
   TablesPost, TablesPatch,
+  SetAttachmentStorePost,
 } = t.createCheckers(DocApiTypesTI, GristDataTI);
 
 for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch,
@@ -516,6 +520,58 @@ export class DocWorkerApi {
       }));
       res.json({records});
     }));
+
+    // Starts transferring all attachments to the named store, if it exists.
+    this._app.post('/api/docs/:docId/attachments/transferAll', isOwner, withDoc(async (activeDoc, req, res) => {
+      await activeDoc.startTransferringAllAttachmentsToDefaultStore();
+      const locationSummary = await activeDoc.attachmentLocationSummary();
+
+      // Respond with the current status to allow for immediate UI updates.
+      res.json({
+        status: activeDoc.attachmentTransferStatus(),
+        locationSummary,
+      });
+    }));
+
+    // Returns the status of any current / pending attachment transfers
+    this._app.get('/api/docs/:docId/attachments/transferStatus', isOwner, withDoc(async (activeDoc, req, res) => {
+      const locationSummary = await activeDoc.attachmentLocationSummary();
+      res.json({
+        status: activeDoc.attachmentTransferStatus(),
+        locationSummary,
+      });
+    }));
+
+    this._app.get('/api/docs/:docId/attachments/store', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        const storeId = await activeDoc.getAttachmentStore();
+        res.json({
+          type: storeId ? 'external' : 'internal',
+        });
+      })
+    );
+
+    this._app.post('/api/docs/:docId/attachments/store', isOwner, validate(SetAttachmentStorePost),
+      withDoc(async (activeDoc, req, res) => {
+        const body = req.body as Types.SetAttachmentStorePost;
+        if (body.type === 'internal') {
+          await activeDoc.setAttachmentStoreFromLabel(docSessionFromRequest(req), undefined);
+        }
+
+        if (body.type === 'external') {
+          const storeLabel = getConfiguredStandardAttachmentStore();
+          if (storeLabel === undefined) {
+            throw new ApiError("server is not configured with an external store", 400);
+          }
+          // This store might not exist - that's acceptable, and should be handled elsewhere.
+          await activeDoc.setAttachmentStoreFromLabel(docSessionFromRequest(req), storeLabel);
+        }
+
+        res.json({
+          store: await activeDoc.getAttachmentStore()
+        });
+      })
+    );
 
     // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
     this._app.get('/api/docs/:docId/attachments/:attId', canView, withDoc(async (activeDoc, req, res) => {
@@ -898,7 +954,8 @@ export class DocWorkerApi {
     );
 
     /**
-     @deprecated please call to POST /webhooks instead, this endpoint is only for sake of backward compatibility
+     @deprecated please call to POST /webhooks instead, this endpoint is only for sake of backward
+        compatibility
      */
     this._app.post('/api/docs/:docId/tables/:tableId/_subscribe', isOwner, validate(WebhookSubscribe),
       withDocTriggersLock(async (activeDoc, req, res) => {
@@ -923,7 +980,8 @@ export class DocWorkerApi {
     );
 
     /**
-     @deprecated please call to DEL /webhooks instead, this endpoint is only for sake of backward compatibility
+     @deprecated please call to DEL /webhooks instead, this endpoint is only for sake of backward
+        compatibility
      */
     this._app.post('/api/docs/:docId/tables/:tableId/_unsubscribe', canEdit,
       withDocTriggersLock(removeWebhook)
@@ -1911,7 +1969,8 @@ export class DocWorkerApi {
   }
 
   /**
-   * Creates a middleware that checks the current usage of a limit and rejects the request if it is exceeded.
+   * Creates a middleware that checks the current usage of a limit and rejects the request if it is
+   * exceeded.
    */
   private async _checkLimit(limit: LimitType, req: Request, res: Response, next: NextFunction) {
     await this._dbManager.increaseUsage(getDocScope(req), limit, {dryRun: true, delta: 1});
@@ -1947,8 +2006,8 @@ export class DocWorkerApi {
 
   /**
    * Check if user is an owner of the document.
-   * If acceptTrunkForSnapshot is set, being an owner of the trunk of the document (if it is a snapshot)
-   * is sufficient. Uses cachedDoc, which could be stale if access has changed recently.
+   * If acceptTrunkForSnapshot is set, being an owner of the trunk of the document (if it is a
+   * snapshot) is sufficient. Uses cachedDoc, which could be stale if access has changed recently.
    */
   private async _isOwner(req: Request, options?: { acceptTrunkForSnapshot?: boolean }) {
     const scope = getDocScope(req);
@@ -2631,12 +2690,15 @@ export function docPeriodicApiUsageKey(docId: string, current: boolean, period: 
  * Maintain up to 5 buckets: current day, next day, current hour, next hour, current minute.
  * For each API request, check in order:
  * - if current_day < DAILY_LIMIT, allow; increment all 3 current buckets
- * - else if current_hour < DAILY_LIMIT/24, allow; increment next_day, current_hour, and current_minute buckets.
- * - else if current_minute < DAILY_LIMIT/24/60, allow; increment next_day, next_hour, and current_minute buckets.
+ * - else if current_hour < DAILY_LIMIT/24, allow; increment next_day, current_hour, and
+ * current_minute buckets.
+ * - else if current_minute < DAILY_LIMIT/24/60, allow; increment next_day, next_hour, and
+ * current_minute buckets.
  * - else reject.
  * I think it has pretty good properties:
  * - steady low usage may be maintained even if a burst exhausted the daily limit
- * - user could get close to twice the daily limit on the first day with steady usage after a burst,
+ * - user could get close to twice the daily limit on the first day with steady usage after a
+ * burst,
  *   but would then be limited to steady usage the next day.
  */
 export function getDocApiUsageKeysToIncr(

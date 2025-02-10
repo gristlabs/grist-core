@@ -57,11 +57,9 @@ export interface ExternalStorage {
 
   // Close the storage object.
   close(): Promise<void>;
-}
 
-export interface StreamingExternalStorage extends ExternalStorage {
-  uploadStream(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
-  downloadStream(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
+  uploadStream?(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
+  downloadStream?(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
 }
 
 /**
@@ -381,7 +379,7 @@ export interface PropStorage {
 export const Unchanged = Symbol('Unchanged');
 
 export interface ExternalStorageSettings {
-  purpose: 'doc' | 'meta';
+  purpose: 'doc' | 'meta' | 'attachments';
   basePrefix?: string;
   extraPrefix?: string;
 }
@@ -394,6 +392,12 @@ export interface ExternalStorageSettings {
 */
 export type ExternalStorageCreator =
   (purpose: ExternalStorageSettings["purpose"], extraPrefix: string) => ExternalStorage | undefined;
+
+export class UnsupportedPurposeError extends Error {
+  constructor(purpose: ExternalStorageSettings["purpose"]) {
+    super(`create.ExternalStorage: unsupported purpose '${purpose}'`);
+  }
+}
 
 function stripTrailingSlash(text: string): string {
   return text.endsWith("/") ? text.slice(0, -1) : text;
@@ -436,7 +440,7 @@ export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (do
     // Alternatively, could go in separate bucket.
     fileNaming = docId => `assets/unversioned/${docId}/meta.json`;
   } else {
-    throw new Error('create.ExternalStorage: unrecognized purpose');
+    throw new UnsupportedPurposeError(settings.purpose);
   }
   return docId => (fullPrefix + fileNaming(docId));
 }

@@ -28,7 +28,10 @@ import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {attachEarlyEndpoints} from 'app/server/lib/attachEarlyEndpoints';
 import {
-  AttachmentStoreProvider, checkAvailabilityAttachmentStoreOptions, IAttachmentStoreProvider
+  AttachmentStoreProvider,
+  checkAvailabilityAttachmentStoreOptions,
+  getConfiguredAttachmentStoreConfigs,
+  IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
@@ -1390,14 +1393,15 @@ export class FlexServer implements GristServer {
 
     const pluginManager = await this._addPluginManager();
 
-    const storeOptions = await checkAvailabilityAttachmentStoreOptions(this.create.getAttachmentStoreOptions());
+    const allStoreOptions = Object.values(this.create.getAttachmentStoreOptions());
+    const checkedStoreOptions = await checkAvailabilityAttachmentStoreOptions(allStoreOptions);
     log.info("Attachment store backend availability", {
-      available: storeOptions.available.map(option => option.name),
-      unavailable: storeOptions.unavailable.map(option => option.name),
+      available: checkedStoreOptions.available.map(option => option.name),
+      unavailable: checkedStoreOptions.unavailable.map(option => option.name),
     });
 
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
-      storeOptions.available,
+      await getConfiguredAttachmentStoreConfigs(),
       (await this.getActivations().current()).id,
     );
     this._docManager = this._docManager || new DocManager(this._storageManager,

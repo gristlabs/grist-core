@@ -66,15 +66,6 @@
   margin-right: 4px;
 }
 
-.g-glyphicon-tristate {
-  position: absolute;
-  top: 4px;
-  left: 3px;
-  width: 5px;
-  height: 5px;
-  background: #606060;
-}
-
 .badge-inv {
   background-color: #ddd;
   color: #666;
