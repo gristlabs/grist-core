@@ -4,6 +4,7 @@ import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {StringUnion} from 'app/common/StringUnion';
+import {AttachmentTransferStatus} from 'app/common/UserAPI';
 
 export const ValidEvent = StringUnion(
   'docListAction', 'docUserAction', 'docShutdown', 'docError',
@@ -109,7 +110,8 @@ export interface CommDocChatter extends CommMessageBase {
     // about other users of the document.
     timing?: {
       status: 'active'|'disabled';
-    }
+    },
+    attachmentTransfer?: AttachmentTransferStatus;
   };
 }
 

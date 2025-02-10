@@ -1,5 +1,6 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
+import {cssMarkdownSpan} from 'app/client/lib/markdown';
 import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
 import {icon} from 'app/client/ui2018/icons';
@@ -46,7 +47,8 @@ export type Tooltip =
   | 'communityWidgets'
   | 'twoWayReferences'
   | 'twoWayReferencesDisabled'
-  | 'reasignTwoWayReference';
+  | 'reassignTwoWayReference'
+  | 'attachmentStorage';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -178,13 +180,23 @@ see or edit which parts of your document.')
     ),
     ...args,
   ),
-  reasignTwoWayReference: (...args: DomElementArg[]) => cssTooltipContent(
+  reassignTwoWayReference: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
       t('This limitation occurs when one column in a two-way reference has the Reference type.')
     ),
     dom('div',
       t(`To allow multiple assignments, change the referenced column's type to Reference List.`)
     ),
+    ...args,
+  ),
+  attachmentStorage: (...args: DomElementArg[]) => cssTooltipContent(
+    cssMarkdownSpan(t(
+      "Internal storage means all attachments are stored in the document SQLite file, " +
+      "while external storage indicates all attachments are stored in the same " +
+      "external storage. [Learn more]({{link}}).", {
+        link: commonUrls.attachmentStorage
+      }
+    )),
     ...args,
   ),
 };
