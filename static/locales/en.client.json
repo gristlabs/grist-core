@@ -619,11 +619,11 @@
         "Workspace": "Workspace",
         "You do not have write access to the selected workspace": "You do not have write access to the selected workspace",
         "You do not have write access to this site": "You do not have write access to this site",
-        "Download full document and history": "Download full document and history",
-        "Remove all data but keep the structure to use as a template": "Remove all data but keep the structure to use as a template",
-        "Remove document history (can significantly reduce file size)": "Remove document history (can significantly reduce file size)",
         "Download": "Download",
-        "Download document": "Download document"
+        "Download document": "Download document",
+        "Download document and history": "Download document and history",
+        "Download document without history (can significantly reduce file size)": "Download document without history (can significantly reduce file size)",
+        "Download document structure only (no data, for template use)": "Download document structure only (no data, for template use)"
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
