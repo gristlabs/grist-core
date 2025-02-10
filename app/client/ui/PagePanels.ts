@@ -1,6 +1,3 @@
-/**
- * Note that it assumes the presence of cssVars.cssRootVars on <body>.
- */
 import {makeT} from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
 import {watchElementForBlur} from 'app/client/lib/FocusLayer';
