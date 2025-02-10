@@ -26,11 +26,6 @@ describe("AttachmentsTransfer", function() {
     return innerFiles;
   };
 
-  // const clearFiles = () => {
-  //   const dirs = fs.readdirSync(tmpFolder).filter(f => fs.statSync(path.join(tmpFolder, f)).isDirectory());
-  //   dirs.forEach(d => fs.rmdirSync(path.join(tmpFolder, d), {recursive: true}));
-  // };
-
   before(async function() {
     tmpFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'grist_attachments_'));
     oldEnv = new testUtils.EnvironmentSnapshot();
