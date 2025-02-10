@@ -2182,6 +2182,7 @@ export class ActiveDoc extends EventEmitter {
 
       this._triggers.shutdown();
 
+      // attachmentFileManager needs to shut down before DocStorage, to allow transfers to finish.
       await safeCallAndWait('attachmentFileManager',
         this._attachmentFileManager.shutdown.bind(this._attachmentFileManager));
 

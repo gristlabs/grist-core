@@ -446,9 +446,6 @@ export class AttachmentFileManager {
   private async _storeFileInAttachmentStore(
     store: IAttachmentStore, fileIdent: string, fileData: Buffer
   ): Promise<void> {
-    if (this._loopAbort.aborted) {
-      throw new Error("AttachmentFileManager was shut down");
-    }
 
     // The underlying store should guarantee the file exists if this method doesn't error,
     // so no extra validation is needed here.
