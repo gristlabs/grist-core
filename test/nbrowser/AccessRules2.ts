@@ -109,6 +109,7 @@ describe("AccessRules2", function() {
     assert.equal(await driver.findWait('.test-view-as-banner', 2000).isPresent(), true);
     assert.match(await driver.find('.test-view-as-banner .test-select-open').getText(),
                  new RegExp(gu.translateUser('user3').name, 'i'));
+    assert.equal(await driver.find('.test-info-tooltip.test-view-as-help-tooltip').isDisplayed(), true);
 
     // check the aclAsUser parameter on the url persists after navigating to another page
     await gu.getPageItem('FinancialsTable').click();

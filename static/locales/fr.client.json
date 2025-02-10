@@ -1009,7 +1009,9 @@
         "Users from table": "Utilisateurs de la table"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Utilisateur inconnu"
+        "UnknownUser": "Utilisateur inconnu",
+        "View as Yourself": "Voir en tant que vous-même",
+        "You are viewing this document as": "Vous voyez ce document en tant que"
     },
     "CellStyle": {
         "Open row styles": "Ouvrir les styles de ligne",
@@ -1220,7 +1222,8 @@
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Pour permettre plusieurs assignations, modifiez le type de la colonne référencée en Référence Multiple.",
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "Pour permettre des assignations multiples, modifiez le type de la colonne Référence en Référence Multiple.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Cette limitation se produit lorsque l'une des extrémités d'une référence bidirectionnelle est configurée comme une référence unique.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Les références bidirectionnelles ne peuvent pas contenir des formules ou des formules d'initialisation"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Les références bidirectionnelles ne peuvent pas contenir des formules ou des formules d'initialisation",
+        "The preview below this header shows how the selected user will see this document": "L'aperçu sous cette entête montre ce que l'utilisateur sélectionné peut voir"
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
