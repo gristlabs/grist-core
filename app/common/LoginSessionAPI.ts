@@ -36,6 +36,7 @@ export interface FullUser extends UserProfile {
   allowGoogleLogin?: boolean; // when present, specifies whether logging in via Google is possible.
   isSupport?: boolean; // set if user is a special support user.
   prefs?: UserPrefs;
+  createdAt?: Date; // Not filled for anonymous users.
 }
 
 export interface LoginSessionAPI {
