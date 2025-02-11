@@ -73,14 +73,7 @@ function Clipboard(app) {
 
   FocusLayer.create(this, {
     defaultFocusElem: this.copypasteField,
-    allowFocus: (element) => {
-      // We always allow focus if current screen doesn't have any clipboard events registered.
-      // This basically means the focus grab is disabled if no clipboard command is active.
-      const { copy, cut, paste } = commands.allCommands;
-      return (copy._activeFunc === _.noop && cut._activeFunc === _.noop && paste._activeFunc === _.noop)
-        ? true
-        : allowFocus(element);
-    },
+    allowFocus,
     onDefaultFocus: () => {
       this.copypasteField.value = ' ';
       this.copypasteField.select();
@@ -303,17 +296,53 @@ async function getTextFromClipboardItem(clipboardItem, type) {
 }
 
 /**
- * Helper to determine if the currently active element deserves to keep its own focus, and capture
- * copy-paste events. Besides inputs and textareas, any element can be marked to be a valid
- * copy-paste target by adding 'clipboard_focus' class to it.
+ * Helper to determine if the currently active element deserves to keep its own focus, and capture copy-paste events.
+ *
+ * By default, focus is automatically allowed if:
+ *   - there is no clipboard commands registered,
+ *   - the element is an input, textarea, select or iframe,
+ *   - the element has a tabindex attribute
+ *
+ * You can explicitly allow focus by setting different classes:
+ *   - using the 'clipboard_allow_focus' class will allow focusing the element having the class,
+ *   - using the 'clipboard_allow_group_focus' class will allow focusing any descendant element of the one having the class
+ *
+ * You can explicitly forbid focus by setting the 'clipboard_forbid_focus' class on a element. Forbidding wins over allowing
+ * if both are set.
  */
 function allowFocus(elem) {
-  return elem && (FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) ||
+  const {copy, cut, paste} = commands.allCommands;
+  const noCopyPasteCommands = copy._activeFunc === _.noop && cut._activeFunc === _.noop && paste._activeFunc === _.noop;
+  if (elem && elem.classList.contains('clipboard_forbid_focus')) {
+    return false;
+  }
+  if (noCopyPasteCommands) {
+    return true;
+  }
+  if (elem && elem.closest('.clipboard_group_focus')) {
+    return true;
+  }
+  const allow = elem && (
+    FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) ||
     elem.hasAttribute("tabindex") ||
-    elem.classList.contains('clipboard_focus'));
+    elem.classList.contains('clipboard_allow_focus')
+  );
+  return allow;
 }
 
 Clipboard.allowFocus = allowFocus;
+
+/**
+ * Helper to manually refocus the main app focus grab element.
+ */
+function triggerFocusGrab() {
+  const elem = document.querySelector('textarea.copypaste.mousetrap');
+  if (elem) {
+    elem.focus();
+  }
+}
+
+Clipboard.triggerFocusGrab = triggerFocusGrab;
 
 function showUnavailableMenuCommandModal(action) {
   let keys;
