@@ -951,7 +951,7 @@ export class ActiveDoc extends EventEmitter {
 
   @ActiveDoc.keepDocOpen
   public async startTransferringAllAttachmentsToDefaultStore() {
-    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    const attachmentStoreId = this._getDocumentSettings().attachmentStoreId;
     // If no attachment store is set on the doc, it should transfer everything to internal storage
     await this._attachmentFileManager.startTransferringAllFilesToOtherStore(attachmentStoreId);
   }
@@ -981,7 +981,7 @@ export class ActiveDoc extends EventEmitter {
 
 
   public async setAttachmentStore(docSession: OptDocSession, id: string | undefined): Promise<void> {
-    const docSettings = await this._getDocumentSettings();
+    const docSettings = this._getDocumentSettings();
     docSettings.attachmentStoreId = id;
     await this._updateDocumentSettings(docSession, docSettings);
   }
@@ -997,7 +997,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async getAttachmentStore(): Promise<string | undefined> {
-    return (await this._getDocumentSettings()).attachmentStoreId;
+    return this._getDocumentSettings().attachmentStoreId;
   }
 
   /**
@@ -2430,7 +2430,7 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
-    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    const attachmentStoreId = this._getDocumentSettings().attachmentStoreId;
     const addFileResult = await this._attachmentFileManager
       .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
     this._log.info(
@@ -2911,12 +2911,22 @@ export class ActiveDoc extends EventEmitter {
     return this._dataEngine;
   }
 
-  private async _getDocumentSettings(): Promise<DocumentSettings> {
+  private _getDocumentSettings(): DocumentSettings {
     const docSettings = this.docData?.docSettings();
     if (!docSettings) {
       throw new Error("No document settings found");
     }
     return docSettings;
+  }
+
+  private async _getDocumentSettingsIfPresent(): Promise<DocumentSettings|undefined> {
+    try {
+      return this._getDocumentSettings();
+    } catch (e) {
+      // If called before docData is initialized, pick up docSettings directly from SQLite.
+      const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(() => undefined);
+      return safeJsonParse(docInfo?.documentSettings || '', undefined);
+    }
   }
 
   private async _updateDocumentSettings(docSessions: OptDocSession, settings: DocumentSettings): Promise<void> {
@@ -2936,7 +2946,7 @@ export class ActiveDoc extends EventEmitter {
 
     // Careful, migrations may not have run on this document and it may not have a
     // documentSettings column.  Failures are treated as lack of an engine preference.
-    const docSettings = await this._getDocumentSettings().catch(e => undefined);
+    const docSettings = await this._getDocumentSettingsIfPresent();
     if (docSettings) {
       const engine = docSettings.engine;
       if (engine) {
