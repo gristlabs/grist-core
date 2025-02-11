@@ -30,6 +30,7 @@ import * as express from 'express';
 import fetch from 'node-fetch';
 import merge = require('lodash/merge');
 import pickBy = require('lodash/pickBy');
+import { proxyAgentForTrustedRequests } from './ProxyAgent';
 
 interface RequestWithMatomoVisitorId extends RequestWithLogin {
   /**
@@ -366,6 +367,7 @@ export class Telemetry implements ITelemetry {
         'Content-Type': 'application/json',
       },
       body: payload,
+      agent: proxyAgentForTrustedRequests(new URL(this._forwardTelemetryEventsUrl))
     });
   }
 
