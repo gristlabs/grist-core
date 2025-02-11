@@ -534,7 +534,7 @@ export class DocWorkerApi {
     }));
 
     // Returns the status of any current / pending attachment transfers
-    this._app.get('/api/docs/:docId/attachments/transferStatus', isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.get('/api/docs/:docId/attachments/transferStatus', canView, withDoc(async (activeDoc, req, res) => {
       const locationSummary = await activeDoc.attachmentLocationSummary();
       res.json({
         status: activeDoc.attachmentTransferStatus(),
