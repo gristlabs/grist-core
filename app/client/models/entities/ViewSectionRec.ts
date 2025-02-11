@@ -163,6 +163,8 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   hiddenColumns: ko.Computed<ColumnRec[]>;
 
   hasFocus: ko.Computed<boolean>;
+  hasVisibleFocus: ko.Computed<boolean>;
+  enableCommands: ko.Computed<boolean>;
 
   // Section-linking affects table if linkSrcSection is set. The controller value of the
   // link is the value of srcCol at activeRowId of linkSrcSection, or activeRowId itself when
@@ -739,6 +741,15 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     read: () => !this.isDisposed() && this.view().activeSectionId() === this.id(),
     write: (val) => { this.view().activeSectionId(val ? this.id() : 0); }
   });
+  this.hasVisibleFocus = ko.pureComputed(() => {
+    if (this.isDisposed()) {
+      return false;
+    }
+    const region = this.view().focusedRegionState();
+    return this.hasFocus() && (region === 'in' || region === 'related');
+  });
+  // we enable keyboard shortcuts only when the region is focused (see RegionFocusSwitcher)
+  this.enableCommands = ko.pureComputed(() => this.hasFocus() && this.view().focusedRegionState() === 'in');
 
   // Section-linking affects this table if linkSrcSection is set. The controller value of the
   // link is the value of srcCol at activeRowId of linkSrcSection, or activeRowId itself when
