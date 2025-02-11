@@ -35,8 +35,9 @@ export class TestServer {
   }
 
   public async start(servers: ServerType[] = ["home"],
-                     options: FlexServerOptions = {}): Promise<string> {
-    await createInitialDb();
+                     options: FlexServerOptions = {},
+                     {seedData = true} = {}): Promise<string> {
+    await createInitialDb(undefined, seedData ? true : 'migrateOnly');
     const mergedServer = await MergedServer.create(0, servers, {logToConsole: isAffirmative(process.env.DEBUG),
                                                       externalStorage: false, ...options});
     await mergedServer.run();

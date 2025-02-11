@@ -42,7 +42,7 @@ describe('AdminPanel', function() {
 
     // Try loading the URL directly.
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
     assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
   });
@@ -56,7 +56,7 @@ describe('AdminPanel', function() {
     assert.equal(await driver.find('.test-usermenu-admin-panel').isDisplayed(), true);
     assert.match(await driver.find('.test-usermenu-admin-panel').getAttribute('href'), /\/admin$/);
     await driver.find('.test-usermenu-admin-panel').click();
-    assert.equal(await waitForAdminPanel().isDisplayed(), true);
+    assert.equal(await gu.waitForAdminPanel().isDisplayed(), true);
   });
 
   it('should include support-grist section', async function() {
@@ -72,7 +72,7 @@ describe('AdminPanel', function() {
     await assertTelemetryLevel('off');
 
     let toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
-    assert.equal(await isSwitchOn(toggle), false);
+    assert.equal(await isEnabled(toggle), false);
 
     await withExpandedItem('telemetry', async () => {
       assert.isFalse(await driver.find('.test-support-grist-page-telemetry-section-message').isPresent());
@@ -83,17 +83,17 @@ describe('AdminPanel', function() {
         await driver.find('.test-support-grist-page-telemetry-section-message').getText(),
         'You have opted in to telemetry. Thank you! 🙏'
       );
-      assert.equal(await isSwitchOn(toggle), true);
+      assert.equal(await isEnabled(toggle), true);
     });
 
     // Check it's still on after collapsing.
-    assert.equal(await isSwitchOn(toggle), true);
+    assert.equal(await isEnabled(toggle), true);
 
     // Reload the page and check that the Grist config indicates telemetry is set to "limited".
     await driver.navigate().refresh();
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
-    assert.equal(await isSwitchOn(toggle), true);
+    assert.equal(await isEnabled(toggle), true);
     await toggleItem('telemetry');
     await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt out of Telemetry/, 2000);
     assert.equal(
@@ -108,30 +108,30 @@ describe('AdminPanel', function() {
     await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt in to Telemetry/, 2000);
     assert.isFalse(await driver.find('.test-support-grist-page-telemetry-section-message').isPresent());
     let toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
-    assert.equal(await isSwitchOn(toggle), false);
+    assert.equal(await isEnabled(toggle), false);
 
     // Reload the page and check that the Grist config indicates telemetry is set to "off".
     await driver.navigate().refresh();
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     await toggleItem('telemetry');
     await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt in to Telemetry/, 2000);
     assert.isFalse(await driver.find('.test-support-grist-page-telemetry-section-message').isPresent());
     await assertTelemetryLevel('off');
     toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
-    assert.equal(await isSwitchOn(toggle), false);
+    assert.equal(await isEnabled(toggle), false);
   });
 
   it('supports toggling telemetry from the toggle in the top line', async function() {
     const toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
-    assert.equal(await isSwitchOn(toggle), false);
+    assert.equal(await isEnabled(toggle), false);
     await toggle.click();
     await gu.waitForServer();
-    assert.equal(await isSwitchOn(toggle), true);
+    assert.equal(await isEnabled(toggle), true);
     assert.match(await driver.find('.test-support-grist-page-telemetry-section-message').getText(),
       /You have opted in/);
     await toggle.click();
     await gu.waitForServer();
-    assert.equal(await isSwitchOn(toggle), false);
+    assert.equal(await isEnabled(toggle), false);
     await withExpandedItem('telemetry', async () => {
       assert.equal(await driver.find('.test-support-grist-page-telemetry-section-message').isPresent(), false);
     });
@@ -144,9 +144,9 @@ describe('AdminPanel', function() {
 
     // Check that the Support Grist page reports telemetry is enabled.
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     const toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
-    assert.equal(await isSwitchOn(toggle), true);
+    assert.equal(await isEnabled(toggle), true);
     await toggleItem('telemetry');
     assert.equal(
       await driver.findWait('.test-support-grist-page-telemetry-section-message', 2000).getText(),
@@ -161,7 +161,7 @@ describe('AdminPanel', function() {
 
     // Check that the Support Grist page reports telemetry is disabled.
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     await toggleItem('telemetry');
     assert.equal(
       await driver.findWait('.test-support-grist-page-telemetry-section-message', 2000).getText(),
@@ -173,7 +173,7 @@ describe('AdminPanel', function() {
 
   it('should show version', async function() {
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     await gu.waitToPass(async () => {
       assert.equal(await driver.find('.test-admin-panel-item-version').isDisplayed(), true);
       assert.match(await driver.find('.test-admin-panel-item-value-version').getText(), /^Version \d+\./);
@@ -182,7 +182,7 @@ describe('AdminPanel', function() {
 
   it('should show sandbox', async function() {
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel-item-sandboxing').isDisplayed(), true);
     await gu.waitToPass(
       // unknown for grist-saas, unconfigured for grist-core.
@@ -197,7 +197,7 @@ describe('AdminPanel', function() {
 
   it('should show various self checks', async function() {
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     await gu.waitToPass(
       async () => {
         assert.equal(await driver.find('.test-admin-panel-item-name-probe-reachable').isDisplayed(), true);
@@ -227,7 +227,7 @@ describe('AdminPanel', function() {
     // Clear any cached settings.
     await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
     await driver.navigate().refresh();
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
 
     // By default don't have any info.
     await waitForStatus(/No information available/);
@@ -240,12 +240,12 @@ describe('AdminPanel', function() {
 
     // We see a toggle to update automatically.
     assert.isTrue(await autoCheckToggle().isDisplayed());
-    assert.isFalse(await isSwitchOn(autoCheckToggle()));
+    assert.isFalse(await isEnabled(autoCheckToggle()));
 
     // We can click it, Grist will turn on auto checks and do it right away.
     fakeServer.pause();
     await autoCheckToggle().click();
-    assert.isTrue(await isSwitchOn(autoCheckToggle()));
+    assert.isTrue(await isEnabled(autoCheckToggle()));
 
     // It will first show "Checking for updates" message.
     // (Request is blocked by fake server, so it will not complete until we resume it.)
@@ -267,16 +267,16 @@ describe('AdminPanel', function() {
     fakeServer.pause();
     fakeServer.latestVersion = await currentVersion();
     await driver.navigate().refresh();
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     await waitForStatus(/Checking for updates/);
     fakeServer.resume();
     await waitForStatus(/Grist is up to date/);
 
     // Disable auto-checks.
     await toggleItem('updates');
-    assert.isTrue(await isSwitchOn(autoCheckToggle()));
+    assert.isTrue(await isEnabled(autoCheckToggle()));
     await autoCheckToggle().click();
-    assert.isFalse(await isSwitchOn(autoCheckToggle()));
+    assert.isFalse(await isEnabled(autoCheckToggle()));
     // Nothing should happen.
     await waitForStatus(/Grist is up to date/);
     assert.isTrue(await versionBox().isDisplayed());
@@ -285,12 +285,12 @@ describe('AdminPanel', function() {
     // Refresh to see if we are disabled.
     fakeServer.pause();
     await driver.navigate().refresh();
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     await waitForStatus(/Last checked .+ ago/);
     fakeServer.resume();
     // Expand and see if the toggle is off.
     await toggleItem('updates');
-    assert.isFalse(await isSwitchOn(autoCheckToggle()));
+    assert.isFalse(await isEnabled(autoCheckToggle()));
   });
 
   it('shows up-to-date message', async function() {
@@ -339,24 +339,24 @@ describe('AdminPanel', function() {
     process.env.GRIST_BOOT_KEY = 'zig';
     await server.restart(true);
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
   });
 
   it('should honor GRIST_BOOT_KEY fallback', async function() {
     await gu.removeLogin();
     await driver.get(`${server.getHost()}/admin`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
     assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
 
     process.env.GRIST_BOOT_KEY = 'zig';
     await server.restart(true);
     await driver.get(`${server.getHost()}/admin?boot-key=zig`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
     assert.notMatch(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
     await driver.get(`${server.getHost()}/admin?boot-key=zig-wrong`);
-    await waitForAdminPanel();
+    await gu.waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
     assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
   });
@@ -367,22 +367,41 @@ async function assertTelemetryLevel(level: TelemetryLevel) {
   assert.equal(telemetryLevel, level);
 }
 
-async function toggleItem(itemId: string) {
-  const header = await driver.find(`.test-admin-panel-item-name-${itemId}`);
+/**
+ * Individual elements of the admin panel.
+ */
+export function itemElement(itemId: string) {
+  return driver.findWait(`.test-admin-panel-item-${itemId}`, 1000);
+}
+
+export async function toggleItem(itemId: string) {
+  const header = itemElement(itemId);
   await header.click();
   await driver.sleep(500);    // Time to expand or collapse.
   return header;
 }
 
-async function withExpandedItem(itemId: string, callback: () => Promise<void>) {
+export async function withExpandedItem(itemId: string, callback: () => Promise<void>) {
   const header = await toggleItem(itemId);
   await callback();
   await header.click();
   await driver.sleep(500);    // Time to collapse.
 }
 
-const isSwitchOn = (switchElem: WebElement) => switchElem.matches('[class*=switch_on]');
-const waitForAdminPanel = () => driver.findWait('.test-admin-panel', 2000);
+export async function clickSwitch(name: string) {
+  const toggle = driver.find(`.test-admin-panel-item-value-${name} .widget_switch`);
+  await toggle.click();
+  await gu.waitForServer();
+}
+
+export function isEnabled(switchElem: WebElement|string) {
+  if (typeof switchElem === 'string') {
+    switchElem = driver.find(`.test-admin-panel-item-value-${switchElem} .widget_switch`);
+  }
+  return switchElem.matches('[class*=switch_on]');
+}
+
+
 
 interface FakeUpdateServer {
   latestVersion: string;

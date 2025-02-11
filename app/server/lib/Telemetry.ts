@@ -16,7 +16,7 @@ import {
 } from 'app/common/Telemetry';
 import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
 import {Activation} from 'app/gen-server/entity/Activation';
-import {Activations} from 'app/gen-server/lib/Activations';
+import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -394,7 +394,7 @@ export async function getTelemetryPrefs(
     };
   }
 
-  const {prefs} = activation ?? await new Activations(db).current();
+  const {prefs} = activation ?? await new ActivationsManager(db).current();
   return {
     telemetryLevel: {
       value: prefs?.telemetry?.telemetryLevel ?? 'off',

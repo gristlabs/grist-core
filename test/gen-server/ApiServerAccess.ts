@@ -1,3 +1,4 @@
+import {Deps as FeaturesDeps} from 'app/common/Features';
 import {Role} from 'app/common/roles';
 import {PermissionData, PermissionDelta} from 'app/common/UserAPI';
 import {Deps} from 'app/gen-server/ApiServer';
@@ -102,6 +103,37 @@ describe('ApiServerAccess', function() {
       throw new Error('no mail available');
     }
     return {payload, description};
+  }
+
+  async function checkAccessChange(
+    resource:
+      | { orgId: string | number }
+      | { wsId: string | number }
+      | { docId: string | number },
+    accessByEmail: Record<string, Role | null>,
+    expected: { status: number; data: any }
+  ) {
+    let url: string;
+    if ("orgId" in resource) {
+      url = `${homeUrl}/api/orgs/${resource.orgId}/access`;
+    } else if ("wsId" in resource) {
+      url = `${homeUrl}/api/workspaces/${resource.wsId}/access`;
+    } else {
+      url = `${homeUrl}/api/docs/${resource.docId}/access`;
+    }
+    const resp = await axios.patch(
+      url,
+      {
+        delta: {
+          users: {
+            ...accessByEmail,
+          },
+        },
+      },
+      chimpy
+    );
+    assert.equal(resp.status, expected.status);
+    assert.deepEqual(resp.data, expected.data);
   }
 
   it('PATCH /api/orgs/{oid}/access is operational', async function() {
@@ -331,6 +363,147 @@ describe('ApiServerAccess', function() {
     assert.equal(resp4.status, 400);
   });
 
+  it('PATCH /api/orgs/{oid}/access returns 403 if too many invites are pending', async function() {
+    const orgId = await dbManager.testGetId("TestMaxNewUserInvites");
+    const orgId2 = await dbManager.testGetId("Chimpyland");
+    const featuresSandbox = sinon.createSandbox();
+
+    try {
+      // Invite 3 users who don't (yet) have Grist accounts to the org.
+      await checkAccessChange(
+        { orgId },
+        {
+          "user1@example.com": "editors",
+          "user2@example.com": "editors",
+          "user3@example.com": "editors",
+        },
+        { status: 200, data: null }
+      );
+
+      // Invite a 4th user who doesn't have a Grist account to the org. It should fail.
+      await checkAccessChange(
+        { orgId },
+        {
+          "user4@example.com": "editors",
+        },
+        {
+          status: 403,
+          data: { error: "Your site has too many pending invitations" },
+        }
+      );
+
+      // Inviting existing Grist users is permitted.
+      await checkAccessChange(
+        { orgId },
+        {
+          [kiwiEmail]: "editors",
+        },
+        { status: 200, data: null }
+      );
+
+      // Removing pending invites is also permitted.
+      await checkAccessChange(
+        { orgId },
+        {
+          "user1@example.com": null,
+        },
+        { status: 200, data: null }
+      );
+
+      // Inviting a new user now succeeds; this isn't exactly desirable, and
+      // can be improved upon by implementing rate limiting on the number of
+      // new user emails that can be sent to the /access endpoint in a given
+      // time period.
+      await checkAccessChange(
+        { orgId },
+        {
+          // Changing access of an existing member is unaffected.
+          "user2@example.com": "owners",
+          "user4@example.com": "editors",
+        },
+        { status: 200, data: null }
+      );
+
+      // Invite 4 new users to Chimpy's org. The default limit is 50, so this
+      // time it should work.
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          "user1@example.com": "editors",
+          "user2@example.com": "editors",
+          "user3@example.com": "editors",
+          "user4@example.com": "editors",
+        },
+        { status: 200, data: null }
+      );
+
+      // Drop the default limit to 2 and check that new invites are blocked.
+      featuresSandbox
+        .stub(FeaturesDeps, "DEFAULT_MAX_NEW_USER_INVITES_PER_ORG")
+        .value(2);
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          "user5@example.com": "editors",
+        },
+        {
+          status: 403,
+          data: { error: "Your site has too many pending invitations" },
+        }
+      );
+
+      // But inviting existing users and removing existing invites works.
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          [kiwiEmail]: "editors",
+        },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          "user1@example.com": null,
+          "user2@example.com": null,
+          "user3@example.com": null,
+        },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          "user5@example.com": "editors",
+        },
+        { status: 200, data: null }
+      );
+    } finally {
+      await checkAccessChange(
+        { orgId },
+        {
+          "user1@example.com": null,
+          "user2@example.com": null,
+          "user3@example.com": null,
+          [kiwiEmail]: null,
+          "user4@example.com": null,
+        },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          "user1@example.com": null,
+          "user2@example.com": null,
+          "user3@example.com": null,
+          "user4@example.com": null,
+          [kiwiEmail]: null,
+          "user5@example.com": null,
+        },
+        { status: 200, data: null }
+      );
+      featuresSandbox.restore();
+    }
+  });
+
   it('PATCH /api/workspaces/{wid}/access is operational', async function() {
     const oid = await dbManager.testGetId('Chimpyland');
     const wid = await dbManager.testGetId('Private');
@@ -536,6 +709,80 @@ describe('ApiServerAccess', function() {
     };
     const resp3 = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta}, chimpy);
     assert.equal(resp3.status, 400);
+  });
+
+  it('PATCH /api/workspaces/{wid}/access respects maxNewUserInvitesPerOrg', async function() {
+    const orgId = await dbManager.testGetId("TestMaxNewUserInvites");
+    const wsId = await dbManager.testGetId("TestMaxNewUserInvitesWs");
+    try {
+      // Invite Kiwi to the workspace.
+      await checkAccessChange(
+        { orgId },
+        { [kiwiEmail]: "editors" },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { wsId },
+        { [kiwiEmail]: "viewers" },
+        { status: 200, data: null }
+      );
+
+      // Invite enough guests to the org to reach maxNewUserInvitesPerOrg.
+      await checkAccessChange(
+        { orgId },
+        {
+          "user1@example.com": "viewers",
+          "user2@example.com": "viewers",
+          "user3@example.com": "viewers",
+        },
+        {
+          status: 200,
+          data: null,
+        }
+      );
+      await checkAccessChange(
+        { orgId },
+        {
+          "user4@example.com": "viewers",
+        },
+        {
+          status: 403,
+          data: { error: "Your site has too many pending invitations" },
+        }
+      );
+
+      // Invite Charon to the workspace. This should still work, as Charon is not a new user.
+      await checkAccessChange(
+        { orgId },
+        { [charonEmail]: "viewers" },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { wsId },
+        { [charonEmail]: "viewers" },
+        {
+          status: 200,
+          data: null,
+        }
+      );
+    } finally {
+      await checkAccessChange(
+        { wsId },
+        { [kiwiEmail]: null, [charonEmail]: null },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { orgId },
+        {
+          [kiwiEmail]: null,
+          "user1@example.com": null,
+          "user2@example.com": null,
+          "user3@example.com": null,
+          [charonEmail]: null,
+        },
+        { status: 200, data: null }
+      );
+    }
   });
 
   it('PATCH /api/docs/{did}/access is operational', async function() {
@@ -788,6 +1035,86 @@ describe('ApiServerAccess', function() {
     };
     const resp = await axios.patch(`${homeUrl}/api/docs/${did}/access`, {delta}, charon);
     assert.equal(resp.status, 403);
+  });
+
+  it('PATCH /api/docs/{did}/access returns 403 if too many invites are pending', async function() {
+    const did1 = await dbManager.testGetId("TestMaxNewUserInvitesDoc1");
+    const did2 = await dbManager.testGetId("TestMaxNewUserInvitesDoc2");
+    try {
+      // Invite 3 users who don't (yet) have Grist accounts to 2 documents.
+      await checkAccessChange(
+        { docId: did1 },
+        { "user6@example.com": "editors", "user7@example.com": "editors" },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { docId: did2 },
+        { "user8@example.com": "editors" },
+        { status: 200, data: null }
+      );
+
+      // Invite a 4th user who doesn't have a Grist account to either document. It should fail.
+      for (const docId of [did1, did2]) {
+        await checkAccessChange(
+          { docId },
+          { "user9@example.com": "editors" },
+          {
+            status: 403,
+            data: { error: "Your site has too many pending invitations" },
+          }
+        );
+      }
+
+      // Inviting them to the org should also fail.
+      const orgId = await dbManager.testGetId("TestMaxNewUserInvites");
+      await checkAccessChange(
+        { orgId },
+        { "user9@example.com": "editors" },
+        {
+          status: 403,
+          data: { error: "Your site has too many pending invitations" },
+        }
+      );
+
+      // Inviting existing Grist users is permitted.
+      await checkAccessChange(
+        { docId: did2 },
+        { [kiwiEmail]: "editors" },
+        { status: 200, data: null }
+      );
+
+      // Removing pending invites is also permitted.
+      await checkAccessChange(
+        { docId: did2 },
+        { "user8@example.com": null },
+        { status: 200, data: null }
+      );
+
+      // Inviting a new user now succeeds; this isn't exactly desirable, and
+      // can be improved upon by implementing rate limiting on the number of
+      // new user emails that can be sent to the /access endpoint in a given
+      // time period.
+      await checkAccessChange(
+        { docId: did2 },
+        { "user9@example.com": null },
+        { status: 200, data: null }
+      );
+    } finally {
+      await checkAccessChange(
+        { docId: did1 },
+        { "user6@example.com": null, "user7@example.com": null },
+        { status: 200, data: null }
+      );
+      await checkAccessChange(
+        { docId: did2 },
+        {
+          "user8@example.com": null,
+          [kiwiEmail]: null,
+          "user9@example.com": null,
+        },
+        { status: 200, data: null }
+      );
+    }
   });
 
   it('PATCH /api/docs/{did}/access returns 400 appropriately', async function() {
@@ -1627,7 +1954,8 @@ describe('ApiServerAccess', function() {
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.data.map((org: any) => org.name),
           ['Chimpyland', 'EmptyOrg', 'EmptyWsOrg', 'Fish', 'Flightless',
-            'FreeTeam', 'NASA', 'Primately', 'TestAuditLogs', 'TestDailyApiLimit']);
+            'FreeTeam', 'NASA', 'Primately', 'TestAuditLogs', 'TestDailyApiLimit',
+            'TestMaxNewUserInvites']);
        });
     });
 

@@ -15,8 +15,10 @@ import { cssSelectBtn } from 'app/client/ui2018/select';
 import { ACLUsersPopup } from 'app/client/aclui/ACLUsers';
 import { UserOverride } from 'app/common/DocListAPI';
 import { makeT } from 'app/client/lib/localization';
+import { cssInfoTooltipButton, withInfoTooltip } from 'app/client/ui/tooltips';
 
-const t = makeT('components.ViewAsBanner');
+const t = makeT('ViewAsBanner');
+const userT = makeT('UserManagerModel');
 
 export class ViewAsBanner extends Disposable {
 
@@ -45,14 +47,14 @@ export class ViewAsBanner extends Disposable {
     return cssContent(
       cssMessageText(
         cssMessageIcon('EyeShow'),
-        'You are viewing this document as',
+        t('You are viewing this document as'),
       ),
       cssSelectBtn(
         {tabIndex: '0'},
         cssBtnText(
           user ? cssMember(
             user.name || user.email,
-            cssRole('(', getUserRoleText({...user, access}), ')', dom.show(Boolean(access))),
+            cssRole('(', userT(getUserRoleText({...user, access})), ')', dom.show(Boolean(access))),
           ) : t('UnknownUser'),
         ),
         dom(
@@ -62,10 +64,19 @@ export class ViewAsBanner extends Disposable {
         elem => this._usersPopup.attachPopup(elem, {}),
         testId('select-open'),
       ),
-      cssPrimaryButtonLink(
-        'View as Yourself', cssIcon('Convert'),
-        urlState().setHref(userOverrideParams(null)),
-        testId('revert'),
+      withInfoTooltip(
+        cssPrimaryButtonLink(
+          t('View as Yourself'), cssIcon('Convert'),
+          urlState().setHref(userOverrideParams(null)),
+          testId('revert'),
+        ),
+        'viewAsBanner',
+        {
+          iconDomArgs: [
+            cssInfoTooltipButton.cls('-in-banner'),
+            testId('view-as-help-tooltip'),
+          ],
+        },
       ),
       testId('view-as-banner'),
     );

@@ -5,7 +5,7 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Deps, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -77,7 +77,7 @@ import {WebHookSecret} from "app/server/lib/Triggers";
 
 import {EventEmitter} from 'events';
 import {Request} from "express";
-import {defaultsDeep, flatten, pick} from 'lodash';
+import {defaultsDeep, flatten, pick, size} from 'lodash';
 import {
   Brackets,
   DatabaseType,
@@ -138,14 +138,18 @@ export interface UserIdDelta {
 // A collection of fun facts derived from a PermissionDelta (used to describe
 // a change of users) and a user.
 export interface PermissionDeltaAnalysis {
-  userIdDelta: UserIdDelta | null;   // New roles for users, indexed by user id.
-  users: User[];                     // Users from userIdDelta.
-  permissionThreshold: Permissions;  // The permissions needed to make the change.
-                                     // Usually Permissions.ACL_EDIT, but
-                                     // Permissions.ACL_VIEW is enough for a user
-                                     // to removed themselves.
-  affectsSelf: boolean;              // Flags if the user making the change would
-                                     // be affected by the change.
+  // Deltas for existing Grist users.
+  foundUserDelta: UserIdDelta | null;
+  // Users from foundUserDelta.
+  foundUsers: User[];
+  // Deltas for emails not matching any Grist user.
+  notFoundUserDelta: { [email: string]: roles.NonGuestRole; } | null;
+  // The permissions needed to make the change.
+  // Usually Permissions.ACL_EDIT, but Permissions.ACL_VIEW is enough for
+  // a user to remove themselves.
+  permissionThreshold: Permissions;
+  // Flags if the user making the change would be affected by the change.
+  affectsSelf: boolean;
 }
 
 // Options for certain create query helpers private to this file.
@@ -252,7 +256,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * encapsulating the typeorm logic.
  */
 export class HomeDBManager extends EventEmitter {
-  private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
+  private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
@@ -263,8 +267,13 @@ export class HomeDBManager extends EventEmitter {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   private _readonly: boolean = false;
 
+
   private get _dbType(): DatabaseType {
     return this._connection.driver.options.type;
+  }
+
+  public usersManager() {
+    return this._usersManager;
   }
 
   public emit(event: NotifierEvent|AuditLoggerEvent, ...args: any[]): boolean {
@@ -305,7 +314,14 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public setReadonly(readonly = true) {
-    this._readonly = readonly;
+    if (this._readonly !== readonly) {
+      this._readonly = readonly;
+      this.flushDocAuthCache();
+    }
+  }
+
+  public isReadonly() {
+    return this._readonly;
   }
 
   public async connect(): Promise<void> {
@@ -623,7 +639,7 @@ export class HomeDBManager extends EventEmitter {
    * Gets all information about a billing account, without permission check.
    */
   public getFullBillingAccount(billingAccountId: number, transaction?: EntityManager): Promise<BillingAccount> {
-    return this._runInTransaction(transaction, async tr => {
+    return this.runInTransaction(transaction, async tr => {
       let qb = tr.createQueryBuilder()
         .select('billing_accounts')
         .from(BillingAccount, 'billing_accounts')
@@ -923,7 +939,7 @@ export class HomeDBManager extends EventEmitter {
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
       const features = doc.workspace.org.billingAccount.getFeatures();
-      if (features.readOnlyDocs || this._readonly) {
+      if (features.readOnlyDocs || this.isReadonly()) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
       }
@@ -1076,7 +1092,7 @@ export class HomeDBManager extends EventEmitter {
         errMessage: 'Bad request: name required'
       };
     }
-    const orgResult = await this._runInTransaction(transaction, async manager => {
+    const orgResult = await this.runInTransaction(transaction, async manager => {
       if (domain) {
         try {
           checkSubdomainValidity(domain);
@@ -1256,7 +1272,7 @@ export class HomeDBManager extends EventEmitter {
     }
 
     // TODO: Unsetting a domain will likely have to be supported; also possibly prefs.
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions,
@@ -1317,7 +1333,7 @@ export class HomeDBManager extends EventEmitter {
     orgKey: string|number,
     transaction?: EntityManager
   ): Promise<QueryResult<Organization>> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions: Permissions.REMOVE,
@@ -1653,7 +1669,7 @@ export class HomeDBManager extends EventEmitter {
       outerManager?: EntityManager}
     ) {
     const {id, docId, url, auth, outerManager} = props;
-    return await this._runInTransaction(outerManager, async manager => {
+    return await this.runInTransaction(outerManager, async manager => {
       if (url === undefined && auth === undefined) {
         throw new ApiError('None of the Webhook url and auth are defined', 404);
       }
@@ -1716,7 +1732,7 @@ export class HomeDBManager extends EventEmitter {
     transaction?: EntityManager
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
     const markPermissions = Permissions.SCHEMA_EDIT;
-    return await this._runInTransaction(transaction, async (manager) => {
+    return await this.runInTransaction(transaction, async (manager) => {
       const {forkId} = parseUrlId(scope.urlId);
       let query: SelectQueryBuilder<Document>;
       if (forkId) {
@@ -1885,7 +1901,10 @@ export class HomeDBManager extends EventEmitter {
       const billingAccountId = billingAccount.id;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, permissionDelta, true, transaction);
       this._failIfPowerfulAndChangingSelf(analysis);
-      const {userIdDelta} = analysis;
+      const {userIdDelta} = await this._createNotFoundUsers({
+        analysis,
+        transaction,
+      });
       if (!userIdDelta) { throw new ApiError('No userIdDelta', 500); }
       // Any duplicated emails have been merged, and userIdDelta is now keyed by user ids.
       // Now we iterate over users and add/remove them as managers.
@@ -1930,7 +1949,6 @@ export class HomeDBManager extends EventEmitter {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
-      const {userIdDelta, users} = analysis;
       let orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions: analysis.permissionThreshold,
@@ -1949,6 +1967,16 @@ export class HomeDBManager extends EventEmitter {
       }
       this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const org: Organization = queryResult.data;
+      await this._failIfTooManyNewUserInvites({
+        orgKey,
+        analysis,
+        billingAccount: org.billingAccount,
+        manager,
+      });
+      const {userIdDelta, users} = await this._createNotFoundUsers({
+        analysis,
+        transaction: manager,
+      });
       const groups = getNonGuestGroups(org);
       if (userIdDelta) {
         const membersBefore = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
@@ -1995,8 +2023,6 @@ export class HomeDBManager extends EventEmitter {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
-      const {users} = analysis;
-      let {userIdDelta} = analysis;
       const options = {
         manager,
         markPermissions: analysis.permissionThreshold,
@@ -2011,12 +2037,23 @@ export class HomeDBManager extends EventEmitter {
       }
       this._failIfPowerfulAndChangingSelf(analysis, wsQueryResult);
       const ws: Workspace = wsQueryResult.data;
-
       const orgId = ws.org.id;
       let orgQuery = this._buildOrgWithACLRulesQuery(scope, orgId, options);
       orgQuery = this._addFeatures(orgQuery);
       const orgQueryResult = await orgQuery.getRawAndEntities();
       const org: Organization = orgQueryResult.entities[0];
+      await this._failIfTooManyNewUserInvites({
+        orgKey: org.id,
+        analysis,
+        billingAccount: org.billingAccount,
+        manager,
+      });
+      const deltaAndUsers = await this._createNotFoundUsers({
+        analysis,
+        transaction: manager,
+      });
+      let {userIdDelta} = deltaAndUsers;
+      const {users} = deltaAndUsers;
       // Get all the non-guest groups on the org.
       const orgGroups = getNonGuestGroups(org);
       // Get all the non-guest groups to be updated by the delta.
@@ -2078,10 +2115,20 @@ export class HomeDBManager extends EventEmitter {
     const result = await this._connection.transaction(async manager => {
       const {userId} = scope;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
-      const {users} = analysis;
-      let {userIdDelta} = analysis;
       const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
       this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
+      await this._failIfTooManyNewUserInvites({
+        orgKey: doc.workspace.org.id,
+        analysis,
+        billingAccount: doc.workspace.org.billingAccount,
+        manager,
+      });
+      const deltaAndUsers = await this._createNotFoundUsers({
+        analysis,
+        transaction: manager,
+      });
+      let {userIdDelta} = deltaAndUsers;
+      const {users} = deltaAndUsers;
       // Get all the non-guest doc groups to be updated by the delta.
       const groups = getNonGuestGroups(doc);
       if ('maxInheritedRole' in delta) {
@@ -2848,7 +2895,7 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     { transaction }: { transaction?: EntityManager } = {}
   ): Promise<QueryResult<Config>> {
-    return this._runInTransaction(transaction, (manager) => {
+    return this.runInTransaction(transaction, (manager) => {
       const query = this._installConfig(key, {
         manager,
       });
@@ -2944,7 +2991,7 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     options: { manager?: EntityManager } = {}
   ): Promise<QueryResult<Config>> {
-    return this._runInTransaction(options.manager, (manager) => {
+    return this.runInTransaction(options.manager, (manager) => {
       const query = this._orgConfig(scope, org, key, {
         manager,
       });
@@ -3067,6 +3114,62 @@ export class HomeDBManager extends EventEmitter {
     return query.getOne();
   }
 
+  public async getNewUserInvitesCount(
+    org: string | number,
+    options: {
+      excludedUserIds?: number[];
+      transaction?: EntityManager;
+    } = {}
+  ): Promise<number> {
+    const { excludedUserIds = [], transaction } = options;
+    return this.runInTransaction(transaction, async (manager) => {
+      const { count } = await this._orgMembers(org, manager)
+        // Postgres returns a string representation of a bigint unless we cast.
+        .select("CAST(COUNT(*) AS INTEGER)", "count")
+        .andWhere("org_member_users.is_first_time_user = true")
+        .andWhere("org_member_users.id NOT IN (:...excludedUserIds)", {
+          excludedUserIds: [
+            ...this._usersManager.getExcludedUserIds(),
+            ...excludedUserIds,
+          ],
+        })
+        .getRawOne();
+      return count;
+    });
+  }
+
+  /**
+   * Run an operation in an existing transaction if available, otherwise create
+   * a new transaction for it.
+   *
+   * @param transaction: the manager of an existing transaction, or undefined.
+   * @param op: the operation to run in a transaction.
+   */
+  public runInTransaction(
+    transaction: EntityManager|undefined,
+    op: (manager: EntityManager) => Promise<any>
+  ): Promise<any> {
+    if (transaction) { return op(transaction); }
+    return this._connection.transaction(op);
+  }
+
+  private async _createNotFoundUsers(options: {
+    analysis: PermissionDeltaAnalysis;
+    transaction?: EntityManager;
+  }) {
+    const { analysis, transaction } = options;
+    const { foundUserDelta, foundUsers } = analysis;
+    const { userDelta: notFoundUserDelta, users: notFoundUsers } =
+      await this._usersManager.translateDeltaEmailsToUserIds(
+        analysis.notFoundUserDelta ?? {},
+        transaction
+      );
+    return {
+      userIdDelta: { ...foundUserDelta, ...notFoundUserDelta },
+      users: [...foundUsers, ...notFoundUsers],
+    };
+  }
+
   private _installConfig(
     key: ConfigKey,
     { manager }: { manager?: EntityManager }
@@ -3109,14 +3212,7 @@ export class HomeDBManager extends EventEmitter {
 
   private async _getOrgMembers(org: string|number|Organization) {
     if (!(org instanceof Organization)) {
-      const orgQuery = this._org(null, false, org, {
-        needRealOrg: true
-      })
-      // Join the org's ACL rules (with 1st level groups/users listed).
-        .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
-        .leftJoinAndSelect('acl_rules.group', 'org_groups')
-        .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
-      const result = await orgQuery.getRawAndEntities();
+      const result = await this._orgMembers(org).getRawAndEntities();
       if (result.entities.length === 0) {
         // If the query for the org failed, return the failure result.
         throw new ApiError('org not found', 404);
@@ -3124,6 +3220,22 @@ export class HomeDBManager extends EventEmitter {
       org = result.entities[0];
     }
     return UsersManager.getResourceUsers(org, this.defaultNonGuestGroupNames);
+  }
+
+  private _orgMembers(
+    org: string | number,
+    manager?: EntityManager
+  ) {
+    return (
+      this._org(null, false, org, {
+        needRealOrg: true,
+        manager,
+      })
+        // Join the org's ACL rules (with 1st level groups/users listed).
+        .leftJoinAndSelect("orgs.aclRules", "acl_rules")
+        .leftJoinAndSelect("acl_rules.group", "org_groups")
+        .leftJoinAndSelect("org_groups.memberUsers", "org_member_users")
+    );
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
@@ -3287,7 +3399,7 @@ export class HomeDBManager extends EventEmitter {
    * Updates the workspace guests with any first-level users of docs inside the workspace.
    */
   private async _repairWorkspaceGuests(scope: Scope, wsId: number, transaction?: EntityManager): Promise<void> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       // Get guest group for workspace.
       const wsQuery = this._workspace(scope, wsId, {manager})
       .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
@@ -3323,7 +3435,7 @@ export class HomeDBManager extends EventEmitter {
    * _repairWorkspaceGuests.
    */
   private async _repairOrgGuests(scope: Scope, orgKey: string|number, transaction?: EntityManager): Promise<void> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {manager})
       .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
       .leftJoinAndSelect('acl_rules.group', 'groups')
@@ -3357,7 +3469,7 @@ export class HomeDBManager extends EventEmitter {
     transaction?: EntityManager
   ): Promise<Workspace> {
     if (!props.name) { throw new ApiError('Bad request: name required', 400); }
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
       // Create a new workspace.
       const workspace = new Workspace();
       workspace.checkProperties(props);
@@ -3515,6 +3627,34 @@ export class HomeDBManager extends EventEmitter {
     }
   }
 
+  private async _failIfTooManyNewUserInvites(options: {
+    orgKey: string | number;
+    analysis: PermissionDeltaAnalysis;
+    billingAccount: BillingAccount;
+    manager?: EntityManager;
+  }) {
+    const { orgKey, analysis, billingAccount, manager } = options;
+    const { foundUserDelta, foundUsers, notFoundUserDelta } = analysis;
+    const newUsers = foundUsers.filter(
+      (user) => user.isFirstTimeUser && foundUserDelta?.[user.id]
+    );
+    const delta = size(notFoundUserDelta) + newUsers.length;
+    if (!delta) {
+      return;
+    }
+
+    const max =
+      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
+      Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
+    const current = await this.getNewUserInvitesCount(orgKey, {
+      excludedUserIds: newUsers.map((user) => user.id),
+      transaction: manager,
+    });
+    if (current + delta > max) {
+      throw new ApiError("Your site has too many pending invitations", 403);
+    }
+  }
+
   /**
    * Helper for adjusting acl rules. Given an array of top-level groups from the resource
    * of interest, returns the updated groups. The returned groups should be saved to
@@ -3560,19 +3700,6 @@ export class HomeDBManager extends EventEmitter {
       }
       topGroups[groupName].memberUsers.push(user);
     });
-  }
-
-  /**
-   * Run an operation in an existing transaction if available, otherwise create
-   * a new transaction for it.
-   *
-   * @param transaction: the manager of an existing transaction, or undefined.
-   * @param op: the operation to run in a transaction.
-   */
-  private _runInTransaction(transaction: EntityManager|undefined,
-                            op: (manager: EntityManager) => Promise<any>): Promise<any> {
-    if (transaction) { return op(transaction); }
-    return this._connection.transaction(op);
   }
 
   /**
@@ -4211,31 +4338,17 @@ export class HomeDBManager extends EventEmitter {
           // didn't, we'd need to use distinct parameter names, since
           // we may include this code with different user ids in the
           // same query
-          cond = cond.where(`gu0.user_id = ${users}`);
-          cond = cond.orWhere(`gu1.user_id = ${users}`);
-          cond = cond.orWhere(`gu2.user_id = ${users}`);
-          cond = cond.orWhere(`gu3.user_id = ${users}`);
+          cond = cond.where(`${users} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
           // Support the special "everyone" user.
-          const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
-          if (everyoneId === undefined) {
-            throw new Error("Special user id for EVERYONE_EMAIL not found");
-          }
-          cond = cond.orWhere(`gu0.user_id = ${everyoneId}`);
-          cond = cond.orWhere(`gu1.user_id = ${everyoneId}`);
-          cond = cond.orWhere(`gu2.user_id = ${everyoneId}`);
-          cond = cond.orWhere(`gu3.user_id = ${everyoneId}`);
+          const everyoneId = this._usersManager.getEveryoneUserId();
+          cond = cond.orWhere(`${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
           if (accessStyle === 'list') {
             // Support also the special anonymous user.  Currently, by convention, sharing a
             // resource with anonymous should make it listable.
-            const anonId = this._usersManager.getSpecialUserId(ANONYMOUS_USER_EMAIL);
-            if (anonId === undefined) {
-              throw new Error("Special user id for ANONYMOUS_USER_EMAIL not found");
-            }
-            cond = cond.orWhere(`gu0.user_id = ${anonId}`);
-            cond = cond.orWhere(`gu1.user_id = ${anonId}`);
-            cond = cond.orWhere(`gu2.user_id = ${anonId}`);
-            cond = cond.orWhere(`gu3.user_id = ${anonId}`);
+            const anonId = this._usersManager.getAnonymousUserId();
+            cond = cond.orWhere(`${anonId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
           }
+
           // Add an exception for the previewer user, if present.
           const previewerId = this._usersManager.getSpecialUserId(PREVIEWER_EMAIL);
           if (users === previewerId) {
@@ -4244,10 +4357,7 @@ export class HomeDBManager extends EventEmitter {
                                 {permission: Permissions.VIEW});
           }
         } else {
-          cond = cond.where('gu0.user_id = profiles.id');
-          cond = cond.orWhere('gu1.user_id = profiles.id');
-          cond = cond.orWhere('gu2.user_id = profiles.id');
-          cond = cond.orWhere('gu3.user_id = profiles.id');
+          cond = cond.where(`profiles.id IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
         }
         return cond;
       }));
@@ -4271,6 +4381,14 @@ export class HomeDBManager extends EventEmitter {
       }
     }
     // join the relevant groups and subgroups
+    return this._joinToAllGroupUsers(qb);
+  }
+
+  // Takes a query that includes 'acl_rules' and joins it to all group_users records that are
+  // connected to it directly or via subgroups.
+  // Public for limited use by extensions of HomeDBManager in some flavors of Grist.
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  public _joinToAllGroupUsers<T>(qb: SelectQueryBuilder<T>): SelectQueryBuilder<T> {
     return qb
       .leftJoin('group_groups', 'gg1', 'gg1.group_id = acl_rules.group_id')
       .leftJoin('group_groups', 'gg2', 'gg2.group_id = gg1.subgroup_id')
@@ -4425,7 +4543,7 @@ export class HomeDBManager extends EventEmitter {
   // feature information loaded also.
   private async _loadDocAccess(scope: DocScope, markPermissions: Permissions,
                                transaction?: EntityManager): Promise<Document> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this.runInTransaction(transaction, async manager => {
 
       const docQuery = this._doc(scope, {manager, markPermissions})
       // Join the doc's ACL rules and groups/users so we can edit them.

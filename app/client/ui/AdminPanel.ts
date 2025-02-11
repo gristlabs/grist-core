@@ -29,13 +29,12 @@ import {Computed, Disposable, dom, IDisposable,
         IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
 import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
 import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
-import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
 
 const t = makeT('AdminPanel');
 
 export class AdminPanel extends Disposable {
   private _supportGrist = SupportGristPage.create(this, this._appModel);
-  private _toggleEnterprise = ToggleEnterpriseWidget.create(this);
+  private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private _checks: AdminChecks;
 
@@ -186,14 +185,18 @@ Please log in as an administrator.`)),
   }
 
   private _maybeAddEnterpriseToggle() {
-    if (!showEnterpriseToggle()) {
-      return null;
+    let makeToggle = () => dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable());
+
+    // If the enterprise edition is forced, we don't show the toggle.
+    if (getGristConfig().forceEnableEnterprise) {
+      makeToggle = () => cssValueLabel(cssHappyText(t("On")));
     }
+
     return dom.create(AdminSectionItem, {
       id: 'enterprise',
       name: t('Enterprise'),
       description: t('Enable Grist Enterprise'),
-      value: dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable()),
+      value: makeToggle(),
       expandedContent: this._toggleEnterprise.buildEnterpriseSection(),
     });
   }

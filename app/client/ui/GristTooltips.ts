@@ -46,7 +46,8 @@ export type Tooltip =
   | 'communityWidgets'
   | 'twoWayReferences'
   | 'twoWayReferencesDisabled'
-  | 'reasignTwoWayReference';
+  | 'reasignTwoWayReference'
+  | 'viewAsBanner';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -185,6 +186,10 @@ see or edit which parts of your document.')
     dom('div',
       t(`To allow multiple assignments, change the referenced column's type to Reference List.`)
     ),
+    ...args,
+  ),
+  viewAsBanner: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div', t('The preview below this header shows how the selected user will see this document')),
     ...args,
   ),
 };

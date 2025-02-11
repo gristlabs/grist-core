@@ -22,13 +22,20 @@ const MAXIMUM_INLINE_ROWS = 10;
  * Options when producing an action summary.
  */
 export interface ActionSummaryOptions {
-  maximumInlineRows?: number;       // Overrides the maximum number of rows in a
-                                    // single bulk change that will be recorded individually.
-  alwaysPreserveColIds?: string[];  // If set, all cells in these columns are preserved
-                                    // regardless of maximumInlineRows setting.
+  /**
+   * Overrides the maximum number of rows in a single bulk change that will be
+   * recorded individually. Set to `null` to specify no limit. Defaults to `10`.
+   */
+  maximumInlineRows?: number | null;
+  /**
+   * If set, all cells in these columns are preserved regardless of the value of
+   * `maximumInlineRows`.
+   */
+  alwaysPreserveColIds?: string[];
 }
 
 class ActionSummarizer {
+  private readonly _maxRows = this._getMaxRows();
 
   constructor(private _options?: ActionSummaryOptions) {}
 
@@ -131,12 +138,11 @@ class ActionSummarizer {
   /** helper function to store detailed cell changes for a set of rows */
   private _addRows(tableId: string, td: TableDelta, rowIds: number[],
                  colValues: Action.BulkColValues, direction: 0|1) {
-    const maximumInlineRows = this._options?.maximumInlineRows || MAXIMUM_INLINE_ROWS;
-    const limitRows: boolean = rowIds.length > maximumInlineRows && !tableId.startsWith("_grist_");
+    const limitRows: boolean = rowIds.length > this._maxRows && !tableId.startsWith("_grist_");
     let selectedRows: Array<[number, number]> = [];
     if (limitRows) {
       // if many rows, just take some from start and one from end as examples
-      selectedRows = [...rowIds.slice(0, maximumInlineRows - 1).entries()];
+      selectedRows = [...rowIds.slice(0, this._maxRows - 1).entries()];
       selectedRows.push([rowIds.length - 1, rowIds[rowIds.length - 1]]);
     }
 
@@ -158,6 +164,17 @@ class ActionSummarizer {
   private _addRename(renames: LabelDelta[], rename: LabelDelta) {
     if (renames.find(r => r[0] === rename[0] && r[1] === rename[1])) { return; }
     renames.push(rename);
+  }
+
+  private _getMaxRows() {
+    const maxRows = this._options?.maximumInlineRows;
+    if (maxRows === undefined) {
+      return MAXIMUM_INLINE_ROWS;
+    } else if (maxRows === null) {
+      return Infinity;
+    } else {
+      return maxRows;
+    }
   }
 }
 

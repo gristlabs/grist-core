@@ -11,7 +11,6 @@ import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
 import {DocComm} from 'app/client/components/DocComm';
-import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
 import {buildDefaultFormLayout} from 'app/client/components/Forms/FormView';
@@ -536,8 +535,6 @@ export class GristDoc extends DisposableWithEvents {
     this.listenTo(app.comm, 'docChatter', this.onDocChatter);
 
     this._handleTriggerQueueOverflowMessage();
-
-    this.autoDispose(DocConfigTab.create({gristDoc: this}));
 
     this.rightPanelTool = Computed.create(this, (use) => this._getToolContent(use(this._rightPanelTool)));
 

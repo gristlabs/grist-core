@@ -56,9 +56,14 @@ export const testDailyApiLimitFeatures = {
   baseMaxApiUnitsPerDocumentPerDay: 3,
 };
 
+export const testMaxNewUserInvitesFeatures = {
+  ...teamFeatures,
+  maxNewUserInvitesPerOrg: 3,
+  maxSharesPerDoc: 5,
+};
+
 export const testAuditLogsFeatures = {
   ...teamFeatures,
-  installationAuditLogs: true,
 };
 
 const testProducts = [
@@ -66,6 +71,10 @@ const testProducts = [
   {
     name: 'testDailyApiLimit',
     features: testDailyApiLimitFeatures,
+  },
+  {
+    name: 'testMaxNewUserInvites',
+    features: testMaxNewUserInvitesFeatures,
   },
   {
     name: 'testAuditLogs',
@@ -238,6 +247,20 @@ export const exampleOrgs = [
     ]
   },
   {
+    name: 'TestMaxNewUserInvites',
+    domain: 'textmaxnewuserinvites',
+    product: 'testMaxNewUserInvites',
+    workspaces: [
+      {
+        name: 'TestMaxNewUserInvitesWs',
+        docs: [
+          "TestMaxNewUserInvitesDoc1",
+          "TestMaxNewUserInvitesDoc2",
+        ],
+      }
+    ]
+  },
+  {
     name: 'TestAuditLogs',
     domain: 'testauditlogs',
     product: 'testAuditLogs',
@@ -253,6 +276,7 @@ export const exampleOrgs = [
 const exampleUsers: {[user: string]: {[org: string]: string}} = {
   Chimpy: {
     TestDailyApiLimit: 'owners',
+    TestMaxNewUserInvites: 'owners',
     TestAuditLogs: 'owners',
     FreeTeam: 'owners',
     Chimpyland: 'owners',
@@ -558,7 +582,7 @@ export async function removeConnection() {
   }
 }
 
-export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean = true) {
+export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean|'migrateOnly' = true) {
   // In jenkins tests, we may want to reset the database to a clean
   // state.  If so, TEST_CLEAN_DATABASE will have been set.  How to
   // clean the database depends on what kind of database it is.  With
@@ -598,7 +622,9 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
   // Finally - actually initialize the database.
   if (migrateAndSeedData) {
     await updateDb(connection);
-    await addSeedData(connection);
+    if (migrateAndSeedData !== 'migrateOnly') {
+      await addSeedData(connection);
+    }
   }
 }
 

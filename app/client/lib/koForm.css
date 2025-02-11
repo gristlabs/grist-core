@@ -185,6 +185,24 @@ div:hover > .kf_tooltip {
   color: #777777;
 }
 
+.kf_draggable__icon::before {
+  display: block;
+  background-color: var(--grist-theme-control-secondary-fg, var(--grist-color-slate));
+  content: ' ';
+  width: 14px;
+  height: 14px;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
+.kf_draggable__icon.icon-dragdrop::before {
+  mask-image: var(--icon-DragDrop);
+}
+
+.kf_draggable__icon.icon-remove::before {
+  mask-image: var(--icon-Remove);
+}
+
 .kf_draggable_content {
   display: inline-block;
   margin-left: 2px;

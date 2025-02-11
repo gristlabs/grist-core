@@ -31,6 +31,10 @@ export class Activation extends BaseEntity {
   @Column({name: 'enabled_at', type: nativeValues.dateTimeType, nullable: true})
   public enabledAt: Date|null;
 
+  // When this installation entered into grace period, due to key expiration or limits exceeded.
+  @Column({name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true})
+  public gracePeriodStart: Date|null;
+
   public checkProperties(props: any): props is Partial<InstallProperties> {
     for (const key of Object.keys(props)) {
       if (!installPropertyKeys.includes(key)) {

@@ -117,6 +117,9 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   addToRepl('Key', Key, 'key values such as Key.ENTER');
   addToRepl('server', server, 'test server');
 
+  // After every suite, assert it didn't leave an alert open.
+  checkForAlerts();
+
   // After every suite, assert it didn't leave new browser windows open.
   checkForExtraWindows();
 
@@ -148,6 +151,20 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   }
 
   return setupRequirement({team: true, ...options});
+}
+
+// Check for alerts after the test suite.
+function checkForAlerts() {
+  after(async () => {
+    const isAlertShown = await gu.isAlertShown();
+    try {
+      assert.isFalse(isAlertShown, "Unexpected alert open after the test ended");
+    } finally {
+      if (isAlertShown) {
+        await gu.acceptAlert();
+      }
+    }
+  });
 }
 
 // Clean up any browser windows after the test suite that didn't exist at its start.

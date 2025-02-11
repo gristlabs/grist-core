@@ -295,22 +295,54 @@ export function stringArrayParam(p: any, name: string): string[] {
   return p;
 }
 
-export function optIntegerParam(p: any, name: string): number|undefined {
-  if (p === undefined) { return p; }
+export function optIntegerParam(
+  p: any,
+  name: string,
+  options?: { nullable?: false; isValid?: (n: number) => boolean }
+): number | undefined;
+export function optIntegerParam(
+  p: any,
+  name: string,
+  options: { nullable: true; isValid?: (n: number) => boolean }
+): number | null | undefined;
+export function optIntegerParam(
+  p: any,
+  name: string,
+  options: { nullable?: boolean; isValid?: (n: number) => boolean } = {}
+): number | undefined {
+  if (p === undefined) {
+    return p;
+  }
+  if (options.nullable && p === "null") {
+    return p;
+  }
 
-  return integerParam(p, name);
+  return integerParam(p, name, options);
 }
 
-export function integerParam(p: any, name: string): number {
-  if (typeof p === 'number' && !Number.isNaN(p)) { return Math.floor(p); }
-  if (typeof p === 'string') {
-    const result = parseInt(p, 10);
-    if (isNaN(result)) {
-      throw new ApiError(`${name} parameter cannot be understood as an integer: ${p}`, 400);
-    }
-    return result;
+export function integerParam(
+  p: any,
+  name: string,
+  options: { isValid?: (n: number) => boolean } = {}
+): number {
+  const { isValid } = options;
+  let result: number | null = null;
+  if (typeof p === "number") {
+    result = Math.floor(p);
+  } else if (typeof p === "string") {
+    result = parseInt(p, 10);
   }
-  throw new ApiError(`${name} parameter should be an integer: ${p}`, 400);
+  if (result === null || Number.isNaN(result)) {
+    throw new ApiError(
+      `${name} parameter cannot be understood as an integer: ${p}`,
+      400
+    );
+  }
+  if (isValid && !isValid(result)) {
+    throw new ApiError(`${name} parameter is invalid: ${p}`, 400);
+  }
+
+  return result;
 }
 
 export function optBooleanParam(p: any, name: string): boolean|undefined {

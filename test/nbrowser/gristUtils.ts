@@ -924,7 +924,7 @@ export async function loadDocMenu(relPath: string, wait: boolean|'skipOnboarding
  * Wait for the doc list to show, to know that workspaces are fetched, and imports enabled.
  */
 export async function waitForDocMenuToLoad(): Promise<void> {
-  await driver.findWait('.test-dm-doclist', 2000);
+  await driver.findWait('.test-dm-doclist', 8000); // postgres locally can be slow
   await driver.wait(() => driver.find('.test-dm-doclist').isDisplayed(), 2000);
 }
 
@@ -1535,6 +1535,13 @@ export async function checkForErrors() {
 }
 
 /**
+ * Gets errors that were thrown by the app.
+ */
+export async function getAppErrors() {
+  return await driver.executeScript<string[]>(() => (window as any).getAppErrors());
+}
+
+/**
  * Opens a Creator Panel on Widget/Table settings tab.
  */
 export async function openWidgetPanel(tab: 'widget'|'sortAndFilter'|'data' = 'widget') {
@@ -1957,12 +1964,14 @@ export async function addUser(email: string|string[], role?: 'Owner'|'Viewer'|'E
   await driver.wait(async () => !await driver.find('.test-um-members').isPresent(), 500);
 }
 
-export async function removeUser(email: string): Promise<void> {
+export async function removeUser(emails: string|string[]): Promise<void> {
   await driver.findWait('.test-user-icon', 5000).click();
   await driver.find('.test-dm-org-access').click();
   await driver.findWait('.test-um-members', 500);
-  const kiwiRow = await driver.findContent('.test-um-member', email);
-  await kiwiRow.find('.test-um-member-delete').click();
+  for(const email of (Array.isArray(emails) ? emails : [emails])) {
+    const userRow = await driver.findContent('.test-um-member', email);
+    await userRow.find('.test-um-member-delete').click();
+  }
   await driver.find('.test-um-confirm').click();
   await driver.wait(async () => !await driver.find('.test-um-members').isPresent(), 500);
 }
@@ -3977,6 +3986,14 @@ export async function deleteWidgetWithData(title?: string) {
   await driver.find('.test-modal-confirm').click();
   await waitForServer();
 }
+
+export async function waitForTrue(check: () => Promise<boolean>, timeMs: number = 4000) {
+  await waitToPass(async () => {
+    assert.isTrue(await check());
+  }, timeMs);
+}
+
+export const waitForAdminPanel = () => driver.findWait('.test-admin-panel', 2000);
 
 } // end of namespace gristUtils
 

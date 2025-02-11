@@ -7,7 +7,7 @@ import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
-import { Activations } from 'app/gen-server/lib/Activations';
+import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
@@ -54,7 +54,7 @@ export interface GristServer {
   getComm(): Comm;
   getDeploymentType(): GristDeploymentType;
   getHosts(): Hosts;
-  getActivations(): Activations;
+  getActivations(): ActivationsManager;
   getInstallAdmin(): InstallAdmin;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
@@ -78,6 +78,7 @@ export interface GristServer {
   getBilling(): IBilling;
   setRestrictedMode(restrictedMode?: boolean): void;
   getDocManager(): DocManager;
+  isRestrictedMode(): boolean;
 }
 
 export interface GristLoginSystem {
@@ -176,6 +177,7 @@ export function createDummyGristServer(): GristServer {
     getBilling() { throw new Error('no billing'); },
     setRestrictedMode() { /* do nothing */ },
     getDocManager() { throw new Error('no DocManager'); },
+    isRestrictedMode() { return false; },
   };
 }
 

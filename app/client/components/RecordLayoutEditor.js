@@ -125,7 +125,7 @@ RecordLayoutEditor.prototype.buildFinishButtons = function() {
 
 RecordLayoutEditor.prototype.buildLeafDom = function() {
   return dom('div.layout_grabbable.g_record_layout_editing',
-    dom('div.g_record_delete_field.glyphicon.glyphicon-eye-close',
+    cssIconEyeClose(
       dom.on('mousedown', (ev) => ev.stopPropagation()),
       dom.on('click', (ev, elem) => {
         ev.preventDefault();
@@ -150,5 +150,19 @@ const cssControls = styled('div', `
 const cssCollapseIcon = styled(icon, `
   margin: -3px -2px -2px 2px;
 `);
+
+const cssIconEyeClose = styled('div.g_record_delete_field', `
+  &::before {
+    display: block;
+    background-color: var(--grist-color-dark-text);
+    content: ' ';
+    mask-image: var(--icon-EyeHide);
+    width: 14px;
+    height: 14px;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
+`
+);
 
 module.exports = RecordLayoutEditor;

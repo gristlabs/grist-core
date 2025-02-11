@@ -9,7 +9,7 @@ import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalSt
 import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
-import {createNullBilling, IBilling} from 'app/server/lib/IBilling';
+import {EmptyBilling, IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -17,6 +17,7 @@ import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 import {ITelemetry} from 'app/server/lib/Telemetry';
+import {Express} from 'express';
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -84,6 +85,8 @@ export interface ICreate {
   getSandboxVariants?(): Record<string, SpawnFn>;
 
   getLoginSystem(): Promise<GristLoginSystem>;
+
+  addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
 }
 
 export interface ICreateActiveDocOptions {
@@ -123,7 +126,7 @@ export class BaseCreate implements ICreate {
 
   public deploymentType(): GristDeploymentType { return this._deploymentType; }
   public Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling {
-    return createNullBilling();
+    return new EmptyBilling();
   }
   public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier {
     return EmptyNotifier;
@@ -189,4 +192,5 @@ export class BaseCreate implements ICreate {
   public async createHostedDocStorageManager(...args: ConstructorParameters<typeof HostedStorageManager>) {
     return new HostedStorageManager(...args);
   }
+  public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
 }

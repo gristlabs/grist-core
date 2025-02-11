@@ -250,6 +250,7 @@ describe('HomeDBManager', function() {
       'Primately',
       'TestAuditLogs',
       'TestDailyApiLimit',
+      'TestMaxNewUserInvites',
       'Charonland',
       'Chimpyland',
       'Kiwiland',
@@ -336,7 +337,10 @@ describe('HomeDBManager', function() {
     const product = (await home.getDocProduct(urlId))!;
     assert.equal(doc.workspace.org.billingAccount.product.id, product.id);
     const features = await home.getDocFeatures(urlId);
-    assert.deepEqual(features, {workspaces: true, vanityDomain: true});
+    assert.deepEqual(features, {
+      workspaces: true,
+      vanityDomain: true,
+    });
   });
 
   it('can fork docs', async function() {
