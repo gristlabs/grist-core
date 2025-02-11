@@ -429,21 +429,24 @@ export async function fetchDoc(
   const apiBaseUrl = docWorkerUrl.replace(/\/*$/, '/');
 
   // Documents with external attachments can't be copied right now. Check status and alert the user.
-  const transferStatusResponse = await fetch(
+  // Copying as a template is fine, as no attachments will be copied.
+  if (!template) {
+    const transferStatusResponse = await fetch(
       new URL(`/api/docs/${docId}/attachments/transferStatus`, apiBaseUrl).href,
-    {
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json',
+      {
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        }
       }
+    );
+    if (!transferStatusResponse.ok) {
+      throw new ApiError(await transferStatusResponse.text(), transferStatusResponse.status);
     }
-  );
-  if (!transferStatusResponse.ok) {
-    throw new ApiError(await transferStatusResponse.text(), transferStatusResponse.status);
-  }
-  const attachmentsLocation: DocAttachmentsLocation = (await transferStatusResponse.json()).locationSummary;
-  if (attachmentsLocation !== 'internal' && attachmentsLocation !== 'none') {
-    throw new ApiError("Cannot copy a document with external attachments", 400);
+    const attachmentsLocation: DocAttachmentsLocation = (await transferStatusResponse.json()).locationSummary;
+    if (attachmentsLocation !== 'internal' && attachmentsLocation !== 'none') {
+      throw new ApiError("Cannot copy a document with external attachments", 400);
+    }
   }
 
   // Download the document, in full or as a template.
