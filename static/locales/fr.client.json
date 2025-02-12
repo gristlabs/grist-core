@@ -350,7 +350,11 @@
         "You can make changes to the document, then stop timing to see the results.": "Vous pouvez apporter des modifications au document, puis arrêter le chronométrage pour voir les résultats.",
         "Formula times": "Minuteur de formule",
         "Only available to document editors": "Seulement disponible aux éditeurs du document",
-        "Only available to document owners": "Seulement disponible aux propriétaires du document"
+        "Only available to document owners": "Seulement disponible aux propriétaires du document",
+        "Edit": "Modifier",
+        "Template": "Modèle",
+        "Tutorial": "Tutoriel",
+        "Confirm change": "Confirmer les modifications"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -961,7 +965,9 @@
         "Toggle": "Booléen",
         "Reference": "Référence",
         "Any": "Non défini",
-        "Search columns": "Chercher des colonnes"
+        "Search columns": "Chercher des colonnes",
+        "By Name": "Par Nom",
+        "By Date Modified": "Par Date de modification"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -1839,5 +1845,27 @@
         "Contact us": "Nous contacter",
         "Only site owners may access audit logs.": "Seuls les propriétaires de site peuvent accéder aux journaux d'audit.",
         "upgrade your plan": "actualiser son contrat"
+    },
+    "DocList": {
+        "All": "Tous",
+        "Delete": "Supprimer",
+        "Delete {{name}}": "Supprimer {{name}}",
+        "Edited {{at}}": "Modifié le {{at}}",
+        "Last edited": "Dernière modification",
+        "Manage users": "Gérer les utilisateurs",
+        "Move": "Déplacer",
+        "Name": "Nom",
+        "Pin": "Epingler",
+        "Sort by date": "Trier par date",
+        "Sort by name": "Trier par nom",
+        "Unpin": "Désépingler",
+        "No documents to show.": "Aucun document à afficher.",
+        "Recent": "Récent",
+        "Pinned": "Epinglé",
+        "Rename and set icon": "Renommer et définir une icône"
+    },
+    "RenameDocModal": {
+        "Icon": "Icône",
+        "Name": "Nom"
     }
 }
