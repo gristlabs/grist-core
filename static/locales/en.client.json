@@ -1909,5 +1909,9 @@
         "Name": "Name",
         "Rename and set icon": "Rename and set icon",
         "Reset icon": "Reset icon"
+    },
+    "NewRecordButton": {
+        "New card": "New card",
+        "New record": "New record"
     }
 }
