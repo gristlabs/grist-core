@@ -18,6 +18,7 @@ import {waitGrainObs} from 'app/common/gutil';
 import noop from 'lodash/noop';
 
 const t = makeT("ViewAsDropdown");
+const userT = makeT('UserManagerModel');
 
 function isSpecialEmail(email: string) {
   return email === ANONYMOUS_USER_EMAIL || email === EVERYONE_EMAIL;
@@ -127,7 +128,7 @@ export class ACLUsersPopup extends Disposable {
       ),
       cssMemberText(
         cssMemberPrimary(user.name || dom('span', user.email),
-          cssRole('(', getUserRoleText(user), ')', testId('acl-user-access')),
+          cssRole('(', userT(getUserRoleText(user)), ')', testId('acl-user-access')),
         ),
         user.name ? cssMemberSecondary(user.email) : null
       ),

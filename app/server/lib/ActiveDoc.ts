@@ -2170,6 +2170,7 @@ export class ActiveDoc extends EventEmitter {
     };
 
     try {
+
       this.setMuted();
       this._inactivityTimer.disable();
       if (this.docClients.clientCount() > 0) {
@@ -2180,6 +2181,10 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._triggers.shutdown();
+
+      // attachmentFileManager needs to shut down before DocStorage, to allow transfers to finish.
+      await safeCallAndWait('attachmentFileManager',
+        this._attachmentFileManager.shutdown.bind(this._attachmentFileManager));
 
       this._redisSubscriber?.quitAsync()
         .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));

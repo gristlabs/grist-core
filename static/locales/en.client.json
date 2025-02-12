@@ -850,7 +850,9 @@
         "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Unknown User"
+        "UnknownUser": "Unknown User",
+        "View as Yourself": "View as Yourself",
+        "You are viewing this document as": "You are viewing this document as"
     },
     "ViewConfigTab": {
         "Advanced settings": "Advanced settings",
@@ -1237,7 +1239,8 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "To allow multiple assignments, change the type of the Reference column to Reference List.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "This limitation occurs when one column in a two-way reference has the Reference type.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "To allow multiple assignments, change the referenced column's type to Reference List.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns",
+        "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1632,7 +1635,8 @@
         "Log Streaming": "Log Streaming",
         "New, Enterprise": "New, Enterprise",
         "Off": "Off",
-        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more"
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more",
+        "On": "On"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1733,7 +1737,26 @@
         "Disable Grist Enterprise": "Disable Grist Enterprise",
         "Enable Grist Enterprise": "Enable Grist Enterprise",
         "Grist Enterprise is **enabled**.": "Grist Enterprise is **enabled**.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",
+        "Activate": "Activate",
+        "Activation key": "Activation key",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.",
+        "Copy to clipboard": "Copy to clipboard",
+        "Expiration date": "Expiration date",
+        "Installation ID copied to clipboard": "Installation ID copied to clipboard",
+        "Installation ID:": "Installation ID:",
+        "Installation seats": "Installation seats",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Learn more in our [Help Center]({{helpCenter}}).",
+        "Paste your activation key": "Paste your activation key",
+        "Plan name": "Plan name",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.",
+        "You are currently trialing Grist Enterprise.": "You are currently trialing Grist Enterprise.",
+        "You do not have an active subscription.": "You do not have an active subscription.",
+        "Your activation key has expired due to exceeding limits.": "Your activation key has expired due to exceeding limits.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Your instance will be in **read-only** mode in **{{days}}** day(s).",
+        "Your subscription expired on {{date}}.": "Your subscription expired on {{date}}.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below."
     },
     "ViewLayout": {
         "Delete": "Delete",
