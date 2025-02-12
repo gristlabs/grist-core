@@ -542,7 +542,7 @@ export class DocWorkerApi {
       });
     }));
 
-    this._app.get('/api/docs/:docId/attachments/store', isOwner,
+    this._app.get('/api/docs/:docId/attachments/store', canView,
       withDoc(async (activeDoc, req, res) => {
         const storeId = await activeDoc.getAttachmentStore();
         res.json({
