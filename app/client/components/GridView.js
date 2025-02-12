@@ -327,7 +327,8 @@ GridView.gridCommands = {
   ctrlShiftUp: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'up'}); },
   ctrlShiftRight: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'right'}); },
   ctrlShiftLeft: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'left'}); },
-  fillSelectionDown: function() { this.fillSelectionDown(); },
+  fillSelectionDown: function() { tableUtil.fillSelectionDown(this.getSelection(), this.tableModel); },
+
   selectAll: function() { this.selectAll(); },
 
   fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
@@ -679,36 +680,6 @@ GridView.prototype._createBulkActionsFromPaste = function(rowIds, bulkUpdate) {
   }
   return this.prepTableActions(actions);
 };
-
-/**
- * Fills currently selected grid with the contents of the top row in that selection.
- */
-GridView.prototype.fillSelectionDown = function() {
-  var rowLower = this.cellSelector.rowLower();
-  var rowIds = _.times(this.cellSelector.rowCount(), i => this.viewData.getRowId(rowLower + i));
-
-  if (rowIds.length <= 1) {
-    return;
-  }
-
-  var colLower = this.cellSelector.colLower();
-  var fields = this.viewSection.viewFields().peek();
-  var colIds = _.times(this.cellSelector.colCount(), i => {
-    if (!fields[colLower + i].column().isFormula()) {
-      return fields[colLower + i].colId();
-    }
-  }).filter(colId => colId);
-
-  var colInfo = _.object(colIds, colIds.map(colId => {
-     var val = this.tableModel.tableData.getValue(rowIds[0], colId);
-     return rowIds.map(() => val);
-  }));
-
-  this.tableModel.sendTableAction(["BulkUpdateRecord", rowIds, colInfo]);
-};
-
-
-
 
 /**
  * Returns a CopySelection of the selected rows and cols
