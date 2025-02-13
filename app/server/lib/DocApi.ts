@@ -568,8 +568,8 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/attachments/stores', isOwner,
       withDoc(async (activeDoc, req, res) => {
         const configs = await getConfiguredAttachmentStoreConfigs();
-        const labels = configs.map(c => ({label: c.label}));
-        res.json(labels);
+        const labels: Types.AttachmentStoreDesc[] = configs.map(c => ({label: c.label}));
+        res.json({stores: labels});
       })
     );
 

@@ -275,8 +275,9 @@ export class DocSettingsPage extends Disposable {
       transfer.set(status);
     };
 
-    const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then(s => {
-      if (s.length === 0) {
+    const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then(r => {
+      if (r.stores.length === 0) {
+        // There are no external providers (for now there can be at most 1).
         stores.set([]);
       } else {
         stores.set([INTERNAL, EXTERNAL]);

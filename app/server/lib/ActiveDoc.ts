@@ -403,8 +403,9 @@ export class ActiveDoc extends EventEmitter {
     // Every time manager starts the transfer we need to notify clients about it.
     const notifier = this.sendAttachmentTransferStatusNotification.bind(this);
 
-    // Manager emits to events, et the start and at the end, but we don't care here, we
-    // just want to notify about the current status.
+    // Manager emits to events, at the start and at the end, but we don't care here, we
+    // just want to notify about the current status. We also don't need to unregister
+    // as the manager will be shutdown with us.
     this._attachmentFileManager
       .on(AttachmentFileManager.events.TRANSFER_STARTED, notifier)
       .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
@@ -1949,7 +1950,7 @@ export class ActiveDoc extends EventEmitter {
 
   /**
    * Sends a message to clients connected to the document that the attachments' transfer
-   * job has started or finished. It is also send when the attachment store is changed
+   * job has started or finished. It is also sent when the attachment store is changed
    * through the API (as it also includes information about attachments' location).
    */
   public async sendAttachmentTransferStatusNotification(attachmentTransfer: AttachmentTransferStatus) {

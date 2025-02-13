@@ -24,7 +24,7 @@ import {
 } from 'app/common/Triggers';
 import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
 import {StringUnion} from 'app/common/StringUnion';
-import {AttachmentStore} from 'app/plugin/DocApiTypes';
+import {AttachmentStore, AttachmentStoreDesc} from 'app/plugin/DocApiTypes';
 import {AxiosProgressEvent} from 'axios';
 import omitBy from 'lodash/omitBy';
 
@@ -586,7 +586,7 @@ export interface DocAPI {
    * Lists available external attachment stores. For now it contains at most one store.
    * If there is one store available it means that external storage is configured and can be used by this document.
    */
-  getAttachmentStores(): Promise<Array<{label: string}>>;
+  getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1243,7 +1243,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/attachments/store`);
   }
 
-  public async getAttachmentStores(): Promise<Array<{label: string}>> {
+  public async getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}> {
     return this.requestJson(`${this._url}/attachments/stores`);
   }
 

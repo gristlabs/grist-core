@@ -113,7 +113,7 @@ describe("AttachmentsTransfer", function() {
   });
 
   it("should show actions when some attachments are added", async function() {
-    // Upload for attachments.
+    // Upload four attachments.
     await gu.openPage('Table1');
     await gu.selectColumn('A');
     await gu.setType('Attachment');
@@ -136,7 +136,7 @@ describe("AttachmentsTransfer", function() {
     // We should see start transfer button.
     assert.isTrue(await startTransferButton().isDisplayed());
 
-    // When we switch back to internal message should be gone.
+    // When we switch back to internal, the message should be gone.
     await storageType.select('Internal');
     assert.lengthOf(await messages(), 0);
     assert.isFalse(await startTransferButton().isPresent());
@@ -165,7 +165,7 @@ describe("AttachmentsTransfer", function() {
     // We now should have those files transfer.
     assert.lengthOf(files(), 4);
 
-    // We are not testing here if transfer works or not, just 4 files is enough for us.
+    // We are not testing here if transfer works or not, just the correct number of files is enough.
 
     // Make sure that transfer button is gone.
     assert.isFalse(await startTransferButton().isPresent());

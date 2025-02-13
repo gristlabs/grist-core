@@ -127,3 +127,7 @@ export interface SetAttachmentStorePost {
 }
 
 export type AttachmentStore = 'internal' | 'external';
+
+export interface AttachmentStoreDesc {
+  label: string;
+}
