@@ -460,7 +460,7 @@ export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (or
     fileNaming = docId => `assets/unversioned/${docId}/meta.json`;
   } else if (purpose === 'attachments') {
     // Prefix-only - attachments system handles exact naming
-    fileNaming = attachmentPath => attachmentPath;
+    fileNaming = attachmentPath => `attachments/${stripLeadingSlash(attachmentPath)}`;
   } else {
     throw new UnsupportedPurposeError(settings.purpose);
   }

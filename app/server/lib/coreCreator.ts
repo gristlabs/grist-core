@@ -52,7 +52,6 @@ export class CoreCreate extends BaseCreate {
           return new ExternalStorageAttachmentStore(
             storeId,
             storage,
-            [],
           );
         }
       }
