@@ -161,7 +161,7 @@ export class GristDoc extends DisposableWithEvents {
   // component for keeping track of latest cursor position
   public cursorMonitor: CursorMonitor;
   // component for keeping track of a cell that is being edited
-  public editorMonitor: EditorMonitor;
+  public editorMonitor?: EditorMonitor;
   // component for keeping track of a cell that is being edited
   public draftMonitor: Drafts;
   // will document perform its own navigation (from anchor link)
@@ -250,7 +250,7 @@ export class GristDoc extends DisposableWithEvents {
     console.log("RECEIVED DOC RESPONSE", openDocResponse);
     this.isTimingOn.set(openDocResponse.isTimingOn);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
-    this.docModel = new DocModel(this.docData, this.docPageModel);
+    this.docModel = this.autoDispose(new DocModel(this.docData, this.docPageModel));
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
     this.docPluginManager = new DocPluginManager({
       plugins,
@@ -526,6 +526,7 @@ export class GristDoc extends DisposableWithEvents {
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this.onCreateForm.bind(this),
+      pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
     }, this, true));
 
     this.listenTo(app.comm, 'docUserAction', this.onDocUserAction);

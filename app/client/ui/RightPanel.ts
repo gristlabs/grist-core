@@ -36,7 +36,8 @@ import {GridOptions} from 'app/client/ui/GridOptions';
 import {textarea} from 'app/client/ui/inputs';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
-import {cssLabel, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {cssConfigContainer, cssLabel, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {buildConfigContainer, getFieldType} from 'app/client/ui/RightPanelUtils';
 import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widgetTypesMap";
@@ -45,7 +46,6 @@ import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
-import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
@@ -83,21 +83,6 @@ const TopTab = StringUnion("pageWidget", "field");
 
 // Represents a subtab of pageWidget in the right side-pane.
 const PageSubTab = StringUnion("widget", "sortAndFilter", "data", "submission");
-
-// Returns the icon and label of a type, default to those associate to 'record' type.
-export function getFieldType(widgetType: IWidgetType|null) {
-  // A map of widget type to the icon and label to use for a field of that widget.
-  const fieldTypes = new Map<IWidgetType, {label: string, icon: IconName, pluralLabel: string}>([
-    ['record', {label: t('Columns', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Columns', { count: 2 })}],
-    ['detail', {label: t('Fields', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Fields', { count: 2 })}],
-    ['single', {label: t('Fields', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Fields', { count: 2 })}],
-    ['chart', {label: t('Series', { count: 1 }), icon: 'ChartLine', pluralLabel: t('Series', { count: 2 })}],
-    ['custom', {label: t('Columns', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Columns', { count: 2 })}],
-    ['form', {label: t('Fields', { count: 1 }), icon: 'TypeCell', pluralLabel: t('Fields', { count: 2 })}],
-  ]);
-
-  return fieldTypes.get(widgetType || 'record') || fieldTypes.get('record')!;
-}
 
 export class RightPanel extends Disposable {
   public readonly header: DomContents;
@@ -1103,15 +1088,7 @@ function disabledSection() {
   );
 }
 
-export function buildConfigContainer(...args: DomElementArg[]): HTMLElement {
-  return cssConfigContainer(
-    // The `position: relative;` style is needed for the overlay for the readonly mode. Note that
-    // we cannot set it on the cssConfigContainer directly because it conflicts with how overflow
-    // works. `padding-top: 1px;` prevents collapsing the top margins for the container and the
-    // first child.
-    dom('div', {style: 'position: relative; padding-top: 1px;'}, ...args),
-  );
-}
+
 
 // This logic is copied from SidePane.js for building DOM from TabContent.
 // TODO It may not be needed after new-ui refactoring of the side-pane content.
@@ -1295,24 +1272,6 @@ const cssTabContents = styled('div', `
 `);
 
 
-const cssConfigContainer = styled('div.test-config-container', `
-  overflow: auto;
-  --color-list-item: none;
-  --color-list-item-hover: none;
-
-  &:after {
-    content: "";
-    display: block;
-    height: 40px;
-  }
-  & .fieldbuilder_settings {
-    margin: 16px 0 0 0;
-  }
-  &-disabled {
-    opacity: 0.4;
-    pointer-events: none;
-  }
-`);
 
 const cssDataLabel = styled('div', `
   flex: 0 0 81px;

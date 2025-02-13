@@ -13,6 +13,7 @@ import {menu} from 'app/client/ui2018/menus';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {Computed, dom, DomElementArg, Observable, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
+import {undef} from 'app/common/gutil';
 
 const t = makeT('ViewSection');
 
@@ -77,11 +78,12 @@ export function buildViewSectionDom(options: {
     focusable = true,
     tableNameHidden,
     widgetNameHidden,
-    renamable = true,
   } = options;
 
   // Creating normal section dom
   const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
+  const renamable = undef(vs.canRename.peek(), options.renamable, true);
+
   const selectedBySectionTitle = Computed.create(null, (use) => {
     if (!use(vs.linkSrcSectionRef)) { return null; }
     return use(use(vs.linkSrcSection).titleDef);

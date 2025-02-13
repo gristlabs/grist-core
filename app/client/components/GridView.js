@@ -367,6 +367,7 @@ GridView.gridCommands = {
   copy: function() { return this.copy(this.getSelection()); },
   cut: function() { return this.cut(this.getSelection()); },
   paste: async function(pasteObj, cutCallback) {
+    if (this.gristDoc.isReadonly.get()) { return; }
     await this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
     await this.scrollToCursor(false);
   },

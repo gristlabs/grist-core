@@ -17,10 +17,11 @@ import range = require('lodash/range');
 export function addToSort(sortSpecObs: ko.Observable<Sort.SortSpec>, colRef: number, direction: -1|1) {
   const spec = sortSpecObs.peek();
   const index = Sort.findColIndex(spec, colRef);
+  const withDirection = Sort.setColDirection(colRef, direction);
   if (index !== -1) {
-    spec.splice(index, 1, colRef * direction);
+    spec.splice(index, 1, withDirection);
   } else {
-    spec.push(colRef * direction);
+    spec.push(withDirection);
   }
   sortSpecObs(spec);
 }

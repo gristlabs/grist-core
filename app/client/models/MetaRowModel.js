@@ -67,6 +67,15 @@ MetaRowModel.Floater = function(tableModel, rowIdObs) {
   // Note that ._index isn't supported because it doesn't make sense for a floating row model.
 
   this._underlyingRowModel = this.autoDispose(ko.computed(function() {
+    // This was added here because the Fork.ts test (nbrowser) is failing without it. Test started failing after
+    // DocModel was converted to a proper DisposableOwner that was disposing all of its disposable children. Before
+    // that DocModel was a long living object that was never disposed.
+    // It is hard to diagnose the problem here. During GristDoc disposal, the order of disposal for those two objects
+    // [MetaRowModel.Floater, MetaRowModel] is reversed.
+    // TODO: Investigate why this is happening.
+    if (tableModel.isDisposed()) {
+      return null;
+    }
     return tableModel.getRowModel(rowIdObs());
   }));
 
