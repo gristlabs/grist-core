@@ -30,6 +30,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       options.name,
       testId(`admin-panel-item-name-${options.id}`),
       prefix.length ? cssItemName.cls('-prefixed') : null,
+      cssItemName.cls('-full', options.description === undefined),
     ),
     cssItemDescription(options.description),
     cssItemValue(options.value,
@@ -141,7 +142,10 @@ const cssItemName = styled('div', `
   &-prefixed {
     padding-left: 0;
   }
-
+  &-full {
+    padding-left: 0;
+    width: unset;
+  }
   @container line (max-width: 500px) {
     & {
       padding-left: 0;

@@ -1,4 +1,4 @@
-import {DocAttachmentsLocation} from 'app/common/UserAPI';
+import {AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
 import {
   AttachmentStoreDocInfo,
   DocPoolId,
@@ -11,6 +11,7 @@ import {DocStorage} from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
+import {EventEmitter} from 'events';
 import {Readable} from 'node:stream';
 import {AbortController} from 'node-abort-controller';
 
@@ -78,7 +79,13 @@ export class AttachmentRetrievalError extends Error {
  * they'll eventually be cleaned up when the document pool is deleted.
  *
  */
-export class AttachmentFileManager {
+export class AttachmentFileManager extends EventEmitter {
+
+  public static events = {
+    TRANSFER_STARTED: 'transfer-started',
+    TRANSFER_COMPLETED: 'transfer-completed',
+  };
+
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
   private readonly _docPoolId: DocPoolId | null;
   private readonly _docName: string;
@@ -106,6 +113,7 @@ export class AttachmentFileManager {
     private _storeProvider: IAttachmentStoreProvider | undefined,
     _docInfo: AttachmentStoreDocInfo | undefined,
   ) {
+    super();
     this._docName = _docStorage.docName;
     this._docPoolId = _docInfo ? getDocPoolIdFromDocInfo(_docInfo) : null;
   }
@@ -256,12 +264,18 @@ export class AttachmentFileManager {
 
   private async _performPendingTransfers() {
     try {
+      await this._notifyAboutStart();
       while (this._pendingFileTransfers.size > 0 && !this._loopAbort.aborted) {
         // Map.entries() will always return the most recent key/value from the map, even after a long async delay
         // Meaning we can safely iterate here and know the transfer is up to date.
         for (const [fileIdent, targetStoreId] of this._pendingFileTransfers.entries()) {
           try {
             await this.transferFileToOtherStore(fileIdent, targetStoreId);
+            // This is exposed just for testing, to allow for a delay between transfers.
+            // One of the test is refreshing the tab to see if the transfer is still running.
+            if (process.env.GRIST_TEST_TRANSFER_DELAY) {
+              await new Promise(resolve => setTimeout(resolve, Number(process.env.GRIST_TEST_TRANSFER_DELAY)));
+            }
           } catch (e) {
             this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
           } finally {
@@ -275,8 +289,33 @@ export class AttachmentFileManager {
     } finally {
       if (!this._loopAbort.aborted) {
         await this._docStorage.requestVacuum();
+        await this._notifyAboutEnd();
       }
     }
+  }
+
+  /**
+   * Sends a notification that a transfer has started.
+   * Note: We calculate arguments ourselves as the status object is not yet available, as
+   * it is calculated from the promise (if it is set or not).
+   */
+  private async _notifyAboutStart() {
+    this.emit(AttachmentFileManager.events.TRANSFER_STARTED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: true}
+    } as AttachmentTransferStatus);
+  }
+
+  /**
+   * Sends a notification that a transfer has end.
+   * Note: We calculate arguments ourselves as the status object is not yet available, as
+   * it is calculated from the promise (if it is set or not).
+   */
+  private async _notifyAboutEnd() {
+    this.emit(AttachmentFileManager.events.TRANSFER_COMPLETED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false}
+    } as AttachmentTransferStatus);
   }
 
   private async _addFileToLocalStorage(

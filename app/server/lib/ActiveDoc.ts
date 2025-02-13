@@ -80,8 +80,8 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {Document as APIDocument, DocReplacementOptions,
-        DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {Document as APIDocument, AttachmentTransferStatus,
+        DocReplacementOptions, DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -399,6 +399,15 @@ export class ActiveDoc extends EventEmitter {
       _attachmentStoreProvider,
       _options?.doc,
     );
+
+    // Every time manager starts the transfer we need to notify clients about it.
+    const notifier = this.sendAttachmentTransferStatusNotification.bind(this);
+
+    // Manager emits to events, et the start and at the end, but we don't care here, we
+    // just want to notify about the current status.
+    this._attachmentFileManager
+      .on(AttachmentFileManager.events.TRANSFER_STARTED, notifier)
+      .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
     // corresponding to one process for pynbox, more for gvisor).
@@ -959,8 +968,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Returns a summary of pending attachment transfers between attachment stores.
    */
-  public attachmentTransferStatus() {
-    return this._attachmentFileManager.transferStatus();
+  public async attachmentTransferStatus() {
+    return {
+      status: this._attachmentFileManager.transferStatus(),
+      locationSummary: await this._attachmentFileManager.locationSummary(),
+    };
   }
 
   /**
@@ -976,7 +988,7 @@ export class ActiveDoc extends EventEmitter {
    */
   @ActiveDoc.keepDocOpen
   public async allAttachmentTransfersCompleted() {
-      await this._attachmentFileManager.allTransfersCompleted();
+    await this._attachmentFileManager.allTransfersCompleted();
   }
 
 
@@ -984,6 +996,7 @@ export class ActiveDoc extends EventEmitter {
     const docSettings = this._getDocumentSettings();
     docSettings.attachmentStoreId = id;
     await this._updateDocumentSettings(docSession, docSettings);
+    await this.sendAttachmentTransferStatusNotification(await this.attachmentTransferStatus());
   }
 
   /**
@@ -993,7 +1006,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async setAttachmentStoreFromLabel(docSession: OptDocSession, label: string | undefined): Promise<void> {
     const id = label === undefined ? undefined : this._attachmentStoreProvider?.getStoreIdFromLabel(label);
-    return this.setAttachmentStore(docSession, id);
+    await this.setAttachmentStore(docSession, id);
   }
 
   public async getAttachmentStore(): Promise<string | undefined> {
@@ -1931,6 +1944,17 @@ export class ActiveDoc extends EventEmitter {
   public async sendWebhookNotification(type: WebhookMessageType = WebhookMessageType.Update) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
       webhooks: {type},
+    });
+  }
+
+  /**
+   * Sends a message to clients connected to the document that the attachments' transfer
+   * job has started or finished. It is also send when the attachment store is changed
+   * through the API (as it also includes information about attachments' location).
+   */
+  public async sendAttachmentTransferStatusNotification(attachmentTransfer: AttachmentTransferStatus) {
+    await this.docClients.broadcastDocMessage(null, 'docChatter', {
+      attachmentTransfer
     });
   }
 
