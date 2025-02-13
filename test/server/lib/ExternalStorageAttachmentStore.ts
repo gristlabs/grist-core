@@ -9,10 +9,9 @@ import * as stream from 'node:stream';
 import sinon from 'sinon';
 
 const testStoreId = "test-store-1";
-const testPathPrefix = ["folder1", "folder2"];
 const testPoolId = "pool1";
 const testFileId = "file1";
-const expectedPoolPrefix = "folder1/folder2/pool1";
+const expectedPoolPrefix = "pool1";
 const testFileContents = "This is the contents of a file";
 const testFileBuffer = Buffer.from(testFileContents);
 const getExpectedFilePath = (fileId: string) => `${expectedPoolPrefix}/${fileId}`;
@@ -25,7 +24,7 @@ describe('ExternalStorageAttachmentStore', () => {
 
     const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
 
-    const store = new ExternalStorageAttachmentStore(testStoreId, storage, testPathPrefix);
+    const store = new ExternalStorageAttachmentStore(testStoreId, storage);
     const fileStream = stream.Readable.from(testFileBuffer);
     await store.upload(testPoolId, testFileId, fileStream);
 
@@ -44,7 +43,7 @@ describe('ExternalStorageAttachmentStore', () => {
     };
 
     const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
-    const store = new ExternalStorageAttachmentStore(testStoreId, storage, testPathPrefix);
+    const store = new ExternalStorageAttachmentStore(testStoreId, storage);
     const output = new MemoryWritableStream();
     await store.download(testPoolId, testFileId, output);
 
@@ -60,7 +59,7 @@ describe('ExternalStorageAttachmentStore', () => {
     };
 
     const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
-    const store = new ExternalStorageAttachmentStore(testStoreId, storage, testPathPrefix);
+    const store = new ExternalStorageAttachmentStore(testStoreId, storage);
     const exists = await store.exists(testPoolId, testFileId);
 
     assert.isTrue(fakeStorage.exists.calledOnce, "exists should be called exactly once");
@@ -75,7 +74,7 @@ describe('ExternalStorageAttachmentStore', () => {
     };
 
     const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
-    const store = new ExternalStorageAttachmentStore(testStoreId, storage, testPathPrefix);
+    const store = new ExternalStorageAttachmentStore(testStoreId, storage);
     await store.delete(testPoolId, testFileId);
 
     assert.isTrue(fakeStorage.remove.calledOnce, "remove should be called exactly once");
@@ -89,7 +88,7 @@ describe('ExternalStorageAttachmentStore', () => {
     };
 
     const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
-    const store = new ExternalStorageAttachmentStore(testStoreId, storage, testPathPrefix);
+    const store = new ExternalStorageAttachmentStore(testStoreId, storage);
     await store.removePool(testPoolId);
 
     assert.isTrue(fakeStorage.removeAllWithPrefix.calledOnce, "removeAllWithPrefix should be called exactly once");
