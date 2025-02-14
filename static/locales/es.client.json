@@ -304,7 +304,22 @@
         "You can make changes to the document, then stop timing to see the results.": "Puede realizar cambios en el documento y luego detener el cronometraje para ver los resultados.",
         "Stop timing...": "Dejando de cronometrar...",
         "Only available to document editors": "Sólo disponible para editores de documentos",
-        "Only available to document owners": "Solo disponible para los propietarios de documentos"
+        "Only available to document owners": "Solo disponible para los propietarios de documentos",
+        "Edit": "Editar",
+        "Template mode": "Modo plantilla",
+        "Change document type": "Cambiar el tipo de documento",
+        "Change nature of document": "Cambiar la naturaleza del documento",
+        "Regular document": "Documento regular",
+        "Normal document behavior. All users work on the same copy of the document.": "Comportamiento normal del documento. Todos los usuarios trabajan en la misma copia del documento.",
+        "Regular": "Regular",
+        "Template": "Plantilla",
+        "Document automatically opens as a user-specific copy.": "El documento se abre automáticamente como una copia específica del usuario.",
+        "Confirm change": "Confirmar cambio",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "El documento se abre automáticamente en {{fiddleModeDocUrl}}. Cualquiera puede editarlo, lo que creará una nueva copia sin guardar.",
+        "fiddle mode": "modo de pruebas",
+        "Tutorial": "Tutorial",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Esto realizará una recarga dura del motor de datos. Esto puede ayudar si el motor de datos está atascado en un bucle infinito, está procesando indefinidamente el último cambio o se ha bloqueado. No se perderá ningún dato, excepto posiblemente las acciones actualmente pendientes.",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Una vez iniciado el cronometraje, Grist medirá el tiempo que tarda en evaluar cada fórmula. Esto permite diagnosticar qué fórmulas son responsables de un rendimiento lento cuando se abre un documento por primera vez, o cuando un documento responde a cambios."
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -924,7 +939,9 @@
         "Update formula (Shift+Enter)": "Actualizar fórmula (Mayús+Intro)"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Usuario desconocido"
+        "UnknownUser": "Usuario desconocido",
+        "You are viewing this document as": "Estás viendo este documento como",
+        "View as Yourself": "Ver como Tú mismo"
     },
     "ViewConfigTab": {
         "Advanced settings": "Ajustes avanzados",
@@ -1032,7 +1049,11 @@
         "Attachment": "Adjunto",
         "Any": "Cualquiera",
         "Toggle": "Alternar",
-        "Search columns": "Búsqueda por columnas"
+        "Search columns": "Búsqueda por columnas",
+        "By Date Modified": "Por fecha de modificación",
+        "By Name": "Por nombre",
+        "Light": "Claro",
+        "Custom": "Personalizado"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -1174,7 +1195,7 @@
         "Number Format": "Formato de número",
         "Decimals": "Decimales",
         "Field Format": "Formato del campo",
-        "Spinner": "Spinner",
+        "Spinner": "Girador",
         "Text": "Texto",
         "min": "mín.",
         "max": "Máx."
@@ -1272,7 +1293,8 @@
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Esta limitación se produce cuando uno de los extremos de una referencia bidireccional se configura como Referencia única.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Esta limitación ocurre cuando una columna en una referencia bidireccional es de tipo Referencia.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Para permitir asignaciones múltiples, cambie el tipo de la Columna referenciada a Lista de referencias.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Las referencias bidireccionales no son compatibles actualmente con las columnas de fórmula o fórmula de activación"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Las referencias bidireccionales no son compatibles actualmente con las columnas de fórmula o fórmula de activación",
+        "The preview below this header shows how the selected user will see this document": "La vista previa debajo de este encabezado muestra cómo verá este documento el usuario seleccionado"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1447,7 +1469,8 @@
         "{{collaborator}} limit exceeded": "límite de {{collaborator}} excedido",
         "You are about to remove your own access to this {{resourceType}}": "Usted está a punto de quitar su propio acceso a este {{resourceType}}",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "El usuario hereda los permisos de {{parent}}. Para eliminarlo, establece la opción \"Heredar el acceso\" en \"Ninguno\".",
-        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "El usuario tiene acceso de visualización a {{resource}} como resultado del acceso configurado manualmente a los recursos que contiene. Si se elimina aquí, este usuario perderá el acceso a los recursos que contiene."
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "El usuario tiene acceso de visualización a {{resource}} como resultado del acceso configurado manualmente a los recursos que contiene. Si se elimina aquí, este usuario perderá el acceso a los recursos que contiene.",
+        "Inherit access: ": "Heredar acceso: "
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1488,7 +1511,9 @@
         "Header": "Encabezado",
         "Paste": "Pegar",
         "Separator": "Separador",
-        "Unmapped fields": "Campos sin asignar"
+        "Unmapped fields": "Campos sin asignar",
+        "More": "Más",
+        "New question": "Nueva pregunta"
     },
     "Editor": {
         "Delete": "Borrar"
@@ -1519,7 +1544,9 @@
         "Reset form": "Restablecer el formulario",
         "Save your document to publish this form.": "Guarde el documento para publicar este formulario.",
         "Share this form": "Compartir este formulario",
-        "View": "Ver"
+        "View": "Ver",
+        "## **Form Title**": "## **Título del formulario**",
+        "Your form description goes here.": "La descripción de su formulario va aquí."
     },
     "WelcomeCoachingCall": {
         "free coaching call": "llamada gratuita de asesoramiento",
@@ -1588,7 +1615,9 @@
     },
     "Section": {
         "Insert section above": "Insertar la sección anterior",
-        "Insert section below": "Insertar la sección siguiente"
+        "Insert section below": "Insertar la sección siguiente",
+        "### **Header**": "### *Encabezado**",
+        "Description": "Descripción"
     },
     "AdminPanel": {
         "Current": "Actual",
@@ -1646,7 +1675,8 @@
         "Log Streaming": "Transmisión de registros",
         "New, Enterprise": "Nuevo, Empresa",
         "Contact us": "Contáctenos",
-        "Off": "Apagar"
+        "Off": "Apagar",
+        "On": "Encendido"
     },
     "CreateTeamModal": {
         "Cancel": "Cancelar",
@@ -1667,12 +1697,13 @@
     },
     "Field": {
         "No choices configured": "Sin opciones configuradas",
-        "No values in show column of referenced table": "No hay valores en la columna Mostrar de la tabla referenciada"
+        "No values in show column of referenced table": "No hay valores en la columna Mostrar de la tabla referenciada",
+        "Hide": "Ocultar"
     },
     "Toggle": {
         "Checkbox": "Casilla de verificación",
         "Field Format": "Formato del campo",
-        "Switch": "Cambiar"
+        "Switch": "Interruptor"
     },
     "ChoiceEditor": {
         "No choices matching condition": "No hay opciones que coincidan con la condición",
@@ -1767,7 +1798,26 @@
         "Disable Grist Enterprise": "Desactivar Grist Enterprise",
         "Enable Grist Enterprise": "Activar Grist Enterprise",
         "Grist Enterprise is **enabled**.": "Grist Enterprise está **activado**.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Una clave de activación se utiliza para ejecutar Grist Enterprise después de un período de prueba\nde 30 días. Obtenga una clave de activación [poniéndose en contacto con nosotros]({{contactLink}}) hoy mismo. No\nnecesita una clave de activación para ejecutar Grist Core.\n\nMás información en nuestro [Centro de Ayuda]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Una clave de activación se utiliza para ejecutar Grist Enterprise después de un período de prueba\nde 30 días. Obtenga una clave de activación [poniéndose en contacto con nosotros]({{contactLink}}) hoy mismo. No\nnecesita una clave de activación para ejecutar Grist Core.\n\nMás información en nuestro [Centro de Ayuda]({{helpCenter}}).",
+        "Activate": "Activar",
+        "Activation key": "Clave de activación",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Se utiliza una clave de activación para ejecutar Grist Enterprise después de un período de prueba\n        de 30 días. Obtenga una clave de activación [registrándose en Grist\n        Enterprise]({{signupLink}}). No necesita una clave de activación para ejecutar\n        Grist Core.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Se requiere una suscripción activa para seguir utilizando Grist Enterprise. Puede\nactivar su suscripción [registrándose en Grist Enterprise ]({{signupLink}}) y pegando su\nClave de activación.",
+        "Copy to clipboard": "Copiado para el portapapeles",
+        "Expiration date": "Fecha de expiración",
+        "Installation ID copied to clipboard": "ID de instalación copiado en el portapapeles",
+        "Installation ID:": "ID de instalación:",
+        "Installation seats": "Asientos de instalación",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Más información en nuestro [Centro de ayuda]({{helpCenter}}).",
+        "Paste your activation key": "Pega tu clave de activación",
+        "Plan name": "Nombre de plan",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Para seguir utilizando Grist Enterprise, necesitas\n[contactarnos]({{signupLink}}) para obtener su llave de activación.",
+        "You are currently trialing Grist Enterprise.": "Actualmente está probando Grist Enterprise.",
+        "You do not have an active subscription.": "No tiene una suscripción activa.",
+        "Your activation key has expired due to exceeding limits.": "Su Clave de activación ha caducado por exceder los límites.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Su instancia estará en modo **sólo lectura** en **{{days}}** día(s).",
+        "Your subscription expired on {{date}}.": "Su suscripción expiró en {{date}}.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Su periodo de prueba ha expirado en **{{expireAt}}**. Para seguir utilizando Grist Enterprise, debe\n[Regístrese en Grist Enterprise]({{signupLink}}) y pegue su clave de activación a continuación."
     },
     "CustomWidgetGallery": {
         "Add Widget": "Agregar widget",
@@ -1880,5 +1930,38 @@
         "Log streaming": "Transmisión de registros",
         "Only site owners may access audit logs.": "Solo los propietarios de las páginas pueden acceder a los registros de auditoría.",
         "upgrade your plan": "Mejora tu plan"
+    },
+    "DocList": {
+        "Access details": "Detalles de Acceso",
+        "Edited {{at}}": "Editado {{at}}",
+        "Delete": "Borrar",
+        "Delete {{name}}": "Borrar {{name}}",
+        "Sort by date": "Ordenar por fecha",
+        "Recent": "Reciente",
+        "Rename and set icon": "Renombrar y establecer icono",
+        "Requires edit permissions": "Requiere permisos de edición",
+        "All": "Todo",
+        "Current workspace": "Espacio de trabajo actual",
+        "Document will be moved to Trash.": "El documento será movido a la papelera.",
+        "Last edited": "Última edición",
+        "Move": "Mover",
+        "Move {{name}} to workspace": "Mover {{name}} al espacio de trabajo",
+        "Name": "Nombre",
+        "No documents to show.": "No hay documentos que mostrar.",
+        "Pin": "Fijar",
+        "Pinned": "Fijado",
+        "Sort by name": "Ordenar por nombre",
+        "Unpin": "Liberar",
+        "Workspace": "Espacios de trabajo",
+        "Manage users": "Gestionar usuarios"
+    },
+    "RenameDocModal": {
+        "Choose icon": "Elegir icono",
+        "Rename and set icon": "Renombrar y establecer icono",
+        "Enter document name": "Introduzca el nombre del documento",
+        "Icon": "Icono",
+        "Name": "Nombre",
+        "Choose color": "Elige el color",
+        "Reset icon": "Restablecer icono"
     }
 }
