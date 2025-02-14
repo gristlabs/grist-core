@@ -16,6 +16,7 @@ import log from 'app/server/lib/log';
 import {getFullUser, getLogMeta} from 'app/server/lib/sessionUtils';
 import {createHash} from 'crypto';
 import fetch from 'node-fetch';
+import { proxyAgentForTrustedRequests } from './ProxyAgent';
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
@@ -269,6 +270,7 @@ export class OpenAIAssistant implements Assistant {
             max_tokens: this._maxTokens,
           } : undefined),
         }),
+        agent: proxyAgentForTrustedRequests(new URL(this._endpoint))
       },
     );
     const resultText = await apiResponse.text();
