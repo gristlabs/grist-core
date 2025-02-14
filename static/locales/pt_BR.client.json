@@ -362,7 +362,22 @@
         "Start timing": "Iniciar cronometragem",
         "Stop timing...": "Pare de cronometrar...",
         "Only available to document editors": "Disponível apenas para editores de documentos",
-        "Only available to document owners": "Disponível apenas para proprietários de documentos"
+        "Only available to document owners": "Disponível apenas para proprietários de documentos",
+        "Template mode": "Modo de modelo",
+        "Change document type": "Alterar o tipo de documento",
+        "Edit": "Editar",
+        "Change nature of document": "Alterar a natureza do documento",
+        "Regular document": "Documento regular",
+        "Normal document behavior. All users work on the same copy of the document.": "Comportamento normal do documento. Todos os usuários trabalham na mesma cópia do documento.",
+        "Regular": "Regular",
+        "Template": "Modelo",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "O documento abre automaticamente em {{fiddleModeDocUrl}}. Qualquer pessoa pode editar, o que criará uma nova cópia não salva.",
+        "fiddle mode": "modo para experimentar",
+        "Tutorial": "Tutorial",
+        "Document automatically opens as a user-specific copy.": "O documento abre automaticamente como uma cópia específica do usuário.",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Quando você iniciar a cronometragem, o Grist medirá o tempo necessário para avaliar cada fórmula. Isso permite diagnosticar quais fórmulas são responsáveis pelo desempenho lento quando um documento é aberto pela primeira vez ou quando um documento responde a alterações.",
+        "Confirm change": "Confirmar alteração",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Isso executará um recarregamento rígido do mecanismo de dados. Isso pode ajudar se o mecanismo de dados estiver preso em um loop infinito, estiver processando indefinidamente a última alteração ou tiver travado. Nenhum dado será perdido, exceto possivelmente as ações pendentes no momento."
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -1027,7 +1042,11 @@
         "Any": "Qualquer",
         "Choice": "Opção",
         "Reference": "Referência",
-        "Search columns": "Procurar colunas"
+        "Search columns": "Procurar colunas",
+        "Light": "Claro",
+        "Custom": "Personalizado",
+        "By Name": "Por Nome",
+        "By Date Modified": "Por Data de Modificação"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -1062,7 +1081,9 @@
         "Sending file to Google Drive": "Enviando arquivo ao Google Drive"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Usuário desconhecido"
+        "UnknownUser": "Usuário desconhecido",
+        "View as Yourself": "Ver como você mesmo",
+        "You are viewing this document as": "Você está visualizando este documento como"
     },
     "FilterBar": {
         "SearchColumns": "Procurar colunas",
@@ -1282,7 +1303,8 @@
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Para permitir várias atribuições, altere o tipo da coluna referenciada para Lista de referência.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Atualmente, não há suporte para referências bidirecionais em Colunas de Fórmula ou Fórmula de disparo",
         "Community widgets are created and maintained by Grist community members.": "Os widgets comunitários são criados e mantidos pelos membros da comunidade Grist.",
-        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Essa limitação ocorre quando uma extremidade de uma referência bidirecional é configurada como uma única referência."
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Essa limitação ocorre quando uma extremidade de uma referência bidirecional é configurada como uma única referência.",
+        "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1460,7 +1482,8 @@
         "{{collaborator}} limit exceeded": "Limite de {{collaborator}} excedido",
         "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} de {{limitTop}} {{collaborator}}s",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Nenhum acesso padrão permite que o acesso seja concedido a documentos ou espaços de trabalho individuais, em vez do site de equipe completo.",
-        "You are about to remove your own access to this {{resourceType}}": "Você está prestes a remover seu próprio acesso a este {{resourceType}}"
+        "You are about to remove your own access to this {{resourceType}}": "Você está prestes a remover seu próprio acesso a este {{resourceType}}",
+        "Inherit access: ": "Acesso herdado: "
     },
     "SearchModel": {
         "Search all tables": "Procurar todas as tabelas",
@@ -1505,7 +1528,9 @@
         "Share": "Compartilhar",
         "Code copied to clipboard": "Código copiado para a área de transferência",
         "Copy code": "Copiar código",
-        "Preview": "Pré-visualização"
+        "Preview": "Pré-visualização",
+        "## **Form Title**": "## **Título do formulário**",
+        "Your form description goes here.": "A descrição do seu formulário vai aqui."
     },
     "Menu": {
         "Columns": "Colunas",
@@ -1518,7 +1543,9 @@
         "Paste": "Colar",
         "Separator": "Separador",
         "Copy": "Copiar",
-        "Header": "Cabeçalho"
+        "Header": "Cabeçalho",
+        "New question": "Nova pergunta",
+        "More": "Mais"
     },
     "UnmappedFieldsConfig": {
         "Unmap fields": "Desmapear campos",
@@ -1598,7 +1625,9 @@
     },
     "Section": {
         "Insert section above": "Inserir seção acima",
-        "Insert section below": "Inserir seção abaixo"
+        "Insert section below": "Inserir seção abaixo",
+        "### **Header**": "### **Cabeçalho**",
+        "Description": "Descrição"
     },
     "AdminPanel": {
         "Current": "Atual",
@@ -1656,11 +1685,13 @@
         "New, Enterprise": "Novo, Enterprise",
         "Off": "Desligado",
         "Audit Logs": "Registros de auditoria",
-        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mais"
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mais",
+        "On": "Ligado"
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
-        "No values in show column of referenced table": "Nenhum valor na coluna de exibição da tabela referenciada"
+        "No values in show column of referenced table": "Nenhum valor na coluna de exibição da tabela referenciada",
+        "Hide": "Ocultar"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "O faturamento não é compatível com o grist-core",
@@ -1770,7 +1801,26 @@
         "Enable Grist Enterprise": "Habilitar a Grist Empresarial",
         "Grist Enterprise is **enabled**.": "O Grist Empresarial está **habilitado**.",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após um período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [inscrevendo-se no Grist\nEmpresarial]({{signupLink}}). Você não precisa de uma chave de ativação para executar o\nGrist Core.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}}).",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após o período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [entrando em contato conosco]({{contactLink}}) hoje mesmo. Você não\nprecisa de uma chave de ativação para executar o Grist Core.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após o período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [entrando em contato conosco]({{contactLink}}) hoje mesmo. Você não\nprecisa de uma chave de ativação para executar o Grist Core.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}}).",
+        "Activate": "Ativar",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "É necessário ter uma assinatura ativa para continuar usando o Grist Enterprise. Você pode\nativar sua assinatura [inscrevendo-se no Grist Enterprise ]({{signupLink}}) e colando sua\nchave de ativação abaixo.",
+        "Copy to clipboard": "Copiar para a área de transferência",
+        "Expiration date": "Data de expiração",
+        "Installation ID copied to clipboard": "ID de instalação copiado para a área de transferência",
+        "Installation ID:": "ID de instalação:",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Saiba mais em nossa [Central de Ajuda]({{helpCenter}}).",
+        "Paste your activation key": "Cole sua chave de ativação",
+        "Plan name": "Nome do plano",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Para continuar usando o Grist Enterprise, você precisa\n                  [entre em contato conosco]({{signupLink}}) para obter sua chave de ativação.",
+        "Your activation key has expired due to exceeding limits.": "Sua chave de ativação expirou devido ao excesso de limites.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Sua instância estará no modo **somente-leitura** em **{{days}}** dia(s).",
+        "Your subscription expired on {{date}}.": "Sua assinatura expirou em {{date}}.",
+        "Activation key": "Chave de ativação",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Uma chave de ativação é usada para executar o Grist Enterprise após o período de avaliação\n        de 30 dias tenha expirado. Obtenha uma chave de ativação [inscrevendo-se no Grist\n        Enterprise]({{signupLink}}). Você não precisa de uma chave de ativação para executar o\n        Grist Core.",
+        "Installation seats": "Assentos de instalação",
+        "You are currently trialing Grist Enterprise.": "No momento, você está testando o Grist Enterprise.",
+        "You do not have an active subscription.": "Você não tem uma assinatura ativa.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Seu período de avaliação expirou em **{{expireAt}}**. Para continuar usando o Grist Enterprise, você precisa\n[registrar-se no Grist Enterprise]({{signupLink}}) e colar sua chave de ativação abaixo."
     },
     "ViewLayout": {
         "Delete": "Excluir",
@@ -1890,5 +1940,38 @@
         "Home": "Início",
         "Audit logs for {{siteName}}": "Registros de auditoria para {{siteName}}",
         "upgrade your plan": "atualize seu plano"
+    },
+    "DocList": {
+        "All": "Todo",
+        "Access details": "Detalhes de Acesso",
+        "Current workspace": "Área de trabalho atual",
+        "Delete": "Eliminar",
+        "Delete {{name}}": "Excluir {{name}}",
+        "Document will be moved to Trash.": "O documento será movido pra Lixeira.",
+        "Name": "Nome",
+        "Pin": "Fixar",
+        "Move {{name}} to workspace": "Mover {{name}} para a área de trabalho",
+        "No documents to show.": "Não há documentos para mostrar.",
+        "Sort by date": "Ordenar por data",
+        "Recent": "Recente",
+        "Rename and set icon": "Renomear e definir o ícone",
+        "Workspace": "Área de Trabalho",
+        "Edited {{at}}": "{{at}} editado",
+        "Last edited": "Última edição",
+        "Pinned": "Fixado",
+        "Requires edit permissions": "Requer permissões de edição",
+        "Sort by name": "Ordenar por Nome",
+        "Unpin": "Liberar",
+        "Manage users": "Gerenciar Usuarios",
+        "Move": "Mover"
+    },
+    "RenameDocModal": {
+        "Choose icon": "Escolha o ícone",
+        "Enter document name": "Digite o nome do documento",
+        "Choose color": "Escolha a cor",
+        "Rename and set icon": "Renomear e definir o ícone",
+        "Reset icon": "Repor ícone",
+        "Icon": "Ícone",
+        "Name": "Nome"
     }
 }

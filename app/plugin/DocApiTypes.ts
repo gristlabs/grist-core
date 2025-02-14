@@ -121,6 +121,13 @@ export interface SqlPost {
                      // limitations of API node-sqlite3 exposes.
 }
 
+
 export interface SetAttachmentStorePost {
-  type: "internal" | "external"
+  type: AttachmentStore
+}
+
+export type AttachmentStore = 'internal' | 'external';
+
+export interface AttachmentStoreDesc {
+  label: string;
 }

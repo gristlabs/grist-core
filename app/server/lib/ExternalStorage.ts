@@ -67,8 +67,27 @@ export interface ExternalStorage {
  * E.g. this could convert "<docId>" to "v1/<docId>.grist"
  */
 export class KeyMappedExternalStorage implements ExternalStorage {
+  public uploadStream: ExternalStorage['uploadStream'];
+  public downloadStream: ExternalStorage['downloadStream'];
+  public removeAllWithPrefix: ExternalStorage['removeAllWithPrefix'];
+
   constructor(private _ext: ExternalStorage,
               private _map: (key: string) => string) {
+    if (_ext.uploadStream !== undefined) {
+      const extUploadStream = _ext.uploadStream;
+      this.uploadStream =
+        (key, inStream, metadata) => extUploadStream.call(_ext, this._map(key), inStream, metadata);
+    }
+    if (_ext.downloadStream !== undefined) {
+      const extDownloadStream = _ext.downloadStream;
+      this.downloadStream =
+        (key, outStream, snapshotId) => extDownloadStream.call(_ext, this._map(key), outStream, snapshotId);
+    }
+    if (_ext.removeAllWithPrefix !== undefined) {
+      const extRemoveAllWithPrefix = _ext.removeAllWithPrefix;
+      this.removeAllWithPrefix =
+        (prefix) => extRemoveAllWithPrefix.call(_ext, this._map(prefix));
+    }
   }
 
   public exists(key: string, snapshotId?: string): Promise<boolean> {
@@ -424,7 +443,7 @@ export function joinKeySegments(keySegments: string[]): string {
  * The storage mapping we use for our SaaS. A reasonable default, but relies
  * on appropriate lifecycle rules being set up in the bucket.
  */
-export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (docId: string) => string {
+export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (originalKey: string) => string {
   const {basePrefix, extraPrefix, purpose} = settings;
   let fullPrefix = basePrefix + (basePrefix?.endsWith('/') ? '' : '/');
   if (extraPrefix) {
@@ -432,17 +451,20 @@ export function getExternalStorageKeyMap(settings: ExternalStorageSettings): (do
   }
 
   // Set up how we name files/objects externally.
-  let fileNaming: (docId: string) => string;
+  let fileNaming: (originalKey: string) => string;
   if (purpose === 'doc') {
     fileNaming = docId => `${docId}.grist`;
   } else if (purpose === 'meta') {
     // Put this in separate prefix so a lifecycle rule can prune old versions of the file.
     // Alternatively, could go in separate bucket.
     fileNaming = docId => `assets/unversioned/${docId}/meta.json`;
+  } else if (purpose === 'attachments') {
+    // Prefix-only - attachments system handles exact naming
+    fileNaming = attachmentPath => attachmentPath;
   } else {
     throw new UnsupportedPurposeError(settings.purpose);
   }
-  return docId => (fullPrefix + fileNaming(docId));
+  return originalKey => (fullPrefix + fileNaming(originalKey));
 }
 
 export function wrapWithKeyMappedStorage(rawStorage: ExternalStorage, settings: ExternalStorageSettings) {

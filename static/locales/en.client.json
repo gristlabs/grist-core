@@ -369,7 +369,18 @@
         "Document automatically opens as a user-specific copy.": "Document automatically opens as a user-specific copy.",
         "Confirm change": "Confirm change",
         "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.",
-        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes."
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.",
+        "**Some existing attachments are still external**.": "**Some existing attachments are still external**.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Some existing attachments are still internal** (stored in SQLite file).",
+        "Attachment storage": "Attachment storage",
+        "Being transfer": "Being transfer",
+        "Click \"Start transfer\" to transfer those to External storage.": "Click \"Start transfer\" to transfer those to External storage.",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).",
+        "Newly uploaded attachments will be placed in External storage.": "Newly uploaded attachments will be placed in External storage.",
+        "Newly uploaded attachments will be placed in Internal storage.": "Newly uploaded attachments will be placed in Internal storage.",
+        "No external stores available": "No external stores available",
+        "Preferred storage for this document": "Preferred storage for this document",
+        "Start transfer": "Start transfer"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",

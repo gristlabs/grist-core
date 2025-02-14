@@ -50,6 +50,7 @@ import {Configs1727747249153 as Configs} from 'app/gen-server/migration/17277472
 import {LoginsEmailsIndex1729754662550
         as LoginsEmailsIndex} from 'app/gen-server/migration/1729754662550-LoginsEmailIndex';
 import {GracePeriod1732103776245 as GracePeriod} from 'app/gen-server/migration/1732103776245-GracePeriod';
+import {UserCreatedAt1738912357827 as UserCreatedAt} from 'app/gen-server/migration/1738912357827-UserCreatedAt';
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -59,7 +60,8 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
                     ExternalBilling, DocOptions, Secret, UserOptions, GracePeriodStart,
                     DocumentUsage, Activations, UserConnectId, UserUUID, UserUniqueRefUUID,
                     Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures,
-                    UserLastConnection, ActivationEnabled, Configs, LoginsEmailsIndex, GracePeriod];
+                    UserLastConnection, ActivationEnabled, Configs, LoginsEmailsIndex, GracePeriod,
+                    UserCreatedAt];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {

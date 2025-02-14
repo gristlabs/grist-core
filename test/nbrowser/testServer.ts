@@ -123,7 +123,6 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       GRIST_SERVE_SAME_ORIGIN: 'true',
       // Run with HOME_PORT, STATIC_PORT, DOC_PORT, DOC_WORKER_COUNT in the environment to override.
       ...(useSinglePort ? {
-        APP_HOME_URL: this.getHost(),
         GRIST_SINGLE_PORT: 'true',
       } : (isCore ? {
         HOME_PORT: corePort,

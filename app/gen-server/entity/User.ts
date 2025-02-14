@@ -64,6 +64,9 @@ export class User extends BaseEntity {
   @Column({name: 'ref', type: String, nullable: false})
   public ref: string;
 
+  @Column({name: 'created_at', default: () => 'CURRENT_TIMESTAMP'})
+  public createdAt: Date;
+
   @BeforeInsert()
   public async beforeInsert() {
     if (!this.ref) {

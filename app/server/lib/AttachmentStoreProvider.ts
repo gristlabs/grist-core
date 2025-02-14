@@ -139,7 +139,11 @@ export async function makeTempFilesystemStoreSpec(
   name: string = "filesystem"
 ) {
   const tempFolder = await tmp.dir();
-  const tempDir = await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
+  // Allow tests to override the temp directory used for attachments, otherwise Grist will
+  // use different temp directory after restarting the server.
+  const tempDir = process.env.GRIST_TEST_ATTACHMENTS_DIR ||
+    await fse.mkdtemp(path.join(tempFolder.path, 'filesystem-store-test-'));
+
   return {
     rootDirectory: tempDir,
     name,
@@ -148,13 +152,13 @@ export async function makeTempFilesystemStoreSpec(
 }
 
 const settings = appSettings.section("attachmentStores");
-const ATTACHMENT_STORE_MODE = settings.flag("mode").readString({
+const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").readString({
   envVar: "GRIST_EXTERNAL_ATTACHMENTS_MODE",
   defaultValue: "none",
 });
 
 export function getConfiguredStandardAttachmentStore(): string | undefined {
-  switch (ATTACHMENT_STORE_MODE) {
+  switch (GRIST_EXTERNAL_ATTACHMENTS_MODE) {
     case 'snapshots':
       return 'snapshots';
     case 'test':
@@ -165,7 +169,7 @@ export function getConfiguredStandardAttachmentStore(): string | undefined {
 }
 
 export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
-  if (ATTACHMENT_STORE_MODE === 'snapshots') {
+  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'snapshots') {
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
@@ -180,7 +184,7 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
     }];
   }
   // TODO This mode should be removed once stores can be configured fully via env vars.
-  if(ATTACHMENT_STORE_MODE === 'test') {
+  if(GRIST_EXTERNAL_ATTACHMENTS_MODE === 'test') {
     return [{
       label: 'test-filesystem',
       spec: await makeTempFilesystemStoreSpec(),

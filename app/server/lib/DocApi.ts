@@ -48,6 +48,7 @@ import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
+  getConfiguredAttachmentStoreConfigs,
   getConfiguredStandardAttachmentStore,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
@@ -524,22 +525,13 @@ export class DocWorkerApi {
     // Starts transferring all attachments to the named store, if it exists.
     this._app.post('/api/docs/:docId/attachments/transferAll', isOwner, withDoc(async (activeDoc, req, res) => {
       await activeDoc.startTransferringAllAttachmentsToDefaultStore();
-      const locationSummary = await activeDoc.attachmentLocationSummary();
-
       // Respond with the current status to allow for immediate UI updates.
-      res.json({
-        status: activeDoc.attachmentTransferStatus(),
-        locationSummary,
-      });
+      res.json(await activeDoc.attachmentTransferStatus());
     }));
 
     // Returns the status of any current / pending attachment transfers
     this._app.get('/api/docs/:docId/attachments/transferStatus', isOwner, withDoc(async (activeDoc, req, res) => {
-      const locationSummary = await activeDoc.attachmentLocationSummary();
-      res.json({
-        status: activeDoc.attachmentTransferStatus(),
-        locationSummary,
-      });
+      res.json(await activeDoc.attachmentTransferStatus());
     }));
 
     this._app.get('/api/docs/:docId/attachments/store', isOwner,
@@ -570,6 +562,14 @@ export class DocWorkerApi {
         res.json({
           store: await activeDoc.getAttachmentStore()
         });
+      })
+    );
+
+    this._app.get('/api/docs/:docId/attachments/stores', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        const configs = await getConfiguredAttachmentStoreConfigs();
+        const labels: Types.AttachmentStoreDesc[] = configs.map(c => ({label: c.label}));
+        res.json({stores: labels});
       })
     );
 
