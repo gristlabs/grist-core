@@ -1054,7 +1054,10 @@
         "Toggle": "Umschalten",
         "Date": "Datum",
         "Search columns": "Spalten suchen",
-        "By Name": "Nach Name"
+        "By Name": "Nach Name",
+        "Custom": "Benutzerdefiniert",
+        "Light": "Hell",
+        "By Date Modified": "Nach Änderungsdatum"
     },
     "modals": {
         "Cancel": "Abbrechen",
@@ -1311,7 +1314,8 @@
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Um mehrere Zuordnungen zu ermöglichen, ändern Sie den Typ der referenzierten Spalte auf Referenzliste.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Diese Einschränkung tritt auf, wenn ein Ende einer Zwei-Wege-Referenz als Einzelreferenz konfiguriert ist.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Diese Einschränkung tritt auf, wenn eine Spalte in einer zweiseitigen Referenz den Typ Referenz hat.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Zwei-Wege-Referenzen werden derzeit nicht für Formel- oder Trigger-Formelspalten unterstützt"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Zwei-Wege-Referenzen werden derzeit nicht für Formel- oder Trigger-Formelspalten unterstützt",
+        "The preview below this header shows how the selected user will see this document": "Die Vorschau unter dieser Überschrift zeigt, wie der ausgewählte Benutzer dieses Dokument sehen wird"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1489,7 +1493,8 @@
         "User may not modify their own access.": "Der Benutzer darf seinen eigenen Zugang nicht ändern.",
         "Your role for this team site": "Ihre Rolle für diese Teamseite",
         "{{collaborator}} limit exceeded": "{{collaborator}} Grenze überschritten",
-        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Sobald Sie Ihren eigenen Zugriff entfernt haben, können Sie ihn nicht ohne die Hilfe einer anderen Person mit ausreichendem Zugriff auf den {{resourceType}} wiederherstellen."
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Sobald Sie Ihren eigenen Zugriff entfernt haben, können Sie ihn nicht ohne die Hilfe einer anderen Person mit ausreichendem Zugriff auf den {{resourceType}} wiederherstellen.",
+        "Inherit access: ": "Zugang vererben: "
     },
     "SearchModel": {
         "Search all pages": "Alle Seiten durchsuchen",
@@ -1534,7 +1539,9 @@
         "Copy link": "Link kopieren",
         "Link copied to clipboard": "Link in die Zwischenablage kopiert",
         "Share this form": "Dieses Formular teilen",
-        "View": "Ansicht"
+        "View": "Ansicht",
+        "## **Form Title**": "## **Formular Titel**",
+        "Your form description goes here.": "Hier wird Ihr Formular beschrieben."
     },
     "Editor": {
         "Delete": "Löschen"
@@ -1550,7 +1557,9 @@
         "Paragraph": "Absatz",
         "Paste": "Einfügen",
         "Columns": "Spalten",
-        "Copy": "Kopieren"
+        "Copy": "Kopieren",
+        "New question": "Neue Frage",
+        "More": "Mehr"
     },
     "FormContainer": {
         "Build your own form": "Erstellen Sie Ihr eigenes Formular",
@@ -1681,11 +1690,14 @@
         "New, Enterprise": "Neu, Enterprise",
         "Off": "Aus",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mehr",
-        "Log Streaming": "Log Streaming"
+        "Log Streaming": "Log Streaming",
+        "On": "An"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
-        "Insert section below": "Abschnitt unten einfügen"
+        "Insert section below": "Abschnitt unten einfügen",
+        "### **Header**": "### **Kopfzeile**",
+        "Description": "Beschreibung"
     },
     "CreateTeamModal": {
         "Cancel": "Abbrechen",
@@ -1706,7 +1718,8 @@
     },
     "Field": {
         "No choices configured": "Keine Auswahlmöglichkeiten konfiguriert",
-        "No values in show column of referenced table": "Keine Werte in der Spalte \"Anzeigen\" der referenzierten Tabelle"
+        "No values in show column of referenced table": "Keine Werte in der Spalte \"Anzeigen\" der referenzierten Tabelle",
+        "Hide": "Ausblenden"
     },
     "Toggle": {
         "Checkbox": "Kontrollkästchen",
@@ -1799,7 +1812,26 @@
         "Enable Grist Enterprise": "Grist Enterprise aktivieren",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Testphase\nvon 30 Tagen. Sie erhalten einen Aktivierungsschlüssel, indem Sie [sich für Grist\nEnterprise anmelden]({{signupLink}}). Sie brauchen keinen Aktivierungsschlüssel, um\nGrist Core zu benutzen.\n\nErfahren Sie mehr in unserem [Help Center]({{helpCenter}}).",
         "Grist Enterprise is **enabled**.": "Grist Enterprise ist **aktiviert**.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Probezeit\nvon 30 Tagen. Holen Sie sich noch heute einen Aktivierungsschlüssel, indem Sie uns [kontaktieren]({{contactLink}}). Sie benötigen\nkeinen Aktivierungsschlüssel, um Grist Core auszuführen.\n\nErfahren Sie mehr in unserem [Hilfe-Center]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Probezeit\nvon 30 Tagen. Holen Sie sich noch heute einen Aktivierungsschlüssel, indem Sie uns [kontaktieren]({{contactLink}}). Sie benötigen\nkeinen Aktivierungsschlüssel, um Grist Core auszuführen.\n\nErfahren Sie mehr in unserem [Hilfe-Center]({{helpCenter}}).",
+        "Activate": "Aktivieren",
+        "Activation key": "Aktivierungsschlüssel",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Um Grist Enterprise weiterhin nutzen zu können, ist ein aktives Abonnement erforderlich. Sie können\nIhr Abonnement aktivieren, indem Sie [sich für Grist Enterprise anmelden ]({{signupLink}}) und Ihren\nAktivierungsschlüssel unten einfügen.",
+        "Copy to clipboard": "In die Zwischenablage kopieren",
+        "Expiration date": "Verfallsdatum",
+        "Installation ID copied to clipboard": "Installations-ID in die Zwischenablage kopiert",
+        "Installation ID:": "Installations-ID:",
+        "Installation seats": "Einbausitze",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Erfahren Sie mehr in unserem [Hilfezentrum]({{helpCenter}}).",
+        "Paste your activation key": "Fügen Sie Ihren Aktivierungsschlüssel ein",
+        "Plan name": "Name des Plans",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Um Grist Enterprise weiterhin nutzen zu können, müssen Sie\n                  [uns kontaktieren]({{signupLink}}), um Ihren Aktivierungsschlüssel zu erhalten.",
+        "You are currently trialing Grist Enterprise.": "Sie sind gerade dabei, Grist Enterprise zu testen.",
+        "You do not have an active subscription.": "Sie haben kein aktives Abonnement.",
+        "Your activation key has expired due to exceeding limits.": "Ihr Aktivierungsschlüssel ist aufgrund der Überschreitung von Grenzwerten abgelaufen.",
+        "Your subscription expired on {{date}}.": "Ihr Abonnement ist am {{date}} abgelaufen.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Ihre Instanz wird in **{{days}}** Tagen in den **Nur-Lesen-Modus** versetzt.",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Probezeit\n        von 30 Tagen weiter zu nutzen. Sie erhalten einen Aktivierungsschlüssel, indem Sie [sich für Grist\n        Enterprise]({{signupLink}}) anmelden. Sie brauchen keinen Aktivierungsschlüssel, um\n        Grist Core auszuführen.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Ihr Testzeitraum ist am **{{expireAt}}** abgelaufen. Um Grist Enterprise weiter nutzen zu können, müssen Sie sich\n[für Grist Enterprise anmelden]({{signupLink}}) und Ihren Aktivierungsschlüssel unten einfügen."
     },
     "ViewLayout": {
         "Delete": "Löschen",
@@ -1919,5 +1951,38 @@
         "Log streaming": "Log Streaming",
         "upgrade your plan": "aktualisieren Sie Ihren Plan",
         "Audit logs for {{siteName}}": "Audit-Protokolle für {{siteName}}"
+    },
+    "DocList": {
+        "Rename and set icon": "Symbol umbenennen und einstellen",
+        "Pin": "Anheften",
+        "Pinned": "Angeheftet",
+        "Recent": "Neueste",
+        "Requires edit permissions": "Erfordert Bearbeitungsrechte",
+        "Sort by date": "Nach Datum sortieren",
+        "Access details": "Zugangsdetails",
+        "All": "Alles",
+        "Delete {{name}}": "{{name}} löschen",
+        "Document will be moved to Trash.": "Das Dokument wird in den Papierkorb verschoben.",
+        "Last edited": "Zuletzt bearbeitet",
+        "Move": "Verschieben",
+        "Move {{name}} to workspace": "{{name}} in den Arbeitsbereich verschieben",
+        "Name": "Name",
+        "No documents to show.": "Es sind keine Dokumente vorzulegen.",
+        "Sort by name": "Nach Name sortieren",
+        "Unpin": "Abheften",
+        "Workspace": "Arbeitsbereich",
+        "Current workspace": "Aktueller Arbeitsbereich",
+        "Delete": "Löschen",
+        "Edited {{at}}": "Bearbeitet {{at}}",
+        "Manage users": "Benutzer verwalten"
+    },
+    "RenameDocModal": {
+        "Enter document name": "Geben Sie den Dokumentnamen ein",
+        "Icon": "Symbol",
+        "Name": "Name",
+        "Rename and set icon": "Symbol umbenennen und einstellen",
+        "Reset icon": "Symbol zurücksetzen",
+        "Choose icon": "Symbol auswählen",
+        "Choose color": "Farbe wählen"
     }
 }
