@@ -128,7 +128,8 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
   }
 
   public async download(docPoolId: string, fileId: string, outputStream: stream.Writable): Promise<void> {
-    await this._storage.downloadStream(this._getKey(docPoolId, fileId), outputStream);
+    const download = await this._storage.downloadStream(this._getKey(docPoolId, fileId), outputStream);
+    await download.completed;
   }
 
   public async delete(docPoolId: string, fileId: string): Promise<void> {

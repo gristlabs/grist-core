@@ -11,6 +11,16 @@ import stream from 'node:stream';
 // checksum is expected otherwise.
 export const DELETED_TOKEN = '*DELETED*';
 
+export interface FileMetadata {
+  size: number;
+  snapshotId: string;
+}
+
+export interface StreamDownloadResult {
+  metadata: FileMetadata,
+  completed: Promise<void>
+}
+
 /**
  * An external store for the content of files.  The store may be either consistent
  * or eventually consistent.  Specifically, the `exists`, `download`, and `versions`
@@ -59,7 +69,7 @@ export interface ExternalStorage {
   close(): Promise<void>;
 
   uploadStream?(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
-  downloadStream?(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
+  downloadStream?(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<StreamDownloadResult>;
 }
 
 /**
