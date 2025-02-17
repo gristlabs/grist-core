@@ -6,6 +6,7 @@ import {
   components,
   componentsCssMapping,
   convertThemeKeysToCssVars,
+  legacyVarsMapping,
   Theme,
   ThemeAppearance,
   ThemePrefs,
@@ -84,6 +85,9 @@ export function gristThemeObs() {
 export function attachTheme() {
   // Attach the current theme's variables to the DOM.
   attachCssThemeVars(gristThemeObs().get());
+  if (getGristConfig().enableCustomCss) {
+    fixOldCustomCss();
+  }
 
   // Whenever the theme changes, re-attach its variables to the DOM.
   gristThemeObs().addListener((newTheme, oldTheme) => {
@@ -215,4 +219,81 @@ function getCssThemeBackgroundProperties(appearance: ThemeAppearance) {
     ? 'url("img/prismpattern.png")'
     : 'url("img/gplaypattern.png")';
   return [`--grist-theme-bg: ${value};`];
+}
+
+/**
+ * In case custom css is enabled and it only overrides "old" "--grist-color-*" variables and the likes,
+ * make sure to add missing matching variables ourselves.
+ *
+ * A warning is logged to the console to help the user migrate to the new theme variables.
+ */
+function fixOldCustomCss() {
+  // Find the custom css stylesheet
+  const customCss = Array.from(document.styleSheets)
+    .find(sheet => (sheet.ownerNode as Element)?.id === 'grist-custom-css');
+  if (!customCss) {
+    return;
+  }
+
+  const cssRulesArray = Array.from(customCss.cssRules);
+
+  // Find existing `grist-custom` layers
+  const gristCustomLayers = cssRulesArray
+    // current TS version doesn't know about CSSLayerBlockRule type
+    .filter(rule => rule.constructor.name === 'CSSLayerBlockRule' && (rule as any).name === 'grist-custom');
+
+  // Find all `:root` rules at the root of the custom css file or in the `grist-custom` layers
+  const rootCssRules = [
+    ...cssRulesArray,
+    ...gristCustomLayers.map(layer => Array.from((layer as any).cssRules)).flat()
+  ].filter(rule => {
+    return (rule as CSSRule).constructor.name === 'CSSStyleRule' && (rule as CSSStyleRule).selectorText === ':root';
+  }) as CSSStyleRule[];
+  if (!rootCssRules.length) {
+    return;
+  }
+
+  // Find all the --grist-* variables declared in the `:root` rules
+  const overridenVars: Record<string, string> = {};
+  rootCssRules.forEach(rootBlock => {
+    for (const key in rootBlock.style) {
+      const value = rootBlock.style[key];
+      if (rootBlock.style.hasOwnProperty(key) && value.startsWith('--grist-')) {
+        overridenVars[value] = rootBlock.style.getPropertyValue(value).trim();
+      }
+    }
+  });
+
+  // Create missing variables to match old custom css vars with new theme vars
+  const missingVars: any[] = [];
+  legacyVarsMapping.forEach(({old, new: newVariable}) => {
+    const found = !!overridenVars[old];
+    if (found
+      && !overridenVars[old].startsWith('var(--grist-')
+      && !missingVars.find(v => v.name === newVariable)
+    ) {
+      missingVars.push({
+        name: newVariable,
+        value: `var(${old}) !important`
+      });
+    }
+  });
+
+  if (!missingVars.length) {
+    return;
+  }
+
+  // Add the missing variables to the dom
+  getOrCreateStyleElement('grist-custom-css-fixes', {
+    element: document.getElementById('grist-custom-css'),
+    position: 'afterend'
+  }).textContent = `@layer grist-custom {
+  :root {
+${missingVars.map(({name, value}) => `${name}: ${value};`).join('\n')}
+  }
+}`;
+  console.warn(
+    'The custom.css file uses deprecated variables that will be removed in the future. '
+    + '\nPlease follow the example custom.css file to update the variables: https://support.getgrist.com/self-managed/#how-do-i-customize-styling.'
+  );
 }
