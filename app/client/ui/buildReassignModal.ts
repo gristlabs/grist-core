@@ -339,7 +339,7 @@ export async function buildReassignModal(options: {
         dom('div',
           withInfoTooltip(
             textButton('Configure reference', dom.on('click', configureReference)),
-            'reasignTwoWayReference',
+            'reassignTwoWayReference',
           )
         )
       )

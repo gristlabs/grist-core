@@ -80,8 +80,8 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {Document as APIDocument, DocReplacementOptions,
-        DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {Document as APIDocument, AttachmentTransferStatus,
+        DocReplacementOptions, DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -399,6 +399,16 @@ export class ActiveDoc extends EventEmitter {
       _attachmentStoreProvider,
       _options?.doc,
     );
+
+    // Every time manager starts the transfer we need to notify clients about it.
+    const notifier = this.sendAttachmentTransferStatusNotification.bind(this);
+
+    // Manager emits to events, at the start and at the end, but we don't care here, we
+    // just want to notify about the current status. We also don't need to unregister
+    // as the manager will be shutdown with us.
+    this._attachmentFileManager
+      .on(AttachmentFileManager.events.TRANSFER_STARTED, notifier)
+      .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
     // corresponding to one process for pynbox, more for gvisor).
@@ -951,7 +961,7 @@ export class ActiveDoc extends EventEmitter {
 
   @ActiveDoc.keepDocOpen
   public async startTransferringAllAttachmentsToDefaultStore() {
-    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    const attachmentStoreId = this._getDocumentSettings().attachmentStoreId;
     // If no attachment store is set on the doc, it should transfer everything to internal storage
     await this._attachmentFileManager.startTransferringAllFilesToOtherStore(attachmentStoreId);
   }
@@ -959,8 +969,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Returns a summary of pending attachment transfers between attachment stores.
    */
-  public attachmentTransferStatus() {
-    return this._attachmentFileManager.transferStatus();
+  public async attachmentTransferStatus() {
+    return {
+      status: this._attachmentFileManager.transferStatus(),
+      locationSummary: await this._attachmentFileManager.locationSummary(),
+    };
   }
 
   /**
@@ -976,14 +989,15 @@ export class ActiveDoc extends EventEmitter {
    */
   @ActiveDoc.keepDocOpen
   public async allAttachmentTransfersCompleted() {
-      await this._attachmentFileManager.allTransfersCompleted();
+    await this._attachmentFileManager.allTransfersCompleted();
   }
 
 
   public async setAttachmentStore(docSession: OptDocSession, id: string | undefined): Promise<void> {
-    const docSettings = await this._getDocumentSettings();
+    const docSettings = this._getDocumentSettings();
     docSettings.attachmentStoreId = id;
     await this._updateDocumentSettings(docSession, docSettings);
+    await this.sendAttachmentTransferStatusNotification(await this.attachmentTransferStatus());
   }
 
   /**
@@ -993,11 +1007,11 @@ export class ActiveDoc extends EventEmitter {
    */
   public async setAttachmentStoreFromLabel(docSession: OptDocSession, label: string | undefined): Promise<void> {
     const id = label === undefined ? undefined : this._attachmentStoreProvider?.getStoreIdFromLabel(label);
-    return this.setAttachmentStore(docSession, id);
+    await this.setAttachmentStore(docSession, id);
   }
 
   public async getAttachmentStore(): Promise<string | undefined> {
-    return (await this._getDocumentSettings()).attachmentStoreId;
+    return this._getDocumentSettings().attachmentStoreId;
   }
 
   /**
@@ -1934,6 +1948,17 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
+  /**
+   * Sends a message to clients connected to the document that the attachments' transfer
+   * job has started or finished. It is also sent when the attachment store is changed
+   * through the API (as it also includes information about attachments' location).
+   */
+  public async sendAttachmentTransferStatusNotification(attachmentTransfer: AttachmentTransferStatus) {
+    await this.docClients.broadcastDocMessage(null, 'docChatter', {
+      attachmentTransfer
+    });
+  }
+
   public async sendTimingsNotification() {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
       timing: {
@@ -2170,6 +2195,7 @@ export class ActiveDoc extends EventEmitter {
     };
 
     try {
+
       this.setMuted();
       this._inactivityTimer.disable();
       if (this.docClients.clientCount() > 0) {
@@ -2180,6 +2206,10 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._triggers.shutdown();
+
+      // attachmentFileManager needs to shut down before DocStorage, to allow transfers to finish.
+      await safeCallAndWait('attachmentFileManager',
+        this._attachmentFileManager.shutdown.bind(this._attachmentFileManager));
 
       this._redisSubscriber?.quitAsync()
         .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));
@@ -2430,7 +2460,7 @@ export class ActiveDoc extends EventEmitter {
       dimensions.height = 0;
       dimensions.width = 0;
     }
-    const attachmentStoreId = (await this._getDocumentSettings()).attachmentStoreId;
+    const attachmentStoreId = this._getDocumentSettings().attachmentStoreId;
     const addFileResult = await this._attachmentFileManager
       .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
     this._log.info(
@@ -2911,12 +2941,22 @@ export class ActiveDoc extends EventEmitter {
     return this._dataEngine;
   }
 
-  private async _getDocumentSettings(): Promise<DocumentSettings> {
+  private _getDocumentSettings(): DocumentSettings {
     const docSettings = this.docData?.docSettings();
     if (!docSettings) {
       throw new Error("No document settings found");
     }
     return docSettings;
+  }
+
+  private async _getDocumentSettingsIfPresent(): Promise<DocumentSettings|undefined> {
+    try {
+      return this._getDocumentSettings();
+    } catch (e) {
+      // If called before docData is initialized, pick up docSettings directly from SQLite.
+      const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(() => undefined);
+      return safeJsonParse(docInfo?.documentSettings || '', undefined);
+    }
   }
 
   private async _updateDocumentSettings(docSessions: OptDocSession, settings: DocumentSettings): Promise<void> {
@@ -2936,7 +2976,7 @@ export class ActiveDoc extends EventEmitter {
 
     // Careful, migrations may not have run on this document and it may not have a
     // documentSettings column.  Failures are treated as lack of an engine preference.
-    const docSettings = await this._getDocumentSettings().catch(e => undefined);
+    const docSettings = await this._getDocumentSettingsIfPresent();
     if (docSettings) {
       const engine = docSettings.engine;
       if (engine) {

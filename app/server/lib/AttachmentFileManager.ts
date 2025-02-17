@@ -1,4 +1,4 @@
-import {DocAttachmentsLocation} from 'app/common/UserAPI';
+import {AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
 import {
   AttachmentStoreDocInfo,
   DocPoolId,
@@ -11,7 +11,10 @@ import {DocStorage} from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
+import {EventEmitter} from 'events';
 import {Readable} from 'node:stream';
+import {AbortController} from 'node-abort-controller';
+
 
 export interface AddFileResult {
   fileIdent: string;
@@ -76,7 +79,13 @@ export class AttachmentRetrievalError extends Error {
  * they'll eventually be cleaned up when the document pool is deleted.
  *
  */
-export class AttachmentFileManager {
+export class AttachmentFileManager extends EventEmitter {
+
+  public static events = {
+    TRANSFER_STARTED: 'transfer-started',
+    TRANSFER_COMPLETED: 'transfer-completed',
+  };
+
   // _docPoolId is a critical point for security. Documents with a common pool id can access each others' attachments.
   private readonly _docPoolId: DocPoolId | null;
   private readonly _docName: string;
@@ -89,6 +98,8 @@ export class AttachmentFileManager {
   // in which case nothing will happen. Map ensures new requests override older pending transfers.
   private _pendingFileTransfers: Map<string, AttachmentStoreId | undefined> = new Map();
   private _transferJob?: TransferJob;
+  private _loopAbortController: AbortController = new AbortController();
+  private _loopAbort = this._loopAbortController?.signal as globalThis.AbortSignal;
 
   /**
    * @param _docStorage - Storage of this manager's document.
@@ -102,8 +113,18 @@ export class AttachmentFileManager {
     private _storeProvider: IAttachmentStoreProvider | undefined,
     _docInfo: AttachmentStoreDocInfo | undefined,
   ) {
+    super();
     this._docName = _docStorage.docName;
     this._docPoolId = _docInfo ? getDocPoolIdFromDocInfo(_docInfo) : null;
+  }
+
+  public async shutdown(): Promise<void> {
+    if (this._loopAbort.aborted) {
+      throw new Error("shutdown already in progress");
+    }
+    this._pendingFileTransfers.clear();
+    this._loopAbortController.abort();
+    await this._transferJob?.catch(reason => this._log.error({}, `Error during shutdown: ${reason}`));
   }
 
   // This attempts to add the attachment to the given store.
@@ -140,6 +161,9 @@ export class AttachmentFileManager {
   }
 
   public async startTransferringAllFilesToOtherStore(newStoreId: AttachmentStoreId | undefined): Promise<void> {
+    if (this._loopAbort.aborted) {
+      throw new Error("AttachmentFileManager was shut down");
+    }
     // Take a "snapshot" of the files we want to transfer, and schedule those files for transfer.
     // It's possibly that other code will modify the file statuses / list during this process.
     // As a consequence, after this process completes, some files may still be in their original
@@ -240,12 +264,18 @@ export class AttachmentFileManager {
 
   private async _performPendingTransfers() {
     try {
-      while (this._pendingFileTransfers.size > 0) {
+      await this._notifyAboutStart();
+      while (this._pendingFileTransfers.size > 0 && !this._loopAbort.aborted) {
         // Map.entries() will always return the most recent key/value from the map, even after a long async delay
         // Meaning we can safely iterate here and know the transfer is up to date.
         for (const [fileIdent, targetStoreId] of this._pendingFileTransfers.entries()) {
           try {
             await this.transferFileToOtherStore(fileIdent, targetStoreId);
+            // This is exposed just for testing, to allow for a delay between transfers.
+            // One of the test is refreshing the tab to see if the transfer is still running.
+            if (process.env.GRIST_TEST_TRANSFER_DELAY) {
+              await new Promise(resolve => setTimeout(resolve, Number(process.env.GRIST_TEST_TRANSFER_DELAY)));
+            }
           } catch (e) {
             this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
           } finally {
@@ -257,8 +287,35 @@ export class AttachmentFileManager {
         }
       }
     } finally {
-      await this._docStorage.requestVacuum();
+      if (!this._loopAbort.aborted) {
+        await this._docStorage.requestVacuum();
+        await this._notifyAboutEnd();
+      }
     }
+  }
+
+  /**
+   * Sends a notification that a transfer has started.
+   * Note: We calculate arguments ourselves as the status object is not yet available, as
+   * it is calculated from the promise (if it is set or not).
+   */
+  private async _notifyAboutStart() {
+    this.emit(AttachmentFileManager.events.TRANSFER_STARTED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: true}
+    } as AttachmentTransferStatus);
+  }
+
+  /**
+   * Sends a notification that a transfer has end.
+   * Note: We calculate arguments ourselves as the status object is not yet available, as
+   * it is calculated from the promise (if it is set or not).
+   */
+  private async _notifyAboutEnd() {
+    this.emit(AttachmentFileManager.events.TRANSFER_COMPLETED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false}
+    } as AttachmentTransferStatus);
   }
 
   private async _addFileToLocalStorage(
@@ -427,15 +484,14 @@ export class AttachmentFileManager {
   // Uploads the file to an attachment store, overwriting the current DB record for the file if successful.
   private async _storeFileInAttachmentStore(
     store: IAttachmentStore, fileIdent: string, fileData: Buffer
-  ): Promise<string> {
+  ): Promise<void> {
+
     // The underlying store should guarantee the file exists if this method doesn't error,
     // so no extra validation is needed here.
     await store.upload(this._getDocPoolId(), fileIdent, Readable.from(fileData));
 
     // Insert (or overwrite) the entry for this file in the document database.
     await this._docStorage.attachOrUpdateFile(fileIdent, undefined, store.id);
-
-    return fileIdent;
   }
 
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<Buffer> {

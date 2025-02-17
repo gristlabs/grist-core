@@ -72,6 +72,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     homeUrl,
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
     baseDomain,
+   // True if no subdomains or separate servers are defined for the home servers or doc workers.
+    serveSameOrigin: !baseDomain && pathOnly,
     singleOrg: process.env.GRIST_SINGLE_ORG,
     helpCenterUrl: getHelpCenterUrl(),
     termsOfServiceUrl: getTermsOfServiceUrl(),

@@ -117,7 +117,6 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
   constructor(
     public id: string,
     private _storage: ExternalStorageSupportingAttachments,
-    private _prefixParts: string[]
   ) {}
 
   public exists(docPoolId: string, fileId: string): Promise<boolean> {
@@ -145,7 +144,7 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
   }
 
   private _getPoolPrefix(docPoolId: string): string {
-    return joinKeySegments([...this._prefixParts, docPoolId]);
+    return docPoolId;
   }
 
   private _getKey(docPoolId: string, fileId: string): string {
