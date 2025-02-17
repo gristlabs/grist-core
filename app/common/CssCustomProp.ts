@@ -16,15 +16,19 @@ export class CssCustomProp {
   public decl(): string | undefined {
     if (this.value === undefined) { return undefined; }
 
-    return `--${this._prefix}-${this.name}: ${this.value};`;
+    return `${this.var()}: ${this.value};`;
   }
 
   public toString(): string {
-    let value = `--${this._prefix}-${this.name}`;
+    let value = this.var();
     if (this.fallback) {
       value += `, ${this.fallback}`;
     }
     return `var(${value})`;
+  }
+
+  public var(): string {
+    return `--${this._prefix}-${this.name}`;
   }
 
   /**
