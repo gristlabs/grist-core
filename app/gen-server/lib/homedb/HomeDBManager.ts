@@ -5,7 +5,7 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Deps, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -109,6 +109,10 @@ export const NotifierEvents = StringUnion(
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
+
+export const Deps = {
+  DEFAULT_MAX_NEW_USER_INVITES_PER_ORG: 50,
+};
 
 const AuditLoggerEvents = StringUnion(
   'streamingDestinationsChange',
