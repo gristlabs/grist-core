@@ -2762,11 +2762,12 @@ function testDocApi(settings: {
         docId = await userApi.newDoc({name: 'TestDocExternalAttachments'}, wid);
         docUrl = `${serverUrl}/api/docs/${docId}`;
 
-        await addAttachmentsToDoc(docId, [
+        const resp = await addAttachmentsToDoc(docId, [
           { name: 'hello.doc', contents: 'foobar' },
           { name: 'world.jpg', contents: '123456' },
           { name: 'hello2.doc', contents: 'foobar' }
         ], chimpy);
+        assert.deepEqual(resp.data, [1, 2, 3]);
       });
 
       after(async () => {
