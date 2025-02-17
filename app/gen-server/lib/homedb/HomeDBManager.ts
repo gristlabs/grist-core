@@ -111,7 +111,12 @@ export const NotifierEvents = StringUnion(
 export type NotifierEvent = typeof NotifierEvents.type;
 
 export const Deps = {
-  DEFAULT_MAX_NEW_USER_INVITES_PER_ORG: 50,
+  DEFAULT_MAX_NEW_USER_INVITES_PER_ORG: appSettings.section('features')
+  .flag('maxNewUserInvitesPerOrg')
+  .readInt({
+    envVar: 'GRIST_MAX_NEW_USER_INVITES_PER_ORG',
+    minValue: 1
+  }),
 };
 
 const AuditLoggerEvents = StringUnion(
@@ -3650,12 +3655,14 @@ export class HomeDBManager extends EventEmitter {
     const max =
       billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
       Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
-    const current = await this.getNewUserInvitesCount(orgKey, {
-      excludedUserIds: newUsers.map((user) => user.id),
-      transaction: manager,
-    });
-    if (current + delta > max) {
-      throw new ApiError("Your site has too many pending invitations", 403);
+    if (max !== undefined) {
+      const current = await this.getNewUserInvitesCount(orgKey, {
+        excludedUserIds: newUsers.map((user) => user.id),
+        transaction: manager,
+      });
+      if (current + delta > max) {
+        throw new ApiError("Your site has too many pending invitations", 403);
+      }
     }
   }
 
