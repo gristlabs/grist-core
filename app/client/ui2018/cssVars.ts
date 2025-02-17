@@ -87,7 +87,7 @@ export const zIndexes = {
 };
 
 /**
- * @deprecated Consume the {@link tokens} object directly.
+ * @deprecated Consume the {@link tokens} and {@link zIndexes} object directly.
  *
  * Before having most cssVars theme-related (listed in `tokens`), we had a list of various
  * design tokens here, consumed by the whole codebase.
@@ -121,23 +121,23 @@ export const vars = {
   headerControlTextWeight: new CustomProp('header-text-weight', tokens.headerControlTextWeight),
 
   labelTextSize: new CustomProp('label-text-size', 'medium'),
-  labelTextBg: new CustomProp('label-text-bg', tokens.emphasis),
-  labelActiveBg: new CustomProp('label-active-bg', '#F0F0F0'),
+  labelTextBg: new CustomProp('label-text-bg', '#ffffff'),
+  labelActiveBg: new CustomProp('label-active-bg', '#f0f0f0'),
 
   controlMargin: new CustomProp('normal-margin', '2px'),
   controlPadding: new CustomProp('normal-padding', '3px 5px'),
   tightPadding: new CustomProp('tight-padding', '1px 2px'),
   loosePadding: new CustomProp('loose-padding', '5px 15px'),
 
-  primaryBg: new CustomProp('primary-bg', tokens.primary),
+  primaryBg: new CustomProp('primary-fg', tokens.primary),
   primaryBgHover: new CustomProp('primary-fg-hover', tokens.primaryMuted),
-  primaryFg: new CustomProp('primary-fg', tokens.emphasis),
+  primaryFg: new CustomProp('primary-bg', tokens.white),
 
   controlBg: new CustomProp('control-bg', tokens.white),
   controlFg: new CustomProp('control-fg', tokens.primary),
   controlFgHover: new CustomProp('primary-fg-hover', tokens.primaryMuted),
 
-  controlBorder: new CustomProp('control-border', '1px solid #11B683'),
+  controlBorder: new CustomProp('control-border', '1px solid #11b683'),
   controlBorderRadius: new CustomProp('border-radius', tokens.controlBorderRadius),
 
   logoBg: new CustomProp('logo-bg', tokens.logoBg),
@@ -202,7 +202,7 @@ const cssFontStyles = `
   }
 `;
 
-const cssRootVars = cssColors +cssVars;
+const cssRootVars = cssColors + cssVars;
 const cssReset = cssBorderBox + cssInputFonts + cssFontStyles;
 
 const cssBody = styled('body', `
