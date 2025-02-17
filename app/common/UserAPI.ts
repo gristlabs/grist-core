@@ -23,9 +23,10 @@ import {
   WebhookUpdate
 } from 'app/common/Triggers';
 import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
-import { AxiosProgressEvent } from 'axios';
-import omitBy from 'lodash/omitBy';
 import {StringUnion} from 'app/common/StringUnion';
+import {AttachmentStore, AttachmentStoreDesc} from 'app/plugin/DocApiTypes';
+import {AxiosProgressEvent} from 'axios';
+import omitBy from 'lodash/omitBy';
 
 
 export type {FullUser, UserProfile};
@@ -565,6 +566,27 @@ export interface DocAPI {
    */
   startTiming(): Promise<void>;
   stopTiming(): Promise<FormulaTimingInfo[]>;
+  /**
+   * Starts the transfer of all attachments from the old attachment storage to the new one.
+   */
+  transferAllAttachments(): Promise<void>;
+  /**
+   * Returns the status of the attachment transfer.
+   */
+  getAttachmentTransferStatus(): Promise<AttachmentTransferStatus>;
+  /**
+   * Retries type of attachment storage used by the document.
+   */
+  getAttachmentStore(): Promise<{type: AttachmentStore}>;
+  /**
+   * Sets the attachment storage used by the document.
+   */
+  setAttachmentStore(type: AttachmentStore): Promise<void>;
+  /**
+   * Lists available external attachment stores. For now it contains at most one store.
+   * If there is one store available it means that external storage is configured and can be used by this document.
+   */
+  getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1209,6 +1231,29 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return await this.requestJson(`${this._url}/timing/stop`, {method: 'POST'});
   }
 
+  public async transferAllAttachments(): Promise<void> {
+    await this.request(`${this._url}/attachments/transferAll`, {method: 'POST'});
+  }
+
+  public async getAttachmentTransferStatus(): Promise<AttachmentTransferStatus> {
+    return this.requestJson(`${this._url}/attachments/transferStatus`);
+  }
+
+  public async getAttachmentStore(): Promise<{type: AttachmentStore}> {
+    return this.requestJson(`${this._url}/attachments/store`);
+  }
+
+  public async getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}> {
+    return this.requestJson(`${this._url}/attachments/stores`);
+  }
+
+  public async setAttachmentStore(type: AttachmentStore): Promise<void> {
+    await this.request(`${this._url}/attachments/store`, {
+      method: 'POST',
+      body: JSON.stringify({type}),
+    });
+  }
+
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {
     const url = new URL(`${this._url}/tables/${tableId}/${endpoint}`);
     if (options?.filters) {
@@ -1220,6 +1265,15 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(url.href);
   }
 }
+
+export interface AttachmentTransferStatus {
+  status: {
+    pendingTransferCount: number;
+    isRunning: boolean;
+  };
+  locationSummary: DocAttachmentsLocation;
+}
+
 
 /**
  * Represents information to build public doc worker url.
