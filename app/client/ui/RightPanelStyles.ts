@@ -116,3 +116,22 @@ export const cssFieldFormula = styled('div', `
     pointer-events: none;
   }
 `);
+
+export const cssConfigContainer = styled('div.test-config-container', `
+  overflow: auto;
+  --color-list-item: none;
+  --color-list-item-hover: none;
+
+  &:after {
+    content: "";
+    display: block;
+    height: 40px;
+  }
+  & .fieldbuilder_settings {
+    margin: 16px 0 0 0;
+  }
+  &-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+`);

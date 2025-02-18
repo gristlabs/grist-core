@@ -4,7 +4,7 @@ import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
-import {buildConfigContainer} from 'app/client/ui/RightPanel';
+import {buildConfigContainer} from 'app/client/ui/RightPanelUtils';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';

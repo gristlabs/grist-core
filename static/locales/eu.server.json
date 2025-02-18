@@ -1,1 +1,7 @@
-{}
+{
+    "sendAppPage": {
+        "Loading...": "Kargatzen…",
+        "og-title": "Grist, kalkulu-orrien eboluzioa",
+        "og-description": "Saretatik harago doana kode irekikoa kalkulu-orri modernoa"
+    }
+}

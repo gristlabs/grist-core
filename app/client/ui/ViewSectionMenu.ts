@@ -149,6 +149,7 @@ export function viewSectionMenu(
       dom.hide(viewSection.isRecordCard),
     ),
     cssMenu(
+      dom.hide(viewSection.hideViewMenu),
       testId('viewLayout'),
       cssDotsIconWrapper(cssIcon('Dots')),
       menu(_ctl => makeViewLayoutMenu(viewSection, isReadonly.get()), {

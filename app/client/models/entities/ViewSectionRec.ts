@@ -262,6 +262,15 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   widgetType: modelUtil.KoSaveableObservable<WidgetType>;
 
+  /** Should the layout menu be hidden */
+  hideViewMenu: ko.Observable<boolean>;
+
+  /**
+   * If the section can be renamed, used mostly by virtual tables. If undefined defaults to the caller
+   * of the buildViewSectionDom function (which in turn defaults to true).
+   */
+  canRename: ko.Observable<boolean|undefined>;
+
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
 
@@ -902,4 +911,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       await docModel.viewFields.sendTableAction(action);
     }
   };
+
+
+  this.hideViewMenu = this.autoDispose(ko.observable(false));
+  this.canRename = this.autoDispose(ko.observable<boolean|undefined>(undefined));
 }

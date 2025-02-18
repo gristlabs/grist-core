@@ -174,7 +174,7 @@ export class FieldEditor extends Disposable {
 
     // connect this editor to editor monitor, it will restore this editor
     // when user or server refreshes the browser
-    this._gristDoc.editorMonitor.monitorEditor(this);
+    this._gristDoc.editorMonitor?.monitorEditor(this);
 
     // For detached editor, we don't need to cleanup anything.
     // It will be cleanuped automatically.

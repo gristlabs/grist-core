@@ -377,7 +377,18 @@
         "Document automatically opens as a user-specific copy.": "O documento abre automaticamente como uma cópia específica do usuário.",
         "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Quando você iniciar a cronometragem, o Grist medirá o tempo necessário para avaliar cada fórmula. Isso permite diagnosticar quais fórmulas são responsáveis pelo desempenho lento quando um documento é aberto pela primeira vez ou quando um documento responde a alterações.",
         "Confirm change": "Confirmar alteração",
-        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Isso executará um recarregamento rígido do mecanismo de dados. Isso pode ajudar se o mecanismo de dados estiver preso em um loop infinito, estiver processando indefinidamente a última alteração ou tiver travado. Nenhum dado será perdido, exceto possivelmente as ações pendentes no momento."
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Isso executará um recarregamento rígido do mecanismo de dados. Isso pode ajudar se o mecanismo de dados estiver preso em um loop infinito, estiver processando indefinidamente a última alteração ou tiver travado. Nenhum dado será perdido, exceto possivelmente as ações pendentes no momento.",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Clique em \"Iniciar transferência\" para transferir aqueles para armazenamento interno (armazenado no arquivo SQLite documento).",
+        "**Some existing attachments are still external**.": "**Alguns anexos existentes ainda são externos**.",
+        "Attachment storage": "Armazenamento de anexos",
+        "Being transfer": "Transferência",
+        "Newly uploaded attachments will be placed in External storage.": "Os anexos recém-carregados serão colocados no armazenamento externo.",
+        "Newly uploaded attachments will be placed in Internal storage.": "Os anexos recém-carregados serão colocados no armazenamento interno.",
+        "No external stores available": "Não há armazenamento externo disponível",
+        "Preferred storage for this document": "Armazenamento preferido para este documento",
+        "Start transfer": "Iniciar transferência",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Alguns anexos existentes ainda são internos** (armazenados em um arquivo SQLite).",
+        "Click \"Start transfer\" to transfer those to External storage.": "Clique em \"Iniciar transferência\" para transferir aqueles para armazenamento externo."
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",

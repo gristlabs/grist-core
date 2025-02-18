@@ -386,7 +386,18 @@
         "Default for DateTime columns": "Výchozí pro sloupce DateTime",
         "Base doc URL: {{docApiUrl}}": "Základní URL dokumentu: {{docApiUrl}}",
         "Locale": "Jazyk",
-        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Dokument se automaticky otevře v {{fiddleModeDocUrl}}. Každý může upravit, což vytvoří novou neuloženou kopii."
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Dokument se automaticky otevře v {{fiddleModeDocUrl}}. Každý může upravit, což vytvoří novou neuloženou kopii.",
+        "Newly uploaded attachments will be placed in External storage.": "Nově nahrané přílohy se umístí do externího úložiště.",
+        "Newly uploaded attachments will be placed in Internal storage.": "Nově nahrané přílohy se umístí do interního úložiště.",
+        "No external stores available": "Nejsou k dispozici externí úložiště",
+        "Preferred storage for this document": "Upřednostňované uložení tohoto dokumentu",
+        "Start transfer": "Zahájit přenos",
+        "**Some existing attachments are still external**.": "**Některé stávající přílohy jsou stále externí**.",
+        "Attachment storage": "Uložení příloh",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Kliknutím na tlačítko \"Začít přenos\" je přenesete do interního úložiště (uloženého v souboru SQLite dokumentu).",
+        "Click \"Start transfer\" to transfer those to External storage.": "Kliknutím na tlačítko \"Začít přenos\" je přenesete do externího úložiště.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Některé stávající přílohy jsou stále interní** (uložené v souboru SQLite).",
+        "Being transfer": "Přenos započal"
     },
     "DocumentUsage": {
         "Contact the site owner to upgrade the plan to raise limits.": "Kontaktujte vlastníka webu, aby upgradoval plán a zvýšil limity.",
@@ -939,7 +950,8 @@
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Pro vytvoření odkazu na kotvu, který přenese uživatele na konkrétní buňku, klikněte na řádek a stiskněte {{shortcut}}.",
         "Use reference columns to relate data in different tables.": "Použijte reference sloupce k propojení dat v různých tabulkách.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Pro umožnění více přiřazení změňte typ referencovaného sloupce na Reference List.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Obousměrné odkazy nejsou v současné době podporovány pro sloupce vzorců a spouštěcích vzorců"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Obousměrné odkazy nejsou v současné době podporovány pro sloupce vzorců a spouštěcích vzorců",
+        "The preview below this header shows how the selected user will see this document": "Náhled pod tímto záhlavím ukazuje, jak vybraný uživatel uvidí tento dokument"
     },
     "OnboardingPage": {
         "What brings you to Grist (you can select multiple)?": "Co vás přivedlo k Grist (můžete vybrat více možností)?",
@@ -1428,7 +1440,8 @@
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Služba Grist umožňuje konfigurovat různé typy ověřování, včetně SAML a OIDC. Pokud je systém Grist přístupný po síti nebo je zpřístupněn více osobám, doporučujeme jeden z nich povolit.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist podepisuje soubory cookie relace uživatele tajným klíčem. Tento klíč nastavte pomocí proměnné prostředí GRIST_SESSION_SECRET. Pokud není nastavena, Grist se vrátí k pevně nastavenému výchozímu klíči. Toto upozornění můžeme v budoucnu odstranit, protože identifikátory relací generované od verze 1.1.16 jsou ze své podstaty kryptograficky bezpečné.",
         "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Nebo můžete jako náhradní řešení nastavit: {{bootKey}} v prostředí a navštívit jej: {{url}}",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "On": "Zapnuto"
     },
     "DropdownConditionConfig": {
         "Set dropdown condition": "Nastavení rozbalovací podmínky",
@@ -1760,7 +1773,25 @@
         "Enable Grist Enterprise": "Povolení Grist Enterprise",
         "Grist Enterprise is **enabled**.": "Služba Grist Enterprise je **povolena**.",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivační klíč slouží ke spuštění aplikace Grist Enterprise po zkušební době.\npo uplynutí 30denní zkušební doby. Aktivační klíč získáte [přihlášením se k odběru služby Grist\nEnterprise]({{signupLink}}). Aktivační klíč nepotřebujete k tomu, abyste mohli spustit službu\nGrist Core.\n\nVíce informací najdete v našem [Centru nápovědy]({{helpCenter}}).",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivační klíč slouží ke spuštění aplikace Grist Enterprise po zkušební době.\npo uplynutí 30denní zkušební doby. Aktivační klíč získáte [kontaktujte nás]({{contactLink}}) ještě dnes. Uděláte to\naktivační klíč nepotřebujete ke spuštění aplikace Grist Core.\n\nVíce informací se dozvíte v našem [Centru nápovědy]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivační klíč slouží ke spuštění aplikace Grist Enterprise po zkušební době.\npo uplynutí 30denní zkušební doby. Aktivační klíč získáte [kontaktujte nás]({{contactLink}}) ještě dnes. Uděláte to\naktivační klíč nepotřebujete ke spuštění aplikace Grist Core.\n\nVíce informací se dozvíte v našem [Centru nápovědy]({{helpCenter}}).",
+        "Activation key": "Aktivační klíč",
+        "Activate": "Aktivovat",
+        "Copy to clipboard": "Kopírovat do schránky",
+        "Expiration date": "Datum vypršení platnosti",
+        "Installation ID copied to clipboard": "ID instalace zkopírované do schránky",
+        "Installation ID:": "ID instalace:",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Chcete-li nadále používat službu Grist Enterprise, musíte\n                  [kontaktujte nás]({{signupLink}}) získat aktivační klíč.",
+        "You are currently trialing Grist Enterprise.": "Právě testujete Grist Enterprise.",
+        "You do not have an active subscription.": "Nemáte aktivní předplatné.",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Více informací najdete v našem [Centru nápovědy]({{helpCenter}}).",
+        "Paste your activation key": "Vložte aktivační klíč",
+        "Plan name": "Název plánu",
+        "Your activation key has expired due to exceeding limits.": "Platnost vašeho aktivačního klíče vypršela z důvodu překročení limitů.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Vaše instance bude v režimu **pouze ke čtení** za **{{days}}** den(y).",
+        "Your subscription expired on {{date}}.": "Vaše předplatné vypršelo na adrese {{date}}.",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Aktivační klíč slouží ke spuštění aplikace Grist Enterprise po zkušební době.\n        po uplynutí 30denní zkušební doby. Aktivační klíč získáte [přihlášením se k odběru služby Grist\n        Enterprise]({{signupLink}}). Aktivační klíč nepotřebujete k tomu, abyste mohli spustit službu\n        Grist Core.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Pro další používání služby Grist Enterprise je nutné aktivní předplatné. Můžete\npředplatné aktivovat tak, že [se zaregistrujete do služby Grist Enterprise ]({{signupLink}}) a vložíte do ní svůj účet.\naktivačního klíče níže.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Vaše zkušební období vypršelo **{{expireAt}}**. Chcete-li pokračovat v používání služby Grist Enterprise, musíte se\n[přihlásit k Grist Enterprise]({{signupLink}}) a vložit svůj aktivační klíč níže."
     },
     "AdminPanelName": {
         "Admin Panel": "Panel správce"
@@ -1817,7 +1848,9 @@
         "No choices to select": "Žádné možnosti výběru"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Neznámý uživatel"
+        "UnknownUser": "Neznámý uživatel",
+        "View as Yourself": "Zobrazit za sebe",
+        "You are viewing this document as": "Tento dokument si prohlížíte jako"
     },
     "Clipboard": {
         "Unavailable Command": "Nedostupný příkaz",
@@ -1853,5 +1886,38 @@
             }
         },
         "The toggle is **off**": "Přepínač je **vypnut**"
+    },
+    "DocList": {
+        "Edited {{at}}": "Upraveno {{at}}",
+        "Recent": "Nedávné",
+        "Rename and set icon": "Přejmenování a nastavení ikony",
+        "Requires edit permissions": "Vyžaduje oprávnění k úpravám",
+        "Pinned": "Připnuto",
+        "Unpin": "Odepnout",
+        "Workspace": "Pracovní prostor",
+        "Access details": "Podrobnosti o přístupu",
+        "All": "Vše",
+        "Current workspace": "Aktuální pracovní prostor",
+        "Delete": "Smazat",
+        "Delete {{name}}": "Smazat {{name}}",
+        "Document will be moved to Trash.": "Dokument bude přesunut do koše.",
+        "Last edited": "Naposledy upraveno",
+        "Manage users": "Spravovat uživatele",
+        "Move": "Přesunout",
+        "Name": "Název",
+        "No documents to show.": "Žádné dokumenty k zobrazení.",
+        "Pin": "Připnout",
+        "Sort by date": "Seřadit podle data",
+        "Sort by name": "Seřadit podle názvu",
+        "Move {{name}} to workspace": "Přesunout {{name}} do pracovního prostoru"
+    },
+    "RenameDocModal": {
+        "Choose color": "Zvolit barvu",
+        "Choose icon": "Zvolte ikonu",
+        "Enter document name": "Zadejte název dokumentu",
+        "Icon": "Ikona",
+        "Name": "Název",
+        "Rename and set icon": "Přejmenování a nastavení ikony",
+        "Reset icon": "Resetovat ikonu"
     }
 }

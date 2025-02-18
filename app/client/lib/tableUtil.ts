@@ -3,7 +3,8 @@ import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import type {KoArray} from 'app/client/lib/koArray';
 import {simpleStringHash} from 'app/client/lib/textUtils';
 import type {ViewFieldRec} from 'app/client/models/DocModel';
-import type {BulkUpdateRecord} from 'app/common/DocActions';
+import TableModel from 'app/client/models/TableModel';
+import type {BulkColValues, BulkUpdateRecord} from 'app/common/DocActions';
 import {safeJsonParse} from 'app/common/gutil';
 import type {TableData} from 'app/common/TableData';
 import {tsvEncode} from 'app/common/tsvFormat';
@@ -171,4 +172,26 @@ export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord|nul
   }
   return ['BulkUpdateRecord', tableId, rowIds,
     zipObject(colIds, colIds.map(() => blankRow))];
+}
+
+
+/**
+ * Fills currently selected grid with the contents of the top row in that selection.
+ */
+export function fillSelectionDown(selection: CopySelection, tableModel: TableModel) {
+  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === 'number'));
+  if (rowIds.length <= 1) {
+    return;
+  }
+  const nonFormulaColumns = selection.fields.map(f => f.column.peek()).filter(col => !col.isFormula.peek());
+  if (nonFormulaColumns.length === 0) {
+    return;
+  }
+  const colInfo: BulkColValues = {};
+  for (const col of nonFormulaColumns) {
+    const colId = col.colId.peek();
+    const val = tableModel.tableData.getValue(rowIds[0], colId)!;
+    colInfo[colId] = rowIds.map(() => val);
+  }
+  return tableModel.sendTableAction(["BulkUpdateRecord", rowIds, colInfo]);
 }

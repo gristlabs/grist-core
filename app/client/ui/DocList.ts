@@ -94,7 +94,10 @@ export class DocList extends Disposable {
   private _buildTab(homePageTab: HomePageTab) {
     const { icon, label } = this._tabIconsAndLabels[homePageTab];
     return cssTab(
-      cssIconAndLabel(cssTabIcon(icon, dom.hide(isNarrowScreenObs())), label),
+      cssIconAndLabel(cssTabIcon(icon, dom.hide(isNarrowScreenObs())),
+        // The combination with spacer makes the label as wide as its bold version,
+        // to avoid slight shifts of other labels when switching tabs.
+        dom('div', label, cssBoldLabelSpacer(label))),
       cssTab.cls("-selected", (use) => use(this._tab) === homePageTab),
       urlState().setLinkUrl({ homePageTab }, { replace: true }),
       testId("tab")
@@ -429,6 +432,14 @@ const cssIconAndLabel = styled("div", `
   display: flex;
   align-items: center;
   column-gap: 8px;
+`);
+
+const cssBoldLabelSpacer = styled("div", `
+  font-weight: bold;
+  height: 1px;
+  color: transparent;
+  overflow: hidden;
+  visibility: hidden;
 `);
 
 const cssTabIcon = styled(cssIcon, `

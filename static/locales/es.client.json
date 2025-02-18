@@ -319,7 +319,18 @@
         "fiddle mode": "modo de pruebas",
         "Tutorial": "Tutorial",
         "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Esto realizará una recarga dura del motor de datos. Esto puede ayudar si el motor de datos está atascado en un bucle infinito, está procesando indefinidamente el último cambio o se ha bloqueado. No se perderá ningún dato, excepto posiblemente las acciones actualmente pendientes.",
-        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Una vez iniciado el cronometraje, Grist medirá el tiempo que tarda en evaluar cada fórmula. Esto permite diagnosticar qué fórmulas son responsables de un rendimiento lento cuando se abre un documento por primera vez, o cuando un documento responde a cambios."
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Una vez iniciado el cronometraje, Grist medirá el tiempo que tarda en evaluar cada fórmula. Esto permite diagnosticar qué fórmulas son responsables de un rendimiento lento cuando se abre un documento por primera vez, o cuando un documento responde a cambios.",
+        "**Some existing attachments are still external**.": "**Algunos anexos existentes siguen siendo externos**.",
+        "Start transfer": "Iniciar transferencia",
+        "Being transfer": "Siendo traslado",
+        "Attachment storage": "Almacenamiento de archivos adjuntos",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Algunos archivos adjuntos existentes siguen siendo internos** (almacenados en un archivo SQLite).",
+        "Click \"Start transfer\" to transfer those to External storage.": "Haz clic en \"Iniciar transferencia\" para transferirlos al almacenamiento externo.",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Haga clic en \"Iniciar transferencia\" para transferirlos al almacenamiento interno (almacenados en el archivo SQLite del documento).",
+        "Newly uploaded attachments will be placed in Internal storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento interno.",
+        "No external stores available": "No hay almacenamientos externos disponibles",
+        "Preferred storage for this document": "Almacenamiento preferido para este documento",
+        "Newly uploaded attachments will be placed in External storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento externo."
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
