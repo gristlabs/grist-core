@@ -3644,25 +3644,27 @@ export class HomeDBManager extends EventEmitter {
   }) {
     const { orgKey, analysis, billingAccount, manager } = options;
     const { foundUserDelta, foundUsers, notFoundUserDelta } = analysis;
+
+    const max =
+      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
+        Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
+    if (max === undefined) { return; }
+
     const newUsers = foundUsers.filter(
       (user) => user.isFirstTimeUser && foundUserDelta?.[user.id]
     );
+
     const delta = size(notFoundUserDelta) + newUsers.length;
     if (!delta) {
       return;
     }
 
-    const max =
-      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
-      Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
-    if (max !== undefined) {
-      const current = await this.getNewUserInvitesCount(orgKey, {
-        excludedUserIds: newUsers.map((user) => user.id),
-        transaction: manager,
-      });
-      if (current + delta > max) {
-        throw new ApiError("Your site has too many pending invitations", 403);
-      }
+    const current = await this.getNewUserInvitesCount(orgKey, {
+      excludedUserIds: newUsers.map((user) => user.id),
+      transaction: manager,
+    });
+    if (current + delta > max) {
+      throw new ApiError("Your site has too many pending invitations", 403);
     }
   }
 

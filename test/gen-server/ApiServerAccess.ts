@@ -423,11 +423,7 @@ describe('ApiServerAccess', function() {
         { status: 200, data: null }
       );
 
-      // Invite 4 new users to Chimpy's org. There is no limit by default, so this
-      // time it should work.
-      sandbox
-        .stub(HomeDBManagerDeps, "DEFAULT_MAX_NEW_USER_INVITES_PER_ORG")
-        .value(undefined);
+      // Invite 4 new users to Chimpy's org. There is no limit by default, so this time it should work.
       await checkAccessChange(
         { orgId: orgId2 },
         {
@@ -438,9 +434,8 @@ describe('ApiServerAccess', function() {
         },
         { status: 200, data: null }
       );
-      sandbox.restore();
 
-      // Drop the default limit to 2 and check that new invites are blocked.
+      // Set the default limit to 2 and check that new invites are blocked.
       sandbox
         .stub(HomeDBManagerDeps, "DEFAULT_MAX_NEW_USER_INVITES_PER_ORG")
         .value(2);
