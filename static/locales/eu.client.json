@@ -1868,6 +1868,8 @@
         "Document will be moved to Trash.": "Dokumentua zakarrontzira mugituko da.",
         "Manage users": "Kudeatu erabiltzaileak",
         "Edited {{at}}": "Editatua: {{at}}",
-        "Last edited": "Azkenekoz editatua"
+        "Last edited": "Azkenekoz editatua",
+        "Move": "Mugitu",
+        "Move {{name}} to workspace": "Mugitu {{name}} lan-eremura"
     }
 }
