@@ -1,11 +1,10 @@
-import {Deps as FeaturesDeps} from 'app/common/Features';
 import {Role} from 'app/common/roles';
 import {PermissionData, PermissionDelta} from 'app/common/UserAPI';
 import {Deps} from 'app/gen-server/ApiServer';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {User} from 'app/gen-server/entity/User';
-import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {HomeDBManager, Deps as HomeDBManagerDeps, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {SendGridConfig, SendGridMail} from 'app/gen-server/lib/NotifierTypes';
 import axios, {AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
@@ -366,7 +365,7 @@ describe('ApiServerAccess', function() {
   it('PATCH /api/orgs/{oid}/access returns 403 if too many invites are pending', async function() {
     const orgId = await dbManager.testGetId("TestMaxNewUserInvites");
     const orgId2 = await dbManager.testGetId("Chimpyland");
-    const featuresSandbox = sinon.createSandbox();
+    const sandbox = sinon.createSandbox();
 
     try {
       // Invite 3 users who don't (yet) have Grist accounts to the org.
@@ -424,8 +423,7 @@ describe('ApiServerAccess', function() {
         { status: 200, data: null }
       );
 
-      // Invite 4 new users to Chimpy's org. The default limit is 50, so this
-      // time it should work.
+      // Invite 4 new users to Chimpy's org. There is no limit by default, so this time it should work.
       await checkAccessChange(
         { orgId: orgId2 },
         {
@@ -437,9 +435,9 @@ describe('ApiServerAccess', function() {
         { status: 200, data: null }
       );
 
-      // Drop the default limit to 2 and check that new invites are blocked.
-      featuresSandbox
-        .stub(FeaturesDeps, "DEFAULT_MAX_NEW_USER_INVITES_PER_ORG")
+      // Set the default limit to 2 and check that new invites are blocked.
+      sandbox
+        .stub(HomeDBManagerDeps, "DEFAULT_MAX_NEW_USER_INVITES_PER_ORG")
         .value(2);
       await checkAccessChange(
         { orgId: orgId2 },
@@ -500,7 +498,7 @@ describe('ApiServerAccess', function() {
         },
         { status: 200, data: null }
       );
-      featuresSandbox.restore();
+      sandbox.restore();
     }
   });
 
@@ -711,7 +709,7 @@ describe('ApiServerAccess', function() {
     assert.equal(resp3.status, 400);
   });
 
-  it('PATCH /api/workspaces/{wid}/access respects maxNewUserInvitesPerOrg', async function() {
+  it('PATCH /api/workspaces/{wid}/access returns 403 if too many invites are pending', async function() {
     const orgId = await dbManager.testGetId("TestMaxNewUserInvites");
     const wsId = await dbManager.testGetId("TestMaxNewUserInvitesWs");
     try {
