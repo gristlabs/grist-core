@@ -73,7 +73,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
 
 const cssSection = styled('div', `
   padding: 24px;
-  max-width: 600px;
+  max-width: 750px;
   width: 100%;
   margin: 16px auto;
   border: 1px solid ${theme.widgetBorder};
