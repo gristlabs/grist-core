@@ -194,6 +194,43 @@ describe('SamlConfig', () => {
       assert.ok(jordi, 'jordi should exist');
       assert.ok(jordi?.firstLoginAt instanceof Date, 'jordi should have logged in');
     });
+
+    it('should follow redirects from IdP-initiated logins', async () => {
+      // Grist, our unsuspecting SP, once again sits quietly when
+      // suddenly A SAML REQUEST WITH VALID REDIRECT COMES OUTTA
+      // NOWHERE
+      const loginSamlPayload = await fse.readFile(loginSamlPath);
+      const samlResp = await fetch(`${homeUrl()}/saml/assert`, {
+        redirect: 'manual',
+        method: "POST",
+        body: new URLSearchParams({
+          SAMLResponse: loginSamlPayload.toString(),
+          RelayState: `${homeUrl()}/admin`,
+        })
+      });
+      assert.equal(samlResp.status, 302, 'should redirect');
+      const spUrl = new URL(samlResp.headers.get('location') || '');
+      assert.equal(spUrl.origin + spUrl.pathname, `${homeUrl()}/admin`, 'should redirect to admin');
+    });
+
+    it('should ignore invalid redirects from IdP-initiated logins', async () => {
+      // This time, Grist, our innocent SP as before, is not caught
+      // unaware when a SAML assert arrives, but without a valid
+      // redirection URL.
+      const loginSamlPayload = await fse.readFile(loginSamlPath);
+      const samlResp = await fetch(`${homeUrl()}/saml/assert`, {
+        redirect: 'manual',
+        method: "POST",
+        body: new URLSearchParams({
+          SAMLResponse: loginSamlPayload.toString(),
+          RelayState: `https://evilcorp.com`,
+        })
+      });
+      assert.equal(samlResp.status, 302, 'should redirect');
+      const spUrl = new URL(samlResp.headers.get('location') || '');
+      assert.equal(spUrl.origin + spUrl.pathname, homeUrl() + '/', 'should redirect to main');
+    });
+
   });
 
 });
