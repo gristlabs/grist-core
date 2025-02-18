@@ -184,10 +184,11 @@ export class ACLRuleCollection {
 
   /**
    * Update granular access from DocData. Try hard not to throw
-   * expections, reporting problems via this.ruleError. If we
+   * exceptions, reporting problems via this.ruleError. If we
    * throw an exception, document recovery mode won't work.
    */
   public async update(docData: DocData, options: ReadAclOptions) {
+    this.ruleError = undefined;
     try {
       await this.updateWithExceptions(docData, options);
     } catch (e) {
