@@ -346,7 +346,11 @@
         "Regular document": "Dokumentu arrunta",
         "Regular": "Arrunta",
         "Confirm change": "Baieztatu aldaketa",
-        "Edit": "Editatu"
+        "Edit": "Editatu",
+        "Template mode": "Txantiloi modua",
+        "fiddle mode": "jolasteko modua",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Dokumentua automatikoki irekitzen da {{fiddleModeDocUrl}}(e)n. Edonork edita dezake, eta gordeko ez den kopia bat sortuko du.",
+        "Tutorial": "Tutoriala"
     },
     "DocumentUsage": {
         "Attachments Size": "Eranskinen tamaina",
@@ -1242,7 +1246,9 @@
         "Select Widget": "Hautatu widgeta"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Erabiltzaile ezezaguna"
+        "UnknownUser": "Erabiltzaile ezezaguna",
+        "View as Yourself": "Zeu izango bazina bezala",
+        "You are viewing this document as": "Dokumentu hau ikusten ari zara"
     },
     "TypeTransformation": {
         "Apply": "Aplikatu",
@@ -1438,7 +1444,9 @@
         "Reset form": "Berrezarri formularioa",
         "Share": "Partekatu",
         "Save your document to publish this form.": "Gorde dokumentua formularioa argitaratzeko.",
-        "Preview": "Aurrebista"
+        "Preview": "Aurrebista",
+        "## **Form Title**": "## **Formularioaren titulua**",
+        "Your form description goes here.": "Hau formularioaren deskribapena da."
     },
     "Editor": {
         "Delete": "Ezabatu"
@@ -1454,7 +1462,9 @@
         "Paste": "Itsatsi",
         "Separator": "Bereizgailua",
         "Unmapped fields": "Esleitu gabeko eremuak",
-        "Header": "Goiburua"
+        "Header": "Goiburua",
+        "New question": "Galdera berria",
+        "More": "Gehiago"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Garbitu",
@@ -1581,14 +1591,16 @@
         "Log Streaming": "Erregistro-jarioa",
         "New, Enterprise": "Berria, Enpresa",
         "Audit Logs": "Erregistro-auditoretza",
-        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} gehiago"
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} gehiago",
+        "On": "Piztuta"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
     },
     "Field": {
         "No choices configured": "Ez da aukerarik konfiguratu",
-        "No values in show column of referenced table": "Ez dago baliorik erakusten den zutabean edo erreferentzia-taulan"
+        "No values in show column of referenced table": "Ez dago baliorik erakusten den zutabean edo erreferentzia-taulan",
+        "Hide": "Ezkutatu"
     },
     "Toggle": {
         "Checkbox": "Kontrol-laukia",
@@ -1667,7 +1679,9 @@
     },
     "Section": {
         "Insert section above": "Sartu atala gainean",
-        "Insert section below": "Sartu atala azpian"
+        "Insert section below": "Sartu atala azpian",
+        "Description": "Deskribapena",
+        "### **Header**": "### **Goiburua**"
     },
     "ReferenceUtils": {
         "Error in dropdown condition": "Errorea goitibeherako baldintzan",
@@ -1718,7 +1732,14 @@
         "Disable Grist Enterprise": "Ezgaitu Grist Enterprise",
         "Enable Grist Enterprise": "Gaitu Grist Enterprise",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren ondoren Grist Enterprise exekutatzeko.\nEskuratu aktibazio-gako bat gaur bertan [gurekin harremanetan jarri]({{contactLink}})z.\nEz duzu aktibazio-gakorik behar Grist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren ondoren Grist Enterprise exekutatzeko.\nEskuratu aktibazio-gako bat gaur bertan [gurekin harremanetan jarri]({{contactLink}})z.\nEz duzu aktibazio-gakorik behar Grist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n.",
+        "Activate": "Aktibatu",
+        "Copy to clipboard": "Kopiatu arlebera",
+        "Activation key": "Aktibatzeko gakoa",
+        "Expiration date": "Iraungitze-data",
+        "Installation ID copied to clipboard": "Instalazio-IDa arbelera kopiatu da",
+        "Installation ID:": "Instalazio-IDa:",
+        "Paste your activation key": "Itsatsi aktibazio-gakoa"
     },
     "ViewLayout": {
         "Delete data and this widget.": "Ezabatu datuak eta widgeta.",
@@ -1838,5 +1859,15 @@
         "Audit Logs": "Erregistro-auditoretza",
         "Home": "Hasiera",
         "upgrade your plan": "hobetu zure kontratua"
+    },
+    "DocList": {
+        "Delete {{name}}": "Ezabatu {{name}}",
+        "Access details": "Sabidearen xehetasunak",
+        "All": "Guztia",
+        "Delete": "Ezabatu",
+        "Document will be moved to Trash.": "Dokumentua zakarrontzira mugituko da.",
+        "Manage users": "Kudeatu erabiltzaileak",
+        "Edited {{at}}": "Editatua: {{at}}",
+        "Last edited": "Azkenekoz editatua"
     }
 }
