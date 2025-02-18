@@ -2,9 +2,12 @@ import {
   ExternalStorage,
   joinKeySegments,
 } from 'app/server/lib/ExternalStorage';
+import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import * as fse from 'fs-extra';
 import * as stream from 'node:stream';
 import * as path from 'path';
+import {Readable} from 'node:stream';
+import {pipeline} from 'node:stream/promises';
 
 export type DocPoolId = string;
 type FileId = string;
@@ -18,6 +21,40 @@ export interface AttachmentStoreDocInfo {
   // programmer must make a conscious choice to mark it as null or undefined, not merely omit it.
   // Omission could easily result in invalid behaviour.
   trunkId: string | null | undefined;
+}
+
+interface FileMetadata {
+  size: number;
+}
+
+export interface AttachmentFile {
+  metadata: FileMetadata,
+  contentStream: Readable,
+  // Used to optimise certain scenarios where the data *must* be in memory (e.g. SQLite read/writes)
+  contents?: Buffer
+}
+
+export interface AttachmentFileInMemory extends AttachmentFile {
+  contents: Buffer;
+}
+
+export function isAttachmentFileInMemory(file: AttachmentFile): file is AttachmentFileInMemory {
+  return file.contents !== undefined;
+}
+
+export async function loadAttachmentFileIntoMemory(file: AttachmentFile): Promise<AttachmentFileInMemory> {
+  if (isAttachmentFileInMemory(file)) {
+    return file;
+  }
+  const memoryStream = new MemoryWritableStream();
+  await pipeline(file.contentStream, memoryStream);
+  const buffer = memoryStream.getBuffer();
+
+  // Use Object.assign because it gives type safety, without having to us `as` or copy the object.
+  return Object.assign(file, {
+    contents: buffer,
+    contentStream: Readable.from(buffer),
+  });
 }
 
 /**
@@ -74,10 +111,8 @@ export interface IAttachmentStore {
   // Upload attachment to the store.
   upload(docPoolId: DocPoolId, fileId: FileId, fileData: stream.Readable): Promise<void>;
 
-  // Download attachment to an in-memory buffer.
-  // It's preferable to accept an output stream as a parameter, as it simplifies attachment store
-  // implementation and gives them control over local buffering.
-  download(docPoolId: DocPoolId, fileId: FileId, outputStream: stream.Writable): Promise<void>;
+  // Fetch the attachment from the store, including a readable stream for the attachment's contents.
+  download(docPoolId: DocPoolId, fileId: FileId): Promise<AttachmentFile>;
 
   // Remove attachment from the store
   delete(docPoolId: DocPoolId, fileId: FileId): Promise<void>;
@@ -127,9 +162,8 @@ export class ExternalStorageAttachmentStore implements IAttachmentStore {
     await this._storage.uploadStream(this._getKey(docPoolId, fileId), fileData);
   }
 
-  public async download(docPoolId: string, fileId: string, outputStream: stream.Writable): Promise<void> {
-    const download = await this._storage.downloadStream(this._getKey(docPoolId, fileId), outputStream);
-    await download.completed;
+  public async download(docPoolId: string, fileId: string): Promise<AttachmentFile> {
+    return await this._storage.downloadStream(this._getKey(docPoolId, fileId));
   }
 
   public async delete(docPoolId: string, fileId: string): Promise<void> {
@@ -172,11 +206,15 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
     );
   }
 
-  public async download(docPoolId: DocPoolId, fileId: FileId, output: stream.Writable): Promise<void> {
-    await stream.promises.pipeline(
-      fse.createReadStream(this._createPath(docPoolId, fileId)),
-      output,
-    );
+  public async download(docPoolId: DocPoolId, fileId: FileId): Promise<AttachmentFile> {
+    const filePath = this._createPath(docPoolId, fileId);
+    const stat = await fse.stat(filePath);
+    return {
+      metadata: {
+        size: stat.size,
+      },
+      contentStream: fse.createReadStream(filePath)
+    };
   }
 
   public async delete(docPoolId: string, fileId: string): Promise<void> {

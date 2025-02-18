@@ -18,7 +18,7 @@ export interface FileMetadata {
 
 export interface StreamDownloadResult {
   metadata: FileMetadata,
-  completed: Promise<void>
+  contentStream: stream.Readable,
 }
 
 /**
@@ -69,7 +69,7 @@ export interface ExternalStorage {
   close(): Promise<void>;
 
   uploadStream?(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
-  downloadStream?(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<StreamDownloadResult>;
+  downloadStream?(key: string, snapshotId?: string ): Promise<StreamDownloadResult>;
 }
 
 /**
@@ -91,7 +91,7 @@ export class KeyMappedExternalStorage implements ExternalStorage {
     if (_ext.downloadStream !== undefined) {
       const extDownloadStream = _ext.downloadStream;
       this.downloadStream =
-        (key, outStream, snapshotId) => extDownloadStream.call(_ext, this._map(key), outStream, snapshotId);
+        (key, snapshotId) => extDownloadStream.call(_ext, this._map(key), snapshotId);
     }
     if (_ext.removeAllWithPrefix !== undefined) {
       const extRemoveAllWithPrefix = _ext.removeAllWithPrefix;
