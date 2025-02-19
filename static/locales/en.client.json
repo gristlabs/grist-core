@@ -1920,5 +1920,13 @@
         "Name": "Name",
         "Rename and set icon": "Rename and set icon",
         "Reset icon": "Reset icon"
+    },
+    "RightPanelUtils": {
+        "Columns_one": "Columns",
+        "Columns_other": "Columns",
+        "Fields_one": "Fields",
+        "Fields_other": "Fields",
+        "Series_one": "Series",
+        "Series_other": "Series"
     }
 }
