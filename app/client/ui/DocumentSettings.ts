@@ -319,7 +319,7 @@ export class DocSettingsPage extends Disposable {
                 cssLoadingSpinner.cls('-disabled'),
                 testId('transfer-spinner')
               ),
-              t('Being transfer'),
+              t('Transfer in progress'),
               dom.prop('disabled', true),
               testId('transfer-button-in-progress')
             ),
