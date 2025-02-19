@@ -380,7 +380,9 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Newly uploaded attachments will be placed in Internal storage.",
         "No external stores available": "No external stores available",
         "Preferred storage for this document": "Preferred storage for this document",
-        "Start transfer": "Start transfer"
+        "Start transfer": "Start transfer",
+        "External": "External",
+        "Internal": "Internal"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -743,7 +745,9 @@
         "Table column name": "Table column name",
         "Enter redirect URL": "Enter redirect URL",
         "No field selected": "No field selected",
-        "Select a field in the form widget to configure.": "Select a field in the form widget to configure."
+        "Select a field in the form widget to configure.": "Select a field in the form widget to configure.",
+        "Submit": "Submit",
+        "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
