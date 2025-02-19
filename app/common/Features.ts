@@ -87,7 +87,7 @@ export interface Features {
 
   maxNewUserInvitesPerOrg?: number; // Maximum number of site/workspace/doc invites to new users before
                                     // additional requests are blocked (until invited users log in or are
-                                    // uninvited). Defaults to 50 if not set.
+                                    // uninvited).
 
   installationEnabled?: boolean; // Allows self hosted Grist plan. Grist will generate an activation
                                  // key for the installation, which will unblock enterprise features.
@@ -103,11 +103,6 @@ export interface Features {
 
   installationNoGraceBanner?: boolean;  // If set, a banner is hidden.
 }
-
-export const Deps = {
-  DEFAULT_MAX_NEW_USER_INVITES_PER_ORG: 50,
-};
-
 
 /**
  * Returns a merged set of features, combining the features of the given objects.

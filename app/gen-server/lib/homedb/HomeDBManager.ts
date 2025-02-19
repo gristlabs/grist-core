@@ -5,7 +5,7 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Deps, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -109,6 +109,15 @@ export const NotifierEvents = StringUnion(
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
+
+export const Deps = {
+  DEFAULT_MAX_NEW_USER_INVITES_PER_ORG: appSettings.section('features')
+  .flag('maxNewUserInvitesPerOrg')
+  .readInt({
+    envVar: 'GRIST_MAX_NEW_USER_INVITES_PER_ORG',
+    minValue: 1
+  }),
+};
 
 const AuditLoggerEvents = StringUnion(
   'streamingDestinationsChange',
@@ -3635,17 +3644,21 @@ export class HomeDBManager extends EventEmitter {
   }) {
     const { orgKey, analysis, billingAccount, manager } = options;
     const { foundUserDelta, foundUsers, notFoundUserDelta } = analysis;
+
+    const max =
+      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
+        Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
+    if (max === undefined) { return; }
+
     const newUsers = foundUsers.filter(
       (user) => user.isFirstTimeUser && foundUserDelta?.[user.id]
     );
+
     const delta = size(notFoundUserDelta) + newUsers.length;
     if (!delta) {
       return;
     }
 
-    const max =
-      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
-      Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
     const current = await this.getNewUserInvitesCount(orgKey, {
       excludedUserIds: newUsers.map((user) => user.id),
       transaction: manager,

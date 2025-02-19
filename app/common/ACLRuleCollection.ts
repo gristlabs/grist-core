@@ -183,10 +183,29 @@ export class ACLRuleCollection {
   }
 
   /**
-   * Update granular access from DocData.
+   * Update granular access from DocData. Try hard not to throw
+   * exceptions, reporting problems via this.ruleError. If we
+   * throw an exception, document recovery mode won't work.
    */
   public async update(docData: DocData, options: ReadAclOptions) {
-    const {ruleSets, userAttributes} = this._safeReadAclRules(docData, options);
+    this.ruleError = undefined;
+    try {
+      await this.updateWithExceptions(docData, options);
+    } catch (e) {
+      this.ruleError = e;  // Report the error indirectly.
+      await this.updateWithExceptions(docData, {
+        ...options,
+        emergency: true,
+      });
+    }
+  }
+
+  /**
+   * Update granular access from DocData. Throw exceptions on
+   * some failures.
+   */
+  public async updateWithExceptions(docData: DocData, options: ReadAclOptions) {
+    const {ruleSets, userAttributes} = this._readAclRules(docData, options);
 
     // Build a map of user characteristics rules.
     const userAttributeMap = new Map<string, UserAttributeRule>();
@@ -369,14 +388,13 @@ export class ACLRuleCollection {
     return problems;
   }
 
-  private _safeReadAclRules(docData: DocData, options: ReadAclOptions): ReadAclResults {
-    try {
-      this.ruleError = undefined;
-      return readAclRules(docData, options);
-    } catch (e) {
-      this.ruleError = e;  // Report the error indirectly.
-      return {ruleSets: [EMERGENCY_RULE_SET], userAttributes: []};
-    }
+  private _readAclRules(docData: DocData, options: ReadAclOptions): ReadAclResults {
+    const emergencyResult: ReadAclResults = {
+      ruleSets: [EMERGENCY_RULE_SET],
+      userAttributes: [],
+    };
+    if (options.emergency) { return emergencyResult; }
+    return readAclRules(docData, options);
   }
 }
 
@@ -395,6 +413,9 @@ export interface ReadAclOptions {
   // fictitious '*SPECIAL:SchemaEdit' resource. This is used only on the client, to present
   // schemaEdit as a separate checkbox. Such rules are saved back to the '*:*' resource.
   pullOutSchemaEdit?: boolean;
+
+  // If true, replace rules with the emergency rule set.
+  emergency?: boolean;
 }
 
 export interface ReadAclResults {
