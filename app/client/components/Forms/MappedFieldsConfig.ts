@@ -10,7 +10,7 @@ import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 
 import * as ko from 'knockout';
 
 const testId = makeTestId('test-vfc-');
-const t = makeT('VisibleFieldsConfig');
+const t = makeT('MappedFieldsConfig');
 
 /**
  * This is a component used in the RightPanel. It replaces hidden fields section on other views, and adds
