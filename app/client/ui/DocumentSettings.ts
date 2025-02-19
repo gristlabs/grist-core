@@ -242,7 +242,7 @@ export class DocSettingsPage extends Disposable {
       // active doc has a chance to send us updates about the transfer.
       await this._gristDoc.docApi.setAttachmentStore(type);
     });
-    const storageOptions = [{value: INTERNAL, label: 'Internal'}, {value: EXTERNAL, label: 'External'}];
+    const storageOptions = [{value: INTERNAL, label: t('Internal')}, {value: EXTERNAL, label: t('External')}];
 
     const transfer = this._gristDoc.attachmentTransfer;
     const locationSummary = Computed.create(this, use => use(transfer)?.locationSummary);
