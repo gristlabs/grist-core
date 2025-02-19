@@ -11,6 +11,7 @@ import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
 import {AccessLevel, ICustomWidget, matchWidget, WidgetAuthor} from 'app/common/CustomWidget';
+import {userTrustsCustomWidget} from 'app/client/ui/userTrustsCustomWidget';
 import {commonUrls} from 'app/common/gristUrls';
 import {bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled} from 'grainjs';
 import escapeRegExp from 'lodash/escapeRegExp';
@@ -311,8 +312,15 @@ class CustomWidgetGallery extends Disposable {
   private async _save() {
     if (this._saveDisabled.get()) { return; }
 
-    await this._saveSelectedWidget();
-    this._ctl.close();
+    // warn user of the risk of using a custom URL widget before actually saving it
+    const widgetIsTrusted = this._selectedWidgetId.get() === CUSTOM_URL_WIDGET_ID
+      ? await userTrustsCustomWidget()
+      : true;
+
+    if (widgetIsTrusted) {
+      await this._saveSelectedWidget();
+      this._ctl.close();
+    }
   }
 
   private async _deselectOrClose() {

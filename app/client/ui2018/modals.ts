@@ -141,6 +141,8 @@ export interface IModalOptions {
   noClickAway?: boolean;
   // DOM arguments to pass to the modal backer.
   backerDomArgs?: DomElementArg[];
+  // Function called when the user cancels the modal (esc key or clicking outside)
+  onCancel?: () => any;
   // If given, call and wait for this before closing the dialog. If it returns false, don't close.
   // Error also prevents closing, and is reported as an unexpected error.
   beforeClose?: () => Promise<boolean>;
@@ -233,7 +235,10 @@ export function modal(
     dom.create((owner) => {
       const focus = () => dialogDom.focus();
       const ctl = ModalControl.create(owner, doClose, focus);
-      close = () => ctl.close();
+      close = () => {
+        ctl.close();
+        options.onCancel?.();
+      };
 
       dialogDom = cssModalDialog(
         createFn(ctl, owner),
@@ -327,7 +332,10 @@ export function saveModal(
         ),
         options.extraButtons,
         options.hideCancel ? null : bigBasicButton(t("Cancel"),
-          dom.on('click', () => ctl.close()),
+          dom.on('click', () => {
+            ctl.close();
+            modalOptions?.onCancel?.();
+          }),
           testId('modal-cancel'),
         ),
       ),
@@ -420,7 +428,7 @@ export function promptModal(
   btnText?: string,
   initial?: string,
   placeholder?: string,
-  onCancel?: () => void
+  onCancel?: () => any
 ): void {
   saveModal((ctl, owner): ISaveModalOptions => {
     let confirmed = false;
