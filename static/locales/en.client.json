@@ -382,7 +382,8 @@
         "Preferred storage for this document": "Preferred storage for this document",
         "Start transfer": "Start transfer",
         "External": "External",
-        "Internal": "Internal"
+        "Internal": "Internal",
+        "Transfer in progress": "Transfer in progress"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
