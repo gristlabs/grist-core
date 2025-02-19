@@ -209,6 +209,8 @@ did the hard work of making a good chunk of the application localizable. Merci b
 <img src="https://hosted.weblate.org/widgets/grist/-/open-graph.png" alt="Translation status" width=480 />
 </a>
 
+[![Translation detail](https://hosted.weblate.org/widgets/grist/-/multi-green.svg)](https://hosted.weblate.org/engage/grist/)
+
 ## Why free and open source software
 
 This repository, `grist-core`, is maintained by Grist Labs. Our flagship product available at [getgrist.com](https://www.getgrist.com) is built from the code you see here, combined with business-specific software designed to scale to many users, handle billing, etc.
