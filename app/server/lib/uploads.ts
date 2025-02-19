@@ -432,7 +432,7 @@ export async function fetchDoc(
   // Copying as a template is fine, as no attachments will be copied.
   if (!template) {
     const transferStatusResponse = await fetch(
-      new URL(`/api/docs/${docId}/attachments/transferStatus`, apiBaseUrl).href,
+      new URL(`api/docs/${docId}/attachments/transferStatus`, apiBaseUrl).href,
       {
         headers: {
           ...headers,

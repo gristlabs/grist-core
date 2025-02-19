@@ -64,17 +64,15 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
 }
 
 function makeAnonIntro(homeModel: HomeModel) {
-  const welcomeToGrist = css.stickyHeader(
-    cssHeader(
-      t("Welcome to Grist!"),
-      testId('welcome-title'),
+  return [
+    css.stickyHeader(
+      cssHeader(
+        t("Welcome to Grist!"),
+        testId('welcome-title'),
+      ),
     ),
-  );
-
-  return cssIntro(
-    welcomeToGrist,
     dom.create(buildHomeIntroCards, {homeModel}),
-  );
+  ];
 }
 
 function buildPreferencesMenu(homeModel: HomeModel) {
@@ -100,10 +98,6 @@ function buildPreferencesMenu(homeModel: HomeModel) {
     testId('welcome-menu'),
   );
 }
-
-const cssIntro = styled('div', `
-  margin-bottom: 24px;
-`);
 
 const cssHeader = styled(css.listHeaderNoWrap, `
   font-size: 24px;

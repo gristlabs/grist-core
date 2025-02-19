@@ -160,8 +160,12 @@ describe('GranularAccess', function() {
     }
     cliEditor = await getWebsocket(editor);
     cliOwner = await getWebsocket(owner);
-    await cliEditor.openDocOnConnect(docId);
-    await cliOwner.openDocOnConnect(docId);
+    try {
+      await cliEditor.openDocOnConnect(docId);
+      await cliOwner.openDocOnConnect(docId);
+    } catch (_e) {
+      // doc may be unusable
+    }
   }
 
   // Reopen clients in a different mode (e.g. default vs fork), or in a different order
@@ -4113,6 +4117,16 @@ describe('GranularAccess', function() {
       assert.notEqual(shares[0].doc_id, shares[1].doc_id);
       await removeShares(docId, owner);
       await removeShares(copyDocId, owner);
+    });
+
+    // There was a bug where some access rules were so bad recovery mode
+    // couldn't start.
+    it('can recover from certain bad access rules', async function() {
+      await freshDoc('BadRules.grist');
+      await assert.isRejected(owner.getDocAPI(docId).getRows('Table1'),
+                              /Invalid duplicate default rule for Table1/);
+      await owner.getDocAPI(docId).recover(true);
+      await assert.isFulfilled(owner.getDocAPI(docId).getRows('Table1'));
     });
   });
 });
