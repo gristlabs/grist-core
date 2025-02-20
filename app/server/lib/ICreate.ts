@@ -1,11 +1,15 @@
 import {GristDeploymentType} from 'app/common/gristUrls';
+import {
+  AttachmentStoreCreationError,
+  ExternalStorageAttachmentStore, storageSupportsAttachments
+} from 'app/server/lib/AttachmentStore';
 import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {IAttachmentStore} from 'app/server/lib/AttachmentStore';
 import {DocStorageManager} from 'app/server/lib/DocStorageManager';
-import {ExternalStorage, ExternalStorageCreator} from 'app/server/lib/ExternalStorage';
+import {ExternalStorage, ExternalStorageCreator, UnsupportedPurposeError} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
@@ -177,9 +181,39 @@ export class BaseCreate implements ICreate {
   public getStorageOptions(name: string) {
     return this._storage.find(s => s.name === name);
   }
+
   public getAttachmentStoreOptions() {
-    return {};
+    return {
+      // 'snapshots' provider uses the ExternalStorage provider set up for doc snapshots for attachments
+      snapshots: {
+        name: 'snapshots',
+        isAvailable: async () => {
+          try {
+            const storage = this.ExternalStorage('attachments', '');
+            return storage ? storageSupportsAttachments(storage) : false;
+          } catch(e) {
+            if (e instanceof UnsupportedPurposeError) {
+              return false;
+            }
+            throw e;
+          }
+        },
+        create: async (storeId: string) => {
+          const storage = this.ExternalStorage('attachments', '');
+          // This *should* always pass due to the `isAvailable` check above being run earlier.
+          if (!(storage && storageSupportsAttachments(storage))) {
+            throw new AttachmentStoreCreationError('snapshots', storeId,
+                                                   'External storage does not support attachments');
+          }
+          return new ExternalStorageAttachmentStore(
+            storeId,
+            storage,
+          );
+        }
+      }
+    };
   }
+
   public async createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin> {
     return new SimpleInstallAdmin(dbManager);
   }

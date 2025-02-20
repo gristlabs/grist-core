@@ -11,6 +11,7 @@ import {delay} from 'bluebird';
 import * as chai from 'chai';
 import fromPairs = require('lodash/fromPairs');
 import pick = require('lodash/pick');
+import moment from 'moment';
 import * as sinon from 'sinon';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {configForUser} from 'test/gen-server/testUtils';
@@ -437,7 +438,7 @@ describe('ApiServerAccess', function() {
 
       // Set the default limit to 2 and check that new invites are blocked.
       sandbox
-        .stub(HomeDBManagerDeps, "DEFAULT_MAX_NEW_USER_INVITES_PER_ORG")
+        .stub(HomeDBManagerDeps.defaultMaxNewUserInvitesPerOrg, "value")
         .value(2);
       await checkAccessChange(
         { orgId: orgId2 },
@@ -474,6 +475,30 @@ describe('ApiServerAccess', function() {
         },
         { status: 200, data: null }
       );
+
+      // Check that only users created in the last 24 hours are counted.
+      const oldUser = await dbManager.getUserByLogin("user+old@example.com");
+      oldUser.createdAt = moment().subtract(24, "hours").add(1, "minute").toDate();
+      await oldUser.save();
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          "user+old@example.com": "editors",
+        },
+        {
+          status: 403,
+          data: { error: "Your site has too many pending invitations" },
+        }
+      );
+      oldUser.createdAt = moment().subtract(24, "hours").toDate();
+      await oldUser.save();
+      await checkAccessChange(
+        { orgId: orgId2 },
+        {
+          "user+old@example.com": "editors",
+        },
+        { status: 200, data: null }
+      );
     } finally {
       await checkAccessChange(
         { orgId },
@@ -495,6 +520,7 @@ describe('ApiServerAccess', function() {
           "user4@example.com": null,
           [kiwiEmail]: null,
           "user5@example.com": null,
+          "user+old@example.com": null,
         },
         { status: 200, data: null }
       );
