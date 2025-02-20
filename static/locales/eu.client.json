@@ -1919,5 +1919,13 @@
         "Reset icon": "Berrezarri ikonoa",
         "Choose color": "Aukeratu kolorea",
         "Choose icon": "Aukeratu ikonoa"
+    },
+    "RightPanelUtils": {
+        "Fields_one": "Eremuak",
+        "Columns_one": "Zutabeak",
+        "Columns_other": "Zutabeak",
+        "Fields_other": "Eremuak",
+        "Series_one": "Serieak",
+        "Series_other": "Serieak"
     }
 }
