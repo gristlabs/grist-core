@@ -255,81 +255,324 @@ For more on Grist Labs' history and principles, see our [About Us](https://www.g
 
 Grist can be configured in many ways. Here are the main environment variables it is sensitive to:
 
-| Variable                           | Purpose                                                                                                                                                                                                                                                                                                                                                       |
-|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ALLOWED_WEBHOOK_DOMAINS            | comma-separated list of permitted domains to use in webhooks (e.g. webhook.site,zapier.com). You can set this to `*` to allow all domains, but if doing so, we recommend using a carefully locked-down proxy (see `GRIST_HTTPS_PROXY`) if you do not entirely trust users. Otherwise services on your internal network may become vulnerable to manipulation. |
-| APP_DOC_URL                        | doc worker url, set when starting an individual doc worker (other servers will find doc worker urls via redis)                                                                                                                                                                                                                                                |
-| APP_DOC_INTERNAL_URL               | like `APP_DOC_URL` but used by the home server to reach the server using an internal domain name resolution (like in a docker environment). It only makes sense to define this value in the doc worker. Defaults to `APP_DOC_URL`.                                                                                                                            |
-| APP_HOME_URL                       | url prefix for home api (home and doc servers need this)                                                                                                                                                                                                                                                                                                      |
-| APP_HOME_INTERNAL_URL              | like `APP_HOME_URL` but used by the home and the doc servers to reach any home workers using an internal domain name resolution (like in a docker environment). Defaults to `APP_HOME_URL`                                                                                                                                                                    |
-| APP_STATIC_URL                     | url prefix for static resources                                                                                                                                                                                                                                                                                                                               |
-| APP_STATIC_INCLUDE_CUSTOM_CSS      | set to "true" to include custom.css (from APP_STATIC_URL) in static pages                                                                                                                                                                                                                                                                                     |
-| APP_UNTRUSTED_URL                  | URL at which to serve/expect plugin content.                                                                                                                                                                                                                                                                                                                  |
-| GRIST_ACTION_HISTORY_MAX_ROWS      | Maximum number of rows allowed in ActionHistory before pruning (up to a 1.25 grace factor). Defaults to 1000. ⚠️ A too low value may make the "[Work on a copy](https://support.getgrist.com/newsletters/2021-06/#work-on-a-copy)" feature [malfunction](https://github.com/gristlabs/grist-core/issues/1121#issuecomment-2248112023)                         |
-| GRIST_ACTION_HISTORY_MAX_BYTES     | Maximum number of rows allowed in ActionHistory before pruning (up to a 1.25 grace factor). Defaults to 1Gb. ⚠️ A too low value may make the "[Work on a copy](https://support.getgrist.com/newsletters/2021-06/#work-on-a-copy)" feature [malfunction](https://github.com/gristlabs/grist-core/issues/1121#issuecomment-2248112023)                          |
-| GRIST_ADAPT_DOMAIN                 | set to "true" to support multiple base domains (careful, host header should be trustworthy)                                                                                                                                                                                                                                                                   |
-| GRIST_APP_ROOT                     | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories).                                                                                                                                                                                                                                                           |
-| GRIST_BACKUP_DELAY_SECS            | wait this long after a doc change before making a backup                                                                                                                                                                                                                                                                                                      |
-| GRIST_BOOT_KEY                     | if set, offer diagnostics at /boot/GRIST_BOOT_KEY                                                                                                                                                                                                                                                                                                             |
-| GRIST_DATA_DIR                     | Directory in which to store documents. Defaults to `docs/` relative to the Grist application directory. In Grist's default Docker image, its default value is /persist/docs so that it will be used as a mounted volume.                                                                                                                                      |
-| GRIST_DEFAULT_EMAIL                | if set, login as this user if no other credentials presented                                                                                                                                                                                                                                                                                                  |
-| GRIST_DEFAULT_PRODUCT              | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts.                                                                                                                                                                                                                                                          |
-| GRIST_DEFAULT_LOCALE               | Locale to use as fallback when Grist cannot honour the browser locale.                                                                                                                                                                                                                                                                                        |
-| GRIST_DOMAIN                       | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".                                                                                                                                                                                                                                                                 |
-| GRIST_EXPERIMENTAL_PLUGINS         | enables experimental plugins                                                                                                                                                                                                                                                                                                                                  |
-| GRIST_EXTERNAL_ATTACHMENTS_MODE    | required to enable external storage for attachments. Set to "snapshots" to enable external storage. Default value is "none". Note that when enabled, a [snapshot storage has to be configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots) as well.                                                                                 |
-| GRIST_ENABLE_REQUEST_FUNCTION      | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default.                                            |
-| GRIST_HIDE_UI_ELEMENTS             | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.                                                                                  |
-| GRIST_HOST                         | hostname to use when listening on a port.                                                                                                                                                                                                                                                                                                                     |
-| GRIST_HTTPS_PROXY                  | if set, use this proxy for webhook payload delivery or fetching custom widgets repository from url.                                                                                                                                                                                                                                                           |
-| GRIST_ID_PREFIX                    | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.                                                                                                                                                                                                                                                                                          |
-| GRIST_IGNORE_SESSION               | if set, Grist will not use a session for authentication.                                                                                                                                                                                                                                                                                                      |
-| GRIST_INCLUDE_CUSTOM_SCRIPT_URL    | if set, will load the referenced URL in a `<script>` tag on all app pages.                                                                                                                                                                                                                                                                                    |
-| GRIST_INST_DIR                     | path to Grist instance configuration files, for Grist server.                                                                                                                                                                                                                                                                                                 |
-| GRIST_LIST_PUBLIC_SITES            | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false.                                                                                                                                                                                                                                                           |
-| GRIST_MANAGED_WORKERS              | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone                                                                                                                                                                                                                                                            |
-| GRIST_MAX_NEW_USER_INVITES_PER_ORG | if set, limits the number of invites to new users per org. Once exceeded, additional invites are blocked until invited users log in for the first time or are uninvited                                                                                                                                                                                       |
-| GRIST_MAX_UPLOAD_ATTACHMENT_MB     | max allowed size for attachments (0 or empty for unlimited).                                                                                                                                                                                                                                                                                                  |
-| GRIST_MAX_UPLOAD_IMPORT_MB         | max allowed size for imports (except .grist files) (0 or empty for unlimited).                                                                                                                                                                                                                                                                                |
-| GRIST_OFFER_ALL_LANGUAGES          | if set, all translated langauages are offered to the user (by default, only languages with a special 'good enough' key set are offered to user).                                                                                                                                                                                                              |
-| GRIST_ORG_IN_PATH                  | if true, encode org in path rather than domain                                                                                                                                                                                                                                                                                                                |
-| GRIST_PAGE_TITLE_SUFFIX            | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all.                                                                                                                                                                                                                             |
-| ~GRIST_PROXY_AUTH_HEADER~          | Deprecated, and interpreted as a synonym for GRIST_FORWARD_AUTH_HEADER.                                                                                                                                                                                                                                                                                       |
-| GRIST_ROUTER_URL                   | optional url for an api that allows servers to be (un)registered with a load balancer                                                                                                                                                                                                                                                                         |
-| GRIST_SERVE_SAME_ORIGIN            | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy)                                                                                                                                                                             |
-| GRIST_SERVERS                      | the types of server to setup. Comma separated values which may contain "home", "docs", static" and/or "app". Defaults to "home,docs,static".                                                                                                                                                                                                                  |
-| GRIST_SESSION_COOKIE               | if set, overrides the name of Grist's cookie                                                                                                                                                                                                                                                                                                                  |
-| GRIST_SESSION_DOMAIN               | if set, associates the cookie with the given domain - otherwise defaults to GRIST_DOMAIN                                                                                                                                                                                                                                                                      |
-| GRIST_SESSION_SECRET               | a key used to encode sessions                                                                                                                                                                                                                                                                                                                                 |
-| GRIST_SKIP_BUNDLED_WIDGETS         | if set, Grist will ignore any bundled widgets included via NPM packages.                                                                                                                                                                                                                                                                                      |
-| GRIST_ANON_PLAYGROUND              | When set to `false` deny anonymous users access to the home page (but documents can still be shared to anonymous users). Defaults to `true`.                                                                                                                                                                                                                  |
-| GRIST_FORCE_LOGIN                  | Setting it to `true` is similar to setting `GRIST_ANON_PLAYGROUND: false` but it blocks any anonymous access (thus any document shared publicly actually requires the users to be authenticated before consulting them)                                                                                                                                       |
-| GRIST_SINGLE_ORG                   | set to an org "domain" to pin client to that org                                                                                                                                                                                                                                                                                                              |
-| GRIST_TEMPLATE_ORG                 | set to an org "domain" to show public docs from that org                                                                                                                                                                                                                                                                                                      |
-| GRIST_HELP_CENTER                  | set the help center link ref                                                                                                                                                                                                                                                                                                                                  |
-| GRIST_TERMS_OF_SERVICE_URL         | if set, adds terms of service link                                                                                                                                                                                                                                                                                                                            |
-| FREE_COACHING_CALL_URL             | set the link to the human help (example: email adress or meeting scheduling tool)                                                                                                                                                                                                                                                                             |
-| GRIST_CONTACT_SUPPORT_URL          | set the link to contact support on error pages (example: email adress or online form)                                                                                                                                                                                                                                                                         |
-| GRIST_SUPPORT_ANON                 | if set to 'true', show UI for anonymous access (not shown by default)                                                                                                                                                                                                                                                                                         |
-| GRIST_SUPPORT_EMAIL                | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.                                                                                                                                                                                         |
-| GRIST_OPEN_GRAPH_PREVIEW_IMAGE     | the URL of the preview image when sharing the link on websites like social medias or chat applications.                                                                                                                                                                                                                                                       |
-| GRIST_TELEMETRY_LEVEL              | the telemetry level. Can be set to: `off` (default), `limited`, or `full`.                                                                                                                                                                                                                                                                                    |
-| GRIST_THROTTLE_CPU                 | if set, CPU throttling is enabled                                                                                                                                                                                                                                                                                                                             |
-| GRIST_TRUST_PLUGINS                | if set, plugins are expect to be served from the same host as the rest of the Grist app, rather than from a distinct host. Ordinarily, plugins are served from a distinct host so that the cookies used by the Grist app are not automatically available to them. Enable this only if you understand the security implications.                               |
-| GRIST_USER_ROOT                    | an extra path to look for plugins in - Grist will scan for plugins in `$GRIST_USER_ROOT/plugins`.                                                                                                                                                                                                                                                             |
-| GRIST_UI_FEATURES                  | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.                                                                                    |
-| GRIST_UNTRUSTED_PORT               | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL.                                                                                                                                                                                                                                                      |
-| GRIST_WIDGET_LIST_URL              | a url pointing to a widget manifest, by default https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json is used                                                                                                                                                                                                                    |
-| GRIST_LOG_HTTP                     | When set to `true`, log HTTP requests and responses information. Defaults to `false`.                                                                                                                                                                                                                                                                         |
-| GRIST_LOG_HTTP_BODY                | When this variable and `GRIST_LOG_HTTP` are set to `true` , log the body along with the HTTP requests. :warning: Be aware it may leak confidential information in the logs.:warning: Defaults to `false`.                                                                                                                                                     |
-| COOKIE_MAX_AGE                     | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie                                                                                                                                                                                                                                                                 |
-| HOME_PORT                          | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.                                                                                                                                                                                                                                                     |
-| PORT                               | port number to listen on for Grist server                                                                                                                                                                                                                                                                                                                     |
-| REDIS_URL                          | optional redis server for browser sessions and db query caching                                                                                                                                                                                                                                                                                               |
-| GRIST_SNAPSHOT_TIME_CAP            | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}                                                                                                                                                                                                                                      |
-| GRIST_SNAPSHOT_KEEP                | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made                                                                                                                                                                                                                                              |
-| GRIST_PROMCLIENT_PORT              | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️.                                                                                                                                                                                                                       |
-| GRIST_ENABLE_SCIM                  | optional. If set, enable the [SCIM API Endpoint](https://support.getgrist.com/install/scim/) (experimental)                                                                                                                                                                                                                                                   |
+<dl>
+  <dt id="ALLOWED_WEBHOOK_DOMAINS">ALLOWED_WEBHOOK_DOMAINS</dt>
+  <dd>comma-separated list of permitted domains to use in webhooks (e.g.
+  webhook.site,zapier.com). You can set this to `*` to allow all
+  domains, but if doing so, we recommend using a carefully locked-down
+  proxy (see `GRIST_HTTPS_PROXY`) if you do not entirely trust users.
+  Otherwise services on your internal network may become vulnerable to
+  manipulation.</dd>
+
+  <dt id="APP_DOC_URL">APP_DOC_URL</dt>
+  <dd>doc worker url, set when starting an individual doc worker (other
+  servers will find doc worker urls via redis)</dd>
+
+  <dt id="APP_DOC_INTERNAL_URL">APP_DOC_INTERNAL_URL</dt>
+  <dd>like `APP_DOC_URL` but used by the home server to reach the server
+  using an internal domain name resolution (like in a docker
+  environment). It only makes sense to define this value in the doc
+  worker. Defaults to `APP_DOC_URL`.</dd>
+
+  <dt id="APP_HOME_URL">APP_HOME_URL</dt>
+  <dd>url prefix for home api (home and doc servers need this)</dd>
+
+  <dt id="APP_HOME_INTERNAL_URL">APP_HOME_INTERNAL_URL</dt>
+  <dd>like `APP_HOME_URL` but used by the home and the doc servers to
+  reach any home workers using an internal domain name resolution (like
+  in a docker environment). Defaults to `APP_HOME_URL`</dd>
+
+  <dt id="APP_STATIC_URL">APP_STATIC_URL</dt>
+  <dd>url prefix for static resources</dd>
+
+  <dt id="APP_STATIC_INCLUDE_CUSTOM_CSS">APP_STATIC_INCLUDE_CUSTOM_CSS</dt>
+  <dd>set to "true" to include custom.css (from APP_STATIC_URL) in
+  static pages</dd>
+
+  <dt id="APP_UNTRUSTED_URL">APP_UNTRUSTED_URL</dt>
+  <dd>URL at which to serve/expect plugin content.</dd>
+
+  <dt id="GRIST_ACTION_HISTORY_MAX_ROWS">GRIST_ACTION_HISTORY_MAX_ROWS</dt>
+  <dd>Maximum number of rows allowed in ActionHistory before pruning (up
+  to a 1.25 grace factor). Defaults to 1000. ⚠️ A too low value may make
+  the "[Work on a
+  copy](https://support.getgrist.com/newsletters/2021-06/#work-on-a-copy)"
+  feature
+  [malfunction](https://github.com/gristlabs/grist-core/issues/1121#issuecomment-2248112023)</dd>
+
+  <dt id="GRIST_ACTION_HISTORY_MAX_BYTES">GRIST_ACTION_HISTORY_MAX_BYTES</dt>
+  <dd>Maximum number of rows allowed in ActionHistory before pruning (up
+  to a 1.25 grace factor). Defaults to 1Gb. ⚠️ A too low value may make
+  the "[Work on a
+  copy](https://support.getgrist.com/newsletters/2021-06/#work-on-a-copy)"
+  feature
+  [malfunction](https://github.com/gristlabs/grist-core/issues/1121#issuecomment-2248112023)</dd>
+
+  <dt id="GRIST_ADAPT_DOMAIN">GRIST_ADAPT_DOMAIN</dt>
+  <dd>set to "true" to support multiple base domains (careful, host
+  header should be trustworthy)</dd>
+
+  <dt id="GRIST_APP_ROOT">GRIST_APP_ROOT</dt>
+  <dd>directory containing Grist sandbox and assets (specifically the
+  sandbox and static subdirectories).</dd>
+
+  <dt id="GRIST_BACKUP_DELAY_SECS">GRIST_BACKUP_DELAY_SECS</dt>
+  <dd>wait this long after a doc change before making a backup</dd>
+
+  <dt id="GRIST_BOOT_KEY">GRIST_BOOT_KEY</dt>
+  <dd>if set, offer diagnostics at /boot/GRIST_BOOT_KEY</dd>
+
+  <dt id="GRIST_DATA_DIR">GRIST_DATA_DIR</dt>
+  <dd>Directory in which to store documents. Defaults to `docs/`
+  relative to the Grist application directory. In Grist's default Docker
+  image, its default value is /persist/docs so that it will be used as a
+  mounted volume.</dd>
+
+  <dt id="GRIST_DEFAULT_EMAIL">GRIST_DEFAULT_EMAIL</dt>
+  <dd>if set, login as this user if no other credentials presented</dd>
+
+  <dt id="GRIST_DEFAULT_PRODUCT">GRIST_DEFAULT_PRODUCT</dt>
+  <dd>if set, this controls enabled features and limits of new sites.
+  See names of PRODUCTS in Product.ts.</dd>
+
+  <dt id="GRIST_DEFAULT_LOCALE">GRIST_DEFAULT_LOCALE</dt>
+  <dd>Locale to use as fallback when Grist cannot honour the browser
+  locale.</dd>
+
+  <dt id="GRIST_DOMAIN">GRIST_DOMAIN</dt>
+  <dd>in hosted Grist, Grist is served from subdomains of this domain.
+  Defaults to "getgrist.com".</dd>
+
+  <dt id="GRIST_EXPERIMENTAL_PLUGINS">GRIST_EXPERIMENTAL_PLUGINS</dt>
+  <dd>enables experimental plugins</dd>
+
+  <dt id="GRIST_EXTERNAL_ATTACHMENTS_MODE">GRIST_EXTERNAL_ATTACHMENTS_MODE</dt>
+  <dd>required to enable external storage for attachments. Set to
+  "snapshots" to enable external storage. Default value is "none". Note
+  that when enabled, a [snapshot storage has to be
+  configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots)
+  as well.</dd>
+
+  <dt id="GRIST_ENABLE_REQUEST_FUNCTION">GRIST_ENABLE_REQUEST_FUNCTION</dt>
+  <dd>enables the REQUEST function. This function performs HTTP requests
+  in a similar way to `requests.request`. This function presents a
+  significant security risk, since it can let users call internal
+  endpoints when Grist is available publicly. This function can also
+  cause performance issues. Unset by default.</dd>
+
+  <dt id="GRIST_HIDE_UI_ELEMENTS">GRIST_HIDE_UI_ELEMENTS</dt>
+  <dd>comma-separated list of UI features to disable. Allowed names of
+  parts: `helpCenter`, `billing`, `templates`, `createSite`,
+  `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`,
+  `supportGrist`. If a part also exists in GRIST_UI_FEATURES, it will
+  still be disabled.</dd>
+
+  <dt id="GRIST_HOST">GRIST_HOST</dt>
+  <dd>hostname to use when listening on a port.</dd>
+
+  <dt id="GRIST_HTTPS_PROXY">GRIST_HTTPS_PROXY</dt>
+  <dd>if set, use this proxy for webhook payload delivery or fetching
+  custom widgets repository from url.</dd>
+
+  <dt id="GRIST_ID_PREFIX">GRIST_ID_PREFIX</dt>
+  <dd>for subdomains of form o-*, expect or produce
+  o-${GRIST_ID_PREFIX}*.</dd>
+
+  <dt id="GRIST_IGNORE_SESSION">GRIST_IGNORE_SESSION</dt>
+  <dd>if set, Grist will not use a session for authentication.</dd>
+
+  <dt id="GRIST_INCLUDE_CUSTOM_SCRIPT_URL">GRIST_INCLUDE_CUSTOM_SCRIPT_URL</dt>
+  <dd>if set, will load the referenced URL in a `<script>` tag on all
+  app pages.</dd>
+
+  <dt id="GRIST_INST_DIR">GRIST_INST_DIR</dt>
+  <dd>path to Grist instance configuration files, for Grist server.</dd>
+  <!--  -->
+  <dt id="GRIST_LIST_PUBLIC_SITES">GRIST_LIST_PUBLIC_SITES</dt>
+  <dd>if set to true, sites shared with the public will be listed for
+  anonymous users. Defaults to false.</dd>
+
+  <dt id="GRIST_MANAGED_WORKERS">GRIST_MANAGED_WORKERS</dt>
+  <dd>if set, Grist can assume that if a url targeted at a doc worker
+  returns a 404, that worker is gone</dd>
+
+  <dt id="GRIST_MAX_NEW_USER_INVITES_PER_ORG">GRIST_MAX_NEW_USER_INVITES_PER_ORG</dt>
+  <dd>if set, limits the number of invites to new users per org. Once
+  exceeded, additional invites are blocked until invited users log in
+  for the first time or are uninvited</dd>
+
+  <dt id="GRIST_MAX_UPLOAD_ATTACHMENT_MB">GRIST_MAX_UPLOAD_ATTACHMENT_MB</dt>
+  <dd>max allowed size for attachments (0 or empty for unlimited).</dd>
+
+  <dt id="GRIST_MAX_UPLOAD_IMPORT_MB">GRIST_MAX_UPLOAD_IMPORT_MB</dt>
+  <dd>max allowed size for imports (except .grist files) (0 or empty for
+  unlimited).</dd>
+
+  <dt id="GRIST_OFFER_ALL_LANGUAGES">GRIST_OFFER_ALL_LANGUAGES</dt>
+  <dd>if set, all translated langauages are offered to the user (by
+  default, only languages with a special 'good enough' key set are
+  offered to user).</dd>
+
+  <dt id="GRIST_ORG_IN_PATH">GRIST_ORG_IN_PATH</dt>
+  <dd>if true, encode org in path rather than domain</dd>
+
+  <dt id="GRIST_PAGE_TITLE_SUFFIX">GRIST_PAGE_TITLE_SUFFIX</dt>
+  <dd>a string to append to the end of the `<title>` in HTML documents.
+  Defaults to `" - Grist"`. Set to `_blank` for no suffix at all.</dd>
+
+  <dt id="~GRIST_PROXY_AUTH_HEADER~">~GRIST_PROXY_AUTH_HEADER~</dt>
+  <dd>Deprecated, and interpreted as a synonym for
+  GRIST_FORWARD_AUTH_HEADER.</dd>
+
+  <dt id="GRIST_ROUTER_URL">GRIST_ROUTER_URL</dt>
+  <dd>optional url for an api that allows servers to be (un)registered
+  with a load balancer</dd>
+
+  <dt id="GRIST_SERVE_SAME_ORIGIN">GRIST_SERVE_SAME_ORIGIN</dt>
+  <dd>set to "true" to access home server and doc workers on the same
+  protocol-host-port as the top-level page, same as for custom domains
+  (careful, host header should be trustworthy)</dd>
+
+  <dt id="GRIST_SERVERS">GRIST_SERVERS</dt>
+  <dd>the types of server to setup. Comma separated values which may
+  contain "home", "docs", static" and/or "app". Defaults to
+  "home,docs,static".</dd>
+
+  <dt id="GRIST_SESSION_COOKIE">GRIST_SESSION_COOKIE</dt>
+  <dd>if set, overrides the name of Grist's cookie</dd>
+
+  <dt id="GRIST_SESSION_DOMAIN">GRIST_SESSION_DOMAIN</dt>
+  <dd>if set, associates the cookie with the given domain - otherwise
+  defaults to GRIST_DOMAIN</dd>
+
+  <dt id="GRIST_SESSION_SECRET">GRIST_SESSION_SECRET</dt>
+  <dd>a key used to encode sessions</dd>
+
+  <dt id="GRIST_SKIP_BUNDLED_WIDGETS">GRIST_SKIP_BUNDLED_WIDGETS</dt>
+  <dd>if set, Grist will ignore any bundled widgets included via NPM
+  packages.</dd>
+
+  <dt id="GRIST_ANON_PLAYGROUND">GRIST_ANON_PLAYGROUND</dt>
+  <dd>When set to `false` deny anonymous users access to the home page
+  (but documents can still be shared to anonymous users). Defaults to
+  `true`.</dd>
+
+  <dt id="GRIST_FORCE_LOGIN">GRIST_FORCE_LOGIN</dt>
+  <dd>Setting it to `true` is similar to setting `GRIST_ANON_PLAYGROUND:
+  false` but it blocks any anonymous access (thus any document shared
+  publicly actually requires the users to be authenticated before
+  consulting them)</dd>
+
+  <dt id="GRIST_SINGLE_ORG">GRIST_SINGLE_ORG</dt>
+  <dd>set to an org "domain" to pin client to that org</dd>
+
+  <dt id="GRIST_TEMPLATE_ORG">GRIST_TEMPLATE_ORG</dt>
+  <dd>set to an org "domain" to show public docs from that org</dd>
+
+  <dt id="GRIST_HELP_CENTER">GRIST_HELP_CENTER</dt>
+  <dd>set the help center link ref</dd>
+
+  <dt id="GRIST_TERMS_OF_SERVICE_URL">GRIST_TERMS_OF_SERVICE_URL</dt>
+  <dd>if set, adds terms of service link</dd>
+
+  <dt id="FREE_COACHING_CALL_URL">FREE_COACHING_CALL_URL</dt>
+  <dd>set the link to the human help (example: email adress or meeting
+  scheduling tool)</dd>
+
+  <dt id="GRIST_CONTACT_SUPPORT_URL">GRIST_CONTACT_SUPPORT_URL</dt>
+  <dd>set the link to contact support on error pages (example: email
+  adress or online form)</dd>
+
+  <dt id="GRIST_SUPPORT_ANON">GRIST_SUPPORT_ANON</dt>
+  <dd>if set to 'true', show UI for anonymous access (not shown by
+  default)</dd>
+
+  <dt id="GRIST_SUPPORT_EMAIL">GRIST_SUPPORT_EMAIL</dt>
+  <dd>if set, give a user with the specified email support powers. The
+  main extra power is the ability to share sites, workspaces, and docs
+  with all users in a listed way.</dd>
+
+  <dt id="GRIST_OPEN_GRAPH_PREVIEW_IMAGE">GRIST_OPEN_GRAPH_PREVIEW_IMAGE</dt>
+  <dd>the URL of the preview image when sharing the link on websites
+  like social medias or chat applications.</dd>
+
+  <dt id="GRIST_TELEMETRY_LEVEL">GRIST_TELEMETRY_LEVEL</dt>
+  <dd>the telemetry level. Can be set to: `off` (default), `limited`, or
+  `full`.</dd>
+
+  <dt id="GRIST_THROTTLE_CPU">GRIST_THROTTLE_CPU</dt>
+  <dd>if set, CPU throttling is enabled</dd>
+
+  <dt id="GRIST_TRUST_PLUGINS">GRIST_TRUST_PLUGINS</dt>
+  <dd>if set, plugins are expect to be served from the same host as the
+  rest of the Grist app, rather than from a distinct host. Ordinarily,
+  plugins are served from a distinct host so that the cookies used by
+  the Grist app are not automatically available to them. Enable this
+  only if you understand the security implications.</dd>
+
+  <dt id="GRIST_USER_ROOT">GRIST_USER_ROOT</dt>
+  <dd>an extra path to look for plugins in - Grist will scan for plugins
+  in `$GRIST_USER_ROOT/plugins`.</dd>
+
+  <dt id="GRIST_UI_FEATURES">GRIST_UI_FEATURES</dt>
+  <dd>comma-separated list of UI features to enable. Allowed names of
+  parts: `helpCenter`, `billing`, `templates`, `createSite`,
+  `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`,
+  `supportGrist`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it
+  won't be enabled.</dd>
+
+  <dt id="GRIST_UNTRUSTED_PORT">GRIST_UNTRUSTED_PORT</dt>
+  <dd>if set, plugins will be served from the given port. This is an
+  alternative to setting APP_UNTRUSTED_URL.</dd>
+
+  <dt id="GRIST_WIDGET_LIST_URL">GRIST_WIDGET_LIST_URL</dt>
+  <dd>a url pointing to a widget manifest, by default
+  https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json
+  is used</dd>
+
+  <dt id="GRIST_LOG_HTTP">GRIST_LOG_HTTP</dt>
+  <dd>When set to `true`, log HTTP requests and responses information.
+  Defaults to `false`.</dd>
+
+  <dt id="GRIST_LOG_HTTP_BODY">GRIST_LOG_HTTP_BODY</dt>
+  <dd>When this variable and `GRIST_LOG_HTTP` are set to `true` , log
+  the body along with the HTTP requests. :warning: Be aware it may leak
+  confidential information in the logs.:warning: Defaults to
+  `false`.</dd>
+
+  <dt id="COOKIE_MAX_AGE">COOKIE_MAX_AGE</dt>
+  <dd>session cookie max age, defaults to 90 days; can be set to "none"
+  to make it a session cookie</dd>
+
+  <dt id="HOME_PORT">HOME_PORT</dt>
+  <dd>port number to listen on for REST API server; if set to "share",
+  add API endpoints to regular grist port.</dd>
+
+  <dt id="PORT">PORT</dt>
+  <dd>port number to listen on for Grist server</dd>
+
+  <dt id="REDIS_URL">REDIS_URL</dt>
+  <dd>optional redis server for browser sessions and db query
+  caching</dd>
+
+  <dt id="GRIST_SNAPSHOT_TIME_CAP">GRIST_SNAPSHOT_TIME_CAP</dt>
+  <dd>optional. Define the caps for tracking buckets. Usage: {"hour":
+  25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}</dd>
+
+  <dt id="GRIST_SNAPSHOT_KEEP">GRIST_SNAPSHOT_KEEP</dt>
+  <dd>optional. Number of recent snapshots to retain unconditionally for
+  a document, regardless of when they were made</dd>
+
+  <dt id="GRIST_PROMCLIENT_PORT">GRIST_PROMCLIENT_PORT</dt>
+  <dd>optional. If set, serve the Prometheus metrics on the specified
+  port number. ⚠️ Be sure to use a port which is not publicly exposed
+  ⚠️.</dd>
+
+  <dt id="GRIST_ENABLE_SCIM">GRIST_ENABLE_SCIM</dt>
+  <dd>optional. If set, enable the [SCIM API
+  Endpoint](https://support.getgrist.com/install/scim/)
+  (experimental)</dd>
+</dl>
 
 #### AI Formula Assistant related variables (all optional):
 
