@@ -10,6 +10,7 @@ import express from "express";
 import _ from "lodash";
 import {RequestWithLogin} from "app/server/lib/Authorizer";
 import { SendAppPageFunction } from "app/server/lib/sendAppPage";
+import {HttpProxyAgent} from "http-proxy-agent";
 
 const NOOPED_SEND_APP_PAGE: SendAppPageFunction = () => Promise.resolve();
 
@@ -197,7 +198,7 @@ describe('OIDCConfig', () => {
       [
         {
           itMsg: 'when omitted should not override openid-client default value',
-          expectedUserDefinedHttpOptions: {}
+          expectedUserDefinedHttpOptions: { }
         },
         {
           itMsg: 'should reject when the provided value is not a number',
@@ -240,6 +241,37 @@ describe('OIDCConfig', () => {
           }
         });
       });
+    });
+
+    describe('HTTPS_PROXY trusted proxy', function () {
+      const proxyURL = 'http://localhost-proxy:8080';
+      const httpAgent = new HttpProxyAgent(proxyURL);
+      [
+          {
+            itMsg: 'when omitted should not set proxyAgent to oidc-client',
+            expectedUserDefinedHttpOptions: { }
+          },
+          {
+            itMsg: 'should add proxyAgent to openid-client',
+            env: {
+              HTTPS_PROXY: proxyURL,
+            },
+            expectedUserDefinedHttpOptions: {
+              agent: httpAgent
+            }
+          }
+        ].forEach(ctx => {
+          it(ctx.itMsg, async () => {
+            const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
+            setEnvVars();
+            Object.assign(process.env, ctx.env);
+            const promise = OIDCConfigStubbed.buildWithStub();
+            await assert.isFulfilled(promise, 'initOIDC should have been fulfilled');
+            assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, 'Should have called custom.setHttpOptionsDefaults');
+            const actualHttpOptions = _.omit(setHttpOptionsDefaultsStub.firstCall.args[0], 'agent.callback');
+            assert.deepEqual(actualHttpOptions, ctx.expectedUserDefinedHttpOptions);
+          });
+        });
     });
   });
 
