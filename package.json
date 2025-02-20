@@ -121,6 +121,7 @@
     "@gristlabs/pidusage": "2.0.17",
     "@gristlabs/sqlite3": "5.1.4-grist.8",
     "@popperjs/core": "2.11.8",
+    "@types/zip-stream": "^7.0.0",
     "accept-language-parser": "1.5.0",
     "ace-builds": "1.23.3",
     "async-mutex": "0.2.4",
@@ -203,7 +204,8 @@
     "underscore": "1.12.1",
     "uuid": "10.0.0",
     "winston": "2.4.5",
-    "ws": "8.18.0"
+    "ws": "8.18.0",
+    "zip-stream": "^7.0.2"
   },
   "resolutions": {
     "**/ip": "https://registry.npmjs.org/neoip/-/neoip-2.1.0.tgz",
