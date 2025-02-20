@@ -476,7 +476,7 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   return [
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addNewPage(val).catch(reportError),
-                                     {isNewPage: true, buttonLabel: 'Add Page'}),
+                                     {isNewPage: true, buttonLabel: t('Add Page')}),
       menuIcon("Page"), t("Add Page"), testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
