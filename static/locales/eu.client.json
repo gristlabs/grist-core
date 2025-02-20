@@ -351,7 +351,7 @@
         "fiddle mode": "jolasteko modua",
         "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Dokumentua automatikoki irekitzen da {{fiddleModeDocUrl}}(e)n. Edonork edita dezake, eta gordeko ez den kopia bat sortuko du.",
         "Tutorial": "Tutoriala",
-        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Datu-motorra birkargatuko du. Lagundu dezake datu-motorra amaigabeko begizta batean trabatuta badago; azken aldaketa mugarik gabe prozesatzen ari bada; edo kraskatu bada. Ez da daturik galduko, unean egin gabe dauden ekintzak izan ezik.",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Datu-motorra guztiz birkargatuko du. Lagundu dezake datu-motorra amaigabeko begizta batean trabatuta badago; azken aldaketa prozesatzeari uzten ez badio; edo kraskatu bada. Ez da daturik galduko, unean egin gabe dauden ekintzak izan ezik.",
         "Document automatically opens as a user-specific copy.": "Dokumentua automatikoki irekitzen da erabiltzailearentzat kopia gisa.",
         "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Kronometratzen hasten zarenean, Gristek formula bakoitza ebaluatzeko zenbat denbora behar duen neurtuko du. Dokumentu bat lehen aldiz irekitzen denean (edo aldaketak egin dienean), errendimendua moteltzen duten formulak diagnostika ditzazke.",
         "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Klikatu \"Hasi lekualdaketa\" barneko biltegiratzera mugitzeko (dokumentuaren SQLite fitxategian gordeta).",
@@ -520,7 +520,7 @@
         "Sign in": "Hasi saioa",
         "To use Grist, please either sign up or sign in.": "Grist erabiltzeko eman izena edo hasi saioa.",
         "Visit our {{link}} to learn more about Grist.": "Bisitatu {{link}} Grist-i buruz gehiago ikasteko.",
-        "Help Center": "Laguntza Gunea",
+        "Help Center": "Laguntza-gunea",
         "Import Document": "Inportatu dokumentua",
         "Welcome to {{orgName}}": "Ongi etorri {{orgName}}(e)ra",
         "Sign up": "Eman izena",
@@ -554,7 +554,7 @@
         "Grist Resources": "Gristen baliabideak"
     },
     "LeftPanelCommon": {
-        "Help Center": "Laguntza Gunea"
+        "Help Center": "Laguntza-gunea"
     },
     "MakeCopyMenu": {
         "As Template": "Txantiloi gisa",
@@ -1050,7 +1050,7 @@
         "Configuring your document": "Dokumentua konfiguratzen",
         "Editing Data": "Datuak editatzen",
         "Enter": "Sartu",
-        "Help Center": "Laguntza Gunea",
+        "Help Center": "Laguntza-gunea",
         "Use the Share button ({{share}}) to share the document or export data.": "Erabili Partekatu botoia ({{share}}) dokumentua partekatu edo datuak esportatzeko.",
         "Welcome to Grist!": "Ongi etorri Grist-era!",
         "template library": "txantiloi liburutegia",
@@ -1352,14 +1352,14 @@
         "On": "Piztuta",
         "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Zure sarbidea kendu ondoren, ezingo duzu berreskuratu {{name}}(e)rako sarbide nahikoa duen beste norbaiten laguntzarik gabe.",
         "Public access": "Sarbide publikoa",
-        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Sarbide publikoak {{parent}}(r)en baimenak jasotzen ditu. Kentzeko, ezarri \"Jarauntsitako sarbidea\" \"Bat ere ez\" aukerara.",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Sarbide publikoak {{parent}}(r)en baimenak jasotzen ditu. Kentzeko, ezarri \"Jarauntsi sarbidea\" \"Bat ere ez\" aukerara.",
         "Public access: ": "Sarbide publikoa: ",
         "Remove my access": "Kendu nire sarbidea",
         "member": "kidea",
         "team site": "Taldearen gunea",
         "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitTop}}(e)tik {{limitAt}} {{collaborator}}",
         "{{collaborator}} limit exceeded": "{{collaborator}}-muga gainditu da",
-        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Erabiltzaileak {{parent}}(r)en baimenak jasotzen ditu. Kentzeko, ezarri \"Jarauntsitako sarbidea\" \"Bat ere ez\" aukerara.",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Erabiltzaileak {{parent}}(r)en baimenak jasotzen ditu. Kentzeko, ezarri \"Jarauntsi sarbidea\" \"Bat ere ez\" aukerara.",
         "Anyone with link ": "Esteka duen edonor ",
         "Cancel": "Utzi bertan behera",
         "Close": "Itxi",
@@ -1379,14 +1379,14 @@
         "guest": "gonbidatua",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Ez dago dokumentu indibidualetarako edo lan-guneetarako defektuzko-sarbiderik, lantaldearen gune osora baizik.",
         "You are about to remove your own access to this {{resourceType}}": "{{resourceType}} honetarako zure sarbidea ezabatzear zaude",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Erabiltzaileak {{parent}}(r)en baimenak jasotzen ditu. Kentzeko, ezarri \"Jarauntsitako sarbidea\" aukera \"Bat ere ez\" aukerara.",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Erabiltzaileak {{parent})}(r)en baimenak jasotzen ditu. Kentzeko, ezarri \"Jarauntsi sarbidea\" aukera \"Bat ere ez\" aukerara.",
         "free collaborator": "kolaboratzaile askea",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Zure sarbidea kendu ondoren, ezingo duzu berreskuratu {{resourceType}}(e)rako sarbide nahikoa duen beste norbaiten laguntzarik gabe.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Erabiltzaileak {{resource}}-rako bistarako sarbidea du, barneko baliabideetarako sarbidea eskuz ezartzearen ondorioz. Hemendik kenduz gero, barruan dauden baliabideetarako sarbidea galduko du.",
         "Inherit access: ": "Jarauntsi sarbidea: "
     },
     "SupportGristNudge": {
-        "Help Center": "Laguntza Gunea",
+        "Help Center": "Laguntza-gunea",
         "Opt in to Telemetry": "Bidali telemetria",
         "Support Grist": "Eman babesa Grist-i",
         "Support Grist page": "Grist-en laguntza orria",
@@ -1398,7 +1398,7 @@
     },
     "SupportGristPage": {
         "GitHub Sponsors page": "GitHub Sponsors orria",
-        "Help Center": "Laguntza Gunea",
+        "Help Center": "Laguntza-gunea",
         "Home": "Hasiera",
         "Support Grist": "Eman babesa Grist-i",
         "Telemetry": "Telemetria",
@@ -1747,8 +1747,8 @@
         "Grist Enterprise is **enabled**.": "Grist Enterprise **gaituta** dago.",
         "Disable Grist Enterprise": "Ezgaitu Grist Enterprise",
         "Enable Grist Enterprise": "Gaitu Grist Enterprise",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren ondoren Grist Enterprise exekutatzeko.\nEskuratu aktibazio-gako bat gaur bertan [gurekin harremanetan jarri]({{contactLink}})z.\nEz duzu aktibazio-gakorik behar Grist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren ondoren Grist Enterprise exekutatzeko.\nEskuratu aktibazio-gako bat gaur bertan [gurekin harremanetan jarri]({{contactLink}})z.\nEz duzu aktibazio-gakorik behar Grist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
         "Activate": "Aktibatu",
         "Copy to clipboard": "Kopiatu arlebera",
         "Activation key": "Aktibatzeko gakoa",
@@ -1758,13 +1758,15 @@
         "Paste your activation key": "Itsatsi aktibazio-gakoa",
         "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Grist Enterprise erabiltzen jarraitzeko harpidetza behar da.\nZure harpidetza aktiba dezakezu [Grist Enterprise]({{signupLink}})(e)n izena emanda\neta aktibazio-gakoa azpian itsatsita.",
         "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Aktibazio-gako bat erabiltzen da Grist Enterprise exekutatzeko\n        30 eguneko probaldia amaitu ondoren. Lortu aktibazio-gako bat\n        [Grist Enterprisen izena emanda]({{signupLink}}).\n        Ez duzu aktibazio-gakorik behar Grist Core exekutatzeko.",
-        "Learn more in our [Help Center]({{helpCenter}}).": "Informazio gehiago gure [Laguntza Gunea]({{helpCenter}})n.",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Informazio gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
         "Plan name": "Planaren izena",
         "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Grist Enterprise erabiltzen jarraitzeko,\n                  [gurekin harremanetan jarri]({{signupLink}}) behar duzu aktibazio-gakoa lortzeko.",
         "You are currently trialing Grist Enterprise.": "Une honetan Grist Enterprise probatzen ari zara.",
         "You do not have an active subscription.": "Ez duzu harpidetzarik aktibo.",
         "Your activation key has expired due to exceeding limits.": "Zure aktibazio-gakoa iraungi da mugak gainditzeagatik.",
-        "Your subscription expired on {{date}}.": "Zure harpidetza {{date}}(e)an iraungi zen."
+        "Your subscription expired on {{date}}.": "Zure harpidetza {{date}}(e)an iraungi zen.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Zure instantzia **bakarrik irakurketa** moduan egongo da **{{days}}** egun barru.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Probaldia **{{expireAt}}**(e)an iraungi da. Grist Enterprise erabiltzen jarraitzeko,\n[kontratatu Grist Enterprise]({{signupLink}}) eta itsatsi aktibazio-gakoa."
     },
     "ViewLayout": {
         "Delete data and this widget.": "Ezabatu datuak eta widgeta.",
@@ -1792,7 +1794,7 @@
         "Learn more about Custom Widgets": "Ikasi gehiago widget pertsonalizatuei buruz"
     },
     "HomeIntroCards": {
-        "Help center": "Laguntza gunea",
+        "Help center": "Laguntza-gunea",
         "Learn more {{webinarsLinks}}": "Ikasi gehiago {{webinarsLinks}}",
         "Start a new document": "Hasi dokuemntu berria",
         "Templates": "Txantiloiak",
@@ -1817,7 +1819,7 @@
     },
     "SupportGristButton": {
         "Close": "Itxi",
-        "Help Center": "Laguntza gunea",
+        "Help Center": "Laguntza-gunea",
         "Admin Panel": "Administratzailearen mahaigaina",
         "Support Grist": "Eman babesa Grist-i",
         "Opted In": "Telemetria bidaltzen da",

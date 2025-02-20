@@ -930,14 +930,14 @@ export class RightPanel extends Disposable {
     return [
       cssLabel(t("Submit button label")),
       cssRow(
-        cssTextInput(submitButton, (val) => submitButton.set(val), {placeholder: 'Submit'}),
+        cssTextInput(submitButton, (val) => submitButton.set(val), {placeholder: t('Submit')}),
       ),
       cssLabel(t("Success text")),
       cssRow(
         cssTextArea(
           successText,
           {autoGrow: true, save: (val) => successText.set(val)},
-          {placeholder: 'Thank you! Your response has been recorded.'}
+          {placeholder: t('Thank you! Your response has been recorded.')}
         ),
       ),
       cssLabel(t("Submit another response")),

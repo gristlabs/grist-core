@@ -3,5 +3,8 @@
         "Loading...": "Kargatzen…",
         "og-title": "Grist, kalkulu-orrien eboluzioa",
         "og-description": "Saretatik harago doana kode irekikoa kalkulu-orri modernoa"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "Egiaztatu zure posta elektronikoa identitate-hornitzailearekin, eta hasi saioa berriro."
     }
 }
