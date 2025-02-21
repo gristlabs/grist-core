@@ -54,7 +54,7 @@ describe('ApiServer', function() {
     charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user.ref);
 
     // Listen to user count updates and add them to an array.
-    dbManager.on('userChange', ({org, countBefore, countAfter}: UserChange) => {
+    server.server.onUserChange(async ({org, countBefore, countAfter}: UserChange) => {
       if (countBefore === countAfter) { return; }
       userCountUpdates[org.id] = userCountUpdates[org.id] || [];
       userCountUpdates[org.id].push(countAfter);

@@ -8,7 +8,7 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { HomeDBManager, UserChange } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';
@@ -37,6 +37,7 @@ import { IGristCoreConfig, loadGristCoreConfig } from "./configCore";
  */
 export interface GristServer {
   readonly create: ICreate;
+  readonly testPending: boolean;
   settings?: IGristCoreConfig;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
@@ -79,6 +80,8 @@ export interface GristServer {
   setRestrictedMode(restrictedMode?: boolean): void;
   getDocManager(): DocManager;
   isRestrictedMode(): boolean;
+  onUserChange(callback: (change: UserChange) => Promise<void>): void;
+  onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
 }
 
 export interface GristLoginSystem {
@@ -137,6 +140,7 @@ export interface DocTemplate {
 export function createDummyGristServer(): GristServer {
   return {
     create,
+    testPending: false,
     settings: loadGristCoreConfig(),
     getHost() { return 'localhost:4242'; },
     getHomeUrl() { return 'http://localhost:4242'; },
@@ -178,6 +182,8 @@ export function createDummyGristServer(): GristServer {
     setRestrictedMode() { /* do nothing */ },
     getDocManager() { throw new Error('no DocManager'); },
     isRestrictedMode() { return false; },
+    onUserChange() { /* do nothing */ },
+    onStreamingDestinationsChange() { /* do nothing */ },
   };
 }
 

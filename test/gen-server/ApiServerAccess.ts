@@ -5,7 +5,7 @@ import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager, Deps as HomeDBManagerDeps, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {SendGridConfig, SendGridMail} from 'app/gen-server/lib/NotifierTypes';
+import {SendGridConfig, SendGridMailWithTemplateId} from 'app/gen-server/lib/NotifierTypes';
 import axios, {AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import * as chai from 'chai';
@@ -23,7 +23,7 @@ let server: TestServer;
 let dbManager: HomeDBManager;
 let homeUrl: string;
 let userCountUpdates: {[orgId: number]: number[]} = {};
-let lastMail: SendGridMail|null = null;
+let lastMail: SendGridMailWithTemplateId|null = null;
 let lastMailDesc: string|null = null;
 const sandbox = sinon.createSandbox();
 
@@ -52,7 +52,9 @@ describe('ApiServerAccess', function() {
   before(async function() {
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
-    notificationsConfig = server.server.getNotifier().testSetSendMessageCallback(
+    const extensions = server.server.getNotifier().testSendGridExtensions?.();
+    notificationsConfig = extensions?.getConfig();
+    extensions?.setSendMessageCallback(
       async (payload, desc) => {
         // Filter for invite emails only - ignore any other categories of email
         if (desc.includes('invite')) {
@@ -61,12 +63,13 @@ describe('ApiServerAccess', function() {
         }
       }
     );
+    assert.exists(notificationsConfig);
     dbManager = server.dbManager;
     chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
     kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user.ref);
     charonRef = await dbManager.getUserByLogin(charonEmail).then((user) => user.ref);
     // Listen to user count updates and add them to an array.
-    dbManager.on('userChange', ({org, countBefore, countAfter}: UserChange) => {
+    server.server.onUserChange(async ({org, countBefore, countAfter}: UserChange) => {
       if (countBefore === countAfter) { return; }
       userCountUpdates[org.id] = userCountUpdates[org.id] || [];
       userCountUpdates[org.id].push(countAfter);
@@ -86,7 +89,7 @@ describe('ApiServerAccess', function() {
   async function getLastMail(maxWait: number = 1000) {
     const start = Date.now();
     while (Date.now() - start < maxWait) {
-      if (!server.server.getNotifier().testPending) {
+      if (!server.server.testPending) {
         const result = {payload: lastMail, description: lastMailDesc};
         lastMailDesc = null;
         lastMail = null;

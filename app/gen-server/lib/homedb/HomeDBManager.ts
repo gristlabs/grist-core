@@ -70,12 +70,12 @@ import {
 import {appSettings} from 'app/server/lib/AppSettings';
 import {getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {makeId} from 'app/server/lib/idUtils';
+import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
 import {WebHookSecret} from "app/server/lib/Triggers";
 
-import {EventEmitter} from 'events';
 import {Request} from "express";
 import {defaultsDeep, flatten, pick, size} from 'lodash';
 import moment from "moment";
@@ -107,6 +107,7 @@ export const NotifierEvents = StringUnion(
   'trialPeriodEndingSoon',
   'trialingSubscription',
   'scheduledCall',
+  'twoFactorStatusChanged',
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
@@ -123,12 +124,6 @@ export const Deps = {
     durationMs: 24 * 60 * 60 * 1000,
   },
 };
-
-const AuditLoggerEvents = StringUnion(
-  'streamingDestinationsChange',
-);
-
-type AuditLoggerEvent = typeof AuditLoggerEvents.type;
 
 // Name of a special workspace with examples in it.
 export const EXAMPLE_WORKSPACE_NAME = 'Examples & Templates';
@@ -269,7 +264,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * HomeDBManager handles interaction between the ApiServer and the Home database,
  * encapsulating the typeorm logic.
  */
-export class HomeDBManager extends EventEmitter {
+export class HomeDBManager {
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
   private _connection: DataSource;
@@ -286,12 +281,11 @@ export class HomeDBManager extends EventEmitter {
     return this._connection.driver.options.type;
   }
 
-  public usersManager() {
-    return this._usersManager;
+  public constructor(private _notifier: INotifier = EmptyNotifier) {
   }
 
-  public emit(event: NotifierEvent|AuditLoggerEvent, ...args: any[]): boolean {
-    return super.emit(event, ...args);
+  public usersManager() {
+    return this._usersManager;
   }
 
   public get defaultGroups(): GroupDescriptor[] {
@@ -462,7 +456,7 @@ export class HomeDBManager extends EventEmitter {
   ): Promise<PreviousAndCurrent<User>> {
     const {previous, current, isWelcomed} = await this._usersManager.updateUser(userId, props);
     if (current && isWelcomed) {
-      this.emit('firstLogin', this.makeFullUser(current));
+      await this._notifier.firstLogin(this.makeFullUser(current));
     }
     return {previous, current};
   }
@@ -1097,7 +1091,7 @@ export class HomeDBManager extends EventEmitter {
     },
     transaction?: EntityManager
   ): Promise<QueryResult<Organization>> {
-    const notifications: Array<() => void> = [];
+    const notifications: Array<() => Promise<void>> = [];
     const name = props.name;
     const domain = props.domain;
     if (!name) {
@@ -1239,7 +1233,7 @@ export class HomeDBManager extends EventEmitter {
       }
       return {status: 200, data: savedOrg};
     });
-    for (const notification of notifications) { notification(); }
+    for (const notification of notifications) { await notification(); }
     return orgResult;
   }
 
@@ -1892,7 +1886,7 @@ export class HomeDBManager extends EventEmitter {
   // status 200 on success.
   public async updateBillingAccountManagers(userId: number, orgKey: string|number,
                                             delta: ManagerDelta): Promise<QueryResult<void>> {
-    const notifications: Array<() => void> = [];
+    const notifications: Array<() => Promise<void>> = [];
     // Translate our ManagerDelta to a PermissionDelta so that we can reuse existing
     // methods for normalizing/merging emails and finding the user ids.
     const permissionDelta: PermissionDelta = {users: {}};
@@ -1948,7 +1942,7 @@ export class HomeDBManager extends EventEmitter {
           }
         }
       }
-      for (const notification of notifications) { notification(); }
+      for (const notification of notifications) { await notification(); }
       return { status: 200 };
     });
   }
@@ -1960,7 +1954,7 @@ export class HomeDBManager extends EventEmitter {
     delta: PermissionDelta
   ): Promise<QueryResult<OrgAccessChanges>> {
     const {userId} = scope;
-    const notifications: Array<() => void> = [];
+    const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
       let orgQuery = this.org(scope, orgKey, {
@@ -2023,7 +2017,7 @@ export class HomeDBManager extends EventEmitter {
         },
       };
     });
-    for (const notification of notifications) { notification(); }
+    for (const notification of notifications) { await notification(); }
     return result;
   }
 
@@ -2034,7 +2028,7 @@ export class HomeDBManager extends EventEmitter {
     delta: PermissionDelta
   ): Promise<QueryResult<WorkspaceAccessChanges>> {
     const {userId} = scope;
-    const notifications: Array<() => void> = [];
+    const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async manager => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       const options = {
@@ -2116,7 +2110,7 @@ export class HomeDBManager extends EventEmitter {
         },
       };
     });
-    for (const notification of notifications) { notification(); }
+    for (const notification of notifications) { await notification(); }
     return result;
   }
 
@@ -2125,7 +2119,7 @@ export class HomeDBManager extends EventEmitter {
     scope: DocScope,
     delta: PermissionDelta
   ): Promise<QueryResult<DocumentAccessChanges>> {
-    const notifications: Array<() => void> = [];
+    const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async manager => {
       const {userId} = scope;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
@@ -2188,7 +2182,7 @@ export class HomeDBManager extends EventEmitter {
         },
       };
     });
-    for (const notification of notifications) { notification(); }
+    for (const notification of notifications) { await notification(); }
     return result;
   }
 
@@ -2930,7 +2924,7 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     value: ConfigValue
   ): Promise<QueryResult<Config|PreviousAndCurrent<Config>>> {
-    const events: AuditLoggerEvent[] = [];
+    const events: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async (manager) => {
       const queryResult = await this.getInstallConfig(key, {
         transaction: manager,
@@ -2940,7 +2934,7 @@ export class HomeDBManager extends EventEmitter {
         config.key = key;
         config.value = value;
         await manager.save(config);
-        events.push("streamingDestinationsChange");
+        events.push(this._streamingDestinationsChange());
         return {
           status: 201,
           data: config,
@@ -2950,7 +2944,7 @@ export class HomeDBManager extends EventEmitter {
         const previous = structuredClone(config);
         config.value = value;
         await manager.save(config);
-        events.push("streamingDestinationsChange");
+        events.push(this._streamingDestinationsChange());
         return {
           status: 200,
           data: { previous, current: config },
@@ -2958,7 +2952,7 @@ export class HomeDBManager extends EventEmitter {
       }
     });
     for (const event of events) {
-      this.emit(event);
+      await event();
     }
     return result;
   }
@@ -2971,7 +2965,7 @@ export class HomeDBManager extends EventEmitter {
    * Fails if a config with the specified `key` does not exist.
    */
   public async deleteInstallConfig(key: ConfigKey): Promise<QueryResult<Config>> {
-    const events: AuditLoggerEvent[] = [];
+    const events: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async (manager) => {
       const queryResult = await this.getInstallConfig(key, {
         transaction: manager,
@@ -2979,14 +2973,14 @@ export class HomeDBManager extends EventEmitter {
       const config: Config = this.unwrapQueryResult(queryResult);
       const deletedConfig = structuredClone(config);
       await manager.remove(config);
-      events.push("streamingDestinationsChange");
+      events.push(this._streamingDestinationsChange());
       return {
         status: 200,
         data: deletedConfig,
       };
     });
     for (const event of events) {
-      this.emit(event);
+      await event();
     }
     return result;
   }
@@ -3031,7 +3025,7 @@ export class HomeDBManager extends EventEmitter {
     key: ConfigKey,
     value: ConfigValue
   ): Promise<QueryResult<Config|PreviousAndCurrent<Config>>> {
-    const eventsWithArgs: [AuditLoggerEvent, ...any][] = [];
+    const eventsWithArgs: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async (manager) => {
       const orgQuery = this.org(scope, orgKey, {
         markPermissions: Permissions.OWNER,
@@ -3049,7 +3043,7 @@ export class HomeDBManager extends EventEmitter {
         config.value = value;
         config.org = org;
         await manager.save(config);
-        eventsWithArgs.push(["streamingDestinationsChange", org.id]);
+        eventsWithArgs.push(this._streamingDestinationsChange(org.id));
         return {
           status: 201,
           data: config,
@@ -3059,15 +3053,15 @@ export class HomeDBManager extends EventEmitter {
         const previous = structuredClone(config);
         config.value = value;
         await manager.save(config);
-        eventsWithArgs.push(["streamingDestinationsChange", org.id]);
+        eventsWithArgs.push(this._streamingDestinationsChange(org.id));
         return {
           status: 200,
           data: { previous, current: config },
         };
       }
     });
-    for (const [event, ...args] of eventsWithArgs) {
-      this.emit(event, ...args);
+    for (const eventWithArgs of eventsWithArgs) {
+      await eventWithArgs();
     }
     return result;
   }
@@ -3085,7 +3079,7 @@ export class HomeDBManager extends EventEmitter {
     org: string|number,
     key: ConfigKey
   ): Promise<QueryResult<Config>> {
-    const eventsWithArgs: [AuditLoggerEvent, ...any][] = [];
+    const eventsWithArgs: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async (manager) => {
       const query = this._orgConfig(scope, org, key, {
         manager,
@@ -3094,14 +3088,14 @@ export class HomeDBManager extends EventEmitter {
       const config: Config = this.unwrapQueryResult(queryResult);
       const deletedConfig = structuredClone(config);
       await manager.remove(config);
-      eventsWithArgs.push(["streamingDestinationsChange", deletedConfig.org!.id]);
+      eventsWithArgs.push(this._streamingDestinationsChange(deletedConfig.org!.id));
       return {
         status: 200,
         data: deletedConfig,
       };
     });
-    for (const [event, ...args] of eventsWithArgs) {
-      this.emit(event, ...args);
+    for (const eventWithArgs of eventsWithArgs) {
+      await eventWithArgs();
     }
     return result;
   }
@@ -4630,30 +4624,39 @@ export class HomeDBManager extends EventEmitter {
     membersBefore: Map<roles.NonGuestRole, User[]>,
     membersAfter: Map<roles.NonGuestRole, User[]>
   ) {
-    return () => {
+    return async () => {
       const customerId = org.billingAccount.stripeCustomerId;
       const change: UserChange = {userId, org, customerId,
                                   countBefore, countAfter,
                                   membersBefore, membersAfter};
-      this.emit('userChange', change);
+      await this._notifier.userChange(change);
     };
   }
 
   // Create a notification function that emits an event when users may have been added to a resource.
   private _inviteNotification(userId: number, resource: Organization|Workspace|Document,
-                              userIdDelta: UserIdDelta, membersBefore: Map<roles.NonGuestRole, User[]>): () => void {
-    return () => this.emit('addUser', userId, resource, userIdDelta, membersBefore);
+                              userIdDelta: UserIdDelta, membersBefore: Map<roles.NonGuestRole,
+                              User[]>): () => Promise<void> {
+    return async () => {
+      await this._notifier.addUser(userId, resource, userIdDelta, membersBefore);
+    };
   }
 
   private _billingManagerNotification(userId: number, addUserId: number, orgs: Organization[]) {
-    return () => {
-      this.emit('addBillingManager', userId, addUserId, orgs);
+    return async () => {
+      await this._notifier.addBillingManager(userId, addUserId, orgs);
     };
   }
 
   private _teamCreatorNotification(userId: number) {
-    return () => {
-      this.emit('teamCreator', userId);
+    return async () => {
+      await this._notifier.teamCreator(userId);
+    };
+  }
+
+  private _streamingDestinationsChange(orgId?: number) {
+    return async () => {
+      await this._notifier.streamingDestinationsChange(orgId || null);
     };
   }
 
