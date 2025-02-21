@@ -82,7 +82,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
   }
 
   public async close() {
-    this._db.close();
+    await fromCallback(cb => this._db.close(cb));
   }
 
   public async interrupt(): Promise<void> {

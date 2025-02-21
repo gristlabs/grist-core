@@ -84,6 +84,7 @@ export interface Backup {
   failed: boolean;
   step(pages: number,
        callback?: (err: Error | null) => void): void;
+  finish(callback?: (err: Error | null) => void): void;
 }
 
 /**
