@@ -758,7 +758,11 @@ export class HostedStorageManager implements IDocStorageManager {
     const docPath = this.getPath(docId);
     const tmpPath = `${docPath}-${postfix}`;
     const db = this._gristServer.getDocManager().getSQLiteDB(docId);
-    return backupSqliteDatabase(db, docPath, tmpPath, undefined, postfix, {docId});
+    return retryOnClose(
+      db,
+      (err) => this._log.debug(docId, `Problem making backup, will retry once because db closed: ${err}`),
+      () => backupSqliteDatabase(db, docPath, tmpPath, undefined, postfix, {docId})
+    );
   }
 
   /**
@@ -893,6 +897,34 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 }
 
+/**
+ *
+ * Calls an operation with an optional database connection. If a
+ * database connection was supplied, and gets closed during the
+ * operation, and the operation failed, then we retry the operation,
+ * calling a logging function with the error.
+ *
+ * This is used for making backups, where we use a database connection
+ * handled externally if available. We can make the backup with or
+ * without that connection, but we should use it if available (so
+ * backups can terminate under constant changes made using that
+ * connection), which is how we got backed into this awkward retry corner.
+ *
+ */
+export async function retryOnClose<T>(db: SQLiteDB|undefined,
+                                      log: (err: Error) => void,
+                                      op: () => Promise<T>): Promise<T> {
+  const wasClosed = db?.isClosed();
+  try {
+    return await op();
+  } catch (err) {
+    if (wasClosed || !db?.isClosed()) {
+      throw err;
+    }
+    log(err);
+    return await op();
+  }
+}
 
 /**
  * Make a copy of a sqlite database safely and without locking it for long periods, using the
@@ -921,11 +953,17 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
   let maxNonFinalStepTimeMs: number = 0;
   let finalStepTimeMs: number = 0;
   let numSteps: number = 0;
+  let backup: Backup|undefined = undefined;
   try {
     // NOTE: fse.remove succeeds also when the file does not exist.
     await fse.remove(dest);  // Just in case some previous process terminated very badly.
                              // Sqlite will try to open any existing material at this
                              // path prior to overwriting it.
+
+    // Ignore the supplied database connection if already closed.
+    if (mainDb?.isClosed()) {
+      mainDb = undefined;
+    }
     if (mainDb) {
       // We'll we working from an already configured SqliteDB interface,
       // don't need to do anything special.
@@ -943,7 +981,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
     if (testProgress) { testProgress({action: 'open', phase: 'before'}); }
     // If using mainDb, it could close any time we yield and come back.
     if (mainDb?.isClosed()) { throw new Error('source closed'); }
-    const backup: Backup = mainDb ? mainDb.backup(dest) : db!.backup(src, 'main', 'main', false);
+    backup = mainDb ? mainDb.backup(dest) : db!.backup(src, 'main', 'main', false);
     if (testProgress) { testProgress({action: 'open', phase: 'after'}); }
     let remaining: number = -1;
     let prevError: Error|null = null;
@@ -971,7 +1009,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       let isCompleted: boolean = false;
       if (mainDb?.isClosed()) { throw new Error('source closed'); }
       try {
-        isCompleted = Boolean(await fromCallback(cb => backup.step(PAGES_TO_BACKUP_PER_STEP, cb)));
+        isCompleted = Boolean(await fromCallback(cb => backup!.step(PAGES_TO_BACKUP_PER_STEP, cb)));
       } catch (err) {
         if (String(err) !== String(prevError) || Date.now() - errorMsgTime > 1000) {
           _log.info(null, `error (${src} ${label}): ${err}`);
@@ -1005,6 +1043,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       await delay(PAUSE_BETWEEN_BACKUP_STEPS_IN_MS);
     }
   } finally {
+    if (backup) { await fromCallback(cb => backup!.finish(cb)); }
     if (testProgress) { testProgress({action: 'close', phase: 'before'}); }
     try {
       if (db) { await fromCallback(cb => db!.close(cb)); }

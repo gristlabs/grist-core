@@ -12,6 +12,7 @@ declare module "@gristlabs/sqlite3" {
     public readonly completed: boolean;
     public readonly failed: boolean;
     public step(pages: number, callback?: (err: Error|null) => void): void;
+    public finish(callback?: (err: Error | null) => void): void;
   }
   export class DatabaseWithBackup extends Database {
     public backup(filename: string, callback?: (err: Error|null) => void): Backup;
