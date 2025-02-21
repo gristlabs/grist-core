@@ -1597,8 +1597,9 @@ export class ActiveDoc extends EventEmitter {
     try {
       const parsedAclFormula = await this._pyCall('parse_predicate_formula', text);
       compilePredicateFormula(parsedAclFormula);
-      // TODO We also need to check the validity of attributes, and of tables and columns
-      // mentioned in resources and userAttribute rules.
+      // Note that the validity of attributes, and of tables and columns mentioned in resources
+      // and userAttribute rules are checked at a different point, in findRuleProblems() called
+      // from getAclResources().
       return getPredicateFormulaProperties(parsedAclFormula);
     } catch (e) {
       e.message = e.message?.replace('[Sandbox] ', '');
