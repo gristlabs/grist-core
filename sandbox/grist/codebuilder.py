@@ -4,7 +4,7 @@ import itertools
 import linecache
 import logging
 import re
-import textwrap
+from os.path import commonprefix
 
 import astroid
 import asttokens
@@ -42,15 +42,17 @@ def make_formula_body(formula, default_value, assoc_value=None):
   if isinstance(formula, six.binary_type):
     formula = formula.decode('utf8')
 
-  # Remove any common leading whitespace. In python, extra indent should not be an error, but
-  # it is in Grist because we parse the formula body before it gets inserted into a function (i.e.
-  # as if at module level).
-  formula = textwrap.dedent(formula)
-
   if not formula.strip():
     return textbuilder.Text('return ' + repr(default_value), assoc_value)
 
   formula_builder_text = textbuilder.Text(formula, assoc_value)
+
+  # Remove any common leading whitespace. In python, extra indent should not be an error, but
+  # it is in Grist because we parse the formula body before it gets inserted into a function (i.e.
+  # as if at module level). We have to do it using textbuilder as elsewhere (making changes to a
+  # formula without remembering positions of changes will lead to errors when renaming).
+  formula_builder_text = _dedent(formula_builder_text)
+  formula = formula_builder_text.get_text()
 
   # Start with a temporary builder, since we need to translate "$" before we can parse the code at
   # all (namely, we turn '$foo' into 'DOLLARfoo' first). Once we can parse the code, we'll create
@@ -58,7 +60,10 @@ def make_formula_body(formula, default_value, assoc_value=None):
   # 'rec.foo', so that the translated entity is a single token: this makes for more precisely
   # reported errors if there are any.
   tmp_patches = textbuilder.make_regexp_patches(formula, DOLLAR_REGEX, 'DOLLAR')
-  tmp_formula = textbuilder.Replacer(formula_builder_text, tmp_patches)
+  # Use a new "Text" builder from the updated formula. It is only  used to translate positions in
+  # "DOLLARfoo" formulas back to positions in "$foo" formulas (for creating patches to
+  # formula_builder_text), and then discarded. In particular, assoc_value doesn't matter for it.
+  tmp_formula = textbuilder.Replacer(textbuilder.Text(formula, None), tmp_patches)
 
   atok = asttokens.ASTText(tmp_formula.get_text(), filename=code_filename)
   # Parse the formula into an abstract syntax tree (AST), catching syntax errors.
@@ -130,6 +135,25 @@ def make_formula_body(formula, default_value, assoc_value=None):
 
   # We return the text-builder object whose .get_text() is the final formula.
   return final_formula
+
+
+_whitespace_only_re = re.compile('^[ \t]+$', re.MULTILINE)
+_leading_whitespace_re = re.compile('(^[ \t]*)(?:[^ \t\n])', re.MULTILINE)
+
+def _dedent(body):
+  """
+  Dedents all lines in body (which should be a textbuilder.Builder), which share leading
+  whitespace, like textwrap.dedent().
+  """
+  text = body.get_text()
+  text = _whitespace_only_re.sub('', text)
+  indents = _leading_whitespace_re.findall(text)
+  shared_indent = commonprefix(indents)
+  if shared_indent:
+    regexp = re.compile(r'^' + shared_indent, re.MULTILINE)
+    patches = textbuilder.make_regexp_patches(text, regexp, '')
+    return textbuilder.Replacer(body, patches)
+  return body
 
 
 def get_dollar_replacer(formula):

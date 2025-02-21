@@ -419,3 +419,31 @@ class TestRenames2(test_engine.EngineTestCase):
 
     self.assertTableData("Persons", cols="subset", data=self.people_data)
     self.assertTableData("Games", cols="subset", data=self.games_data)
+
+  def test_rename_with_blank_line(self):
+    # There was a bug when a blank line is present in some cases.
+    self.add_column("Games", "test1", formula=(
+      "if $winner:\n"
+      "  \n"
+      "  return $winner\n"
+    ))
+    # Also try some indents.
+    self.add_column("Games", "test2", formula=(
+      "   $winner\n" +
+      "   if 1:\n" +
+      "    UPPER($winner)\n" +
+      "   None"
+    ))
+
+    self.apply_user_action(["RenameColumn", "Games", "winner", "winner2"])
+    self.assertEqual(self.engine.docmodel.columns.lookupOne(tableId='Games', colId='test1').formula,
+      "if $winner2:\n"
+      "  \n"
+      "  return $winner2\n"
+    )
+    self.assertEqual(self.engine.docmodel.columns.lookupOne(tableId='Games', colId='test2').formula,
+      "   $winner2\n" +
+      "   if 1:\n" +
+      "    UPPER($winner2)\n"
+      "   None"
+    )
