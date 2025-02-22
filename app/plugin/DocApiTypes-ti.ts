@@ -96,6 +96,10 @@ export const SetAttachmentStorePost = t.iface([], {
 
 export const AttachmentStore = t.union(t.lit('internal'), t.lit('external'));
 
+export const AttachmentStoreDesc = t.iface([], {
+  "label": "string",
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   NewRecord,
   NewRecordWithStringId,
@@ -116,5 +120,6 @@ const exportedTypeSuite: t.ITypeSuite = {
   SqlPost,
   SetAttachmentStorePost,
   AttachmentStore,
+  AttachmentStoreDesc,
 };
 export default exportedTypeSuite;
