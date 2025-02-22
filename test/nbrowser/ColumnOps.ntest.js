@@ -30,7 +30,7 @@ describe('ColumnOps.ntest', function() {
     await gu.waitForServer();
     await gu.userActionsVerify([]);
     await gu.userActionsCollect(false);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
     await shouldHaveColumnHeader('A');
     await assert.isPresent(gu.getOpenEditingLabel(gu.getColumnHeader('A')), false);
 
@@ -53,7 +53,7 @@ describe('ColumnOps.ntest', function() {
       ["AddRecord", "_grist_Views_section_field", null,
        {"colRef":43, "parentId":4, "parentPos":null}]]);
     await gu.userActionsCollect(false);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
     await shouldHaveColumnHeader('A');
     await assert.isPresent(gu.getOpenEditingLabel(gu.getColumnHeader('A')), false);
     assert.deepEqual(await gu.getGridLabels('City'),
@@ -102,7 +102,7 @@ describe('ColumnOps.ntest', function() {
     await gu.waitToPass(() => gu.getColumnHeader('B'));
     await gu.getOpenEditingLabel(await gu.getColumnHeader('B')).wait().sendKeys($.ENTER);
     await gu.waitForServer();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
     await shouldHaveColumnHeader('B');
   });
 
@@ -169,7 +169,7 @@ describe('ColumnOps.ntest', function() {
     await gu.userActionsVerify([]);
     await gu.userActionsCollect(false);
     await assert.isPresent(gu.getOpenEditingLabel(gu.getColumnHeader('foo')), false);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     // Bug T384: Should save the column name after cancelling a rename earlier.
     await shouldHaveColumnHeader('A');

@@ -451,7 +451,7 @@ describe('AccessRules1', function() {
       "Add Widget to Page",
     ]);
     await driver.sendKeys(Key.ESCAPE);
-    await gu.waitAppFocus();
+    await gu.waitForFocus('body');
   });
 
   it('should support dollar syntax in the editor', async function() {
