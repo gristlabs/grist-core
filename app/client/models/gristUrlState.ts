@@ -97,14 +97,15 @@ export function getWelcomeHomeUrl() {
   return _buildUrl('welcome/home').href;
 }
 
-const FINAL_PATHS = ['/signed-out', '/account-deleted'];
+const PATHS_TO_EXCLUDE_FROM_NEXT = ['/signed-out', '/account-deleted', '/oauth2/callback'];
 
-// Returns the relative URL (i.e. path) of the current page, except when it's the
-// "/signed-out" page or "/account-deleted", in which case it returns the home page ("/").
+// Returns the relative URL (i.e. path) of the current page, except when it's a page
+// that does not make sense to return to after login, such as "/signed-out"
+// or "/account-deleted", in which case it returns the home page("/").
 // This is a good URL to use for a post-login redirect.
-function _getCurrentUrl(): string {
+function _getPostLoginTargetUrl(): string {
   const {hash, pathname, search} = new URL(window.location.href);
-  if (FINAL_PATHS.some(final => pathname.endsWith(final))) { return '/'; }
+  if (PATHS_TO_EXCLUDE_FROM_NEXT.some(path => pathname.endsWith(path))) { return '/'; }
 
   return parseFirstUrlPart('o', pathname).path + search + hash;
 }
@@ -114,7 +115,7 @@ function _getLoginLogoutUrl(
   page: 'login'|'logout'|'signin'|'signup'|'account-deleted',
   options: GetLoginOrSignupUrlOptions = {}
 ): string {
-  const {srcDocId, nextUrl = _getCurrentUrl()} = options;
+  const {srcDocId, nextUrl = _getPostLoginTargetUrl()} = options;
   const startUrl = _buildUrl(page);
   if (srcDocId) { startUrl.searchParams.set('srcDocId', srcDocId); }
   if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
