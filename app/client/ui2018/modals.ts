@@ -16,6 +16,8 @@ import {IOpenController, IPopupOptions, PopupControl, popupOpen} from 'popweasel
 
 const t = makeT('modals');
 
+export const getConfirmText = () => t("Confirm");
+
 // IModalControl is passed into the function creating the body of the modal.
 export interface IModalControl {
   // Observable for whether there is work in progress that's delaying the closing of the modal. It

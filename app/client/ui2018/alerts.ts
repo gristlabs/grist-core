@@ -5,10 +5,25 @@
  *
  * `alert('This is some important information')`
  */
-
-import { vars } from 'app/client/ui2018/cssVars';
 import { dom, DomElementArg, styled } from 'grainjs';
-import { icon } from './icons';
+import { vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+
+/**
+ * Creates an alert element with an icon and message.
+ */
+export function alert(...args: DomElementArg[]) {
+  return cssAlert(
+    cssAlertIcon(
+      icon('Info',
+        dom.style('width', '13px'),
+        dom.style('height', '13px'),
+        dom.style('background-color', 'currentColor'),
+      ),
+    ),
+    dom('p', ...args)
+  );
+}
 
 const cssAlert = styled('div', `
   position: relative;
@@ -32,19 +47,3 @@ const cssAlertIcon = styled('span', `
   position: relative;
   top: 2px;
 `);
-
-/**
- * Creates an alert element with an icon and message.
- */
-export function alert(...args: DomElementArg[]) {
-  return cssAlert(
-    cssAlertIcon(
-      icon('Info',
-        dom.style('width', '13px'),
-        dom.style('height', '13px'),
-        dom.style('background-color', 'currentColor'),
-      ),
-    ),
-    dom('p', ...args)
-  );
-}

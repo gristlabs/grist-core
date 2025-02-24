@@ -763,6 +763,7 @@ describe('CustomWidgets', function () {
 
       await driver.find(saveBtn).click();
       await gu.openWidgetPanel();
+      await gu.waitForServer();
       await gu.undo(1);
     });
   });
