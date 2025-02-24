@@ -13,10 +13,11 @@ import {DocAction} from 'app/common/DocActions';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
+import {proxyAgentForTrustedRequests} from 'app/server/lib/ProxyAgent';
 import {getFullUser, getLogMeta} from 'app/server/lib/sessionUtils';
+
 import {createHash} from 'crypto';
 import fetch from 'node-fetch';
-import { proxyAgentForTrustedRequests } from './ProxyAgent';
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
