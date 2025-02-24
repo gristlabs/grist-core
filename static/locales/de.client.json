@@ -388,7 +388,10 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Neu hochgeladene Anhänge werden im internen Speicher abgelegt.",
         "Newly uploaded attachments will be placed in External storage.": "Neu hochgeladene Anhänge werden im externen Speicher abgelegt.",
         "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Dadurch wird ein harter Reload der Datenmaschine durchgeführt. Dies kann hilfreich sein, wenn die Datenmaschine in einer Endlosschleife feststeckt, die letzte Änderung unendlich lange verarbeitet oder abgestürzt ist. Es gehen keine Daten verloren, mit Ausnahme möglicherweise noch laufender Aktionen.",
-        "**Some existing attachments are still internal** (stored in SQLite file).": "**Einige vorhandene Anhänge sind noch intern** (in einer SQLite-Datei gespeichert)."
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Einige vorhandene Anhänge sind noch intern** (in einer SQLite-Datei gespeichert).",
+        "Internal": "Intern",
+        "Transfer in progress": "Übertragung im Gange",
+        "External": "Extern"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -792,7 +795,9 @@
         "Hidden field": "Verborgenes Feld",
         "Submit button label": "Beschriftung der Schaltfläche Senden",
         "No field selected": "Kein Feld ausgewählt",
-        "Select a field in the form widget to configure.": "Wählen Sie ein Feld im Formular Widget aus, um es zu konfigurieren."
+        "Select a field in the form widget to configure.": "Wählen Sie ein Feld im Formular Widget aus, um es zu konfigurieren.",
+        "Submit": "Einreichen",
+        "Thank you! Your response has been recorded.": "Vielen Dank! Ihre Antwort wurde registriert."
     },
     "RowContextMenu": {
         "Copy anchor link": "Ankerlink kopieren",
@@ -1984,5 +1989,13 @@
         "Reset icon": "Symbol zurücksetzen",
         "Choose icon": "Symbol auswählen",
         "Choose color": "Farbe wählen"
+    },
+    "RightPanelUtils": {
+        "Columns_one": "Spalten",
+        "Columns_other": "Spalten",
+        "Fields_one": "Felder",
+        "Series_other": "Serien",
+        "Series_one": "Serien",
+        "Fields_other": "Felder"
     }
 }
