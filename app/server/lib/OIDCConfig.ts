@@ -65,8 +65,20 @@
  *   - GRIST_OIDC_IDP_SCOPES="openid email profile"
  */
 
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { StringUnionError } from 'app/common/StringUnion';
+import { AppSettings, appSettings } from 'app/server/lib/AppSettings';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { SessionObj } from 'app/server/lib/BrowserSession';
+import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
+import log from 'app/server/lib/log';
+import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from 'app/server/lib/oidc/Protections';
+import { proxyAgentForTrustedRequests } from 'app/server/lib/ProxyAgent';
+import { getOriginUrl } from 'app/server/lib/requestUtils';
+import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
+import { Sessions } from 'app/server/lib/Sessions';
+
 import * as express from 'express';
-import { GristLoginSystem, GristServer } from './GristServer';
 import {
   Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
 } from 'openid-client';
