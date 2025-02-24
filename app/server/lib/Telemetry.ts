@@ -25,12 +25,13 @@ import {hashId} from 'app/server/lib/hashingUtils';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {stringParam} from 'app/server/lib/requestUtils';
 import {getFullUser, getLogMeta, isRequest, RequestOrSession} from 'app/server/lib/sessionUtils';
+import {proxyAgentForTrustedRequests} from 'app/server/lib/ProxyAgent';
+
 import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
-import merge = require('lodash/merge');
-import pickBy = require('lodash/pickBy');
-import { proxyAgentForTrustedRequests } from './ProxyAgent';
+import merge from 'lodash/merge';
+import pickBy from 'lodash/pickBy';
 
 interface RequestWithMatomoVisitorId extends RequestWithLogin {
   /**
