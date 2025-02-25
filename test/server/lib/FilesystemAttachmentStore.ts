@@ -1,6 +1,8 @@
-import {FilesystemAttachmentStore} from 'app/server/lib/AttachmentStore';
+import {
+  FilesystemAttachmentStore,
+  loadAttachmentFileIntoMemory
+} from 'app/server/lib/AttachmentStore';
 import {IAttachmentStoreConfig} from 'app/server/lib/AttachmentStoreProvider';
-import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import {createTmpDir} from 'test/server/docTools';
 
 import {assert} from 'chai';
@@ -56,10 +58,10 @@ describe('FilesystemAttachmentStore', () => {
     const store = await spec.create("test-filesystem-store");
     await store.upload(testingDocPoolId, testingFileId, getTestingFileAsReadableStream());
 
-    const outputBuffer = new MemoryWritableStream();
-    await store.download(testingDocPoolId, testingFileId, outputBuffer);
+    const download = await store.download(testingDocPoolId, testingFileId);
+    const file = await loadAttachmentFileIntoMemory(download);
 
-    assert.equal(outputBuffer.getBuffer().toString(), testingFileContents, "file contents do not match");
+    assert.equal(file.contents.toString(), testingFileContents, "file contents do not match");
   });
 
   it('can check if a file exists', async () => {

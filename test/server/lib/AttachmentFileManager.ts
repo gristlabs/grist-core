@@ -5,7 +5,11 @@ import {
   StoreNotAvailableError,
   StoresNotConfiguredError
 } from "app/server/lib/AttachmentFileManager";
-import { getDocPoolIdFromDocInfo, IAttachmentStore } from "app/server/lib/AttachmentStore";
+import {
+  AttachmentFile,
+  getDocPoolIdFromDocInfo,
+  IAttachmentStore
+} from "app/server/lib/AttachmentStore";
 import {
   AttachmentStoreProvider,
   IAttachmentStoreConfig,
@@ -14,8 +18,8 @@ import {
 import { makeTestingFilesystemStoreConfig } from "test/server/lib/FilesystemAttachmentStore";
 import {waitForIt} from 'test/server/wait';
 import { assert } from "chai";
-import * as sinon from "sinon";
 import * as stream from "node:stream";
+import * as sinon from "sinon";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<DocStorage,
@@ -110,7 +114,12 @@ export async function makeTestingControlledStore(
       promise = createProm();
       return promise;
     },
-    async download() { return; },
+    async download(): Promise<AttachmentFile> {
+      return {
+        metadata: { size: 0 },
+        contentStream: stream.Readable.from([]),
+      };
+    },
     async delete() { return; },
     async removePool() { return; },
     async close() { return; },

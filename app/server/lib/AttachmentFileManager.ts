@@ -1,16 +1,16 @@
 import {AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
 import {
+  AttachmentFile,
   AttachmentStoreDocInfo,
   DocPoolId,
   getDocPoolIdFromDocInfo,
-  IAttachmentStore
+  IAttachmentStore, loadAttachmentFileIntoMemory
 } from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {checksumFileStream} from 'app/server/lib/checksumFile';
 import {DocStorage} from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
-import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import {EventEmitter} from 'events';
 import {Readable} from 'node:stream';
 import {AbortController} from 'node-abort-controller';
@@ -141,7 +141,12 @@ export class AttachmentFileManager extends EventEmitter {
 
 
   public async getFileData(fileIdent: string): Promise<Buffer> {
-    return (await this._getFile(fileIdent)).data;
+    const file = await this.getFile(fileIdent);
+    return (await loadAttachmentFileIntoMemory(file)).contents;
+  }
+
+  public async getFile(fileIdent: string): Promise<AttachmentFile> {
+    return (await this._getFile(fileIdent)).file;
   }
 
   public async locationSummary(): Promise<DocAttachmentsLocation> {
@@ -211,12 +216,17 @@ export class AttachmentFileManager extends EventEmitter {
     // re-check.
     // Streaming isn't an option here, as SQLite only supports buffers (meaning we need to keep at
     // least 1 full copy of the file in memory during transfers).
-    const file = await this._getFile(fileIdent);
-    if (!await validateFileChecksum(fileIdent, file.data)) {
-      throw new AttachmentRetrievalError(file.storageId, file.ident, "checksum verification failed for retrieved file");
+    const fileInfo = await this._getFile(fileIdent);
+    // Cache this to avoid undefined warnings everywhere we use `dataInMemory`.
+    const fileInMemory = await loadAttachmentFileIntoMemory(fileInfo.file);
+
+    if (!await validateFileChecksum(fileIdent, fileInMemory.contents)) {
+      throw new AttachmentRetrievalError(
+        fileInfo.storageId, fileInfo.ident, "checksum verification failed for retrieved file"
+      );
     }
     if (!newStoreId) {
-      await this._storeFileInLocalStorage(fileIdent, file.data);
+      await this._storeFileInLocalStorage(fileIdent, fileInMemory.contents);
       return;
     }
     const newStore = await this._getStore(newStoreId);
@@ -228,7 +238,7 @@ export class AttachmentFileManager extends EventEmitter {
       throw new StoreNotAvailableError(newStoreId);
     }
     // Store should error if the upload fails in any way.
-    await this._storeFileInAttachmentStore(newStore, fileIdent, file.data);
+    await this._storeFileInAttachmentStore(newStore, fileIdent, fileInMemory.contents);
 
     // Don't remove the file from the previous store, in case we need to roll back to an earlier
     // snapshot.
@@ -436,7 +446,13 @@ export class AttachmentFileManager extends EventEmitter {
       return {
         ident: fileIdent,
         storageId: null,
-        data: fileInfo.data,
+        file: {
+          metadata: {
+            size: fileInfo.data.length,
+          },
+          contentStream: Readable.from(fileInfo.data),
+          contents: fileInfo.data,
+        }
       };
     }
     const store = await this._getStore(fileInfo.storageId);
@@ -447,7 +463,7 @@ export class AttachmentFileManager extends EventEmitter {
     return {
       ident: fileIdent,
       storageId: store.id,
-      data: await this._getFileDataFromAttachmentStore(store, fileIdent),
+      file: await this._getFileDataFromAttachmentStore(store, fileIdent),
     };
   }
 
@@ -494,11 +510,9 @@ export class AttachmentFileManager extends EventEmitter {
     await this._docStorage.attachOrUpdateFile(fileIdent, undefined, store.id);
   }
 
-  private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<Buffer> {
+  private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<AttachmentFile> {
     try {
-      const outputStream = new MemoryWritableStream();
-      await store.download(this._getDocPoolId(), fileIdent, outputStream);
-      return outputStream.getBuffer();
+      return await store.download(this._getDocPoolId(), fileIdent);
     } catch(e) {
       throw new AttachmentRetrievalError(store.id, fileIdent, e);
     }
@@ -525,7 +539,7 @@ interface AttachmentFileManagerLogInfo {
 interface AttachmentFileInfo {
   ident: string;
   storageId: string | null;
-  data: Buffer;
+  file: AttachmentFile;
 }
 
 type TransferJob = Promise<void>

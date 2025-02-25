@@ -573,6 +573,19 @@ export class DocWorkerApi {
       })
     );
 
+    // Responds with attachment contents, with suitable Content-Type and Content-Disposition.
+    this._app.get('/api/docs/:docId/attachments/download', canView, withDoc(async (activeDoc, req, res) => {
+      const archive = await activeDoc.getAttachmentsArchive();
+      res.status(200)
+        .type("application/zip")
+        // Construct a content-disposition header of the form 'attachment; filename="NAME"'
+        .set('Content-Disposition', contentDisposition(`${activeDoc.docName}.zip`, {type: 'attachment'}))
+        // Avoid storing because this could be huge.
+        .set('Cache-Control', 'no-store');
+
+      archive.dataStream.pipe(res);
+    }));
+
     // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
     this._app.get('/api/docs/:docId/attachments/:attId', canView, withDoc(async (activeDoc, req, res) => {
       const attId = integerParam(req.params.attId, 'attId');
