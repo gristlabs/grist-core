@@ -34,14 +34,19 @@ describe('ExternalStorageAttachmentStore', () => {
   });
 
   it('can download a file', async () => {
-    const fileStream = stream.Readable.from(testFileBuffer);
     const fakeStorage = {
-      downloadStream: sinon.fake((_, outputStream: stream.Writable) => {
-        fileStream.pipe(outputStream);
+      downloadStream: sinon.fake(async (_) => {
+        return {
+          metadata: { size: 0, snapshotId: "" },
+          contentStream: stream.Readable.from(testFileBuffer),
+        };
       })
     };
 
-    const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
+    // This line will error if downloadStream's return type changes in a way that breaks fakeStorage.
+    const downloadStreamStorage: Pick<ExternalStorageSupportingAttachments, 'downloadStream'> = fakeStorage;
+
+    const storage = downloadStreamStorage as unknown as ExternalStorageSupportingAttachments;
     const store = new ExternalStorageAttachmentStore(testStoreId, storage);
     const download = await store.download(testPoolId, testFileId);
     const file = await loadAttachmentFileIntoMemory(download);
