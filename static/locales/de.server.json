@@ -1,5 +1,10 @@
 {
     "oidc": {
         "emailNotVerifiedError": "Bitte überprüfen Sie Ihre E-Mail mit dem Identitätsanbieter und melden Sie sich erneut an."
+    },
+    "sendAppPage": {
+        "og-title": "Grist, die Entwicklung von Tabellenkalkulationen",
+        "Loading...": "Laden...",
+        "og-description": "Ein modernes, offenes Quell-Spreadsheet, das über das Raster hinausgeht"
     }
 }

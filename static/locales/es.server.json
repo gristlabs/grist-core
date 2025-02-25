@@ -1,5 +1,10 @@
 {
     "oidc": {
         "emailNotVerifiedError": "Por favor, compruebe su correo electrónico con el proveedor de identidad y vuelva a iniciar sesión."
+    },
+    "sendAppPage": {
+        "og-description": "Una hoja de cálculo moderna y de código abierto que va más allá de la cuadrícula",
+        "Loading...": "Cargando...",
+        "og-title": "Grist, la evolución de las hojas de cálculo"
     }
 }
