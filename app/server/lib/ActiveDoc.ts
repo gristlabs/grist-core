@@ -960,7 +960,13 @@ export class ActiveDoc extends EventEmitter {
     return data;
   }
 
-  public async getAttachmentsArchive(): Promise<Archive> {
+  public async getAttachmentsArchive(docSession: OptDocSession): Promise<Archive> {
+    if (
+      !await this._granularAccess.canReadEverything(docSession) &&
+      !await this.canDownload(docSession)
+    ) {
+      throw new ApiError("No access to download attachments", 403);
+    }
     if (!this.docData) {
       throw new Error("No doc data");
     }

@@ -575,7 +575,7 @@ export class DocWorkerApi {
 
     // Responds with attachment contents, with suitable Content-Type and Content-Disposition.
     this._app.get('/api/docs/:docId/attachments/download', canView, withDoc(async (activeDoc, req, res) => {
-      const archive = await activeDoc.getAttachmentsArchive();
+      const archive = await activeDoc.getAttachmentsArchive(docSessionFromRequest(req));
       res.status(200)
         .type("application/zip")
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'
