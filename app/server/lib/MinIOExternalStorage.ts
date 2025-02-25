@@ -115,7 +115,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     const headers = request.headers;
     // For a versioned bucket, the header 'x-amz-version-id' contains a version id.
     const downloadedSnapshotId = String(headers['x-amz-version-id'] || '');
-    const fileSize = Number(headers['Content-Length']);
+    const fileSize = Number(headers['content-length']);
     if (Number.isNaN(fileSize)) {
       throw new ApiError('download error - bad file size', 500);
     }
