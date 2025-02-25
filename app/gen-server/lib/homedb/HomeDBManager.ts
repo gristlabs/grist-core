@@ -120,8 +120,16 @@ export const Deps = {
         envVar: 'GRIST_MAX_NEW_USER_INVITES_PER_ORG',
         minValue: 1
       }),
-    // By default, limit each org to 50 new user invites per 24 hours.
+    // Check over the last 24 hours.
     durationMs: 24 * 60 * 60 * 1000,
+  },
+  defaultMaxBillingManagersPerOrg: {
+    value: appSettings.section('features')
+      .flag('maxBillingManagersPerOrg')
+      .readInt({
+        envVar: 'GRIST_MAX_BILLING_MANAGERS_PER_ORG',
+        minValue: 1,
+      }),
   },
 };
 
@@ -1909,6 +1917,10 @@ export class HomeDBManager {
       const billingAccountId = billingAccount.id;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, permissionDelta, true, transaction);
       this._failIfPowerfulAndChangingSelf(analysis);
+      this._failIfTooManyBillingManagers({
+        analysis,
+        billingAccount,
+      });
       const {userIdDelta} = await this._createNotFoundUsers({
         analysis,
         transaction,
@@ -3643,6 +3655,30 @@ export class HomeDBManager {
     }
   }
 
+  private _failIfTooManyBillingManagers(options: {
+    analysis: PermissionDeltaAnalysis;
+    billingAccount: BillingAccount;
+  }) {
+    const { analysis, billingAccount } = options;
+    const { foundUserDelta, foundUsers, notFoundUserDelta } = analysis;
+
+    const max = Deps.defaultMaxBillingManagersPerOrg.value;
+    if (max === undefined) { return; }
+
+    const foundUserIds = new Set(foundUsers.map((user) => user.id));
+    const addedUsers = foundUsers.filter((user) => foundUserDelta?.[user.id]);
+    const delta = size(notFoundUserDelta) + addedUsers.length;
+    if (!delta) {
+      return;
+    }
+
+    const current = billingAccount.managers.filter((manager) =>
+      !foundUserIds.has(manager.userId)).length;
+    if (current + delta > max) {
+      throw new ApiError("Your site has too many billing managers", 403);
+    }
+  }
+
   private async _failIfTooManyNewUserInvites(options: {
     orgKey: string | number;
     analysis: PermissionDeltaAnalysis;
@@ -3661,14 +3697,10 @@ export class HomeDBManager {
       .subtract(Deps.defaultMaxNewUserInvitesPerOrg.durationMs, "milliseconds")
       .toDate();
     const newUsers = foundUsers.filter((user) => {
-      return (
-        user.isFirstTimeUser &&
-        foundUserDelta?.[user.id] &&
-        user.createdAt >= createdSince
-      );
+      return user.isFirstTimeUser && user.createdAt >= createdSince;
     });
-
-    const delta = size(notFoundUserDelta) + newUsers.length;
+    const addedUsers = newUsers.filter((user) => foundUserDelta?.[user.id]);
+    const delta = size(notFoundUserDelta) + addedUsers.length;
     if (!delta) {
       return;
     }
