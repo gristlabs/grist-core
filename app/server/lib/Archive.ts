@@ -29,20 +29,25 @@ export async function create_zip_archive(
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   const ZipStreamModule = await (Function('return import("zip-stream")')() as Promise<typeof import('zip-stream')>);
 
-  const _archive = new ZipStreamModule.default(options);
+  const archive = new ZipStreamModule.default(options);
 
   return {
-    dataStream: _archive,
+    dataStream: archive,
     // TODO - Should we add a default 'catch' here that logs errors?
     completed: (async () => {
-      for await (const entry of entries) {
-        // ZipStream will break if multiple entries try to be added at the same time.
-        // TODo - test what happens to the stream if an error is thrown here.
-        // Do we need to manually destroy the archive?
-        await addEntryToZipArchive(_archive, entry);
+      try {
+        for await (const entry of entries) {
+          // ZipStream will break if multiple entries try to be added at the same time.
+          await addEntryToZipArchive(archive, entry);
+        }
+        archive.finish();
+      } catch (error) {
+        archive.destroy(error);
+      } finally {
+        // If the stream was destroyed with an error, this will re-throw the error we caught above.
+        // Without this, node will see the stream as having an uncaught error, and complain.
+        await stream.promises.finished(archive);
       }
-      _archive.finish();
-      await stream.promises.finished(_archive);
     })()
   };
 }
