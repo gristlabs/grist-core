@@ -51,7 +51,7 @@ type WidgetVariant = 'custom' | 'grist' | 'community';
 
 class CustomWidgetGallery extends Disposable {
   private readonly _customUrl: Observable<string>;
-  private _customUrlInput: HTMLInputElement | null = null;
+  private _customUrlInput: HTMLInputElement;
   private readonly _filteredWidgets = Observable.create<ICustomWidget[] | null>(this, null);
   private readonly _section: ViewSectionRec | null = null;
   private readonly _searchText = Observable.create(this, '');
@@ -85,7 +85,11 @@ class CustomWidgetGallery extends Disposable {
       customUrl = this._section.customDef.url() ?? '';
     }
     this._customUrl = Observable.create(this, customUrl);
-    this._customUrlInput = null;
+    this._customUrlInput = cssCustomUrlInput(
+      this._customUrl,
+      {placeholder: t('Widget URL'), type: 'url'},
+      testId('custom-url'),
+    );
 
     this._savedWidgetId = Computed.create(this, (use) => {
       if (!this._section) { return null; }
@@ -237,14 +241,6 @@ class CustomWidgetGallery extends Disposable {
 
   private _buildWidget(info: WidgetInfo) {
     const {variant, id, name, description, developer, lastUpdated} = info;
-
-    if (variant === 'custom') {
-      this._customUrlInput = cssCustomUrlInput(
-        this._customUrl,
-        {placeholder: t('Widget URL'), type: 'url'},
-        testId('custom-url'),
-      );
-    }
 
     return cssWidget(
       dom.cls('custom-widget'),
