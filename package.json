@@ -49,6 +49,7 @@
     "@types/chai": "4.1.7",
     "@types/chai-as-promised": "7.1.0",
     "@types/content-disposition": "0.5.2",
+    "@types/decompress": "^4.2.7",
     "@types/diff-match-patch": "1.0.32",
     "@types/double-ended-queue": "2.1.0",
     "@types/express": "4.17.17",
@@ -90,6 +91,7 @@
     "chai-as-promised": "7.1.1",
     "chance": "1.0.16",
     "chokidar-cli": "3.0.0",
+    "decompress": "^4.2.1",
     "esbuild-loader": "4.2.2",
     "eslint": "8.18.0",
     "http-proxy": "1.18.1",
@@ -205,7 +207,7 @@
     "uuid": "10.0.0",
     "winston": "2.4.5",
     "ws": "8.18.0",
-    "zip-stream": "^7.0.2"
+    "zip-stream": "~6"
   },
   "resolutions": {
     "**/ip": "https://registry.npmjs.org/neoip/-/neoip-2.1.0.tgz",

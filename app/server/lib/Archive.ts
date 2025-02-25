@@ -24,12 +24,7 @@ export interface Archive {
 export async function create_zip_archive(
   options: ZipStreamOptions, entries: AsyncIterable<ArchiveEntry>
 ): Promise<Archive> {
-  // Dynamic import needed because zip-stream is only an ESM module, and we use module: CommonJS
-  // However, typescript dynamic imports are broken. So we need to dynamic eval to fix it. :(
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval
-  const ZipStreamModule = await (Function('return import("zip-stream")')() as Promise<typeof import('zip-stream')>);
-
-  const archive = new ZipStreamModule.default(options);
+  const archive = new ZipStream(options);
 
   return {
     dataStream: archive,
