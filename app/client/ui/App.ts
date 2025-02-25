@@ -85,12 +85,9 @@ export class App extends DisposableWithEvents {
 
     const isHelpPaneVisible = ko.observable(false);
 
-    G.document.querySelector('#grist-logo-wrapper')?.remove();
-
-    // Help pop-up pane
     const helpDiv = document.body.appendChild(
       dom('div.g-help',
-        dom.show(isHelpPaneVisible),
+        dom.show(isHelpPaneVisible), // Toggle visibility dynamically
         dom('table.g-help-table',
           dom('thead',
             dom('tr',
@@ -118,23 +115,32 @@ export class App extends DisposableWithEvents {
     );
     this.onDispose(() => { dom.domDispose(helpDiv); helpDiv.remove(); });
 
+    /** Click outside the popup to close it */
+    document.addEventListener("click", function (event) {
+      if (isHelpPaneVisible() && !helpDiv.contains(event.target as Node)) {
+        isHelpPaneVisible(false); // Hide the help menu
+      }
+    });
+
+    /** Use "Cmd + /" to toggle */
     this.autoDispose(commands.createGroup({
       help() { G.window.open('help', '_blank').focus(); },
-      shortcuts() { isHelpPaneVisible(true); },
+      shortcuts() { isHelpPaneVisible(!isHelpPaneVisible()); },  // FIXED: Toggle Open/Close
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },
     }, this, true));
 
+    /** Ensure menu closes on cancel */
     this.autoDispose(commands.createGroup({
-      cancel() { isHelpPaneVisible(false); },
-      cursorDown() { helpDiv.scrollBy(0, 30); }, // 30 is height of the row in the help screen
+      cancel() { isHelpPaneVisible(false); },   // Close menu when Esc/Cancel is triggered
+      cursorDown() { helpDiv.scrollBy(0, 30); },
       cursorUp() { helpDiv.scrollBy(0, -30); },
       pageUp() { helpDiv.scrollBy(0, -helpDiv.clientHeight); },
       pageDown() { helpDiv.scrollBy(0, helpDiv.clientHeight); },
       moveToFirstField() { helpDiv.scrollTo(0, 0); }, // home
       moveToLastField() { helpDiv.scrollTo(0, helpDiv.scrollHeight); }, // end
       find() { return true; }, // restore browser search
-      help() { isHelpPaneVisible(false); },
+      help() { isHelpPaneVisible(false); },  // Close menu
     }, this, isHelpPaneVisible));
 
     this.listenTo(this.comm, 'clientConnect', (message) => {
