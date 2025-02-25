@@ -33,6 +33,7 @@ export async function create_zip_archive(
 
   return {
     dataStream: _archive,
+    // TODO - Should we add a default 'catch' here that logs errors?
     completed: (async () => {
       for await (const entry of entries) {
         // ZipStream will break if multiple entries try to be added at the same time.
