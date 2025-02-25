@@ -1,8 +1,7 @@
 import {
   ExternalStorageAttachmentStore,
-  ExternalStorageSupportingAttachments
+  ExternalStorageSupportingAttachments, loadAttachmentFileIntoMemory
 } from 'app/server/lib/AttachmentStore';
-import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 
 import {assert} from 'chai';
 import * as stream from 'node:stream';
@@ -44,13 +43,13 @@ describe('ExternalStorageAttachmentStore', () => {
 
     const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
     const store = new ExternalStorageAttachmentStore(testStoreId, storage);
-    const output = new MemoryWritableStream();
-    await store.download(testPoolId, testFileId, output);
+    const download = await store.download(testPoolId, testFileId);
+    const file = await loadAttachmentFileIntoMemory(download);
 
     assert.isTrue(fakeStorage.downloadStream.calledOnce, "download should be called exactly once");
     const call = fakeStorage.downloadStream.getCalls()[0];
     assert.equal(call.args[0], getExpectedFilePath(testFileId), "download path is incorrect");
-    assert.equal(output.getBuffer().toString(), testFileContents, "downloaded file contents don't match");
+    assert.equal(file.contents.toString(), testFileContents, "downloaded file contents don't match");
   });
 
   it('can check if a file exists', async () => {
