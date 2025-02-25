@@ -356,7 +356,7 @@
         "Tutorial": "Tutoriel",
         "Confirm change": "Confirmer les modifications",
         "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Une fois le chronométrage lancé, Grist mesure le temps nécessaire à l'évaluation de chaque formule. Cela permet de diagnostiquer les formules responsables du ralentissement des performances lors de la première ouverture d'un document ou lorsqu'un document est modifié.",
-        "Template mode": "Mode template",
+        "Template mode": "Type de document",
         "Change document type": "Changer le type de document",
         "Change nature of document": "Changer la nature du document",
         "Regular document": "Document classique",
@@ -411,7 +411,7 @@
         "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Consulter le tutoriel associé pour apprendre à créer des tableaux récapitulatifs et des graphiques, et pour relier les graphiques de façon dynamique.",
         "Tutorial: Analyze & Visualize": "Tutoriel : analyser et visualiser",
         "Afterschool Program": "Activités périscolaires",
-        "Welcome to the Afterschool Program template": "Bienvenu sur le modèle d'activités périscolaires",
+        "Welcome to the Afterschool Program template": "Bienvenue sur le modèle d'activités périscolaires",
         "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Consultez e tutoriel associé pour savoir comment modéliser des données d'entreprise, utiliser les formules et gérer la complexité.",
         "Tutorial: Manage Business Data": "Tutoriel : Gérer des données d'affaire"
     },
