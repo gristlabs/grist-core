@@ -54,6 +54,7 @@ RUN \
 FROM python:3.11-slim-bookworm AS collector-py3
 ADD sandbox/requirements3.txt requirements3.txt
 RUN \
+  pip3 install setuptools==75.8.1 && \
   pip3 install -r requirements3.txt
 
 # Fetch <shame>python2.7</shame>
