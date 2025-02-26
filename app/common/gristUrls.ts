@@ -118,6 +118,8 @@ export const commonUrls = {
   githubSponsorGristLabs: 'https://github.com/sponsors/gristlabs',
 
   versionCheck: 'https://api.getgrist.com/api/version',
+  // TODO: This should be a link to attachments configuration
+  attachmentStorage: 'https://support.getgrist.com',
 };
 
 export const ONBOARDING_VIDEO_YOUTUBE_EMBED_ID = '56AieR9rpww';

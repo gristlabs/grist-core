@@ -635,10 +635,15 @@ function displayCurrentType(
 }
 
 
+const learnMore = () => t(
+  '[learn more]({{learnLink}})',
+  {learnLink: commonUrls.attachmentStorage}
+);
 
 function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someExternal = () => t(
-    '**Some existing attachments are still external**.',
+    '**Some existing attachments are still [external]({{externalLink}})**.',
+    {externalLink: commonUrls.attachmentStorage}
   );
 
   const startToInternal = () => t(
@@ -652,10 +657,10 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
       return cssMarkdownSpan(
-        `${someExternal()} ${newInInternal()}`, ...args, testId('transfer-message-in-progress'));
+        `${someExternal()} ${newInInternal()} ${learnMore()}`, ...args, testId('transfer-message-in-progress'));
     } else {
       return cssMarkdownSpan(
-        `${someExternal()} ${startToInternal()} ${newInInternal()}`,
+        `${someExternal()} ${startToInternal()} ${newInInternal()} ${learnMore()}`,
         ...args,
         testId('transfer-message-static'));
     }
@@ -664,7 +669,8 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
 
 function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someInternal = () => t(
-    '**Some existing attachments are still internal** (stored in SQLite file).',
+    '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
+    {internalLink: commonUrls.attachmentStorage}
   );
 
   const startToExternal = () => t(
@@ -678,13 +684,13 @@ function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
       return cssMarkdownSpan(
-        `${someInternal()} ${newInExternal()}`,
+        `${someInternal()} ${newInExternal()} ${learnMore()}`,
         testId('transfer-message-in-progress'),
         ...args
       );
     } else {
       return cssMarkdownSpan(
-        `${someInternal()} ${startToExternal()} ${newInExternal()}`,
+        `${someInternal()} ${startToExternal()} ${newInExternal()} ${learnMore()}`,
         testId('transfer-message-static'),
         ...args
       );

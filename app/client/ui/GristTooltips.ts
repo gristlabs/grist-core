@@ -199,7 +199,9 @@ see or edit which parts of your document.')
     cssMarkdownSpan(t(
       "Internal storage means all attachments are stored in the document SQLite file, " +
       "while external storage indicates all attachments are stored in the same " +
-      "external storage."
+      "external storage. [Learn more]({{link}}).", {
+        link: commonUrls.attachmentStorage
+      }
     )),
     ...args,
   ),
