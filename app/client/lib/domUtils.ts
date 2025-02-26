@@ -86,3 +86,20 @@ export function domDispatch(element: Element, name: string, args?: any) {
     detail: args
   }));
 }
+
+// Helper binding function to handle click outside an element. Takes into account floating menus.
+export function onClickOutside(click: () => void) {
+  return (content: HTMLElement) => {
+    const onClick = (evt: MouseEvent) => {
+      const target: Node | null = evt.target as Node;
+      if (target && !content.contains(target)) {
+        // Check if any parent of target has class grist-floating-menu, if so, don't close.
+        if (target.parentElement?.closest(".grist-floating-menu")) {
+          return;
+        }
+        click();
+      }
+    };
+    dom.autoDisposeElem(content, dom.onElem(document, 'click', onClick, {useCapture: true}));
+  };
+}

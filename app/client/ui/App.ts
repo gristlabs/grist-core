@@ -23,6 +23,7 @@ import {ISupportedFeatures} from 'app/common/UserConfig';
 import {dom} from 'grainjs';
 import * as ko from 'knockout';
 import {makeT} from 'app/client/lib/localization';
+import { onClickOutside } from '../lib/domUtils';
 
 const t = makeT('App');
 
@@ -85,8 +86,11 @@ export class App extends DisposableWithEvents {
 
     const isHelpPaneVisible = ko.observable(false);
 
+    G.document.querySelector('#grist-logo-wrapper')?.remove();
+
     const helpDiv = document.body.appendChild(
       dom('div.g-help',
+        onClickOutside(() => isHelpPaneVisible(false)),
         dom.show(isHelpPaneVisible), // Toggle visibility dynamically
         dom('table.g-help-table',
           dom('thead',
@@ -115,17 +119,9 @@ export class App extends DisposableWithEvents {
     );
     this.onDispose(() => { dom.domDispose(helpDiv); helpDiv.remove(); });
 
-    /** Click outside the popup to close it */
-    document.addEventListener("click", function (event) {
-      if (isHelpPaneVisible() && !helpDiv.contains(event.target as Node)) {
-        isHelpPaneVisible(false); // Hide the help menu
-      }
-    });
-
-    /** Use "Cmd + /" to toggle */
     this.autoDispose(commands.createGroup({
       help() { G.window.open('help', '_blank').focus(); },
-      shortcuts() { isHelpPaneVisible(!isHelpPaneVisible()); },  // FIXED: Toggle Open/Close
+      shortcuts() { isHelpPaneVisible(true); },
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },
     }, this, true));
@@ -133,14 +129,14 @@ export class App extends DisposableWithEvents {
     /** Ensure menu closes on cancel */
     this.autoDispose(commands.createGroup({
       cancel() { isHelpPaneVisible(false); },   // Close menu when Esc/Cancel is triggered
-      cursorDown() { helpDiv.scrollBy(0, 30); },
+      cursorDown() { helpDiv.scrollBy(0, 30); }, // 30 is height of the row in the help screen
       cursorUp() { helpDiv.scrollBy(0, -30); },
       pageUp() { helpDiv.scrollBy(0, -helpDiv.clientHeight); },
       pageDown() { helpDiv.scrollBy(0, helpDiv.clientHeight); },
       moveToFirstField() { helpDiv.scrollTo(0, 0); }, // home
       moveToLastField() { helpDiv.scrollTo(0, helpDiv.scrollHeight); }, // end
       find() { return true; }, // restore browser search
-      help() { isHelpPaneVisible(false); },  // Close menu
+      shortcuts() { isHelpPaneVisible(false); },  // Close menu
     }, this, isHelpPaneVisible));
 
     this.listenTo(this.comm, 'clientConnect', (message) => {
