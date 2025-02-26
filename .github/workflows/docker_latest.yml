@@ -122,7 +122,7 @@ jobs:
 
       - name: Build Node.js code
         if: ${{ !inputs.disable_tests }}
-        run: yarn run build:prod
+        run: yarn run build
 
       - name: Install Google Chrome and chromedriver
         run: buildtools/install_chrome_for_tests.sh -y

@@ -159,7 +159,7 @@ You may instead file an issue so someone else can add it.
 To build Grist from source, follow these steps:
 
     yarn install
-    yarn run build:prod
+    yarn run build
     yarn run install:python
     yarn start
     # Grist will be available at http://localhost:8484/
