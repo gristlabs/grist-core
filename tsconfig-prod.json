@@ -1,0 +1,18 @@
+{
+  "extends": "./buildtools/tsconfig-base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    { "path": "./app" },
+    { "path": "./stubs/app" },
+  ],
+  "typedocOptions": {
+    "entryPoints": [
+      "app/plugin/grist-plugin-api.ts",
+      "app/plugin/TableOperations.ts",
+    ],
+    "excludeInternal": "true",
+    "excludeNotDocumented": "true",
+    "out": "doc"
+  }
+}
