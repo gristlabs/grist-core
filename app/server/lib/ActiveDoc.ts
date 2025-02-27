@@ -972,9 +972,12 @@ export class ActiveDoc extends EventEmitter {
     }
     const attachments = this.docData.getMetaTable('_grist_Attachments').getRecords();
     const attachmentFileManager = this._attachmentFileManager;
+    const doc = this;
 
     async function* fileGenerator(): AsyncGenerator<ArchiveEntry> {
       for (const attachment of attachments) {
+        if (doc._shuttingDown) {
+          throw new ApiError("Document is shutting down, archiving aborted", 500);
         }
         const file = await attachmentFileManager.getFile(attachment.fileIdent);
         const fileHash = attachment.fileIdent.split(".")[0];
@@ -982,7 +985,6 @@ export class ActiveDoc extends EventEmitter {
           name: `${fileHash}_${attachment.fileName}`,
           data: file.contentStream,
         });
-        // TODO - Abort this on shutdown by throwing an error
       }
     }
 
