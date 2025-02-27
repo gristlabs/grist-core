@@ -19,6 +19,7 @@ import {delayAbort, getAvailablePort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import {assert} from 'chai';
+import decompress from 'decompress';
 import express from 'express';
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
@@ -2495,6 +2496,30 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
 
+    async function assertArchiveContents(archive: string | Buffer, expectedFiles: string[],
+                                   contentsChecks: { [name: string]: string })
+    {
+      const files = await decompress(archive);
+      const filePaths = files.map(file => file.path);
+      assert.includeMembers(filePaths, expectedFiles);
+      for (const [path, contents] of Object.entries(contentsChecks)) {
+        const file = files.find((file) => file.path === path);
+        assert.equal(file?.data.toString(), contents);
+      }
+    }
+
+    it("GET /docs/{did}/attachments/download downloads all attachments as a .zip", async function () {
+      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/download`,
+        {...chimpy, responseType: 'arraybuffer'});
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.headers['content-type'], 'application/zip');
+      assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="${docIds.TestDoc}.zip"`);
+
+      await assertArchiveContents(resp.data, ['hello.doc', 'world.jpg', 'hello.png'], {
+        'hello.doc': 'foobar',
+      });
+    });
+
     it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function () {
       // Check that we can download when ActiveDoc isn't currently open.
       let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);
@@ -2809,6 +2834,18 @@ function testDocApi(settings: {
             isRunning: true,
           },
           locationSummary: "internal",
+        });
+      });
+
+      it("GET /docs/{did}/attachments/download downloads all attachments as a .zip when external", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/download`,
+          {...chimpy, responseType: 'arraybuffer'});
+        assert.equal(resp.status, 200);
+        assert.deepEqual(resp.headers['content-type'], 'application/zip');
+        assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="${docId}.zip"`);
+
+        await assertArchiveContents(resp.data, ['hello.doc', 'world.jpg', 'hello2.doc'], {
+          'hello.doc': 'foobar',
         });
       });
 
