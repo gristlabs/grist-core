@@ -974,15 +974,12 @@ export class ActiveDoc extends EventEmitter {
     const attachmentFileManager = this._attachmentFileManager;
 
     async function* fileGenerator(): AsyncGenerator<ArchiveEntry> {
-      const filesSeen = new Set<string>();
       for (const attachment of attachments) {
-        if (filesSeen.has(attachment.fileIdent)) {
-          continue;
         }
-        filesSeen.add(attachment.fileIdent);
         const file = await attachmentFileManager.getFile(attachment.fileIdent);
+        const fileHash = attachment.fileIdent.split(".")[0];
         yield({
-          name: attachment.fileName,
+          name: `${fileHash}_${attachment.fileName}`,
           data: file.contentStream,
         });
         // TODO - Abort this on shutdown by throwing an error

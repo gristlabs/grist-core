@@ -2499,11 +2499,14 @@ function testDocApi(settings: {
     async function assertArchiveContents(archive: string | Buffer, expectedFiles: string[],
                                    contentsChecks: { [name: string]: string })
     {
+      const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
       const files = await decompress(archive);
       const filePaths = files.map(file => file.path);
-      assert.includeMembers(filePaths, expectedFiles);
+      // Remove the file hash from the start.
+      const fileNames = filePaths.map(getFileName);
+      assert.includeMembers(fileNames, expectedFiles);
       for (const [path, contents] of Object.entries(contentsChecks)) {
-        const file = files.find((file) => file.path === path);
+        const file = files.find((file) => getFileName(file.path) === path);
         assert.equal(file?.data.toString(), contents);
       }
     }
