@@ -146,7 +146,7 @@ export class AttachmentFileManager extends EventEmitter {
   }
 
   public async getFile(fileIdent: string): Promise<AttachmentFile> {
-    return (await this._getFile(fileIdent)).file;
+    return (await this._getFileInfo(fileIdent)).file;
   }
 
   public async locationSummary(): Promise<DocAttachmentsLocation> {
@@ -216,7 +216,7 @@ export class AttachmentFileManager extends EventEmitter {
     // re-check.
     // Streaming isn't an option here, as SQLite only supports buffers (meaning we need to keep at
     // least 1 full copy of the file in memory during transfers).
-    const fileInfo = await this._getFile(fileIdent);
+    const fileInfo = await this._getFileInfo(fileIdent);
     // Cache this to avoid undefined warnings everywhere we use `dataInMemory`.
     const fileInMemory = await loadAttachmentFileIntoMemory(fileInfo.file);
 
@@ -432,7 +432,7 @@ export class AttachmentFileManager extends EventEmitter {
     return this._addFileToExternalStorage(destStoreId, fileIdent, fileData);
   }
 
-  private async _getFile(fileIdent: string): Promise<AttachmentFileInfo> {
+  private async _getFileInfo(fileIdent: string): Promise<AttachmentFileInfo> {
     const fileInfo = await this._docStorage.getFileInfo(fileIdent);
     if (!fileInfo) {
       this._log.error({ fileIdent }, "cannot find file metadata in document");

@@ -6,8 +6,6 @@ import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import * as fse from 'fs-extra';
 import * as stream from 'node:stream';
 import * as path from 'path';
-import {Readable} from 'node:stream';
-import {pipeline} from 'node:stream/promises';
 
 export type DocPoolId = string;
 type FileId = string;
@@ -29,7 +27,7 @@ interface FileMetadata {
 
 export interface AttachmentFile {
   metadata: FileMetadata,
-  contentStream: Readable,
+  contentStream: stream.Readable,
   // Used to optimise certain scenarios where the data *must* be in memory (e.g. SQLite read/writes)
   contents?: Buffer
 }
@@ -47,13 +45,13 @@ export async function loadAttachmentFileIntoMemory(file: AttachmentFile): Promis
     return file;
   }
   const memoryStream = new MemoryWritableStream();
-  await pipeline(file.contentStream, memoryStream);
+  await stream.promises.pipeline(file.contentStream, memoryStream);
   const buffer = memoryStream.getBuffer();
 
   // Use Object.assign because it gives type safety, without having to us `as` or copy the object.
   return Object.assign(file, {
     contents: buffer,
-    contentStream: Readable.from(buffer),
+    contentStream: stream.Readable.from(buffer),
   });
 }
 

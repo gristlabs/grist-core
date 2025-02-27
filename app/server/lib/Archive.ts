@@ -8,8 +8,8 @@ export interface ArchiveEntry {
 }
 
 export interface Archive {
-  dataStream: stream.Readable,
-  completed: Promise<void>
+  dataStream: stream.Readable;
+  completed: Promise<void>;
 }
 
 /**
