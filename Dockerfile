@@ -123,6 +123,7 @@ RUN \
 RUN mkdir -p /persist/docs
 
 # Copy node files.
+COPY --from=builder /node_modules /node_modules
 COPY --from=builder /grist/node_modules_prod /grist/node_modules
 COPY --from=builder /grist/_build /grist/_build
 COPY --from=builder /grist/static /grist/static-built
