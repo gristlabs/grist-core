@@ -5,7 +5,7 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Deps, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -78,6 +78,7 @@ import {WebHookSecret} from "app/server/lib/Triggers";
 import {EventEmitter} from 'events';
 import {Request} from "express";
 import {defaultsDeep, flatten, pick, size} from 'lodash';
+import moment from "moment";
 import {
   Brackets,
   DatabaseType,
@@ -109,6 +110,19 @@ export const NotifierEvents = StringUnion(
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
+
+export const Deps = {
+  defaultMaxNewUserInvitesPerOrg: {
+    value: appSettings.section('features')
+      .flag('maxNewUserInvitesPerOrg')
+      .readInt({
+        envVar: 'GRIST_MAX_NEW_USER_INVITES_PER_ORG',
+        minValue: 1
+      }),
+    // By default, limit each org to 50 new user invites per 24 hours.
+    durationMs: 24 * 60 * 60 * 1000,
+  },
+};
 
 const AuditLoggerEvents = StringUnion(
   'streamingDestinationsChange',
@@ -3117,11 +3131,12 @@ export class HomeDBManager extends EventEmitter {
   public async getNewUserInvitesCount(
     org: string | number,
     options: {
+      createdSince?: Date;
       excludedUserIds?: number[];
       transaction?: EntityManager;
     } = {}
   ): Promise<number> {
-    const { excludedUserIds = [], transaction } = options;
+    const { createdSince, excludedUserIds = [], transaction } = options;
     return this.runInTransaction(transaction, async (manager) => {
       const { count } = await this._orgMembers(org, manager)
         // Postgres returns a string representation of a bigint unless we cast.
@@ -3133,6 +3148,13 @@ export class HomeDBManager extends EventEmitter {
             ...excludedUserIds,
           ],
         })
+        .chain((qb) =>
+          createdSince
+            ? qb.andWhere("org_member_users.created_at >= :createdSince", {
+                createdSince,
+              })
+            : qb
+        )
         .getRawOne();
       return count;
     });
@@ -3635,18 +3657,30 @@ export class HomeDBManager extends EventEmitter {
   }) {
     const { orgKey, analysis, billingAccount, manager } = options;
     const { foundUserDelta, foundUsers, notFoundUserDelta } = analysis;
-    const newUsers = foundUsers.filter(
-      (user) => user.isFirstTimeUser && foundUserDelta?.[user.id]
-    );
+
+    const max =
+      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
+      Deps.defaultMaxNewUserInvitesPerOrg.value;
+    if (max === undefined) { return; }
+
+    const createdSince = moment()
+      .subtract(Deps.defaultMaxNewUserInvitesPerOrg.durationMs, "milliseconds")
+      .toDate();
+    const newUsers = foundUsers.filter((user) => {
+      return (
+        user.isFirstTimeUser &&
+        foundUserDelta?.[user.id] &&
+        user.createdAt >= createdSince
+      );
+    });
+
     const delta = size(notFoundUserDelta) + newUsers.length;
     if (!delta) {
       return;
     }
 
-    const max =
-      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
-      Deps.DEFAULT_MAX_NEW_USER_INVITES_PER_ORG;
     const current = await this.getNewUserInvitesCount(orgKey, {
+      createdSince,
       excludedUserIds: newUsers.map((user) => user.id),
       transaction: manager,
     });

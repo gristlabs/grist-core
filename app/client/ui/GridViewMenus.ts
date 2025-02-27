@@ -724,8 +724,10 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
 
   const addToSortLabel = getAddToSortLabel(sortSpec, colId);
 
+  const isVirtual = typeof colId === 'string';
+
   return [
-    menuItemCmd(allCommands.fieldTabOpen, t("Column Options")),
+    !isVirtual ? menuItemCmd(allCommands.fieldTabOpen, t("Column Options")) : null,
     menuItem(filterOpenFunc, t("Filter Data")),
     menuDivider({style: 'margin-bottom: 0;'}),
     cssRowMenuItem(

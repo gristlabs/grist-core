@@ -119,6 +119,7 @@ export type CommandName =
   | 'showColumns'
   | 'createForm'
   | 'insertField'
+  | 'pushUndoAction'
   ;
 
 export interface CommandDef {
@@ -622,6 +623,10 @@ export const groups: CommendGroupDef[] = [{
       name: 'showColumns',
       keys: [],
       desc: 'Show hidden columns'
+    }, {
+      name: 'pushUndoAction',
+      keys: [],
+      desc: 'Push an undo action'
     }
   ],
 }, {

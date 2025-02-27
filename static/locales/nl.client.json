@@ -8,5 +8,13 @@
         "Add Column Rule": "Kolomregel toevoegen",
         "Add Table Rules": "Tabelregels toevoegen",
         "Add User Attributes": "Voeg gebruikerskenmerken toe"
+    },
+    "RightPanelUtils": {
+        "Series_one": "Serie",
+        "Series_other": "Serie",
+        "Columns_one": "Kolommen",
+        "Columns_other": "Kolommen",
+        "Fields_one": "Velden",
+        "Fields_other": "Velden"
     }
 }

@@ -141,13 +141,16 @@ const WEBHOOK_VIEW_FIELDS: Array<(typeof WEBHOOK_COLUMNS)[number]['colId']> = [
  */
 class WebhookExternalTable implements IExternalTable {
   public name = 'GristHidden_WebhookTable';
-  public initialActions = _prepareWebhookInitialActions(this.name);
   public saveableFields = [
     'tableId', 'watchedColIdsText', 'url', 'authorization', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
   ];
   public webhooks: ObservableArray<UIWebhookSummary> = observableArray<UIWebhookSummary>([]);
 
   public constructor(private _docApi: DocAPI) {
+  }
+
+  public initialActions(): DocAction[] {
+    return _prepareWebhookInitialActions(this.name);
   }
 
   public async fetchAll(): Promise<TableDataAction> {
@@ -272,8 +275,8 @@ class WebhookExternalTable implements IExternalTable {
     // Configure the table picker, since the set of tables may have changed.
     // TODO: should do something about the ready column picker. Right now,
     // Grist doesn't have a good way to handle contingent choices.
-    const choices = editor.gristDoc.docModel.visibleTables.all().map(tableRec => tableRec.tableId());
-    editor.gristDoc.docData.receiveAction([
+    const choices = editor.docModel.visibleTables.all().map(tableRec => tableRec.tableId());
+    editor.docModel.docData.receiveAction([
       'UpdateRecord', '_grist_Tables_column', TABLE_COLUMN_ROW_ID as any, {
         widgetOptions: JSON.stringify({
           widget: 'TextBox',
@@ -352,7 +355,7 @@ export class WebhookPage extends DisposableWithEvents {
     super();
     //this._webhooks = observableArray<WebhookSummary>();
     this._webhookExternalTable = new WebhookExternalTable(this.docApi);
-    const table = this.autoDispose(new VirtualTableRegistration(gristDoc, this._webhookExternalTable));
+    const table = this.autoDispose(new VirtualTableRegistration(gristDoc.docModel, this._webhookExternalTable));
     this.listenTo(gristDoc, 'webhooks', async () => {
       await table.lazySync();
     });

@@ -559,7 +559,7 @@ export function getConfiguredHomeUrl(): string {
 export function getPreferredHomeUrl(): string|undefined {
   const gristUrl = urlState().state.get();
   const gristConfig: GristLoadConfig = (window as any).gristConfig;
-  if (gristUrl.adminPanel || gristConfig.serveSameOrigin) {
+  if (gristUrl.adminPanel || gristConfig?.serveSameOrigin) {
     // On the admin panel, we should not trust configuration much,
     // since we want the user to be able to access it to diagnose
     // problems with configuration. So we access the API via the
