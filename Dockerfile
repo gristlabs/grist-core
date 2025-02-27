@@ -32,6 +32,7 @@ RUN \
  { if [ -e package.json ] ; then yarn install --frozen-lockfile --modules-folder=/node_modules --verbose --network-timeout 600000 ; fi }
 
 # Build node code.
+COPY tsconfig.json /grist
 COPY tsconfig-ext.json /grist
 COPY tsconfig-prod.json /grist
 COPY test/tsconfig.json /grist/test/tsconfig.json

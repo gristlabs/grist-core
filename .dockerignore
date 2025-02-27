@@ -4,6 +4,7 @@
 !yarn.lock
 !tsconfig-ext.json
 !tsconfig-prod.json
+!tsconfig.json
 !stubs
 !app
 !buildtools
