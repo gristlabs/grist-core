@@ -1861,6 +1861,14 @@ export class ActiveDoc extends EventEmitter {
     return this._docManager.storageManager.flushDoc(this.docName);
   }
 
+  /**
+   * Remove the local cache, ensuring that when we load the document we get the
+   * lattest version from S3.
+   */
+  public async wipeCache(): Promise<void> {
+    return this._docManager.storageManager.wipeCache(this.docName);
+  }
+
   public makeAccessId(userId: number|null): string|null {
     return this._docManager.makeAccessId(userId);
   }

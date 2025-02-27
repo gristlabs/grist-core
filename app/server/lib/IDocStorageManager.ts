@@ -32,6 +32,7 @@ export interface IDocStorageManager {
   getCopy(docName: string): Promise<string>;  // get an immutable copy of a document
 
   flushDoc(docName: string): Promise<void>; // flush a document to persistent storage
+  wipeCache(docName: string): Promise<void>; // flush a document to persistent storage
   // If skipMetadataCache is set, then any caching of snapshots lists should be skipped.
   // Metadata may not be returned in this case.
   getSnapshots(docName: string, skipMetadataCache?: boolean): Promise<DocSnapshots>;
@@ -66,6 +67,7 @@ export class TrivialDocStorageManager implements IDocStorageManager {
   public prepareToCloseStorage() {}
   public async getCopy(): Promise<never> { throw new Error('no'); }
   public async flushDoc() {}
+  public async wipeCache(): Promise<void> {}
   public async getSnapshots(): Promise<never> { throw new Error('no'); }
   public async removeSnapshots(): Promise<never> { throw new Error('no'); }
   public getSnapshotProgress(): SnapshotProgress { return new EmptySnapshotProgress(); }

@@ -1128,6 +1128,28 @@ export class DocWorkerApi {
       res.json(true);
     }));
 
+    // Discards any local copy (the cache) and fetches the document and metadata
+    // from the remote storage.
+    // Especially useful when changes has been brought to the remote doc storage
+    // and we want to force the doc worker to fetch the version from there.
+    // WARNING: it discard any changes that had not been pushed yet.
+    this._app.post('/api/docs/:docId/wipeCache', canEdit, throttled(async (req, res) => {
+      const activeDocPromise = this._getActiveDocIfAvailable(req);
+      const docId = getDocId(req);
+      if (!activeDocPromise) {
+        // Only need to flush if doc is actually open.
+        res.json(false);
+        return;
+      }
+      const activeDoc = await activeDocPromise;
+      const status = await this._docWorkerMap.getDocWorker(docId);
+      if (!status) { res.json(false); return; }
+      await activeDoc.shutdown();
+      await activeDoc.wipeCache();
+      await this._docWorkerMap.updateDocStatus(docId, '');
+      res.json(true);
+    }));
+
     // Administrative endpoint, that checks if a document is in the expected group,
     // and frees it for reassignment if not.  Has no effect if document is in the
     // expected group.  Does not require specific rights.  Returns true if the document
