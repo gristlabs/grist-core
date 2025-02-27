@@ -18,6 +18,7 @@
     "test:nbrowser": "GRIST_TEST_LOGIN=1 TEST_SUITE=nbrowser TEST_SUITE_FOR_TIMINGS=nbrowser TIMINGS_FILE=test/timings/nbrowser.txt ./test/test_env.sh mocha ${DEBUG:+-b --no-exit} $([ -z $DEBUG ] && echo --forbid-only) -g \"${GREP_TESTS}\" --slow 8000 '_build/test/nbrowser/**/*.js'",
     "test:stubs": "GRIST_TEST_LOGIN=1 ./test/test_env.sh mocha ${DEBUG:+-b --no-exit} $([ -z $DEBUG ] && echo --forbid-only) -g \"${GREP_TESTS}\" --slow 8000 '_build/test/nbrowser_with_stubs/**/*.js'",
     "test:client": "./test/test_env.sh mocha ${DEBUG:+'-b'} '_build/test/client/**/*.js'",
+    "test:projects": "./test/test_env.sh mocha ${DEBUG:+'-b'} '_build/test/projects/**/*.js'",
     "test:common": "./test/test_env.sh mocha ${DEBUG:+'-b'} '_build/test/common/**/*.js'",
     "test:server": "TEST_SUITE=server TEST_SUITE_FOR_TIMINGS=server TIMINGS_FILE=test/timings/server.txt ./test/test_env.sh mocha ${DEBUG:+'-b'} -g \"${GREP_TESTS}\" '_build/test/server/**/*.js'",
     "test:gen-server": "TEST_SUITE=gen-server TEST_SUITE_FOR_TIMINGS=gen-server TIMINGS_FILE=test/timings/gen-server.txt ./test/test_env.sh mocha ${DEBUG:+'-b'} -g \"${GREP_TESTS}\" '_build/test/gen-server/**/*.js'",
@@ -30,7 +31,8 @@
     "lint:ci": "eslint --max-warnings=0 .",
     "generate:translation": "NODE_PATH=_build:_build/stubs:_build/ext node buildtools/generate_translation_keys.js",
     "generate:schema:ts": "buildtools/update_schema.sh",
-    "generate:icons": "ts-node buildtools/genIconCSS.ts -t app/client/ui2018/IconList.ts static/ui-icons/**/*.svg > static/icons/icons.css"
+    "generate:icons": "ts-node buildtools/genIconCSS.ts -t app/client/ui2018/IconList.ts static/ui-icons/**/*.svg > static/icons/icons.css",
+    "serve-projects": "webpack-dev-server --config test/fixtures/projects/webpack.config.js"
   },
   "keywords": [
     "grist",
@@ -83,6 +85,7 @@
     "@types/swagger-ui": "3.52.4",
     "@types/tmp": "0.0.33",
     "@types/uuid": "10.0.0",
+    "@types/webpack-dev-server": "4.7.2",
     "@types/which": "2.0.1",
     "@types/ws": "^8",
     "@typescript-eslint/eslint-plugin": "5.29.0",
@@ -112,6 +115,7 @@
     "typescript": "4.7.4",
     "webpack": "5.97.1",
     "webpack-cli": "4.10.0",
+    "webpack-dev-server": "4.9.2",
     "why-is-node-running": "2.2.2"
   },
   "dependencies": {
