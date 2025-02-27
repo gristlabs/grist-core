@@ -636,7 +636,7 @@ function displayCurrentType(
 
 
 const learnMore = () => t(
-  '[learn more]({{learnLink}})',
+  '[Learn more]({{learnLink}})',
   {learnLink: commonUrls.attachmentStorage}
 );
 
