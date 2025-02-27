@@ -2,7 +2,6 @@
 *
 !package.json
 !yarn.lock
-!tsconfig.json
 !tsconfig-ext.json
 !tsconfig-prod.json
 !stubs
