@@ -573,7 +573,7 @@ export class DocWorkerApi {
       })
     );
 
-    // Responds with attachment contents, with suitable Content-Type and Content-Disposition.
+    // Responds with an archive of all attachment contents, with suitable Content-Type and Content-Disposition.
     this._app.get('/api/docs/:docId/attachments/download', canView, withDoc(async (activeDoc, req, res) => {
       const archive = await activeDoc.getAttachmentsArchive(docSessionFromRequest(req));
       res.status(200)

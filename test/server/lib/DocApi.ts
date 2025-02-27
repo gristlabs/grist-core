@@ -2790,6 +2790,7 @@ function testDocApi(settings: {
         const resp = await addAttachmentsToDoc(docId, [
           { name: 'hello.doc', contents: 'foobar' },
           { name: 'world.jpg', contents: '123456' },
+          // Duplicate of 'hello.doc', so only 2 files should be in external storage.
           { name: 'hello2.doc', contents: 'foobar' }
         ], chimpy);
         assert.deepEqual(resp.data, [1, 2, 3]);
@@ -2844,7 +2845,7 @@ function testDocApi(settings: {
         assert.deepEqual(resp.headers['content-type'], 'application/zip');
         assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="${docId}.zip"`);
 
-        await assertArchiveContents(resp.data, ['hello.doc', 'world.jpg', 'hello2.doc'], {
+        await assertArchiveContents(resp.data, ['hello.doc', 'world.jpg'], {
           'hello.doc': 'foobar',
         });
       });
