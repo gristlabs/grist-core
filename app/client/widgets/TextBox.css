@@ -3,14 +3,14 @@
 }
 
 @media not print {
-  .formula_field, .formula_field_edit {
+  .formula_field:has(.record-icon), .formula_field_edit {
     padding-left: 18px;
   }
   .formula_field_edit {
     color: #D0D0D0;
   }
 
-  .formula_field .field-icon,
+  .formula_field .record-icon,
   .formula_field_edit::before,
   .formula_field_sidepane::before {
     /* based on standard icon styles */

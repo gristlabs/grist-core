@@ -1150,6 +1150,7 @@ GridView.prototype.buildDom = function() {
   let vHorizontalGridlines = v.optionsObj.prop('horizontalGridlines');
   let vVerticalGridlines   = v.optionsObj.prop('verticalGridlines');
   let vZebraStripes        = v.optionsObj.prop('zebraStripes');
+  let vFieldIcon        = v.optionsObj.prop('fieldIcon');
 
   var renameCommands = {
     nextField: function() {
@@ -1559,8 +1560,10 @@ GridView.prototype.buildDom = function() {
             //a cell in that row becomes larger
             kd.style('borderRightWidth', v.borderWidthPx),
             kd.toggleClass('selected', isSelected),
-            // Optional icon. Currently only use to show formula icon.
-            dom('div.field-icon'),
+            // Optional icon. Currently only use to show formula icon. Can be hidden from within the UI by "Grid Options"
+            dom('div.field-icon',
+              kd.toggleClass('record-icon', vFieldIcon),
+            ),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
             dom('div.selection'),
           );

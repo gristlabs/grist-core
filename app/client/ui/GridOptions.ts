@@ -35,6 +35,12 @@ export class GridOptions extends Disposable {
         ),
 
         cssRow(
+          checkbox(setSaveValueFromKo(this, section.optionsObj.prop('fieldIcon'))),
+          t("Field Icons"),
+          testId('field-icon-button'),
+        ),
+
+        cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes'))),
           t("Zebra Stripes"),
           testId('zebra-stripe-button')
