@@ -3234,6 +3234,16 @@ const filterController = {
     await driver.find('.test-section-menu-small-btn-save').click();
     await waitForServer();
     return this;
+  },
+  async search(text: string) {
+    await driver.find('.test-filter-menu-search-input').sendKeys(text);
+    return this;
+  },
+  async labels() {
+    return await driver.findAll('.test-filter-menu-list label', el => el.getText());
+  },
+  async allShown() {
+    await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
   }
 };
 

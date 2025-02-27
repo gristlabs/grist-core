@@ -56,3 +56,14 @@ const cssMarkdownLine = styled('span', `
 function setMarkdownValue(elem: Element, markdownValue: string): void {
   elem.innerHTML = sanitizeHTML(marked(markdownValue, {async: false}));
 }
+
+/**
+ * Removes all links from markdown text replacing them with the plain label.
+ */
+export function stripLinks(markdownText: string) {
+  // This regex captures the link text in a form [......](......), it matches all new lines characters, even
+  // though markdown will not render them as links. For example [link\n\nlink](https://example.com) will be
+  // rendered as plain text.
+  const regex = /\[(.*?)\]\(.*?\)/gs;
+  return markdownText.replace(regex, '$1');
+}
