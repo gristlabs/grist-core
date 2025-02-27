@@ -53,7 +53,11 @@ RUN \
 # Fetch python3.11
 FROM python:3.11-slim-bookworm AS collector-py3
 ADD sandbox/requirements3.txt requirements3.txt
+# setuptools is installed explicitly to 75.8.1 to avoid vunerable 65.5.1
+# version installed by default. 75.8.1 is the up to date version compatible with
+# python >= 3.9
 RUN \
+  pip3 install setuptools==75.8.1 && \
   pip3 install -r requirements3.txt
 
 # Fetch <shame>python2.7</shame>
