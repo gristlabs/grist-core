@@ -68,7 +68,7 @@ export interface ExternalStorage {
   // Close the storage object.
   close(): Promise<void>;
 
-  uploadStream?(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
+  uploadStream?(key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
   downloadStream?(key: string, snapshotId?: string ): Promise<StreamDownloadResult>;
 }
 
