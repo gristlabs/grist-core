@@ -2496,18 +2496,16 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
 
-    async function assertArchiveContents(archive: string | Buffer, expectedFiles: string[],
-                                   contentsChecks: { [name: string]: string })
+    async function assertArchiveContents(archive: string | Buffer, expectedFiles: { name: string; contents?: string }[])
     {
       const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
       const files = await decompress(archive);
-      const filePaths = files.map(file => file.path);
-      // Remove the file hash from the start.
-      const fileNames = filePaths.map(getFileName);
-      assert.includeMembers(fileNames, expectedFiles);
-      for (const [path, contents] of Object.entries(contentsChecks)) {
-        const file = files.find((file) => getFileName(file.path) === path);
-        assert.equal(file?.data.toString(), contents);
+      for (const expectedFile of expectedFiles) {
+        const file = files.find((file) => getFileName(file.path) === expectedFile.name);
+        assert(file, "file not found in archive");
+        if (expectedFile.contents) {
+          assert.equal(file?.data.toString(), expectedFile.contents, "file contents in archive don't match");
+        }
       }
     }
 
@@ -2518,9 +2516,18 @@ function testDocApi(settings: {
       assert.deepEqual(resp.headers['content-type'], 'application/zip');
       assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="${docIds.TestDoc}.zip"`);
 
-      await assertArchiveContents(resp.data, ['hello.doc', 'world.jpg', 'hello.png'], {
-        'hello.doc': 'foobar',
-      });
+      await assertArchiveContents(resp.data, [
+        {
+          name: 'hello.doc',
+          contents: 'foobar',
+        },
+        {
+          name: 'world.jpg',
+        },
+        {
+          name: 'hello.png',
+        },
+      ]);
     });
 
     it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function () {
@@ -2848,9 +2855,15 @@ function testDocApi(settings: {
         assert.deepEqual(resp.headers['content-type'], 'application/zip');
         assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="${docId}.zip"`);
 
-        await assertArchiveContents(resp.data, ['hello.doc', 'world.jpg'], {
-          'hello.doc': 'foobar',
-        });
+        await assertArchiveContents(resp.data, [
+          {
+            name: 'hello.doc',
+            contents: 'foobar',
+          },
+          {
+            name: 'world.jpg',
+          },
+        ]);
       });
 
       it("POST /docs/{did}/copy fails when the document has external attachments", async function () {
