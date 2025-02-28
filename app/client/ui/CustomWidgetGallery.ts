@@ -85,11 +85,6 @@ class CustomWidgetGallery extends Disposable {
       customUrl = this._section.customDef.url() ?? '';
     }
     this._customUrl = Observable.create(this, customUrl);
-    this._customUrlInput = cssCustomUrlInput(
-      this._customUrl,
-      {placeholder: t('Widget URL'), type: 'url'},
-      testId('custom-url'),
-    );
 
     this._savedWidgetId = Computed.create(this, (use) => {
       if (!this._section) { return null; }
@@ -302,7 +297,14 @@ class CustomWidgetGallery extends Disposable {
           ),
           testId('widget-metadata'),
         ),
-        variant !== 'custom' ? null : this._customUrlInput,
+        variant !== 'custom' ? null : cssCustomUrlInput(
+          this._customUrl,
+          (el) => {
+            this._customUrlInput = el as HTMLInputElement;
+          },
+          {placeholder: t('Widget URL'), type: 'url'},
+          testId('custom-url'),
+        ),
       ),
       cssWidget.cls('-selected', use => id === use(this._selectedWidgetId)),
       dom.on('click', () => this._selectedWidgetId.set(id)),
@@ -314,21 +316,23 @@ class CustomWidgetGallery extends Disposable {
   private async _save() {
     if (this._saveDisabled.get()) { return; }
 
-    const isCustomUrlWidget = this._selectedWidgetId.get() === CUSTOM_URL_WIDGET_ID;
-
-    if (!isCustomUrlWidget || await this._validateCustomWidgetUrl()) {
+    if (await this._validateSelectedWidget()) {
       await this._saveSelectedWidget();
       this._ctl.close();
     }
   }
 
   /**
-   * Make sure the selected "Custom URL" widget is valid:
-   * - The URL is valid
-   * - The user trusts the URL (he confirmed the security risk modal)
+   * Check if the selected widget is valid:
+   * - it is by default for all widgets
+   * - it is for "custom url widgets" if the url input follows url format and the user confirmed the security risk modal
    */
-  private async _validateCustomWidgetUrl() {
-    return this._customUrlInput?.reportValidity() && await userTrustsCustomWidget();
+  private async _validateSelectedWidget() {
+    const isCustomUrlWidget = this._selectedWidgetId.get() === CUSTOM_URL_WIDGET_ID;
+    if (isCustomUrlWidget) {
+      return this._customUrlInput?.reportValidity() && await userTrustsCustomWidget();
+    }
+    return true;
   }
 
   private async _deselectOrClose() {

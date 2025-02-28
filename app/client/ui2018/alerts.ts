@@ -1,5 +1,5 @@
 /**
- * A simple alert component that displays a highlighted message with an info icon.
+ * A simple component that displays a highlighted-styled div with an info icon and a message.
  *
  * Example:
  *

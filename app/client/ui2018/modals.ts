@@ -144,7 +144,7 @@ export interface IModalOptions {
   // DOM arguments to pass to the modal backer.
   backerDomArgs?: DomElementArg[];
   // Function called when the user cancels the modal (esc key or clicking outside)
-  onCancel?: () => any;
+  onCancel?: () => void;
   // If given, call and wait for this before closing the dialog. If it returns false, don't close.
   // Error also prevents closing, and is reported as an unexpected error.
   beforeClose?: () => Promise<boolean>;
@@ -430,7 +430,7 @@ export function promptModal(
   btnText?: string,
   initial?: string,
   placeholder?: string,
-  onCancel?: () => any
+  onCancel?: () => void
 ): void {
   saveModal((ctl, owner): ISaveModalOptions => {
     let confirmed = false;

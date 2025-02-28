@@ -6,6 +6,7 @@ import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {inlineMarkdown} from 'app/client/lib/markdown';
 import {gristThemeObs} from 'app/client/ui2018/theme';
 
+const t = makeT('userTrustsCustomWidget');
 const testId = makeTestId('test-custom-widget-warning-modal-');
 
 /**
@@ -14,24 +15,21 @@ const testId = makeTestId('test-custom-widget-warning-modal-');
  * @returns Promise<boolean> Promise that resolves to true if the user confirms he trusts the widget, false otherwise.
  */
 export function userTrustsCustomWidget() {
-  const t = makeT('userTrustsCustomWidget');
-  const src = gristThemeObs().get().appearance === 'light'
-    ? 'img/security-alert.png'
-    : 'img/security-alert-dark-theme.png';
-
-  let setUserChoice: (choice: boolean) => any;
+  let setUserChoice: (choice: boolean) => void;
   const waitForUserChoice = new Promise<boolean>((resolve) => {
     setUserChoice = resolve;
   });
 
   saveModal((ctl, owner) => {
+    const src = Computed.create(owner, use => use(gristThemeObs()).appearance === 'light'
+      ? 'img/security-alert.png'
+      : 'img/security-alert-dark-theme.png');
     const confirmIsChecked = Observable.create(owner, false);
+    const saveDisabled = Computed.create(owner, use => !use(confirmIsChecked));
     return {
       title: t('Be careful with unknown custom widgets'),
       body: dom('div',
-        cssImage(
-          dom('img', {src, alt: '', width: '100', height: '100'}),
-        ),
+        cssImageContainer(cssImage(dom.attr('src', src))),
         alert(t('Please review the following before adding a new custom widget.')),
         // eslint-disable-next-line max-len
         dom('p', inlineMarkdown(t('Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.'))),
@@ -52,21 +50,26 @@ export function userTrustsCustomWidget() {
         )
       ),
       saveLabel: getConfirmText(),
-      saveFunc: () => setUserChoice(true),
-      saveDisabled: Computed.create(owner, use => !use(confirmIsChecked)),
+      saveFunc: () => Promise.resolve(setUserChoice(true)),
+      saveDisabled,
       width: 'fixed-wide',
     };
   }, {
-    onCancel: () => setUserChoice(false),
+    onCancel: () => setUserChoice(false)
   });
 
   return waitForUserChoice;
 }
 
-const cssImage = styled('div', `
+const cssImageContainer = styled('div', `
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
+`);
+
+const cssImage = styled('img', `
+  width: 100px;
+  height: 100px;
 `);
 
 const cssConfirmCheckbox = styled('div', `
