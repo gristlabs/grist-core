@@ -383,7 +383,10 @@
         "Start transfer": "Start transfer",
         "External": "External",
         "Internal": "Internal",
-        "Transfer in progress": "Transfer in progress"
+        "Transfer in progress": "Transfer in progress",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Some existing attachments are still [external]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).",
+        "[Learn more.]({{learnLink}})": "[Learn more.]({{learnLink}})"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -1256,7 +1259,8 @@
         "This limitation occurs when one column in a two-way reference has the Reference type.": "This limitation occurs when one column in a two-way reference has the Reference type.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "To allow multiple assignments, change the referenced column's type to Reference List.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns",
-        "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document"
+        "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document",
+        "[Learn more.]({{link}})": "[Learn more.]({{link}})"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"

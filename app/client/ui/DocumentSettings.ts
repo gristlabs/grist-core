@@ -636,7 +636,7 @@ function displayCurrentType(
 
 
 const learnMore = () => t(
-  '[Learn more]({{learnLink}})',
+  '[Learn more.]({{learnLink}})',
   {learnLink: commonUrls.attachmentStorage}
 );
 
@@ -657,10 +657,10 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
       return cssMarkdownSpan(
-        `${someExternal()} ${newInInternal()} ${learnMore()}`, ...args, testId('transfer-message-in-progress'));
+        `${someExternal()} ${newInInternal()}\n\n${learnMore()}`, ...args, testId('transfer-message-in-progress'));
     } else {
       return cssMarkdownSpan(
-        `${someExternal()} ${startToInternal()} ${newInInternal()} ${learnMore()}`,
+        `${someExternal()} ${startToInternal()} ${newInInternal()}\n\n${learnMore()}`,
         ...args,
         testId('transfer-message-static'));
     }
@@ -684,13 +684,13 @@ function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
       return cssMarkdownSpan(
-        `${someInternal()} ${newInExternal()} ${learnMore()}`,
+        `${someInternal()} ${newInExternal()}\n\n${learnMore()}`,
         testId('transfer-message-in-progress'),
         ...args
       );
     } else {
       return cssMarkdownSpan(
-        `${someInternal()} ${startToExternal()} ${newInExternal()} ${learnMore()}`,
+        `${someInternal()} ${startToExternal()} ${newInExternal()}\n\n${learnMore()}`,
         testId('transfer-message-static'),
         ...args
       );
