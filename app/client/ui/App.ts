@@ -23,6 +23,7 @@ import {ISupportedFeatures} from 'app/common/UserConfig';
 import {dom} from 'grainjs';
 import * as ko from 'knockout';
 import {makeT} from 'app/client/lib/localization';
+import { onClickOutside } from 'app/client/lib/domUtils';
 
 const t = makeT('App');
 
@@ -87,10 +88,10 @@ export class App extends DisposableWithEvents {
 
     G.document.querySelector('#grist-logo-wrapper')?.remove();
 
-    // Help pop-up pane
     const helpDiv = document.body.appendChild(
       dom('div.g-help',
-        dom.show(isHelpPaneVisible),
+        onClickOutside(() => isHelpPaneVisible(false)),
+        dom.show(isHelpPaneVisible), // Toggle visibility dynamically
         dom('table.g-help-table',
           dom('thead',
             dom('tr',
@@ -125,8 +126,9 @@ export class App extends DisposableWithEvents {
       historyForward() { G.window.history.forward(); },
     }, this, true));
 
+    /** Ensure menu closes on cancel */
     this.autoDispose(commands.createGroup({
-      cancel() { isHelpPaneVisible(false); },
+      cancel() { isHelpPaneVisible(false); },   // Close menu when Esc/Cancel is triggered
       cursorDown() { helpDiv.scrollBy(0, 30); }, // 30 is height of the row in the help screen
       cursorUp() { helpDiv.scrollBy(0, -30); },
       pageUp() { helpDiv.scrollBy(0, -helpDiv.clientHeight); },
@@ -134,7 +136,7 @@ export class App extends DisposableWithEvents {
       moveToFirstField() { helpDiv.scrollTo(0, 0); }, // home
       moveToLastField() { helpDiv.scrollTo(0, helpDiv.scrollHeight); }, // end
       find() { return true; }, // restore browser search
-      help() { isHelpPaneVisible(false); },
+      shortcuts() { isHelpPaneVisible(false); },  // Close menu
     }, this, isHelpPaneVisible));
 
     this.listenTo(this.comm, 'clientConnect', (message) => {
