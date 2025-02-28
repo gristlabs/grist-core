@@ -15,6 +15,7 @@ import log from 'app/server/lib/log';
 import {timeoutReached} from 'app/server/lib/serverUtils';
 import {Throttle} from 'app/server/lib/Throttle';
 import {createTmpDir as createTmpUploadDir, globalUploadSet} from 'app/server/lib/uploads';
+import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import {promisify} from 'bluebird';
 import {assert} from 'chai';
 import decompress from 'decompress';
