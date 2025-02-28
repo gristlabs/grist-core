@@ -117,7 +117,7 @@ class FakeExternalStorage implements ExternalStorage {
 
 class FakeAttachmentExternalStorage extends FakeExternalStorage implements ExternalStorageSupportingAttachments {
   public async uploadStream(
-    key: string, inStream: stream.Readable, metadata?: ObjMetadata | undefined
+    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata | undefined
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
