@@ -682,36 +682,38 @@ describe('CustomWidgets', function () {
       assert.equal(await gu.getCustomWidgetName(), "W1");
     });
 
-    it("should only allow adding a Custom URL widget with a valid url", async () => {
+    it("should only allow adding a Custom URL widget with an empty or valid url", async () => {
       await gu.openCustomWidgetGallery();
       await driver.findContent('.test-custom-widget-gallery-widget-name', 'Custom URL').click();
 
       const saveBtn = '.test-custom-widget-gallery-save';
       const urlInput = '.test-custom-widget-gallery-custom-url';
 
-      // empty url should work
+      // empty url should work without showing a warning modal
       await driver.find(urlInput).click();
       await gu.clearInput();
       await driver.find(saveBtn).click();
-      // security risk modal should be shown
-      assert.equal(await driver.find('.test-modal-title').isPresent(), true);
-      // go back to gallery
-      await driver.find('.test-modal-cancel').click();
+      await gu.waitForServer();
+      assert.isTrue((await content()).startsWith('Custom widget'));
+      await gu.undo(1);
+      await gu.waitForServer();
 
-      // non-url text should not work
+      // non-url text should not work: when submitting, we should still be in the gallery, no risk modal shown
+      await gu.openCustomWidgetGallery();
+      await driver.findContent('.test-custom-widget-gallery-widget-name', 'Custom URL').click();
       await driver.find(urlInput).click();
       await gu.clearInput();
       await gu.sendKeys('not a url');
       await driver.find(saveBtn).click();
-      // security risk modal should not be shown: we are still in the gallery
-      assert.equal(await driver.find('.test-modal-title').isPresent(), false);
+      assert.equal(await driver.find('.test-modal-title').isDisplayed(), false);
+      assert.isTrue(await driver.find('.test-custom-widget-gallery-container').isDisplayed());
 
-      // url should work
+      // url should work: when submitting, the risk modal should be shown
       await driver.find(urlInput).click();
       await gu.clearInput();
       await gu.sendKeys('https://grist-dummy-custom-widget.com');
       await driver.find(saveBtn).click();
-      assert.equal(await driver.find('.test-modal-title').isPresent(), true);
+      assert.equal(await driver.find('.test-modal-title').isDisplayed(), true);
 
       // cleanup after test: close modal and gallery
       await driver.find('.test-modal-cancel').click();
@@ -722,16 +724,17 @@ describe('CustomWidgets', function () {
       await gu.openCustomWidgetGallery();
       await driver.find('.test-custom-widget-gallery-custom-url').click();
       await gu.clearInput();
+      await gu.sendKeys('https://grist-dummy-custom-widget.com');
       await driver.find('.test-custom-widget-gallery-save').click();
 
       assert.equal(await driver.findContent(
         '.test-modal-title',
         /Be careful with unknown custom widgets/
-      ).isPresent(), true);
-      assert.equal(await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').isPresent(), true);
+      ).isDisplayed(), true);
+      assert.equal(await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').isDisplayed(), true);
 
-      assert.equal(await driver.find('.test-modal-cancel').isPresent(), true);
-      assert.equal(await driver.find('.test-modal-confirm').isPresent(), true);
+      assert.equal(await driver.find('.test-modal-cancel').isDisplayed(), true);
+      assert.equal(await driver.find('.test-modal-confirm').isDisplayed(), true);
 
       // cleanup after test: close modal and gallery
       await driver.find('.test-modal-cancel').click();
@@ -742,6 +745,7 @@ describe('CustomWidgets', function () {
       await gu.openCustomWidgetGallery();
       await driver.find('.test-custom-widget-gallery-custom-url').click();
       await gu.clearInput();
+      await gu.sendKeys('https://grist-dummy-custom-widget.com');
       await driver.find('.test-custom-widget-gallery-save').click();
 
       const confirmCb = '.test-custom-widget-warning-modal-confirm-checkbox';

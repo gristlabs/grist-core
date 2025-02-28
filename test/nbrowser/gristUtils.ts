@@ -3455,8 +3455,10 @@ export async function setCustomWidgetUrl(url: string, options: SetWidgetOptions 
   await clearInput();
   if (url) { await sendKeys(url); }
   await sendKeys(Key.ENTER);
-  await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').click();
-  await driver.find('.test-modal-confirm').click();
+  if (url) {
+    await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').click();
+    await driver.find('.test-modal-confirm').click();
+  }
   await waitForServer();
 }
 

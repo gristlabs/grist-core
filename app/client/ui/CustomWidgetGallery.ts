@@ -330,7 +330,8 @@ class CustomWidgetGallery extends Disposable {
   private async _validateSelectedWidget() {
     const isCustomUrlWidget = this._selectedWidgetId.get() === CUSTOM_URL_WIDGET_ID;
     if (isCustomUrlWidget) {
-      return this._customUrlInput?.reportValidity() && await userTrustsCustomWidget();
+      return this._customUrlInput?.reportValidity() &&
+        (!this._customUrl.get().length || await userTrustsCustomWidget());
     }
     return true;
   }
