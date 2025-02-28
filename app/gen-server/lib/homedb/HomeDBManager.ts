@@ -64,6 +64,7 @@ import {
   getRawAndEntities,
   hasAtLeastOneOfTheseIds,
   hasOnlyTheseIdsOrNull,
+  makeJsonArray,
   now,
   readJson
 } from 'app/gen-server/sqlUtils';
@@ -3180,6 +3181,10 @@ export class HomeDBManager {
     if (transaction) { return op(transaction); }
     return this._connection.transaction(op);
   }
+
+  // Convenient helpers for database utilities that depend on _dbType.
+  public makeJsonArray(content: string): string { return makeJsonArray(this._dbType, content); }
+  public readJson(selection: any) { return readJson(this._dbType, selection); }
 
   private async _createNotFoundUsers(options: {
     analysis: PermissionDeltaAnalysis;
