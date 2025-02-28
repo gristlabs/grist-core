@@ -173,9 +173,9 @@ export class ChecksummedExternalStorage implements ExternalStorage {
   constructor(public readonly label: string, private _ext: ExternalStorage, private _options: {
     maxRetries: number,         // how many time to retry inconsistent downloads
     initialDelayMs: number,     // how long to wait before retrying
-    localHash: PropStorage,     // key/value store for hashes of downloaded content
-    sharedHash: PropStorage,    // key/value store for hashes of external content
-    latestVersion: PropStorage, // key/value store for snapshotIds of uploads
+    localHash: PropStorage,     // key/value store for hashes of downloaded content (a file in persist/grist/docs/{docId}.grist-hash-{meta/doc})
+    sharedHash: PropStorage,    // key/value store for hashes of external content (typically Redis)
+    latestVersion: PropStorage, // key/value store for snapshotIds of uploads (a JS map object)
     computeFileHash: (fname: string) => Promise<string>,  // compute hash for file
   }) {
   }
@@ -192,7 +192,9 @@ export class ChecksummedExternalStorage implements ExternalStorage {
 
   public async upload(key: string, fname: string, metadata?: ObjMetadata) {
     try {
+      // This is the hash computed from the local version of the file
       const checksum = await this._options.computeFileHash(fname);
+      // This is the hash stored locally in persist/grist/docs/{docId}.grist-hash-{meta/doc}
       const prevChecksum = await this._options.localHash.load(key);
       if (prevChecksum && prevChecksum === checksum && !metadata?.label) {
         // nothing to do, checksums match
