@@ -330,7 +330,10 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento interno.",
         "No external stores available": "No hay almacenamientos externos disponibles",
         "Preferred storage for this document": "Almacenamiento preferido para este documento",
-        "Newly uploaded attachments will be placed in External storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento externo."
+        "Newly uploaded attachments will be placed in External storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento externo.",
+        "External": "Externo",
+        "Internal": "Interno",
+        "Transfer in progress": "Transferencia en curso"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -666,7 +669,9 @@
         "Hidden field": "Campo oculto",
         "Redirect automatically after submission": "Redirigir automáticamente después del envío",
         "No field selected": "Ningún campo seleccionado",
-        "Select a field in the form widget to configure.": "Seleccione un campo del widget del formulario para configurarlo."
+        "Select a field in the form widget to configure.": "Seleccione un campo del widget del formulario para configurarlo.",
+        "Submit": "Enviar",
+        "Thank you! Your response has been recorded.": "¡Gracias! Tu respuesta ha sido grabada."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar enlace de anclaje",
@@ -1974,5 +1979,13 @@
         "Name": "Nombre",
         "Choose color": "Elige el color",
         "Reset icon": "Restablecer icono"
+    },
+    "RightPanelUtils": {
+        "Fields_one": "Campos",
+        "Fields_other": "Campos",
+        "Columns_other": "Columnas",
+        "Columns_one": "Columnas",
+        "Series_one": "Series",
+        "Series_other": "Series"
     }
 }

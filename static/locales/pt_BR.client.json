@@ -388,7 +388,10 @@
         "Preferred storage for this document": "Armazenamento preferido para este documento",
         "Start transfer": "Iniciar transferência",
         "**Some existing attachments are still internal** (stored in SQLite file).": "**Alguns anexos existentes ainda são internos** (armazenados em um arquivo SQLite).",
-        "Click \"Start transfer\" to transfer those to External storage.": "Clique em \"Iniciar transferência\" para transferir aqueles para armazenamento externo."
+        "Click \"Start transfer\" to transfer those to External storage.": "Clique em \"Iniciar transferência\" para transferir aqueles para armazenamento externo.",
+        "External": "Externo",
+        "Internal": "Interno",
+        "Transfer in progress": "Transferência em andamento"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -792,7 +795,9 @@
         "Success text": "Texto de sucesso",
         "Layout": "Leiaute",
         "No field selected": "Nenhum campo selecionado",
-        "Select a field in the form widget to configure.": "Selecione um campo no widget do formulário para configurar."
+        "Select a field in the form widget to configure.": "Selecione um campo no widget do formulário para configurar.",
+        "Submit": "Enviar",
+        "Thank you! Your response has been recorded.": "Obrigado! Sua resposta foi registrada."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar o link de ancoragem",
@@ -1984,5 +1989,13 @@
         "Reset icon": "Repor ícone",
         "Icon": "Ícone",
         "Name": "Nome"
+    },
+    "RightPanelUtils": {
+        "Columns_one": "Colunas",
+        "Columns_other": "Colunas",
+        "Fields_one": "Campos",
+        "Fields_other": "Campos",
+        "Series_one": "Séries",
+        "Series_other": "Séries"
     }
 }
