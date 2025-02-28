@@ -1,5 +1,5 @@
-import { useBindable } from 'app/common/gutil';
-import { BindableValue, Computed, dom, IDisposableOwner, Observable, UseCB } from 'grainjs';
+import {useBindable} from 'app/common/gutil';
+import {BindableValue, Computed, dom, IDisposableOwner, Observable, UseCB} from 'grainjs';
 
 /**
  * Version of makeTestId that can be appended conditionally.
@@ -28,7 +28,7 @@ export function autoSelect() {
  */
 export const AsyncComputed = {
   create<T>(owner: IDisposableOwner, cb: (use: UseCB) => Promise<T>): AsyncComputed<T> {
-    const backend: Observable<T | undefined> = Observable.create(owner, undefined);
+    const backend: Observable<T|undefined> = Observable.create(owner, undefined);
     const dirty = Observable.create(owner, true);
     const computed: Computed<Promise<T>> = Computed.create(owner, cb as any);
     let ticket = 0;
@@ -49,7 +49,7 @@ export const AsyncComputed = {
     });
   }
 };
-export interface AsyncComputed<T> extends Observable<T | undefined> {
+export interface AsyncComputed<T> extends Observable<T|undefined> {
   /**
    * Whether computed wasn't updated yet.
    */
@@ -100,7 +100,6 @@ export function onClickOutside(click: () => void) {
         click();
       }
     };
-    dom.autoDisposeElem(content, dom.onElem(document, 'click', onClick, { useCapture: true }));
+    dom.autoDisposeElem(content, dom.onElem(document, 'click', onClick, {useCapture: true}));
   };
 }
-
