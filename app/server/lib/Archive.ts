@@ -28,7 +28,7 @@ export async function create_zip_archive(
 
   return {
     dataStream: archive,
-    // TODO - Should we add a default 'catch' here that logs errors?
+    // Caller is responsible for error handling/awaiting on this promise.
     completed: (async () => {
       try {
         for await (const entry of entries) {
