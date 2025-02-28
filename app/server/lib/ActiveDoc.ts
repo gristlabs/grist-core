@@ -975,14 +975,21 @@ export class ActiveDoc extends EventEmitter {
     const doc = this;
 
     async function* fileGenerator(): AsyncGenerator<ArchiveEntry> {
+      const filesAdded = new Set<string>();
       for (const attachment of attachments) {
         if (doc._shuttingDown) {
           throw new ApiError("Document is shutting down, archiving aborted", 500);
         }
         const file = await attachmentFileManager.getFile(attachment.fileIdent);
         const fileHash = attachment.fileIdent.split(".")[0];
+        const name = `${fileHash}_${attachment.fileName}`;
+        // This should only happen if a file has identical name *and* content hash.
+        if (filesAdded.has(name)) {
+          continue;
+        }
+        filesAdded.add(name);
         yield({
-          name: `${fileHash}_${attachment.fileName}`,
+          name,
           data: file.contentStream,
         });
       }
