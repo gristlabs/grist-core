@@ -965,7 +965,7 @@ export class ActiveDoc extends EventEmitter {
       !await this._granularAccess.canReadEverything(docSession) &&
       !await this.canDownload(docSession)
     ) {
-      throw new ApiError("No access to download attachments", 403);
+      throw new ApiError("Insufficient access to download attachments", 403);
     }
     if (!this.docData) {
       throw new Error("No doc data");
