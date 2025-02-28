@@ -68,7 +68,11 @@ export interface ExternalStorage {
   // Close the storage object.
   close(): Promise<void>;
 
-  uploadStream?(key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
+  uploadStream?(key: string,
+                inStream: stream.Readable,
+                size?: number,
+                metadata?: ObjMetadata
+  ): Promise<string|null|typeof Unchanged>;
   downloadStream?(key: string, snapshotId?: string ): Promise<StreamDownloadResult>;
 }
 
@@ -173,7 +177,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
   constructor(public readonly label: string, private _ext: ExternalStorage, private _options: {
     maxRetries: number,         // how many time to retry inconsistent downloads
     initialDelayMs: number,     // how long to wait before retrying
-    localHash: PropStorage,     // key/value store for hashes of downloaded content (a file in persist/grist/docs/{docId}.grist-hash-{meta/doc})
+    localHash: PropStorage,     // key/value store for hashes of downloaded content (file {Id}.grist-hash-{meta/doc})
     sharedHash: PropStorage,    // key/value store for hashes of external content (typically Redis)
     latestVersion: PropStorage, // key/value store for snapshotIds of uploads (a JS map object)
     computeFileHash: (fname: string) => Promise<string>,  // compute hash for file
