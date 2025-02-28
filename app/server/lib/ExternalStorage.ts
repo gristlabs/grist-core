@@ -266,7 +266,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
           }
         }
 
-        // If successful, rename the temporary file to its proper name. The destination should NOT
+        // Rename the temporary file to its proper name. The destination should NOT
         // exist in this case, and this should fail if it does.
         await fse.move(tmpPath, fname, {overwrite: false});
         if (fromKey === toKey) {
