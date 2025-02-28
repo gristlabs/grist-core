@@ -2853,7 +2853,9 @@ function testDocApi(settings: {
           {...chimpy, responseType: 'arraybuffer'});
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.headers['content-type'], 'application/zip');
-        assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="TestDocExternalAttachments-Attachments.zip"`);
+        assert.deepEqual(resp.headers['content-disposition'],
+          `attachment; filename="TestDocExternalAttachments-Attachments.zip"`
+        );
 
         await assertArchiveContents(resp.data, [
           {
