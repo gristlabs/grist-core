@@ -705,7 +705,7 @@ describe('CustomWidgets', function () {
       await gu.clearInput();
       await gu.sendKeys('not a url');
       await driver.find(saveBtn).click();
-      assert.equal(await driver.find('.test-modal-title').isDisplayed(), false);
+      assert.equal(await driver.find('.test-modal-title').isPresent(), false);
       assert.isTrue(await driver.find('.test-custom-widget-gallery-container').isDisplayed());
 
       // url should work: when submitting, the risk modal should be shown
