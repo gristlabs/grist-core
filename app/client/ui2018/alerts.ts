@@ -12,7 +12,7 @@ import { icon } from 'app/client/ui2018/icons';
 /**
  * Creates an alert element with an icon and message.
  */
-export function alert(...args: DomElementArg[]) {
+export function alert(content: DomElementArg, ...args: DomElementArg[]) {
   return cssAlert(
     cssAlertIcon(
       icon('Info',
@@ -21,7 +21,8 @@ export function alert(...args: DomElementArg[]) {
         dom.style('background-color', 'currentColor'),
       ),
     ),
-    dom('p', ...args)
+    dom('p', content),
+    ...args
   );
 }
 
