@@ -2530,6 +2530,27 @@ function testDocApi(settings: {
       ]);
     });
 
+    it("GET /docs/{did}/attachments/download downloads all attachments as a .tar", async function () {
+      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/download?format=tar`,
+        {...chimpy, responseType: 'arraybuffer'});
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.headers['content-type'], 'application/x-tar');
+      assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="TestDoc-Attachments.tar"`);
+
+      await assertArchiveContents(resp.data, [
+        {
+          name: 'hello.doc',
+          contents: 'foobar',
+        },
+        {
+          name: 'world.jpg',
+        },
+        {
+          name: 'hello.png',
+        },
+      ]);
+    });
+
     it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function () {
       // Check that we can download when ActiveDoc isn't currently open.
       let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);

@@ -45,6 +45,7 @@ import {
 } from 'app/plugin/TableOperationsImpl';
 import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
+import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
@@ -575,12 +576,19 @@ export class DocWorkerApi {
 
     // Responds with an archive of all attachment contents, with suitable Content-Type and Content-Disposition.
     this._app.get('/api/docs/:docId/attachments/download', canView, withDoc(async (activeDoc, req, res) => {
-      const archive = await activeDoc.getAttachmentsArchive(docSessionFromRequest(req));
+      const archiveFormatStr = optStringParam(req.query.format, 'format', {
+        allowed: CreatableArchiveFormats.values,
+        allowEmpty: true,
+      });
+
+      const archiveFormat = CreatableArchiveFormats.parse(archiveFormatStr) || 'zip';
+      const archive = await activeDoc.getAttachmentsArchive(docSessionFromRequest(req), archiveFormat);
       const docName = await this._getDownloadFilename(req, "Attachments", activeDoc.doc);
       res.status(200)
-        .type("application/zip")
+        .type(archive.mimeType)
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'
-        .set('Content-Disposition', contentDisposition(`${docName}.zip`, {type: 'attachment'}))
+        .set('Content-Disposition',
+          contentDisposition(`${docName}.${archive.fileExtension}`, {type: 'attachment'}))
         // Avoid storing because this could be huge.
         .set('Cache-Control', 'no-store');
 
