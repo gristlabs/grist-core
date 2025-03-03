@@ -434,6 +434,15 @@ class TestRenames2(test_engine.EngineTestCase):
       "    UPPER($winner)\n" +
       "   None"
     ))
+    # Also try with leading/trailing blank/not-quite-blank lines
+    self.add_column("Games", "test3", formula=(
+      "   \n"
+      "\n"
+      "  test = $winner\n"
+      "  \n"
+      "  return $winner + test\n"
+      " \n"
+    ))
 
     self.apply_user_action(["RenameColumn", "Games", "winner", "winner2"])
     self.assertEqual(self.engine.docmodel.columns.lookupOne(tableId='Games', colId='test1').formula,
@@ -446,4 +455,12 @@ class TestRenames2(test_engine.EngineTestCase):
       "   if 1:\n" +
       "    UPPER($winner2)\n"
       "   None"
+    )
+    self.assertEqual(self.engine.docmodel.columns.lookupOne(tableId='Games', colId='test3').formula,
+      "   \n"
+      "\n"
+      "  test = $winner2\n"
+      "  \n"
+      "  return $winner2 + test\n"
+      " \n"
     )

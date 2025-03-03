@@ -146,8 +146,8 @@ def _dedent(body):
   whitespace, like textwrap.dedent().
   """
   text = body.get_text()
-  text = _whitespace_only_re.sub('', text)
-  indents = _leading_whitespace_re.findall(text)
+  text_stripped = _whitespace_only_re.sub('', text)
+  indents = _leading_whitespace_re.findall(text_stripped)
   shared_indent = commonprefix(indents)
   if shared_indent:
     regexp = re.compile(r'^' + shared_indent, re.MULTILINE)
