@@ -1,4 +1,4 @@
-import {proxyAgent} from "app/server/lib/ProxyAgent";
+import {proxyAgentForTrustedRequests, proxyAgentForUntrustedRequests} from "app/server/lib/ProxyAgent";
 import {getAvailablePort} from "app/server/lib/serverUtils";
 import {assert} from "chai";
 import {HttpsProxyAgent} from "https-proxy-agent";
@@ -8,6 +8,7 @@ import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
 import {serveSomething, Serving} from 'test/server/customUtil';
 import {assertMatchArray, captureLog, EnvironmentSnapshot} from "test/server/testUtils";
 
+type CheckProxyVariables = 'trustedHttpProxy' | 'trustedHttpsProxy' | 'untrustedHttpProxy' | 'untrustedHttpsProxy';
 
 describe("ProxyAgent", function () {
   let oldEnv: EnvironmentSnapshot;
@@ -19,25 +20,63 @@ describe("ProxyAgent", function () {
     oldEnv.restore();
   });
 
-  it("should be undefined if no proxy is configured", async function () {
-    delete process.env.GRIST_HTTPS_PROXY;
-    const httpProxy = proxyAgent(new URL("http://localhost:3000"));
-    const httpsProxy = proxyAgent(new URL("https://localhost:3000"));
+  function checkProxy(env: NodeJS.ProcessEnv, expectedProxies: Array<CheckProxyVariables>) {
+    Object.assign(process.env, {
+      // By default, the proxy env variables are unset
+      GRIST_HTTPS_PROXY: '',
+      HTTPS_PROXY: '',
+      https_proxy: '',
+      // inject the env variables passed in argument
+      ...env
+    });
 
-    assert.equal(httpProxy, undefined);
-    assert.equal(httpsProxy, undefined);
+    // Instanciate the Proxies
+    const proxies: Record<CheckProxyVariables, {
+      ctorIfDefined: Function,
+      proxy: HttpProxyAgent|HttpsProxyAgent|undefined
+    }> = {
+      trustedHttpProxy: { ctorIfDefined: HttpProxyAgent, proxy: proxyAgentForTrustedRequests(new URL("http://localhost:3000")) },
+      trustedHttpsProxy: { ctorIfDefined: HttpsProxyAgent, proxy: proxyAgentForTrustedRequests(new URL("https://localhost:3000")) },
+      untrustedHttpProxy: { ctorIfDefined: HttpProxyAgent, proxy: proxyAgentForUntrustedRequests(new URL("http://localhost:3000")) },
+      untrustedHttpsProxy: { ctorIfDefined: HttpsProxyAgent, proxy: proxyAgentForUntrustedRequests(new URL("https://localhost:3000")) }
+    };
+
+    // Test whether the proxies are defined and compare with what is expected
+    for (const [varName, { ctorIfDefined, proxy }] of Object.entries(proxies)) {
+      if (expectedProxies.includes(varName as CheckProxyVariables)) {
+        assert.instanceOf(proxy, ctorIfDefined, `${varName} is not an instance of ${ctorIfDefined.name}`);
+      } else {
+        assert.isUndefined(proxy, `${varName} is defined and it should not be`);
+      }
+    }
+  }
+
+  it("trusted and untrusted should be undefined if not configured", async function () {
+    checkProxy({}, []);
   });
 
-  it("should be https proxy if proxy is configured and address is https", async function () {
-    process.env.GRIST_HTTPS_PROXY = "https://localhost:9000";
-    const httpsProxy = proxyAgent(new URL("https://localhost:3000"));
-    assert.instanceOf(httpsProxy, HttpsProxyAgent);
+  it("untrusted should be undefined if no proxy and trusted should be proxied if configured", async function () {
+    checkProxy({HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpsProxy', 'trustedHttpProxy']);
   });
 
-  it("should be https proxy if proxy is configured and address is https", async function () {
-    process.env.GRIST_HTTPS_PROXY = "https://localhost:9000";
-    const httpsProxy = proxyAgent(new URL("http://localhost:3000"));
-    assert.instanceOf(httpsProxy, HttpProxyAgent);
+  it("untrusted should be undefined if direct proxy and trusted should be proxied if configured", async function () {
+    checkProxy({GRIST_HTTPS_PROXY: "direct", HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpsProxy', 'trustedHttpProxy']);
+  });
+
+  it("should be https proxy if grist proxy is configured and trusted undefined if no proxy", async function () {
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000"}, ['untrustedHttpsProxy', 'untrustedHttpProxy']);
+  });
+
+  it("should be http proxy if grist proxy is configured and trusted undefined if no proxy", async function () {
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000"}, ['untrustedHttpsProxy', 'untrustedHttpProxy']);
+  });
+
+  it("should be https proxy if trusted and untrusted proxy are configured and address is https", async function () {
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000", HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpsProxy', 'trustedHttpProxy', 'untrustedHttpsProxy', 'untrustedHttpProxy']);
+  });
+
+  it("should be https proxy if trusted and untrusted proxy are configured and address is http", async function () {
+    checkProxy({GRIST_HTTPS_PROXY: "https://localhost:9000", HTTPS_PROXY: "https://localhost:8080", https_proxy: "https://localhost:8080"}, ['trustedHttpProxy', 'trustedHttpsProxy', 'untrustedHttpProxy', 'untrustedHttpsProxy']);
   });
 
   describe('proxy error handling', async function() {
@@ -52,7 +91,7 @@ describe("ProxyAgent", function () {
       return fetch(url, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        agent: proxyAgent(new URL(url)),
+        agent: proxyAgentForTrustedRequests(new URL(url)),
       });
     }
 
@@ -65,6 +104,8 @@ describe("ProxyAgent", function () {
         app.post('/404', (_, res) => { res.sendStatus(404); res.end(); });
       });
       process.env.GRIST_HTTPS_PROXY = `http://localhost:${port}`;
+      process.env.HTTPS_PROXY = `http://localhost:${port}`;
+      process.env.https_proxy = `http://localhost:${port}`;
     });
 
     afterEach(async function() {
