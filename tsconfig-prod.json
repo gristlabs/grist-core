@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  // ./test reference from tsconfig.json is removed
+  "references": [
+    { "path": "./app" },
+    { "path": "./stubs/app" },
+  ],
+}
