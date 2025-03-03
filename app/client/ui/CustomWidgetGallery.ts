@@ -330,8 +330,10 @@ class CustomWidgetGallery extends Disposable {
   private async _validateSelectedWidget() {
     const isCustomUrlWidget = this._selectedWidgetId.get() === CUSTOM_URL_WIDGET_ID;
     if (isCustomUrlWidget) {
-      return this._customUrlInput?.reportValidity() &&
-        (!this._customUrl.get().length || await userTrustsCustomWidget());
+      // reportValidity will trigger native browser validation, showing a message to the user if the url is invalid
+      const isValidUrl = this._customUrlInput?.reportValidity();
+      const isEmptyUrl = !this._customUrl.get().length;
+      return isEmptyUrl || (isValidUrl && await userTrustsCustomWidget());
     }
     return true;
   }

@@ -560,7 +560,7 @@ export class CustomSectionConfig extends Disposable {
           cssTextInput(
             this._url,
             async (value) => {
-              if ((!value.length || await userTrustsCustomWidget())) {
+              if (!value.length || await userTrustsCustomWidget()) {
                 return this._url.set(value);
               }
               return this._url.set(this._url.get());
