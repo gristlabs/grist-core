@@ -19,6 +19,7 @@ import {delayAbort, getAvailablePort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import {assert} from 'chai';
+import decompress from 'decompress';
 import express from 'express';
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
@@ -2495,6 +2496,40 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
 
+    async function assertArchiveContents(archive: string | Buffer, expectedFiles: { name: string; contents?: string }[])
+    {
+      const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
+      const files = await decompress(archive);
+      for (const expectedFile of expectedFiles) {
+        const file = files.find((file) => getFileName(file.path) === expectedFile.name);
+        assert(file, "file not found in archive");
+        if (expectedFile.contents) {
+          assert.equal(file?.data.toString(), expectedFile.contents, "file contents in archive don't match");
+        }
+      }
+    }
+
+    it("GET /docs/{did}/attachments/download downloads all attachments as a .zip", async function () {
+      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/download`,
+        {...chimpy, responseType: 'arraybuffer'});
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.headers['content-type'], 'application/zip');
+      assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="TestDoc-Attachments.zip"`);
+
+      await assertArchiveContents(resp.data, [
+        {
+          name: 'hello.doc',
+          contents: 'foobar',
+        },
+        {
+          name: 'world.jpg',
+        },
+        {
+          name: 'hello.png',
+        },
+      ]);
+    });
+
     it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function () {
       // Check that we can download when ActiveDoc isn't currently open.
       let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);
@@ -2765,6 +2800,7 @@ function testDocApi(settings: {
         const resp = await addAttachmentsToDoc(docId, [
           { name: 'hello.doc', contents: 'foobar' },
           { name: 'world.jpg', contents: '123456' },
+          // Duplicate of 'hello.doc', so only 2 files should be in external storage.
           { name: 'hello2.doc', contents: 'foobar' }
         ], chimpy);
         assert.deepEqual(resp.data, [1, 2, 3]);
@@ -2810,6 +2846,26 @@ function testDocApi(settings: {
           },
           locationSummary: "internal",
         });
+      });
+
+      it("GET /docs/{did}/attachments/download downloads all attachments as a .zip when external", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/download`,
+          {...chimpy, responseType: 'arraybuffer'});
+        assert.equal(resp.status, 200);
+        assert.deepEqual(resp.headers['content-type'], 'application/zip');
+        assert.deepEqual(resp.headers['content-disposition'],
+          `attachment; filename="TestDocExternalAttachments-Attachments.zip"`
+        );
+
+        await assertArchiveContents(resp.data, [
+          {
+            name: 'hello.doc',
+            contents: 'foobar',
+          },
+          {
+            name: 'world.jpg',
+          },
+        ]);
       });
 
       it("POST /docs/{did}/copy fails when the document has external attachments", async function () {

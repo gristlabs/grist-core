@@ -90,6 +90,7 @@ import {Share} from 'app/gen-server/entity/Share';
 import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
+import {Archive, ArchiveEntry, create_zip_archive} from 'app/server/lib/Archive';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
@@ -957,6 +958,44 @@ export class ActiveDoc extends EventEmitter {
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
+  }
+
+  public async getAttachmentsArchive(docSession: OptDocSession): Promise<Archive> {
+    if (
+      !await this._granularAccess.canReadEverything(docSession) &&
+      !await this.canDownload(docSession)
+    ) {
+      throw new ApiError("Insufficient access to download attachments", 403);
+    }
+    if (!this.docData) {
+      throw new Error("No doc data");
+    }
+    const attachments = this.docData.getMetaTable('_grist_Attachments').getRecords();
+    const attachmentFileManager = this._attachmentFileManager;
+    const doc = this;
+
+    async function* fileGenerator(): AsyncGenerator<ArchiveEntry> {
+      const filesAdded = new Set<string>();
+      for (const attachment of attachments) {
+        if (doc._shuttingDown) {
+          throw new ApiError("Document is shutting down, archiving aborted", 500);
+        }
+        const file = await attachmentFileManager.getFile(attachment.fileIdent);
+        const fileHash = attachment.fileIdent.split(".")[0];
+        const name = `${fileHash}_${attachment.fileName}`;
+        // This should only happen if a file has identical name *and* content hash.
+        if (filesAdded.has(name)) {
+          continue;
+        }
+        filesAdded.add(name);
+        yield({
+          name,
+          data: file.contentStream,
+        });
+      }
+    }
+
+    return create_zip_archive({ store: true }, fileGenerator());
   }
 
   @ActiveDoc.keepDocOpen
