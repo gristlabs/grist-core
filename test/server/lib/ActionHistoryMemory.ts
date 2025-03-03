@@ -64,9 +64,9 @@ describe('ActionHistoryMemory', function() {
       TEST_CLEAN_DATABASE: 'true',
       GRIST_DATA_DIR: dataDir,
       GRIST_INST_DIR: tmpDir,
-      HOME_PORT: '8110',
+      HOME_PORT: '18110',
       GRIST_SINGLE_PORT: 'true',
-      PORT: isCore ? '8110' : '0',
+      PORT: isCore ? '18110' : '0',
       ...process.env,
     };
 
