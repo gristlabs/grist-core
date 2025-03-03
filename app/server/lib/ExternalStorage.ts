@@ -90,7 +90,7 @@ export class KeyMappedExternalStorage implements ExternalStorage {
     if (_ext.uploadStream !== undefined) {
       const extUploadStream = _ext.uploadStream;
       this.uploadStream =
-        (key, inStream, metadata) => extUploadStream.call(_ext, this._map(key), inStream, metadata);
+        (key, inStream, size, metadata) => extUploadStream.call(_ext, this._map(key), inStream, size, metadata);
     }
     if (_ext.downloadStream !== undefined) {
       const extDownloadStream = _ext.downloadStream;
