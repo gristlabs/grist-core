@@ -369,7 +369,21 @@
         "Confirm change": "Potvrdiť zmenu",
         "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Akonáhle začnete s časovaním, Grist zmeria čas potrebný na vyhodnotenie každého vzorca. To umožňuje diagnostikovať, ktoré vzorce sú zodpovedné za pomalý výkon pri prvom otvorení dokumentu alebo keď dokument reaguje na zmeny.",
         "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Tým sa vykoná tvrdé opätovné načítanie dátového stroja. To môže pomôcť, ak je dátový stroj uviaznutý v nekonečnej slučke, na neurčito spracováva najnovšiu zmenu alebo zlyhal. Nebudú stratené žiadne údaje, s výnimkou prípadných aktuálne prebiehajúcich akcií.",
-        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Dokument sa automaticky otvorí vo {{fiddleModeDocUrl}}. Každý ho môže upraviť, čo vytvorí novú neuloženú kópiu."
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Dokument sa automaticky otvorí vo {{fiddleModeDocUrl}}. Každý ho môže upraviť, čo vytvorí novú neuloženú kópiu.",
+        "External": "Externé",
+        "Internal": "Interné",
+        "Transfer in progress": "Prebieha presun",
+        "Click \"Start transfer\" to transfer those to External storage.": "Kliknutím na „Spustiť prenos“ ich prenesiete do Externého úložiska.",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Kliknutím na „Spustiť prenos“ ich prenesiete do Interného úložiska (uloženého v súbore dokumentu SQLite).",
+        "**Some existing attachments are still external**.": "**Niektoré existujúce prílohy sú stále externé**.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Niektoré existujúce prílohy sú stále interné** (uložené v súbore SQLite).",
+        "Attachment storage": "Uloženie príloh",
+        "Being transfer": "Prebieha prenos",
+        "Newly uploaded attachments will be placed in External storage.": "Novo nahrané prílohy budú umiestnené v Externom úložisku.",
+        "Newly uploaded attachments will be placed in Internal storage.": "Novo nahrané prílohy budú umiestnené do Interného úložiska.",
+        "Preferred storage for this document": "Preferované úložisko pre tento dokument",
+        "No external stores available": "Nie je k dispozícii žiadne externé úložisko",
+        "Start transfer": "Začať prenos"
     },
     "DocumentUsage": {
         "Attachments Size": "Veľkosť Príloh",
@@ -728,7 +742,9 @@
         "Success text": "Text Dokončenia",
         "Table column name": "Názov stĺpca tabuľky",
         "Select a field in the form widget to configure.": "Vyberte pole v miniaplikácii formulára, ktoré chcete nakonfigurovať.",
-        "Submit button label": "Označenie tlačidla Odoslať"
+        "Submit button label": "Označenie tlačidla Odoslať",
+        "Submit": "Odoslať",
+        "Thank you! Your response has been recorded.": "Ďakujem! Vaša odpoveď bola zaznamenaná."
     },
     "RowContextMenu": {
         "Copy anchor link": "Kopírovať odkaz na kotvu",
@@ -1121,7 +1137,8 @@
         "Creates a reverse column in target table that can be edited from either end.": "Vytvorí náprotivný stĺpec v cieľovej tabuľke, ktorý možno upravovať z oboch strán.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Toto obmedzenie nastáva, keď je jedna strana obojsmernej referencie nakonfigurovaná ako jedna referencia.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Toto obmedzenie nastáva, keď jeden stĺpec v obojsmernej referencii má typ referencie.",
-        "To allow multiple assignments, change the referenced column's type to Reference List.": "Ak chcete povoliť viacero priradení, zmeňte typ odkazovaného stĺpca na Referenčný zoznam."
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Ak chcete povoliť viacero priradení, zmeňte typ odkazovaného stĺpca na Referenčný zoznam.",
+        "The preview below this header shows how the selected user will see this document": "Náhľad pod touto hlavičkou ukazuje, ako bude vybraný používateľ vidieť tento dokument"
     },
     "ColumnTitle": {
         "Add description": "Pridať popis",
@@ -1365,7 +1382,8 @@
         "Audit Logs": "Denníky auditu",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} viac",
         "New, Enterprise": "Nové, Enterprise",
-        "Off": "Vypnúť"
+        "Off": "Vypnúť",
+        "On": "Zapnúť"
     },
     "TimingPage": {
         "Table ID": "ID Tabuľky",
@@ -1678,7 +1696,9 @@
         "Domain name is invalid": "Názov domény je neplatný"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Neznámy Používateľ"
+        "UnknownUser": "Neznámy Používateľ",
+        "You are viewing this document as": "Zobraziť dokument z pohľadu",
+        "View as Yourself": "Vlastný Pohľad"
     },
     "EditorTooltip": {
         "Convert column to formula": "Previesť stĺpec na vzorec"
@@ -1734,7 +1754,18 @@
         "Enable Grist Enterprise": "Povoliť Grist Enterprise",
         "Grist Enterprise is **enabled**.": "Grist Enterprise je **povolený**.",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivačný kľúč sa používa na spustenie Grist Enterprise po uplynutí skúšobnej\ndoby 30 dní. Získajte aktivačný kľúč [registráciou pre Grist\nPodnik]({{signupLink}}). Na spustenie nepotrebujete aktivačný kľúč\nGrist Core.\n\nZistite viac v našom [Help Center] ({{helpCenter}}).",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivačný klúč slúží na spustenie aplikace Grist Enterprise po skúšobnej dobe.\npo uplynutí 30dennej zkúšobnej dobe. Aktivačný klúč získate [kontaktujte nás]({{contactLink}}) ešte dnes.\nAktivačný klúč nepotrebujete na spustenie aplikáce Grist Core.\n\nViac informacií sa dozviete v našom [Centre nápovedy]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktivačný klúč slúží na spustenie aplikace Grist Enterprise po skúšobnej dobe.\npo uplynutí 30dennej zkúšobnej dobe. Aktivačný klúč získate [kontaktujte nás]({{contactLink}}) ešte dnes.\nAktivačný klúč nepotrebujete na spustenie aplikáce Grist Core.\n\nViac informacií sa dozviete v našom [Centre nápovedy]({{helpCenter}}).",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Aktivačný kľúč sa používa na spustenie Grist Enterprise po skúšobnej dobe\n. . . . . . . . uplynulo 30 dní. Získajte aktivačný kľúč [prihlásenie sa na  Grist\n. . . . . . . . Enterprise]({{signupLink}}). Na spustenie nepotrebujete aktivačný kľúč\n. . . . . . . . Grist Core.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Ak chcete pokračovať v používaní Grist Enterprise, je potrebné aktívne predplatné. Môžete\nsvoje predplatné aktivovať [registráciou do Grist Enterprise] ({{signupLink}}) a vložením\naktivačného kľúča nižšie.",
+        "Expiration date": "Dátum konca platnosti",
+        "Installation ID copied to clipboard": "ID Inštalácie skopírované do schránky",
+        "Installation ID:": "ID Inštalácie:",
+        "Activate": "Aktivovať",
+        "Activation key": "Aktivačný kľúč",
+        "Copy to clipboard": "Kopírovať do schránky",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Zistite viac v našom [Centre Pomoci] ({{helpCenter}}).",
+        "Paste your activation key": "Vložiť Váš aktivačný kľúč",
+        "Plan name": "Názov plánu"
     },
     "ViewLayout": {
         "Delete": "Odstrániť",

@@ -1,5 +1,10 @@
 {
     "oidc": {
         "emailNotVerifiedError": "Verifique seu e-mail com o provedor de identidade e faça login novamente."
+    },
+    "sendAppPage": {
+        "Loading...": "Carregando...",
+        "og-description": "Uma planilha moderna e de código aberto que vai além da grade",
+        "og-title": "Grist, a evolução das planilhas eletrônicas"
     }
 }

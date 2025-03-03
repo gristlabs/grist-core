@@ -356,7 +356,7 @@
         "Tutorial": "Tutoriel",
         "Confirm change": "Confirmer les modifications",
         "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Une fois le chronométrage lancé, Grist mesure le temps nécessaire à l'évaluation de chaque formule. Cela permet de diagnostiquer les formules responsables du ralentissement des performances lors de la première ouverture d'un document ou lorsqu'un document est modifié.",
-        "Template mode": "Mode template",
+        "Template mode": "Type de document",
         "Change document type": "Changer le type de document",
         "Change nature of document": "Changer la nature du document",
         "Regular document": "Document classique",
@@ -376,7 +376,10 @@
         "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Cliquez sur « Démarrer le transfert » pour les transférer vers le stockage interne (stockés dans le fichier SQLite du document).",
         "Start transfer": "Démarrer le transfert",
         "Preferred storage for this document": "Méthode de stockage pour ce document",
-        "No external stores available": "Aucun espace de stockage externe disponible"
+        "No external stores available": "Aucun espace de stockage externe disponible",
+        "Transfer in progress": "Transfert en cours",
+        "External": "Externe",
+        "Internal": "Interne"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -408,7 +411,7 @@
         "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Consulter le tutoriel associé pour apprendre à créer des tableaux récapitulatifs et des graphiques, et pour relier les graphiques de façon dynamique.",
         "Tutorial: Analyze & Visualize": "Tutoriel : analyser et visualiser",
         "Afterschool Program": "Activités périscolaires",
-        "Welcome to the Afterschool Program template": "Bienvenu sur le modèle d'activités périscolaires",
+        "Welcome to the Afterschool Program template": "Bienvenue sur le modèle d'activités périscolaires",
         "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Consultez e tutoriel associé pour savoir comment modéliser des données d'entreprise, utiliser les formules et gérer la complexité.",
         "Tutorial: Manage Business Data": "Tutoriel : Gérer des données d'affaire"
     },
@@ -740,7 +743,9 @@
         "Submit another response": "Soumettre une autre réponse",
         "Required field": "Champ obligatoire",
         "No field selected": "Aucun champ sélectionné",
-        "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer."
+        "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer.",
+        "Submit": "Valider",
+        "Thank you! Your response has been recorded.": "Merci ! Votre réponse a été enregistrée."
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
@@ -848,9 +853,9 @@
         "Editor": "Éditeur",
         "Viewer": "Lecture seule",
         "No Default Access": "Pas d’accès par défaut",
-        "In Full": "En entier",
-        "View & Edit": "Afficher et éditer",
-        "View Only": "Afficher seulement",
+        "In Full": "Tous les accès",
+        "View & Edit": "Lecture et écriture",
+        "View Only": "Lecture seule",
         "None": "Aucun"
     },
     "ValidationPanel": {
@@ -989,7 +994,9 @@
         "Any": "Non défini",
         "Search columns": "Chercher des colonnes",
         "By Name": "Par Nom",
-        "By Date Modified": "Par Date de modification"
+        "By Date Modified": "Par Date de modification",
+        "Light": "Clair",
+        "Custom": "Personnalisé"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -1632,7 +1639,8 @@
         "New, Enterprise": "Nouveau, Entreprise",
         "Log Streaming": "Flux de journalisation",
         "Audit Logs": "Journaux d'audit",
-        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} supplémentaires"
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} supplémentaires",
+        "On": "Activé"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -1763,7 +1771,10 @@
         "Your activation key has expired due to exceeding limits.": "Votre clé d'activation a expiré en raison du dépassement des limites.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Votre instance sera en mode **lecture seule** dans **{{days}}** jour(s).",
         "Your subscription expired on {{date}}.": "Votre abonnement a expiré le {{date}}.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Votre période d'essai a expiré le **{{expireAt}}**. Pour continuer à utiliser Grist Enterprise, vous devez\n[souscrire à Grist Enterprise]({{signupLink}}) et coller votre clé d'activation ci-dessous."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Votre période d'essai a expiré le **{{expireAt}}**. Pour continuer à utiliser Grist Enterprise, vous devez\n[souscrire à Grist Enterprise]({{signupLink}}) et coller votre clé d'activation ci-dessous.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Un abonnement actif est requis pour continuer à utiliser Grist Enterprise. Vous pouvez\nactiver votre abonnement en [vous inscrivant à Grist Enterprise ]({{signupLink}}) et en collant votre\nclé d'activation ci-dessous.",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Une clé d'activation est utilisée pour exécuter Grist Enterprise après une période d'essai\n        de 30 jours a expiré. Obtenez une clé d'activation en vous inscrivant à Grist\n        Entreprise]({{signupLink}}). Vous n'avez pas besoin d'une clé d'activation pour exécuter\n        Grist Core.",
+        "Installation seats": "Places sur l'instance"
     },
     "ViewLayout": {
         "Delete": "Supprimer",
@@ -1916,5 +1927,13 @@
         "Enter document name": "Entrez le nom du document",
         "Rename and set icon": "Renommer et définir l'icône",
         "Reset icon": "Icône de réinitialisation"
+    },
+    "RightPanelUtils": {
+        "Columns_one": "Colonnes",
+        "Columns_other": "Colonnes",
+        "Fields_one": "Champs",
+        "Fields_other": "Champs",
+        "Series_one": "Séries",
+        "Series_other": "Séries"
     }
 }
