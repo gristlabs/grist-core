@@ -24,6 +24,7 @@ import {dom} from 'grainjs';
 import * as ko from 'knockout';
 import {makeT} from 'app/client/lib/localization';
 import { onClickOutside } from 'app/client/lib/domUtils';
+import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
 
 const t = makeT('App');
 
@@ -65,6 +66,8 @@ export class App extends DisposableWithEvents {
     // Settings, initialized by initSettings event triggered by a server message.
     this._settings = ko.observable({});
     this.features = ko.computed(() => this._settings().features || {});
+
+    this.autoDispose(new KeyboardFocusHighlighter());
 
     if (isDesktop()) {
       this.autoDispose(Clipboard.create(this));
