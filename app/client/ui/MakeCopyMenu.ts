@@ -305,9 +305,9 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
     return [
       cssModalTitle(t(`Download document`)),
       cssRadioCheckboxOptions(
-          radioCheckboxOption(selected, 'full', t("Download full document and history")),
-          radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
-          radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
+          radioCheckboxOption(selected, 'full', t("Download document and history")),
+          radioCheckboxOption(selected, 'nohistory', t("Download document without history (can significantly reduce file size)")),
+          radioCheckboxOption(selected, 'template', t("Download document structure only (no data, for template use)")),
       ),
       cssModalButtons(
         dom.domComputed(use =>
