@@ -18,7 +18,7 @@ export interface Archive {
 }
 
 export const CreatableArchiveFormats = StringUnion('zip', 'tar');
-export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type
+export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
 
 /**
  *
