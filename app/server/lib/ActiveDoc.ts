@@ -965,7 +965,8 @@ export class ActiveDoc extends EventEmitter {
     return data;
   }
 
-  public async getAttachmentsArchive(docSession: OptDocSession, format: CreatableArchiveFormats = 'zip'): Promise<Archive> {
+  public async getAttachmentsArchive(docSession: OptDocSession,
+                                     format: CreatableArchiveFormats = 'zip'): Promise<Archive> {
     if (
       !await this._granularAccess.canReadEverything(docSession) &&
       !await this.canDownload(docSession)
