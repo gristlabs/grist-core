@@ -90,7 +90,12 @@ import {Share} from 'app/gen-server/entity/Share';
 import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
-import {Archive, ArchiveEntry, create_zip_archive} from 'app/server/lib/Archive';
+import {
+  Archive,
+  ArchiveEntry, CreatableArchiveFormats,
+  create_tar_archive,
+  create_zip_archive
+} from 'app/server/lib/Archive';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
@@ -960,7 +965,8 @@ export class ActiveDoc extends EventEmitter {
     return data;
   }
 
-  public async getAttachmentsArchive(docSession: OptDocSession): Promise<Archive> {
+  public async getAttachmentsArchive(docSession: OptDocSession,
+                                     format: CreatableArchiveFormats = 'zip'): Promise<Archive> {
     if (
       !await this._granularAccess.canReadEverything(docSession) &&
       !await this.canDownload(docSession)
@@ -990,12 +996,20 @@ export class ActiveDoc extends EventEmitter {
         filesAdded.add(name);
         yield({
           name,
+          size: file.metadata.size,
           data: file.contentStream,
         });
       }
     }
 
-    return create_zip_archive({ store: true }, fileGenerator());
+    if (format == 'tar') {
+      return create_tar_archive(fileGenerator());
+    }
+    if (format == 'zip') {
+      return create_zip_archive({ store: true }, fileGenerator());
+    }
+    // Generally this won't happen, as long as the above is exhaustive over the type of `format`
+    throw new ApiError(`Unsupported archive format ${format}`, 400);
   }
 
   @ActiveDoc.keepDocOpen
