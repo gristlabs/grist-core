@@ -95,7 +95,7 @@
     "chance": "1.0.16",
     "chokidar-cli": "3.0.0",
     "decompress": "^4.2.1",
-    "esbuild-loader": "4.2.2",
+    "esbuild-loader": "4.3.0",
     "eslint": "8.18.0",
     "glob": "7.1.3",
     "http-proxy": "1.18.1",
