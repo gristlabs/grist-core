@@ -6,6 +6,7 @@ import {Product} from 'app/gen-server/entity/Product';
 import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager, Deps as HomeDBManagerDeps, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {SendGridConfig, SendGridMailWithTemplateId} from 'app/gen-server/lib/NotifierTypes';
+import {create} from 'app/server/lib/create';
 import axios, {AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import * as chai from 'chai';
@@ -63,7 +64,9 @@ describe('ApiServerAccess', function() {
         }
       }
     );
-    assert.exists(notificationsConfig);
+    if (['saas', 'enterprise'].includes(create.deploymentType())) {
+      assert.exists(notificationsConfig);
+    }
     dbManager = server.dbManager;
     chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
     kiwiRef = await dbManager.getUserByLogin(kiwiEmail).then((user) => user.ref);
