@@ -64,9 +64,9 @@ describe('ActionHistoryMemory', function() {
       TEST_CLEAN_DATABASE: 'true',
       GRIST_DATA_DIR: dataDir,
       GRIST_INST_DIR: tmpDir,
-      HOME_PORT: '18110',
+      HOME_PORT: '8110',
       GRIST_SINGLE_PORT: 'true',
-      PORT: isCore ? '18110' : '0',
+      PORT: isCore ? '8110' : '0',
       ...process.env,
     };
 
@@ -90,9 +90,10 @@ describe('ActionHistoryMemory', function() {
     serverPort = parseInt(env.HOME_PORT, 10);
     serverUrl = `http://localhost:${serverPort}`;
 
-    // Check if the server is responsive and healthy.
+    // Check if the server is responsive and healthy and serving api requests.
+    // (/status endpoint is insufficient to check that last part).
     async function isServerReady() {
-      return fetch(`${serverUrl}/status`, {timeout: 1000}).then(r => r.ok).catch(() => false);
+      return fetch(`${serverUrl}/api/orgs`, {timeout: 1000}).then(r => r.ok).catch(() => false);
     }
 
     // Wait for server to become responsive, or fail if the server crashes while waiting.
