@@ -3,7 +3,7 @@ import {parseSubdomain} from 'app/common/gristUrls';
 import {isNumber} from 'app/common/gutil';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
-import {log} from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
@@ -63,7 +63,11 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
         url: process.env.REDIS_URL,
       });
       client.unref();
-      client.on('error', log);
+      client.on('error',
+        (e: any)=> {
+          log.error(`[createSessionStoreFactory]: ${e}`);
+        }
+      );
       const store = new RedisStore({client});
       return assignIn(store, {
         async close() {
