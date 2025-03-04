@@ -3465,10 +3465,17 @@ export async function setCustomWidgetUrl(url: string, options: SetWidgetOptions 
   await clearInput();
   if (url) { await sendKeys(url); }
   await sendKeys(Key.ENTER);
+  if (url) {
+    await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').click();
+    await driver.find('.test-modal-confirm').click();
+  }
   await waitForServer();
 }
 
 export async function setCustomWidget(content: string|RegExp, options: SetWidgetOptions = {}) {
+  if (content === "Custom URL") {
+    return setCustomWidgetUrl('', options);
+  }
   const {openGallery = true} = options;
   if (openGallery) { await openCustomWidgetGallery(); }
   await driver.findContent('.test-custom-widget-gallery-widget', content).click();

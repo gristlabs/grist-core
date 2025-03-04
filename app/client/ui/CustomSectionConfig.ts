@@ -17,6 +17,7 @@ import {
   getWidgetName,
   showCustomWidgetGallery,
 } from 'app/client/ui/CustomWidgetGallery';
+import {userTrustsCustomWidget} from 'app/client/ui/userTrustsCustomWidget';
 import {cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
@@ -558,9 +559,14 @@ export class CustomSectionConfig extends Disposable {
         return cssCustomUrlDetails(
           cssTextInput(
             this._url,
-            async value => this._url.set(value),
+            async (value) => {
+              if (!value.length || await userTrustsCustomWidget()) {
+                return this._url.set(value);
+              }
+              return this._url.set(this._url.get());
+            },
             dom.show(this._isCustomUrlWidget),
-            {placeholder: t('Enter Custom URL')},
+            {placeholder: t('Enter Custom URL'), type: 'url'},
           ),
         );
       } else if (!widget?.description && !widget?.authors?.[0] && !widget?.lastUpdatedAt) {
