@@ -61,6 +61,7 @@ declare module "redis" {
     public lrangeAsync(key: string, start: number, end: number): Promise<string[]>;
     public rpushAsync(key: string, ...vals: string[]): Promise<number>;
     public pingAsync(): Promise<string>;
+    public unref(): void;
   }
 
   class Multi {

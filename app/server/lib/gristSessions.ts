@@ -11,6 +11,7 @@ import * as crypto from 'crypto';
 import * as express from 'express';
 import assignIn = require('lodash/assignIn');
 import * as path from 'path';
+import { createClient } from 'redis';
 
 export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
 
@@ -55,13 +56,10 @@ export interface IGristSession {
 function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
   if (process.env.REDIS_URL) {
     // Note that ./build excludes this module from the electron build.
-    const redis = require('redis');
     const RedisStore = require('connect-redis')(session);
     promisifyAll(RedisStore.prototype);
     return () => {
-      const client = redis.createClient({
-        url: process.env.REDIS_URL,
-      });
+      const client = createClient(process.env.REDIS_URL);
       client.unref();
       client.on('error',
         (e: any)=> {
