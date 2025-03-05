@@ -1392,7 +1392,7 @@ export class FlexServer implements GristServer {
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
       const storageManager = await this.create.createLocalDocStorageManager(
-        this.docsRoot, samples, this._comm);
+        this.docsRoot, samples, this._comm, undefined, this);
       this._storageManager = storageManager;
     }
 
