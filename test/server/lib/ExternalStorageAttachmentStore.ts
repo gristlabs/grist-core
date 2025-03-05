@@ -1,8 +1,7 @@
 import {
   ExternalStorageAttachmentStore,
-  ExternalStorageSupportingAttachments
+  ExternalStorageSupportingAttachments, loadAttachmentFileIntoMemory
 } from 'app/server/lib/AttachmentStore';
-import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 
 import {assert} from 'chai';
 import * as stream from 'node:stream';
@@ -35,22 +34,27 @@ describe('ExternalStorageAttachmentStore', () => {
   });
 
   it('can download a file', async () => {
-    const fileStream = stream.Readable.from(testFileBuffer);
     const fakeStorage = {
-      downloadStream: sinon.fake((_, outputStream: stream.Writable) => {
-        fileStream.pipe(outputStream);
+      downloadStream: sinon.fake(async (_) => {
+        return {
+          metadata: { size: 0, snapshotId: "" },
+          contentStream: stream.Readable.from(testFileBuffer),
+        };
       })
     };
 
-    const storage = fakeStorage as unknown as ExternalStorageSupportingAttachments;
+    // This line will error if downloadStream's return type changes in a way that breaks fakeStorage.
+    const downloadStreamStorage: Pick<ExternalStorageSupportingAttachments, 'downloadStream'> = fakeStorage;
+
+    const storage = downloadStreamStorage as unknown as ExternalStorageSupportingAttachments;
     const store = new ExternalStorageAttachmentStore(testStoreId, storage);
-    const output = new MemoryWritableStream();
-    await store.download(testPoolId, testFileId, output);
+    const download = await store.download(testPoolId, testFileId);
+    const file = await loadAttachmentFileIntoMemory(download);
 
     assert.isTrue(fakeStorage.downloadStream.calledOnce, "download should be called exactly once");
     const call = fakeStorage.downloadStream.getCalls()[0];
     assert.equal(call.args[0], getExpectedFilePath(testFileId), "download path is incorrect");
-    assert.equal(output.getBuffer().toString(), testFileContents, "downloaded file contents don't match");
+    assert.equal(file.contents.toString(), testFileContents, "downloaded file contents don't match");
   });
 
   it('can check if a file exists', async () => {

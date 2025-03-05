@@ -90,9 +90,10 @@ describe('ActionHistoryMemory', function() {
     serverPort = parseInt(env.HOME_PORT, 10);
     serverUrl = `http://localhost:${serverPort}`;
 
-    // Check if the server is responsive and healthy.
+    // Check if the server is responsive and healthy and serving api requests.
+    // (/status endpoint is insufficient to check that last part).
     async function isServerReady() {
-      return fetch(`${serverUrl}/status`, {timeout: 1000}).then(r => r.ok).catch(() => false);
+      return fetch(`${serverUrl}/api/orgs`, {timeout: 1000}).then(r => r.ok).catch(() => false);
     }
 
     // Wait for server to become responsive, or fail if the server crashes while waiting.

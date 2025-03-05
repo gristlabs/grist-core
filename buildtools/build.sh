@@ -6,6 +6,9 @@ PROJECT=""
 if [[ -e ext/app ]]; then
   PROJECT="tsconfig-ext.json"
   echo "Using extra app directory"
+elif [[ "$1" == "prod" ]]; then
+  PROJECT="tsconfig-prod.json"
+  echo "Building for production"
 else
   echo "No extra app directory found"
 fi

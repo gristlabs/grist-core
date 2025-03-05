@@ -77,9 +77,9 @@ export interface WidgetFrameOptions {
    */
   configure?: (frame: WidgetFrame) => void;
   /**
-   * Optional handler to modify the iframe.
+   * Handler to modify the iframe.
    */
-  onElem?: (iframe: HTMLIFrameElement) => void;
+  onElem: (iframe: HTMLIFrameElement) => void;
   /**
    * Optional language to use for the widget.
    */
@@ -211,16 +211,17 @@ export class WidgetFrame extends DisposableWithEvents {
   }
 
   public buildDom() {
-    const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
     this._iframe = dom(
       'iframe',
       dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
       dom.cls('clipboard_focus'),
       dom.cls('custom_view'),
       dom.attr('src', this._url),
+      // Allow widgets to write to the clipboard via the Clipboard API.
+      {allow: "clipboard-write"},
       hooks.iframeAttributes,
       testId('ready', use => use(this._readyCalled) && !use(this._isEmpty)),
-      self => void onElem(self),
+      (elem) => { this._options.onElem(elem); },
     );
     return this._iframe;
   }

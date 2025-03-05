@@ -20,9 +20,11 @@ import { marked } from 'marked';
  * Markdown strings are easier for our translators to handle, as it's possible
  * to include all of the context around a single markdown string without
  * breaking it up into separate strings for grainjs elements.
+ *
+ * Enable `inline` option to avoid wrapping results in `<p>` tags.
  */
-export function markdown(markdownObs: BindableValue<string>): DomElementMethod {
-  return elem => subscribeElem(elem, markdownObs, value => setMarkdownValue(elem, value));
+export function markdown(markdownObs: BindableValue<string>, options: {inline?: boolean} = {}): DomElementMethod {
+  return elem => subscribeElem(elem, markdownObs, value => setMarkdownValue(elem, value, options));
 }
 
 /**
@@ -36,7 +38,6 @@ export function cssMarkdownSpan(
 ): HTMLSpanElement {
   return cssMarkdownLine(markdown(markdownObs), ...args);
 }
-
 const cssMarkdownLine = styled('span', `
   & p {
     margin: 0;
@@ -53,6 +54,24 @@ const cssMarkdownLine = styled('span', `
   }
 `);
 
-function setMarkdownValue(elem: Element, markdownValue: string): void {
-  elem.innerHTML = sanitizeHTML(marked(markdownValue, {async: false}));
+export function inlineMarkdown(markdownObs: BindableValue<string>): DomElementMethod {
+  return markdown(markdownObs, {inline: true});
+}
+
+function setMarkdownValue(elem: Element, markdownValue: string, options: {inline?: boolean} = {}): void {
+  const html = options.inline
+    ? marked.parseInline(markdownValue, {async: false})
+    : marked(markdownValue, {async: false});
+  elem.innerHTML = sanitizeHTML(html);
+}
+
+/**
+ * Removes all links from markdown text replacing them with the plain label.
+ */
+export function stripLinks(markdownText: string) {
+  // This regex captures the link text in a form [......](......), it matches all new lines characters, even
+  // though markdown will not render them as links. For example [link\n\nlink](https://example.com) will be
+  // rendered as plain text.
+  const regex = /\[(.*?)\]\(.*?\)/gs;
+  return markdownText.replace(regex, '$1');
 }

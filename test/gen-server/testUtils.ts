@@ -3,8 +3,8 @@ import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {INotifier} from 'app/server/lib/INotifier';
-import {AxiosRequestConfig} from "axios";
+import {GristServer} from 'app/server/lib/GristServer';
+import {AxiosRequestConfig} from 'axios';
 import {delay} from 'bluebird';
 
 /**
@@ -81,10 +81,10 @@ export function getGristConfig(page: string): Partial<GristLoadConfig> {
  * Waits for all pending (back-end) notifications to complete.  Notifications are
  * started during request handling, but may not complete fully during it.
  */
-export async function waitForAllNotifications(notifier: INotifier, maxWait: number = 1000) {
+export async function waitForAllNotifications(gristServer: GristServer, maxWait: number = 1000) {
   const start = Date.now();
   while (Date.now() - start < maxWait) {
-    if (!notifier.testPending) { return; }
+    if (!gristServer.testPending) { return; }
     await delay(1);
   }
   throw new Error('waitForAllNotifications timed out');

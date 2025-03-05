@@ -27,7 +27,7 @@ jobs:
         run: yarn install
 
       - name: Build code
-        run: yarn run build:prod
+        run: yarn run build
 
       - name: Scan for keys
         id: scan-keys

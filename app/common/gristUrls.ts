@@ -118,6 +118,7 @@ export const commonUrls = {
   githubSponsorGristLabs: 'https://github.com/sponsors/gristlabs',
 
   versionCheck: 'https://api.getgrist.com/api/version',
+  attachmentStorage: 'https://support.getgrist.com/document-settings/#external-attachments',
 };
 
 export const ONBOARDING_VIDEO_YOUTUBE_EMBED_ID = '56AieR9rpww';

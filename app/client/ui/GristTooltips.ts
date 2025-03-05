@@ -196,10 +196,17 @@ see or edit which parts of your document.')
     ...args,
   ),
   attachmentStorage: (...args: DomElementArg[]) => cssTooltipContent(
-    cssMarkdownSpan(t(
-      "Internal storage means all attachments are stored in the document SQLite file, " +
-      "while external storage indicates all attachments are stored in the same " +
-      "external storage."
+    cssMarkdownSpan(
+      t(
+        "Internal storage means all attachments are stored in the document SQLite file, " +
+        "while external storage indicates all attachments are stored in the same " +
+        "external storage."
+      ) +
+      "\n\n" +
+      t(
+      "[Learn more.]({{link}})", {
+        link: commonUrls.attachmentStorage
+      }
     )),
     ...args,
   ),

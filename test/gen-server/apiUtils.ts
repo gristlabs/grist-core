@@ -56,7 +56,7 @@ export class TestServer {
     // we substitute sqlite for postgres.
     if (this.server.hasNotifier()) {
       for (let i = 0; i < 30; i++) {
-        if (!this.server.getNotifier().testPending) { break; }
+        if (!this.server.testPending) { break; }
         await delay(100);
       }
     }

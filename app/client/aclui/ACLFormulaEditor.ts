@@ -1,5 +1,7 @@
 import ace, {Ace} from 'ace-builds';
+import {expandAndFilterSuggestions, ISuggestionWithSubAttrs} from 'app/client/lib/Suggestions';
 import {setupAceEditorCompletions} from 'app/client/components/AceEditorCompletions';
+import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
 import {theme} from 'app/client/ui2018/cssVars';
 import {gristThemeObs} from 'app/client/ui2018/theme';
 import {Theme} from 'app/common/ThemePrefs';
@@ -11,7 +13,7 @@ export interface ACLFormulaOptions {
   readOnly: boolean;
   placeholder: DomArg;
   setValue: (value: string) => void;
-  getSuggestions: (prefix: string) => string[];
+  getSuggestions: () => ISuggestionWithSubAttrs[];
   customiseEditor?: (editor: Ace.Editor) => void;
 }
 
@@ -52,7 +54,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   );
   editor.on("change", () => showPlaceholder.set(!editor.getValue().length));
 
-  async function getSuggestions(prefix: string): Promise<Array<[string, null]>> {
+  async function getSuggestions(prefix: string): Promise<ISuggestionWithValue[]> {
     return [
       // The few Python keywords and constants we support.
       'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None',
@@ -60,10 +62,15 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
       'OWNER', 'EDITOR', 'VIEWER',
       // The common variables.
       'user', 'rec', 'newRec',
+    ]
+    .map<ISuggestionWithValue>(suggestion => [suggestion, null])   // null means no example value
+    .concat(
       // Other completions that depend on doc schema or other rules.
-      ...options.getSuggestions(prefix),
-    ].map(suggestion => [suggestion, null]);  // null means no example value
+      expandAndFilterSuggestions(prefix, options.getSuggestions())
+      .map<ISuggestionWithValue>(s => [s.value, s.example || null])
+    );
   }
+
   setupAceEditorCompletions(editor, {getSuggestions});
 
   // Save on blur.

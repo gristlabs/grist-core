@@ -12,6 +12,7 @@ import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('Importer2', function() {
   this.timeout(60000);
+  gu.bigScreen();
   const cleanup = setupTestSuite();
   let doc: DocCreationInfo;
   let api: DocAPI;
@@ -551,17 +552,19 @@ describe('Importer2', function() {
       const completions = await driver.findAll(
         'div.ace_autocomplete div.ace_line', async el => (await el.getText()).split(' ')[0]
       );
-      assert.deepEqual(
-        completions.slice(0, 6),
-        [
-          "$\nCountry",
-          "$\nDistrict",
-          "$\nid",
-          "$\nName",
-          "$\nPop_000",
-          "$\nPopulation",
-        ]
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(
+          completions.slice(0, 6),
+          [
+            "$\nCountry",
+            "$\nDistrict",
+            "$\nid",
+            "$\nName",
+            "$\nPop_000",
+            "$\nPopulation",
+          ]
+        );
+      }, 2000);
 
       // Set a constant value for the formula.
       await gu.sendKeys(Key.BACK_SPACE, '123', Key.ENTER);

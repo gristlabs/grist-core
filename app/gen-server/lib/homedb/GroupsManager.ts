@@ -57,21 +57,17 @@ export class GroupsManager {
   // Returns a map of userIds to the user's strongest default role on the given resource.
   // The resource's aclRules, groups, and memberUsers must be populated.
   public static getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
-    // Add the users to a map to ensure uniqueness. (A user may be present in
-    // more than one group)
+    // Map of userId to the strongest role for that user among res.aclRules, filtered by allowRoles.
     const userMap: {[userId: string]: T} = {};
-    (res.aclRules as AclRule[]).forEach((aclRule: AclRule) => {
+    for (const aclRule of res.aclRules) {
       const role = aclRule.group.name as T;
       if (allowRoles.includes(role)) {
-        // Map the users to remove sensitive information from the result and
-        // to add the group names.
-        aclRule.group.memberUsers.forEach((u: User) => {
-          // If the user is already present in another group, use the more
-          // powerful role name.
-          userMap[u.id] = userMap[u.id] ? roles.getStrongestRole(userMap[u.id], role) : role;
-        });
+        for (const {id} of aclRule.group.memberUsers) {
+          // If the user is already present in another group, use the more powerful role name.
+          userMap[id] = userMap[id] ? roles.getStrongestRole(userMap[id], role) : role;
+        }
       }
-    });
+    }
     return userMap;
   }
 

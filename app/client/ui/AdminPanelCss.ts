@@ -108,6 +108,7 @@ const cssItem = styled('div', `
 const cssItemShort = styled('div', `
   display: flex;
   flex-wrap: wrap;
+  row-gap: 4px;
   align-items: center;
   padding: 8px;
   margin: 0 -8px;

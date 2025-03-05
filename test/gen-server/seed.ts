@@ -248,7 +248,7 @@ export const exampleOrgs = [
   },
   {
     name: 'TestMaxNewUserInvites',
-    domain: 'textmaxnewuserinvites',
+    domain: 'testmaxnewuserinvites',
     product: 'testMaxNewUserInvites',
     workspaces: [
       {

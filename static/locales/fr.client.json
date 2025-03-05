@@ -1012,7 +1012,8 @@
         "Got it": "J'ai compris",
         "Are you sure you want to delete these records?": "Êtes-vous sûr de vouloir supprimer ces enregistrements ?",
         "Are you sure you want to delete this record?": "Êtes-vous sûr de vouloir supprimer cet enregistrement ?",
-        "TIP": "CONSEIL"
+        "TIP": "CONSEIL",
+        "Confirm": "Confirmer"
     },
     "pages": {
         "Rename": "Renommer",
@@ -1935,5 +1936,15 @@
         "Fields_other": "Champs",
         "Series_one": "Séries",
         "Series_other": "Séries"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Attention aux vues personnalisées de source inconnue",
+        "Please review the following before adding a new custom widget.": "Merci de lire attentivement les recommandations suivantes avant de confirmer l’ajout du widget.",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Les vues personnalisées sont **très puissantes** ! Certaines peuvent **lire et envoyer vos données** sur internet.",
+        "Are you sure you **trust the resource** at this URL?": "Êtes-vous certain de **faire confiance** à la **ressource derrière cette URL** ?",
+        "Do you **trust the person** who shared this link?": "Faites-vous **confiance à la personne** qui vous a **partagé ce lien** ?",
+        "Have you **reviewed the code** at this URL?": "Le cas échéant avez-vous pu **auditer le code derrière ce lien** ?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En cas de doute, vous pouvez transférer le lien aux équipes techniques responsable de votre instance.",
+        "I confirm that I understand these warnings and accept the risks": "j’ai bien lu ces recommandations et je confirme vouloir ajouter cette vue"
     }
 }

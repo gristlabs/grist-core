@@ -15,7 +15,13 @@ FROM node:22-bookworm AS builder
 # Install all node dependencies.
 WORKDIR /grist
 COPY package.json yarn.lock /grist/
-RUN yarn install --frozen-lockfile --verbose --network-timeout 600000
+# Create node_modules with devDependencies to be able to build the app
+# Add at global level gyp deps to build sqlite3 for prod
+# then create node_modules_prod that will be the node_modules of final image
+RUN \
+  yarn install --frozen-lockfile --verbose --network-timeout 600000 && \
+  yarn global add --verbose --network-timeout 600000 node-gyp node-pre-gyp node-gyp-build node-gyp-build-optional-packages && \
+  yarn install --prod --frozen-lockfile --modules-folder=node_modules_prod --verbose --network-timeout 600000
 
 # Install any extra node dependencies (at root level, to avoid having to wrestle
 # with merging them).
@@ -28,6 +34,7 @@ RUN \
 # Build node code.
 COPY tsconfig.json /grist
 COPY tsconfig-ext.json /grist
+COPY tsconfig-prod.json /grist
 COPY test/tsconfig.json /grist/test/tsconfig.json
 COPY test/chai-as-promised.js /grist/test/chai-as-promised.js
 COPY app /grist/app
@@ -52,7 +59,7 @@ RUN \
 
 # Fetch python3.11
 FROM python:3.11-slim-bookworm AS collector-py3
-ADD sandbox/requirements3.txt requirements3.txt
+COPY sandbox/requirements3.txt requirements3.txt
 # setuptools is installed explicitly to 75.8.1 to avoid vunerable 65.5.1
 # version installed by default. 75.8.1 is the up to date version compatible with
 # python >= 3.9
@@ -76,7 +83,7 @@ RUN \
 # This will no longer be necessary when support for Python2 is dropped.
 # The Grist data engine code will not work without it.
 FROM debian:buster-slim AS collector-py2
-ADD sandbox/requirements.txt requirements.txt
+COPY sandbox/requirements.txt requirements.txt
 RUN \
   apt update && \
   apt install -y --no-install-recommends python2 python-pip python-setuptools \
@@ -118,7 +125,7 @@ RUN mkdir -p /persist/docs
 
 # Copy node files.
 COPY --from=builder /node_modules /node_modules
-COPY --from=builder /grist/node_modules /grist/node_modules
+COPY --from=builder /grist/node_modules_prod /grist/node_modules
 COPY --from=builder /grist/_build /grist/_build
 COPY --from=builder /grist/static /grist/static-built
 
@@ -129,7 +136,7 @@ COPY --from=collector-py2 /usr/local/lib/python2.7 /usr/local/lib/python2.7
 # Copy across an older libffi library binary needed by python2.
 # We moved it a bit sleazily to a predictable location to avoid awkward
 # architecture-dependent logic.
-COPY --from=collector-py2 /usr/local/lib/libffi.so.6* /usr/local/lib
+COPY --from=collector-py2 /usr/local/lib/libffi.so.6* /usr/local/lib/
 
 # Copy python3 files.
 COPY --from=collector-py3 /usr/local/bin/python3.11 /usr/bin/python3.11
@@ -145,11 +152,11 @@ RUN \
 COPY --from=sandbox /runsc /usr/bin/runsc
 
 # Add files needed for running server.
-ADD package.json /grist/package.json
-ADD bower_components /grist/bower_components
-ADD sandbox /grist/sandbox
-ADD plugins /grist/plugins
-ADD static /grist/static
+COPY package.json /grist/package.json
+COPY bower_components /grist/bower_components
+COPY sandbox /grist/sandbox
+COPY plugins /grist/plugins
+COPY static /grist/static
 
 # Make optional pyodide sandbox available
 COPY --from=builder /grist/sandbox/pyodide /grist/sandbox/pyodide

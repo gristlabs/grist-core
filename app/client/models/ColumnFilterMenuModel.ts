@@ -64,7 +64,16 @@ export class ColumnFilterMenuModel extends Disposable {
   public readonly filteredValues = Computed.create(
     this, this.filterSet, this.isSortedByCount,
     (_use, filter, isSortedByCount) => {
-      const prop: keyof IFilterCount = isSortedByCount ? 'count' : 'displayValue';
+      // Decide which property to sort the labels by.
+      // - For columns of type text use the label property (which is what we are showing)
+      // - For other types use the displayValue property (which is the underlying value)
+      // For text we need labels - which we assume are the same as values, because we for markdown widget
+      // the label is actually different (it doesn't have links, so the order can be different).
+      // TODO: The comparator below is not comparing labels (strings) but actual values (like boolean or numbers),
+      // as this is the value of the `displayValue` column (though it uses localeCompare for strings).
+      // For anyone reading this here is the context https://phab.getgrist.com/D3441 (sorry for the private repo).
+      const displayValue = this.columnFilter.visibleColumnType === 'Text' ? 'label' : 'displayValue';
+      const prop: keyof IFilterCount = isSortedByCount ? 'count' : displayValue;
       let isShownFirst: (val: any) => boolean = isNull;
       if (['Date', 'DateTime', 'Numeric', 'Int'].includes(this.columnFilter.visibleColumnType)) {
         isShownFirst = (val) => isNull(val) || isNaN(val);

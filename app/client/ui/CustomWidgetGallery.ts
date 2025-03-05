@@ -11,6 +11,7 @@ import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
 import {AccessLevel, ICustomWidget, matchWidget, WidgetAuthor} from 'app/common/CustomWidget';
+import {userTrustsCustomWidget} from 'app/client/ui/userTrustsCustomWidget';
 import {commonUrls} from 'app/common/gristUrls';
 import {bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled} from 'grainjs';
 import escapeRegExp from 'lodash/escapeRegExp';
@@ -50,6 +51,7 @@ type WidgetVariant = 'custom' | 'grist' | 'community';
 
 class CustomWidgetGallery extends Disposable {
   private readonly _customUrl: Observable<string>;
+  private _customUrlInput: HTMLInputElement;
   private readonly _filteredWidgets = Observable.create<ICustomWidget[] | null>(this, null);
   private readonly _section: ViewSectionRec | null = null;
   private readonly _searchText = Observable.create(this, '');
@@ -297,7 +299,10 @@ class CustomWidgetGallery extends Disposable {
         ),
         variant !== 'custom' ? null : cssCustomUrlInput(
           this._customUrl,
-          {placeholder: t('Widget URL')},
+          (el) => {
+            this._customUrlInput = el as HTMLInputElement;
+          },
+          {placeholder: t('Widget URL'), type: 'url'},
           testId('custom-url'),
         ),
       ),
@@ -311,8 +316,26 @@ class CustomWidgetGallery extends Disposable {
   private async _save() {
     if (this._saveDisabled.get()) { return; }
 
-    await this._saveSelectedWidget();
-    this._ctl.close();
+    if (await this._validateSelectedWidget()) {
+      await this._saveSelectedWidget();
+      this._ctl.close();
+    }
+  }
+
+  /**
+   * Check if the selected widget is valid:
+   * - it is by default for all widgets
+   * - it is for "custom url widgets" if the url input follows url format and the user confirmed the security risk modal
+   */
+  private async _validateSelectedWidget() {
+    const isCustomUrlWidget = this._selectedWidgetId.get() === CUSTOM_URL_WIDGET_ID;
+    if (isCustomUrlWidget) {
+      // reportValidity will trigger native browser validation, showing a message to the user if the url is invalid
+      const isValidUrl = this._customUrlInput?.reportValidity();
+      const isEmptyUrl = !this._customUrl.get().length;
+      return isEmptyUrl || (isValidUrl && await userTrustsCustomWidget());
+    }
+    return true;
   }
 
   private async _deselectOrClose() {

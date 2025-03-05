@@ -467,11 +467,11 @@ describe('AccessRules1', function() {
     await triggerAutoComplete(ruleSet, 1, '$');
     await gu.waitToPass(async () => {
       const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
-      assert.deepEqual(completions, [
-        '$\nExpenses\n ',
-        '$\nid\n ',
-        '$\nIncome\n ',
-        '$\nYear\n ',
+      assert.deepEqual(completions.map(c => c.split(' ')[0].trim()), [
+        '$\nExpenses',
+        '$\nid',
+        '$\nIncome',
+        '$\nYear',
       ]);
     });
     await driver.sendKeys(Key.ESCAPE);
