@@ -87,9 +87,9 @@ export class MinIOExternalStorage implements ExternalStorage {
     }
   }
 
-  public async uploadStream(key: string, inStream: stream.Readable, metadata?: ObjMetadata) {
+  public async uploadStream(key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata) {
     const result = await this._s3.putObject(
-      this.bucket, key, inStream, undefined,
+      this.bucket, key, inStream, size,
       metadata ? {Metadata: toExternalMetadata(metadata)} : undefined
     );
     // Empirically VersionId is available in result for buckets with versioning enabled.
@@ -97,8 +97,10 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async upload(key: string, fname: string, metadata?: ObjMetadata) {
+    // calling putObject with a file size will let MinIO be clever about uploading in multiple parts or not.
+    const stat = await fse.lstat(fname);
     const filestream = fse.createReadStream(fname);
-    return this.uploadStream(key, filestream, metadata);
+    return this.uploadStream(key, filestream, stat.size, metadata);
   }
 
   public async downloadStream(key: string, snapshotId?: string ): Promise<StreamDownloadResult> {
