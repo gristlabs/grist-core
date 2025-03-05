@@ -49,11 +49,16 @@ export const ATTACHMENTS_EXPIRY_DAYS = 7;
 // Cleanup expired attachments every hour (also happens when shutting down).
 export const REMOVE_UNUSED_ATTACHMENTS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
-export const GRIST_SQLITE_MODE = appSettings.section('features')
-  .section('sqlite').flag('mode').readString({
-    envVar: 'GRIST_SQLITE_MODE',
-    acceptedValues: ['wal', 'sync'],
-  }) as 'wal'|'sync'|undefined;
+/**
+ * Check what way we want to access SQLite files.
+ */
+export function getSqliteMode() {
+  return appSettings.section('features')
+    .section('sqlite').flag('mode').readString({
+      envVar: 'GRIST_SQLITE_MODE',
+      acceptedValues: ['wal', 'sync'],
+    }) as 'wal'|'sync'|undefined;
+}
 
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
@@ -720,13 +725,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     const settings = [
       'PRAGMA trusted_schema = OFF;',  // mitigation suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
     ];
-    if (GRIST_SQLITE_MODE === undefined) {
+    const sqliteMode = getSqliteMode();
+    if (sqliteMode === undefined) {
       // Historically, Grist has used this setting.
       settings.push('PRAGMA synchronous = OFF;');
-    } else if (GRIST_SQLITE_MODE === 'sync') {
+    } else if (sqliteMode === 'sync') {
       // This is a safer, but potentially slower, setting for general use.
       settings.push('PRAGMA synchronous = FULL;');
-    } else if (GRIST_SQLITE_MODE === 'wal') {
+    } else if (sqliteMode === 'wal') {
       // This is a good modern setting for servers, but awkward
       // on a Desktop for users who interact with their documents
       // directly as files on the file system. With WAL, at any
