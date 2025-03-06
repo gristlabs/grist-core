@@ -11,7 +11,7 @@ import * as crypto from 'crypto';
 import * as express from 'express';
 import assignIn = require('lodash/assignIn');
 import * as path from 'path';
-import { createClient } from 'redis';
+import {createClient} from 'redis';
 
 export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
 
