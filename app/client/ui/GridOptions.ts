@@ -36,7 +36,7 @@ export class GridOptions extends Disposable {
 
         cssRow(
           checkbox(setSaveValueFromKo(this, section.optionsObj.prop('fieldIcon'))),
-          t("Field Icons"),
+          t("Formula Icons"),
           testId('field-icon-button'),
         ),
 
