@@ -587,6 +587,19 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   /**
+   * Remove local version of a document, and state related to it.
+   */
+  public async wipeCache(docName: string) {
+    // NOTE: fse.remove succeeds also when the file does not exist.
+    await fse.remove(this.getPath(docName));
+    await fse.remove(this._getHashFile(this.getPath(docName), 'doc'));
+    await fse.remove(this._getHashFile(this.getPath(docName), 'meta'));
+    await this._inventory.clear(docName);
+    this._latestVersions.delete(docName);
+    this._latestMetaVersions.delete(docName);
+  }
+
+  /**
    * This is called when a document was edited by the user.
    */
   private _markAsEdited(docName: string, timestamp: string): void {
@@ -658,7 +671,7 @@ export class HostedStorageManager implements IDocStorageManager {
           if (head && lastLocalVersionSeen !== head.snapshotId) {
             // Exists in S3, with a version not known to be latest seen
             // by this worker - so wipe local version and defer to S3.
-            await this._wipeCache(docName);
+            await this.wipeCache(docName);
           } else {
             // Go ahead and use local version.
             return true;
@@ -676,7 +689,7 @@ export class HostedStorageManager implements IDocStorageManager {
             // On the assumption that the local file is outdated, delete it.
             // TODO: may want to be more careful in case the local file has modifications that
             // simply never made it to S3 due to some kind of breakage.
-            await this._wipeCache(docName);
+            await this.wipeCache(docName);
           }
         }
       }
@@ -685,19 +698,6 @@ export class HostedStorageManager implements IDocStorageManager {
         trunkId: forkId ? trunkId : undefined, snapshotId, canCreateFork
       });
     });
-  }
-
-  /**
-   * Remove local version of a document, and state related to it.
-   */
-  private async _wipeCache(docName: string) {
-    // NOTE: fse.remove succeeds also when the file does not exist.
-    await fse.remove(this.getPath(docName));
-    await fse.remove(this._getHashFile(this.getPath(docName), 'doc'));
-    await fse.remove(this._getHashFile(this.getPath(docName), 'meta'));
-    await this._inventory.clear(docName);
-    this._latestVersions.delete(docName);
-    this._latestMetaVersions.delete(docName);
   }
 
   /**
