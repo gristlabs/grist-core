@@ -910,7 +910,7 @@ const cssButton = styled(cssSmallButton, `
 `);
 
 const cssSmallSelect = styled(select, `
-  width: 100px;
+  width: 100%;
 `);
 
 const cssSelect = styled(select, `
