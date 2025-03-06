@@ -175,7 +175,7 @@ const cssItemValue = styled('div', `
   margin: -8px;
   padding: 16px;
   cursor: auto;
-  width: 200px;
+  max-width: 200px;
 
   .${cssItemShort.className}-disabled & {
     pointer-events: none;
