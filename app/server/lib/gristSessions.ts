@@ -60,7 +60,6 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
     promisifyAll(RedisStore.prototype);
     return () => {
       const client = createClient(process.env.REDIS_URL);
-      client.unref();
       client.on('error',
         (err: unknown)=> {
           log.error(`createSessionStoreFactory: redisClient error`, String(err));
