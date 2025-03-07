@@ -1757,7 +1757,7 @@ export async function closeRawTable() {
 export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', section?: string|WebElement) {
   const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
   await sectionElem.find(`.test-section-menu-${which}`).click();
-  return await driver.findWait('.grist-floating-menu', 100);
+  return await findOpenMenu(100);
 }
 
 /**
@@ -1776,7 +1776,7 @@ const ColumnMenuOption: { [id: string]: string; } = {
 
 async function openColumnMenuHelper(col: IColHeader|string, option?: string): Promise<WebElement> {
   await getColumnHeader(typeof col === 'string' ? {col} : col).mouseMove().find('.g-column-main-menu').click();
-  const menu = await driver.findWait('.grist-floating-menu', 100);
+  const menu = await findOpenMenu(100);
   if (option) {
     await menu.findContent('li', option).click();
     const waitForElem = ColumnMenuOption[option];
@@ -1959,7 +1959,7 @@ export async function openDocDropdown(docNameOrRow: string|WebElement): Promise<
 export async function openAccessRulesDropdown(): Promise<void> {
   await driver.find('.test-tools-access-rules').mouseMove();
   await driver.find('.test-tools-access-rules-trigger').mouseMove().click();
-  await driver.findWait('.grist-floating-menu', 1000);
+  await findOpenMenu(1000);
 }
 
 /**
@@ -2035,7 +2035,7 @@ export async function saveAcls(clickRemove: boolean = false): Promise<boolean> {
 export function openRowMenu(rowNum: number) {
   const row = driver.findContent('.active_section .gridview_data_row_num', String(rowNum));
   return driver.withActions((actions) => actions.contextClick(row))
-    .then(() => driver.findWait('.grist-floating-menu', 1000));
+    .then(() => findOpenMenu(1000));
 }
 
 export async function removeRow(rowNum: number) {
@@ -2047,7 +2047,7 @@ export async function openCardMenu(rowNum: number) {
   const section = await driver.find('.active_section');
   const firstRow = await section.findContent('.detail_row_num', String(rowNum));
   await firstRow.find('.test-card-menu-trigger').click();
-  return await driver.findWait('.grist-floating-menu', 1000);
+  return await findOpenMenu(1000);
 }
 
 /**
@@ -3491,7 +3491,7 @@ type BehaviorActions = 'Clear and reset' | 'Convert column to data' | 'Clear and
 export async function changeBehavior(option: BehaviorActions|RegExp) {
   await openColumnPanel();
   await driver.find('.test-field-behaviour').click();
-  await gu.findOpenMenuItem('li', option).click();
+  await findOpenMenuItem('li', option).click();
   await waitForServer();
 }
 
@@ -3592,7 +3592,7 @@ export async function setRangeFilterBound(minMax: 'min'|'max', value: string|{re
       if (!await driver.find('.grist-floatin-menu').isPresent()) {
         await driver.find(`.test-filter-menu-${minMax}`).click();
       }
-      await gu.findOpenMenuItem('li', value.relative).click();
+      await findOpenMenuItem('li', value.relative).click();
     });
   }
 }
@@ -3923,9 +3923,9 @@ class Clipboard implements IClipboard {
   private async _performActionWithMenu(action: ClipboardAction) {
     const field = await driver.find('.active_section .field_clip.has_cursor');
     await driver.withActions(actions => { actions.contextClick(field); });
-    await driver.findWait('.grist-floating-menu', 1000);
+    await findOpenMenu(1000);
     const menuItemName = action.charAt(0).toUpperCase() + action.slice(1);
-    await gu.findOpenMenuItem('li', menuItemName).click();
+    await findOpenMenuItem('li', menuItemName).click();
   }
 }
 
@@ -4122,10 +4122,10 @@ export function buildSelectComponent(selector: string) {
 /*
 
 Wrong code:
- await gu.findOpenMenu('li', /FinancialsTable/, 3000).click();
- await gu.findOpenMenuItem('li', permissions).click();
+ await findOpenMenu('li', /FinancialsTable/, 3000).click();
+ await findOpenMenuItem('li', permissions).click();
   if (await driver.find('.grist-floating-menu').isPresent()) {
-   await driver.findWait('.grist-floating-menu', 1000);
+   await findOpenMenu(1000);
 
   Proposal:
 I grepped through the use-cases, and I think if we had a helper like this, all or almost all the uses could be changed to use one of these helpers:
