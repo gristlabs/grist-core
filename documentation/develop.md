@@ -115,7 +115,7 @@ And start using your nodejs debugger client (like the Chrome Devtools). See http
 You may run the tests using one of these commands:
  - `yarn test` to run all the tests
  - `yarn test:smoke` to run the minimal test checking Grist can open, create and edit a document
- - `yarn test:nbrowser` to run the end-to-end tests
+ - `yarn test:nbrowser` to run the end-to-end tests (⚠️ see warning below)
  - `yarn test:client` to run the tests for the client libraries
  - `yarn test:common` to run the tests for the common libraries shared between the client and the server
  - `yarn test:server` and `yarn test:gen-server` to run the backend tests depending on where the feature you would like to test resides (respectively `app/server` or `app/gen-server`)
@@ -126,8 +126,98 @@ Also some options that may interest you:
  - `GREP_TESTS="pattern"` in order to filter the tests to run, for example: `GREP_TESTS="Boot" yarn test:nbrowser`
  - `VERBOSE=1` in order to view logs when a server is spawned (especially useful to debug the end-to-end and backend tests)
  - `SERVER_NODE_OPTIONS="node options"` in order to pass options to the server being tested,
-   for example: `SERVER_NODE_OPTIONS="--inspect --inspect-brk" GREP_TESTS="Boot" yarn test:nbrowser` 
+   for example: `SERVER_NODE_OPTIONS="--inspect --inspect-brk" GREP_TESTS="Boot" yarn test:nbrowser`
    to run the tests with the debugger (you should close the debugger each time the node process should stop)
+
+## End-to-end tests
+
+End-to-end tests work by simulating user mouse clicks and keyboard inputs in an actual chrome browser. By default, running `yarn test:nbrowser` opens a new browser window where automated "user" interactions happen.
+
+### Headless mode
+
+You can use the `MOCHA_WEBDRIVER_HEADLESS` env var to start the tests in headless mode, meaning a browser window won't be opened:
+
+```
+MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+```
+
+Running in headless mode allows you to run the tests in background, without the risk of automated tests catching window focus while you are doing something else.
+
+Running in normal mode helps you understand better what happens when writing or debugging tests.
+
+### Browser version issues
+
+End-to-end tests are run in the GitHub CI with a specific _Chrome_ version that is known to run the tests smoothly.
+
+⚠️ A current issue is that tests don't run properly with _Chrome for Testing_ binaries, or with _Chrome_ starting with version 134.
+
+**If you don't have any tests randomly failing while running them locally: great! You can move on.**
+
+Otherwise, you should make sure that the local test suite uses _Chrome v132_ or _Chrome v133_, and not a _Chrome for Testing_ variant.
+
+In order to do that, you can use an env var to let the script know about a specific chrome binary to use. For example, if your Chrome (v132 or 133) path is `/usr/bin/google-chrome`:
+
+```
+TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome" yarn run test:nbrowser
+```
+
+#### Using an older Chrome version than the one you have already installed
+
+You might already have Chrome v134+ installed and feel stuck!
+
+One solution is to build yourself a docker container matching what the GitHub actions does. Meaning, with node, python etc, an integrated Chrome v133 binary, and run tests inside that container.
+
+Another solution on Linux, is to just install an old Chrome version on your system directly.
+
+A simple trick is to install an old Chrome _Beta_ binary, in order to not mess with your current Chrome install.
+
+#### Debian-based distro
+
+You can do the same as the `buildtools/install_chrome_for_tests.sh` script, but target an old version of Chrome _Beta_ like this:
+
+```bash
+curl -sS -o /tmp/chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-beta/google-chrome-beta_133.0.6943.35-1_amd64.deb \
+  && sudo apt-get install --allow-downgrades -y /tmp/chrome.deb \
+  && rm /tmp/chrome.deb \
+```
+
+Open `google-chrome-beta` one time manually to confirm any first-loads modals that would prevent tests to run correctly.
+
+Then run tests with:
+
+```
+SE_BROWSER_VERSION=133.0.6943.35 \
+SE_DRIVER_VERSION=133.0.6943.141 \
+TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome-beta" \
+yarn run test:nbrowser
+```
+
+#### Archlinux
+
+Download the google-chrome-beta aur tarball matching the needed version and manually install it:
+
+- download and extract [this aur tarball](https://aur.archlinux.org/cgit/aur.git/snapshot/aur-56ac6350a4f727c76f7e0c406233e7cad0a45b5f.tar.gz) (matching Chrome Beta [v133](https://aur.archlinux.org/cgit/aur.git/commit/PKGBUILD?h=google-chrome-beta&id=56ac6350a4f727c76f7e0c406233e7cad0a45b5f))
+- `cd` in the extracted directory and `makepkg -si`.
+
+Open `google-chrome-beta` one time manually to confirm any first-loads modals that would prevent tests to run correctly.
+
+Then run tests with:
+
+```
+SE_BROWSER_VERSION=133.0.6943.35 \
+SE_DRIVER_VERSION=133.0.6943.141 \
+TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome-beta" \
+yarn run test:nbrowser
+```
+
+#### macOS
+
+Unfortunately there is no easy way in macOS to pin Chrome version without it auto-updating. If you absolutely need to run tests locally for now:
+
+- create a docker image matching the GitHub CI environment in order to run the tests inside a Linux environment having a pinned Chrome version
+- or… help us fix the tests (sorry)!
+
+Note that tests are always run against pull requests and you can also rely on the GitHub CI instead.
 
 ## Develop widgets
 
