@@ -1,5 +1,6 @@
 export * from 'test/server/customUtil';
 import {driver} from "mocha-webdriver";
+import {gu} from 'test/nbrowser/gristUtil-nbrowser';
 
 export async function setAccess(option: "none"|"read table"|"full") {
   const text = {

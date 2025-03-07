@@ -53,7 +53,7 @@ describe('ChartView1', function() {
     await gu.selectSectionByTitle('Text Chart');
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-chart-orientation .test-select-open').click();
-    await driver.findContent('.test-select-menu', 'Horizontal').click();
+    await gu.findOpenMenuItem('li', 'Horizontal').click();
     await gu.waitForServer();
     assert.deepEqual((await layout()).yaxis.type, 'category');
     assert.deepEqual((await layout()).xaxis.type, 'linear');
@@ -458,7 +458,7 @@ describe('ChartView1', function() {
 
     // check group-data options
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', e => e.getText()),
+      await gu.findOpenMenuAllItems('li', e => e.getText()),
       ['Pick a column', 'Name', 'B']
     );
 
@@ -470,7 +470,7 @@ describe('ChartView1', function() {
 
     // check x axis options
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', e => e.getText()),
+      await gu.findOpenMenuAllItems('li', e => e.getText()),
       ['Name', 'B']
     );
 

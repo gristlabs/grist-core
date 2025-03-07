@@ -57,7 +57,7 @@ describe("SelectByRightPanel", function() {
     await gu.waitForServer();
     // Test that we have new option.
     await driver.find('.test-right-select-by').click();
-    await driver.findContentWait('.test-select-menu li', "TABLE1 [by Company]", 200).click();
+    await gu.findOpenMenuItem('li',  "TABLE1 [by Company]", 200).click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells('Company', [1, 2]), ['Mic', 'Mic']);
     assert.deepEqual(await gu.getVisibleGridCells('Category', [1, 2]), ['Sales', 'Cloud']);
