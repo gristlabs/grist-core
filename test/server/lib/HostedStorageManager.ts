@@ -35,7 +35,6 @@ import * as path from 'path';
 import {createClient, RedisClient} from 'redis';
 import * as sinon from 'sinon';
 import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
-import {waitToPass} from 'test/nbrowser/gristUtils';
 import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
@@ -1161,7 +1160,7 @@ describe('HostedStorageManager', function() {
           assert.match(String(backupError), /source closed/);
           assert.equal(done, false);
           // Wait a while longer and see if backup terminates
-          await waitToPass(async () => assert.equal(done, true), 3000);
+          await waitForIt(() => assert.equal(done, true), 3000, 50);
           // That's all we can test in this test variant now we closed the db.
           return;
         }
