@@ -90,6 +90,12 @@ import {Share} from 'app/gen-server/entity/Share';
 import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
+import {
+  Archive,
+  ArchiveEntry, CreatableArchiveFormats,
+  create_tar_archive,
+  create_zip_archive
+} from 'app/server/lib/Archive';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
@@ -959,6 +965,53 @@ export class ActiveDoc extends EventEmitter {
     return data;
   }
 
+  public async getAttachmentsArchive(docSession: OptDocSession,
+                                     format: CreatableArchiveFormats = 'zip'): Promise<Archive> {
+    if (
+      !await this._granularAccess.canReadEverything(docSession) &&
+      !await this.canDownload(docSession)
+    ) {
+      throw new ApiError("Insufficient access to download attachments", 403);
+    }
+    if (!this.docData) {
+      throw new Error("No doc data");
+    }
+    const attachments = this.docData.getMetaTable('_grist_Attachments').getRecords();
+    const attachmentFileManager = this._attachmentFileManager;
+    const doc = this;
+
+    async function* fileGenerator(): AsyncGenerator<ArchiveEntry> {
+      const filesAdded = new Set<string>();
+      for (const attachment of attachments) {
+        if (doc._shuttingDown) {
+          throw new ApiError("Document is shutting down, archiving aborted", 500);
+        }
+        const file = await attachmentFileManager.getFile(attachment.fileIdent);
+        const fileHash = attachment.fileIdent.split(".")[0];
+        const name = `${fileHash}_${attachment.fileName}`;
+        // This should only happen if a file has identical name *and* content hash.
+        if (filesAdded.has(name)) {
+          continue;
+        }
+        filesAdded.add(name);
+        yield({
+          name,
+          size: file.metadata.size,
+          data: file.contentStream,
+        });
+      }
+    }
+
+    if (format == 'tar') {
+      return create_tar_archive(fileGenerator());
+    }
+    if (format == 'zip') {
+      return create_zip_archive({ store: true }, fileGenerator());
+    }
+    // Generally this won't happen, as long as the above is exhaustive over the type of `format`
+    throw new ApiError(`Unsupported archive format ${format}`, 400);
+  }
+
   @ActiveDoc.keepDocOpen
   public async startTransferringAllAttachmentsToDefaultStore() {
     const attachmentStoreId = this._getDocumentSettings().attachmentStoreId;
@@ -1597,8 +1650,9 @@ export class ActiveDoc extends EventEmitter {
     try {
       const parsedAclFormula = await this._pyCall('parse_predicate_formula', text);
       compilePredicateFormula(parsedAclFormula);
-      // TODO We also need to check the validity of attributes, and of tables and columns
-      // mentioned in resources and userAttribute rules.
+      // Note that the validity of attributes, and of tables and columns mentioned in resources
+      // and userAttribute rules are checked at a different point, in findRuleProblems() called
+      // from getAclResources().
       return getPredicateFormulaProperties(parsedAclFormula);
     } catch (e) {
       e.message = e.message?.replace('[Sandbox] ', '');

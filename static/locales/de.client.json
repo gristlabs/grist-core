@@ -391,7 +391,10 @@
         "**Some existing attachments are still internal** (stored in SQLite file).": "**Einige vorhandene Anhänge sind noch intern** (in einer SQLite-Datei gespeichert).",
         "Internal": "Intern",
         "Transfer in progress": "Übertragung im Gange",
-        "External": "Extern"
+        "External": "Extern",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Einige vorhandene Anhänge sind noch [extern]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Einige vorhandene Anhänge sind noch [intern]({{internalLink}})** (in einer SQLite-Datei gespeichert).",
+        "[Learn more.]({{learnLink}})": "[Erfahren Sie mehr.]({{learnLink}})"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -1320,7 +1323,8 @@
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Diese Einschränkung tritt auf, wenn ein Ende einer Zwei-Wege-Referenz als Einzelreferenz konfiguriert ist.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Diese Einschränkung tritt auf, wenn eine Spalte in einer zweiseitigen Referenz den Typ Referenz hat.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Zwei-Wege-Referenzen werden derzeit nicht für Formel- oder Trigger-Formelspalten unterstützt",
-        "The preview below this header shows how the selected user will see this document": "Die Vorschau unter dieser Überschrift zeigt, wie der ausgewählte Benutzer dieses Dokument sehen wird"
+        "The preview below this header shows how the selected user will see this document": "Die Vorschau unter dieser Überschrift zeigt, wie der ausgewählte Benutzer dieses Dokument sehen wird",
+        "[Learn more.]({{link}})": "[Erfahren Sie mehr.]({{link}})"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"

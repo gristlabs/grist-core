@@ -159,7 +159,7 @@ You may instead file an issue so someone else can add it.
 To build Grist from source, follow these steps:
 
     yarn install
-    yarn run build:prod
+    yarn run build
     yarn run install:python
     yarn start
     # Grist will be available at http://localhost:8484/
@@ -288,7 +288,8 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_INST_DIR                     | path to Grist instance configuration files, for Grist server.                                                                                                                                                                                                                                                                                                 |
 | GRIST_LIST_PUBLIC_SITES            | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false.                                                                                                                                                                                                                                                           |
 | GRIST_MANAGED_WORKERS              | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone                                                                                                                                                                                                                                                            |
-| GRIST_MAX_NEW_USER_INVITES_PER_ORG | if set, limits the number of invites to new users per org. Once exceeded, additional invites are blocked until invited users log in for the first time or are uninvited                                                                                                                                                                                       |
+| GRIST_MAX_NEW_USER_INVITES_PER_ORG | if set, limits the number of invites to new users per org. Once exceeded, additional invites are blocked until invited users log in for the first time or are uninvited
+| GRIST_MAX_BILLING_MANAGERS_PER_ORG | if set, limits the number of billing managers per org                                                                                                                                                                                       |
 | GRIST_MAX_UPLOAD_ATTACHMENT_MB     | max allowed size for attachments (0 or empty for unlimited).                                                                                                                                                                                                                                                                                                  |
 | GRIST_MAX_UPLOAD_IMPORT_MB         | max allowed size for imports (except .grist files) (0 or empty for unlimited).                                                                                                                                                                                                                                                                                |
 | GRIST_OFFER_ALL_LANGUAGES          | if set, all translated langauages are offered to the user (by default, only languages with a special 'good enough' key set are offered to user).                                                                                                                                                                                                              |

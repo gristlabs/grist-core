@@ -391,7 +391,10 @@
         "Click \"Start transfer\" to transfer those to External storage.": "Clique em \"Iniciar transferência\" para transferir aqueles para armazenamento externo.",
         "External": "Externo",
         "Internal": "Interno",
-        "Transfer in progress": "Transferência em andamento"
+        "Transfer in progress": "Transferência em andamento",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Alguns anexos existentes ainda são [externos]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Alguns anexos existentes ainda são [internos]({{internalLink}})** (armazenados no arquivo SQLite).",
+        "[Learn more.]({{learnLink}})": "[Saiba mais]({{learnLink}})"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -1320,7 +1323,8 @@
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Atualmente, não há suporte para referências bidirecionais em Colunas de Fórmula ou Fórmula de disparo",
         "Community widgets are created and maintained by Grist community members.": "Os widgets comunitários são criados e mantidos pelos membros da comunidade Grist.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Essa limitação ocorre quando uma extremidade de uma referência bidirecional é configurada como uma única referência.",
-        "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento"
+        "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento",
+        "[Learn more.]({{link}})": "[Saiba mais]({{link}})"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"

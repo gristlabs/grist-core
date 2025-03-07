@@ -7,6 +7,7 @@ import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
+import {stripLinks} from 'app/client/lib/markdown';
 import {ColumnFilter, NEW_FILTER_JSON} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
@@ -761,7 +762,11 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
       return labels.map(l => formatter.formatAny(l));
     };
   } else {
-    labelMapFunc = (rowId: number) => formatter.formatAny(labelGetter(rowId));
+    // If this is Markdown widget, remove all formatting (mostly for links).
+    const widget = fieldOrColumn.widget();
+    const isMarkdown = widget === 'Markdown';
+    const cleaned = isMarkdown ? stripLinks : identity<string>;
+    labelMapFunc = (rowId: number) => cleaned(formatter.formatAny(labelGetter(rowId)));
   }
   return {keyMapFunc, labelMapFunc, valueMapFunc};
 }

@@ -25,6 +25,7 @@ export type BEHAVIOR = "empty"|"formula"|"data";
 export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   table: ko.Computed<TableRec>;
   widgetOptionsJson: ObjObservable<any>;
+  widget: ko.Observable<string>;
   /** Widget options that are save to copy over (for now, without rules) */
   cleanWidgetOptionsJson: ko.Computed<string>;
   viewFields: ko.Computed<KoArray<ViewFieldRec>>;
@@ -110,6 +111,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
 export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.table = refRecord(docModel.tables, this.parentId);
   this.widgetOptionsJson = jsonObservable(this.widgetOptions);
+  this.widget = this.widgetOptionsJson.prop('widget');
   this.viewFields = recordSet(this, docModel.viewFields, 'colRef');
   this.summarySource = refRecord(docModel.columns, this.summarySourceCol);
   this.cells = recordSet(this, docModel.cells, 'colRef');

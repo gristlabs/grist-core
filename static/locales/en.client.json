@@ -1023,7 +1023,8 @@
         "Undo to restore": "Undo to restore",
         "Got it": "Got it",
         "Don't show again": "Don't show again",
-        "TIP": "TIP"
+        "TIP": "TIP",
+        "Confirm": "Confirm"
     },
     "pages": {
         "Duplicate Page": "Duplicate Page",
@@ -1937,5 +1938,15 @@
         "Fields_other": "Fields",
         "Series_one": "Series",
         "Series_other": "Series"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Be careful with unknown custom widgets",
+        "Please review the following before adding a new custom widget.": "Please review the following before adding a new custom widget.",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.",
+        "Are you sure you **trust the resource** at this URL?": "Are you sure you **trust the resource** at this URL?",
+        "Do you **trust the person** who shared this link?": "Do you **trust the person** who shared this link?",
+        "Have you **reviewed the code** at this URL?": "Have you **reviewed the code** at this URL?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.",
+        "I confirm that I understand these warnings and accept the risks": "I confirm that I understand these warnings and accept the risks"
     }
 }

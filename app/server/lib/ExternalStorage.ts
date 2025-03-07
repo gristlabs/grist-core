@@ -11,6 +11,16 @@ import stream from 'node:stream';
 // checksum is expected otherwise.
 export const DELETED_TOKEN = '*DELETED*';
 
+export interface FileMetadata {
+  size: number;
+  snapshotId: string;
+}
+
+export interface StreamDownloadResult {
+  metadata: FileMetadata,
+  contentStream: stream.Readable,
+}
+
 /**
  * An external store for the content of files.  The store may be either consistent
  * or eventually consistent.  Specifically, the `exists`, `download`, and `versions`
@@ -58,8 +68,12 @@ export interface ExternalStorage {
   // Close the storage object.
   close(): Promise<void>;
 
-  uploadStream?(key: string, inStream: stream.Readable, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
-  downloadStream?(key: string, outStream: stream.Writable, snapshotId?: string ): Promise<string>;
+  uploadStream?(key: string,
+                inStream: stream.Readable,
+                size?: number,
+                metadata?: ObjMetadata
+  ): Promise<string|null|typeof Unchanged>;
+  downloadStream?(key: string, snapshotId?: string ): Promise<StreamDownloadResult>;
 }
 
 /**
@@ -76,12 +90,12 @@ export class KeyMappedExternalStorage implements ExternalStorage {
     if (_ext.uploadStream !== undefined) {
       const extUploadStream = _ext.uploadStream;
       this.uploadStream =
-        (key, inStream, metadata) => extUploadStream.call(_ext, this._map(key), inStream, metadata);
+        (key, inStream, size, metadata) => extUploadStream.call(_ext, this._map(key), inStream, size, metadata);
     }
     if (_ext.downloadStream !== undefined) {
       const extDownloadStream = _ext.downloadStream;
       this.downloadStream =
-        (key, outStream, snapshotId) => extDownloadStream.call(_ext, this._map(key), outStream, snapshotId);
+        (key, snapshotId) => extDownloadStream.call(_ext, this._map(key), snapshotId);
     }
     if (_ext.removeAllWithPrefix !== undefined) {
       const extRemoveAllWithPrefix = _ext.removeAllWithPrefix;
@@ -163,9 +177,9 @@ export class ChecksummedExternalStorage implements ExternalStorage {
   constructor(public readonly label: string, private _ext: ExternalStorage, private _options: {
     maxRetries: number,         // how many time to retry inconsistent downloads
     initialDelayMs: number,     // how long to wait before retrying
-    localHash: PropStorage,     // key/value store for hashes of downloaded content
-    sharedHash: PropStorage,    // key/value store for hashes of external content
-    latestVersion: PropStorage, // key/value store for snapshotIds of uploads
+    localHash: PropStorage,     // key/value store for hashes of downloaded content (file {Id}.grist-hash-{meta/doc})
+    sharedHash: PropStorage,    // key/value store for hashes of external content (typically Redis)
+    latestVersion: PropStorage, // key/value store for snapshotIds of uploads (a JS map object)
     computeFileHash: (fname: string) => Promise<string>,  // compute hash for file
   }) {
   }
@@ -182,7 +196,9 @@ export class ChecksummedExternalStorage implements ExternalStorage {
 
   public async upload(key: string, fname: string, metadata?: ObjMetadata) {
     try {
+      // This is the hash computed from the local version of the file
       const checksum = await this._options.computeFileHash(fname);
+      // This is the hash stored locally in persist/grist/docs/{docId}.grist-hash-{meta/doc}
       const prevChecksum = await this._options.localHash.load(key);
       if (prevChecksum && prevChecksum === checksum && !metadata?.label) {
         // nothing to do, checksums match

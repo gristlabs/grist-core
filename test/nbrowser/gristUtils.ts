@@ -3234,6 +3234,16 @@ const filterController = {
     await driver.find('.test-section-menu-small-btn-save').click();
     await waitForServer();
     return this;
+  },
+  async search(text: string) {
+    await driver.find('.test-filter-menu-search-input').sendKeys(text);
+    return this;
+  },
+  async labels() {
+    return await driver.findAll('.test-filter-menu-list label', el => el.getText());
+  },
+  async allShown() {
+    await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
   }
 };
 
@@ -3455,10 +3465,17 @@ export async function setCustomWidgetUrl(url: string, options: SetWidgetOptions 
   await clearInput();
   if (url) { await sendKeys(url); }
   await sendKeys(Key.ENTER);
+  if (url) {
+    await driver.find('.test-custom-widget-warning-modal-confirm-checkbox').click();
+    await driver.find('.test-modal-confirm').click();
+  }
   await waitForServer();
 }
 
 export async function setCustomWidget(content: string|RegExp, options: SetWidgetOptions = {}) {
+  if (content === "Custom URL") {
+    return setCustomWidgetUrl('', options);
+  }
   const {openGallery = true} = options;
   if (openGallery) { await openCustomWidgetGallery(); }
   await driver.findContent('.test-custom-widget-gallery-widget', content).click();

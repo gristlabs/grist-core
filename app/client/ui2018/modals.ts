@@ -16,6 +16,8 @@ import {IOpenController, IPopupOptions, PopupControl, popupOpen} from 'popweasel
 
 const t = makeT('modals');
 
+export const getConfirmText = () => t("Confirm");
+
 // IModalControl is passed into the function creating the body of the modal.
 export interface IModalControl {
   // Observable for whether there is work in progress that's delaying the closing of the modal. It
@@ -141,6 +143,8 @@ export interface IModalOptions {
   noClickAway?: boolean;
   // DOM arguments to pass to the modal backer.
   backerDomArgs?: DomElementArg[];
+  // Function called when the user cancels the modal (esc key or clicking outside)
+  onCancel?: () => void;
   // If given, call and wait for this before closing the dialog. If it returns false, don't close.
   // Error also prevents closing, and is reported as an unexpected error.
   beforeClose?: () => Promise<boolean>;
@@ -233,7 +237,10 @@ export function modal(
     dom.create((owner) => {
       const focus = () => dialogDom.focus();
       const ctl = ModalControl.create(owner, doClose, focus);
-      close = () => ctl.close();
+      close = () => {
+        ctl.close();
+        options.onCancel?.();
+      };
 
       dialogDom = cssModalDialog(
         createFn(ctl, owner),
@@ -327,7 +334,10 @@ export function saveModal(
         ),
         options.extraButtons,
         options.hideCancel ? null : bigBasicButton(t("Cancel"),
-          dom.on('click', () => ctl.close()),
+          dom.on('click', () => {
+            ctl.close();
+            modalOptions?.onCancel?.();
+          }),
           testId('modal-cancel'),
         ),
       ),

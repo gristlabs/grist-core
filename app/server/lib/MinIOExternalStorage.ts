@@ -1,6 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {ObjMetadata, ObjSnapshotWithMetadata, toExternalMetadata, toGristMetadata} from 'app/common/DocSnapshot';
-import {ExternalStorage} from 'app/server/lib/ExternalStorage';
+import {ExternalStorage, StreamDownloadResult} from 'app/server/lib/ExternalStorage';
 import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
@@ -87,9 +87,9 @@ export class MinIOExternalStorage implements ExternalStorage {
     }
   }
 
-  public async uploadStream(key: string, inStream: stream.Readable, metadata?: ObjMetadata) {
+  public async uploadStream(key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata) {
     const result = await this._s3.putObject(
-      this.bucket, key, inStream, undefined,
+      this.bucket, key, inStream, size,
       metadata ? {Metadata: toExternalMetadata(metadata)} : undefined
     );
     // Empirically VersionId is available in result for buckets with versioning enabled.
@@ -97,11 +97,13 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async upload(key: string, fname: string, metadata?: ObjMetadata) {
+    // calling putObject with a file size will let MinIO be clever about uploading in multiple parts or not.
+    const stat = await fse.lstat(fname);
     const filestream = fse.createReadStream(fname);
-    return this.uploadStream(key, filestream, metadata);
+    return this.uploadStream(key, filestream, stat.size, metadata);
   }
 
-  public async downloadStream(key: string, outStream: stream.Writable, snapshotId?: string ) {
+  public async downloadStream(key: string, snapshotId?: string ): Promise<StreamDownloadResult> {
     const request = await this._s3.getObject(
       this.bucket, key,
       snapshotId ? {versionId: snapshotId} : {}
@@ -115,18 +117,24 @@ export class MinIOExternalStorage implements ExternalStorage {
     const headers = request.headers;
     // For a versioned bucket, the header 'x-amz-version-id' contains a version id.
     const downloadedSnapshotId = String(headers['x-amz-version-id'] || '');
-    return new Promise<string>((resolve, reject) => {
-      request
-        .on('error', reject)    // handle errors on the read stream
-        .pipe(outStream)
-        .on('error', reject)    // handle errors on the write stream
-        .on('finish', () => resolve(downloadedSnapshotId));
-    });
+    const fileSize = Number(headers['content-length']);
+    if (Number.isNaN(fileSize)) {
+      throw new ApiError('download error - bad file size', 500);
+    }
+    return {
+      metadata: {
+        snapshotId: downloadedSnapshotId,
+        size: fileSize,
+      },
+      contentStream: request,
+    };
   }
 
   public async download(key: string, fname: string, snapshotId?: string) {
     const fileStream = fse.createWriteStream(fname);
-    return this.downloadStream(key, fileStream, snapshotId);
+    const download = await this.downloadStream(key, snapshotId);
+    await stream.promises.pipeline(download.contentStream, fileStream);
+    return download.metadata.snapshotId;
   }
 
   public async remove(key: string, snapshotIds?: string[]) {
