@@ -80,13 +80,13 @@ describe("DuplicateDocument", function() {
     assert.equal(await driver.find('.test-copy-dest-name').value(), 'DuplicateTest2 (copy)');
     assert.equal(await driver.find('.test-copy-dest-org').isPresent(), true);
     await driver.find('.test-copy-dest-org .test-select-open').click();
-    assert.includeMembers(await driver.findAll('.test-select-menu li', (el) => el.getText()),
+    assert.includeMembers(await gu.findOpenMenuAllItems('li', (el) => el.getText()),
       ['Personal', 'Test Grist', 'Test2 Grist']);
     await driver.sendKeys(Key.ESCAPE);
 
     // Check the list of workspaces in org
     await driver.findWait('.test-copy-dest-workspace .test-select-open', 1000).click();
-    assert.includeMembers(await driver.findAll('.test-select-menu li', (el) => el.getText()),
+    assert.includeMembers(await gu.findOpenMenuAllItems('li', (el) => el.getText()),
       ['Home', 'Test Workspace']);
     await driver.sendKeys(Key.ESCAPE);
 
@@ -94,7 +94,7 @@ describe("DuplicateDocument", function() {
     await driver.find('.test-copy-dest-org .test-select-open').click();
     await gu.findOpenMenuItem('li', 'Test2 Grist').click();
     await driver.findWait('.test-copy-dest-workspace .test-select-open', 1000).click();
-    assert.sameMembers(await driver.findAll('.test-select-menu li', (el) => el.getText()),
+    assert.sameMembers(await gu.findOpenMenuAllItems('li', (el) => el.getText()),
       ['Home']);
     await driver.sendKeys(Key.ESCAPE);
     await driver.sendKeys(Key.ESCAPE);
@@ -165,14 +165,14 @@ describe("DuplicateDocument", function() {
 
     // We see some good orgs.
     await driver.find('.test-copy-dest-org .test-select-open').click();
-    assert.includeMembers(await driver.findAll('.test-select-menu li', (el) => el.getText()),
+    assert.includeMembers(await gu.findOpenMenuAllItems('li', (el) => el.getText()),
       ['Personal', 'Test Grist', 'Test2 Grist']);
 
     // Switching to an accessible regular org shows workspaces.
     await gu.findOpenMenuItem('li', 'Test2 Grist').click();
     await gu.waitForServer();
     await driver.find('.test-copy-dest-workspace .test-select-open').click();
-    assert.sameMembers(await driver.findAll('.test-select-menu li', (el) => el.getText()),
+    assert.sameMembers(await gu.findOpenMenuAllItems('li', (el) => el.getText()),
       ['Home']);
     assert.equal(await driver.find('.test-modal-confirm').getAttribute('disabled'), null);
 

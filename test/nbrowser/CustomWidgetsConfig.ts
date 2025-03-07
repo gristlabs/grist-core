@@ -31,7 +31,7 @@ function createConfigUrl(ready?: any) {
 
 const click = (selector: string) => driver.find(`${selector}`).click();
 const toggleDrop = (selector: string) => click(`${selector} .test-select-open`);
-const getOptions = () => driver.findAll('.test-select-menu li', el => el.getText());
+const getOptions = () => gu.findOpenMenuAllItems('li', el => el.getText());
 const clickOption = async (text: string | RegExp) => {
   await gu.findOpenMenuItem('li', text).click();
   await gu.waitForServer();

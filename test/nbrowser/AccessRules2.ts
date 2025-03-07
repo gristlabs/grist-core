@@ -280,20 +280,20 @@ describe("AccessRules2", function() {
 
     // Check that Table field offers a dropdown.
     await userAttrRule.find('.test-rule-userattr-table').click();
-    assert.deepEqual(await driver.findAll('.test-select-menu li', el => el.getText()),
+    assert.deepEqual(await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Access', 'ClientsTable', 'ClientsTable [by Shared]', 'FinancialsTable']);
 
     // Select a table and check that the Column field offers a dropdown.
     await gu.findOpenMenuItem('li', 'ClientsTable').click();
     await userAttrRule.find('.test-rule-userattr-col').click();
-    assert.includeMembers(await driver.findAll('.test-select-menu li', el => el.getText()),
+    assert.includeMembers(await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Agent_Email', 'Email', 'First_Name']);
 
     // Select a different table, and check that the Column field dropdown gets updated.
     await userAttrRule.find('.test-rule-userattr-table').click();
     await driver.sendKeys("Access", Key.ENTER);
     await userAttrRule.find('.test-rule-userattr-col').click();
-    assert.deepEqual(await driver.findAll('.test-select-menu li', el => el.getText()),
+    assert.deepEqual(await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Email', 'SharedOnly', 'id']);
     await driver.sendKeys("Email", Key.ENTER);
 

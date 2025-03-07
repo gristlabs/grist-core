@@ -1827,7 +1827,7 @@ export async function setType(
   await driver.find('.test-right-tab-field').click();
   await driver.find('.test-fbuilder-type-select').click();
   type = typeof type === 'string' ? exactMatch(type) : type;
-  await driver.findContentWait('.test-select-menu .test-select-row', type, 500).click();
+  await findOpenMenuItem('.test-select-row', type, 500).click();
   if (!skipWait || apply) { await waitForServer(); }
   if (apply) {
     await driver.findWait('.test-type-transform-apply', 1000).click();
@@ -2912,7 +2912,7 @@ export async function getDateFormat(): Promise<string> {
  */
 export async function setDateFormat(format: string|RegExp) {
   await driver.find('[data-test-id=Widget_dateFormat]').click();
-  await driver.findContentWait('.test-select-menu .test-select-row',
+  await findOpenMenuItem('.test-select-row',
     typeof format === 'string' ? exactMatch(format) : format, 200).click();
   await waitForServer();
 }
@@ -2937,7 +2937,7 @@ export async function getTimeFormat(): Promise<string> {
  */
 export async function setTimeFormat(format: string) {
   await driver.find('[data-test-id=Widget_timeFormat]').click();
-  await driver.findContent('.test-select-menu .test-select-row', format).click();
+  await findOpenMenuItem('.test-select-row', format).click();
   await waitForServer();
 }
 
@@ -2953,7 +2953,7 @@ export async function getRefShowColumn(): Promise<string> {
  */
 export async function setRefShowColumn(col: string) {
   await driver.find('.test-fbuilder-ref-col-select').click();
-  await driver.findContent('.test-select-menu .test-select-row', col).click();
+  await findOpenMenuItem('.test-select-row', col, 100).click();
   await waitForServer();
 }
 
@@ -2971,7 +2971,7 @@ export async function getRefTable(): Promise<string> {
  */
 export async function setRefTable(table: string) {
   await driver.find('.test-fbuilder-ref-table-select').click();
-  await driver.findContent('.test-select-menu .test-select-row', table).click();
+  await findOpenMenuItem('.test-select-row', table).click();
   await waitForServer();
 }
 
@@ -2984,7 +2984,7 @@ export async function selectBy(table: string|RegExp) {
   await driver.find('.test-config-data').click();
   await driver.find('.test-right-select-by').click();
   table = typeof table === 'string' ? exactMatch(table) : table;
-  await driver.findContentWait('.test-select-menu li', table, 200).click();
+  await findOpenMenuItem('li',  table, 200).click();
   await waitForServer();
 }
 
@@ -4092,8 +4092,8 @@ export function buildSelectComponent(selector: string) {
     async options() {
       await driver.find(`${this.selector} .test-select-row`).click();
       // Wait for the menu.
-      await driver.findWait('.test-select-menu', 1000);
-      const options =  await driver.findAll(`.test-select-menu li`, el => el.getText());
+      await findOpenMenu();
+      const options =  await findOpenMenuAllItems('li', el => el.getText());
       await driver.sendKeys(Key.ESCAPE);
       return options;
     },
@@ -4124,9 +4124,14 @@ export function findOpenMenuItem(itemSelector: string, itemContentMatcher: strin
   return driver.findContentWait(`.grist-floating-menu ${itemSelector}`, itemContentMatcher, timeoutMsec);
 }
 
-export async function findOpenMenuAllItems(itemSelector: string = 'li', timeoutMsec = 100) {
-  await findOpenMenu(timeoutMsec);
-  return await driver.findAll(`.grist-floating-menu ${itemSelector}`);
+export async function findOpenMenuAllItems<T>(
+  itemSelector: string,
+  mapper: (e: WebElement) => Promise<T>,
+  timeoutMsec = 100
+): Promise<T[]>   {
+  // Find at least one item to ensure the menu is open.
+  await driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);
+  return await driver.findAll(`.grist-floating-menu ${itemSelector}`, mapper);
 }
 
 

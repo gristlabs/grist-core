@@ -172,7 +172,7 @@ describe('SelectBySummaryRef', function() {
 async function checkRightPanelSelectByOptions(section: string, expected: string[]) {
   await gu.openSelectByForSection(section);
 
-  const actual = await driver.findAll('.test-select-menu .test-select-row', (e) => e.getText());
+  const actual = await gu.findOpenMenuAllItems('.test-select-row', (e) => e.getText());
   assert.deepEqual(actual, ['Select Widget', ...expected]);
   await gu.sendKeys(Key.ESCAPE);
 }

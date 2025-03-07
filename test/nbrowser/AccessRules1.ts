@@ -126,7 +126,7 @@ describe('AccessRules1', function() {
 
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       [
         'Agent_Email',
         'Email',
@@ -376,7 +376,7 @@ describe('AccessRules1', function() {
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
     await gu.findOpenMenuItem('li', 'Year').click();
@@ -407,7 +407,7 @@ describe('AccessRules1', function() {
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
     await gu.findOpenMenuItem('li', 'Year').click();
@@ -421,7 +421,7 @@ describe('AccessRules1', function() {
     ruleSet = findRuleSet(/FinancialsTable/, 2);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
     await gu.findOpenMenuItem('li', 'Year').click();

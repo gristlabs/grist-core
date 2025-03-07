@@ -451,7 +451,7 @@ describe('Importer2', function() {
       await driver.findContent('.test-importer-column-match-source', /Pop\. '000/).click();
 
       // Check that the menu contains only the selected source column, plus a 'Skip' option.
-      const menu = driver.find('.test-select-menu');
+      const menu = gu.findOpenMenu();
       assert.deepEqual(
         await menu.findAll('.test-importer-column-match-menu-item', el => el.getText()),
         ['Skip', 'Pop. \'000']
@@ -687,7 +687,7 @@ describe('Importer2', function() {
 
       // Map 'District' to 'city_district' via the column mapping menu.
       await openSourceFor('District');
-      const menu = driver.find('.test-select-menu');
+      const menu = gu.findOpenMenu();
       await menu.findContent('.test-importer-column-match-menu-item', /city_district/).click();
       await gu.waitForServer();
 

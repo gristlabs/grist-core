@@ -798,7 +798,7 @@ describe('CustomWidgets', function () {
         await gu.openProfileSettingsPage();
         await gu.waitForServer();
         await languageMenu().click();
-        await driver.findContentWait('.test-select-menu li', lang, 100).click();
+        await gu.findOpenMenuItem('li',  lang, 100).click();
         await gu.waitForServer();
         await driver.navigate().back();
         await gu.waitForServer();
