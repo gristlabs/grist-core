@@ -62,7 +62,7 @@ describe("AccessRules3", function() {
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'Everyone', perm: '', res: 'All' }]);
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'Everyone', perm: '', res: '[Add Column]' },
                         { formula: 'Everyone', perm: '', res: 'All' + tooltipMarker }]);
@@ -87,7 +87,7 @@ describe("AccessRules3", function() {
 
       // New column rules should start off with that rule.
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
@@ -101,7 +101,7 @@ describe("AccessRules3", function() {
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: '[Add Column]' }]);
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Table-wide Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Table-wide Rule/).click();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
@@ -321,7 +321,7 @@ describe("AccessRules3", function() {
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       let fin = findTable(/FinancialsTable/);
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
       const ruleSet = findRuleSet(/FinancialsTable/, 1);
       await ruleSet.find('.test-rule-resource .test-select-open').click();
       await driver.findContent('.test-select-menu li', 'Year').click();

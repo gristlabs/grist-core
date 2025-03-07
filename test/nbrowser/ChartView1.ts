@@ -197,7 +197,7 @@ describe('ChartView1', function() {
 
     // Adds 'largeValue'
     await driver.find('.test-chart-add-y-axis').click();
-    await driver.findContent('.grist-floating-menu li', 'largeValue').click();
+    await gu.findOpenMenuItem('li', 'largeValue').click();
     await gu.waitForServer();
 
     // Check axis are correct
@@ -757,7 +757,7 @@ describe('ChartView1', function() {
 
     // open widget option
     await gu.openSectionMenu('viewLayout');
-    await driver.findContent('.grist-floating-menu li', 'Widget options').click();
+    await gu.findOpenMenuItem('li', 'Widget options').click();
 
     // open the page widget picker
     await driver.findContent('.test-right-panel button', 'Change Widget').click();

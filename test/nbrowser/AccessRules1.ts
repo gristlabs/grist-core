@@ -119,9 +119,9 @@ describe('AccessRules1', function() {
 
     // Make RumorsColumn of ClientsTable private to user1.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContent('.grist-floating-menu li', /ClientsTable/).click();
+    await gu.findOpenMenuItem('li', /ClientsTable/).click();
     await findTable(/ClientsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
     await ruleSet.find('.test-rule-resource .test-select-open').click();
@@ -372,7 +372,7 @@ describe('AccessRules1', function() {
 
     // Add a column rule that uses rec but doesn't set read permission.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
@@ -403,7 +403,7 @@ describe('AccessRules1', function() {
     await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
     await driver.findWait('.test-rule-set', 2000);
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
@@ -417,7 +417,7 @@ describe('AccessRules1', function() {
 
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     ruleSet = findRuleSet(/FinancialsTable/, 2);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(

@@ -3491,7 +3491,7 @@ type BehaviorActions = 'Clear and reset' | 'Convert column to data' | 'Clear and
 export async function changeBehavior(option: BehaviorActions|RegExp) {
   await openColumnPanel();
   await driver.find('.test-field-behaviour').click();
-  await driver.findContent('.grist-floating-menu li', option).click();
+  await gu.findOpenMenuItem('li', option).click();
   await waitForServer();
 }
 
@@ -3592,7 +3592,7 @@ export async function setRangeFilterBound(minMax: 'min'|'max', value: string|{re
       if (!await driver.find('.grist-floatin-menu').isPresent()) {
         await driver.find(`.test-filter-menu-${minMax}`).click();
       }
-      await driver.findContent('.grist-floating-menu li', value.relative).click();
+      await gu.findOpenMenuItem('li', value.relative).click();
     });
   }
 }
@@ -3925,7 +3925,7 @@ class Clipboard implements IClipboard {
     await driver.withActions(actions => { actions.contextClick(field); });
     await driver.findWait('.grist-floating-menu', 1000);
     const menuItemName = action.charAt(0).toUpperCase() + action.slice(1);
-    await driver.findContent('.grist-floating-menu li', menuItemName).click();
+    await gu.findOpenMenuItem('li', menuItemName).click();
   }
 }
 
@@ -4123,7 +4123,7 @@ export function buildSelectComponent(selector: string) {
 
 Wrong code:
  await gu.findOpenMenu('li', /FinancialsTable/, 3000).click();
- await driver.findContent('.grist-floating-menu li', permissions).click();
+ await gu.findOpenMenuItem('li', permissions).click();
   if (await driver.find('.grist-floating-menu').isPresent()) {
    await driver.findWait('.grist-floating-menu', 1000);
 

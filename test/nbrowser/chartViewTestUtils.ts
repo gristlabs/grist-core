@@ -62,7 +62,7 @@ export async function checkAxisConfig(expected: {groupingByColumn?: string|false
 
 export async function setSplitSeries(name: string|false, section?: string) {
   await gu.openSectionMenu('viewLayout', section);
-  await driver.findContent('.grist-floating-menu li', 'Widget options').click();
+  await gu.findOpenMenuItem('li', 'Widget options').click();
 
   const isChecked = await driver.findContent('label', /Split series/).find('input').matches(':checked');
   if (name === false && isChecked === true ||
@@ -94,6 +94,6 @@ export async function setYAxis(names: string[]) {
 
 export async function addYAxis(name: string) {
   await driver.find('.test-chart-add-y-axis').click();
-  await driver.findContent('.grist-floating-menu li', name).click();
+  await gu.findOpenMenuItem('li', name).click();
   await gu.waitForServer();
 }
