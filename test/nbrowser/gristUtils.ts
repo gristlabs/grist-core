@@ -1854,7 +1854,7 @@ export async function getFieldWidgetType(): Promise<string> {
  */
 export async function setFieldWidgetType(type: string) {
   await driver.find(".test-fbuilder-widget-select").click();
-  await driver.findContent('.test-select-menu li', exactMatch(type)).click();
+  await findOpenMenuItem('li', exactMatch(type)).click();
   await waitForServer();
 }
 
@@ -2064,11 +2064,11 @@ export async function completeCopy(options: {destName?: string, destWorkspace?: 
   }
   if (options.destOrg !== undefined) {
     await driver.find('.test-copy-dest-org .test-select-open').click();
-    await driver.findContent('.test-select-menu li', options.destOrg).click();
+    await findOpenMenuItem('li', options.destOrg).click();
   }
   if (options.destWorkspace !== undefined) {
     await driver.findWait('.test-copy-dest-workspace .test-select-open', 1000).click();
-    await driver.findContent('.test-select-menu li', options.destWorkspace).click();
+    await findOpenMenuItem('li', options.destWorkspace).click();
   }
 
   await waitForServer();
@@ -3667,7 +3667,7 @@ export async function setGristTheme(options: {
   if (!syncWithOS) {
     await scrollIntoView(driver.find('.test-theme-config-appearance .test-select-open'));
     await driver.find('.test-theme-config-appearance .test-select-open').click();
-    await driver.findContent('.test-select-menu li', appearance === 'light' ? 'Light' : 'Dark')
+    await findOpenMenuItem('li', appearance === 'light' ? 'Light' : 'Dark')
       .click();
     await waitForServer();
   }
@@ -3697,7 +3697,7 @@ export async function widgetAccess(level?: AccessLevel) {
     return Object.entries(text).find(e => e[1] === currentAccess)![0];
   } else {
     await driver.find('.test-config-widget-access .test-select-open').click();
-    await driver.findContent('.test-select-menu li', text[level]).click();
+    await findOpenMenuItem('li', text[level]).click();
     await waitForServer();
   }
 }
@@ -4055,7 +4055,7 @@ export async function getSelectValue(selector: string) {
 /** Sets a value on the select component */
 export async function setSelectValue(selector: string, value: string|RegExp) {
   await driver.find(`${selector} .test-select-row`).click();
-  await driver.findContent(`.test-select-menu li`, value).click();
+  await findOpenMenuItem('li', value).click();
   await waitForServer();
 }
 
@@ -4115,26 +4115,6 @@ export function buildSelectComponent(selector: string) {
     }
   };
 }
-
-
-
-
-/*
-
-Wrong code:
- await findOpenMenu('li', /FinancialsTable/, 3000).click();
- await findOpenMenuItem('li', permissions).click();
-  if (await driver.find('.grist-floating-menu').isPresent()) {
-   await findOpenMenu(1000);
-
-  Proposal:
-I grepped through the use-cases, and I think if we had a helper like this, all or almost all the uses could be changed to use one of these helpers:
-findOpenMenu(timeoutMsec = 100)
-findOpenMenuItem(itemSelector: string, itemContentMatcher?: string|RE, timeoutMsec = 100)
-findOpenMenuAllItems(itemSelector: string, timeoutMsec = 100)
-which would do  findWait or findContentWait on something like `.grist-floating-menu ${itemSelector}`
-
-*/
 
 export function findOpenMenu(timeoutMsec = 100) {
   return driver.findWait('.grist-floating-menu', timeoutMsec);

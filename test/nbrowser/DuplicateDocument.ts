@@ -92,7 +92,7 @@ describe("DuplicateDocument", function() {
 
     // Switch the org and check that workspaces get updated.
     await driver.find('.test-copy-dest-org .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Test2 Grist').click();
+    await gu.findOpenMenuItem('li', 'Test2 Grist').click();
     await driver.findWait('.test-copy-dest-workspace .test-select-open', 1000).click();
     assert.sameMembers(await driver.findAll('.test-select-menu li', (el) => el.getText()),
       ['Home']);
@@ -169,7 +169,7 @@ describe("DuplicateDocument", function() {
       ['Personal', 'Test Grist', 'Test2 Grist']);
 
     // Switching to an accessible regular org shows workspaces.
-    await driver.findContent('.test-select-menu li', 'Test2 Grist').click();
+    await gu.findOpenMenuItem('li', 'Test2 Grist').click();
     await gu.waitForServer();
     await driver.find('.test-copy-dest-workspace .test-select-open').click();
     assert.sameMembers(await driver.findAll('.test-select-menu li', (el) => el.getText()),
@@ -200,7 +200,7 @@ describe("DuplicateDocument", function() {
 
     // Switching to personal org shows no workspaces but no errors either.
     await driver.find('.test-copy-dest-org .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Personal').click();
+    await gu.findOpenMenuItem('li', 'Personal').click();
     await gu.waitForServer();
     assert.equal(await driver.find('.test-copy-warning').isPresent(), false);
     assert.equal(await driver.find('.test-modal-confirm').getAttribute('disabled'), null);

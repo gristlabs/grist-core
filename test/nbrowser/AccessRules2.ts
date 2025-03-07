@@ -180,9 +180,9 @@ describe("AccessRules2", function() {
     await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     let ruleSet = findRuleSet(/ClientsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'First_Name').click();
+    await gu.findOpenMenuItem('li', 'First_Name').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Last_Name').click();
+    await gu.findOpenMenuItem('li', 'Last_Name').click();
     await enterRulePart(ruleSet, 1, null, {R: 'deny'});
 
     // Add table rule entirely hiding FinancialsTable.
@@ -206,7 +206,7 @@ describe("AccessRules2", function() {
     await ruleSet.find('.test-rule-resource').click();
     await ruleSet.findContent('.test-acl-column', 'Last_Name').find('.test-acl-col-remove').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    assert.equal(await driver.findContent('.test-select-menu li', 'Last_Name').isPresent(), true);
+    assert.equal(await gu.findOpenMenuItem('li', 'Last_Name').isPresent(), true);
     await driver.sendKeys(Key.ESCAPE);    // Close menu.
     await driver.sendKeys(Key.ESCAPE);    // Close editing of columns.
 
@@ -227,7 +227,7 @@ describe("AccessRules2", function() {
     await ruleSet.find('.test-rule-resource').click();
     await ruleSet.findContent('.test-acl-column', 'First_Name').find('.test-acl-col-remove').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Last_Name').click();
+    await gu.findOpenMenuItem('li', 'Last_Name').click();
 
     // Add back FinancialsTable to be blocked.
     assert.equal(await findRuleSet(/FinancialsTable/, 1).isPresent(), false);
@@ -284,7 +284,7 @@ describe("AccessRules2", function() {
       ['Access', 'ClientsTable', 'ClientsTable [by Shared]', 'FinancialsTable']);
 
     // Select a table and check that the Column field offers a dropdown.
-    await driver.findContent('.test-select-menu li', 'ClientsTable').click();
+    await gu.findOpenMenuItem('li', 'ClientsTable').click();
     await userAttrRule.find('.test-rule-userattr-col').click();
     assert.includeMembers(await driver.findAll('.test-select-menu li', el => el.getText()),
       ['Agent_Email', 'Email', 'First_Name']);
@@ -614,11 +614,11 @@ describe("AccessRules2", function() {
     await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     ruleSet = findRuleSet(/TmpTable2/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'A').click();
+    await gu.findOpenMenuItem('li', 'A').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'B').click();
+    await gu.findOpenMenuItem('li', 'B').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'C').click();
+    await gu.findOpenMenuItem('li', 'C').click();
     await enterRulePart(ruleSet, 1, 'True', {R: 'allow'});
 
     // Save the rules.

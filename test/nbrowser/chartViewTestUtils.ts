@@ -71,14 +71,14 @@ export async function setSplitSeries(name: string|false, section?: string) {
   }
   if (name) {
     await driver.find('.test-chart-group-by-column').click();
-    await driver.findContent('.test-select-menu li', name || 'Pick a column').click();
+    await gu.findOpenMenuItem('li', name || 'Pick a column').click();
   }
   await gu.waitForServer();
 }
 
 export async function selectXAxis(name: string, opt: {noWait?: boolean} = {}) {
   await driver.find('.test-chart-x-axis').click();
-  await driver.findContent('.test-select-menu li', name).click();
+  await gu.findOpenMenuItem('li', name).click();
   if (!opt.noWait) {
     await gu.waitForServer();
   }

@@ -324,7 +324,7 @@ describe("AccessRules3", function() {
       await gu.findOpenMenuItem('li', /Add Column Rule/).click();
       const ruleSet = findRuleSet(/FinancialsTable/, 1);
       await ruleSet.find('.test-rule-resource .test-select-open').click();
-      await driver.findContent('.test-select-menu li', 'Year').click();
+      await gu.findOpenMenuItem('li', 'Year').click();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: 'Year\n[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: 'Year\n[Add Column]' },
