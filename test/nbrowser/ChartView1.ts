@@ -609,7 +609,7 @@ describe('ChartView1', function() {
 
     // Symmetric error bars should leave only the largeValue series, with 'value' for error bars.
     await driver.find('.test-chart-error-bars .test-select-open').click();
-    await driver.findContent('.test-select-menu li', /Symmetric/).click();
+    await gu.findOpenMenuItem('li', /Symmetric/)
     await gu.waitForServer();
 
     const chartDom = await driver.find('.test-chart-container');
@@ -623,7 +623,7 @@ describe('ChartView1', function() {
 
     // Using separate error bars for above+below will leave just the "above" error bars.
     await driver.find('.test-chart-error-bars .test-select-open').click();
-    await driver.findContent('.test-select-menu li', /Above.*Below/).click();
+    await gu.findOpenMenuItem('li', /Above.*Below/).click();
     await gu.waitForServer();
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].y, [22, 33, 11, 44, 22, 55]);

@@ -218,7 +218,7 @@ describe('CustomWidgets', function () {
       return Object.entries(text).find(e => e[1] === currentAccess)![0];
     } else {
       await driver.find('.test-config-widget-access .test-select-open').click();
-      await driver.findContent('.test-select-menu li', text[level]).click();
+      await gu.findOpenMenuItem('li', text[level]).click();
       await gu.waitForServer();
     }
   }

@@ -255,7 +255,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
   const {menuCssClass: menuClass, ...otherOptions} = weaselOptions;
   const selectOptions = {
     buttonArrow: cssInlineCollapseIcon('Collapse'),
-    menuCssClass: _menu.className + ' ' + (menuClass || ''),
+    menuCssClass: [_menu.className,  (menuClass || ''), '.grist-floating-menu'].join(' '),
     buttonCssClass: _btn.className,
     ...otherOptions,
   };

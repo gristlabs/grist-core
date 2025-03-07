@@ -137,7 +137,7 @@ describe('AccessRules1', function() {
         'Shared',
       ]
     );
-    await driver.findContent('.test-select-menu li', 'RumorsColumn').click();
+    await gu.findOpenMenuItem('li', 'RumorsColumn').click();
     await enterRulePart(ruleSet, 1, null, 'Deny All');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow All');
@@ -379,7 +379,7 @@ describe('AccessRules1', function() {
       await driver.findAll('.test-select-menu li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
-    await driver.findContent('.test-select-menu li', 'Year').click();
+    await gu.findOpenMenuItem('li', 'Year').click();
     await enterRulePart(ruleSet, 1, 'rec.Year == "yore"', {U: 'deny'});
     await gu.waitForServer();
     await driver.find('.test-rules-save').click();
@@ -410,9 +410,9 @@ describe('AccessRules1', function() {
       await driver.findAll('.test-select-menu li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
-    await driver.findContent('.test-select-menu li', 'Year').click();
+    await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Income').click();
+    await gu.findOpenMenuItem('li', 'Income').click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', {R: 'deny'});
 
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
@@ -424,9 +424,9 @@ describe('AccessRules1', function() {
       await driver.findAll('.test-select-menu li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
-    await driver.findContent('.test-select-menu li', 'Year').click();
+    await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Expenses').click();
+    await gu.findOpenMenuItem('li', 'Expenses').click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', {R: 'allow'});
 
     // Check that trying to save throws an error.

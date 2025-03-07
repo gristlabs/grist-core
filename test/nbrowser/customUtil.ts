@@ -8,5 +8,5 @@ export async function setAccess(option: "none"|"read table"|"full") {
     "full": "Full document access"
   };
   await driver.find(`.test-config-widget-access .test-select-open`).click();
-  await driver.findContent(`.test-select-menu li`, text[option]).click();
+  await gu.findOpenMenuItem('li', text[option]).click();
 }
