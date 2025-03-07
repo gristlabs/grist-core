@@ -3,6 +3,7 @@ import {ZipArchiveEntry} from 'compress-commons';
 import stream from 'node:stream';
 import * as tar from 'tar-stream';
 import ZipStream, {ZipStreamOptions} from 'zip-stream';
+import {drainWhenSettled} from 'app/server/utils/streams';
 
 export interface ArchiveEntry {
   name: string;
@@ -102,4 +103,44 @@ export async function create_tar_archive(
       }
     })()
   };
+}
+
+export interface UnpackedFile {
+  path: string;
+  data: stream.Readable;
+}
+
+export async function unpackTarArchive(
+  tarStream: stream.Readable,
+  onFile: (file: UnpackedFile) => Promise<void>
+): Promise<void> {
+  let resolveFinished = () => {};
+  let rejectFinished = (err: any) => {};
+  const finished = new Promise<void>((resolve, reject) => {
+    resolveFinished = resolve;
+    rejectFinished = reject;
+  });
+
+  const extract = tar.extract();
+
+  extract.on('entry', function (header, contentStream, next) {
+    // Ensures contentStream is drained when onFile is finished.
+    // Failure to drain contentStream will block the whole extraction.
+    drainWhenSettled(contentStream,
+      onFile({
+        path: header.name,
+        data: contentStream,
+      })
+      // No sensible behaviour when an error is thrown by onFile - it's onFile's responsibility
+      // to handle it.
+    ).catch(() => {})
+     .finally(() => { next(); });
+  });
+
+  extract.on('error', (err: any) => { rejectFinished(err); });
+  extract.on('finish', () => { resolveFinished(); });
+
+  tarStream.pipe(extract);
+
+  return finished;
 }
