@@ -1560,9 +1560,11 @@ GridView.prototype.buildDom = function() {
             //a cell in that row becomes larger
             kd.style('borderRightWidth', v.borderWidthPx),
             kd.toggleClass('selected', isSelected),
-            // Optional icon. Currently only use to show formula icon. Can be hidden from within the UI by "Grid Options"
+            // The field-icon is presently only used for "=" in formula fields.
+            // The record-icon class isolates the "=" being applied to the formula fields. 
+            // Allowing additional field icons to be added as field-icon class if desired.
             dom('div.field-icon',
-              kd.toggleClass('record-icon', vFormulaIcon),
+              kd.toggleClass('record-icon', vFormulaIcon), // Also grabbed from v.optionsObj at start of GridView buildDom
             ),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
             dom('div.selection'),

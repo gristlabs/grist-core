@@ -398,7 +398,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   const defaultOptions = {
     verticalGridlines: true,
     horizontalGridlines: true,
-    formulaIcon: true, // field icons are enable by default to be consistent with the default app behaviour
+    formulaIcon: true, // formula icons are enable by default consistent with the default app behaviour
     zebraStripes: false,
     customView: '',
     numFrozen: 0
