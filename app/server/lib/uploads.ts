@@ -19,6 +19,7 @@ import * as fse from 'fs-extra';
 import pick = require('lodash/pick');
 import * as multiparty from 'multiparty';
 import fetch, {Response as FetchResponse} from 'node-fetch';
+import stream from 'node:stream';
 import * as path from 'path';
 import * as tmp from 'tmp';
 import {IDocWorkerMap} from './DocWorkerMap';
@@ -114,6 +115,42 @@ export async function handleUpload(req: Request, res: Response): Promise<UploadR
   const {upload} = await handleOptionalUpload(req, res);
   if (!upload) { throw new ApiError('missing payload', 400); }
   return upload;
+}
+
+export interface FormPart {
+  name: string;
+  contentType: string;
+  stream: stream.Readable;
+}
+
+export function parseMultipartFormRequest(
+  req: Request, onFile: (file: FormPart) => void, onField: (name: string, value: string) => void
+): Promise<void> {
+  let resolveFinished: (() => void) = () => {};
+  let rejectFinished: ((reason: any) => void) = () => {};
+  const finished = new Promise<void>((resolve, reject) => {
+    resolveFinished = resolve;
+    rejectFinished = reject;
+  });
+  const form = new multiparty.Form({ autoField: true });
+  // This only emits files, due to autoField being true
+  form.on('part', (part: any) => {
+    part.on('error', (err: any) => rejectFinished(err));
+    onFile({
+      name: (part.filename ?? "") as string,
+      contentType: (part.headers['content-type'] ?? "") as string,
+      stream: part as stream.Readable,
+    });
+  });
+  form.on('field', onField);
+  form.on('error', function (err: any) {
+    rejectFinished(err);
+  });
+  form.on('close', function () {
+    resolveFinished();
+  });
+  form.parse(req);
+  return finished;
 }
 
 /**
@@ -353,8 +390,8 @@ export async function fetchURL(url: string, accessId: string|null, options?: Fet
 }
 
 /**
- * Register a new upload with resource fetched from a url, optionally including credentials in request.
- * Returns corresponding UploadInfo.
+ * Register a new upload with resource fetched from a url, optionally including credentials in
+ * request. Returns corresponding UploadInfo.
  */
 async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
   try {
