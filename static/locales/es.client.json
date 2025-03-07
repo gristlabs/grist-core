@@ -333,7 +333,10 @@
         "Newly uploaded attachments will be placed in External storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento externo.",
         "External": "Externo",
         "Internal": "Interno",
-        "Transfer in progress": "Transferencia en curso"
+        "Transfer in progress": "Transferencia en curso",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Algunos archivos adjuntos existentes siguen siendo [externos]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Algunos archivos adjuntos existentes siguen siendo [internos]({{internalLink}})** (almacenados en un archivo SQLite).",
+        "[Learn more.]({{learnLink}})": "[Más información.]({{learnLink}})"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -1310,7 +1313,8 @@
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Esta limitación ocurre cuando una columna en una referencia bidireccional es de tipo Referencia.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Para permitir asignaciones múltiples, cambie el tipo de la Columna referenciada a Lista de referencias.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Las referencias bidireccionales no son compatibles actualmente con las columnas de fórmula o fórmula de activación",
-        "The preview below this header shows how the selected user will see this document": "La vista previa debajo de este encabezado muestra cómo verá este documento el usuario seleccionado"
+        "The preview below this header shows how the selected user will see this document": "La vista previa debajo de este encabezado muestra cómo verá este documento el usuario seleccionado",
+        "[Learn more.]({{link}})": "[Aprende más.]({{link}})"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
