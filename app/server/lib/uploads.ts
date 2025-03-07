@@ -24,6 +24,7 @@ import * as path from 'path';
 import * as tmp from 'tmp';
 import {IDocWorkerMap} from './DocWorkerMap';
 import {getDocWorkerInfoOrSelfPrefix} from './DocWorkerUtils';
+import {drainWhenSettled} from 'app/server/utils/streams';
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle
@@ -123,8 +124,19 @@ export interface FormPart {
   stream: stream.Readable;
 }
 
+/**
+ * Processes a request containing a multipart/form-data body.
+ * @param {e.Request} req - Request to read body from
+ * @param {(file: FormPart) => Promise<void>} onFile
+ *  Called for each file found. The returned promise should only resolve
+ *  when the handler is finished with the data stream, otherwise errors might occur.
+ * @param {(name: string, value: string) => void} onField
+ *  Called for each field found.
+ * @returns {Promise<void>}
+ *  Promise, resolves when all parts of the form have been handled, or an error has occurred.
+ */
 export function parseMultipartFormRequest(
-  req: Request, onFile: (file: FormPart) => void, onField: (name: string, value: string) => void
+  req: Request, onFile: (file: FormPart) => Promise<void>, onField: (name: string, value: string) => void
 ): Promise<void> {
   let resolveFinished: (() => void) = () => {};
   let rejectFinished: ((reason: any) => void) = () => {};
@@ -135,12 +147,19 @@ export function parseMultipartFormRequest(
   const form = new multiparty.Form({ autoField: true });
   // This only emits files, due to autoField being true
   form.on('part', (part: any) => {
+    // If the underlying stream breaks, we should unblock the caller.
     part.on('error', (err: any) => rejectFinished(err));
-    onFile({
-      name: (part.filename ?? "") as string,
-      contentType: (part.headers['content-type'] ?? "") as string,
-      stream: part as stream.Readable,
-    });
+    // The stream needs to be drained for the request to continue. If something goes wrong
+    // in the `onFile` callback, drainWhenSettled guarantees that.
+    drainWhenSettled(part,
+      onFile({
+        name: (part.filename ?? "") as string,
+        contentType: (part.headers['content-type'] ?? "") as string,
+        stream: part as stream.Readable,
+      })
+    // No sensible way to handle errors from this promise - so do nothing here, and assume the callback
+    // handles errors sensibly.
+    ).catch(() => {});
   });
   form.on('field', onField);
   form.on('error', function (err: any) {
