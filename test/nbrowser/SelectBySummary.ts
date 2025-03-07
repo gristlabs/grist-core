@@ -186,7 +186,7 @@ describe('SelectBySummary', function() {
 
     // Deny all access to Table1.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContentWait('.grist-floating-menu li', /Table1/, 3000).click();
+    await gu.findOpenMenuItem('li', /Table1/, 3000).click();
     const ruleSet = findDefaultRuleSet(/Table1/);
     await enterRulePart(ruleSet, 1, null, 'Deny All');
     await driver.find('.test-rules-save').click();

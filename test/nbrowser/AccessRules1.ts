@@ -111,7 +111,7 @@ describe('AccessRules1', function() {
 
     // Make FinancialsTable private to user1.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
+    await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
     let ruleSet = findDefaultRuleSet(/FinancialsTable/);
     await enterRulePart(ruleSet, 1, null, 'Deny All');
     await ruleSet.find('.test-rule-part .test-rule-add').click();

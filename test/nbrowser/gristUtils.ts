@@ -4117,6 +4117,39 @@ export function buildSelectComponent(selector: string) {
 }
 
 
+
+
+/*
+
+Wrong code:
+ await gu.findOpenMenu('li', /FinancialsTable/, 3000).click();
+ await driver.findContent('.grist-floating-menu li', permissions).click();
+  if (await driver.find('.grist-floating-menu').isPresent()) {
+   await driver.findWait('.grist-floating-menu', 1000);
+
+  Proposal:
+I grepped through the use-cases, and I think if we had a helper like this, all or almost all the uses could be changed to use one of these helpers:
+findOpenMenu(timeoutMsec = 100)
+findOpenMenuItem(itemSelector: string, itemContentMatcher?: string|RE, timeoutMsec = 100)
+findOpenMenuAllItems(itemSelector: string, timeoutMsec = 100)
+which would do  findWait or findContentWait on something like `.grist-floating-menu ${itemSelector}`
+
+*/
+
+export function findOpenMenu(timeoutMsec = 100) {
+  return driver.findWait('.grist-floating-menu', timeoutMsec);
+}
+
+export function findOpenMenuItem(itemSelector: string, itemContentMatcher: string|RegExp,  timeoutMsec = 100) {
+  return driver.findContentWait(`.grist-floating-menu ${itemSelector}`, itemContentMatcher, timeoutMsec);
+}
+
+export async function findOpenMenuAllItems(itemSelector: string = 'li', timeoutMsec = 100) {
+  await findOpenMenu(timeoutMsec);
+  return await driver.findAll(`.grist-floating-menu ${itemSelector}`);
+}
+
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);
