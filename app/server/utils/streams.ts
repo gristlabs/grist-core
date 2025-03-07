@@ -1,4 +1,4 @@
-import {Readable, Writable} from 'stream';
+import {Readable, Writable, promises} from 'stream';
 
 // Creates a writable stream that can be retrieved as a buffer.
 // Sub-optimal implementation, as we end up with *at least* two copies in memory one in `buffers`,
@@ -35,5 +35,6 @@ export async function drainWhenSettled<T>(stream: Readable, promise: Promise<T>)
     if (stream.readable) {
       stream.resume();
     }
+    await promises.finished(stream);
   }
 }
