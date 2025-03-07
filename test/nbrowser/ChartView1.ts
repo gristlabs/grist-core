@@ -109,7 +109,7 @@ describe('ChartView1', function() {
 
     // Test that the widget menu doesn't have the raw data option any more
     await gu.openSectionMenu('viewLayout');
-    assert.isTrue(await driver.findContentWait('.grist-floating-menu li', 'Print widget', 100).isDisplayed());
+    assert.isTrue(await gu.findOpenMenuItem('li', 'Print widget', 100).isDisplayed());
     assert.isFalse(await driver.findContent('.grist-floating-menu li', 'Show raw data').isPresent());
 
     // Go back and confirm that the overlay is gone again

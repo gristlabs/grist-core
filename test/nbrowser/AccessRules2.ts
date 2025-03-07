@@ -601,13 +601,13 @@ describe("AccessRules2", function() {
 
     // Add a rule for TmpTable1.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContentWait('.grist-floating-menu li', /TmpTable1/, 3000).click();
+    await gu.findOpenMenuItem('li', /TmpTable1/, 3000).click();
     let ruleSet = findDefaultRuleSet(/TmpTable1/);
     await enterRulePart(ruleSet, 1, null, 'Allow All');
 
     // Add a rule for columns of TmpTable2.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContentWait('.grist-floating-menu li', /TmpTable2/, 3000).click();
+    await gu.findOpenMenuItem('li', /TmpTable2/, 3000).click();
     ruleSet = findDefaultRuleSet(/TmpTable2/);
     await enterRulePart(ruleSet, 1, null, 'Allow All');
     await findTable(/TmpTable2/).find('.test-rule-table-menu-btn').click();
