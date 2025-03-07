@@ -75,7 +75,7 @@ namespace gristUtils {
     }
     if (typeof permissions === 'string') {
       await part.find('.test-rule-permissions .test-permissions-dropdown').click();
-      await driver.findContent('.grist-floating-menu li', permissions).click();
+      await gu.findOpenMenuItem('li', permissions).click();
     } else {
       for (const [bit, desired] of Object.entries(permissions)) {
         const elem = await part.findContent('.test-rule-permissions div', bit);

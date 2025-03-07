@@ -46,7 +46,7 @@ const pickerAdd = (name: string) => `.test-config-widget-add-column-for-${name}`
 
 // Helpers to work with menus
 async function clickMenuItem(name: string) {
-  await driver.findContent('.grist-floating-menu li', name).click();
+  await gu.findOpenMenuItem('li', name).click();
   await gu.waitForServer();
 }
 const getMenuOptions = () => driver.findAll('.grist-floating-menu li', el => el.getText());
