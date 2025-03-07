@@ -1150,7 +1150,7 @@ GridView.prototype.buildDom = function() {
   let vHorizontalGridlines = v.optionsObj.prop('horizontalGridlines');
   let vVerticalGridlines   = v.optionsObj.prop('verticalGridlines');
   let vZebraStripes        = v.optionsObj.prop('zebraStripes');
-  let vFieldIcon        = v.optionsObj.prop('fieldIcon');
+  let vFormulaIcon        = v.optionsObj.prop('formulaIcon');
 
   var renameCommands = {
     nextField: function() {
@@ -1562,7 +1562,7 @@ GridView.prototype.buildDom = function() {
             kd.toggleClass('selected', isSelected),
             // Optional icon. Currently only use to show formula icon. Can be hidden from within the UI by "Grid Options"
             dom('div.field-icon',
-              kd.toggleClass('record-icon', vFieldIcon),
+              kd.toggleClass('record-icon', vFormulaIcon),
             ),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
             dom('div.selection'),
