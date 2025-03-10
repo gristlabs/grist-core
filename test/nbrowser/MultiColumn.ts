@@ -1210,7 +1210,7 @@ async function dateFormat(format?: string) {
     return await gu.getDateFormat();
   }
   await driver.find("[data-test-id=Widget_dateFormat]").click();
-  await driver.findContent('.test-select-menu li', gu.exactMatch(format)).click();
+  await gu.findOpenMenuItem('li', gu.exactMatch(format)).click();
   await gu.waitForServer();
 }
 

@@ -354,7 +354,7 @@ const gu = {
     } else {
       // This is a dropdown select.
       await selector.click();
-      await $(`.test-select-menu .test-select-row:contains(${value})`).click();
+      await $(`.test-select-menu .test-select-row:contains(${value})`).wait().click();
     }
     await gu.waitForServer();
   },

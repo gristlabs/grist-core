@@ -111,7 +111,7 @@ describe('AccessRules1', function() {
 
     // Make FinancialsTable private to user1.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
+    await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
     let ruleSet = findDefaultRuleSet(/FinancialsTable/);
     await enterRulePart(ruleSet, 1, null, 'Deny All');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
@@ -119,14 +119,14 @@ describe('AccessRules1', function() {
 
     // Make RumorsColumn of ClientsTable private to user1.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContent('.grist-floating-menu li', /ClientsTable/).click();
+    await gu.findOpenMenuItem('li', /ClientsTable/).click();
     await findTable(/ClientsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       [
         'Agent_Email',
         'Email',
@@ -137,7 +137,7 @@ describe('AccessRules1', function() {
         'Shared',
       ]
     );
-    await driver.findContent('.test-select-menu li', 'RumorsColumn').click();
+    await gu.findOpenMenuItem('li', 'RumorsColumn').click();
     await enterRulePart(ruleSet, 1, null, 'Deny All');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow All');
@@ -372,14 +372,14 @@ describe('AccessRules1', function() {
 
     // Add a column rule that uses rec but doesn't set read permission.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
-    await driver.findContent('.test-select-menu li', 'Year').click();
+    await gu.findOpenMenuItem('li', 'Year').click();
     await enterRulePart(ruleSet, 1, 'rec.Year == "yore"', {U: 'deny'});
     await gu.waitForServer();
     await driver.find('.test-rules-save').click();
@@ -403,30 +403,30 @@ describe('AccessRules1', function() {
     await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
     await driver.findWait('.test-rule-set', 2000);
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
-    await driver.findContent('.test-select-menu li', 'Year').click();
+    await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Income').click();
+    await gu.findOpenMenuItem('li', 'Income').click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', {R: 'deny'});
 
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
     ruleSet = findRuleSet(/FinancialsTable/, 2);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', el => el.getText()),
+      await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
-    await driver.findContent('.test-select-menu li', 'Year').click();
+    await gu.findOpenMenuItem('li', 'Year').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Expenses').click();
+    await gu.findOpenMenuItem('li', 'Expenses').click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', {R: 'allow'});
 
     // Check that trying to save throws an error.

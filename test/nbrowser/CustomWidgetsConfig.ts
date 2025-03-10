@@ -31,9 +31,9 @@ function createConfigUrl(ready?: any) {
 
 const click = (selector: string) => driver.find(`${selector}`).click();
 const toggleDrop = (selector: string) => click(`${selector} .test-select-open`);
-const getOptions = () => driver.findAll('.test-select-menu li', el => el.getText());
+const getOptions = () => gu.findOpenMenuAllItems('li', el => el.getText());
 const clickOption = async (text: string | RegExp) => {
-  await driver.findContent('.test-select-menu li', text).click();
+  await gu.findOpenMenuItem('li', text).click();
   await gu.waitForServer();
 };
 // Persists custom options.
@@ -46,7 +46,7 @@ const pickerAdd = (name: string) => `.test-config-widget-add-column-for-${name}`
 
 // Helpers to work with menus
 async function clickMenuItem(name: string) {
-  await driver.findContent('.grist-floating-menu li', name).click();
+  await gu.findOpenMenuItem('li', name).click();
   await gu.waitForServer();
 }
 const getMenuOptions = () => driver.findAll('.grist-floating-menu li', el => el.getText());
