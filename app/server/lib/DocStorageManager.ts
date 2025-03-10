@@ -8,8 +8,10 @@ import {DocEntry, DocEntryTag} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentUsage} from 'app/common/DocUsage';
 import * as gutil from 'app/common/gutil';
+import {backupUsingBestConnection} from 'app/server/lib/backupSqliteDatabase';
 import {Comm} from 'app/server/lib/Comm';
 import * as docUtils from 'app/server/lib/docUtils';
+import {GristServer} from 'app/server/lib/GristServer';
 import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/server/lib/IDocStorageManager';
 import {IShell} from 'app/server/lib/IShell';
 import log from 'app/server/lib/log';
@@ -36,7 +38,7 @@ export class DocStorageManager implements IDocStorageManager {
    * The file watcher is created if the optComm argument is given.
    */
   constructor(private _docsRoot: string, private _samplesRoot?: string,
-              private _comm?: Comm, shell?: IShell) {
+              private _comm?: Comm, shell?: IShell, private _gristServer?: GristServer) {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
     this._shell = shell ?? {
       trashItem() { throw new Error('Unable to move document to trash'); },
@@ -53,6 +55,10 @@ export class DocStorageManager implements IDocStorageManager {
   public getPath(docName: string): string {
     docName += (path.extname(docName) === '.grist' ? '' : '.grist');
     return path.resolve(this._docsRoot, docName);
+  }
+
+  public getSQLiteDB(docName: string) {
+    return this._gristServer?.getDocManager().getSQLiteDB(docName);
   }
 
   /**
@@ -86,8 +92,10 @@ export class DocStorageManager implements IDocStorageManager {
 
   public async prepareFork(srcDocName: string, destDocName: string): Promise<string> {
     // This is implemented only to support old tests.
-    await fse.copy(this.getPath(srcDocName), this.getPath(destDocName));
-    return this.getPath(destDocName);
+    const output = this.getPath(destDocName);
+    return this._safeCopy(srcDocName, {
+      output,
+    });
   }
 
   /**
@@ -175,9 +183,8 @@ export class DocStorageManager implements IDocStorageManager {
       );
     }).tap((numberedBakPathPrefix: string) => { // do the copying, but return bakPath anyway
       finalBakPath = numberedBakPathPrefix + ext;
-      const docPath = this.getPath(docName);
       log.info(`Backing up ${docName} to ${finalBakPath}`);
-      return docUtils.copyFile(docPath, finalBakPath);
+      return this._safeCopy(docName, { output: finalBakPath });
     }).then(() => {
       log.debug("DocStorageManager: Backup made successfully at: %s", finalBakPath);
       return finalBakPath;
@@ -235,11 +242,9 @@ export class DocStorageManager implements IDocStorageManager {
   }
 
   public async getCopy(docName: string): Promise<string> {
-    const srcPath = this.getPath(docName);
-    const postfix = uuidv4();
-    const tmpPath = `${srcPath}-${postfix}`;
-    await docUtils.copyFile(srcPath, tmpPath);
-    return tmpPath;
+    return this._safeCopy(docName, {
+      postfix: uuidv4(),
+    });
   }
 
   public async getSnapshots(docName: string, skipMetadataCache?: boolean): Promise<DocSnapshots> {
@@ -315,6 +320,16 @@ export class DocStorageManager implements IDocStorageManager {
       log.debug(`Sending ${actionType} action for doc ${getDocName(docPath)}`);
       this._comm.broadcastMessage('docListAction', { [actionType]: [data] });
     }
+  }
+
+  private async _safeCopy(docName: string, options: {
+    postfix?: string,
+    output?: string,
+  }): Promise<string> {
+    return backupUsingBestConnection(this, docName, {
+      ...options,
+      log: (err) => log.error("DocStorageManager: copy failed for %s: %s", docName, String(err)),
+    });
   }
 }
 

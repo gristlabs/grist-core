@@ -72,6 +72,11 @@ export class AppSettings {
     } else if (query.defaultValue !== undefined) {
       this._value = query.defaultValue;
     }
+    if (query.acceptedValues && this._value) {
+      if (query.acceptedValues.every(v => v !== this._value)) {
+        throw new Error(`value is not accepted: ${this._value}`);
+      }
+    }
     return this;
   }
 
@@ -239,6 +244,8 @@ export interface AppSettingQuery {
    * When set to true, the value is obscured when printed.
    */
   censor?: boolean;
+
+  acceptedValues?: Array<JSONValue>;
 }
 
 export interface AppSettingQueryInt extends AppSettingQuery {
