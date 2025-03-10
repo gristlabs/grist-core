@@ -19,7 +19,7 @@ import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {Doom} from 'app/gen-server/lib/Doom';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {HomeDBManager, NotifierEvents, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
@@ -56,7 +56,7 @@ import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
+import {EmptyNotifier, INotifier, TestSendGridExtensions} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
 import {IPermitStore} from 'app/server/lib/Permit';
@@ -82,6 +82,7 @@ import {buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository} from 'app
 import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
 import * as cookie from 'cookie';
+import EventEmitter from 'events';
 import express from 'express';
 import * as fse from 'fs-extra';
 import * as http from 'http';
@@ -197,6 +198,8 @@ export class FlexServer implements GristServer {
   private _updateManager: UpdateManager;
   private _sandboxInfo: SandboxInfo;
   private _jobs?: GristJobs;
+  private _emitNotifier = new EmitNotifier();
+  private _testPendingNotifications: number = 0;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -435,8 +438,10 @@ export class FlexServer implements GristServer {
   }
 
   public getNotifier(): INotifier {
+    // Check that our internal notifier implementation is in place.
     if (!this._notifier) { throw new Error('no notifier available'); }
-    return this._notifier;
+    // Expose a wrapper around it that emits actions.
+    return this._emitNotifier;
   }
 
   public getInstallAdmin(): InstallAdmin {
@@ -797,7 +802,7 @@ export class FlexServer implements GristServer {
 
   public async initHomeDBManager() {
     if (this._check('homedb')) { return; }
-    this._dbManager = new HomeDBManager();
+    this._dbManager = new HomeDBManager(this._emitNotifier);
     this._dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
     await this._dbManager.connect();
     await this._dbManager.initializeSpecialIds();
@@ -974,8 +979,8 @@ export class FlexServer implements GristServer {
     await this._updateManager?.clear();
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
+    this._emitNotifier.removeAllListeners();
     if (this._dbManager) {
-      this._dbManager.removeAllListeners();
       this._dbManager.flushDocAuthCache();
     }
     if (this.server)      { this.server.close(); }
@@ -1838,6 +1843,25 @@ export class FlexServer implements GristServer {
     // case of notification(s) from stripe.  May need to associate a preferred base domain
     // with org/user and persist that?
     this._notifier = this.create.Notifier(this._dbManager, this);
+    for (const method of NotifierEvents.values) {
+      this._emitNotifier.on(method, async (...args) => {
+        this._testPendingNotifications++;
+        try {
+          await (this._notifier[method] as any)(...args);
+        } catch (e) {
+          // Catch error since as an event handler we can't return one.
+          log.error("Notifier failed:", e);
+        } finally {
+          this._testPendingNotifications--;
+        }
+      });
+    }
+    this._emitNotifier.sendGridExtensions = this._notifier.testSendGridExtensions?.();
+  }
+
+  // for test purposes, check if any notifications are in progress
+  public get testPending(): boolean {
+    return this._testPendingNotifications > 0;
   }
 
   public getGristConfig(): GristLoadConfig {
@@ -2007,6 +2031,14 @@ export class FlexServer implements GristServer {
 
   public isRestrictedMode() {
     return this.getHomeDBManager().isReadonly();
+  }
+
+  public onUserChange(callback: (change: UserChange) => Promise<void>) {
+    this._emitNotifier.on('userChange', callback);
+  }
+
+  public onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>) {
+    this._emitNotifier.on('streamingDestinationsChange', callback);
   }
 
   // Adds endpoints that support imports and exports.
@@ -2624,3 +2656,52 @@ const serveAnyOrigin: serveStatic.ServeStaticOptions = {
     res.setHeader("Access-Control-Allow-Origin", "*");
   }
 };
+
+/**
+ *
+ * Handle events that should result in notifications to users via
+ * transactional emails (or future generalizations). Currently
+ * handled by simply emitting them and hooking them up to a
+ * sendgrid-based implementation (see FlexServer.addNotifier).
+ * Some of the events are also distributed internally via
+ * FlexServer.onUserChange and FlexServer.onStreamingDestinationsChange.
+ * This might be a good point to replace some of this activity with
+ * a job queue and queue workers. In particular, processing of
+ * FlexServer.onUserChange could do with moving to a queue since
+ * it may require communication with external billing software and
+ * should be robust to delays and failures there. More generally,
+ * if notications are subject to delays and failures and we wish to
+ * be robust, a job queue would be a good idea for all of this.
+ *
+ * Although the interface this class implements is async, it is
+ * best if the implementation remains fast and reliable. Any delays
+ * here will impact API calls. Calls to place something in Redis
+ * may be acceptable.
+ */
+export class EmitNotifier extends EventEmitter implements INotifier {
+  public sendGridExtensions?: TestSendGridExtensions;
+
+  public addUser = this._wrapEvent('addUser');
+  public addBillingManager = this._wrapEvent('addBillingManager');
+  public firstLogin = this._wrapEvent('firstLogin');
+  public teamCreator = this._wrapEvent('teamCreator');
+  public userChange = this._wrapEvent('userChange');
+  public trialPeriodEndingSoon = this._wrapEvent('trialPeriodEndingSoon');
+  public trialingSubscription = this._wrapEvent('trialingSubscription');
+  public scheduledCall = this._wrapEvent('scheduledCall');
+  public streamingDestinationsChange = this._wrapEvent('streamingDestinationsChange');
+  public twoFactorStatusChanged = this._wrapEvent('twoFactorStatusChanged');
+
+  // Pass on deleteUser in the same way
+  public deleteUser = this._wrapEvent('deleteUser');
+
+  public testSendGridExtensions() {
+    return this.sendGridExtensions;
+  }
+
+  private _wrapEvent<Name extends keyof INotifier>(eventName: Name): INotifier[Name] {
+    return (async (...args: any[]) => {
+      this.emit(eventName, ...args);
+    }) as INotifier[Name];
+  }
+}

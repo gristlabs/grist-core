@@ -330,7 +330,13 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento interno.",
         "No external stores available": "No hay almacenamientos externos disponibles",
         "Preferred storage for this document": "Almacenamiento preferido para este documento",
-        "Newly uploaded attachments will be placed in External storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento externo."
+        "Newly uploaded attachments will be placed in External storage.": "Los archivos adjuntos recién cargados se colocarán en el almacenamiento externo.",
+        "External": "Externo",
+        "Internal": "Interno",
+        "Transfer in progress": "Transferencia en curso",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Algunos archivos adjuntos existentes siguen siendo [externos]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Algunos archivos adjuntos existentes siguen siendo [internos]({{internalLink}})** (almacenados en un archivo SQLite).",
+        "[Learn more.]({{learnLink}})": "[Más información.]({{learnLink}})"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -666,7 +672,9 @@
         "Hidden field": "Campo oculto",
         "Redirect automatically after submission": "Redirigir automáticamente después del envío",
         "No field selected": "Ningún campo seleccionado",
-        "Select a field in the form widget to configure.": "Seleccione un campo del widget del formulario para configurarlo."
+        "Select a field in the form widget to configure.": "Seleccione un campo del widget del formulario para configurarlo.",
+        "Submit": "Enviar",
+        "Thank you! Your response has been recorded.": "¡Gracias! Tu respuesta ha sido grabada."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar enlace de anclaje",
@@ -1080,7 +1088,8 @@
         "Don't show again.": "No vuelvas a mostrarlo.",
         "Don't show again": "No volver a mostrar",
         "Are you sure you want to delete these records?": "¿Seguro que quieres borrar estos registros?",
-        "TIP": "TIP"
+        "TIP": "TIP",
+        "Confirm": "Confirmar"
     },
     "pages": {
         "Duplicate Page": "Duplicar página",
@@ -1305,7 +1314,8 @@
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Esta limitación ocurre cuando una columna en una referencia bidireccional es de tipo Referencia.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Para permitir asignaciones múltiples, cambie el tipo de la Columna referenciada a Lista de referencias.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Las referencias bidireccionales no son compatibles actualmente con las columnas de fórmula o fórmula de activación",
-        "The preview below this header shows how the selected user will see this document": "La vista previa debajo de este encabezado muestra cómo verá este documento el usuario seleccionado"
+        "The preview below this header shows how the selected user will see this document": "La vista previa debajo de este encabezado muestra cómo verá este documento el usuario seleccionado",
+        "[Learn more.]({{link}})": "[Aprende más.]({{link}})"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1974,5 +1984,23 @@
         "Name": "Nombre",
         "Choose color": "Elige el color",
         "Reset icon": "Restablecer icono"
+    },
+    "RightPanelUtils": {
+        "Fields_one": "Campos",
+        "Fields_other": "Campos",
+        "Columns_other": "Columnas",
+        "Columns_one": "Columnas",
+        "Series_one": "Series",
+        "Series_other": "Series"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Tenga cuidado con los widgets personalizados desconocidos",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "¡Los widgets personalizados son **poderosos**! Pueden ser capaces de leer y escribir los datos de tu documento, y enviarlos a otra parte.",
+        "Do you **trust the person** who shared this link?": "¿Confías **en la persona** que compartió este enlace?",
+        "Have you **reviewed the code** at this URL?": "¿Has **revisado el código** en esta URL?",
+        "I confirm that I understand these warnings and accept the risks": "Confirmo que entiendo estas advertencias y acepto los riesgos",
+        "Please review the following before adding a new custom widget.": "Por favor, revise lo siguiente antes de añadir un nuevo widget personalizado.",
+        "Are you sure you **trust the resource** at this URL?": "¿Está seguro de que **confía en el recurso** de esta URL?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En caso de duda, no instale este widget, o pida a un administrador de su organización que lo revise por seguridad."
     }
 }

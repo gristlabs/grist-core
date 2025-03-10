@@ -80,7 +80,7 @@ $ yarn install:python
 Finally run this to do an initial build:
 
 ```bash
-$ yarn run build:prod
+$ yarn run build
 ```
 
 ## Start the server in development mode

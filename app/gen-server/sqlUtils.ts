@@ -76,6 +76,17 @@ export function hasAtLeastOneOfTheseIds(dbType: DatabaseType, ids: number[], col
 }
 
 /**
+ * Return SQL for aggregating supplied SQL content into a JSON array.
+ */
+export function makeJsonArray(dbType: DatabaseType, content: string): string {
+  switch (dbType) {
+    case 'postgres': return `json_agg(${content})`;
+    case 'sqlite': return `json_group_array(${content})`;
+    default: throw new Error(`makeJsonArray not implemented for ${dbType}`);
+  }
+}
+
+/**
  * Convert a json value returned by the database into a javascript
  * object.  For postgres, the value is already unpacked, but for sqlite
  * it is a string.

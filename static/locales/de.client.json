@@ -388,7 +388,13 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Neu hochgeladene Anhänge werden im internen Speicher abgelegt.",
         "Newly uploaded attachments will be placed in External storage.": "Neu hochgeladene Anhänge werden im externen Speicher abgelegt.",
         "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Dadurch wird ein harter Reload der Datenmaschine durchgeführt. Dies kann hilfreich sein, wenn die Datenmaschine in einer Endlosschleife feststeckt, die letzte Änderung unendlich lange verarbeitet oder abgestürzt ist. Es gehen keine Daten verloren, mit Ausnahme möglicherweise noch laufender Aktionen.",
-        "**Some existing attachments are still internal** (stored in SQLite file).": "**Einige vorhandene Anhänge sind noch intern** (in einer SQLite-Datei gespeichert)."
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Einige vorhandene Anhänge sind noch intern** (in einer SQLite-Datei gespeichert).",
+        "Internal": "Intern",
+        "Transfer in progress": "Übertragung im Gange",
+        "External": "Extern",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Einige vorhandene Anhänge sind noch [extern]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Einige vorhandene Anhänge sind noch [intern]({{internalLink}})** (in einer SQLite-Datei gespeichert).",
+        "[Learn more.]({{learnLink}})": "[Erfahren Sie mehr.]({{learnLink}})"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -792,7 +798,9 @@
         "Hidden field": "Verborgenes Feld",
         "Submit button label": "Beschriftung der Schaltfläche Senden",
         "No field selected": "Kein Feld ausgewählt",
-        "Select a field in the form widget to configure.": "Wählen Sie ein Feld im Formular Widget aus, um es zu konfigurieren."
+        "Select a field in the form widget to configure.": "Wählen Sie ein Feld im Formular Widget aus, um es zu konfigurieren.",
+        "Submit": "Einreichen",
+        "Thank you! Your response has been recorded.": "Vielen Dank! Ihre Antwort wurde registriert."
     },
     "RowContextMenu": {
         "Copy anchor link": "Ankerlink kopieren",
@@ -1073,7 +1081,8 @@
         "Don't ask again.": "Frag nicht mehr.",
         "Don't show again.": "Zeig nicht mehr.",
         "Don't show tips": "Keine Tipps anzeigen",
-        "TIP": "TIPP"
+        "TIP": "TIPP",
+        "Confirm": "Bestätigen"
     },
     "pages": {
         "Duplicate Page": "Seite duplizieren",
@@ -1315,7 +1324,8 @@
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Diese Einschränkung tritt auf, wenn ein Ende einer Zwei-Wege-Referenz als Einzelreferenz konfiguriert ist.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Diese Einschränkung tritt auf, wenn eine Spalte in einer zweiseitigen Referenz den Typ Referenz hat.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Zwei-Wege-Referenzen werden derzeit nicht für Formel- oder Trigger-Formelspalten unterstützt",
-        "The preview below this header shows how the selected user will see this document": "Die Vorschau unter dieser Überschrift zeigt, wie der ausgewählte Benutzer dieses Dokument sehen wird"
+        "The preview below this header shows how the selected user will see this document": "Die Vorschau unter dieser Überschrift zeigt, wie der ausgewählte Benutzer dieses Dokument sehen wird",
+        "[Learn more.]({{link}})": "[Erfahren Sie mehr.]({{link}})"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1984,5 +1994,23 @@
         "Reset icon": "Symbol zurücksetzen",
         "Choose icon": "Symbol auswählen",
         "Choose color": "Farbe wählen"
+    },
+    "RightPanelUtils": {
+        "Columns_one": "Spalten",
+        "Columns_other": "Spalten",
+        "Fields_one": "Felder",
+        "Series_other": "Serien",
+        "Series_one": "Serien",
+        "Fields_other": "Felder"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Seien Sie vorsichtig mit unbekannten benutzerdefinierten Widgets",
+        "Please review the following before adding a new custom widget.": "Bitte beachten Sie die folgenden Hinweise, bevor Sie ein neues benutzerdefiniertes Widget hinzufügen.",
+        "Are you sure you **trust the resource** at this URL?": "Sind Sie sicher, dass Sie **die Ressourcen** bei dieser URL **vertrauen**?",
+        "Do you **trust the person** who shared this link?": "**Vertrauen Sie die Person**, die diesen Link geteilt hat?",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Benutzerdefinierte Widgets sind **mächtig**! Sie können Ihre Dokument-Daten lesen und schreiben und sie an andere Stellen senden.",
+        "I confirm that I understand these warnings and accept the risks": "Ich bestätige, dass ich diese Warnhinweise verstanden habe und die Risiken akzeptiere",
+        "Have you **reviewed the code** at this URL?": "Haben Sie * den Code** bei dieser URL **überprüft**?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "Wenn in Zweifel, installieren Sie dieses Widget nicht oder fragen Sie einen Administrator Ihrer Organisation, um es für Sicherheit zu überprüfen."
     }
 }

@@ -388,7 +388,13 @@
         "Preferred storage for this document": "Armazenamento preferido para este documento",
         "Start transfer": "Iniciar transferência",
         "**Some existing attachments are still internal** (stored in SQLite file).": "**Alguns anexos existentes ainda são internos** (armazenados em um arquivo SQLite).",
-        "Click \"Start transfer\" to transfer those to External storage.": "Clique em \"Iniciar transferência\" para transferir aqueles para armazenamento externo."
+        "Click \"Start transfer\" to transfer those to External storage.": "Clique em \"Iniciar transferência\" para transferir aqueles para armazenamento externo.",
+        "External": "Externo",
+        "Internal": "Interno",
+        "Transfer in progress": "Transferência em andamento",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Alguns anexos existentes ainda são [externos]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Alguns anexos existentes ainda são [internos]({{internalLink}})** (armazenados no arquivo SQLite).",
+        "[Learn more.]({{learnLink}})": "[Saiba mais]({{learnLink}})"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -792,7 +798,9 @@
         "Success text": "Texto de sucesso",
         "Layout": "Leiaute",
         "No field selected": "Nenhum campo selecionado",
-        "Select a field in the form widget to configure.": "Selecione um campo no widget do formulário para configurar."
+        "Select a field in the form widget to configure.": "Selecione um campo no widget do formulário para configurar.",
+        "Submit": "Enviar",
+        "Thank you! Your response has been recorded.": "Obrigado! Sua resposta foi registrada."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar o link de ancoragem",
@@ -1073,7 +1081,8 @@
         "Don't show again": "Não mostrar novamente",
         "Don't show again.": "Não mostrar novamente.",
         "Don't show tips": "Não mostrar dicas",
-        "TIP": "DICA"
+        "TIP": "DICA",
+        "Confirm": "Confirmar"
     },
     "pages": {
         "Duplicate Page": "Duplicar a Página",
@@ -1315,7 +1324,8 @@
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Atualmente, não há suporte para referências bidirecionais em Colunas de Fórmula ou Fórmula de disparo",
         "Community widgets are created and maintained by Grist community members.": "Os widgets comunitários são criados e mantidos pelos membros da comunidade Grist.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Essa limitação ocorre quando uma extremidade de uma referência bidirecional é configurada como uma única referência.",
-        "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento"
+        "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento",
+        "[Learn more.]({{link}})": "[Saiba mais]({{link}})"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1984,5 +1994,23 @@
         "Reset icon": "Repor ícone",
         "Icon": "Ícone",
         "Name": "Nome"
+    },
+    "RightPanelUtils": {
+        "Columns_one": "Colunas",
+        "Columns_other": "Colunas",
+        "Fields_one": "Campos",
+        "Fields_other": "Campos",
+        "Series_one": "Séries",
+        "Series_other": "Séries"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Tenha cuidado com widgets personalizados desconhecidos",
+        "Have you **reviewed the code** at this URL?": "Você **revisou o código** neste URL?",
+        "I confirm that I understand these warnings and accept the risks": "Confirmo que entendi esses avisos e aceito os riscos",
+        "Are you sure you **trust the resource** at this URL?": "Você tem certeza de que **confia no recurso** desse URL?",
+        "Please review the following before adding a new custom widget.": "Por favor, reveja o seguinte antes de adicionar um novo widget personalizado.",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Os widgets personalizados são **poderosos**! Eles podem ler e gravar os dados de seu documento e enviá-los para outro lugar.",
+        "Do you **trust the person** who shared this link?": "Você **confia na pessoa** que compartilhou esse link?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "Em caso de dúvida, não instale esse widget ou peça a um administrador de sua organização para revisá-lo quanto à segurança."
     }
 }

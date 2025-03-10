@@ -1,3 +1,4 @@
+import {stripLinks} from 'app/client/lib/markdown';
 import {hashFnv32a, simpleStringHash} from 'app/client/lib/textUtils';
 import {assert} from 'chai';
 
@@ -47,6 +48,43 @@ describe('textUtils', function() {
   it('simpleStringHash should produce correct hashes', function() {
     // Not based on anything, just need to know if it changes
     assert.equal(simpleStringHash("hello"), "4f9f2cab3cfabf04ee7da04597168630");
+  });
+
+  it('removes links from markdown text', function() {
+    // This test checks if the function stripLinks can successfully remove links from markdown text leaving any
+    // other text intact.
+
+    // Test data, markdown text and expected result
+    const testData: [string, string][] = [
+      ['[link](https://example.com)', 'link'],
+      // In bold
+      ['**[link](https://example.com)**', '**link**'],
+      // Itallic
+      ['*[link](https://example.com)*', '*link*'],
+      // In bold and itallic
+      ['***[link](https://example.com)***', '***link***'],
+      // Line breaks
+      ['[link](https://example.com)\n[link](https://example.com/page?arg=%20&)', 'link\nlink'],
+      // Line breaks in brakcets
+      ['[first\nsecond](https://example.com)', 'first\nsecond'],
+      // Multiple line in brackets
+      ['[first\n\nsecond](https://example.com)', 'first\n\nsecond'],
+      // Tables with links in headers
+      [`
+| [link](https://example.com) | [link](https://example.com) |
+| --- | --- |
+| [link](https://example.com) | [link](https://example.com) |`.trim(),
+       `
+| link | link |
+| --- | --- |
+| link | link |`.trim()],
+    ];
+
+    testData.forEach(([markdownText, expected]) => assert.equal(
+      stripLinks(markdownText),
+      expected,
+      `failed for ${markdownText}`,
+    ));
   });
 
 });

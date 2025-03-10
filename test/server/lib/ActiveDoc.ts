@@ -6,26 +6,30 @@ import * as gristTypes from 'app/common/gristTypes';
 import {GristObjCode} from 'app/plugin/GristData';
 import {TableData} from 'app/common/TableData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
-//import {guessExt} from 'app/server/lib/guessExt';
+import {guessExt} from 'app/server/lib/guessExt';
 import log from 'app/server/lib/log';
 import {timeoutReached} from 'app/server/lib/serverUtils';
 import {Throttle} from 'app/server/lib/Throttle';
-//import {createTmpDir as createTmpUploadDir, FileUploadInfo, globalUploadSet} from 'app/server/lib/uploads';
+import {createTmpDir as createTmpUploadDir, globalUploadSet} from 'app/server/lib/uploads';
+import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import {promisify} from 'bluebird';
 import {assert} from 'chai';
+import decompress from 'decompress';
 import * as child_process from 'child_process';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
-import /*path,*/ {resolve} from 'path';
+import * as stream from 'node:stream';
+import path,  /*path,*/ {resolve} from 'path';
 import * as sinon from 'sinon';
 import {createDocTools} from 'test/server/docTools';
+import {makeTestingFilesystemStoreConfig} from 'test/server/lib/FilesystemAttachmentStore';
 import * as testUtils from 'test/server/testUtils';
 import {EnvironmentSnapshot} from 'test/server/testUtils';
-import {makeTestingFilesystemStoreConfig} from 'test/server/lib/FilesystemAttachmentStore';
 import * as tmp from 'tmp';
 
 const execFileAsync = promisify(child_process.execFile);
@@ -1154,36 +1158,76 @@ describe('ActiveDoc', async function() {
     }
   });
 
-  /*
-  describe('attachment transfers', async function() {
+  describe('attachments', async function() {
     // Provides the fake userId `null`, so we can access uploaded files with hitting an
     // authorization errors.
     const fakeTransferSession = docTools.createFakeSession();
 
+    const testAttachments = [
+      {
+        name: "Test.doc",
+        contents: "Hello world!",
+      },
+      {
+        name: "Test2.txt",
+        contents: "I am a test file!",
+      },
+    ];
+
     async function uploadAttachments(doc: ActiveDoc, files: {name: string, contents: string}[]) {
       const { tmpDir, cleanupCallback } = await createTmpUploadDir({});
-      const uploadedFiles: FileUploadInfo[] = [];
 
-      const uploadIdPromises = files.map(async (file) => {
+      const uploadPromises = files.map(async (file) => {
         const filePath = resolve(tmpDir, file.name);
         const buffer = Buffer.from(file.contents, 'utf8');
         await fse.writeFile(path.join(tmpDir, file.name), buffer);
-        uploadedFiles.push({
+        return {
           absPath: filePath,
           origName: file.name,
           size: buffer.length,
           ext: await guessExt(filePath, file.name, null)
-        });
-        return globalUploadSet.registerUpload(uploadedFiles, tmpDir, cleanupCallback, null);
+        };
       });
 
-      const uploadIds = await Promise.all(uploadIdPromises);
+      const uploadedFiles = await Promise.all(uploadPromises);
+      const uploadId = globalUploadSet.registerUpload(uploadedFiles, tmpDir, cleanupCallback, null);
+      await doc.addAttachments(fakeTransferSession, uploadId);
+    }
 
-      for (const uploadId of uploadIds) {
-        await doc.addAttachments(fakeTransferSession, uploadId);
+    async function assertArchiveContents(
+      archive: string | Buffer,
+      archiveType: string,
+      expectedFiles: { name: string; contents?: string }[],
+    ) {
+      const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
+      const files = await decompress(archive);
+      for (const expectedFile of expectedFiles) {
+        const file = files.find((file) => getFileName(file.path) === expectedFile.name);
+        assert(file, "file not found in archive");
+        if (expectedFile.contents) {
+          assert.equal(
+            file?.data.toString(), expectedFile.contents, `file contents in ${archiveType} archive don't match`);
+        }
       }
     }
 
+    it('can pack attachments into an archive', async function() {
+      const docName = 'attachment-archive';
+      const activeDoc1 = await docTools.createDoc(docName);
+
+      await uploadAttachments(activeDoc1, testAttachments);
+
+      for (const archiveType of CreatableArchiveFormats.values) {
+        const archive = await activeDoc1.getAttachmentsArchive(fakeTransferSession, archiveType);
+        const archiveMemoryStream = new MemoryWritableStream();
+        await stream.promises.pipeline(archive.dataStream, archiveMemoryStream);
+
+        await assertArchiveContents(archiveMemoryStream.getBuffer(), archiveType, testAttachments);
+      }
+
+    });
+
+    /*
     it('can transfer attachments to a new store, with correct status reporting', async function() {
       const docName = 'transfer status';
       const activeDoc1 = await docTools.createDoc(docName);
@@ -1227,8 +1271,8 @@ describe('ActiveDoc', async function() {
       const finalAttachmentsLocation = await activeDoc1.attachmentLocationSummary();
       assert(finalAttachmentsLocation, "INTERNAL");
     });
+    */
   });
-   */
 });
 
 async function dumpTables(path: string): Promise<string> {

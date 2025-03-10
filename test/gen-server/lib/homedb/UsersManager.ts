@@ -12,6 +12,7 @@ import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
 import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { updateDb } from 'app/server/lib/dbUtils';
+import { EmitNotifier } from 'app/server/lib/FlexServer';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
 import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
 
@@ -203,6 +204,7 @@ describe('UsersManager', function () {
     const NON_EXISTING_USER_ID = 10001337;
     let env: EnvironmentSnapshot;
     let db: HomeDBManager;
+    let notifier: EmitNotifier;
     let sandbox: SinonSandbox;
     const uniqueLocalPart = new Set<string>();
 
@@ -254,7 +256,8 @@ describe('UsersManager', function () {
       env = new EnvironmentSnapshot();
       process.env.TEST_CLEAN_DATABASE = 'true';
       setUpDB(this);
-      db = new HomeDBManager();
+      notifier = new EmitNotifier();
+      db = new HomeDBManager(notifier);
       await createInitialDb();
       await db.connect();
       await db.initializeSpecialIds();
@@ -552,11 +555,11 @@ describe('UsersManager', function () {
 
       before(function () {
         emitSpy = Sinon.spy();
-        db.on('firstLogin', emitSpy);
+        notifier.on('firstLogin', emitSpy);
       });
 
       after(function () {
-        db.off('firstLogin', emitSpy);
+        notifier.off('firstLogin', emitSpy);
       });
 
       afterEach(function () {

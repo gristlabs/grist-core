@@ -2,8 +2,9 @@
 *
 !package.json
 !yarn.lock
-!tsconfig.json
 !tsconfig-ext.json
+!tsconfig-prod.json
+!tsconfig.json
 !stubs
 !app
 !buildtools

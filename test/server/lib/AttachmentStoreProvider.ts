@@ -2,10 +2,10 @@ import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocS
 import {ExternalStorageSupportingAttachments} from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {CoreCreate} from 'app/server/lib/coreCreator';
-import {ExternalStorage, Unchanged} from 'app/server/lib/ExternalStorage';
+import {ExternalStorage, StreamDownloadResult, Unchanged} from 'app/server/lib/ExternalStorage';
 import {makeTestingFilesystemStoreConfig} from 'test/server/lib/FilesystemAttachmentStore';
 import {assert} from 'chai';
-import {Readable, Writable} from 'form-data';
+import * as stream from 'node:stream';
 
 const testInstallationUUID = "FAKE-UUID";
 
@@ -117,12 +117,15 @@ class FakeExternalStorage implements ExternalStorage {
 
 class FakeAttachmentExternalStorage extends FakeExternalStorage implements ExternalStorageSupportingAttachments {
   public async uploadStream(
-    key: string, inStream: Readable, metadata?: ObjMetadata | undefined
+    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata | undefined
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
-  public async downloadStream(key: string, outStream: Writable, snapshotId?: string | undefined): Promise<string> {
-    return "";
+  public async downloadStream(key: string, snapshotId?: string | undefined): Promise<StreamDownloadResult> {
+    return {
+      metadata: { size: 0, snapshotId: "", },
+      contentStream: stream.Readable.from(Buffer.from([])),
+    };
   }
   public async removeAllWithPrefix(prefix: string): Promise<void> {
     return;

@@ -71,7 +71,7 @@ jobs:
         run: aws --region us-east-1 --endpoint-url http://localhost:9000 s3api put-bucket-versioning --bucket grist-docs-test --versioning-configuration Status=Enabled
 
       - name: Build Node.js code
-        run: yarn run build:prod
+        run: yarn run build
 
       - name: Install Google Chrome and chromedriver
         if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:')

@@ -42,7 +42,7 @@ export const waitForDiffPreviewToLoad = stackWrapFunc(async (): Promise<void> =>
     if (preview[0] === undefined && preview[1] === undefined) {
       throw new Error('sometimes data is a little slow to show up?');
     }
-  }, 2000);
+  }, 5000);
 });
 
 // Helper that gets the list of visible column matching rows to the left of the preview.

@@ -199,6 +199,9 @@ function getAttr(value: any, attrName: string, valueNode: ParsedPredicateFormula
  * Predicate formula properties.
  */
 export interface PredicateFormulaProperties {
+  // Normally includes the full parsed formula.
+  formulaParsed?: ParsedPredicateFormula;
+
   /**
    * List of column ids that are referenced by either `$` or `rec.` notation.
    */
@@ -224,8 +227,9 @@ export function getPredicateFormulaProperties(
   formula: ParsedPredicateFormula
 ): PredicateFormulaProperties {
   return {
-    recColIds: [...getRecColIds(formula)],
-    choiceColIds: [...getChoiceColIds(formula)],
+    formulaParsed: formula,
+    recColIds: getRecColIds(formula),
+    choiceColIds: getChoiceColIds(formula),
   };
 }
 
@@ -257,4 +261,37 @@ function collectColIds(
     return [colId];
   }
   return formula.flatMap(el => Array.isArray(el) ? collectColIds(el, isIdentifierWithColIds) : []);
+}
+
+// It would be great if our compilation of our little subset of Python also supported static
+// type-checking. Rather than build that, we'll check the formula by seeing if we get an
+// exception on a sample input that has all default value. E.g. this will catch if we use
+// foo.upper() on a non-string, or other non-existent methods.
+// Returns error message if any, or false if no error. The strange return type is to match a
+// convention for collecting warnings in the AccessRules class.
+export function typeCheckFormula(
+  formulaParsed: ParsedPredicateFormula,
+  sampleRecord: InfoView,
+  userAttrSamples: {[key: string]: InfoView},
+): string|false {
+  try {
+    const compiledFormula = compilePredicateFormula(formulaParsed);
+    const sampleUser: UserInfo = {
+      ...userAttrSamples,
+      Name: "",
+      Email: "",
+      Access: "owners",
+      Origin: "",
+      LinkKey: {key: ""},
+      UserID: 0,
+      UserRef: "",
+      SessionID: "",
+      ShareRef: 0,
+    };
+    const sampleInput: PredicateFormulaInput = {user: sampleUser, rec: sampleRecord, newRec: sampleRecord};
+    compiledFormula(sampleInput);
+  } catch (e) {
+    return e.message;
+  }
+  return false;
 }

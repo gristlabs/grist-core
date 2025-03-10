@@ -1,6 +1,6 @@
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from "test/nbrowser/testUtils";
-import { assert, driver } from 'mocha-webdriver';
+import { assert, driver, Key } from 'mocha-webdriver';
 
 
 function getItems() {
@@ -13,7 +13,7 @@ function getItems() {
 
 describe('ColumnFilterMenu2', function() {
 
-  this.timeout(20000);
+  this.timeout('30s');
   const cleanup = setupTestSuite();
   let mainSession: gu.Session;
   let docId: string;
@@ -35,7 +35,16 @@ describe('ColumnFilterMenu2', function() {
       ['AddVisibleColumn', 'Test', 'ChoiceList', {
         type: 'ChoiceList', widgetOptions: JSON.stringify({choices: ['foo', 'bar']})
       }],
-      ['AddRecord', 'Test', null, {Bool: true, Choice: 'foo', ChoiceList: ['L', 'foo']}],
+      ['AddVisibleColumn', 'Test', 'Marked', {
+        type: 'Text', widgetOptions: JSON.stringify({widget: 'Markdown'})
+      }],
+
+      ['AddVisibleColumn', 'Test', 'Nr', {type: 'Int'}],
+
+      ['AddRecord', 'Test', null, {
+        Bool: true, Choice: 'foo', ChoiceList: ['L', 'foo'],
+        Marked: '[Some link](http://example.com)'
+      }],
     ]);
     return docId;
   });
@@ -114,6 +123,80 @@ describe('ColumnFilterMenu2', function() {
     assert.deepEqual(await getItems(), [
       {checked: true, label: 'bar', count: '0'},
       {checked: true, label: 'foo', count: '1'},
+    ]);
+    await gu.sendKeys(Key.ESCAPE);
+    await driver.find('.test-section-menu-small-btn-revert').click();
+  });
+
+
+  it('should strip markdown content for Text columns', async () => {
+    /** Gets labels rendered in the filter menu */
+    const labels = async () => {
+      await gu.openColumnMenu('Marked', 'Filter');
+      const list = (await getItems()).map(item => item.label);
+      await gu.sendKeys(Key.ESCAPE);
+      return list;
+    };
+    /** Replaced all rows */
+    const replace = (vals: [number, string, string][]) => gu.sendActions([
+      ['ReplaceTableData', 'Test', [], {}],
+      ['BulkAddRecord', 'Test', vals.map(() => null), {
+        Nr: vals.map(([nr]) => nr),
+        Marked: vals.map(([, marked]) => marked)
+      }]
+    ]);
+
+    // Whole test case.
+    const test = async (data: [number, string, string][]) => {
+      // First replace table with new data.
+      await replace(data);
+
+      // Then make sure that filter shows plain text labels.
+      assert.deepEqual(
+        await labels(),
+        data.map(([, , expected]) => expected).sort(), // Filter menu sorts labels.
+      );
+      // Now filter by each label and check that it works.
+
+      for(const [nr, , strippedMarkdown] of data) {
+        // Open the filter menu.
+        const f = await gu.openColumnFilter('Marked');
+
+        // Type the stripped markdown in the search box.
+        await f.search(strippedMarkdown);
+
+        // Make sure we only see the typed text, there is only one value that matches it.
+        assert.deepEqual(await f.labels(), [strippedMarkdown]);
+
+        // Filter out everything else.
+        await f.allShown();
+
+        // Close the filter.
+        await f.close();
+
+        // Check only the Nr column, as the markdown is converted to html and it is hard to
+        // look for.
+        assert.deepEqual(
+          await gu.getVisibleGridCells('Nr', [1]), [String(nr)],
+          `Failed to filter by ${strippedMarkdown}`
+        );
+
+        assert.equal(await gu.getGridRowCount(), 1 + 1 /* add row */);
+
+        await gu.sendKeys(Key.ESCAPE);
+      }
+      await driver.find('.test-section-menu-small-btn-revert').click();
+    };
+
+    await test([
+      // Nr , Markdown with a link, Same markdown but without a link,
+      // Note: Nr is needed as we check if the row was filtered correctly, but in the grid it is converted
+      // to html, so its harder to find. With Nr column we can just check if the row is there.
+      [1, '[link](http://example.com) at start', 'link at start'],
+      [2, 'link at the [end](http://example.com)', 'link at the end'],
+      [3, 'link in the [middle](http://example.com) of text', 'link in the middle of text'],
+      [4, '**bold** text with [link](http://example.com)', '**bold** text with link'],
+      [5, '[**label** in bold](http://example.com) with text', '**label** in bold with text'],
     ]);
   });
 

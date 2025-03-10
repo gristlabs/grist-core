@@ -259,7 +259,7 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
         // Anything it would explicitly deny, go ahead and deny.
         pset = mergePartialPermissions(pset, mapValues(rule.permissions, val => (val === 'allow' ? "" : val)));
         const prefixedTableName = input.docId ? `${input.docId}.${ruleSet.tableId}` : ruleSet.tableId;
-        log.warn("ACLRule for %s (`%s`) failed: %s", prefixedTableName, rule.aclFormula, e.stack);
+        log.warn("ACLRule for %s (`%s`) failed: %s", prefixedTableName, rule.aclFormula, e.message);
       }
     }
   }

@@ -23,7 +23,7 @@ import {ISupportedFeatures} from 'app/common/UserConfig';
 import {dom} from 'grainjs';
 import * as ko from 'knockout';
 import {makeT} from 'app/client/lib/localization';
-import { onClickOutside } from '../lib/domUtils';
+import { onClickOutside } from 'app/client/lib/domUtils';
 
 const t = makeT('App');
 
