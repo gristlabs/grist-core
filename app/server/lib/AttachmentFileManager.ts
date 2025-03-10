@@ -7,13 +7,14 @@ import {
   IAttachmentStore, loadAttachmentFileIntoMemory
 } from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {checksumFileStream} from 'app/server/lib/checksumFile';
+import {checksumFileStream, HashPassthroughStream} from 'app/server/lib/checksumFile';
 import {DocStorage} from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {EventEmitter} from 'events';
-import {Readable} from 'node:stream';
+import * as stream from 'node:stream';
 import {AbortController} from 'node-abort-controller';
+import {MemoryWritableStream} from 'app/server/utils/streams';
 
 
 export interface AddFileResult {
@@ -57,6 +58,12 @@ export class AttachmentRetrievalError extends Error {
     this.storeId = storeId;
     this.fileId = fileId;
     this.cause = causeError;
+  }
+}
+
+export class MismatchedFileHash extends Error {
+  constructor(fileIdent: string, hash: string) {
+    super(`Hash ${hash} is not correct for attachment file '${fileIdent}'`);
   }
 }
 
@@ -135,10 +142,52 @@ export class AttachmentFileManager extends EventEmitter {
     fileExtension: string,
     fileData: Buffer
   ): Promise<AddFileResult> {
-    const fileIdent = await this._getFileIdentifier(fileExtension, Readable.from(fileData));
+    const fileIdent = await this._getFileIdentifier(fileExtension, stream.Readable.from(fileData));
     return this._addFile(storeId, fileIdent, fileData);
   }
 
+  public async addMissingFileData(
+    fileIdent: string,
+    fileData: stream.Readable,
+    defaultStoreId: AttachmentStoreId | undefined,
+  ): Promise<boolean> {
+    const fileMetadata = await this._docStorage.getFileInfoNoData(fileIdent);
+    if (!fileMetadata) { return false; }
+    // File is stored internally, so shouldn't ever be missing.
+    if (!fileMetadata.storageId) { return false; }
+
+    const store = await this._getStore(fileMetadata.storageId);
+    const fileExists = store && await store.exists(this._getDocPoolId(), fileIdent);
+    if (fileExists) { return false; }
+
+    const newStore = store || (defaultStoreId ? await this._getStore(defaultStoreId) : null);
+
+    if (!newStore) {
+      const hashStream = new HashPassthroughStream();
+      const bufferStream = new MemoryWritableStream();
+      await stream.promises.pipeline(fileData, hashStream, bufferStream);
+      const buffer = bufferStream.getBuffer();
+      const fileHash = hashStream.getDigest();
+      if (!fileIdent.startsWith(fileHash)) {
+        throw new MismatchedFileHash(fileIdent, fileHash);
+      }
+      await this._storeFileInLocalStorage(fileIdent, buffer);
+    } else {
+      const hashStream = new HashPassthroughStream();
+      // To avoid loading this into memory, we hash the file as it's uploaded, and delete it
+      // if the hash isn't correct.
+      fileData.pipe(hashStream);
+      await this._storeFileInAttachmentStore(newStore, fileIdent, hashStream);
+      await stream.promises.finished(hashStream);
+      const fileHash = hashStream.getDigest();
+      if (!fileIdent.startsWith(fileHash)) {
+        await newStore.delete(this._getDocPoolId(), fileIdent);
+        throw new MismatchedFileHash(fileIdent, fileHash);
+      }
+    }
+
+    return true;
+  }
 
   public async getFileData(fileIdent: string): Promise<Buffer> {
     const file = await this.getFile(fileIdent);
@@ -147,6 +196,16 @@ export class AttachmentFileManager extends EventEmitter {
 
   public async getFile(fileIdent: string): Promise<AttachmentFile> {
     return (await this._getFileInfo(fileIdent)).file;
+  }
+
+  public async isFileAvailable(fileIdent: string): Promise<boolean> {
+    const fileInfo = await this._docStorage.getFileInfo(fileIdent);
+    if (!fileInfo) { return false; }
+    // Local files are always available
+    if (fileInfo.storageId === null) { return true; }
+    const store = await this._storeProvider?.getStore(fileInfo.storageId);
+    if (!store) { return false; }
+    return await store.exists(this._getDocPoolId(), fileIdent);
   }
 
   public async locationSummary(): Promise<DocAttachmentsLocation> {
@@ -238,7 +297,7 @@ export class AttachmentFileManager extends EventEmitter {
       throw new StoreNotAvailableError(newStoreId);
     }
     // Store should error if the upload fails in any way.
-    await this._storeFileInAttachmentStore(newStore, fileIdent, fileInMemory.contents);
+    await this._storeFileInAttachmentStore(newStore, fileIdent, stream.Readable.from(fileInMemory.contents));
 
     // Don't remove the file from the previous store, in case we need to roll back to an earlier
     // snapshot.
@@ -368,7 +427,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _addFileToExternalStorage(
     destStoreId: AttachmentStoreId,
     fileIdent: string,
-    fileData: Buffer
+    fileData: stream.Readable,
   ): Promise<AddFileResult> {
     this._log.info({
       fileIdent,
@@ -429,7 +488,7 @@ export class AttachmentFileManager extends EventEmitter {
     if (destStoreId === undefined) {
       return this._addFileToLocalStorage(fileIdent, fileData);
     }
-    return this._addFileToExternalStorage(destStoreId, fileIdent, fileData);
+    return this._addFileToExternalStorage(destStoreId, fileIdent, stream.Readable.from(fileData));
   }
 
   private async _getFileInfo(fileIdent: string): Promise<AttachmentFileInfo> {
@@ -450,7 +509,7 @@ export class AttachmentFileManager extends EventEmitter {
           metadata: {
             size: fileInfo.data.length,
           },
-          contentStream: Readable.from(fileInfo.data),
+          contentStream: stream.Readable.from(fileInfo.data),
           contents: fileInfo.data,
         }
       };
@@ -481,7 +540,7 @@ export class AttachmentFileManager extends EventEmitter {
     return this._docPoolId;
   }
 
-  private async _getFileIdentifier(fileExtension: string, fileData: Readable): Promise<string> {
+  private async _getFileIdentifier(fileExtension: string, fileData: stream.Readable): Promise<string> {
     const checksum = await checksumFileStream(fileData);
     return `${checksum}${fileExtension}`;
   }
@@ -499,12 +558,12 @@ export class AttachmentFileManager extends EventEmitter {
 
   // Uploads the file to an attachment store, overwriting the current DB record for the file if successful.
   private async _storeFileInAttachmentStore(
-    store: IAttachmentStore, fileIdent: string, fileData: Buffer
+    store: IAttachmentStore, fileIdent: string, fileData: stream.Readable,
   ): Promise<void> {
 
     // The underlying store should guarantee the file exists if this method doesn't error,
     // so no extra validation is needed here.
-    await store.upload(this._getDocPoolId(), fileIdent, Readable.from(fileData));
+    await store.upload(this._getDocPoolId(), fileIdent, fileData);
 
     // Insert (or overwrite) the entry for this file in the document database.
     await this._docStorage.attachOrUpdateFile(fileIdent, undefined, store.id);
@@ -528,7 +587,7 @@ export class AttachmentFileManager extends EventEmitter {
 }
 
 async function validateFileChecksum(fileIdent: string, fileData: Buffer): Promise<boolean> {
-  return fileIdent.startsWith(await checksumFileStream(Readable.from(fileData)));
+  return fileIdent.startsWith(await checksumFileStream(stream.Readable.from(fileData)));
 }
 
 interface AttachmentFileManagerLogInfo {

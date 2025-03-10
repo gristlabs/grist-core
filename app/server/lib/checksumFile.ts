@@ -1,5 +1,5 @@
-import {createHash} from 'crypto';
-import {Readable} from 'node:stream';
+import {BinaryToTextEncoding, createHash, Hash} from 'crypto';
+import {Readable, Transform, TransformCallback} from 'node:stream';
 import * as fs from 'fs';
 
 /**
@@ -22,5 +22,26 @@ export async function checksumFileStream(stream: Readable, algorithm: string = '
     return shaSum.digest('hex');
   } finally {
     stream.removeAllListeners();      // Isn't strictly necessary.
+  }
+}
+
+export class HashPassthroughStream extends Transform {
+  private _hash: Hash;
+
+  constructor(algorithm: string = 'sha1') {
+    super();
+    this._hash = createHash(algorithm);
+  }
+
+  public override _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
+    this._hash.update(chunk, encoding);
+    callback(null, chunk);
+  }
+
+  public getDigest(encoding: BinaryToTextEncoding = 'hex'): string {
+    if (this.readable) {
+      throw new Error("HashPassthroughStream must be closed before getting digest");
+    }
+    return this._hash.digest(encoding);
   }
 }
