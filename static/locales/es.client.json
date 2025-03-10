@@ -1088,7 +1088,8 @@
         "Don't show again.": "No vuelvas a mostrarlo.",
         "Don't show again": "No volver a mostrar",
         "Are you sure you want to delete these records?": "¿Seguro que quieres borrar estos registros?",
-        "TIP": "TIP"
+        "TIP": "TIP",
+        "Confirm": "Confirmar"
     },
     "pages": {
         "Duplicate Page": "Duplicar página",
@@ -1991,5 +1992,15 @@
         "Columns_one": "Columnas",
         "Series_one": "Series",
         "Series_other": "Series"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Tenga cuidado con los widgets personalizados desconocidos",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "¡Los widgets personalizados son **poderosos**! Pueden ser capaces de leer y escribir los datos de tu documento, y enviarlos a otra parte.",
+        "Do you **trust the person** who shared this link?": "¿Confías **en la persona** que compartió este enlace?",
+        "Have you **reviewed the code** at this URL?": "¿Has **revisado el código** en esta URL?",
+        "I confirm that I understand these warnings and accept the risks": "Confirmo que entiendo estas advertencias y acepto los riesgos",
+        "Please review the following before adding a new custom widget.": "Por favor, revise lo siguiente antes de añadir un nuevo widget personalizado.",
+        "Are you sure you **trust the resource** at this URL?": "¿Está seguro de que **confía en el recurso** de esta URL?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En caso de duda, no instale este widget, o pida a un administrador de su organización que lo revise por seguridad."
     }
 }
