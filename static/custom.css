@@ -1,42 +1,136 @@
-:root {
-  /* logo */
-  --icon-GristLogo: url("ui-icons/Logo/GristLogo.svg") !important;
-  --grist-logo-bg: #040404 !important;
-  --grist-logo-size: 22px 22px !important;
+/*
+  Are you getting a console warning about deprecated usage? Please see the migration guide at the end of this file.
 
-  /* colors */
-  --grist-color-light-grey: #F7F7F7 !important;
-  --grist-color-medium-grey: rgba(217,217,217,0.6) !important;
-  --grist-color-medium-grey-opaque: #E8E8E8 !important;
-  --grist-color-dark-grey: #D9D9D9 !important;
-  --grist-color-light: #FFFFFF !important;
-  --grist-color-dark: #262633 !important;
-  --grist-color-dark-bg: #262633 !important;
-  --grist-color-slate: #929299 !important;
-  --grist-color-light-green: #16B378 !important;
-  --grist-color-dark-green: #009058 !important;
-  --grist-color-darker-green: #007548 !important;
-  --grist-color-lighter-green: #b1ffe2 !important;
-  --grist-color-lighter-blue: #87b2f9 !important;
-  --grist-color-light-blue: #3B82F6 !important;
-  --grist-color-cursor: #16B378 !important;
-  --grist-color-selection: rgba(22,179,120,0.15) !important;
-  --grist-color-selection-opaque: #DCF4EB !important;
-  --grist-color-selection-darker-opaque: #d6eee5 !important;
-  --grist-color-inactive-cursor: #A2E1C9 !important;
-  --grist-color-hover: #bfbfbf !important;
-  --grist-color-error: #D0021B !important;
-  --grist-color-warning: #F9AE41 !important;
-  --grist-color-warning-bg: #dd962c !important;
-  --grist-color-backdrop: rgba(38,38,51,0.9) !important;
-  --grist-label-text-bg: #FFFFFF !important;
-  --grist-label-active-bg: #F0F0F0 !important;
-  --grist-primary-fg: #16B378 !important;
-  --grist-primary-fg-hover: #009058 !important;
-  --grist-primary-bg: #ffffff !important;
-  --grist-control-bg: #ffffff !important;
-  --grist-control-fg: #16B378 !important;
-  --grist-primary-fg-hover: #009058 !important;
-  --grist-control-border: 1px solid #11B683 !important;
-  --grist-toast-bg: #040404 !important;
+  Otherwise, you can copy and paste this file and use it as a base for your customization needs.
+*/
+@layer grist-custom {
+  :root {
+    /* logo */
+    --icon-GristLogo: url("ui-icons/Logo/GristLogo.svg");
+    --grist-theme-logo-bg: #040404;
+    --grist-theme-logo-size: 22px 22px;
+
+    /* colors */
+    --grist-theme-body: #262633; /* main body text */
+    --grist-theme-emphasis: var(--grist-theme-black); /* pronounced text */
+    --grist-theme-secondary: #929299; /* secondary, less visually pronounced text */
+    --grist-theme-very-light: var(--grist-theme-white); /* text that is always light, whatever the current appearance (light or dark theme) */
+
+    --grist-theme-bg-default: var(--grist-theme-white); /* default body bg color */
+    --grist-theme-bg-secondary: #f7f7f7; /* bg color mostly used on panels */
+    --grist-theme-bg-tertiary: #d9d9d999; /* transparent bg, mostly used on hover effects */
+    --grist-theme-bg-emphasis: #262633; /* pronounced bg color, mostly used on selected items */
+
+    --grist-theme-decoration: #d9d9d9; /* main decoration color, mostly used on borders */
+    --grist-theme-decoration-secondary: #e8e8e8; /* less pronounced decoration color */
+    --grist-theme-decoration-tertiary: #d9d9d9; /* even less pronounced decoration color */
+
+    --grist-theme-primary: #16b378; /* main accent color used mostly on interactive elements */
+    --grist-theme-primary-muted: #009058; /* alternative primary color, mostly used on hover effects */
+    --grist-theme-primary-dim: #007548; /* dimmer primary color, rarely used */
+    --grist-theme-primary-emphasis: #b1ffe2; /* more pronounced primary color variant, rarely used  */
+    /*
+      ⚠ Warning when changing the primary color ⚠
+      Some colors used in themes are not yet defined in css variables.
+      When changing the primary color, please refer to app/common/themes/{GristDark,GristLight}.ts files
+      to see what theme tokens would need specific overrides.
+      Check app/common/ThemePrefs.ts to retrieve the css variable names matching the token names.
+      Contributions to make this process easier are welcome!
+    */
+
+    --grist-theme-token-cursor: var(--grist-theme-primary); /* cursor color in widgets */
+    --grist-theme-token-cursor-inactive: #a2e1c9;
+    --grist-theme-token-selection: #16b37826; /* transparent background of selected cells */
+    --grist-theme-token-selection-opaque: #dcf4eb;
+    --grist-theme-token-selection-darker-opaque: #d6eee5;
+    --grist-theme-token-selection-darker: #16b37840;
+    --grist-theme-token-selection-darkest: #16b37859;
+
+    --grist-theme-token-hover: #bfbfbf; /* non-transparent hover effect color, rarely used */
+    --grist-theme-backdrop: #262633e5; /* transparent modal backdrop bg color */
+
+    --grist-theme-error: #d0021b;
+    --grist-theme-error-light: #f66;
+    --grist-theme-warning: #dd962c;
+    --grist-theme-warning-light: #f9ae41;
+    --grist-theme-info: #3b82f6;
+    --grist-theme-info-light: #87b2f9;
+    --grist-theme-black: #000;
+    --grist-theme-white: #fff;
+
+    /*
+      ℹ There are quite a lot of other css variables available for fine-tuning.
+      See app/common/ThemePrefs.ts and app/common/themes/{Base,GristDark,GristLight}.ts
+      for the exhaustive list and default values.
+    */
+  }
 }
+
+/*
+  Migration guide to new "--grist-theme-" prefixed variables.
+
+  If you are using "--grist-color-" prefixed variables, you need to upgrade to the new css variable names.
+  To help you migrate, listed below is the exhaustive mapping of the old variables to the new ones:
+
+  --grist-color-light-grey: --grist-theme-bg-secondary
+  --grist-color-medium-grey: --grist-theme-bg-tertiary
+  --grist-color-medium-grey-opaque: --grist-theme-decoration-secondary
+  --grist-color-dark-grey: --grist-theme-decoration
+  --grist-color-light: --grist-theme-white
+  --grist-color-dark: --grist-theme-body
+  --grist-color-dark-bg: --grist-theme-bg-emphasis
+  --grist-color-slate: --grist-theme-secondary
+  --grist-color-lighter-green: --grist-theme-primary-emphasis
+  --grist-color-light-green: --grist-theme-primary
+  --grist-color-dark-green: --grist-theme-primary-muted
+  --grist-color-darker-green: --grist-theme-primary-dim
+  --grist-color-lighter-blue: --grist-theme-info-light
+  --grist-color-light-blue: --grist-theme-info
+  --grist-color-orange: --grist-theme-warning-light
+  --grist-color-cursor: --grist-theme-token-cursor
+  --grist-color-selection: --grist-theme-token-selection
+  --grist-color-selection-opaque: --grist-theme-token-selection-opaque
+  --grist-color-selection-darker-opaque: --grist-theme-token-selection-darker-opaque
+  --grist-color-inactive-cursor: --grist-theme-token-cursor-inactive
+  --grist-color-hover: --grist-theme-token-hover
+  --grist-color-error: --grist-theme-error
+  --grist-color-warning: --grist-theme-warning-light
+  --grist-color-warning-bg: --grist-theme-warning
+  --grist-color-backdrop: --grist-theme-backdrop
+  --grist-font-family: --grist-theme-font-family
+  --grist-font-family-data: --grist-theme-font-family-data
+  --grist-xx-font-size: --grist-theme-xx-small-font-size
+  --grist-x-small-font-size: --grist-theme-x-small-font-size
+  --grist-small-font-size: --grist-theme-small-font-size
+  --grist-medium-font-size: --grist-theme-medium-font-size
+  --grist-intro-font-size: --grist-theme-intro-font-size
+  --grist-large-font-size: --grist-theme-large-font-size
+  --grist-x-large-font-size: --grist-theme-x-large-font-size
+  --grist-xx-large-font-size: --grist-theme-xx-large-font-size
+  --grist-xxx-large-font-size: --grist-theme-xxx-large-font-size
+  --grist-big-control-font-size: --grist-theme-big-control-font-size
+  --grist-header-control-font-size: --grist-theme-header-control-font-size
+  --grist-big-text-weight: --grist-theme-big-control-text-weight
+  --grist-header-text-weight: --grist-theme-header-control-text-weight
+  --grist-border-radius: --grist-theme-control-border-radius
+  --grist-logo-bg: --grist-theme-logo-bg
+  --grist-logo-size: --grist-theme-logo-size
+
+  These variables are not used anymore and can be safely removed from your custom css file:
+
+  --grist-color-dark-text
+  --grist-primary-bg
+  --grist-primary-fg
+  --grist-primary-fg-hover
+  --grist-control-font-size
+  --grist-small-control-font-size
+  --grist-label-text-size
+  --grist-label-text-bg
+  --grist-label-active-bg
+  --grist-normal-margin
+  --grist-normal-padding
+  --grist-tight-padding
+  --grist-loose-padding
+  --grist-control-border
+  --grist-toast-bg
+*/
