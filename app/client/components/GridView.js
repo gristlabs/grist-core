@@ -1561,7 +1561,7 @@ GridView.prototype.buildDom = function() {
             kd.style('borderRightWidth', v.borderWidthPx),
             kd.toggleClass('selected', isSelected),
             // The field-icon is presently only used for "=" in formula fields.
-            // The record-icon class isolates the "=" being applied to the formula fields. 
+            // The record-icon class isolates the "=" being applied to the formula fields.
             // Allowing additional field icons to be added as field-icon class if desired.
             dom('div.field-icon',
               kd.toggleClass('record-icon', vFormulaIcon), // Also grabbed from v.optionsObj at start of GridView buildDom
