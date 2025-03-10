@@ -379,7 +379,7 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
         // Then convert it to a trigger formula, so that UUIDs aren't re-computed.
         //
         // TODO: remove this step and do it as part of the AddColumn action.
-        await gridView.gristDoc.convertToTrigger(colRef, 'UUID()');
+        await gridView.gristDoc.docModel.convertToTrigger(colRef, 'UUID()');
       }, {nestInActiveBundle: true});
     },
     withInfoTooltip(

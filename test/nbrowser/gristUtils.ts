@@ -1415,7 +1415,7 @@ export async function removePage(name: string|RegExp, options: {
  */
 export async function renameTable(tableId: string, newName: string) {
   await driver.executeScript(`
-    return window.gristDocPageModel.gristDoc.get().renameTable(arguments[0], arguments[1]);
+    return window.gristDocPageModel.gristDoc.get().testRenameTable(arguments[0], arguments[1]);
   `, tableId, newName);
   await waitForServer();
 }

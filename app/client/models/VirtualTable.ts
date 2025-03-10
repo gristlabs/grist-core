@@ -10,6 +10,7 @@ import {DocDataCache} from 'app/common/DocDataCache';
 import {RowRecord} from 'app/plugin/GristData';
 import * as commands from 'app/client/components/commands';
 import debounce from 'lodash/debounce';
+import {bundleChanges} from 'grainjs';
 
 /**
  * An interface for use while editing a virtual table.
@@ -44,11 +45,12 @@ export interface IExternalTable {
   initialActions(): DocAction[];  // actions to create the table.
   destroyActions?(): DocAction[];  // actions to destroy the table (auto generated if not defined), pass [] to disable.
   fetchAll(): Promise<TableDataAction>;  // get initial state of the table.
-  sync(editor: IEdit): Promise<void>;    // incorporate external changes.
-  beforeEdit(editor: IEdit): Promise<void>;  // called prior to committing a change.
-  afterEdit(editor: IEdit): Promise<void>;   // called after committing a change.
-  afterAnySchemaChange(editor: IEdit): Promise<void>;  // called after any schema change in the document.
+  sync?(editor: IEdit): Promise<void>;    // incorporate external changes.
+  beforeEdit?(editor: IEdit): Promise<void>;  // called prior to committing a change.
+  afterEdit?(editor: IEdit): Promise<void>;   // called after committing a change.
+  afterAnySchemaChange?(editor: IEdit): Promise<void>;  // called after any schema change in the document.
 }
+
 
 // A counter to generate unique actionNums for undo actions.
 let _counterForUndoActions: number = 1;
@@ -74,7 +76,7 @@ export class VirtualTableData extends TableData {
   public override async sendTableActions(userActions: UserAction[]): Promise<any[]> {
     const actions = await this._sendTableActionsCore(userActions,
                                                      {isUser: true});
-    await this.ext.afterEdit(this._editor(actions));
+    await this.ext.afterEdit?.(this._editor(actions));
     return actions.map(action => action.retValues);
   }
 
@@ -93,11 +95,11 @@ export class VirtualTableData extends TableData {
   }
 
   public sync() {
-    return this.ext.sync(this._editor());
+    return this.ext.sync?.(this._editor());
   }
 
   public async schemaChange() {
-    await this.ext.afterAnySchemaChange(this._editor());
+    await this.ext.afterAnySchemaChange?.(this._editor());
   }
 
   private _editor(actions: ProcessedAction[] = []): IEdit {
@@ -133,7 +135,7 @@ export class VirtualTableData extends TableData {
     if (isUser) {
       const newTable = await this.cache.docData.requireTable(this.getName());
       try {
-        await this.ext.beforeEdit({
+        await this.ext.beforeEdit?.({
           ...this._editor(actions),
           getRecordNew: rowId => newTable.getRecord(rowId),
         });
@@ -202,36 +204,38 @@ export class VirtualTableRegistration extends DisposableWithEvents {
   constructor(docModel: DocModel, ext: IExternalTable) {
     super();
     const docData = docModel.docData;
-    if (!docData.getTable(ext.name)) {
-      // Register the virtual table
-      docData.registerVirtualTableFactory(ext.name, VirtualTableData);
-
-      // then process initial actions
-      for (const action of ext.initialActions()) {
-        docData.receiveAction(action);
-      }
-      // pass in gristDoc and external interface
-      this._tableData = docData.getTable(ext.name)! as VirtualTableData;
-      //this.tableData.docApi = this.docApi;
-      this._tableData.docModel = docModel;
-      this._tableData.setExt(ext);
-      // subscribe to schema changes
-      this._tableData.schemaChange().catch(e => reportError(e));
-    } else {
+    if (docData.getTable(ext.name)) {
       throw new Error(`Virtual table ${ext.name} already exists`);
     }
+    // Register the virtual table
+    docData.registerVirtualTableFactory(ext.name, VirtualTableData);
+
+    const initialActions = ext.initialActions();
+    // then process initial actions
+    docData.receiveActions(initialActions);
+    // pass in gristDoc and external interface
+    this._tableData = docData.getTable(ext.name)! as VirtualTableData;
+    //this.tableData.docApi = this.docApi;
+    this._tableData.docModel = docModel;
+    this._tableData.setExt(ext);
+    // subscribe to schema changes
+    this._tableData.schemaChange().catch(e => reportError(e));
     // debounce is typed as returning a promise, but doesn't appear to actually //do so?
     Promise.resolve(this.lazySync()).catch(e => reportError(e));
 
     this.onDispose(() => {
-      const reverse = ext.destroyActions ? ext.destroyActions() : generateDestroyActions(ext.initialActions());
-      reverse.forEach(action => docData.receiveAction(action));
-      docData.unregisterVirtualTableFactory(ext.name);
+      bundleChanges(() => {
+        const reverse = ext.destroyActions ? ext.destroyActions() : generateDestroyActions(initialActions);
+        reverse.forEach(action => docData.receiveAction(action));
+        docData.unregisterVirtualTableFactory(ext.name);
+      });
     });
   }
 
   public listenToEvents(source: DisposableWithEvents) {
-    this.listenTo(source, 'schemaUpdateAction', () => this._tableData.schemaChange().catch(e => reportError(e)));
+    const listener = () => this._tableData.schemaChange().catch(e => reportError(e));
+    this.listenTo(source, 'schemaUpdateAction', listener);
+    this.onDispose(() => this.stopListening(source, 'schemaUpdateAction', listener));
   }
 
   public updateSchema() {

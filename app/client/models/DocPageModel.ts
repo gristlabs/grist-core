@@ -1,4 +1,4 @@
-import {GristDoc} from 'app/client/components/GristDoc';
+import {GristDoc, GristDocImpl} from 'app/client/components/GristDoc';
 import {IUndoState} from 'app/client/components/UndoStack';
 import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {loadGristDoc} from 'app/client/lib/imports';
@@ -105,7 +105,6 @@ export interface DocPageModel {
 
   createLeftPane(leftPanelOpen: Observable<boolean>): DomArg;
   renameDoc(value: string): Promise<void>;
-  updateCurrentDoc(urlId: string, openMode: OpenDocMode): Promise<Document>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
   updateCurrentDocUsage(docUsage: FilteredDocUsageSummary): void;
   // Offer to open document in recovery mode, if user is owner, and report
@@ -165,7 +164,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly undoState: Observable<IUndoState|null> = Observable.create(this, null);
 
   // Observable set to the instance of GristDoc once it's created.
-  public readonly gristDoc = Observable.create<GristDoc|null>(this, null);
+  public readonly gristDoc = Observable.create<GristDocImpl|null>(this, null);
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the
   // URL, and when it changes, we need to re-open.
@@ -197,6 +196,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       return merged;
     });
 
+    this.initialize();
+  }
+
+  public initialize() {
     this.autoDispose(subscribe(urlState().state, (use, state) => {
       const urlId = state.doc;
       const urlOpenMode = state.mode;
@@ -276,18 +279,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     }
   }
 
-  public async updateCurrentDoc(urlId: string, openMode: OpenDocMode) {
-    // TODO It would be bad if a new doc gets opened while this getDoc() is pending...
-    const newDoc = await getDoc(this._api, urlId);
-    const isRecoveryMode = Boolean(this.currentDoc.get()?.isRecoveryMode);
-    const user = this.currentDoc.get()?.user || null;
-    const userOverride = this.currentDoc.get()?.userOverride || null;
-    this.currentDoc.set({...buildDocInfo(newDoc, openMode), isRecoveryMode, user, userOverride});
-    return newDoc;
-  }
-
   public async refreshCurrentDoc(doc: DocInfo) {
-    return this.updateCurrentDoc(doc.urlId || doc.id, doc.openMode);
+    return this._updateCurrentDoc(doc.urlId || doc.id, doc.openMode);
   }
 
   public updateCurrentDocUsage(docUsage: FilteredDocUsageSummary) {
@@ -348,6 +341,16 @@ It also disables formulas. [{{error}}]", {error: err.message})
     this._unsavedChangeHolder.clear();
   }
 
+  private async _updateCurrentDoc(urlId: string, openMode: OpenDocMode) {
+    // TODO It would be bad if a new doc gets opened while this getDoc() is pending...
+    const newDoc = await getDoc(this._api, urlId);
+    const isRecoveryMode = Boolean(this.currentDoc.get()?.isRecoveryMode);
+    const user = this.currentDoc.get()?.user || null;
+    const userOverride = this.currentDoc.get()?.userOverride || null;
+    this.currentDoc.set({...buildDocInfo(newDoc, openMode), isRecoveryMode, user, userOverride});
+    return newDoc;
+  }
+
   private _onOpenError(err: Error) {
     if (err instanceof CancelledError) {
       // This means that we started loading a new doc before the previous one finished loading.
@@ -392,7 +395,7 @@ It also disables formulas. [{{error}}]", {error: err.message})
       }
       // Remove the slug from the fork URL - they don't work with slugs.
       await this.updateUrlNoReload(forkUrlId, 'default', {removeSlug: true});
-      await this.updateCurrentDoc(forkUrlId, 'default');
+      await this._updateCurrentDoc(forkUrlId, 'default');
       flow.checkIfCancelled();
       doc = this.currentDoc.get()!;
     } else {
@@ -443,7 +446,7 @@ It also disables formulas. [{{error}}]", {error: err.message})
       if (currentDoc) {
         // Remove the slug from the fork URL - they don't work with slugs.
         await this.updateUrlNoReload(newUrlId, 'default', {removeSlug: true, replaceUrl: false});
-        await this.updateCurrentDoc(newUrlId, 'default');
+        await this._updateCurrentDoc(newUrlId, 'default');
       }
     });
 
@@ -451,8 +454,8 @@ It also disables formulas. [{{error}}]", {error: err.message})
     const comparison = comparisonUrlId ?
       await this._api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }) : undefined;
 
-    const gristDoc = gdModule.GristDoc.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
-                                              this.appModel.topAppModel.plugins, {comparison});
+    const gristDoc = gdModule.GristDocImpl.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
+      this.appModel.topAppModel.plugins, {comparison});
 
     // Move ownership of docComm to GristDoc.
     gristDoc.autoDispose(flow.release(docComm));

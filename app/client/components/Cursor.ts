@@ -73,7 +73,7 @@ export class Cursor extends Disposable {
   public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
 
-  private _rowId: ko.Observable<UIRowId|null>;     // May be null when there are no rows.
+  public rowId: ko.Observable<UIRowId|null>;     // May be null when there are no rows.
 
   // The cursor's _rowId property is always fixed across data changes. When isLive is true,
   // the rowIndex of the cursor is recalculated to match _rowId. When false, they will
@@ -97,16 +97,16 @@ export class Cursor extends Disposable {
     this.viewData = baseView.viewData;
 
     this._sectionId = this.autoDispose(ko.computed(() => baseView.viewSection.id()));
-    this._rowId = ko.observable<UIRowId|null>(optCursorPos.rowId || 0);
+    this.rowId = ko.observable<UIRowId|null>(optCursorPos.rowId || 0);
     this.rowIndex = this.autoDispose(ko.computed({
       read: () => {
         if (!this._isLive()) { return this.rowIndex.peek(); }
-        const rowId = this._rowId();
+        const rowId = this.rowId();
         return rowId == null ? null : this.viewData.clampIndex(this.viewData.getRowIndexWithSub(rowId));
       },
       write: (index) => {
         const rowIndex = index === null ? null : this.viewData.clampIndex(index);
-        this._rowId(rowIndex == null ? null : this.viewData.getRowId(rowIndex));
+        this.rowId(rowIndex == null ? null : this.viewData.getRowId(rowIndex));
       },
     }));
 

@@ -10,7 +10,7 @@ window._gristAppLoaded = true;
 
 const {setupLocale} = require('./lib/localization');
 
-const {App} = require('./ui/App');
+const {AppImpl} = require('./ui/App');
 
 // Disable longStackTraces, which seem to be enabled in the browser by default.
 var bluebird = require('bluebird');
@@ -34,7 +34,7 @@ $(function() {
   // By the time dom ready is fired, resource files should already be loaded, but
   // if that is not the case, we will redirect to an error page by throwing an error.
   localeSetup.then(() => {
-    window.gristApp = App.create(null);
+    window.gristApp = AppImpl.create(null);
   }).catch(error => {
     throw new Error(`Failed to load locale: ${error?.message || 'Unknown error'}`);
   })

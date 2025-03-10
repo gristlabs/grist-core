@@ -1,4 +1,4 @@
-/* globals $, window */
+/* globals $, window, CustomEvent */
 
 const _         = require('underscore');
 const ko        = require('knockout');
@@ -756,7 +756,7 @@ GridView.prototype.clearValues = function(selection) {
 
 GridView.prototype._clearColumns = function(selection) {
   const fields = selection.fields;
-  return this.gristDoc.clearColumns(fields.map(f => f.colRef.peek()));
+  return this.gristDoc.docModel.clearColumns(fields.map(f => f.colRef.peek()));
 };
 
 GridView.prototype._convertFormulasToData = function(selection) {
@@ -765,7 +765,7 @@ GridView.prototype._convertFormulasToData = function(selection) {
   // prevented by ACL rules).
   const fields = selection.fields.filter(f => f.column.peek().isFormula.peek());
   if (!fields.length) { return null; }
-  return this.gristDoc.convertIsFormula(fields.map(f => f.colRef.peek()), {toFormula: false});
+  return this.gristDoc.docModel.convertIsFormula(fields.map(f => f.colRef.peek()), {toFormula: false});
 };
 
 GridView.prototype.selectAll = function() {
@@ -797,6 +797,13 @@ GridView.prototype.assignCursor = function(elem, elemType) {
     let row = this.domToRowModel(elem, elemType);
     let col = this.domToColModel(elem, elemType);
     commands.allCommands.setCursor.run(row, col);
+
+    // Trigger custom dom event that will bubble up. View components might not be rendered
+    // inside a virtual table which don't register this global handler (as there might be
+    // multiple instances of the virtual table component).
+    const event = new CustomEvent('setCursor', {detail: [row, col], bubbles: true});
+    this.scrollPane.dispatchEvent(event);
+
   } catch(e) {
     console.error(e);
     console.error("GridView.assignCursor expects a row/col header, or cell as an input.");

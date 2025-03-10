@@ -71,6 +71,7 @@ export function viewSectionMenu(
          && !use(viewSection.isRaw) // not in raw mode
          && !use(viewSection.isRecordCard)
          && !use(singleVisible) // not in single section
+         && use(viewSection.canExpand)
          ;
   });
 

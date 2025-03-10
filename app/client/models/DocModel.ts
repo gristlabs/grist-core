@@ -42,7 +42,7 @@ import {createViewFieldRec, ViewFieldRec} from 'app/client/models/entities/ViewF
 import {createViewRec, ViewRec} from 'app/client/models/entities/ViewRec';
 import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
 import {CellRec, createCellRec} from 'app/client/models/entities/CellRec';
-import {RefListValue} from 'app/common/gristTypes';
+import {isRefListType, RecalcWhen, RefListValue} from 'app/common/gristTypes';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Disposable, toKo} from 'grainjs';
 import {UIRowId} from 'app/plugin/GristAPI';
@@ -254,6 +254,98 @@ export class DocModel extends Disposable {
 
   public getTableModel(tableId: string) {
     return this.dataTables[tableId];
+  }
+
+  /**
+   * If the given section is the target of linking, collect and return the active rowIDs up the
+   * chain of links, returning the list of rowIds starting with the current section's parent. This
+   * method is intended for when there is ambiguity such as when RefList linking is involved.
+   * In other cases, returns undefined.
+   */
+  public getLinkingRowIds(sectionId: number): UIRowId[]|undefined {
+    const linkingRowIds: UIRowId[] = [];
+    let anyAmbiguity = false;
+    let section = this.viewSections.getRowModel(sectionId);
+    const seen = new Set<number>();
+    while (section?.id.peek() && !seen.has(section.id.peek())) {
+      seen.add(section.id.peek());
+      const rowId = section.activeRowId.peek() || 'new';
+      if (isRefListType(section.linkTargetCol.peek().type.peek()) || rowId === 'new') {
+        anyAmbiguity = true;
+      }
+      linkingRowIds.push(rowId);
+      section = section.linkSrcSection.peek();
+    }
+    return anyAmbiguity ? linkingRowIds.slice(1) : undefined;
+  }
+
+
+
+  // Turn the given columns into empty columns, losing any data stored in them.
+  public async clearColumns(colRefs: number[], {keepType}: { keepType?: boolean } = {}): Promise<void> {
+    await this.columns.sendTableAction(
+      ['BulkUpdateRecord', colRefs, {
+        isFormula: colRefs.map(f => true),
+        formula: colRefs.map(f => ''),
+        ...(keepType ? {} : {
+          type: colRefs.map(f => 'Any'),
+          widgetOptions: colRefs.map(f => ''),
+          visibleCol: colRefs.map(f => null),
+          displayCol: colRefs.map(f => null),
+          rules: colRefs.map(f => null),
+        }),
+        // Set recalc settings to defaults when emptying a column.
+        recalcWhen: colRefs.map(f => RecalcWhen.DEFAULT),
+        recalcDeps: colRefs.map(f => null),
+      }]
+    );
+  }
+
+  // Convert the given columns to data, saving the calculated values and unsetting the formulas.
+  public async convertIsFormula(colRefs: number[], opts: { toFormula: boolean, noRecalc?: boolean }): Promise<void> {
+    return this.columns.sendTableAction(
+      ['BulkUpdateRecord', colRefs, {
+        isFormula: colRefs.map(f => opts.toFormula),
+        recalcWhen: colRefs.map(f => opts.noRecalc ? RecalcWhen.NEVER : RecalcWhen.DEFAULT),
+        recalcDeps: colRefs.map(f => null),
+      }]
+    );
+  }
+
+  // Updates formula for a column.
+  public async updateFormula(colRef: number, formula: string): Promise<void> {
+    return this.columns.sendTableAction(
+      ['UpdateRecord', colRef, {
+        formula,
+      }]
+    );
+  }
+
+  // Convert column to pure formula column.
+  public async convertToFormula(colRef: number, formula: string): Promise<void> {
+    return this.columns.sendTableAction(
+      ['UpdateRecord', colRef, {
+        isFormula: true,
+        formula,
+        recalcWhen: RecalcWhen.DEFAULT,
+        recalcDeps: null,
+      }]
+    );
+  }
+
+  // Convert column to data column with a trigger formula
+  public async convertToTrigger(
+    colRefs: number,
+    formula: string,
+    recalcWhen: RecalcWhen = RecalcWhen.DEFAULT ): Promise<void> {
+    return this.columns.sendTableAction(
+      ['UpdateRecord', colRefs, {
+        isFormula: false,
+        formula,
+        recalcWhen: recalcWhen,
+        recalcDeps: null,
+      }]
+    );
   }
 
   private _metaTableModel<TName extends keyof SchemaTypes, TRow extends IRowModel<TName>>(

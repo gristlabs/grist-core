@@ -11,6 +11,7 @@ import { STICKY_HEADER_HEIGHT_PX } from "app/client/ui/DocMenuCss";
 import { showRenameDocModal } from "app/client/ui/RenameDocModal";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { makeShareDocUrl } from "app/client/ui/ShareMenu";
+import { buildTabs, TabProps } from 'app/client/ui2018/tabs';
 import {
   isNarrowScreenObs,
   mediaMedium,
@@ -27,9 +28,11 @@ import * as roles from "app/common/roles";
 import { Document } from "app/common/UserAPI";
 import {
   Computed,
+  computedArray,
   Disposable,
   dom,
   makeTestId,
+  MaybeObsArray,
   Observable,
   styled,
 } from "grainjs";
@@ -46,7 +49,7 @@ interface DocListOptions {
 
 export class DocList extends Disposable {
   private readonly _home = this._options.home;
-  private readonly _tabs: Computed<HomePageTab[]> = Computed.create(
+  private readonly _tabNames: Computed<HomePageTab[]> = Computed.create(
     this,
     this._home.currentPage,
     (_use, page) => {
@@ -57,17 +60,26 @@ export class DocList extends Disposable {
       }
     }
   );
+  private readonly _tabIconsAndLabels = getTabIconsAndLabels();
+
+  private readonly _tabs: MaybeObsArray<TabProps> = this.autoDispose(
+    computedArray(this._tabNames, (tab) => ({
+      id: tab,
+      label: this._tabIconsAndLabels[tab].label,
+      icon: this._tabIconsAndLabels[tab].icon,
+      link: { homePageTab: tab },
+    })
+  ));
   private readonly _viewSettings =
     this._options.viewSettings ?? this._options.home;
   private readonly _tab = Computed.create(
     this,
-    this._tabs,
+    this._tabNames,
     urlState().state,
     (_use, tabs, { homePageTab }) => {
       return homePageTab && tabs.includes(homePageTab) ? homePageTab : tabs[0];
     }
   );
-  private readonly _tabIconsAndLabels = getTabIconsAndLabels();
   private readonly _showWorkspace = Computed.create(
     this,
     this._home.currentPage,
@@ -86,21 +98,8 @@ export class DocList extends Disposable {
 
   private _buildHeader() {
     return cssHeader(
-      cssTabs(dom.forEach(this._tabs, (tab) => this._buildTab(tab))),
+      buildTabs(this._tabs, this._tab),
       this._buildViewSettings()
-    );
-  }
-
-  private _buildTab(homePageTab: HomePageTab) {
-    const { icon, label } = this._tabIconsAndLabels[homePageTab];
-    return cssTab(
-      cssIconAndLabel(cssTabIcon(icon, dom.hide(isNarrowScreenObs())),
-        // The combination with spacer makes the label as wide as its bold version,
-        // to avoid slight shifts of other labels when switching tabs.
-        dom('div', label, cssBoldLabelSpacer(label))),
-      cssTab.cls("-selected", (use) => use(this._tab) === homePageTab),
-      urlState().setLinkUrl({ homePageTab }, { replace: true }),
-      testId("tab")
     );
   }
 
@@ -397,54 +396,6 @@ const cssHeader = styled("div", `
   display: flex;
   column-gap: 24px;
   margin-bottom: 8px;
-`);
-
-const cssTabs = styled("div", `
-  flex-grow: 1;
-  display: flex;
-  border-bottom: 1px solid ${theme.tableBodyBorder};
-`);
-
-const cssTab = styled("a", `
-  display: block;
-  padding: 8px 16px;
-  color: ${theme.mediumText};
-  --icon-color: ${theme.lightText};
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-
-  &:hover, &:focus {
-    color: ${theme.mediumText};
-    text-decoration: none;
-  }
-
-  &-selected {
-    --icon-color: ${theme.controlFg};
-    font-weight: 700;
-    border-bottom: 2px solid ${theme.controlFg};
-    margin-bottom: -1px;
-  }
-`);
-
-const cssIconAndLabel = styled("div", `
-  display: flex;
-  align-items: center;
-  column-gap: 8px;
-`);
-
-const cssBoldLabelSpacer = styled("div", `
-  font-weight: bold;
-  height: 1px;
-  color: transparent;
-  overflow: hidden;
-  visibility: hidden;
-`);
-
-const cssTabIcon = styled(cssIcon, `
-  width: 20px;
-  height: 20px;
 `);
 
 const cssViewSettings = styled("div", `

@@ -30,7 +30,7 @@ export interface IResizeFlexOptions {
   // Whether to change the width of the flex item to the left or to the right of this handle.
   target: 'left'|'right';
   onDrag?(value: number): void;
-  onSave(value: number): void;
+  onSave?(value: number): void;
 }
 
 export interface IResizeOptions {
@@ -38,7 +38,7 @@ export interface IResizeOptions {
   sign: 1 | -1;
   getTarget(handle: Element): Element|null;
   onDrag?(value: number): void;
-  onSave(value: number): void;
+  onSave?(value: number): void;
 }
 
 // See module documentation for usage.
@@ -90,7 +90,7 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
       document.body.style.cursor = startBodyCursor;
 
       target.style[prop] = (startSize + sign * (ev.pageX - startEv.pageX)) + 'px';
-      onSave(getComputedSize(target, prop));
+      onSave?.(getComputedSize(target, prop));
     },
   };
 }

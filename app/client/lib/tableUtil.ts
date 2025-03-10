@@ -47,9 +47,10 @@ export function makePasteText(tableData: TableData, selection: CopySelection, in
  * Hash of the current docId to allow checking if copying and pasting is happening in the same document,
  * without leaking the actual docId which may allow others to access the document.
  */
-export function getDocIdHash(): string {
-  const docId = (window as any).gristDocPageModel.currentDocId.get();
-  return simpleStringHash(docId);
+export function getDocIdHash(): string|undefined {
+  // We might not have global gristDocPageModel (e.g. for virtual tables).
+  const docId: string|undefined = (window as any).gristDocPageModel?.currentDocId.get();
+  return docId && simpleStringHash(docId);
 }
 
 /**
@@ -57,15 +58,15 @@ export function getDocIdHash(): string {
  * the given rows and columns, styled by the given table/row/col style dictionaries.
  * @param {TableData} tableData - the table containing the values denoted by the grid selection
  * @param {CopySelection} selection - a CopySelection instance
- * @param {Boolean} showColHeader - whether to include a column header row
+ * @param {Boolean} includeColHeaders - whether to include a column header row
  * @return {String} The html for a table containing the given data.
  **/
-export function makePasteHtml(tableData: TableData, selection: CopySelection, includeColHeaders: boolean) {
+export function makePasteHtml(tableData: TableData, selection: CopySelection, includeColHeaders: boolean): string {
   const rowStyle = selection.rowStyle || {};    // Maps rowId to style object.
   const colStyle = selection.colStyle || {};    // Maps colId to style object.
 
   const elem = dom('table',
-    {border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash()},
+    {border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash() || ''},
     dom('colgroup', selection.colIds.map((colId, idx) =>
       dom('col', {
         style: _styleAttr(colStyle[colId]),

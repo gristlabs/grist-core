@@ -12,6 +12,7 @@ import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
 import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
 import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
+import {RecalcWhen} from 'app/common/gristTypes';
 import {sanitizeIdent} from 'app/common/gutil';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
@@ -193,14 +194,26 @@ export function buildFormulaConfig(
    // Clear and reset all option for multiple selected columns.
   const clearAndResetAll = () => selectOption(
     () => Promise.all([
-      gristDoc.clearColumns(selectedColumnIds())
+      gristDoc.docModel.clearColumns(selectedColumnIds())
     ]),
     'Clear and reset', 'CrossSmall'
   );
 
+
+  // Convert the given columns to data, saving the calculated values and unsetting the formulas.
+  const convertIsFormula = async (colRefs: number[], opts: { toFormula: boolean, noRecalc?: boolean }) => {
+    return gristDoc.docModel.columns.sendTableAction(
+      ['BulkUpdateRecord', colRefs, {
+        isFormula: colRefs.map(f => opts.toFormula),
+        recalcWhen: colRefs.map(f => opts.noRecalc ? RecalcWhen.NEVER : RecalcWhen.DEFAULT),
+        recalcDeps: colRefs.map(f => null),
+      }]
+    );
+  };
+
   // Convert to data option for multiple selected columns.
   const convertToDataAll = () => selectOption(
-    () => gristDoc.convertIsFormula(selectedColumnIds(), {toFormula: false, noRecalc: true}),
+    () => convertIsFormula(selectedColumnIds(), {toFormula: false, noRecalc: true}),
     'Convert columns to data', 'Database',
     dom.cls('disabled', isSummaryTable)
   );
@@ -253,12 +266,12 @@ export function buildFormulaConfig(
 
   // Converts to empty column and opens up the editor. (label is the same, but this is used when we have no formula)
   const convertTriggerToFormulaOption = () => selectOption(
-    () => gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: true, noRecalc: true}),
+    () => convertIsFormula([origColumn.id.peek()], {toFormula: true, noRecalc: true}),
     t("Clear and make into formula"), 'Script');
 
   // Convert column to data.
   // This method is also available through a text button.
-  const convertToData = () => gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: true});
+  const convertToData = () => convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: true});
   const convertToDataOption = () => selectOption(
     convertToData,
     t("Convert column to data"), 'Database',
@@ -267,7 +280,7 @@ export function buildFormulaConfig(
 
   // Clears the column
   const clearAndResetOption = () => selectOption(
-    () => gristDoc.clearColumns([origColumn.id.peek()]),
+    () => gristDoc.docModel.clearColumns([origColumn.id.peek()]),
     t("Clear and reset"), 'CrossSmall');
 
   // Actions on text buttons:
@@ -281,7 +294,7 @@ export function buildFormulaConfig(
 
   // Converts formula column to trigger formula column.
   const convertFormulaToTrigger = () =>
-    gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: false});
+    convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: false});
 
   const setFormula = () => { maybeFormula.set(true); focusFormulaField(); };
   const setTrigger = () => { maybeTrigger.set(true); focusFormulaField(); };
@@ -300,7 +313,7 @@ export function buildFormulaConfig(
     // But when the column is a formula column, empty formula expression is acceptable (it will
     // convert column to empty column).
     const trueFormula = column.formula.peek();
-    if (notBlank || trueFormula) { await gristDoc.convertToFormula(column.id.peek(), formula); }
+    if (notBlank || trueFormula) { await gristDoc.docModel.convertToFormula(column.id.peek(), formula); }
     // Clear state only when owner was not disposed
     if (!owner.isDisposed()) {
       clearState();
@@ -312,10 +325,10 @@ export function buildFormulaConfig(
     // If formula expression is not empty, and column was plain data column (without a formula)
     if (formula && !column.hasTriggerFormula.peek()) {
       // then convert column to a trigger formula column
-      await gristDoc.convertToTrigger(column.id.peek(), formula);
+      await gristDoc.docModel.convertToTrigger(column.id.peek(), formula);
     } else if (column.hasTriggerFormula.peek()) {
       // else, if it was already a trigger formula column, just update formula.
-      await gristDoc.updateFormula(column.id.peek(), formula);
+      await gristDoc.docModel.updateFormula(column.id.peek(), formula);
     }
     // Clear state only when owner was not disposed
     if (!owner.isDisposed()) {

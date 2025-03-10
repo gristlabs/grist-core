@@ -5,6 +5,7 @@ import { buildCodeHighlighter } from 'app/client/ui/CodeHighlight';
 import { renderer } from 'app/client/ui/MarkdownCellRenderer';
 import { sanitizeHTML } from 'app/client/ui/sanitizeHTML';
 import { theme, vars } from 'app/client/ui2018/cssVars';
+import { handleGristLinkClick } from 'app/client/ui2018/links';
 import { gristThemeObs } from 'app/client/ui2018/theme';
 import { NTextBox } from 'app/client/widgets/NTextBox';
 import { AsyncCreate } from 'app/common/AsyncCreate';
@@ -60,6 +61,7 @@ export class MarkdownTextBox extends NTextBox {
                 ev.stopPropagation();
               }
             }),
+            dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
             (el) => {
               subscribeElem(el, value, () => renderMarkdown(el));
               // Picking up theme changes currently requires a re-render.

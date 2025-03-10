@@ -266,6 +266,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   hideViewMenu: ko.Observable<boolean>;
 
   /**
+   * If the section can be expanded (default true), used mostly by virtual tables. If undefined defaults to the caller
+   */
+  canExpand: ko.Observable<boolean>;
+
+  /**
    * If the section can be renamed, used mostly by virtual tables. If undefined defaults to the caller
    * of the buildViewSectionDom function (which in turn defaults to true).
    */
@@ -913,6 +918,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   };
 
 
-  this.hideViewMenu = this.autoDispose(ko.observable(false));
-  this.canRename = this.autoDispose(ko.observable<boolean|undefined>(undefined));
+  this.hideViewMenu = ko.observable(false);
+  this.canRename = ko.observable<boolean|undefined>(undefined);
+  this.canExpand = ko.observable<boolean>(true);
 }

@@ -5,7 +5,8 @@ import {BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
 import * as css from 'app/client/components/Forms/styles';
 import {stopEvent} from 'app/client/lib/domUtils';
 import {makeT} from 'app/client/lib/localization';
-import {refRecord} from 'app/client/models/DocModel';
+import {DocModel, refRecord} from 'app/client/models/DocModel';
+import TableModel from 'app/client/models/TableModel';
 import {
   FormNumberFormat,
   FormOptionsAlignment,
@@ -27,6 +28,8 @@ import {
   dom,
   DomContents,
   DomElementArg,
+  Holder,
+  IDisposableOwner,
   IDomArgs,
   makeTestId,
   MultiHolder,
@@ -568,7 +571,7 @@ class RefListModel extends Question {
       return use(dispColumnIdObs.colId) || 'id';
     });
 
-    const observer = this.model.view.gristDoc.columnObserver(this, tableId, colId);
+    const observer = this._columnObserver(this, this.model.view.gristDoc.docModel, tableId, colId);
 
     return Computed.create(this, use => {
       const sort = use(this._sortOrder);
@@ -583,6 +586,40 @@ class RefListModel extends Question {
       }
       return values.slice(0, 30);
     });
+  }
+
+
+  /**
+   * Creates computed with all the data for the given column.
+   */
+  private _columnObserver(
+    owner: IDisposableOwner,
+    docModel: DocModel,
+    tableId: Observable<string>,
+    columnId: Observable<string>
+  ) {
+    const tableModel = Computed.create(owner, (use) => docModel.dataTables[use(tableId)]);
+    const refreshed = Observable.create(owner, 0);
+    const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
+    const holder = Holder.create(owner);
+    const listener = (tab: TableModel) => {
+      if (tab.tableData.tableId === '') { return; }
+
+      // Now subscribe to any data change in that table.
+      const subs = MultiHolder.create(holder);
+      subs.autoDispose(tab.tableData.dataLoadedEmitter.addListener(toggle));
+      subs.autoDispose(tab.tableData.tableActionEmitter.addListener(toggle));
+      tab.fetch().catch(reportError);
+    };
+    owner.autoDispose(tableModel.addListener(listener));
+    listener(tableModel.get());
+    const values = Computed.create(owner, refreshed, (use) => {
+      const rows = use(tableModel).getAllRows();
+      const colValues = use(tableModel).tableData.getColValues(use(columnId));
+      if (!colValues) { return []; }
+      return rows.map((row, i) => [row, colValues[i]]);
+    });
+    return values;
   }
 }
 

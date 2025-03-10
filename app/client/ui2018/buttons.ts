@@ -14,7 +14,7 @@
 
 import { theme, vars } from 'app/client/ui2018/cssVars';
 import { tbind } from 'app/common/tbind';
-import { dom, DomElementArg, styled } from 'grainjs';
+import { BindableValue, dom, DomElementArg, styled } from 'grainjs';
 
 export const cssButton = styled('button', `
   /* Resets */
@@ -73,19 +73,19 @@ export const cssButton = styled('button', `
 `);
 
 interface IButtonProps {
-  large?: boolean;
-  primary?: boolean;
+  large?: BindableValue<boolean>;
+  primary?: BindableValue<boolean>;
   link?: boolean;
 }
 
 /**
  * Helper to create a button or button-like link with requested properties.
  */
-function button(props: IButtonProps, ...domArgs: DomElementArg[]) {
+export function button(props: IButtonProps, ...domArgs: DomElementArg[]) {
   const elem = props.link ? cssButtonLink(dom.cls(cssButton.className)) : cssButton();
   return dom.update(elem,
-    cssButton.cls('-large', Boolean(props.large)),
-    cssButton.cls('-primary', Boolean(props.primary)),
+    cssButton.cls('-large', props.large ?? false),
+    cssButton.cls('-primary', props.primary ?? false),
     ...domArgs
   );
 }

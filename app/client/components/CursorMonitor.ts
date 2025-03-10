@@ -61,7 +61,7 @@ export class CursorMonitor extends Disposable {
       // for some views (like CustomView) cursor position might not reflect actual row
       if (pos && pos.rowId !== undefined) {
         if (pos.sectionId) {
-          pos = {...pos, linkingRowIds: doc.getLinkingRowIds(pos.sectionId)};
+          pos = {...pos, linkingRowIds: doc.docModel.getLinkingRowIds(pos.sectionId)};
         }
         this._storePosition(pos);
       }

@@ -97,6 +97,9 @@ export class TableData extends ActionDispatcher implements SkippableRows {
       this._fetchPromise = fetchFunc(this._tableId).then(data => {
         this._fetchPromise = undefined;
         this.loadData(data);
+      }).catch(err => {
+        this._fetchPromise = undefined;
+        throw err;
       });
     }
     return this._fetchPromise;

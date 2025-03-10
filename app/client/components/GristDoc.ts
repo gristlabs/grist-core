@@ -6,6 +6,7 @@
 import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
 import BaseView from 'app/client/components/BaseView';
+import type {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
 import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
@@ -27,7 +28,6 @@ import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {setTestState} from 'app/client/lib/testState';
-import {selectFiles} from 'app/client/lib/uploads';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
@@ -38,7 +38,6 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
-import TableModel from 'app/client/models/TableModel';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {App} from 'app/client/ui/App';
 import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
@@ -67,16 +66,17 @@ import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {isList, isListType, isRefListType, RecalcWhen} from 'app/common/gristTypes';
+import {isList, isListType, isRefListType} from 'app/common/gristTypes';
 import {HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
+import type {UserOrgPrefs} from 'app/common/Prefs';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {getGristConfig} from 'app/common/urlUtils';
-import {AttachmentTransferStatus, DocStateComparison} from 'app/common/UserAPI';
+import {AttachmentTransferStatus, DocAPI, DocStateComparison} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType} from 'app/common/widgetTypes';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
+import {CursorPos} from 'app/plugin/GristAPI';
 import {
   bundleChanges,
   Computed,
@@ -86,10 +86,9 @@ import {
   fromKo,
   Holder,
   IDisposable,
-  IDisposableOwner,
   IDomComponent,
+  IKnockoutObservable,
   keyframes,
-  MultiHolder,
   Observable,
   styled,
   subscribe,
@@ -145,10 +144,73 @@ interface AddSectionOptions {
   popups?: boolean;
 }
 
-export class GristDoc extends DisposableWithEvents {
+export interface GristDoc extends DisposableWithEvents {
+  app: App;
+  appModel: AppModel;
+  docComm: DocComm;
+  docPageModel: DocPageModel;
+  docModel: DocModel;
+  viewModel: ViewRec;
+  activeViewId: Observable<IDocPage>;
+  currentPageName: Observable<string>;
+  docData: DocData;
+  docInfo: DocInfoRec;
+  docPluginManager: DocPluginManager;
+  rightPanelTool: Observable<IExtraTool | null>;
+  isReadonly: Observable<boolean>;
+  isReadonlyKo: IKnockoutObservable<boolean>;
+  comparison: DocStateComparison | null;
+  cursorMonitor: CursorMonitor;
+  editorMonitor?: EditorMonitor;
+  hasCustomNav: Observable<boolean>;
+  resizeEmitter: Emitter;
+  fieldEditorHolder: Holder<IDisposable>;
+  activeEditor: Observable<FieldEditor | null>;
+  currentView: Observable<BaseView | null>;
+  cursorPosition: Observable<ViewCursorPos | undefined>;
+  userOrgPrefs: Observable<UserOrgPrefs>;
+  behavioralPromptsManager: BehavioralPromptsManager;
+  maximizedSectionId: Observable<number | null>;
+  externalSectionId: Observable<number | null>;
+  viewLayout: ViewLayout | null;
+  docApi: DocAPI;
+  isTimingOn: Observable<boolean>;
+  attachmentTransfer: Observable<AttachmentTransferStatus | null>;
+  canShowRawData: Observable<boolean>;
+
+  docId(): string;
+  openDocPage(viewId: IDocPage): Promise<void>;
+  showTool(tool: typeof RightPanelTool.type): void;
+  onSetCursorPos(rowModel: BaseRowModel | undefined, fieldModel?: ViewFieldRec): Promise<void>;
+  moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void>;
+  getUndoStack(): UndoStack;
+  getTableModel(tableId: string): DataTableModel;
+  getTableModelMaybeWithDiff(tableId: string): DataTableModel;
+  addEmptyTable(): Promise<void>;
+  addWidgetToPage(widget: IPageWidget): Promise<void>;
+  addNewPage(val: IPageWidget): Promise<void>;
+  saveViewSection(section: ViewSectionRec, newVal: IPageWidget): Promise<ViewSectionRec>;
+  saveLink(linkId: string, sectionId?: number): Promise<any>;
+  selectBy(widget: IPageWidget): any[];
+  forkIfNeeded(): Promise<void>;
+
+  getCsvLink(): string;
+  getTsvLink(): string;
+  getDsvLink(): string;
+  getXlsxActiveViewLink(): string;
+  recursiveMoveToCursorPos(
+    cursorPos: CursorPos,
+    setAsActiveSection: boolean,
+    silent?: boolean,
+    visitedSections?: number[]
+  ): Promise<boolean>;
+  activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void>;
+}
+
+export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public docModel: DocModel;
   public viewModel: ViewRec;
-  public activeViewId: Computed<IDocPage>;
+  public activeViewId: Observable<IDocPage>;
   public currentPageName: Observable<string>;
   public docData: DocData;
   public docInfo: DocInfoRec;
@@ -194,7 +256,7 @@ export class GristDoc extends DisposableWithEvents {
   public maximizedSectionId: Observable<number | null> = Observable.create(this, null);
   // This is id of the section that is currently shown in the popup. Probably this is an external
   // section, like raw data view, or a section from another view.
-  public externalSectionId: Computed<number | null>;
+  public externalSectionId: Observable<number | null>;
   public viewLayout: ViewLayout | null = null;
 
   // Holder for the popped up formula editor.
@@ -534,15 +596,15 @@ export class GristDoc extends DisposableWithEvents {
       // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
       setCursor: this.onSetCursorPos.bind(this),
-      createForm: this.onCreateForm.bind(this),
+      createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
     }, this, true));
 
-    this.listenTo(app.comm, 'docUserAction', this.onDocUserAction);
+    this.listenTo(app.comm, 'docUserAction', this._onDocUserAction);
 
-    this.listenTo(app.comm, 'docUsage', this.onDocUsageMessage);
+    this.listenTo(app.comm, 'docUsage', this._onDocUsageMessage);
 
-    this.listenTo(app.comm, 'docChatter', this.onDocChatter);
+    this.listenTo(app.comm, 'docChatter', this._onDocChatter);
 
     this._handleTriggerQueueOverflowMessage();
 
@@ -651,13 +713,6 @@ export class GristDoc extends DisposableWithEvents {
     return this.docPageModel.currentDocId.get()!;
   }
 
-  // DEPRECATED This is used only for validation, which is not used anymore.
-  public addOptionsTab(label: string, iconElem: any, contentObj: TabContent[], options: TabOptions): IDisposable {
-    this._rightPanelTabs.set(label, contentObj);
-    // Return a do-nothing disposable, to satisfy the previous interface.
-    return {dispose: () => null};
-  }
-
   /**
    * Builds the DOM for this GristDoc.
    */
@@ -746,56 +801,12 @@ export class GristDoc extends DisposableWithEvents {
     this._rightPanelTool.set(tool);
   }
 
-  /**
-   * Returns an object representing the position of the cursor, including the section. It will have
-   * fields { sectionId, rowId, fieldIndex }. Fields may be missing if no section is active.
-   */
-  public getCursorPos(): CursorPos {
-    const pos = {sectionId: this.viewModel.activeSectionId()};
-    const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
-    return Object.assign(pos, viewInstance ? viewInstance.cursor.getCursorPos() : {});
-  }
-
   public async onSetCursorPos(rowModel: BaseRowModel | undefined, fieldModel?: ViewFieldRec) {
-    return this.setCursorPos({
+    return this._setCursorPos({
       rowIndex: rowModel?._index() || 0,
       fieldIndex: fieldModel?._index() || 0,
       sectionId: fieldModel?.viewSection().getRowId(),
     });
-  }
-
-  public async setCursorPos(cursorPos: CursorPos) {
-    if (cursorPos.sectionId && cursorPos.sectionId !== this.externalSectionId.get()) {
-      const desiredSection: ViewSectionRec = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
-      // If the section id is 0, the section doesn't exist (can happen during undo/redo), and should
-      // be fixed there. For now ignore it, to not create empty sections or views (peeking a view will create it).
-      if (!desiredSection.id.peek()) {
-        return;
-      }
-      // If this is completely unknown section (without a parent), it is probably an import preview.
-      if (
-        !desiredSection.parentId.peek() &&
-        !desiredSection.isRaw.peek() &&
-        !desiredSection.isRecordCard.peek()
-      ) {
-        const view = desiredSection.viewInstance.peek();
-        // Make sure we have a view instance here - it will prove our assumption that this is
-        // an import preview. Section might also be disconnected during undo/redo.
-        if (view && !view.isDisposed()) {
-          view.setCursorPos(cursorPos);
-          return;
-        }
-      }
-      if (desiredSection.view.peek().getRowId() !== this.activeViewId.get()) {
-        // This may be asynchronous. In other cases, the change is synchronous, and some code
-        // relies on it (doesn't wait for this function to resolve).
-        await this._switchToSectionId(cursorPos.sectionId);
-      } else if (desiredSection !== this.viewModel.activeSection.peek()) {
-        this.viewModel.activeSectionId(cursorPos.sectionId);
-      }
-    }
-    const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
-    viewInstance?.setCursorPos(cursorPos);
   }
 
   /**
@@ -814,100 +825,14 @@ export class GristDoc extends DisposableWithEvents {
       return;
     }
     try {
-      await this.setCursorPos(cursorPos);
+      await this._setCursorPos(cursorPos);
     } catch (e) {
       reportError(e);
     }
   }
 
-  /**
-   * Process actions received from the server by forwarding them to `docData.receiveAction()` and
-   * pushing them to actionLog.
-   */
-  public onDocUserAction(message: CommDocUserAction) {
-    console.log("GristDoc.onDocUserAction", message);
-    let schemaUpdated = false;
-    /**
-     * If an operation is applied successfully to a document, and then information about
-     * it is broadcast to clients, and one of those broadcasts has a failure (due to
-     * granular access control, which is client-specific), then that error is logged on
-     * the server and also sent to the client via an `error` field.  Under normal operation,
-     * there should be no such errors, but if they do arise it is best to make them as visible
-     * as possible.
-     */
-    if (message.data.error) {
-      reportError(new Error(message.data.error));
-      return;
-    }
-    if (this.docComm.isActionFromThisDoc(message)) {
-      const docActions = message.data.docActions;
-      for (let i = 0, len = docActions.length; i < len; i++) {
-        console.log("GristDoc applying #%d", i, docActions[i]);
-        this.docData.receiveAction(docActions[i]);
-        this.docPluginManager.receiveAction(docActions[i]);
-
-        if (!schemaUpdated && isSchemaAction(docActions[i])) {
-          schemaUpdated = true;
-        }
-      }
-      // Add fromSelf property to actionGroup indicating if it's from the current session.
-      const actionGroup = message.data.actionGroup;
-      actionGroup.fromSelf = message.fromSelf || false;
-      // Push to the actionLog and the undoStack.
-      if (!actionGroup.internal) {
-        this._actionLog.pushAction(actionGroup);
-        this._undoStack.pushAction(actionGroup);
-        if (actionGroup.fromSelf) {
-          this._lastOwnActionGroup = actionGroup;
-        }
-      }
-      if (schemaUpdated) {
-        this.trigger('schemaUpdateAction', docActions);
-      }
-      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
-      this.trigger('onDocUserAction', docActions);
-    }
-  }
-
   public getUndoStack() {
     return this._undoStack;
-  }
-
-  /**
-   * Process usage and product received from the server by updating their respective
-   * observables.
-   */
-  public onDocUsageMessage(message: CommDocUsage) {
-    if (!this.docComm.isActionFromThisDoc(message)) {
-      return;
-    }
-
-    bundleChanges(() => {
-      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
-      this.docPageModel.currentProduct.set(message.data.product ?? null);
-    });
-  }
-
-  public onDocChatter(message: CommDocChatter) {
-    if (!this.docComm.isActionFromThisDoc(message)) {
-      return;
-    }
-
-    if (message.data.webhooks) {
-      if (message.data.webhooks.type == 'webhookOverflowError') {
-        this.trigger('webhookOverflowError',
-          t('New changes are temporarily suspended. Webhooks queue overflowed.' +
-            ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
-      } else {
-        this.trigger('webhooks', message.data.webhooks);
-      }
-    } else if (message.data.timing) {
-      this.isTimingOn.set(message.data.timing.status !== 'disabled');
-    } else if (message.data.attachmentTransfer) {
-      // This is message about the attachments transfer job. Look at the comment
-      // for the observable for more info.
-      this.attachmentTransfer.set(message.data.attachmentTransfer);
-    }
   }
 
   public getTableModel(tableId: string): DataTableModel {
@@ -940,7 +865,7 @@ export class GristDoc extends DisposableWithEvents {
   /**
    * Adds a view section described by val to the current page.
    */
-  public async addWidgetToPage(widget: IPageWidget) {
+  public async addWidgetToPage(widget: IPageWidget): Promise<void> {
     const {table, type} = widget;
     let tableId: string | null | undefined;
     if (table === 'New Table') {
@@ -956,30 +881,17 @@ export class GristDoc extends DisposableWithEvents {
     }
 
     const viewName = this.viewModel.name.peek();
-    const {sectionRef} = await this.docData.bundleActions(
+    await this.docData.bundleActions(
       t("Added new linked section to view {{viewName}}", {viewName}),
       () => this._addWidgetToPage(widget, tableId ?? null)
     );
-    return sectionRef;
-  }
-
-  public async onCreateForm() {
-    const table = this.currentView.get()?.viewSection.tableRef.peek();
-    if (!table) {
-      return;
-    }
-    await this.addWidgetToPage({
-      ...DefaultPageWidget(),
-      table,
-      type: WidgetType.Form,
-    });
-    commands.allCommands.expandSection.run();
+    return;
   }
 
   /**
    * Adds a new page (aka: view) with a single view section (aka: page widget) described by `val`.
    */
-  public async addNewPage(val: IPageWidget) {
+  public async addNewPage(val: IPageWidget): Promise<void> {
     const {table, type} = val;
     let tableId: string | null | undefined;
     if (table === 'New Table') {
@@ -1001,24 +913,6 @@ export class GristDoc extends DisposableWithEvents {
     );
     await this._focus({sectionRef, viewRef});
     this._showNewWidgetPopups(type);
-  }
-
-  /**
-   * Opens a dialog to upload one or multiple files as tables and then switches to the first table's
-   * primary view.
-   */
-  public async uploadNewTable(): Promise<void> {
-    const uploadResult = await selectFiles({
-      docWorkerUrl: this.docComm.docWorkerUrl,
-      multiple: true
-    });
-    if (uploadResult) {
-      const dataSource = {uploadId: uploadResult.uploadId, transforms: []};
-      const importResult = await this.docComm.finishImportFiles(dataSource, [], {});
-      const tableId = importResult.tables[0].hiddenTableId;
-      const tableRowModel = this.docModel.dataTables[tableId].tableMetaRow;
-      await this.openDocPage(tableRowModel.primaryViewId());
-    }
   }
 
   public async saveViewSection(section: ViewSectionRec, newVal: IPageWidget) {
@@ -1054,7 +948,7 @@ export class GristDoc extends DisposableWithEvents {
           );
           // Charts needs to keep view fields consistent across update.
           if (newVal.type === 'chart' && oldVal.type === 'chart') {
-            await this.setSectionViewFieldsFromArray(section, colIds);
+            await this._setSectionViewFieldsFromArray(section, colIds);
           }
         }
 
@@ -1066,51 +960,6 @@ export class GristDoc extends DisposableWithEvents {
       },
       {nestInActiveBundle: true}
     ));
-  }
-
-  // Set section's viewFields to be colIds in that order. Omit any colum id that do not belong to
-  // section's table.
-  public async setSectionViewFieldsFromArray(section: ViewSectionRec, colIds: string[]) {
-
-    // remove old view fields
-    await Promise.all(section.viewFields.peek().all().map((viewField) => (
-      this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()])
-    )));
-
-    // create map
-    const mapColIdToColumn = new Map();
-    for (const col of section.table().columns().all()) {
-      mapColIdToColumn.set(col.colId(), col);
-    }
-
-    // If split series and/or x-axis do not exist any more in new table, update options to make them
-    // undefined
-    if (colIds.length) {
-      if (section.optionsObj.prop('multiseries')()) {
-        if (!mapColIdToColumn.has(colIds[0])) {
-          await section.optionsObj.prop('multiseries').saveOnly(false);
-        }
-        if (colIds.length > 1 && !mapColIdToColumn.has(colIds[1])) {
-          await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
-        }
-      } else if (!mapColIdToColumn.has(colIds[0])) {
-        await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
-      }
-    }
-
-    // adds new view fields; ignore colIds that do not exist in new table.
-    await Promise.all(colIds.map((colId, i) => {
-      if (!mapColIdToColumn.has(colId)) {
-        return;
-      }
-      const colInfo = {
-        parentId: section.id(),
-        colRef: mapColIdToColumn.get(colId).id(),
-        parentPos: i
-      };
-      const action = ['AddRecord', null, colInfo];
-      return this.docModel.viewFields.sendTableAction(action);
-    }));
   }
 
   // Save link for a given section, by default the active section.
@@ -1152,73 +1001,6 @@ export class GristDoc extends DisposableWithEvents {
     }
   }
 
-  // Turn the given columns into empty columns, losing any data stored in them.
-  public async clearColumns(colRefs: number[], {keepType}: { keepType?: boolean } = {}): Promise<void> {
-    await this.docModel.columns.sendTableAction(
-      ['BulkUpdateRecord', colRefs, {
-        isFormula: colRefs.map(f => true),
-        formula: colRefs.map(f => ''),
-        ...(keepType ? {} : {
-          type: colRefs.map(f => 'Any'),
-          widgetOptions: colRefs.map(f => ''),
-          visibleCol: colRefs.map(f => null),
-          displayCol: colRefs.map(f => null),
-          rules: colRefs.map(f => null),
-        }),
-        // Set recalc settings to defaults when emptying a column.
-        recalcWhen: colRefs.map(f => RecalcWhen.DEFAULT),
-        recalcDeps: colRefs.map(f => null),
-      }]
-    );
-  }
-
-  // Convert the given columns to data, saving the calculated values and unsetting the formulas.
-  public async convertIsFormula(colRefs: number[], opts: { toFormula: boolean, noRecalc?: boolean }): Promise<void> {
-    return this.docModel.columns.sendTableAction(
-      ['BulkUpdateRecord', colRefs, {
-        isFormula: colRefs.map(f => opts.toFormula),
-        recalcWhen: colRefs.map(f => opts.noRecalc ? RecalcWhen.NEVER : RecalcWhen.DEFAULT),
-        recalcDeps: colRefs.map(f => null),
-      }]
-    );
-  }
-
-  // Updates formula for a column.
-  public async updateFormula(colRef: number, formula: string): Promise<void> {
-    return this.docModel.columns.sendTableAction(
-      ['UpdateRecord', colRef, {
-        formula,
-      }]
-    );
-  }
-
-  // Convert column to pure formula column.
-  public async convertToFormula(colRef: number, formula: string): Promise<void> {
-    return this.docModel.columns.sendTableAction(
-      ['UpdateRecord', colRef, {
-        isFormula: true,
-        formula,
-        recalcWhen: RecalcWhen.DEFAULT,
-        recalcDeps: null,
-      }]
-    );
-  }
-
-  // Convert column to data column with a trigger formula
-  public async convertToTrigger(
-    colRefs: number,
-    formula: string,
-    recalcWhen: RecalcWhen = RecalcWhen.DEFAULT ): Promise<void> {
-    return this.docModel.columns.sendTableAction(
-      ['UpdateRecord', colRefs, {
-        isFormula: false,
-        formula,
-        recalcWhen: recalcWhen,
-        recalcDeps: null,
-      }]
-    );
-  }
-
   public getCsvLink() {
     const params = this._getDocApiDownloadParams();
     return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
@@ -1237,37 +1019,6 @@ export class GristDoc extends DisposableWithEvents {
   public getXlsxActiveViewLink() {
     const params = this._getDocApiDownloadParams();
     return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params);
-  }
-
-  public hasGranularAccessRules(): boolean {
-    const rulesTable = this.docData.getMetaTable('_grist_ACLRules');
-    // To check if there are rules, ignore the default no-op rule created for an older incarnation
-    // of ACLs. It exists in older documents, and is still created for new ones. We detect it by
-    // the use of the deprecated 'permissions' field, and not the new 'permissionsText' field.
-    return rulesTable.numRecords() > rulesTable.filterRowIds({permissionsText: '', permissions: 63}).length;
-  }
-
-  /**
-   * If the given section is the target of linking, collect and return the active rowIDs up the
-   * chain of links, returning the list of rowIds starting with the current section's parent. This
-   * method is intended for when there is ambiguity such as when RefList linking is involved.
-   * In other cases, returns undefined.
-   */
-  public getLinkingRowIds(sectionId: number): UIRowId[]|undefined {
-    const linkingRowIds: UIRowId[] = [];
-    let anyAmbiguity = false;
-    let section = this.docModel.viewSections.getRowModel(sectionId);
-    const seen = new Set<number>();
-    while (section?.id.peek() && !seen.has(section.id.peek())) {
-      seen.add(section.id.peek());
-      const rowId = section.activeRowId.peek() || 'new';
-      if (isRefListType(section.linkTargetCol.peek().type.peek()) || rowId === 'new') {
-        anyAmbiguity = true;
-      }
-      linkingRowIds.push(rowId);
-      section = section.linkSrcSection.peek();
-    }
-    return anyAmbiguity ? linkingRowIds.slice(1) : undefined;
   }
 
   /**
@@ -1410,7 +1161,7 @@ export class GristDoc extends DisposableWithEvents {
   /**
    * Renames table. Method exposed primarily for tests.
    */
-  public async renameTable(tableId: string, newTableName: string) {
+  public async testRenameTable(tableId: string, newTableName: string) {
     const tableRec = this.docModel.visibleTables.all().find(tb => tb.tableId.peek() === tableId);
     if (!tableRec) {
       throw new UserError(`No table with id ${tableId}`);
@@ -1418,32 +1169,193 @@ export class GristDoc extends DisposableWithEvents {
     await tableRec.tableName.saveOnly(newTableName);
   }
 
-  /**
-   * Creates computed with all the data for the given column.
-   */
-  public columnObserver(owner: IDisposableOwner, tableId: Observable<string>, columnId: Observable<string>) {
-    const tableModel = Computed.create(owner, (use) => this.docModel.dataTables[use(tableId)]);
-    const refreshed = Observable.create(owner, 0);
-    const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
-    const holder = Holder.create(owner);
-    const listener = (tab: TableModel) => {
-      if (tab.tableData.tableId === '') { return; }
+  // Set section's viewFields to be colIds in that order. Omit any column id that do not belong to
+  // section's table.
+  private async _setSectionViewFieldsFromArray(section: ViewSectionRec, colIds: string[]) {
 
-      // Now subscribe to any data change in that table.
-      const subs = MultiHolder.create(holder);
-      subs.autoDispose(tab.tableData.dataLoadedEmitter.addListener(toggle));
-      subs.autoDispose(tab.tableData.tableActionEmitter.addListener(toggle));
-      tab.fetch().catch(reportError);
-    };
-    owner.autoDispose(tableModel.addListener(listener));
-    listener(tableModel.get());
-    const values = Computed.create(owner, refreshed, (use) => {
-      const rows = use(tableModel).getAllRows();
-      const colValues = use(tableModel).tableData.getColValues(use(columnId));
-      if (!colValues) { return []; }
-      return rows.map((row, i) => [row, colValues[i]]);
+    // remove old view fields
+    await Promise.all(section.viewFields.peek().all().map((viewField) => (
+      this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()])
+    )));
+
+    // create map
+    const mapColIdToColumn = new Map();
+    for (const col of section.table().columns().all()) {
+      mapColIdToColumn.set(col.colId(), col);
+    }
+
+    // If split series and/or x-axis do not exist any more in new table, update options to make them
+    // undefined
+    if (colIds.length) {
+      if (section.optionsObj.prop('multiseries')()) {
+        if (!mapColIdToColumn.has(colIds[0])) {
+          await section.optionsObj.prop('multiseries').saveOnly(false);
+        }
+        if (colIds.length > 1 && !mapColIdToColumn.has(colIds[1])) {
+          await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
+        }
+      } else if (!mapColIdToColumn.has(colIds[0])) {
+        await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
+      }
+    }
+
+    // adds new view fields; ignore colIds that do not exist in new table.
+    await Promise.all(colIds.map((colId, i) => {
+      if (!mapColIdToColumn.has(colId)) {
+        return;
+      }
+      const colInfo = {
+        parentId: section.id(),
+        colRef: mapColIdToColumn.get(colId).id(),
+        parentPos: i
+      };
+      const action = ['AddRecord', null, colInfo];
+      return this.docModel.viewFields.sendTableAction(action);
+    }));
+  }
+
+  private async _onCreateForm() {
+    const table = this.currentView.get()?.viewSection.tableRef.peek();
+    if (!table) {
+      return;
+    }
+    await this.addWidgetToPage({
+      ...DefaultPageWidget(),
+      table,
+      type: WidgetType.Form,
     });
-    return values;
+    commands.allCommands.expandSection.run();
+  }
+
+  private _onDocChatter(message: CommDocChatter) {
+    if (!this.docComm.isActionFromThisDoc(message)) {
+      return;
+    }
+
+    if (message.data.webhooks) {
+      if (message.data.webhooks.type == 'webhookOverflowError') {
+        this.trigger('webhookOverflowError',
+          t('New changes are temporarily suspended. Webhooks queue overflowed.' +
+            ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
+      } else {
+        this.trigger('webhooks', message.data.webhooks);
+      }
+    } else if (message.data.timing) {
+      this.isTimingOn.set(message.data.timing.status !== 'disabled');
+    } else if (message.data.attachmentTransfer) {
+      // This is message about the attachments transfer job. Look at the comment
+      // for the observable for more info.
+      this.attachmentTransfer.set(message.data.attachmentTransfer);
+    }
+  }
+
+  /**
+   * Process usage and product received from the server by updating their respective
+   * observables.
+   */
+  private _onDocUsageMessage(message: CommDocUsage) {
+    if (!this.docComm.isActionFromThisDoc(message)) {
+      return;
+    }
+
+    bundleChanges(() => {
+      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
+      this.docPageModel.currentProduct.set(message.data.product ?? null);
+    });
+  }
+
+
+  /**
+   * Process actions received from the server by forwarding them to `docData.receiveAction()` and
+   * pushing them to actionLog.
+   */
+  private _onDocUserAction(message: CommDocUserAction) {
+    console.log("GristDoc.onDocUserAction", message);
+    let schemaUpdated = false;
+    /**
+     * If an operation is applied successfully to a document, and then information about
+     * it is broadcast to clients, and one of those broadcasts has a failure (due to
+     * granular access control, which is client-specific), then that error is logged on
+     * the server and also sent to the client via an `error` field.  Under normal operation,
+     * there should be no such errors, but if they do arise it is best to make them as visible
+     * as possible.
+     */
+    if (message.data.error) {
+      reportError(new Error(message.data.error));
+      return;
+    }
+    if (this.docComm.isActionFromThisDoc(message)) {
+      const docActions = message.data.docActions;
+      for (let i = 0, len = docActions.length; i < len; i++) {
+        console.log("GristDoc applying #%d", i, docActions[i]);
+        this.docData.receiveAction(docActions[i]);
+        this.docPluginManager.receiveAction(docActions[i]);
+
+        if (!schemaUpdated && isSchemaAction(docActions[i])) {
+          schemaUpdated = true;
+        }
+      }
+      // Add fromSelf property to actionGroup indicating if it's from the current session.
+      const actionGroup = message.data.actionGroup;
+      actionGroup.fromSelf = message.fromSelf || false;
+      // Push to the actionLog and the undoStack.
+      if (!actionGroup.internal) {
+        this._actionLog.pushAction(actionGroup);
+        this._undoStack.pushAction(actionGroup);
+        if (actionGroup.fromSelf) {
+          this._lastOwnActionGroup = actionGroup;
+        }
+      }
+      if (schemaUpdated) {
+        this.trigger('schemaUpdateAction', docActions);
+      }
+      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
+      this.trigger('onDocUserAction', docActions);
+    }
+  }
+
+  private async _setCursorPos(cursorPos: CursorPos) {
+    if (cursorPos.sectionId && cursorPos.sectionId !== this.externalSectionId.get()) {
+      const desiredSection: ViewSectionRec = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
+      // If the section id is 0, the section doesn't exist (can happen during undo/redo), and should
+      // be fixed there. For now ignore it, to not create empty sections or views (peeking a view will create it).
+      if (!desiredSection.id.peek()) {
+        return;
+      }
+      // If this is completely unknown section (without a parent), it is probably an import preview.
+      if (
+        !desiredSection.parentId.peek() &&
+        !desiredSection.isRaw.peek() &&
+        !desiredSection.isRecordCard.peek()
+      ) {
+        const view = desiredSection.viewInstance.peek();
+        // Make sure we have a view instance here - it will prove our assumption that this is
+        // an import preview. Section might also be disconnected during undo/redo.
+        if (view && !view.isDisposed()) {
+          view.setCursorPos(cursorPos);
+          return;
+        }
+      }
+      if (desiredSection.view.peek().getRowId() !== this.activeViewId.get()) {
+        // This may be asynchronous. In other cases, the change is synchronous, and some code
+        // relies on it (doesn't wait for this function to resolve).
+        await this._switchToSectionId(cursorPos.sectionId);
+      } else if (desiredSection !== this.viewModel.activeSection.peek()) {
+        this.viewModel.activeSectionId(cursorPos.sectionId);
+      }
+    }
+    const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
+    viewInstance?.setCursorPos(cursorPos);
+  }
+
+  /**
+   * Returns an object representing the position of the cursor, including the section. It will have
+   * fields { sectionId, rowId, fieldIndex }. Fields may be missing if no section is active.
+   */
+  private _getCursorPos(): CursorPos {
+    const pos = {sectionId: this.viewModel.activeSectionId()};
+    const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
+    return Object.assign(pos, viewInstance ? viewInstance.cursor.getCursorPos() : {});
   }
 
   private async _addWidgetToPage(
@@ -1569,7 +1481,7 @@ export class GristDoc extends DisposableWithEvents {
     const popupSection = this.viewModel.activeSection.peek();
     // We need to make it active, so that cursor on this section will be the
     // active one. This will change activeViewSectionId on a parent view of this section,
-    // which might be a diffrent view from what we currently have. If the section is
+    // which might be a different view from what we currently have. If the section is
     // a raw data or record card section, it will use `EmptyRowModel` as these sections
     // don't currently have parent views.
     popupSection.hasFocus(true);
@@ -1807,7 +1719,7 @@ export class GristDoc extends DisposableWithEvents {
 
     // charts needs to keep view fields consistent across updates
     if (oldVal.type === 'chart' && newVal.type === 'chart') {
-      await this.setSectionViewFieldsFromArray(newSection, colIds);
+      await this._setSectionViewFieldsFromArray(newSection, colIds);
     }
 
     // update theme, and chart type
@@ -1828,7 +1740,7 @@ export class GristDoc extends DisposableWithEvents {
    */
   private _onSendActionsStart(ev: { cursorPos: CursorPos }) {
     this._lastOwnActionGroup = null;
-    ev.cursorPos = this.getCursorPos();
+    ev.cursorPos = this._getCursorPos();
   }
 
   /**

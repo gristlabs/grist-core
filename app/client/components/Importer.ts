@@ -1056,7 +1056,7 @@ export class Importer extends DisposableWithEvents {
                           if (matched) {
                             await this._setColumnFormula(transformCol, matched[0], info);
                           } else {
-                            await this._gristDoc.clearColumns([field.colRef()]);
+                            await this._gristDoc.docModel.clearColumns([field.colRef()]);
                           }
                         }),
                       )),
@@ -1215,7 +1215,7 @@ export class Importer extends DisposableWithEvents {
     customized.delete(transformCol.colId());
     info.customizedColumns.set(customized);
     if (formula === null) {
-      await this._gristDoc.clearColumns([transformColRef], {keepType: true});
+      await this._gristDoc.docModel.clearColumns([transformColRef], {keepType: true});
     } else {
       await this._gristDoc.docModel.columns.sendTableAction(
         ['UpdateRecord', transformColRef, { formula, isFormula: true }]);

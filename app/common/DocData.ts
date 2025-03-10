@@ -136,6 +136,10 @@ export class DocData extends ActionDispatcher {
     }
   }
 
+  public receiveActions(actions: DocAction[]): void {
+    actions.forEach(action => this.receiveAction(action));
+  }
+
   public docInfo(): MetaRowRecord<'_grist_DocInfo'> {
     const docInfoTable = this.getMetaTable('_grist_DocInfo');
     return docInfoTable.getRecord(1)!;

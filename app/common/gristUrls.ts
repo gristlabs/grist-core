@@ -50,8 +50,11 @@ export type AuditLogsPage = typeof AuditLogsPage.type;
 export const LoginPage = StringUnion('signup', 'login', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
-export const AdminPanelPage = StringUnion('admin');
+export const AdminPanelPage = StringUnion('admin', 'docs', 'users', 'workspaces', 'orgs');
 export type AdminPanelPage = typeof AdminPanelPage.type;
+
+export const AdminPanelTab = StringUnion('users', 'workspaces', 'docs', 'orgs', 'details');
+export type AdminPanelTab = typeof AdminPanelTab.type;
 
 // Overall UI style.  "full" is normal, "singlePage" is a single page focused, panels hidden experience.
 export const InterfaceStyle = StringUnion('singlePage', 'full');
@@ -144,6 +147,7 @@ export interface IGristUrlState {
   login?: LoginPage;
   welcome?: WelcomePage;
   adminPanel?: AdminPanelPage;
+  adminPanelTab?: AdminPanelTab;
   welcomeTour?: boolean;
   docTour?: boolean;
   manageUsers?: boolean;
@@ -163,6 +167,7 @@ export interface IGristUrlState {
     themeSyncWithOs?: boolean;
     themeAppearance?: ThemeAppearance;
     themeName?: ThemeName;
+    details?: boolean; // Used on admin pages to show details tab.
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
   api?: boolean;     // indicates that the URL should be encoded as an API URL, not as a landing page.
@@ -348,11 +353,16 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(`welcome/${state.welcome}`);
   }
 
-  if (state.adminPanel) { parts.push(state.adminPanel); }
+  if (state.adminPanel) {
+    parts.push(state.adminPanel === 'admin' ? 'admin' : `admin/${state.adminPanel}`);
+  }
 
   const queryParams = pickBy(state.params, (v, k) => k !== 'linkParameters') as {[key: string]: string};
   for (const [k, v] of Object.entries(state.params?.linkParameters || {})) {
     queryParams[`${k}_`] = v;
+  }
+  if (state.params?.details) {
+    queryParams.details = 'true';
   }
   const hashParts: string[] = [];
   if (state.hash && (state.hash.rowId || state.hash.popup || state.hash.recordCard)) {
@@ -396,6 +406,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     url.hash = 'create-team';
   } else if (state.upgradeTeam) {
     url.hash = 'upgrade-team';
+  } else if (state.adminPanelTab) {
+    url.hash = state.adminPanelTab;
   } else {
     url.hash = '';
   }
@@ -499,13 +511,14 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.auditLogs = AuditLogsPage.parse(map.get('audit-logs')) || 'audit-logs';
   }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
-  if (map.has('admin')) { state.adminPanel = AdminPanelPage.parse(map.get('admin')) || 'admin'; }
+  if (map.has('admin')) {
+    state.adminPanel = AdminPanelPage.parse(map.get('admin')) || 'admin';
+  }
   if (sp.has('planType')) { state.params!.planType = sp.get('planType')!; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
   if (sp.has('billingTask')) {
     state.params!.billingTask = BillingTask.parse(sp.get('billingTask'));
   }
-
   if (map.has('signup')) {
     state.login = 'signup';
   } else if (map.has('login')) {
@@ -556,6 +569,10 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
   }
 
+  if (sp.has('details')) {
+    state.params!.details = isAffirmative(sp.get('details'));
+  }
+
   if (sp.has('compare')) {
     state.params!.compare = sp.get('compare')!;
   }
@@ -577,6 +594,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
       }
     }
     state.homePageTab = HomePageTab.parse(hashMap.get('#'));
+    state.adminPanelTab = AdminPanelTab.parse(hashMap.get('#'));
     if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [
