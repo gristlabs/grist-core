@@ -61,7 +61,7 @@ export class AttachmentRetrievalError extends Error {
   }
 }
 
-export class MismatchedFileHash extends Error {
+export class MismatchedFileHashError extends Error {
   constructor(fileIdent: string, hash: string) {
     super(`Hash ${hash} is not correct for attachment file '${fileIdent}'`);
   }
@@ -169,7 +169,7 @@ export class AttachmentFileManager extends EventEmitter {
       const buffer = bufferStream.getBuffer();
       const fileHash = hashStream.getDigest();
       if (!fileIdent.startsWith(fileHash)) {
-        throw new MismatchedFileHash(fileIdent, fileHash);
+        throw new MismatchedFileHashError(fileIdent, fileHash);
       }
       await this._storeFileInLocalStorage(fileIdent, buffer);
     } else {
@@ -182,7 +182,7 @@ export class AttachmentFileManager extends EventEmitter {
       const fileHash = hashStream.getDigest();
       if (!fileIdent.startsWith(fileHash)) {
         await newStore.delete(this._getDocPoolId(), fileIdent);
-        throw new MismatchedFileHash(fileIdent, fileHash);
+        throw new MismatchedFileHashError(fileIdent, fileHash);
       }
     }
 
