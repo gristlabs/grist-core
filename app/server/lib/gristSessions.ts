@@ -3,6 +3,7 @@ import {parseSubdomain} from 'app/common/gristUrls';
 import {isNumber} from 'app/common/gutil';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
+import log from 'app/server/lib/log';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
@@ -10,7 +11,7 @@ import * as crypto from 'crypto';
 import * as express from 'express';
 import assignIn = require('lodash/assignIn');
 import * as path from 'path';
-
+import {createClient} from 'redis';
 
 export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
 
@@ -58,9 +59,13 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
     const RedisStore = require('connect-redis')(session);
     promisifyAll(RedisStore.prototype);
     return () => {
-      const store = new RedisStore({
-        url: process.env.REDIS_URL,
-      });
+      const client = createClient(process.env.REDIS_URL);
+      client.on('error',
+        (err: unknown)=> {
+          log.error(`createSessionStoreFactory: redisClient error`, String(err));
+        }
+      );
+      const store = new RedisStore({client});
       return assignIn(store, {
         async close() {
           // Quit the client, so that it doesn't attempt to reconnect (which matters for some
