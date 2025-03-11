@@ -12,6 +12,7 @@ import { pruneActionHistory } from 'app/server/utils/pruneActionHistory';
 import { showAuditLogEvents } from 'app/server/utils/showAuditLogEvents';
 import * as commander from 'commander';
 import { Connection } from 'typeorm';
+import { dumpActionHistory } from './utils/dumpActionHistory';
 
 /**
  * Main entrypoint for a cli toolbox for configuring aspects of Grist
@@ -78,10 +79,15 @@ export function addHistoryCommand(program: commander.Command, options: CommandOp
     sectionDescription: 'fiddle with history of a Grist document',
     ...options,
   });
-  sub('prune <docId>')
+  sub('prune <docPath>')
     .description('remove all but last N actions from doc')
     .argument('[N]', 'number of actions to keep', parseIntForCommander, 1)
     .action(pruneActionHistory);
+  sub('dump <docPath>')
+    .description('Dump the lattest history actions')
+    .option('-m, --max-actions', 'number of actions to dump')
+    .option('-o, --output', 'The output file')
+    .action(dumpActionHistory);
 }
 
 // Add commands for general configuration
