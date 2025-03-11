@@ -162,6 +162,8 @@ export class AttachmentFileManager extends EventEmitter {
 
     const newStore = store || (defaultStoreId ? await this._getStore(defaultStoreId) : null);
 
+    // Internal storage is handled separately, as it needs the file as a Buffer in memory.
+    // External storage can avoid loading it into memory, as it's all stream APIs.
     if (!newStore) {
       const hashStream = new HashPassthroughStream();
       const bufferStream = new MemoryWritableStream();
