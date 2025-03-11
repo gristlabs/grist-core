@@ -135,8 +135,10 @@ export interface FormPart {
  * @returns {Promise<void>}
  *  Promise, resolves when all parts of the form have been handled, or an error has occurred.
  */
-export function parseMultipartFormRequest(
-  req: Request, onFile: (file: FormPart) => Promise<void>, onField: (name: string, value: string) => void
+export async function parseMultipartFormRequest(
+  req: Request,
+  onFile: (file: FormPart) => Promise<void> = () => Promise.resolve(),
+  onField: (name: string, value: string) => void = () => {},
 ): Promise<void> {
   let resolveFinished: (() => void) = () => {};
   let rejectFinished: ((reason: any) => void) = () => {};
@@ -145,13 +147,14 @@ export function parseMultipartFormRequest(
     rejectFinished = reject;
   });
   const form = new multiparty.Form({ autoField: true });
+  const partPromises: Promise<void>[] = [];
   // This only emits files, due to autoField being true
   form.on('part', (part: any) => {
     // If the underlying stream breaks, we should unblock the caller.
     part.on('error', (err: any) => rejectFinished(err));
     // The stream needs to be drained for the request to continue. If something goes wrong
     // in the `onFile` callback, drainWhenSettled guarantees that.
-    drainWhenSettled(part,
+    partPromises.push(drainWhenSettled(part,
       onFile({
         name: (part.filename ?? "") as string,
         contentType: (part.headers['content-type'] ?? "") as string,
@@ -159,7 +162,7 @@ export function parseMultipartFormRequest(
       })
     // No sensible way to handle errors from this promise - so do nothing here, and assume the callback
     // handles errors sensibly.
-    ).catch(() => {});
+    ).catch(() => {}));
   });
   form.on('field', onField);
   form.on('error', function (err: any) {
@@ -169,7 +172,12 @@ export function parseMultipartFormRequest(
     resolveFinished();
   });
   form.parse(req);
-  return finished;
+  // Waiting for all part handlers to settle makes using this function more intuitive.
+  // Need to wait for the parsing to be finished first, to ensure all part exist.
+  await Promise.allSettled([finished]);
+  await Promise.allSettled(partPromises);
+  // Make sure this is still rejected if there was an error.
+  await finished;
 }
 
 /**
