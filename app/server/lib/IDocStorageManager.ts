@@ -2,9 +2,11 @@ import {DocEntry} from 'app/common/DocListAPI';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentUsage} from 'app/common/DocUsage';
 import {DocReplacementOptions} from 'app/common/UserAPI';
+import {SQLiteDB} from 'app/server/lib/SQLiteDB';
 
 export interface IDocStorageManager {
   getPath(docName: string): string;
+  getSQLiteDB(docName: string): SQLiteDB|undefined;
   getSampleDocPath(sampleDocName: string): string|null;
   getCanonicalDocName(altDocName: string): Promise<string>;
 
@@ -47,6 +49,7 @@ export interface IDocStorageManager {
  */
 export class TrivialDocStorageManager implements IDocStorageManager {
   public getPath(docName: string): string { return docName; }
+  public getSQLiteDB() { return undefined; }
   public getSampleDocPath() { return null; }
   public async getCanonicalDocName(altDocName: string) { return altDocName; }
   public async prepareLocalDoc() { return false; }
