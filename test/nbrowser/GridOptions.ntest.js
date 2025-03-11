@@ -23,8 +23,8 @@ describe("GridOptions.ntest", function() {
    */
   async function assertHVCZ(sec, hor, vert, icon, zebra) {
     let testClasses =
-        ['record-hlines', 'record-vlines', 'record-icon', 'record-zebra'];
-    let flags = [hor, vert, icon, zebra];
+        ['record-hlines', 'record-vlines', 'record-zebra'];
+    let flags = [hor, vert, zebra];
 
     let cell = await gu.getCell({rowNum: 1, col: 0, section: secNames[sec]});
     let row = await cell.findClosest('.record');
@@ -33,6 +33,11 @@ describe("GridOptions.ntest", function() {
       if(flags[i])  { assert.include(rowClasses, cls);}
       else          { assert.notInclude(rowClasses, cls); }
     });
+    // Check for the presence of 'record-icon' class on the div.field-icon element
+    const fieldIcon = await row.find('.field-icon');
+    const iconClasses = await fieldIcon.classList();
+    if (icon) { assert.include(iconClasses, 'record-icon'); }
+    else { assert.notInclude(iconClasses, 'record-icon'); }
   }
 
 
