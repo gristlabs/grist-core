@@ -94,7 +94,7 @@ import {
   Archive,
   ArchiveEntry, CreatableArchiveFormats,
   create_tar_archive,
-  create_zip_archive
+  create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
@@ -143,7 +143,7 @@ import tmp from 'tmp';
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
-import {AttachmentFileManager} from './AttachmentFileManager';
+import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileManager';
 import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
@@ -160,6 +160,8 @@ import merge = require('lodash/merge');
 import pick = require('lodash/pick');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
+import stream from 'node:stream';
+import path from 'path';
 
 bluebird.promisifyAll(tmp);
 
@@ -987,8 +989,17 @@ export class ActiveDoc extends EventEmitter {
           throw new ApiError("Document is shutting down, archiving aborted", 500);
         }
         const file = await attachmentFileManager.getFile(attachment.fileIdent);
-        const fileHash = attachment.fileIdent.split(".")[0];
-        const name = `${fileHash}_${attachment.fileName}`;
+        const fileIdentParts = attachment.fileIdent.split(".");
+        const fileHash = fileIdentParts[0];
+        const fileIdentExt = path.extname(attachment.fileIdent);
+        const fileNameExt = path.extname(attachment.fileName);
+        const fileNameNoExt = path.basename(attachment.fileName, fileNameExt);
+        // We need to make sure the downloaded attachment's extension matches Grist's internal
+        // file extension, otherwise we can't recreate the file identifier when uploading.
+        const extension = fileIdentExt || fileNameExt;
+        const suffix = extension ? `.${extension}` : "";
+
+        const name = `${fileHash}_${fileNameNoExt}${suffix}`;
         // This should only happen if a file has identical name *and* content hash.
         if (filesAdded.has(name)) {
           continue;
@@ -1010,6 +1021,49 @@ export class ActiveDoc extends EventEmitter {
     }
     // Generally this won't happen, as long as the above is exhaustive over the type of `format`
     throw new ApiError(`Unsupported archive format ${format}`, 400);
+  }
+
+  @ActiveDoc.keepDocOpen
+  public async addMissingFilesFromArchive(docSession: OptDocSession,
+                                          tarFile: stream.Readable): Promise<ArchiveUploadResult> {
+    // TODO - Check if this is the right access level for this.
+    if(!await this.isOwner(docSession)) {
+      throw new ApiError("Insufficient access to upload an attachment archive", 403);
+    }
+
+    const fallbackStoreId = this._getDocumentSettings().attachmentStoreId;
+    const results = {
+      added: 0,
+      errored: 0,
+      unused: 0,
+    };
+
+    await unpackTarArchive(tarFile, async (file) => {
+      try {
+        const fileName = path.basename(file.path);
+        const fileHash = file.path.split("_")[0];
+        const fileExt = path.extname(fileName);
+        const fileIdent = `${fileHash}${fileExt}`;
+        const isAdded = await this._attachmentFileManager.addMissingFileData(
+          fileIdent,
+          file.data,
+          fallbackStoreId,
+        );
+        if (isAdded) {
+          results.added += 1;
+        } else {
+          results.unused += 1;
+        }
+      } catch (err) {
+        results.errored += 1;
+        if (err instanceof MismatchedFileHashError) {
+          this._log.warn(docSession, `Failed to upload attachment: ${err.message}`);
+        }
+        this._log.error(docSession, `Failed to upload attachment: ${err}`);
+      }
+    });
+
+    return results;
   }
 
   @ActiveDoc.keepDocOpen
@@ -3301,4 +3355,10 @@ function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLe
       ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
     },
   };
+}
+
+export interface ArchiveUploadResult {
+  added: number;
+  errored: number;
+  unused: number;
 }
