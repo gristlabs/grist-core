@@ -12,6 +12,7 @@ import log from 'app/server/lib/log';
 import {optStringParam} from 'app/server/lib/requestUtils';
 import {isPathWithin} from 'app/server/lib/serverUtils';
 import * as shutdown from 'app/server/lib/shutdown';
+import {drainWhenSettled} from 'app/server/utils/streams';
 import {fromCallback} from 'bluebird';
 import * as contentDisposition from 'content-disposition';
 import {Application, Request, RequestHandler, Response} from 'express';
@@ -24,7 +25,6 @@ import * as path from 'path';
 import * as tmp from 'tmp';
 import {IDocWorkerMap} from './DocWorkerMap';
 import {getDocWorkerInfoOrSelfPrefix} from './DocWorkerUtils';
-import {drainWhenSettled} from 'app/server/utils/streams';
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle

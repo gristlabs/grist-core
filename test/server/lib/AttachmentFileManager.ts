@@ -619,5 +619,4 @@ describe("AttachmentFileManager", function() {
     // We can't assert on if the files exists in the store, as it might be transferred from A to B and back to A,
     // and so exist in both stores.
   });
-
 });

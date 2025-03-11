@@ -1,6 +1,6 @@
 import {BinaryToTextEncoding, createHash, Hash} from 'crypto';
-import {Readable, Transform, TransformCallback} from 'node:stream';
 import * as fs from 'fs';
+import {Readable, Transform, TransformCallback} from 'node:stream';
 
 /**
  * Computes hash of the file at the given path, using 'sha1' by default, or any algorithm

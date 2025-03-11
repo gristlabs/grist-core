@@ -531,7 +531,6 @@ export class DocWorkerApi {
       res.json({records});
     }));
 
-
     // Starts transferring all attachments to the named store, if it exists.
     this._app.post('/api/docs/:docId/attachments/transferAll', isOwner, withDoc(async (activeDoc, req, res) => {
       await activeDoc.startTransferringAllAttachmentsToDefaultStore();
@@ -612,7 +611,6 @@ export class DocWorkerApi {
       await parseMultipartFormRequest(
         req,
         async (file) => {
-          console.log(file);
           if (foundTarArchive || !file.name.endsWith('.tar') || file.contentType !== "application/x-tar") { return; }
 
           results = await activeDoc.addMissingFilesFromArchive(docSessionFromRequest(req), file.stream);
