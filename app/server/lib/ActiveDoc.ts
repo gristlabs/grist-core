@@ -996,10 +996,9 @@ export class ActiveDoc extends EventEmitter {
         const fileNameNoExt = path.basename(attachment.fileName, fileNameExt);
         // We need to make sure the downloaded attachment's extension matches Grist's internal
         // file extension, otherwise we can't recreate the file identifier when uploading.
-        const extension = fileIdentExt || fileNameExt;
-        const suffix = extension ? `.${extension}` : "";
-
-        const name = `${fileHash}_${fileNameNoExt}${suffix}`;
+        // They might not match, as the upload process considers things like mime type when
+        // adding the extension to the file identifier.
+        const name = `${fileHash}_${fileNameNoExt}${fileIdentExt}`;
         // This should only happen if a file has identical name *and* content hash.
         if (filesAdded.has(name)) {
           continue;
