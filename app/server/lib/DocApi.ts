@@ -606,24 +606,25 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/attachments/archive', isOwner, withDoc(async (activeDoc, req, res) => {
       let foundTarArchive = false;
 
-      let results: ArchiveUploadResult | undefined;
+      let archivePromise: Promise<ArchiveUploadResult> | undefined;
 
       await parseMultipartFormRequest(
         req,
         async (file) => {
           if (foundTarArchive || !file.name.endsWith('.tar') || file.contentType !== "application/x-tar") { return; }
-
-          results = await activeDoc.addMissingFilesFromArchive(docSessionFromRequest(req), file.stream);
-
           foundTarArchive = true;
+          archivePromise = activeDoc.addMissingFilesFromArchive(docSessionFromRequest(req), file.stream);
+          await archivePromise;
         }
       );
 
-      if (!results) {
-        throw new ApiError("No valid .tar file found in request", 400);
+      if (!foundTarArchive) {
+        throw new ApiError("No .tar file found in request", 400);
       }
 
-      res.json(results);
+      // parseMultipartFormRequest ignores handler errors.
+      // Await this here to ensure errors are thrown.
+      res.json(await archivePromise);
     }));
 
     // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
