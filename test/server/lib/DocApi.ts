@@ -2509,8 +2509,8 @@ function testDocApi(settings: {
       }
     }
 
-    it("GET /docs/{did}/attachments/download downloads all attachments as a .zip", async function () {
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/download`,
+    it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip", async function () {
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/zip');
@@ -2530,8 +2530,8 @@ function testDocApi(settings: {
       ]);
     });
 
-    it("GET /docs/{did}/attachments/download downloads all attachments as a .tar", async function () {
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/download?format=tar`,
+    it("GET /docs/{did}/attachments/archive downloads all attachments as a .tar", async function () {
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive?format=tar`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/x-tar');
@@ -2869,8 +2869,8 @@ function testDocApi(settings: {
         });
       });
 
-      it("GET /docs/{did}/attachments/download downloads all attachments as a .zip when external", async function () {
-        const resp = await axios.get(`${docUrl}/attachments/download`,
+      it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip when external", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/archive`,
           {...chimpy, responseType: 'arraybuffer'});
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.headers['content-type'], 'application/zip');

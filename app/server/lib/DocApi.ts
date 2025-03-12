@@ -604,21 +604,18 @@ export class DocWorkerApi {
     }));
 
     this._app.post('/api/docs/:docId/attachments/archive', isOwner, withDoc(async (activeDoc, req, res) => {
-      let foundTarArchive = false;
-
       let archivePromise: Promise<ArchiveUploadResult> | undefined;
 
       await parseMultipartFormRequest(
         req,
         async (file) => {
-          if (foundTarArchive || !file.name.endsWith('.tar') || file.contentType !== "application/x-tar") { return; }
-          foundTarArchive = true;
+          if (archivePromise || !file.name.endsWith('.tar') || file.contentType !== "application/x-tar") { return; }
           archivePromise = activeDoc.addMissingFilesFromArchive(docSessionFromRequest(req), file.stream);
           await archivePromise;
         }
       );
 
-      if (!foundTarArchive) {
+      if (!archivePromise) {
         throw new ApiError("No .tar file found in request", 400);
       }
 

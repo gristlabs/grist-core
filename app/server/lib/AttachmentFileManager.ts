@@ -8,7 +8,7 @@ import {
 } from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {checksumFileStream, HashPassthroughStream} from 'app/server/lib/checksumFile';
-import {DocStorage} from 'app/server/lib/DocStorage';
+import {DocStorage, FileInfo} from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {MemoryWritableStream} from 'app/server/utils/streams';
@@ -153,14 +153,11 @@ export class AttachmentFileManager extends EventEmitter {
   ): Promise<boolean> {
     const fileMetadata = await this._docStorage.getFileInfoNoData(fileIdent);
     if (!fileMetadata) { return false; }
-    // File is stored internally, so shouldn't ever be missing.
-    if (!fileMetadata.storageId) { return false; }
+    if (await this._isFileAvailable(fileMetadata)) { return false; }
 
-    const store = await this._getStore(fileMetadata.storageId);
-    const fileExists = store && await store.exists(this._getDocPoolId(), fileIdent);
-    if (fileExists) { return false; }
-
-    const newStore = store || (defaultStoreId ? await this._getStore(defaultStoreId) : null);
+    const originalStoreExists = fileMetadata.ident in this._getStoreProvider().listAllStoreIds();
+    const newStoreId = originalStoreExists ? fileMetadata.ident : defaultStoreId;
+    const newStore = newStoreId && await this._getStore(newStoreId) || undefined;
 
     // Internal storage is handled separately, as it needs the file as a Buffer in memory.
     // External storage can avoid loading it into memory, as it's all stream APIs.
@@ -201,13 +198,8 @@ export class AttachmentFileManager extends EventEmitter {
   }
 
   public async isFileAvailable(fileIdent: string): Promise<boolean> {
-    const fileInfo = await this._docStorage.getFileInfo(fileIdent);
-    if (!fileInfo) { return false; }
-    // Local files are always available
-    if (fileInfo.storageId === null) { return true; }
-    const store = await this._storeProvider?.getStore(fileInfo.storageId);
-    if (!store) { return false; }
-    return await store.exists(this._getDocPoolId(), fileIdent);
+    const fileInfo = await this._docStorage.getFileInfoNoData(fileIdent);
+    return this._isFileAvailable(fileInfo);
   }
 
   public async locationSummary(): Promise<DocAttachmentsLocation> {
@@ -389,6 +381,15 @@ export class AttachmentFileManager extends EventEmitter {
     } as AttachmentTransferStatus);
   }
 
+  private async _isFileAvailable(fileInfo?: FileInfo | null): Promise<boolean> {
+    if (!fileInfo) { return false; }
+    // Local files are always available
+    if (fileInfo.storageId === null) { return true; }
+    const store = await this._storeProvider?.getStore(fileInfo.storageId);
+    if (!store) { return false; }
+    return await store.exists(this._getDocPoolId(), fileInfo.ident);
+  }
+
   private async _addFileToLocalStorage(
     fileIdent: string,
     fileData: Buffer
@@ -528,11 +529,15 @@ export class AttachmentFileManager extends EventEmitter {
     };
   }
 
-  private async _getStore(storeId: AttachmentStoreId): Promise<IAttachmentStore | null> {
+  private _getStoreProvider(): IAttachmentStoreProvider {
     if (!this._storeProvider) {
       throw new StoresNotConfiguredError();
     }
-    return this._storeProvider.getStore(storeId);
+    return this._storeProvider;
+  }
+
+  private async _getStore(storeId: AttachmentStoreId): Promise<IAttachmentStore | null> {
+    return this._getStoreProvider().getStore(storeId);
   }
 
   private _getDocPoolId(): string {

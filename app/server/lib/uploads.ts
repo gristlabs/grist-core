@@ -118,7 +118,7 @@ export async function handleUpload(req: Request, res: Response): Promise<UploadR
   return upload;
 }
 
-export interface FormPart {
+export interface MultipartFormFile {
   name: string;
   contentType: string;
   stream: stream.Readable;
@@ -127,7 +127,7 @@ export interface FormPart {
 /**
  * Processes a request containing a multipart/form-data body.
  * @param {e.Request} req - Request to read body from
- * @param {(file: FormPart) => Promise<void>} onFile
+ * @param {(file: MultipartFormFile) => Promise<void>} onFile
  *  Called for each file found. The returned promise should only resolve
  *  when the handler is finished with the data stream, otherwise errors might occur.
  * @param {(name: string, value: string) => void} onField
@@ -137,7 +137,7 @@ export interface FormPart {
  */
 export async function parseMultipartFormRequest(
   req: Request,
-  onFile: (file: FormPart) => Promise<void> = () => Promise.resolve(),
+  onFile: (file: MultipartFormFile) => Promise<void> = () => Promise.resolve(),
   onField: (name: string, value: string) => void = () => {},
 ): Promise<void> {
   let resolveFinished: (() => void) = () => {};
@@ -172,12 +172,13 @@ export async function parseMultipartFormRequest(
     resolveFinished();
   });
   form.parse(req);
-  // Waiting for all part handlers to settle makes using this function more intuitive.
-  // Need to wait for the parsing to be finished first, to ensure all part exist.
-  await Promise.allSettled([finished]);
-  await Promise.allSettled(partPromises);
-  // Make sure this is still rejected if there was an error.
-  await finished;
+  try {
+    await finished;
+  } finally {
+    // Waiting for all part handlers to settle makes using this function more intuitive.
+    // Need to wait for the parsing to be finished first, to ensure all part exist.
+    await Promise.allSettled(partPromises);
+  }
 }
 
 /**

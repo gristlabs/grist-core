@@ -121,9 +121,9 @@ export async function unpackTarArchive(
     rejectFinished = reject;
   });
 
-  const extract = tar.extract();
+  const extractor = tar.extract();
 
-  extract.on('entry', function (header, contentStream, next) {
+  extractor.on('entry', function (header, contentStream, next) {
     // Ensures contentStream is drained when onFile is finished.
     // Failure to drain contentStream will block the whole extraction.
     drainWhenSettled(contentStream,
@@ -137,10 +137,10 @@ export async function unpackTarArchive(
      .finally(() => { next(); });
   });
 
-  extract.on('error', (err: any) => { rejectFinished(err); });
-  extract.on('finish', () => { resolveFinished(); });
+  extractor.on('error', (err: any) => { rejectFinished(err); });
+  extractor.on('finish', () => { resolveFinished(); });
 
-  tarStream.pipe(extract);
+  tarStream.pipe(extractor);
 
   return finished;
 }

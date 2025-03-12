@@ -989,17 +989,8 @@ export class ActiveDoc extends EventEmitter {
           throw new ApiError("Document is shutting down, archiving aborted", 500);
         }
         const file = await attachmentFileManager.getFile(attachment.fileIdent);
-        const fileIdentParts = attachment.fileIdent.split(".");
-        const fileHash = fileIdentParts[0];
-        const fileIdentExt = path.extname(attachment.fileIdent);
-        const fileNameExt = path.extname(attachment.fileName);
-        const fileNameNoExt = path.basename(attachment.fileName, fileNameExt);
-        // We need to make sure the downloaded attachment's extension matches Grist's internal
-        // file extension, otherwise we can't recreate the file identifier when uploading.
-        // They might not match, as the upload process considers things like mime type when
-        // adding the extension to the file identifier.
-        const name = `${fileHash}_${fileNameNoExt}${fileIdentExt}`;
-        // This should only happen if a file has identical name *and* content hash.
+        const name = attachmentToArchiveFilePath(attachment);
+        // This should only happen if a file has identical name *and* identifier.
         if (filesAdded.has(name)) {
           continue;
         }
@@ -1039,10 +1030,7 @@ export class ActiveDoc extends EventEmitter {
 
     await unpackTarArchive(tarFile, async (file) => {
       try {
-        const fileName = path.basename(file.path);
-        const fileHash = file.path.split("_")[0];
-        const fileExt = path.extname(fileName);
-        const fileIdent = `${fileHash}${fileExt}`;
+        const fileIdent = archiveFilePathToAttachmentIdent(file.path);
         const isAdded = await this._attachmentFileManager.addMissingFileData(
           fileIdent,
           file.data,
@@ -3360,4 +3348,24 @@ export interface ArchiveUploadResult {
   added: number;
   errored: number;
   unused: number;
+}
+
+export function attachmentToArchiveFilePath(fileDetails: { fileIdent: string, fileName: string } ): string {
+  const fileIdentParts = fileDetails.fileIdent.split(".");
+  const fileHash = fileIdentParts[0];
+  const fileIdentExt = path.extname(fileDetails.fileIdent);
+  const fileNameExt = path.extname(fileDetails.fileName);
+  const fileNameNoExt = path.basename(fileDetails.fileName, fileNameExt);
+  // We need to make sure the downloaded attachment's extension matches Grist's internal
+  // file extension, otherwise we can't recreate the file identifier when uploading.
+  // They might not match, as the upload process considers things like mime type when
+  // adding the extension to the file identifier.
+  return `${fileHash}_${fileNameNoExt}${fileIdentExt}`;
+}
+
+export function archiveFilePathToAttachmentIdent(filePath: string): string {
+  const fileName = path.basename(filePath);
+  const fileHash = fileName.split("_")[0];
+  const fileExt = path.extname(fileName);
+  return `${fileHash}${fileExt}`;
 }
