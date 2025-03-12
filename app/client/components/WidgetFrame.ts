@@ -9,6 +9,7 @@ import {sanitizeHttpUrl} from 'app/client/lib/sanitizeUrl';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {gristThemeObs} from 'app/client/ui2018/theme';
+import {convertThemeKeysToCssVars} from 'app/common/ThemePrefs';
 import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
@@ -727,7 +728,7 @@ export class ThemeNotifier extends BaseEventSource {
     if (this.isDisposed()) { return; }
 
     this._notify({
-      theme: gristThemeObs().get(),
+      theme: convertThemeKeysToCssVars(gristThemeObs().get()),
       fromReady,
     });
   }
