@@ -538,14 +538,14 @@ describe('HostedStorageManager', function() {
 
       it('can save modifications', async function() {
         await store.run(async () => {
-          await workers.assignDocWorker('Hello');
-          await useFixtureDoc('Hello.grist', store.storageManager);
+          await workers.assignDocWorker('World');
+          await useFixtureDoc('World.grist', store.storageManager);
 
           await workers.assignDocWorker('Hello2');
 
-          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          const doc = await store.docManager.fetchDoc(docSession, 'World');
           const doc2 = await store.docManager.fetchDoc(docSession, 'Hello2');
-          await doc.docStorage.exec("update Table1 set A = 'magic_word' where id = 1");
+          await doc.docStorage.exec("update Table1 set a = 'magic_word' where id = 1");
           await doc2.docStorage.exec("insert into Table1(id) values(42)");
           return { doc, doc2 };
         });
@@ -553,9 +553,9 @@ describe('HostedStorageManager', function() {
         await store.removeAll();
 
         await store.run(async () => {
-          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
-          let result = await doc.docStorage.get("select A from Table1 where id = 1");
-          assert.equal(result!.A, 'magic_word');
+          const doc = await store.docManager.fetchDoc(docSession, 'World');
+          let result = await doc.docStorage.get("select * from Table1 where id = 1");
+          assert.equal(result!.a, 'magic_word');
           const doc2 = await store.docManager.fetchDoc(docSession, 'Hello2');
           result = await doc2.docStorage.get("select id from Table1");
           assert.equal(result!.id, 42);
