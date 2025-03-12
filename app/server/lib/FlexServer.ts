@@ -44,6 +44,7 @@ import {create} from 'app/server/lib/create';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
+import {getSqliteMode} from 'app/server/lib/DocStorage';
 import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
@@ -1367,6 +1368,9 @@ export class FlexServer implements GristServer {
     if (!this._docManager) { this.addCleanup(); }
     await this.addLoginMiddleware();
     this.addComm();
+    // Check SQLite mode so it shows up in initial configuration readout
+    // (even though we don't need it until opening documents).
+    getSqliteMode();
 
     await this.create.configure?.();
 
@@ -1392,7 +1396,7 @@ export class FlexServer implements GristServer {
     } else {
       const samples = getAppPathTo(this.appRoot, 'public_samples');
       const storageManager = await this.create.createLocalDocStorageManager(
-        this.docsRoot, samples, this._comm);
+        this.docsRoot, samples, this._comm, undefined, this);
       this._storageManager = storageManager;
     }
 

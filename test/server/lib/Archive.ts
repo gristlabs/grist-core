@@ -1,4 +1,9 @@
-import {Archive, create_zip_archive} from 'app/server/lib/Archive';
+import {
+  Archive,
+  ArchiveEntry,
+  create_tar_archive,
+  create_zip_archive
+} from 'app/server/lib/Archive';
 import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
 import decompress from 'decompress';
 import {assert} from 'chai';
@@ -16,24 +21,24 @@ const testFiles = [
 ];
 
 async function* generateTestArchiveContents() {
-  yield {
-    name: testFiles[0].name,
-    data: stream.Readable.from(Buffer.from(testFiles[0].contents))
-  };
-  yield {
-    name: testFiles[1].name,
-    data: Buffer.from(testFiles[1].contents)
-  };
+  for (const file of testFiles) {
+    const buffer = Buffer.from(file.contents);
+    yield {
+      name: file.name,
+      size: buffer.length,
+      data: stream.Readable.from(buffer),
+    };
+  }
 }
 
 async function assertArchiveCompletedSuccessfully(archive: Archive) {
   await assert.isFulfilled(archive.completed);
-  assert.isTrue(archive.dataStream.closed, "archive data stream was not closed");
+  assert.isTrue(archive.dataStream.destroyed, "archive data stream was not finished");
 }
 
 async function assertArchiveFailedWithError(archive: Archive) {
   await assert.isRejected(archive.completed);
-  assert.isTrue(archive.dataStream.closed, "archive data stream was not closed");
+  assert.isTrue(archive.dataStream.destroyed, "archive data stream was not finished");
 }
 
 async function assertArchiveContainsTestFiles(archiveData: Buffer) {
@@ -46,30 +51,41 @@ async function assertArchiveContainsTestFiles(archiveData: Buffer) {
     assert.deepEqual(zippedFile?.data.toString(), testFile.contents);
   }
 }
+
+type ArchiveCreator = (entries: AsyncIterable<ArchiveEntry>) => Promise<Archive>;
+
+function testArchive(type: string, makeArchive: ArchiveCreator) {
+  it(`should create a ${type} archive`, async function () {
+    const archive = await makeArchive(generateTestArchiveContents());
+    const output = new MemoryWritableStream();
+    archive.dataStream.pipe(output);
+    await assertArchiveCompletedSuccessfully(archive);
+
+    const archiveData = output.getBuffer();
+
+    await assertArchiveContainsTestFiles(archiveData);
+  });
+
+  it('errors in archive.completed if the generator errors', async function () {
+    async function* throwErrorGenerator() {
+      throw new Error("Test error");
+      yield {name: 'Test', size: 0, data: Buffer.from([])};
+    }
+
+    // Shouldn't error here - as this just starts the packing.
+    const archive = await makeArchive(throwErrorGenerator());
+    await assert.isRejected(archive.completed, "Test error");
+    await assertArchiveFailedWithError(archive);
+  });
+}
+
 describe('Archive', function () {
   describe('create_zip_archive', function () {
-    it('should create a zip archive', async function () {
-      const archive = await create_zip_archive({store: true}, generateTestArchiveContents());
-      const output = new MemoryWritableStream();
-      archive.dataStream.pipe(output);
-      await assertArchiveCompletedSuccessfully(archive);
-
-      const archiveData = output.getBuffer();
-
-      await assertArchiveContainsTestFiles(archiveData);
-    });
-
-    it('errors in archive.completed if the generator errors', async function () {
-      async function* throwErrorGenerator() {
-        throw new Error("Test error");
-        yield {name: testFiles[0].name, data: Buffer.from(testFiles[0].contents)};
-      }
-
-
-      // Shouldn't error here - as this just starts the packing.
-      const archive = await create_zip_archive({store: true}, throwErrorGenerator());
-      await assert.isRejected(archive.completed, "Test error");
-      await assertArchiveFailedWithError(archive);
-    });
+    const creator: ArchiveCreator = (entries) => create_zip_archive({store: true}, entries);
+    testArchive('zip', creator);
+  });
+  describe('create_tar_archive', function () {
+    const creator: ArchiveCreator = (entries) => create_tar_archive(entries);
+    testArchive('tar', creator);
   });
 });

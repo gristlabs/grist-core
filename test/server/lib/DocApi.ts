@@ -2440,7 +2440,7 @@ function testDocApi(settings: {
     for (const attachment of attachments) {
       formData.append('upload', attachment.contents, attachment.name);
     }
-    const resp = await axios.post(`${serverUrl}/api/docs/${docId}/attachments`, formData,
+    const resp = await axios.post(`${homeUrl}/api/docs/${docId}/attachments`, formData,
       defaultsDeep({headers: formData.getHeaders()}, user));
     assert.equal(resp.status, 200);
     assert.equal(resp.data.length, attachments.length);
@@ -2464,7 +2464,7 @@ function testDocApi(settings: {
 
     it("GET /docs/{did}/attachments lists attachment metadata", async function () {
       // Test that the usual /records query parameters like sort and filter also work
-      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/attachments?sort=-fileName&limit=2`;
+      const url = `${homeUrl}/api/docs/${docIds.TestDoc}/attachments?sort=-fileName&limit=2`;
       const resp = await axios.get(url, chimpy);
       assert.equal(resp.status, 200);
       const {records} = resp.data;
@@ -2480,14 +2480,14 @@ function testDocApi(settings: {
     });
 
     it("GET /docs/{did}/attachments/{id} returns attachment metadata", async function () {
-      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/2`, chimpy);
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2`, chimpy);
       assert.equal(resp.status, 200);
       assert.include(resp.data, {fileName: "world.jpg", fileSize: 6});
       assert.match(resp.data.timeUploaded, /^\d{4}-\d{2}-\d{2}T/);
     });
 
     it("GET /docs/{did}/attachments/{id}/download downloads attachment contents", async function () {
-      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'image/jpeg');
@@ -2510,7 +2510,7 @@ function testDocApi(settings: {
     }
 
     it("GET /docs/{did}/attachments/download downloads all attachments as a .zip", async function () {
-      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/download`,
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/download`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/zip');
@@ -2530,11 +2530,32 @@ function testDocApi(settings: {
       ]);
     });
 
+    it("GET /docs/{did}/attachments/download downloads all attachments as a .tar", async function () {
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/download?format=tar`,
+        {...chimpy, responseType: 'arraybuffer'});
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.headers['content-type'], 'application/x-tar');
+      assert.deepEqual(resp.headers['content-disposition'], `attachment; filename="TestDoc-Attachments.tar"`);
+
+      await assertArchiveContents(resp.data, [
+        {
+          name: 'hello.doc',
+          contents: 'foobar',
+        },
+        {
+          name: 'world.jpg',
+        },
+        {
+          name: 'hello.png',
+        },
+      ]);
+    });
+
     it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function () {
       // Check that we can download when ActiveDoc isn't currently open.
-      let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);
+      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);
       assert.equal(resp.status, 200);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'image/jpeg');
@@ -2544,24 +2565,24 @@ function testDocApi(settings: {
     });
 
     it("GET /docs/{did}/attachments/{id}... returns 404 when attachment not found", async function () {
-      let resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/22`, chimpy);
+      let resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/22`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/moo`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/moo`, chimpy);
       checkError(400, /parameter cannot be understood as an integer: moo/, resp);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/22/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/22/download`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/moo/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/moo/download`, chimpy);
       checkError(400, /parameter cannot be understood as an integer: moo/, resp);
     });
 
     it("POST /docs/{did}/attachments produces reasonable errors", async function () {
       // Check that it produces reasonable errors if we try to use it with non-form-data
-      let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments`, [4, 5, 6], chimpy);
+      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, [4, 5, 6], chimpy);
       assert.equal(resp.status, 415);     // Wrong content-type
 
       // Check for an error if there is no data included.
       const formData = new FormData();
-      resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
+      resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
         defaultsDeep({headers: formData.getHeaders()}, chimpy));
       assert.equal(resp.status, 400);
       // TODO The error here is "stream ended unexpectedly", which isn't really reasonable.
@@ -2570,14 +2591,14 @@ function testDocApi(settings: {
     it("POST/GET /docs/{did}/attachments respect document permissions", async function () {
       const formData = new FormData();
       formData.append('upload', 'xyzzz', "wrong.png");
-      let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
+      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
         defaultsDeep({headers: formData.getHeaders()}, kiwi));
       checkError(403, /No view access/, resp);
 
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/3`, kiwi);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/3`, kiwi);
       checkError(403, /No view access/, resp);
 
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/3/download`, kiwi);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/3/download`, kiwi);
       checkError(403, /No view access/, resp);
     });
 
@@ -2586,24 +2607,24 @@ function testDocApi(settings: {
       formData.append('upload', 'xyz', {filename: "foo", contentType: "application/pdf"});
       formData.append('upload', 'abc', {filename: "hello.png", contentType: "invalid/content-type"});
       formData.append('upload', 'def', {filename: "world.doc", contentType: "text/plain\nbad-header: 1\n\nEvil"});
-      let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
+      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
         defaultsDeep({headers: formData.getHeaders()}, chimpy));
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data, [4, 5, 6]);
 
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/4/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/4/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/pdf');    // A valid content-type is respected
       assert.deepEqual(resp.headers['content-disposition'], 'attachment; filename="foo.pdf"');
       assert.deepEqual(resp.data, 'xyz');
 
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/5/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/5/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'image/png');    // Did not pay attention to invalid header
       assert.deepEqual(resp.headers['content-disposition'], 'attachment; filename="hello.png"');
       assert.deepEqual(resp.data, 'abc');
 
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/6/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/6/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/msword');    // Another invalid header ignored
       assert.deepEqual(resp.headers['content-disposition'], 'attachment; filename="world.doc"');
@@ -2624,7 +2645,7 @@ function testDocApi(settings: {
         userData: { id: number, Attached: any }[],
         metaData: { id: number, deleted: boolean }[],
       ) {
-        const docUrl = `${serverUrl}/api/docs/${docId}`;
+        const docUrl = `${homeUrl}/api/docs/${docId}`;
 
         let resp = await axios.post(`${docUrl}/apply`, actions, chimpy);
         assert.equal(resp.status, 200);
@@ -2741,7 +2762,7 @@ function testDocApi(settings: {
     it("POST /docs/{did}/attachments/removeUnused removes unused attachments", async function () {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({name: 'TestDoc3'}, wid);
-      const docUrl = `${serverUrl}/api/docs/${docId}`;
+      const docUrl = `${homeUrl}/api/docs/${docId}`;
 
       const formData = new FormData();
       formData.append('upload', 'foobar', "hello.doc");
@@ -2795,7 +2816,7 @@ function testDocApi(settings: {
       before(async () => {
         const wid = await getWorkspaceId(userApi, 'Private');
         docId = await userApi.newDoc({name: 'TestDocExternalAttachments'}, wid);
-        docUrl = `${serverUrl}/api/docs/${docId}`;
+        docUrl = `${homeUrl}/api/docs/${docId}`;
 
         const resp = await addAttachmentsToDoc(docId, [
           { name: 'hello.doc', contents: 'foobar' },
@@ -2875,7 +2896,7 @@ function testDocApi(settings: {
 
       it("POST /docs/{did} with sourceDocId fails to copy a document with external attachments", async function () {
         const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
-        const resp = await axios.post(`${serverUrl}/api/docs`, {
+        const resp = await axios.post(`${homeUrl}/api/docs`, {
           sourceDocumentId: docId,
           documentName: 'copy of TestDocExternalAttachments',
           asTemplate: false,

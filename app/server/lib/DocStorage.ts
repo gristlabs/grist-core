@@ -15,6 +15,7 @@ import * as marshal from 'app/common/marshal';
 import * as schema from 'app/common/schema';
 import {SingleCell} from 'app/common/TableData';
 import {GristObjCode} from "app/plugin/GristData";
+import {appSettings} from 'app/server/lib/AppSettings';
 import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {combineExpr, ExpandedQuery} from 'app/server/lib/ExpandedQuery';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -48,6 +49,16 @@ export const ATTACHMENTS_EXPIRY_DAYS = 7;
 // Cleanup expired attachments every hour (also happens when shutting down).
 export const REMOVE_UNUSED_ATTACHMENTS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
+/**
+ * Check what way we want to access SQLite files.
+ */
+export function getSqliteMode() {
+  return appSettings.section('features')
+    .section('sqlite').flag('mode').readString({
+      envVar: 'GRIST_SQLITE_MODE',
+      acceptedValues: ['wal', 'sync'],
+    }) as 'wal'|'sync'|undefined;
+}
 
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
@@ -711,16 +722,25 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // a database being corrupted if the computer it is running on crashes.
     // TODO: Switch setting to FULL, but don't wait for SQLite transactions to finish before
     // returning responses to the user. Instead send error messages on unexpected errors.
-    return this._getDB().exec(
-      // "PRAGMA wal_autochceckpoint = 1000;" +
-      // "PRAGMA page_size           = 4096;" +
-      // "PRAGMA journal_size_limit  = 0;" +
-      // "PRAGMA journal_mode        = WAL;" +
-      // "PRAGMA auto_vacuum         = 0;" +
-      // "PRAGMA synchronous         = NORMAL"
-      "PRAGMA synchronous         = OFF;" +
-      "PRAGMA trusted_schema      = OFF;"  // mitigation suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
-    );
+    const settings = [
+      'PRAGMA trusted_schema = OFF;',  // mitigation suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
+    ];
+    const sqliteMode = getSqliteMode();
+    if (sqliteMode === undefined) {
+      // Historically, Grist has used this setting.
+      settings.push('PRAGMA synchronous = OFF;');
+    } else if (sqliteMode === 'sync') {
+      // This is a safer, but potentially slower, setting for general use.
+      settings.push('PRAGMA synchronous = FULL;');
+    } else if (sqliteMode === 'wal') {
+      // This is a good modern setting for servers, but awkward
+      // on a Desktop for users who interact with their documents
+      // directly as files on the file system. With WAL, at any
+      // time, changes may be stored in a companion file rather
+      // than the .grist file.
+      settings.push('PRAGMA journal_mode = WAL;');
+    }
+    return this._getDB().exec(settings.join('\n'));
   }
 
   /**

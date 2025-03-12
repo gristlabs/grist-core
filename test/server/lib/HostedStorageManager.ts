@@ -8,6 +8,11 @@ import {
   AttachmentStoreProvider,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
+import {
+  BackupEvent,
+  backupSqliteDatabase,
+  retryOnClose,
+} from 'app/server/lib/backupSqliteDatabase';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
@@ -20,11 +25,8 @@ import {
 } from 'app/server/lib/ExternalStorage';
 import { createDummyGristServer, GristServer } from 'app/server/lib/GristServer';
 import {
-  BackupEvent,
-  backupSqliteDatabase,
   HostedStorageManager,
   HostedStorageOptions,
-  retryOnClose
 } from 'app/server/lib/HostedStorageManager';
 import log from 'app/server/lib/log';
 import {SQLiteDB} from 'app/server/lib/SQLiteDB';
