@@ -194,6 +194,7 @@ export class MergedServer {
       await this.flexServer.finalizePlugins(this.hasComponent("home") ? checkUserContentPort() : null);
       this.flexServer.checkOptionCombinations();
       this.flexServer.summary();
+      this.flexServer.startCheckingForUpdates();
       this.flexServer.ready();
     } catch(e) {
       await this.flexServer.close();

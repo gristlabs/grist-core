@@ -77,6 +77,7 @@ import {TagChecker} from 'app/server/lib/TagChecker';
 import {ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
+import {compareWithLatest} from 'app/server/lib/updateChecker';
 import {UpdateManager} from 'app/server/lib/UpdateManager';
 import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository} from 'app/server/lib/WidgetRepository';
@@ -103,6 +104,9 @@ import * as serveStatic from 'serve-static';
 const HEALTH_CHECK_LOG_SHOW_FIRST_N = 10;
 // And we show every Nth health check:
 const HEALTH_CHECK_LOG_SHOW_EVERY_N = 100;
+
+// In milliseconds
+const ONE_WEEK = 7*24*60*60*1000;
 
 // DocID of Grist doc to collect the Welcome questionnaire responses, such
 // as "GristNewUserInfo".
@@ -201,6 +205,7 @@ export class FlexServer implements GristServer {
   private _jobs?: GristJobs;
   private _emitNotifier = new EmitNotifier();
   private _testPendingNotifications: number = 0;
+  private _intervalCheckID: ReturnType<typeof setInterval>;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -1985,6 +1990,13 @@ export class FlexServer implements GristServer {
 
     // Some configurations may add extra endpoints. This seems a fine time to add them.
     this.create.addExtraHomeEndpoints(this, this.app);
+  }
+
+  public startCheckingForUpdates() {
+    const gristServer = this;
+    compareWithLatest(gristServer);
+    this._intervalCheckID = setInterval(() => {compareWithLatest(gristServer);}, ONE_WEEK);
+    log.debug(`started version check task with ID ${this._intervalCheckID}`);
   }
 
   // Get the HTML template sent for document pages.
