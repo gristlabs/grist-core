@@ -2,6 +2,7 @@ import { commonUrls } from "app/common/gristUrls";
 import { version as installedVersion } from "app/common/version";
 import {naturalCompare} from 'app/common/SortFunc';
 import { GristServer } from "app/server/lib/GristServer";
+import { LatestVersionAvailable } from "app/common/Config";
 
 export async function checkForUpdates(gristServer: GristServer) {
   const installationId = (await gristServer.getActivations().current()).id;
@@ -28,4 +29,21 @@ export async function checkForUpdates(gristServer: GristServer) {
   }
 
   return await response.json();
+}
+
+export async function compareWithLatest(gristServer: GristServer) {
+  const response = await checkForUpdates(gristServer);
+
+  // naturalCompare correctly sorts version numbers.
+  const versions = [installedVersion, response.latestVersion];
+  versions.sort(naturalCompare)
+
+  const latestVersionAvailable : LatestVersionAvailable = {
+    version: response.latestVersion,
+    isNewer: versions[1] !== installedVersion,
+  }
+
+  await gristServer
+    .getHomeDBManager()
+    .updateInstallConfig("latest_version_available", latestVersionAvailable);
 }
