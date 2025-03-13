@@ -16,9 +16,9 @@ export interface ConfigOrg {
   domain: string | null;
 }
 
-export type ConfigKey = "audit_log_streaming_destinations";
+export type ConfigKey = "audit_log_streaming_destinations" | "latest_version_available";
 
-export type ConfigValue = AuditLogStreamingDestinations;
+export type ConfigValue = AuditLogStreamingDestinations | LatestVersionAvailable;
 
 export type AuditLogStreamingDestinations = AuditLogStreamingDestination[];
 
@@ -31,10 +31,16 @@ export interface AuditLogStreamingDestination {
 
 export type AuditLogStreamingDestinationName = "splunk" | "other";
 
+export interface LatestVersionAvailable {
+  version: string;
+  isNewer: boolean;
+}
+
 const {
   AuditLogStreamingDestinations,
   AuditLogStreamingDestinationName,
   ConfigKey,
+  LatestVersionAvailable,
 } = createCheckers(ConfigsTI);
 
 export const AuditLogStreamingDestinationNameChecker =
@@ -45,4 +51,6 @@ export const ConfigKeyChecker = ConfigKey as CheckerT<ConfigKey>;
 export const ConfigValueCheckers = {
   audit_log_streaming_destinations:
     AuditLogStreamingDestinations as CheckerT<AuditLogStreamingDestinations>,
+  latest_version_available:
+    LatestVersionAvailable as CheckerT<LatestVersionAvailable>,
 };
