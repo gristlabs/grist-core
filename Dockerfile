@@ -189,12 +189,6 @@ WORKDIR /grist
 # settings, you can get sandboxing as follows:
 #   docker run --env GRIST_SANDBOX_FLAVOR=gvisor -p 8484:8484 -it <image>
 #
-# "NODE_OPTIONS=--no-deprecation" is set because there is a punycode
-# deprecation nag that is relevant to developers but not to users.
-# TODO: upgrade package.json to avoid using all package versions
-# using the punycode functionality that may be removed in future
-# versions of node.
-#
 # "NODE_ENV=production" gives ActiveDoc operations more time to
 # complete, and the express webserver also does some streamlining
 # with this setting. If you don't want these, set NODE_ENV to
@@ -211,7 +205,6 @@ ENV \
   GRIST_SESSION_COOKIE=grist_core \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
   GRIST_SANDBOX_FLAVOR=unsandboxed \
-  NODE_OPTIONS="--no-deprecation" \
   NODE_ENV=production \
   TYPEORM_DATABASE=/persist/home.sqlite3
 
