@@ -25,7 +25,8 @@ describe('SqliteSettings', function() {
           if (mode !== 'default') {
             process.env.GRIST_SQLITE_MODE = mode;
           }
-          if (externalStorage && !process.env.GRIST_DOCS_MINIO_ACCESS_KEY) {
+          if (externalStorage && !process.env.GRIST_DOCS_MINIO_BUCKET &&
+              !process.env.GRIST_DOCS_S3_PREFIX) {
             this.skip();
           }
           home = new TestServer(this);
@@ -36,7 +37,7 @@ describe('SqliteSettings', function() {
         });
 
         after(async function() {
-          await home.stop();
+          await home?.stop();
           oldEnv.restore();
         });
 
