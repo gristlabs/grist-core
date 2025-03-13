@@ -128,6 +128,7 @@ export class ACLRulesReader {
   private _resourceColIdsByTableAndColId: Map<string, string> = new Map();
 
   public constructor(public docData: DocData, private _options: ACLRulesReaderOptions = {}) {
+    this._checkResources();
     this._addOriginalRules();
     this._maybeAddShareRules();
   }
@@ -149,6 +150,21 @@ export class ACLRulesReader {
 
   public getResourceById(id: number) {
     return this._resourcesTable.getRecord(id);
+  }
+
+  private _checkResources() {
+    const allTableAndColIds: Set<string> = new Set();
+    for (const resource of this._resourcesTable.getRecords()) {
+      const {tableId, colIds} = resource;
+      const tableAndColIds = `${tableId}:${colIds}`;
+      if (allTableAndColIds.has(tableAndColIds)) {
+        throw new Error(
+          `Duplicate ACLResource ${resource.id}: an ACLResource with the same tableId and colIds already exists`
+        );
+      }
+
+      allTableAndColIds.add(tableAndColIds);
+    }
   }
 
   private _addOriginalRules() {

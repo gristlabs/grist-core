@@ -121,6 +121,20 @@ describe('ACLRulesReader', function() {
         assert.isUndefined(new ACLRulesReader(docData, options).getResourceById(-1));
       }
     });
+
+    it('throws if duplicate ACLResources are present', async function() {
+      await assert.isRejected(
+        activeDoc.applyUserActions(fakeSession, [
+          [
+            'AddRecord',
+            '_grist_ACLResources',
+            -1,
+            {tableId: 'Private', colIds: '*'},
+          ],
+        ]),
+        /Duplicate ACLResource 5: an ACLResource with the same tableId and colIds already exists/
+      );
+    });
   });
 
   describe('with shares', function() {

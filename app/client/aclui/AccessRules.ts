@@ -149,6 +149,9 @@ export class AccessRules extends Disposable {
   // Whether the save button should be enabled.
   private _savingEnabled: Computed<boolean>;
 
+  // Whether a save is currently in progress.
+  private _saving = Observable.create(this, false);
+
   // Error or warning message to show next to Save/Reset buttons if non-empty.
   private _errorMessage = Observable.create(this, '');
 
@@ -276,116 +279,129 @@ export class AccessRules extends Disposable {
    * Collect the internal state into records and sync them to the document.
    */
   public async save(): Promise<void> {
-    if (!this._savingEnabled.get()) { return; }
-
-    // Note that if anything has changed, we apply changes relative to the current state of the
-    // ACL tables (they may have changed by other users). So our changes will win.
-
-    const docData = this.gristDoc.docData;
-    const resourcesTable = docData.getMetaTable('_grist_ACLResources');
-    const rulesTable = docData.getMetaTable('_grist_ACLRules');
-
-    // Add/remove resources to have just the ones we need.
-    const newResources: MetaRowRecord<'_grist_ACLResources'>[] = flatten(
-      [{tableId: '*', colIds: '*'}],
-      this._specialRulesWithDefault.get()?.getResources() || [],
-      this._specialRulesSeparate.get()?.getResources() || [],
-      ...this._tableRules.get().map(tr => tr.getResources())
-    )
-    // Skip the fake "*SPECIAL:SchemaEdit" resource (frontend-specific); these rules are saved to the default resource.
-    .filter(resource => !isSchemaEditResource(resource))
-    .map(r => ({id: -1, ...r}));
-
-    // Prepare userActions and a mapping of serializedResource to rowIds.
-    const resourceSync = syncRecords(resourcesTable, newResources, serializeResource);
-
-    const defaultResourceRowId = resourceSync.rowIdMap.get(serializeResource({id: -1, tableId: '*', colIds: '*'}));
-    if (!defaultResourceRowId) {
-      throw new Error('Default resource missing in resource map');
+    if (!this._savingEnabled.get() || this._saving.get()) {
+      return;
     }
 
-    // For syncing rules, we'll go by rowId that we store with each RulePart and with the RuleSet.
-    const newRules: RowRecord[] = [];
-    for (const rule of this.getRules()) {
-      // We use id of 0 internally to mark built-in rules. Skip those.
-      if (rule.id === 0) {
-        continue;
-      }
-
-      // Look up the rowId for the resource.
-      let resourceRowId: number|undefined;
-      // Assign the rules for the fake "*SPECIAL:SchemaEdit" resource to the default resource where they belong.
-      if (isSchemaEditResource(rule.resourceRec!)) {
-        resourceRowId = defaultResourceRowId;
-      } else {
-        const resourceKey = serializeResource(rule.resourceRec as RowRecord);
-        resourceRowId = resourceSync.rowIdMap.get(resourceKey);
-        if (!resourceRowId) {
-          throw new Error(`Resource missing in resource map: ${resourceKey}`);
-        }
-      }
-      newRules.push({
-        id: rule.id || -1,
-        resource: resourceRowId,
-        aclFormula: rule.aclFormula!,
-        permissionsText: rule.permissionsText!,
-        rulePos: rule.rulePos || null,
-        memo: rule.memo ?? '',
-      });
-    }
-
-    // UserAttribute rules are listed in the same rulesTable.
-    for (const userAttr of this._userAttrRules.get()) {
-      const rule = userAttr.getRule();
-      newRules.push({
-        id: rule.id || -1,
-        resource: defaultResourceRowId,
-        rulePos: rule.rulePos || null,
-        userAttributes: rule.userAttributes,
-      });
-    }
-
-    logTelemetryEvent('changedAccessRules', {
-      full: {
-        docIdDigest: this.gristDoc.docId(),
-        ruleCount: newRules.length,
-      },
-    });
-
-    // We need to fill in rulePos values. We'll add them in the order the rules are listed (since
-    // this.getRules() returns them in a suitable order), keeping rulePos unchanged when possible.
-    let lastGoodRulePos = 0;
-    let lastGoodIndex = -1;
-    for (let i = 0; i < newRules.length; i++) {
-      const pos = newRules[i].rulePos as number;
-      if (pos && pos > lastGoodRulePos) {
-        const step = (pos - lastGoodRulePos) / (i - lastGoodIndex);
-        for (let k = lastGoodIndex + 1; k < i; k++) {
-          newRules[k].rulePos = lastGoodRulePos + step * (k - lastGoodIndex);
-        }
-        lastGoodRulePos = pos;
-        lastGoodIndex = i;
-      }
-    }
-    // Fill in the rulePos values for the remaining rules.
-    for (let k = lastGoodIndex + 1; k < newRules.length; k++) {
-      newRules[k].rulePos = ++lastGoodRulePos;
-    }
-    // Prepare the UserActions for syncing the Rules table.
-    const rulesSync = syncRecords(rulesTable, newRules);
-
-    // Finally collect and apply all the actions together.
+    this._saving.set(true);
     try {
-      await docData.sendActions([...resourceSync.userActions, ...rulesSync.userActions]);
-    } catch (e) {
-      // Report the error, but go on to update the rules. The user may lose their entries, but
-      // will see what's in the document. To preserve entries and show what's wrong, we try to
-      // catch errors earlier.
-      reportError(e);
-    }
+      // Note that if anything has changed, we apply changes relative to the current state of the
+      // ACL tables (they may have changed by other users). So our changes will win.
 
-    // Re-populate the state from DocData once the records are synced.
-    await this.update();
+      const docData = this.gristDoc.docData;
+      const resourcesTable = docData.getMetaTable('_grist_ACLResources');
+      const rulesTable = docData.getMetaTable('_grist_ACLRules');
+
+      // Add/remove resources to have just the ones we need.
+      const newResources: MetaRowRecord<'_grist_ACLResources'>[] = flatten(
+        [{tableId: '*', colIds: '*'}],
+        this._specialRulesWithDefault.get()?.getResources() || [],
+        this._specialRulesSeparate.get()?.getResources() || [],
+        ...this._tableRules.get().map(tr => tr.getResources())
+      )
+        // Skip the fake "*SPECIAL:SchemaEdit" resource (frontend-specific); these rules are saved to the default
+        // resource.
+        .filter(resource => !isSchemaEditResource(resource))
+        .map(r => ({id: -1, ...r}));
+
+      // Prepare userActions and a mapping of serializedResource to rowIds.
+      const resourceSync = syncRecords(resourcesTable, newResources, serializeResource);
+
+      const defaultResourceRowId = resourceSync.rowIdMap.get(serializeResource({id: -1, tableId: '*', colIds: '*'}));
+      if (!defaultResourceRowId) {
+        throw new Error('Default resource missing in resource map');
+      }
+
+      // For syncing rules, we'll go by rowId that we store with each RulePart and with the RuleSet.
+      const newRules: RowRecord[] = [];
+      for (const rule of this.getRules()) {
+        // We use id of 0 internally to mark built-in rules. Skip those.
+        if (rule.id === 0) {
+          continue;
+        }
+
+        // Look up the rowId for the resource.
+        let resourceRowId: number|undefined;
+        // Assign the rules for the fake "*SPECIAL:SchemaEdit" resource to the default resource where they belong.
+        if (isSchemaEditResource(rule.resourceRec!)) {
+          resourceRowId = defaultResourceRowId;
+        } else {
+          const resourceKey = serializeResource(rule.resourceRec as RowRecord);
+          resourceRowId = resourceSync.rowIdMap.get(resourceKey);
+          if (!resourceRowId) {
+            throw new Error(`Resource missing in resource map: ${resourceKey}`);
+          }
+        }
+        newRules.push({
+          id: rule.id || -1,
+          resource: resourceRowId,
+          aclFormula: rule.aclFormula!,
+          permissionsText: rule.permissionsText!,
+          rulePos: rule.rulePos || null,
+          memo: rule.memo ?? '',
+        });
+      }
+
+      // UserAttribute rules are listed in the same rulesTable.
+      for (const userAttr of this._userAttrRules.get()) {
+        const rule = userAttr.getRule();
+        newRules.push({
+          id: rule.id || -1,
+          resource: defaultResourceRowId,
+          rulePos: rule.rulePos || null,
+          userAttributes: rule.userAttributes,
+        });
+      }
+
+      logTelemetryEvent('changedAccessRules', {
+        full: {
+          docIdDigest: this.gristDoc.docId(),
+          ruleCount: newRules.length,
+        },
+      });
+
+      // We need to fill in rulePos values. We'll add them in the order the rules are listed (since
+      // this.getRules() returns them in a suitable order), keeping rulePos unchanged when possible.
+      let lastGoodRulePos = 0;
+      let lastGoodIndex = -1;
+      for (let i = 0; i < newRules.length; i++) {
+        const pos = newRules[i].rulePos as number;
+        if (pos && pos > lastGoodRulePos) {
+          const step = (pos - lastGoodRulePos) / (i - lastGoodIndex);
+          for (let k = lastGoodIndex + 1; k < i; k++) {
+            newRules[k].rulePos = lastGoodRulePos + step * (k - lastGoodIndex);
+          }
+          lastGoodRulePos = pos;
+          lastGoodIndex = i;
+        }
+      }
+      // Fill in the rulePos values for the remaining rules.
+      for (let k = lastGoodIndex + 1; k < newRules.length; k++) {
+        newRules[k].rulePos = ++lastGoodRulePos;
+      }
+      // Prepare the UserActions for syncing the Rules table.
+      const rulesSync = syncRecords(rulesTable, newRules);
+
+      // Finally collect and apply all the actions together.
+      try {
+        await docData.sendActions([
+          ...resourceSync.userActions,
+          ...rulesSync.userActions
+        ]);
+      } catch (e) {
+        // Report the error, but go on to update the rules. The user may lose their entries, but
+        // will see what's in the document. To preserve entries and show what's wrong, we try to
+        // catch errors earlier.
+        reportError(e);
+      }
+
+      // Re-populate the state from DocData once the records are synced.
+      await this.update();
+    } finally {
+      if (!this.isDisposed()) {
+        this._saving.set(false);
+      }
+    }
   }
 
   public buildDom() {
@@ -402,8 +418,11 @@ export class AccessRules extends Disposable {
           }),
           testId('rules-non-save')
         ),
-        bigPrimaryButton(t("Save"), dom.show(this._savingEnabled),
+        bigPrimaryButton(
+          t("Save"),
+          dom.show(this._savingEnabled),
           dom.on('click', () => this.save()),
+          dom.prop('disabled', this._saving),
           testId('rules-save'),
         ),
         bigBasicButton(t("Reset"), dom.show(use => use(this._ruleStatus) !== RuleStatus.Unchanged),

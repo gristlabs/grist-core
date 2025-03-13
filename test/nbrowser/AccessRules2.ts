@@ -69,9 +69,8 @@ describe("AccessRules2", function() {
       ['AddRecord', 'Zones', null, {Email: 'slow@speed.com', City: 'Springfield'}],
     ]);
     const records = await mainSession.createHomeApi().applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*', colIds: '*'}],
       ['AddRecord', '_grist_ACLRules', null, {
-        resource: -1, userAttributes: JSON.stringify({
+        resource: 1, userAttributes: JSON.stringify({
           name: 'Zone',
           tableId: 'Zones',
           charId: 'Email',
@@ -123,8 +122,7 @@ describe("AccessRules2", function() {
 
     // Delete user attribute table.
     await mainSession.createHomeApi().applyUserActions(docId, [
-      ['RemoveRecord', '_grist_ACLRules', records.retValues[1]],
-      ['RemoveRecord', '_grist_ACLResources', records.retValues[0]],
+      ['RemoveRecord', '_grist_ACLRules', records.retValues[0]],
       ['RemoveTable', 'Zones'],
     ]);
   });
@@ -583,9 +581,8 @@ describe("AccessRules2", function() {
     // Add a user attribute referencing a column we will soon delete.
     const api = mainSession.createHomeApi();
     await api.applyUserActions(docId, [
-      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*', colIds: '*'}],
       ['AddRecord', '_grist_ACLRules', null, {
-        resource: -1, userAttributes: JSON.stringify({
+        resource: 1, userAttributes: JSON.stringify({
           name: 'Zig',
           tableId: 'TmpTable2',
           charId: 'Email',
