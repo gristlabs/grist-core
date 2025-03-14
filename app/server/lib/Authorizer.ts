@@ -166,9 +166,11 @@ export async function addRequestUser(
   if (auth) {
     const tokens = options.gristServer.getAccessTokens();
     const token = await tokens.verify(auth);
+    const userId = token.userId
+    const user = await dbManager.getUser(userId);
     mreq.accessToken = token;
-    // Once an accessToken is supplied, we don't consider anything else.
-    // User is treated as anonymous apart from having an accessToken.
+    mreq.user = user;
+    mreq.userId = userId;
     authDone = true;
   }
 

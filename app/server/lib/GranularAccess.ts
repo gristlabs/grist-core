@@ -2386,7 +2386,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const attIds = await this._gatherAttachmentChanges(cursor);
     for (const attId of attIds) {
       if (!await this.isAttachmentUploadedByUser(docSession, attId) &&
-        !await this.findAttachmentCellForUser(docSession, attId)) {
+        ((await this._docStorage.findAttachmentReferences(attId)).length && !await this.findAttachmentCellForUser(docSession, attId))) {
         throw new ErrorWithCode('ACL_DENY', 'Cannot access attachment', {
           status: 403,
         });
