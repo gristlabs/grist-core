@@ -166,7 +166,7 @@ export async function addRequestUser(
   if (auth) {
     const tokens = options.gristServer.getAccessTokens();
     const token = await tokens.verify(auth);
-    const userId = token.userId
+    const userId = token.userId;
     const user = await dbManager.getUser(userId);
     mreq.accessToken = token;
     mreq.user = user;

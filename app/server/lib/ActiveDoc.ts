@@ -1656,7 +1656,7 @@ export class ActiveDoc extends EventEmitter {
   public async getAccessToken(docSession: OptDocSession, options: AccessTokenOptions): Promise<AccessTokenResult> {
     const tokens = this._server.getAccessTokens();
     const user = await this._granularAccess.getUser(docSession);
-    const userId = user!.UserID;
+    const userId = user.UserID;
     const docId = this.docName;
     const access = getDocSessionAccess(docSession);
     // If we happen to be using a "readOnly" connection, max out at "readOnly"
