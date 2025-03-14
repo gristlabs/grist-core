@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as tmp from 'tmp';
 import * as fse from 'fs-extra';
 import log from 'app/server/lib/log';
-import {proxyAgent} from "app/server/lib/ProxyAgent";
+import {proxyAgentForTrustedRequests} from "app/server/lib/ProxyAgent";
 import chunk = require('lodash/chunk');
 import fromPairs = require('lodash/fromPairs');
 import zipObject = require('lodash/zipObject');
@@ -91,7 +91,7 @@ export class DocRequests {
       }
       const response = await fetch(urlObj.toString(), {
         headers: headers || {},
-        agent: proxyAgent(urlObj),
+        agent: proxyAgentForTrustedRequests(urlObj),
         method,
         body
       });
