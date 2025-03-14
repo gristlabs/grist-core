@@ -8927,9 +8927,9 @@ ws@~8.17.1:
   integrity sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==
 
 xml-crypto@^3.0.1:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/xml-crypto/-/xml-crypto-3.2.0.tgz#a9debab572c8e895cff5fb351a8d8be3f6e1962e"
-  integrity sha512-qVurBUOQrmvlgmZqIVBqmb06TD2a/PpEUfFPgD7BuBfjmoH4zgkqaWSIJrnymlCvM2GGt9x+XtJFA+ttoAufqg==
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/xml-crypto/-/xml-crypto-3.2.1.tgz#df2511a95275b43e18924693ff932af7de3217a4"
+  integrity sha512-0GUNbPtQt+PLMsC5HoZRONX+K6NBJEqpXe/lsvrFj0EqfpGPpVfJKGE7a5jCg8s2+Wkrf/2U1G41kIH+zC9eyQ==
   dependencies:
     "@xmldom/xmldom" "^0.8.8"
     xpath "0.0.32"
