@@ -25,7 +25,7 @@
 import {addPath} from 'app-module-path';
 import {Context} from 'mocha';
 import * as path from 'path';
-import {Connection, getConnectionManager, Repository} from 'typeorm';
+import {Connection, Repository} from 'typeorm';
 
 if (require.main === module) {
   addPath(path.dirname(path.dirname(__dirname)));
@@ -572,14 +572,8 @@ class Seed {
 // When running mocha on several test files at once, we need to reset our database connection
 // if it exists.  This is a little ugly since it is stored globally.
 export async function removeConnection() {
-  if (getConnectionManager().connections.length > 0) {
-    if (getConnectionManager().connections.length > 1) {
-      throw new Error("unexpected number of connections");
-    }
-    await getConnectionManager().connections[0].close();
-    // There is still no official way to delete connections that I've found.
-    (getConnectionManager() as any).connectionMap = new Map();
-  }
+  const connection = await getOrCreateConnection();
+  await connection.destroy();
 }
 
 export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean|'migrateOnly' = true) {
