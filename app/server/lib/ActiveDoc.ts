@@ -298,7 +298,7 @@ export class ActiveDoc extends EventEmitter {
     private _options?: ICreateActiveDocOptions
   ) {
     super();
-    const { forkId, snapshotId } = parseUrlId(_docName);
+    const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
     this._isSnapshot = Boolean(snapshotId);
     this._isForkOrSnapshot = Boolean(forkId || snapshotId);
     if (!this._isSnapshot) {
@@ -405,7 +405,7 @@ export class ActiveDoc extends EventEmitter {
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
       _attachmentStoreProvider,
-      _options?.doc,
+      forkId ? { id: forkId, trunkId, } : { id: trunkId, trunkId: undefined },
     );
 
     // Every time manager starts the transfer we need to notify clients about it.

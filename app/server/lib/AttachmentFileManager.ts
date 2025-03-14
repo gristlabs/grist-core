@@ -37,6 +37,12 @@ export class StoreNotAvailableError extends Error {
   }
 }
 
+export class UnknownDocumentPoolError extends Error {
+  constructor() {
+    super(`Attempted to access external attachments, but the pool id is unknown`);
+  }
+}
+
 export class MissingAttachmentError extends Error {
   public readonly fileIdent: string;
 
@@ -542,7 +548,7 @@ export class AttachmentFileManager extends EventEmitter {
 
   private _getDocPoolId(): string {
     if (!this._docPoolId) {
-      throw new StoresNotConfiguredError();
+      throw new UnknownDocumentPoolError();
     }
     return this._docPoolId;
   }

@@ -7,6 +7,7 @@ import {GristObjCode} from 'app/plugin/GristData';
 import {TableData} from 'app/common/TableData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {CreatableArchiveFormats} from 'app/server/lib/Archive';
+import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
@@ -1224,7 +1225,34 @@ describe('ActiveDoc', async function() {
 
         await assertArchiveContents(archiveMemoryStream.getBuffer(), archiveType, testAttachments);
       }
+    });
 
+    it('can import missing attachments from an archive', async function() {
+      const docName = 'add-missing-attachments';
+      const activeDoc = await docTools.createDoc(docName);
+
+      const provider = docTools.getAttachmentStoreProvider();
+      const storeId = provider.listAllStoreIds()[0];
+
+      await activeDoc.setAttachmentStore(fakeSession, storeId);
+
+      await uploadAttachments(activeDoc, testAttachments);
+
+      const attachmentsArchive = await activeDoc.getAttachmentsArchive(fakeSession, "tar");
+      const attachmentsTarStream = new MemoryWritableStream();
+      await stream.promises.pipeline(attachmentsArchive.dataStream, attachmentsTarStream);
+      const attachmentsTar = attachmentsTarStream.getBuffer();
+
+      const store = (await provider.getStore(storeId))!;
+      // Purge any attachments related to this doc.
+      await store.removePool(getDocPoolIdFromDocInfo({ id: activeDoc.docName, trunkId: undefined }));
+
+      const result1 = await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
+      assert.equal(result1.added, testAttachments.length, "all attachments should be added");
+
+      const result2 = await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
+      assert.equal(result2.added, 0, "no attachments should be added");
+      assert.equal(result2.unused, testAttachments.length, "all attachments should be unused");
     });
 
     /*
