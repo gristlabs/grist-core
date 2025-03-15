@@ -3,7 +3,7 @@ import {
   AttachmentFileManager,
   AttachmentRetrievalError,
   StoreNotAvailableError,
-  StoresNotConfiguredError, UnknownDocumentPoolError
+  UnknownDocumentPoolError
 } from "app/server/lib/AttachmentFileManager";
 import {
   AttachmentFile,
