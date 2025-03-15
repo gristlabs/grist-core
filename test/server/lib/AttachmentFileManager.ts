@@ -3,7 +3,7 @@ import {
   AttachmentFileManager,
   AttachmentRetrievalError,
   StoreNotAvailableError,
-  StoresNotConfiguredError
+  StoresNotConfiguredError, UnknownDocumentPoolError
 } from "app/server/lib/AttachmentFileManager";
 import {
   AttachmentFile,
@@ -235,7 +235,7 @@ describe("AttachmentFileManager", function() {
 
     const storeId = defaultProvider.listAllStoreIds()[0];
 
-    await assert.isRejected(manager.addFile(storeId, ".txt", Buffer.alloc(0)), StoresNotConfiguredError);
+    await assert.isRejected(manager.addFile(storeId, ".txt", Buffer.alloc(0)), UnknownDocumentPoolError);
   });
 
   it("should throw if it tries to add a file to an unavailable store", async function () {

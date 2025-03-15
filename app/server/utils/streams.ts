@@ -1,4 +1,4 @@
-import {Readable, Writable, promises} from 'stream';
+import {promises, Readable, Writable} from 'stream';
 
 // Creates a writable stream that can be retrieved as a buffer.
 // Sub-optimal implementation, as we end up with *at least* two copies in memory one in `buffers`,
