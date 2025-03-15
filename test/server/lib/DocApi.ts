@@ -2927,6 +2927,18 @@ function testDocApi(settings: {
         }, "2 attachments should be added, 1 unused, no errors");
       });
 
+      it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function () {
+        const badUploadForm = new FormData();
+        badUploadForm.append("upload", "Random content", {
+          filename: "AttachmentsAreHere.zip",
+          contentType: "application/zip",
+        });
+
+        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm,
+          defaultsDeep({headers: badUploadForm.getHeaders()}, chimpy));
+        assert.equal(tarUploadResp.status, 400, "should be a bad request");
+      });
+
       it("POST /docs/{did}/copy fails when the document has external attachments", async function () {
         const worker1 = await userApi.getWorkerAPI(docId);
         await assert.isRejected(worker1.copyDoc(docId, undefined, 'copy'), /status 400/);
