@@ -152,6 +152,20 @@ export class AttachmentFileManager extends EventEmitter {
     return this._addFile(storeId, fileIdent, fileData);
   }
 
+  /**
+   * Adds an attachment file to storage, if that attachment is known about but not currently
+   * available (as determined by `AttachmentFileManager.isFileAvailable`).
+   * This most frequently occurs when a document is (re)uploaded, meaning it has a new docPoolId
+   * and no copies of the attachment files.
+   *
+   * The file is restored to the store it was originally stored in, if that store is available.
+   * Otherwise, `defaultStoreId` is used.
+   *
+   * @param {string} fileIdent - Attachment file to attempt to restore.
+   * @param {stream.Readable} fileData - Contents of the file.
+   * @param {AttachmentStoreId | undefined} defaultStoreId - Store to use if the file's original store is unavailable.
+   * @returns {Promise<boolean>} - True if the file was added, false otherwise.
+   */
   public async addMissingFileData(
     fileIdent: string,
     fileData: stream.Readable,
@@ -203,6 +217,13 @@ export class AttachmentFileManager extends EventEmitter {
     return (await this._getFileInfo(fileIdent)).file;
   }
 
+  /**
+   * Checks if the contents of an attachment are accessible.
+   * Internal attachments are always considered accessible.
+   * External attachments are accessible if the store is configured and contains the file.
+   * @param {string} fileIdent
+   * @returns {Promise<boolean>}
+   */
   public async isFileAvailable(fileIdent: string): Promise<boolean> {
     const fileInfo = await this._docStorage.getFileInfoNoData(fileIdent);
     return this._isFileAvailable(fileInfo);
