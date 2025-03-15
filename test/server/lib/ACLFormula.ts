@@ -257,6 +257,33 @@ describe('ACLFormula', function() {
     compiled = await setAndCompile('(user.Email in rec.emails) == (user.Name in rec.emails)');
     assert.equal(compiled({user, rec: V({emails: null})}), true);
     assert.equal(compiled({user, rec: V({emails: 'X@'})}), false);
+
+    compiled = await setAndCompile('"A" in user.Office.Rooms');
+    assert.equal(compiled({user: new User({Office: V({Rooms: null})})}), false);
+    assert.equal(compiled({user: new User({Office: V({Rooms: [GristObjCode.List, 'A']})})}), true);
+    assert.equal(compiled({user: new User({Office: V({Rooms: [GristObjCode.List, 'B']})})}), false);
+  });
+
+  it('should handle "in" and "not in" when RHS is not a list', async function() {
+    let compiled = await setAndCompile('user.Email in rec.emails');
+    const user = new User({Email: 'X@'});
+    assert.equal(compiled({user, rec: V({emails: 'X@'})}), true);
+    assert.equal(compiled({user, rec: V({emails: 0})}), false);
+    assert.equal(compiled({user, rec: V({emails: 17.5})}), false);
+    assert.equal(compiled({user, rec: V({emails: undefined as any})}), false);
+
+    // The substring behavior checked here isn't what we want necessarily, because of risk of
+    // misuse, but it's been kept so far for backward compatibility.
+    assert.equal(compiled({user, rec: V({emails: 'AliceX@Y'})}), true);
+    // In case of a list, "in" checks for membership, not substrings.
+    assert.equal(compiled({user, rec: V({emails: [GristObjCode.List, 'X@']})}), true);
+    assert.equal(compiled({user, rec: V({emails: [GristObjCode.List, 'AliceX@Y']})}), false);
+
+    compiled = await setAndCompile('user.Email not in rec.emails');
+    assert.equal(compiled({user, rec: V({emails: 'X@'})}), false);
+    assert.equal(compiled({user, rec: V({emails: 0})}), true);
+    assert.equal(compiled({user, rec: V({emails: 17.5})}), true);
+    assert.equal(compiled({user, rec: V({emails: undefined as any})}), true);
   });
 
   it('should decode cell values so that "in" is safe to use with lists', async function () {
@@ -272,8 +299,9 @@ describe('ACLFormula', function() {
 
     // This should never happen (nothing should be encoded as an empty list),
     // this just shows what would happen.
-    assert.throws(() => compiled({user, rec: V({emails: [] as any})}),
-      /\.includes is not a function/);
+    assert.equal(compiled({user, rec: V({emails: [] as any})}), false);
+    // This is also false because once decoded, the value isn't a list, but an UnknownValue.
+    assert.equal(compiled({user, rec: V({emails: ['A', 'L'] as any})}), false);
 
     // List literals aren't decoded and work as expected.
     compiled = await setAndCompile('user.Email in []');

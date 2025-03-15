@@ -324,7 +324,7 @@ describe('DropdownConditionEditor', function () {
 
       // Check evaluation errors are also reported in the dropdown.
       await driver.find('.test-field-dropdown-condition').click();
-      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, '[] not in 5', Key.ENTER);
+      await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, '[].upper() not in 5', Key.ENTER);
       await gu.waitForServer();
       await gu.sendKeys(Key.ENTER);
       assert.equal(

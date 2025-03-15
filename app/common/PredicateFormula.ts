@@ -83,8 +83,8 @@ export function compilePredicateFormula(
       case 'GtE':   return compileAndCombine(args, ([a, b]) => a >= b);
       case 'Is':    return compileAndCombine(args, ([a, b]) => a === b);
       case 'IsNot': return compileAndCombine(args, ([a, b]) => a !== b);
-      case 'In':    return compileAndCombine(args, ([a, b]) => Boolean(b?.includes(a)));
-      case 'NotIn': return compileAndCombine(args, ([a, b]) => !b?.includes(a));
+      case 'In':    return compileAndCombine(args, ([a, b]) => includes(b, a));
+      case 'NotIn': return compileAndCombine(args, ([a, b]) => !includes(b, a));
       case 'List':  return compileAndCombine(args, (values) => values);
       case 'Const': return constant(node[1] as CellValue);
       case 'Name': {
@@ -162,6 +162,20 @@ function getStringMethod(value: string, attrName: string): SupportedCallable|und
     case 'upper': return new SupportedCallable(() => value.toUpperCase());
   }
   return undefined;
+}
+
+function includes(haystack: unknown, needle: unknown) {
+  if (Array.isArray(haystack)) {
+    return haystack.includes(needle);
+  }
+  // We may not want to support "in" for strings because of danger of using e.g. `user.Email in
+  // "alice@example.com"` (instead of `["alice@example.com"]`) and not realizing that it also
+  // matches, say, "ice@example.co". This happens. But disabling it may interfere with existing
+  // documents, so for now we are keeping this behavior for backward compatibility.
+  if (typeof haystack === 'string' && typeof needle === 'string') {
+    return haystack.includes(needle);
+  }
+  return false;
 }
 
 function describeNode(node: ParsedPredicateFormula): string {

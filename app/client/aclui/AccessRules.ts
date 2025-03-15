@@ -2084,7 +2084,8 @@ function getSampleRecord(colIds: string[], tableData?: TableData): InfoView {
     const defaultValue = gristType ? getDefaultForType(gristType) : null;
     // Replace null with false, to avoid producing "No value for X" error (from
     // app/common/PredicateFormula.ts) for null default values, since that's usually misleading.
-    // This poor-man's type checking is weak.
+    // This poor-man's type checking is weak... It actually evaluates expressions, but that means
+    // it doesn't check branches not taken.
     colValues[colId] = defaultValue === null ? [false] : [defaultValue];
   }
   return new RecordView(['TableData', tableData.tableId, [1], colValues], 0);
