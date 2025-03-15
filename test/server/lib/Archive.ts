@@ -4,7 +4,7 @@ import {
   create_tar_archive,
   create_zip_archive
 } from 'app/server/lib/Archive';
-import {MemoryWritableStream} from 'app/server/utils/MemoryWritableStream';
+import {MemoryWritableStream} from 'app/server/utils/streams';
 import decompress from 'decompress';
 import {assert} from 'chai';
 import * as stream from 'node:stream';
