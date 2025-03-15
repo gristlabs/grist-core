@@ -345,6 +345,25 @@ describe("AttachmentFileManager", function() {
       };
     }
 
+    async function getManagerWithDifferentStores() {
+      const alternateProvider = new AttachmentStoreProvider(
+        [await makeTestingFilesystemStoreConfig("new-store")],
+        'ANOTHER-INSTALLATION-UUID'
+      );
+
+      // Uses the same fake database + doc info, but with different stores.
+      const alternateManager = new AttachmentFileManager(
+        defaultDocStorageFake,
+        alternateProvider,
+        defaultDocInfo,
+      );
+
+      return {
+        provider: alternateProvider,
+        manager: alternateManager,
+      };
+    }
+
 
     it("should do nothing if the file exists", async function () {
       const files = await addTestFiles();
@@ -389,57 +408,51 @@ describe("AttachmentFileManager", function() {
     it("should replace external files in the given store, if the original isn't available", async function () {
       const files = await addTestFiles();
 
-      const alternateProvider = new AttachmentStoreProvider(
-        [await makeTestingFilesystemStoreConfig("new-store")],
-        'ANOTHER-INSTALLATION-UUID'
-      );
+      const { manager: altManager, provider: altProvider } = await getManagerWithDifferentStores();
 
-      // Uses the same fake database + doc info, but with different stores.
-      const alternateManager = new AttachmentFileManager(
-        defaultDocStorageFake,
-        alternateProvider,
-        defaultDocInfo,
-      );
-
-      const newStoreId = alternateProvider.getStoreIdFromLabel("new-store");
-      const isExternalFileDataAdded = await alternateManager.addMissingFileData(
+      const newStoreId = altProvider.getStoreIdFromLabel("new-store");
+      const isExternalFileDataAdded = await altManager.addMissingFileData(
         files.external.fileIdent,
         stream.Readable.from(defaultTestFileBuffer),
         newStoreId,
       );
       assert.isTrue(isExternalFileDataAdded, "external file data should have been added");
-      assert.isTrue(await alternateManager.isFileAvailable(files.external.fileIdent));
+      assert.isTrue(await altManager.isFileAvailable(files.external.fileIdent));
     });
 
     it("shouldn't add files if their content is wrong", async function () {
       const files = await addTestFiles();
 
-      const alternateProvider = new AttachmentStoreProvider(
-        [await makeTestingFilesystemStoreConfig("new-store")],
-        'ANOTHER-INSTALLATION-UUID'
-      );
+      const { manager: altManager, provider: altProvider } = await getManagerWithDifferentStores();
 
-      // Uses the same fake database + doc info, but with different stores.
-      const alternateManager = new AttachmentFileManager(
-        defaultDocStorageFake,
-        alternateProvider,
-        defaultDocInfo,
-      );
-
-      const newStoreId = alternateProvider.getStoreIdFromLabel("new-store");
+      const newStoreId = altProvider.getStoreIdFromLabel("new-store");
       const assertAddFailsWithHashError = async (storeIdToCheck: string | undefined) => {
-        await assert.isRejected(alternateManager.addMissingFileData(
+        await assert.isRejected(altManager.addMissingFileData(
           files.external.fileIdent,
           stream.Readable.from(Buffer.from("THIS IS WRONG")),
           storeIdToCheck,
         ), /Hash.*is not correct/);
-        assert.isFalse(await alternateManager.isFileAvailable(files.external.fileIdent));
+        assert.isFalse(await altManager.isFileAvailable(files.external.fileIdent));
       };
 
       // Need to check adding file to external storage, and internal storage, as they have
       // different hashing approaches.
       await assertAddFailsWithHashError(newStoreId);
       await assertAddFailsWithHashError(undefined);
+    });
+
+    it("should throw if neither store is available", async function () {
+      const files = await addTestFiles();
+
+      const { manager: altManager } = await getManagerWithDifferentStores();
+
+      const newStoreId = "Mysterious missing store!";
+      await assert.isRejected(altManager.addMissingFileData(
+        files.external.fileIdent,
+        stream.Readable.from(Buffer.from("THIS IS WRONG")),
+        newStoreId,
+      ), "not a valid and available store");
+      assert.isFalse(await altManager.isFileAvailable(files.external.fileIdent));
     });
   });
 

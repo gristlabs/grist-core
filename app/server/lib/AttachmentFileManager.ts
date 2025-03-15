@@ -179,6 +179,10 @@ export class AttachmentFileManager extends EventEmitter {
     const newStoreId = originalStoreExists ? fileMetadata.ident : defaultStoreId;
     const newStore = newStoreId && await this._getStore(newStoreId) || undefined;
 
+    if (newStoreId && !newStore) {
+      throw new StoreNotAvailableError(newStoreId);
+    }
+
     // Internal storage is handled separately, as it needs the file as a Buffer in memory.
     // External storage can avoid loading it into memory, as it's all stream APIs.
     if (!newStore) {
