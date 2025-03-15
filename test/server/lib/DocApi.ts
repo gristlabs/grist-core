@@ -2939,6 +2939,19 @@ function testDocApi(settings: {
         assert.equal(tarUploadResp.status, 400, "should be a bad request");
       });
 
+      it("POST /docs/{did}/attachments/archive has a useful error if a bad file is used", async function () {
+        const badUploadForm = new FormData();
+        badUploadForm.append("upload", "Random content", {
+          filename: "AttachmentsAreHere.tar",
+          contentType: "application/x-tar",
+        });
+
+        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm,
+          defaultsDeep({headers: badUploadForm.getHeaders()}, chimpy));
+        assert.equal(tarUploadResp.status, 500, "should be a bad request");
+        assert.deepEqual(tarUploadResp.data, { error: "File is not a valid .tar" });
+      });
+
       it("POST /docs/{did}/copy fails when the document has external attachments", async function () {
         const worker1 = await userApi.getWorkerAPI(docId);
         await assert.isRejected(worker1.copyDoc(docId, undefined, 'copy'), /status 400/);

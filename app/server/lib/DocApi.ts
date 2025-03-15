@@ -621,7 +621,14 @@ export class DocWorkerApi {
 
       // parseMultipartFormRequest ignores handler errors.
       // Await this here to ensure errors are thrown.
-      res.json(await archivePromise);
+      try {
+        res.json(await archivePromise);
+      } catch(err) {
+        if (err instanceof Error && err.message === "Unexpected end of data") {
+          throw new Error("File is not a valid .tar");
+        }
+        throw err;
+      }
     }));
 
     // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
