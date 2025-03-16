@@ -2376,6 +2376,14 @@ export class GranularAccess implements GranularAccessForBundle {
     this._pruneColumns(action, permInfo, tableId, accessCheck);
   }
 
+  private async _checkAttachmentAccess(docSession: OptDocSession, attId: number) {
+    const list = await this._docStorage.findAttachmentReferences(attId);
+    if (list.length) {
+      return await this.findAttachmentCellForUser(docSession, attId);
+    }
+    return await this.isAttachmentUploadedByUser(docSession, attId);
+  }
+
   /**
    * Take a look at the DocAction and see if it might allow the user to
    * introduce attachment ids into a cell. If so, make sure the user
@@ -2385,9 +2393,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const {docSession} = cursor;
     const attIds = await this._gatherAttachmentChanges(cursor);
     for (const attId of attIds) {
-      if (!await this.isAttachmentUploadedByUser(docSession, attId) &&
-        ((await this._docStorage.findAttachmentReferences(attId)).length &&
-          !await this.findAttachmentCellForUser(docSession, attId))) {
+      if (!await this._checkAttachmentAccess(docSession, attId)) {
         throw new ErrorWithCode('ACL_DENY', 'Cannot access attachment', {
           status: 403,
         });
