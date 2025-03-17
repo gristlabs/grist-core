@@ -1,4 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
+import {LatestVersionAvailable} from 'app/common/Config';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
@@ -201,6 +202,7 @@ export class FlexServer implements GristServer {
   private _jobs?: GristJobs;
   private _emitNotifier = new EmitNotifier();
   private _testPendingNotifications: number = 0;
+  private _latestVersionAvailable?: LatestVersionAvailable;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -1985,6 +1987,28 @@ export class FlexServer implements GristServer {
 
     // Some configurations may add extra endpoints. This seems a fine time to add them.
     this.create.addExtraHomeEndpoints(this, this.app);
+  }
+
+  public getLatestVersionAvailable() {
+    if (!this._latestVersionAvailable) {
+      this.getHomeDBManager()
+        .getInstallConfig("latest_version_available")
+        .then((latestVersionAvailble) => {
+          // This value is also set by the compareWithLatest function
+          // called by Housekeeper, but that task may have run on a
+          // different home server than the current one. Let's run it on
+          // this one too.
+          this.setLatestVersionAvailable(latestVersionAvailble.data?.value as LatestVersionAvailable);
+        })
+        .catch((err) => {
+          log.error(`Could not read latest available Grist version from database: ${err}`);
+        });
+    }
+    return this._latestVersionAvailable;
+  }
+
+  public setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void {
+    this._latestVersionAvailable = latestVersionAvailable;
   }
 
   // Get the HTML template sent for document pages.
