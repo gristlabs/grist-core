@@ -31,7 +31,7 @@ export interface SelectFileOptions extends UploadOptions {
                           // e.g. [".jpg", ".png"]
 }
 
-export const IMPORTABLE_EXTENSIONS = [".grist", ".csv", ".tsv", ".dsv", ".txt", ".xlsx", ".xlsm"];
+export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", ".txt", ".xlsx", ".xlsm"];
 
 /**
  * Shows the file-picker dialog with the given options, and uploads the selected files. If under
