@@ -166,8 +166,6 @@ const cssSubMenuElem = styled('div', `
   min-width: 200px;
 `);
 
-// TODO: menus are sometimes cut off in Safari.
-// Setting "overflow: visible fixes this, but breaks overflow elsewhere.
 export const cssMenuElem = styled('div', `
   font-family: ${vars.fontFamily};
   font-size: ${vars.mediumFontSize};
@@ -185,6 +183,17 @@ export const cssMenuElem = styled('div', `
     & {
       display: none;
     }
+  }
+`);
+
+// The original purpose of z-index is lost to time, but probably matters in the presence of other
+// popups (modals, tutorials, etc). For the case of menus (which can have submenus), it's moved
+// from cssMenuElem to cssMenuWrapElem to work aroung a bug of submenus getting cut off in Safari.
+// More on Safari issue: https://ecomgraduates.com/blogs/news/fixing-z-index-issue-on-safari-browser.
+const cssMenuWrapElem = styled('div', `
+  z-index: ${vars.menuZIndex};
+  & > .${cssMenuElem.className} {
+    z-index: auto;
   }
 `);
 
@@ -209,7 +218,10 @@ export const menuItemStatic = styled('div', menuItemStyle);
 export const menuCssClass = cssMenuElem.className;
 
 // Add grist-floating-menu class to support existing browser tests
-const defaults = { menuCssClass: menuCssClass + ' grist-floating-menu' };
+const defaults = {
+  menuCssClass: menuCssClass + ' grist-floating-menu',
+  menuWrapCssClass: cssMenuWrapElem.className,
+};
 
 export interface SelectOptions<T> extends weasel.ISelectUserOptions {
   /** Additional DOM element args to pass to each select option. */
@@ -256,6 +268,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
   const selectOptions = {
     buttonArrow: cssInlineCollapseIcon('Collapse'),
     menuCssClass: _menu.className + ' ' + (menuClass || ''),
+    menuWrapCssClass: cssMenuWrapElem.className,
     buttonCssClass: _btn.className,
     ...otherOptions,
   };
@@ -267,7 +280,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
       renderOptionArgs ? renderOptionArgs(op) : null,
       testId('select-row')
     )
-  ) as HTMLElement; // TODO: should be changed in weasel
+  );
 }
 
 /**
@@ -503,6 +516,7 @@ export function listOfMenuItems(items: () => DomElementArg[],) {
       {
         ...weasel.defaultMenuOptions,
         menuCssClass: _menu.className + ' grist-floating-menu',
+        menuWrapCssClass: cssMenuWrapElem.className,
         stretchToSelector: `.${cssSelectBtn.className}`,
         trigger: [(triggerElem, ctl) => {
           const isDisabled = () => triggerElem.classList.contains('disabled');
@@ -771,6 +785,7 @@ const cssMultiSelectMenu = styled(weasel.cssMenu, `
   max-width: 400px;
   padding-bottom: 0px;
   background-color: ${theme.menuBg};
+  z-index: ${vars.menuZIndex};
 `);
 
 const cssCheckboxLabel = styled(cssLabel, `
