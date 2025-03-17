@@ -265,7 +265,7 @@ async function checkSelectingRecords(
   const summarySection = `TABLE1 [by ${groubyColumns.join(', ')}]`;
 
   await gu.openSelectByForSection(targetSection);
-  await driver.findContent('.test-select-row', summarySection).click();
+  await gu.findOpenMenuItem('.test-select-row', summarySection).click();
   await gu.waitForServer();
 
   assert.deepEqual(

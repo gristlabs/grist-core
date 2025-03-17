@@ -583,9 +583,9 @@ function getLabel() {
 }
 
 async function popupVisible() {
-  if (await driver.find(".test-column-title-popup").isPresent()) {
+  try {
     return await driver.find(".test-column-title-popup").isDisplayed();
-  } else {
+  } catch (e) {
     return false;
   }
 }

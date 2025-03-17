@@ -365,7 +365,7 @@ describe('ReferenceList', function() {
 
       // Check that switching Shown Column to Name works correctly.
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /Name/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Name/).click();;
       await gu.waitForServer();
       await gu.resizeColumn({col: 'A'}, 100);
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
@@ -381,12 +381,12 @@ describe('ReferenceList', function() {
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Roger\nTom', 'Tom', 'Sydney\nBill\nEvan', '', 'Roger', '']);
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /Row ID/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Row ID/).click();
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Friends[1]\nFriends[2]', 'Friends[2]', 'Friends[3]\nFriends[4]\nFriends[5]', '', 'Friends[1]', '']);
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /Name/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Name/).click();
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Roger\nTom', 'Tom', 'Sydney\nBill\nEvan', '', 'Roger', '']);
@@ -788,7 +788,7 @@ describe('ReferenceList', function() {
       await gu.toggleSidePanel('right', 'open');
       await driver.find('.test-right-tab-field').click();
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /C2/).click();
+      await gu.findOpenMenuItem('.test-select-row', /C2/).click();
       await gu.waitForServer();
 
       // Check that for the same cell, the dropdown no longer has an "add new" option.

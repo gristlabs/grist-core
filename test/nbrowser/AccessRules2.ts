@@ -241,7 +241,7 @@ describe("AccessRules2", function() {
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/).click();
     ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
-    
+
     await enterRulePart(ruleSet, 1, null, {R: 'deny'});
 
     // Save and reload.

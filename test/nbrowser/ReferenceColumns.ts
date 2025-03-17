@@ -29,7 +29,7 @@ describe('ReferenceColumns', function() {
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Films[1]', 'Films[2]', 'Films[3]', 'Films[4]', '', '']);
       await driver.find('.test-fbuilder-ref-table-select').click();
-      await driver.findContent('.test-select-row', /Friends/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Friends/).click();
       await gu.waitForServer();
 
       // These are now invalid cells containing AltText such as 'Films[1]'
@@ -40,7 +40,7 @@ describe('ReferenceColumns', function() {
       await driver.find('.test-type-transform-apply').click();
       await gu.waitForServer();
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /Name/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Name/).click();
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Films[1]', 'Films[2]', 'Films[3]', 'Films[4]', '', '']);
@@ -54,7 +54,7 @@ describe('ReferenceColumns', function() {
         ['Films[1]', 'Films[2]', 'Films[3]', 'Films[4]', 'Roger', '']);
 
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /Row ID/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Row ID/).click();
       await gu.waitForServer();
 
       // 'Friends[1]' is an actual reference, the rest are invalid
@@ -62,7 +62,7 @@ describe('ReferenceColumns', function() {
         ['Films[1]', 'Films[2]', 'Films[3]', 'Films[4]', 'Friends[1]', '']);
 
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /Name/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Name/).click();
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Films[1]', 'Films[2]', 'Films[3]', 'Films[4]', 'Roger', '']);
@@ -396,7 +396,7 @@ describe('ReferenceColumns', function() {
       await gu.toggleSidePanel('right', 'open');
       await driver.find('.test-right-tab-field').click();
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await driver.findContent('.test-select-row', /C2/).click();
+      await gu.findOpenMenuItem('.test-select-row', /C2/).click();
       await gu.waitForServer();
 
       // Check that for the same cell, the dropdown no longer has an "add new" option.

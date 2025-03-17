@@ -11,7 +11,7 @@ export interface ChartData {
 
 export async function selectChartType(chartType: string) {
   await driver.find('.test-chart-type').click();
-  await driver.findContent('.test-select-row', chartType).click();
+  await gu.findOpenMenuItem('.test-select-row', chartType).click();
   return gu.waitForServer();
 }
 

@@ -609,7 +609,7 @@ describe('ChartView1', function() {
 
     // Symmetric error bars should leave only the largeValue series, with 'value' for error bars.
     await driver.find('.test-chart-error-bars .test-select-open').click();
-    await gu.findOpenMenuItem('li', /Symmetric/)
+    await gu.findOpenMenuItem('li', /Symmetric/).click();
     await gu.waitForServer();
 
     const chartDom = await driver.find('.test-chart-container');
