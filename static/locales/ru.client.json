@@ -489,7 +489,25 @@
         "Normal document behavior. All users work on the same copy of the document.": "Нормальное поведение документа. Все пользователи работают над одной и той же копией документа.",
         "Edit": "Редактировать",
         "Document automatically opens as a user-specific copy.": "Документ автоматически открывается как пользовательская копия.",
-        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Как только вы начнете отсчитывать время, Grist измерит время, необходимое для оценки каждой формулы. Это позволяет определить, какие формулы ответственны за низкую производительность при первом открытии документа или когда документ реагирует на изменения."
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Как только вы начнете отсчитывать время, Grist измерит время, необходимое для оценки каждой формулы. Это позволяет определить, какие формулы ответственны за низкую производительность при первом открытии документа или когда документ реагирует на изменения.",
+        "fiddle mode": "режим ответвления (fiddle)",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Нажмите «Начать перенос», чтобы перенести их во Внутреннее хранилище (хранится в файле документа SQLite).",
+        "External": "Внешний",
+        "Internal": "Внутренний",
+        "Transfer in progress": "Выполняется передача данных",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Некоторые существующие вложения все еще [внешние]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Некоторые существующие приложения все еще являются [внутренними]({{internalLink}})** (хранится в файле SQLite).",
+        "[Learn more.]({{learnLink}})": "[Подробнее.]({{learnLink}})",
+        "**Some existing attachments are still external**.": "**Некоторые существующие вложения все еще являются внешними**.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Некоторые существующие вложения все еще являются внутренними** (хранится в файле SQLite).",
+        "Attachment storage": "Храненилище вложений",
+        "Click \"Start transfer\" to transfer those to External storage.": "Нажмите «Начать перенос», чтобы перенести их во Внешнее хранилище.",
+        "Being transfer": "Начать перенос",
+        "Newly uploaded attachments will be placed in External storage.": "Новые загруженные вложения будут помещены во Внешнее хранилище.",
+        "Newly uploaded attachments will be placed in Internal storage.": "Новые загруженные вложения будут помещены во Внутреннее хранилище.",
+        "No external stores available": "Внешние хранилища недоступны",
+        "Preferred storage for this document": "Предпочтительное место хранения для этого документа",
+        "Start transfer": "Начать передачу"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -799,7 +817,9 @@
         "Submit button label": "Название кнопки отправки",
         "Success text": "Текст успешной отправки",
         "No field selected": "Нет выбранных полей",
-        "Select a field in the form widget to configure.": "Выберите поле в виджете формы для настройки."
+        "Select a field in the form widget to configure.": "Выберите поле в виджете формы для настройки.",
+        "Submit": "Отправить",
+        "Thank you! Your response has been recorded.": "Спасибо! Ваш ответ был учтён."
     },
     "PermissionsWidget": {
         "Allow All": "Разрешить все",
@@ -862,7 +882,9 @@
         "View Only": "Только просмотр"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Неизвестный пользователь"
+        "UnknownUser": "Неизвестный пользователь",
+        "You are viewing this document as": "Вы просматриваете этот документ от имени",
+        "View as Yourself": "Смотреть от Своего имени"
     },
     "ViewConfigTab": {
         "Advanced settings": "Расширенные настройки",
@@ -1072,7 +1094,9 @@
         "Reference": "Ссылка",
         "Search columns": "Поиск столбцов",
         "By Name": "По Имени",
-        "By Date Modified": "По дате Изменения"
+        "By Date Modified": "По дате Изменения",
+        "Light": "Светлая",
+        "Custom": "Своя"
     },
     "modals": {
         "Cancel": "Отмена",
@@ -1088,7 +1112,8 @@
         "Undo to restore": "Отменить для восстановления",
         "Got it": "Принято",
         "Don't show again": "Больше не показывать",
-        "TIP": "Совет"
+        "TIP": "Совет",
+        "Confirm": "Подтвердить"
     },
     "search": {
         "Find Next ": "Найти далее ",
@@ -1235,7 +1260,9 @@
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Это ограничение возникает, когда один конец двусторонней ссылки сконфигурирован как одиночная ссылка.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Это ограничение возникает, когда один столбец в двусторонней ссылке имеет ссылочный тип.",
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "Чтобы разрешить несколько значений, измените тип столбца с типа «Ссылка» на «Ссылки списком».",
-        "To allow multiple assignments, change the referenced column's type to Reference List.": "Чтобы разрешить несколько назначений, измените тип указанного столбца на Ссылки списком."
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Чтобы разрешить несколько назначений, измените тип указанного столбца на Ссылки списком.",
+        "[Learn more.]({{link}})": "[Подробнее.]({{link}})",
+        "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1614,7 +1641,10 @@
         "Audit Logs": "Журналы аудита",
         "Contact us": "Свяжитесь с нами",
         "Log Streaming": "Потоковая передача журналов",
-        "Off": "Выкл"
+        "Off": "Выкл",
+        "New, Enterprise": "Новый, Корпоративный",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} больше",
+        "On": "На"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1729,7 +1759,11 @@
         "Disable Grist Enterprise": "Отключить Grist Enterprise",
         "Enable Grist Enterprise": "Включить Grist Enterprise",
         "Grist Enterprise is **enabled**.": "Grist Enterprise **включен**.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ключ активации используется для запуска Grist Enterprise после истечения пробного периода\nсроком в 30 дней. Получите ключ активации, [связавшись с нами]({{contactLink}}) сегодня. Вам\nне нужен ключ активации для запуска Grist Core.\n\nУзнайте больше в нашем [Справочном центре]({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ключ активации используется для запуска Grist Enterprise после истечения пробного периода\nсроком в 30 дней. Получите ключ активации, [связавшись с нами]({{contactLink}}) сегодня. Вам\nне нужен ключ активации для запуска Grist Core.\n\nУзнайте больше в нашем [Справочном центре]({{helpCenter}}).",
+        "Activate": "Активировать",
+        "Activation key": "Ключ активации",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Для продолжения использования Grist Enterprise требуется активная подписка. Вы можете\nактивировать свою подписку с помощью [подписка Grist Enterprise ]({{signupLink}}) и вставте свой\nключ активации ниже.",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ключ активации используется для запуска Grist Enterprise после пробного периода\n        30 дней истекли. Получите ключ активации, [подписка Grist\n        Enterprise]({{signupLink}}). Вам не нужен ключ активации для запуска\n        Grist Core."
     },
     "ViewLayout": {
         "Delete": "Удалить",
