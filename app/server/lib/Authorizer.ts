@@ -10,6 +10,7 @@ import {User} from 'app/gen-server/entity/User';
 import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
         SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
+import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
@@ -429,7 +430,7 @@ export function redirectToLoginUnconditionally(
   getLoginRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>,
   getSignUpRedirectUrl: (req: Request, redirectUrl: URL) => Promise<string>
 ) {
-  return async (req: Request, resp: Response, next: NextFunction) => {
+  return expressWrap(async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
     // Tell express-session to set our cookie: session handling post-login relies on it.
     forceSessionChange(mreq.session);
@@ -445,7 +446,7 @@ export function redirectToLoginUnconditionally(
     } else {
       return resp.redirect(await getLoginRedirectUrl(req, redirectUrl));
     }
-  };
+  });
 }
 
 /**
@@ -462,7 +463,7 @@ export function redirectToLogin(
 ): RequestHandler {
   const redirectUnconditionally = redirectToLoginUnconditionally(getLoginRedirectUrl,
                                                                  getSignUpRedirectUrl);
-  return async (req: Request, resp: Response, next: NextFunction) => {
+  return expressWrap(async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
     // This will ensure that express-session will set our cookie if it hasn't already -
     // we'll need it if we redirect.
@@ -489,7 +490,7 @@ export function redirectToLogin(
       log.info("Authorizer failed to redirect", err.message);
       return resp.status(401).send(err.message);
     }
-  };
+  });
 }
 
 /**
