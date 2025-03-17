@@ -62,7 +62,29 @@ export async function getOrCreateConnection(): Promise<DataSource> {
     // share the database connection.  This saves locking trouble
     // with Sqlite.
     if (!gristDataSource?.isInitialized) {
-      const settings = getTypeORMSettings();
+      let settings = getTypeORMSettings();
+      if (settings.type === 'postgres') {
+        // We're having problems with the Postgres JIT compiler slowing
+        // down a particular query, so we'll turn it off for this
+        // session.
+        //
+        // If some day Postgres's JIT compiler gets smarter and has a
+        // better cost function that knows it's a bad idea to compile
+        // certain queries, we might then want to revisit this
+        // workaround and remove it.
+        //
+        // General JIT documentation in Postgres, including other more
+        // fine-tuned possible configuratin options to consider in the
+        // future:
+        //
+        //   https://www.postgresql.org/docs/current/jit.html
+        //
+        // Note that this passes options valid for the duration of the
+        // session (i.e. the connection) into libpq via PGOPTIONS:
+        //
+        //  https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-SHELL
+        settings = getTypeORMSettings({ extra: { options: "-c jit=off" } });
+      }
 
       gristDataSource = new DataSource(settings);
       await gristDataSource.initialize();
