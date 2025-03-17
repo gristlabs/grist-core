@@ -6,7 +6,7 @@ Grist is a modern relational spreadsheet. It combines the flexibility of a sprea
 * [`grist-desktop`](https://github.com/gristlabs/grist-desktop) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
-The `grist-core` repo is the heart of Grist, including the hosted services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 and Grist's main developer.The French government 🇫🇷 organizations [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) and [DINUM (Direction Interministérielle du Numérique)](https://www.numerique.gouv.fr/dinum/) have also made significant contributions to the codebase.
+The `grist-core` repo is the heart of Grist, including the hosted services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 and Grist's main developer. The French government 🇫🇷 organizations [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) and [DINUM (Direction Interministérielle du Numérique)](https://www.numerique.gouv.fr/dinum/) have also made significant contributions to the codebase.
 
 The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
 
