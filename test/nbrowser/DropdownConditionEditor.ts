@@ -302,8 +302,10 @@ describe('DropdownConditionEditor', function () {
 
       // Check compilation errors are reported and saved.
       await driver.find('.test-field-set-dropdown-condition').click();
+      await driver.findWait('.cell_editor', 100);
       await gu.sendKeys('foo', Key.ENTER);
       await gu.waitForServer();
+
       assert.equal(
         await driver.find('.test-field-dropdown-condition-error').getText(),
         "Unknown variable 'foo'"
@@ -316,8 +318,9 @@ describe('DropdownConditionEditor', function () {
 
       // Check that the autocomplete dropdown also reports an error.
       await gu.sendKeys(Key.ENTER);
+
       assert.equal(
-        await driver.find('.test-autocomplete-no-items-message').getText(),
+        await driver.findWait('.test-autocomplete-no-items-message', 100).getText(),
         'Error in dropdown condition'
       );
       await gu.sendKeys(Key.ESCAPE);
@@ -327,8 +330,9 @@ describe('DropdownConditionEditor', function () {
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, '[] not in 5', Key.ENTER);
       await gu.waitForServer();
       await gu.sendKeys(Key.ENTER);
+
       assert.equal(
-        await driver.find('.test-autocomplete-no-items-message').getText(),
+        await driver.findWait('.test-autocomplete-no-items-message', 100).getText(),
         'Error in dropdown condition'
       );
       await gu.sendKeys(Key.ESCAPE);
@@ -360,6 +364,8 @@ describe('DropdownConditionEditor', function () {
 
     // Check that user1 (who is an admin) can see dropdown values.
     await gu.sendKeys(Key.ENTER);
+    await waitForDropdown();
+
     assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
       'Trainee',
       'Supervisor',
@@ -375,3 +381,7 @@ describe('DropdownConditionEditor', function () {
     await gu.sendKeys(Key.ESCAPE);
   });
 });
+
+async function waitForDropdown() {
+  await driver.findWait('.test-autocomplete li', 100);
+}

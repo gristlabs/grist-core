@@ -382,9 +382,11 @@ describe('DocTutorial', function () {
 
     it('does not play an easter egg when opening an anchor link encoded with rr', async function() {
       await gu.getCell({rowNum: 1, col: 0}).click();
-      const link = await gu.getAnchor();
-      const easterEggLink = link.replace('.r1', '.rr1');
-      await driver.get(easterEggLink);
+      await gu.waitToPass(async () => {
+        const link = await gu.getAnchor();
+        const easterEggLink = link.replace('.r1', '.rr1');
+        await driver.get(easterEggLink);
+      });
       await gu.waitForAnchor();
       assert.isFalse(await driver.find('.test-behavioral-prompt').isPresent());
       await gu.assertIsRickRowing(false);
