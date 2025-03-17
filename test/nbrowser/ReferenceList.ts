@@ -365,7 +365,7 @@ describe('ReferenceList', function() {
 
       // Check that switching Shown Column to Name works correctly.
       await driver.find('.test-fbuilder-ref-col-select').click();
-      await gu.findOpenMenuItem('.test-select-row', /Name/).click();;
+      await gu.findOpenMenuItem('.test-select-row', /Name/).click();
       await gu.waitForServer();
       await gu.resizeColumn({col: 'A'}, 100);
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
