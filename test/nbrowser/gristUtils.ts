@@ -4137,6 +4137,16 @@ export async function findOpenMenuAllItems<T>(
   return await driver.findAll(`.grist-floating-menu ${itemSelector}`, mapper);
 }
 
+export async function waitForNotPresent(selector: string) {
+  await waitToPass(async () => {
+    assert.isFalse(await driver.find(selector).isPresent());
+  });
+}
+
+export async function waitForMenuToClose() {
+  await waitForNotPresent('.grist-floating-menu');
+}
+
 
 } // end of namespace gristUtils
 

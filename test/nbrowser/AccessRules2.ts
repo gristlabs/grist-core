@@ -180,7 +180,7 @@ describe("AccessRules2", function() {
     // Add rules hiding First_Name, Last_Name columns.
     await findTableWait(/ClientsTable/).find('.test-rule-table-menu-btn').click();
     await gu.findOpenMenuItem('li', /Add Column Rule/).click();
-    let ruleSet = await findRuleSetWait(/ClientsTable/, 1);
+    let ruleSet = findRuleSetWait(/ClientsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     await gu.findOpenMenuItem('li', 'First_Name').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
@@ -190,7 +190,7 @@ describe("AccessRules2", function() {
     // Add table rule entirely hiding FinancialsTable.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/).click();
-    ruleSet = await findDefaultRuleSetWait(/FinancialsTable/);
+    ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
     await enterRulePart(ruleSet, 1, null, {R: 'deny'});
 
     // Save and reload.
@@ -204,13 +204,18 @@ describe("AccessRules2", function() {
 
     // Remove Last_Name column from being blocked. Check that it's now available in dropdown.
     await driver.findWait('.test-rule-set', 2000);
-    ruleSet = await findRuleSetWait(/ClientsTable/, 1);
+    ruleSet = findRuleSetWait(/ClientsTable/, 1);
     await ruleSet.find('.test-rule-resource').click();
     await ruleSet.findContent('.test-acl-column', 'Last_Name').find('.test-acl-col-remove').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.equal(await gu.findOpenMenuItem('li', 'Last_Name').isPresent(), true);
     await driver.sendKeys(Key.ESCAPE);    // Close menu.
+    await gu.waitForMenuToClose();
     await driver.sendKeys(Key.ESCAPE);    // Close editing of columns.
+    // Make sure we don't have any select visible.
+    await gu.waitToPass(async () => {
+      assert.isFalse(await ruleSet.find('.test-rule-resource .test-select-open').isDisplayed());
+    });
 
     // Remove FinancialsTable from being blocked. Check that it's now available in dropdown.
     ruleSet = findRuleSetWait(/FinancialsTable/, 1);
@@ -219,14 +224,13 @@ describe("AccessRules2", function() {
     assert.equal(await gu.findOpenMenuItem('li', /FinancialsTable/).isPresent(), true);
     assert.equal(await gu.findOpenMenuItem('li', /FinancialsTable/).matches('.disabled'), false);
     await driver.sendKeys(Key.ESCAPE);
-  
 
     // Save
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
 
     // Remove First_Name column from being blocked, and add back Last_Name column.
-    ruleSet = await findRuleSetWait(/ClientsTable/, 1);
+    ruleSet = findRuleSetWait(/ClientsTable/, 1);
     await ruleSet.find('.test-rule-resource').click();
     await ruleSet.findContent('.test-acl-column', 'First_Name').find('.test-acl-col-remove').click();
     await ruleSet.find('.test-rule-resource .test-select-open').click();
@@ -236,7 +240,7 @@ describe("AccessRules2", function() {
     assert.equal(await findRuleSet(/FinancialsTable/, 1).isPresent(), false);
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/).click();
-    ruleSet = await findDefaultRuleSetWait(/FinancialsTable/);
+    ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
     
     await enterRulePart(ruleSet, 1, null, {R: 'deny'});
 
@@ -247,7 +251,7 @@ describe("AccessRules2", function() {
     await driver.findWait('.test-rule-set', 5000);
 
     // Verify the results.
-    ruleSet = await findRuleSetWait(/ClientsTable/, 1);
+    ruleSet = findRuleSetWait(/ClientsTable/, 1);
     assert.deepEqual(await ruleSet.findAll('.test-acl-column', el => el.getText()), ['Last_Name']);
     assert.equal(await findDefaultRuleSetWait(/FinancialsTable/).isPresent(), true);
 
