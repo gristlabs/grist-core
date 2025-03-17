@@ -11,7 +11,7 @@ import {makeTestId} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
-import {fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
+import {EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {SortedRowSet} from 'app/client/models/rowset';
@@ -202,7 +202,10 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   let uploadResult: UploadResult|null = null;
   // Use the built-in file picker. On electron, it uses the native file selector (without
   // actually uploading anything), which is why this requires a slightly different flow.
-  const files: File[] = await openFilePicker({multiple: true});
+  const files: File[] = await openFilePicker({
+    multiple: true,
+    accept: EXTENSIONS_IMPORTABLE_WITHIN_DOC.join(","),
+  });
   // Important to fork first before trying to import, so we end up uploading to a
   // consistent doc worker.
   await gristDoc.forkIfNeeded();
