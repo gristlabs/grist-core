@@ -208,8 +208,10 @@ export const menuItemStatic = styled('div', menuItemStyle);
 
 export const menuCssClass = cssMenuElem.className;
 
+export const gristFloatingMenuClass = 'grist-floating-menu';
+
 // Add grist-floating-menu class to support existing browser tests
-const defaults = { menuCssClass: menuCssClass + ' grist-floating-menu' };
+const defaults = { menuCssClass: menuCssClass + ' ' + gristFloatingMenuClass };
 
 export interface SelectOptions<T> extends weasel.ISelectUserOptions {
   /** Additional DOM element args to pass to each select option. */
@@ -255,7 +257,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
   const {menuCssClass: menuClass, ...otherOptions} = weaselOptions;
   const selectOptions = {
     buttonArrow: cssInlineCollapseIcon('Collapse'),
-    menuCssClass: [_menu.className,  (menuClass || ''), 'grist-floating-menu'].join(' '),
+    menuCssClass: [_menu.className,  (menuClass || ''), gristFloatingMenuClass].join(' '),
     buttonCssClass: _btn.className,
     ...otherOptions,
   };
@@ -502,7 +504,7 @@ export function listOfMenuItems(items: () => DomElementArg[],) {
       items,
       {
         ...weasel.defaultMenuOptions,
-        menuCssClass: _menu.className + ' grist-floating-menu',
+        menuCssClass: _menu.className + ' ' + gristFloatingMenuClass,
         stretchToSelector: `.${cssSelectBtn.className}`,
         trigger: [(triggerElem, ctl) => {
           const isDisabled = () => triggerElem.classList.contains('disabled');

@@ -1226,6 +1226,8 @@ export async function openPage(name: string|RegExp) {
 export async function openPageMenu(pageName: RegExp|string) {
   await getPageItem(pageName).mouseMove()
     .find('.test-docpage-dots').click();
+  // Wait for the menu to appear.
+  await driver.findWait('.grist-floating-menu', 100);
 }
 
 /**
@@ -1285,6 +1287,7 @@ export async function getPageTree(): Promise<PageTree[]> {
  */
 export async function addNewTable(name?: string) {
   await driver.findWait('.test-dp-add-new', 2000).click();
+  await findOpenMenu();
   await driver.find('.test-dp-empty-table').click();
   if (name) {
     const prompt = await driver.find(".test-modal-prompt");
@@ -1376,7 +1379,7 @@ export async function removePage(name: string|RegExp, options: {
   cancel?: boolean,
 } = { }) {
   await openPageMenu(name);
-  assert.equal(await driver.find('.test-docpage-remove').matches('.disabled'), false);
+  assert.equal(await driver.findWait('.test-docpage-remove', 100).matches('.disabled'), false);
   await driver.find('.test-docpage-remove').click();
   const popups = await driver.findAll(".test-removepage-popup");
   if (options.expectPrompt === true) {

@@ -14,6 +14,14 @@ namespace gristUtils {
   }
 
   /**
+   * Wait for .test-rule-table element for the given tableId.
+   */
+  export function findTableWait(tableId: RegExp|'*'): WebElement {
+    const header = driver.findContentWait('.test-rule-table-header', tableId === '*' ? 'Default Rules' : tableId, 100);
+    return header.findClosest('.test-rule-table');
+  }
+
+  /**
    * Remove any rules within a .test-rule-table element, by hitting the trash buttons.
    */
   export async function removeTable(tableId: RegExp|'*'): Promise<void> {
@@ -44,11 +52,27 @@ namespace gristUtils {
     return cols.findClosest('.test-rule-set');
   }
 
+  export function findDefaultRuleSetWait(tableId: RegExp|'*'): WebElement {
+    const table = findTableWait(tableId);
+    const cols = table.findContent('.test-rule-resource', /All/);
+    return cols.findClosest('.test-rule-set');
+  }
+
   /**
    * Find a .test-rule-set at the given 1-based index, among the rule sets for the given tableId.
    */
   export function findRuleSet(tableId: RegExp|'*', ruleNum: number): WebElement {
     const table = findTable(tableId);
+    // Add one to skip table header element.
+    return table.find(`.test-rule-set:nth-child(${ruleNum + 1})`);
+  }
+
+  /**
+   * Find a .test-rule-set at the given 1-based index, among the rule sets for the given tableId.
+   * Wait for the table to be present first.
+   */
+  export function findRuleSetWait(tableId: RegExp|'*', ruleNum: number): WebElement {
+    const table = findTableWait(tableId);
     // Add one to skip table header element.
     return table.find(`.test-rule-set:nth-child(${ruleNum + 1})`);
   }
@@ -65,7 +89,7 @@ namespace gristUtils {
     permissions: string|{[bit: string]: string},
     memo?: string
   ) {
-    const part = ruleSet.find(`.test-rule-part-and-memo:nth-child(${partNum}) .test-rule-part`);
+    const part = ruleSet.findWait(`.test-rule-part-and-memo:nth-child(${partNum}) .test-rule-part`, 100);
     if (aclFormula !== null) {
       await part.findWait('.test-rule-acl-formula .ace_editor', 500);
       await part.find('.test-rule-acl-formula').doClick();
@@ -78,7 +102,7 @@ namespace gristUtils {
       await gu.findOpenMenuItem('li', permissions).click();
     } else {
       for (const [bit, desired] of Object.entries(permissions)) {
-        const elem = await part.findContent('.test-rule-permissions div', bit);
+        const elem = await part.findContentWait('.test-rule-permissions div', bit, 100);
         if (!await elem.matches(`[class$=-${desired}]`)) {
           await elem.click();
           if (!await elem.matches(`[class$=-${desired}]`)) {
