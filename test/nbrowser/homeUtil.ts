@@ -16,6 +16,7 @@ import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {TestingHooksClient} from 'app/server/lib/TestingHooks';
 import EventEmitter = require('events');
+import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 
 export interface Server extends EventEmitter {
   driver: WebDriver;
@@ -323,8 +324,17 @@ export class HomeUtil {
   // A helper to create a UserAPI instance for a given useranme and org, that targets the home server
   // Username can be null for anonymous access.
   public createHomeApi(username: string|null, org: string, email?: string): UserAPIImpl {
+    return this.createApi(UserAPIImpl, username, org, email);
+  }
+
+  public createApi<T extends BaseAPI>(
+    creator: APIConstructor<T>,
+    username: string|null,
+    org: string,
+    email?: string
+  ): T {
     const apiKey = this.getApiKey(username, email);
-    return this._createHomeApiUsingApiKey(apiKey, org);
+    return this._createApiUsingApiKey(creator, apiKey, org);
   }
 
   public getApiKey(username: string|null, email?: string): string | null {
@@ -444,13 +454,23 @@ export class HomeUtil {
 
   // Make a home api instance with the given api key, for the specified org.
   // If no api key given, work anonymously.
-  private _createHomeApiUsingApiKey(apiKey: string|null, org?: string): UserAPIImpl {
+  private _createApiUsingApiKey<T extends BaseAPI>(
+    creator: APIConstructor<T>,
+    apiKey: string|null,
+    org?: string): T {
     const headers = apiKey ? {Authorization: `Bearer ${apiKey}`} : undefined;
-    return new UserAPIImpl(org ? this.server.getUrl(org, '') : this.server.getHost(), {
+    return new creator(org ? this.server.getUrl(org, '') : this.server.getHost(), {
       headers,
       fetch: fetch as any,
       newFormData: () => new FormData() as any,  // form-data isn't quite type compatible
     });
+  }
+
+
+  // Make a home api instance with the given api key, for the specified org.
+  // If no api key given, work anonymously.
+  private _createHomeApiUsingApiKey(apiKey: string|null, org?: string): UserAPIImpl {
+    return this._createApiUsingApiKey(UserAPIImpl, apiKey, org);
   }
 
   private async _toggleTips(enabled: boolean, email: string) {
@@ -489,3 +509,5 @@ export class HomeUtil {
     }
   }
 }
+
+export type APIConstructor<T extends BaseAPI> = new (homeUrl: string, options: IOptions) => T;

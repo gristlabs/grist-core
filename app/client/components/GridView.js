@@ -1902,7 +1902,7 @@ GridView.prototype.columnContextMenu = function(ctl, copySelection, field, filte
     return buildColumnContextMenu({
       filterOpenFunc: () => filterTriggerCtl.open(),
       sortSpec: this.gristDoc.viewModel.activeSection.peek().activeSortSpec.peek(),
-      colId: field.column.peek().id.peek(),
+      colRowId: field.column.peek().id.peek(),
       ...options,
     });
   }

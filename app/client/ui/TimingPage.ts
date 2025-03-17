@@ -32,6 +32,7 @@ export class TimingPage extends DisposableWithEvents {
       ],
       data: new ApiData(() => this._data.get() || []),
       format: new RawFormat(),
+      initialFocus: true,
     });
 
 

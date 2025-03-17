@@ -900,6 +900,9 @@ export interface GristLoadConfig {
 
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
+
+  // If there are any admin tools available.
+  featureAdminControls?: boolean;
 }
 
 export const Features = StringUnion(

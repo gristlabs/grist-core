@@ -12,6 +12,7 @@ import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
 import * as PluginApi from 'app/plugin/grist-plugin-api';
 
+import { BaseAPI } from 'app/common/BaseAPI';
 import {CommandName} from 'app/client/components/commandList';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
@@ -29,7 +30,7 @@ import { getAppRoot } from 'app/server/lib/places';
 
 import { GristWebDriverUtils, PageWidgetPickerOptions,
          WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
-import { HomeUtil } from 'test/nbrowser/homeUtil';
+import { APIConstructor, HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
 import type { Cleanup } from 'test/nbrowser/testUtils';
 import { fetchScreenshotAndLogs } from 'test/nbrowser/webdriverUtils';
@@ -67,6 +68,7 @@ export const uploadFixtureDoc = homeUtil.uploadFixtureDoc.bind(homeUtil);
 export const getWorkspaceId = homeUtil.getWorkspaceId.bind(homeUtil);
 export const listDocs = homeUtil.listDocs.bind(homeUtil);
 export const createHomeApi = homeUtil.createHomeApi.bind(homeUtil);
+export const createApi = homeUtil.createApi.bind(homeUtil);
 export const getApiKey = homeUtil.getApiKey.bind(homeUtil);
 export const simulateLogin = homeUtil.simulateLogin.bind(homeUtil);
 export const removeLogin = homeUtil.removeLogin.bind(homeUtil);
@@ -429,11 +431,11 @@ export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: numbe
   const cols = arguments[0];
   const rowNums = arguments[1];
   // Read all columns and create object { ['ColName'] : index }
-  const columns = Object.fromEntries([...document.querySelectorAll(".g-column-label")]
+  const columns = Object.fromEntries([...document.querySelectorAll(".active_section .g-column-label")]
                       .map((col, index) => [col.innerText, index]))
   const result = [];
   // Read all rows and create object { [rowIndex] : RowNumberElement }
-  const rowNumElements = Object.fromEntries([...document.querySelectorAll(".gridview_data_row_num")]
+  const rowNumElements = Object.fromEntries([...document.querySelectorAll(".active_section .gridview_data_row_num")]
                             .map((row) => [Number(row.innerText), row]))
   for(const r of rowNums) {
     // If this is addRow, insert undefined x cols.length.
@@ -524,6 +526,13 @@ export function getDetailCell(colOrOptions: string|ICellSelect, rowNum?: number,
     {col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper} :
     {col: colOrOptions, rowNums: [rowNum!], section, mapper});
   return new WebElementPromise(driver, getVisibleDetailCells(options).then((elems) => elems[0]));
+}
+
+/**
+ * Helper function for Toggle column to check if it is checked or not.
+ */
+export function isChecked(cell: WebElement) {
+  return cell.find('.widget_checkmark').isDisplayed();
 }
 
 /**
@@ -627,12 +636,50 @@ export async function getCardFieldLabels() {
 /**
  * Resize the given grid column by a given number of pixels.
  */
-export async function resizeColumn(colOptions: IColHeader, deltaPx: number) {
+export async function resizeColumn(colOptions: string|IColHeader, deltaPx: number) {
   await getColumnHeader(colOptions).find('.ui-resizable-handle').mouseMove();
   await driver.mouseDown();
   await driver.mouseMoveBy({x: deltaPx});
   await driver.mouseUp();
   await waitForServer();
+}
+
+/**
+ * Checks the width of visible column.
+ */
+export async function assertColumnWidth(colOptions: string|IColHeader, width: number) {
+  assert.closeTo((await getColumnHeader(colOptions).rect()).width, width, 2);
+}
+
+/**
+ * Moves one column onto another column (moving it to its right or left, depending on the order).
+ * Simulates drag and drop of the column header.
+ */
+export async function moveColumn(which: string|IColHeader, where: string|IColHeader) {
+  const fromCol = await getColumnHeader(which);
+  const toCol = await getColumnHeader(where);
+
+  const fromLeft = (await fromCol.rect()).x;
+  const toLeft = (await toCol.rect()).x;
+  const toWidth = (await toCol.rect()).width;
+  const toMove = Math.round(toLeft - fromLeft + toWidth * 0.1);
+
+  await selectColumn(which);
+  await getColumnHeader(which).mouseMove({x: 5, y: 5});
+  await driver.mouseDown();
+  await waitToPass(async () => {
+     assert.isTrue(await driver.find('.active_section .col_indicator_line').isDisplayed());
+  });
+  await driver.mouseMoveBy({x: toMove});
+  await driver.mouseUp();
+  await waitToPass(async () => {
+    assert.isFalse(await driver.find('.active_section .col_indicator_line').isDisplayed());
+  });
+}
+
+
+export async function getColumnWidth(colOptions: string|IColHeader) {
+  return (await getColumnHeader(colOptions).rect()).width;
 }
 
 /**
@@ -2425,6 +2472,16 @@ export class Session {
     return createHomeApi(this.settings.name, this.settings.orgDomain, this.settings.email);
   }
 
+  /**
+   * Creates a generic API object for the current user.
+   */
+  public createApi<T extends BaseAPI>(creator: APIConstructor<T>) {
+    if (this.settings.email === 'anon@getgrist.com') {
+      return createApi(creator, null, this.settings.orgDomain);
+    }
+    return createApi(creator, this.settings.name, this.settings.orgDomain, this.settings.email);
+  }
+
   public getApiKey(): string|null {
     if (this.settings.email === 'anon@getgrist.com') {
       return getApiKey(null);
@@ -2704,8 +2761,8 @@ export async function selectGrid() {
   await driver.find(".gridview_data_corner_overlay").click();
 }
 
-export async function selectColumn(col: string) {
-  await getColumnHeader({col}).click();
+export async function selectColumn(col: string|IColHeader) {
+  await getColumnHeader(col).click();
 }
 
 /**
@@ -3196,7 +3253,10 @@ export async function filterBy(col: IColHeader|string, save: boolean, values: (s
  */
 export async function openColumnFilter(col: IColHeader|string) {
   await openColumnMenu(col, 'Filter');
-  return filterController;
+  return {
+    ...filterController,
+    open: () => openColumnMenu(col, 'Filter')
+  };
 }
 
 /**
@@ -3206,12 +3266,15 @@ export async function openPinnedFilter(col: string) {
   const filterBar = driver.find('.active_section .test-filter-bar');
   const pinnedFilter = filterBar.findContent('.test-filter-field', col);
   await pinnedFilter.click();
-  return filterController;
+  return {
+    ...filterController,
+    open: () => openPinnedFilter(col)
+  };
 }
 
 const filterController = {
   async toggleValue(value: string|RegExp) {
-    await driver.findContent('.test-filter-menu-list label', value).click();
+    await driver.findContentWait('.test-filter-menu-list label', value, 100).click();
     return this;
   },
   async none() {

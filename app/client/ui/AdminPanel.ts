@@ -6,10 +6,11 @@ import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminCh
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
-import {AppHeader} from 'app/client/ui/AppHeader';
+import {buildAdminData, buildLeftPanel} from 'app/client/ui/AdminControls';
+import {AdminSection, AdminSectionItem, cssValueLabel, HidableToggle} from 'app/client/ui/AdminPanelCss';
+import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 import {AuditLogStreamingConfig, getDestinationDisplayName} from 'app/client/ui/AuditLogStreamingConfig';
 import {InstallConfigsAPI} from 'app/client/ui/ConfigsAPI';
-import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {SupportGristPage} from 'app/client/ui/SupportGristPage';
 import {ToggleEnterpriseWidget} from 'app/client/ui/ToggleEnterpriseWidget';
@@ -20,15 +21,12 @@ import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
 import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
-import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
+import {AdminPanelPage, commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl, LatestVersion} from 'app/common/InstallAPI';
 import {naturalCompare} from 'app/common/SortFunc';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
-import {Computed, Disposable, dom, IDisposable,
-        IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
-import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
-import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
+import {Computed, Disposable, dom, IDisposable, IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
 
 const t = makeT('AdminPanel');
 
@@ -37,31 +35,30 @@ export class AdminPanel extends Disposable {
   private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private _checks: AdminChecks;
+  private _page: Observable<AdminPanelPage> = Observable.create(this, 'admin');
 
   constructor(private _appModel: AppModel) {
     super();
     document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
     this._checks = new AdminChecks(this, this._installAPI);
+
+    this._page = Computed.create(this, (use) => {
+      return use(urlState().state).adminPanel || 'admin';
+    });
   }
 
   public buildDom() {
     this._checks.fetchAvailableChecks().catch(err => {
       reportError(err);
     });
-    const panelOpen = Observable.create(this, false);
     return pagePanels({
-      leftPanel: {
-        panelWidth: Observable.create(this, 240),
-        panelOpen,
-        hideOpener: true,
-        header: dom.create(AppHeader, this._appModel),
-        content: leftPanelBasic(this._appModel, panelOpen),
-      },
+      leftPanel: buildLeftPanel(this, this._appModel),
       headerMain: this._buildMainHeader(),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: dom.create(this._buildMainContent.bind(this)),
     });
   }
+
 
   private _buildMainHeader() {
     return dom.frag(
@@ -83,19 +80,26 @@ export class AdminPanel extends Disposable {
     // mechanism for access.
     return cssPageContainer(
       dom.cls('clipboard'),
-      {tabIndex: "-1"},
-      dom.maybe(this._checks.probes, probes => {
-        return probes.length > 0
+
+      dom.maybe(use => use(this._page) === 'admin' && use(this._checks.probes), (probes) => [
+        (probes as any[]).length > 0
             ? this._buildMainContentForAdmin(owner)
-            : this._buildMainContentForOthers(owner);
+            : this._buildMainContentForOthers(owner)
+      ]),
+
+      dom.maybe(use => use(this._page) !== 'admin', () => {
+        return dom.create(buildAdminData, this._appModel);
       }),
+
+      cssPageContainer.cls('-admin-pages', use => use(this._page) !== 'admin'),
+
       testId('admin-panel'),
     );
   }
 
   /**
    * Show something helpful to those without access to the panel,
-   * which could include a legit adminstrator if auth is misconfigured.
+   * which could include a legit administrator if auth is misconfigured.
    */
   private _buildMainContentForOthers(owner: MultiHolder) {
     const exampleKey = _longCodeForExample();
@@ -699,10 +703,18 @@ const cssStatus = styled('div', `
 `);
 
 const cssPageContainer = styled('div', `
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: auto;
   padding: 40px;
   font-size: ${vars.introFontSize};
   color: ${theme.text};
+
+  &-admin-pages {
+    padding: 12px;
+    font-size: ${vars.mediumFontSize};
+  }
 
   @media ${mediaSmall} {
     & {
@@ -710,14 +722,6 @@ const cssPageContainer = styled('div', `
       font-size: ${vars.mediumFontSize};
     }
   }
-`);
-
-
-export const cssValueLabel = styled('div', `
-  padding: 4px 8px;
-  color: ${theme.text};
-  border: 1px solid ${theme.inputBorder};
-  border-radius: ${vars.controlBorderRadius};
 `);
 
 // A wrapper for the version details panel. Shows two columns.
@@ -768,7 +772,7 @@ const cssErrorText = styled('span', `
   color: ${theme.errorText};
 `);
 
-export const cssDangerText = styled('div', `
+const cssDangerText = styled('div', `
   color: ${theme.dangerText};
 `);
 
@@ -776,7 +780,7 @@ const cssHappyText = styled('span', `
   color: ${theme.controlFg};
 `);
 
-export const cssLabel = styled('div', `
+const cssLabel = styled('div', `
   display: inline-block;
   min-width: 100px;
   text-align: right;

@@ -1,10 +1,11 @@
+import {makeTestId} from 'app/client/lib/domUtils';
 import {urlState} from 'app/client/models/gristUrlState';
 import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon as cssIcon} from 'app/client/ui2018/icons';
 import {IGristUrlState} from 'app/common/gristUrls';
 import {useBindable} from 'app/common/gutil';
-import {BindableValue, dom, makeTestId, MaybeObsArray, styled} from 'grainjs';
+import {BindableValue, dom, IDomArgs, MaybeObsArray, styled, UseCBOwner} from 'grainjs';
 
 const testId = makeTestId("test-component-tabs-");
 
@@ -21,7 +22,13 @@ export interface TabProps {
   link?: IGristUrlState;
 }
 
-export function buildTabs(tabs: MaybeObsArray<TabProps>, selected: BindableValue<string>) {
+export function buildTabs(
+  tabs: MaybeObsArray<TabProps>,
+  selected: BindableValue<string|null|undefined>,
+  ...args: IDomArgs<HTMLDivElement>
+) {
+
+  const isSelected = (tab: TabProps) => (use: UseCBOwner) => useBindable(use, selected) === (tab.id ?? tab.label);
   return cssTabs(
     dom.forEach(tabs, tab => cssTab(
       cssIconAndLabel(!tab.icon ? null : cssTabIcon(tab.icon, dom.hide(isNarrowScreenObs())),
@@ -30,25 +37,28 @@ export function buildTabs(tabs: MaybeObsArray<TabProps>, selected: BindableValue
       // to avoid slight shifts of other labels when switching tabs.
       dom('div', tab.label, cssBoldLabelSpacer(tab.label))),
 
-      cssTab.cls("-selected", use => useBindable(use, selected) === tab.id ?? tab.label),
+      cssTab.cls("-selected", isSelected(tab)),
 
       tab.onClick && dom.on('click', tab.onClick.bind(tab)),
 
       tab.link && urlState().setLinkUrl(tab.link, { replace: true }),
+
       testId('tab'),
+      testId('tab-selected', isSelected(tab)),
     )),
     testId('list'),
+    ...args
   );
 }
 
-const cssTabs = styled("div", `
+export const cssTabs = styled("div", `
   flex-grow: 1;
   display: flex;
   border-bottom: 1px solid ${theme.tableBodyBorder};
   user-select: none;
 `);
 
-const cssTab = styled("a", `
+export const cssTab = styled("a", `
   display: block;
   padding: 8px 16px;
   color: ${theme.mediumText};

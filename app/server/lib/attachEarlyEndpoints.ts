@@ -63,7 +63,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
   // panel inaccessible. Generally the admin panel should report problems
   // rather than failing entirely.
   app.get(
-    "/admin",
+    "/admin/:subpath(*)?",
     userIdMiddleware,
     expressWrap(async (req, res) => {
       return gristServer.sendAppPage(req, res, {

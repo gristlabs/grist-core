@@ -32,7 +32,7 @@ export interface PageSidePanel {
   panelWidth: Observable<number>;
   panelOpen: Observable<boolean>;
   hideOpener?: boolean;           // If true, don't show the opener handle.
-  header: DomElementArg;
+  header?: DomElementArg;
   content: DomElementArg;
 }
 

@@ -710,7 +710,7 @@ export interface IMultiColumnContextMenu {
 interface IColumnContextMenu extends IMultiColumnContextMenu {
   filterOpenFunc: () => void;
   sortSpec: Sort.SortSpec;
-  colId: number;
+  colRowId: number;
 }
 
 export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewFieldRec) => boolean): boolean|"mixed" {
@@ -718,13 +718,14 @@ export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewF
 }
 
 export function buildColumnContextMenu(options: IColumnContextMenu) {
-  const { disableModify, filterOpenFunc, colId, sortSpec, isReadonly } = options;
+  const { disableModify, filterOpenFunc, colRowId, sortSpec, isReadonly } = options;
 
   const disableForReadonlyColumn = dom.cls('disabled', Boolean(disableModify) || isReadonly);
 
-  const addToSortLabel = getAddToSortLabel(sortSpec, colId);
+  const addToSortLabel = getAddToSortLabel(sortSpec, colRowId);
 
-  const isVirtual = typeof colId === 'string';
+  const isVirtual = typeof colRowId === 'string';
+  const disabledForVirtual = dom.cls('disabled', isVirtual);
 
   return [
     !isVirtual ? menuItemCmd(allCommands.fieldTabOpen, t("Column Options")) : null,
@@ -738,14 +739,14 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
         icon('Sort', dom.style('transform', 'scaley(-1)')),
         'A-Z',
         dom.style('flex', ''),
-        cssCustomMenuItem.cls('-selected', Sort.containsOnly(sortSpec, colId, Sort.ASC)),
+        cssCustomMenuItem.cls('-selected', Sort.containsOnly(sortSpec, colRowId, Sort.ASC)),
         testId('sort-asc'),
       ),
       customMenuItem(
         allCommands.sortDesc.run,
         icon('Sort'),
         'Z-A',
-        cssCustomMenuItem.cls('-selected', Sort.containsOnly(sortSpec, colId, Sort.DESC)),
+        cssCustomMenuItem.cls('-selected', Sort.containsOnly(sortSpec, colRowId, Sort.DESC)),
         testId('sort-dsc'),
       ),
       testId('sort'),
@@ -757,21 +758,26 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
           cssRowMenuLabel(addToSortLabel, testId('add-to-sort-label')),
           icon('Sort', dom.style('transform', 'scaley(-1)')),
           'A-Z',
-          cssCustomMenuItem.cls('-selected', Sort.contains(sortSpec, colId, Sort.ASC)),
+          cssCustomMenuItem.cls('-selected', Sort.contains(sortSpec, colRowId, Sort.ASC)),
           testId('add-to-sort-asc'),
         ),
         customMenuItem(
           allCommands.addSortDesc.run,
           icon('Sort'),
           'Z-A',
-          cssCustomMenuItem.cls('-selected', Sort.contains(sortSpec, colId, Sort.DESC)),
+          cssCustomMenuItem.cls('-selected', Sort.contains(sortSpec, colRowId, Sort.DESC)),
           testId('add-to-sort-dsc'),
         ),
         testId('add-to-sort'),
       ),
     ] : null,
     menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
-    menuItem(allCommands.sortFilterTabOpen.run, t("More sort options ..."), testId('more-sort-options')),
+    menuItem(
+      allCommands.sortFilterTabOpen.run,
+      t("More sort options ..."),
+      testId('more-sort-options'),
+      disabledForVirtual
+    ),
     menuDivider({style: 'margin-top: 0;'}),
     menuItemCmd(allCommands.renameField, t("Rename column"), disableForReadonlyColumn),
     freezeMenuItemCmd(options),

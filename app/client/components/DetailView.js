@@ -564,6 +564,7 @@ DetailView.prototype._getFieldContextMenuOptions = function() {
   return {
     disableModify: Boolean(selection.fields[0]?.disableModify.peek()),
     isReadonly: this.gristDoc.isReadonly.get() || this.isPreview,
+    field: selection.fields[0],
   };
 }
 

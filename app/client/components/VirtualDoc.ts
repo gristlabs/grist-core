@@ -1,11 +1,12 @@
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
+import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
 import {ClientScope} from 'app/client/components/ClientScope';
 import {Comm} from 'app/client/components/Comm';
 import * as commands from 'app/client/components/commands';
 import {CursorMonitor} from 'app/client/components/CursorMonitor';
 import {DocComm, GristDoc, IExtraTool} from 'app/client/components/GristDoc';
 import {UndoStack} from 'app/client/components/UndoStack';
-import {ViewLayout} from 'app/client/components/ViewLayout';
+import {ViewLayout, ViewSectionHelper} from 'app/client/components/ViewLayout';
 import type {BoxSpec} from 'app/client/lib/BoxSpec';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import type {AppModel, TopAppModel} from 'app/client/models/AppModel';
@@ -18,6 +19,7 @@ import {IExternalTable, VirtualTableData, VirtualTableRegistration} from 'app/cl
 import {META_TABLES} from 'app/client/models/VirtualTableMeta';
 import type {App} from 'app/client/ui/App';
 import {IPageWidget} from 'app/client/ui/PageWidgetPicker';
+import {WidgetType} from 'app/client/widgets/UserType';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import type {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -29,7 +31,6 @@ import {useBindable} from 'app/common/gutil';
 import {VirtualId} from 'app/common/SortSpec';
 import {DocAPI} from 'app/common/UserAPI';
 import type {ISupportedFeatures} from 'app/common/UserConfig';
-import type {WidgetType} from 'app/common/widgetTypes';
 import {CursorPos} from 'app/plugin/GristAPI';
 import type {GristType, RowRecord} from 'app/plugin/GristData';
 import type {MaybePromise} from 'app/plugin/gutil';
@@ -37,14 +38,20 @@ import camelCase from 'camelcase';
 import {
   BaseObservable,
   BindableValue,
+  bundleChanges,
   Computed,
+  Disposable,
   dom,
   Emitter,
   Holder,
   IDisposable,
+  MaybeObsArray,
   Observable,
-  toKo} from 'grainjs';
+  toKo,
+  UseCB
+} from 'grainjs';
 import * as ko from 'knockout';
+import difference from 'lodash/difference';
 import omit from 'lodash/omit';
 
 /**
@@ -89,6 +96,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public isTimingOn = Observable.create(this, false);
   public attachmentTransfer = Observable.create(this, null);
   public canShowRawData = Observable.create(this, false);
+  public activeSectionId: ko.Computed<number|string>;
   private _tables: Map<string, TableSpec> = new Map();
   constructor(public appModel: AppModel) {
     super();
@@ -147,6 +155,10 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
         type: 'raw_data',
       }
     ]);
+
+    this.activeViewId.set('main' as any);
+
+    this.activeSectionId = this.viewModel.activeSectionId as any;
   }
 
   /**
@@ -204,9 +216,11 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
         // Get the data from the external source.
         const data = await maybePeek(table.data).getData();
 
+        const definedColumns = (table.columns || []).map(c => c.colId);
+
         // If it requires formatting, reformat it to the Grist format.
         // Action looks like ['TableData', 'tableId', [rowIds], {colId: [values]}]
-        const formatted: TableDataAction = table.format ? table.format.convert(tableId, data) : data;
+        const formatted: TableDataAction = table.format ? table.format.convert(tableId, data, definedColumns) : data;
         if (!Array.isArray(formatted) || formatted.length !== 4 || !Array.isArray(formatted[2]) || !formatted[3]) {
           throw new Error('Invalid data format');
         }
@@ -224,9 +238,11 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
           const colId = def.colId || properId(def.label);
 
           // We might have columns that are not in the external data, but we want to generate (like trigger formula)
-          if (!cols[colId]) {
+          if (!cols[colId] && !!def.transform) {
             // In that case fill it up with nulls first.
             cols[colId] = Array(rows.length).fill(null);
+          } else if (!cols[colId]) {
+            throw new Error(`Column ${colId} not found in external data`);
           }
 
           // Now go through each row and apply transformation.
@@ -301,8 +317,10 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     // TODO: this should be disable by default if doc is readonly.
     viewSectionModel.canRename(false);
 
-    // By default switch to the this view as currently visible.
-    this.activeViewId.set(sectionRec.parentId as number);
+    if (table.initialFocus) {
+      viewSectionModel.hasFocus(true);
+      this.setView(table.name);
+    }
   }
 
   /**
@@ -383,7 +401,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   }
 
   /** Changes active view. */
-  public setPage(label: string) {
+  public setView(label: string) {
     // Find view with this name.
     const viewId = this.docModel.views.tableData.findMatchingRowId({name: label});
     if (!viewId) {
@@ -517,7 +535,197 @@ interface ExternalData {
  * Interface for an object that should convert data from external source to TableDataAction format.
  */
 interface ExternalFormat {
-  convert(tableId: string, data: any): TableDataAction;
+  convert(tableId: string, data: any, colIds: string[]): TableDataAction;
+}
+
+/**
+ * UI component for rendering single section (from VirtualDoc) in the UI.
+ */
+export class VirtualSection extends Disposable {
+  private _sectionRec: ViewSectionRec;
+  private _sectionId: string | number;
+  private _columns: Computed<string[]>;
+
+  constructor(protected _doc: VirtualDoc, protected props: {
+    /** Table id to render */
+    tableId: string,
+    /** Optional section id to use. Useful for linking sections together */
+    sectionId?: string | number,
+    /** Grid or Detail view */
+    type?: 'single' | 'record',
+    /** Optional label for the section, defaults to table name */
+    label?: string,
+    /** Sorted list of fields to render */
+    columns?: MaybeObsArray<string>,
+    /** List of columns to hide */
+    hiddenColumns?: MaybeObsArray<string>,
+    /* Initial focus when creating this section. */
+    initialFocus?: boolean,
+    /** Function to be called when focus is changed in this section */
+    onFocus?: (on: boolean) => void,
+    /** Observable for currently selected row, support two-way binding */
+    selectedRow?: Observable<string | number | undefined>,
+    /** Optional function to call when cursor is changed (for convenience, as there is an observer above ) */
+    rowChanged?: (rowId?: string|number) => void,
+    /** Linking configuration to other sections in the same view */
+    selectBy?: {
+      sectionId: string,
+      colId: string,
+    },
+    /** Handler that is called when user wants to show card view */
+    onCard?: (rowId?: string | number) => void,
+  }) {
+    super();
+
+    const {tableId} = this.props;
+    const tableRec = this._doc.getTableRec(tableId);
+    if (!tableRec) {
+      throw new Error(`Table ${tableId} not found`);
+    }
+
+    const sectionId = this.props.sectionId ?? tableId;
+    this._sectionId = sectionId;
+
+
+    const linkSrcSectionRef = this.props.selectBy?.sectionId ?? 0;
+    this._doc.docData.receiveAction([
+      'AddRecord', '_grist_Views_section', this._sectionId as any as number, {
+        tableRef: tableRec.id.peek(),
+        parentId: 'main' as any as number,
+        parentKey: this.props.type ?? 'record',
+        title: this.props?.label ?? tableRec.tableName.peek(),
+        borderWidth: 1,
+        defaultWidth: 100,
+        linkSrcSectionRef,
+      }
+    ]);
+    this.onDispose(() => {
+      const fieldsIds = this._doc.docModel.viewFields.tableData.filterRowIds(
+        {parentId: sectionId as any as number});
+
+      this._doc.docData.receiveAction([
+        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds
+      ]);
+      this._doc.docData.receiveAction([
+        'RemoveRecord', '_grist_Views_section', sectionId as any as number
+      ]);
+    });
+
+    const tableCols = tableRec.columns.peek().all().map(c => c.colId.peek());
+
+    this._columns = Computed.create(this, use => {
+      const hidden = this.props.hiddenColumns ? maybeUse(use, this.props.hiddenColumns) : [];
+      const columns = props.columns ? maybeUse(use, props.columns) : tableCols;
+      return difference(columns, hidden);
+    });
+
+    this._syncColumns();
+
+    this.autoDispose(this._columns.addListener(this._syncColumns.bind(this)));
+
+    const viewSectionRec = this._doc.docModel.viewSections.getRowModel(sectionId as any as number);
+    ViewSectionHelper.create(this, this._doc as any, viewSectionRec);
+
+    viewSectionRec.hideViewMenu(true);
+    viewSectionRec.canRename(false);
+    viewSectionRec.canExpand(false);
+
+    this._sectionRec = viewSectionRec;
+
+    if (props.initialFocus) {
+      viewSectionRec.hasFocus(true);
+    }
+
+    if (props.onFocus) {
+      this.autoDispose(viewSectionRec.hasFocus.subscribe(on => {
+        if (props.onFocus) {
+          props.onFocus(on);
+        }
+      }));
+    }
+
+    this.autoDispose(commands.createGroup({
+      viewAsCard: (ev: KeyboardEvent) => {
+        props.onCard?.(viewSectionRec.viewInstance.peek()?.cursor.getCursorPos().rowId);
+        ev.stopPropagation();
+        ev.preventDefault();
+
+        this._doc.app?.trigger('clipboard_focus', null);
+
+        return true;
+      }
+    }, this, viewSectionRec.hasFocus));
+
+    if (props.selectedRow) {
+      const syncCursor = (rowId: any) => viewSectionRec.viewInstance.peek()?.setCursorPos({rowId});
+      syncCursor(props.selectedRow.get());
+      this.autoDispose(props.selectedRow.addListener(val => {
+        syncCursor(val);
+      }));
+      const rowId = viewSectionRec.viewInstance.peek()?.cursor.rowId;
+      if (rowId) {
+        this.autoDispose(rowId.subscribe(id => {
+          props.selectedRow!.set(id as any);
+        }));
+      }
+    }
+  }
+
+  public buildDom() {
+    const vs = this._sectionRec;
+    return dom('div.layout_root',
+      // catch custom CustomEvent('setCursor', {detail: {row, col}}) event and set cursor position.
+      dom.on('setCursor', (ev: any) => {
+        vs.hasFocus(true);
+        const [rowModel, fieldModel] = ev.detail;
+        const cursorPos = {
+          rowIndex: rowModel?._index() || 0,
+          fieldIndex: fieldModel?._index() || 0,
+          sectionId: fieldModel?.viewSection().getRowId(),
+        };
+        const viewInstance = vs.viewInstance.peek();
+        viewInstance?.setCursorPos(cursorPos);
+        this._doc.focus();
+        this.props.rowChanged?.(viewInstance?.cursor.getCursorPos().rowId);
+        ev.stopPropagation();
+        ev.preventDefault();
+      }),
+      dom.style('flex', '1'),
+      dom('div.layout_box layout_vbox',
+        dom('div.layout_box layout_leaf',
+          dom.style('--flex-grow', '100'),
+          buildViewSectionDom({
+            gristDoc: this._doc,
+            sectionRowId: this._sectionId as number,
+            viewModel: vs.view.peek(),
+          }),
+        )
+      )
+    );
+  }
+
+  private _syncColumns() {
+    const columns = this._columns.get();
+    const tableId = this.props.tableId;
+    const sectionId = this._sectionId;
+
+    bundleChanges(() => {
+      const fieldsIds = this._doc.docModel.viewFields.tableData.filterRowIds(
+        {parentId: sectionId as any as number});
+
+      this._doc.docData.receiveAction([
+        'BulkRemoveRecord', '_grist_Views_section_field', fieldsIds
+      ]);
+      const newFieldIds = columns.map(VirtualId.bind(null, undefined)) as any as number[];
+      this._doc.docData.receiveAction([
+        'BulkAddRecord', '_grist_Views_section_field', newFieldIds, {
+          colRef: columns.map(c => this._doc.getColumnRec(tableId, c)!.id.peek()),
+          parentId: columns.map(() => sectionId as any as number),
+          parentPos: columns.map((_, i) => i + 1),
+        }
+      ]);
+    });
+  }
 }
 
 /**
@@ -536,13 +744,14 @@ export class ApiData implements ExternalData {
  * Converts the Records format ({record: {id, fields}[]}) to TableDataAction.
  */
 export class RecordsFormat implements ExternalFormat {
-  public convert(tableId: string, data: TableRecordValues): TableDataAction {
+  public convert(tableId: string, data: TableRecordValues, keys: string[]): TableDataAction {
     if (!data.records.length) {
       return ['TableData', tableId, [], {}];
     }
     const rows = data.records.map(r => r.id) as number[];
-    const keys = Object.keys(data.records[0].fields);
-    const cols = Object.fromEntries(keys.map(k => [k, data.records.map(r => r.fields[k])]));
+    const cols = Object.fromEntries(keys
+      .filter(k => k !== 'id')
+      .map(k => [k, data.records.map(r => r.fields[k] ?? null)]));
     return ['TableData', tableId, rows, cols];
   }
 }
@@ -551,14 +760,13 @@ export class RecordsFormat implements ExternalFormat {
  * Converts plain object to TableDataAction.
  */
 export class RawFormat implements ExternalFormat {
-  public convert(tableId: string, data: any[]): TableDataAction {
+  public convert(tableId: string, data: any[], keys: string[]): TableDataAction {
     if (!data.length) {
       return ['TableData', tableId, [], {}];
     }
-    const keys = Object.keys(data[0]);
     const colIds = keys.filter(k => k !== 'id');
     const rowIds = data.map((row, index) => row.id ?? (index + 1));
-    const cols = Object.fromEntries(colIds.map(k => [k, data.map(r => r[k])]));
+    const cols = Object.fromEntries(colIds.map(k => [k, data.map(r => r[k] ?? null)]));
     return ['TableData', tableId, rowIds, cols];
   }
 }
@@ -576,27 +784,36 @@ export interface TableSpec {
   columns?: ColumnSpec[];
   format?: ExternalFormat;
   hidden?: boolean;
+  initialFocus?: boolean;
 }
 
 /**
  * Description of a column, used in TableSpec. Almost 1-1 to what is stored in _grist_Tables_column.
  */
-export interface ColumnSpec {
-  colId: string;
+export interface ColumnSpec<T = string> {
+  /** Name of the column (also used to match a property from external source) */
+  colId: T;
+  /** Type of the column to create in Grist */
   type: GristType;
   label: string;
-  hidden?: BindableValue<boolean>; // should this be hidden at start.
+  hidden?: BindableValue<boolean>; // should this be hidden at start, by default not.
   widgetOptions?: {
+    // Bare minimum to support Markdown and Choice widgets.
     widget?: WidgetType;
     choices?: string[];
     choiceOptions?: Array<Record<string, any>>;
     alignment?: 'left' | 'right' | 'center';
   };
+  // Optional col id, if not provided it will be autogenerated. Useful fo linking two sections together.
   colRef?: string|number;
   // An optional method that will convert this column to a Grist format (liek seconds).
   transform?: (value: any, rec: Record<string, any>) => CellValue;
 }
 
+/**
+ * Version of DocModel that is connected to DocDataCache, a version of DocData that can translate UserActions
+ * (limited set) to DocActions, that is also used for on-demand tables.
+ */
 class InMemoryDocModel extends DocModel {
   constructor() {
     // First is the DocComm. We don't need to implement all methods, just the ones that are used by the VirtualTable.
@@ -623,10 +840,17 @@ class InMemoryDocModel extends DocModel {
     const docDataCache = new DocDataCache();
     docDataCache.docData = docData;
 
+    // Sorry for this late constructor call, but the super class is doing a lot of actual work in
+    // the constructor, besides pure initialization.
+    // TODO: Remove code for the main constructor of DocModel.
     super(docData);
   }
 }
 
+/**
+ * Prepare a empty App representation if one is not already created, empty objects are enough for us. Virtual tables
+ * don't need the full App object yet (used for attachments for example, or custom plugins (not supported anyway)).
+ */
 class InMemoryApp extends DisposableWithEvents implements App {
   public allCommands = commands.allCommands;
   public comm = this.autoDispose(Comm.create());
@@ -637,13 +861,19 @@ class InMemoryApp extends DisposableWithEvents implements App {
   }
 }
 
+/**
+ * This is a version of docModel that is suitable for virtual tables. It is not initialized, but the super class
+ * just subscribes to urlState reload the document. We don't need to do it.
+ */
 class InMemoryDocPageModel extends DocPageModelImpl {
   public override initialize(): void {
+    // Ignore the initialization, for now it just subscribe itself to the url state.
+    // TODO: Refactor DocPageModelImpl for easier subtyping.
   }
 }
 
 /**
- * Generate initial actions for a virtual table.
+ * Generate initial actions for a virtual table based on the TableSpec.
  */
 function generateInitialActions(tabDef: TableSpec): DocAction[] {
   const tableId = tabDef.tableId ?? properId(tabDef.name);
@@ -719,4 +949,8 @@ function properId(label: string) {
 
 function maybePeek<T>(value: T|Observable<T>) {
   return value instanceof BaseObservable ? value.get() : value;
+}
+
+function maybeUse<T>(use: UseCB, obs: BaseObservable<T>|T): T {
+  return obs instanceof BaseObservable ? use(obs) : obs;
 }
