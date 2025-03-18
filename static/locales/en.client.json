@@ -2180,5 +2180,14 @@
         "active user": "active user",
         "active user list": "active user list",
         "open full active user list": "open full active user list"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python.\nWe recommend setting the environment variable\nGRIST_SANDBOX_FLAVOR to gvisor if your hardware\nsupports it (most will), to run formulas in each document\nwithin a sandbox isolated from other documents and isolated\nfrom the network.": "Grist allows for very powerful formulas, using Python.\nWe recommend setting the environment variable\nGRIST_SANDBOX_FLAVOR to gvisor if your hardware\nsupports it (most will), to run formulas in each document\nwithin a sandbox isolated from other documents and isolated\nfrom the network.",
+        "Grist has a small built-in health check often used when running\nit as a container.": "Grist has a small built-in health check often used when running\nit as a container.",
+        "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
+        "Requests arriving to Grist should have an accurate Host\nheader. This is essential when GRIST_SERVE_SAME_ORIGIN\nis set.": "Requests arriving to Grist should have an accurate Host\nheader. This is essential when GRIST_SERVE_SAME_ORIGIN\nis set.",
+        "The main page of Grist should be available.": "The main page of Grist should be available.",
+        "This boot page should not be too easy to access. Either turn\nit off when configuration is ok (by unsetting GRIST_BOOT_KEY)\nor make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn\nit off when configuration is ok (by unsetting GRIST_BOOT_KEY)\nor make GRIST_BOOT_KEY long and cryptographically secure.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few\nextra headers in order to work. Sometimes a reverse proxy can\ninterfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few\nextra headers in order to work. Sometimes a reverse proxy can\ninterfere with these requirements."
     }
 }
