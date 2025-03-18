@@ -5,9 +5,7 @@ import {
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
-import { commonUrls } from "app/common/gristUrls";
 import { InstallProperties } from "app/common/InstallAPI";
-import * as version from "app/common/version";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
 import {
@@ -26,6 +24,7 @@ import {
   stringParam,
 } from "app/server/lib/requestUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
+import { checkForUpdates } from "app/server/lib/updateChecker";
 import {
   Application,
   json,
@@ -149,34 +148,16 @@ export function attachEarlyEndpoints(options: AttachOptions) {
   app.get(
     "/api/install/updates",
     expressWrap(async (_req, res) => {
-      // Prepare data for the telemetry that endpoint might expect.
-      const installationId = (await gristServer.getActivations().current()).id;
-      const deploymentType = gristServer.getDeploymentType();
-      const currentVersion = version.version;
-      const response = await fetch(
-        process.env.GRIST_TEST_VERSION_CHECK_URL || commonUrls.versionCheck,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            installationId,
-            deploymentType,
-            currentVersion,
-          }),
-        }
-      );
-      if (!response.ok) {
-        res.status(response.status);
-        if (
-          response.headers.get("content-type")?.includes("application/json")
-        ) {
-          const data = await response.json();
-          res.json(data);
+      try {
+        const updateData = await checkForUpdates(gristServer);
+        res.json(updateData);
+      } catch (error) {
+        res.status(error.status);
+        if (typeof error.details === "object") {
+          res.json(error.details);
         } else {
-          res.send(await response.text());
+          res.send(error.details);
         }
-      } else {
-        res.json(await response.json());
       }
     })
   );
