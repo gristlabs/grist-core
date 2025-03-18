@@ -1428,6 +1428,7 @@
     "SupportGristPage": {
         "GitHub": "GitHub",
         "GitHub Sponsors page": "GitHub Sponsors page",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.",
         "Help Center": "Help Center",
         "Home": "Home",
         "Manage Sponsorship": "Manage Sponsorship",
@@ -1438,8 +1439,11 @@
         "Telemetry": "Telemetry",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "This instance is opted in to telemetry. Only the site administrator has permission to change this.",
         "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "This instance is opted out of telemetry. Only the site administrator has permission to change this.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.",
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "We only collect usage statistics, as detailed in our {{link}}, never document contents.",
         "You can opt out of telemetry at any time from this page.": "You can opt out of telemetry at any time from this page.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "You can support Grist open-source development by sponsoring us on our {{link}}.",
         "You have opted in to telemetry. Thank you!": "You have opted in to telemetry. Thank you!",
         "You have opted out of telemetry.": "You have opted out of telemetry.",
         "Sponsor": "Sponsor"
@@ -1643,6 +1647,7 @@
         "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}",
         "Results": "Results",
         "Self Checks": "Self Checks",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator.",
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
@@ -1948,5 +1953,14 @@
         "Have you **reviewed the code** at this URL?": "Have you **reviewed the code** at this URL?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.",
         "I confirm that I understand these warnings and accept the risks": "I confirm that I understand these warnings and accept the risks"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python.\nWe recommend setting the environment variable\nGRIST_SANDBOX_FLAVOR to gvisor if your hardware\nsupports it (most will), to run formulas in each document\nwithin a sandbox isolated from other documents and isolated\nfrom the network.": "Grist allows for very powerful formulas, using Python.\nWe recommend setting the environment variable\nGRIST_SANDBOX_FLAVOR to gvisor if your hardware\nsupports it (most will), to run formulas in each document\nwithin a sandbox isolated from other documents and isolated\nfrom the network.",
+        "Grist has a small built-in health check often used when running\nit as a container.": "Grist has a small built-in health check often used when running\nit as a container.",
+        "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
+        "Requests arriving to Grist should have an accurate Host\nheader. This is essential when GRIST_SERVE_SAME_ORIGIN\nis set.": "Requests arriving to Grist should have an accurate Host\nheader. This is essential when GRIST_SERVE_SAME_ORIGIN\nis set.",
+        "The main page of Grist should be available.": "The main page of Grist should be available.",
+        "This boot page should not be too easy to access. Either turn\nit off when configuration is ok (by unsetting GRIST_BOOT_KEY)\nor make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn\nit off when configuration is ok (by unsetting GRIST_BOOT_KEY)\nor make GRIST_BOOT_KEY long and cryptographically secure.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few\nextra headers in order to work. Sometimes a reverse proxy can\ninterfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few\nextra headers in order to work. Sometimes a reverse proxy can\ninterfere with these requirements."
     }
 }
