@@ -4,15 +4,16 @@ import axios from "axios";
 
 export class TestProxyServer {
   public static async Prepare(portNumber: number): Promise<TestProxyServer> {
-    const server = new TestProxyServer();
-    await server._prepare(portNumber);
+    const server = new TestProxyServer(portNumber);
+    await server._prepare();
     return server;
   }
 
+  public get proxyCallCounter() { return this._proxyCallsCounter; }
   private _proxyCallsCounter: number = 0;
   private _proxyServing: Serving;
 
-  private constructor() {
+  private constructor(public readonly portNumber: number) {
   }
 
   public wasProxyCalled(): boolean {
@@ -23,7 +24,7 @@ export class TestProxyServer {
     await this._proxyServing.shutdown();
   }
 
-  private async _prepare(portNumber: number) {
+  private async _prepare() {
     this._proxyServing = await serveSomething(app => {
       app.use(express.json());
       app.all('*', async (req: express.Request, res: express.Response) => {
@@ -38,6 +39,6 @@ export class TestProxyServer {
         res.sendStatus(responseCode);
         res.end();
       });
-    }, portNumber);
+    }, this.portNumber);
   }
 }

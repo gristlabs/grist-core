@@ -11,6 +11,7 @@ function generateProxyConfigFromEnv() {
 
   const proxyForUntrustedRequestsUrl = appSettings.section('proxy').readString({
     envVar: ['HTTPS_PROXY_FOR_UNTRUSTED_URLS', 'GRIST_HTTPS_PROXY'],
+    preferredEnvVar: 'HTTPS_PROXY_FOR_UNTRUSTED_URLS'
   });
 
   if (process.env.GRIST_HTTPS_PROXY) {
