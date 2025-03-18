@@ -106,6 +106,7 @@ describe("Fork", function() {
                                                          {filename: 'foo.csv'}));
             await personal.loadDoc(`/doc/${id}`);
             await gu.dismissWelcomeTourIfNeeded();
+            await gu.toggleSidePanel('left', 'open');
             // check that the tag is there
             assert.equal(await driver.find('.test-unsaved-tag').isPresent(), true);
             // check that the org name area is showing one of the last visited sites. this is

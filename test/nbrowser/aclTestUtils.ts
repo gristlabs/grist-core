@@ -142,6 +142,9 @@ namespace gristUtils {
       await driver.findWait('.test-rule-acl-formula .ace_focus', 500);
       await gu.sendKeys(Key.HOME, Key.chord(Key.SHIFT, Key.END), Key.DELETE);     // Clear formula
       await gu.sendKeys(aclFormula);
+      // Send last letter twice using BACK_SPACE
+      await gu.sendKeys(Key.BACK_SPACE);
+      await gu.sendKeys(aclFormula.slice(-1));
     }
   }
 

@@ -2668,17 +2668,17 @@ export function hexToRgb(hex: string) {
 export async function addColumn(name: string, type?: string) {
   await scrollIntoView(await driver.find('.active_section .mod-add-column'));
   await driver.find('.active_section .mod-add-column').click();
+  await findOpenMenu();
   await driver.findWait('.test-new-columns-menu-add-new', 100).click();
-  // If we are on a summary table, we could be see a menu helper
-  const menu = (await driver.findAll('.grist-floating-menu'))[0];
-  if (menu) {
-    await menu.findContent("li", "Add Column").click();
-  }
+  await waitForMenuToClose();
   await waitForServer();
+  await driver.findWait('.test-column-title-popup', 1000);
   await waitAppFocus(false);
   await driver.sendKeys(name);
   await driver.sendKeys(Key.ENTER);
   await waitForServer();
+  // Make sure the popup is gone.
+  assert.isFalse(await driver.find('.test-column-title-popup').isPresent());
   if (type) {
     await setType(exactMatch(type));
   }
