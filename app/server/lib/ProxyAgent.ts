@@ -1,6 +1,30 @@
 import {HttpsProxyAgent} from "https-proxy-agent";
 import {HttpProxyAgent} from "http-proxy-agent";
+import {appSettings} from "app/server/lib/AppSettings";
 import log from 'app/server/lib/log';
+
+function generateProxyConfigFromEnv() {
+  const proxyForTrustedRequestsUrl = appSettings.section('proxy').readString({
+    envVar: ['HTTPS_PROXY', 'https_proxy'],
+    preferredEnvVar: 'HTTPS_PROXY',
+  });
+
+  const proxyForUntrustedRequestsUrl = appSettings.section('proxy').readString({
+    envVar: ['HTTPS_PROXY_FOR_UNTRUSTED_URLS', 'GRIST_HTTPS_PROXY'],
+  });
+
+  if (process.env.GRIST_HTTPS_PROXY) {
+    log.warn('GRIST_HTTPS_PROXY is deprecated in favor of HTTPS_PROXY_FOR_UNTRUSTED_URLS. ' +
+      `Please rather rather set HTTPS_PROXY_FOR_UNTRUSTED_URLS="${proxyForTrustedRequestsUrl}"`);
+  }
+
+  return {proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl};
+}
+
+export const test_generateProxyConfigFromEnv = generateProxyConfigFromEnv;
+
+// Read configuration from env on module load.
+export const Deps = generateProxyConfigFromEnv();
 
 function proxyAgent(requestUrl: URL, proxy: string): HttpProxyAgent | HttpsProxyAgent | undefined {
   const ProxyAgent = requestUrl.protocol === "https:" ? HttpsProxyAgent : HttpProxyAgent;
@@ -22,17 +46,16 @@ function proxyAgent(requestUrl: URL, proxy: string): HttpProxyAgent | HttpsProxy
 }
 
 export function proxyAgentForTrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
-  const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
-  if (!httpsProxy) {
+  if (!Deps.proxyForTrustedRequestsUrl) {
     return undefined;
   }
-  return proxyAgent(requestUrl, httpsProxy);
+  return proxyAgent(requestUrl, Deps.proxyForTrustedRequestsUrl);
 }
 
 export function proxyAgentForUntrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
-  const gristProxy = process.env.GRIST_HTTPS_PROXY;
-  if (gristProxy === "direct" || !gristProxy) {
+
+  if (Deps.proxyForUntrustedRequestsUrl === "direct" || !Deps.proxyForUntrustedRequestsUrl) {
     return undefined;
   }
-  return proxyAgent(requestUrl, gristProxy);
+  return proxyAgent(requestUrl, Deps.proxyForUntrustedRequestsUrl);
 }
