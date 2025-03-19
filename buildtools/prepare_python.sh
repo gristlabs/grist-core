@@ -17,14 +17,12 @@ for possible_path in python/bin/python python/bin/python3 \
   fi
 done
 
-echo "Use Python3 if available and recent enough, otherwise Python2"
-if python3 -c 'import sys; assert sys.version_info >= (3,9)' 2> /dev/null; then
-  # Default to python3 if recent enough.
-  buildtools/prepare_python3.sh python3
-  # Make sure python2 isn't around.
-  rm -rf venv
-else
-  buildtools/prepare_python2.sh
-  # Make sure python3 isn't around.
-  rm -rf sandbox_venv3
-fi
+echo "Use Python3 if available and recent enough"
+! [ -x "$(command -v python3)" ] && echo "Error: python3 must be installed" && exit 1
+! python3 -c 'import sys; assert sys.version_info >= (3,9)' 2> /dev/null && echo "Error: python must be >= 3.9" && exit 1
+
+# Default to python3 if recent enough.
+buildtools/prepare_python3.sh python3
+# Make sure python2 isn't around.
+rm -rf venv
+exit 0
