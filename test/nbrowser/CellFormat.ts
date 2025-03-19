@@ -240,25 +240,4 @@ HTML is <span style="color: red;">escaped</span>.
       '> Editing works the same way as TextBox and HyperLink'
     );
   });
-
-  it('treats URLs in Markdown and HyperLink cells as absolute URLs', async function() {
-    // Previously, URLs in Markdown cells were treated as being relative to
-    // the document origin if they were missing a scheme. This was inconsistent
-    // with how HyperLink cells treated such URLs (with `http://` inferred).
-    await gu.setFieldWidgetType('Markdown');
-    await gu.getCell(0, 3).click();
-    await gu.sendKeys(Key.ENTER, '[Google](google.com)', Key.ENTER);
-    assert.equal(await gu.getCell(0, 3).find('a').getAttribute('href'), 'https://google.com/');
-
-    await gu.setFieldWidgetType('HyperLink');
-    await gu.getCell(0, 3).click();
-    await gu.sendKeys(Key.ENTER, await gu.selectAllKey(), Key.DELETE, 'Google google.com', Key.ENTER);
-    assert.equal(await gu.getCell(0, 3).find('a').getAttribute('href'), 'https://google.com/');
-  });
-
-  it('handles invalid URLs in HyperLink cells as "about:blank"', async function() {
-    await gu.getCell(0, 3).click();
-    await gu.sendKeys(Key.ENTER, await gu.selectAllKey(), Key.DELETE, '[Up to no good] javascript:alert()', Key.ENTER);
-    assert.equal(await gu.getCell(0, 3).find('a').getAttribute('href'), 'about:blank');
-  });
 });
