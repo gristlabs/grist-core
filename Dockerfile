@@ -67,31 +67,6 @@ RUN \
   pip3 install setuptools==75.8.1 && \
   pip3 install -r requirements3.txt
 
-# Fetch <shame>python2.7</shame>
-# This is to support users with old documents.
-# If you have documents with python2.7 formulas, try switching
-# to python3 in the document settings. It'll probably work fine!
-# And we'll be forced to turn off python2 support eventually,
-# the workarounds needed to keep it are getting silly.
-# It doesn't exist in recent Debian, so we need to reach back
-# to buster.
-# Many Python2 imports require the ffi foreign-function interface
-# library binary, of course present on modern debian but with
-# a different ABI (currently version 8, versus version 6 for this
-# version of Python2). We move it from an achitecture-specific location
-# to a standard location so we can pick it up and copy it across later.
-# This will no longer be necessary when support for Python2 is dropped.
-# The Grist data engine code will not work without it.
-FROM debian:buster-slim AS collector-py2
-COPY sandbox/requirements.txt requirements.txt
-RUN \
-  apt update && \
-  apt install -y --no-install-recommends python2 python-pip python-setuptools \
-  build-essential libxml2-dev libxslt-dev python-dev zlib1g-dev && \
-  pip2 install wheel && \
-  pip2 install -r requirements.txt && \
-  find /usr/lib -iname "libffi.so.6*" -exec cp {} /usr/local/lib \;
-
 ################################################################################
 ## Sandbox collection stage
 ################################################################################
@@ -133,15 +108,6 @@ COPY --from=builder /grist/app/cli.sh /grist/cli
 # builder stage, otherwise matches nothing.
 # https://stackoverflow.com/a/70096420/11352427
 COPY --from=builder /grist/ext/asset[s] /grist/ext/assets
-
-# Copy python2 files.
-COPY --from=collector-py2 /usr/bin/python2.7 /usr/bin/python2.7
-COPY --from=collector-py2 /usr/lib/python2.7 /usr/lib/python2.7
-COPY --from=collector-py2 /usr/local/lib/python2.7 /usr/local/lib/python2.7
-# Copy across an older libffi library binary needed by python2.
-# We moved it a bit sleazily to a predictable location to avoid awkward
-# architecture-dependent logic.
-COPY --from=collector-py2 /usr/local/lib/libffi.so.6* /usr/local/lib/
 
 # Copy python3 files.
 COPY --from=collector-py3 /usr/local/bin/python3.11 /usr/bin/python3.11
@@ -206,7 +172,6 @@ WORKDIR /grist
 # development.
 #
 ENV \
-  PYTHON_VERSION_ON_CREATION=3 \
   GRIST_ORG_IN_PATH=true \
   GRIST_HOST=0.0.0.0 \
   GRIST_SINGLE_PORT=true \
