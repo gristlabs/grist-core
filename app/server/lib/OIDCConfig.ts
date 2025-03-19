@@ -65,21 +65,23 @@
  *   - GRIST_OIDC_IDP_SCOPES="openid email profile"
  */
 
+import { UserProfile } from 'app/common/LoginSessionAPI';
+import { StringUnionError } from 'app/common/StringUnion';
+import { AppSettings, appSettings } from 'app/server/lib/AppSettings';
+import { RequestWithLogin } from 'app/server/lib/Authorizer';
+import { SessionObj } from 'app/server/lib/BrowserSession';
+import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
+import log from 'app/server/lib/log';
+import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from 'app/server/lib/oidc/Protections';
+import { proxyAgentForTrustedRequests } from 'app/server/lib/ProxyAgent';
+import { getOriginUrl } from 'app/server/lib/requestUtils';
+import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
+import { Sessions } from 'app/server/lib/Sessions';
+
 import * as express from 'express';
-import { GristLoginSystem, GristServer } from './GristServer';
 import {
   Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
 } from 'openid-client';
-import { Sessions } from './Sessions';
-import log from 'app/server/lib/log';
-import { AppSettings, appSettings } from './AppSettings';
-import { RequestWithLogin } from './Authorizer';
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
-import { StringUnionError } from 'app/common/StringUnion';
-import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
-import { SessionObj } from './BrowserSession';
-import { getOriginUrl } from './requestUtils';
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -180,7 +182,9 @@ export class OIDCConfig {
     this._protectionManager = new ProtectionsManager(enabledProtections);
 
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
+    const agent = proxyAgentForTrustedRequests(new URL(issuerUrl));
     custom.setHttpOptionsDefaults({
+      ...(agent !== undefined ? {agent} : {}),
       ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
     });
     await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
