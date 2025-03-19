@@ -1120,7 +1120,7 @@ export async function getPreviewContents<T = string>(cols: number[], rowNums: nu
 export async function docMenuImport(filePath: string) {
   await fileDialogUpload(filePath, async () => {
     await driver.findWait('.test-dm-add-new', 1000).doClick();
-    await driver.find('.test-dm-import').doClick();
+    await driver.findWait('.test-dm-import', 100).doClick();
   });
 }
 
