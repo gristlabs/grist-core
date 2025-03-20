@@ -1,3 +1,4 @@
+import {cleanFormLayoutSpec} from 'app/client/components/FormRenderer';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BoxSpec, purgeBoxSpec} from 'app/client/lib/BoxSpec';
 import {makeT} from 'app/client/lib/localization';
@@ -127,7 +128,10 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
   // collect all the records for the src view sections
   const records: RowRecord[] = [];
   for (const srcViewSection of srcViewSections) {
-    const viewSectionLayoutSpec = patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
+    const viewSectionLayoutSpec =
+      srcViewSection.parentKey.peek() === 'form'
+          ? cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap)
+          : patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
     const record = gristDoc.docData.getMetaTable('_grist_Views_section').getRecord(srcViewSection.getRowId())!;
     records.push({
       ...record,
@@ -212,7 +216,7 @@ function newViewSectionAction(widget: IPageWidget, viewId: number) {
 *      collapsed: [{leaf: 2}]
  *   }, {1: 10, 2: 20})
  */
-export function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: {[id: number]: number}) {
+function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: {[id: number]: number}) {
   // First remove any invalid ids from the layoutSpec. We are doing the same thing what
   // `ViewLayout` does when it load itself.
   layoutSpec = purgeBoxSpec({

@@ -54,6 +54,8 @@ export class ColumnsModel extends BoxModel {
     const content: HTMLElement = style.cssColumns(
       dom.autoDispose(dragHover),
 
+      testId('content'),
+
       // Pass column count as a css variable (to style the grid).
       inlineStyle(`--css-columns-count`, this._columnCount),
 

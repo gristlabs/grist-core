@@ -65,21 +65,28 @@ export interface FormRendererContext {
 
 /**
  * Returns a copy of `layoutSpec` with any leaf nodes that don't exist
- * in `fieldIds` removed.
+ * in `fieldIds` removed. Optionally if the fieldIds is a map of old to new
+ * field ids, the leaf nodes will be updated to the new field ids.
  */
-export function patchLayoutSpec(
+export function cleanFormLayoutSpec(
   layoutSpec: FormLayoutNode,
-  fieldIds: Set<number>
+  fieldIds: Set<number>|Record<number, number>,
 ): FormLayoutNode | null {
-  if (layoutSpec.leaf && !fieldIds.has(layoutSpec.leaf)) { return null; }
+  if (layoutSpec.leaf) {
+    if (fieldIds instanceof Set) {
+      return fieldIds.has(layoutSpec.leaf) ? {...layoutSpec} : null;
+    }
+    return fieldIds[layoutSpec.leaf] ? {...layoutSpec, leaf: fieldIds[layoutSpec.leaf]} : null;
+  }
 
   return {
     ...layoutSpec,
     children: layoutSpec.children
-      ?.map(child => patchLayoutSpec(child, fieldIds))
+      ?.map(child => cleanFormLayoutSpec(child, fieldIds))
       .filter((child): child is FormLayoutNode => child !== null),
   };
 }
+
 
 /**
  * A renderer for a form layout.

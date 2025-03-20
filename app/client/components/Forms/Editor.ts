@@ -69,6 +69,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     }),
     props.removeButton === null ? null : hoverTooltip(props.removeTooltip ?? t('Delete')),
     style.cssRemoveButton.cls('-right', props.removePosition === 'right'),
+    testId('remove'),
   );
 
   const dragAbove = Observable.create(owner, false);

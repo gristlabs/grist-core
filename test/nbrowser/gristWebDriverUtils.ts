@@ -104,7 +104,7 @@ export class GristWebDriverUtils {
     if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
     // select right type
-    await driver.findContent('.test-wselect-type', typeRe).doClick();
+    await driver.findContentWait('.test-wselect-type', typeRe, 100).doClick();
 
     if (dismissTips) { await this.dismissBehavioralPrompts(); }
 

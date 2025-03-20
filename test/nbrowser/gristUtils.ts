@@ -1363,7 +1363,7 @@ export async function addNewPage(
 
 export async function duplicatePage(name: string|RegExp, newName?: string) {
   await openPageMenu(name);
-  await driver.find('.test-docpage-duplicate').click();
+  await driver.findWait('.test-docpage-duplicate', 100).click();
 
   if (newName) {
     // Input will select text on focus, which can alter the text we enter,

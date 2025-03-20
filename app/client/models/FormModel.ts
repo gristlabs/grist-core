@@ -1,4 +1,4 @@
-import {FormLayoutNode, patchLayoutSpec} from 'app/client/components/FormRenderer';
+import {cleanFormLayoutSpec, FormLayoutNode} from 'app/client/components/FormRenderer';
 import {TypedFormData, typedFormDataToJson} from 'app/client/lib/formUtils';
 import {makeT} from 'app/client/lib/localization';
 import {getHomeUrl} from 'app/client/models/AppModel';
@@ -28,7 +28,7 @@ export class FormModelImpl extends Disposable implements FormModel {
     const layout = safeJsonParse(form.formLayoutSpec, null) as FormLayoutNode | null;
     if (!layout) { throw new Error('invalid formLayoutSpec'); }
 
-    const patchedLayout = patchLayoutSpec(layout, new Set(Object.keys(form.formFieldsById).map(Number)));
+    const patchedLayout = cleanFormLayoutSpec(layout, new Set(Object.keys(form.formFieldsById).map(Number)));
     if (!patchedLayout) { throw new Error('invalid formLayoutSpec'); }
 
     return patchedLayout;

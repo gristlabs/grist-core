@@ -1,7 +1,7 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
 import {Cursor} from 'app/client/components/Cursor';
-import {FormLayoutNode, FormLayoutNodeType, patchLayoutSpec} from 'app/client/components/FormRenderer';
+import {cleanFormLayoutSpec, FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import * as components from 'app/client/components/Forms/elements';
 import {NewBox} from 'app/client/components/Forms/Menu';
 import {BoxModel, LayoutModel, parseBox, Place} from 'app/client/components/Forms/Model';
@@ -15,11 +15,11 @@ import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {jsonObservable, SaveableObjObservable} from 'app/client/models/modelUtil';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
 import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
+import {reportError} from 'app/client/models/errors';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
+import {jsonObservable, SaveableObjObservable} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {cssButton} from 'app/client/ui2018/buttons';
@@ -31,11 +31,11 @@ import {INITIAL_FIELDS_COUNT} from 'app/common/Forms';
 import {isOwner} from 'app/common/roles';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
+import * as ko from 'knockout';
 import defaults from 'lodash/defaults';
 import isEqual from 'lodash/isEqual';
-import {v4 as uuidv4} from 'uuid';
-import * as ko from 'knockout';
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
+import {v4 as uuidv4} from 'uuid';
 
 const t = makeT('FormView');
 
@@ -152,7 +152,7 @@ export class FormView extends Disposable {
     this._layout = Computed.create(this, use => {
       const fields = use(this._formFields);
       const layoutSpec = use(this._layoutSpec);
-      const patchedLayout = patchLayoutSpec(layoutSpec, new Set(fields.map(f => f.id())));
+      const patchedLayout = cleanFormLayoutSpec(layoutSpec, new Set(fields.map(f => f.id())));
       if (!patchedLayout) { throw new Error('Invalid form layout spec'); }
 
       return patchedLayout;
@@ -427,7 +427,7 @@ export class FormView extends Disposable {
       testId('editor'),
       this._formEditorBodyElement = style.cssFormEditBody(
         style.cssFormContainer(
-          dom('div', dom.forEach(this._root.children, (child) => {
+          dom('div', testId('content'), dom.forEach(this._root.children, (child) => {
             if (!child) {
               return dom('div', 'Empty node');
             }
@@ -806,11 +806,12 @@ export class FormView extends Disposable {
                 ),
                 style.cssShareMenuUrlBlock(
                   style.cssShareMenuUrl(
+                    testId('link'),
                     {readonly: true, value: url},
                     dom.on('click', (_ev, el) => { setTimeout(() => el.select(), 0); }),
                   ),
                   style.cssShareMenuCopyButton(
-                    testId('link'),
+                    testId('copy-link'),
                     t('Copy link'),
                     dom.on('click', async (_ev, el) => {
                       await copyToClipboard(url);
