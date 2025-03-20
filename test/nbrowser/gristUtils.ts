@@ -1341,6 +1341,7 @@ export async function duplicatePage(name: string|RegExp, newName?: string) {
 export async function openAddWidgetToPage() {
   await driver.findWait('.test-dp-add-new', 2000).doClick();
   await driver.findWait('.test-dp-add-widget-to-page', 2000).doClick();
+  await driver.findWait('.test-wselect-container', 100);
 }
 
 export type WidgetType = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom';

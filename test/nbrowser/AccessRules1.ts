@@ -29,7 +29,7 @@ describe('AccessRules1', function() {
 
   afterEach(() => gu.checkForErrors());
 
-  const getTableNamesToAddWidget = stackWrapFunc(async function(): Promise<string[]> {
+  const getTableNamesToAddWidget = async function(): Promise<string[]> {
     await gu.openAddWidgetToPage();
     const options = await driver.findAll('.test-wselect-table', e => e.getText());
     // Close add widget popup
@@ -37,7 +37,7 @@ describe('AccessRules1', function() {
 
     assert.equal(options[0], "New Table");
     return options.slice(1);
-  });
+  };
 
   const checkFullView = stackWrapFunc(async function(user: gu.TestUser) {
     const session = await gu.session().teamSite.user(user).login();
