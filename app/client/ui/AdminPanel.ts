@@ -79,7 +79,7 @@ export class AdminPanel extends Disposable {
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
     return cssPageContainer(
-      dom.cls('clipboard'),
+      {tabIndex: '-1'},  // Voodoo needed to allow copying text.
 
       dom.maybe(use => use(this._page) === 'admin' && use(this._checks.probes), (probes) => [
         (probes as any[]).length > 0
