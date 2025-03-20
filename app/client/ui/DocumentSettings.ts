@@ -59,22 +59,12 @@ export class DocSettingsPage extends Disposable {
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
-  private _engine: Computed<EngineCode|undefined> = Computed.create(this, (
-    use => use(this._docInfo.documentSettingsJson.prop('engine'))
-  ))
-    .onWrite(val => this._setEngine(val));
-
-  private _engines = getSupportedEngineChoices().map((engine) => ({
-    value: engine,
-    label: engine === 'python3' ? t(`python3 (recommended)`) : t(`python2 (legacy)`),
-  }));
 
   constructor(private _gristDoc: GristDoc) {
     super();
   }
 
   public buildDom() {
-    const canChangeEngine = getSupportedEngineChoices().length > 0;
     const docPageModel = this._gristDoc.docPageModel;
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
@@ -161,12 +151,6 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallButtonSettings(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
           disabled: isDocEditor ? false : t('Only available to document editors'),
         }),
-        canChangeEngine ? dom.create(AdminSectionItem, {
-          id: 'python',
-          name: t('Python'),
-          description: t('Python version used'),
-          value: cssSelect(this._engine, this._engines),
-        }) : null,
       ]),
 
       dom.create(AdminSection, t('API'), [
@@ -372,10 +356,6 @@ export class DocSettingsPage extends Disposable {
     });
   }
 
-  private async _setEngine(val: EngineCode|undefined) {
-    confirmModal(t('Save and Reload'), t('Ok'), () => this._doSetEngine(val));
-  }
-
   private async _startTiming() {
     const docPageModel = this._gristDoc.docPageModel;
     modal((ctl, owner) => {
@@ -548,14 +528,6 @@ export class DocSettingsPage extends Disposable {
         testId('doctype-modal'),
       ];
     });
-  }
-
-  private async _doSetEngine(val: EngineCode|undefined) {
-    const docPageModel = this._gristDoc.docPageModel;
-    if (this._engine.get() !== val) {
-      await this._docInfo.documentSettingsJson.prop('engine').saveOnly(val);
-      await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
-    }
   }
 }
 
@@ -911,10 +883,6 @@ const cssButton = styled(cssSmallButton, `
 
 const cssSmallSelect = styled(select, `
   width: 100%;
-`);
-
-const cssSelect = styled(select, `
-  min-width: 170px; /* to match the width of the timezone picker */
 `);
 
 const cssLoadingSpinner = styled(loadingSpinner, `
