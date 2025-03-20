@@ -2,7 +2,7 @@
  * Test of the UI for Granular Access Control, part 1.
  */
 import { assert, driver, Key, stackWrapFunc } from 'mocha-webdriver';
-import { enterRulePart, findDefaultRuleSet, findRuleSet,
+import { enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet,
          findTable, triggerAutoComplete } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server } from 'test/nbrowser/testServer';
@@ -112,7 +112,7 @@ describe('AccessRules1', function() {
     // Make FinancialsTable private to user1.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
-    let ruleSet = findDefaultRuleSet(/FinancialsTable/);
+    let ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
     await enterRulePart(ruleSet, 1, null, 'Deny All');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow All');

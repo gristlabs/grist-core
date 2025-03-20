@@ -585,7 +585,7 @@ function getLabel() {
 async function popupVisible() {
   try {
     return await driver.find(".test-column-title-popup").isDisplayed();
-  } catch (e) {
+  } catch {
     return false;
   }
 }

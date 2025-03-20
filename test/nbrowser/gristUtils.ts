@@ -966,7 +966,7 @@ export async function fileDialogUpload(filePath: string, triggerDialogFunc: () =
   // Hack to upload multiple files, paths should be separated with '\n'.
   // It only seems to work with Chrome
   const paths = filePath.split(',').map(f => path.resolve(fixturesRoot, f)).join("\n");
-  await driver.find('#file_dialog_input').sendKeys(paths);
+  await driver.findWait('#file_dialog_input', 100).sendKeys(paths);
 }
 
 /** Opens upload dialog for a cell */
@@ -3389,9 +3389,16 @@ export async function waitForAnchor() {
   await driver.wait(async () => (await getTestState()).anchorApplied, 2000);
 }
 
-export async function getAnchor() {
+export async function getAnchor({wait = false}: {wait?: boolean;} = {}) {
   await driver.find('body').sendKeys(Key.chord(Key.SHIFT, await modKey(), 'a'));
-  return (await getTestState()).clipboard || '';
+  let content = '';
+  await waitToPass(async () => {
+    content = (await getTestState()).clipboard || '';
+    if (wait) {
+      assert.isTrue(Boolean(content), "Anchor link was not copied to clipboard");
+    }
+  });
+  return content;
 }
 
 export async function getActiveSectionTitle(timeout?: number) {
