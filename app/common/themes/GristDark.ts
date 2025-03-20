@@ -157,6 +157,7 @@ export const GristDark: ThemeTokens = {
     disabledPageFg: tokens.decoration,
     pageInitialsBg: '#8e8ea0',
     pageInitialsEmojiOutline: tokens.decoration,
+    pageInitialsEmojiBg: tokens.black,
 
     /* Right Panel */
     rightPanelTabBorder: tokens.decorationSecondary,

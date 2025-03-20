@@ -247,7 +247,6 @@ export const Base: BaseThemeTokens = {
     pageOptionsHoverBg: tokens.decoration,
     pageOptionsSelectedHoverBg: tokens.secondary,
     pageInitialsFg: tokens.white,
-    pageInitialsEmojiBg: tokens.emphasis,
 
     /* Right Panel */
     rightPanelTabFg: tokens.secondary,

@@ -126,6 +126,7 @@ export const GristLight: ThemeTokens = {
     disabledPageFg: '#bdbdbd',
     pageInitialsBg: tokens.secondary,
     pageInitialsEmojiOutline: '#bdbdbd',
+    pageInitialsEmojiBg: tokens.white,
 
     /* Right Panel */
     rightPanelTabButtonHoverBg: tokens.primaryMuted,
