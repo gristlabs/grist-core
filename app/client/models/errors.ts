@@ -1,6 +1,7 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import * as log from 'app/client/lib/log';
 import {INotification, INotifyOptions, MessageType, Notifier} from 'app/client/models/NotifyModel';
+import {ErrorTooltips} from 'app/client/ui/GristTooltips';
 import {ApiErrorDetails} from 'app/common/ApiError';
 import {fetchFromHome, pageHasHome} from 'app/common/urlUtils';
 import isError = require('lodash/isError');
@@ -175,9 +176,8 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       _notifier.createUserMessage(err.message, {key: code, memos: details?.memos});
     } else if (message.match(/\[Sandbox\].*between formula and data/)) {
       // Show nicer error message for summary tables.
-      _notifier.createUserMessage("Summary tables can only contain formula columns.",
-        {key: 'summary', actions: ['ask-for-help']});
-    }  else {
+      _notifier.createUserMessage(ErrorTooltips.summaryFormulas, {key: 'summary'});
+    } else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.
       if (details?.userError) {

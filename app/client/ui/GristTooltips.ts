@@ -212,6 +212,22 @@ see or edit which parts of your document.')
   ),
 };
 
+type ErrorTooltip = 'summaryFormulas';
+
+export const ErrorTooltips: Record<ErrorTooltip, TooltipContentFunc> = {
+  summaryFormulas: () =>
+    cssTooltipContent(
+      dom("div", t("Summary tables can only contain formula columns.")),
+      dom(
+        "div",
+        cssLink(
+          {href: commonUrls.helpSummaryFormulas, target: "_blank"},
+          t("Learn more.")
+        )
+      ),
+    ),
+};
+
 export interface BehavioralPromptContent {
   popupType: 'tip' | 'news';
   title: () => string;

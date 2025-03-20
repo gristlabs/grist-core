@@ -101,6 +101,7 @@ export const commonUrls = {
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
   helpSandboxing: "https://support.getgrist.com/self-managed/#how-do-i-sandbox-documents",
   helpAPI: 'https://support.getgrist.com/api',
+  helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
