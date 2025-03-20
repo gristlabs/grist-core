@@ -14,6 +14,7 @@ import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {Computed, dom, DomElementArg, Observable, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
 import {undef} from 'app/common/gutil';
+import {newRecordButton} from 'app/client/ui/NewRecordButton';
 
 const t = makeT('ViewSection');
 
@@ -88,6 +89,7 @@ export function buildViewSectionDom(options: {
     if (!use(vs.linkSrcSectionRef)) { return null; }
     return use(use(vs.linkSrcSection).titleDef);
   });
+  const enableNewRecordButton = gristDoc.app.experiments.isEnabled('newRecordButton');
   return dom('div.view_leaf.viewsection_content.flexvbox.flexauto',
     testId(`viewlayout-section-${sectionRowId}`),
     dom.autoDispose(selectedBySectionTitle),
@@ -131,7 +133,13 @@ export function buildViewSectionDom(options: {
           dom('div.viewsection_truncated', t('Not all data is shown'))
         ),
         dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
-        viewInstance.viewPane
+        viewInstance.viewPane,
+        enableNewRecordButton
+          ? dom.domComputed(use =>
+            (enableNewRecordButton && use(viewInstance.viewSection.hasFocus) && use(viewInstance.enableAddRow)),
+            (showNewRecordButton) => showNewRecordButton ? newRecordButton(viewInstance) : null
+          )
+          : null
       ),
       dom.maybe(use => !use(isNarrowScreenObs()), () => viewInstance.selectionSummary?.buildDom()),
     ]),
