@@ -778,6 +778,7 @@ export interface SpecificThemeTokens {
     disabledPageFg: Token;
     pageInitialsBg: Token;
     pageInitialsEmojiOutline: Token;
+    pageInitialsEmojiBg: Token;
     rightPanelTabButtonHoverBg: Token;
     rightPanelSubtabHoverFg: Token;
     rightPanelToggleButtonDisabledFg: Token;
@@ -1044,7 +1045,6 @@ export interface BaseThemeTokens {
     pageOptionsHoverBg: Token;
     pageOptionsSelectedHoverBg: Token;
     pageInitialsFg: Token;
-    pageInitialsEmojiBg: Token;
     rightPanelTabFg: Token;
     rightPanelTabBg: Token;
     rightPanelTabIcon: Token;
