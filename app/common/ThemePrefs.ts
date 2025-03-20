@@ -563,14 +563,14 @@ export const tokens = Object.fromEntries(
     name,
     new CssCustomProp(value, undefined, undefined, 'theme')
   ])
-);
+) as {[K in keyof typeof tokensCssMapping]: CssCustomProp};
 
 export const components = Object.fromEntries(
   Object.entries(componentsCssMapping).map(([name, value]) => [
     name,
     new CssCustomProp(value, undefined, undefined, 'theme')
   ])
-);
+) as {[K in keyof typeof componentsCssMapping]: CssCustomProp};
 
 /**
  * Mapping of deprecated variables to the new theme variables.
