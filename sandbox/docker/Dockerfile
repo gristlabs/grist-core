@@ -1,9 +1,9 @@
 FROM python:3.11
 
-COPY requirements3.txt /tmp/requirements3.txt
+COPY requirements.txt /tmp/requirements.txt
 
 RUN \
-  pip3 install -r /tmp/requirements3.txt
+  pip3 install -r /tmp/requirements.txt
 
 RUN \
   apt-get update && \
