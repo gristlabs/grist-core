@@ -100,7 +100,11 @@ export class MinIOExternalStorage implements ExternalStorage {
     // calling putObject with a file size will let MinIO be clever about uploading in multiple parts or not.
     const stat = await fse.lstat(fname);
     const filestream = fse.createReadStream(fname);
-    return this.uploadStream(key, filestream, stat.size, metadata);
+    try {
+      return await this.uploadStream(key, filestream, stat.size, metadata);
+    } finally {
+      filestream.destroy();
+    }
   }
 
   public async downloadStream(key: string, snapshotId?: string ): Promise<StreamDownloadResult> {
