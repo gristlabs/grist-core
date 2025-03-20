@@ -28,6 +28,41 @@ describe("MinIOExternalStorage", function () {
     sandbox.restore();
   });
 
+  describe('uploadStream()', function () {
+    it("should call putObject with the right arguments", async function () {
+      const s3 = sandbox.createStubInstance(minio.Client);
+      const key = "some - key";
+      const filestream = new stream.Readable();
+      const versionId = "some-versionId";
+      s3.putObject.resolves({ versionId, etag: 'etag' });
+      const extStorage = new MinIOExternalStorage(
+        dummyBucket,
+        dummyOptions,
+        42,
+        s3 as any
+      );
+      const result = await extStorage.uploadStream(key, filestream);
+      assert.equal(result, versionId);
+      sinon.assert.calledWith(s3.putObject, dummyBucket, key, filestream, undefined, undefined);
+      assert.isTrue(filestream.destroyed);
+    });
+
+    it("should close stream even if putObject fails", async function () {
+      const s3 = sandbox.createStubInstance(minio.Client);
+      const key = "some - key";
+      const filestream = new stream.Readable();
+      s3.putObject.rejects(new Error("dummy-error"));
+      const extStorage = new MinIOExternalStorage(
+        dummyBucket,
+        dummyOptions,
+        42,
+        s3 as any
+      );
+      await assert.isRejected(extStorage.uploadStream(key, filestream));
+      assert.isTrue(filestream.destroyed);
+    });
+  });
+
   describe('versions()', function () {
     function makeFakeStream(listedObjects: object[]) {
       const fakeStream = new stream.Readable({objectMode: true});

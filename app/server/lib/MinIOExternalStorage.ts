@@ -88,12 +88,16 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async uploadStream(key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata) {
-    const result = await this._s3.putObject(
-      this.bucket, key, inStream, size,
-      metadata ? {Metadata: toExternalMetadata(metadata)} : undefined
-    );
-    // Empirically VersionId is available in result for buckets with versioning enabled.
-    return result.versionId || null;
+    try {
+      const result = await this._s3.putObject(
+        this.bucket, key, inStream, size,
+        metadata ? { Metadata: toExternalMetadata(metadata) } : undefined
+      );
+      // Empirically VersionId is available in result for buckets with versioning enabled.
+      return result.versionId || null;
+    } finally {
+      inStream.destroy();
+    }
   }
 
   public async upload(key: string, fname: string, metadata?: ObjMetadata) {
