@@ -1,4 +1,5 @@
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
+import {LatestVersionAvailable} from 'app/common/Config';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
@@ -844,6 +845,8 @@ export interface GristLoadConfig {
   tagManagerId?: string;
 
   activation?: ActivationState;
+
+  latestVersionAvailable?: LatestVersionAvailable;
 
   // List of enabled features.
   features?: IFeature[];

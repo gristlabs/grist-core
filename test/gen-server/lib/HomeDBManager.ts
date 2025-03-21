@@ -1,4 +1,5 @@
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {version as installedVersion} from "app/common/version";
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {FREE_PLAN, STUB_PLAN, TEAM_PLAN} from 'app/common/Features';
 import {assert} from 'chai';
@@ -6,6 +7,8 @@ import {TestServer} from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 import {v4 as uuidv4} from 'uuid';
 import omit = require('lodash/omit');
+import * as sinon from 'sinon';
+import { LatestVersionAvailable } from 'app/common/Config';
 
 const charonProfile = {email: 'charon@getgrist.com', name: 'Charon'};
 const chimpyProfile = {email: 'chimpy@getgrist.com', name: 'Chimpy'};
@@ -15,13 +18,37 @@ const teamOptions = {
   setUserAsOwner: false, useNewPlan: true, product: TEAM_PLAN
 };
 
+const fakeVersionUrl = 'https://whatever.computer/version';
+const mockVersionResponse = {
+  latestVersion: installedVersion,
+  updatedAt: '2025-02-18T22:11:09.455904Z',
+  isCritical: false,
+  updateURL: 'https://hub.docker.com/r/gristlabs/grist'
+};
+
+
 describe('HomeDBManager', function() {
 
   let server: TestServer;
   let home: HomeDBManager;
+  let fetchStub: sinon.SinonStub;
+  const oldServerEnv = new testUtils.EnvironmentSnapshot();
   testUtils.setTmpLogLevel('error');
 
   before(async function() {
+    fetchStub = sinon.stub(global, 'fetch');
+    fetchStub
+      .withArgs(fakeVersionUrl, sinon.match.any)
+      .resolves(new Response(
+        JSON.stringify(mockVersionResponse),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      ));
+    fetchStub.callThrough();
+    process.env.GRIST_TEST_VERSION_CHECK_URL = fakeVersionUrl;
+
     server = new TestServer(this);
     await server.start();
     home = server.dbManager;
@@ -29,6 +56,8 @@ describe('HomeDBManager', function() {
 
   after(async function() {
     await server.stop();
+    fetchStub.restore();
+    oldServerEnv.restore();
   });
 
   it('can find existing user by email', async function() {
@@ -264,6 +293,13 @@ describe('HomeDBManager', function() {
     const oddKiwiProfile = {email: 'KIWI@getgrist.COM', name: 'KIwi'};
     const orgs = (await home.getOrgs([oddCharonProfile, kiwiProfile, oddKiwiProfile], null)).data!;
     assert.deepEqual(refOrgs, orgs);
+  });
+
+  it('can get the latest available version information', async function() {
+    const configValue = await home.getInstallConfig("latest_version_available");
+    const latestVersionAvailable = configValue.data?.value as LatestVersionAvailable;
+    assert.equal(latestVersionAvailable.version, installedVersion);
+    assert.equal(latestVersionAvailable.isNewer, false);
   });
 
   it('can get best user for accessing org', async function() {
