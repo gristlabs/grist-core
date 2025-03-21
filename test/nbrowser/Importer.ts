@@ -766,6 +766,9 @@ describe('Importer', function() {
 
       // Check the preview diff of Country. The population should have doubled in every row.
       await waitForDiffPreviewToLoad();
+      await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
+      await driver.findContentWait('.field_clip', 'ABW', 100);
+
       assert.deepEqual(
         await getPreviewDiffCellValues([0, 6], [1, 2, 3, 4, 5]),
         [ 'ABW', ['103000', '206000', undefined],

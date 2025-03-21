@@ -11,7 +11,7 @@ export interface ChartData {
 
 export async function selectChartType(chartType: string) {
   await driver.find('.test-chart-type').click();
-  await driver.findContent('.test-select-row', chartType).click();
+  await gu.findOpenMenuItem('.test-select-row', chartType).click();
   return gu.waitForServer();
 }
 
@@ -62,7 +62,7 @@ export async function checkAxisConfig(expected: {groupingByColumn?: string|false
 
 export async function setSplitSeries(name: string|false, section?: string) {
   await gu.openSectionMenu('viewLayout', section);
-  await driver.findContent('.grist-floating-menu li', 'Widget options').click();
+  await gu.findOpenMenuItem('li', 'Widget options').click();
 
   const isChecked = await driver.findContent('label', /Split series/).find('input').matches(':checked');
   if (name === false && isChecked === true ||
@@ -71,14 +71,14 @@ export async function setSplitSeries(name: string|false, section?: string) {
   }
   if (name) {
     await driver.find('.test-chart-group-by-column').click();
-    await driver.findContent('.test-select-menu li', name || 'Pick a column').click();
+    await gu.findOpenMenuItem('li', name || 'Pick a column').click();
   }
   await gu.waitForServer();
 }
 
 export async function selectXAxis(name: string, opt: {noWait?: boolean} = {}) {
   await driver.find('.test-chart-x-axis').click();
-  await driver.findContent('.test-select-menu li', name).click();
+  await gu.findOpenMenuItem('li', name).click();
   if (!opt.noWait) {
     await gu.waitForServer();
   }
@@ -94,6 +94,6 @@ export async function setYAxis(names: string[]) {
 
 export async function addYAxis(name: string) {
   await driver.find('.test-chart-add-y-axis').click();
-  await driver.findContent('.grist-floating-menu li', name).click();
+  await gu.findOpenMenuItem('li', name).click();
   await gu.waitForServer();
 }

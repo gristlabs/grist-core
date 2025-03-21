@@ -52,7 +52,7 @@ describe('ColumnFilterMenu', function() {
     await session.loadDoc(`/doc/${docId}/p/2`);
 
     await gu.rightClick(gu.getCell({rowNum: 1, col: 'A'}));
-    await driver.findContent('.grist-floating-menu li', 'Filter by this value').click();
+    await gu.findOpenMenuItem('li', 'Filter by this value').click();
 
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['A', 'B'], rowNums: [1, 2, 3]}),
@@ -181,7 +181,7 @@ describe('ColumnFilterMenu', function() {
 
     // add Count filters
     await driver.find('.test-add-filter-btn').click();
-    await driver.findContent('.grist-floating-menu li', /Count/).click();
+    await gu.findOpenMenuItem('li', /Count/).click();
 
     // Check that there's only 5 values left ('3' is missing)
     assert.deepEqual(await driver.findAll('.test-filter-menu-list label', (e) => e.getText()),
@@ -518,7 +518,7 @@ describe('ColumnFilterMenu', function() {
 
     // add Date Filter
     await driver.find('.test-add-filter-btn').click();
-    await driver.findContent('.grist-floating-menu li', colRegex).click();
+    await gu.findOpenMenuItem('li', colRegex).click();
 
     // set min to '2019-07-16'
     await gu.setRangeFilterBound('min', '2019-07-16');

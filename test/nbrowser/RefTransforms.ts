@@ -38,7 +38,7 @@ describe('RefTransforms', function() {
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-field').click();
     await driver.find('.test-fbuilder-ref-col-select').click();
-    await driver.findContent('.test-select-row', /A/).click();
+    await gu.findOpenMenuItem('.test-select-row', /A/).click();
     await gu.waitForServer();
 
     // Change type of Table1 to be Ref:Table2.
@@ -62,10 +62,10 @@ describe('RefTransforms', function() {
     await gu.getCell({section: 'Table1', rowNum: 1, col: 'A'}).click();
     await gu.setType(/Reference List/);
     await driver.find('.test-fbuilder-ref-table-select').click();
-    await driver.findContent('.test-select-row', /Table2/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Table2/).click();
     await gu.waitForServer();
     await driver.find('.test-fbuilder-ref-col-select').click();
-    await driver.findContent('.test-select-row', /A/).click();
+    await gu.findOpenMenuItem('.test-select-row', /A/).click();
     await gu.waitForServer();
     await driver.findContent('.type_transform_prompt button', /Apply/).click();
     await gu.waitForServer();
@@ -87,7 +87,7 @@ describe('RefTransforms', function() {
     await gu.getCell({section: 'Table1', rowNum: 1, col: 'B'}).click();
     await gu.setType(/Reference List/);
     await driver.find('.test-fbuilder-ref-col-select').click();
-    await driver.findContent('.test-select-row', /A/).click();
+    await gu.findOpenMenuItem('.test-select-row', /A/).click();
     await gu.waitForServer();
 
     // Add some references to values in the same table.
@@ -96,11 +96,11 @@ describe('RefTransforms', function() {
 
     // Now change the table to Table2. (This previously failed and left the table unchanged.)
     await driver.find('.test-fbuilder-ref-table-select').click();
-    await driver.findContent('.test-select-row', /Table2/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Table2/).click();
     await gu.waitForServer();
     assert.equal(await driver.find('.test-fbuilder-ref-table-select').getText(), 'Table2');
     await driver.find('.test-fbuilder-ref-col-select').click();
-    await driver.findContent('.test-select-row', /A/).click();
+    await gu.findOpenMenuItem('.test-select-row', /A/).click();
     await gu.waitForServer();
 
     // Finish transforming and make sure it completed successfully.

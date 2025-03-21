@@ -53,7 +53,7 @@ describe('ChartView1', function() {
     await gu.selectSectionByTitle('Text Chart');
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-chart-orientation .test-select-open').click();
-    await driver.findContent('.test-select-menu', 'Horizontal').click();
+    await gu.findOpenMenuItem('li', 'Horizontal').click();
     await gu.waitForServer();
     assert.deepEqual((await layout()).yaxis.type, 'category');
     assert.deepEqual((await layout()).xaxis.type, 'linear');
@@ -109,7 +109,7 @@ describe('ChartView1', function() {
 
     // Test that the widget menu doesn't have the raw data option any more
     await gu.openSectionMenu('viewLayout');
-    assert.isTrue(await driver.findContentWait('.grist-floating-menu li', 'Print widget', 100).isDisplayed());
+    assert.isTrue(await gu.findOpenMenuItem('li', 'Print widget', 100).isDisplayed());
     assert.isFalse(await driver.findContent('.grist-floating-menu li', 'Show raw data').isPresent());
 
     // Go back and confirm that the overlay is gone again
@@ -197,7 +197,7 @@ describe('ChartView1', function() {
 
     // Adds 'largeValue'
     await driver.find('.test-chart-add-y-axis').click();
-    await driver.findContent('.grist-floating-menu li', 'largeValue').click();
+    await gu.findOpenMenuItem('li', 'largeValue').click();
     await gu.waitForServer();
 
     // Check axis are correct
@@ -458,7 +458,7 @@ describe('ChartView1', function() {
 
     // check group-data options
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', e => e.getText()),
+      await gu.findOpenMenuAllItems('li', e => e.getText()),
       ['Pick a column', 'Name', 'B']
     );
 
@@ -470,7 +470,7 @@ describe('ChartView1', function() {
 
     // check x axis options
     assert.deepEqual(
-      await driver.findAll('.test-select-menu li', e => e.getText()),
+      await gu.findOpenMenuAllItems('li', e => e.getText()),
       ['Name', 'B']
     );
 
@@ -609,7 +609,7 @@ describe('ChartView1', function() {
 
     // Symmetric error bars should leave only the largeValue series, with 'value' for error bars.
     await driver.find('.test-chart-error-bars .test-select-open').click();
-    await driver.findContent('.test-select-menu li', /Symmetric/).click();
+    await gu.findOpenMenuItem('li', /Symmetric/).click();
     await gu.waitForServer();
 
     const chartDom = await driver.find('.test-chart-container');
@@ -623,7 +623,7 @@ describe('ChartView1', function() {
 
     // Using separate error bars for above+below will leave just the "above" error bars.
     await driver.find('.test-chart-error-bars .test-select-open').click();
-    await driver.findContent('.test-select-menu li', /Above.*Below/).click();
+    await gu.findOpenMenuItem('li', /Above.*Below/).click();
     await gu.waitForServer();
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].y, [22, 33, 11, 44, 22, 55]);
@@ -757,7 +757,7 @@ describe('ChartView1', function() {
 
     // open widget option
     await gu.openSectionMenu('viewLayout');
-    await driver.findContent('.grist-floating-menu li', 'Widget options').click();
+    await gu.findOpenMenuItem('li', 'Widget options').click();
 
     // open the page widget picker
     await driver.findContent('.test-right-panel button', 'Change Widget').click();

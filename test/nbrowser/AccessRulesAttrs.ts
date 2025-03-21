@@ -44,7 +44,7 @@ describe("AccessRulesAttrs", function() {
 
     // Add rules for TableFoo.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContentWait('.grist-floating-menu li', /TableFoo/, 3000).click();
+    await gu.findOpenMenuItem('li', /TableFoo/, 3000).click();
     let ruleSet = findDefaultRuleSet(/TableFoo/);
 
     // Add a rule that only allows reading row with "foo" in it (all lowercase).
@@ -83,26 +83,34 @@ describe("AccessRulesAttrs", function() {
     const ruleSet = findDefaultRuleSet(/TableFoo/);
     await triggerAutoComplete(ruleSet, 1, '$SomeText.');
     await checkCompletions(['$SomeText.lower()', '$SomeText.upper()']);
-    await driver.sendKeys(Key.ESCAPE);
 
     // Works too if we start with rec.
-    await triggerAutoComplete(ruleSet, 1, 'rec.SomeText.upp');
-    await checkCompletions(['rec.SomeText.upper()']);
-    await driver.sendKeys(Key.ESCAPE);
+    await gu.waitToPass(async () => {
+      await driver.sendKeys(Key.ESCAPE);
+      await triggerAutoComplete(ruleSet, 1, 'rec.SomeText.upp');
+      await checkCompletions(['rec.SomeText.upper()']);
+    });
 
     // No autocomplete for Date columns.
-    await triggerAutoComplete(ruleSet, 1, '$SomeDate.');
-    await checkNoCompletions();
-    await driver.sendKeys(Key.ESCAPE);
+    await gu.waitToPass(async () => {
+      await driver.sendKeys(Key.ESCAPE);
+      await triggerAutoComplete(ruleSet, 1, '$SomeDate.');
+      await checkNoCompletions();
+    });
 
     // Yes autocomplete for user.Email
-    await triggerAutoComplete(ruleSet, 1, '$SomeDate == user.Email.');
-    await checkCompletions(['user.Email.lower()', 'user.Email.upper()']);
-    await driver.sendKeys(Key.ESCAPE);
+    await gu.waitToPass(async () => {
+      await driver.sendKeys(Key.ESCAPE);
+      await triggerAutoComplete(ruleSet, 1, '$SomeDate == user.Email.');
+      await checkCompletions(['user.Email.lower()', 'user.Email.upper()']);
+    });
 
     // No autocomplete for user.Access (it has type Choice, not Text, string methods not useful).
-    await triggerAutoComplete(ruleSet, 1, 'user.Access.');
-    await checkNoCompletions();
+    await gu.waitToPass(async () => {
+      await driver.sendKeys(Key.ESCAPE);
+      await triggerAutoComplete(ruleSet, 1, 'user.Access.');
+      await checkNoCompletions();
+    });
     await driver.sendKeys(Key.ESCAPE);
   });
 
@@ -144,7 +152,7 @@ describe("AccessRulesAttrs", function() {
 
     // While this column is Text, we can use "lower()" method, and everything works.
     await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-    await driver.findContentWait('.grist-floating-menu li', /TableFoo/, 3000).click();
+    await gu.findOpenMenuItem('li', /TableFoo/, 3000).click();
     ruleSet = findDefaultRuleSet(/TableFoo/);
     // This rule won't match anything, which is fine, we are only interested in its validity.
     await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', {U: 'deny', C: 'deny'});

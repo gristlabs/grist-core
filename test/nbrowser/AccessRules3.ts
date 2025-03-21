@@ -3,7 +3,7 @@
  */
 import { assert, driver } from 'mocha-webdriver';
 import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
-         findRuleSet, findTable, getRules, hasExtraAdd, removeRules,
+         findRuleSet, findTableWait, getRules, hasExtraAdd, removeRules,
          removeTable } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
@@ -56,13 +56,13 @@ describe("AccessRules3", function() {
 
       // Adding rules for a new table/column should look the same as always.
       await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
+      await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       await assertChanged();
-      let fin = findTable(/FinancialsTable/);
+      let fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'Everyone', perm: '', res: 'All' }]);
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'Everyone', perm: '', res: '[Add Column]' },
                         { formula: 'Everyone', perm: '', res: 'All' + tooltipMarker }]);
@@ -78,8 +78,9 @@ describe("AccessRules3", function() {
 
       // New table rules should start off with that rule.
       await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
-      fin = findTable(/FinancialsTable/);
+      await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
+      await gu.waitForMenuToClose();
+      fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
                         { formula: 'Everyone Else', perm: '', res: 'All' }]);
@@ -87,7 +88,9 @@ describe("AccessRules3", function() {
 
       // New column rules should start off with that rule.
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+      await gu.waitForMenuToClose();
+
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
@@ -101,7 +104,9 @@ describe("AccessRules3", function() {
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: '[Add Column]' }]);
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Table-wide Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Table-wide Rule/).click();
+      await gu.waitForMenuToClose();
+
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
@@ -116,8 +121,10 @@ describe("AccessRules3", function() {
 
       // New table rules should include the seed rules.
       await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
-      fin = findTable(/FinancialsTable/);
+      await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
+      await gu.waitForMenuToClose();
+
+      fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
                         { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
@@ -176,8 +183,8 @@ describe("AccessRules3", function() {
 
       // New table rules should include the seed rule.
       await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
-      let fin = findTable(/FinancialsTable/);
+      await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
+      let fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'rec.Year == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
                         { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
@@ -191,8 +198,8 @@ describe("AccessRules3", function() {
 
       // New table rules should include the seed rule, and show an error.
       await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
-      fin = findTable(/FinancialsTable/);
+      await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
+      fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'rec.Unreal == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1',
                           error: 'Invalid columns: Unreal' },
@@ -318,13 +325,13 @@ describe("AccessRules3", function() {
 
       // New table AND column rules should start off with that rule.
       await driver.findContentWait('button', /Add Table Rules/, 2000).click();
-      await driver.findContentWait('.grist-floating-menu li', /FinancialsTable/, 3000).click();
-      let fin = findTable(/FinancialsTable/);
+      await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
+      let fin = findTableWait(/FinancialsTable/);
       await fin.find('.test-rule-table-menu-btn').click();
-      await driver.findContent('.grist-floating-menu li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
       const ruleSet = findRuleSet(/FinancialsTable/, 1);
       await ruleSet.find('.test-rule-resource .test-select-open').click();
-      await driver.findContent('.test-select-menu li', 'Year').click();
+      await gu.findOpenMenuItem('li', 'Year').click();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: 'Year\n[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: 'Year\n[Add Column]' },
@@ -356,7 +363,7 @@ describe("AccessRules3", function() {
       await assertSaved();
 
       // Rules still look correct after saving.
-      fin = findTable(/FinancialsTable/);
+      fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: 'Year' },
                         { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker }]);

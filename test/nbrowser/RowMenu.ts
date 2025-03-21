@@ -22,7 +22,7 @@ describe('RowMenu', function() {
     assert.isTrue(await firstRow.find(".test-row-menu-trigger").isDisplayed());
     // make sure that clicking on it opens up the menu
     await firstRow.find(".test-row-menu-trigger").click();
-    assert.isTrue(await driver.findWait('.grist-floating-menu', 1000).isDisplayed());
+    assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
     // close the menu
     await driver.sendKeys(Key.ESCAPE);
     // make sure the menu is closed
@@ -34,7 +34,7 @@ describe('RowMenu', function() {
     // make sure right click opens up the menu
     const toggle = await firstRow.find(".test-row-menu-trigger");
     await rightClick(toggle);
-    assert.isTrue(await driver.findWait('.grist-floating-menu', 1000).isDisplayed());
+    assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
     // close the menu by clicking the toggle
     await toggle.click();
     // make sure the menu is closed
@@ -63,7 +63,7 @@ describe('RowMenu', function() {
     await rightClick(await gu.getCell(0, 1));
 
     // check that the context menu shows
-    assert.isTrue(await driver.findWait('.grist-floating-menu', 1000).isDisplayed());
+    assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
 
     // send ESC to close the menu
     await driver.sendKeys(Key.ESCAPE);

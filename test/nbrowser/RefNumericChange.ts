@@ -26,7 +26,7 @@ describe('RefNumericChange', function() {
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-field').click();
     await driver.find('.test-fbuilder-ref-col-select').click();
-    await driver.findContent('.test-select-row', /Num/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Num/).click();
     await gu.waitForServer();
 
     assert.equal(await driver.find('.test-fbuilder-type-select').getText(), "Reference");

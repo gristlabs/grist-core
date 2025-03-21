@@ -39,7 +39,7 @@ describe('RightPanelSelectBy', function() {
 
   it('should successfully link on select', async function() {
     // select a link
-    await driver.findContent('.test-select-row', /Performances record$/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Performances record$/).click();
     await gu.waitForServer();
 
     // Check that selections in 1st section are mirrored by the 2nd section.
@@ -50,7 +50,7 @@ describe('RightPanelSelectBy', function() {
 
   it('should allow to remove link', async function() {
     await gu.openSelectByForSection('PERFORMANCES DETAIL');
-    await driver.findContent('.test-select-row', /Select Widget/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Select Widget/).click();
     await gu.waitForServer();
 
     // Check that selections in 1st section are NOT mirrored by the 2nd section.
@@ -67,7 +67,7 @@ describe('RightPanelSelectBy', function() {
 
     //Link "films record" by "performances record"
     await gu.openSelectByForSection('FILMS RECORD');
-    await driver.findContent('.test-select-row', /Performances record.*Film/i).click();
+    await gu.findOpenMenuItem('.test-select-row', /Performances record.*Film/i).click();
     await gu.waitForServer();
 
     // this link should no longer be present, since it would create a cycle with a filter link in it
@@ -109,7 +109,7 @@ describe('RightPanelSelectBy', function() {
     await gu.addNewSection(/Table/, /Performances/);
     await gu.openSelectByForSection('Performances');
     assert.equal(await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).isPresent(), true);
-    await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).click();
+    await gu.findOpenMenuItem('.test-select-row', /FRIENDS.*Favorite Film/).click();
     await gu.waitForServer();
 
     // Select a row in FRIENDS.
@@ -148,7 +148,7 @@ describe('RightPanelSelectBy', function() {
     await gu.addNewSection(/Card/, /Films/);
     await gu.openSelectByForSection('Films Card');
     assert.equal(await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).isPresent(), true);
-    await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).click();
+    await gu.findOpenMenuItem('.test-select-row', /FRIENDS.*Favorite Film/).click();
     await gu.waitForServer();
 
     // Select a row in FRIENDS.

@@ -27,7 +27,7 @@ describe("CopyWithHeaders", function() {
         // Select all
         await gu.sendKeys(Key.chord(Key.CONTROL, 'a'));
         await gu.rightClick(gu.getCell({rowNum: 1, col: 'A'}));
-        await driver.findContent('.grist-floating-menu li', 'Copy with headers').click();
+        await gu.findOpenMenuItem('li', 'Copy with headers').click();
 
         await pasteAndCheck(cb, ["A", "B", "C", "D", "E"], 5);
     });
@@ -36,7 +36,7 @@ describe("CopyWithHeaders", function() {
         // Select a single cell.
         await gu.getCell({rowNum: 2, col: 'D'}).click();
         await gu.rightClick(gu.getCell({rowNum: 2, col: 'D'}));
-        await driver.findContent('.grist-floating-menu li', 'Copy with headers').click();
+        await gu.findOpenMenuItem('li', 'Copy with headers').click();
 
         await pasteAndCheck(cb, ["D"], 2);
     });

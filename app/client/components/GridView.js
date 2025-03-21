@@ -1472,7 +1472,7 @@ GridView.prototype.buildDom = function() {
           // This is a little hack to position the menu the same way as with a click,
           // the same hack as on a column menu.
           ev.preventDefault();
-          ev.currentTarget.querySelector('.menu_toggle').click();
+          ev.currentTarget.querySelector('.menu_toggle')?.click();
         }),
         self.isPreview ? null : menuToggle(null,
           dom.on('click', ev => self.maybeSelectRow(ev.currentTarget.parentNode, row.getRowId())),

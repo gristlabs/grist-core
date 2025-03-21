@@ -11,7 +11,7 @@ describe('AttachmentsLinking', function() {
   let docId: string;
 
   before(async function() {
-    session = await gu.session().login();
+    session = await gu.session().login({retainExistingLogin: false});
     docId = await session.tempNewDoc(cleanup, 'AttachmentColumns', {load: false});
 
     // Set up a table Src, and table Items which links to Src and has an Attachments column.
@@ -49,6 +49,7 @@ describe('AttachmentsLinking', function() {
     assert.equal(await gu.getCell({section: 'Items', col: 0, rowNum: 4}).isPresent(), false);
 
     let cell = await gu.getCell({section: 'Items', col: 'Att', rowNum: 3});
+    await cell.click();
     await gu.fileDialogUpload('uploads/file1.mov', () => cell.find('.test-attachment-icon').click());
     await gu.waitToPass(async () =>
       assert.lengthOf(await gu.getCell({section: 'Items', col: 'Att', rowNum: 3}).findAll('.test-pw-thumbnail'), 1));
@@ -67,6 +68,7 @@ describe('AttachmentsLinking', function() {
     ]);
 
     cell = await gu.getCell({section: 'Items', col: 'Att', rowNum: 1});
+    await cell.click();
     await gu.fileDialogUpload('uploads/htmlfile.html,uploads/file1.mov',
       () => cell.find('.test-attachment-icon').click());
     await gu.waitToPass(async () =>

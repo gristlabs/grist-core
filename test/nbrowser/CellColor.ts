@@ -479,7 +479,7 @@ describe('CellColor', function() {
 
     // Change widget to Switch
     await driver.find('.test-fbuilder-widget-select').click();
-    await driver.findContent('.test-select-row', /Switch/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Switch/).click();
     await gu.waitForServer();
 
     // open the color picker
@@ -506,7 +506,7 @@ describe('CellColor', function() {
 
     // Change widget to Toggle
     await driver.find('.test-fbuilder-widget-select').click();
-    await driver.findContent('.test-select-row', /CheckBox/).click();
+    await gu.findOpenMenuItem('.test-select-row', /CheckBox/).click();
     await gu.waitForServer();
 
     // Check the saved color applies.
@@ -551,7 +551,7 @@ describe('CellColor', function() {
 
     // switch format to switch
     await driver.find('.test-fbuilder-widget-select').click();
-    await driver.findContent('.test-select-row', /Switch/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Switch/).click();
     await gu.waitForServer();
 
     // check the switch's color

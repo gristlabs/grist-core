@@ -178,7 +178,7 @@ describe('SelectByRefList', function() {
  */
 async function checkSelectingRecords(selectBy: string, sourceData: string[][], newRow: string[]) {
   await gu.openSelectByForSection('LINKTARGET');
-  await driver.findContent('.test-select-row', new RegExp(selectBy + '$')).click();
+  await gu.findOpenMenuItem('.test-select-row', new RegExp(selectBy + '$')).click();
   await gu.waitForServer();
 
   const selectByTable = selectBy.split(' ')[0];

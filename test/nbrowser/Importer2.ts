@@ -451,7 +451,7 @@ describe('Importer2', function() {
       await driver.findContent('.test-importer-column-match-source', /Pop\. '000/).click();
 
       // Check that the menu contains only the selected source column, plus a 'Skip' option.
-      const menu = driver.find('.test-select-menu');
+      const menu = gu.findOpenMenu();
       assert.deepEqual(
         await menu.findAll('.test-importer-column-match-menu-item', el => el.getText()),
         ['Skip', 'Pop. \'000']
@@ -687,7 +687,7 @@ describe('Importer2', function() {
 
       // Map 'District' to 'city_district' via the column mapping menu.
       await openSourceFor('District');
-      const menu = driver.find('.test-select-menu');
+      const menu = gu.findOpenMenu();
       await menu.findContent('.test-importer-column-match-menu-item', /city_district/).click();
       await gu.waitForServer();
 
@@ -735,6 +735,15 @@ describe('Importer2', function() {
         { source: 'Skip', destination: 'Pop. \'000' },
       ]);
       await waitForDiffPreviewToLoad();
+      // Click any cell that we see to set the focus.
+      await driver.findWait('.test-importer-preview .field_clip', 100).click();
+      // Wait for the focus to be set.
+      await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
+      // Go to the first row.
+      await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
+      // Make sure we see the first row.
+      await driver.findContentWait('.test-importer-preview .field_clip', 'Kabul', 100);
+
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [
         'Kabul', 'Kabol', [undefined, undefined, '1780000'], '', [undefined, undefined, '1780'],
         'Qandahar', 'Qandahar', [undefined, undefined, '237500'], [undefined, undefined, '2'],
