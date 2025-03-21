@@ -45,7 +45,7 @@ export class AuditLogsModel extends Disposable implements AuditLogsModel {
         return;
       }
 
-      this.streamingDestinations.set(value);
+      this.streamingDestinations.set(value as AuditLogStreamingDestinations);
     } catch (e) {
       if (e.status === 404) {
         this.streamingDestinations.set([]);
@@ -109,6 +109,6 @@ export class AuditLogsModel extends Disposable implements AuditLogsModel {
       return;
     }
 
-    this.streamingDestinations.set(value);
+    this.streamingDestinations.set(value as AuditLogStreamingDestinations);
   }
 }
