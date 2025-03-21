@@ -1753,6 +1753,7 @@ export async function isRawTableOpened() {
 
 export async function closeRawTable() {
   await driver.find('.test-raw-data-close-button').click();
+  await waitToPass(async () => assert.isFalse(await driver.find('.test-raw-data-close-button').isPresent()));
 }
 
 /**
@@ -3392,8 +3393,11 @@ export async function waitForAnchor() {
 export async function copyAnchor() {
   await driver.find('body').sendKeys(Key.chord(Key.SHIFT, await modKey(), 'a'));
 
-  await waitToPass(async () => assert.match(
-    await driver.find('.test-tooltip').getText(), /Link copied to clipboard/), 1000);
+  await waitToPass(async () => {
+    assert.isTrue(
+      await driver.findContentWait('.test-notifier-toast-message', /Link copied to clipboard/, 100).isDisplayed()
+    )
+  });
 }
 
 export async function getAnchor() {
@@ -3416,6 +3420,7 @@ export async function getSectionTitles() {
 export async function renameSection(sectionTitle: string, name: string) {
   const renameWidget = driver.findContent(`.test-viewsection-title`, sectionTitle);
   await renameWidget.find(".test-widget-title-text").click();
+  await driver.findWait('.test-widget-title-popup', 100);
   await driver.find(".test-widget-title-section-name-input").click();
   await selectAll();
   await driver.sendKeys(name || Key.DELETE, Key.ENTER);
@@ -3424,6 +3429,7 @@ export async function renameSection(sectionTitle: string, name: string) {
 
 export async function renameActiveSection(name: string) {
   await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
+  await driver.findWait('.test-widget-title-popup', 100);
   await driver.find(".test-widget-title-section-name-input").click();
   await selectAll();
   await driver.sendKeys(name || Key.DELETE, Key.ENTER);
@@ -3435,6 +3441,7 @@ export async function renameActiveSection(name: string) {
  */
 export async function renameActiveTable(name: string) {
   await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
+  await driver.findWait('.test-widget-title-popup', 100);
   await driver.find(".test-widget-title-table-name-input").click();
   await selectAll();
   await driver.sendKeys(name, Key.ENTER);
@@ -3515,6 +3522,7 @@ export async function columnBehavior() {
  */
 export async function availableBehaviorOptions() {
   await driver.find('.test-field-behaviour').click();
+  await findOpenMenu();
   const list = await driver.findAll('.grist-floating-menu li', el => el.getText());
   await driver.sendKeys(Key.ESCAPE);
   return list;
