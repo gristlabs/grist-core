@@ -3389,16 +3389,16 @@ export async function waitForAnchor() {
   await driver.wait(async () => (await getTestState()).anchorApplied, 2000);
 }
 
-export async function getAnchor({wait = false}: {wait?: boolean;} = {}) {
+export async function copyAnchor() {
   await driver.find('body').sendKeys(Key.chord(Key.SHIFT, await modKey(), 'a'));
-  let content = '';
-  await waitToPass(async () => {
-    content = (await getTestState()).clipboard || '';
-    if (wait) {
-      assert.isTrue(Boolean(content), "Anchor link was not copied to clipboard");
-    }
-  });
-  return content;
+
+  await waitToPass(async () => assert.match(
+    await driver.find('.test-tooltip').getText(), /Link copied to clipboard/), 1000);
+}
+
+export async function getAnchor() {
+  await copyAnchor();
+  return (await getTestState()).clipboard || '';
 }
 
 export async function getActiveSectionTitle(timeout?: number) {
