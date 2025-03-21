@@ -23,7 +23,7 @@ else
 fi
 
 echo "Updating Python3 packages"
-$pip install --no-deps -r sandbox/requirements3.txt
+$pip install --no-deps -r sandbox/requirements.txt
 
 if [[ ! -e sandbox_venv3 ]]; then
   echo "Moving $python_dir to sandbox_venv3"
