@@ -59,6 +59,7 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/create-fork', withDoc);
     app.use('/api/docs/:docId/apply', withDoc);
     app.use('/api/docs/:docId/attachments', withDoc);
+    app.use('/api/docs/:docId/attachments/archive', withDoc);
     app.use('/api/docs/:docId/attachments/download', withDoc);
     app.use('/api/docs/:docId/attachments/transferStatus', withDoc);
     app.use('/api/docs/:docId/attachments/transferAll', withDoc);
