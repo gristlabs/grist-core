@@ -5,7 +5,7 @@ import os
 import textwrap
 import tempfile
 import unittest
-from six import StringIO, text_type
+from io import StringIO
 
 from imports import import_csv
 
@@ -58,7 +58,7 @@ class TestImportCSV(unittest.TestCase):
     # To avoid updating 85 calls to _check_col, the typename argument was kept but can be ignored,
     # and all values are converted back to strings for comparison.
     self.assertEqual(sheet["column_metadata"][index]["type"], "Any")
-    values = [text_type(v) for v in values]
+    values = [str(v) for v in values]
     self.assertEqual(sheet["table_data"][index], values)
 
   def _check_num_cols(self, sheet, exp_cols):
