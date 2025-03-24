@@ -3,10 +3,6 @@
 import unittest
 import difflib
 import re
-
-import six
-from six.moves import xrange
-
 import gencode
 import identifiers
 import schema
@@ -70,13 +66,12 @@ class TestGenCode(unittest.TestCase):
     gcode = gencode.GenCode()
     gcode.make_module(self.schema)
     generated = gcode.get_user_text()
-    if six.PY3:
-      saved_sample = saved_sample.replace(
+    saved_sample = saved_sample.replace(
         "raise SyntaxError('invalid syntax', ('usercode', 1, 9, u'for a in'))",
         "raise SyntaxError('invalid syntax\\n\\n"
         "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
         "('usercode', 1, 9, 'for a in'))"
-      )
+    )
     self.assertEqual(generated, saved_sample, "Generated code doesn't match sample:\n" +
                      "".join(difflib.unified_diff(generated.splitlines(True),
                                                   saved_sample.splitlines(True),
@@ -157,7 +152,7 @@ class TestGenCode(unittest.TestCase):
     self.assertEqual(identifiers.pick_col_ident(2, avoid={"c2"}), "c2_2")
 
     large_set = set()
-    for i in xrange(730):
+    for i in range(730):
       large_set.add(identifiers._gen_ident(large_set))
     self.assertEqual(identifiers.pick_col_ident("", avoid=large_set), "ABC")
 
@@ -177,7 +172,7 @@ class TestGenCode(unittest.TestCase):
     self.assertEqual(identifiers.pick_table_ident(None, avoid={"Table1", "Table2"}), "Table3")
 
     large_set = set()
-    for i in xrange(730):
+    for i in range(730):
       large_set.add("Table%d" % i)
     self.assertEqual(identifiers.pick_table_ident("", avoid=large_set), "Table730")
 
