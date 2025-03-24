@@ -703,6 +703,44 @@ function testDocApi(settings: {
     });
   }
 
+  it(`POST /docs/import imports a file`, async function () {
+    const user = chimpy;
+    const formData = new FormData();
+    formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+    const config = defaultsDeep({headers: formData.getHeaders()}, user);
+    const resp = await axios.post(`${serverUrl}/api/docs/import`, formData, config);
+    assert.equal(resp.status, 200);
+    const urlId = resp.data;
+
+    console.log(urlId);
+
+    /*
+    // Access information about that document should be sane for current user
+    resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, user);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data.name, 'Untitled');
+    assert.equal(resp.data.workspace.name, 'Examples & Templates');
+    assert.equal(resp.data.access, 'owners');
+    if (mode === 'anonymous') {
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, chimpy);
+      assert.equal(resp.data.access, 'owners');
+    } else {
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, charon);
+      assert.equal(resp.status, 403);
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, nobody);
+      assert.equal(resp.status, 403);
+    }
+
+    // content was successfully stored
+    resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
+    if (content === 'with content') {
+      assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
+    } else {
+      assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
+    }
+    */
+  });
+
   it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function () {
     const data = {
       id: [1, 2, 3, 4],
@@ -2922,7 +2960,7 @@ function testDocApi(settings: {
   });
 
   // A tiny test that /copy doesn't throw.
-  it("POST /docs/{did}/copy succeeds", async function () {
+  it("POST /copy succeeds on a doc worker", async function () {
     const docId = docIds.TestDoc;
     const worker1 = await userApi.getWorkerAPI(docId);
     await worker1.copyDoc(docId, undefined, 'copy');
@@ -2935,6 +2973,16 @@ function testDocApi(settings: {
       documentName: 'copy of TestDoc',
       asTemplate: false,
       workspaceId: chimpyWs
+    }, chimpy);
+    assert.equal(resp.status, 200);
+    assert.isString(resp.data);
+  });
+
+  it("POST /docs/{did}/copy copies a document", async function () {
+    const chimpyWs2 = await userApi.newWorkspace({name: "Chimpy's Workspace 2"}, ORG_NAME);
+    const resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/copy`, {
+      documentName: 'copy of TestDoc',
+      workspaceId: chimpyWs2,
     }, chimpy);
     assert.equal(resp.status, 200);
     assert.isString(resp.data);

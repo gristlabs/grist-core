@@ -1537,6 +1537,49 @@ export class DocWorkerApi {
     }));
 
     /**
+     * Uploads and imports a file as a new document.
+     */
+    this._app.post('/api/docs/import', checkAnonymousCreation, expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const userId = getUserId(req);
+
+      if (!req.is('multipart/form-data')) { throw new ApiError("Content type should be multipart/form-data", 400); }
+      const formResult = await handleOptionalUpload(req, res);
+      console.log(formResult);
+      if (!formResult.upload) {
+        throw new ApiError("No file included in upload", 400);
+      }
+      const parameters = formResult.parameters || {};
+      const docId = await this._importDocumentToWorkspace(mreq, {
+        userId,
+        uploadId: formResult.upload.uploadId,
+        documentName: optStringParam(parameters.documentName, 'documentName'),
+        workspaceId: optIntegerParam(parameters.workspaceId, 'workspaceId'),
+        browserSettings: {
+          timezone: parameters.timezone,
+          locale: localeFromRequest(req),
+        },
+      });
+      return res.status(200).json(docId);
+    }));
+
+    this._app.post('/api/docs/:docId/copy', canView, expressWrap(async (req, res) => {
+      const userId = getUserId(req);
+
+      const parameters: {[key: string]: any} = req.body;
+
+      const docId = await this._copyDocToWorkspace(req, {
+        userId,
+        sourceDocumentId: stringParam(req.params.docId, 'docId'),
+        workspaceId: integerParam(parameters.workspaceId, 'workspaceId'),
+        documentName: stringParam(parameters.documentName, 'documentName'),
+        asTemplate: optBooleanParam(parameters.asTemplate, 'asTemplate'),
+      });
+
+      return res.status(200).json(docId);
+    }));
+
+    /**
      * Get the specified view section's form data.
      */
     this._app.get('/api/docs/:docId/forms/:vsId', canView,
@@ -1798,6 +1841,34 @@ export class DocWorkerApi {
     })
       .catch(e => log.error('DocApi failed to log duplicate document events', e));
     return id;
+  }
+
+  private async _importDocumentToWorkspace(mreq: RequestWithLogin, options: {
+    userId: number,
+    uploadId: number,
+    documentName?: string,
+    workspaceId?: number,
+    browserSettings?: BrowserSettings,
+  }): Promise<string> {
+    const result = await this._docManager.importDocToWorkspace(mreq, {
+      userId: options.userId,
+      uploadId: options.uploadId,
+      documentName: options.documentName,
+      workspaceId: options.workspaceId,
+      browserSettings: options.browserSettings,
+      telemetryMetadata: {
+        limited: {
+          isImport: true,
+          sourceDocIdDigest: undefined,
+        },
+        full: {
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      },
+    });
+    this._logImportDocumentEvents(mreq, result);
+    return result.id;
   }
 
   private async _createNewSavedDoc(req: Request, options: {
