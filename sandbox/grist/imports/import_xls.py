@@ -7,8 +7,6 @@ import logging
 import openpyxl
 from openpyxl.utils.datetime import from_excel
 from openpyxl.worksheet import _reader    # pylint:disable=no-name-in-module
-import six
-from six.moves import zip
 
 import parse_data
 from imports import import_utils
@@ -76,8 +74,8 @@ def parse_open_file(file_obj):
     for i, header in enumerate(headers):
       if header is None:
         headers[i] = u''
-      elif not isinstance(header, six.string_types):
-        headers[i] = six.text_type(header)
+      elif not isinstance(header, str):
+        headers[i] = str(header)
 
     log.debug("Guessed data_offset as %s", data_offset)
     log.debug("Guessed headers as: %s", headers)
