@@ -375,7 +375,7 @@ export function itemElement(itemId: string) {
 }
 
 export async function toggleItem(itemId: string) {
-  const header = itemElement(itemId);
+  const header = itemElement(itemId).find(`.test-admin-panel-item-name-${itemId}`);
   await header.click();
   await driver.sleep(500);    // Time to expand or collapse.
   return header;

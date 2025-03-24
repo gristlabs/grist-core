@@ -1,7 +1,7 @@
 import {synchronizeProducts} from 'app/gen-server/entity/Product';
 import {codeRoot} from 'app/server/lib/places';
 import {Mutex} from 'async-mutex';
-import {Connection, createConnection, DataSourceOptions, getConnection} from 'typeorm';
+import {DataSource, DataSourceOptions} from 'typeorm';
 
 // Summary of migrations found in database and in code.
 interface MigrationSummary {
@@ -11,10 +11,10 @@ interface MigrationSummary {
 }
 
 // Find the migrations in the database, the migrations in the codebase, and compare the two.
-export async function getMigrations(connection: Connection): Promise<MigrationSummary> {
+export async function getMigrations(dataSource: DataSource): Promise<MigrationSummary> {
   let migrationsInDb: string[];
   try {
-    migrationsInDb = (await connection.query('select name from migrations')).map((rec: any) => rec.name);
+    migrationsInDb = (await dataSource.query('select name from migrations')).map((rec: any) => rec.name);
   } catch (e) {
     // If no migrations have run, there'll be no migrations table - which is fine,
     // it just means 0 migrations run yet.  Sqlite+Postgres report this differently,
@@ -27,7 +27,7 @@ export async function getMigrations(connection: Connection): Promise<MigrationSu
   }
   // get the migration names in codebase.
   // They are a bit hidden, see typeorm/src/migration/MigrationExecutor::getMigrations
-  const migrationsInCode: string[] = connection.migrations.map(m => (m.constructor as any).name);
+  const migrationsInCode: string[] = dataSource.migrations.map(m => (m.constructor as any).name);
   const pendingMigrations = migrationsInCode.filter(m => !migrationsInDb.includes(m));
   return {
     migrationsInDb,
@@ -39,10 +39,10 @@ export async function getMigrations(connection: Connection): Promise<MigrationSu
 /**
  * Run any needed migrations, and make sure products are up to date.
  */
-export async function updateDb(connection?: Connection) {
-  connection = connection || await getOrCreateConnection();
-  await runMigrations(connection);
-  await synchronizeProducts(connection, true);
+export async function updateDb(dataSource?: DataSource) {
+  dataSource = dataSource || await getOrCreateConnection();
+  await runMigrations(dataSource);
+  await synchronizeProducts(dataSource, true);
 }
 
 export function getConnectionName() {
@@ -53,54 +53,76 @@ export function getConnectionName() {
  * Get a connection to db if one exists, or create one. Serialized to
  * avoid duplication.
  */
+let gristDataSource: DataSource | null = null;
 const connectionMutex = new Mutex();
-
-export async function getOrCreateConnection(): Promise<Connection> {
+export async function getOrCreateConnection(): Promise<DataSource> {
   return connectionMutex.runExclusive(async() => {
-    try {
-      // If multiple servers are started within the same process, we
-      // share the database connection.  This saves locking trouble
-      // with Sqlite.
-      const connection = getConnection();
-      return connection;
-    } catch (e) {
-      if (!String(e).match(/ConnectionNotFoundError/)) {
-        throw e;
+
+    // If multiple servers are started within the same process, we
+    // share the database connection.  This saves locking trouble
+    // with Sqlite.
+    if (!gristDataSource?.isInitialized) {
+      let settings = getTypeORMSettings();
+      if (settings.type === 'postgres') {
+        // We're having problems with the Postgres JIT compiler slowing
+        // down a particular query, so we'll turn it off for this
+        // session.
+        //
+        // If some day Postgres's JIT compiler gets smarter and has a
+        // better cost function that knows it's a bad idea to compile
+        // certain queries, we might then want to revisit this
+        // workaround and remove it.
+        //
+        // General JIT documentation in Postgres, including other more
+        // fine-tuned possible configuratin options to consider in the
+        // future:
+        //
+        //   https://www.postgresql.org/docs/current/jit.html
+        //
+        // Note that this passes options valid for the duration of the
+        // session (i.e. the connection) into libpq via PGOPTIONS:
+        //
+        //  https://www.postgresql.org/docs/current/config-setting.html#CONFIG-SETTING-SHELL
+        settings = getTypeORMSettings({ extra: { options: "-c jit=off" } });
       }
-      const connection = await createConnection(getTypeORMSettings());
-      // When using Sqlite, set a busy timeout of 3s to tolerate a little
-      // interference from connections made by tests. Logging doesn't show
-      // any particularly slow queries, but bad luck is possible.
-      // This doesn't affect when Postgres is in use. It also doesn't have
-      // any impact when there is a single connection to the db, as is the
-      // case when Grist is run as a single process.
-      if (connection.driver.options.type === 'sqlite') {
-        await connection.query('PRAGMA busy_timeout = 3000');
+
+      gristDataSource = new DataSource(settings);
+      await gristDataSource.initialize();
+      if (settings.type === 'sqlite') {
+        // When using Sqlite, set a busy timeout of 3s to tolerate a little
+        // interference from connections made by tests. Logging doesn't show
+        // any particularly slow queries, but bad luck is possible.
+        // This doesn't affect when Postgres is in use. It also doesn't have
+        // any impact when there is a single connection to the db, as is the
+        // case when Grist is run as a single process.
+        await gristDataSource.query('PRAGMA busy_timeout = 3000');
       }
-      return connection;
+
     }
+    return gristDataSource;
+
   });
 }
 
-export async function runMigrations(connection: Connection) {
+export async function runMigrations(dataSource: DataSource) {
   // on SQLite, migrations fail if we don't temporarily disable foreign key
   // constraint checking.  This is because for sqlite typeorm copies each
   // table and rebuilds it from scratch for each schema change.
   // Also, we need to disable foreign key constraint checking outside of any
   // transaction, or it has no effect.
-  const sqlite = connection.driver.options.type === 'sqlite';
-  if (sqlite) { await connection.query("PRAGMA foreign_keys = OFF;"); }
-  await connection.runMigrations({ transaction: "all" });
-  if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
+  const sqlite = dataSource.options.type === 'sqlite';
+  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
+  await dataSource.runMigrations({ transaction: "all" });
+  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
 }
 
-export async function undoLastMigration(connection: Connection) {
-  const sqlite = connection.driver.options.type === 'sqlite';
-  if (sqlite) { await connection.query("PRAGMA foreign_keys = OFF;"); }
-  await connection.transaction(async tr => {
-    await tr.connection.undoLastMigration();
+export async function undoLastMigration(dataSource: DataSource) {
+  const sqlite = dataSource.options.type === 'sqlite';
+  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
+  await dataSource.transaction(async () => {
+    await dataSource.undoLastMigration();
   });
-  if (sqlite) { await connection.query("PRAGMA foreign_keys = ON;"); }
+  if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
 }
 
 // Replace the old janky ormconfig.js file, which was always a source of

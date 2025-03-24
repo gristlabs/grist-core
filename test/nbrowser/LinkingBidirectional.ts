@@ -253,7 +253,7 @@ describe('LinkingBidirectional', function() {
     await gu.openSelectByForSection('Custom');
 
     // Make sure it is empty.
-    assert.deepEqual(await driver.findAll('.test-select-menu .test-select-row', e => e.getText()), ['Select Widget']);
+    assert.deepEqual(await gu.findOpenMenuAllItems('.test-select-row', e => e.getText()), ['Select Widget']);
     await gu.sendKeys(Key.ESCAPE);
   });
 });

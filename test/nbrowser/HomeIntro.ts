@@ -151,7 +151,9 @@ describe('HomeIntro', function() {
 
     // Check that add-new menu has enabled Create Empty and Import Doc items.
     await driver.find('.test-dm-add-new').doClick();
-    assert.equal(await driver.find('.test-dm-new-doc').matches('[class*=-disabled]'), false);
+    await gu.findOpenMenu();
+
+    assert.equal(await driver.findWait('.test-dm-new-doc', 100).matches('[class*=-disabled]'), false);
     assert.equal(await driver.find('.test-dm-import').matches('[class*=-disabled]'), false);
 
     // Create doc from add-new menu
@@ -291,6 +293,7 @@ async function testEmptyWorkspace() {
   assert.isTrue(await driver.findWait('.test-dm-no-docs-message', 400).isDisplayed());
   // Create doc and check it is created.
   await driver.find('.test-dm-add-new').click();
+  await gu.findOpenMenu();
   await driver.find('.test-dm-new-doc').click();
   await waitAndDismiss();
   await emptyDocChecker();

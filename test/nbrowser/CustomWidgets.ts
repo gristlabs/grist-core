@@ -218,7 +218,7 @@ describe('CustomWidgets', function () {
       return Object.entries(text).find(e => e[1] === currentAccess)![0];
     } else {
       await driver.find('.test-config-widget-access .test-select-open').click();
-      await driver.findContent('.test-select-menu li', text[level]).click();
+      await gu.findOpenMenuItem('li', text[level]).click();
       await gu.waitForServer();
     }
   }
@@ -798,7 +798,7 @@ describe('CustomWidgets', function () {
         await gu.openProfileSettingsPage();
         await gu.waitForServer();
         await languageMenu().click();
-        await driver.findContentWait('.test-select-menu li', lang, 100).click();
+        await gu.findOpenMenuItem('li',  lang, 100).click();
         await gu.waitForServer();
         await driver.navigate().back();
         await gu.waitForServer();

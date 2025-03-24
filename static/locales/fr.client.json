@@ -38,7 +38,7 @@
         "Remove {{- tableId }} rules": "Supprimer les règles pour la table {{-tableId}}",
         "View As": "Voir en tant que",
         "Remove column {{- colId }} from {{- tableId }} rules": "Supprimer la colonne {{-colId}} des règles de la table {{-tableId}}",
-        "Seed rules": "Règles par défaut",
+        "Seed rules": "Règles préconfigurées",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Pour chaque ajout de règle pour une table, ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
         "Permission to edit document structure": "Droits d'édition de la structure",
         "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",

@@ -669,7 +669,7 @@ describe('RawData', function () {
     await driver.findContent('.test-edit-layout-controls button', 'Save').click();
     await gu.waitForServer();
     await driver.find('.test-vconfigtab-detail-theme').click();
-    await driver.findContent('.test-select-row', /Blocks/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Blocks/).click();
     await gu.waitForServer();
     await gu.checkForErrors();
 

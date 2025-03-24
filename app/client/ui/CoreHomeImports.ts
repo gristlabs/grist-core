@@ -4,7 +4,7 @@ import {PluginScreen} from 'app/client/components/PluginScreen';
 import {guessTimezone} from 'app/client/lib/guessTimezone';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {ImportProgress} from 'app/client/ui/ImportProgress';
-import {IMPORTABLE_EXTENSIONS} from 'app/client/lib/uploads';
+import {EXTENSIONS_IMPORTABLE_AS_DOC} from 'app/client/lib/uploads';
 import {openFilePicker} from 'app/client/ui/FileDialog';
 import {byteString} from 'app/common/gutil';
 import {uploadFiles} from 'app/client/lib/uploads';
@@ -20,7 +20,7 @@ export async function docImport(app: AppModel, workspaceId: number|"unsaved"): P
   // popup, or it would get blocked by default in a typical browser.
   const files: File[] = await openFilePicker({
     multiple: false,
-    accept: IMPORTABLE_EXTENSIONS.join(","),
+    accept: EXTENSIONS_IMPORTABLE_AS_DOC.join(","),
   });
 
   if (!files.length) { return null; }

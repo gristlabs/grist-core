@@ -1,9 +1,10 @@
 import * as minio from "minio";
 import sinon from "sinon";
 import * as stream from "node:stream";
-
+import fse from "fs-extra";
 import {MinIOExternalStorage} from "app/server/lib/MinIOExternalStorage";
 import {assert} from "chai";
+import {waitForIt} from "test/server/wait";
 
 describe("MinIOExternalStorage", function () {
   const sandbox = sinon.createSandbox();
@@ -26,6 +27,53 @@ describe("MinIOExternalStorage", function () {
   };
   afterEach(function () {
     sandbox.restore();
+  });
+
+  describe('upload()', function () {
+    const filename = "some-filename";
+    let filestream: fse.ReadStream;
+    let s3: sinon.SinonStubbedInstance<minio.Client>;
+    let extStorage: MinIOExternalStorage;
+
+    beforeEach(function () {
+      filestream = new stream.Readable() as any;
+      sandbox.stub(fse, "lstat").resolves({} as any);
+      sandbox.stub(fse, "createReadStream").withArgs(filename).returns(filestream as any);
+      s3 = sandbox.createStubInstance(minio.Client);
+      extStorage = new MinIOExternalStorage(
+        dummyBucket,
+        dummyOptions,
+        undefined,
+        s3 as any
+      );
+    });
+
+    it("should call putObject with the right arguments", async function () {
+      const putObjectPromise = sinon.promise<Awaited<ReturnType<typeof s3.putObject>>>();
+      s3.putObject
+        .withArgs(dummyBucket, "some-key", filestream, undefined, undefined)
+        .returns(putObjectPromise as any);
+
+      const uploadPromise = extStorage.upload("some-key", filename);
+
+      await waitForIt(() => sinon.assert.called(s3.putObject));
+      assert.isFalse(filestream.destroyed,
+        "filestream should not be destroyed before putObject resolves");
+
+      await putObjectPromise.resolve({ versionId: "some-versionId", etag: "some-etag" });
+      assert.equal(await uploadPromise, "some-versionId");
+
+      assert.isTrue(filestream.destroyed,
+        "filestream should be destroyed after putObject resolves");
+    });
+
+    it("should close the file even if putObject fails", async function () {
+      s3.putObject.rejects(new Error("some-error"));
+
+      await assert.isRejected(extStorage.upload("some-key", filename), "some-error");
+
+      assert.isTrue(filestream.destroyed);
+    });
   });
 
   describe('versions()', function () {

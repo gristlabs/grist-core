@@ -483,20 +483,17 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           throw new Error('Invalid state');
         })
       ),
-      expandedContent: cssColumns(
-        cssColumn(
-          cssColumn.cls('-left'),
+      expandedContent: dom('div',
+        cssExpandedContent(
           dom('div', t('Grist releases are at '), makeLinks(releaseURL)),
-          dom.maybe(lastCheckDate, ms => dom('div',
+        ),
+        dom.maybe(lastCheckDate, ms => cssExpandedContent(
+          dom('div',
             dom('span', t('Last checked {{time}}', {time: getTimeFromNow(ms)})),
             dom('span', ' '),
             // Format date in local format.
             cssGrayed(new Date(ms).toLocaleString()),
-          )),
-          dom('div', t('Auto-check when this page loads')),
-        ),
-        cssColumn(
-          cssColumn.cls('-right'),
+          ),
           // `Check now` button, only shown when auto checks are enabled and we are not in the
           // middle of checking. Otherwise the button is shown in the summary row, and there is
           // no need to duplicate it.
@@ -507,8 +504,11 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
               dom.on('click', actions.checkForUpdates),
               dom.prop('disabled', use => use(state) === State.CHECKING),
             ),
-          ]),
-          toggle(enabledController, testId('admin-panel-updates-auto-check')),
+          ])
+        )),
+        cssExpandedContent(
+          dom('span', t('Auto-check when this page loads')),
+          dom( 'div', toggle(enabledController, testId('admin-panel-updates-auto-check'))),
         ),
       )
     });
@@ -724,34 +724,12 @@ const cssPageContainer = styled('div', `
   }
 `);
 
-// A wrapper for the version details panel. Shows two columns.
-// First grows as needed, second shrinks as needed and is aligned to the bottom.
-const cssColumns = styled('div', `
+const cssExpandedContent = styled('div', `
   display: flex;
-  align-items: flex-end;
-  & > div:first-child {
-    flex-grow: 1;
-    flex-shrink: 0;
-  }
-  & > div:last-child {
-    flex-shrink: 1;
-  }
-`);
-
-const cssColumn = styled('div', `
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-grow: 1;
-  flex-shrink: 1;
-  margin-block: 1px; /* otherwise toggle is squashed: TODO: -1px in toggle looks like a bug */
-  &-left {
-    align-items: flex-start;
-  }
-  &-right {
-    align-items: flex-end;
-    justify-content: flex-end;
-  }
+  justify-content: space-between;
+  margin-right: 8px;
+  margin-bottom: 1rem;
+  align-items: center;
 `);
 
 const cssValueButton = styled('div', `

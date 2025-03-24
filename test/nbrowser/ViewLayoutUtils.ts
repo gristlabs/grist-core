@@ -34,7 +34,7 @@ export async function sectionIsExpanded() {
  */
 export async function openCollapsedSectionMenu(section: string|RegExp) {
   await getCollapsedSection(section).find(`.test-section-menu-viewLayout`).click();
-  await driver.findWait('.grist-floating-menu', 100);
+  await gu.findOpenMenu(100);
 }
 
 export function getCollapsedSection(section: string|RegExp) {

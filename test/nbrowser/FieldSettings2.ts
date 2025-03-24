@@ -62,7 +62,7 @@ const getFieldSettingsButton = () => driver.find('.fieldbuilder_settings_button'
 const switchFieldSettings = async (fromLabel: string, option: string, toLabel: string) => {
   assert.include(await getFieldSettingsButton().getText(), fromLabel);
   await getFieldSettingsButton().click();
-  await driver.findContent('.grist-floating-menu li', option).click();
+  await gu.findOpenMenuItem('li', option).click();
   await gu.waitForServer();
   assert.include(await getFieldSettingsButton().getText(), toLabel);
 };

@@ -167,7 +167,7 @@ describe("LanguageSettings", function() {
       await waitForHiddenButton("de");
       // Change language to nb-.NO
       await languageMenu().click();
-      await driver.findContentWait('.test-select-menu li', 'Norsk bokmål (Norge)', 100).click();
+      await gu.findOpenMenuItem('li',  'Norsk bokmål (Norge)', 100).click();
       // This is api call and we will be reloaded, so wait for the hidden indicator.
       await waitForHiddenButton("nb-NO");
       // Now we should have a cookie.
