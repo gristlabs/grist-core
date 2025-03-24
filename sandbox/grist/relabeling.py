@@ -44,7 +44,6 @@ import itertools
 import math
 import struct
 
-from six.moves import zip, xrange
 from sortedcontainers import SortedList, SortedListWithKey
 
 
@@ -80,7 +79,7 @@ def prepare_inserts_dumb(sortedlist, keys):
     ins_groups.append((len(sortedlist), 0))
     for index, ins_count in ins_groups:
       adj_count = index - prev_index
-      adjustments.extend(zip(xrange(prev_index, index),
+      adjustments.extend(zip(range(prev_index, index),
                                         frange_from(next_key, adj_count)))
       next_key += adj_count
       insertions.extend(frange_from(next_key, ins_count))
@@ -125,7 +124,7 @@ def _group_insertions(sortedlist, keys):
 
 
 def frange_from(start, count):
-  return [start + i for i in xrange(count)]
+  return [start + i for i in range(count)]
 
 
 def nextfloat(x):
@@ -229,8 +228,8 @@ class ListWithAdjustments(object):
     """
     count = (adj_end - adj_begin) + (ins_end - ins_begin)
 
-    prev_keys = ([(self._adj_get_key(i), False, i) for i in xrange(adj_begin, adj_end)] +
-                 [(self._insertions[i], True, i) for i in xrange(ins_begin, ins_end)])
+    prev_keys = ([(self._adj_get_key(i), False, i) for i in range(adj_begin, adj_end)] +
+                 [(self._insertions[i], True, i) for i in range(ins_begin, ins_end)])
     prev_keys.sort()
     new_keys = get_range(new_begin_key, new_end_key, count)
 
@@ -281,7 +280,7 @@ class ListWithAdjustments(object):
     # interpretation is that frac^i is the overflow limit for intervals of size 2^i.
     for frac in (1.14, 1.3):
       thresh = 1
-      for i in xrange(64):
+      for i in range(64):
         rbegin, rend = range_around_float(begin, i)
         assert self.count_range(rbegin, rend) > 0
         if end <= rend and self.count_range(rbegin, rend) < thresh:
@@ -329,4 +328,4 @@ def get_range(start, end, count):
   step = float(end - start) / (count + 1)
   # Ensure all resulting values are strictly less than end.
   limit = prevfloat(end)
-  return [min(start + step * k, limit) for k in xrange(1, count + 1)]
+  return [min(start + step * k, limit) for k in range(1, count + 1)]
