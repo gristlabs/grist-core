@@ -12,9 +12,7 @@ import time
 import traceback
 from collections import namedtuple, OrderedDict, defaultdict
 
-import six
-from six.moves import zip
-from six.moves.collections_abc import Hashable  # pylint:disable=import-error,no-name-in-module
+from collections.abc import Hashable
 from sortedcontainers import SortedSet
 
 import acl
@@ -43,10 +41,6 @@ import column
 import urllib_patch  # noqa imported for side effect # pylint:disable=unused-import
 
 log = logging.getLogger(__name__)
-
-if six.PY2:
-  reload(sys)
-  sys.setdefaultencoding('utf8')  # noqa # pylint:disable=no-member
 
 
 class OrderError(Exception):
@@ -336,11 +330,11 @@ class Engine(object):
     table = self.tables[data.table_id]
 
     # Clear all columns, whether or not they are present in the data.
-    for column in six.itervalues(table.all_columns):
+    for column in table.all_columns.values():
       column.clear()
 
     # Only load columns that aren't stored.
-    columns = {col_id: data for (col_id, data) in six.iteritems(data.columns)
+    columns = {col_id: data for (col_id, data) in data.columns.items()
                if table.has_column(col_id)}
 
     # Add the records.
@@ -373,7 +367,7 @@ class Engine(object):
     table.grow_to_max()
 
     # Load the new values.
-    for col_id, values in six.iteritems(column_values):
+    for col_id, values in column_values.items():
       column = table.get_column(col_id)
       column.growto(growto_size)
       for row_id, value in zip(row_ids, values):
@@ -391,7 +385,7 @@ class Engine(object):
 
     query_cols = []
     if query:
-      for col_id, values in six.iteritems(query):
+      for col_id, values in query.items():
         col = table.get_column(col_id)
         try:
           # Try to use a set for speed.
@@ -413,7 +407,7 @@ class Engine(object):
         # No break, i.e. all columns matched
         row_ids.append(r)
 
-    for c in six.itervalues(table.all_columns):
+    for c in table.all_columns.values():
       # pylint: disable=too-many-boolean-expressions
       if ((formulas or not c.is_formula())
           and (private or not c.is_private())
@@ -485,9 +479,9 @@ class Engine(object):
     meta_columns = self.fetch_table('_grist_Tables_column')
     gen_schema = schema.build_schema(meta_tables, meta_columns)
     gen_schema_dicts = {k: (t.tableId, dict(t.columns))
-                        for k, t in six.iteritems(gen_schema)}
+                        for k, t in gen_schema.items()}
     cur_schema_dicts = {k: (t.tableId, dict(t.columns))
-                        for k, t in six.iteritems(self.schema)}
+                        for k, t in self.schema.items()}
     if cur_schema_dicts != gen_schema_dicts:
       import pprint
       import difflib
@@ -520,7 +514,7 @@ class Engine(object):
 
   def dump_recompute_map(self):
     log.debug("Recompute map (%d nodes):", len(self.recompute_map))
-    for node, dirty_rows in six.iteritems(self.recompute_map):
+    for node, dirty_rows in self.recompute_map.items():
       log.debug("  Node %s: %s", node, dirty_rows)
 
   def _use_node(self, node, relation, row_ids=[]):
@@ -562,7 +556,7 @@ class Engine(object):
     Called at end of _bring_all_up_to_date or _bring_mlookups_up_to_date.
     Issues actions for any accumulated cell changes.
     """
-    for node, changes in six.iteritems(self._changes_map):
+    for node, changes in self._changes_map.items():
       table = self.tables[node.table_id]
       col = table.get_column(node.col_id)
       # If there are changes, save them in out_actions.
@@ -1031,7 +1025,7 @@ class Engine(object):
     table = self.tables[action.table_id]
     new_values = {}
     extra_actions = []
-    for col_id, values in six.iteritems(column_values):
+    for col_id, values in column_values.items():
       col_obj = table.get_column(col_id)
       values = [col_obj.convert(val) for val in values]
 
@@ -1048,7 +1042,7 @@ class Engine(object):
       # above does it for columns explicitly mentioned; this section does it for the other
       # columns, using their default values as input to prepare_new_values().
       ignore_data = isinstance(action, actions.ReplaceTableData)
-      for col_id, col_obj in six.iteritems(table.all_columns):
+      for col_id, col_obj in table.all_columns.items():
         if col_id in column_values or column.is_virtual_column(col_id) or col_obj.is_formula():
           continue
         defaults = [col_obj.getdefault() for r in row_ids]
@@ -1074,7 +1068,7 @@ class Engine(object):
     table = self.tables[action.table_id]
 
     # Collect for each column the Column object and a list of new values.
-    cols = [(table.get_column(col_id), values) for (col_id, values) in six.iteritems(column_values)]
+    cols = [(table.get_column(col_id), values) for (col_id, values) in column_values.items()]
 
     # In comparisons below, we rely here on Python's "==" operator to check for equality. After a
     # type conversion, it may compare the new type to the old, e.g. 1 == 1.0 == True. It's
@@ -1144,7 +1138,7 @@ class Engine(object):
 
     self.tables = {}
     sorted_tables = []
-    for table_id, user_table in six.iteritems(self.gencode.usercode.__dict__):
+    for table_id, user_table in self.gencode.usercode.__dict__.items():
       if not  isinstance(user_table, table_module.UserTable):
         continue
       self.tables[table_id] = table = (
@@ -1163,7 +1157,7 @@ class Engine(object):
       user_table._set_table_impl(table)
 
     # For any tables that are gone, use self._update_table_model to clean them up.
-    for table_id, table in six.iteritems(old_tables):
+    for table_id, table in old_tables.items():
       if table_id not in self.tables:
         self._update_table_model(table, None)
 
@@ -1196,8 +1190,8 @@ class Engine(object):
       table._rebuild_model(user_table)
       new_columns = table.all_columns
 
-    added_col_ids = six.viewkeys(new_columns) - six.viewkeys(old_columns)
-    deleted_col_ids = six.viewkeys(old_columns) - six.viewkeys(new_columns)
+    added_col_ids = new_columns.keys() - old_columns.keys()
+    deleted_col_ids = old_columns.keys() - new_columns.keys()
 
     # Invalidate the columns that got added and anything that depends on them.
     if added_col_ids:
@@ -1221,11 +1215,11 @@ class Engine(object):
 
     # Without being very smart, if trigger-formula dependencies change for any columns, rebuild
     # them for all columns. Specifically, we will create nodes and edges in the dependency graph.
-    for table_id, table in six.iteritems(self.tables):
+    for table_id, table in self.tables.items():
       if table_id.startswith('_grist_'):
         # We can skip metadata tables, there are no trigger-formulas there.
         continue
-      for col_id, col_obj in six.iteritems(table.all_columns):
+      for col_id, col_obj in table.all_columns.items():
         if col_obj.is_formula() or not col_obj.has_formula():
           continue
         col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
@@ -1347,15 +1341,7 @@ class Engine(object):
           self.assert_schema_consistent()
       except Exception:
         log.error("Inconsistent schema after revert on failure: %s", traceback.format_exc())
-
-      # Re-raise the original exception
-      # In Python 2, 'raise' raises the most recent exception,
-      # which may come from the try/except just above
-      # Python 3 keeps track of nested exceptions better
-      if six.PY2:
-        six.reraise(*exc_info)
-      else:
-        raise
+      raise
 
     # If needed, rebuild dependencies for trigger formulas.
     self._maybe_update_trigger_dependencies()
@@ -1418,15 +1404,7 @@ class Engine(object):
           self.rebuild_usercode()
         except Exception:
           log.error("Error rebuilding usercode after restoring schema: %s", traceback.format_exc())
-
-      # Re-raise the original exception
-      # In Python 2, 'raise' raises the most recent exception,
-      # which may come from the try/except just above
-      # Python 3 keeps track of nested exceptions better
-      if six.PY2:
-        six.reraise(*exc_info)
-      else:
-        raise
+      raise
 
     # If any columns got deleted, destroy them to clear _back_references in other tables, and to
     # force errors if anything still uses them. Also clear them from calc actions if needed.
