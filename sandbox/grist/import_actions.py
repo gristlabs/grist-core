@@ -1,5 +1,4 @@
 import logging
-from six.moves import zip
 
 import column
 import identifiers
