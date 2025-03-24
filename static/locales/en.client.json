@@ -1493,7 +1493,7 @@
         "Share": "Share",
         "Share this form": "Share this form",
         "View": "View",
-        "## **Form Title**": "## **Form Title**",
+        "# **Form Title**": "# **Form Title**",
         "Your form description goes here.": "Your form description goes here."
     },
     "Editor": {
@@ -1583,7 +1583,7 @@
     "Section": {
         "Insert section above": "Insert section above",
         "Insert section below": "Insert section below",
-        "### **Header**": "### **Header**",
+        "## **Header**": "## **Header**",
         "Description": "Description"
     },
     "CreateTeamModal": {
