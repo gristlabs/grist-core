@@ -18,6 +18,7 @@ import {IExternalTable, VirtualTableData, VirtualTableRegistration} from 'app/cl
 import {META_TABLES} from 'app/client/models/VirtualTableMeta';
 import type {App} from 'app/client/ui/App';
 import {IPageWidget} from 'app/client/ui/PageWidgetPicker';
+import {Experiments} from 'app/client/ui/Experiments';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import type {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -632,8 +633,10 @@ class InMemoryApp extends DisposableWithEvents implements App {
   public comm = this.autoDispose(Comm.create());
   public clientScope = this.autoDispose(ClientScope.create());
   public features = ko.computed(() => ({} as ISupportedFeatures));
+  public experiments: Experiments;
   constructor(public topAppModel: TopAppModel) {
     super();
+    this.experiments = this.autoDispose(Experiments.create(this, this.topAppModel));
   }
 }
 

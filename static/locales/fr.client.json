@@ -1946,5 +1946,23 @@
         "Have you **reviewed the code** at this URL?": "Le cas échéant avez-vous pu **auditer le code derrière ce lien** ?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En cas de doute, vous pouvez transférer le lien aux équipes techniques responsable de votre instance.",
         "I confirm that I understand these warnings and accept the risks": "j’ai bien lu ces recommandations et je confirme vouloir ajouter cette vue"
+    },
+    "NewRecordButton": {
+        "New card": "Nouvelle fiche",
+        "New record": "Nouvelle ligne"
+    },
+    "Experiments": {
+        "{{- experiment}} disabled.": "{{- experiment}} : désactivé.",
+        "{{- experiment}} enabled.": "{{- experiment}} : activé.",
+        "Disable feature": "Désactiver la fonctionnalité",
+        "Enable feature": "Activer la fonctionnalité",
+        "Experimental feature": "Fonctionnalité expérimentale",
+        "New record button": "Bouton Nouvelle Ligne",
+        "Reload the page": "Recharger la page",
+        "Visit this URL at any time to stop using this feature: {{- url}}": "Quand vous le souhaitez, visitez cette URL pour désactiver cette fonctionnalité : {{- url}}",
+        "You are about to disable this experimental feature: {{- experiment}}": "Vous êtes sur le point de désactiver cette fonctionnalité expérimentale : {{- experiment}}",
+        "You are about to enable this experimental feature: {{- experiment}}": "Vous êtes sur le point d'activer cette fonctionnalité expérimentale : {{- experiment}}",
+        "Don't worry, you can disable it later if needed.": "Pas d'inquiétude, vous pourrez la désactiver plus tard si besoin."
+
     }
 }
