@@ -6,8 +6,6 @@ import csv
 import logging
 
 import chardet
-import six
-from six.moves import zip
 
 import parse_data
 from imports import import_utils
@@ -162,8 +160,8 @@ def _parse_open_file(file_obj, parse_options=None):
 
   # Make sure all header values are strings.
   for i, header in enumerate(headers):
-    if not isinstance(header, six.string_types):
-      headers[i] = six.text_type(header)
+    if not isinstance(header, str):
+      headers[i] = str(header)
 
   log.info("Guessed data_offset as %s", data_offset)
   log.info("Guessed headers as: %s", headers)
