@@ -2,8 +2,6 @@ from collections import namedtuple
 import json
 import logging
 
-import six
-
 from column import is_visible_column
 import sort_specs
 
@@ -27,7 +25,7 @@ def _make_sum_col_info(col):
 
 def get_colinfo_dict(col_info, with_id=False):
   """Return a dict suitable to use with AddColumn or AddTable (when with_id=True) actions."""
-  col_values = {k: v for k, v in six.iteritems(col_info._asdict())
+  col_values = {k: v for k, v in col_info._asdict().items()
                      if v is not None and k != 'colId'}
   if with_id:
     col_values['id'] = col_info.colId
@@ -41,7 +39,7 @@ def skip_rules_update(col, col_values):
   """
 
   # Remove rules from updates.
-  col_values = {k: v for k, v in six.iteritems(col_values) if k != 'rules'}
+  col_values = {k: v for k, v in col_values.items() if k != 'rules'}
 
   try:
     # New widgetOptions to use.
