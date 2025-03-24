@@ -19,7 +19,7 @@ export function defaultElement(type: FormLayoutNodeType): FormLayoutNode {
     case 'Columns': return Columns();
     case 'Placeholder': return Placeholder();
     case 'Separator': return Paragraph('---');
-    case 'Header': return Paragraph('## **Header**', 'center');
+    case 'Header': return Paragraph('# **Header**', 'center');
     case 'Section': return Section();
     default: return {id: uuidv4(), type};
   }

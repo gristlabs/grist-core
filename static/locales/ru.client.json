@@ -1512,7 +1512,7 @@
         "Copy link": "Копировать ссылку",
         "Reset": "Сброс",
         "Reset form": "Сброс формы",
-        "## **Form Title**": "## **Заголовок формы**",
+        "# **Form Title**": "# **Заголовок формы**",
         "Your form description goes here.": "Описание формы."
     },
     "WelcomeCoachingCall": {
@@ -1587,7 +1587,7 @@
         "Insert section above": "Вставить секцию выше",
         "Insert section below": "Вставить секцию ниже",
         "Description": "Описание",
-        "### **Header**": "### **Заголовок**"
+        "## **Header**": "## **Заголовок**"
     },
     "AdminPanel": {
         "Current": "Текущий",

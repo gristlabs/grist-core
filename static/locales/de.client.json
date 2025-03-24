@@ -1551,7 +1551,7 @@
         "Link copied to clipboard": "Link in die Zwischenablage kopiert",
         "Share this form": "Dieses Formular teilen",
         "View": "Ansicht",
-        "## **Form Title**": "## **Formular Titel**",
+        "# **Form Title**": "# **Formular Titel**",
         "Your form description goes here.": "Hier wird Ihr Formular beschrieben."
     },
     "Editor": {
@@ -1707,7 +1707,7 @@
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
         "Insert section below": "Abschnitt unten einfügen",
-        "### **Header**": "### **Kopfzeile**",
+        "## **Header**": "## **Kopfzeile**",
         "Description": "Beschreibung"
     },
     "CreateTeamModal": {
