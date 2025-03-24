@@ -10,8 +10,7 @@ import numbers
 import re
 
 import chardet
-import six
-from six.moves import urllib_parse
+import urllib.parse
 
 import column
 import docmodel
@@ -244,7 +243,7 @@ def ISTEXT(value):
   >>> ISTEXT(datetime.date(2011, 1, 1))
   False
   """
-  return isinstance(value, (six.string_types, AltText))
+  return isinstance(value, (str, AltText))
 
 
 # Regexp for matching email. See ISEMAIL for justification.
@@ -676,7 +675,7 @@ def _replicate_requests_body_args(data=None, json=None):
       body = data
       extra_headers = {}
     else:
-      body = urllib_parse.urlencode(data)
+      body = urllib.parse.urlencode(data)
       extra_headers = {
         "Content-Type": "application/x-www-form-urlencoded",
       }
