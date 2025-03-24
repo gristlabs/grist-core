@@ -104,12 +104,12 @@ export class GristWebDriverUtils {
     if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
     // select right type
-    await driver.findContent('.test-wselect-type', typeRe).doClick();
+    await driver.findContentWait('.test-wselect-type', typeRe, 500).doClick();
 
     if (dismissTips) { await this.dismissBehavioralPrompts(); }
 
     if (tableRe) {
-      const tableEl = driver.findContent('.test-wselect-table', tableRe);
+      const tableEl = driver.findContentWait('.test-wselect-table', tableRe, 100);
 
       // unselect all selected columns
       for (const col of (await driver.findAll('.test-wselect-column[class*=-selected]'))) {
@@ -138,8 +138,8 @@ export class GristWebDriverUtils {
 
       if (selectBy) {
         // select link
-        await driver.find('.test-wselect-selectby').doClick();
-        await driver.findContent('.test-wselect-selectby option', selectBy).doClick();
+        await driver.findWait('.test-wselect-selectby', 100).doClick();
+        await driver.findContentWait('.test-wselect-selectby option', selectBy, 100).doClick();
       }
     }
 

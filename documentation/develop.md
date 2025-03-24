@@ -114,13 +114,17 @@ And start using your nodejs debugger client (like the Chrome Devtools). See http
 
 You may run the tests using one of these commands:
  - `yarn test` to run all the tests
+ - `yarn test:debug` to run the tests in debug mode, which will stop after first failure, not clean up after tests and will provide more detailed output (with screenshots) in the `_build/test_output` directory
  - `yarn test:smoke` to run the minimal test checking Grist can open, create and edit a document
  - `yarn test:nbrowser` to run the end-to-end tests (⚠️ see warning below)
+ - `yarn test:nbrowser:ci` to run the end-to-end tests in headless mode, suitable for continuous integration environments
+ - `yarn test:nbrowser:debug` to run the end-to-end tests in debug mode
  - `yarn test:client` to run the tests for the client libraries
  - `yarn test:common` to run the tests for the common libraries shared between the client and the server
  - `yarn test:server` and `yarn test:gen-server` to run the backend tests depending on where the feature you would like to test resides (respectively `app/server` or `app/gen-server`)
  - `yarn test:docker` to run some end-to-end tests under docker
  - `yarn test:python` to run the data engine tests
+ - `yarn test:stubs` to run the end-to-end tests with stubs, which are simplified versions of the tests for faster execution   
 
 Also some options that may interest you:
  - `GREP_TESTS="pattern"` in order to filter the tests to run, for example: `GREP_TESTS="Boot" yarn test:nbrowser`
@@ -128,6 +132,10 @@ Also some options that may interest you:
  - `SERVER_NODE_OPTIONS="node options"` in order to pass options to the server being tested,
    for example: `SERVER_NODE_OPTIONS="--inspect --inspect-brk" GREP_TESTS="Boot" yarn test:nbrowser`
    to run the tests with the debugger (you should close the debugger each time the node process should stop)
+ - `MOCHA_WEBDRIVER_HEADLESS=1` to run the end-to-end tests in headless mode, meaning a browser window won't be opened
+ - `NO_CLEANUP=1` to not restart/clean state after test ends, used with `DEBUG=1`
+ - `DEBUG=1` to keep the server running after the tests are done and to provide more detailed output
+ - `MOCHA_WEBDRIVER_LOGDIR=/tmp/grist-tests` to specify the directory where the logs of the end-to-end tests will be stored (together with screenshots of the browser at the time of failure)
 
 ## End-to-end tests
 

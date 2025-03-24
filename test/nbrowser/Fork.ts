@@ -106,6 +106,7 @@ describe("Fork", function() {
                                                          {filename: 'foo.csv'}));
             await personal.loadDoc(`/doc/${id}`);
             await gu.dismissWelcomeTourIfNeeded();
+            await gu.toggleSidePanel('left', 'open');
             // check that the tag is there
             assert.equal(await driver.find('.test-unsaved-tag').isPresent(), true);
             // check that the org name area is showing one of the last visited sites. this is
@@ -657,7 +658,7 @@ describe("Fork", function() {
           assert.equal(await driver.find('.test-replace-original').matches('.disabled'), true);
           // Clicking the disabled element does nothing.
           await driver.find('.test-replace-original').click();
-          assert.equal(await driver.find('.grist-floating-menu').isDisplayed(), true);
+          assert.equal(await gu.findOpenMenu().isDisplayed(), true);
           await assert.isRejected(driver.findWait('.test-modal-dialog', 500), /Waiting for element/);
           await gu.refreshDismiss();
         } finally {

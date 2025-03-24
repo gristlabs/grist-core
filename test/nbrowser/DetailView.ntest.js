@@ -34,7 +34,7 @@ describe("DetailView.ntest", function () {
       await $('.test-wselect-addBtn').click();
       await gu.waitForServer();
       await gu.openSelectByForSection('Performances detail');
-      await driver.findContent('.test-select-row', /Performances record$/).click();
+      await gu.findOpenMenuItem('.test-select-row', /Performances record$/).click();
     });
 
     it('should mark detail-view row as selected when its out of focus', async function() {

@@ -9,6 +9,8 @@ describe('BehavioralPrompts', function() {
   let session: gu.Session;
   let docId: string;
 
+  gu.bigScreen();
+
   before(async () => {
     session = await gu.session().user('user1').login({showTips: true});
     await gu.dismissCoachingCall();

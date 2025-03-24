@@ -30,19 +30,19 @@ describe('FillLinkedRecords.ntest', function() {
     // Connect Friends -> Films
     await gu.actions.viewSection('Films record').selectSection();
     await $('.test-right-select-by').click();
-    await $('.test-select-row:contains(Friends record)').click();
+    await $('.test-select-row:contains(Friends record)').wait().click();
     await gu.waitForServer();
 
     // Connect Films -> Performances grid
     await gu.actions.viewSection('Performances record').selectSection();
     await $('.test-right-select-by').click();
-    await $('.test-select-row:contains(Films record)').click();
+    await $('.test-select-row:contains(Films record)').wait().click();
     await gu.waitForServer();
 
     // Connect Films -> Performances detail
     await gu.actions.viewSection('Performances detail').selectSection();
     await $('.test-right-select-by').click();
-    await $('.test-select-row:contains(Films record)').click();
+    await $('.test-select-row:contains(Films record)').wait().click();
     await gu.waitForServer();
 
     // Now pick a movie, and select the Performances grid.

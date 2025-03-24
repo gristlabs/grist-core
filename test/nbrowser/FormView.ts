@@ -1715,7 +1715,7 @@ async function clickMenu(label: string) {
   if (await driver.findContent('.grist-floating-menu li .test-cmd-name', gu.exactMatch(label)).isPresent()) {
     return driver.findContent('.grist-floating-menu li .test-cmd-name', gu.exactMatch(label)).click();
   }
-  return driver.findContentWait('.grist-floating-menu li', gu.exactMatch(label), 100).click();
+  return gu.findOpenMenuItem('li', gu.exactMatch(label), 100).click();
 }
 
 function isSelected() {
