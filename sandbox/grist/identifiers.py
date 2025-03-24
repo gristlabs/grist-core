@@ -9,8 +9,6 @@ import unicodedata
 from keyword import iskeyword
 from string import ascii_uppercase
 
-import six
-
 log = logging.getLogger(__name__)
 
 _invalid_ident_char_re = re.compile(r'[^a-zA-Z0-9_]+')
@@ -25,7 +23,7 @@ def _sanitize_ident(ident, prefix="c", capitalize=False):
   Returns empty string if there are no valid identifier characters, so consider using as
   (_sanitize_ident(...) or "your_default").
   """
-  ident = u"" if ident is None else six.text_type(ident)
+  ident = u"" if ident is None else str(ident)
 
   # https://stackoverflow.com/a/517974/2482744
   # Separate out combining characters (e.g. accents)
@@ -45,10 +43,7 @@ def _sanitize_ident(ident, prefix="c", capitalize=False):
     ident = ident[0].capitalize() + ident[1:]
 
   # Prevent names that are illegal to assign to
-  # iskeyword doesn't catch None/True/False in Python 2.x, but does in 3.x
-  # (None is actually an error, Python 2.x doesn't make assigning to True or False an error,
-  # but I think we don't want to allow users to do that)
-  while iskeyword(ident) or ident in ['None', 'True', 'False']:
+  while iskeyword(ident):
     ident = prefix + ident
   return ident
 
