@@ -7,9 +7,6 @@ import sys
 import unittest
 from collections import namedtuple
 from pprint import pprint
-
-import six
-
 import actions
 import column
 import engine
@@ -27,10 +24,6 @@ Column = namedtuple('Column', ('id colId type isFormula formula summarySourceCol
 View = namedtuple('View', 'id sections')
 Section = namedtuple('Section', 'id parentKey tableRef fields')
 Field = namedtuple('Field', 'id colRef')
-
-if six.PY2:
-  unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
-  unittest.TestCase.assertRegex = unittest.TestCase.assertRegexpMatches
 
 class EngineTestCase(unittest.TestCase):
   """
@@ -329,7 +322,7 @@ class EngineTestCase(unittest.TestCase):
     """
     schema = sample["SCHEMA"]
     self.engine.load_meta_tables(schema['_grist_Tables'], schema['_grist_Tables_column'])
-    for data in six.itervalues(sample["DATA"]):
+    for data in sample["DATA"].values():
       self.engine.load_table(data)
     # We used to call load_done() at the end; in practice, Grist's ActiveDoc does not call
     # load_done, but applies the "Calculate" user action. Do that for more realistic tests.
@@ -473,7 +466,7 @@ class TestEngine(EngineTestCase):
             sample = self.samples[data.pop("USE_SAMPLE")]
             expected_data = sample["DATA"].copy()
           expected_data.update({t: testutil.table_data_from_rows(t, tdata[0], tdata[1:])
-                                for (t, tdata) in six.iteritems(data)})
+                                for (t, tdata) in data.items()})
           self.assertCorrectEngineData(expected_data)
         else:
           raise ValueError("Unrecognized step %s in test script" % step)
