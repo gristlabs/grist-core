@@ -8,7 +8,7 @@ describe('TableData', function() {
   const sampleData: TableDataAction = ["TableData", "Foo", [1, 4, 5, 7], {
     city: ['New York', 'Boston', 'Boston', 'Seattle'],
     state: ['NY', 'MA', 'MA', 'WA'],
-    amount: [5, 4, "NA", 2],
+    amount: [5, 4, "NA", 0],
     bool: [true, true, false, false],
   }];
 
@@ -59,7 +59,7 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true],
       [4, 'Boston', 'MA', 4, true],
       [5, 'Boston', 'MA', "NA", false],
-      [7, 'Seattle', 'WA', 2, false],
+      [7, 'Seattle', 'WA', 0, false],
     ]);
   });
 
@@ -71,7 +71,7 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true],
       [4, 'Boston', 'MA', 4, true],
       [5, 'Boston', 'MA', "NA", false],
-      [7, 'Seattle', 'WA', 2, false],
+      [7, 'Seattle', 'WA', 0, false],
     ]);
   });
 
@@ -85,12 +85,12 @@ describe('TableData', function() {
     // After removing and re-adding a record, indices change, but filter behavior should not.
     // Notice sameDeepMembers() below, rather than deepEqual(), since order is not guaranteed.
     t.dispatchAction(["RemoveRecord", "Foo", 4]);
-    t.dispatchAction(["AddRecord", "Foo", 4, {city: 'BOSTON', state: 'MA'}]);
+    t.dispatchAction(["AddRecord", "Foo", 4, {city: 'BOSTON', state: 'MA', amount: 0}]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
       [4, 'BOSTON', 'MA', 0, false],
       [5, 'Boston', 'MA', "NA", false],
-      [7, 'Seattle', 'WA', 2, false],
+      [7, 'Seattle', 'WA', 0, false],
     ]);
     assert.deepEqual(t.filterRecords({city: 'BOSTON', amount: 0.0}), [
       {id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false}]);
@@ -105,7 +105,7 @@ describe('TableData', function() {
       {id: 1, city: 'New York', state: 'NY', amount: 5, bool: true},
       {id: 4, city: 'BOSTON', state: 'MA', amount: 0, bool: false},
       {id: 5, city: 'Boston', state: 'MA', amount: 'NA', bool: false},
-      {id: 7, city: 'Seattle', state: 'WA', amount: 2, bool: false},
+      {id: 7, city: 'Seattle', state: 'WA', amount: 0, bool: false},
     ]);
     assert.sameDeepMembers(t.filterRowIds({}), [1, 4, 5, 7]);
   });
@@ -134,7 +134,7 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true],
       [4, 'Boston', 'MA', 4, true],
       [5, 'Boston', 'MA', "NA", false],
-      [7, 'Seattle', 'WA', 2, false],
+      [7, 'Seattle', 'WA', 0, false],
     ]);
   });
 
@@ -145,7 +145,7 @@ describe('TableData', function() {
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true],
       [5, 'Boston', 'MA', "NA", false],
-      [7, 'Seattle', 'WA', 2, false],
+      [7, 'Seattle', 'WA', 0, false],
     ]);
 
     t.dispatchAction(["RemoveRecord", "Foo", 7]);
@@ -187,7 +187,7 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true],
       [4, 'BOSTON', 'MA', 0.1, true],
       [5, 'Boston', 'MA', "NA", false],
-      [7, 'Seattle', 'WA', 2, false],
+      [7, 'Seattle', 'WA', 0, false],
     ]);
 
     t.dispatchAction(["BulkUpdateRecord", "Foo", [1, 7], {
@@ -209,7 +209,7 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true,   ""],
       [4, 'Boston', 'MA', 4, true,     ""],
       [5, 'Boston', 'MA', "NA", false, ""],
-      [7, 'Seattle', 'WA', 2, false,   ""],
+      [7, 'Seattle', 'WA', 0, false,   ""],
     ]);
 
     t.dispatchAction(["UpdateRecord", "Foo", 4, {city: 'BOSTON', foo: "hello"}]);
@@ -217,15 +217,15 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true,   ""],
       [4, 'BOSTON', 'MA', 4, true,     "hello"],
       [5, 'Boston', 'MA', "NA", false, ""],
-      [7, 'Seattle', 'WA', 2, false,   ""],
+      [7, 'Seattle', 'WA', 0, false,   ""],
     ]);
     t.dispatchAction(["AddRecord", "Foo", 8, { city: 'X', state: 'XX' }]);
     verifyTableData(t, ["id", "city", "state", "amount", "bool", "foo"], [
       [1, 'New York', 'NY', 5, true,   ""],
       [4, 'BOSTON', 'MA', 4, true,     "hello"],
       [5, 'Boston', 'MA', "NA", false, ""],
-      [7, 'Seattle', 'WA', 2, false,   ""],
-      [8, 'X',       'XX', 0, false,   ""],
+      [7, 'Seattle', 'WA', 0, false,   ""],
+      [8, 'X',       'XX', null, false,   ""],
     ]);
   });
 
@@ -237,7 +237,7 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true   ],
       [4, 'Boston', 'MA', 4, true     ],
       [5, 'Boston', 'MA', "NA", false ],
-      [7, 'Seattle', 'WA', 2, false   ],
+      [7, 'Seattle', 'WA', 0, false   ],
     ]);
 
     t.dispatchAction(["UpdateRecord", "Foo", 4, {ciudad: 'BOSTON', state: "XX"}]);
@@ -245,15 +245,15 @@ describe('TableData', function() {
       [1, 'New York', 'NY', 5, true   ],
       [4, 'BOSTON', 'XX', 4, true     ],
       [5, 'Boston', 'MA', "NA", false ],
-      [7, 'Seattle', 'WA', 2, false   ],
+      [7, 'Seattle', 'WA', 0, false   ],
     ]);
     t.dispatchAction(["AddRecord", "Foo", 8, { ciudad: 'X', state: 'XX' }]);
     verifyTableData(t, ["id", "ciudad", "state", "amount", "bool"], [
       [1, 'New York', 'NY', 5, true   ],
       [4, 'BOSTON', 'XX', 4, true     ],
       [5, 'Boston', 'MA', "NA", false ],
-      [7, 'Seattle', 'WA', 2, false   ],
-      [8, 'X',       'XX', 0, false   ],
+      [7, 'Seattle', 'WA', 0, false   ],
+      [8, 'X',       'XX', null, false   ],
     ]);
   });
 });
