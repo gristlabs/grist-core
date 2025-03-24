@@ -20,8 +20,6 @@ import re
 import types
 from collections import OrderedDict
 
-import six
-
 import codebuilder
 from column import is_visible_column
 import summary
@@ -139,7 +137,7 @@ class GenCode(object):
     source_table_id = summary.decode_summary_table_name(table_info)
 
     # Sort columns by "isFormula" to output all data columns before all formula columns.
-    columns = sorted(six.itervalues(table_info.columns), key=lambda c: c.isFormula)
+    columns = sorted(table_info.columns.values(), key=lambda c: c.isFormula)
     if filter_for_user:
       columns = [c for c in columns if is_visible_column(c.colId)]
     parts = ["@grist.UserTable\nclass %s:\n" % table_id]
@@ -152,9 +150,9 @@ class GenCode(object):
     if summary_tables:
       # Include summary formulas, for the user's information.
       formulas = OrderedDict((c.colId, c) for s in summary_tables
-                             for c in six.itervalues(s.columns) if c.isFormula)
+                             for c in s.columns.values() if c.isFormula)
       parts.append(indent(textbuilder.Text("\nclass _Summary:\n")))
-      for col_info in six.itervalues(formulas):
+      for col_info in formulas.values():
         # Associate this field with the fake table `table_id + "._Summary"`.
         # We don't know which summary table each formula belongs to, there might be several,
         # and we don't care here because this is just for display in the code view.
@@ -168,7 +166,7 @@ class GenCode(object):
     """Regenerates the code text and usercode module from updated document schema."""
     # Collect summary tables to group them by source table.
     summary_tables = {}
-    for table_info in six.itervalues(schema):
+    for table_info in schema.values():
       source_table_id = summary.decode_summary_table_name(table_info)
       if source_table_id:
         summary_tables.setdefault(source_table_id, []).append(table_info)
@@ -177,7 +175,7 @@ class GenCode(object):
                  "from functions import *       # global uppercase functions\n" +
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
     userparts = fullparts[:]
-    for table_info in six.itervalues(schema):
+    for table_info in schema.values():
       fullparts.append("\n\n")
       fullparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId)))
       if not (
