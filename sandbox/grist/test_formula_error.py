@@ -2,9 +2,6 @@
 Tests that formula error messages (traceback) are correct
 """
 import textwrap
-
-import six
-
 import depend
 import test_engine
 import testutil
@@ -56,12 +53,7 @@ return 0
   def test_formula_errors(self):
     self.load_sample(self.sample)
 
-    if six.PY2:
-      self.assertFormulaError(self.engine.get_formula_error('Math', 'excel_formula', 3),
-                              TypeError, 'SQRT() takes exactly 1 argument (2 given)',
-                              r"TypeError: SQRT\(\) takes exactly 1 argument \(2 given\)")
-    else:
-      self.assertFormulaError(
+    self.assertFormulaError(
         self.engine.get_formula_error('Math', 'excel_formula', 3), TypeError,
         'SQRT() takes 1 positional argument but 2 were given\n\n'
         'A `TypeError` is usually caused by trying\n'
@@ -72,11 +64,10 @@ return 0
         '2 positional argument(s) while it requires 1\n'
         'such positional argument(s).',
         r"TypeError: SQRT\(\) takes 1 positional argument but 2 were given",
-      )
+    )
 
     int_not_iterable_message = "'int' object is not iterable"
-    if six.PY3:
-      int_not_iterable_message += (
+    int_not_iterable_message += (
         '\n\n'
         'A `TypeError` is usually caused by trying\n'
         'to combine two incompatible types of objects,\n'
@@ -85,7 +76,7 @@ return 0
         'An iterable is an object capable of returning its members one at a time.\n'
         'Python containers (`list, tuple, dict`, etc.) are iterables.\n'
         'An iterable is required here.'
-      )
+    )
     self.assertFormulaError(self.engine.get_formula_error('Math', 'built_in_formula', 3),
                             TypeError, int_not_iterable_message,
                             textwrap.dedent(
@@ -96,10 +87,7 @@ return 0
                               """
                             ))
 
-    if six.PY2:
-      message = "invalid syntax (usercode, line 5)"
-    else:
-      message = textwrap.dedent(
+    message = textwrap.dedent(
         """\
         invalid syntax
 
@@ -120,25 +108,14 @@ return 0
                               """
                             ))
 
-    if six.PY2:
-      traceback_regex = textwrap.dedent(
-        r"""
-          File "usercode", line 2
-            if sum\(3, 5\) > 6:
-            \^
-        IndentationError: unexpected indent
-        """
-      )
-      message = 'unexpected indent (usercode, line 2)'
-    else:
-      traceback_regex = textwrap.dedent(
+    traceback_regex = textwrap.dedent(
         r"""
           File "usercode", line 2
             if sum\(3, 5\) > 6:
         IndentationError: unexpected indent
         """
       )
-      message = textwrap.dedent(
+    message = textwrap.dedent(
         """\
         unexpected indent
 
@@ -189,11 +166,9 @@ return 0
       AttributeError,
         'To retrieve all values in a column, use `Table.all.id`. '
         "Tables have no attribute 'id'"
-        + six.PY3 * (
-          "\n\nAn `AttributeError` occurs when the code contains something like\n"
-          "    `object.x`\n"
-          "and `x` is not a method or attribute (variable) belonging to `object`."
-        )
+        "\n\nAn `AttributeError` occurs when the code contains something like\n"
+        "    `object.x`\n"
+        "and `x` is not a method or attribute (variable) belonging to `object`."
     )
 
     # `Table.id2` gives a standard message because `id2` is not an existing column.
@@ -226,12 +201,10 @@ return 0
       TypeError,
         "To iterate (loop) over all records in a table, use `MyTable.all`. "
         "Tables are not directly iterable."
-        + six.PY3 * (
-          '\n\nA `TypeError` is usually caused by trying\n'
-          'to combine two incompatible types of objects,\n'
-          'by calling a function with the wrong type of object,\n'
-          'or by trying to do an operation not allowed on a given type of object.'
-        )
+        '\n\nA `TypeError` is usually caused by trying\n'
+        'to combine two incompatible types of objects,\n'
+        'by calling a function with the wrong type of object,\n'
+        'or by trying to do an operation not allowed on a given type of object.'
     )
 
     # `list(MyTable.all)` works correctly.
