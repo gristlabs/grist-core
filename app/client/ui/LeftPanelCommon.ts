@@ -54,10 +54,12 @@ export function createHelpTools(appModel: AppModel): DomContents {
 
 /**
  * Creates a basic left panel, used in error and billing pages. It only contains the help tools.
+ * You can provide optional content to include above the help tools.
  */
-export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean>) {
+export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean>, optContent: DomContents = null) {
   return cssLeftPanel(
     cssScrollPane(
+      optContent,
       cssTools(
         cssTools.cls('-collapsed', (use) => !use(panelOpen)),
         cssSpacer(),

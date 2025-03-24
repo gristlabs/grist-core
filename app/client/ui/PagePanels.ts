@@ -390,7 +390,6 @@ const cssPageContainer = styled(cssVBox, `
 
   @media ${mediaSmall} {
     & {
-      padding-bottom: ${bottomFooterHeightPx}px;
       min-width: 240px;
     }
     .interface-singlePage & {
@@ -401,6 +400,7 @@ const cssPageContainer = styled(cssVBox, `
 const cssContentMain = styled(cssHBox, `
   flex: 1 1 0px;
   overflow: hidden;
+  position: relative;
 `);
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
@@ -439,7 +439,7 @@ export const cssLeftPane = styled(cssVBox, `
     display: none;
   }
   &-overlap {
-    position: fixed;
+    position: absolute;
     z-index: 10;
     top: 0;
     bottom: 0;
@@ -464,6 +464,11 @@ const cssMainPane = styled(cssVBox, `
   z-index: 1;
   &-left-overlap {
     margin-left: 48px;
+  }
+  @media ${mediaSmall} {
+    & {
+      padding-bottom: ${bottomFooterHeightPx}px;
+    }
   }
 `);
 const cssRightPane = styled(cssVBox, `
