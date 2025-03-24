@@ -76,8 +76,6 @@ import json
 from collections import OrderedDict, namedtuple
 from itertools import count, chain
 
-import six
-
 from imports import import_utils
 
 Ref = namedtuple('Ref', ['table_name', 'rowid'])
@@ -85,15 +83,11 @@ Row = namedtuple('Row', ['values', 'parent', 'ref'])
 Col = namedtuple('Col', ['type', 'values'])
 
 GRIST_TYPES={
+  int: "Numeric",
   float: "Numeric",
   bool: "Bool",
+  str: "Text",
 }
-
-for typ in six.integer_types:
-  GRIST_TYPES[typ] = "Numeric"
-
-for typ in six.string_types:
-  GRIST_TYPES[typ] = "Text"
 
 SCHEMA = [{
   'name': 'includes',
@@ -152,7 +146,7 @@ class Tables(object):
 
   def dumps(self):
     " Dumps tables in jgrist format "
-    return [_dump_table(name, rows) for name, rows in six.iteritems(self._tables)]
+    return [_dump_table(name, rows) for name, rows in self._tables.items()]
 
   def add_row(self, table, value, parent = None):
     """
@@ -169,7 +163,7 @@ class Tables(object):
 
     # we need a dictionary to map values to the row's columns
     value = _dictify(value)
-    for (k, val) in sorted(six.iteritems(value)):
+    for (k, val) in sorted(value.items()):
       if isinstance(val, dict):
         val = self.add_row(table + '_' + k, val)
         if row and val:
@@ -221,7 +215,7 @@ def _dump_table(name, rows):
     columns[col_id] = Col(_grist_type(ref),
                           [row.parent.ref if row.parent else None for row in rows])
   return {
-    'column_metadata': [{'id': key, 'type': col.type} for (key, col) in six.iteritems(columns)],
+    'column_metadata': [{'id': key, 'type': col.type} for (key, col) in columns.items()],
     'table_data': [[_dump_value(val) for val in col.values] for col in columns.values()],
     'table_name': name
   }
@@ -237,7 +231,7 @@ def _transpose(rows):
   values = OrderedDict()
   for row in reversed(rows):
     values.update(row)
-  for key, val in six.iteritems(values):
+  for key, val in values.items():
     transpose[key] = Col(_grist_type(val), [row.get(key, None) for row in rows])
   return transpose
 
