@@ -1546,7 +1546,8 @@
     },
     "FormContainer": {
         "Build your own form": "Создайте свою собственную форму",
-        "Powered by": "Разработано"
+        "Powered by": "Разработано",
+        "Powered by Grist": "Разработано Grist"
     },
     "FormModel": {
         "There was a problem loading the form.": "Возникла проблема с загрузкой формы.",

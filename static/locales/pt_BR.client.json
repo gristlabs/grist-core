@@ -1608,7 +1608,8 @@
     },
     "FormContainer": {
         "Build your own form": "Crie seu próprio formulário",
-        "Powered by": "Desenvolvido por"
+        "Powered by": "Desenvolvido por",
+        "Powered by Grist": "Desenvolvido por Grist"
     },
     "FormErrorPage": {
         "Error": "Erro"

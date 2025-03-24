@@ -1495,7 +1495,8 @@
     },
     "FormContainer": {
         "Build your own form": "Ustvari svoj obrazec",
-        "Powered by": "Poganja ga"
+        "Powered by": "Poganja ga",
+        "Powered by Grist": "Poganja ga Grist"
     },
     "FormErrorPage": {
         "Error": "Napaka"

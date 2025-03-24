@@ -1699,7 +1699,8 @@
     },
     "FormContainer": {
         "Build your own form": "Sortu zure formularioa",
-        "Powered by": "Honi esker:"
+        "Powered by": "Honi esker:",
+        "Powered by Grist": "Honi esker: Grist"
     },
     "FormErrorPage": {
         "Error": "Errorea"

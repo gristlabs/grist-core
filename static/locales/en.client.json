@@ -1547,7 +1547,8 @@
     },
     "FormContainer": {
         "Build your own form": "Build your own form",
-        "Powered by": "Powered by"
+        "Powered by": "Powered by",
+        "Powered by Grist": "Powered by Grist"
     },
     "FormErrorPage": {
         "Error": "Error"
