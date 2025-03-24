@@ -6,7 +6,6 @@ import sys
 from collections import namedtuple
 import asttokens
 import textbuilder
-import six
 from codebuilder import get_dollar_replacer
 
 # Entities encountered in predicate formulas, which may get renamed.
@@ -36,7 +35,7 @@ def parse_predicate_formula(formula):
     Attr                    node, attr_name
     Comment                 node, comment
   """
-  if isinstance(formula, six.binary_type):
+  if isinstance(formula, bytes):
     formula = formula.decode('utf8')
   try:
     formula = get_dollar_replacer(formula).get_text()
@@ -50,9 +49,7 @@ def parse_predicate_formula(formula):
   except SyntaxError as e:
     # In case of an error, include line and offset.
     _, _, exc_traceback = sys.exc_info()
-    six.reraise(SyntaxError,
-                SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset)),
-                exc_traceback)
+    raise SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset)).with_traceback(exc_traceback)
 
 def parse_predicate_formula_json(formula):
   """
