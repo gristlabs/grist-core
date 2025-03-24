@@ -1,3 +1,6 @@
+# Inspired from https://github.com/benjaminp/six
+# Delivered under MIT licence
+
 import warnings
 
 original_formatwarning = warnings.formatwarning
