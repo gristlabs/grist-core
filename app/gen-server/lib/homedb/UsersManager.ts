@@ -13,6 +13,7 @@ import {
   UserProfile
 } from 'app/common/UserAPI';
 import { AclRule } from 'app/gen-server/entity/AclRule';
+import { Document } from 'app/gen-server/entity/Document';
 import { Group } from 'app/gen-server/entity/Group';
 import { Login } from 'app/gen-server/entity/Login';
 import { User } from 'app/gen-server/entity/User';
@@ -513,6 +514,13 @@ export class UsersManager {
         }
       }
       if (user.personalOrg) { await this._homeDb.deleteOrg(scope, user.personalOrg.id, manager); }
+
+      // Unset 'created_by' on any documents created by this user. It's sad to lose this info, but
+      // we can't leave an invalid reference (and violate the foreign-key constraint)
+      const docs = await manager.getRepository(Document).find({where: {createdBy: userIdToDelete}});
+      docs.forEach(doc => { doc.createdBy = null; });
+      await manager.save(docs);
+
       await manager.remove([...user.logins]);
       // We don't have a GroupUser entity, and adding one tickles lots of TypeOrm quirkiness,
       // so use a plain query to delete entries in the group_users table.

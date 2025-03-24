@@ -1,5 +1,7 @@
 import {EntityManager} from "typeorm";
 import * as roles from 'app/common/roles';
+import {BillingAccount} from "app/gen-server/entity/BillingAccount";
+import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
 import {Organization} from "app/gen-server/entity/Organization";
@@ -125,6 +127,39 @@ export async function scrubUserFromOrg(
 
   await addMissingGuestMemberships(callerUserId, orgId, manager);
 }
+
+export async function scrubUserFromBillingAccounts(removeUserId: number, newUserId: number, manager: EntityManager) {
+  // Select all billing accounts that contain removeUserId as manager.
+  const billingAccounts = await manager.createQueryBuilder()
+    .select('billing_account.id', 'id')
+    .from(BillingAccount, 'billing_account')
+    .leftJoin('billing_account.managers', 'ba_managers')
+    // Mark results with whether the newUserId is present.
+    .addSelect('MAX(CASE WHEN ba_managers.user_id = :newUserId THEN 1 ELSE 0 END) = 1', 'hasNewUser')
+    .setParameter("newUserId", newUserId)
+    .groupBy('billing_account.id')
+    // Filter for those results that include removeUserId.
+    .having('MAX(CASE WHEN ba_managers.user_id = :removeUserId THEN 1 ELSE 0 END) = 1')
+    .setParameter("removeUserId", removeUserId)
+    .getRawMany();
+
+  for (const ba of billingAccounts) {
+    // Prepare to remove removeUserId as manager.
+    const goneBAManager = await manager.findOne(BillingAccountManager,
+      {where: {userId: removeUserId, billingAccountId: ba.id}});
+    if (!goneBAManager) { continue; }
+
+    // Add newUserId as manager, if they aren't already one.
+    if (!ba.hasNewUser) {
+      const newBAManager = new BillingAccountManager();
+      newBAManager.userId = newUserId;
+      newBAManager.billingAccountId = ba.id;
+      await manager.save(newBAManager);
+    }
+    await manager.remove(goneBAManager);
+  }
+}
+
 
 /**
  * Adds specified user to any guest groups for the resources of an org where the
