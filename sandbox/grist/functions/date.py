@@ -2,7 +2,6 @@
 import calendar
 import datetime
 import dateutil.parser
-import six
 
 import moment
 import docmodel
@@ -19,7 +18,7 @@ def _make_datetime(value):
     return datetime.datetime.combine(value, datetime.time())
   elif isinstance(value, datetime.time):
     return datetime.datetime.combine(datetime.date.today(), value)
-  elif isinstance(value, six.string_types):
+  elif isinstance(value, str):
     return dateutil.parser.parse(value)
   else:
     raise ValueError('Invalid date %r' % (value,))
@@ -299,7 +298,7 @@ def DATEVALUE(date_string, tz=None):
 
 
 DATEVALUE.__doc__ = DATEVALUE.__doc__.format(
-  "dateutil.parser._parser.ParserError" if six.PY3 else "ParserError"
+  "dateutil.parser._parser.ParserError"
 )
 
 
