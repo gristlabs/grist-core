@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-import six
 from asttokens.util import fstring_positions_work
 
 import codebuilder
 import test_engine
-
-unicode_prefix = 'u' if six.PY2 else ''
 
 def make_body(formula, default=None):
   return codebuilder.make_formula_body(formula, default).get_text()
@@ -81,44 +78,30 @@ class TestCodeBuilder(test_engine.EngineTestCase):
       )
 
     # Test that we produce valid code when "$foo" occurs in invalid places.
-    if six.PY2:
-      raise_code = "raise SyntaxError('invalid syntax', ('usercode', 1, 5, u'foo($bar=1)'))"
-    else:
-      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
-                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
-                    "('usercode', 1, 5, 'foo($bar=1)'))")
+    raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                  "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
+                  "('usercode', 1, 5, 'foo($bar=1)'))")
     self.assertEqual(make_body('foo($bar=1)'),
                      "# foo($bar=1)\n" + raise_code)
 
-    if six.PY2:
-      raise_code = ("raise SyntaxError('invalid syntax', "
-                    "('usercode', 1, 5, u'def $bar(): return 3'))")
-    else:
-      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
-                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
-                    "('usercode', 1, 5, 'def $bar(): return 3'))")
+    raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                  "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
+                  "('usercode', 1, 5, 'def $bar(): return 3'))")
     self.assertEqual(make_body('def $bar(): return 3'),
                      "# def $bar(): return 3\n" + raise_code)
 
     # If $ is a syntax error, we don't want to turn it into a different syntax error.
-    if six.PY2:
-      raise_code = ("raise SyntaxError('invalid syntax', "
-                    "('usercode', 1, 17, u'$foo + (\"$%.2f\" $ ($17.5))'))")
-    else:
-      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
-                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
-                    "('usercode', 1, 17, '$foo + (\"$%.2f\" $ ($17.5))'))")
+    raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                  "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
+                  "('usercode', 1, 17, '$foo + (\"$%.2f\" $ ($17.5))'))")
     self.assertEqual(make_body('$foo + ("$%.2f" $ ($17.5))'),
                      '# $foo + ("$%.2f" $ ($17.5))\n' + raise_code)
 
-    if six.PY2:
-      raise_code = "raise SyntaxError('invalid syntax', ('usercode', 4, 10, u'  return $ bar'))"
-    else:
-      raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
-                    "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n"
-                    "I am guessing that you wrote `$` by mistake.\\n"
-                    "Removing it and writing `return  bar` seems to fix the error.\\n\\n', "
-                    "('usercode', 4, 10, '  return $ bar'))")
+    raise_code = ("raise SyntaxError('invalid syntax\\n\\n"
+                  "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n"
+                  "I am guessing that you wrote `$` by mistake.\\n"
+                  "Removing it and writing `return  bar` seems to fix the error.\\n\\n', "
+                  "('usercode', 4, 10, '  return $ bar'))")
     self.assertEqual(make_body('if $foo:\n' +
                                '  return $foo\n' +
                                'else:\n' +
@@ -134,13 +117,11 @@ class TestCodeBuilder(test_engine.EngineTestCase):
 
     self.assertEqual(make_body('rec = 1; rec'), "# rec = 1; rec\n" +
                      "raise SyntaxError('Grist disallows assignment " +
-                     "to the special variable \"rec\"', ('usercode', 1, 1, %s'rec = 1; rec'))"
-                     % unicode_prefix)
+                     "to the special variable \"rec\"', ('usercode', 1, 1, 'rec = 1; rec'))")
     self.assertEqual(make_body('for rec in []: return rec'), "# for rec in []: return rec\n" +
                      "raise SyntaxError('Grist disallows assignment " +
                      "to the special variable \"rec\"', "
-                     "('usercode', 1, 4, %s'for rec in []: return rec'))"
-                     % unicode_prefix)
+                     "('usercode', 1, 4, 'for rec in []: return rec'))")
 
     # some legitimates use of rec
     body = ("""
@@ -166,33 +147,28 @@ return rec
     self.assertRegex(make_body(body),
                      r"raise SyntaxError\('Grist disallows assignment" +
                      r" to the special variable \"rec\"', "
-                     r"\('usercode', 3, 7, %s'\[1 for rec in \[\]\]'\)\)"
-                     % unicode_prefix)
+                     r"\('usercode', 3, 7, '\[1 for rec in \[\]\]'\)\)")
 
     self.assertEqual(make_body('rec.foo = 1; rec'), "# rec.foo = 1; rec\n" +
                      "raise SyntaxError(\"You can't assign a value to a column with `=`. "
                      "If you mean to check for equality, use `==` instead.\", "
-                     "('usercode', 1, 1, %s'rec.foo = 1; rec'))"
-                     % unicode_prefix)
+                     "('usercode', 1, 1, 'rec.foo = 1; rec'))")
 
     self.assertEqual(make_body('$foo = 1; rec'), "# $foo = 1; rec\n" +
                      "raise SyntaxError(\"You can't assign a value to a column with `=`. "
                      "If you mean to check for equality, use `==` instead.\", "
-                     "('usercode', 1, 1, %s'$foo = 1; rec'))"
-                     % unicode_prefix)
+                     "('usercode', 1, 1, '$foo = 1; rec'))")
 
     self.assertEqual(make_body('assert foo'), "# assert foo\n" +
                      'raise SyntaxError("No `return` statement, '
                      "and the last line isn't an expression.\", "
-                     "('usercode', 1, 1, %s'assert foo'))"
-                     % unicode_prefix)
+                     "('usercode', 1, 1, 'assert foo'))")
 
     self.assertEqual(make_body('foo = 1'), "# foo = 1\n" +
                      'raise SyntaxError("No `return` statement, '
                      "and the last line isn't an expression."
                      " If you want to check for equality, use `==` instead of `=`.\", "
-                     "('usercode', 1, 1, %s'foo = 1'))"
-                     % unicode_prefix)
+                     "('usercode', 1, 1, 'foo = 1'))")
 
   def test_make_formula_body_unicode(self):
     # Test that we don't fail when strings include unicode characters
@@ -202,10 +178,9 @@ return rec
     self.assertEqual(make_body(u"'résumé' + $foo"), u"return 'résumé' + rec.foo")
 
     # Check the return type of make_body()
-    self.assertEqual(type(make_body("foo")), six.text_type)
-    self.assertEqual(type(make_body(u"foo")), six.text_type)
+    self.assertEqual(type(make_body("foo")), str)
+    self.assertEqual(type(make_body(u"foo")), str)
 
-  @unittest.skipUnless(six.PY3, "Only Python 3 supports non-ascii variable names")
   def test_make_formula_body_unicode_token_bug(self):
     # Python < 3.12 has a bug in tokenizing certain unicode characters in variable names.
     # This was worked around in https://github.com/gristlabs/asttokens/pull/82
