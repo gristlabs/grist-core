@@ -7,8 +7,8 @@ lowercase searches, and adds function usage information to some results.
 import inspect
 import re
 from collections import namedtuple, defaultdict
-from six.moves import builtins, reprlib
-import six
+import reprlib
+import builtins
 
 import column
 from table import UserTable
@@ -29,7 +29,7 @@ class AutocompleteContext(object):
     # rlcompleter is case-sensitive. This is hard to work around while maintaining attribute
     # lookups. As a middle ground, we only introduce lowercase versions of all global names.
     self._context = {
-      key: value for key, value in six.iteritems(usercode_context)
+      key: value for key, value in usercode_context.items()
       # Don't propose unimplemented functions in autocomplete
       if not (value and callable(value) and getattr(value, 'unimplemented', None))
     }
@@ -50,12 +50,9 @@ class AutocompleteContext(object):
       '.Record': Completion('.Record', '', True),
       '.RecordSet': Completion('.RecordSet', '', True),
     }
-    for key, value in six.iteritems(self._context):
+    for key, value in self._context.items():
       if value and callable(value):
-        if six.PY2:
-          argspec = inspect.formatargspec(*inspect.getargspec(value))
-        else:
-          argspec = str(inspect.signature(value))  # pylint: disable=no-member
+        argspec = str(inspect.signature(value))  # pylint: disable=no-member
         self._functions[key] = Completion(key, argspec, is_grist_func(value))
 
     for key, value in self._context.copy().items():
@@ -89,7 +86,7 @@ class AutocompleteContext(object):
     self._lowercase.pop('value', None)
 
     # Add the lowercase names to the context, and to the detailed completions in _functions.
-    for lower, key in six.iteritems(self._lowercase):
+    for lower, key in self._lowercase.items():
       self._context[lower] = self._context[key]
       if key in self._functions:
         self._functions[lower] = self._functions[key]
@@ -178,7 +175,7 @@ def eval_suggestion(suggestion, rec, user):
   followed by any number of attribute accesses, nothing else.
   """
 
-  if not isinstance(suggestion, six.string_types):
+  if not isinstance(suggestion, str):
     # `suggestion` is a tuple corresponding to a function
     return None
 
