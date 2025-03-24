@@ -116,7 +116,7 @@ class TestUndo(test_engine.EngineTestCase):
                  ['RemoveRecord', 'Table', 21]],
       'undo': [['UpdateRecord', 'Table', 21, {'amount2': 1.0}],
                ['UpdateRecord', 'Table', 21, {'amount': 1.0}],
-               ['AddRecord', 'Table', 21, {}]],
+               ['AddRecord', 'Table', 21, {"amount": 0.0, "amount2": 0.0}]],
     })
     self.assertTableData('Table', cols="subset", data=[
       ["id", "amount", "amount2"],

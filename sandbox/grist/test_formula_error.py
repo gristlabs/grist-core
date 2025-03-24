@@ -857,9 +857,9 @@ return 0
     self.assertTableData('Table1', data=[
       ['id', 'A', 'B'],
       [1, objtypes.RaisedException(error, user_input=None),
-          objtypes.RaisedException(error, user_input=0)],
+          objtypes.RaisedException(error, user_input=None)],
       [2, objtypes.RaisedException(error, user_input=None),
-          objtypes.RaisedException(error, user_input=0)],
+          objtypes.RaisedException(error, user_input=None)],
     ])
     self.remove_record("Table1", 1)
     self.remove_record("Table1", 2)
