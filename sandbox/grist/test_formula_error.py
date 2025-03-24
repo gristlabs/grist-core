@@ -864,12 +864,12 @@ return 0
     self.remove_record("Table1", 1)
     self.remove_record("Table1", 2)
 
-    self.modify_column("Table1", "A", formula="PEEK($B) + 1")
+    self.modify_column("Table1", "A", formula="PEEK($B or 0) + 1")
     self.add_record("Table1", A=10)
     self.add_record("Table1", B=20)
 
-    self.modify_column("Table1", "A", formula="$B + 1")
-    self.modify_column("Table1", "B", formula="PEEK($A + 1)")
+    self.modify_column("Table1", "A", formula="($B or 0) + 1")
+    self.modify_column("Table1", "B", formula="PEEK(($A or 0) + 1)")
     self.add_record("Table1", A=100)
     self.add_record("Table1", B=200)
 
