@@ -3396,7 +3396,7 @@ export async function copyAnchor() {
   await waitToPass(async () => {
     assert.isTrue(
       await driver.findContentWait('.test-notifier-toast-message', /Link copied to clipboard/, 100).isDisplayed()
-    )
+    );
   });
 }
 
