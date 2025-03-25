@@ -3,7 +3,6 @@ import functools
 import itertools
 import logging
 import unittest
-import six
 
 import actions
 from column import SafeSortKey
@@ -137,7 +136,6 @@ class TestPrevNext(test_engine.EngineTestCase):
     with self.subTest(formula=nformula):  # pylint: disable=no-member
       self.do_test(nformula, group_key=group_key, sort_key=sort_key, sort_reverse=not sort_reverse)
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_none(self):
     self.do_test_prevnext("PREVIOUS(rec, order_by=None)", group_key=None,
         sort_key=lambda r: r.manualSort)
@@ -159,7 +157,6 @@ class TestPrevNext(test_engine.EngineTestCase):
     with self.assertRaisesRegex(AssertionError, r'Observed data not as expected'):
       self.do_test("PREVIOUS(rec, order_by=None)", sort_key=lambda r: r.id)
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_date(self):
     self.do_test_prevnext("PREVIOUS(rec, order_by='Date')",
         group_key=None, sort_key=lambda r: (SafeSortKey(r.Date), r.manualSort))
@@ -170,59 +167,35 @@ class TestPrevNext(test_engine.EngineTestCase):
       self.do_test("PREVIOUS(rec, order_by='Date')",
           group_key=None, sort_key=lambda r: (SafeSortKey(r.Date), r.id))
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_date_manualsort(self):
     # Same as the previous test case (with just 'Date'), but specifies 'manualSort' explicitly.
     self.do_test_prevnext("PREVIOUS(rec, order_by=('Date', 'manualSort'))",
         group_key=None, sort_key=lambda r: (SafeSortKey(r.Date), r.manualSort))
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_rdate(self):
     self.do_test_prevnext("PREVIOUS(rec, order_by='-Date')",
         group_key=None, sort_key=lambda r: (SafeSortKey(r.Date), -r.manualSort), sort_reverse=True)
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_rdate_id(self):
     self.do_test_prevnext("PREVIOUS(rec, order_by=('-Date', 'id'))",
         group_key=None, sort_key=lambda r: (SafeSortKey(r.Date), -r.id), sort_reverse=True)
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_customer_rdate(self):
     self.do_test_prevnext("PREVIOUS(rec, group_by=('Customer',), order_by='-Date')",
         group_key=(lambda r: r.Customer), sort_key=lambda r: (SafeSortKey(r.Date), -r.id),
         sort_reverse=True)
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_category_date(self):
     self.do_test_prevnext("PREVIOUS(rec, group_by=('Category',), order_by='Date')",
         group_key=(lambda r: r.Category), sort_key=lambda r: SafeSortKey(r.Date))
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_category_date2(self):
     self.do_test_prevnext("PREVIOUS(rec, group_by='Category', order_by='Date')",
         group_key=(lambda r: r.Category), sort_key=lambda r: SafeSortKey(r.Date))
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_n_cat_date(self):
     self.do_test_prevnext("PREVIOUS(rec, order_by=('Category', 'Date'))",
         sort_key=lambda r: (SafeSortKey(r.Category), SafeSortKey(r.Date)))
-
-  @unittest.skipUnless(six.PY2, "Python 2 only")
-  def test_prevnext_py2(self):
-    # On Python2, we expect NEXT/PREVIOUS to raise a NotImplementedError. It's not hard to make
-    # it work, but the stricter argument syntax supported by Python3 is helpful, and we'd like
-    # to drop Python2 support anyway.
-    self.do_setup()
-    self.modify_column('Purchases', 'Prev', formula='PREVIOUS(rec, order_by=None)')
-    self.add_column('Purchases', 'Next', formula="NEXT(rec, group_by='Category', order_by='Date')")
-    self.add_column('Purchases', 'Rank', formula="RANK(rec, order_by='Date', order='desc')")
-
-    # Check that all values are the expected exception.
-    err = objtypes.RaisedException(NotImplementedError())
-    self.assertTableData('Purchases', cols="subset", data=[
-      dict(id=r, Prev=err, Next=err, Rank=err, Cumul=err) for r in range(1, 9)
-    ])
-
 
   def do_test_renames(self, formula, renamed_formula, calc_expected_pre, calc_expected_post):
     self.do_setup()
@@ -250,11 +223,9 @@ class TestPrevNext(test_engine.EngineTestCase):
     self.update_record("Purchases", 3, Fecha=D(2023,8,1))
     self.assertTableData('Purchases', cols="subset", data=calc_expected_post())
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renaming_prev_str(self):
     self.do_test_renaming_prevnext_str("PREVIOUS")
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renaming_next_str(self):
     self.do_test_renaming_prevnext_str("NEXT")
 
@@ -274,11 +245,9 @@ class TestPrevNext(test_engine.EngineTestCase):
         ),
     )
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renaming_prev_tuple(self):
     self.do_test_renaming_prevnext_tuple('PREVIOUS')
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renaming_next_tuple(self):
     self.do_test_renaming_prevnext_tuple('NEXT')
 
@@ -306,7 +275,6 @@ class TestPrevNext(test_engine.EngineTestCase):
         ),
     )
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_rank(self):
     self.do_setup()
 
@@ -337,7 +305,6 @@ class TestPrevNext(test_engine.EngineTestCase):
           [8,       D(2023,12,5), "A",        4     ],
     ])
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_rank_rename(self):
     self.do_setup()
     self.add_column('Purchases', 'Rank',
@@ -373,7 +340,6 @@ class TestPrevNext(test_engine.EngineTestCase):
           [8,       D(2023,12,5), "A",        4     ],
     ])
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_prevnext_rename_result_attr(self):
     self.do_setup()
     self.add_column('Purchases', 'PrevAmount', formula="PREVIOUS(rec, order_by=None).Amount")
