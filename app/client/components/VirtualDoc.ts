@@ -580,6 +580,9 @@ export class VirtualSection extends Disposable {
     cellMenu?: (items: Element[], options: ICellContextMenu) => Element[],
     /** A function that can change items visible in the row context menu */
     rowMenu?: (items: Element[], options: IRowContextMenu) => Element[],
+    // TODO: add some clever way for detecting visibility.
+    /** If this view section is visible or not. Used for resizing when the parent element is initially hidden */
+    isVisible?: Observable<boolean>,
   }) {
     super();
 
@@ -685,12 +688,20 @@ export class VirtualSection extends Disposable {
         }));
       }
     }
+
+    if (props.isVisible) {
+      this.autoDispose(props.isVisible.addListener(visible => {
+        if (visible) {
+          viewSectionRec.viewInstance.peek()?.onResize();
+        }
+      }));
+    }
   }
 
   public buildDom() {
     const vs = this._sectionRec;
     return dom('div.layout_root',
-      // catch custom CustomEvent('setCursor', {detail: {row, col}}) event and set cursor position.
+      // Catch custom CustomEvent('setCursor', {detail: {row, col}}) event and set cursor position.
       dom.on('setCursor', (ev: any) => {
         vs.hasFocus(true);
         const [rowModel, fieldModel] = ev.detail;
