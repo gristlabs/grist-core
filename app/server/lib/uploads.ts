@@ -152,13 +152,24 @@ export async function parseMultipartFormRequest(
   form.on('part', (part: any) => {
     // If the underlying stream breaks, we should unblock the caller.
     part.on('error', (err: any) => rejectFinished(err));
+
+    const filename = part.filename;
+    const contentType = part.headers['content-type'];
+    const contentStream = part;
+
+    if (!(contentStream instanceof stream.Readable)) {
+      // This should never happen in practice, but checking this gives us full type safety, despite
+      // the multiparty library not being typed.
+      throw new Error("File contents is not a readable stream");
+    }
+
     // The stream needs to be drained for the request to continue. If something goes wrong
     // in the `onFile` callback, drainWhenSettled guarantees that.
     partPromises.push(drainWhenSettled(part,
       onFile({
-        name: (part.filename ?? "") as string,
-        contentType: (part.headers['content-type'] ?? "") as string,
-        stream: part as stream.Readable,
+        name: (typeof filename == 'string') ? filename : "",
+        contentType: (typeof contentType == 'string') ? contentType : "",
+        stream: contentStream,
       })
     // No sensible way to handle errors from this promise - so do nothing here, and assume the callback
     // handles errors sensibly.
