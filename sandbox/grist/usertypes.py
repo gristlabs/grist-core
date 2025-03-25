@@ -14,13 +14,12 @@ the extra complexity.
 # pylint: disable=unidiomatic-typecheck
 import csv
 import datetime
+import io
 import json
 import logging
 import math
 from collections import OrderedDict
 
-import six
-from six import integer_types
 import depend
 import objtypes
 from objtypes import AltText, is_int_short
@@ -93,8 +92,8 @@ def ifError(value, value_if_error):
   # formulas, but it's unclear how to make that work.
   return value_if_error if isinstance(value, AltText) else value
 
-_numeric_types = (float,) + six.integer_types
-_numeric_or_none = (float, NoneType) + six.integer_types
+_numeric_types = (float, int)
+_numeric_or_none = (float, int, NoneType)
 
 # Unique sentinel object to tell BaseColumnType constructor to use get_type_default().
 _use_type_default = object()
@@ -158,7 +157,7 @@ class BaseColumnType(object):
     except Exception as e:
       # If conversion failed, return a string to serve as alttext.
       try:
-        return six.text_type(value_to_convert)
+        return str(value_to_convert)
       except Exception:
         # If converting to string failed, we should still produce something.
         return objtypes.safe_repr(value_to_convert)
@@ -170,7 +169,7 @@ class Text(BaseColumnType):
   """
   @classmethod
   def do_convert(cls, value):
-    if isinstance(value, six.binary_type):
+    if isinstance(value, bytes):
       return value.decode('utf8')
     elif value is None:
       return None
@@ -183,17 +182,17 @@ class Text(BaseColumnType):
       if abs(value) < 2 ** 53:
         as_int = int(value)
         if value == as_int:
-          return six.text_type(as_int)
+          return str(as_int)
 
       # More than 15 digits of precision can make large numbers (e.g. 2^53+1) look as if
       # they're represented exactly when they're not
       return u"%.15g" % value
     else:
-      return six.text_type(value)
+      return str(value)
 
   @classmethod
   def is_right_type(cls, value):
-    return isinstance(value, (six.string_types, NoneType))
+    return isinstance(value, (str, NoneType))
 
 
 class Blob(BaseColumnType):
@@ -206,7 +205,7 @@ class Blob(BaseColumnType):
 
   @classmethod
   def is_right_type(cls, value):
-    return isinstance(value, (six.binary_type, NoneType))
+    return isinstance(value, (bytes, NoneType))
 
 
 class Any(BaseColumnType):
@@ -216,7 +215,7 @@ class Any(BaseColumnType):
   @classmethod
   def do_convert(cls, value):
     # Convert AltText values to plain text when assigning to type Any.
-    return six.text_type(value) if isinstance(value, AltText) else value
+    return str(value) if isinstance(value, AltText) else value
 
 
 class Bool(BaseColumnType):
@@ -232,8 +231,8 @@ class Bool(BaseColumnType):
     if isinstance(value, _numeric_types):
       return True
     if isinstance(value, AltText):
-      value = six.text_type(value)
-    if isinstance(value, six.string_types):
+      value = str(value)
+    if isinstance(value, str):
       if value.lower() in ("false", "no", "0"):
         return False
       if value.lower() in ("true", "yes", "1"):
@@ -261,7 +260,7 @@ class Int(BaseColumnType):
 
   @classmethod
   def is_right_type(cls, value):
-    return value is None or (type(value) in integer_types and is_int_short(value))
+    return value is None or (type(value) is int and is_int_short(value))
 
 
 class Numeric(BaseColumnType):
@@ -294,7 +293,7 @@ class Date(Numeric):
       return moment.date_to_ts(value)
     elif isinstance(value, _numeric_types):
       return float(value)
-    elif isinstance(value, six.string_types):
+    elif isinstance(value, str):
       # We also accept a date in ISO format (YYYY-MM-DD), the time portion is optional and ignored
       return moment.parse_iso_date(value)
     else:
@@ -326,7 +325,7 @@ class DateTime(Date):
       return moment.date_to_ts(value, self.timezone)
     elif isinstance(value, _numeric_types):
       return float(value)
-    elif isinstance(value, six.string_types):
+    elif isinstance(value, str):
       # We also accept a datetime in ISO format (YYYY-MM-DD[T]HH:mm:ss)
       return moment.parse_iso(value, self.timezone)
     else:
@@ -348,28 +347,28 @@ class ChoiceList(BaseColumnType):
   def do_convert(self, value):
     if not value:
       return None
-    elif isinstance(value, six.string_types):
+    elif isinstance(value, str):
       # If it's a string that looks like JSON, try to parse it as such.
       if value.startswith('['):
         try:
-          return tuple(six.text_type(item) for item in json.loads(value))
+          return tuple(str(item) for item in json.loads(value))
         except Exception:
           pass
       return value
     else:
       # Accepts other kinds of iterables; if that doesn't work, fail the conversion too.
-      return tuple(six.text_type(item) for item in value)
+      return tuple(str(item) for item in value)
 
   @classmethod
   def is_right_type(cls, value):
     return value is None or (isinstance(value, (tuple, list)) and
-                             all(isinstance(item, six.string_types) for item in value))
+                             all(isinstance(item, str) for item in value))
 
   @classmethod
   def toString(cls, value):
     if isinstance(value, (tuple, list)):
       try:
-        buf = six.StringIO()
+        buf = io.StringIO()
         csv.writer(buf).writerow(value)
         return buf.getvalue().strip()
       except Exception:
@@ -418,7 +417,7 @@ class Id(BaseColumnType):
 
   @classmethod
   def is_right_type(cls, value):
-    return (type(value) in integer_types and is_int_short(value))
+    return (type(value) is int and is_int_short(value))
 
 
 class Reference(Id):
@@ -460,7 +459,7 @@ class ReferenceList(BaseColumnType):
     return depend.Node(self.table_id, self._reverse_col_id) if self._reverse_col_id else None
 
   def do_convert(self, value):
-    if isinstance(value, six.string_types):
+    if isinstance(value, str):
       # This is second part of a "hack" we have to do when we rename tables. During
       # the rename, we briefly change all Ref columns to Int columns (to lose the table
       # part), and then back to Ref columns. The values during this change are stored
