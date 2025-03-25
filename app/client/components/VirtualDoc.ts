@@ -668,10 +668,12 @@ export class VirtualSection extends Disposable {
     }
 
     this.autoDispose(commands.createGroup({
-      viewAsCard: (ev: KeyboardEvent) => {
+      viewAsCard: (ev?: Event) => {
         props.onCard?.(viewSectionRec.viewInstance.peek()?.cursor.getCursorPos().rowId);
-        ev.stopPropagation();
-        ev.preventDefault();
+        if (ev instanceof KeyboardEvent) {
+          ev.stopPropagation();
+          ev.preventDefault();
+        }
 
         this._doc.app?.trigger('clipboard_focus', null);
 

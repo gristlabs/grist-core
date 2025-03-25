@@ -79,7 +79,10 @@ export class AdminPanel extends Disposable {
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
     return cssPageContainer(
-      {tabIndex: '-1'},  // Voodoo needed to allow copying text.
+      // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
+      // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
+      // because it messes with focus in GridViews, and its unclear how to undo its effect.
+      dom.attr('tabindex', use => use(this._page) === 'admin' ? '-1' : null as any),
 
       dom.maybe(use => use(this._page) === 'admin' && use(this._checks.probes), (probes) => [
         (probes as any[]).length > 0
