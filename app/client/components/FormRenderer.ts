@@ -423,13 +423,13 @@ class ChoiceRenderer extends BaseFieldRenderer  {
   }
 
   public fieldDomAttributes() {
-    if (this._format === 'select') {
-      return {};
+    if (this._format === 'radio') {
+      return {
+        role: 'group',
+        'aria-labelledby': `${this.name()}-label`,
+      };
     }
-    return {
-      role: 'group',
-      'aria-labelledby': `${this.name()}-label`,
-    };
+    return {};
   }
 
   public input() {
@@ -772,13 +772,13 @@ class RefRenderer extends BaseFieldRenderer {
 
 
   public fieldDomAttributes() {
-    if (this._format === 'select') {
-      return {};
+    if (this._format === 'radio') {
+      return {
+        role: 'group',
+        'aria-labelledby': `${this.name()}-label`,
+      };
     }
-    return {
-      role: 'group',
-      'aria-labelledby': `${this.name()}-label`,
-    };
+    return {};
   }
 
   public input() {
