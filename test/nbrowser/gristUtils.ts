@@ -656,16 +656,16 @@ export async function assertColumnWidth(colOptions: string|IColHeader, width: nu
  * Simulates drag and drop of the column header.
  */
 export async function moveColumn(which: string|IColHeader, where: string|IColHeader) {
-  const fromCol = await getColumnHeader(which);
-  const toCol = await getColumnHeader(where);
+  const header = (name: string|IColHeader) => getColumnHeader(name).find('.kf_elabel_text');
+  const fromCol = await header(which);
+  const toCol = await header(where);
 
   const fromLeft = (await fromCol.rect()).x;
   const toLeft = (await toCol.rect()).x;
-  const toWidth = (await toCol.rect()).width;
-  const toMove = Math.round(toLeft - fromLeft + toWidth * 0.1);
+  const toMove = Math.round(toLeft - fromLeft);
 
   await selectColumn(which);
-  await getColumnHeader(which).mouseMove({x: 5, y: 5});
+  await header(which).mouseMove({y: 1});
   await driver.mouseDown();
   await waitToPass(async () => {
      assert.isTrue(await driver.find('.active_section .col_indicator_line').isDisplayed());
