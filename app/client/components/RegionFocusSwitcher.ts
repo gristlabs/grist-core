@@ -1,5 +1,6 @@
 import {Disposable, dom, Observable, styled} from 'grainjs';
 import {mod} from 'app/common/gutil';
+import {SpecialDocPage} from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
 import {makeT} from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
@@ -55,6 +56,7 @@ const log = (...args: any[]) => {
 export class RegionFocusSwitcher extends Disposable {
   // Currently focused region
   public readonly current: Observable<Region | undefined>;
+  private readonly _gristDocObs?: Observable<GristDoc | null>;
   private _currentUpdateInitiator: 'keyboard' | MouseEvent = 'keyboard';
   // Previously focused elements for each panel (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
@@ -64,12 +66,25 @@ export class RegionFocusSwitcher extends Disposable {
     main: null,
   };
 
-  constructor(private readonly _gristDocObs?: Observable<GristDoc | null>) {
+  constructor(gristDocObs?: Observable<GristDoc | null>) {
     super();
     this.current = Observable.create(this, undefined);
+    if (gristDocObs) {
+      this._gristDocObs = gristDocObs;
+    }
   }
 
   public init() {
+    // if we have a grist doc, wait for the current grist doc to be ready before doing anything
+    if (this._gristDocObs && this._gristDocObs.get() === null) {
+      this._gristDocObs.addListener((doc, prevDoc) => {
+        if (doc && prevDoc === null) {
+          this.init();
+        }
+      });
+      return;
+    }
+
     this.autoDispose(commands.createGroup({
       nextRegion: () => this._cycle('next'),
       prevRegion: () => this._cycle('prev'),
@@ -83,7 +98,6 @@ export class RegionFocusSwitcher extends Disposable {
       const onClick = this._onClick.bind(this);
       document.addEventListener('mouseup', onClick);
       this.onDispose(() => document.removeEventListener('mouseup', onClick));
-      this._dirtyClassesFix();
     }
   }
 
@@ -108,18 +122,47 @@ export class RegionFocusSwitcher extends Disposable {
   public reset() {
     log('reset');
     this.focusRegion(undefined);
-    if (this._gristDocObs) {
-      this._dirtyClassesFix();
-    }
   }
 
   public panelAttrs(id: Panel, ariaLabel: string) {
     return [
-      dom.cls('clipboard_group_focus'),
       dom.attr('tabindex', '-1'),
       dom.attr('role', 'region'),
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
+      dom.cls('clipboard_group_focus', use => {
+        // top/left/right panels are always focusable
+        if (id !== 'main') {
+          return true;
+        }
+        const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
+        // if we are not on a grist doc, main panel is always focusable
+        if (!gristDoc) {
+          return true;
+        }
+        if (gristDoc) {
+          use(gristDoc.activeViewId);
+        }
+        // if we are on a grist doc, main panel is focusable only if we are not the actual document view
+        return isSpecialPage(gristDoc);
+      }),
+      dom.cls('clipboard_forbid_focus', use => {
+        // forbid focus only on the main panel when on an actual document view (and not a special page)
+        if (id !== 'main') {
+          return false;
+        }
+        const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
+        if (!gristDoc) {
+          return false;
+        }
+        if (gristDoc) {
+          use(gristDoc.activeViewId);
+        }
+        if (isSpecialPage(gristDoc)) {
+          return false;
+        }
+        return id === 'main';
+      }),
       dom.cls(`${cssFocusedPanel.className}-focused`, use => {
         const current = use(this.current);
         return this._currentUpdateInitiator === 'keyboard' && current?.type === 'panel' && current.id === id;
@@ -139,32 +182,6 @@ export class RegionFocusSwitcher extends Disposable {
     if (gristDoc) {
       maybeNotifyAboutCreatorPanel(gristDoc, cycleRegions);
     }
-  }
-
-  // @TODO: fix this. This is dirty code to see if what I want to do works.
-  // My issue is when starting the regionFocusSwitcher, the gristDoc is not yet ready.
-  // I need to see how to correctly wait for this and be sure there are view layout sections or not.
-  private _dirtyClassesFix(tries = 0): any {
-    if (tries > 20) {
-      return;
-    }
-    const main = document.querySelector(`[${ATTRS.regionId}="main"]`);
-    if (!main) {
-      return setTimeout(() => this._dirtyClassesFix(tries + 1), 100);
-    }
-    const hasGristDoc = !!this._gristDocObs;
-    const gristDoc = this._getGristDoc();
-    if (hasGristDoc && !gristDoc) {
-      return setTimeout(() => this._dirtyClassesFix(tries + 1), 100);
-    }
-    if (hasGristDoc) {
-      main?.classList.remove('clipboard_group_focus');
-      main?.classList.add('clipboard_forbid_focus');
-    } else {
-      main?.classList.remove('clipboard_forbid_focus');
-      main?.classList.add('clipboard_group_focus');
-    }
-    log('dirtyClassesFix, main classes:', main?.className);
   }
 
   /**
@@ -330,7 +347,7 @@ export class RegionFocusSwitcher extends Disposable {
     const doc = !!this._gristDocObs && !this._gristDocObs.isDisposed()
       ? this._gristDocObs.get()
       : null;
-    if (hasViewLayout(doc)) {
+    if (!isSpecialPage(doc)) {
       return doc;
     }
     return null;
@@ -513,17 +530,15 @@ const findRegionIndex = (regions: Region[], region: Region | undefined) => {
   return regions.findIndex(r => isEqual(r, region));
 };
 
-/**
- * Whether the given grist doc has a view layout.
- *
- * This can be false if we are on a grist-doc special page, or if the grist doc is not yet ready.
- */
-const hasViewLayout = (doc: GristDoc | null) => {
-  return doc
-    && !doc.viewModel.isDisposed()
-    && doc.viewLayout
-    && !doc.viewLayout.isDisposed()
-    && doc.viewLayout.layout;
+const isSpecialPage = (doc: GristDoc | null) => {
+  if (!doc) {
+    return false;
+  }
+  const activeViewId = doc.activeViewId.get();
+  if (typeof activeViewId === 'string' && SpecialDocPage.guard(activeViewId)) {
+    return true;
+  }
+  return false;
 };
 
 
