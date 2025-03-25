@@ -2,7 +2,6 @@
 # pylint:disable=line-too-long
 
 import unittest
-import six
 import test_engine    # defines self.assertRaisesRegex pylint:disable=unused-import
 from predicate_formula import parse_predicate_formula
 
@@ -171,8 +170,7 @@ class TestPredicateFormula(unittest.TestCase):
     self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "user.id in {1, 2, 3}")
     self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "1 if user.IsAnon else 2")
     # Plain calls are now supported for parsing; strange ones are not.
-    if six.PY3:   # (In Python2 we don't notice the strangeness, but it's not worth worrying about.)
-      self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "max(*rec)")
+    self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "max(*rec)")
 
     # Unsupported operation
     self.assertRaisesRegex(SyntaxError, r'Unsupported syntax', parse_predicate_formula, "1 | 2")
