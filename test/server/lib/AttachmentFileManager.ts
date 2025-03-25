@@ -397,12 +397,17 @@ describe("AttachmentFileManager", function() {
       await deleteFileFromStore(defaultDocId, defaultStoreId, files.external.fileIdent);
       assert.isFalse(await manager.isFileAvailable(files.external.fileIdent));
 
+      const otherStoreId = defaultProvider.listAllStoreIds()[1];
+      assert.notEqual(otherStoreId, defaultStoreId, "default store should be different for this test");
+
       const isExternalFileDataAdded =
         await manager.addMissingFileData(
-          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), defaultStoreId
+          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), otherStoreId
         );
       assert.isTrue(isExternalFileDataAdded, "external file data should have been added");
       assert.isTrue(await manager.isFileAvailable(files.external.fileIdent));
+      const fileDetails = await defaultDocStorageFake.getFileInfo(files.external.fileIdent);
+      assert.equal(fileDetails?.storageId, defaultStoreId, "file should be restored to original store");
     });
 
     it("should replace external files in the given store, if the original isn't available", async function () {
