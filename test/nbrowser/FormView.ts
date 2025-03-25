@@ -551,13 +551,13 @@ describe('FormView', function() {
         await driver.find('.test-modal-confirm').click();
         assert.equal(await driver.find('select[name="D"]').value(), '');
         await driver.find('.test-form-search-select').click();
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         // Check keyboard shortcuts work.
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Bar');
         await gu.sendKeys(Key.BACK_SPACE);
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
         await gu.sendKeys(Key.ENTER);
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -795,13 +795,13 @@ describe('FormView', function() {
         await driver.find('.test-modal-confirm').click();
         assert.equal(await driver.find('select[name="D"]').value(), '');
         await driver.find('.test-form-search-select').click();
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         // Check keyboard shortcuts work.
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Bar');
         await gu.sendKeys(Key.BACK_SPACE);
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
         await gu.sendKeys(Key.ENTER);
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000 ).click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
