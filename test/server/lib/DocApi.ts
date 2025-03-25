@@ -703,44 +703,6 @@ function testDocApi(settings: {
     });
   }
 
-  it(`POST /docs/import imports a file`, async function () {
-    const user = chimpy;
-    const formData = new FormData();
-    formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
-    const config = defaultsDeep({headers: formData.getHeaders()}, user);
-    const resp = await axios.post(`${serverUrl}/api/docs/import`, formData, config);
-    assert.equal(resp.status, 200);
-    const urlId = resp.data;
-
-    console.log(urlId);
-
-    /*
-    // Access information about that document should be sane for current user
-    resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, user);
-    assert.equal(resp.status, 200);
-    assert.equal(resp.data.name, 'Untitled');
-    assert.equal(resp.data.workspace.name, 'Examples & Templates');
-    assert.equal(resp.data.access, 'owners');
-    if (mode === 'anonymous') {
-      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, chimpy);
-      assert.equal(resp.data.access, 'owners');
-    } else {
-      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, charon);
-      assert.equal(resp.status, 403);
-      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, nobody);
-      assert.equal(resp.status, 403);
-    }
-
-    // content was successfully stored
-    resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
-    if (content === 'with content') {
-      assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
-    } else {
-      assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
-    }
-    */
-  });
-
   it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function () {
     const data = {
       id: [1, 2, 3, 4],
@@ -3189,6 +3151,24 @@ function testDocApi(settings: {
     assert.notEqual(resp.data.id, '');
   });
 
+  it(`POST /workspaces/{wid}/import can import a new file`, async function () {
+    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const formData = new FormData();
+    formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+    const config = defaultsDeep({headers: formData.getHeaders()}, chimpy);
+    const importResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/import`, formData, config);
+    assert.equal(importResp.status, 200);
+    const urlId = importResp.data.id;
+
+    const docDetailsResp = await axios.get(`${homeUrl}/api/docs/${urlId}`, chimpy);
+    assert.equal(docDetailsResp.status, 200);
+    assert.equal(docDetailsResp.data.name, 'table1');
+    assert.equal(docDetailsResp.data.workspace.name, 'Private');
+
+    // content was successfully stored
+    const contentResp = await axios.get(`${homeUrl}/api/docs/${urlId}/tables/Table1/data`, chimpy);
+    assert.deepEqual(contentResp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
+  });
 
   it("handles /s/ variants for shares", async function () {
     const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
