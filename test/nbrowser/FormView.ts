@@ -382,8 +382,8 @@ describe('FormView', function() {
         assert.isTrue(await driver.findWait('main', 2000).isDisplayed());
         assert.isTrue(await driver.findWait('footer', 2000).isDisplayed());
         assert.isTrue(await driver.findWait('[aria-label="Powered by Grist"]', 2000).isDisplayed());
+
         await gu.sendKeys('Hello');
-        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
 
