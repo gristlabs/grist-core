@@ -21,33 +21,6 @@ interface SectionRegion {
 }
 type Region = PanelRegion | SectionRegion;
 
-/** @TODO: remove this when I'm done with the PR */
-const enableLog = true;
-let batchLog: any[] = [];
-const prepareBatchLog = () => {
-  batchLog = [];
-};
-const bLog = (key: string, value?: any) => {
-  batchLog.push({key, value});
-};
-const outputBatchLog = (label: string) => {
-  if (!enableLog) {
-    return;
-  }
-  console.log('rfs', label, batchLog.reduce((acc, {key, value}, i) => {
-    acc[`${i}. ${key}`] = value;
-    return acc;
-  }, {} as Record<string, any>));
-  batchLog = [];
-};
-const log = (...args: any[]) => {
-  if (!enableLog) {
-    return;
-  }
-  console.log('rfs', ...args);
-};
-
-
 /**
  * RegionFocusSwitcher enables keyboard navigation between app panels and doc widgets.
  *
@@ -103,7 +76,6 @@ export class RegionFocusSwitcher extends Disposable {
 
   public focusRegion(region: Region | undefined, options: {initiator?: MouseEvent} = {}) {
     if (region?.type === 'panel' && !getPanelElement(region.id)) {
-      console.log('RegionFocusSwitcher: skipping update (panel element not found)');
       return;
     }
 
@@ -120,7 +92,6 @@ export class RegionFocusSwitcher extends Disposable {
   }
 
   public reset() {
-    log('reset');
     this.focusRegion(undefined);
   }
 
@@ -204,7 +175,6 @@ export class RegionFocusSwitcher extends Disposable {
     const currentlyInSection = current?.type === 'section';
 
     if (targetsMain && !currentlyInSection) {
-      log('onClick: enable active section');
       this.focusRegion({ type: 'section', id: gristDoc.viewModel.activeSectionId() }, { initiator: event });
       return;
     }
@@ -220,17 +190,14 @@ export class RegionFocusSwitcher extends Disposable {
         || (isFocusableElement(event.target) || getPanelElement(targetRegionId as Panel) === event.target)
       )
     ) {
-      log('onClick: disable active section');
       this.focusRegion({ type: 'panel', id: targetRegionId as Panel }, { initiator: event });
       return;
     }
   }
 
   private _onEscapeKeypress() {
-    log('Esc: pressed');
     const current = this.current.get();
     if (current?.type !== 'panel') {
-      log('Esc: not a panel, exiting', current);
       return;
     }
     const panelElement = getPanelElement(current.id);
@@ -241,13 +208,11 @@ export class RegionFocusSwitcher extends Disposable {
       // If user presses escape again, we also want to focus the panel.
       || (document.activeElement === document.body && panelElement)
     ) {
-      log('Esc: focus panel', panelElement?.className);
       panelElement?.focus();
       return;
     }
     // …Reset region focus switch if already on the panel itself
     if (document.activeElement === panelElement) {
-      log('Esc: reset');
       this.reset();
     }
   }
@@ -264,20 +229,16 @@ export class RegionFocusSwitcher extends Disposable {
     const isChildOfPanel = prevPanelElement?.contains(document.activeElement)
       && document.activeElement !== prevPanelElement;
     if (!isChildOfPanel) {
-      log('save prevFocusedElement: skip');
       return;
     }
-    log('save prevFocusedElement', prev.id, document.activeElement?.className);
     this._prevFocusedElements[prev.id] = document.activeElement;
   }
 
   private _onCurrentUpdate(current: Region | undefined, prev: Region | undefined) {
     if (isEqual(current, prev)) {
-      console.log('RegionFocusSwitcher: skipping update (no change)');
       return;
     }
 
-    prepareBatchLog();
     const gristDoc = this._getGristDoc();
     const mouseEvent = this._currentUpdateInitiator instanceof MouseEvent ? this._currentUpdateInitiator : undefined;
 
@@ -312,7 +273,6 @@ export class RegionFocusSwitcher extends Disposable {
 
     // if we reset the focus switch, clean all necessary state
     if (current === undefined) {
-      bLog('reset, clear prevFocusedElements');
       this._prevFocusedElements = {
         left: null,
         top: null,
@@ -320,8 +280,6 @@ export class RegionFocusSwitcher extends Disposable {
         main: null,
       };
     }
-    bLog('activeElement', document.activeElement);
-    outputBatchLog('currentUpdate');
   }
 
   private _toggleCreatorPanel() {
@@ -370,7 +328,6 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   }
   // No child to focus found: just focus the panel
   if (!child || child === panelElement || !child.isConnected) {
-    bLog('focusPanel', panelElement.className);
     panelElement.focus();
   }
 
@@ -382,7 +339,6 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
     child.addEventListener('blur', () => {
       child.removeAttribute(ATTRS.focusedElement);
     }, {once: true});
-    bLog('focusPanel child', child.className);
     child.focus?.();
   }
 
@@ -395,7 +351,6 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
 const focusViewLayout = (gristDoc: GristDoc) => {
   triggerFocusGrab();
   gristDoc.viewModel.focusedRegionState('in');
-  bLog('focusViewLayout focusedRegionState', 'in');
 };
 
 // When going out of the view layout, default view state is 'out' to remove active session
@@ -404,7 +359,6 @@ const focusViewLayout = (gristDoc: GristDoc) => {
 // the active session borders, so that user understands what session the current panel is related to.
 const escapeViewLayout = (gristDoc: GristDoc, isRelated = false) => {
   gristDoc.viewModel.focusedRegionState(isRelated ? 'related' : 'out');
-  bLog('escapeViewLayout focusedRegionState', isRelated ? 'related' : 'out');
 };
 
 /**
@@ -413,7 +367,6 @@ const escapeViewLayout = (gristDoc: GristDoc, isRelated = false) => {
 const focusSection = (section: SectionRegion, gristDoc: GristDoc) => {
   focusViewLayout(gristDoc);
   gristDoc.viewModel.activeSectionId(section.id);
-  bLog('focusSection activeSectionId', section.id);
 };
 
 /**
@@ -468,13 +421,11 @@ const getSibling = (
   // If we still don't find anything, it means we never set the current region before on a non-doc page,
   // or we didn't find any current doc section. Return the first region as default.
   if (currentIndexInCycle === -1) {
-    bLog('sibling', regions[0]);
     return regions[0];
   }
 
   // Normal case: just return the next or previous region in the cycle, wrapping around
   const sibling = regions[mod(currentIndexInCycle + (direction === 'next' ? 1 : -1), regions.length)];
-  bLog('sibling', sibling);
   return sibling;
 };
 
@@ -484,10 +435,6 @@ const getSibling = (
 const blurPanelChild = (panel: PanelRegion) => {
   const panelElement = getPanelElement(panel.id);
   if (panelElement?.contains(document.activeElement) && document.activeElement !== panelElement) {
-    bLog('isPanel clear focus', {
-      activeElement: document.activeElement?.className,
-      panelElement: panelElement.className,
-    });
     (document.activeElement as HTMLElement).blur();
   }
 };
@@ -518,7 +465,6 @@ const isFocusableElement = (el: EventTarget | null): boolean => {
  */
 const removeFocusRings = () => {
   document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach(el => {
-    bLog(`remove ${ATTRS.focusedElement}`, el);
     el.removeAttribute(ATTRS.focusedElement);
   });
 };
