@@ -2,7 +2,7 @@ import {assertMatchArray, captureLog, EnvironmentSnapshot} from "test/server/tes
 import {getAvailablePort} from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
 import {
-  Deps, proxyAgentForTrustedRequests, proxyAgentForUntrustedRequests, test_generateProxyConfigFromEnv
+  Deps, proxyAgentForTrustedRequests, proxyAgentForUntrustedRequests, test_generateProxyAgents
 } from "app/server/lib/ProxyAgent";
 import {serveSomething, Serving} from 'test/server/customUtil';
 import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
@@ -22,9 +22,6 @@ describe("ProxyAgent", function () {
 
   const proxyForTrustedUrlExample = 'https://localhost:9000';
   const proxyForUntrustedUrlExample = 'https://localhost:9001';
-  const proxiedUrlExampleHttps = new URL('https://getgrist.com');
-  const proxiedUrlExampleHttp = new URL('http://getgrist.com');
-
   beforeEach(function () {
     sandbox = sinon.createSandbox();
   });
@@ -43,119 +40,119 @@ describe("ProxyAgent", function () {
       oldEnv.restore();
     });
 
-    function warnLogNotCalled() {
-      assert.isFalse(warnStub.called, 'log.warn should not have been called');
+    function assertProxyInstanciated(
+      type: "trusted"|"untrusted", proxyAgents: ReturnType<typeof test_generateProxyAgents>
+    ) {
+      assert.isDefined(proxyAgents[type]);
+      assert.property(proxyAgents[type], 'http:');
+      assert.property(proxyAgents[type], 'https:');
+      assert.instanceOf(proxyAgents[type]!["http:"], HttpProxyAgent);
+      assert.instanceOf(proxyAgents[type]!["https:"], HttpsProxyAgent);
     }
 
+    function assertProxyUndefined(
+      type: "trusted"|"untrusted", proxyAgents: ReturnType<typeof test_generateProxyAgents>
+    ) {
+      assert.isUndefined(proxyAgents[type], `${type} proxy agents should have not be instanciated`);
+    }
 
-    it('should configure a proxy for trusted URLs when using https_proxy env var', function () {
+    it('should create a proxy agent for trusted URLs when using https_proxy env var', function () {
       process.env.https_proxy = proxyForTrustedUrlExample;
-      assert.deepEqual(test_generateProxyConfigFromEnv(), {
-        proxyForTrustedRequestsUrl: proxyForTrustedUrlExample,
-        proxyForUntrustedRequestsUrl: undefined
-      });
-      warnLogNotCalled();
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assertProxyInstanciated('trusted', proxyAgents);
+      assertProxyUndefined('untrusted', proxyAgents);
+      sinon.assert.notCalled(warnStub);
     });
 
-    it('should configure a proxy for trusted URLs when using HTTPS_PROXY env var', function () {
-      process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
-      assert.deepEqual(test_generateProxyConfigFromEnv(), {
-        proxyForTrustedRequestsUrl: proxyForTrustedUrlExample,
-        proxyForUntrustedRequestsUrl: undefined
-      });
-      warnLogNotCalled();
-    });
-
-    it('should configure a proxy for untrusted URLs when using HTTPS_PROXY_FOR_UNTRUSTED_URLS env var', function () {
-      process.env.HTTPS_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
-      assert.deepEqual(test_generateProxyConfigFromEnv(), {
-        proxyForTrustedRequestsUrl: undefined,
-        proxyForUntrustedRequestsUrl: proxyForUntrustedUrlExample
-      });
-      warnLogNotCalled();
-    });
-
-    it('should configure both proxy for untrusted and trusted URLS using ' +
-      'HTTPS_PROXY_FOR_UNTRUSTED_URLS and HTTPS_PROXY', function () {
-      process.env.HTTPS_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
+    it('should create a proxy agent for trusted URLs when using HTTPS_PROXY env var', function () {
       process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
 
-      assert.deepEqual(test_generateProxyConfigFromEnv(), {
-        proxyForTrustedRequestsUrl: proxyForTrustedUrlExample,
-        proxyForUntrustedRequestsUrl: proxyForUntrustedUrlExample
-      });
+      const proxyAgents = test_generateProxyAgents();
+
+      assertProxyInstanciated('trusted', proxyAgents);
+      assertProxyUndefined('untrusted', proxyAgents);
+      sinon.assert.notCalled(warnStub);
     });
 
-    it('should configure a proxy for untrusted URLs when using GRIST_HTTPS_PROXY env var ' +
+    it('should create a proxy agent for untrusted URLs when using GRIST_PROXY_FOR_UNTRUSTED_URLS env var', function () {
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assertProxyInstanciated('untrusted', proxyAgents);
+      assertProxyUndefined('trusted', proxyAgents);
+      sinon.assert.notCalled(warnStub);
+    });
+
+    it('should create both proxy agents for untrusted and trusted URLS using ' +
+      'GRIST_PROXY_FOR_UNTRUSTED_URLS and HTTPS_PROXY', function () {
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
+      process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assertProxyInstanciated('trusted', proxyAgents);
+      assertProxyInstanciated('untrusted', proxyAgents);
+      sinon.assert.notCalled(warnStub);
+    });
+
+    it('should create a proxy agent for untrusted URLs when using GRIST_HTTPS_PROXY env var ' +
       'and show a deprecation message', function () {
       process.env.GRIST_HTTPS_PROXY = proxyForUntrustedUrlExample;
-      assert.deepEqual(test_generateProxyConfigFromEnv(), {
-        proxyForTrustedRequestsUrl: undefined,
-        proxyForUntrustedRequestsUrl: proxyForUntrustedUrlExample
-      });
-      assert.isTrue(
-        warnStub.calledWithMatch(/GRIST_HTTPS_PROXY.*HTTPS_PROXY_FOR_UNTRUSTED_URLS/),
-        'A message should have been printed to warn about GRIST_HTTPS_PROXY deprecation'
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assertProxyInstanciated('untrusted', proxyAgents);
+      assertProxyUndefined('trusted', proxyAgents);
+      sinon.assert.calledWithMatch(
+        warnStub, /GRIST_HTTPS_PROXY.*GRIST_PROXY_FOR_UNTRUSTED_URLS/,
       );
+    });
+
+    it('should create no proxy agent when GRIST_PROXY_FOR_UNTRUSTED_URLS is set to "direct"', function () {
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = "direct";
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assertProxyUndefined('untrusted', proxyAgents);
     });
   });
 
-  describe('proxy agent creation', function () {
-    describe('using proxyAgentForUntrustedRequests', function () {
-      it('should not create a proxy agent when no url is provided', function () {
-        let res = proxyAgentForUntrustedRequests(proxiedUrlExampleHttps);
-        assert.isUndefined(res, 'no agent should be returned if nothing is configured');
+  [
+    {
+      testedMethod: proxyAgentForTrustedRequests,
+      agentsToStub: "trusted",
+    },
+    {
+      testedMethod: proxyAgentForUntrustedRequests,
+      agentsToStub: "untrusted"
+    }
+  ].forEach(ctx => {
+    describe(ctx.testedMethod.name, function () {
+      it('should return a proxy agent given the passed URL protocol', function () {
+        const fakeHttpAgent = "fake http agent";
+        const fakeHttpsAgent = "fake https agent";
+        sinon.stub(Deps.agents, ctx.agentsToStub as any).value({
+          "http:": fakeHttpAgent,
+          "https:": fakeHttpsAgent,
+        });
 
-        sandbox.stub(Deps, 'proxyForTrustedRequestsUrl').value(proxyForTrustedUrlExample);
-        res = proxyAgentForUntrustedRequests(proxiedUrlExampleHttps);
-        assert.isUndefined(res, 'no agent should be returned if only the proxy for untrusted URL is configured');
+        assert.equal(ctx.testedMethod(new URL("http://getgrist.com")) as any, fakeHttpAgent);
+        assert.equal(ctx.testedMethod(new URL("https://getgrist.com")) as any, fakeHttpsAgent);
       });
 
-      it('should not create an agent when configuring proxy with "direct" as value', function () {
-        sandbox.stub(Deps, 'proxyForUntrustedRequestsUrl').value('direct');
-        const res = proxyAgentForUntrustedRequests(proxiedUrlExampleHttps);
-        assert.isUndefined(res, 'no agent should have been returned');
+      it("should return nothing when no proxy is configured", function () {
+        sinon.stub(Deps.agents, ctx.agentsToStub as any).value(undefined);
+        assert.isUndefined(ctx.testedMethod(new URL("http://getgrist.com")));
+        assert.isUndefined(ctx.testedMethod(new URL("https://getgrist.com")));
       });
 
-      it('should create an agent when the proxy for trusted URL is configured', function () {
-        sandbox.stub(Deps, 'proxyForUntrustedRequestsUrl').value(proxyForUntrustedUrlExample);
-        let result = proxyAgentForUntrustedRequests(proxiedUrlExampleHttps);
-        assert.instanceOf(result, HttpsProxyAgent, 'should create an HttpsProxyAgent when providing an https URL');
-        result = proxyAgentForUntrustedRequests(proxiedUrlExampleHttp);
-        assert.instanceOf(result, HttpProxyAgent, 'should create an HttpProxyAgent when providing an https URL');
-      });
-
-      it('should create an agent when the proxies for trusted and untrusted URLs are configured', function () {
-        sandbox.stub(Deps, 'proxyForUntrustedRequestsUrl').value(proxyForUntrustedUrlExample);
-        sandbox.stub(Deps, 'proxyForTrustedRequestsUrl').value(proxyForTrustedUrlExample);
-        const result = proxyAgentForUntrustedRequests(proxiedUrlExampleHttps);
-        assert.instanceOf(result, HttpsProxyAgent, 'should create an HttpsProxyAgent when providing an https URL');
-      });
-    });
-
-    describe('using proxyAgentForTrustedRequests', function () {
-      it('should not create a proxy agent when no url is provided', function () {
-        let res = proxyAgentForTrustedRequests(proxiedUrlExampleHttps);
-        assert.isUndefined(res, 'no agent should have been returned if nothing is configured');
-
-        sandbox.stub(Deps, 'proxyForUntrustedRequestsUrl').value(proxyForUntrustedUrlExample);
-        res = proxyAgentForTrustedRequests(proxiedUrlExampleHttps);
-        assert.isUndefined(res, 'no agent should have been returned if only the proxy for untrusted URL is configured');
-      });
-
-      it('should create an agent when the proxy for trusted URL is configured', function () {
-        sandbox.stub(Deps, 'proxyForTrustedRequestsUrl').value(proxyForTrustedUrlExample);
-        const result = proxyAgentForTrustedRequests(proxiedUrlExampleHttps);
-        assert.instanceOf(result, HttpsProxyAgent,
-          'should have created an HttpsProxyAgent when providing an https URL');
-      });
-
-      it('should create an agent when the proxies for trusted and untrusted URLs are configured', function () {
-        sandbox.stub(Deps, 'proxyForUntrustedRequestsUrl').value(proxyForUntrustedUrlExample);
-        sandbox.stub(Deps, 'proxyForTrustedRequestsUrl').value(proxyForTrustedUrlExample);
-        const result = proxyAgentForTrustedRequests(proxiedUrlExampleHttps);
-        assert.instanceOf(result, HttpsProxyAgent,
-          'should have created an HttpsProxyAgent when providing an https URL');
+      it('should throw when the passed URL protocol is not http: or https:', function () {
+        assert.throws(
+          () => proxyAgentForTrustedRequests(new URL("ftp://getgrist.com"))
+        );
       });
     });
   });
@@ -194,19 +191,20 @@ describe("ProxyAgent", function () {
     [
       {
         description: "for trusted urls",
-        mockedDep: "proxyForTrustedRequestsUrl",
+        envToSet: "HTTPS_PROXY",
         proxyAgentBuilder: proxyAgentForTrustedRequests
       },
       {
         description: "for untrusted url",
-        mockedDep: "proxyForUntrustedRequestsUrl",
+        envToSet: "GRIST_PROXY_FOR_UNTRUSTED_URLS",
         proxyAgentBuilder: proxyAgentForUntrustedRequests
       },
     ].forEach(function (ctx) {
       describe(ctx.description, function() {
         beforeEach(function () {
           const proxyUrl = `http://localhost:${testProxyServer.portNumber}`;
-          sandbox.stub(Deps, ctx.mockedDep as any).value(proxyUrl);
+          process.env[ctx.envToSet] = proxyUrl;
+          sinon.stub(Deps, 'agents').value(test_generateProxyAgents());
         });
 
         it("should not report error when proxy is working", async function() {
