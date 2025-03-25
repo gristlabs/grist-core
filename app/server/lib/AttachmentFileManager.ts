@@ -175,17 +175,32 @@ export class AttachmentFileManager extends EventEmitter {
     if (!fileMetadata) { return false; }
     if (await this._isFileAvailable(fileMetadata)) { return false; }
 
-    const originalStoreExists = fileMetadata.ident in this._getStoreProvider().listAllStoreIds();
-    const newStoreId = originalStoreExists ? fileMetadata.ident : defaultStoreId;
-    const newStore = newStoreId && await this._getStore(newStoreId) || undefined;
+    // Try to use the store the file was originally uploaded to, if it's available.
+    const originalStoreId = fileMetadata.storageId;
+    const originalStoreStillExists = !!originalStoreId && originalStoreId in this._getStoreProvider().listAllStoreIds();
+    const destinationStoreId = originalStoreStillExists ? originalStoreId : defaultStoreId;
+    const destinationStore = destinationStoreId && await this._getStore(destinationStoreId) || undefined;
 
-    if (newStoreId && !newStore) {
-      throw new StoreNotAvailableError(newStoreId);
+    // Error if the file should be added to an external store, but the store isn't available for some reason.
+    if (destinationStoreId && !destinationStore) {
+      throw new StoreNotAvailableError(destinationStoreId);
     }
 
     // Internal storage is handled separately, as it needs the file as a Buffer in memory.
     // External storage can avoid loading it into memory, as it's all stream APIs.
-    if (!newStore) {
+    if (destinationStore) {
+      const hashStream = new HashPassthroughStream();
+      // To avoid loading this into memory, we hash the file as it's uploaded, and delete it
+      // if the hash isn't correct.
+      fileData.pipe(hashStream);
+      await this._storeFileInAttachmentStore(destinationStore, fileIdent, hashStream);
+      await stream.promises.finished(hashStream);
+      const fileHash = hashStream.getDigest();
+      if (!fileIdent.startsWith(fileHash)) {
+        await destinationStore.delete(this._getDocPoolId(), fileIdent);
+        throw new MismatchedFileHashError(fileIdent, fileHash);
+      }
+    } else {
       const hashStream = new HashPassthroughStream();
       const bufferStream = new MemoryWritableStream();
       await stream.promises.pipeline(fileData, hashStream, bufferStream);
@@ -195,18 +210,6 @@ export class AttachmentFileManager extends EventEmitter {
         throw new MismatchedFileHashError(fileIdent, fileHash);
       }
       await this._storeFileInLocalStorage(fileIdent, buffer);
-    } else {
-      const hashStream = new HashPassthroughStream();
-      // To avoid loading this into memory, we hash the file as it's uploaded, and delete it
-      // if the hash isn't correct.
-      fileData.pipe(hashStream);
-      await this._storeFileInAttachmentStore(newStore, fileIdent, hashStream);
-      await stream.promises.finished(hashStream);
-      const fileHash = hashStream.getDigest();
-      if (!fileIdent.startsWith(fileHash)) {
-        await newStore.delete(this._getDocPoolId(), fileIdent);
-        throw new MismatchedFileHashError(fileIdent, fileHash);
-      }
     }
 
     return true;
