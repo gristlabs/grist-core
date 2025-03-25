@@ -1021,7 +1021,7 @@ export class ActiveDoc extends EventEmitter {
     }
 
     const fallbackStoreId = this._getDocumentSettings().attachmentStoreId;
-    const results = {
+    const results: ArchiveUploadResult = {
       added: 0,
       errored: 0,
       unused: 0,
