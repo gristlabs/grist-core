@@ -128,6 +128,7 @@ describe('FormView', function() {
         await driver.find('.test-form-success-page-text').getText(),
         'Thank you! Your response has been recorded.'
       );
+      assert.equal(await driver.getTitle(), 'Form Submitted - Grist');
     });
   }
 
@@ -373,12 +374,30 @@ describe('FormView', function() {
       await removeForm();
     });
 
+    it('has global markup correctly setup for screen reader users', async function() {
+      const formUrl = await createFormWith('Text');
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        // check we have main section, footer section, and "powered by grist" alt text is present
+        assert.isTrue(await driver.findWait('main', 2000).isDisplayed());
+        assert.isTrue(await driver.findWait('footer', 2000).isDisplayed());
+        assert.isTrue(await driver.findWait('[aria-label="Powered by Grist"]', 2000).isDisplayed());
+        await gu.sendKeys('Hello');
+        await assertSubmitOnEnterIsDisabled();
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+
+      });
+      await removeForm();
+    });
+
     it('can submit a form with single-line Text field', async function() {
       const formUrl = await createFormWith('Text');
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('Hello');
         assert.equal(await driver.find('input[name="D"]').value(), 'Hello');
         await driver.find('.test-form-reset').click();
@@ -404,7 +423,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('textarea[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the textarea
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('Hello');
         assert.equal(await driver.find('textarea[name="D"]').value(), 'Hello');
         await driver.find('.test-form-reset').click();
@@ -425,7 +445,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -449,7 +470,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -478,7 +500,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('01011999');
         assert.equal(await driver.find('input[name="D"]').getAttribute('value'), '1999-01-01');
         await driver.find('.test-form-reset').click();
@@ -513,6 +536,7 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('select[name="D"]', 2000);
+        await driver.findWait('label[for="D"]', 2000);
         // Make sure options are there.
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
@@ -557,7 +581,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         assert.deepEqual(
           await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
         );
@@ -580,7 +611,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -604,7 +636,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -704,6 +737,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D[]"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         await driver.findWait('input[name="D[]"][value="Bar"]', 2000).click();
         assert.equal(await driver.find('input[name="D[]"][value="Bar"]').getAttribute('checked'), 'true');
         await driver.find('.test-form-reset').click();
@@ -735,6 +776,7 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('select[name="D"]', 2000);
+        await driver.findWait('label[for="D"]', 2000);
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()),
           ['Select...', 'Foo', 'Bar', 'Baz']
@@ -786,7 +828,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         assert.deepEqual(
           await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
         );
@@ -826,6 +875,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D[]"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         assert.equal(await driver.findWait('label:has(input[name="D[]"][value="1"])', 2000).getText(), 'Foo');
         assert.equal(await driver.find('label:has(input[name="D[]"][value="2"])').getText(), 'Bar');
         assert.equal(await driver.find('label:has(input[name="D[]"][value="3"])').getText(), 'Baz');
