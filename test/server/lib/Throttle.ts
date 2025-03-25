@@ -1,9 +1,9 @@
-import pidusage from '@gristlabs/pidusage';
 import {exitPromise} from 'app/server/lib/serverUtils';
 import {Throttle, ThrottleTiming} from 'app/server/lib/Throttle';
 import {delay} from 'bluebird';
 import {assert} from 'chai';
 import {ChildProcess, spawn} from 'child_process';
+import pidusage from 'pidusage';
 import * as testUtils from 'test/server/testUtils';
 
 const testTiming: ThrottleTiming = {
