@@ -56,6 +56,7 @@ const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
 const {isList} = require('app/common/gristTypes');
+const identity = require('lodash/identity');
 
 
 const t = makeT('GridView');
@@ -97,6 +98,11 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.isScrolledTop = this.autoDispose(ko.computed(() => this.scrollTop() > 0));
 
   this.cellSelector = selector.CellSelector.create(this, this);
+
+  // A handler that can amend the custom cell/row menu with additional items.
+  // It is a function (menuItems: Element[]) => Element[]. Primarily used by virtual tables.
+  this.customCellMenu = identity;
+  this.customRowMenu = identity;
 
   if (!isPreview && !this.gristDoc.comparison) {
     this.selectionSummary = SelectionSummary.create(this,
@@ -743,6 +749,10 @@ GridView.prototype.clearSelection = function() {
  * @param {CopySelection} selection
  */
 GridView.prototype.clearValues = function(selection) {
+  if (this.isReadonly) {
+    return;
+  }
+
   const options = this._getColumnMenuOptions(selection);
   if (options.isFormula === true) {
     this.activateEditorAtCursor({ init: ''});
@@ -755,6 +765,9 @@ GridView.prototype.clearValues = function(selection) {
 };
 
 GridView.prototype._clearColumns = function(selection) {
+  if (this.isReadonly) {
+    return;
+  }
   const fields = selection.fields;
   return this.gristDoc.docModel.clearColumns(fields.map(f => f.colRef.peek()));
 };
@@ -1956,7 +1969,8 @@ GridView.prototype.maybeSelectRow = function(elem, rowId) {
 };
 
 GridView.prototype.rowContextMenu = function() {
-  return RowContextMenu(this._getRowContextMenuOptions());
+  const options = this._getRowContextMenuOptions();
+  return this.customRowMenu(RowContextMenu(options), options);
 };
 
 GridView.prototype._getRowContextMenuOptions = function() {
@@ -1972,9 +1986,13 @@ GridView.prototype.isRecordCardDisabled = function() {
 }
 
 GridView.prototype.cellContextMenu = function() {
-  return CellContextMenu(
-    this._getCellContextMenuOptions(),
-    this._getColumnMenuOptions(this.getSelection())
+  const options = this._getCellContextMenuOptions();
+  return this.customCellMenu(
+    CellContextMenu(
+      options,
+      this._getColumnMenuOptions(this.getSelection())
+    ),
+    options
   );
 };
 

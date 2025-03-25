@@ -710,6 +710,7 @@ const cssPageContainer = styled('div', `
   padding: 40px;
   font-size: ${vars.introFontSize};
   color: ${theme.text};
+  outline: none;
 
   &-admin-pages {
     padding: 12px;

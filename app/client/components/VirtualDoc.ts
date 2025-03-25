@@ -18,7 +18,9 @@ import {QuerySetManager} from 'app/client/models/QuerySet';
 import {IExternalTable, VirtualTableData, VirtualTableRegistration} from 'app/client/models/VirtualTable';
 import {META_TABLES} from 'app/client/models/VirtualTableMeta';
 import type {App} from 'app/client/ui/App';
+import {ICellContextMenu} from 'app/client/ui/CellContextMenu';
 import {IPageWidget} from 'app/client/ui/PageWidgetPicker';
+import {IRowContextMenu} from 'app/client/ui/RowContextMenu';
 import {WidgetType} from 'app/client/widgets/UserType';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import type {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
@@ -574,6 +576,10 @@ export class VirtualSection extends Disposable {
     },
     /** Handler that is called when user wants to show card view */
     onCard?: (rowId?: string | number) => void,
+    /** A function that can change items visible in the cell context menu */
+    cellMenu?: (items: Element[], options: ICellContextMenu) => Element[],
+    /** A function that can change items visible in the row context menu */
+    rowMenu?: (items: Element[], options: IRowContextMenu) => Element[],
   }) {
     super();
 
@@ -636,6 +642,16 @@ export class VirtualSection extends Disposable {
       viewSectionRec.hasFocus(true);
     }
 
+    const viewInstance =viewSectionRec.viewInstance.peek() as any;
+    // Additional elements to add to the cell context menu.
+    if (props.cellMenu && viewInstance) {
+      viewInstance.customCellMenu = props.cellMenu;
+    }
+    // Additional elements to add to the row context menu.
+    if (props.rowMenu && viewInstance) {
+      viewInstance.customRowMenu = props.rowMenu;
+    }
+
     if (props.onFocus) {
       this.autoDispose(viewSectionRec.hasFocus.subscribe(on => {
         if (props.onFocus) {
@@ -657,10 +673,10 @@ export class VirtualSection extends Disposable {
     }, this, viewSectionRec.hasFocus));
 
     if (props.selectedRow) {
-      const syncCursor = (rowId: any) => viewSectionRec.viewInstance.peek()?.setCursorPos({rowId});
-      syncCursor(props.selectedRow.get());
+      const setRowIdInInstance = (rowId: any) => viewSectionRec.viewInstance.peek()?.setCursorPos({rowId});
+      setRowIdInInstance(props.selectedRow.get());
       this.autoDispose(props.selectedRow.addListener(val => {
-        syncCursor(val);
+        setRowIdInInstance(val);
       }));
       const rowId = viewSectionRec.viewInstance.peek()?.cursor.rowId;
       if (rowId) {
