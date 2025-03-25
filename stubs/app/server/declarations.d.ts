@@ -48,6 +48,7 @@ declare module "redis" {
     public multi(): Multi;
     public quitAsync(): Promise<void>;
     public saddAsync(key: string, val: string): Promise<'OK'>;
+    public scardAsync(key: string): Promise<number>;
     public selectAsync(db: number): Promise<void>;
     public setAsync(key: string, val: string): Promise<'OK'>;
     public setexAsync(key: string, ttl: number, val: string): Promise<'OK'>;
@@ -70,13 +71,14 @@ declare module "redis" {
     public hgetall(key: string): Multi;
     public hmset(key: string, val: {[field: string]: any}): Multi;
     public hset(key: string, field: string, val: string): Multi;
+    public hincrby(key: string, field: string, increment: number): Multi;
     public sadd(key: string, val: string): Multi;
     public set(key: string, val: string): Multi;
     public setex(key: string, ttl: number, val: string): Multi;
     public ttl(key: string): Multi;
     public smembers(key: string): Multi;
     public srandmember(key: string): Multi;
-    public srem(key: string, val: string): Multi;
+    public srem(key: string, ...vals: string[]): Multi;
     public rpush(key: string, ...vals: string[]): Multi;
     public ltrim(key: string, start: number, end: number): Multi;
     public incr(key: string): Multi;

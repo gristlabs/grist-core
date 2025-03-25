@@ -47,6 +47,7 @@ import {DocManager} from 'app/server/lib/DocManager';
 import {getSqliteMode} from 'app/server/lib/DocStorage';
 import {DocWorker} from 'app/server/lib/DocWorker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import {DocWorkerMetadataManager} from 'app/server/lib/DocWorkerMetadataManager';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from 'app/server/lib/GoogleAuth';
@@ -164,6 +165,7 @@ export class FlexServer implements GristServer {
   private _telemetry: ITelemetry;
   private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
   private _docWorkerMap: IDocWorkerMap;
+  private _docWorkerMetadataManager?: DocWorkerMetadataManager;
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
   private _accessTokens: IAccessTokens;
@@ -1086,6 +1088,7 @@ export class FlexServer implements GristServer {
       if (this.worker) {
         await this._startServers(this.server, this.httpsServer, this.name, this.port, false);
         await this._addSelfAsWorker(this._docWorkerMap);
+        this._docWorkerMetadataManager?.start();
       }
       this._disabled = false;
     }
@@ -1423,6 +1426,12 @@ export class FlexServer implements GristServer {
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');
 
     if (!isSingleUserMode()) {
+      this._docWorkerMetadataManager = new DocWorkerMetadataManager(
+        this.worker,
+        this._docWorkerMap,
+        docManager
+      );
+      this._docWorkerMetadataManager.start();
       this._comm.registerMethods({
         openDoc:                  docManager.openDoc.bind(docManager),
       });
@@ -2151,6 +2160,7 @@ export class FlexServer implements GristServer {
 
     // We urgently want to disable any new assignments.
     await workers.setWorkerAvailability(this.worker.id, false);
+    await this._docWorkerMetadataManager?.stopAndFinish();
 
     // Enumerate the documents we are responsible for.
     let assignments = await workers.getAssignments(this.worker.id);

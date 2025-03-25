@@ -5,10 +5,16 @@ export interface IntervalOptions {
   onError: (e: unknown) => void;
 }
 
-export interface IntervalDelay {
-  // The base delay in milliseconds.
+type IntervalDelay = number | DelayOptions;
+
+interface DelayOptions {
+  /**
+   * The base delay in milliseconds.
+   */
   delayMs: number;
-  // If set, randomizes the base delay (per interval) by this amount of milliseconds.
+  /**
+   * If set, randomizes the base delay (per interval) by this amount of milliseconds.
+   */
   varianceMs?: number;
 }
 
@@ -20,8 +26,9 @@ export interface IntervalDelay {
  */
 export class Interval {
   private _timeout?: NodeJS.Timeout | null;
-  private _lastPendingCall?: Promise<unknown> | unknown;
-  private _timeoutDelay?: number;
+  private _inProgressCall?: Promise<unknown> | unknown | null;
+  private _rescheduledDelay?: IntervalDelay | null;
+  private _timeoutDelayMs?: number | null;
   private _stopped: boolean = true;
 
   constructor(
@@ -31,19 +38,22 @@ export class Interval {
   ) {}
 
   /**
-   * Sets the timeout and schedules the callback to be called on interval.
+   * Starts calling the callback on interval.
    */
   public enable(): void {
+    if (!this._stopped) {
+      return;
+    }
+
     this._stopped = false;
     this._setTimeout();
   }
 
   /**
-   * Clears the timeout and prevents the next call from being scheduled.
+   * Stops calling the callback on interval.
    *
-   * This method does not currently cancel any pending calls. See `disableAndFinish`
-   * for an async version of this method that supports waiting for the last pending
-   * call to finish.
+   * Note that this method does not cancel or wait for calls in progress. For a
+   * variant that awaits in progress calls, see `disableAndFinish`.
    */
   public disable(): void {
     this._stopped = true;
@@ -51,20 +61,32 @@ export class Interval {
   }
 
   /**
-   * Like `disable`, but also waits for the last pending call to finish.
+   * Stops calling the callback on interval and waits for calls in progress.
    */
   public async disableAndFinish(): Promise<void> {
     this.disable();
-    await this._lastPendingCall;
+    await this._inProgressCall;
+  }
+
+  /**
+   * Re-schedules the next call to occur immediately.
+   */
+  public scheduleImmediateCall(): void {
+    if (this._stopped) {
+      return;
+    }
+
+    this._rescheduledDelay = 0;
+    if (!this._inProgressCall) {
+      this._setTimeout();
+    }
   }
 
   /**
    * Gets the delay in milliseconds of the next scheduled call.
-   *
-   * Primarily useful for tests.
    */
-  public getDelayMs(): number | undefined {
-    return this._timeoutDelay;
+  public getDelayMs(): number | undefined | null {
+    return this._timeoutDelayMs;
   }
 
   private _clearTimeout() {
@@ -72,16 +94,26 @@ export class Interval {
 
     clearTimeout(this._timeout);
     this._timeout = null;
+    this._timeoutDelayMs = null;
   }
 
   private _setTimeout() {
     this._clearTimeout();
-    this._timeoutDelay = this._computeDelayMs();
-    this._timeout = setTimeout(() => this._onTimeoutTriggered(), this._timeoutDelay);
+    this._timeoutDelayMs = this._computeDelayMs();
+    this._timeout = setTimeout(() => this._onTimeoutTriggered(), this._timeoutDelayMs);
+    this._rescheduledDelay = null;
   }
 
   private _computeDelayMs() {
-    const {delayMs, varianceMs} = this._delay;
+    let delayMs: number;
+    let varianceMs: number | undefined;
+    const delay = this._rescheduledDelay ?? this._delay;
+    if (typeof delay === "number") {
+      delayMs = delay;
+    } else {
+      delayMs = delay.delayMs;
+      varianceMs = delay.varianceMs;
+    }
     if (varianceMs !== undefined) {
       // Randomize the delay by the specified amount of variance.
       const [min, max] = [delayMs - varianceMs, delayMs + varianceMs];
@@ -94,9 +126,11 @@ export class Interval {
   private async _onTimeoutTriggered() {
     this._clearTimeout();
     try {
-      await (this._lastPendingCall = this._callback());
+      await (this._inProgressCall = this._callback());
     } catch (e: unknown) {
       this._options.onError(e);
+    } finally {
+      this._inProgressCall = null;
     }
     if (!this._stopped) {
       this._setTimeout();

@@ -16,7 +16,7 @@ export type ILogMeta = log.ILogMeta;
 export class LogMethods<Info> {
   constructor(
     private _prefix: string,
-    private _getMeta: (info: Info) => log.ILogMeta,
+    private _getMeta?: (info: Info) => log.ILogMeta,
   ) {}
 
   public debug(info: Info, msg: string, ...args: any[]) { this.log('debug', info, msg, ...args); }
@@ -25,12 +25,15 @@ export class LogMethods<Info> {
   public error(info: Info, msg: string, ...args: any[]) { this.log('error', info, msg, ...args); }
 
   public log(level: string, info: Info, msg: string, ...args: any[]): void {
-    log.origLog(level, this._prefix + msg, ...args, this._getMeta(info));
+    if (this._getMeta) {
+      args.push(this._getMeta(info));
+    }
+    log.origLog(level, this._prefix + msg, ...args);
   }
 
   // Log with the given level, and include the provided log metadata in addition to that produced
   // by _getMeta(info).
   public rawLog(level: string, info: Info, msg: string, meta: ILogMeta): void {
-    log.origLog(level, this._prefix + msg, {...this._getMeta(info), ...meta});
+    log.origLog(level, this._prefix + msg, {...this._getMeta?.(info), ...meta});
   }
 }

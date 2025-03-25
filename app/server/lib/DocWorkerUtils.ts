@@ -1,12 +1,29 @@
 import {ApiError} from 'app/common/ApiError';
 import {parseSubdomainStrictly} from 'app/common/gristUrls';
-import {removeTrailingSlash} from 'app/common/gutil';
-import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import {clamp, removeTrailingSlash} from 'app/common/gutil';
+import {
+  DocStatus,
+  DocWorkerInfo,
+  DocWorkerLoad,
+  DocWorkerMemoryUsage,
+  IDocWorkerMap,
+} from 'app/server/lib/DocWorkerMap';
+import {getAssignmentId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {adaptServerUrl} from 'app/server/lib/requestUtils';
 import * as express from 'express';
+import {maxBy, sample} from 'lodash';
+import {freemem, totalmem} from 'node:os';
 import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
-import {getAssignmentId} from './idUtils';
+
+interface DocWorker {
+  id: string;
+  load: DocWorkerLoad | null;
+}
+
+interface DocWorkerWithScore extends DocWorker {
+  score: number;
+}
 
 /**
  * This method transforms a doc worker's public url as needed based on the request.
@@ -184,4 +201,63 @@ export async function getDocWorkerInfoOrSelfPrefix(
 // Return true if document related endpoints are served by separate workers.
 export function useWorkerPool() {
   return process.env.GRIST_SINGLE_PORT !== 'true';
+}
+
+/**
+ * Returns memory usage reported by the OS.
+ */
+export function getMemoryUsage(): DocWorkerMemoryUsage {
+  return {
+    freeMemoryMB: Math.floor(freemem() / (1024 * 1024)),
+    totalMemoryMB: Math.floor(totalmem() / (1024 * 1024)),
+  };
+}
+
+/**
+ * Returns an initial snapshot of load with default values set.
+ */
+export function getDefaultLoad(): DocWorkerLoad {
+  return {
+    ...getMemoryUsage(),
+    assignmentsCount: 0,
+    loadingDocsCount: 0,
+    unackedDocsCount: 0,
+  };
+}
+
+/**
+ * Returns the worker with the highest score.
+ *
+ * In the event of a tie, the first worker will be returned. If no worker
+ * has a positive score, a random worker will be returned.
+ *
+ * See `getWorkerScore` for the scoring algorithm implementation.
+ */
+export function pickWorker(workers: DocWorker[]): DocWorkerWithScore | undefined {
+  let worker: DocWorker | undefined;
+  if (workers.every((w) => getWorkerScore(w) === 0)) {
+    worker = sample(workers);
+  } else {
+    worker = maxBy(workers, (w) => getWorkerScore(w));
+  }
+  return worker ? { ...worker, score: getWorkerScore(worker) } : undefined;
+}
+
+/**
+ * Returns a number between 0.0 and 1.0 (inclusive) representing the capacity
+ * of a worker to handle additional load (i.e. open and manage a document).
+ *
+ * Returns 0.5 if load is not available.
+ */
+function getWorkerScore({ load }: DocWorker): number {
+  if (!load) {
+    return 0.5;
+  }
+
+  const { freeMemoryMB, totalMemoryMB, loadingDocsCount, unackedDocsCount } =
+    load;
+  const estimatedMemoryDeltaMB =
+    50 * (Math.max(loadingDocsCount, 0) + Math.max(unackedDocsCount, 0));
+  const usedMemoryMB = totalMemoryMB - freeMemoryMB + estimatedMemoryDeltaMB;
+  return clamp(1 - usedMemoryMB / totalMemoryMB, 0.0, 1.0);
 }

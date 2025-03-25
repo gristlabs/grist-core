@@ -34,6 +34,49 @@ export interface DocStatus {
   isActive: boolean;
 }
 
+export interface DocWorkerMemoryUsage {
+  /**
+   * Amount of free memory reported by the OS, in MB.
+   */
+  freeMemoryMB: number;
+  /**
+   * Amount of total memory reported by the OS, in MB.
+   */
+  totalMemoryMB: number;
+}
+
+export interface DocWorkerLoad extends DocWorkerMemoryUsage {
+  /**
+   * Number of docs that are currently assigned to the worker.
+   */
+  assignmentsCount: number;
+  /**
+   * Number of docs that are currently loading and not yet reflected in
+   * `freeMemoryMB`.
+   */
+  loadingDocsCount: number;
+  /**
+   * Number of docs not yet acknowledged by the worker (i.e. in the process of loading).
+   */
+  unackedDocsCount: number;
+}
+
+export interface DocWorkerLoadUpdate {
+  /**
+   * Amount of free memory reported by the OS, in MB.
+   */
+  freeMemoryMB?: number;
+  /**
+   * The amount to increment or decrement the number of docs that are currently
+   * loading and not yet reflected in `freeMemoryMB`.
+   */
+  loadingDocsCountDelta?: number;
+  /**
+   * IDs of documents acknowledged by a worker (i.e. in the process of loading).
+   */
+  ackedDocIds?: string[];
+}
+
 /**
  * Assignment of documents to workers, and other storage related to distributed work.
  */
@@ -56,6 +99,8 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
   // Set whether worker is accepting new assignments.  This does not automatically
   // release existing assignments.
   setWorkerAvailability(workerId: string, available: boolean): Promise<void>;
+
+  updateWorkerLoad(workerId: string, load: DocWorkerLoadUpdate): Promise<void>;
 
   isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean>;
 

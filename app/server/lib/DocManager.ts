@@ -532,9 +532,9 @@ export class DocManager extends EventEmitter {
    */
   public async createNewEmptyDoc(docSession: OptDocSession, basenameHint: string): Promise<ActiveDoc> {
     const docName = await this._createNewDoc(basenameHint);
-    return mapSetOrClear(this._activeDocs, docName,
-                         this._createActiveDoc(docSession, docName)
-                         .then(newDoc => newDoc.createEmptyDoc(docSession)));
+    return this._setOrClearActiveDoc(docSession, docName, (activeDoc) =>
+      activeDoc.createEmptyDoc(docSession)
+    );
   }
 
   /**
@@ -588,16 +588,20 @@ export class DocManager extends EventEmitter {
     }
     let activeDoc: ActiveDoc;
     if (!this._activeDocs.has(docName)) {
-      activeDoc = await mapSetOrClear(
-        this._activeDocs, docName,
-        this._createActiveDoc(docSession, docName, wantRecoveryMode ?? this._inRecovery.get(docName))
-          .then(newDoc => {
-            // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
-            newDoc.on('backupMade', (bakPath: string) => {
-              this.emit('backupMade', bakPath);
+      activeDoc = await this._setOrClearActiveDoc(
+        docSession,
+        docName,
+        (newDoc) => {
+          // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
+          newDoc.on('backupMade', (bakPath: string) => {
+            this.emit('backupMade', bakPath);
             });
-            return newDoc.loadDoc(docSession);
-          }));
+          return newDoc.loadDoc(docSession);
+        },
+        {
+          safeMode: wantRecoveryMode ?? this._inRecovery.get(docName),
+        }
+      );
     } else {
       activeDoc = await this._activeDocs.get(docName)!;
     }
@@ -645,6 +649,33 @@ export class DocManager extends EventEmitter {
         throw e;
       }
     }
+  }
+
+  private async _setOrClearActiveDoc(
+    docSession: OptDocSession,
+    docName: string,
+    onCreate: (activeDoc: ActiveDoc) => Promise<ActiveDoc>,
+    options: {
+      safeMode?: boolean;
+    } = {}
+  ) {
+    const {safeMode} = options;
+    this.emit("beforeadd", docName);
+    return mapSetOrClear(
+      this._activeDocs,
+      docName,
+      this._createActiveDoc(docSession, docName, safeMode).then((activeDoc) =>
+        onCreate(activeDoc)
+          .then(() => {
+            this.emit("add", docName);
+            return activeDoc;
+          })
+          .catch((error) => {
+            this.emit("error", error);
+            throw error;
+          })
+      )
+    );
   }
 
   private async _createActiveDoc(docSession: OptDocSession, docName: string, safeMode?: boolean) {

@@ -1,10 +1,12 @@
 import {MapWithTTL} from 'app/common/AsyncCreate';
 import * as version from 'app/common/version';
-import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import {DocStatus, DocWorkerInfo, DocWorkerLoad, DocWorkerLoadUpdate, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import {getDefaultLoad, pickWorker} from 'app/server/lib/DocWorkerUtils';
 import log from 'app/server/lib/log';
 import {checkPermitKey, formatPermitKey, IPermitStore, Permit} from 'app/server/lib/Permit';
 import {promisifyAll} from 'bluebird';
 import mapValues = require('lodash/mapValues');
+import zip = require('lodash/zip');
 import {createClient, Multi, RedisClient} from 'redis';
 import Redlock from 'redlock';
 import {v4 as uuidv4} from 'uuid';
@@ -63,6 +65,10 @@ class DummyDocWorkerMap implements IDocWorkerMap {
 
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
     this._available = available;
+  }
+
+  public async updateWorkerLoad(workerId: string, load: DocWorkerLoadUpdate): Promise<void> {
+    // nothing to do
   }
 
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
@@ -167,6 +173,8 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  *   worker-{workerId} - a hash of contact information for a worker
  *   worker-{workerId}-docs - a set of docs assigned to a worker, identified by docId
  *   worker-{workerId}-group - if set, marks the worker as serving a particular group
+ *   worker-{workerId}-load - a hash of load information (e.g. memory usage) for a worker
+ *   worker-{workerId}-load-unacked-docs - subset of docs not yet acknowledged by a worker
  *   doc-${docId} - a hash containing (JSON serialized) DocStatus fields, other than docMD5.
  *   doc-${docId}-checksum - the docs docMD5, or 'null' if docMD5 is null
  *   doc-${docId}-group - if set, marks the doc as to be served by workers in a given group
@@ -210,7 +218,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       await this._client.hmsetAsync(`worker-${info.id}`, info);
       // Add this worker to set of workers (but don't make it available for work yet).
       await this._client.saddAsync('workers', info.id);
-
+      await this._client.hmsetAsync(`worker-${info.id}-load`, getDefaultLoad());
       if (info.group) {
         // Accept work only for a specific group.
         // Do not accept work not associated with the specified group.
@@ -286,6 +294,8 @@ export class DocWorkerMap implements IDocWorkerMap {
       // Now remove worker-{workerId}* keys.
       await this._client.delAsync(`worker-${workerId}-docs`);
       await this._client.delAsync(`worker-${workerId}-group`);
+      await this._client.delAsync(`worker-${workerId}-load`);
+      await this._client.delAsync(`worker-${workerId}-load-unacked-docs`);
       await this._client.delAsync(`worker-${workerId}`);
 
       // Forget about this worker completely.
@@ -313,6 +323,22 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
+  public async updateWorkerLoad(workerId: string, load: DocWorkerLoadUpdate): Promise<void> {
+    log.info(`DocWorkerMap.updateWorkerLoad ${workerId}`, load);
+    const {freeMemoryMB, loadingDocsCountDelta, ackedDocIds} = load;
+    const multi = this._client.multi();
+    if (freeMemoryMB) {
+      multi.hset(`worker-${workerId}-load`, 'freeMemoryMB', `${freeMemoryMB}`);
+    }
+    if (loadingDocsCountDelta) {
+      multi.hincrby(`worker-${workerId}-load`, 'loadingDocsCount', loadingDocsCountDelta);
+    }
+    if (ackedDocIds && ackedDocIds.length > 0) {
+      multi.srem(`worker-${workerId}-load-unacked-docs`, ...ackedDocIds);
+    }
+    await multi.execAsync();
+  }
+
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
     const group = workerInfo.group || DEFAULT_GROUP;
     return Boolean(await this._client.sismemberAsync(`workers-available-${group}`, workerInfo.id));
@@ -322,6 +348,8 @@ export class DocWorkerMap implements IDocWorkerMap {
     const op = this._client.multi();
     op.del(`doc-${docId}`);
     op.srem(`worker-${workerId}-docs`, docId);
+    op.hincrby(`worker-${workerId}-load`, 'assignmentsCount', -1);
+    op.srem(`worker-${workerId}-load-unacked-docs`, docId);
     await op.execAsync();
   }
 
@@ -364,7 +392,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (docId === 'import') {
       const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
       try {
-        const _workerId = await this._client.srandmemberAsync(`workers-available-${DEFAULT_GROUP}`);
+        const _workerId = await this._getAvailableWorkerId(DEFAULT_GROUP);
         if (!_workerId) { throw new Error('no doc worker available'); }
         const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo|null;
         if (!docWorker) { throw new Error('no doc worker contact info available'); }
@@ -398,8 +426,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         const group = await this._client.getAsync(`doc-${docId}-group`) || DEFAULT_GROUP;
 
         // Let's start off by assigning documents to available workers randomly.
-        // TODO: use a smarter algorithm.
-        workerId = await this._client.srandmemberAsync(`workers-available-${group}`) || undefined;
+        workerId = await this._getAvailableWorkerId(group);
         if (!workerId) {
           // No workers available in the desired worker group.  Rather than refusing to
           // open the document, we fall back on assigning a worker from any of the workers
@@ -433,6 +460,8 @@ export class DocWorkerMap implements IDocWorkerMap {
           isActive: JSON.stringify(true)         // redis can't store booleans, strings only
         })
         .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
+        .hincrby(`worker-${workerId}-load`, 'assignmentsCount', 1)
+        .sadd(`worker-${workerId}-load-unacked-docs`, docId)
         .execAsync();
       if (!result) { throw new Error('failed to store new assignment'); }
       return newDocStatus;
@@ -572,6 +601,45 @@ export class DocWorkerMap implements IDocWorkerMap {
     const checksum = (props?.[1] === 'null' ? null : props?.[1]) || null;
     if (doc) { doc.docMD5 = checksum; }  // the checksum goes in the DocStatus too.
     return {doc, checksum};
+  }
+
+  private async _getAvailableWorkerId(group: string): Promise<string|undefined> {
+    const key = `workers-available-${group}`;
+    const ids = await this._client.smembersAsync(key);
+    const [loads, unackedDocsCounts] = await Promise.all([
+      Promise.all(
+        ids.map((id) => this._client.hgetallAsync(`worker-${id}-load`))
+      ),
+      Promise.all(
+        ids.map((id) =>
+          this._client.scardAsync(`worker-${id}-load-unacked-docs`)
+        )
+      ),
+    ]);
+    const workers = zip(ids, loads, unackedDocsCounts).map(
+      ([id, load, unackedDocsCount]) => {
+        if (load) {
+          load.freeMemoryMB = Number(load.freeMemoryMB);
+          load.totalMemoryMB = Number(load.totalMemoryMB);
+          load.assignmentsCount = Number(load.assignmentsCount);
+          load.loadingDocsCount = Number(load.loadingDocsCount);
+          load.unackedDocsCount = unackedDocsCount ?? undefined;
+        }
+        return {
+          id: id as string,
+          load: load as DocWorkerLoad | null,
+        };
+      }
+    );
+    log.info('DocWorkerMap._getAvailableWorkerId available workers', workers);
+    const worker = pickWorker(workers);
+    if (worker) {
+      log.info(
+        `DocWorkerMap._getAvailableWorkerId picked worker ${worker.id}`,
+        worker
+      );
+    }
+    return worker?.id;
   }
 }
 
