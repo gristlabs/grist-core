@@ -254,7 +254,7 @@ const defaultPopupOptions = {
       offset: '0,12',
     },
     preventOverflow: {
-      boundariesElement: 'window',
+      boundariesElement: 'viewport',
       padding: 32,
     },
     computeStyle: {
