@@ -7,7 +7,8 @@ import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
-import {buildAdminData, buildLeftPanel} from 'app/client/ui/AdminControls';
+import {buildAdminData} from 'app/client/ui/AdminControls';
+import {buildAdminLeftPanel} from 'app/client/ui/AdminLeftPanel';
 import {AdminSection, AdminSectionItem, cssValueLabel, HidableToggle} from 'app/client/ui/AdminPanelCss';
 import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 import {AuditLogStreamingConfig, getDestinationDisplayName} from 'app/client/ui/AuditLogStreamingConfig';
@@ -27,36 +28,23 @@ import {InstallAPI, InstallAPIImpl, LatestVersion} from 'app/common/InstallAPI';
 import {naturalCompare} from 'app/common/SortFunc';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
-import {Computed, Disposable, dom, IDisposable, IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled} from 'grainjs';
 
 const t = makeT('AdminPanel');
 
 export class AdminPanel extends Disposable {
-  private _supportGrist = SupportGristPage.create(this, this._appModel);
-  private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
-  private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
-  private _checks: AdminChecks;
-  private _page: Observable<AdminPanelPage> = Observable.create(this, 'admin');
+  private _page = Computed.create<AdminPanelPage>(this, (use) => use(urlState().state).adminPanel || 'admin');
 
   constructor(private _appModel: AppModel) {
     super();
-    document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
-    this._checks = new AdminChecks(this, this._installAPI);
-
-    this._page = Computed.create(this, (use) => {
-      return use(urlState().state).adminPanel || 'admin';
-    });
   }
 
   public buildDom() {
-    this._checks.fetchAvailableChecks().catch(err => {
-      reportError(err);
-    });
     return pagePanels({
-      leftPanel: buildLeftPanel(this, this._appModel),
+      leftPanel: buildAdminLeftPanel(this, this._appModel),
       headerMain: this._buildMainHeader(),
       contentTop: buildHomeBanners(this._appModel),
-      contentMain: dom.create(this._buildMainContent.bind(this)),
+      contentMain: this._buildMainContent(),
     });
   }
 
@@ -75,24 +63,17 @@ export class AdminPanel extends Disposable {
     );
   }
 
-  private _buildMainContent(owner: MultiHolder) {
-    // If probes are available, show the panel as normal.
-    // Otherwise say it is unavailable, and describe a fallback
-    // mechanism for access.
+  private _buildMainContent() {
     return cssPageContainer(
       // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
       // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
       // because it messes with focus in GridViews, and its unclear how to undo its effect.
       dom.attr('tabindex', use => use(this._page) === 'admin' ? '-1' : null as any),
 
-      dom.maybe(use => use(this._page) === 'admin' && use(this._checks.probes), (probes) => [
-        (probes as any[]).length > 0
-            ? this._buildMainContentForAdmin(owner)
-            : this._buildMainContentForOthers(owner)
-      ]),
-
-      dom.maybe(use => use(this._page) !== 'admin', () => {
-        return dom.create(buildAdminData, this._appModel);
+      dom.domComputed(use => use(this._page) === 'admin', (isInstallationAdminPage) => {
+        return isInstallationAdminPage ?
+          dom.create(AdminInstallationPanel, this._appModel) :
+          dom.create(buildAdminData, this._appModel);
       }),
 
       cssPageContainer.cls('-admin-pages', use => use(this._page) !== 'admin'),
@@ -100,12 +81,40 @@ export class AdminPanel extends Disposable {
       testId('admin-panel'),
     );
   }
+}
+
+class AdminInstallationPanel extends Disposable {
+  private _supportGrist = SupportGristPage.create(this, this._appModel);
+  private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
+  private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
+  private _checks: AdminChecks;
+
+  constructor(private _appModel: AppModel) {
+    super();
+    document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
+    this._checks = new AdminChecks(this, this._installAPI);
+  }
+
+  public buildDom() {
+    this._checks.fetchAvailableChecks().catch(err => {
+      reportError(err);
+    });
+
+    // If probes are available, show the panel as normal.
+    // Otherwise say it is unavailable, and describe a fallback
+    // mechanism for access.
+    return dom.maybe(use => use(this._checks.probes), (probes) => [
+      (probes as any[]).length > 0
+      ? this._buildMainContentForAdmin()
+      : this._buildMainContentForOthers()
+    ]);
+  }
 
   /**
    * Show something helpful to those without access to the panel,
    * which could include a legit administrator if auth is misconfigured.
    */
-  private _buildMainContentForOthers(owner: MultiHolder) {
+  private _buildMainContentForOthers() {
     const exampleKey = _longCodeForExample();
     return dom.create(AdminSection, t('Administrator Panel Unavailable'), [
       dom('p', t(`You do not have access to the administrator panel.
@@ -121,7 +130,7 @@ Please log in as an administrator.`)),
     ]);
   }
 
-  private _buildMainContentForAdmin(owner: MultiHolder) {
+  private _buildMainContentForAdmin() {
     return [
       dom.create(AdminSection, t('Support Grist'), [
         dom.create(AdminSectionItem, {
@@ -144,22 +153,22 @@ Please log in as an administrator.`)),
           id: 'sandboxing',
           name: t('Sandboxing'),
           description: t('Sandbox settings for data engine'),
-          value: this._buildSandboxingDisplay(owner),
+          value: this._buildSandboxingDisplay(),
           expandedContent: this._buildSandboxingNotice(),
         }),
         dom.create(AdminSectionItem, {
           id: 'authentication',
           name: t('Authentication'),
           description: t('Current authentication method'),
-          value: this._buildAuthenticationDisplay(owner),
-          expandedContent: this._buildAuthenticationNotice(owner),
+          value: this._buildAuthenticationDisplay(),
+          expandedContent: this._buildAuthenticationNotice(),
         }),
         dom.create(AdminSectionItem, {
           id: 'session',
           name: t('Session Secret'),
           description: t('Key to sign sessions with'),
-          value: this._buildSessionSecretDisplay(owner),
-          expandedContent: this._buildSessionSecretNotice(owner),
+          value: this._buildSessionSecretDisplay(),
+          expandedContent: this._buildSessionSecretNotice(),
         })
       ]),
       this._buildAuditLogsSection(),
@@ -171,10 +180,10 @@ Please log in as an administrator.`)),
           value: cssValueLabel(`Version ${version.version}`),
         }),
         this._maybeAddEnterpriseToggle(),
-        this._buildUpdates(owner),
+        dom.create(this._buildUpdates.bind(this)),
       ]),
       dom.create(AdminSection, t('Self Checks'), [
-        this._buildProbeItems(owner, {
+        this._buildProbeItems({
           showRedundant: false,
           showNovel: true,
         }),
@@ -183,7 +192,7 @@ Please log in as an administrator.`)),
           name: 'more...',
           description: '',
           value: '',
-          expandedContent: this._buildProbeItems(owner, {
+          expandedContent: this._buildProbeItems({
             showRedundant: true,
             showNovel: false,
           }),
@@ -214,7 +223,7 @@ Please log in as an administrator.`)),
     });
   }
 
-  private _buildSandboxingDisplay(owner: IDisposableOwner) {
+  private _buildSandboxingDisplay() {
     return dom.domComputed(
       use => {
         const req = this._checks.requestCheckById(use, 'sandboxing');
@@ -251,7 +260,7 @@ Please log in as an administrator.`)),
     ];
   }
 
-  private _buildAuthenticationDisplay(owner: IDisposableOwner) {
+  private _buildAuthenticationDisplay() {
     return dom.domComputed(
       use => {
         const req = this._checks.requestCheckById(use, 'authentication');
@@ -277,13 +286,13 @@ Please log in as an administrator.`)),
     );
   }
 
-  private _buildAuthenticationNotice(owner: IDisposableOwner) {
+  private _buildAuthenticationNotice() {
     return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
 We recommend enabling one of these if Grist is accessible over the network or being made available \
 to multiple people.');
   }
 
-  private _buildSessionSecretDisplay(owner: IDisposableOwner) {
+  private _buildSessionSecretDisplay() {
     return dom.domComputed(
       use => {
         const req = this._checks.requestCheckById(use, 'session-secret');
@@ -298,7 +307,7 @@ to multiple people.');
     );
   }
 
-  private _buildSessionSecretNotice(owner: IDisposableOwner) {
+  private _buildSessionSecretNotice() {
     return t('Grist signs user session cookies with a secret key. Please set this key via the environment variable \
 GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.');
@@ -528,7 +537,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
    * "redundant" (already covered elsewhere in the Admin Panel) and the
    * remainder are "novel".
    */
-  private _buildProbeItems(owner: MultiHolder, options: {
+  private _buildProbeItems(options: {
     showRedundant: boolean,
     showNovel: boolean,
   }) {
@@ -543,7 +552,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
           const req = this._checks.requestCheck(probe);
-          return this._buildProbeItem(owner, req.probe, use(req.result), req.details);
+          return this._buildProbeItem(req.probe, use(req.result), req.details);
         }),
       ]
     );
@@ -552,8 +561,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
   /**
    * Show the result of an individual check.
    */
-  private _buildProbeItem(owner: MultiHolder,
-                          info: BootProbeInfo,
+  private _buildProbeItem(info: BootProbeInfo,
                           result: BootProbeResult,
                           details: ProbeDetails|undefined) {
 

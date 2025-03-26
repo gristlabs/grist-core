@@ -102,7 +102,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
     featureComments: isAffirmative(process.env.COMMENTS),
-    featureAdminControls: isAffirmative(process.env.GRIST_TEST_ENABLE_ADMIN_CONTROLS),
     featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY ||
       process.env.ASSISTANT_API_KEY  ||
       process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT),

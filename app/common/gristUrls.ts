@@ -102,6 +102,7 @@ export const commonUrls = {
   helpSandboxing: "https://support.getgrist.com/self-managed/#how-do-i-sandbox-documents",
   helpAPI: 'https://support.getgrist.com/api',
   helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
+  helpAdminControls: "https://support.getgrist.com/admin-controls",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
@@ -901,9 +902,6 @@ export interface GristLoadConfig {
 
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
-
-  // If there are any admin tools available.
-  featureAdminControls?: boolean;
 }
 
 export const Features = StringUnion(

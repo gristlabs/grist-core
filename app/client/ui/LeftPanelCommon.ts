@@ -156,6 +156,9 @@ export const cssPageLink = styled('a', `
     outline: none;
     color: inherit;
   }
+  &:not([href]) {
+    cursor: default;
+  }
   .${cssTools.className}-collapsed & {
     padding-left: 16px;
   }

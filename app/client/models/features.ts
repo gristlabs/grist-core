@@ -33,7 +33,3 @@ export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {
   }
   return G.window.PERMITTED_CUSTOM_WIDGETS;
 }
-
-export function GRIST_TEST_ENABLE_ADMIN_CONTROLS() {
-  return Boolean(getGristConfig().featureAdminControls);
-}
