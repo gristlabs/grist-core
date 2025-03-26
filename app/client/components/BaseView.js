@@ -271,6 +271,10 @@ BaseView.prototype.deleteRows = function(rowIds) {
 };
 
 BaseView.prototype.deleteRecords = function(source) {
+  if (this.gristDoc.isReadonly.get()) {
+    return;
+  }
+
   const rowIds = this.selectedRows();
   if (this.viewSection.disableAddRemoveRows() || rowIds.length === 0){
     return;
@@ -444,6 +448,10 @@ BaseView.prototype.filterByThisCellValue = function() {
  * insert a new row at the end.
  */
 BaseView.prototype.insertRow = function(index) {
+  if (this.gristDoc.isReadonly.get()) {
+    return;
+  }
+
   if (this.viewSection.disableAddRemoveRows() || this.disableEditing()) {
     return;
   }
@@ -520,6 +528,10 @@ BaseView.prototype.sendTableAction = function(action, optDesc) {
  *    for Date columns (assumed false) and for DateTime (assumed true).
  */
 BaseView.prototype.insertCurrentDate = function(withTime) {
+  if (this.gristDoc.isReadonly.get()) {
+    return;
+  }
+
   let column = this.currentColumn();
   if (column.isRealFormula()) {
     // Ignore the shortcut when in a formula column.
@@ -788,9 +800,14 @@ BaseView.prototype._getRowInsertPos = function(index, numInserts) {
  * Duplicates selected row(s) and returns inserted rowIds
  */
 BaseView.prototype._duplicateRows = async function() {
-  if (this.viewSection.disableAddRemoveRows() || this.disableEditing()) {
+  if (
+    this.gristDoc.isReadonly.get() ||
+    this.viewSection.disableAddRemoveRows() ||
+    this.disableEditing()
+  ) {
     return;
   }
+
   // Get current selection (we need only rowIds).
   const selection = this.getSelection();
   const rowIds = selection.rowIds;

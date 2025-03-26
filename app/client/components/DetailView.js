@@ -490,6 +490,10 @@ DetailView.prototype.scrollToCursor = function(sync = true) {
 
 DetailView.prototype._duplicateRows = async function() {
   const addRowIds = await BaseView.prototype._duplicateRows.call(this);
+  if (!addRowIds || addRowIds.length === 0) {
+    return;
+  }
+
   this.setCursorPos({rowId: addRowIds[0]})
 }
 
@@ -511,6 +515,10 @@ DetailView.prototype._canSingleClick = function(field) {
 };
 
 DetailView.prototype._clearCardFields = function() {
+  if (this.gristDoc.isReadonly.get()) {
+    return;
+  }
+
   const selection = this.getSelection();
   const isFormula = Boolean(selection.fields[0]?.column.peek().isRealFormula.peek());
   if (isFormula) {

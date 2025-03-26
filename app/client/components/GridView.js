@@ -292,6 +292,8 @@ GridView.selectionCommands = {
   cancel: function() { this.clearSelection(); }
 }
 
+// TODO: move commands with modifications to gridEditCommands and use a single guard for
+// readonly state.
 GridView.gridCommands = {
   cursorDown: function() {
     if (this.cursor.rowIndex() === this.viewData.peekLength - 1) {
@@ -340,33 +342,12 @@ GridView.gridCommands = {
   fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
   editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
-
-  insertFieldBefore: function(maybeKeyboardEvent) {
-    if (!maybeKeyboardEvent) {
-      this._openInsertColumnMenu(this.cursor.fieldIndex());
-    } else {
-      this.insertColumn(null, {index: this.cursor.fieldIndex()});
-    }
-  },
-  insertFieldAfter: function(maybeKeyboardEvent) {
-    if (!maybeKeyboardEvent) {
-      this._openInsertColumnMenu(this.cursor.fieldIndex() + 1);
-    } else {
-      this.insertColumn(null, {index: this.cursor.fieldIndex() + 1});
-    }
-  },
+  insertFieldBefore: function(event) { this._insertField(event, this.cursor.fieldIndex()); },
+  insertFieldAfter: function(event) { this._insertField(event, this.cursor.fieldIndex() + 1); },
   makeHeadersFromRow: function() { this.makeHeadersFromRow(this.getSelection()); },
   renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
   hideFields: function() { this.hideFields(this.getSelection()); },
-  deleteFields: function() {
-    const selection = this.getSelection();
-    const count = selection.colIds.length;
-    this.deleteColumns(selection).then((result) => {
-      if (result !== false) {
-        reportUndo(this.gristDoc, `You deleted ${count} column${count > 1 ? 's' : ''}.`);
-      }
-    });
-  },
+  deleteFields: function() { this._deleteFields(); },
   clearValues: function() { this.clearValues(this.getSelection()); },
   clearColumns: function() { this._clearColumns(this.getSelection()); },
   convertFormulasToData: function() { this._convertFormulasToData(this.getSelection()); },
@@ -983,6 +964,10 @@ GridView.prototype.deleteColumns = function(selection) {
 };
 
 GridView.prototype.hideFields = function(selection) {
+  if (this.gristDoc.isReadonly.get()) {
+    return;
+  }
+
   var actions = selection.fields.map(field => ['RemoveRecord', field.id()]);
   return this.gristDoc.docModel.viewFields.sendTableActions(actions, `Hide columns ${actions.map(a => a[1]).join(', ')} ` +
   `from ${this.tableModel.tableData.tableId}.`);
@@ -2027,6 +2012,10 @@ GridView.prototype.scrollToCursor = function(sync = true) {
 
 GridView.prototype._duplicateRows = async function() {
   const addRowIds = await BaseView.prototype._duplicateRows.call(this);
+  if (!addRowIds || addRowIds.length === 0) {
+    return;
+  }
+
   // Highlight duplicated rows if the grid is not sorted (or the sort doesn't affect rowIndex).
   const topRowIndex = this.viewData.getRowIndex(addRowIds[0]);
   // Set row on the first record added.
@@ -2151,6 +2140,32 @@ GridView.prototype._openInsertColumnMenu = function(columnIndex) {
     this.scrollPaneRight();
     this._insertColumnIndex(-1);
   }
+}
+
+GridView.prototype._insertField = function(event, index) {
+  if (this.gristDoc.isReadonly.get()) {
+    return;
+  }
+
+  if (!event) {
+    this._openInsertColumnMenu(index);
+  } else {
+    this.insertColumn(null, {index});
+  }
+}
+
+GridView.prototype._deleteFields = function() {
+  if (this.gristDoc.isReadonly.get()) {
+    return;
+  }
+
+  const selection = this.getSelection();
+  const count = selection.colIds.length;
+  this.deleteColumns(selection).then((result) => {
+    if (result !== false) {
+      reportUndo(this.gristDoc, `You deleted ${count} column${count > 1 ? 's' : ''}.`);
+    }
+  });
 }
 
 function buildStyleOption(owner, computedRule, optionName) {
