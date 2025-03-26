@@ -2,8 +2,8 @@ import { delay } from 'app/common/delay';
 import log from 'app/server/lib/log';
 import { Throttle } from 'app/server/lib/Throttle';
 
-import pidusage from '@gristlabs/pidusage';
 import * as childProcess from 'child_process';
+import pidusage from 'pidusage';
 import * as util from 'util';
 
 const execFile = util.promisify(childProcess.execFile);
