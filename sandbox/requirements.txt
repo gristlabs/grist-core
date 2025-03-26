@@ -36,9 +36,8 @@ python-dateutil==2.8.2
     # via -r core/sandbox/requirements.in
 roman==3.3
     # via -r core/sandbox/requirements.in
-six==1.16.0
+six==1.17.0
     # via
-    #   -r core/sandbox/requirements.in
     #   asttokens
     #   friendly-traceback
     #   python-dateutil
