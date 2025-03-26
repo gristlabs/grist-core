@@ -177,7 +177,8 @@ export class AttachmentFileManager extends EventEmitter {
 
     // Try to use the store the file was originally uploaded to, if it's available.
     const originalStoreId = fileMetadata.storageId;
-    const originalStoreStillExists = !!originalStoreId && this._getStoreProvider().listAllStoreIds().includes(originalStoreId);
+    const originalStoreStillExists =
+      !!originalStoreId && this._getStoreProvider().listAllStoreIds().includes(originalStoreId);
     const destinationStoreId = originalStoreStillExists ? originalStoreId : defaultStoreId;
     const destinationStore = destinationStoreId && await this._getStore(destinationStoreId) || undefined;
 
