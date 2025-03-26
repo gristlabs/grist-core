@@ -6,6 +6,7 @@ import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminCh
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
+import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
 import {buildAdminData, buildLeftPanel} from 'app/client/ui/AdminControls';
 import {AdminSection, AdminSectionItem, cssValueLabel, HidableToggle} from 'app/client/ui/AdminPanelCss';
 import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
@@ -192,6 +193,11 @@ Please log in as an administrator.`)),
   }
 
   private _maybeAddEnterpriseToggle() {
+
+    if (!showEnterpriseToggle()) {
+      return null;
+    }
+
     let makeToggle = () => dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable());
 
     // If the enterprise edition is forced, we don't show the toggle.
