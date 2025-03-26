@@ -12,6 +12,7 @@ export interface ICellContextMenu {
   disableDelete: boolean;
   isViewSorted: boolean;
   numRows: number;
+  disableAnchorLink?: boolean;
 }
 
 export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMultiColumnContextMenu) {
@@ -49,7 +50,10 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
     ...(
       (numColumns > 1 || numRows > 1) ? [] : [
         menuDivider(),
-        menuItemCmd(allCommands.copyLink, t("Copy anchor link")),
+        menuItemCmd(allCommands.copyLink,
+          t("Copy anchor link"),
+          dom.cls('disabled', cellOptions.disableAnchorLink ?? false)
+        ),
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
         menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (

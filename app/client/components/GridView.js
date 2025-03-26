@@ -1962,12 +1962,15 @@ GridView.prototype._getRowContextMenuOptions = function() {
   return {
     ...this._getCellContextMenuOptions(),
     disableShowRecordCard: this.isRecordCardDisabled(),
+    disableAnchorLink: this.viewSection.isVirtual(),
+
   };
 };
 
 GridView.prototype.isRecordCardDisabled = function() {
   return BaseView.prototype.isRecordCardDisabled.call(this) ||
-    this.getSelection().onlyAddRowSelected();
+    this.getSelection().onlyAddRowSelected() ||
+    this.viewSection.isVirtual();
 }
 
 GridView.prototype.cellContextMenu = function() {
@@ -1999,6 +2002,7 @@ GridView.prototype._getCellContextMenuOptions = function() {
       this.getSelection().onlyAddRowSelected() ||
       this.viewSection.table().summarySourceTable() !== 0
     ),
+    disableAnchorLink: this.viewSection.isVirtual(),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
     numRows: this.getSelection().rowIds.length,
   };

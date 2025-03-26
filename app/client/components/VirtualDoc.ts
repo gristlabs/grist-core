@@ -667,16 +667,17 @@ export class VirtualSection extends Disposable {
       }));
     }
 
+    // The viewInstance is already created, now we can override some commands.
+    // Commands disabled in the menus, but still runnable with keyboard shortcuts.
     this.autoDispose(commands.createGroup({
+      copyLink: () => {},
       viewAsCard: (ev?: Event) => {
         props.onCard?.(viewSectionRec.viewInstance.peek()?.cursor.getCursorPos().rowId);
         if (ev instanceof KeyboardEvent) {
           ev.stopPropagation();
           ev.preventDefault();
         }
-
         this._doc.app?.trigger('clipboard_focus', null);
-
         return true;
       }
     }, this, viewSectionRec.hasFocus));

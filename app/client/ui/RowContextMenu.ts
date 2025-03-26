@@ -12,6 +12,7 @@ export interface IRowContextMenu {
   disableShowRecordCard: boolean;
   isViewSorted: boolean;
   numRows: number;
+  disableAnchorLink?: boolean;
 }
 
 export function RowContextMenu({
@@ -19,6 +20,7 @@ export function RowContextMenu({
   disableDelete,
   disableMakeHeadersFromRow,
   disableShowRecordCard,
+  disableAnchorLink,
   isViewSorted,
   numRows
 }: IRowContextMenu) {
@@ -66,6 +68,8 @@ export function RowContextMenu({
   );
   result.push(
     menuDivider(),
-    menuItemCmd(allCommands.copyLink, t("Copy anchor link")));
+    menuItemCmd(allCommands.copyLink, t("Copy anchor link"),
+      dom.cls('disabled', disableAnchorLink ?? false)),
+  );
   return result;
 }
