@@ -43,7 +43,13 @@ import {
   TableOperationsImpl,
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
-import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {
+  ActiveDoc,
+  ArchiveUploadResult,
+  colIdToRef as colIdToReference,
+  getRealTableId,
+  tableIdToRef
+} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {sendForCompletion} from 'app/server/lib/Assistance';
@@ -99,8 +105,10 @@ import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
 import {getDocSessionShare} from "app/server/lib/sessionUtils";
 import {isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
-import {fetchDoc, globalUploadSet, handleOptionalUpload, handleUpload,
-        makeAccessId} from "app/server/lib/uploads";
+import {
+  fetchDoc, globalUploadSet, handleOptionalUpload, handleUpload,
+  makeAccessId, parseMultipartFormRequest,
+} from "app/server/lib/uploads";
 import * as assert from 'assert';
 import contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
@@ -575,7 +583,7 @@ export class DocWorkerApi {
     );
 
     // Responds with an archive of all attachment contents, with suitable Content-Type and Content-Disposition.
-    this._app.get('/api/docs/:docId/attachments/download', canView, withDoc(async (activeDoc, req, res) => {
+    this._app.get('/api/docs/:docId/attachments/archive', canView, withDoc(async (activeDoc, req, res) => {
       const archiveFormatStr = optStringParam(req.query.format, 'format', {
         allowed: CreatableArchiveFormats.values,
         allowEmpty: true,
@@ -593,6 +601,34 @@ export class DocWorkerApi {
         .set('Cache-Control', 'no-store');
 
       archive.dataStream.pipe(res);
+    }));
+
+    this._app.post('/api/docs/:docId/attachments/archive', isOwner, withDoc(async (activeDoc, req, res) => {
+      let archivePromise: Promise<ArchiveUploadResult> | undefined;
+
+      await parseMultipartFormRequest(
+        req,
+        async (file) => {
+          if (archivePromise || !file.name.endsWith('.tar') || file.contentType !== "application/x-tar") { return; }
+          archivePromise = activeDoc.addMissingFilesFromArchive(docSessionFromRequest(req), file.stream);
+          await archivePromise;
+        }
+      );
+
+      if (!archivePromise) {
+        throw new ApiError("No .tar file found in request", 400);
+      }
+
+      // parseMultipartFormRequest ignores handler errors.
+      // Await this here to ensure errors are thrown.
+      try {
+        res.json(await archivePromise);
+      } catch(err) {
+        if (err instanceof Error && err.message === "Unexpected end of data") {
+          throw new Error("File is not a valid .tar");
+        }
+        throw err;
+      }
     }));
 
     // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).

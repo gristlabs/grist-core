@@ -2509,8 +2509,8 @@ function testDocApi(settings: {
       }
     }
 
-    it("GET /docs/{did}/attachments/download downloads all attachments as a .zip", async function () {
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/download`,
+    it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip", async function () {
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/zip');
@@ -2530,8 +2530,8 @@ function testDocApi(settings: {
       ]);
     });
 
-    it("GET /docs/{did}/attachments/download downloads all attachments as a .tar", async function () {
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/download?format=tar`,
+    it("GET /docs/{did}/attachments/archive downloads all attachments as a .tar", async function () {
+      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive?format=tar`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/x-tar');
@@ -2869,8 +2869,8 @@ function testDocApi(settings: {
         });
       });
 
-      it("GET /docs/{did}/attachments/download downloads all attachments as a .zip when external", async function () {
-        const resp = await axios.get(`${docUrl}/attachments/download`,
+      it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip when external", async function () {
+        const resp = await axios.get(`${docUrl}/attachments/archive`,
           {...chimpy, responseType: 'arraybuffer'});
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.headers['content-type'], 'application/zip');
@@ -2887,6 +2887,69 @@ function testDocApi(settings: {
             name: 'world.jpg',
           },
         ]);
+      });
+
+      it("POST /docs/{did}/attachments/archive adds missing attachments from a .tar", async function () {
+        const archiveResp = await axios.get(`${docUrl}/attachments/archive?format=tar`,
+          {...chimpy, responseType: 'arraybuffer'});
+        assert.equal(archiveResp.status, 200, "can download the archive");
+
+        const docResp = await axios.get(`${docUrl}/download`,
+          {...chimpy, responseType: 'arraybuffer'});
+        assert.equal(docResp.status, 200, "can download the doc");
+
+        const docWorkspaceId = (await axios.get(docUrl, chimpy)).data.workspace.id;
+
+        const docUploadForm = new FormData();
+        docUploadForm.append("upload", docResp.data, "ExternalAttachmentsMissing.grist");
+        docUploadForm.append("workspaceId", docWorkspaceId);
+        const docUploadResp = await axios.post(`${homeUrl}/api/docs`, docUploadForm,
+          defaultsDeep({headers: docUploadForm.getHeaders()}, chimpy));
+        assert.equal(docUploadResp.status, 200, "can upload the doc");
+
+        const newDocId = docUploadResp.data;
+
+        const tarUploadForm = new FormData();
+        tarUploadForm.append("upload", archiveResp.data, {
+          filename: "AttachmentsAreHere.tar",
+          contentType: "application/x-tar",
+        });
+
+        const tarUploadResp = await axios.post(`${homeUrl}/api/docs/${newDocId}/attachments/archive`, tarUploadForm,
+          defaultsDeep({headers: tarUploadForm.getHeaders()}, chimpy));
+        assert.equal(tarUploadResp.status, 200, "can upload the attachment archive");
+
+        assert.deepEqual(tarUploadResp.data, {
+          added: 2,
+          errored: 0,
+          // One attachment in the .tar is a duplicate (identical content + extension), so it won't be used
+          unused: 1,
+        }, "2 attachments should be added, 1 unused, no errors");
+      });
+
+      it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function () {
+        const badUploadForm = new FormData();
+        badUploadForm.append("upload", "Random content", {
+          filename: "AttachmentsAreHere.zip",
+          contentType: "application/zip",
+        });
+
+        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm,
+          defaultsDeep({headers: badUploadForm.getHeaders()}, chimpy));
+        assert.equal(tarUploadResp.status, 400, "should be a bad request");
+      });
+
+      it("POST /docs/{did}/attachments/archive has a useful error if a bad file is used", async function () {
+        const badUploadForm = new FormData();
+        badUploadForm.append("upload", "Random content", {
+          filename: "AttachmentsAreHere.tar",
+          contentType: "application/x-tar",
+        });
+
+        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm,
+          defaultsDeep({headers: badUploadForm.getHeaders()}, chimpy));
+        assert.equal(tarUploadResp.status, 500, "should be a bad request");
+        assert.deepEqual(tarUploadResp.data, { error: "File is not a valid .tar" });
       });
 
       it("POST /docs/{did}/copy fails when the document has external attachments", async function () {

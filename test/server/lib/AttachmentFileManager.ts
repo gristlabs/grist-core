@@ -3,7 +3,7 @@ import {
   AttachmentFileManager,
   AttachmentRetrievalError,
   StoreNotAvailableError,
-  StoresNotConfiguredError
+  UnknownDocumentPoolError
 } from "app/server/lib/AttachmentFileManager";
 import {
   AttachmentFile,
@@ -85,6 +85,7 @@ class DocStorageFake implements IMinimalDocStorage {
 
 const defaultTestDocName = "1234";
 const defaultTestFileContent = "Some content";
+const defaultTestFileBuffer = Buffer.from(defaultTestFileContent);
 
 function createDocStorageFake(docName: string): DocStorage {
   return new DocStorageFake(docName) as unknown as DocStorage;
@@ -153,13 +154,31 @@ async function createFakeAttachmentStoreProvider(): Promise<IAttachmentStoreProv
 describe("AttachmentFileManager", function() {
   let defaultProvider: IAttachmentStoreProvider;
   let defaultDocStorageFake: DocStorage;
+  let defaultManager: AttachmentFileManager;
+  let defaultStoreId: string;
+  const defaultDocId = "12345";
+  const defaultDocInfo = { id: defaultDocId, trunkId: null };
 
   this.timeout('4s');
 
   beforeEach(async function() {
     defaultProvider = await createFakeAttachmentStoreProvider();
     defaultDocStorageFake = createDocStorageFake(defaultTestDocName);
+    defaultManager = new AttachmentFileManager(
+      defaultDocStorageFake,
+      defaultProvider,
+      defaultDocInfo,
+    );
+    defaultStoreId = defaultProvider.listAllStoreIds()[0];
   });
+
+  async function deleteFileFromStore(docId: string, storeId: string, fileIdent: string,
+                                     provider: IAttachmentStoreProvider = defaultProvider) {
+    const store = await provider.getStore(storeId);
+    assert.isTrue(await store?.exists(docId, fileIdent));
+    await store?.delete(docId, fileIdent);
+    assert.isFalse(await store?.exists(docId, fileIdent));
+  }
 
   it("should stop the loop when aborted", async function() {
     const manager = new AttachmentFileManager(
@@ -216,7 +235,7 @@ describe("AttachmentFileManager", function() {
 
     const storeId = defaultProvider.listAllStoreIds()[0];
 
-    await assert.isRejected(manager.addFile(storeId, ".txt", Buffer.alloc(0)), StoresNotConfiguredError);
+    await assert.isRejected(manager.addFile(storeId, ".txt", Buffer.alloc(0)), UnknownDocumentPoolError);
   });
 
   it("should throw if it tries to add a file to an unavailable store", async function () {
@@ -269,6 +288,177 @@ describe("AttachmentFileManager", function() {
 
     const store = await defaultProvider.getStore(storeId);
     assert.isTrue(await store!.exists(docId, result.fileIdent), "file does not exist in store");
+  });
+
+  describe("isFileAvailable", async function () {
+    it("should report a non-existent file as unavailable", async function() {
+      assert.isFalse(await defaultManager.isFileAvailable("I don't exist!"), "file should not be available");
+    });
+    it("should report an internal file as available", async function() {
+      const addFileResult = await defaultManager.addFile(undefined, ".txt", defaultTestFileBuffer);
+      assert.isTrue(await defaultManager.isFileAvailable(addFileResult.fileIdent));
+    });
+    it("should report an existing external file as available", async function() {
+      const addFileResult = await defaultManager.addFile(defaultStoreId, ".txt", defaultTestFileBuffer);
+      assert.isTrue(await defaultManager.isFileAvailable(addFileResult.fileIdent));
+    });
+    it("should report a missing external file as available", async function() {
+      const addFileResult = await defaultManager.addFile(defaultStoreId, ".txt", defaultTestFileBuffer);
+      await deleteFileFromStore(defaultDocId, defaultStoreId, addFileResult.fileIdent);
+      assert.isFalse(await defaultManager.isFileAvailable(addFileResult.fileIdent));
+    });
+    it("should report a file from an unavailable store as unavailable", async function() {
+      const addFileResult = await defaultManager.addFile(defaultStoreId, ".txt", defaultTestFileBuffer);
+
+      // Same settings as defaultManager, but with no stores.
+      const alternateManager = new AttachmentFileManager(
+        defaultDocStorageFake,
+        new AttachmentStoreProvider([], 'TEST-INSTALLATION-UUID'),
+        defaultDocInfo,
+      );
+
+      assert(defaultDocStorageFake.getFileInfo(addFileResult.fileIdent), "file info should still exist in storage");
+      assert.isFalse(await alternateManager.isFileAvailable(addFileResult.fileIdent));
+    });
+  });
+
+  describe("adding missing files", async function() {
+    let manager: AttachmentFileManager;
+    let defaultStoreId: string;
+
+    beforeEach(function() {
+      manager = new AttachmentFileManager(
+        defaultDocStorageFake,
+        defaultProvider,
+        defaultDocInfo,
+      );
+      defaultStoreId = defaultProvider.listAllStoreIds()[0];
+    });
+
+    async function addTestFiles() {
+      const addToExternalResult = await manager.addFile(defaultStoreId, ".txt", defaultTestFileBuffer);
+      const addToInternalResult = await manager.addFile(undefined, ".txt", defaultTestFileBuffer);
+
+      return {
+        internal: addToInternalResult,
+        external: addToExternalResult,
+      };
+    }
+
+    async function getManagerWithDifferentStores() {
+      const alternateProvider = new AttachmentStoreProvider(
+        [await makeTestingFilesystemStoreConfig("new-store")],
+        'ANOTHER-INSTALLATION-UUID'
+      );
+
+      // Uses the same fake database + doc info, but with different stores.
+      const alternateManager = new AttachmentFileManager(
+        defaultDocStorageFake,
+        alternateProvider,
+        defaultDocInfo,
+      );
+
+      return {
+        provider: alternateProvider,
+        manager: alternateManager,
+      };
+    }
+
+
+    it("should do nothing if the file exists", async function () {
+      const files = await addTestFiles();
+
+      const isExternalFileDataAdded =
+        await manager.addMissingFileData(
+          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), undefined
+        );
+      assert.isFalse(isExternalFileDataAdded, "external file data should not have been added");
+
+      const isInternalFileDataAdded =
+        await manager.addMissingFileData(
+          files.internal.fileIdent, stream.Readable.from(defaultTestFileBuffer), undefined
+        );
+      assert.isFalse(isInternalFileDataAdded, "internal file data should not have been added");
+    });
+
+    it("should do nothing if the file doesn't exist", async function () {
+      const isExternalFileDataAdded =
+        await manager.addMissingFileData("abcde.png", stream.Readable.from(defaultTestFileBuffer), undefined);
+      assert.isFalse(isExternalFileDataAdded, "external file data should not have been added");
+      assert.isFalse(await manager.isFileAvailable("abcde.png"));
+
+      const isInternalFileDataAdded =
+        await manager.addMissingFileData("abcde.png", stream.Readable.from(defaultTestFileBuffer), undefined);
+      assert.isFalse(isInternalFileDataAdded, "internal file data should not have been added");
+    });
+
+    it("should replace external files if they're missing", async function () {
+      const files = await addTestFiles();
+      await deleteFileFromStore(defaultDocId, defaultStoreId, files.external.fileIdent);
+      assert.isFalse(await manager.isFileAvailable(files.external.fileIdent));
+
+      const otherStoreId = defaultProvider.listAllStoreIds()[1];
+      assert.notEqual(otherStoreId, defaultStoreId, "default store should be different for this test");
+
+      const isExternalFileDataAdded =
+        await manager.addMissingFileData(
+          files.external.fileIdent, stream.Readable.from(defaultTestFileBuffer), otherStoreId
+        );
+      assert.isTrue(isExternalFileDataAdded, "external file data should have been added");
+      assert.isTrue(await manager.isFileAvailable(files.external.fileIdent));
+      const fileDetails = await defaultDocStorageFake.getFileInfo(files.external.fileIdent);
+      assert.equal(fileDetails?.storageId, defaultStoreId, "file should be restored to original store");
+    });
+
+    it("should replace external files in the given store, if the original isn't available", async function () {
+      const files = await addTestFiles();
+
+      const { manager: altManager, provider: altProvider } = await getManagerWithDifferentStores();
+
+      const newStoreId = altProvider.getStoreIdFromLabel("new-store");
+      const isExternalFileDataAdded = await altManager.addMissingFileData(
+        files.external.fileIdent,
+        stream.Readable.from(defaultTestFileBuffer),
+        newStoreId,
+      );
+      assert.isTrue(isExternalFileDataAdded, "external file data should have been added");
+      assert.isTrue(await altManager.isFileAvailable(files.external.fileIdent));
+    });
+
+    it("shouldn't add files if their content is wrong", async function () {
+      const files = await addTestFiles();
+
+      const { manager: altManager, provider: altProvider } = await getManagerWithDifferentStores();
+
+      const newStoreId = altProvider.getStoreIdFromLabel("new-store");
+      const assertAddFailsWithHashError = async (storeIdToCheck: string | undefined) => {
+        await assert.isRejected(altManager.addMissingFileData(
+          files.external.fileIdent,
+          stream.Readable.from(Buffer.from("THIS IS WRONG")),
+          storeIdToCheck,
+        ), /Hash.*is not correct/);
+        assert.isFalse(await altManager.isFileAvailable(files.external.fileIdent));
+      };
+
+      // Need to check adding file to external storage, and internal storage, as they have
+      // different hashing approaches.
+      await assertAddFailsWithHashError(newStoreId);
+      await assertAddFailsWithHashError(undefined);
+    });
+
+    it("should throw if neither store is available", async function () {
+      const files = await addTestFiles();
+
+      const { manager: altManager } = await getManagerWithDifferentStores();
+
+      const newStoreId = "Mysterious missing store!";
+      await assert.isRejected(altManager.addMissingFileData(
+        files.external.fileIdent,
+        stream.Readable.from(Buffer.from("THIS IS WRONG")),
+        newStoreId,
+      ), "not a valid and available store");
+      assert.isFalse(await altManager.isFileAvailable(files.external.fileIdent));
+    });
   });
 
   it("shouldn't do anything when trying to add an existing attachment to a new store", async function() {
