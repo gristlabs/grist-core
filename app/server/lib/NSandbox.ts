@@ -130,8 +130,7 @@ export class NSandbox implements ISandbox {
    * process.  Some read-only shared code is made available to the sandbox.
    * For plugins, read-only data files are made available.
    *
-   * for it for several years (pynbox), and we are now experimenting with other sandboxing
-   * options.  Variants can be activated by passing in a non-default "spawner" function.
+   * Variants can be activated by passing in a non-default "spawner" function.
    *
    */
   constructor(options: ISandboxOptions, spawner: SpawnFn) {
