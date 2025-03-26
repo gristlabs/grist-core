@@ -446,7 +446,7 @@ export class ActiveDoc extends EventEmitter {
       .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
-    // corresponding to one process for pynbox, more for gvisor).
+    // corresponding to many processes for gvisor).
     // The data engine runs user-defined python code including formula calculations.
     // It maintains all document data and metadata, and applies translates higher-level UserActions
     // into lower-level DocActions.
