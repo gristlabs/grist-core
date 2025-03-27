@@ -256,7 +256,7 @@ describe('OIDCConfig', () => {
           {
             itMsg: 'should add proxyAgent to openid-client',
             given: () => {
-              sandbox.stub(ProxyAgentDeps, 'proxyForTrustedRequestsUrl').value(proxyURL);
+              sandbox.stub(ProxyAgentDeps.agents, 'trusted').value({'http:': httpAgent, 'https:': null});
             },
             expectedUserDefinedHttpOptions: {
               agent: httpAgent
@@ -267,11 +267,8 @@ describe('OIDCConfig', () => {
             const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
             setEnvVars();
             ctx.given?.();
-            const promise = OIDCConfigStubbed.buildWithStub();
-            await assert.isFulfilled(promise, 'initOIDC should have been fulfilled');
-            assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, 'Should have called custom.setHttpOptionsDefaults');
-            const actualHttpOptions = _.omit(setHttpOptionsDefaultsStub.firstCall.args[0], 'agent.callback');
-            assert.deepEqual(actualHttpOptions, ctx.expectedUserDefinedHttpOptions);
+            await OIDCConfigStubbed.buildWithStub();
+            Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, ctx.expectedUserDefinedHttpOptions);
           });
         });
     });
