@@ -60,6 +60,7 @@ export interface IUserManagerOptions {
     email: string;
   };
   showAnimation?: boolean; // If true, animates opening of the modal. Defaults to false.
+  isReadonly?: boolean;    // If true, show a view-only sharing UI. Used for Admin Controls.
 }
 
 // Returns an instance of UserManagerModel given IUserManagerOptions. Makes the async call for the
@@ -158,13 +159,13 @@ function buildUserManagerModal(
           cssBody(
             new UserManager(
               model,
-              pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource')
+              pick(options, 'linkToCopy', 'docPageModel', 'appModel', 'prompt', 'resource', 'isReadonly')
             ).buildDom()
           ),
         ),
         cssModalButtons(
           { style: 'margin: 32px 64px; display: flex;' },
-          (model.isPublicMember ? null :
+          (model.isPublicMember || options.isReadonly ? null :
             bigPrimaryButton(t('Confirm'),
               dom.boolAttr('disabled', (use) => !use(model.isAnythingChanged)),
               dom.on('click', () => onConfirm(ctl)),
@@ -172,7 +173,7 @@ function buildUserManagerModal(
             )
           ),
           bigBasicButton(
-            model.isPublicMember ? t('Close') : t('Cancel'),
+            model.isPublicMember || options.isReadonly ? t('Close') : t('Cancel'),
             dom.on('click', () => ctl.close()),
             testId('um-cancel')
           ),
@@ -217,6 +218,7 @@ export class UserManager extends Disposable {
       appModel?: AppModel,
       prompt?: {email: string},
       resource?: Resource,
+      isReadonly?: boolean,
   }) {
     super();
   }
@@ -237,8 +239,10 @@ export class UserManager extends Disposable {
     ));
 
     return [
-      acMemberEmail.buildDom(),
-      this._buildOptionsDom(),
+      ...(this._options.isReadonly ? [cssOptionRow()] : [
+        acMemberEmail.buildDom(),
+        this._buildOptionsDom(),
+      ]),
       this._dom = shadowScroll(
         testId('um-members'),
         this._buildPublicAccessMember(),
@@ -322,9 +326,10 @@ export class UserManager extends Disposable {
 
   // Build a single member row.
   private _buildMemberDom(member: IEditableMember) {
-    const disableRemove = Computed.create(null, (use) =>
+    const disableRemove = Computed.create(null, (use) => this._options.isReadonly || (
       this._model.isPersonal ? !member.origAccess :
-      Boolean(this._model.isActiveUser(member) || use(member.inheritedAccess)));
+      Boolean(this._model.isActiveUser(member) || use(member.inheritedAccess)))
+    );
     return dom('div',
       dom.autoDispose(disableRemove),
       dom.maybe((use) => use(member.effectiveAccess) && use(member.effectiveAccess) !== roles.GUEST, () =>
@@ -454,6 +459,7 @@ export class UserManager extends Disposable {
             this._model.publicUserSelectOptions
           ),
           cssMemberBtn(
+            cssMemberBtn.cls('-disabled', this._options.isReadonly),
             cssRemoveIcon('Remove', testId('um-member-delete')),
             dom.on('click', () => publicMember.access.set(null)),
           ),
@@ -550,7 +556,7 @@ granted to individual documents or workspaces, rather than the full team site.`)
         return activeRole ? activeRole.label : t("Guest");
       }),
       cssCollapseIcon('Collapse'),
-      this._model.isPersonal ? dom.cls('disabled') : null,
+      this._options.isReadonly || this._model.isPersonal ? dom.cls('disabled') : null,
       testId('um-member-role')
     );
   }

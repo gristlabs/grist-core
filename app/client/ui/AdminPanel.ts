@@ -37,6 +37,7 @@ export class AdminPanel extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
+    document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
   }
 
   public buildDom() {
@@ -91,7 +92,6 @@ class AdminInstallationPanel extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
-    document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
     this._checks = new AdminChecks(this, this._installAPI);
   }
 
