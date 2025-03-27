@@ -30,8 +30,8 @@ import {proxyAgentForTrustedRequests} from 'app/server/lib/ProxyAgent';
 import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
-import merge from 'lodash/merge';
-import pickBy from 'lodash/pickBy';
+import merge = require('lodash/merge');
+import pickBy = require('lodash/pickBy');
 
 interface RequestWithMatomoVisitorId extends RequestWithLogin {
   /**
