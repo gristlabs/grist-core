@@ -325,7 +325,7 @@ describe('Importer', function() {
 
     // Add a new column, with a formula to examine the first.
     await gu.openColumnMenu('Birthday', 'Insert column to the right');
-    await driver.find('.test-new-columns-menu-add-new').click();
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
     await gu.waitForServer();
     await driver.sendKeys(Key.ESCAPE);
     await gu.getCell({col: 2, rowNum: 1}).click();
