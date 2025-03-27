@@ -2,7 +2,7 @@ import {HttpsProxyAgent} from "https-proxy-agent";
 import {HttpProxyAgent} from "http-proxy-agent";
 import {appSettings} from "app/server/lib/AppSettings";
 import log from 'app/server/lib/log';
-import { StringUnion } from "app/common/StringUnion";
+import {StringUnion} from "app/common/StringUnion";
 
 const SupportedProtocols = StringUnion("http:", "https:");
 type SupportedProtocols = typeof SupportedProtocols.type;
