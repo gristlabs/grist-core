@@ -463,7 +463,7 @@ describe('CellColor', function() {
   it('should handle correctly default text color', async function() {
     // Create new checkbox column
     await driver.find('.mod-add-column').click();
-    await driver.find('.test-new-columns-menu-add-new').click();
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
     await gu.waitForServer();
     await gu.setType(/Toggle/);
 
@@ -527,7 +527,7 @@ describe('CellColor', function() {
 
     // create a new checkbox column
     await driver.find('.mod-add-column').click();
-    await driver.find('.test-new-columns-menu-add-new').click();
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
 
     await gu.waitForServer();
     await gu.setType(/Toggle/);
