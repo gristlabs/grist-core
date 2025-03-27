@@ -1325,7 +1325,8 @@
         "Community widgets are created and maintained by Grist community members.": "Os widgets comunitários são criados e mantidos pelos membros da comunidade Grist.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Essa limitação ocorre quando uma extremidade de uma referência bidirecional é configurada como uma única referência.",
         "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento",
-        "[Learn more.]({{link}})": "[Saiba mais]({{link}})"
+        "[Learn more.]({{link}})": "[Saiba mais]({{link}})",
+        "Summary tables can only contain formula columns.": "As tabelas de resumo só podem conter colunas de fórmula."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
