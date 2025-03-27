@@ -94,7 +94,7 @@ import {
   Archive,
   ArchiveEntry, CreatableArchiveFormats,
   create_tar_archive,
-  create_zip_archive
+  create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
@@ -137,13 +137,15 @@ import {IMessage, MsgType} from 'grain-rpc';
 import imageSize from 'image-size';
 import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
+import stream from 'node:stream';
+import path from 'path';
 import {createClient, RedisClient} from 'redis';
 import tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
-import {AttachmentFileManager} from './AttachmentFileManager';
+import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileManager';
 import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
@@ -296,7 +298,7 @@ export class ActiveDoc extends EventEmitter {
     private _options?: ICreateActiveDocOptions
   ) {
     super();
-    const { forkId, snapshotId } = parseUrlId(_docName);
+    const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
     this._isSnapshot = Boolean(snapshotId);
     this._isForkOrSnapshot = Boolean(forkId || snapshotId);
     if (!this._isSnapshot) {
@@ -403,7 +405,7 @@ export class ActiveDoc extends EventEmitter {
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
       _attachmentStoreProvider,
-      _options?.doc,
+      forkId ? { id: forkId, trunkId, } : { id: trunkId, trunkId: undefined },
     );
 
     // Every time manager starts the transfer we need to notify clients about it.
@@ -987,9 +989,8 @@ export class ActiveDoc extends EventEmitter {
           throw new ApiError("Document is shutting down, archiving aborted", 500);
         }
         const file = await attachmentFileManager.getFile(attachment.fileIdent);
-        const fileHash = attachment.fileIdent.split(".")[0];
-        const name = `${fileHash}_${attachment.fileName}`;
-        // This should only happen if a file has identical name *and* content hash.
+        const name = attachmentToArchiveFilePath(attachment);
+        // This should only happen if a file has identical name *and* identifier.
         if (filesAdded.has(name)) {
           continue;
         }
@@ -1010,6 +1011,45 @@ export class ActiveDoc extends EventEmitter {
     }
     // Generally this won't happen, as long as the above is exhaustive over the type of `format`
     throw new ApiError(`Unsupported archive format ${format}`, 400);
+  }
+
+  @ActiveDoc.keepDocOpen
+  public async addMissingFilesFromArchive(docSession: OptDocSession,
+                                          tarFile: stream.Readable): Promise<ArchiveUploadResult> {
+    if(!await this.isOwner(docSession)) {
+      throw new ApiError("Insufficient access to upload an attachment archive", 403);
+    }
+
+    const fallbackStoreId = this._getDocumentSettings().attachmentStoreId;
+    const results: ArchiveUploadResult = {
+      added: 0,
+      errored: 0,
+      unused: 0,
+    };
+
+    await unpackTarArchive(tarFile, async (file) => {
+      try {
+        const fileIdent = archiveFilePathToAttachmentIdent(file.path);
+        const isAdded = await this._attachmentFileManager.addMissingFileData(
+          fileIdent,
+          file.data,
+          fallbackStoreId,
+        );
+        if (isAdded) {
+          results.added += 1;
+        } else {
+          results.unused += 1;
+        }
+      } catch (err) {
+        results.errored += 1;
+        if (err instanceof MismatchedFileHashError) {
+          this._log.warn(docSession, `Failed to upload attachment: ${err.message}`);
+        }
+        this._log.error(docSession, `Failed to upload attachment: ${err}`);
+      }
+    });
+
+    return results;
   }
 
   @ActiveDoc.keepDocOpen
@@ -3301,4 +3341,30 @@ function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLe
       ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
     },
   };
+}
+
+export interface ArchiveUploadResult {
+  added: number;
+  errored: number;
+  unused: number;
+}
+
+export function attachmentToArchiveFilePath(fileDetails: { fileIdent: string, fileName: string } ): string {
+  const fileIdentParts = fileDetails.fileIdent.split(".");
+  const fileHash = fileIdentParts[0];
+  const fileIdentExt = path.extname(fileDetails.fileIdent);
+  const fileNameExt = path.extname(fileDetails.fileName);
+  const fileNameNoExt = path.basename(fileDetails.fileName, fileNameExt);
+  // We need to make sure the downloaded attachment's extension matches Grist's internal
+  // file extension, otherwise we can't recreate the file identifier when uploading.
+  // They might not match, as the upload process considers things like mime type when
+  // adding the extension to the file identifier.
+  return `${fileHash}_${fileNameNoExt}${fileIdentExt}`;
+}
+
+export function archiveFilePathToAttachmentIdent(filePath: string): string {
+  const fileName = path.basename(filePath);
+  const fileHash = fileName.split("_")[0];
+  const fileExt = path.extname(fileName);
+  return `${fileHash}${fileExt}`;
 }

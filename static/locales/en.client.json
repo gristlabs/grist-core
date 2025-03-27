@@ -1261,7 +1261,8 @@
         "To allow multiple assignments, change the referenced column's type to Reference List.": "To allow multiple assignments, change the referenced column's type to Reference List.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns",
         "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document",
-        "[Learn more.]({{link}})": "[Learn more.]({{link}})"
+        "[Learn more.]({{link}})": "[Learn more.]({{link}})",
+        "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"

@@ -36,12 +36,6 @@ declare module "app-module-path" {
   export function addPath(path: string): void;
 }
 
-// version of pidusage that has correct ctime on linux
-declare module '@gristlabs/pidusage' {
-  import pidusage from 'pidusage';
-  export default pidusage;
-}
-
 declare module "csv";
 
 declare module 'winston/lib/winston/common' {

@@ -1,9 +1,9 @@
-import pidusage from '@gristlabs/pidusage';
 import {Document} from 'app/gen-server/entity/Document';
 import {getScope} from 'app/server/lib/requestUtils';
 import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
 import * as path from 'path';
+import pidusage from 'pidusage';
 
 import {ApiError} from 'app/common/ApiError';
 import {mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
