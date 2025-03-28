@@ -13,7 +13,9 @@ import {DocAction} from 'app/common/DocActions';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
+import {proxyAgentForTrustedRequests} from 'app/server/lib/ProxyAgent';
 import {getFullUser, getLogMeta} from 'app/server/lib/sessionUtils';
+
 import {createHash} from 'crypto';
 import fetch from 'node-fetch';
 
@@ -269,6 +271,7 @@ export class OpenAIAssistant implements Assistant {
             max_tokens: this._maxTokens,
           } : undefined),
         }),
+        agent: proxyAgentForTrustedRequests(new URL(this._endpoint))
       },
     );
     const resultText = await apiResponse.text();
