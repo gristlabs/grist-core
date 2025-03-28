@@ -7,8 +7,6 @@ from bisect import bisect_left, bisect_right
 import functools
 import sys
 
-import six
-
 @functools.total_ordering
 class Record(object):
   """
@@ -335,47 +333,42 @@ class RecordSet(object):
 _min_row_id = -sys.float_info.max
 _max_row_id = sys.float_info.max
 
-if six.PY3:
-  class FindOps(object):
-    def __init__(self, record_set):
-      self._rset = record_set
+class FindOps(object):
+  def __init__(self, record_set):
+    self._rset = record_set
 
-    def previous(self, row):
-      row_id = self._rset._to_local_row_id(row)
-      return self._rset._bisect_find(bisect_left, -1, row_id)
+  def previous(self, row):
+    row_id = self._rset._to_local_row_id(row)
+    return self._rset._bisect_find(bisect_left, -1, row_id)
 
-    def next(self, row):
-      row_id = self._rset._to_local_row_id(row)
-      return self._rset._bisect_find(bisect_right, 0, row_id)
+  def next(self, row):
+    row_id = self._rset._to_local_row_id(row)
+    return self._rset._bisect_find(bisect_right, 0, row_id)
 
-    def rank(self, row, order="asc"):
-      row_id = self._rset._to_local_row_id(row)
-      index = self._rset._bisect_index(bisect_left, row_id)
-      if order == "asc":
-        return index + 1
-      elif order == "desc":
-        return len(self._rset) - index
-      else:
-        raise ValueError("The 'order' parameter must be \"asc\" (default) or \"desc\"")
+  def rank(self, row, order="asc"):
+    row_id = self._rset._to_local_row_id(row)
+    index = self._rset._bisect_index(bisect_left, row_id)
+    if order == "asc":
+      return index + 1
+    elif order == "desc":
+      return len(self._rset) - index
+    else:
+      raise ValueError("The 'order' parameter must be \"asc\" (default) or \"desc\"")
 
-    def lt(self, *values):
-      return self._rset._bisect_find(bisect_left, -1, _min_row_id, values)
+  def lt(self, *values):
+    return self._rset._bisect_find(bisect_left, -1, _min_row_id, values)
 
-    def le(self, *values):
-      return self._rset._bisect_find(bisect_right, -1, _max_row_id, values)
+  def le(self, *values):
+    return self._rset._bisect_find(bisect_right, -1, _max_row_id, values)
 
-    def gt(self, *values):
-      return self._rset._bisect_find(bisect_right, 0, _max_row_id, values)
+  def gt(self, *values):
+    return self._rset._bisect_find(bisect_right, 0, _max_row_id, values)
 
-    def ge(self, *values):
-      return self._rset._bisect_find(bisect_left, 0, _min_row_id, values)
+  def ge(self, *values):
+    return self._rset._bisect_find(bisect_left, 0, _min_row_id, values)
 
-    def eq(self, *values):
-      return self._rset._find_eq(*values)
-else:
-  class FindOps(object):
-    def __init__(self, record_set):
-      raise NotImplementedError("Update engine to Python3 to use lookupRecords().find")
+  def eq(self, *values):
+    return self._rset._find_eq(*values)
 
 
 def adjust_record(relation, value):

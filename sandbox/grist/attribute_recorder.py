@@ -1,4 +1,4 @@
-from six.moves import reprlib
+import reprlib
 
 import records
 

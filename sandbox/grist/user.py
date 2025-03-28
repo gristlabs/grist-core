@@ -34,7 +34,6 @@ user attribute definition.
 See 'GranularAccess.ts' for the Node equivalent that
 serializes the user information found in 'data'.
 """
-import six
 
 class User(object):
   """
@@ -50,7 +49,7 @@ class User(object):
 
     self.LinkKey = LinkKey(data['LinkKey'])
 
-    for name, value in six.iteritems(data):
+    for name, value in data.items():
       if hasattr(self, name) or not value:
         continue
       table_name, row_id = value
@@ -63,5 +62,5 @@ class User(object):
 
 class LinkKey(object):
   def __init__(self, data):
-    for name, value in six.iteritems(data):
+    for name, value in data.items():
       setattr(self, name, value)
