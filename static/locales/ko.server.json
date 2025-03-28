@@ -1,1 +1,10 @@
-{}
+{
+    "sendAppPage": {
+        "Loading...": "로딩 중...",
+        "og-title": "Grist, 스프레드시트의 진화",
+        "og-description": "표의 한계를 넘어선, 새로운 오픈 소스 스프레드시트"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "이메일 인증을 진행하고 다시 로그인해 주세요."
+    }
+}
