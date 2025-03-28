@@ -16,7 +16,7 @@ import {not} from 'app/common/gutil';
 import {getGristConfig} from 'app/common/urlUtils';
 import {BindableValue, Computed, Disposable, dom, input, MultiHolder, Observable, styled} from 'grainjs';
 
-const t = makeT('ToggleEnterprisePage');
+const t = makeT('ToggleEnterpriseWidget');
 const testId = makeTestId('test-toggle-enterprise-');
 const TOOLTIP_KEY = 'copy-on-settings';
 
