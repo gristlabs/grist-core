@@ -1949,5 +1949,15 @@
         "Have you **reviewed the code** at this URL?": "Have you **reviewed the code** at this URL?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.",
         "I confirm that I understand these warnings and accept the risks": "I confirm that I understand these warnings and accept the risks"
+    },
+    "AdminLeftPanel": {
+        "Admin area": "Admin area",
+        "Admin controls": "Admin controls",
+        "Docs": "Docs",
+        "Installation": "Installation",
+        "Learn more": "Learn more",
+        "Orgs": "Orgs",
+        "Users": "Users",
+        "Workspaces": "Workspaces"
     }
 }
