@@ -76,7 +76,7 @@
     "@types/mousetrap": "1.6.2",
     "@types/node": "18.11.9",
     "@types/node-fetch": "2.6.2",
-    "@types/pidusage": "2.0.1",
+    "@types/pidusage": "2.0.5",
     "@types/plotly.js": "2.12.1",
     "@types/proper-lockfile": "4.1.2",
     "@types/qrcode": "1.4.2",
