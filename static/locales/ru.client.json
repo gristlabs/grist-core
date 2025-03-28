@@ -1510,7 +1510,7 @@
         "Copy link": "Копировать ссылку",
         "Reset": "Сброс",
         "Reset form": "Сброс формы",
-        "## **Form Title**": "## **Заголовок формы**",
+        "# **Form Title**": "# **Заголовок формы**",
         "Your form description goes here.": "Описание формы."
     },
     "WelcomeCoachingCall": {
@@ -1544,7 +1544,8 @@
     },
     "FormContainer": {
         "Build your own form": "Создайте свою собственную форму",
-        "Powered by": "Разработано"
+        "Powered by": "Разработано",
+        "Powered by Grist": "Разработано Grist"
     },
     "FormModel": {
         "There was a problem loading the form.": "Возникла проблема с загрузкой формы.",
@@ -1585,7 +1586,7 @@
         "Insert section above": "Вставить секцию выше",
         "Insert section below": "Вставить секцию ниже",
         "Description": "Описание",
-        "### **Header**": "### **Заголовок**"
+        "## **Header**": "## **Заголовок**"
     },
     "AdminPanel": {
         "Current": "Текущий",
