@@ -18,6 +18,8 @@ import noop from 'lodash/noop';
 import once from 'lodash/once';
 import {SessionObs} from 'app/client/lib/sessionObs';
 import debounce from 'lodash/debounce';
+import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
+import {GristDoc} from 'app/client/components/GristDoc';
 
 const t = makeT('PagePanels');
 
@@ -50,7 +52,17 @@ export interface PageContents {
   contentBottom?: DomElementArg;
 }
 
-export function pagePanels(page: PageContents) {
+interface PagePanelsOptions {
+  /**
+   * If provided, the region kb focus switcher will also cycle through the given doc's widgets.
+   */
+  gristDoc?: Observable<GristDoc | null>;
+}
+
+export function pagePanels(
+  page: PageContents,
+  options: PagePanelsOptions = { }
+) {
   const testId = page.testId || noTestId;
   const left = page.leftPanel;
   const right = page.rightPanel;
@@ -68,6 +80,9 @@ export function pagePanels(page: PageContents) {
   let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
 
+  const regionFocusSwitcher = RegionFocusSwitcher.create(null, options.gristDoc);
+  regionFocusSwitcher.init();
+
   // When switching to mobile mode, close panels; when switching to desktop, restore the
   // last desktop state.
   const sub1 = subscribe(isNarrowScreenObs(), (use, narrow) => {
@@ -82,12 +97,15 @@ export function pagePanels(page: PageContents) {
     leftOverlap.set(false);
   });
 
-  // When url changes, we must have navigated; close the left panel since if it were open, it was
-  // the likely cause of the navigation (e.g. switch to another page or workspace).
+  // When url changes, we must have navigated;
+  //   - close the left panel since if it were open, it was the likely cause of the navigation
+  //     (e.g. switch to another page or workspace).
+  //   - reset the focus switcher to behave like a normal browser navigation (lose focus).
   const sub2 = subscribe(isNarrowScreenObs(), urlState().state, (use, narrow, state) => {
     if (narrow) {
       left.panelOpen.set(false);
     }
+    regionFocusSwitcher.reset();
   });
 
   const pauseSavingLeft = (yesNo: boolean) => {
@@ -136,6 +154,7 @@ export function pagePanels(page: PageContents) {
     cssContentMain(
       leftPaneDom = cssLeftPane(
         testId('left-panel'),
+        regionFocusSwitcher.panelAttrs('left', t('Main navigation and document settings (left panel)')),
         cssOverflowContainer(
           contentWrapper = cssLeftPanelContainer(
             cssLeftPaneHeader(
@@ -272,6 +291,7 @@ export function pagePanels(page: PageContents) {
       cssMainPane(
         mainHeaderDom = cssTopHeader(
           testId('top-header'),
+          regionFocusSwitcher.panelAttrs('top', t('Document header')),
           (left.hideOpener ? null :
             cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
               testId('left-opener'),
@@ -292,7 +312,12 @@ export function pagePanels(page: PageContents) {
           ),
           dom.style('margin-bottom', use => use(bannerHeight) + 'px'),
         ),
-        page.contentMain,
+
+        cssContentMainPane(
+          regionFocusSwitcher.panelAttrs('main', t('Main content')),
+          page.contentMain,
+        ),
+
         cssMainPane.cls('-left-overlap', leftOverlap),
         testId('main-pane'),
       ),
@@ -306,6 +331,7 @@ export function pagePanels(page: PageContents) {
 
         rightPaneDom = cssRightPane(
           testId('right-panel'),
+          regionFocusSwitcher.panelAttrs('right', t('Creator panel (right panel)')),
           cssRightPaneHeader(
             right.header,
             dom.style('margin-bottom', use => use(bannerHeight) + 'px')
@@ -402,6 +428,13 @@ const cssContentMain = styled(cssHBox, `
   overflow: hidden;
   position: relative;
 `);
+
+// div wrapping the contentMain passed to pagePanels
+const cssContentMainPane = styled(cssVBox, `
+  flex-grow: 1;
+  overflow: auto;
+`);
+
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
   background-color: ${theme.leftPanelBg};

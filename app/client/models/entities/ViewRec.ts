@@ -19,6 +19,12 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
   // This is active collapsed section id. Set when the widget is clicked.
   activeCollapsedSectionId: ko.Observable<number>;
 
+  // RegionFocusSwitcher updates this so that the view knows the current state of focused regions:
+  // - 'out' means the view region is not focused
+  // - 'in' means the view region is focused
+  // - 'related' means the currently focused region is not the view, but is something related to it
+  focusedRegionState: ko.Observable<'out' | 'in' | 'related'>;
+
   // Saved collapsed sections.
   collapsedSections: ko.Computed<number[]>;
 
@@ -41,6 +47,7 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
   this.layoutSpecObj = modelUtil.jsonObservable(this.layoutSpec);
 
   this.activeCollapsedSectionId = ko.observable(0);
+  this.focusedRegionState = ko.observable<'out' | 'in' | 'related'>('in');
 
   this.collapsedSections = this.autoDispose(ko.pureComputed(() => {
     const allSections = new Set(this.viewSections().all().map(x => x.id()));
