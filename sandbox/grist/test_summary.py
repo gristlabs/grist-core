@@ -523,7 +523,7 @@ class Address:
         ['UpdateRecord', summary_tbl_name, 12, {'amount': 666.0}],
         ['AddRecord', source_tbl_name, 34, {'amount': 666.0, 'city': 'Nowhere', 'state': '??'}],
         ['AddRecord', summary_tbl_name, 12,
-         {'city': 'Nowhere', 'group': ['L'], 'state': '??'}],
+         {'amount': 0.0, 'city': 'Nowhere', 'count': 0.0, 'group': ['L'], 'state': '??'}],
       ],
     })
 
