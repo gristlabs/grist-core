@@ -1,1 +1,11 @@
-{}
+{
+    "ACUserManager": {
+        "Invite new member": "새 멤버 초대",
+        "Enter email address": "이메일 주소를 입력하세요",
+        "We'll email an invite to {{email}}": "{{email}}로 초대장을 보내드려요"
+    },
+    "AccessRules": {
+        "Add Column Rule": "열 규칙 추가",
+        "Add Default Rule": "기본 규칙 추가"
+    }
+}
