@@ -28,7 +28,14 @@ import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
-import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {
+  CreatableArchiveFormats,
+  DocReplacementOptions,
+  DocState,
+  DocStateComparison,
+  DocStates,
+  NEW_DOCUMENT_CODE
+} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -51,7 +58,6 @@ import {
   tableIdToRef
 } from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
-import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
