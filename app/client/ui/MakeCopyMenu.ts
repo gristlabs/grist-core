@@ -296,7 +296,7 @@ class SaveCopyModal extends Disposable {
   }
 }
 
-type DownloadOption = 'full' | 'nohistory' | 'template';
+type DownloadOption = 'full' | 'nohistory' | 'template' | 'attachments-zip' | 'attachments-tar';
 
 export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
   return modal((ctl, owner) => {
@@ -308,14 +308,20 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
           radioCheckboxOption(selected, 'full', t("Download full document and history")),
           radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
           radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
+          radioCheckboxOption(selected, 'attachments-zip', t("Download attachments only (.zip - widely used)")),
+          radioCheckboxOption(selected, 'attachments-tar', t("Download attachments only (.tar - supports uploading)")),
       ),
       cssModalButtons(
-        dom.domComputed(use =>
-          bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
-              href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl({
-                template: use(selected) === "template",
-                removeHistory: use(selected) === "nohistory" || use(selected) === "template",
-              }),
+        dom.domComputed(use => {
+          const docApi = pageModel.appModel.api.getDocAPI(doc.id);
+          const href = use(selected).startsWith('attachments')
+            ? docApi.getAttachmentsArchiveUrl({ format: use(selected).includes('zip') ? 'zip' : 'tar' })
+            : docApi.getDownloadUrl({
+              template: use(selected) === "template",
+              removeHistory: use(selected) === "nohistory" || use(selected) === "template",
+            });
+          return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
+              href,
               target: '_blank',
               download: ''
             }),
@@ -323,8 +329,8 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
               ctl.close();
             }),
             testId('download-button-link'),
-          ),
-        ),
+          );
+        }),
         bigBasicButton(t('Cancel'), dom.on('click', () => {
           ctl.close();
         }))

@@ -474,6 +474,13 @@ export interface UserAPI {
   filters?: string;
 }
 
+export const CreatableArchiveFormats = StringUnion('zip', 'tar');
+export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
+
+export interface AttachmentsArchiveParams {
+   format?: CreatableArchiveFormats,
+}
+
 interface GetRowsParams {
   filters?: QueryFilters;
   immediate?: boolean;
@@ -529,6 +536,8 @@ export interface DocAPI {
   getDownloadTsvUrl(params: DownloadDocParams): string;
   getDownloadDsvUrl(params: DownloadDocParams): string;
   getDownloadTableSchemaUrl(params: DownloadDocParams): string;
+  getAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string;
+
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
    * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
@@ -1189,6 +1198,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public getDownloadTableSchemaUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
     return this._url + '/download/table-schema?' + encodeQueryParams({...params});
+  }
+
+  public getAttachmentsArchiveUrl(params: AttachmentsArchiveParams) {
+    return this._url + '/attachments/archive?' + encodeQueryParams({...params});
   }
 
   public async sendToDrive(code: string, title: string): Promise<{url: string}> {
