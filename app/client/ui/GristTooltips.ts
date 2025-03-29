@@ -50,6 +50,7 @@ export type Tooltip =
   | 'viewAsBanner'
   | 'reassignTwoWayReference'
   | 'attachmentStorage'
+  | 'uploadAttachments'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -209,6 +210,15 @@ see or edit which parts of your document.')
       }
     )),
     ...args,
+  ),
+  uploadAttachments: (...args: DomElementArg[]) => cssTooltipContent(
+    cssMarkdownSpan(
+      t(
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. " +
+        "Only .tar attachment archives downloaded from Grist can be uploaded here."
+      ),
+    ...args,
+    ),
   ),
 };
 

@@ -29,6 +29,7 @@ import {MetaRowRecord} from 'app/common/TableData';
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
 import {
+  ArchiveUploadResult,
   CreatableArchiveFormats,
   DocReplacementOptions,
   DocState,
@@ -52,7 +53,6 @@ import {
 } from 'app/plugin/TableOperationsImpl';
 import {
   ActiveDoc,
-  ArchiveUploadResult,
   colIdToRef as colIdToReference,
   getRealTableId,
   tableIdToRef
