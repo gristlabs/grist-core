@@ -449,23 +449,25 @@ export interface UserAPI {
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
   /**
-   * Deletes account and personal org with all documents. Note: deleteUser doesn't clear documents, and this method
-   * is specific to Grist installation, and might not be supported. Pass current user's id so that we can verify
-   * that the user is deleting their own account. This is just to prevent accidental deletion from multiple tabs.
+   * Deletes account and personal org with all documents. Note: deleteUser doesn't clear documents,
+   * and this method is specific to Grist installation, and might not be supported. Pass current
+   * user's id so that we can verify that the user is deleting their own account. This is just to
+   * prevent accidental deletion from multiple tabs.
    *
-   * @returns true if the account was deleted, false if there was a mismatch with the current user's id, and the
-   * account was probably already deleted.
+   * @returns true if the account was deleted, false if there was a mismatch with the current
+   *   user's id, and the account was probably already deleted.
    */
   closeAccount(userId: number): Promise<boolean>;
   /**
-   * Deletes current non personal org with all documents. Note: deleteOrg doesn't clear documents, and this method
-   * is specific to Grist installation, and might not be supported.
+   * Deletes current non personal org with all documents. Note: deleteOrg doesn't clear documents,
+   * and this method is specific to Grist installation, and might not be supported.
    */
   closeOrg(): Promise<void>;
 }
 
 /**
- * Parameters for the download CSV and XLSX endpoint (/download/table-schema & /download/csv & /download/csv).
+ * Parameters for the download CSV and XLSX endpoint (/download/table-schema & /download/csv &
+ * /download/csv).
  */
  export interface DownloadDocParams {
   tableId: string;
@@ -479,6 +481,12 @@ export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
 
 export interface AttachmentsArchiveParams {
    format?: CreatableArchiveFormats,
+}
+
+export interface ArchiveUploadResult {
+  added: number;
+  errored: number;
+  unused: number;
 }
 
 interface GetRowsParams {
@@ -536,18 +544,21 @@ export interface DocAPI {
   getDownloadTsvUrl(params: DownloadDocParams): string;
   getDownloadDsvUrl(params: DownloadDocParams): string;
   getDownloadTableSchemaUrl(params: DownloadDocParams): string;
-  getAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string;
+  getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string;
 
   /**
-   * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
-   * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
-   * @param code Authorization code returned from Google (requested via Grist's Google Auth Endpoint)
-   * @param title Name of the spreadsheet that will be created (should use a Grist document's title)
+   * Exports current document to the Google Drive as a spreadsheet file. To invoke this method,
+   * first acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
+   * @param code Authorization code returned from Google (requested via Grist's Google Auth
+   *   Endpoint)
+   * @param title Name of the spreadsheet that will be created (should use a Grist document's
+   *   title)
    */
   sendToDrive(code: string, title: string): Promise<{url: string}>;
   // Upload a single attachment and return the resulting metadata row ID.
   // The arguments are passed to FormData.append.
   uploadAttachment(value: string | Blob, filename?: string): Promise<number>;
+  uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<any>;
 
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
@@ -593,7 +604,8 @@ export interface DocAPI {
   setAttachmentStore(type: AttachmentStore): Promise<void>;
   /**
    * Lists available external attachment stores. For now it contains at most one store.
-   * If there is one store available it means that external storage is configured and can be used by this document.
+   * If there is one store available it means that external storage is configured and can be used
+   * by this document.
    */
   getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}>;
 }
@@ -1200,7 +1212,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this._url + '/download/table-schema?' + encodeQueryParams({...params});
   }
 
-  public getAttachmentsArchiveUrl(params: AttachmentsArchiveParams) {
+  public getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string {
     return this._url + '/attachments/archive?' + encodeQueryParams({...params});
   }
 
@@ -1213,7 +1225,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async uploadAttachment(value: string | Blob, filename?: string): Promise<number> {
     const formData = this.newFormData();
-    formData.append('upload', value as Blob, filename);
+    formData.append('upload', value, filename);
     const response = await this.requestAxios(`${this._url}/attachments`, {
       method: 'POST',
       data: formData,
@@ -1223,6 +1235,20 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       headers: {...this.defaultHeadersWithoutContentType()},
     });
     return response.data[0];
+  }
+
+  public async uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult> {
+    const formData = this.newFormData();
+    formData.append('upload', archive, filename);
+    const response = await this.requestAxios(`${this._url}/attachments/archive`, {
+      method: 'POST',
+      data: formData,
+      // On browser, it is important not to set Content-Type so that the browser takes care
+      // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
+      // for setting the HTTP headers.
+      headers: {...this.defaultHeadersWithoutContentType()},
+    });
+    return response.data;
   }
 
   public async getAssistance(params: AssistanceRequest): Promise<AssistanceResponse> {

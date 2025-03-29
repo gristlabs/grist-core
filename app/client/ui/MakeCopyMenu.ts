@@ -315,7 +315,7 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
         dom.domComputed(use => {
           const docApi = pageModel.appModel.api.getDocAPI(doc.id);
           const href = use(selected).startsWith('attachments')
-            ? docApi.getAttachmentsArchiveUrl({ format: use(selected).includes('zip') ? 'zip' : 'tar' })
+            ? docApi.getDownloadAttachmentsArchiveUrl({ format: use(selected).includes('zip') ? 'zip' : 'tar' })
             : docApi.getDownloadUrl({
               template: use(selected) === "template",
               removeHistory: use(selected) === "nohistory" || use(selected) === "template",
