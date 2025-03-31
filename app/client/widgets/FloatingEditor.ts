@@ -3,7 +3,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {detachNode} from 'app/client/lib/dom';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
-import {FLOATING_POPUP_MAX_WIDTH_PX, FloatingPopup} from 'app/client/ui/FloatingPopup';
+import {FloatingPopup, PopupPosition} from 'app/client/ui/FloatingPopup';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Disposable, dom, Holder, IDisposableOwner, IDomArgs,
@@ -12,6 +12,8 @@ import {Disposable, dom, Holder, IDisposableOwner, IDomArgs,
 const t = makeT('FloatingEditor');
 
 const testId = makeTestId('test-floating-editor-');
+
+const FLOATING_POPUP_WIDTH_PX = 436;
 
 export interface IFloatingOwner extends IDisposableOwner {
   detach(): HTMLElement;
@@ -80,6 +82,8 @@ export class FloatingEditor extends Disposable {
       let content: HTMLElement;
       // Now create the popup. It will be owned by the editor itself.
       const popup = FloatingPopup.create(popupOwner, {
+        width: FLOATING_POPUP_WIDTH_PX,
+        height: 711,
         content: () => (content = editor.detach()), // this will be called immediately, and will move some dom between
                                                     // existing editor and the popup. We need to save it, so we can
                                                     // detach it on close.
@@ -97,8 +101,9 @@ export class FloatingEditor extends Disposable {
             layer.dispose();
           }
         },
-        minHeight: 550,
-        initialPosition: this._getInitialPosition(),
+        minWidth: 328,
+        minHeight: 400,
+        position: this._getPopupPosition(),
         args: [testId('popup')]
       });
       // Set a public flag that we are active.
@@ -115,36 +120,31 @@ export class FloatingEditor extends Disposable {
     }
   }
 
-  private _getInitialPosition(): [number, number] | undefined {
+  private _getPopupPosition(): PopupPosition | undefined {
     if (!this._refElem || this._placement === 'fixed') {
       return undefined;
     }
 
     const refElem = this._refElem as HTMLElement;
-    const refElemBoundingRect = refElem.getBoundingClientRect();
+    const rect = refElem.getBoundingClientRect();
+    const {right, top} = rect;
+    let left: number;
     if (this._placement === 'overlapping') {
       // Anchor the floating editor to the top-left corner of the refElement.
-      return [
-        refElemBoundingRect.left,
-        refElemBoundingRect.top,
-      ];
+      left = rect.left;
+    } else if (window.innerWidth - right >= FLOATING_POPUP_WIDTH_PX) {
+      // If there's enough space to the right of refElement, position the
+      // floating editor there.
+      left = right;
     } else {
-      if (window.innerWidth - refElemBoundingRect.right >= FLOATING_POPUP_MAX_WIDTH_PX) {
-        // If there's enough space to the right of refElement, position the
-        // floating editor there.
-        return [
-          refElemBoundingRect.right,
-          refElemBoundingRect.top,
-        ];
-      } else {
-        // Otherwise position it to the left of refElement; note that it may still
-        // overlap if there isn't enough space on this side either.
-        return [
-          refElemBoundingRect.left - FLOATING_POPUP_MAX_WIDTH_PX,
-          refElemBoundingRect.top,
-        ];
-      }
+      // Otherwise position it to the left of refElement; note that it may still
+      // overlap if there isn't enough space on this side either.
+      left = rect.left - FLOATING_POPUP_WIDTH_PX;
     }
+    return {
+      left,
+      top,
+    };
   }
 }
 

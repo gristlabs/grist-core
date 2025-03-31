@@ -1,9 +1,10 @@
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
+import {sessionStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
-import {cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup} from 'app/client/ui/FloatingPopup';
+import {cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup, PopupPosition} from 'app/client/ui/FloatingPopup';
 import {sanitizeTutorialHTML} from 'app/client/ui/sanitizeHTML';
 import {hoverTooltip, setHoverTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
@@ -12,7 +13,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {confirmModal, modal} from 'app/client/ui2018/modals';
 import {parseUrlId} from 'app/common/gristUrls';
-import {dom, makeTestId, Observable, styled} from 'grainjs';
+import {Disposable, dom, Holder, makeTestId, Observable, styled} from 'grainjs';
 import {marked, Token} from 'marked';
 import debounce = require('lodash/debounce');
 import range = require('lodash/range');
@@ -29,8 +30,9 @@ const t = makeT('DocTutorial');
 
 const testId = makeTestId('test-doc-tutorial-');
 
-export class DocTutorial extends FloatingPopup {
+export class DocTutorial extends Disposable {
   private _appModel = this._gristDoc.docPageModel.appModel;
+  private _userId = this._appModel.currentUser?.id ?? 0;
   private _currentDoc = this._gristDoc.docPageModel.currentDoc.get();
   private _currentFork = this._currentDoc?.forks?.[0];
   private _docComm = this._gristDoc.docComm;
@@ -39,6 +41,19 @@ export class DocTutorial extends FloatingPopup {
   private _slides: Observable<DocTutorialSlide[] | null> = Observable.create(this, null);
   private _currentSlideIndex = Observable.create(this, this._currentFork?.options?.tutorial?.lastSlideIndex ?? 0);
   private _percentComplete = this._currentFork?.options?.tutorial?.percentComplete;
+  private _popupHolder = Holder.create<FloatingPopup>(this);
+  private _width = this.autoDispose(sessionStorageJsonObs(
+    `u:${this._userId};d:${this._docId};docTutorialWidth`,
+    436
+  ));
+  private _height = this.autoDispose(sessionStorageJsonObs(
+    `u:${this._userId};d:${this._docId};docTutorialHeight`,
+    711
+  ));
+  private _position = this.autoDispose(sessionStorageJsonObs<PopupPosition | undefined>(
+    `u:${this._userId};d:${this._docId};docTutorialPosition`,
+    undefined
+  ));
 
   private _saveProgressDebounced = debounce(this._saveProgress, 1000, {
     // Save progress immediately if at least 1 second has passed since the last change.
@@ -48,10 +63,7 @@ export class DocTutorial extends FloatingPopup {
   });
 
   constructor(private _gristDoc: GristDoc) {
-    super({
-      minimizable: true,
-      stopClickPropagationOnMove: true,
-    });
+    super();
 
     this.autoDispose(this._currentSlideIndex.addListener((slideIndex) => {
       const numSlides = this._slides.get()?.length ?? 0;
@@ -67,7 +79,7 @@ export class DocTutorial extends FloatingPopup {
   }
 
   public async start() {
-    this.showPopup();
+    this._showPopup();
     await this._loadSlides();
 
     const tableData = this._docData.getTable('GristDocTutorial');
@@ -78,11 +90,33 @@ export class DocTutorial extends FloatingPopup {
     this._logTelemetryEvent('tutorialOpened');
   }
 
-  protected _buildTitle() {
+  private _showPopup() {
+    const popup = FloatingPopup.create(this._popupHolder, {
+      title: this._buildPopupTitle.bind(this),
+      content: this._buildPopupContent.bind(this),
+      onMoveEnd: (position) => this._position.set(position),
+      onResizeEnd: ({width, height, ...position}) => {
+        this._width.set(width);
+        this._height.set(height);
+        this._position.set(position);
+      },
+      width: this._width.get(),
+      height: this._height.get(),
+      minWidth: 328,
+      minHeight: 300,
+      position: this._position.get(),
+      minimizable: true,
+      stopClickPropagationOnMove: true,
+      args: this._buildPopupArgs(),
+    });
+    popup.showPopup();
+  }
+
+  private _buildPopupTitle() {
     return dom('span', dom.text(this._gristDoc.docPageModel.currentDocTitle), testId('popup-header'));
   }
 
-  protected _buildContent() {
+  private _buildPopupContent() {
     return [
         dom.domComputed(use => {
         const slides = use(this._slides);
@@ -166,7 +200,7 @@ export class DocTutorial extends FloatingPopup {
     ];
   }
 
-  protected _buildArgs() {
+  private _buildPopupArgs() {
     return [
       dom.cls('doc-tutorial-popup'),
       testId('popup'),

@@ -19,7 +19,7 @@ import {gristThemeObs} from 'app/client/ui2018/theme';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingDots} from 'app/client/ui2018/loaders';
-import {menu, menuCssClass, menuItem} from 'app/client/ui2018/menus';
+import {menu, menuItem} from 'app/client/ui2018/menus';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {ApiError} from 'app/common/ApiError';
 import {AssistanceResponse, AssistanceState, FormulaAssistanceContext} from 'app/common/AssistancePrompts';
@@ -293,7 +293,7 @@ export class FormulaAssistant extends Disposable {
               t('Clear Conversation'),
               testId('ai-assistant-options-clear-conversation'),
             ),
-          ], {menuCssClass: menuCssClass + ' ' + cssChatOptionsMenu.className}),
+          ], {menuWrapCssClass: cssChatOptionsMenu.className}),
           testId('ai-assistant-options'),
         ),
       ),
