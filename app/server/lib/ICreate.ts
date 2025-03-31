@@ -91,6 +91,7 @@ export interface ICreate {
   getLoginSystem(): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
+  areAdminControlsAvailable(): boolean;
 }
 
 export interface ICreateActiveDocOptions {
@@ -227,4 +228,5 @@ export class BaseCreate implements ICreate {
     return new HostedStorageManager(...args);
   }
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
+  public areAdminControlsAvailable(): boolean { return false; }
 }

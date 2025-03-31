@@ -17,9 +17,8 @@ const t = makeT('AdminPanel');
 const testId = makeTestId('test-admin-controls-');
 
 // Check if the AdminControls feature is available, so that we can show it as such in the UI.
-export function areAdminControlsAvailable() {
-  const {deploymentType} = getGristConfig();
-  return (deploymentType === "enterprise");
+export function areAdminControlsAvailable(): boolean {
+  return Boolean(getGristConfig().adminControls);
 }
 
 export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): PageSidePanel {

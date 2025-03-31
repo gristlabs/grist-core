@@ -902,6 +902,9 @@ export interface GristLoadConfig {
 
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
+
+  // Set on /admin pages only, when AdminControls are available and should be enabled in UI.
+  adminControls?: boolean;
 }
 
 export const Features = StringUnion(
