@@ -47,18 +47,19 @@ export interface DocWorkerMemoryUsage {
 
 export interface DocWorkerLoad extends DocWorkerMemoryUsage {
   /**
-   * Number of docs that are currently assigned to the worker.
+   * Number of docs currently assigned to the worker.
    */
-  assignmentsCount: number;
+  totalAssignmentsCount: number;
   /**
-   * Number of docs that are currently loading and not yet reflected in
-   * `freeMemoryMB`.
+   * Number of docs recently assigned to the worker that have not yet begun
+   * loading.
+   */
+  newAssignmentsCount: number;
+  /**
+   * Number of docs assigned to the worker that are currently loading, and not
+   * yet fully reflected in `freeMemoryMB`.
    */
   loadingDocsCount: number;
-  /**
-   * Number of docs not yet acknowledged by the worker (i.e. in the process of loading).
-   */
-  unackedDocsCount: number;
 }
 
 export interface DocWorkerLoadUpdate {
@@ -72,9 +73,10 @@ export interface DocWorkerLoadUpdate {
    */
   loadingDocsCountDelta?: number;
   /**
-   * IDs of documents acknowledged by a worker (i.e. in the process of loading).
+   * IDs of documents that are currently loading and not yet reflected in
+   * `freeMemoryMB`.
    */
-  ackedDocIds?: string[];
+  loadingDocIds?: string[];
 }
 
 /**

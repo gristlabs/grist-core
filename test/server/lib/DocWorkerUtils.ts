@@ -6,47 +6,47 @@ describe("DocWorkerUtils", function () {
     it("returns the worker with the highest score", function () {
       const workers = [
         {
-          id: "id1",
+          id: "worker1",
           load: {
             freeMemoryMB: 0,
             totalMemoryMB: 4096,
-            assignmentsCount: 10,
+            totalAssignmentsCount: 10,
+            newAssignmentsCount: 0,
             loadingDocsCount: 0,
-            unackedDocsCount: 0,
           },
         },
         {
-          id: "id2",
+          id: "worker2",
           load: {
             freeMemoryMB: 2048,
             totalMemoryMB: 4096,
-            assignmentsCount: 5,
-            loadingDocsCount: 3,
-            unackedDocsCount: 0,
+            totalAssignmentsCount: 5,
+            newAssignmentsCount: 1,
+            loadingDocsCount: 2,
           },
         },
         {
-          id: "id3",
+          id: "worker3",
           load: null,
         },
         {
-          id: "id4",
+          id: "worker4",
           load: {
             freeMemoryMB: 3247,
             totalMemoryMB: 4096,
-            assignmentsCount: 2,
+            totalAssignmentsCount: 2,
+            newAssignmentsCount: 0,
             loadingDocsCount: 1,
-            unackedDocsCount: 0,
           },
         },
         {
-          id: "id5",
+          id: "worker5",
           load: {
             freeMemoryMB: 4096,
             totalMemoryMB: 4096,
-            assignmentsCount: 0,
+            totalAssignmentsCount: 0,
+            newAssignmentsCount: 0,
             loadingDocsCount: 0,
-            unackedDocsCount: 0,
           },
         },
       ];
@@ -76,23 +76,23 @@ describe("DocWorkerUtils", function () {
     it("returns the first worker if there is a tie", function () {
       const workers = [
         {
-          id: "id1",
+          id: "worker1",
           load: {
             freeMemoryMB: 2048,
             totalMemoryMB: 4096,
-            assignmentsCount: 5,
-            loadingDocsCount: 3,
-            unackedDocsCount: 0,
+            totalAssignmentsCount: 5,
+            newAssignmentsCount: 1,
+            loadingDocsCount: 2,
           },
         },
         {
-          id: "id2",
+          id: "worker2",
           load: {
             freeMemoryMB: 2048,
             totalMemoryMB: 4096,
-            assignmentsCount: 5,
-            loadingDocsCount: 3,
-            unackedDocsCount: 0,
+            totalAssignmentsCount: 5,
+            newAssignmentsCount: 2,
+            loadingDocsCount: 1,
           },
         },
       ];
@@ -110,53 +110,53 @@ describe("DocWorkerUtils", function () {
     it("returns a random worker if there are no positive scores", function () {
       const workers = [
         {
-          id: "id1",
+          id: "worker1",
           load: {
             freeMemoryMB: 0,
             totalMemoryMB: 4096,
-            assignmentsCount: 10,
+            totalAssignmentsCount: 10,
+            newAssignmentsCount: 0,
             loadingDocsCount: 0,
-            unackedDocsCount: 0,
           },
         },
         {
-          id: "id2",
+          id: "worker2",
           load: {
             freeMemoryMB: 0,
             totalMemoryMB: 4096,
-            assignmentsCount: 10,
+            totalAssignmentsCount: 10,
+            newAssignmentsCount: 0,
             loadingDocsCount: 1,
-            unackedDocsCount: 0,
           },
         },
         {
-          id: "id3",
+          id: "worker3",
           load: {
             freeMemoryMB: 0,
             totalMemoryMB: 4096,
-            assignmentsCount: 10,
+            totalAssignmentsCount: 10,
+            newAssignmentsCount: 0,
             loadingDocsCount: 2,
-            unackedDocsCount: 0,
           },
         },
         {
-          id: "id4",
+          id: "worker4",
           load: {
             freeMemoryMB: 0,
             totalMemoryMB: 4096,
-            assignmentsCount: 10,
+            totalAssignmentsCount: 10,
+            newAssignmentsCount: 0,
             loadingDocsCount: 3,
-            unackedDocsCount: 0,
           },
         },
       ];
       const assignmentsByWorkerId: Record<string, number> = {};
       for (let i = 0; i < 100; i++) {
-        const worker = pickWorker(workers);
-        if (assignmentsByWorkerId[worker!.id]) {
-          assignmentsByWorkerId[worker!.id] += 1;
+        const worker = pickWorker(workers)!;
+        if (assignmentsByWorkerId[worker.id]) {
+          assignmentsByWorkerId[worker.id] += 1;
         } else {
-          assignmentsByWorkerId[worker!.id] = 1;
+          assignmentsByWorkerId[worker.id] = 1;
         }
       }
 
@@ -169,6 +169,36 @@ describe("DocWorkerUtils", function () {
 
     it("returns undefined if there are no workers", function () {
       assert.isUndefined(pickWorker([]));
+    });
+
+    it("accounts for new assignments and loading docs in score", function () {
+      const worker = {
+        id: "worker1",
+        load: {
+          freeMemoryMB: 4096,
+          totalMemoryMB: 4096,
+          totalAssignmentsCount: 0,
+          newAssignmentsCount: 0,
+          loadingDocsCount: 0,
+        },
+      };
+      assert.equal(pickWorker([worker])!.score, 1);
+
+      worker.load.totalAssignmentsCount++;
+      worker.load.newAssignmentsCount++;
+      assert.equal(pickWorker([worker])!.score, 0.98779296875);
+
+      worker.load.newAssignmentsCount--;
+      worker.load.loadingDocsCount++;
+      assert.equal(pickWorker([worker])!.score, 0.98779296875);
+
+      worker.load.totalAssignmentsCount++;
+      worker.load.loadingDocsCount++;
+      assert.equal(pickWorker([worker])!.score, 0.9755859375);
+
+      worker.load.newAssignmentsCount = 0;
+      worker.load.loadingDocsCount = 0;
+      assert.equal(pickWorker([worker])!.score, 1);
     });
   });
 });

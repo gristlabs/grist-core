@@ -174,7 +174,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  *   worker-{workerId}-docs - a set of docs assigned to a worker, identified by docId
  *   worker-{workerId}-group - if set, marks the worker as serving a particular group
  *   worker-{workerId}-load - a hash of load information (e.g. memory usage) for a worker
- *   worker-{workerId}-load-unacked-docs - subset of docs not yet acknowledged by a worker
+ *   worker-{workerId}-load-new-assignments - subset of docs recently assigned to a worker
  *   doc-${docId} - a hash containing (JSON serialized) DocStatus fields, other than docMD5.
  *   doc-${docId}-checksum - the docs docMD5, or 'null' if docMD5 is null
  *   doc-${docId}-group - if set, marks the doc as to be served by workers in a given group
@@ -219,6 +219,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       // Add this worker to set of workers (but don't make it available for work yet).
       await this._client.saddAsync('workers', info.id);
       await this._client.hmsetAsync(`worker-${info.id}-load`, getDefaultLoad());
+      await this._client.delAsync(`worker-${info.id}-load-new-assignments`);
       if (info.group) {
         // Accept work only for a specific group.
         // Do not accept work not associated with the specified group.
@@ -295,7 +296,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       await this._client.delAsync(`worker-${workerId}-docs`);
       await this._client.delAsync(`worker-${workerId}-group`);
       await this._client.delAsync(`worker-${workerId}-load`);
-      await this._client.delAsync(`worker-${workerId}-load-unacked-docs`);
+      await this._client.delAsync(`worker-${workerId}-load-new-assignments`);
       await this._client.delAsync(`worker-${workerId}`);
 
       // Forget about this worker completely.
@@ -323,9 +324,14 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
+  /**
+   * Updates the load of a worker.
+   *
+   * This method should only be called by the worker with the specified `workerId`.
+   */
   public async updateWorkerLoad(workerId: string, load: DocWorkerLoadUpdate): Promise<void> {
     log.info(`DocWorkerMap.updateWorkerLoad ${workerId}`, load);
-    const {freeMemoryMB, loadingDocsCountDelta, ackedDocIds} = load;
+    const {freeMemoryMB, loadingDocsCountDelta, loadingDocIds} = load;
     const multi = this._client.multi();
     if (freeMemoryMB) {
       multi.hset(`worker-${workerId}-load`, 'freeMemoryMB', `${freeMemoryMB}`);
@@ -333,8 +339,8 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (loadingDocsCountDelta) {
       multi.hincrby(`worker-${workerId}-load`, 'loadingDocsCount', loadingDocsCountDelta);
     }
-    if (ackedDocIds && ackedDocIds.length > 0) {
-      multi.srem(`worker-${workerId}-load-unacked-docs`, ...ackedDocIds);
+    if (loadingDocIds && loadingDocIds.length > 0) {
+      multi.srem(`worker-${workerId}-load-new-assignments`, ...loadingDocIds);
     }
     await multi.execAsync();
   }
@@ -348,8 +354,8 @@ export class DocWorkerMap implements IDocWorkerMap {
     const op = this._client.multi();
     op.del(`doc-${docId}`);
     op.srem(`worker-${workerId}-docs`, docId);
-    op.hincrby(`worker-${workerId}-load`, 'assignmentsCount', -1);
-    op.srem(`worker-${workerId}-load-unacked-docs`, docId);
+    op.hincrby(`worker-${workerId}-load`, 'totalAssignmentsCount', -1);
+    op.srem(`worker-${workerId}-load-new-assignments`, docId);
     await op.execAsync();
   }
 
@@ -371,7 +377,6 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   /**
-   *
    * Defined by IDocWorkerMap.
    *
    * Assigns a DocWorker to this docId if one is not yet assigned.
@@ -387,6 +392,8 @@ export class DocWorkerMap implements IDocWorkerMap {
    * It will be up to the doc worker to assign the eventually
    * created document, if desired.
    *
+   * Assignments are decided by scoring all available workers and picking
+   * the worker with the highest score.
    */
   public async assignDocWorker(docId: string, workerId?: string): Promise<DocStatus> {
     if (docId === 'import') {
@@ -417,15 +424,15 @@ export class DocWorkerMap implements IDocWorkerMap {
     try {
       // Now that we've locked, recheck that the worker hasn't been reassigned
       // in the meantime.  Return immediately if it has.
-      const docAndChecksum = await this._getDocAndChecksum(docId);
-      docStatus = docAndChecksum.doc;
+      const {doc, checksum} = await this._getDocAndChecksum(docId);
+      docStatus = doc;
       if (docStatus) { return docStatus; }
 
       if (!workerId) {
         // Check if document has a preferred worker group set.
         const group = await this._client.getAsync(`doc-${docId}-group`) || DEFAULT_GROUP;
 
-        // Let's start off by assigning documents to available workers randomly.
+        // Let's start off by assigning documents to available workers.
         workerId = await this._getAvailableWorkerId(group);
         if (!workerId) {
           // No workers available in the desired worker group.  Rather than refusing to
@@ -438,33 +445,13 @@ export class DocWorkerMap implements IDocWorkerMap {
           workerId = await this._client.srandmemberAsync('workers-available') || undefined;
         }
         if (!workerId) { throw new Error('no doc workers available'); }
-      }  else {
+      } else {
         if (!await this._client.sismemberAsync('workers-available', workerId)) {
           throw new Error(`worker ${workerId} not known or not available`);
         }
       }
 
-      // Look up how to contact the worker.
-      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
-      if (!docWorker) { throw new Error('no doc worker contact info available'); }
-
-      // We can now construct a DocStatus, preserving any existing checksum.
-      const checksum = docAndChecksum.checksum;
-      const newDocStatus = {docMD5: checksum, docWorker, isActive: true};
-
-      // We add the assignment to worker-{workerId}-docs and save doc-{docId}.
-      const result = await this._client.multi()
-        .sadd(`worker-${workerId}-docs`, docId)
-        .hmset(`doc-${docId}`, {
-          docWorker: JSON.stringify(docWorker),  // redis can't store nested objects, strings only
-          isActive: JSON.stringify(true)         // redis can't store booleans, strings only
-        })
-        .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
-        .hincrby(`worker-${workerId}-load`, 'assignmentsCount', 1)
-        .sadd(`worker-${workerId}-load-unacked-docs`, docId)
-        .execAsync();
-      if (!result) { throw new Error('failed to store new assignment'); }
-      return newDocStatus;
+      return await this._assignDocToWorker(workerId, {id: docId, checksum});
     } finally {
       await lock.unlock();
     }
@@ -582,6 +569,39 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   /**
+   * Assigns `doc` to the worker with the specified `workerId`.
+   *
+   * This method should only be called by a home server holding a lock on the
+   * `workers-lock` key.
+   */
+  private async _assignDocToWorker(
+    workerId: string,
+    doc: {id: string; checksum: string|null}
+  ): Promise<DocStatus> {
+    const {id: docId, checksum} = doc;
+    // Look up how to contact the worker.
+    const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+    if (!docWorker) { throw new Error('no doc worker contact info available'); }
+
+    // We can now construct a DocStatus, preserving any existing checksum.
+    const newDocStatus = {docMD5: checksum, docWorker, isActive: true};
+
+    // We add the assignment to worker-{workerId}-docs and save doc-{docId}.
+    const result = await this._client.multi()
+      .sadd(`worker-${workerId}-docs`, docId)
+      .hmset(`doc-${docId}`, {
+        docWorker: JSON.stringify(docWorker),  // redis can't store nested objects, strings only
+        isActive: JSON.stringify(true)         // redis can't store booleans, strings only
+      })
+      .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
+      .hincrby(`worker-${workerId}-load`, 'totalAssignmentsCount', 1)
+      .sadd(`worker-${workerId}-load-new-assignments`, docId)
+      .execAsync();
+    if (!result) { throw new Error('failed to store new assignment'); }
+    return newDocStatus;
+  }
+
+  /**
    * Fetch the doc-<docId> hash and doc-<docId>-checksum key from redis.
    * Return as a decoded DocStatus and a checksum.
    */
@@ -603,27 +623,36 @@ export class DocWorkerMap implements IDocWorkerMap {
     return {doc, checksum};
   }
 
+  /**
+   * Returns the ID of an available worker, or `undefined` if no workers are available.
+   *
+   * Workers are chosen by converting their load to a numeric score, and picking the
+   * worker with the highest score. See `DocWorkerUtils.pickWorker` for more details
+   * on the scoring algorithm.
+   */
   private async _getAvailableWorkerId(group: string): Promise<string|undefined> {
     const key = `workers-available-${group}`;
     const ids = await this._client.smembersAsync(key);
-    const [loads, unackedDocsCounts] = await Promise.all([
+    const [loads, newAssignmentsCounts] = await Promise.all([
       Promise.all(
         ids.map((id) => this._client.hgetallAsync(`worker-${id}-load`))
       ),
       Promise.all(
         ids.map((id) =>
-          this._client.scardAsync(`worker-${id}-load-unacked-docs`)
+          this._client.scardAsync(`worker-${id}-load-new-assignments`)
         )
       ),
     ]);
-    const workers = zip(ids, loads, unackedDocsCounts).map(
-      ([id, load, unackedDocsCount]) => {
+    const workers = zip(ids, loads, newAssignmentsCounts).map(
+      ([id, load, newAssignmentsCount]) => {
+        // TODO: remove conditional once these changes make their way to existing doc
+        // workers; DocWorkerMap already ensures new workers have an initial load.
         if (load) {
           load.freeMemoryMB = Number(load.freeMemoryMB);
           load.totalMemoryMB = Number(load.totalMemoryMB);
-          load.assignmentsCount = Number(load.assignmentsCount);
+          load.totalAssignmentsCount = Number(load.totalAssignmentsCount);
+          load.newAssignmentsCount = newAssignmentsCount ?? undefined;
           load.loadingDocsCount = Number(load.loadingDocsCount);
-          load.unackedDocsCount = unackedDocsCount ?? undefined;
         }
         return {
           id: id as string,

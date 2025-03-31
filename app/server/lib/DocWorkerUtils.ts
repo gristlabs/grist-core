@@ -18,10 +18,17 @@ import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
 
 interface DocWorker {
   id: string;
+  // TODO: remove `null` once these changes make their way to existing doc
+  // workers; DocWorkerMap already ensures new workers have an initial load.
   load: DocWorkerLoad | null;
 }
 
 interface DocWorkerWithScore extends DocWorker {
+  /**
+   * Number between 0.0 and 1.0 inclusive.
+   *
+   * Used during assignment to pick a worker (see `pickWorker`).
+   */
   score: number;
 }
 
@@ -216,12 +223,11 @@ export function getMemoryUsage(): DocWorkerMemoryUsage {
 /**
  * Returns an initial snapshot of load with default values set.
  */
-export function getDefaultLoad(): DocWorkerLoad {
+export function getDefaultLoad(): Omit<DocWorkerLoad, "newAssignmentsCount"> {
   return {
     ...getMemoryUsage(),
-    assignmentsCount: 0,
+    totalAssignmentsCount: 0,
     loadingDocsCount: 0,
-    unackedDocsCount: 0,
   };
 }
 
@@ -244,20 +250,25 @@ export function pickWorker(workers: DocWorker[]): DocWorkerWithScore | undefined
 }
 
 /**
- * Returns a number between 0.0 and 1.0 (inclusive) representing the capacity
- * of a worker to handle additional load (i.e. open and manage a document).
+ * Returns a number between 0.0 and 1.0 inclusive representing the capacity
+ * of a worker to handle additional load (i.e. open and load a document).
  *
  * Returns 0.5 if load is not available.
+ *
+ * A worker's score is the ratio of used to total system memory, as reported by
+ * the OS. Documents currently in flux (e.g. new assignments, not fully loaded
+ * in data engine) temporarily increase used memory by a fixed amount of 50 MB
+ * per document.
  */
 function getWorkerScore({ load }: DocWorker): number {
   if (!load) {
     return 0.5;
   }
 
-  const { freeMemoryMB, totalMemoryMB, loadingDocsCount, unackedDocsCount } =
-    load;
-  const estimatedMemoryDeltaMB =
-    50 * (Math.max(loadingDocsCount, 0) + Math.max(unackedDocsCount, 0));
+  const { freeMemoryMB, totalMemoryMB } = load;
+  const newAssignmentsCount = Math.max(load.newAssignmentsCount, 0);
+  const loadingDocsCount = Math.max(load.loadingDocsCount, 0);
+  const estimatedMemoryDeltaMB = 50 * (newAssignmentsCount + loadingDocsCount);
   const usedMemoryMB = totalMemoryMB - freeMemoryMB + estimatedMemoryDeltaMB;
   return clamp(1 - usedMemoryMB / totalMemoryMB, 0.0, 1.0);
 }

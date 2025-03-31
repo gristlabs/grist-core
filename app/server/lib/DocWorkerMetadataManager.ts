@@ -11,7 +11,7 @@ const UPDATE_WORKER_LOAD_DELAY_MS = 5 * 1000;
  */
 export class DocWorkerMetadataManager {
   private _loadingDocsCountDelta = 0;
-  private _ackedDocIds: Set<string> = new Set();
+  private _loadingDocIds: Set<string> = new Set();
   private _log = new LogMethods("DocWorkerMetadataManager ");
   private _interval = new Interval(
     this._performUpdate.bind(this),
@@ -43,18 +43,18 @@ export class DocWorkerMetadataManager {
   private async _performUpdate() {
     const { freeMemoryMB } = getMemoryUsage();
     const loadingDocsCountDelta = this._loadingDocsCountDelta || undefined;
-    const ackedDocIds = [...this._ackedDocIds];
+    const loadingDocIds = [...this._loadingDocIds];
     this._loadingDocsCountDelta = 0;
-    this._ackedDocIds.clear();
+    this._loadingDocIds.clear();
     await this._docWorkerMap.updateWorkerLoad(this._docWorker.id, {
       freeMemoryMB,
       loadingDocsCountDelta,
-      ackedDocIds,
+      loadingDocIds,
     });
   }
 
   private _increaseLoadingDocsCount(docId: string) {
-    this._ackedDocIds.add(docId);
+    this._loadingDocIds.add(docId);
     this._loadingDocsCountDelta++;
     this._interval.scheduleImmediateCall();
   }
