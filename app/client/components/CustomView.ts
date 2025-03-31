@@ -109,6 +109,8 @@ export class CustomView extends Disposable {
 
   private _frame: WidgetFrame;  // plugin frame (holding external page)
   private _hasUnmappedColumns: ko.Computed<boolean>;
+  private _hasAclHiddenColumns: ko.Computed<boolean>;
+  private _unmappedColumns: ko.Computed<string[]>;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, { 'addNewRow': true });
@@ -129,13 +131,31 @@ export class CustomView extends Disposable {
     this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
     this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasFocus));
 
-    this._hasUnmappedColumns = this.autoDispose(ko.pureComputed(() => {
+    this._unmappedColumns = this.autoDispose(ko.pureComputed(() => {
       const columns = this.viewSection.columnsToMap();
-      if (!columns) { return false; }
+      if (!columns) { return []; }
       const required = columns.filter(col => typeof col === 'string' || !(col.optional === true))
                               .map(col => typeof col === 'string' ? col : col.name);
       const mapped = this.viewSection.mappedColumns() || {};
-      return required.some(col => !mapped[col]) && this.customDef.mode() === "url";
+      return required.filter(col => !mapped[col]);
+    }));
+    this._hasUnmappedColumns = this.autoDispose(ko.pureComputed(() => this._unmappedColumns().length > 0));
+    this._hasAclHiddenColumns = this.autoDispose(ko.pureComputed(() => {
+      // If all columns are mapped, nothing to do.
+      if (!this._hasUnmappedColumns()) {
+        return false;
+      }
+
+      // Get the rowIds of the already mapped columns.
+      const mappings = this.viewSection.customDef.columnsMapping();
+      if (!mappings) {
+        return false;
+      }
+      const rowIds = Object.entries(mappings).filter(f => f[1])
+                        .map(([rowId, colId]) => Array.isArray(colId) ? colId : [colId as number])
+                        .flat();
+      const redactedColumns = gristDoc.docModel.columns.rowModels.filter(r => !r.colId()).map(r => r.id());
+      return rowIds.some(r => redactedColumns.includes(r));
     }));
 
     this.viewPane = this.autoDispose(this._buildDom());
@@ -221,10 +241,19 @@ export class CustomView extends Disposable {
       kd.maybe(this._hasUnmappedColumns, () => dom('div.custom_view_no_mapping',
         testId('not-mapped'),
         dom('img', {src: 'img/empty-widget.svg'}),
-        dom('h1', kd.text(t("Some required columns aren't mapped"))),
-        dom('p',
-          t('To use this widget, please map all non-optional columns from the creator panel on the right.')
-        ),
+
+        kd.maybe(this._hasAclHiddenColumns, () => [
+          dom('h1', kd.text(t("Some required columns are hidden by access rules"))),
+          dom('p',
+      t('To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.')
+          ),
+        ]),
+        kd.maybe(() => !this._hasAclHiddenColumns(), () => [
+          dom('h1', kd.text(t("Some required columns aren't mapped"))),
+          dom('p',
+            t('To use this widget, please map all non-optional columns from the creator panel on the right.')
+          ),
+        ]),
       )),
       // todo: should display content in webview when running electron
       // prefer widgetId; spelunk in widgetDef for older docs

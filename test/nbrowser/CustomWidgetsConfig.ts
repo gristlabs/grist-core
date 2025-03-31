@@ -49,7 +49,10 @@ async function clickMenuItem(name: string) {
   await gu.findOpenMenuItem('li', name).click();
   await gu.waitForServer();
 }
-const getMenuOptions = () => driver.findAll('.grist-floating-menu li', el => el.getText());
+const getMenuOptions = async () => {
+  await gu.findOpenMenu();
+  return await driver.findAll('.grist-floating-menu li', el => el.getText());
+};
 async function getListItems(col: string) {
   return await driver
     .findAll(`.test-config-widget-map-list-for-${col} .test-config-widget-ref-select-label`, el => el.getText());
@@ -213,6 +216,52 @@ describe('CustomWidgetsConfig', function () {
     }
     await gu.setCustomWidget(TESTER_WIDGET);
     await widget.waitForFrame();
+  });
+
+  it('should show better message when mapped columns are hidden', async () => {
+    // Set widget with mappings requirements.
+    await widget.resetWidget();
+    await gu.setCustomWidget(REQUIRED_WIDGET);
+    await gu.acceptAccessRequest();
+
+    // Add hidden column to Table1.
+    await gu.sendActions([
+      ['AddVisibleColumn', 'Table1', 'Hidden', {type: 'Text'}],
+    ]);
+
+    assert.include(await driver.findWait('.test-custom-widget-not-mapped', 2000).getText(),
+        "Some required columns aren't mapped");
+
+    // Now map it.
+    await toggleDrop(pickerDrop('Column'));
+    await clickOption('Hidden');
+
+    // And make sure widget is rendered.
+    assert.isTrue(await driver.find('.test-custom-widget-ready').isDisplayed());
+
+    const api = mainSession.createHomeApi();
+    const revert = await gu.beginAclTran(api, docId);
+    await api.applyUserActions(docId, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'Hidden'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: '', permissionsText: '-R',
+      }],
+    ]);
+    // Web page will be reloaded, but it is hard to wait for it, so do it manually.
+    await gu.reloadDoc();
+
+    // Now we should see a warning placeholder that columns are not mapped.
+    assert.isTrue(await driver.find('.test-custom-widget-not-mapped').isDisplayed());
+    assert.include(await driver.findWait('.test-custom-widget-not-mapped', 2000).getText(),
+      "Some required columns are hidden by access rules");
+
+    await revert();
+    await gu.reloadDoc();
+
+    // Remove the hidden column.
+    await gu.sendActions([
+      ['RemoveColumn', 'Table1', 'Hidden'],
+    ]);
   });
 
   it('should hide widget when some columns are not mapped', async () => {
@@ -845,7 +894,6 @@ describe('CustomWidgetsConfig', function () {
     assert.isTrue(await driver.find(pickerDrop("M1")).matches(".test-config-widget-disabled"));
     // The same for M2
     assert.isTrue(await driver.find(pickerAdd("M2")).matches(".test-config-widget-disabled"));
-    assert.isEmpty(await getMenuOptions());
     assert.deepEqual(await widget.onRecordsMappings(), {M1: null, M2: []});
     assert.deepEqual(await widget.onRecords(), [
       {id: 1},
@@ -1203,7 +1251,7 @@ const widget = {
     await driver.findContent('button', gu.exactMatch(name)).click();
     // Wait for the #output div to be filled with a result. Custom Widget will set it to
     // "waiting..." before invoking the method.
-    await driver.wait(async () => (await driver.find('#output').value()) !== 'waiting...');
+    await driver.wait(async () => (await driver.find('#output').getText()) !== 'waiting...');
     // Read the result.
     const text = await driver.find('#output').getText();
     // Switch back to main window.

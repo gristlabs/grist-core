@@ -2654,13 +2654,12 @@ export async function assertHeaderFillColor(col: string|WebElement, color: strin
 /**
  * Opens a cell color picker, either the default one or the one for a specific style rule.
  */
-export function openCellColorPicker(nr?: number) {
-  if (nr !== undefined) {
-    return driver
-      .find(`.test-widget-style-conditional-rule-${nr} .test-color-select`)
-      .click();
-  }
-  return driver.find('.test-cell-color-select .test-color-select').click();
+export async function openCellColorPicker(nr?: number) {
+  const selector = nr !== undefined
+    ? `.test-widget-style-conditional-rule-${nr} .test-color-select`
+    : '.test-cell-color-select .test-color-select';
+  await driver.find(selector).click();
+  await findOpenMenu();
 }
 
 export async function assertCellTextColor(col: string, row: number, color: string) {
@@ -2729,7 +2728,9 @@ export async function addColumn(name: string, type?: string) {
   await driver.sendKeys(Key.ENTER);
   await waitForServer();
   // Make sure the popup is gone.
-  assert.isFalse(await driver.find('.test-column-title-popup').isPresent());
+  await waitToPass(async () => {
+    assert.isFalse(await driver.find('.test-column-title-popup').isPresent());
+  });
   if (type) {
     await setType(exactMatch(type));
   }
@@ -3055,7 +3056,7 @@ export async function selectedBy() {
 // Add column to sort.
 export async function addColumnToSort(colName: RegExp|string) {
   await driver.find(".test-sort-config-add").click();
-  await driver.findContent(".test-sd-searchable-list-item", colName).click();
+  await findOpenMenuItem(".test-sd-searchable-list-item", colName).click();
   await driver.findContentWait(".test-sort-config-row", colName, 100);
 }
 
@@ -3094,7 +3095,8 @@ export function findSortRow(colName: RegExp|string) {
 // Opens more sort options menu
 export async function openMoreSortOptions(colName: RegExp|string) {
   const row = await findSortRow(colName);
-  return row.find(".test-sort-config-options-icon").click();
+  await row.find(".test-sort-config-options-icon").click();
+  await findOpenMenu();
 }
 
 // Selects one of the options in the more options menu.

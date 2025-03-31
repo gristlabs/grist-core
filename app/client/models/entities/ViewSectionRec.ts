@@ -229,7 +229,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   // Temporary variable holding columns mapping requested by the widget (set by API).
   columnsToMap: ko.Observable<ColumnsToMap|null>;
-  // Temporary variable holding columns mapped by the user;
+  // Map from widget columns to colIds in document.
   mappedColumns: ko.Computed<WidgetColumnMap|null>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;

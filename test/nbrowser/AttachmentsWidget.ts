@@ -62,8 +62,10 @@ describe("AttachmentsWidget", function () {
     // This is just setting up for testing undo behaviour below.
     await gu.getCell(1, 2).click();
     await driver.sendKeys("foo1", Key.ENTER);
+    await gu.waitForServer();
     await gu.getCell(1, 2).click();
     await driver.sendKeys("foo2", Key.ENTER);
+    await gu.waitForServer();
 
     await gu.getCell(0, 2).click();
     await driver.sendKeys(Key.ENTER);
@@ -321,9 +323,11 @@ describe("AttachmentsWidget", function () {
     );
     await driver.find(".test-pw-close").click();
     await gu.waitForServer();
-    assert.deepEqual(
-      await getCellThumbnailTitles(gu.getCell({ col: 0, rowNum: 6 })),
-      ["grist.png"]
+    await gu.waitToPass(async () =>
+      assert.deepEqual(
+        await getCellThumbnailTitles(gu.getCell({ col: 0, rowNum: 6 })),
+        ["grist.png"]
+      )
     );
     assert.equal(await gu.getCell({ col: 0, rowNum: 7 }).isPresent(), true);
   });
@@ -496,8 +500,10 @@ describe("AttachmentsWidget", function () {
     shouldSave: boolean,
     trigger: () => Promise<void>
   ) {
-    let cell = gu.getCell({ col: 0, rowNum: 2 });
-    await cell.click();
+    let cell = gu.getCell({ col: 1, rowNum: 2 });
+    await cell.click(); // Click on the right column and move using keyboard, otherwise me might click on the thumbnail.
+    await driver.sendKeys(Key.ARROW_LEFT);
+    cell = gu.getCell({ col: 0, rowNum: 2 });
     assert.deepEqual(await getCellThumbnailTitles(cell), [
       "renamed.pdf",
       "grist.png",
@@ -522,6 +528,8 @@ describe("AttachmentsWidget", function () {
     await gu.userActionsCollect();
     await trigger();
     await gu.waitForServer();
+
+    await ensureDialogIsClosed();
     cell = gu.getCell({ col: 0, rowNum: 2 });
     if (shouldSave) {
       // If shouldSave is set, files should reflect the change. Check it and undo.
@@ -536,6 +544,7 @@ describe("AttachmentsWidget", function () {
       "renamed.pdf",
       "grist.png",
     ]);
+    await ensureDialogIsClosed();
   });
 
   it("should not save on Escape", async function () {
@@ -589,3 +598,12 @@ describe("AttachmentsWidget", function () {
     ]);
   });
 });
+
+async function ensureDialogIsClosed() {
+  await gu.waitToPass(async () => {
+    assert.equal(
+      await driver.find(".test-pw-close").isPresent(),
+      false
+    );
+  });
+}

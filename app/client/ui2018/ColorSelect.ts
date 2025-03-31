@@ -9,6 +9,7 @@ import {isValidHex} from 'app/common/gutil';
 import {BindableValue, Computed, Disposable, dom, DomElementArg, Observable, onKeyDown, styled} from 'grainjs';
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
+import {gristFloatingMenuClass} from 'app/client/ui2018/menus';
 
 const t = makeT('ColorSelect');
 
@@ -209,6 +210,7 @@ export function buildColorPicker(
   });
 
   return cssContainer(
+    dom.cls(gristFloatingMenuClass),
     cssComponents(
       dom.create(FontComponent, {
         fontBoldModel,
