@@ -5,7 +5,7 @@ import {Notifier} from 'app/client/models/NotifyModel';
 import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
 import {addViewportTag} from 'app/client/ui/viewport';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
-import {attachTheme} from 'app/client/ui2018/theme';
+import {attachDefaultLightTheme, attachTheme} from 'app/client/ui2018/theme';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {dom, DomContents} from 'grainjs';
 
@@ -22,7 +22,11 @@ export function createPage(buildPage: () => DomContents, options: {disableTheme?
 
   addViewportTag();
   attachCssRootVars('grist');
-  if (!disableTheme) { attachTheme(); }
+  if (disableTheme) {
+    attachDefaultLightTheme();
+  } else {
+    attachTheme();
+  }
   setupLocale().catch(reportError);
 
   // Add globals needed by test utils.

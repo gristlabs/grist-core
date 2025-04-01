@@ -594,18 +594,23 @@ onThemeChange((newTheme) => {
   attachCssThemeVars(_theme);
 });
 
-function attachCssThemeVars({appearance, colors}: any) {
+function attachCssThemeVars({appearance, colors: cssVars}: any) {
   // Prepare the custom properties needed for applying the theme.
-  const properties = Object.entries(colors)
+  const properties = Object.entries(cssVars)
     .map(([name, value]) => `--grist-theme-${name}: ${value};`);
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssScrollbarProperties(appearance));
 
   // Apply the properties to the theme style element.
-  getOrCreateStyleElement('grist-theme').textContent = `:root {
+  // The 'grist-theme' layer takes precedence over the 'grist-base' layer where
+  // default CSS variables are defined.
+  getOrCreateStyleElement('grist-theme').textContent = `@layer grist-theme {
+  :root {
 ${properties.join('\n')}
-  }`;
+  }
+}
+`;
 
   // Make the browser aware of the color scheme.
   document.documentElement.style.setProperty(`color-scheme`, appearance);
