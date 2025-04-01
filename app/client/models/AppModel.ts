@@ -21,7 +21,7 @@ import {LocalPlugin} from 'app/common/plugin';
 import {DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
-import {getDefaultThemePrefs, ThemePrefs, ThemePrefsChecker} from 'app/common/ThemePrefs';
+import {getDefaultThemePrefs, ThemePrefs} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {ExtendedUser} from 'app/common/UserAPI';
 import {getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
@@ -305,7 +305,6 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly userPrefsObs = getUserPrefsObs(this);
   public readonly themePrefs = getUserPrefObs(this.userPrefsObs, 'theme', {
     defaultValue: getDefaultThemePrefs(),
-    checker: ThemePrefsChecker,
   }) as Observable<ThemePrefs>;
 
   public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, 'dismissedPopups',

@@ -5,7 +5,7 @@ import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
-import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from 'app/common/ThemePrefs';
+import {ThemeAppearance, themeAppearances, ThemeName, themeNames} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import {IAttachedCustomWidget} from "app/common/widgetTypes";
@@ -559,15 +559,15 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
 
   if (sp.has('themeAppearance')) {
     const appearance = sp.get('themeAppearance');
-    if (ThemeAppearanceChecker.strictTest(appearance)) {
-      state.params!.themeAppearance = appearance;
+    if (appearance && themeAppearances.includes(appearance as ThemeAppearance)) {
+      state.params!.themeAppearance = appearance as ThemeAppearance;
     }
   }
 
   if (sp.has('themeName')) {
     const themeName = sp.get('themeName');
-    if (ThemeNameChecker.strictTest(themeName)) {
-      state.params!.themeName = themeName;
+    if (themeName && themeNames.includes(themeName as ThemeName)) {
+      state.params!.themeName = themeName as ThemeName;
     }
   }
 

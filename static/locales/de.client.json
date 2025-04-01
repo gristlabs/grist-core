@@ -1325,7 +1325,8 @@
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Diese Einschränkung tritt auf, wenn eine Spalte in einer zweiseitigen Referenz den Typ Referenz hat.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Zwei-Wege-Referenzen werden derzeit nicht für Formel- oder Trigger-Formelspalten unterstützt",
         "The preview below this header shows how the selected user will see this document": "Die Vorschau unter dieser Überschrift zeigt, wie der ausgewählte Benutzer dieses Dokument sehen wird",
-        "[Learn more.]({{link}})": "[Erfahren Sie mehr.]({{link}})"
+        "[Learn more.]({{link}})": "[Erfahren Sie mehr.]({{link}})",
+        "Summary tables can only contain formula columns.": "Übersichtstabellen können nur Formelspalten enthalten."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
