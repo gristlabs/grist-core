@@ -404,14 +404,14 @@ export class DocSettingsPage extends Disposable {
     try {
       const uploadResult = await this._gristDoc.docApi.uploadAttachmentArchive(file);
       this._gristDoc.app.topAppModel.notifier.createNotification({
-        title: "Attachment upload complete",
-        message: `${uploadResult.added} attachment files added`,
+        title: "Attachments upload complete",
+        message: `${uploadResult.added} attachment files reconnected`,
         level: 'info',
       });
     } catch (err) {
       reportWarning(err.toString(), {
         key: "attachmentArchiveUploadError",
-        title: "Attachment upload failed",
+        title: "Attachments upload failed",
         level: 'error'
       });
     }
