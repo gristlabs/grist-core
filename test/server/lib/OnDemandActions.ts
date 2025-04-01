@@ -3,17 +3,19 @@
  * corresponding undo actions.
  */
 import {TableDataAction, UserAction} from 'app/common/DocActions';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {DocStorage} from 'app/server/lib/DocStorage';
 import {OnDemandActions, ProcessedAction} from 'app/server/lib/OnDemandActions';
 import {assert} from 'chai';
 import times = require('lodash/times');
+import * as sinon from 'sinon';
 import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 
 describe('OnDemandActions', function() {
-  this.timeout(10000);
+  // The maxSQLiteVariables test gets slower in WAL mode.
+  this.timeout(15000);
 
   // Turn off logging for this test, and restore afterwards.
   testUtils.setTmpLogLevel('warn');
@@ -23,9 +25,14 @@ describe('OnDemandActions', function() {
   let activeDoc1: ActiveDoc;
   let onDemandActions: OnDemandActions;
   let docStorage: DocStorage;
+  const sandbox = sinon.createSandbox();
 
   // Create an OnDemand table with a few rows and columns. We'll reuse it in all test cases.
   before(async function() {
+    // The maxSQLiteVariables is a bit chonky, WAL mode tips
+    // it over the threshold.
+    sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(10);
+
     const docName = 'docOnDemandActions';
     activeDoc1 = await docTools.createDoc(docName);
     onDemandActions = (activeDoc1 as any)._onDemandActions;
@@ -47,6 +54,10 @@ describe('OnDemandActions', function() {
     ]);
     await activeDoc1.applyUserActions(fakeSession, [
       ["BulkAddRecord", "Foo", initialData[2], initialData[3]]]);
+  });
+
+  after(async function() {
+    sandbox.restore();
   });
 
   // Initial data is used both to populate the initial data, and to verify that we get back to it
@@ -136,7 +147,6 @@ describe('OnDemandActions', function() {
   });
 
   it('should handle actions bigger than maxSQLiteVariables', async function() {
-    this.timeout(10000);
     const N = 1723;
     const processed1 = await applyOnDemand(
       ['BulkAddRecord', 'Foo', times(N, (i) => null), {}]);
