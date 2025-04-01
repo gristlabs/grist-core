@@ -20,6 +20,8 @@
     "test:nbrowser": "GRIST_TEST_LOGIN=1 TEST_SUITE=nbrowser TEST_SUITE_FOR_TIMINGS=nbrowser TIMINGS_FILE=test/timings/nbrowser.txt ./test/test_env.sh mocha ${DEBUG:+-b --no-exit} $([ -z $DEBUG ] && echo --forbid-only) -g \"${GREP_TESTS}\" --slow 8000 '_build/test/nbrowser/**/*.js'",
     "test:nbrowser:debug": "NO_CLEANUP=1 DEBUG=1 MOCHA_WEBDRIVER_LOGDIR=_build/test_output npm run test:nbrowser",
     "test:nbrowser:ci": "MOCHA_WEBDRIVER_HEADLESS=1 MOCHA_WEBDRIVER_LOGDIR=_build/test_output npm run test:nbrowser",
+    "test:projects": "./test/test_env.sh mocha ${DEBUG:+'-b'} -g \"${GREP_TESTS}\" '_build/test/projects/**/*.js'",
+    "test:projects:serve": "webpack-dev-server --config test/fixtures/projects/webpack.config.js",
     "test:stubs": "GRIST_TEST_LOGIN=1 ./test/test_env.sh mocha ${DEBUG:+-b --no-exit} $([ -z $DEBUG ] && echo --forbid-only) -g \"${GREP_TESTS}\" --slow 8000 '_build/test/nbrowser_with_stubs/**/*.js'",
     "test:client": "./test/test_env.sh mocha ${DEBUG:+'-b'} '_build/test/client/**/*.js'",
     "test:common": "./test/test_env.sh mocha ${DEBUG:+'-b'} '_build/test/common/**/*.js'",
@@ -88,6 +90,7 @@
     "@types/swagger-ui": "3.52.4",
     "@types/tmp": "0.0.33",
     "@types/uuid": "10.0.0",
+    "@types/webpack-dev-server": "4.7.2",
     "@types/which": "2.0.1",
     "@types/ws": "^8",
     "@typescript-eslint/eslint-plugin": "5.29.0",
@@ -118,6 +121,7 @@
     "typescript": "4.7.4",
     "webpack": "5.97.1",
     "webpack-cli": "4.10.0",
+    "webpack-dev-server": "4.9.2",
     "why-is-node-running": "2.2.2"
   },
   "dependencies": {
