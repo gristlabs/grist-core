@@ -50,6 +50,7 @@ import {
 } from 'grainjs';
 import * as moment from 'moment-timezone';
 import {openFilePicker} from 'app/client/ui/FileDialog';
+import {reportWarning} from 'app/client/models/errors';
 
 const t = makeT('DocumentSettings');
 const testId = makeTestId('test-settings-');
@@ -351,29 +352,69 @@ export class DocSettingsPage extends Disposable {
           ]),
         ]),
       ),
-      dom.create(AdminSectionItem, {
-        id: 'uploadAttachments',
-        name: withInfoTooltip(
-          dom('span', t('Upload missing attachments'), testId('transfer-header')),
-          'uploadAttachments',
-        ),
-        value: cssFlex(
-          cssSmallButton(t('Upload'),
-            dom.on('click', this._uploadMissingAttachments.bind(this)),
-            testId('upload-attachment-archive')
-          ),
-        )
-      }),
+      this._buildAttachmentUploadSection(),
     ]);
-
   }
-  private async _uploadMissingAttachments() {
+
+  private _buildAttachmentUploadSection() {
+    const isUploadingObs = Observable.create(this, false);
+    const buttonText = Computed.create(this, (use) => use(isUploadingObs) ? t('Uploading...') : t('Upload'));
+
+    const uploadButton = cssSmallButton(
+      dom.text(buttonText),
+      dom.on('click',
+        async () => {
+          // This may never return due to openFilePicker. Anything past this point isn't guaranteed
+          // to execute.
+          const file = await this._pickAttachmentsFile();
+          if (!file) {
+            return;
+          }
+          isUploadingObs.set(true);
+          try {
+            await this._uploadAttachmentsArchive(file);
+          } finally {
+            isUploadingObs.set(false);
+          }
+        }),
+      dom.prop('disabled', isUploadingObs),
+      testId('upload-attachment-archive')
+    );
+
+    return dom.create(AdminSectionItem, {
+      id: 'uploadAttachments',
+      name: withInfoTooltip(
+        dom('span', t('Upload missing attachments'), testId('transfer-header')),
+        'uploadAttachments',
+      ),
+      value: uploadButton,
+    });
+  }
+
+  // May never finish - see `openFilePicker` for more info.
+  private async _pickAttachmentsFile(): Promise<File | undefined> {
     const files = await openFilePicker({
       multiple: false,
       accept: ".tar",
     });
-    if (files.length === 0) { return; }
-    return await this._gristDoc.docApi.uploadAttachmentArchive(files[0]);
+    return files[0];
+  }
+
+  private async _uploadAttachmentsArchive(file: File) {
+    try {
+      const uploadResult = await this._gristDoc.docApi.uploadAttachmentArchive(file);
+      this._gristDoc.app.topAppModel.notifier.createNotification({
+        title: "Attachment upload complete",
+        message: `${uploadResult.added} attachment files added`,
+        level: 'info',
+      });
+    } catch (err) {
+      reportWarning(err.toString(), {
+        key: "attachmentArchiveUploadError",
+        title: "Attachment upload failed",
+        level: 'error'
+      });
+    }
   }
 
   private async _reloadEngine(ask = true) {
