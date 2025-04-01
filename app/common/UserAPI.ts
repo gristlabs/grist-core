@@ -558,7 +558,7 @@ export interface DocAPI {
   // Upload a single attachment and return the resulting metadata row ID.
   // The arguments are passed to FormData.append.
   uploadAttachment(value: string | Blob, filename?: string): Promise<number>;
-  uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<any>;
+  uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult>;
 
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
