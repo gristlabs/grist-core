@@ -1,15 +1,18 @@
-import {EnvironmentSnapshot} from "../testUtils";
-import {OIDCConfig} from "app/server/lib/OIDCConfig";
-import {SessionObj} from "app/server/lib/BrowserSession";
-import {Sessions} from "app/server/lib/Sessions";
-import log from "app/server/lib/log";
-import {assert} from "chai";
-import Sinon from "sinon";
-import {Client, custom, generators, errors as OIDCError} from "openid-client";
-import express from "express";
-import _ from "lodash";
 import {RequestWithLogin} from "app/server/lib/Authorizer";
-import { SendAppPageFunction } from "app/server/lib/sendAppPage";
+import {SessionObj} from "app/server/lib/BrowserSession";
+import log from "app/server/lib/log";
+import {OIDCConfig} from "app/server/lib/OIDCConfig";
+import {Deps as ProxyAgentDeps} from "app/server/lib/ProxyAgent";
+import {SendAppPageFunction} from "app/server/lib/sendAppPage";
+import {Sessions} from "app/server/lib/Sessions";
+import {EnvironmentSnapshot} from "test/server/testUtils";
+
+import {assert} from "chai";
+import express from "express";
+import {HttpProxyAgent} from "http-proxy-agent";
+import _ from "lodash";
+import {Client, custom, generators, errors as OIDCError} from "openid-client";
+import Sinon from "sinon";
 
 const NOOPED_SEND_APP_PAGE: SendAppPageFunction = () => Promise.resolve();
 
@@ -197,7 +200,7 @@ describe('OIDCConfig', () => {
       [
         {
           itMsg: 'when omitted should not override openid-client default value',
-          expectedUserDefinedHttpOptions: {}
+          expectedUserDefinedHttpOptions: { }
         },
         {
           itMsg: 'should reject when the provided value is not a number',
@@ -240,6 +243,34 @@ describe('OIDCConfig', () => {
           }
         });
       });
+    });
+
+    describe('HTTPS_PROXY trusted proxy', function () {
+      const proxyURL = 'http://localhost-proxy:8080';
+      const httpAgent = new HttpProxyAgent(proxyURL);
+      [
+          {
+            itMsg: 'when omitted should not set proxyAgent to oidc-client',
+            expectedUserDefinedHttpOptions: { }
+          },
+          {
+            itMsg: 'should add proxyAgent to openid-client',
+            given: () => {
+              sandbox.stub(ProxyAgentDeps.agents, 'trusted').value({'http:': httpAgent, 'https:': null});
+            },
+            expectedUserDefinedHttpOptions: {
+              agent: httpAgent
+            }
+          }
+        ].forEach(ctx => {
+          it(ctx.itMsg, async () => {
+            const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
+            setEnvVars();
+            ctx.given?.();
+            await OIDCConfigStubbed.buildWithStub();
+            Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, ctx.expectedUserDefinedHttpOptions);
+          });
+        });
     });
   });
 

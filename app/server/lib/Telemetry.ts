@@ -25,6 +25,8 @@ import {hashId} from 'app/server/lib/hashingUtils';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {stringParam} from 'app/server/lib/requestUtils';
 import {getFullUser, getLogMeta, isRequest, RequestOrSession} from 'app/server/lib/sessionUtils';
+import {proxyAgentForTrustedRequests} from 'app/server/lib/ProxyAgent';
+
 import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
@@ -366,6 +368,7 @@ export class Telemetry implements ITelemetry {
         'Content-Type': 'application/json',
       },
       body: payload,
+      agent: proxyAgentForTrustedRequests(new URL(this._forwardTelemetryEventsUrl))
     });
   }
 
