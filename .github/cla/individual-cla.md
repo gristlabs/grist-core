@@ -1,4 +1,4 @@
-# Individual Contributor License Agreement ("Agreement"), v2.2
+# Individual Contributor License Agreement ("Agreement"), v1.0
 
 (based on https://www.apache.org/licenses/icla.pdf)
 
