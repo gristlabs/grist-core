@@ -73,7 +73,7 @@ import { SessionObj } from 'app/server/lib/BrowserSession';
 import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from 'app/server/lib/oidc/Protections';
-import { proxyAgentForTrustedRequests } from 'app/server/lib/ProxyAgent';
+import { agents } from 'app/server/lib/ProxyAgent';
 import { getOriginUrl } from 'app/server/lib/requestUtils';
 import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
 import { Sessions } from 'app/server/lib/Sessions';
@@ -182,9 +182,8 @@ export class OIDCConfig {
     this._protectionManager = new ProtectionsManager(enabledProtections);
 
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
-    const agent = proxyAgentForTrustedRequests(new URL(issuerUrl));
     custom.setHttpOptionsDefaults({
-      ...(agent !== undefined ? {agent} : {}),
+      ...(agents.trusted !== undefined ? {agent: agents.trusted} : {}),
       ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
     });
     await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });

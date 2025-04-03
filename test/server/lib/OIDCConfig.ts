@@ -2,7 +2,7 @@ import {RequestWithLogin} from "app/server/lib/Authorizer";
 import {SessionObj} from "app/server/lib/BrowserSession";
 import log from "app/server/lib/log";
 import {OIDCConfig} from "app/server/lib/OIDCConfig";
-import {Deps as ProxyAgentDeps} from "app/server/lib/ProxyAgent";
+import {agents} from "app/server/lib/ProxyAgent";
 import {SendAppPageFunction} from "app/server/lib/sendAppPage";
 import {Sessions} from "app/server/lib/Sessions";
 import {EnvironmentSnapshot} from "test/server/testUtils";
@@ -256,7 +256,7 @@ describe('OIDCConfig', () => {
           {
             itMsg: 'should add proxyAgent to openid-client',
             given: () => {
-              sandbox.stub(ProxyAgentDeps.agents, 'trusted').value({'http:': httpAgent, 'https:': null});
+              sandbox.stub(agents, 'trusted').value({'http:': httpAgent, 'https:': null});
             },
             expectedUserDefinedHttpOptions: {
               agent: httpAgent
