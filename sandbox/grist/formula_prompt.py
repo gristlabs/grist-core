@@ -5,7 +5,6 @@ import textwrap
 
 import asttokens
 import asttokens.util
-import six
 
 import attribute_recorder
 import objtypes
@@ -169,18 +168,7 @@ def get_formula_prompt(engine, table_id, col_id, _description,
   return result
 
 def indent(text, prefix, predicate=None):
-  """
-  Copied from https://github.com/python/cpython/blob/main/Lib/textwrap.py for python2 compatibility.
-  """
-  if six.PY3:
-    return textwrap.indent(text, prefix, predicate) # pylint: disable = no-member
-  if predicate is None:
-    def predicate(line):
-      return line.strip()
-  def prefixed_lines():
-    for line in text.splitlines(True):
-      yield (prefix + line if predicate(line) else line)
-  return ''.join(prefixed_lines())
+  return textwrap.indent(text, prefix, predicate) # pylint: disable = no-member
 
 
 def convert_completion(completion):

@@ -6,13 +6,6 @@ import logging
 import os
 from collections import defaultdict
 
-import six
-from six.moves import zip
-
-if six.PY2:
-  raise RuntimeError("Imports should use a Python 3 environment")
-
-
 log = logging.getLogger(__name__)
 
 def column_count_modal(rows):
@@ -34,8 +27,8 @@ def empty(value):
   """ Stringify the value and check that it has a length. """
   if value is None:
     return True
-  if not isinstance(value, six.string_types):
-    value = six.text_type(value)
+  if not isinstance(value, str):
+    value = str(value)
   return not value.strip()
 
 # Get path to an imported file.
@@ -48,7 +41,7 @@ def capitalize(word):
   return word[0].capitalize() + word[1:]
 
 def _is_numeric(text):
-  for t in six.integer_types + (float,):
+  for t in (float, int,):
     try:
       t(text)
       return True
@@ -63,7 +56,7 @@ def _is_header(header, data_rows):
   """
   # See if the row has any non-text values.
   for cell in header:
-    if not (isinstance(cell, six.string_types) or cell is None) or _is_numeric(cell):
+    if not (isinstance(cell, str) or cell is None) or _is_numeric(cell):
       return False
 
 

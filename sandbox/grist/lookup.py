@@ -45,8 +45,6 @@ import itertools
 import logging
 from abc import abstractmethod
 
-import six
-
 import column
 import depend
 import records
@@ -326,7 +324,7 @@ class ContainsLookupMapping(BaseLookupMapping):
         # Check that the cell targeted by CONTAINS() has an appropriate type.
         # Don't iterate over characters of a string.
         # group = [] essentially means there are no new keys in this call
-        if isinstance(group, (six.binary_type, six.text_type)):
+        if isinstance(group, (bytes, str,)):
           group = []
         elif not group and col_id.match_empty != _Contains.no_match_empty:
           group = [col_id.match_empty]
@@ -395,7 +393,7 @@ class _RelationTracker(object):
   def invalidate_affected_keys(self, affected_keys):
     # For each known relation, figure out which referring rows are affected, and invalidate them.
     # The engine will notice that there have been more invalidations, and recompute things again.
-    for rel in six.itervalues(self._lookup_relations):
+    for rel in self._lookup_relations.values():
       rel.invalidate_affected_keys(affected_keys, self._engine)
 
   def _get_relation(self, referring_node):

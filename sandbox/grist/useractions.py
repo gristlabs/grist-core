@@ -6,9 +6,6 @@ import logging
 import sys
 from contextlib import contextmanager
 
-import six
-from six.moves import xrange
-
 import acl
 from acl import parse_acl_formulas
 import depend
@@ -59,7 +56,7 @@ _modify_col_schema_props = {'type', 'formula', 'isFormula', 'reverseColId'}
 # A few generic helpers.
 def select_keys(dict_obj, keys):
   """Return copy of dict_obj containing only the given keys."""
-  return {k: v for k, v in six.iteritems(dict_obj) if k in keys}
+  return {k: v for k, v in dict_obj.items() if k in keys}
 
 def has_value(dict_obj, key, value):
   """Returns True if dict_obj contains key, and its value is value."""
@@ -150,7 +147,7 @@ def guess_col_info(values, doc_model):
   and `values` is similar to the given argument but maybe converted to the guessed type.
   """
   # If the values are all strings/None...
-  if set(map(type, values)) <= {str, six.text_type, type(None)}:
+  if set(map(type, values)) <= {str, type(None)}:
     # If the values are all blank (None or empty string) leave the column empty
     if not any(values):
       return {}, [None] * len(values)
@@ -223,7 +220,7 @@ class UserActions(object):
     # Map of methods implementing particular (action_name, table_id) combinations. It mirrors
     # global _action_method_overrides, but with methods *bound* to this UserActions instance.
     self._overrides = {key: method.__get__(self, UserActions)
-                       for key, method in six.iteritems(_action_method_overrides)}
+                       for key, method in _action_method_overrides.items()}
 
   def get_docmodel(self):
     """
@@ -271,7 +268,7 @@ class UserActions(object):
 
       # Iterate over every column and make sure it accepts data.
       table_id, row_ids, column_values = action
-      for col_id, values in six.iteritems(column_values):
+      for col_id, values in column_values.items():
         column_values[col_id] = self._ensure_column_accepts_data(table_id, col_id, values)
       converted_action = ActionType(table_id, row_ids, column_values)
 
@@ -287,7 +284,7 @@ class UserActions(object):
     for i, row_id in enumerate(row_ids):
       rec = table.get_record(row_id)
       yield ((i, rec) if col_values is None else
-             (i, rec, {k: v[i] for k, v in six.iteritems(col_values)}))
+             (i, rec, {k: v[i] for k, v in col_values.items()}))
 
   def _collect_back_references(self, table_recs):
     """
@@ -373,9 +370,9 @@ class UserActions(object):
     engine._cached_request_keys = set(cached_keys)
 
     # Invalidate the exact cells which made the exact requests which are being responded to here.
-    for response in six.itervalues(responses):
-      for table_id, table_deps in six.iteritems(response.pop("deps")):
-        for col_id, row_ids in six.iteritems(table_deps):
+    for response in responses.values():
+      for table_id, table_deps in response.pop("deps").items():
+        for col_id, row_ids in table_deps.items():
           node = depend.Node(table_id, col_id)
           engine.dep_graph.invalidate_deps(node, row_ids, engine.recompute_map)
 
@@ -386,13 +383,13 @@ class UserActions(object):
   @useraction
   def AddRecord(self, table_id, row_id, column_values):
     return self.BulkAddRecord(
-      table_id, [row_id], {key: [val] for key, val in six.iteritems(column_values)}
+      table_id, [row_id], {key: [val] for key, val in column_values.items()}
     )[0]
 
   @useraction
   def BulkAddRecord(self, table_id, row_ids, column_values):
     column_values = actions.decode_bulk_values(column_values)
-    for col_id, values in six.iteritems(column_values):
+    for col_id, values in column_values.items():
       column_values[col_id] = self._ensure_column_accepts_data(table_id, col_id, values)
     method = self._overrides.get(('BulkAddRecord', table_id), self.doBulkAddOrReplace)
     return method(table_id, row_ids, column_values)
@@ -532,7 +529,7 @@ class UserActions(object):
     # Invalidate trigger-formula columns affected by this update.
     table = self._engine.tables[table_id]
     if column_values:     # Only if this is a non-trivial update.
-      for col_id, col_obj in six.iteritems(table.all_columns):
+      for col_id, col_obj in table.all_columns.items():
         if col_obj.is_formula() or not col_obj.has_formula():
           continue
         col_rec = self._docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
@@ -560,7 +557,7 @@ class UserActions(object):
   @useraction
   def UpdateRecord(self, table_id, row_id, columns):
     self.BulkUpdateRecord(table_id, [row_id],
-                          {key: [col] for key, col in six.iteritems(columns)})
+                          {key: [col] for key, col in columns.items()})
 
   @useraction
   def BulkUpdateRecord(self, table_id, row_ids, columns):
@@ -570,7 +567,7 @@ class UserActions(object):
     # Handle special tables, updates to which imply metadata actions.
 
     # Check that the update is valid.
-    for col_id, values in six.iteritems(columns):
+    for col_id, values in columns.items():
       columns[col_id] = self._ensure_column_accepts_data(table_id, col_id, values)
 
       # Additionally check that we are not trying to modify group-by values in a summary column
@@ -642,9 +639,9 @@ class UserActions(object):
     if table_renames:
       # Build up a dictionary mapping col_ref of each affected formula to the new formula text.
       formula_updates = self._prepare_formula_renames(
-        {(old, None): new for (old, new) in six.iteritems(table_renames)})
+        {(old, None): new for (old, new) in table_renames.items()})
       # Add the changes to the dict of col_updates. sort for reproducible order.
-      for col_rec, new_formula in sorted(six.iteritems(formula_updates)):
+      for col_rec, new_formula in sorted(formula_updates.items()):
         col_updates.setdefault(col_rec, {})['formula'] = new_formula
 
     # If a table changes to onDemand, any empty columns (formula columns with no set formula)
@@ -655,7 +652,7 @@ class UserActions(object):
     for col in empty_cols:
       col_updates.setdefault(col, {}).update(isFormula=False, type='Text')
 
-    for col, values in six.iteritems(col_updates):
+    for col, values in col_updates.items():
       if 'type' in values:
         self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'})
 
@@ -673,7 +670,7 @@ class UserActions(object):
     # Internal functions are used to prevent unintended additional changes from occurring.
     # Specifically, this prevents widgetOptions and displayCol from being cleared as a side
     # effect of the column type change.
-    for col, values in six.iteritems(col_updates):
+    for col, values in col_updates.items():
       self.doModifyColumn(col.tableId, col.colId, values)
     self.doBulkUpdateFromPairs('_grist_Tables_column', col_updates.items())
     make_acl_updates()
@@ -713,7 +710,7 @@ class UserActions(object):
 
     # Collect all renamings that we are about to apply.
     renames = {(c.parentId.tableId, c.colId): values['colId']
-               for c, values in six.iteritems(col_updates)
+               for c, values in col_updates.items()
                if has_diff_value(values, 'colId', c.colId)}
 
     if renames:
@@ -724,7 +721,7 @@ class UserActions(object):
       formula_updates = self._prepare_formula_renames(renames)
 
       # For any affected columns, include the formula into the update.
-      for col_rec, new_formula in sorted(six.iteritems(formula_updates)):
+      for col_rec, new_formula in sorted(formula_updates.items()):
         col_updates.setdefault(col_rec, {}).setdefault('formula', new_formula)
 
       # For any renames of columns that have a reverse, tag their reverse column as
@@ -743,7 +740,7 @@ class UserActions(object):
     for col, values in update_pairs:
       if col.summarySourceCol:
         underlying_updates = col_updates.get(col.summarySourceCol, {})
-        for key, value in six.iteritems(values):
+        for key, value in values.items():
           if key == 'summarySourceCol' and not value and not col.summarySourceCol._exists():
             # We are unsetting summarySourceCol because it no longer exists. That's fine; the
             # record we are updating is actually also about to be deleted.
@@ -1067,9 +1064,9 @@ class UserActions(object):
 
     lengths = {}
     lengths.update({'require ' + k:
-                      len(v) for k, v in six.iteritems(require)})
+                      len(v) for k, v in require.items()})
     lengths.update({'col_values ' + k:
-                      len(v) for k, v in six.iteritems(col_values)})
+                      len(v) for k, v in col_values.items()})
     unique_lengths = set(lengths.values())
     if len(unique_lengths) != 1:
       raise ValueError("Value lists must all have the same length, got %s" %
@@ -1102,13 +1099,13 @@ class UserActions(object):
     update_record_values = {k: [] for k in col_keys - {'id'}}
 
     for i in range(length):
-      current_require = {key: vals[i] for key, vals in six.iteritems(decoded_require)}
+      current_require = {key: vals[i] for key, vals in decoded_require.items()}
       records = list(table.lookup_records(**current_require))
       if not records and add:
         values = {key: require[key][i] for key in require_add_keys}
-        values.update({key: vals[i] for key, vals in six.iteritems(col_values)})
+        values.update({key: vals[i] for key, vals in col_values.items()})
         add_record_ids.append(values.pop("id", None))
-        for key, value in six.iteritems(values):
+        for key, value in values.items():
           add_record_values[key].append(value)
 
       if records and update:
@@ -1120,7 +1117,7 @@ class UserActions(object):
 
         for record in records:
           update_record_ids.append(record.id)
-          for key, vals in six.iteritems(col_values):
+          for key, vals in col_values.items():
             update_record_values[key].append(vals[i])
 
     if add_record_ids:
@@ -1139,8 +1136,8 @@ class UserActions(object):
 
     See `BulkAddOrUpdateRecord` for more details.
     """
-    require = {k: [v] for k, v in six.iteritems(require)}
-    col_values = {k: [v] for k, v in six.iteritems(col_values)}
+    require = {k: [v] for k, v in require.items()}
+    col_values = {k: [v] for k, v in col_values.items()}
     self.BulkAddOrUpdateRecord(table_id, require, col_values, options)
 
   #----------------------------------------
@@ -1657,7 +1654,7 @@ class UserActions(object):
     # metadata record. We implement the former interface by forwarding to the latter.
     col = self._docmodel.get_column_rec(table_id, col_id)
 
-    update_values = {k: v for k, v in six.iteritems(col_info) if k not in _unmodifiable_col_fields}
+    update_values = {k: v for k, v in col_info.items() if k not in _unmodifiable_col_fields}
     if '_position' in col_info:
       update_values['parentPos'] = col_info['_position']
     self._docmodel.update([col], **update_values)
@@ -1684,7 +1681,7 @@ class UserActions(object):
     old_col_info = schema.col_to_dict(self._engine.schema[table_id].columns[col_id],
                                       include_id=False, include_default=True)
 
-    col_info = {k: v for k, v in six.iteritems(col_info) if old_col_info.get(k, v) != v}
+    col_info = {k: v for k, v in col_info.items() if old_col_info.get(k, v) != v}
     if not col_info:
       log.info("useractions.ModifyColumn is a noop")
       return
@@ -1879,7 +1876,7 @@ class UserActions(object):
 
     # Helper to rename only string values
     def rename(value):
-      return renames.get(value, value) if isinstance(value, six.string_types) else value
+      return renames.get(value, value) if isinstance(value, str) else value
 
     # Rename filters
     filters = self._engine.tables['_grist_Filters']
@@ -2008,7 +2005,7 @@ class UserActions(object):
     Adds an empty table. Currently it makes up the next available table name (if not provided),
     and adds three default columns, also picking default names for them (presumably, A, B, and C).
     """
-    columns = [{'id': None, 'isFormula': True} for x in xrange(3)]
+    columns = [{'id': None, 'isFormula': True} for x in range(3)]
     return self.AddTable(table_id, columns)
 
 
@@ -2028,7 +2025,7 @@ class UserActions(object):
     """
     Same as AddEmptyTable but does not create a primary view (and page).
     """
-    columns = [{'id': None, 'isFormula': True} for x in xrange(3)]
+    columns = [{'id': None, 'isFormula': True} for x in range(3)]
     return self.doAddTable(
       table_id,
       columns,
@@ -2057,7 +2054,7 @@ class UserActions(object):
 
     # If needed, transform table_id into a valid identifier, and add a suffix to make it unique.
     table_title = table_id
-    table_id = identifiers.pick_table_ident(table_id, avoid=six.viewkeys(self._engine.tables))
+    table_id = identifiers.pick_table_ident(table_id, avoid=self._engine.tables.keys())
     if not table_title:
       table_title = table_id
     # Sanitize and de-duplicate column identifiers.

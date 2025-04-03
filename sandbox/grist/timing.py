@@ -1,6 +1,5 @@
 import contextlib
 import time
-import six
 
 
 class Timing(object):
@@ -81,8 +80,6 @@ class Timing(object):
 class DummyTiming(object):
   # pylint: disable=no-self-use,unused-argument,no-member
   def measure(self, key):
-    if six.PY2:
-      return contextlib.nested()
     return contextlib.nullcontext()
 
   def mark(self, mark_name):
