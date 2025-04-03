@@ -10,16 +10,37 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {cssInput} from 'app/client/ui/cssInput';
-import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
+import {
+  bigBasicButton,
+  bigPrimaryButtonLink,
+  primaryButtonLink
+} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {select} from 'app/client/ui2018/menus';
+import {IOptionFull, linkSelect, select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, modal, saveModal} from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
-import {Document, isTemplatesOrg, Organization, Workspace} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, input, Observable, styled, subscribe} from 'grainjs';
+import {
+  CreatableArchiveFormats, DocAttachmentsLocation,
+  Document,
+  isTemplatesOrg,
+  Organization,
+  Workspace
+} from 'app/common/UserAPI';
+import {
+  Computed,
+  Disposable,
+  dom,
+  input,
+  Observable,
+  styled,
+  subscribe,
+  subscribeElem
+} from 'grainjs';
 import sortBy = require('lodash/sortBy');
+import {cssLink} from 'app/client/ui2018/links';
+import {inlineMarkdown} from 'app/client/lib/markdown';
 
 const t = makeT('MakeCopyMenu');
 
@@ -245,8 +266,8 @@ class SaveCopyModal extends Disposable {
   }
 
   /**
-   * Fetch a list of workspaces for the given org, in the same order in which we list them in HomeModel,
-   * and set this._workspaces to it. While fetching, this._workspaces is set to null.
+   * Fetch a list of workspaces for the given org, in the same order in which we list them in
+   * HomeModel, and set this._workspaces to it. While fetching, this._workspaces is set to null.
    * Once fetched, we also set this._destWS.
    */
   private async _updateWorkspaces(org: Organization|null) {
@@ -300,7 +321,38 @@ type DownloadOption = 'full' | 'nohistory' | 'template' | 'attachments-zip' | 'a
 
 export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
   return modal((ctl, owner) => {
+    const docApi = pageModel.appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, 'full');
+
+    const showAttachmentArchiveOptions = Observable.create<boolean>(owner, false);
+    const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
+    const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
+      { value: 'tar', label: t('.tar (recommended)')},
+      { value: 'zip', label: t('.zip')}
+    ];
+    const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
+      const format = use(formatObs);
+      return docApi.getDownloadAttachmentsArchiveUrl({ format });
+    });
+
+    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+    docApi.getAttachmentTransferStatus()
+      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
+      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+
+    const attachmentStatusText = Computed.create<string>(owner, (use) => {
+      const status = use(attachmentStatusObs);
+      if (!status) {
+        return t('Checking attachment status...');
+      }
+      if (status === 'mixed' || status === 'external') {
+        return t('Attachments are **not** included in the document download');
+      }
+      if (status === 'unknown') {
+        return t('Attachments **may not** be included in the document download');
+      }
+      return t('Attachments are included in the document download');
+    });
 
     return [
       cssModalTitle(t(`Download document`)),
@@ -308,9 +360,30 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
           radioCheckboxOption(selected, 'full', t("Download full document and history")),
           radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
           radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
-          radioCheckboxOption(selected, 'attachments-zip', t("Download attachments only (.zip - widely used)")),
-          radioCheckboxOption(selected, 'attachments-tar', t("Download attachments only (.tar - supports uploading)")),
       ),
+      cssModalBody(inlineMarkdown(attachmentStatusText)),
+      dom.domComputed(showAttachmentArchiveOptions, (showFullArchiveOptions) => {
+        if (!showFullArchiveOptions) {
+          return cssField(
+            cssLink(t('Download attachments archive.')),
+            dom.on('click', () => { showAttachmentArchiveOptions.set(true); })
+          );
+        }
+        return cssArchiveDownloadRow(
+          t('Format:'),
+          cssArchiveFormatSelect(formatObs, allFormats),
+          cssDownloadArchiveButton(
+            t('Download attachments'),
+            (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
+              dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
+                href: href,
+                target: '_blank',
+                download: '',
+              }));
+            }),
+          ),
+        );
+      }),
       cssModalButtons(
         dom.domComputed(use => {
           const docApi = pageModel.appModel.api.getDocAPI(doc.id);
@@ -367,4 +440,19 @@ const cssSpinner = styled('div', `
 
 const cssCheckbox = styled(labeledSquareCheckbox, `
   margin-top: 8px;
+`);
+
+const cssArchiveDownloadRow = styled('div', `
+  margin: 10px 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+`);
+
+const cssArchiveFormatSelect = styled(linkSelect, `
+  flex-grow: 1;
+`);
+
+const cssDownloadArchiveButton = styled(primaryButtonLink, `
+  text-wrap: nowrap;
 `);
