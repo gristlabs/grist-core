@@ -14,6 +14,7 @@ import { IElectionStore } from 'app/server/lib/IElectionStore';
 import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
+import { updateGristServerLatestVersion } from 'app/server/lib/updateChecker';
 import * as express from 'express';
 import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
@@ -21,6 +22,7 @@ import { EntityManager } from 'typeorm';
 
 const DELETE_TRASH_PERIOD_MS = 1 * 60 * 60 * 1000;  // operate every 1 hour
 const LOG_METRICS_PERIOD_MS = 24 * 60 * 60 * 1000;  // operate every day
+const VERSION_CHECK_PERIOD_MS = 7 * 24 *60 * 60 * 1000; // operate every week
 const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval known by postgres + sqlite
 
 const SYNC_WORK_LIMIT_MS = 50;      // Don't keep doing synchronous work longer than this.
@@ -41,6 +43,8 @@ const SYNC_WORK_BREAK_MS = 50;      // Once reached SYNC_WORK_LIMIT_MS, take a b
 export class Housekeeper {
   private _deleteTrashinterval?: NodeJS.Timeout;
   private _logMetricsInterval?: NodeJS.Timeout;
+  private _checkVersionUpdatesInterval?: NodeJS.Timeout;
+
   private _electionKey?: string;
   private _telemetry = this._server.getTelemetry();
 
@@ -59,13 +63,24 @@ export class Housekeeper {
     this._logMetricsInterval = setInterval(() => {
       this.logMetricsExclusively().catch(log.warn.bind(log));
     }, LOG_METRICS_PERIOD_MS);
+
+    // Note that this task isn't exclusive. But that's okay. At worst
+    // a few extra small web requests, one per each home server.
+    this.checkVersionUpdates().catch(log.warn.bind(log));
+    this._checkVersionUpdatesInterval = setInterval(() => {
+      this.checkVersionUpdates().catch(log.warn.bind(log));
+    }, VERSION_CHECK_PERIOD_MS);
+
   }
 
   /**
    * Stop scheduling housekeeping tasks.  Note: doesn't wait for any housekeeping task in progress.
    */
   public async stop() {
-    for (const interval of ['_deleteTrashinterval', '_logMetricsInterval'] as const) {
+    for (const interval of [
+      '_deleteTrashinterval',
+      '_logMetricsInterval',
+      '_checkVersionUpdatesInterval'] as const) {
       clearInterval(this[interval]);
       this[interval] = undefined;
     }
@@ -224,6 +239,10 @@ export class Housekeeper {
         });
       });
     }
+  }
+
+  public async checkVersionUpdates() {
+    await updateGristServerLatestVersion(this._server);
   }
 
   public addEndpoints(app: express.Application) {
