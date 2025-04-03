@@ -379,7 +379,9 @@
         "No external stores available": "Aucun espace de stockage externe disponible",
         "Transfer in progress": "Transfert en cours",
         "External": "Externe",
-        "Internal": "Interne"
+        "Internal": "Interne",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "Certains pièces jointes existantes sont toujours [externes]({{externalLink}}).",
+        "[Learn more.]({{learnLink}})": "[En savoir plus.]{{learnLink}}"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
