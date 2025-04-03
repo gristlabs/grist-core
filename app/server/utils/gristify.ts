@@ -3,6 +3,7 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DocManager} from 'app/server/lib/DocManager';
 import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {DocStorage} from 'app/server/lib/DocStorage';
 import {createDummyGristServer} from 'app/server/lib/GristServer';
 import {TrivialDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {DBMetadata, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
@@ -113,6 +114,27 @@ export class Gristifier {
       await db.exec(`DROP VIEW ${quoteIdent(view.name)}`);
     }
     await db.close();
+  }
+
+  /**
+   * Run a query on an SQLite file. Pass the result through
+   * standard Grist decoding for BLOBs. This is handy for
+   * reading objects of the wrong type stored as BLOBs to
+   * protect them in a "cell", or for reading action history,
+   * e.g.
+   *  select * from _gristsys_ActionHistory order by actionNum
+   * This will do the same it would from the sqlite3 utility,
+   * except BLOBs will be expanded.
+   */
+  public async query(queryString: string) {
+    const db = await SQLiteDB.openDBRaw(this._filename);
+    try {
+      const results = await db.all(queryString);
+      const decodedResults = results.map(row => DocStorage.decodeRowValues(row));
+      console.log(JSON.stringify(decodedResults, null, 2));
+    } finally {
+      await db.close();
+    }
   }
 
   /**

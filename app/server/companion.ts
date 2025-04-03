@@ -250,6 +250,7 @@ export function addDbCommand(program: commander.Command,
 // Add command related to sqlite:
 //   sqlite gristify <sqlite-file>
 //   sqlite clean <sqlite-file>
+//   sqlite query <sqlite-file> <query-string>
 export function addSqliteCommand(program: commander.Command) {
   const sub = program.command('sqlite')
     .description('commands for accessing sqlite files');
@@ -262,6 +263,10 @@ export function addSqliteCommand(program: commander.Command) {
   sub.command('clean <sqlite-file>')
     .description('remove grist metadata from an sqlite file')
     .action(filename => new Gristifier(filename).degristify());
+
+  sub.command('query <sqlite-file> <query-string>')
+    .description('read data from a sqlite file that may contain Grist marshaling')
+    .action((filename, query) => new Gristifier(filename).query(query));
 }
 
 export function addVersionCommand(program: commander.Command) {
