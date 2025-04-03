@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eEu -o pipefail
 
 # Use a built-in standalone version of Python if available in a directory
 # called python. This is used for Electron packaging. The standalone Python
@@ -11,8 +11,6 @@ for possible_path in python/bin/python python/bin/python3 \
   if [[ -e $possible_path ]]; then
     echo "found $possible_path"
     buildtools/prepare_python3.sh $possible_path python
-    # Make sure Python2 sandbox is not around.
-    rm -rf venv
     exit 0
   fi
 done
@@ -23,6 +21,4 @@ echo "Use Python3 if available and recent enough"
 
 # Default to python3 if recent enough.
 buildtools/prepare_python3.sh python3
-# Make sure python2 isn't around.
-rm -rf venv
 exit 0
