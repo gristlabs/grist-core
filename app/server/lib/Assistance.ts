@@ -14,7 +14,6 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import {getFullUser, getLogMeta} from 'app/server/lib/sessionUtils';
-
 import {createHash} from 'crypto';
 import fetch from 'node-fetch';
 
@@ -269,7 +268,7 @@ export class OpenAIAssistant implements Assistant {
           ...(this._maxTokens ? {
             max_tokens: this._maxTokens,
           } : undefined),
-        })
+        }),
       },
     );
     const resultText = await apiResponse.text();

@@ -249,28 +249,28 @@ describe('OIDCConfig', () => {
       const proxyURL = 'http://localhost-proxy:8080';
       const httpAgent = new HttpProxyAgent(proxyURL);
       [
-          {
-            itMsg: 'when omitted should not set proxyAgent to oidc-client',
-            expectedUserDefinedHttpOptions: { }
+        {
+          itMsg: 'when omitted should not set proxyAgent to oidc-client',
+          expectedUserDefinedHttpOptions: { }
+        },
+        {
+          itMsg: 'should add proxyAgent to openid-client',
+          given: () => {
+            sandbox.stub(agents, 'trusted').value({'http:': httpAgent, 'https:': null});
           },
-          {
-            itMsg: 'should add proxyAgent to openid-client',
-            given: () => {
-              sandbox.stub(agents, 'trusted').value({'http:': httpAgent, 'https:': null});
-            },
-            expectedUserDefinedHttpOptions: {
-              agent: httpAgent
-            }
+          expectedUserDefinedHttpOptions: {
+            agent: httpAgent
           }
-        ].forEach(ctx => {
-          it(ctx.itMsg, async () => {
-            const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
-            setEnvVars();
-            ctx.given?.();
-            await OIDCConfigStubbed.buildWithStub();
-            Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, ctx.expectedUserDefinedHttpOptions);
-          });
+        }
+      ].forEach(ctx => {
+        it(ctx.itMsg, async () => {
+          const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
+          setEnvVars();
+          ctx.given?.();
+          await OIDCConfigStubbed.buildWithStub();
+          Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, ctx.expectedUserDefinedHttpOptions);
         });
+      });
     });
   });
 
