@@ -19,7 +19,7 @@ import {decodeObject} from 'app/plugin/objtypes';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
-import {untrustedFetchWithAgent} from 'app/server/lib/ProxyAgent';
+import {fetchUntrustedWithAgent} from 'app/server/lib/ProxyAgent';
 import {matchesBaseDomain} from 'app/server/lib/requestUtils';
 import {delayAbort} from 'app/server/lib/serverUtils';
 import {LogSanitizer} from "app/server/utils/LogSanitizer";
@@ -805,7 +805,7 @@ export class DocTriggers {
         if (attempt > 0) {
           await this._stats.logStatus(id, 'retrying');
         }
-        const response = await untrustedFetchWithAgent(url, {
+        const response = await fetchUntrustedWithAgent(url, {
           method: 'POST',
           body,
           headers: {
