@@ -1,45 +1,19 @@
-import {HttpsProxyAgent} from "https-proxy-agent";
-import {HttpProxyAgent} from "http-proxy-agent";
 import {appSettings} from "app/server/lib/AppSettings";
 import log from 'app/server/lib/log';
-import {StringUnion} from "app/common/StringUnion";
 
-const SupportedProtocols = StringUnion("http:", "https:");
-type SupportedProtocols = typeof SupportedProtocols.type;
+import fetch, { RequestInit } from 'node-fetch';
+import {ProxyAgent, ProxyAgentOptions} from "proxy-agent";
 
-interface Deps {
-  trusted: {
-    "http:": HttpProxyAgent;
-    "https:": HttpsProxyAgent;
-  } | undefined;
-  untrusted: {
-    "http:": HttpProxyAgent;
-    "https:": HttpsProxyAgent;
-  } | undefined;
+export class GristProxyAgent extends ProxyAgent {
+  constructor(public readonly proxyUrl: string, opts?: Omit<ProxyAgentOptions, 'getProxyForUrl'>) {
+    super({
+      ...opts,
+      getProxyForUrl: () => this.proxyUrl
+    });
+  }
 }
 
-function buildProxyAgent<ProxyAgent extends HttpProxyAgent|HttpsProxyAgent>(
-  proxy: string, proxyAgentCtor: { new(proxy: string): ProxyAgent }
-): ProxyAgent {
-  const agent = new proxyAgentCtor(proxy);
-
-  // Wrap the main method of ProxyAgent into a wrapper that logs errors.
-  const callback = agent.callback;
-  agent.callback = async function (...args: Parameters<HttpProxyAgent["callback"]>) {
-    const req = args[0];
-    try {
-      return await callback.call(this, ...args);
-    } catch (e) {
-      // Include info helpful for diagnosing issues (but not the potentially sensitive full requestUrl).
-      log.rawWarn(`ProxyAgent error ${e}`,
-        {proxy, reqProtocol: req.protocol, requestHost: req.host});
-      throw e;
-    }
-  };
-  return agent;
-}
-
-function generateProxyAgents(): Deps {
+function generateProxyAgents() {
   const proxyForTrustedRequestsUrl = appSettings.section('proxy').readString({
     envVar: ['HTTPS_PROXY', 'https_proxy'],
     preferredEnvVar: 'HTTPS_PROXY',
@@ -56,30 +30,49 @@ function generateProxyAgents(): Deps {
   }
 
   return {
-    trusted: proxyForTrustedRequestsUrl ? {
-      "http:": buildProxyAgent(proxyForTrustedRequestsUrl, HttpProxyAgent),
-      "https:": buildProxyAgent(proxyForTrustedRequestsUrl, HttpsProxyAgent),
-    } : undefined,
-    untrusted: proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct" ? {
-      "http:": buildProxyAgent(proxyForUntrustedRequestsUrl, HttpProxyAgent),
-      "https:": buildProxyAgent(proxyForUntrustedRequestsUrl, HttpsProxyAgent)
-    } : undefined
+    trusted: proxyForTrustedRequestsUrl ? new GristProxyAgent(proxyForTrustedRequestsUrl) : undefined,
+    untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct")
+      ? new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined
   };
 }
 
 export const test_generateProxyAgents = generateProxyAgents;
 
 // Instantiate all the possible agents at startup.
-export const Deps = {
-  agents: generateProxyAgents()
-};
+export const agents = generateProxyAgents();
 
-export function proxyAgentForTrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
-  const protocol = SupportedProtocols.check(requestUrl.protocol);
-  return Deps.agents.trusted?.[protocol];
+async function proxyFetch(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>, agent?: GristProxyAgent) {
+  if (!agent) {
+    return await fetch(requestUrl, options);
+  }
+  requestUrl = new URL(requestUrl);
+
+  try {
+    return await fetch(requestUrl, {...options, agent});
+  } catch(e) {
+    // Include info helpful for diagnosing issues (but not the potentially sensitive full requestUrl).
+    log.rawWarn(`ProxyAgent error ${e}`,
+      {proxy: agent.proxyUrl, reqProtocol: requestUrl.protocol, requestHost: requestUrl.origin});
+    throw e;
+  }
 }
 
-export function proxyAgentForUntrustedRequests(requestUrl: URL): HttpProxyAgent | HttpsProxyAgent | undefined {
-  const protocol = SupportedProtocols.check(requestUrl.protocol);
-  return Deps.agents.untrusted?.[protocol];
+/**
+ * If configured using HTTPS_PROXY env var, use node-fetch with conigured proxy agemt
+ * Otherwise just use fetch without agent.
+ *
+ * If the request failed with agent, log a warning with relevant information.
+ */
+export async function trustedFetchWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
+  return await proxyFetch(requestUrl, options, agents.trusted);
+}
+
+/**
+ * If configured using GRIST_PROXY_FOR_UNTRUSTED_URLS env var, use node-fetch with conigured proxy agemt
+ * Otherwise just use fetch without agent.
+ *
+ * If the request failed with agent, log a warning with relevant information.
+ */
+export async function untrustedFetchWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
+  return await proxyFetch(requestUrl, options, agents.untrusted);
 }
