@@ -41,8 +41,16 @@ export const test_generateProxyAgents = generateProxyAgents;
 // Instantiate all the possible agents at startup.
 export const agents = generateProxyAgents();
 
-async function proxyFetch(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>, agent?: GristProxyAgent) {
+/**
+ * If configured using GRIST_PROXY_FOR_UNTRUSTED_URLS env var, use node-fetch with conigured proxy agemt
+ * Otherwise just use fetch without agent.
+ *
+ * If the request failed with agent, log a warning with relevant information.
+ */
+export async function fetchUntrustedWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
+  const agent = agents.untrusted;
   if (!agent) {
+    // No proxy is configured, just use the default agent.
     return await fetch(requestUrl, options);
   }
   requestUrl = new URL(requestUrl);
@@ -55,24 +63,4 @@ async function proxyFetch(requestUrl: URL|string, options?: Omit<RequestInit, 'a
       {proxy: agent.proxyUrl, reqProtocol: requestUrl.protocol, requestHost: requestUrl.origin});
     throw e;
   }
-}
-
-/**
- * If configured using HTTPS_PROXY env var, use node-fetch with conigured proxy agemt
- * Otherwise just use fetch without agent.
- *
- * If the request failed with agent, log a warning with relevant information.
- */
-export async function trustedFetchWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
-  return await proxyFetch(requestUrl, options, agents.trusted);
-}
-
-/**
- * If configured using GRIST_PROXY_FOR_UNTRUSTED_URLS env var, use node-fetch with conigured proxy agemt
- * Otherwise just use fetch without agent.
- *
- * If the request failed with agent, log a warning with relevant information.
- */
-export async function untrustedFetchWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
-  return await proxyFetch(requestUrl, options, agents.untrusted);
 }

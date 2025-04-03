@@ -2,7 +2,7 @@ import {assertMatchArray, captureLog, EnvironmentSnapshot} from "test/server/tes
 import {getAvailablePort} from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
 import {
-  agents, GristProxyAgent, trustedFetchWithAgent, untrustedFetchWithAgent, test_generateProxyAgents
+  agents, fetchUntrustedWithAgent, GristProxyAgent, test_generateProxyAgents
 } from "app/server/lib/ProxyAgent";
 import {serveSomething, Serving} from 'test/server/customUtil';
 import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
@@ -99,43 +99,6 @@ describe("ProxyAgent", function () {
     });
   });
 
-  // [
-  //   {
-  //     testedMethod: proxyAgentForTrustedRequests,
-  //     agentsToStub: "trusted",
-  //   },
-  //   {
-  //     testedMethod: proxyAgentForUntrustedRequests,
-  //     agentsToStub: "untrusted"
-  //   }
-  // ].forEach(ctx => {
-  //   describe(ctx.testedMethod.name, function () {
-  //     it('should return a proxy agent given the passed URL protocol', function () {
-  //       const fakeHttpAgent = "fake http agent";
-  //       const fakeHttpsAgent = "fake https agent";
-  //       sinon.stub(Deps.agents, ctx.agentsToStub as any).value({
-  //         "http:": fakeHttpAgent,
-  //         "https:": fakeHttpsAgent,
-  //       });
-  //
-  //       assert.equal(ctx.testedMethod(new URL("http://getgrist.com")) as any, fakeHttpAgent);
-  //       assert.equal(ctx.testedMethod(new URL("https://getgrist.com")) as any, fakeHttpsAgent);
-  //     });
-  //
-  //     it("should return nothing when no proxy is configured", function () {
-  //       sinon.stub(Deps.agents, ctx.agentsToStub as any).value(undefined);
-  //       assert.isUndefined(ctx.testedMethod(new URL("http://getgrist.com")));
-  //       assert.isUndefined(ctx.testedMethod(new URL("https://getgrist.com")));
-  //     });
-  //
-  //     it('should throw when the passed URL protocol is not http: or https:', function () {
-  //       assert.throws(
-  //         () => proxyAgentForTrustedRequests(new URL("ftp://getgrist.com"))
-  //       );
-  //     });
-  //   });
-  // });
-
   describe('proxy error handling', async function() {
     // Handling requests
     let serving: Serving;
@@ -150,6 +113,9 @@ describe("ProxyAgent", function () {
         app.post('/200', (_, res) => { res.sendStatus(200); res.end(); });
         app.post('/404', (_, res) => { res.sendStatus(404); res.end(); });
       });
+      const proxyUrl = `http://localhost:${testProxyServer.portNumber}`;
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyUrl;
+      sandbox.stub(agents, 'untrusted').value(test_generateProxyAgents().untrusted);
     });
 
     afterEach(async function() {
@@ -157,54 +123,31 @@ describe("ProxyAgent", function () {
       await testProxyServer.dispose().catch(() => {});
     });
 
-    [
-      {
-        description: "for trusted urls",
-        envToSet: "HTTPS_PROXY",
-        proxyFetch: trustedFetchWithAgent
-      },
-      {
-        description: "for untrusted url",
-        envToSet: "GRIST_PROXY_FOR_UNTRUSTED_URLS",
-        proxyFetch: untrustedFetchWithAgent
-      },
-    ].forEach(function (ctx) {
-      describe(ctx.description, function() {
-        beforeEach(function () {
-          const proxyUrl = `http://localhost:${testProxyServer.portNumber}`;
-          process.env[ctx.envToSet] = proxyUrl;
-          const {untrusted, trusted} = test_generateProxyAgents();
-          sandbox.stub(agents, 'trusted').value(trusted);
-          sandbox.stub(agents, 'untrusted').value(untrusted);
-        });
-
-        it("should not report error when proxy is working", async function() {
-          // Normally fetch through proxy works and produces no errors, even for failing status.
-          const logMessages1 = await captureLog('warn', async () => {
-            assert.equal((await ctx.proxyFetch(serving.url + '/200')).status, 200);
-            assert.equal((await ctx.proxyFetch(serving.url + '/404')).status, 404);
-          });
-          assert.equal(testProxyServer.proxyCallCounter, 2, 'The proxy should have been called twice');
-          assert.deepEqual(logMessages1, []);
-        });
-
-        it("should report error when proxy fails", async function() {
-          // if the proxy isn't listening, fetches produces error messages.
-          await testProxyServer.dispose();
-          // Error message depends a little on node version.
-          const logMessages2 = await captureLog('warn', async () => {
-            await assert.isRejected(ctx.proxyFetch(serving.url + '/200'), /(request.*failed)|(ECONNREFUSED)/);
-            await assert.isRejected(ctx.proxyFetch(serving.url + '/404'), /(request.*failed)|(ECONNREFUSED)/);
-          });
-
-          // We rely on "ProxyAgent error" message to detect issues with the proxy server.
-          // Error message depends a little on node version.
-          assertMatchArray(logMessages2, [
-            /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
-            /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
-          ]);
-        });
+    it("should not report error when proxy is working", async function() {
+      // Normally fetch through proxy works and produces no errors, even for failing status.
+      const logMessages1 = await captureLog('warn', async () => {
+        assert.equal((await fetchUntrustedWithAgent(serving.url + '/200')).status, 200);
+        assert.equal((await fetchUntrustedWithAgent(serving.url + '/404')).status, 404);
       });
+      assert.equal(testProxyServer.proxyCallCounter, 2, 'The proxy should have been called twice');
+      assert.deepEqual(logMessages1, []);
+    });
+
+    it("should report error when proxy fails", async function() {
+      // if the proxy isn't listening, fetches produces error messages.
+      await testProxyServer.dispose();
+      // Error message depends a little on node version.
+      const logMessages2 = await captureLog('warn', async () => {
+        await assert.isRejected(fetchUntrustedWithAgent(serving.url + '/200'), /(request.*failed)|(ECONNREFUSED)/);
+        await assert.isRejected(fetchUntrustedWithAgent(serving.url + '/404'), /(request.*failed)|(ECONNREFUSED)/);
+      });
+
+      // We rely on "ProxyAgent error" message to detect issues with the proxy server.
+      // Error message depends a little on node version.
+      assertMatchArray(logMessages2, [
+        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
+        /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
+      ]);
     });
   });
 });
