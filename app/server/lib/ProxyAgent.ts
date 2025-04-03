@@ -4,6 +4,15 @@ import log from 'app/server/lib/log';
 import fetch, { RequestInit } from 'node-fetch';
 import {ProxyAgent, ProxyAgentOptions} from "proxy-agent";
 
+/**
+ * A simple class derived from ProxyAgent which does all the work.
+ *
+ * ProxyAgent is a class that is responsible for proxying the request using either HttpProxyAgent or HttpsProxyAgent
+ * depending on the URL requested when using fetch().
+ *
+ * We configure the getProxyForUrl to not let ProxyAgent magically read the env variables
+ * itself (using `proxy-from-env` module), we already do that ourselves and need to keep the control for that.
+ */
 export class GristProxyAgent extends ProxyAgent {
   constructor(public readonly proxyUrl: string, opts?: Omit<ProxyAgentOptions, 'getProxyForUrl'>) {
     super({
