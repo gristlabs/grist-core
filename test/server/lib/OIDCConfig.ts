@@ -2,14 +2,13 @@ import {RequestWithLogin} from "app/server/lib/Authorizer";
 import {SessionObj} from "app/server/lib/BrowserSession";
 import log from "app/server/lib/log";
 import {OIDCConfig} from "app/server/lib/OIDCConfig";
-import {agents} from "app/server/lib/ProxyAgent";
+import {agents, GristProxyAgent} from "app/server/lib/ProxyAgent";
 import {SendAppPageFunction} from "app/server/lib/sendAppPage";
 import {Sessions} from "app/server/lib/Sessions";
 import {EnvironmentSnapshot} from "test/server/testUtils";
 
 import {assert} from "chai";
 import express from "express";
-import {HttpProxyAgent} from "http-proxy-agent";
 import _ from "lodash";
 import {Client, custom, generators, errors as OIDCError} from "openid-client";
 import Sinon from "sinon";
@@ -245,31 +244,25 @@ describe('OIDCConfig', () => {
       });
     });
 
-    describe('HTTPS_PROXY trusted proxy', function () {
+    describe('trusted proxy', function () {
       const proxyURL = 'http://localhost-proxy:8080';
-      const httpAgent = new HttpProxyAgent(proxyURL);
-      [
-        {
-          itMsg: 'when omitted should not set proxyAgent to oidc-client',
-          expectedUserDefinedHttpOptions: { }
-        },
-        {
-          itMsg: 'should add proxyAgent to openid-client',
-          given: () => {
-            sandbox.stub(agents, 'trusted').value({'http:': httpAgent, 'https:': null});
-          },
-          expectedUserDefinedHttpOptions: {
-            agent: httpAgent
-          }
-        }
-      ].forEach(ctx => {
-        it(ctx.itMsg, async () => {
-          const setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
-          setEnvVars();
-          ctx.given?.();
-          await OIDCConfigStubbed.buildWithStub();
-          Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, ctx.expectedUserDefinedHttpOptions);
-        });
+      let setHttpOptionsDefaultsStub: Sinon.SinonStub;
+      beforeEach(function () {
+        setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
+      });
+
+      it('when not configured should use the default proxy', async function () {
+        setEnvVars();
+        await OIDCConfigStubbed.buildWithStub();
+        Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, {});
+      });
+
+      it('when configured should use the trusted proxy', async function () {
+        const trustedAgent = new GristProxyAgent(proxyURL);
+        sandbox.stub(agents, 'trusted').value(trustedAgent);
+        setEnvVars();
+        await OIDCConfigStubbed.buildWithStub();
+        Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, {agent: trustedAgent});
       });
     });
   });
