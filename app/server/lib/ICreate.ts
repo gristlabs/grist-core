@@ -91,6 +91,7 @@ export interface ICreate {
   getLoginSystem(): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
+  areAdminControlsAvailable(): boolean;
 }
 
 export interface ICreateActiveDocOptions {
@@ -173,7 +174,7 @@ export class BaseCreate implements ICreate {
   public getExtraHeadHtml() {
     const elements: string[] = [];
     if (process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true') {
-      elements.push('<link rel="stylesheet" href="custom.css">');
+      elements.push('<link id="grist-custom-css" rel="stylesheet" href="custom.css">');
     }
     elements.push(getThemeBackgroundSnippet());
     return elements.join('\n');
@@ -227,4 +228,5 @@ export class BaseCreate implements ICreate {
     return new HostedStorageManager(...args);
   }
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
+  public areAdminControlsAvailable(): boolean { return false; }
 }

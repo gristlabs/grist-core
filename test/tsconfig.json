@@ -3,6 +3,8 @@
   "include": [
     "*",
     "**/*",
+    "../app/client/declarations.d.ts",
+    "../app/common/declarations.d.ts",
     "../app/server/declarations.d.ts",
     "../app/server/declarations/**/*.d.ts",
     "../stubs/app/server/declarations.d.ts",

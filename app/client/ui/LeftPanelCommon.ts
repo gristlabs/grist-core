@@ -101,6 +101,7 @@ export const cssHomeTools = styled(cssTools, `
 export const cssSectionHeader = styled('div', `
   margin: 24px 0 8px 24px;
   display: flex;
+  gap: 8px;
   align-items: center;
   .${cssTools.className}-collapsed > & {
     visibility: hidden;

@@ -276,6 +276,9 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
    */
   canRename: ko.Observable<boolean|undefined>;
 
+  // If set, overrides the value of disableAddRemoveRows().
+  overrideDisableAddRemoveRows: ko.Observable<boolean|undefined>;
+
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
 
@@ -769,7 +772,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     scrollLeft: 0  // Used for grid sections. Indicates the scrollLeft value of the scroll pane.
   };
 
-  this.disableAddRemoveRows = ko.pureComputed(() => this.table().disableAddRemoveRows());
+  this.disableAddRemoveRows = ko.pureComputed(() =>
+    this.overrideDisableAddRemoveRows() ?? this.table().disableAddRemoveRows());
 
   this.isSorted = ko.pureComputed(() => this.activeSortSpec().length > 0);
   this.disableDragRows = ko.pureComputed(() => this.isSorted() || !this.table().supportsManualSort());
@@ -921,4 +925,5 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.hideViewMenu = ko.observable(false);
   this.canRename = ko.observable<boolean|undefined>(undefined);
   this.canExpand = ko.observable<boolean>(true);
+  this.overrideDisableAddRemoveRows = ko.observable<boolean|undefined>(undefined);
 }

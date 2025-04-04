@@ -5,6 +5,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import * as css from 'app/client/ui/LeftPanelCommon';
 import {PageSidePanel} from 'app/client/ui/PagePanels';
 import {AppHeader} from 'app/client/ui/AppHeader';
+import {infoTooltip} from 'app/client/ui/tooltips';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {cssLink} from 'app/client/ui2018/links';
@@ -17,9 +18,8 @@ const t = makeT('AdminPanel');
 const testId = makeTestId('test-admin-controls-');
 
 // Check if the AdminControls feature is available, so that we can show it as such in the UI.
-export function areAdminControlsAvailable() {
-  const {deploymentType} = getGristConfig();
-  return (deploymentType === "enterprise");
+export function areAdminControlsAvailable(): boolean {
+  return Boolean(getGristConfig().adminControls);
 }
 
 export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): PageSidePanel {
@@ -47,7 +47,10 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
       css.cssSectionHeader(css.cssSectionHeaderText(t("Admin area"))),
       buildPageEntry(t('Installation'), 'Home', {adminPanel: 'admin'}),
       css.cssSectionHeader(css.cssSectionHeaderText(t("Admin controls")),
-        adminControlsAvailable ? null : cssEnterprisePill('Enterprise', testId('enterprise-tag')),
+        (adminControlsAvailable ?
+          infoTooltip('adminControls', {popupOptions: {placement: 'bottom-start'}}) :
+          cssEnterprisePill('Enterprise', testId('enterprise-tag'))
+        )
       ),
       buildPageEntry(t('Users'), 'AddUser', {adminPanel: 'users'}, adminControlsAvailable),
       buildPageEntry(t('Orgs'), 'Public', {adminPanel: 'orgs'}, adminControlsAvailable),

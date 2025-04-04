@@ -587,6 +587,7 @@ export class VirtualSection extends Disposable {
     // TODO: add some clever way for detecting visibility.
     /** If this view section is visible or not. Used for resizing when the parent element is initially hidden */
     isVisible?: Observable<boolean>,
+    disableAddRemove?: boolean,
   }) {
     super();
 
@@ -642,6 +643,7 @@ export class VirtualSection extends Disposable {
     viewSectionRec.hideViewMenu(true);
     viewSectionRec.canRename(false);
     viewSectionRec.canExpand(false);
+    viewSectionRec.overrideDisableAddRemoveRows(props.disableAddRemove);
 
     this._sectionRec = viewSectionRec;
 

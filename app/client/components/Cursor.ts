@@ -176,7 +176,7 @@ export class Cursor extends Disposable {
         this.rowIndex(cursorPos.rowIndex);
       } else {
         // Write rowIndex to itself to force an update of rowId if needed.
-        this.rowIndex(this.rowIndex.peek());
+        this.rowIndex(this.rowIndex.peek() || 0);
       }
 
       if (cursorPos.fieldIndex !== undefined) {

@@ -1149,7 +1149,8 @@
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Muga hau bi noranzkoko erreferentzia bateko zutabetako bat erreferentzia mota gisa konfiguratuta dagoenean ematen da.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Bi noranzkoko erreferentziak ez dira unean bateragarriak Formula edo formula-abiarazle zutabeekin.",
         "The preview below this header shows how the selected user will see this document": "Hautatutako erabiltzaileak dokumentua nola ikusiko duen erakusten du goiburuaren azpiko aurrebistak",
-        "[Learn more.]({{link}})": "[Ikasi gehiago.]({{link}})"
+        "[Learn more.]({{link}})": "[Ikasi gehiago.]({{link}})",
+        "Summary tables can only contain formula columns.": "Laburpen-taulek formula-zutabeak besterik ezin dituzte eduki."
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "Zutabearen IDa arbelera kopiatu da",
@@ -1189,7 +1190,7 @@
         "Memo": "Memorandum",
         "Removed webhook.": "Webhooka kendu da.",
         "Webhook Id": "Webhook IDa",
-        "Ready Column": "Zutabea prest",
+        "Ready Column": "Zutabe abiarazlea",
         "Filter for changes in these columns (semicolon-separated ids)": "Iragazki aldaketetarako zutabe hauetan (\";\" bidez bareizi IDak)",
         "Header Authorization": "Goiburuko baimena"
     },
@@ -1776,7 +1777,8 @@
         "Your activation key has expired due to exceeding limits.": "Zure aktibazio-gakoa iraungi da mugak gainditzeagatik.",
         "Your subscription expired on {{date}}.": "Zure harpidetza {{date}}(e)an iraungi zen.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Zure instantzia **bakarrik irakurketa** moduan egongo da **{{days}}** egun barru.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Probaldia **{{expireAt}}**(e)an iraungi da. Grist Enterprise erabiltzen jarraitzeko,\n[kontratatu Grist Enterprise]({{signupLink}}) eta itsatsi aktibazio-gakoa."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Probaldia **{{expireAt}}**(e)an iraungi da. Grist Enterprise erabiltzen jarraitzeko,\n[kontratatu Grist Enterprise]({{signupLink}}) eta itsatsi aktibazio-gakoa.",
+        "Installation seats": "Instalazio-idazpenak"
     },
     "ViewLayout": {
         "Delete data and this widget.": "Ezabatu datuak eta widgeta.",

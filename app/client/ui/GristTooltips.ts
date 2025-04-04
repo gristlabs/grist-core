@@ -51,6 +51,7 @@ export type Tooltip =
   | 'reassignTwoWayReference'
   | 'attachmentStorage'
   | 'uploadAttachments'
+  | 'adminControls'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -217,8 +218,13 @@ see or edit which parts of your document.')
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. " +
         "Only .tar attachment archives downloaded from Grist can be uploaded here."
       ),
-    ...args,
     ),
+    ...args,
+  ),
+  adminControls: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div', t('Manage users and resources in a Grist installation.')),
+    dom('div', cssLink({href: commonUrls.helpAdminControls, target: "_blank"}, t('Learn more.'))),
+    ...args,
   ),
 };
 

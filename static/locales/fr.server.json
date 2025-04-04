@@ -3,6 +3,8 @@
         "emailNotVerifiedError": "Merci de vérifier la validité de votre adresse mail auprès de votre fournisseur d'identification, avant de vous reconnecter."
     },
     "sendAppPage": {
-        "Loading...": "Chargement en cours..."
+        "Loading...": "Chargement en cours...",
+        "og-description": "Un tableur moderne et open source qui va au-delà de la feuille de calcul",
+        "og-title": "Grist, le tableur évolué"
     }
 }

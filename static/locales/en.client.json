@@ -1262,7 +1262,8 @@
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Two-way references are not currently supported for Formula or Trigger Formula columns",
         "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document",
         "[Learn more.]({{link}})": "[Learn more.]({{link}})",
-        "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns."
+        "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns.",
+        "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1949,5 +1950,15 @@
         "Have you **reviewed the code** at this URL?": "Have you **reviewed the code** at this URL?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.",
         "I confirm that I understand these warnings and accept the risks": "I confirm that I understand these warnings and accept the risks"
+    },
+    "AdminLeftPanel": {
+        "Admin area": "Admin area",
+        "Admin controls": "Admin controls",
+        "Docs": "Docs",
+        "Installation": "Installation",
+        "Learn more": "Learn more",
+        "Orgs": "Orgs",
+        "Users": "Users",
+        "Workspaces": "Workspaces"
     }
 }
