@@ -325,7 +325,7 @@ describe('Importer', function() {
 
     // Add a new column, with a formula to examine the first.
     await gu.openColumnMenu('Birthday', 'Insert column to the right');
-    await driver.find('.test-new-columns-menu-add-new').click();
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
     await gu.waitForServer();
     await driver.sendKeys(Key.ESCAPE);
     await gu.getCell({col: 2, rowNum: 1}).click();
@@ -461,9 +461,10 @@ describe('Importer', function() {
 
       // Select a merge field, and check that the red outline is gone.
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
+        100
       ).click();
       assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
@@ -518,9 +519,10 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
+        100
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
@@ -599,13 +601,15 @@ describe('Importer', function() {
 
       // Now pick the merge fields, and check that the preview diff looks correct.
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
+        100
       ).click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Phone/
+        /Phone/,
+        100
       ).click();
       await gu.sendKeys(Key.ESCAPE);
 
@@ -634,9 +638,10 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /CourseId/
+        /CourseId/,
+        100
       ).click();
 
       // Close the merge fields menu.
@@ -724,9 +729,10 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
+        100
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
@@ -758,9 +764,10 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Code/
+        /Code/,
+        100
       ).click();
       await gu.sendKeys(Key.ESCAPE);
 
@@ -788,9 +795,10 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Country/
+        /Country/,
+        100
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
@@ -908,9 +916,10 @@ describe('Importer', function() {
 
       // Select 'CourseId' as the merge column, and check that the preview now contains a diff of old/new values.
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /CourseId/
+        /CourseId/,
+        100
       ).click();
       await gu.sendKeys(Key.ESCAPE);
       await gu.waitForServer();
@@ -950,7 +959,7 @@ describe('Importer', function() {
       await waitForDiffPreviewToLoad();
       await driver.findContent('.test-importer-column-match-source-destination', /CourseId/)
         .find('.test-importer-column-match-formula').click();
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
       await gu.sendKeys(' + "-NEW"');
 
       // Before saving the formula, check that the preview isn't showing the hidden helper column ids.

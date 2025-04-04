@@ -523,7 +523,7 @@ describe('ColumnFilterMenu', function() {
     // set min to '2019-07-16'
     await gu.setRangeFilterBound('min', '2019-07-16');
     await driver.find('.test-filter-menu-apply-btn').click();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     // check values
     assert.deepEqual(
@@ -541,7 +541,7 @@ describe('ColumnFilterMenu', function() {
     // set max to '2019-07-17'
     await gu.setRangeFilterBound('max', '2019-07-17');
     await driver.find('.test-filter-menu-apply-btn').click();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Name', colId], rowNums: [1, 2, 3, 4]}),
@@ -557,7 +557,7 @@ describe('ColumnFilterMenu', function() {
     await gu.setRangeFilterBound('min', null);
     await gu.setRangeFilterBound('max', null);
     await driver.find('.test-filter-menu-apply-btn').click();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     // check all values are there
     assert.deepEqual(

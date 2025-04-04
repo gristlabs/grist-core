@@ -53,6 +53,32 @@ export const allCommands: { [key in CommandName]: Command } = {} as any;
  */
 const _allKeys: Record<string, CommandGroup[]> = {};
 
+interface CommandHistoryEntry {
+  name: string;
+  timestamp: number;
+}
+let commandsHistory: CommandHistoryEntry[] = [];
+const addToHistory = (commandName: string) => {
+  commandsHistory = [
+    {name: commandName, timestamp: Date.now()},
+    ...commandsHistory
+  ];
+  if (commandsHistory.length > 15) {
+    commandsHistory.pop();
+  }
+};
+/**
+ * Get the (maximum 15) command names last keypressed by the user.
+ *
+ * Optionally pass a timestamp in milliseconds to filter commands only since that time.
+ */
+export const getCommandsHistory = (sinceMs?: number) => {
+  const filtered = sinceMs
+    ? commandsHistory.filter(entry => entry.timestamp > sinceMs)
+    : commandsHistory;
+  return [...filtered.map(entry => entry.name)];
+};
+
 /**
  * Populate allCommands from those provided, or listed in commandList.js. Also populates the
  * globally exposed `cmd` object whose properties invoke commands: e.g. typing `cmd.cursorDown` in
@@ -76,6 +102,7 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
       } else {
         allCommands[c.name] = new Command(c.name, c.desc, c.keys, {
           bindKeys: c.bindKeys,
+          alwaysOn: c.alwaysOn,
           deprecated: c.deprecated,
         });
       }
@@ -124,6 +151,10 @@ export function getHumanKey(key: string, mac: boolean): string {
 export interface CommandOptions {
   bindKeys?: boolean;
   deprecated?: boolean;
+  /**
+   * When true, the command is always enabled, even in form inputs.
+   */
+  alwaysOn?: boolean;
 }
 
 /**
@@ -140,6 +171,7 @@ export class Command implements CommandDef {
   public humanKeys: string[];
   public keys: string[];
   public bindKeys: boolean;
+  public alwaysOn: boolean;
   public isActive: ko.Observable<boolean>;
   public deprecated: boolean;
   public run: (...args: any[]) => any;
@@ -152,6 +184,7 @@ export class Command implements CommandDef {
     this.humanKeys = keys.map(key => getHumanKey(key, isMac));
     this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, '+'); });
     this.bindKeys = options.bindKeys ?? true;
+    this.alwaysOn = options.alwaysOn ?? false;
     this.isActive = ko.observable(false);
     this._implGroupStack = [];
     this._activeFunc = _.noop; // The function to run when this command is invoked.
@@ -216,14 +249,15 @@ export class Command implements CommandDef {
 
     if (this.bindKeys) {
       // Now bind or unbind the affected key combinations.
-      this.keys.forEach(function(key) {
+      this.keys.forEach((key) => {
         const keyGroups = _allKeys[key];
         if (keyGroups && keyGroups.length > 0) {
           const commandGroup = _.last(keyGroups)!;
           // Command name might be different from this.name in case we are deactivating a command, and
           // the previous meaning of the key points to a different command.
           const commandName = commandGroup.knownKeys[key];
-          Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName]));
+          const bind = this.alwaysOn ? Mousetrap.bindAlwaysOn : Mousetrap.bind;
+          bind(key, wrapKeyCallback(commandGroup.commands[commandName], commandName));
         } else {
           Mousetrap.unbind(key);
         }
@@ -237,11 +271,14 @@ export class Command implements CommandDef {
 }
 
 /**
- * Helper for mousetrap callbacks, which returns a version of the callback that by default stops
- * the propagation of the keyboard event (unless the callback returns a true value).
+ * Helper for mousetrap callbacks:
+ *  - returns a version of the callback that by default stops the propagation of the keyboard event
+ *    (unless the callback returns a true value).
+ *  - adds the command name in the command history stack.
  */
-function wrapKeyCallback(callback: Func) {
+function wrapKeyCallback(callback: Func, commandName: string) {
   return function() {
+    addToHistory(commandName);
     return callback(...arguments) || false;
   };
 }

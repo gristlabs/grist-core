@@ -124,7 +124,7 @@ describe('ImportReferences', function() {
     // PName (a reference column) does.
     await openSourceMenu('Label');
     assert.equal(await findColumnMenuItem('PIndex').isPresent(), true);
-    assert.equal(await findColumnMenuItem(/as row ID/).isPresent(), false);
+    assert.equal(await driver.findContent('.test-importer-column-match-menu-item', /as row ID/).isPresent(), false);
     await driver.sendKeys(Key.ESCAPE);
 
     await openSourceMenu('PName');
@@ -208,5 +208,5 @@ async function mapper(el: WebElement) {
 }
 
 function findColumnMenuItem(label: RegExp|string) {
-  return driver.findContent('.test-importer-column-match-menu-item', label);
+  return driver.findContentWait('.test-importer-column-match-menu-item', label, 100);
 }
