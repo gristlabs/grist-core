@@ -647,7 +647,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     self.add_record("Math", A=0, B=1)
     self.assertTableData("Math", data=[
       ["id",  "A",  "B",  "C"],
-      [1,     0,    1,    div_error(0)],
+      [1,     0,    1,    div_error(None)],
     ])
     self.update_record("Math", 1, A=1)
     self.assertTableData("Math", data=[
@@ -674,7 +674,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     self.add_record("Math", A=0, B=0)
     self.assertTableData("Math", data=[
       ["id",  "A",  "B",  "C"],
-      [1,     0,    0,    div_error(0)],
+      [1,     0,    0,    div_error(None)],
     ])
     message = 'float division by zero'
     if six.PY3:
@@ -697,7 +697,7 @@ which is equal to zero."""
     self.update_record("Math", 1, B=1)
     self.assertTableData("Math", data=[
       ["id",  "A",  "B",  "C"],
-      [1,     1,    1,    div_error(0)],
+      [1,     1,    1,    div_error(None)],
     ])
     error = self.engine.get_formula_error('Math', 'C', 1)
     self.assertFormulaError(error, ZeroDivisionError, 'float division by zero')

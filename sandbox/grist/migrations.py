@@ -90,7 +90,7 @@ def create_migrations(all_tables, metadata_only=False):
     tdset.apply_doc_action(actions.BulkAddRecord(*data))
 
   migration_actions = []
-  for version in xrange(doc_version + 1, schema.SCHEMA_VERSION + 1):
+  for version in xrange((doc_version or 0) + 1, schema.SCHEMA_VERSION + 1):
     migration_func = all_migrations.get(version, noop_migration)
     if migration_func.need_all_tables and metadata_only:
       raise Exception("need all tables for migration to %s" % version)
