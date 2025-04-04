@@ -22,7 +22,7 @@ import {IOptionFull, linkSelect, select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, modal, saveModal} from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
 import {
-  CreatableArchiveFormats, DocAttachmentsLocation,
+  CreatableArchiveFormats, DocAPI, DocAttachmentsLocation,
   Document,
   isTemplatesOrg,
   Organization,
@@ -324,36 +324,6 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
     const docApi = pageModel.appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, 'full');
 
-    const showAttachmentArchiveOptions = Observable.create<boolean>(owner, false);
-    const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
-    const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
-      { value: 'tar', label: t('.tar (recommended)')},
-      { value: 'zip', label: t('.zip')}
-    ];
-    const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
-      const format = use(formatObs);
-      return docApi.getDownloadAttachmentsArchiveUrl({ format });
-    });
-
-    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
-    docApi.getAttachmentTransferStatus()
-      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
-      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
-
-    const attachmentStatusText = Computed.create<string>(owner, (use) => {
-      const status = use(attachmentStatusObs);
-      if (!status) {
-        return t('Checking attachment status...');
-      }
-      if (status === 'mixed' || status === 'external') {
-        return t('Attachments are **not** included in the document download');
-      }
-      if (status === 'unknown') {
-        return t('Attachments **may not** be included in the document download');
-      }
-      return t('Attachments are included in the document download');
-    });
-
     return [
       cssModalTitle(t(`Download document`)),
       cssRadioCheckboxOptions(
@@ -361,32 +331,9 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
           radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
           radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
       ),
-      cssModalBody(inlineMarkdown(attachmentStatusText)),
-      dom.domComputed(showAttachmentArchiveOptions, (showFullArchiveOptions) => {
-        if (!showFullArchiveOptions) {
-          return cssField(
-            cssLink(t('Download attachments archive.')),
-            dom.on('click', () => { showAttachmentArchiveOptions.set(true); })
-          );
-        }
-        return cssArchiveDownloadRow(
-          t('Format:'),
-          cssArchiveFormatSelect(formatObs, allFormats),
-          cssDownloadArchiveButton(
-            t('Download attachments'),
-            (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
-              dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
-                href: href,
-                target: '_blank',
-                download: '',
-              }));
-            }),
-          ),
-        );
-      }),
+      buildDownloadAttachmentArchiveSection(owner, docApi),
       cssModalButtons(
         dom.domComputed(use => {
-          const docApi = pageModel.appModel.api.getDocAPI(doc.id);
           const href = use(selected).startsWith('attachments')
             ? docApi.getDownloadAttachmentsArchiveUrl({ format: use(selected).includes('zip') ? 'zip' : 'tar' })
             : docApi.getDownloadUrl({
@@ -410,6 +357,72 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
       )
     ];
   });
+}
+
+function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI) {
+  const showAttachmentArchiveOptions = Observable.create<boolean>(owner, false);
+  const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
+  const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
+    { value: 'tar', label: t('.tar (recommended)')},
+    { value: 'zip', label: t('.zip')}
+  ];
+  const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
+    const format = use(formatObs);
+    return docApi.getDownloadAttachmentsArchiveUrl({ format });
+  });
+
+  const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+  docApi.getAttachmentTransferStatus()
+    .then((status) => { attachmentStatusObs.set(status.locationSummary); })
+    .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+
+  const attachmentStatusText = Computed.create<string>(owner, (use) => {
+    const status = use(attachmentStatusObs);
+    if (!status) {
+      return t('Checking attachment status...');
+    }
+    if (status === 'mixed' || status === 'external') {
+      return t('Attachments are **not** included in the document download');
+    }
+    if (status === 'unknown') {
+      return t('Attachments **may not** be included in the document download');
+    }
+    return t('Attachments are included in the document download');
+  });
+
+  return cssAttachmentsDownloadSection(
+    dom('div', inlineMarkdown(attachmentStatusText), testId("attachments-included")),
+    dom.domComputed(showAttachmentArchiveOptions, (showFullArchiveOptions) => {
+      if (!showFullArchiveOptions) {
+        return cssAttachmentsDownloadRow(
+          cssLink(
+            t('Download attachments separately'),
+            dom.on('click', () => { showAttachmentArchiveOptions.set(true); }),
+            testId('download-attachments-initial-link'),
+          ),
+        );
+      }
+      return cssAttachmentsDownloadRow(
+        t('Format:'),
+        dom.update(
+          cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
+          testId('attachments-format-select'),
+        ),
+        cssDownloadAttachmentsButton(
+          t('Download attachments'),
+          (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
+            dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
+              href: href,
+              target: '_blank',
+              download: '',
+            }));
+          }),
+          testId('download-attachments-button-link'),
+        ),
+        testId('download-attachments-row'),
+      );
+    })
+  );
 }
 
 export const cssField = styled('div', `
@@ -442,7 +455,11 @@ const cssCheckbox = styled(labeledSquareCheckbox, `
   margin-top: 8px;
 `);
 
-const cssArchiveDownloadRow = styled('div', `
+const cssAttachmentsDownloadSection = styled('div', `
+  margin: 24px 0;
+`);
+
+const cssAttachmentsDownloadRow = styled('div', `
   margin: 10px 0;
   display: flex;
   gap: 16px;
@@ -453,6 +470,6 @@ const cssArchiveFormatSelect = styled(linkSelect, `
   flex-grow: 1;
 `);
 
-const cssDownloadArchiveButton = styled(primaryButtonLink, `
+const cssDownloadAttachmentsButton = styled(primaryButtonLink, `
   text-wrap: nowrap;
 `);
