@@ -1494,7 +1494,7 @@
         "Share": "Share",
         "Share this form": "Share this form",
         "View": "View",
-        "## **Form Title**": "## **Form Title**",
+        "# **Form Title**": "# **Form Title**",
         "Your form description goes here.": "Your form description goes here."
     },
     "Editor": {
@@ -1544,7 +1544,8 @@
     },
     "FormContainer": {
         "Build your own form": "Build your own form",
-        "Powered by": "Powered by"
+        "Powered by": "Powered by",
+        "Powered by Grist": "Powered by Grist"
     },
     "FormErrorPage": {
         "Error": "Error"
@@ -1584,7 +1585,7 @@
     "Section": {
         "Insert section above": "Insert section above",
         "Insert section below": "Insert section below",
-        "### **Header**": "### **Header**",
+        "## **Header**": "## **Header**",
         "Description": "Description"
     },
     "CreateTeamModal": {

@@ -1387,7 +1387,8 @@
     },
     "FormContainer": {
         "Build your own form": "Crie o seu próprio formulário",
-        "Powered by": "Desenvolvido por"
+        "Powered by": "Desenvolvido por",
+        "Powered by Grist": "Desenvolvido por Grist"
     },
     "FormModel": {
         "Oops! The form you're looking for doesn't exist.": "Epá! O formulário que procura não existe.",
