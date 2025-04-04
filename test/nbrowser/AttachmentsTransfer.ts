@@ -1,4 +1,4 @@
-import {DocAPI} from 'app/common/UserAPI';
+import {AttachmentsArchiveParams, DocAPI} from 'app/common/UserAPI';
 import fs from 'fs';
 import {assert, driver, Key, WebElementPromise} from 'mocha-webdriver';
 import os from 'os';
@@ -45,7 +45,6 @@ describe("AttachmentsTransfer", function() {
     session = await gu.session().teamSite.login();
     docId = await session.tempNewDoc(cleanup);
     api = session.createHomeApi().getDocAPI(docId);
-    console.log(docId);
 
     // Open document settings.
     await gu.openDocumentSettings();
@@ -174,6 +173,33 @@ describe("AttachmentsTransfer", function() {
     assert.lengthOf(await messages(), 0);
   });
 
+  it('can download attachments', async function() {
+    await driver.find('.test-tb-share').click();
+    await driver.findContentWait('.test-tb-share-option', /Download/, 5000).click();
+    const attachmentsStatus = await driver.findWait('.test-attachments-included', 1000).getText();
+
+    assert.match(attachmentsStatus, /are not included/, "users should be warned attachments aren't included");
+
+    await driver.findWait('.test-download-attachments-initial-link', 500).click();
+
+    const selectFormat = async (formatRegex: RegExp) => {
+      await driver.findWait('.test-attachments-format-select', 500).click();
+      await driver.findContentWait('.test-attachments-format-options .test-select-row', formatRegex, 500).click();
+    };
+
+    const testDownloadLink = async (params: AttachmentsArchiveParams) => {
+      const downloadUrl = new URL(await driver.find('.test-download-attachments-button-link').getAttribute('href'));
+      const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl(params));
+      assert.equal(downloadUrl.pathname, idealUrl.pathname, "wrong download link called");
+      assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
+    };
+
+    await selectFormat(/.tar/);
+    await gu.waitToPass(() => testDownloadLink({ format: 'tar' }), 500);
+    await selectFormat(/.zip/);
+    await gu.waitToPass(() => testDownloadLink({ format: 'zip' }), 500);
+  });
+
   it('should transfer files to internal storage', async function() {
     // Switch to internal.
     await storageType.select('Internal');
@@ -284,6 +310,11 @@ describe("AttachmentsTransfer", function() {
     await waitForNotPresent(startTransferButton);
     assert.lengthOf(await messages(), 0);
   });
+
+
+  it('can upload attachments', async function() {
+
+  });
 });
 
 
@@ -335,5 +366,24 @@ async function waitForNotPresent(fn: () => WebElementPromise) {
 
 const attachmentSection = () => driver.find('.test-admin-panel-item-preferredStorage');
 
+/*
+type FileMatcher = (filePath: string) => boolean;
+async function findFileInDownloadDir(fileMatcher: FileMatcher) {
+  const files = await fs.promises.readdir(server.testDir);
+  console.log(files);
+  return files.find(fileMatcher);
+}
 
+async function waitForFileDownload(fileMatcher: FileMatcher): Promise<string> {
+  const errorMessage = "file does not exist in download folder";
+  let file: string | undefined;
+  await gu.waitToPass(async () => {
+    file = await findFileInDownloadDir(fileMatcher);
+    assert(file, errorMessage);
+    await fs.promises.access(file ?? "");
+  });
+  if (!file) { throw new Error(errorMessage); }
+  return file;
+}
+*/
 
