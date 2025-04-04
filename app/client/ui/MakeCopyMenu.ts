@@ -10,16 +10,37 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {cssInput} from 'app/client/ui/cssInput';
-import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
+import {
+  bigBasicButton,
+  bigPrimaryButtonLink,
+  primaryButtonLink
+} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {select} from 'app/client/ui2018/menus';
+import {IOptionFull, linkSelect, select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, modal, saveModal} from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
-import {Document, isTemplatesOrg, Organization, Workspace} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, input, Observable, styled, subscribe} from 'grainjs';
+import {
+  CreatableArchiveFormats, DocAPI, DocAttachmentsLocation,
+  Document,
+  isTemplatesOrg,
+  Organization,
+  Workspace
+} from 'app/common/UserAPI';
+import {
+  Computed,
+  Disposable,
+  dom,
+  input,
+  Observable,
+  styled,
+  subscribe,
+  subscribeElem
+} from 'grainjs';
 import sortBy = require('lodash/sortBy');
+import {cssLink} from 'app/client/ui2018/links';
+import {inlineMarkdown} from 'app/client/lib/markdown';
 
 const t = makeT('MakeCopyMenu');
 
@@ -245,8 +266,8 @@ class SaveCopyModal extends Disposable {
   }
 
   /**
-   * Fetch a list of workspaces for the given org, in the same order in which we list them in HomeModel,
-   * and set this._workspaces to it. While fetching, this._workspaces is set to null.
+   * Fetch a list of workspaces for the given org, in the same order in which we list them in
+   * HomeModel, and set this._workspaces to it. While fetching, this._workspaces is set to null.
    * Once fetched, we also set this._destWS.
    */
   private async _updateWorkspaces(org: Organization|null) {
@@ -296,10 +317,11 @@ class SaveCopyModal extends Disposable {
   }
 }
 
-type DownloadOption = 'full' | 'nohistory' | 'template';
+type DownloadOption = 'full' | 'nohistory' | 'template' | 'attachments-zip' | 'attachments-tar';
 
 export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
   return modal((ctl, owner) => {
+    const docApi = pageModel.appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, 'full');
 
     return [
@@ -309,13 +331,17 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
           radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
           radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
       ),
+      buildDownloadAttachmentArchiveSection(owner, docApi),
       cssModalButtons(
-        dom.domComputed(use =>
-          bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
-              href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl({
-                template: use(selected) === "template",
-                removeHistory: use(selected) === "nohistory" || use(selected) === "template",
-              }),
+        dom.domComputed(use => {
+          const href = use(selected).startsWith('attachments')
+            ? docApi.getDownloadAttachmentsArchiveUrl({ format: use(selected).includes('zip') ? 'zip' : 'tar' })
+            : docApi.getDownloadUrl({
+              template: use(selected) === "template",
+              removeHistory: use(selected) === "nohistory" || use(selected) === "template",
+            });
+          return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
+              href,
               target: '_blank',
               download: ''
             }),
@@ -323,14 +349,80 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
               ctl.close();
             }),
             testId('download-button-link'),
-          ),
-        ),
+          );
+        }),
         bigBasicButton(t('Cancel'), dom.on('click', () => {
           ctl.close();
         }))
       )
     ];
   });
+}
+
+function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI) {
+  const showAttachmentArchiveOptions = Observable.create<boolean>(owner, false);
+  const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
+  const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
+    { value: 'tar', label: t('.tar (recommended)')},
+    { value: 'zip', label: t('.zip')}
+  ];
+  const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
+    const format = use(formatObs);
+    return docApi.getDownloadAttachmentsArchiveUrl({ format });
+  });
+
+  const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+  docApi.getAttachmentTransferStatus()
+    .then((status) => { attachmentStatusObs.set(status.locationSummary); })
+    .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+
+  const attachmentStatusText = Computed.create<string>(owner, (use) => {
+    const status = use(attachmentStatusObs);
+    if (!status) {
+      return t('Checking attachment status...');
+    }
+    if (status === 'mixed' || status === 'external') {
+      return t('Attachments are **not** included in the document download');
+    }
+    if (status === 'unknown') {
+      return t('Attachments **may not** be included in the document download');
+    }
+    return t('Attachments are included in the document download');
+  });
+
+  return cssAttachmentsDownloadSection(
+    dom('div', inlineMarkdown(attachmentStatusText), testId("attachments-included")),
+    dom.domComputed(showAttachmentArchiveOptions, (showFullArchiveOptions) => {
+      if (!showFullArchiveOptions) {
+        return cssAttachmentsDownloadRow(
+          cssLink(
+            t('Download attachments separately'),
+            dom.on('click', () => { showAttachmentArchiveOptions.set(true); }),
+            testId('download-attachments-initial-link'),
+          ),
+        );
+      }
+      return cssAttachmentsDownloadRow(
+        t('Format:'),
+        dom.update(
+          cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
+          testId('attachments-format-select'),
+        ),
+        cssDownloadAttachmentsButton(
+          t('Download attachments'),
+          (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
+            dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
+              href: href,
+              target: '_blank',
+              download: '',
+            }));
+          }),
+          testId('download-attachments-button-link'),
+        ),
+        testId('download-attachments-row'),
+      );
+    })
+  );
 }
 
 export const cssField = styled('div', `
@@ -361,4 +453,23 @@ const cssSpinner = styled('div', `
 
 const cssCheckbox = styled(labeledSquareCheckbox, `
   margin-top: 8px;
+`);
+
+const cssAttachmentsDownloadSection = styled('div', `
+  margin: 24px 0;
+`);
+
+const cssAttachmentsDownloadRow = styled('div', `
+  margin: 10px 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+`);
+
+const cssArchiveFormatSelect = styled(linkSelect, `
+  flex-grow: 1;
+`);
+
+const cssDownloadAttachmentsButton = styled(primaryButtonLink, `
+  text-wrap: nowrap;
 `);

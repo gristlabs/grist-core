@@ -1,4 +1,3 @@
-import {StringUnion} from 'app/common/StringUnion';
 import {drainWhenSettled} from 'app/server/utils/streams';
 import {ZipArchiveEntry} from 'compress-commons';
 import stream from 'node:stream';
@@ -17,9 +16,6 @@ export interface Archive {
   dataStream: stream.Readable;
   completed: Promise<void>;
 }
-
-export const CreatableArchiveFormats = StringUnion('zip', 'tar');
-export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
 
 /**
  *
