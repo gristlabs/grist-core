@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
-set -e
+set -eEu -o pipefail
 
 PROJECT=""
+WEBPACK_MODE="--mode production"
+MODE="${1:-}"
 if [[ -e ext/app ]]; then
   PROJECT="tsconfig-ext.json"
   echo "Using extra app directory"
-elif [[ "$1" == "prod" ]]; then
+elif [[ "${MODE}" == "prod" ]]; then
   PROJECT="tsconfig-prod.json"
   echo "Building for production"
 else
+  WEBPACK_MODE="--mode development"
   echo "No extra app directory found"
 fi
 
@@ -24,7 +27,7 @@ set -x
 node buildtools/sanitize_translations.js
 tsc --build $PROJECT
 buildtools/update_type_info.sh app
-webpack --config $WEBPACK_CONFIG --mode production
-webpack --config buildtools/webpack.check.js --mode production
-webpack --config buildtools/webpack.api.config.js --mode production
+webpack --config $WEBPACK_CONFIG $WEBPACK_MODE
+webpack --config buildtools/webpack.check.js $WEBPACK_MODE
+webpack --config buildtools/webpack.api.config.js $WEBPACK_MODE
 cat app/client/*.css app/client/*/*.css > static/bundle.css
