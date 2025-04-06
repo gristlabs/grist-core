@@ -171,7 +171,9 @@
         "Default field value": "Valore di default del campo",
         "Field rules": "Regole per il campo",
         "Select a field in the form widget to configure.": "Seleziona un campo nel widget del modulo per configurarlo.",
-        "No field selected": "Nessun campo selezionato"
+        "No field selected": "Nessun campo selezionato",
+        "Submit": "Invia",
+        "Thank you! Your response has been recorded.": "Grazie! La tua risposta è stata registrata."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copia link",
@@ -758,7 +760,39 @@
         "Start timing": "Avvia cronometro",
         "Time reload": "Ricarica tempo",
         "Only available to document editors": "Disponibile solo per gli editor del documento",
-        "Only available to document owners": "Disponibile solo per i proprietari del documento"
+        "Only available to document owners": "Disponibile solo per i proprietari del documento",
+        "Template mode": "Modalità template",
+        "Edit": "Modifica",
+        "Template": "Template",
+        "Tutorial": "Tutorial",
+        "Confirm change": "Conferma la modifica",
+        "Regular": "Normale",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "Verrà effettuato un riavvio del motore dati. Questo può aiutare se il motore è bloccato in un ciclo infinito, non riesce a terminare il processamento dell'ultima modifica, o è andato in crash. Nessun dato verrà perduto, tranne potenzialmente quelli dell'azione che viene interrotta.",
+        "Change document type": "Cambia tipo di documento",
+        "Normal document behavior. All users work on the same copy of the document.": "Normale comportamento per il documento. Tutti gli utenti lavorano sulla stessa copia del documento.",
+        "fiddle mode": "modalità \"fiddle\"",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "Il documento si apre automaticamente in {{fiddleModeDocUrl}}. Chiunque può modificare, e questo crea una nuova copia non salvata.",
+        "Change nature of document": "Cambia natura del documento",
+        "Regular document": "Documento normale",
+        "Document automatically opens as a user-specific copy.": "Il documento si apre automaticamente in una copia privata dell'utente.",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "Avviato il timer, Grist misura il tempo occorrente per valutare ogni formula. Questo permette di capire quali formule sono responsabili per un rallentamento del sistema quando il documento viene aperto, o quando si aggiorna dopo un cambiamento.",
+        "External": "Esterno",
+        "Internal": "Interno",
+        "Transfer in progress": "Trasferimento in corso",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "*Alcuni allegati sono ancora [esterni]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Alcuni allegati sono ancora [interni]({{internalLink}})** (conservati nel file SQLite).",
+        "[Learn more.]({{learnLink}})": "[Scopri di più.]({{learnLink}})",
+        "**Some existing attachments are still external**.": "**Alcuni allegati sono ancora esterni**.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**Alcuni allegati sono ancora interni** (conservati dentro il file SQLite).",
+        "Attachment storage": "Conservazione degli allegati",
+        "Being transfer": "Trasferimento in corso",
+        "Click \"Start transfer\" to transfer those to External storage.": "Fai click su \"Inizia il trasferimento\" per trasferire questi a uno storage esterno.",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "Fai click su \"Inizia il trasferimento\" per trasferire questi nello storage interno (nel file SQLite del documento).",
+        "Newly uploaded attachments will be placed in External storage.": "Gli allegati nuovi verranno collocati nello storage esterno.",
+        "Newly uploaded attachments will be placed in Internal storage.": "Gli allegati nuovi verranno caricati nello storage interno.",
+        "No external stores available": "Nessuno storage esterno disponibile",
+        "Preferred storage for this document": "Storage preferito per questo documento",
+        "Start transfer": "Inizia il trasferimento"
     },
     "DocumentUsage": {
         "Data Size": "Dimensione dei dati",
@@ -1014,7 +1048,9 @@
         "Update formula (Shift+Enter)": "Aggiorna formula (Maiusc + Invio)"
     },
     "ViewAsBanner": {
-        "UnknownUser": "Utente sconosciuto"
+        "UnknownUser": "Utente sconosciuto",
+        "You are viewing this document as": "Stai vedendo questo documento come",
+        "View as Yourself": "Vedi come te stesso"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Ordina e filtra avanzato",
@@ -1087,7 +1123,11 @@
         "Attachment": "Allegato",
         "Numeric": "Numerico",
         "Choice": "Scelta",
-        "Search columns": "Cerca colonne"
+        "Search columns": "Cerca colonne",
+        "By Name": "Per nome",
+        "Light": "Chiaro",
+        "By Date Modified": "Per data di modifica",
+        "Custom": "Personalizzato"
     },
     "modals": {
         "Cancel": "Annulla",
@@ -1103,7 +1143,8 @@
         "Don't ask again.": "Non chiedere più.",
         "Don't show again.": "Non mostrare più.",
         "Don't show tips": "Non mostrare i suggerimenti",
-        "TIP": "TIP"
+        "TIP": "TIP",
+        "Confirm": "Conferma"
     },
     "pages": {
         "Duplicate Page": "Duplica pagina",
@@ -1218,7 +1259,11 @@
         "Community widgets are created and maintained by Grist community members.": "I widget della comunità sono creati e mantenuti dai membri della comunità di Grist.",
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "Per consentire riferimenti multipli, cambia il tipo della colonna a Lista di Riferimenti.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Questa limitazione si verifica quando una colonna di un riferimento bidirezionale è di tipo Riferimento.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "I riferimenti bidirezionali non sono supportati al momento per le colonne di formule o formule trigger"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "I riferimenti bidirezionali non sono supportati al momento per le colonne di formule o formule trigger",
+        "Manage users and resources in a Grist installation.": "Gestisci utenti e risorse in una installazione di Grist.",
+        "[Learn more.]({{link}})": "[Scopri di più.]({{link}})",
+        "Summary tables can only contain formula columns.": "Le tabelle sommario possono contenere solo colonne di formule.",
+        "The preview below this header shows how the selected user will see this document": "L'anteprima sotto questo titolo mostra come l'utente selezionato vedrà il documento"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
@@ -1396,7 +1441,8 @@
         "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} di {{limitTop}} {{collaborator}}",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Nessun accesso di default, permette di autorizzare l'accesso a singoli documenti o spazi di lavoro, invece che a tutto il sito del team.",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Se togli l'accesso a te stesso, non potrai riaverlo senza l'aiuto di qualcuno con permessi sufficienti a {{resourceType}}.",
-        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utente può visualizzare {{resource}} a causa di regole di accesso alle risorse interne impostate manualmente. Se rimuovi qui, l'utente perderà l'accesso alle risorse interne."
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utente può visualizzare {{resource}} a causa di regole di accesso alle risorse interne impostate manualmente. Se rimuovi qui, l'utente perderà l'accesso alle risorse interne.",
+        "Inherit access: ": "Eredita accesso: "
     },
     "SearchModel": {
         "Search all pages": "Cerca in tutte le pagine",
@@ -1434,7 +1480,9 @@
         "Separator": "Separatore",
         "Unmapped fields": "Campi non mappati",
         "Header": "Intestazione",
-        "Copy": "Copia"
+        "Copy": "Copia",
+        "New question": "Nuova domanda",
+        "More": "Più"
     },
     "FormView": {
         "Unpublish": "Non pubblicare",
@@ -1454,7 +1502,9 @@
         "Are you sure you want to reset your form?": "Sei sicuro di voler resettare il tuo modulo?",
         "Code copied to clipboard": "Codice copiato negli Appunti",
         "Link copied to clipboard": "Link copiato negli Appunti",
-        "View": "Vedi"
+        "View": "Vedi",
+        "Your form description goes here.": "La descrizione del form va inserita qui.",
+        "## **Form Title**": "## **Titolo del form**"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Pulisci",
@@ -1530,7 +1580,14 @@
         "Enable Grist Enterprise": "Attiva Grist Enterprise",
         "Enterprise": "Enterprise",
         "Key to sign sessions with": "Chiave per marcare le sessioni",
-        "checking": "controllo"
+        "checking": "controllo",
+        "Off": "Disattivo",
+        "Audit Logs": "Log degli audit",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} più",
+        "Log Streaming": "Flusso del log",
+        "Contact us": "Contattaci",
+        "New, Enterprise": "Nuova, Impresa",
+        "On": "Attivo"
     },
     "WelcomeCoachingCall": {
         "Maybe Later": "Forse più tardi",
@@ -1602,14 +1659,17 @@
     },
     "Section": {
         "Insert section above": "Inserisci una sezione sopra",
-        "Insert section below": "Inserisci una sezione sotto"
+        "Insert section below": "Inserisci una sezione sotto",
+        "### **Header**": "### **Titolo**",
+        "Description": "Descrizione"
     },
     "Columns": {
         "Remove Column": "Rimuovi colonna"
     },
     "Field": {
         "No choices configured": "Nessuna scelta configurata",
-        "No values in show column of referenced table": "Nessun valore nella colonna da mostrare nella tabella collegata"
+        "No values in show column of referenced table": "Nessun valore nella colonna da mostrare nella tabella collegata",
+        "Hide": "Nascondi"
     },
     "FormErrorPage": {
         "Error": "Errore"
@@ -1666,7 +1726,16 @@
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "La chiave di attivazione serve a usare Grist Enterprise dopo la fine\ndei 30 giorni di prova. Ottieni la chiave di attivazione [iscrivendoti a Grist\nEnterprise]({{signupLink}}). Non c'è bisogno di una chiave di attivazione per\nGrist Core.\n\nScopri di più nel nostro [Centro Assistenza]({{helpCenter}}).",
         "Disable Grist Enterprise": "Disattiva Grist Enterprise",
         "Enable Grist Enterprise": "Attiva Grist Enterprise",
-        "Grist Enterprise is **enabled**.": "Grist Enterprise è **attivato**."
+        "Grist Enterprise is **enabled**.": "Grist Enterprise è **attivato**.",
+        "Activate": "Attiva",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "La chiave di attivazione serve a usare Grist Enterprise dopo che il periodo di prova\ndi 30 giorni è finito. Ottieni una chiave di attivazione [contattandoci]({{contactLink}}) oggi. Non serve\nuna chiave di attivazione per usare Grist Core.\n\nScopri di più nel nostro [Help Center]({{helpCenter}}).",
+        "Expiration date": "Data di scadenza",
+        "Installation ID copied to clipboard": "ID Installazione copiato negli appunti",
+        "Installation ID:": "ID Installazione:",
+        "Activation key": "Chiave di attivazione",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "La chiave di attivazione serve a usare Grist Enterprise dopo che il periodo di prova\n        di 30 giorni è finito. Ottieni una chiave di attivazione [iscrivendoti a Grist\n        Enterprise]({{signupLink}}). Non serve una chiave di attivazione per usare\n        Grist Core.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Per continuare a usare Grist Enterprise è richiesta una chiave di attivazione. \nPuoi ottenere l'attivazione [iscrivendoti a Grist Enterprise ]({{signupLink}}) e copiando\nla tua chiave di attivazione qui sotto.",
+        "Copy to clipboard": "Copia negli appunti"
     },
     "DocTutorial": {
         "Finish": "Finisci",
