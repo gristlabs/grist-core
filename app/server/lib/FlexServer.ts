@@ -71,7 +71,7 @@ import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParam
         trustOrigin} from 'app/server/lib/requestUtils';
 import {buildScimRouter} from 'app/server/lib/scim';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
-import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
+import {getDatabaseUrl, getPubSubPrefix, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
@@ -97,7 +97,7 @@ import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
-import {RedisClient} from 'redis';
+import {createClient, RedisClient} from 'redis';
 import * as serveStatic from 'serve-static';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
@@ -2000,6 +2000,26 @@ export class FlexServer implements GristServer {
   public setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void {
     log.info(`Setting ${latestVersionAvailable.version} as the latest available version`);
     this._latestVersionAvailable = latestVersionAvailable;
+  }
+
+  public async publishLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): Promise<void> {
+    log.info(`Publishing ${latestVersionAvailable.version} as the latest available version`);
+
+    if (process.env.REDIS_URL) {
+      const client = createClient(process.env.REDIS_URL);
+      const prefix = getPubSubPrefix();
+      const channel = `${prefix}-latestVersionAvailable`;
+      try {
+        await client.publishAsync(channel, JSON.stringify(latestVersionAvailable));
+      } catch(error) {
+        log.error(`Error publishing latest version`, {error, latestVersionAvailable});
+      } finally {
+        await client.quitAsync();
+      }
+    } else {
+      // No Redis, so let's assume this is a single-server setup and skip pub/sub
+      this.setLatestVersionAvailable(latestVersionAvailable);
+    }
   }
 
   // Get the HTML template sent for document pages.
