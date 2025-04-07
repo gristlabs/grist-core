@@ -1,4 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
+import {LatestVersionAvailable} from 'app/common/version';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
@@ -201,6 +202,7 @@ export class FlexServer implements GristServer {
   private _jobs?: GristJobs;
   private _emitNotifier = new EmitNotifier();
   private _testPendingNotifications: number = 0;
+  private _latestVersionAvailable?: LatestVersionAvailable;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -1985,6 +1987,15 @@ export class FlexServer implements GristServer {
 
     // Some configurations may add extra endpoints. This seems a fine time to add them.
     this.create.addExtraHomeEndpoints(this, this.app);
+  }
+
+  public getLatestVersionAvailable() {
+    return this._latestVersionAvailable;
+  }
+
+  public setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void {
+    log.info(`Setting ${latestVersionAvailable.version} as the latest available version`);
+    this._latestVersionAvailable = latestVersionAvailable;
   }
 
   // Get the HTML template sent for document pages.
