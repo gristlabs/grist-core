@@ -1,5 +1,7 @@
 import {commonUrls} from "app/common/gristUrls";
-import {version as installedVersion} from "app/common/version";
+import {isAffirmative} from "app/common/gutil";
+import {version as installedVersion, LatestVersionAvailable} from "app/common/version";
+import {naturalCompare} from 'app/common/SortFunc';
 import {GristServer} from "app/server/lib/GristServer";
 import {ApiError} from "app/common/ApiError";
 
@@ -29,4 +31,24 @@ export async function checkForUpdates(gristServer: GristServer) {
   }
 
   return await response.json();
+}
+
+export async function updateGristServerLatestVersion(gristServer: GristServer) {
+  // We only automatically check for versions in certain situations,
+  // such as for example, in Docker images that enable this envvar
+  if (!isAffirmative(process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING)) {
+    return;
+  }
+  const response = await checkForUpdates(gristServer);
+
+  // naturalCompare correctly sorts version numbers.
+  const versions = [installedVersion, response.latestVersion];
+  versions.sort(naturalCompare);
+
+  const latestVersionAvailable: LatestVersionAvailable = {
+    version: response.latestVersion,
+    isNewer: versions[1] !== installedVersion,
+  };
+
+  await gristServer.publishLatestVersionAvailable(latestVersionAvailable);
 }
