@@ -259,6 +259,11 @@ export class FlexServer implements GristServer {
     this.info.push(['defaultBaseDomain', this._defaultBaseDomain]);
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
 
+    if (process.env.REDIS_URL) {
+      this._redisSubscriptionClient = createClient(process.env.REDIS_URL);
+      this._subscribeToVersionUpdates();
+    }
+
     // The electron build is not supported at this time, but this stub
     // implementation of electronServerMethods is present to allow kicking
     // its tires.
@@ -824,7 +829,6 @@ export class FlexServer implements GristServer {
     this._docWorkerMap = getDocWorkerMap();
     this._internalPermitStore = this._docWorkerMap.getPermitStore('internal');
     this._externalPermitStore = this._docWorkerMap.getPermitStore('external');
-    this._redisSubscriptionClient = this._docWorkerMap.getRedisClient();
   }
 
   // Set up the main express middleware used.  For a single user setup, without logins,
@@ -2343,6 +2347,23 @@ export class FlexServer implements GristServer {
       return true;
     }
     return false;
+  }
+
+  private _subscribeToVersionUpdates() {
+    // If we have a Redis client, subscribe it to get version updates
+    if (this._redisSubscriptionClient) {
+      const prefix = getPubSubPrefix();
+      const channel = `${prefix}-latestVersionAvailable`;
+      this._redisSubscriptionClient.subscribe(channel);
+      this._redisSubscriptionClient.on("message", async (_, message) => {
+        const latestVersionAvailable: LatestVersionAvailable = JSON.parse(message);
+        log.debug('subscribeToVersionUpdates: setting latest version', latestVersionAvailable);
+        this.setLatestVersionAvailable(latestVersionAvailable);
+      });
+      this._redisSubscriptionClient.on("error", async (error) => {
+        log.warn('subscribeToVersionUpdates: redis client error', error);
+      });
+    }
   }
 
   private _createServers() {
