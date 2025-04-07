@@ -96,7 +96,7 @@ export class Gristifier {
    * Remove all Grist metadata tables. Warning: attachments are considered metadata.
    */
   public async degristify() {
-    const db = await SQLiteDB.openDBRaw(this._filename, OpenMode.OPEN_READONLY);
+    const db = await SQLiteDB.openDBRaw(this._filename);
     const tables = await db.all(
       `SELECT name FROM sqlite_master WHERE type='table' ` +
         `  AND name LIKE '_grist%'`
@@ -127,7 +127,7 @@ export class Gristifier {
    * except BLOBs will be expanded.
    */
   public async query(queryString: string) {
-    const db = await SQLiteDB.openDBRaw(this._filename);
+    const db = await SQLiteDB.openDBRaw(this._filename, OpenMode.OPEN_READONLY);
     try {
       const results = await db.all(queryString);
       const decodedResults = results.map(row => DocStorage.decodeRowValues(row));
