@@ -14,6 +14,7 @@ import { IElectionStore } from 'app/server/lib/IElectionStore';
 import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
+import { updateGristServerLatestVersion } from 'app/server/lib/updateChecker';
 import * as express from 'express';
 import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
@@ -22,6 +23,8 @@ import { EntityManager } from 'typeorm';
 export const Timings = {
   DELETE_TRASH_PERIOD_MS: 1 * 60 * 60 * 1000,  // operate every 1 hour
   LOG_METRICS_PERIOD_MS: 24 * 60 * 60 * 1000,  // operate every day
+  VERSION_CHECK_PERIOD_MS: 7 * 24 * 60 * 60 * 1000, // operate every week
+  VERSION_CHECK_OFFSET_MS: 20 * 1000, // wait 20 seconds before running the first check
   AGE_THRESHOLD_OFFSET: '-30 days',            // should be an interval known by postgres + sqlite
 
   SYNC_WORK_LIMIT_MS: 50,      // Don't keep doing synchronous work longer than this.
@@ -43,6 +46,8 @@ export const Timings = {
 export class Housekeeper {
   private _deleteTrashinterval?: NodeJS.Timeout;
   private _logMetricsInterval?: NodeJS.Timeout;
+  private _checkVersionUpdatesInterval?: NodeJS.Timeout;
+
   private _electionKey?: string;
   private _telemetry = this._server.getTelemetry();
 
@@ -61,13 +66,23 @@ export class Housekeeper {
     this._logMetricsInterval = setInterval(() => {
       this.logMetricsExclusively().catch(log.warn.bind(log));
     }, Timings.LOG_METRICS_PERIOD_MS);
+    setTimeout(() => {
+      this.checkVersionUpdates().catch(log.warn.bind(log));
+    }, Timings.VERSION_CHECK_OFFSET_MS);
+    this._checkVersionUpdatesInterval = setInterval(() => {
+      this.checkVersionUpdatesExclusively().catch(log.warn.bind(log));
+    }, Timings.VERSION_CHECK_PERIOD_MS);
+
   }
 
   /**
    * Stop scheduling housekeeping tasks.  Note: doesn't wait for any housekeeping task in progress.
    */
   public async stop() {
-    for (const interval of ['_deleteTrashinterval', '_logMetricsInterval'] as const) {
+    for (const interval of [
+      '_deleteTrashinterval',
+      '_logMetricsInterval',
+      '_checkVersionUpdatesInterval'] as const) {
       clearInterval(this[interval]);
       this[interval] = undefined;
     }
@@ -226,6 +241,22 @@ export class Housekeeper {
         });
       });
     }
+  }
+
+  public async checkVersionUpdatesExclusively() {
+    const electionKey = await this._electionStore.getElection('checkVersionUpdates',
+                                                              Timings.VERSION_CHECK_PERIOD_MS / 2.0);
+    if (!electionKey) {
+      log.info('Skipping checkVersionUpdates since another server is working on it or worked on it recently');
+      return false;
+    }
+    this._electionKey = electionKey;
+
+    await this.checkVersionUpdates();
+  }
+
+  public async checkVersionUpdates() {
+    await updateGristServerLatestVersion(this._server);
   }
 
   public addEndpoints(app: express.Application) {
