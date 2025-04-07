@@ -6,7 +6,7 @@ import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSessio
 import {DocStorage} from 'app/server/lib/DocStorage';
 import {createDummyGristServer} from 'app/server/lib/GristServer';
 import {TrivialDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {DBMetadata, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import {DBMetadata, OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
 
 /**
  * A utility class for modifying a SQLite file to be viewed/edited with Grist.
@@ -96,7 +96,7 @@ export class Gristifier {
    * Remove all Grist metadata tables. Warning: attachments are considered metadata.
    */
   public async degristify() {
-    const db = await SQLiteDB.openDBRaw(this._filename);
+    const db = await SQLiteDB.openDBRaw(this._filename, OpenMode.OPEN_READONLY);
     const tables = await db.all(
       `SELECT name FROM sqlite_master WHERE type='table' ` +
         `  AND name LIKE '_grist%'`
