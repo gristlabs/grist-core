@@ -97,6 +97,7 @@ import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
+import {RedisClient} from 'redis';
 import * as serveStatic from 'serve-static';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
@@ -203,6 +204,7 @@ export class FlexServer implements GristServer {
   private _emitNotifier = new EmitNotifier();
   private _testPendingNotifications: number = 0;
   private _latestVersionAvailable?: LatestVersionAvailable;
+  private _redisSubscriptionClient?: RedisClient|null;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -822,6 +824,7 @@ export class FlexServer implements GristServer {
     this._docWorkerMap = getDocWorkerMap();
     this._internalPermitStore = this._docWorkerMap.getPermitStore('internal');
     this._externalPermitStore = this._docWorkerMap.getPermitStore('external');
+    this._redisSubscriptionClient = this._docWorkerMap.getRedisClient();
   }
 
   // Set up the main express middleware used.  For a single user setup, without logins,
@@ -997,6 +1000,7 @@ export class FlexServer implements GristServer {
     if (this._sessionStore) { await this._sessionStore.close(); }
     if (this._auditLogger) { await this._auditLogger.close(); }
     if (this._billing) { await this._billing.close?.(); }
+    if (this._redisSubscriptionClient) { await this._redisSubscriptionClient.quitAsync(); }
   }
 
   public addDocApiForwarder() {
