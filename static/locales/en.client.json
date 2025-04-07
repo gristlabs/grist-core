@@ -1541,7 +1541,9 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Some required columns aren't mapped",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "To use this widget, please map all non-optional columns from the creator panel on the right."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "To use this widget, please map all non-optional columns from the creator panel on the right.",
+        "Some required columns are hidden by access rules": "Some required columns are hidden by access rules",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules."
     },
     "FormContainer": {
         "Build your own form": "Build your own form",
