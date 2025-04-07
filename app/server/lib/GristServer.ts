@@ -30,6 +30,7 @@ import { ITelemetry } from 'app/server/lib/Telemetry';
 import * as express from 'express';
 import { IncomingMessage } from 'http';
 import { IGristCoreConfig, loadGristCoreConfig } from "./configCore";
+import { LatestVersionAvailable } from 'app/common/version';
 
 /**
  * Basic information about a Grist server.  Accessible in many
@@ -77,6 +78,8 @@ export interface GristServer {
   getInfo(key: string): any;
   getJobs(): GristJobs;
   getBilling(): IBilling;
+  getLatestVersionAvailable(): LatestVersionAvailable|undefined;
+  setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void
   setRestrictedMode(restrictedMode?: boolean): void;
   getDocManager(): DocManager;
   isRestrictedMode(): boolean;
@@ -179,6 +182,8 @@ export function createDummyGristServer(): GristServer {
     getInfo(key: string) { return undefined; },
     getJobs(): GristJobs { throw new Error('no job system'); },
     getBilling() { throw new Error('no billing'); },
+    getLatestVersionAvailable() { throw new Error('no version checking'); },
+    setLatestVersionAvailable() { /* do nothing */ },
     setRestrictedMode() { /* do nothing */ },
     getDocManager() { throw new Error('no DocManager'); },
     isRestrictedMode() { return false; },
