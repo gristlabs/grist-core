@@ -19,12 +19,14 @@ import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
 import { EntityManager } from 'typeorm';
 
-const DELETE_TRASH_PERIOD_MS = 1 * 60 * 60 * 1000;  // operate every 1 hour
-const LOG_METRICS_PERIOD_MS = 24 * 60 * 60 * 1000;  // operate every day
-const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval known by postgres + sqlite
+export const Timings = {
+  DELETE_TRASH_PERIOD_MS: 1 * 60 * 60 * 1000,  // operate every 1 hour
+  LOG_METRICS_PERIOD_MS: 24 * 60 * 60 * 1000,  // operate every day
+  AGE_THRESHOLD_OFFSET: '-30 days',            // should be an interval known by postgres + sqlite
 
-const SYNC_WORK_LIMIT_MS = 50;      // Don't keep doing synchronous work longer than this.
-const SYNC_WORK_BREAK_MS = 50;      // Once reached SYNC_WORK_LIMIT_MS, take a break of this length.
+  SYNC_WORK_LIMIT_MS: 50,      // Don't keep doing synchronous work longer than this.
+  SYNC_WORK_BREAK_MS: 50,      // Once reached SYNC_WORK_LIMIT_MS, take a break of this length.
+};
 
 /**
  * Take care of periodic tasks:
@@ -55,10 +57,10 @@ export class Housekeeper {
     await this.stop();
     this._deleteTrashinterval = setInterval(() => {
       this.deleteTrashExclusively().catch(log.warn.bind(log));
-    }, DELETE_TRASH_PERIOD_MS);
+    }, Timings.DELETE_TRASH_PERIOD_MS);
     this._logMetricsInterval = setInterval(() => {
       this.logMetricsExclusively().catch(log.warn.bind(log));
-    }, LOG_METRICS_PERIOD_MS);
+    }, Timings.LOG_METRICS_PERIOD_MS);
   }
 
   /**
@@ -75,7 +77,7 @@ export class Housekeeper {
    * Deletes old trash if no other server is working on it or worked on it recently.
    */
   public async deleteTrashExclusively(): Promise<boolean> {
-    const electionKey = await this._electionStore.getElection('housekeeping', DELETE_TRASH_PERIOD_MS / 2.0);
+    const electionKey = await this._electionStore.getElection('housekeeping', Timings.DELETE_TRASH_PERIOD_MS / 2.0);
     if (!electionKey) {
       log.info('Skipping deleteTrash since another server is working on it or worked on it recently');
       return false;
@@ -165,7 +167,7 @@ export class Housekeeper {
    * Logs metrics if no other server is working on it or worked on it recently.
    */
   public async logMetricsExclusively(): Promise<boolean> {
-    const electionKey = await this._electionStore.getElection('logMetrics', LOG_METRICS_PERIOD_MS / 2.0);
+    const electionKey = await this._electionStore.getElection('logMetrics', Timings.LOG_METRICS_PERIOD_MS / 2.0);
     if (!electionKey) {
       log.info('Skipping logMetrics since another server is working on it or worked on it recently');
       return false;
@@ -383,7 +385,7 @@ export class Housekeeper {
    * don't have to deal with its caprices.
    */
   private _getThreshold() {
-    return fromNow(this._dbManager.connection.driver.options.type, AGE_THRESHOLD_OFFSET);
+    return fromNow(this._dbManager.connection.driver.options.type, Timings.AGE_THRESHOLD_OFFSET);
   }
 
   // Call a document endpoint with a permit, cleaning up after the call.
@@ -420,7 +422,7 @@ export class Housekeeper {
  * At each sleep will log a message with logText and progress info.
  */
 async function forEachWithBreaks<T>(logText: string, items: T[], callback: (item: T) => void): Promise<void> {
-  const delayMs = SYNC_WORK_BREAK_MS;
+  const delayMs = Timings.SYNC_WORK_BREAK_MS;
   const itemsTotal = items.length;
   let itemsProcesssed = 0;
   const start = Date.now();
@@ -428,7 +430,7 @@ async function forEachWithBreaks<T>(logText: string, items: T[], callback: (item
   for (const item of items) {
     callback(item);
     itemsProcesssed++;
-    if (Date.now() >= syncWorkStart + SYNC_WORK_LIMIT_MS) {
+    if (Date.now() >= syncWorkStart + Timings.SYNC_WORK_LIMIT_MS) {
       log.rawInfo(logText, {itemsProcesssed, itemsTotal, delayMs});
       await delay(delayMs);
       syncWorkStart = Date.now();
