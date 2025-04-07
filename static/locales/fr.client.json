@@ -1044,7 +1044,7 @@
     "ViewAsDropdown": {
         "View As": "Voir en tant que",
         "Example Users": "Utilisateurs d'exemple",
-        "Users from table": "Utilisateurs de la table"
+        "Users from table": "Utilisateurs de la table d'appairage"
     },
     "ViewAsBanner": {
         "UnknownUser": "Utilisateur inconnu",
@@ -1130,7 +1130,7 @@
     },
     "ACLUsers": {
         "Example Users": "Utilisateurs tests",
-        "Users from table": "Utilisateurs de la table",
+        "Users from table": "Utilisateurs de la table d'appairage",
         "View As": "Voir en tant que"
     },
     "ConditionalStyle": {

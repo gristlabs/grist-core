@@ -2013,5 +2013,9 @@
         "I confirm that I understand these warnings and accept the risks": "Ich bestätige, dass ich diese Warnhinweise verstanden habe und die Risiken akzeptiere",
         "Have you **reviewed the code** at this URL?": "Haben Sie * den Code** bei dieser URL **überprüft**?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "Wenn in Zweifel, installieren Sie dieses Widget nicht oder fragen Sie einen Administrator Ihrer Organisation, um es für Sicherheit zu überprüfen."
+    },
+    "AdminLeftPanel": {
+        "Users": "Benutzer",
+        "Learn more": "Mehr erfahren"
     }
 }
