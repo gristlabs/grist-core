@@ -18,21 +18,18 @@ describe("ProxyAgent", function () {
   const proxyForTrustedUrlExample = 'https://localhost:9000';
   const proxyForUntrustedUrlExample = 'https://localhost:9001';
   beforeEach(function () {
+    oldEnv = new EnvironmentSnapshot();
     sandbox = sinon.createSandbox();
   });
 
   afterEach(function () {
     sandbox?.restore();
+    oldEnv.restore();
   });
 
   describe('configuration', function () {
     beforeEach(() => {
-      oldEnv = new EnvironmentSnapshot();
       warnStub = sandbox.stub(log, 'warn');
-    });
-
-    afterEach(() => {
-      oldEnv.restore();
     });
 
     it('should create a proxy agent for trusted URLs when using https_proxy env var', function () {
