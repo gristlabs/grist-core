@@ -2985,7 +2985,7 @@ function testDocApi(settings: {
   });
 
   // A tiny test that /copy doesn't throw.
-  it("POST /docs/{did}/copy succeeds", async function () {
+  it("POST /copy succeeds on a doc worker", async function () {
     const docId = docIds.TestDoc;
     const worker1 = await userApi.getWorkerAPI(docId);
     await worker1.copyDoc(docId, undefined, 'copy');
@@ -2998,6 +2998,16 @@ function testDocApi(settings: {
       documentName: 'copy of TestDoc',
       asTemplate: false,
       workspaceId: chimpyWs
+    }, chimpy);
+    assert.equal(resp.status, 200);
+    assert.isString(resp.data);
+  });
+
+  it("POST /docs/{did}/copy copies a document", async function () {
+    const chimpyWs2 = await userApi.newWorkspace({name: "Chimpy's Workspace 2"}, ORG_NAME);
+    const resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/copy`, {
+      documentName: 'copy of TestDoc',
+      workspaceId: chimpyWs2,
     }, chimpy);
     assert.equal(resp.status, 200);
     assert.isString(resp.data);
@@ -3204,6 +3214,24 @@ function testDocApi(settings: {
     assert.notEqual(resp.data.id, '');
   });
 
+  it(`POST /workspaces/{wid}/import can import a new file`, async function () {
+    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const formData = new FormData();
+    formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+    const config = defaultsDeep({headers: formData.getHeaders()}, chimpy);
+    const importResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/import`, formData, config);
+    assert.equal(importResp.status, 200);
+    const urlId = importResp.data.id;
+
+    const docDetailsResp = await axios.get(`${homeUrl}/api/docs/${urlId}`, chimpy);
+    assert.equal(docDetailsResp.status, 200);
+    assert.equal(docDetailsResp.data.name, 'table1');
+    assert.equal(docDetailsResp.data.workspace.name, 'Private');
+
+    // content was successfully stored
+    const contentResp = await axios.get(`${homeUrl}/api/docs/${urlId}/tables/Table1/data`, chimpy);
+    assert.deepEqual(contentResp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
+  });
 
   it("handles /s/ variants for shares", async function () {
     const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
