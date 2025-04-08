@@ -50,8 +50,9 @@ export type Tooltip =
   | 'viewAsBanner'
   | 'reassignTwoWayReference'
   | 'attachmentStorage'
-  | 'adminControls'
   | 'uploadAttachments'
+  | 'attachmentsNotIncluded'
+  | 'adminControls'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -223,8 +224,18 @@ see or edit which parts of your document.')
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. " +
         "Only .tar attachment archives downloaded from Grist can be uploaded here."
       ),
-    ...args,
     ),
+    ...args,
+  ),
+  attachmentsNotIncluded: (...args: DomElementArg[]) => cssTooltipContent(
+    cssMarkdownSpan(
+      t(
+        "If you want to re-import this document, " +
+        "a separate attachments archive will be needed to restore attachments. "
+      ),
+      dom('div', cssLink({href: "", target: "_blank"}, t('Learn more.'))),
+    ),
+    ...args,
   ),
 };
 
