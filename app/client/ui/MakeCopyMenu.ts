@@ -10,19 +10,28 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {cssInput} from 'app/client/ui/cssInput';
+import {bigBasicButton, bigPrimaryButtonLink, primaryButtonLink} from 'app/client/ui2018/buttons';
 import {
-  bigBasicButton,
-  bigPrimaryButtonLink,
-  primaryButtonLink
-} from 'app/client/ui2018/buttons';
-import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
+  cssRadioCheckboxOptions,
+  labeledSquareCheckbox,
+  radioCheckboxOption
+} from 'app/client/ui2018/checkbox';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {IOptionFull, linkSelect, select} from 'app/client/ui2018/menus';
-import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, modal, saveModal} from 'app/client/ui2018/modals';
+import {
+  confirmModal,
+  cssModalBody,
+  cssModalButtons,
+  cssModalTitle,
+  modal,
+  saveModal
+} from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
 import {
-  CreatableArchiveFormats, DocAPI, DocAttachmentsLocation,
+  CreatableArchiveFormats,
+  DocAPI,
+  DocAttachmentsLocation,
   Document,
   isTemplatesOrg,
   Organization,
@@ -32,15 +41,18 @@ import {
   Computed,
   Disposable,
   dom,
+  IDomArgs,
   input,
   Observable,
   styled,
   subscribe,
   subscribeElem
 } from 'grainjs';
-import sortBy = require('lodash/sortBy');
-import {cssLink} from 'app/client/ui2018/links';
 import {inlineMarkdown} from 'app/client/lib/markdown';
+import {cssWarningIcon} from 'app/client/components/Forms/styles';
+import {cssLink} from 'app/client/ui2018/links';
+import sortBy = require('lodash/sortBy');
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 
 const t = makeT('MakeCopyMenu');
 
@@ -360,7 +372,6 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
 }
 
 function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI) {
-  const showAttachmentArchiveOptions = Observable.create<boolean>(owner, false);
   const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
   const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
     { value: 'tar', label: t('.tar (recommended)')},
@@ -382,7 +393,7 @@ function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI
       return t('Checking attachment status...');
     }
     if (status === 'mixed' || status === 'external') {
-      return t('Attachments are **not** included in the document download');
+      return t('Attachments are **not** included in the document download.');
     }
     if (status === 'unknown') {
       return t('Attachments **may not** be included in the document download');
@@ -390,38 +401,47 @@ function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI
     return t('Attachments are included in the document download');
   });
 
+  const anyAttachmentsExternal = Computed.create<boolean>(owner, (use) =>
+    ['mixed', 'external', 'unknown'].includes(use(attachmentStatusObs) || "")
+  );
+
   return cssAttachmentsDownloadSection(
-    dom('div', inlineMarkdown(attachmentStatusText), testId("attachments-included")),
-    dom.domComputed(showAttachmentArchiveOptions, (showFullArchiveOptions) => {
-      if (!showFullArchiveOptions) {
-        return cssAttachmentsDownloadRow(
-          cssLink(
-            t('Download attachments separately'),
-            dom.on('click', () => { showAttachmentArchiveOptions.set(true); }),
-            testId('download-attachments-initial-link'),
-          ),
-        );
-      }
-      return cssAttachmentsDownloadRow(
-        t('Format:'),
-        dom.update(
-          cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
-          testId('attachments-format-select'),
-        ),
-        cssDownloadAttachmentsButton(
-          t('Download attachments'),
-          (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
-            dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
-              href: href,
-              target: '_blank',
-              download: '',
-            }));
-          }),
-          testId('download-attachments-button-link'),
-        ),
-        testId('download-attachments-row'),
-      );
-    })
+    cssModalTitle(t(`Download attachments separately`)),
+    dom('div',
+      dom.domComputed(anyAttachmentsExternal, (isExternal) => {
+        const contents = dom('span', inlineMarkdown(attachmentStatusText));
+        if (isExternal) {
+          return withInfoTooltip(contents, 'attachmentsNotIncluded');
+        }
+        return contents;
+      }),
+      testId("attachments-included"),
+    ),
+    cssAttachmentsDownloadRow(
+      t('Format:'),
+      dom.update(
+        cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
+        testId('attachments-format-select'),
+      ),
+      cssDownloadAttachmentsButton(
+        t('Download attachments'),
+        (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
+          dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
+            href: href,
+            target: '_blank',
+            download: '',
+          }));
+        }),
+        testId('download-attachments-button-link'),
+      ),
+      testId('download-attachments-row'),
+    ),
+    dom.maybe((use) => use(formatObs) === 'zip', () => attachmentsWarningBlock([
+      dom('div',
+        t('If you need to re-upload attachments to Grist, use a .tar archive instead. '),
+        cssLink({}, t('Learn more.'))
+      )
+    ])),
   );
 }
 
@@ -473,3 +493,21 @@ const cssArchiveFormatSelect = styled(linkSelect, `
 const cssDownloadAttachmentsButton = styled(primaryButtonLink, `
   text-wrap: nowrap;
 `);
+
+const cssAttachmentsWarningBlock = styled('div', `
+  display: grid;
+  margin-left: -24px;
+  grid-template-columns: 16px 1fr;
+  grid-gap: 8px;
+`);
+const attachmentsWarningBlock = (contents: IDomArgs<HTMLDivElement>) => cssAttachmentsWarningBlock(
+  cssWarningIcon('Warning'),
+  cssEagerWrap(...contents),
+);
+
+// Prevents the div from expanding the parent and makes it only use available space instead.
+const cssEagerWrap = styled('div', `
+  min-width: 100%;
+  width: 0;
+`);
+
