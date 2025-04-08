@@ -98,6 +98,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     activation: (req as RequestWithLogin|undefined)?.activation,
+    latestVersionAvailable: server?.getLatestVersionAvailable(),
     enableCustomCss: isAffirmative(process.env.APP_STATIC_INCLUDE_CUSTOM_CSS),
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),

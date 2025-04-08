@@ -1,4 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
+import {LatestVersionAvailable} from 'app/common/version';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
@@ -70,7 +71,7 @@ import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParam
         trustOrigin} from 'app/server/lib/requestUtils';
 import {buildScimRouter} from 'app/server/lib/scim';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
-import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
+import {getDatabaseUrl, getPubSubPrefix, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
@@ -96,6 +97,7 @@ import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
+import {createClient, RedisClient} from 'redis';
 import * as serveStatic from 'serve-static';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
@@ -201,6 +203,8 @@ export class FlexServer implements GristServer {
   private _jobs?: GristJobs;
   private _emitNotifier = new EmitNotifier();
   private _testPendingNotifications: number = 0;
+  private _latestVersionAvailable?: LatestVersionAvailable;
+  private _redisSubscriptionClient?: RedisClient|null;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -254,6 +258,11 @@ export class FlexServer implements GristServer {
     }
     this.info.push(['defaultBaseDomain', this._defaultBaseDomain]);
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
+
+    if (process.env.REDIS_URL) {
+      this._redisSubscriptionClient = createClient(process.env.REDIS_URL);
+      this._subscribeToVersionUpdates();
+    }
 
     // The electron build is not supported at this time, but this stub
     // implementation of electronServerMethods is present to allow kicking
@@ -995,6 +1004,7 @@ export class FlexServer implements GristServer {
     if (this._sessionStore) { await this._sessionStore.close(); }
     if (this._auditLogger) { await this._auditLogger.close(); }
     if (this._billing) { await this._billing.close?.(); }
+    if (this._redisSubscriptionClient) { await this._redisSubscriptionClient.quitAsync(); }
   }
 
   public addDocApiForwarder() {
@@ -1987,6 +1997,35 @@ export class FlexServer implements GristServer {
     this.create.addExtraHomeEndpoints(this, this.app);
   }
 
+  public getLatestVersionAvailable() {
+    return this._latestVersionAvailable;
+  }
+
+  public setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void {
+    log.info(`Setting ${latestVersionAvailable.version} as the latest available version`);
+    this._latestVersionAvailable = latestVersionAvailable;
+  }
+
+  public async publishLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): Promise<void> {
+    log.info(`Publishing ${latestVersionAvailable.version} as the latest available version`);
+
+    if (process.env.REDIS_URL) {
+      const client = createClient(process.env.REDIS_URL);
+      const prefix = getPubSubPrefix();
+      const channel = `${prefix}-latestVersionAvailable`;
+      try {
+        await client.publishAsync(channel, JSON.stringify(latestVersionAvailable));
+      } catch(error) {
+        log.error(`Error publishing latest version`, {error, latestVersionAvailable});
+      } finally {
+        await client.quitAsync();
+      }
+    } else {
+      // No Redis, so let's assume this is a single-server setup and skip pub/sub
+      this.setLatestVersionAvailable(latestVersionAvailable);
+    }
+  }
+
   // Get the HTML template sent for document pages.
   public async getDocTemplate(): Promise<DocTemplate> {
     const page = await fse.readFile(path.join(getAppPathTo(this.appRoot, 'static'),
@@ -2308,6 +2347,23 @@ export class FlexServer implements GristServer {
       return true;
     }
     return false;
+  }
+
+  private _subscribeToVersionUpdates() {
+    // If we have a Redis client, subscribe it to get version updates
+    if (this._redisSubscriptionClient) {
+      const prefix = getPubSubPrefix();
+      const channel = `${prefix}-latestVersionAvailable`;
+      this._redisSubscriptionClient.subscribe(channel);
+      this._redisSubscriptionClient.on("message", async (_, message) => {
+        const latestVersionAvailable: LatestVersionAvailable = JSON.parse(message);
+        log.debug('subscribeToVersionUpdates: setting latest version', latestVersionAvailable);
+        this.setLatestVersionAvailable(latestVersionAvailable);
+      });
+      this._redisSubscriptionClient.on("error", async (error) => {
+        log.warn('subscribeToVersionUpdates: redis client error', error);
+      });
+    }
   }
 
   private _createServers() {

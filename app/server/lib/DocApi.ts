@@ -1388,30 +1388,38 @@ export class DocWorkerApi {
     }));
 
     // Do an import targeted at a specific workspace. Although the URL fits ApiServer, this
-    // endpoint is handled only by DocWorker, so is handled here. (Note: this does not handle
-    // actual file uploads, so no worries here about large request bodies.)
+    // endpoint is handled only by DocWorker, so is handled here.
+    // This endpoint either uploads a new file to import, or accepts an existing uploadId.
     this._app.post('/api/workspaces/:wid/import', expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
       const userId = getUserId(req);
       const wsId = integerParam(req.params.wid, 'wid');
-      const uploadId = integerParam(req.body.uploadId, 'uploadId');
-      const result = await this._docManager.importDocToWorkspace(mreq, {
+
+      let params: { [key: string]: any } = {};
+      if (req.is('multipart/form-data')) {
+        const formResult = await handleOptionalUpload(req, res);
+        params = formResult.parameters ?? {};
+        if (formResult.upload) {
+          params.uploadId = formResult.upload.uploadId;
+        }
+      } else {
+        params = req.body;
+      }
+
+      const uploadId = integerParam(params.uploadId, 'uploadId');
+
+      const browserSettings = params.browserSettings ?? {
+        timezone: params.timezone,
+        locale: localeFromRequest(req),
+      };
+
+      const result = await this._importDocumentToWorkspace(mreq, {
         userId,
         uploadId,
         workspaceId: wsId,
-        browserSettings: req.body.browserSettings,
-        telemetryMetadata: {
-          limited: {
-            isImport: true,
-            sourceDocIdDigest: undefined,
-          },
-          full: {
-            userId: mreq.userId,
-            altSessionId: mreq.altSessionId,
-          },
-        },
+        documentName: optStringParam(params.documentName, 'documentName'),
+        browserSettings,
       });
-      this._logImportDocumentEvents(mreq, result);
       res.json(result);
     }));
 
@@ -1538,22 +1546,12 @@ export class DocWorkerApi {
           asTemplate: optBooleanParam(parameters.asTemplate, 'asTemplate'),
         });
       } else if (uploadId !== undefined) {
-        const result = await this._docManager.importDocToWorkspace(mreq, {
+        const result = await this._importDocumentToWorkspace(mreq, {
           userId,
           uploadId,
           documentName: optStringParam(parameters.documentName, 'documentName'),
           workspaceId,
-          browserSettings,
-          telemetryMetadata: {
-            limited: {
-              isImport: true,
-              sourceDocIdDigest: undefined,
-            },
-            full: {
-              userId: mreq.userId,
-              altSessionId: mreq.altSessionId,
-            },
-          },
+          browserSettings
         });
         docId = result.id;
         this._logImportDocumentEvents(mreq, result);
@@ -1568,6 +1566,22 @@ export class DocWorkerApi {
           browserSettings,
         });
       }
+
+      return res.status(200).json(docId);
+    }));
+
+    this._app.post('/api/docs/:docId/copy', canView, expressWrap(async (req, res) => {
+      const userId = getUserId(req);
+
+      const parameters: {[key: string]: any} = req.body;
+
+      const docId = await this._copyDocToWorkspace(req, {
+        userId,
+        sourceDocumentId: stringParam(req.params.docId, 'docId'),
+        workspaceId: integerParam(parameters.workspaceId, 'workspaceId'),
+        documentName: stringParam(parameters.documentName, 'documentName'),
+        asTemplate: optBooleanParam(parameters.asTemplate, 'asTemplate'),
+      });
 
       return res.status(200).json(docId);
     }));
@@ -1834,6 +1848,34 @@ export class DocWorkerApi {
     })
       .catch(e => log.error('DocApi failed to log duplicate document events', e));
     return id;
+  }
+
+  private async _importDocumentToWorkspace(mreq: RequestWithLogin, options: {
+    userId: number,
+    uploadId: number,
+    documentName?: string,
+    workspaceId?: number,
+    browserSettings?: BrowserSettings,
+  }) {
+    const result = await this._docManager.importDocToWorkspace(mreq, {
+      userId: options.userId,
+      uploadId: options.uploadId,
+      documentName: options.documentName,
+      workspaceId: options.workspaceId,
+      browserSettings: options.browserSettings,
+      telemetryMetadata: {
+        limited: {
+          isImport: true,
+          sourceDocIdDigest: undefined,
+        },
+        full: {
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      },
+    });
+    this._logImportDocumentEvents(mreq, result);
+    return result;
   }
 
   private async _createNewSavedDoc(req: Request, options: {
