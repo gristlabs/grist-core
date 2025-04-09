@@ -35,7 +35,7 @@ function generateProxyAgents() {
 
   if (process.env.GRIST_HTTPS_PROXY) {
     log.warn('GRIST_HTTPS_PROXY is deprecated in favor of GRIST_PROXY_FOR_UNTRUSTED_URLS. ' +
-      `Please rather set GRIST_PROXY_FOR_UNTRUSTED_URLS="${proxyForTrustedRequestsUrl}"`);
+      `Please rather set GRIST_PROXY_FOR_UNTRUSTED_URLS="${proxyForUntrustedRequestsUrl}"`);
   }
 
   return {

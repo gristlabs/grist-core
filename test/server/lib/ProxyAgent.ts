@@ -83,7 +83,7 @@ describe("ProxyAgent", function () {
       assert.instanceOf(proxyAgents.untrusted, GristProxyAgent);
       assert.isUndefined(proxyAgents.trusted);
       sinon.assert.calledWithMatch(
-        warnStub, /GRIST_HTTPS_PROXY.*GRIST_PROXY_FOR_UNTRUSTED_URLS/,
+        warnStub, /GRIST_HTTPS_PROXY.*GRIST_PROXY_FOR_UNTRUSTED_URLS="https:\/\/localhost:9001/,
       );
     });
 
