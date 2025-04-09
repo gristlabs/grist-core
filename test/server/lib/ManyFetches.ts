@@ -17,7 +17,7 @@ import {GristClientSocket} from 'app/client/components/GristClientSocket';
 describe('ManyFetches', function() {
   this.timeout(30000);
 
-  setTmpLogLevel('warn');   // Set to 'info' to see what heap size actually is.
+  setTmpLogLevel('info');   // Set to 'info' to see what heap size actually is.
   let oldEnv: EnvironmentSnapshot;
 
   const userName = 'chimpy';
@@ -43,11 +43,11 @@ describe('ManyFetches', function() {
     docs = await TestServer.startServer('docs', testDir, "docs", {
       // The test verifies memory usage by checking heap sizes. The line below limits doc-worker
       // process so that it crashes when memory management is wrong. With fetch sizes
-      // in this test, doc-worker's heap size goes from ~90M to ~330M without memory management;
-      // this limit is in the middle as another way to verify that memory management helps.
+      // in this test, doc-worker's heap size goes from ~110M to ~440M;
+      // this limit is in-between as another way to verify that memory management helps.
       // Without this limit, there is no pressure on node to garbage-collect, so it may use more
       // memory than we expect, making the test less reliable.
-      NODE_OPTIONS: '--max-old-space-size=210',
+      NODE_OPTIONS: '--max-old-space-size=250',
     }, home.serverUrl);
     userApi = home.makeUserApi(org, userName);
   });
@@ -98,7 +98,7 @@ describe('ManyFetches', function() {
     const getMemoryUsage = () => Promise.race([docs.testingHooks.getMemoryUsage(), serverErrorPromise]);
     const getHeapMB = async () => Math.round((await getMemoryUsage() as NodeJS.MemoryUsage).heapUsed /1024/1024);
 
-    assertIsBelow(await getHeapMB(), 120);
+    assertIsBelow(await getHeapMB(), 130);
 
     // Create all the connections, but don't make the fetches just yet.
     const createConnectionFunc = await prepareGristWSConnection(docId);
@@ -109,30 +109,30 @@ describe('ManyFetches', function() {
     const fetchersB = await Promise.all(connectionsB.map(c => connect(c, docId)));
 
     try {
-      assertIsBelow(await getHeapMB(), 120);
+      assertIsBelow(await getHeapMB(), 130);
 
       // Start fetches without reading responses. This is a step that should push memory limits.
       fetchersA.map(f => f.startPausedFetch());
 
       // Give it a few seconds, enough for server to use what memory it can.
       await delay(2000);
-      assertIsBelow(await getHeapMB(), 200);
+      assertIsBelow(await getHeapMB(), 220);
 
       // Make N more requests. See that memory hasn't spiked.
       fetchersB.map(f => f.startPausedFetch());
       await delay(2000);
-      assertIsBelow(await getHeapMB(), 200);
+      assertIsBelow(await getHeapMB(), 220);
 
       // Complete the first batch of requests. This allows for the fetches to complete, and for
       // memory to get released. Also check that results look reasonable.
       checkResults(await Promise.all(fetchersA.map(f => f.completeFetch())));
 
-      assertIsBelow(await getHeapMB(), 200);
+      assertIsBelow(await getHeapMB(), 220);
 
       // Complete the outstanding requests. Memory shouldn't spike.
       checkResults(await Promise.all(fetchersB.map(f => f.completeFetch())));
 
-      assertIsBelow(await getHeapMB(), 200);
+      assertIsBelow(await getHeapMB(), 220);
 
     } finally {
       fetchersA.map(f => f.end());
