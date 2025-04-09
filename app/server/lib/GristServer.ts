@@ -1,5 +1,5 @@
 import { ICustomWidget } from 'app/common/CustomWidget';
-import { GristDeploymentType, GristLoadConfig } from 'app/common/gristUrls';
+import { GristDeploymentType, GristLoadConfig, LatestVersionAvailable } from 'app/common/gristUrls';
 import { LocalPlugin } from 'app/common/plugin';
 import { SandboxInfo } from 'app/common/SandboxInfo';
 import { UserProfile } from 'app/common/UserAPI';
@@ -27,10 +27,9 @@ import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
 import { ITelemetry } from 'app/server/lib/Telemetry';
+import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
 import * as express from 'express';
 import { IncomingMessage } from 'http';
-import { IGristCoreConfig, loadGristCoreConfig } from "./configCore";
-import { LatestVersionAvailable } from 'app/common/version';
 
 /**
  * Basic information about a Grist server.  Accessible in many

@@ -1,9 +1,8 @@
 import {ApiError} from 'app/common/ApiError';
-import {LatestVersionAvailable} from 'app/common/version';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
-        GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
+        GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {isAffirmative, safeJsonParse} from 'app/common/gutil';

@@ -1,5 +1,4 @@
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
-import {LatestVersionAvailable} from 'app/common/version';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
@@ -738,6 +737,10 @@ export interface ActivationState {
   }
 }
 
+export interface LatestVersionAvailable {
+  version: string;
+  isNewer: boolean;
+}
 
 /**
  * These settings get sent to the client along with the loaded page. At the minimum, the browser
