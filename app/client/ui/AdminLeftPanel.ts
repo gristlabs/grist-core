@@ -9,10 +9,10 @@ import {infoTooltip} from 'app/client/ui/tooltips';
 import {colors, vars} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {cssLink} from 'app/client/ui2018/links';
-import {IGristUrlState} from 'app/common/gristUrls';
+import {AdminPanelPage} from 'app/common/gristUrls';
 import {commonUrls} from 'app/common/gristUrls';
 import {getGristConfig} from "app/common/urlUtils";
-import {Computed, dom, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, dom, DomContents, MultiHolder, Observable, styled} from 'grainjs';
 
 const t = makeT('AdminPanel');
 const testId = makeTestId('test-admin-controls-');
@@ -22,20 +22,39 @@ export function areAdminControlsAvailable(): boolean {
   return Boolean(getGristConfig().adminControls);
 }
 
+// Collects and exposes translations, used for buildAdminLeftPanel() below, and for breadcrumbs in
+// AdminPanel.ts.
+export function getPageNames() {
+  const settings: DomContents = t('Settings');
+  const adminControls: DomContents = t('Admin Controls');
+  return {
+    settings,
+    adminControls,
+    pages: {
+      admin: {section: settings, name: t('Installation')},
+      users: {section: adminControls, name: t('Users')},
+      orgs: {section: adminControls, name: t('Orgs')},
+      workspaces: {section: adminControls, name: t('Workspaces')},
+      docs: {section: adminControls, name: t('Docs')},
+    } as {[key in AdminPanelPage]: {section: DomContents, name: DomContents}}
+  };
+}
+
 export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): PageSidePanel {
   const panelOpen = Observable.create(owner, true);
   const pageObs = Computed.create(owner, use => use(urlState().state).adminPanel);
+  const pageNames = getPageNames();
 
-  function buildPageEntry(name: string, icon: IconName, state: IGristUrlState, available: boolean = true) {
+  function buildPageEntry(page: AdminPanelPage, icon: IconName, available: boolean = true) {
     return css.cssPageEntry(
-      css.cssPageEntry.cls('-selected', use => use(pageObs) === state.adminPanel),
+      css.cssPageEntry.cls('-selected', use => use(pageObs) === page),
       css.cssPageEntry.cls('-disabled', !available),
       css.cssPageLink(
         css.cssPageIcon(icon),
-        css.cssLinkText(name),
-        available ? urlState().setLinkUrl(state) : null,    // Disable link if page isn't available.
+        css.cssLinkText(pageNames.pages[page].name),
+        available ? urlState().setLinkUrl({adminPanel: page}) : null,    // Disable link if page isn't available.
       ),
-      testId('page-' + state.adminPanel),
+      testId('page-' + page),
       testId('page'),
     );
   }
@@ -44,18 +63,18 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
   const content = css.leftPanelBasic(appModel, panelOpen,
     dom('div',
       css.cssTools.cls('-collapsed', (use) => !use(panelOpen)),
-      css.cssSectionHeader(css.cssSectionHeaderText(t("Admin area"))),
-      buildPageEntry(t('Installation'), 'Home', {adminPanel: 'admin'}),
-      css.cssSectionHeader(css.cssSectionHeaderText(t("Admin controls")),
+      css.cssSectionHeader(css.cssSectionHeaderText(pageNames.settings)),
+      buildPageEntry('admin', 'Home'),
+      css.cssSectionHeader(css.cssSectionHeaderText(pageNames.adminControls),
         (adminControlsAvailable ?
           infoTooltip('adminControls', {popupOptions: {placement: 'bottom-start'}}) :
           cssEnterprisePill('Enterprise', testId('enterprise-tag'))
         )
       ),
-      buildPageEntry(t('Users'), 'AddUser', {adminPanel: 'users'}, adminControlsAvailable),
-      buildPageEntry(t('Orgs'), 'Public', {adminPanel: 'orgs'}, adminControlsAvailable),
-      buildPageEntry(t('Workspaces'), 'Board', {adminPanel: 'workspaces'}, adminControlsAvailable),
-      buildPageEntry(t('Docs'), 'Page', {adminPanel: 'docs'}, adminControlsAvailable),
+      buildPageEntry('users', 'AddUser', adminControlsAvailable),
+      buildPageEntry('orgs', 'Public', adminControlsAvailable),
+      buildPageEntry('workspaces', 'Board', adminControlsAvailable),
+      buildPageEntry('docs', 'Page', adminControlsAvailable),
       (adminControlsAvailable ? null :
         cssPanelLink(cssLearnMoreLink(
           {href: commonUrls.helpAdminControls, target: "_blank"},
