@@ -1262,7 +1262,9 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "Чтобы разрешить несколько значений, измените тип столбца с типа «Ссылка» на «Ссылки списком».",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Чтобы разрешить несколько назначений, измените тип указанного столбца на Ссылки списком.",
         "[Learn more.]({{link}})": "[Подробнее.]({{link}})",
-        "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ"
+        "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ",
+        "Manage users and resources in a Grist installation.": "Управляйте пользователями и ресурсами напрямую в Grist.",
+        "Summary tables can only contain formula columns.": "Сводные таблицы могут содержать только столбцы формул."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1763,7 +1765,12 @@
         "Activate": "Активировать",
         "Activation key": "Ключ активации",
         "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Для продолжения использования Grist Enterprise требуется активная подписка. Вы можете\nактивировать свою подписку с помощью [подписка Grist Enterprise ]({{signupLink}}) и вставте свой\nключ активации ниже.",
-        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ключ активации используется для запуска Grist Enterprise после пробного периода\n        30 дней истекли. Получите ключ активации, [подписка Grist\n        Enterprise]({{signupLink}}). Вам не нужен ключ активации для запуска\n        Grist Core."
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ключ активации используется для запуска Grist Enterprise после пробного периода\n        30 дней истекли. Получите ключ активации, [подписка Grist\n        Enterprise]({{signupLink}}). Вам не нужен ключ активации для запуска\n        Grist Core.",
+        "Installation ID:": "Идентификатор установки:",
+        "Installation ID copied to clipboard": "Идентификатор установки скопирован в буфер обмена",
+        "Expiration date": "Дата окончания срока",
+        "Installation seats": "Установочные места",
+        "Copy to clipboard": "Скопировать в буфер обмена"
     },
     "ViewLayout": {
         "Delete": "Удалить",
