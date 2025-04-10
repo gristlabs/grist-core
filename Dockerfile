@@ -128,6 +128,7 @@ COPY --from=builder /node_modules /node_modules
 COPY --from=builder /grist/node_modules_prod /grist/node_modules
 COPY --from=builder /grist/_build /grist/_build
 COPY --from=builder /grist/static /grist/static-built
+COPY --from=builder /grist/app/cli.sh /grist/cli
 
 # Copy python2 files.
 COPY --from=collector-py2 /usr/bin/python2.7 /usr/bin/python2.7
@@ -216,6 +217,16 @@ ENV \
   TYPEORM_DATABASE=/persist/home.sqlite3
 
 EXPOSE 8484
+
+# When run without any arguments, we run the Grist server within
+# a simple supervisor.
+# When arguments are supplied they are treated as a command to run,
+# as is default for docker. We arrange to have a "cli" command that
+# is the same as "yarn cli" run from the source code repo.
+# So you can do things like:
+# docker run --rm -v $PWD:$PWD -it gristlabs/grist \
+#   cli sqlite query $PWD/docs/4gtUhAEGbGAdsGNc52k4H6.grist \
+#  --json "select * from _gristsys_ActionHistory"
 
 ENTRYPOINT ["./sandbox/docker_entrypoint.sh"]
 CMD ["node", "./sandbox/supervisor.mjs"]
