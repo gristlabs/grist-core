@@ -3,8 +3,6 @@ import math
 import os
 import re
 
-import six
-
 import actions
 
 def table_data_from_rows(table_id, col_names, rows):
@@ -104,7 +102,7 @@ def parse_test_sample(obj, samples={}):
     }
 
   data = {t: table_data_from_rows(t, data[0], data[1:])
-          for t, data in six.iteritems(obj["DATA"])}
+          for t, data in obj["DATA"].items()}
   return {"SCHEMA": schema, "DATA": data}
 
 

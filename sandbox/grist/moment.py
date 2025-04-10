@@ -5,8 +5,6 @@ from time import time
 import bisect
 import os
 import iso8601
-import six
-from six.moves import zip
 
 try:
   from functools import lru_cache
@@ -95,7 +93,7 @@ class tz(object):
     self._tzinfo = tzinfo(zonelabel)
     if isinstance(dt, datetime):
       timestamp = dt_to_ts(dt.replace(tzinfo=self._tzinfo)) * 1000
-    elif isinstance(dt, (float, six.integer_types)):
+    elif isinstance(dt, (float, int,)):
       timestamp = dt
     else:
       raise TypeError("'dt' should be a datetime object or a numeric type")
@@ -144,8 +142,6 @@ class TzInfo(_tzinfo):
   def tzname(self, dt):
     """Implementation of tzinfo.tzname interface."""
     abbr = self.zone.dt_tzname(dt, self._favor_offset)
-    if six.PY2 and isinstance(abbr, six.text_type):
-      abbr = abbr.encode('utf8')
     return abbr
 
   def dst(self, dt):

@@ -4,9 +4,6 @@ import logging
 import re
 from collections import defaultdict
 
-import six
-from six.moves import xrange
-
 import actions
 import identifiers
 import schema
@@ -68,12 +65,12 @@ def create_migrations(all_tables, metadata_only=False):
   user_schema = schema.build_schema(all_tables['_grist_Tables'],
                                     all_tables['_grist_Tables_column'],
                                     include_builtin=False)
-  for t in six.itervalues(user_schema):
+  for t in user_schema.values():
     tdset.apply_doc_action(actions.AddTable(t.tableId, schema.cols_to_dict_list(t.columns)))
 
   # For each old table/column, construct an AddTable action using the current schema.
   new_schema = {a.table_id: a for a in schema.schema_create_actions()}
-  for table_id, data in sorted(six.iteritems(all_tables)):
+  for table_id, data in sorted(all_tables.items()):
     # User tables should already be in tdset; the rest must be metadata tables.
     # (If metadata_only is true, there is simply nothing to skip here.)
     if table_id not in tdset.all_tables:
@@ -83,14 +80,14 @@ def create_migrations(all_tables, metadata_only=False):
       # Use an incomplete default for unknown (i.e. deprecated) columns; some uses of the column
       # would be invalid, such as adding a new record with missing values.
       col_info = sorted([new_col_info.get(col_id, {'id': col_id}) for col_id in data.columns],
-                        key=lambda c: list(six.iteritems(c)))
+                        key=lambda c: list(c.items()))
       tdset.apply_doc_action(actions.AddTable(table_id, col_info))
 
     # And load in the original data, interpreting the TableData object as BulkAddRecord action.
     tdset.apply_doc_action(actions.BulkAddRecord(*data))
 
   migration_actions = []
-  for version in xrange(doc_version + 1, schema.SCHEMA_VERSION + 1):
+  for version in range(doc_version + 1, schema.SCHEMA_VERSION + 1):
     migration_func = all_migrations.get(version, noop_migration)
     if migration_func.need_all_tables and metadata_only:
       raise Exception("need all tables for migration to %s" % version)
@@ -187,7 +184,7 @@ def migration1(tdset):
   if rows:
     values = {'tableRef': [r[0] for r in rows],
               'viewRef':  [r[1] for r in rows]}
-    row_ids = list(xrange(1, len(rows) + 1))
+    row_ids = list(range(1, len(rows) + 1))
     doc_actions.append(actions.ReplaceTableData('_grist_TabItems', row_ids, values))
 
   return tdset.apply_doc_actions(doc_actions)
@@ -222,14 +219,14 @@ def migration2(tdset):
     return actions.BulkUpdateRecord('_grist_Tables', row_ids, values)
 
   def create_tab_bar_action(views_to_table):
-    row_ids = list(xrange(1, len(views_to_table) + 1))
+    row_ids = list(range(1, len(views_to_table) + 1))
     return actions.ReplaceTableData('_grist_TabBar', row_ids, {
       'viewRef': sorted(views_to_table.keys())
     })
 
   def create_table_views_action(views_to_table, primary_views):
     related_views = sorted(set(views_to_table.keys()) - set(primary_views.values()))
-    row_ids = list(xrange(1, len(related_views) + 1))
+    row_ids = list(range(1, len(related_views) + 1))
     return actions.ReplaceTableData('_grist_TableViews', row_ids, {
       'tableRef': [views_to_table[v] for v in related_views],
       'viewRef':  related_views,
@@ -352,7 +349,7 @@ def migration7(tdset):
   tables_map = {t.id: t for t in actions.transpose_bulk_action(tdset.all_tables['_grist_Tables'])}
 
   # Maps tableName to tableRef
-  table_name_to_ref = {t.tableId: t.id for t in six.itervalues(tables_map)}
+  table_name_to_ref = {t.tableId: t.id for t in tables_map.values()}
 
   # List of Column objects
   columns = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Tables_column']))
@@ -375,7 +372,7 @@ def migration7(tdset):
   # Summary tables used to be named as "Summary_<SourceName>_<ColRef1>_<ColRef2>". This regular
   # expression parses that.
   summary_re = re.compile(r'^Summary_(\w+?)((?:_\d+)*)$')
-  for t in six.itervalues(tables_map):
+  for t in tables_map.values():
     m = summary_re.match(t.tableId)
     if not m or m.group(1) not in table_name_to_ref:
       continue
@@ -768,7 +765,7 @@ def migration20(tdset):
     # the name of primary view's is the same as the tableId
     return (view.name, -1)
   views.sort(key=view_key)
-  row_ids = list(xrange(1, len(views) + 1))
+  row_ids = list(range(1, len(views) + 1))
   return tdset.apply_doc_actions([
     actions.AddTable('_grist_Pages', [
       schema.make_column('viewRef', 'Ref:_grist_Views'),
@@ -1039,7 +1036,7 @@ def migration31(tdset):
 
   table_renames = []      # List of (table, new_name) pairs
 
-  for t in six.itervalues(tables_by_ref):
+  for t in tables_by_ref.values():
     if not t.summarySourceTable:
       continue
     source_table = tables_by_ref[t.summarySourceTable]
