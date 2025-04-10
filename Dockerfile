@@ -226,7 +226,7 @@ EXPOSE 8484
 # So you can do things like:
 # docker run --rm -v $PWD:$PWD -it gristlabs/grist \
 #   cli sqlite query $PWD/docs/4gtUhAEGbGAdsGNc52k4H6.grist \
-#  "select * from _grist_Tables"
+#  --json "select * from _gristsys_ActionHistory"
 
 ENTRYPOINT ["./sandbox/docker_entrypoint.sh"]
 CMD ["node", "./sandbox/supervisor.mjs"]
