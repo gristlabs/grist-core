@@ -127,8 +127,8 @@ function DetailView(gristDoc, viewSectionModel) {
 
   //--------------------------------------------------
   // Instantiate CommandGroups for the different modes.
-  this.autoDispose(commands.createGroup(DetailView.generalCommands, this, this.viewSection.hasFocus));
-  this.autoDispose(commands.createGroup(DetailView.fieldCommands, this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(DetailView.generalCommands, this, this.viewSection.enableCommands));
+  this.autoDispose(commands.createGroup(DetailView.fieldCommands, this, this.viewSection.enableCommands));
   const hasSelection = this.autoDispose(ko.pureComputed(() =>
     !this.cellSelector.isCurrentSelectType('') || this.copySelection()));
   this.autoDispose(commands.createGroup(DetailView.selectionCommands, this, hasSelection));
