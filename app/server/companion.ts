@@ -266,7 +266,8 @@ export function addSqliteCommand(program: commander.Command) {
 
   sub.command('query <sqlite-file> <query-string>')
     .description('read data from a sqlite file that may contain Grist marshaling')
-    .action((filename, query) => new Gristifier(filename).query(query));
+    .option('--json', 'output as JSON')
+    .action((filename, query, options) => new Gristifier(filename).query(query, options));
 }
 
 export function addVersionCommand(program: commander.Command) {

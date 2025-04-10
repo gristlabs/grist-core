@@ -126,12 +126,18 @@ export class Gristifier {
    * This will do the same it would from the sqlite3 utility,
    * except BLOBs will be expanded.
    */
-  public async query(queryString: string) {
+  public async query(queryString: string, options: {
+    json?: boolean,
+  }) {
     const db = await SQLiteDB.openDBRaw(this._filename, OpenMode.OPEN_READONLY);
     try {
       const results = await db.all(queryString);
       const decodedResults = results.map(row => DocStorage.decodeRowValues(row));
-      console.log(JSON.stringify(decodedResults, null, 2));
+      if (options.json) {
+        console.log(JSON.stringify(decodedResults, null, 2));
+      } else {
+        console.table(decodedResults);
+      }
     } finally {
       await db.close();
     }
