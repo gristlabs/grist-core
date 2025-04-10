@@ -2780,6 +2780,7 @@ export function resizeWindowForSuite(width: number, height: number) {
     await setWindowDimensions(width, height);
   });
   after(async function () {
+    if (noCleanup) { return; }
     await setWindowDimensions(oldDimensions.width, oldDimensions.height);
   });
 }
