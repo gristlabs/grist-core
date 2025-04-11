@@ -295,7 +295,7 @@ class TestDerived(test_engine.EngineTestCase):
         ['UpdateRecord', 'Orders_summary_year', 1, {'amount': 15.0}],
         ['UpdateRecord', 'Orders', 1, {'year': 2012}],
         ['RemoveRecord', 'Orders_summary_year', 5],
-        ['AddRecord', 'Orders_summary_year', 1, {'group': ['L'], 'year': 2012}],
+        ['AddRecord', 'Orders_summary_year', 1, {'amount': 0.0, 'group': ['L'], 'year': 2012}],
       ]})
 
     # Undo and ensure that the new line is gone from the summary table.

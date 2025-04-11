@@ -512,12 +512,12 @@ class TestCompletion(test_engine.EngineTestCase):
       self.autocomplete("$", "Schools", "name", row_id=1),
       [
         ('$address', 'Address[11]'),
-        ('$budget', '0.0'),
+        ('$budget', 'None'),
         ('$id', '1'),
         ('$lastModified', 'None'),
         ('$lastModifier', repr(u'')),
         ('$name', "'Columbia'"),
-        ('$yearFounded', '0'),
+        ('$yearFounded', 'None'),
       ],
     )
 
