@@ -13,7 +13,6 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {createAppUI} from 'app/client/ui/AppUI';
 import {addViewportTag} from 'app/client/ui/viewport';
-import {Experiments} from 'app/client/ui/Experiments';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
 import {attachTheme} from 'app/client/ui2018/theme';
 import {BaseAPI} from 'app/common/BaseAPI';
@@ -37,7 +36,6 @@ export interface App extends DisposableWithEvents {
   comm: Comm;
   clientScope: ClientScope;
   features: ko.Computed<ISupportedFeatures>;
-  experiments: Experiments;
   topAppModel: TopAppModel;
   pageModel?: DocPageModel;
 }
@@ -52,7 +50,6 @@ export class AppImpl extends DisposableWithEvents implements App {
   public comm = this.autoDispose(Comm.create(this._checkError.bind(this)));
   public clientScope: ClientScope;
   public features: ko.Computed<ISupportedFeatures>;
-  public experiments: Experiments;
   public topAppModel: TopAppModel;    // Exposed because used by test/nbrowser/gristUtils.
 
   // Track the most recently created DocPageModel, for some error handling.
@@ -201,11 +198,6 @@ export class AppImpl extends DisposableWithEvents implements App {
     attachTheme();
     addViewportTag();
     this.autoDispose(createAppUI(this.topAppModel, this));
-
-    this.experiments = this.autoDispose(Experiments.create(this, this.topAppModel));
-    if (this.experiments.isRequested()) {
-      this.experiments.showModal(this.experiments.getCurrentRequest()!);
-    }
   }
 
   // We want to test errors from Selenium, but errors we can trigger using driver.executeScript()
