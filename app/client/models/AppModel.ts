@@ -10,6 +10,7 @@ import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
 import {gristThemePrefs} from 'app/client/ui2018/theme';
+import {Experiments} from 'app/client/ui/Experiments';
 import {AsyncCreate} from 'app/common/AsyncCreate';
 import {PlanSelection} from 'app/common/BillingAPI';
 import {ICustomWidget} from 'app/common/CustomWidget';
@@ -116,6 +117,7 @@ export interface AppModel {
 
   userPrefsObs: Observable<UserPrefs>;
   themePrefs: Observable<ThemePrefs>;
+  experiments?: Experiments;
   /**
    * Popups that user has seen.
    */
@@ -306,6 +308,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly themePrefs = getUserPrefObs(this.userPrefsObs, 'theme', {
     defaultValue: getDefaultThemePrefs(),
   }) as Observable<ThemePrefs>;
+  public readonly experiments?: Experiments;
 
   public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, 'dismissedPopups',
     { defaultValue: [] }) as Observable<DismissedPopup[]>;
@@ -393,6 +396,11 @@ export class AppModelImpl extends Disposable implements AppModel {
     this.autoDispose(subscribe(urlState().state, this.topAppModel.orgs, async (_use, s, orgs) => {
       this._updateLastVisitedOrgDomain(s, orgs);
     }));
+
+    this.experiments = Experiments.create(this, currentUser?.id || 0);
+    if (this.experiments.isRequested()) {
+      this.experiments.showModal(this.experiments.getCurrentRequest()!);
+    }
   }
 
   public get planName() {

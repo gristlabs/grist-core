@@ -1962,5 +1962,22 @@
         "Orgs": "Orgs",
         "Users": "Users",
         "Workspaces": "Workspaces"
+    },
+    "Experiments": {
+        "Disable feature": "Disable feature",
+        "Don't worry, you can disable it later if needed.": "Don't worry, you can disable it later if needed.",
+        "Enable feature": "Enable feature",
+        "Experimental feature": "Experimental feature",
+        "New record button": "New record button",
+        "Reload the page": "Reload the page",
+        "Visit this URL at any time to stop using this feature: {{url}}": "Visit this URL at any time to stop using this feature: {{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "You are about to disable this experimental feature: {{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "You are about to enable this experimental feature: {{experiment}}",
+        "{{experiment}} disabled.": "{{experiment}} disabled.",
+        "{{experiment}} enabled.": "{{experiment}} enabled."
+    },
+    "NewRecordButton": {
+        "New card": "New card",
+        "New record": "New record"
     }
 }
