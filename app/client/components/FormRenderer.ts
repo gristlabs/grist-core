@@ -255,11 +255,15 @@ abstract class BaseFieldRenderer extends Disposable {
     return this.field.colId;
   }
 
+  public id() {
+    return this.name().replace(/\s+/g, '-');
+  }
+
   public label() {
     return dom('label',
       css.label.cls(''),
       css.label.cls('-required', Boolean(this.field.options.formRequired)),
-      {for: this.name(), id: `${this.name()}-label`},
+      {for: this.name(), id: `${this.id()}-label`},
       this.field.question,
     );
   }
@@ -300,7 +304,7 @@ class TextRenderer extends BaseFieldRenderer {
       {
         type: this.inputType,
         name: this.name(),
-        id: this.name(),
+        id: this.id(),
         required: this.field.options.formRequired,
       },
       dom.prop('value', this._value),
@@ -312,7 +316,7 @@ class TextRenderer extends BaseFieldRenderer {
     return css.textarea(
       {
         name: this.name(),
-        id: this.name(),
+        id: this.id(),
         required: this.field.options.formRequired,
         rows: this._lineCount,
       },
@@ -347,7 +351,7 @@ class NumericRenderer extends BaseFieldRenderer {
       {
         type: this.inputType,
         name: this.name(),
-        id: this.name(),
+        id: this.id(),
         required: this.field.options.formRequired,
       },
       dom.prop('value', this._value),
@@ -363,7 +367,7 @@ class NumericRenderer extends BaseFieldRenderer {
         inputArgs: [
           {
             name: this.name(),
-            id: this.name(),
+            id: this.id(),
             required: this.field.options.formRequired,
           },
           preventSubmitOnEnter(),
@@ -426,7 +430,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
     if (this._format === 'radio') {
       return {
         role: 'group',
-        'aria-labelledby': `${this.name()}-label`,
+        'aria-labelledby': `${this.id()}-label`,
       };
     }
     return {};
@@ -450,7 +454,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
   private _renderSelectInput() {
     return css.hybridSelect(
       this._selectElement = css.select(
-        {name: this.name(), id: this.name(), required: this.field.options.formRequired},
+        {name: this.name(), id: this.id(), required: this.field.options.formRequired},
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
         dom('option', {value: ''}, selectPlaceholder()),
         this._choices.map((choice) => dom('option',
@@ -626,7 +630,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
   public fieldDomAttributes() {
     return {
       role: 'group',
-      'aria-labelledby': `${this.name()}-label`,
+      'aria-labelledby': `${this.id()}-label`,
     };
   }
 
@@ -695,7 +699,7 @@ class RefListRenderer extends BaseFieldRenderer {
   public fieldDomAttributes() {
     return {
       role: 'group',
-      'aria-labelledby': `${this.name()}-label`,
+      'aria-labelledby': `${this.id()}-label`,
     };
   }
 
@@ -775,7 +779,7 @@ class RefRenderer extends BaseFieldRenderer {
     if (this._format === 'radio') {
       return {
         role: 'group',
-        'aria-labelledby': `${this.name()}-label`,
+        'aria-labelledby': `${this.id()}-label`,
       };
     }
     return {};
@@ -801,7 +805,7 @@ class RefRenderer extends BaseFieldRenderer {
       this._selectElement = css.select(
         {
           name: this.name(),
-          id: this.name(),
+          id: this.id(),
           'data-grist-type': this.field.type,
           required: this.field.options.formRequired,
         },
