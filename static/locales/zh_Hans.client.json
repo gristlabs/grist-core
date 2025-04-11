@@ -1457,7 +1457,7 @@
         "Publish your form?": "要发布表单吗？",
         "Embed this form": "嵌入此表单",
         "View": "视图",
-        "## **Form Title**": "## **表单标题**",
+        "# **Form Title**": "# **表单标题**",
         "Your form description goes here.": "您可将表格描述置于此处。"
     },
     "FormConfig": {

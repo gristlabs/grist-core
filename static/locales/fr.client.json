@@ -1491,7 +1491,7 @@
         "Reset": "Réinitialiser",
         "Share": "Partager",
         "Your form description goes here.": "Vous pouvez écrire une description ici.",
-        "## **Form Title**": "## **Titre du formulaire**"
+        "# **Form Title**": "# **Titre du formulaire**"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
@@ -1543,7 +1543,8 @@
     },
     "FormContainer": {
         "Build your own form": "Créez votre propre formulaire",
-        "Powered by": "Créé avec"
+        "Powered by": "Créé avec",
+        "Powered by Grist": "Créé avec Grist"
     },
     "FormErrorPage": {
         "Error": "Erreur"
@@ -1583,7 +1584,7 @@
     "Section": {
         "Insert section above": "Ajouter une section ci-dessus",
         "Insert section below": "Ajouter une section ci-dessous",
-        "### **Header**": "### **Titre**",
+        "## **Header**": "## **Titre**",
         "Description": "Description"
     },
     "AdminPanel": {

@@ -126,7 +126,7 @@ const cssForm = styled('div', `
   margin: 0px auto;
 `);
 
-const cssFormBody = styled('div', `
+const cssFormBody = styled('main', `
   width: 100%;
 `);
 
@@ -176,7 +176,7 @@ const cssFormContent = styled('form', `
   }
 `);
 
-const cssFormFooter = styled('div', `
+const cssFormFooter = styled('footer', `
   padding: 8px 16px;
   width: 100%;
 `);
