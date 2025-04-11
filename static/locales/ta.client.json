@@ -1727,8 +1727,7 @@
     },
     "FormContainer": {
         "Build your own form": "உங்கள் சொந்த வடிவத்தை உருவாக்குங்கள்",
-        "Powered by": "மூலம் இயக்கப்படுகிறது",
-        "Powered by Grist": "கிரிச்டின் மூலம் இயக்கப்படுகிறது"
+        "Powered by": "மூலம் இயக்கப்படுகிறது"
     },
     "FormModel": {
         "Oops! The form you're looking for doesn't exist.": "அச்சச்சோ! நீங்கள் தேடும் வடிவம் இல்லை.",

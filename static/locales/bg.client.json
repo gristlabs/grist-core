@@ -1452,7 +1452,6 @@
     },
     "FormContainer": {
         "Powered by": "Задвижвано от",
-        "Powered by Grist": "Задвижвано от Grist",
         "Build your own form": "Изградете свой собствен формуляр"
     },
     "FormErrorPage": {

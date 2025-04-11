@@ -1668,8 +1668,7 @@
     },
     "FormContainer": {
         "Build your own form": "Vytvorte si vlastný formulár",
-        "Powered by": "Poháňaný",
-        "Powered by Grist": "Poháňaný Grist"
+        "Powered by": "Poháňaný"
     },
     "FormErrorPage": {
         "Error": "Chyba"

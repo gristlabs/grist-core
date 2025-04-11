@@ -1334,8 +1334,7 @@
     },
     "FormContainer": {
         "Build your own form": "Tạo biểu mẫu của riêng bạn",
-        "Powered by": "Cung cấp bởi",
-        "Powered by Grist": "Cung cấp bởi Grist"
+        "Powered by": "Cung cấp bởi"
     },
     "FormErrorPage": {
         "Error": "Lỗi"

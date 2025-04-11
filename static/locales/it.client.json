@@ -1519,8 +1519,7 @@
     },
     "FormContainer": {
         "Build your own form": "Costruisci il tuo modulo",
-        "Powered by": "Fatto con",
-        "Powered by Grist": "Fatto con Grist"
+        "Powered by": "Fatto con"
     },
     "FormModel": {
         "There was a problem loading the form.": "C'è stato un problema nel caricamento del modulo.",
