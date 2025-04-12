@@ -16,13 +16,13 @@ import {
   labeledSquareCheckbox,
   radioCheckboxOption
 } from 'app/client/ui2018/checkbox';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {testId} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {IOptionFull, linkSelect, select} from 'app/client/ui2018/menus';
 import {
   confirmModal,
   cssModalBody,
-  cssModalButtons,
+  cssModalButtons, cssModalSubheading,
   cssModalTitle,
   modal,
   saveModal
@@ -53,6 +53,7 @@ import {cssWarningIcon} from 'app/client/components/Forms/styles';
 import {cssLink} from 'app/client/ui2018/links';
 import sortBy = require('lodash/sortBy');
 import {withInfoTooltip} from 'app/client/ui/tooltips';
+import {components, tokens} from 'app/common/ThemePrefs';
 
 const t = makeT('MakeCopyMenu');
 
@@ -406,7 +407,7 @@ function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI
   );
 
   return cssAttachmentsDownloadSection(
-    cssModalTitle(t(`Download attachments separately`)),
+    cssModalSubheading(t(`Download attachments separately`)),
     dom('div',
       dom.domComputed(anyAttachmentsExternal, (isExternal) => {
         const contents = dom('span', inlineMarkdown(attachmentStatusText));
@@ -452,8 +453,8 @@ export const cssField = styled('div', `
 
 export const cssLabel = styled('label', `
   font-weight: normal;
-  font-size: ${vars.mediumFontSize};
-  color: ${theme.text};
+  font-size: ${tokens.mediumFontSize};
+  color: ${components.text};
   margin: 8px 16px 0 0;
   white-space: nowrap;
   width: 80px;
@@ -461,7 +462,7 @@ export const cssLabel = styled('label', `
 `);
 
 const cssWarningText = styled('div', `
-  color: ${theme.errorText};
+  color: ${components.errorText};
   margin-top: 8px;
 `);
 
@@ -496,7 +497,7 @@ const cssDownloadAttachmentsButton = styled(primaryButtonLink, `
 
 const cssAttachmentsWarningBlock = styled('div', `
   display: grid;
-  margin-left: -24px;
+  margin-left: 0px;
   grid-template-columns: 16px 1fr;
   grid-gap: 8px;
 `);
