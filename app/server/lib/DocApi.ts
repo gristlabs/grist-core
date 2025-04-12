@@ -616,6 +616,7 @@ export class DocWorkerApi {
         await stream.promises.pipeline(stream.Readable.from("Internal server error"), res, { end: false } as any);
         res.destroy(err);
       }
+      res.end();
     }));
 
     this._app.post('/api/docs/:docId/attachments/archive', isOwner, withDoc(async (activeDoc, req, res) => {
