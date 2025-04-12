@@ -14,8 +14,15 @@ export interface ArchiveEntry {
 export interface Archive {
   mimeType: string;
   fileExtension: string;
-  dataStream: stream.Readable;
-  completed: Promise<void>;
+  /**
+   * Starts packing files into the archive.
+   * This will block indefinitely if dataStream is never read from.
+   * This resolves when all files are processed, or an error occurs.
+   * This will not close the destination stream. This is to allow the caller to decide how to handle
+   * error situations.
+   * @returns {Promise<void>}
+   */
+  packInto: (destination: stream.Writable) => Promise<void>;
 }
 
 export const CreatableArchiveFormats = StringUnion('zip', 'tar');
@@ -38,9 +45,7 @@ export async function create_zip_archive(
   return {
     mimeType: "application/zip",
     fileExtension: "zip",
-    dataStream: archive,
-    // Caller is responsible for error handling/awaiting on this promise.
-    completed: (async () => {
+    async packInto(destination: stream.Writable) {
       try {
         for await (const entry of entries) {
           // ZipStream will break if multiple entries try to be added at the same time.
@@ -50,11 +55,11 @@ export async function create_zip_archive(
       } catch (error) {
         archive.destroy(error);
       } finally {
-        // If the stream was destroyed with an error, this will re-throw the error we caught above.
-        // Without this, node will see the stream as having an uncaught error, and complain.
+        // This ensures any errors in the stream (e.g. from destroying it above) are handled.
+        // Without this, node will see the stream as having an uncaught error, and complain or crash.
         await stream.promises.finished(archive);
       }
-    })()
+    }
   };
 }
 
@@ -80,15 +85,19 @@ function addEntryToZipArchive(archive: ZipStream, file: ArchiveEntry): Promise<Z
 export async function create_tar_archive(
   entries: AsyncIterable<ArchiveEntry>
 ): Promise<Archive> {
-  const archive = tar.pack();
-
   return {
     mimeType: "application/x-tar",
     fileExtension: "tar",
-    dataStream: archive,
-    // Caller is responsible for error handling/awaiting on this promise.
-    completed: (async () => {
+    async packInto(destination: stream.Writable) {
+      const archive = tar.pack();
+      const passthrough = new stream.PassThrough();
+      let pipeline: Promise<void> | undefined = undefined;
       try {
+        // 'end' prevents `destination` being closed when completed, or if an error occurs in archive.
+        // This is necessary to allow for partial/failed downloads (see DocAPI archive for more details).
+        // Passthrough stream is needed as the tar-stream library doesn't implement the 'end' parameter,
+        // piping to the passthrough stream fixes this and prevents `destination` being closed.
+        pipeline = stream.promises.pipeline(archive, passthrough, destination, { end: false } as any);
         for await (const entry of entries) {
           const entryStream = archive.entry({ name: entry.name, size: entry.size });
           await stream.promises.pipeline(entry.data, entryStream);
@@ -97,11 +106,11 @@ export async function create_tar_archive(
       } catch (error) {
         archive.destroy(error);
       } finally {
-        // If the stream was destroyed with an error, this will re-throw the error we caught above.
-        // Without this, node will see the stream as having an uncaught error, and complain.
-        await stream.promises.finished(archive);
+        // This ensures any errors in the stream (e.g. from destroying it above) are handled.
+        // Without this, node will see the stream as having an uncaught error, and complain or crash.
+        await pipeline;
       }
-    })()
+    }
   };
 }
 
