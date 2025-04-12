@@ -11,6 +11,15 @@ export interface ArchiveEntry {
   data: stream.Readable | Buffer;
 }
 
+export interface ArchivePackingOptions {
+  // Whether the destination stream should be closed once the archive has been written.
+  endDestStream: boolean;
+}
+
+const defaultPackingOptions: ArchivePackingOptions = {
+  endDestStream: true,
+};
+
 export interface Archive {
   mimeType: string;
   fileExtension: string;
@@ -22,7 +31,7 @@ export interface Archive {
    * error situations.
    * @returns {Promise<void>}
    */
-  packInto: (destination: stream.Writable) => Promise<void>;
+  packInto: (destination: stream.Writable, options?: ArchivePackingOptions) => Promise<void>;
 }
 
 export const CreatableArchiveFormats = StringUnion('zip', 'tar');
@@ -33,20 +42,22 @@ export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
  * Creates a streamable zip archive, reading files on-demand from the entries iterator.
  * Entries are provided as an async iterable, to ensure the archive is constructed
  * correctly. A generator can be used for convenience.
- * @param {ZipStreamOptions} options - Settings for the zip archive
+ * @param {ZipStreamOptions} zipOptions - Settings for the zip archive
  * @param {AsyncIterable<ArchiveEntry>} entries - Entries to add.
  * @returns {Archive}
  */
-export async function create_zip_archive(
-  options: ZipStreamOptions, entries: AsyncIterable<ArchiveEntry>
-): Promise<Archive> {
-  const archive = new ZipStream(options);
-
+export function create_zip_archive(
+  zipOptions: ZipStreamOptions, entries: AsyncIterable<ArchiveEntry>
+): Archive {
   return {
     mimeType: "application/zip",
     fileExtension: "zip",
-    async packInto(destination: stream.Writable) {
+    async packInto(destination: stream.Writable, options: ArchivePackingOptions = defaultPackingOptions) {
+      const archive = new ZipStream(zipOptions);
+      let pipeline: Promise<void> | undefined;
       try {
+        // `as any` cast required with @types/node 18.X due to the `end` parameter missing from the type declaration.
+        pipeline = stream.promises.pipeline(archive, destination, { end: options.endDestStream } as any);
         for await (const entry of entries) {
           // ZipStream will break if multiple entries try to be added at the same time.
           await addEntryToZipArchive(archive, entry);
@@ -57,7 +68,7 @@ export async function create_zip_archive(
       } finally {
         // This ensures any errors in the stream (e.g. from destroying it above) are handled.
         // Without this, node will see the stream as having an uncaught error, and complain or crash.
-        await stream.promises.finished(archive);
+        await pipeline;
       }
     }
   };
@@ -82,22 +93,22 @@ function addEntryToZipArchive(archive: ZipStream, file: ArchiveEntry): Promise<Z
  * @param {AsyncIterable<ArchiveEntry>} entries - Entries to add.
  * @returns {Archive}
  */
-export async function create_tar_archive(
+export function create_tar_archive(
   entries: AsyncIterable<ArchiveEntry>
-): Promise<Archive> {
+): Archive {
   return {
     mimeType: "application/x-tar",
     fileExtension: "tar",
-    async packInto(destination: stream.Writable) {
+    async packInto(destination: stream.Writable, options: ArchivePackingOptions = defaultPackingOptions) {
       const archive = tar.pack();
       const passthrough = new stream.PassThrough();
-      let pipeline: Promise<void> | undefined = undefined;
+      let pipeline: Promise<void> | undefined;
       try {
         // 'end' prevents `destination` being closed when completed, or if an error occurs in archive.
-        // This is necessary to allow for partial/failed downloads (see DocAPI archive for more details).
         // Passthrough stream is needed as the tar-stream library doesn't implement the 'end' parameter,
         // piping to the passthrough stream fixes this and prevents `destination` being closed.
-        pipeline = stream.promises.pipeline(archive, passthrough, destination, { end: false } as any);
+        // Cast is required due to a bug with @types/node 18.X missing the parameter
+        pipeline = stream.promises.pipeline(archive, passthrough, destination, { end: options.endDestStream } as any);
         for await (const entry of entries) {
           const entryStream = archive.entry({ name: entry.name, size: entry.size });
           await stream.promises.pipeline(entry.data, entryStream);
