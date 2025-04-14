@@ -131,7 +131,7 @@ class RenameDocModal extends Disposable {
               }
             ),
             textButton(
-              cssIconAndLabel(icon("Smiley"), t("Choose icon")),
+              cssIconAndLabel(icon("Smiley"), t("Choose icon"), testId('choose-icon')),
               (el) => {
                 setPopupToCreateDom(
                   el,
@@ -164,6 +164,7 @@ class RenameDocModal extends Disposable {
             ),
             textButton(
               t("Reset icon"),
+              testId("reset-icon"),
               dom.on("click", () => {
                 this._icon.emoji.set(null);
               }),
@@ -176,7 +177,7 @@ class RenameDocModal extends Disposable {
   }
 
   public async save() {
-    await this._home.renameDoc(this._doc.id, this._name.get().trim(), {
+    await this._home.renameDoc(this._doc.id, this._name.get().trimEnd(), {
       icon: {
         backgroundColor: this._icon.backgroundColor.get(),
         color: this._icon.color.get(),
