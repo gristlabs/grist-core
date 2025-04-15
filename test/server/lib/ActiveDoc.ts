@@ -3,10 +3,10 @@ import {ServerQuery} from 'app/common/ActiveDocAPI';
 import {delay} from 'app/common/delay';
 import {BulkColValues, CellValue, fromTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
-import {GristObjCode} from 'app/plugin/GristData';
+import {CreatableArchiveFormats} from 'app/common/UserAPI';
 import {TableData} from 'app/common/TableData';
+import {GristObjCode} from 'app/plugin/GristData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
@@ -1221,7 +1221,7 @@ describe('ActiveDoc', async function() {
       for (const archiveType of CreatableArchiveFormats.values) {
         const archive = await activeDoc1.getAttachmentsArchive(fakeTransferSession, archiveType);
         const archiveMemoryStream = new MemoryWritableStream();
-        await stream.promises.pipeline(archive.dataStream, archiveMemoryStream);
+        await archive.packInto(archiveMemoryStream);
 
         await assertArchiveContents(archiveMemoryStream.getBuffer(), archiveType, testAttachments);
       }
@@ -1240,7 +1240,7 @@ describe('ActiveDoc', async function() {
 
       const attachmentsArchive = await activeDoc.getAttachmentsArchive(fakeSession, "tar");
       const attachmentsTarStream = new MemoryWritableStream();
-      await stream.promises.pipeline(attachmentsArchive.dataStream, attachmentsTarStream);
+      await attachmentsArchive.packInto(attachmentsTarStream);
       const attachmentsTar = attachmentsTarStream.getBuffer();
 
       const store = (await provider.getStore(storeId))!;

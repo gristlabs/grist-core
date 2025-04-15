@@ -1,6 +1,7 @@
 import {
   Archive,
   ArchiveEntry,
+  ArchivePackingOptions,
   create_tar_archive,
   create_zip_archive
 } from 'app/server/lib/Archive';
@@ -31,16 +32,6 @@ async function* generateTestArchiveContents() {
   }
 }
 
-async function assertArchiveCompletedSuccessfully(archive: Archive) {
-  await assert.isFulfilled(archive.completed);
-  assert.isTrue(archive.dataStream.destroyed, "archive data stream was not finished");
-}
-
-async function assertArchiveFailedWithError(archive: Archive) {
-  await assert.isRejected(archive.completed);
-  assert.isTrue(archive.dataStream.destroyed, "archive data stream was not finished");
-}
-
 async function assertArchiveContainsTestFiles(archiveData: Buffer) {
   const files = await decompress(archiveData);
   assert.equal(files.length, testFiles.length);
@@ -52,17 +43,14 @@ async function assertArchiveContainsTestFiles(archiveData: Buffer) {
   }
 }
 
-type ArchiveCreator = (entries: AsyncIterable<ArchiveEntry>) => Promise<Archive>;
+type ArchiveCreator = (entries: AsyncIterable<ArchiveEntry>, options?: ArchivePackingOptions) => Archive;
 
 function testArchive(type: string, makeArchive: ArchiveCreator) {
   it(`should create a ${type} archive`, async function () {
-    const archive = await makeArchive(generateTestArchiveContents());
+    const archive = makeArchive(generateTestArchiveContents());
     const output = new MemoryWritableStream();
-    archive.dataStream.pipe(output);
-    await assertArchiveCompletedSuccessfully(archive);
-
+    await archive.packInto(output);
     const archiveData = output.getBuffer();
-
     await assertArchiveContainsTestFiles(archiveData);
   });
 
@@ -73,9 +61,32 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
     }
 
     // Shouldn't error here - as this just starts the packing.
-    const archive = await makeArchive(throwErrorGenerator());
-    await assert.isRejected(archive.completed, "Test error");
-    await assertArchiveFailedWithError(archive);
+    const output = new MemoryWritableStream();
+    const archive = makeArchive(throwErrorGenerator());
+    await assert.isRejected(archive.packInto(output), "Test error");
+  });
+
+  it('respects the "endDestStream" option', async function () {
+    async function* throwErrorGenerator() {
+      throw new Error("Test error");
+      yield {name: 'Test', size: 0, data: Buffer.from([])};
+    }
+
+    const test = async (archive: Archive, end: boolean, name: string) => {
+      const output = new MemoryWritableStream();
+      try {
+        await archive.packInto(output, { endDestStream: end });
+      } catch(err) {
+        // Do nothing, don't care about this error.
+      } finally {
+        assert.equal(output.closed, end, `expected ${name} to be ${ end ? "closed" : "open" }`);
+      }
+    };
+
+    await test(makeArchive(generateTestArchiveContents()), false, "successful archive");
+    await test(makeArchive(generateTestArchiveContents()), true, "successful archive");
+    await test(makeArchive(throwErrorGenerator()), false, "erroring archive");
+    await test(makeArchive(throwErrorGenerator()), true, "erroring archive");
   });
 }
 
