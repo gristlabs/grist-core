@@ -440,7 +440,8 @@ function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI
     dom.maybe((use) => use(formatObs) === 'zip', () => attachmentsWarningBlock([
       dom('div',
         t('If you need to re-upload attachments to Grist, use a .tar archive instead. '),
-        cssLink({}, t('Learn more.'))
+        cssLink({}, t('Learn more.')),
+        testId('attachments-reupload-warning')
       )
     ])),
   );

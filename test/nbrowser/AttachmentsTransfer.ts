@@ -219,6 +219,10 @@ describe("AttachmentsTransfer", function() {
       await selectFormat(/.tar/);
       await gu.waitToPass(() => testDownloadLink({format: 'tar'}), 500);
       await selectFormat(/.zip/);
+
+      const uploadWarning = await driver.findWait('.test-attachments-reupload-warning', 2000).getText();
+      assert.match(uploadWarning, /use a \.tar archive instead/);
+
       await gu.waitToPass(() => testDownloadLink({format: 'zip'}), 500);
     } finally {
       // Try to close the modal to minimise the chances of other tests failing.
