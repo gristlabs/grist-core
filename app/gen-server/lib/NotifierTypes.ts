@@ -36,16 +36,19 @@ export interface SendGridMail {
       enable: boolean;
     }
   };
+  template_name?: string;
 }
 
 export interface SendGridAddress {
   email: string;
   name: string;
 }
-
+export interface DynamicTemplateData {
+  [key: string]: any
+}
 export interface SendGridPersonalization {
   to: SendGridAddress[];
-  dynamic_template_data: {[key: string]: any};
+  dynamic_template_data: DynamicTemplateData;
 }
 
 /**
