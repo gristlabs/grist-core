@@ -1551,7 +1551,7 @@
         "Code copied to clipboard": "Código copiado para a área de transferência",
         "Copy code": "Copiar código",
         "Preview": "Pré-visualização",
-        "## **Form Title**": "## **Título do formulário**",
+        "# **Form Title**": "# **Título do formulário**",
         "Your form description goes here.": "A descrição do seu formulário vai aqui."
     },
     "Menu": {
@@ -1648,7 +1648,7 @@
     "Section": {
         "Insert section above": "Inserir seção acima",
         "Insert section below": "Inserir seção abaixo",
-        "### **Header**": "### **Cabeçalho**",
+        "## **Header**": "## **Cabeçalho**",
         "Description": "Descrição"
     },
     "AdminPanel": {
