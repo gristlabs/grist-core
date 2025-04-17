@@ -1465,7 +1465,18 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         WHERE a.value = ${attId}`);
       }
     }
-    return (await this.all(queries.join(' UNION ALL '))) as any[];
+    try {
+      return (await this.all(queries.join(' UNION ALL '))) as any[];
+    }
+    catch (e) {
+      // We throw an informative error if we fail to process the attachment references
+      // cf: https://github.com/gristlabs/grist-core/issues/1565
+      const errorMessage = `findAttachmentReferences failed: unable to process attachment references` +
+      `for users with complicated access rules. ` +
+      `Make sure that there are no errors in attachments columns across the document. Details: ${e.message}`;
+      log.error(errorMessage, e);
+      throw new Error(errorMessage);
+    }
   }
 
   /**
