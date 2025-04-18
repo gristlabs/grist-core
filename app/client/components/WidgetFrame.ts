@@ -457,9 +457,11 @@ export class GristViewImpl implements GristView {
     const columns: ColumnRec[] = this._visibleColumns(options);
     const rowIds = this._baseView.sortedRows.getKoArray().peek().filter(id => id != 'new');
     const data: BulkColValues = {};
+    const expandRefs = options.expandRefs !== false;
     for (const column of columns) {
-      // Use the colId of the displayCol, which may be different in case of Reference columns.
-      const colId: string = column.displayColModel.peek().colId.peek();
+      // Use the colId of the displayCol when expanding references, so
+      // we don't get the underlying refId instead.
+      const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
       const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId)!;
       const typeInfo = extractInfoFromColType(column.type.peek());
       data[column.colId.peek()] = rowIds.map(r => reencodeAsAny(getter(r)!, typeInfo));
@@ -476,9 +478,10 @@ export class GristViewImpl implements GristView {
     // information here.
     const columns: ColumnRec[] = this._visibleColumns(options);
     const data: RowRecord = {id: rowId};
+    const expandRefs = options.expandRefs !== false;
     for (const column of columns) {
-      const colId: string = column.displayColModel.peek().colId.peek();
       const typeInfo = extractInfoFromColType(column.type.peek());
+      const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
       data[column.colId.peek()] = reencodeAsAny(
         this._baseView.tableModel.tableData.getValue(rowId, colId)!,
         typeInfo
