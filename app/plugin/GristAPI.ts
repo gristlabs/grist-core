@@ -171,6 +171,13 @@ export interface FetchSelectedOptions {
    * - `all`: also return special invisible columns like `manualSort` and display helper columns.
    */
   includeColumns?: 'shown' | 'normal' | 'all';
+
+  /**
+   *
+   * - `true` (default): the returned data will show the contents of references, not their rowIds
+   * - `false`: the returned data will only display rowIds for references
+   */
+  expandRefs?: boolean
 }
 
 /**

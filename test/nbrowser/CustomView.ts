@@ -416,6 +416,58 @@ describe('CustomView', function() {
     assert.equal(await driver.find('#match').getText(), 'true');
   });
 
+  it('should not expand refs when expandRefs is false', async function() {
+    const mainSession = await gu.session().teamSite.login();
+    await mainSession.tempDoc(cleanup, 'TypeEncoding.grist');
+    await gu.toggleSidePanel('right', 'open');
+    await driver.find('.test-right-tab-pagewidget').click();
+    await gu.waitForServer();
+    await driver.find('.test-config-data').click();
+
+    // The test doc already has a Custom View widget. It just needs to
+    // have a URL set.
+    await gu.getSection('TYPES custom').click();
+    await gu.setCustomWidgetUrl(`${serving.url}/types-raw-refs`);
+    // If we needed to change widget to Custom URL, make sure access is read table.
+    await setAccess("read table");
+    await gu.waitForServer();
+
+    const iframe = gu.getSection('TYPES custom').find('iframe');
+    await driver.switchTo().frame(iframe);
+    await driver.findContentWait('#record', /AnyDate/, 1000000);
+    let record = await driver.find('#record').getText();
+
+    // The first line has regular old values.
+    assert.deepEqual(JSON.parse(record), rowsWithoutExpandedRefs[0]);
+
+    // #match tells us if onRecords() returned the same representation for this record.
+    assert.equal(await driver.find('#match').getText(), 'true');
+
+    // Switch to the next row, which has blank values.
+    await driver.switchTo().defaultContent();
+    await gu.getCell({section: 'TYPES', col: 0, rowNum: 2}).click();
+    await driver.switchTo().frame(iframe);
+    await driver.findContentWait('#record', /"AnyDate":null/, 1000);
+    record = await driver.find('#record').getText();
+    assert.deepEqual(JSON.parse(record), rowsWithoutExpandedRefs[1]);
+
+    // #match tells us if onRecords() returned the same representation for this record.
+    assert.equal(await driver.find('#match').getText(), 'true');
+
+    // Switch to the next row, which has various error values.
+    await driver.switchTo().defaultContent();
+    await gu.getCell({section: 'TYPES', col: 0, rowNum: 3}).click();
+    await driver.switchTo().frame(iframe);
+    await driver.findContentWait('#record', /"AnyDate":null/, 1000);
+    record = await driver.find('#record').getText();
+
+    assert.deepEqual(JSON.parse(record), rowsWithoutExpandedRefs[2]);
+
+    // #match tells us if onRecords() returned the same representation for this record.
+    assert.equal(await driver.find('#match').getText(), 'true');
+  });
+
+
   it('respect access rules', async function() {
     // Create a Favorite Films copy, with access rules on columns, rows, and tables.
     const mainSession = await gu.session().teamSite.login();
@@ -633,3 +685,87 @@ async function inFrame(op: () => Promise<void>)  {
   await op();
   await driver.switchTo().defaultContent();
 }
+
+const rowsWithoutExpandedRefs = [
+  {
+    id: 24,
+    Reference: { tableId: 'Types', rowId: 2 },
+    AnyDateTime: '1990-08-21T17:19:40.705Z',
+    AnyRef: { tableId: 'Types', rowId: 2 },
+    AnyDate: '2020-07-02T00:00:00.000Z',
+    RECORD: {
+      AnyDate: '2020-07-02T00:00:00.000Z',
+      AnyDateTime: '1990-08-21T17:19:40.705Z',
+      AnyRef: { tableId: 'Types', rowId: 2 },
+      Bool: true,
+      Date: '2020-07-01T00:00:00.000Z',
+      DateTime: '2020-08-21T17:19:40.705Z',
+      Numeric: 17.25,
+      Reference: { tableId: 'Types', rowId: 2 },
+      Text: 'Hello!',
+      id: 24
+    },
+    Bool: true,
+    Date: '2020-07-01T00:00:00.000Z',
+    DateTime: '2020-08-21T17:19:40.705Z',
+    Numeric: 17.25,
+    Text: 'Hello!'
+  },
+  {
+    id: 1,
+    Reference: { tableId: 'Types', rowId: 0 },
+    AnyDateTime: null,
+    AnyRef: { tableId: 'Types', rowId: 0 },
+    AnyDate: null,
+    RECORD: {
+      AnyDate: null,
+      AnyDateTime: null,
+      AnyRef: { tableId: 'Types', rowId: 0 },
+      Bool: false,
+      Date: null,
+      DateTime: null,
+      Numeric: 0,
+      Reference: { tableId: 'Types', rowId: 0 },
+      Text: '',
+      id: 1
+    },
+    Bool: false,
+    Date: null,
+    DateTime: null,
+    Numeric: 0,
+    Text: ''
+  },
+  {
+    id: 2,
+    Reference: 'No-Ref',
+    AnyDateTime: {
+      name: 'InvalidTypedValue',
+      message: 'DateTime',
+      details: 'Not-a-DateTime'
+    },
+    AnyRef: { name: 'AssertionError' },
+    AnyDate: { name: 'InvalidTypedValue', message: 'Date', details: 'Not-a-Date' },
+    RECORD: {
+      AnyDate: null,
+      AnyDateTime: null,
+      AnyRef: null,
+      Bool: true,
+      Date: 'Not-a-Date',
+      DateTime: 'Not-a-DateTime',
+      Numeric: 'Not-a-Number',
+      Reference: 'No-Ref',
+      Text: 'Errors',
+      _error_: {
+        AnyDate: 'InvalidTypedValue: Invalid Date: Not-a-Date',
+        AnyDateTime: 'InvalidTypedValue: Invalid DateTime: Not-a-DateTime',
+        AnyRef: 'AssertionError: '
+      },
+      id: 2
+    },
+    Bool: true,
+    Date: 'Not-a-Date',
+    DateTime: 'Not-a-DateTime',
+    Numeric: 'Not-a-Number',
+    Text: 'Errors'
+  },
+];
