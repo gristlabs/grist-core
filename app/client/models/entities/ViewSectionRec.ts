@@ -25,7 +25,7 @@ import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
 import {RecalcWhen} from 'app/common/gristTypes';
-import {arrayRepeat} from 'app/common/gutil';
+import {arrayRepeat, safeJsonParse} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {WidgetType} from 'app/common/widgetTypes';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
@@ -696,9 +696,10 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // TODO: This method of ignoring columns which are deleted is inefficient and may cause conflicts
   //  with sharing.
   this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: Sort.SortSpec|null) => {
+    const tableId = this.tableRef();
     return (obj || []).filter((sortRef: Sort.ColSpec) => {
       const colModel = docModel.columns.getRowModel(Sort.getColRef(sortRef) as number /* HACK: for virtual tables */);
-      return !colModel._isDeleted() && colModel.getRowId();
+      return !colModel._isDeleted() && colModel.getRowId() && colModel.parentId() === tableId;
     });
   });
 
@@ -710,6 +711,21 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       const effectiveColRef = field ? field.displayColRef() : colRef;
       return Sort.swapColRef(directionalColRef, effectiveColRef);
     });
+  }));
+
+  this.autoDispose(this.columns.subscribe((columns) => {
+    if (this.activeSortJson.isSaved.peek() || !columns.length) {
+      return;
+    }
+    const columnRefs = new Set(columns.map(c => c.origColRef()));
+    const parsed: Sort.SortSpec = safeJsonParse(this.activeSortJson.peek(), []);
+    const cleaned = parsed.filter((sortRef: Sort.ColSpec) => {
+      const colRef = Sort.getColRef(sortRef) as number;
+      return columnRefs.has(colRef);
+    });
+    // NOTE: we are modifying the observable here, which is not a good practice, and can lead to
+    // infinite loops in the future.
+    this.activeSortSpec(cleaned);
   }));
 
   // Evaluates to an array of column models, which are not referenced by anything in viewFields.
