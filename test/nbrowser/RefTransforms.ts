@@ -91,6 +91,7 @@ describe('RefTransforms', function() {
     await gu.waitForServer();
 
     // Add some references to values in the same table.
+    await gu.sendKeys(Key.ESCAPE); // First ESCAPE to get out of select focus.
     await gu.sendKeys(Key.ENTER, 'foo', Key.ENTER, 'bar', Key.ENTER, Key.ENTER);
     await gu.waitForServer();
 
