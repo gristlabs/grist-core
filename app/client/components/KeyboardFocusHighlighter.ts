@@ -33,7 +33,7 @@ export class KeyboardFocusHighlighter extends Disposable {
 }
 
 const cssKeyboardUser = styled('div', `
-  & :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible {
+  & .kb-focus-highlighter-group :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible {
     /* simulate default browser focus ring */
     outline: 2px solid Highlight !important;
     outline: 2px solid -webkit-focus-ring-color !important;
