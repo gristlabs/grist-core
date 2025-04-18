@@ -179,12 +179,12 @@ describe('Dates.ntest', function() {
     await gu.sendKeys($.DELETE);
     await gu.waitForServer();
     await gu.getCellRC(0, 2).click();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
     await gu.sendKeys('=');
     await $('.test-editor-tooltip-convert').click();
     await gu.sendKeys('$A', $.ENTER);
     await gu.waitForServer();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
     await gu.getCellRC(0, 3).click();
     await gu.sendKeys('=');
     await gu.waitAppFocus(false);
