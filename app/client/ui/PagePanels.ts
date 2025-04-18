@@ -78,6 +78,8 @@ export function pagePanels(
   let onLeftTransitionFinish = noop;
 
   const regionFocusSwitcher = RegionFocusSwitcher.create(null, options.gristDoc);
+  // @ts-expect-error just dirty code to check an idea. To remove later.
+  window.gristRegionFocusSwitcher = regionFocusSwitcher;
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
   // last desktop state.
