@@ -771,7 +771,7 @@ describe('ChoiceList', function() {
   it('should save and close the choice config editor on focusout', async function() {
     // Click outside of the editor.
     await driver.find('.test-gristdoc').click();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     // Check that the changes were saved.
     assert.deepEqual(await getChoiceLabels(), ['Choice 1', 'Choice 2', 'Choice 3']);
