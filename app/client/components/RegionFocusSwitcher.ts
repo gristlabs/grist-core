@@ -113,6 +113,20 @@ export class RegionFocusSwitcher extends Disposable {
       dom.attr('role', 'region'),
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
+      dom.cls('kb-focus-highlighter-group', use => {
+        // highlight focused elements everywhere except in the grist doc views
+        if (id !== 'main') {
+          return true;
+        }
+        const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
+        if (!gristDoc) {
+          return true;
+        }
+        if (gristDoc) {
+          use(gristDoc.activeViewId);
+        }
+        return isSpecialPage(gristDoc);
+      }),
       dom.cls('clipboard_group_focus', use => {
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
