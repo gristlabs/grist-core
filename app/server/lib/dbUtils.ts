@@ -167,8 +167,8 @@ export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): D
     "subscribers": [
       `${codeRoot}/app/gen-server/subscriber/*.js`
     ],
-    ...JSON.parse(process.env.TYPEORM_EXTRA || "{}"),
     ...cache,
     ...overrideConf,
+    ...JSON.parse(process.env.TYPEORM_EXTRA || "{}"),
   };
 }

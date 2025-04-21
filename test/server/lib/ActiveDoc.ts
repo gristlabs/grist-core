@@ -1221,7 +1221,7 @@ describe('ActiveDoc', async function() {
       for (const archiveType of CreatableArchiveFormats.values) {
         const archive = await activeDoc1.getAttachmentsArchive(fakeTransferSession, archiveType);
         const archiveMemoryStream = new MemoryWritableStream();
-        await stream.promises.pipeline(archive.dataStream, archiveMemoryStream);
+        await archive.packInto(archiveMemoryStream);
 
         await assertArchiveContents(archiveMemoryStream.getBuffer(), archiveType, testAttachments);
       }
@@ -1240,7 +1240,7 @@ describe('ActiveDoc', async function() {
 
       const attachmentsArchive = await activeDoc.getAttachmentsArchive(fakeSession, "tar");
       const attachmentsTarStream = new MemoryWritableStream();
-      await stream.promises.pipeline(attachmentsArchive.dataStream, attachmentsTarStream);
+      await attachmentsArchive.packInto(attachmentsTarStream);
       const attachmentsTar = attachmentsTarStream.getBuffer();
 
       const store = (await provider.getStore(storeId))!;

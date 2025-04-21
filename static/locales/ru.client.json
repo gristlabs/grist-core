@@ -40,7 +40,7 @@
         "Add Table-wide Rule": "Добавить обще-табличное правило"
     },
     "ACUserManager": {
-        "Enter email address": "Введите адрес электронной почты",
+        "Enter email address": "Введите адрес e-mail",
         "Invite new member": "Пригласить нового участника",
         "We'll email an invite to {{email}}": "Мы вышлем приглашение на {{email}}"
     },
@@ -1262,7 +1262,9 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "Чтобы разрешить несколько значений, измените тип столбца с типа «Ссылка» на «Ссылки списком».",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Чтобы разрешить несколько назначений, измените тип указанного столбца на Ссылки списком.",
         "[Learn more.]({{link}})": "[Подробнее.]({{link}})",
-        "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ"
+        "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ",
+        "Manage users and resources in a Grist installation.": "Управляйте пользователями и ресурсами напрямую в Grist.",
+        "Summary tables can only contain formula columns.": "Сводные таблицы могут содержать только столбцы формул."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1510,7 +1512,7 @@
         "Copy link": "Копировать ссылку",
         "Reset": "Сброс",
         "Reset form": "Сброс формы",
-        "## **Form Title**": "## **Заголовок формы**",
+        "# **Form Title**": "# **Заголовок формы**",
         "Your form description goes here.": "Описание формы."
     },
     "WelcomeCoachingCall": {
@@ -1540,7 +1542,9 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Некоторые обязательные столбцы не сопоставлены",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Чтобы использовать этот виджет, сопоставьте все необязательные столбцы с панели создателя справа."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Чтобы использовать этот виджет, сопоставьте все необязательные столбцы с панели создателя справа.",
+        "Some required columns are hidden by access rules": "Некоторые необходимые столбцы скрыты в соответствии с правилами доступа",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Чтобы использовать этот виджет, все сопоставленные столбцы должны быть видны. Пожалуйста, свяжитесь с владельцем документа или измените правила доступа."
     },
     "FormContainer": {
         "Build your own form": "Создайте свою собственную форму",
@@ -1585,7 +1589,7 @@
         "Insert section above": "Вставить секцию выше",
         "Insert section below": "Вставить секцию ниже",
         "Description": "Описание",
-        "### **Header**": "### **Заголовок**"
+        "## **Header**": "## **Заголовок**"
     },
     "AdminPanel": {
         "Current": "Текущий",
@@ -1763,7 +1767,22 @@
         "Activate": "Активировать",
         "Activation key": "Ключ активации",
         "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Для продолжения использования Grist Enterprise требуется активная подписка. Вы можете\nактивировать свою подписку с помощью [подписка Grist Enterprise ]({{signupLink}}) и вставте свой\nключ активации ниже.",
-        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ключ активации используется для запуска Grist Enterprise после пробного периода\n        30 дней истекли. Получите ключ активации, [подписка Grist\n        Enterprise]({{signupLink}}). Вам не нужен ключ активации для запуска\n        Grist Core."
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ключ активации используется для запуска Grist Enterprise после пробного периода\n        30 дней истекли. Получите ключ активации, [подписка Grist\n        Enterprise]({{signupLink}}). Вам не нужен ключ активации для запуска\n        Grist Core.",
+        "Installation ID:": "Идентификатор установки:",
+        "Installation ID copied to clipboard": "Идентификатор установки скопирован в буфер обмена",
+        "Expiration date": "Дата окончания срока",
+        "Installation seats": "Установочные места",
+        "Copy to clipboard": "Скопировать в буфер обмена",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Узнайте больше в нашем [Справочный центр]({{helpCenter}}).",
+        "Paste your activation key": "Вставьте свой ключ активации",
+        "Plan name": "Название плана",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Чтобы продолжить использование Grist Enterprise, вам необходимо\n                  [связаться с нами]({{signupLink}}) чтобы получить свой ключ активации.",
+        "You are currently trialing Grist Enterprise.": "В настоящее время вы проводите тестирование Grist Enterprise.",
+        "You do not have an active subscription.": "У вас нет активной подписки.",
+        "Your activation key has expired due to exceeding limits.": "Срок действия вашего ключа активации истек из-за превышения лимитов.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Ваш экземпляр будет находиться в **только для чтения** режиме в **{{days}}** дней.",
+        "Your subscription expired on {{date}}.": "Срок действия вашей подписки истек в {{date}}.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Ваш пробный период истек в **{{expireAt}}**. Чтобы продолжить использование Grist Enterprise, вам необходимо\n[зарегистрироваться в Grist Enterprise]({{signupLink}}) и вставьте свой ключ активации ниже."
     },
     "ViewLayout": {
         "Delete": "Удалить",
@@ -1838,10 +1857,109 @@
     },
     "markdown": {
         "The toggle is **off**": "Переключатель **Выключен**",
-        "The toggle is **on**": "Переключатель **Включен**"
+        "The toggle is **on**": "Переключатель **Включен**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Новая Markdown функция\n *\n *      Мы можем _писать_ [обычный Markdown](https://markdownguide.org) *внутри*\n *      Grainjs элемента."
+            }
+        }
     },
     "markdown.d": {
         "The toggle is **off**": "Переключатель **Выключен**",
-        "The toggle is **on**": "Переключатель **Включен**"
+        "The toggle is **on**": "Переключатель **Включен**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Новая Markdown функция\n *\n *      Мы можем _писать_ [обычный Markdown](https://markdownguide.org) *внутри*\n *      Grainjs элемента."
+            }
+        }
+    },
+    "AuditLogStreamingConfig": {
+        "Add streaming destination": "Добавить пункт назначения потоковой передачи",
+        "URL": "URL",
+        "Cancel": "Отменить",
+        "Delete": "Удалить",
+        "Add destination": "Добавить пункт назначения",
+        "Delete streaming destination?": "Удалить пункт назначения потоковой передачи?",
+        "Enter URL": "Введите URL",
+        "Enter token": "Введите токен",
+        "Other": "Другое",
+        "Save": "Сохранить",
+        "Destinations": "Назначения",
+        "Edit": "Редактировать",
+        "Start streaming": "Начать потоковую передачу",
+        "Edit streaming destination": "Редактировать пункт назначения потоковой передачи",
+        "Learn more": "Учить больше",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Вы уверены, что хотите удалить этот пункт назначения потоковой передачи? Это действие невозможно отменить.",
+        "Destination": "Место назначения"
+    },
+    "DocList": {
+        "Last edited": "Последнее редактирование",
+        "All": "Все",
+        "Current workspace": "Текущее рабочее пространство",
+        "Delete": "Удалить",
+        "Manage users": "Управление пользователями",
+        "Move": "Переместить",
+        "Move {{name}} to workspace": "Переместить {{name}} в рабочее пространство",
+        "Pin": "Закрепить",
+        "Pinned": "Закреплён",
+        "Recent": "Недавний",
+        "Rename and set icon": "Переименовать и установить иконку",
+        "Sort by date": "Сортировка по дате",
+        "Edited {{at}}": "Отредактирован {{at}}",
+        "Requires edit permissions": "Требуются разрешения на редактирование",
+        "Unpin": "Открепить",
+        "Workspace": "Рабочее место",
+        "Access details": "Информация о доступе",
+        "Sort by name": "Сортировать по наименованию",
+        "Delete {{name}}": "Удалить {{name}}",
+        "Document will be moved to Trash.": "Документ будет перемещен в корзину.",
+        "Name": "Наименование",
+        "No documents to show.": "Нет документов для отображения."
+    },
+    "RightPanelUtils": {
+        "Fields_one": "Поля",
+        "Columns_one": "Столбцы",
+        "Columns_other": "Столбцы",
+        "Series_other": "Серии",
+        "Fields_other": "Поля",
+        "Series_one": "Серии"
+    },
+    "userTrustsCustomWidget": {
+        "Please review the following before adding a new custom widget.": "Пожалуйста, ознакомьтесь со следующим, прежде чем добавлять новый пользовательский виджет.",
+        "Be careful with unknown custom widgets": "Будьте осторожны с неизвестными пользовательскими виджетами",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Пользовательские виджеты - это **мощность**! Они могут считывать и записывать данные вашего документа, а также отправлять их в другое место.",
+        "Are you sure you **trust the resource** at this URL?": "Вы уверены, что вы **доверяете ресурсу** по этому URL?",
+        "Have you **reviewed the code** at this URL?": "Вы **ознакомлены с кодом** по этому URL?",
+        "I confirm that I understand these warnings and accept the risks": "Я подтверждаю, что понимаю эти предупреждения и принимаю риски",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "Если вы сомневаетесь, не устанавливайте этот виджет, или попросите администратора вашей организации просмотреть его в целях безопасности.",
+        "Do you **trust the person** who shared this link?": "Вы **доверяете человеку** кто поделился этой ссылкой?"
+    },
+    "AuditLogsPage": {
+        "Audit logs for {{siteName}}": "Журналы аудита для {{siteName}}",
+        "Audit Logs": "Журналы аудита",
+        "Log streaming": "Потоковая передача логов",
+        "Contact us": "Связаться с нами",
+        "Home": "Домой",
+        "Only site owners may access audit logs.": "Только владельцы сайтов могут получить доступ к журналам аудита.",
+        "upgrade your plan": "обновите свой план"
+    },
+    "RenameDocModal": {
+        "Choose color": "Выберите цвет",
+        "Choose icon": "Выберите иконку",
+        "Enter document name": "Введите название документа",
+        "Icon": "Иконка",
+        "Name": "Наименование",
+        "Reset icon": "Сброс иконки",
+        "Rename and set icon": "Переименовать и установить иконку"
+    },
+    "AdminLeftPanel": {
+        "Admin area": "Административная зона",
+        "Admin controls": "Административные элементы управления",
+        "Docs": "Документы",
+        "Installation": "Установка",
+        "Learn more": "Изучить больше",
+        "Orgs": "Организации",
+        "Users": "Пользователи",
+        "Workspaces": "Рабочие пространства"
     }
 }

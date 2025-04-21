@@ -1347,7 +1347,7 @@ export async function addNewPage(
 
   // Click the 'Page' entry in the 'Add New' menu
   await driver.findWait('.test-dp-add-new', 2000).doClick();
-  await driver.find('.test-dp-add-new-page').doClick();
+  await driver.findWait('.test-dp-add-new-page', 2000).doClick();
 
   // add widget
   await selectWidget(typeRe, tableRe, options);

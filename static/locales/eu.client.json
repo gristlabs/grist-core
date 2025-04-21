@@ -1472,7 +1472,7 @@
         "Share": "Partekatu",
         "Save your document to publish this form.": "Gorde dokumentua formularioa argitaratzeko.",
         "Preview": "Aurrebista",
-        "## **Form Title**": "## **Formularioaren titulua**",
+        "# **Form Title**": "# **Formularioaren titulua**",
         "Your form description goes here.": "Hau formularioaren deskribapena da."
     },
     "Editor": {
@@ -1708,7 +1708,7 @@
         "Insert section above": "Sartu atala gainean",
         "Insert section below": "Sartu atala azpian",
         "Description": "Deskribapena",
-        "### **Header**": "### **Goiburua**"
+        "## **Header**": "## **Goiburua**"
     },
     "ReferenceUtils": {
         "Error in dropdown condition": "Errorea goitibeherako baldintzan",

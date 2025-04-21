@@ -1567,7 +1567,7 @@
         "Save your document to publish this form.": "Guarde el documento para publicar este formulario.",
         "Share this form": "Compartir este formulario",
         "View": "Ver",
-        "## **Form Title**": "## **Título del formulario**",
+        "# **Form Title**": "# **Título del formulario**",
         "Your form description goes here.": "La descripción de su formulario va aquí."
     },
     "WelcomeCoachingCall": {
@@ -1638,7 +1638,7 @@
     "Section": {
         "Insert section above": "Insertar la sección anterior",
         "Insert section below": "Insertar la sección siguiente",
-        "### **Header**": "### *Encabezado**",
+        "## **Header**": "## *Encabezado**",
         "Description": "Descripción"
     },
     "AdminPanel": {

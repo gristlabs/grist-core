@@ -34,7 +34,9 @@ export class FormSuccessPage extends Disposable {
   public buildDom() {
     return buildFormMessagePage(() => [
       cssFormSuccessMessageImageContainer(
-        cssFormSuccessMessageImage({src: 'img/form-success.svg'}),
+        cssFormSuccessMessageHeading(
+          cssFormSuccessMessageImage({src: 'img/form-success.svg', alt: t('Form Submitted')}),
+        )
       ),
       cssFormMessageText(dom.text(this._successText), testId('success-page-text')),
       dom.maybe(this._showNewResponseButton, () =>
@@ -55,6 +57,11 @@ export class FormSuccessPage extends Disposable {
 
 const cssFormSuccessMessageImageContainer = styled(cssFormMessageImageContainer, `
   height: 215px;
+`);
+
+const cssFormSuccessMessageHeading = styled('h1', `
+  line-height: 1;
+  margin: 0;
 `);
 
 const cssFormSuccessMessageImage = styled(cssFormMessageImage, `
