@@ -30,11 +30,11 @@
     "test:smoke": "./test/test_env.sh mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh",
     "test:python": "sandbox_venv3/bin/python sandbox/grist/runtests.py ${GREP_TESTS:+discover -p \"test*${GREP_TESTS}*.py\"}",
-    "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js",
+    "cli": "NODE_PATH=_build:_build/ext:_build/stubs node _build/app/server/companion.js",
     "lint": "eslint --cache --cache-strategy content .",
     "lint:fix": "eslint  --cache --cache-strategy=content --fix .",
     "lint:ci": "eslint --max-warnings=0 .",
-    "generate:translation": "NODE_PATH=_build:_build/stubs:_build/ext node buildtools/generate_translation_keys.js",
+    "generate:translation": "NODE_PATH=_build:_build/ext:_build/stubs node buildtools/generate_translation_keys.js",
     "generate:schema:ts": "buildtools/update_schema.sh",
     "generate:icons": "ts-node buildtools/genIconCSS.ts -t app/client/ui2018/IconList.ts static/ui-icons/**/*.svg > static/icons/icons.css"
   },

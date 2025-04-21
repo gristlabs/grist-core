@@ -18,7 +18,7 @@ set -e
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-export NODE_PATH=_build:_build/core:_build/stubs:_build/ext
+export NODE_PATH=_build:_build/core:_build/ext:_build/stubs
 source $SCRIPT_DIR/get_checkpoint_path.sh
 
 if [[ -z "$GRIST_CHECKPOINT" ]]; then
