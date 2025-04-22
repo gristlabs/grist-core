@@ -12,7 +12,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
 import {modal} from 'app/client/ui2018/modals';
 import {BaseAPI} from 'app/common/BaseAPI';
-import {getPageTitleSuffix, commonUrls} from 'app/common/gristUrls';
+import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {UserPrefs} from 'app/common/Prefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {
