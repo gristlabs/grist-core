@@ -1,3 +1,4 @@
+import {AssistantConfig} from 'app/common/Assistant';
 import {
   commonUrls,
   Features,
@@ -103,10 +104,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
     featureComments: isAffirmative(process.env.COMMENTS),
-    featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY ||
-      process.env.ASSISTANT_API_KEY  ||
-      process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT),
-    assistantService: process.env.OPENAI_API_KEY ? 'OpenAI' : undefined,
+    assistant: getAssistantConfig(server),
+    featureNewAssistant: isAffirmative(process.env.GRIST_NEW_ASSISTANT),
     permittedCustomWidgets: getPermittedCustomWidgets(server),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
@@ -248,6 +247,16 @@ function getFeatures(): IFeature[] {
   const disabledFeatures = process.env.GRIST_HIDE_UI_ELEMENTS?.split(',') ?? [];
   const enabledFeatures = process.env.GRIST_UI_FEATURES?.split(',') ?? Features.values;
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
+}
+
+function getAssistantConfig(gristServer?: GristServer|null): AssistantConfig|undefined {
+  const assistant = gristServer?.getAssistant();
+  if (!assistant) {
+    return undefined;
+  }
+
+  const {type, provider} = assistant;
+  return {type, provider};
 }
 
 function getPermittedCustomWidgets(gristServer?: GristServer|null): IAttachedCustomWidget[] {

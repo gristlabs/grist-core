@@ -1,7 +1,7 @@
 import {ActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, ForkResult, FormulaTimingInfo,
         PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
-import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
+import {AssistanceRequest, AssistanceResponse} from 'app/common/Assistance';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
@@ -1212,7 +1212,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return response.data[0];
   }
 
-  public async getAssistance(params: AssistanceRequest): Promise<AssistanceResponse> {
+  public async getAssistance(
+    params: AssistanceRequest
+  ): Promise<AssistanceResponse> {
     return await this.requestJson(`${this._url}/assistant`, {
       method: 'POST',
       body: JSON.stringify(params),

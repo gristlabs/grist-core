@@ -169,6 +169,7 @@ export class MergedServer {
         this.flexServer.addNotifier();
         this.flexServer.addAuditLogger();
         await this.flexServer.addTelemetry();
+        this.flexServer.addAssistant();
         await this.flexServer.addHousekeeper();
         await this.flexServer.addLoginRoutes();
         this.flexServer.addAccountPage();
@@ -183,6 +184,7 @@ export class MergedServer {
         this.flexServer.addJsonSupport();
         this.flexServer.addAuditLogger();
         await this.flexServer.addTelemetry();
+        this.flexServer.addAssistant();
         await this.flexServer.addDoc();
       }
 

@@ -16,6 +16,7 @@ import { create } from 'app/server/lib/create';
 import { DocManager } from 'app/server/lib/DocManager';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { GristJobs } from 'app/server/lib/GristJobs';
+import { IAssistant } from 'app/server/lib/IAssistant';
 import { createNullAuditLogger, IAuditLogger } from 'app/server/lib/IAuditLogger';
 import { IBilling } from 'app/server/lib/IBilling';
 import { ICreate } from 'app/server/lib/ICreate';
@@ -63,6 +64,7 @@ export interface GristServer {
   getTelemetry(): ITelemetry;
   hasNotifier(): boolean;
   getNotifier(): INotifier;
+  getAssistant(): IAssistant|undefined;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
   sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void>;
@@ -168,6 +170,7 @@ export function createDummyGristServer(): GristServer {
     getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
     hasNotifier() { return false; },
+    getAssistant() { return undefined; },
     getDocTemplate() { throw new Error('no doc template'); },
     getTag() { return 'tag'; },
     sendAppPage() { return Promise.resolve(); },

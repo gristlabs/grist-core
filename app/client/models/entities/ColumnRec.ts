@@ -4,7 +4,7 @@ import {CellRec, DocModel, IRowModel, recordSet,
         refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
-import {AssistanceState} from 'app/common/AssistancePrompts';
+import {AssistanceState} from 'app/common/Assistance';
 import * as gristTypes from 'app/common/gristTypes';
 import {getReferencedTableId} from 'app/common/gristTypes';
 import {

@@ -174,6 +174,16 @@ export const cssLinkText = styled('span', `
   }
 `);
 
+export const cssLinkTextAccent = styled(cssLinkText, `
+  color: ${theme.accentText};
+  font-size: 8px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: -4px;
+  margin-left: 4px;
+  vertical-align: super;
+`);
+
 export const cssPageIcon = styled(icon, `
   flex: none;
   margin-right: var(--page-icon-margin, 8px);

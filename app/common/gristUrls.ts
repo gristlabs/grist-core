@@ -1,3 +1,4 @@
+import {AssistantConfig} from 'app/common/Assistant';
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {EngineCode} from 'app/common/DocumentSettings';
@@ -871,14 +872,12 @@ export interface GristLoadConfig {
   // TODO: remove when comments will be released.
   featureComments?: boolean;
 
+  assistant?: AssistantConfig;
+
   // TODO: remove once released.
-  featureFormulaAssistant?: boolean;
+  featureNewAssistant?: boolean;
 
   permittedCustomWidgets?: IAttachedCustomWidget[];
-
-  // Used to determine which disclosure links should be provided to user of
-  // formula assistance.
-  assistantService?: 'OpenAI' | undefined;
 
   // Email address of the support user.
   supportEmail?: string;

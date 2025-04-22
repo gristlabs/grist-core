@@ -37,6 +37,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   home.addAuditLogger();
   home.addScimApi();
   await home.addTelemetry();
+  home.addAssistant();
   await home.addDoc();
   home.addApiErrorHandlers();
   home.finalizeEndpoints();

@@ -1,7 +1,9 @@
-import {AssistanceState} from 'app/common/AssistancePrompts';
+import {AssistanceState, FormulaAssistanceResponse} from 'app/common/Assistance';
 import {ActiveDoc} from "app/server/lib/ActiveDoc";
-import {DEPS, OpenAIAssistant, sendForCompletion} from 'app/server/lib/Assistance';
+import {configureOpenAIFormulaAssistant} from 'app/server/lib/configureOpenAIFormulaAssistant';
 import {DocSession} from 'app/server/lib/DocSession';
+import {DEPS, OpenAIFormulaAssistant} from 'app/server/lib/FormulaAssistant';
+import {IAssistant} from 'app/server/lib/IAssistant';
 import {assert} from 'chai';
 import {Response} from 'node-fetch';
 import * as sinon from 'sinon';
@@ -21,12 +23,13 @@ chai.use(chaiAsPromised);
  */
 const LONGER_CONTEXT_MODEL_FOR_TEST = "fake";
 
-describe('Assistance', function () {
+describe('OpenAIFormulaAssistant', function () {
   this.timeout(10000);
 
   const docTools = createDocTools({persistAcrossCases: true});
   const table1Id = "Table1";
   const table2Id = "Table2";
+  let assistant: IAssistant;
   let session: DocSession;
   let doc: ActiveDoc;
   let oldEnv: EnvironmentSnapshot;
@@ -34,6 +37,11 @@ describe('Assistance', function () {
     oldEnv = new EnvironmentSnapshot();
     process.env.OPENAI_API_KEY = "fake";
     process.env.ASSISTANT_LONGER_CONTEXT_MODEL = LONGER_CONTEXT_MODEL_FOR_TEST;
+    const openAIAssistant = configureOpenAIFormulaAssistant();
+    if (!openAIAssistant) {
+      throw new Error('Please set ASSISTANT_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
+    }
+    assistant = openAIAssistant;
     session = docTools.createFakeSession();
     doc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -48,13 +56,14 @@ describe('Assistance', function () {
   const colId = "C";
   const userMessageContent = "Sum of A and B";
 
-  function checkSendForCompletion(state?: AssistanceState) {
-    return sendForCompletion(session, doc, {
+  function checkGetAssistance(state?: AssistanceState) {
+    return assistant.getAssistance(session, doc, {
+      type: 'formula',
       conversationId: 'conversationId',
-      context: {type: 'formula', tableId: table1Id, colId},
+      context: {tableId: table1Id, colId},
       state,
       text: userMessageContent,
-    });
+    }) as Promise<FormulaAssistanceResponse>;
   }
 
   let fakeResponse: () => any;
@@ -97,8 +106,8 @@ describe('Assistance', function () {
       }],
       status: 200,
     });
-    const result = await checkSendForCompletion();
-    checkModels([OpenAIAssistant.DEFAULT_MODEL]);
+    const result = await checkGetAssistance();
+    checkModels([OpenAIFormulaAssistant.DEFAULT_MODEL]);
     const callInfo = fakeFetch.getCall(0);
     const [url, request] = callInfo.args;
     assert.equal(url, 'https://api.openai.com/v1/chat/completions');
@@ -149,7 +158,7 @@ describe('Assistance', function () {
       }],
       status: 200,
     });
-    const result = await checkSendForCompletion();
+    const result = await checkGetAssistance();
     const callInfo = fakeFetch.getCall(0);
     const [, request] = callInfo.args;
     const {messages: requestMessages} = JSON.parse(request.body);
@@ -170,7 +179,7 @@ describe('Assistance', function () {
       throw new Error("Network error");
     };
     await assert.isRejected(
-      checkSendForCompletion(),
+      checkGetAssistance(),
       "Sorry, the assistant is unavailable right now. " +
       "Try again in a few minutes. \n" +
       "(Error: Network error)",
@@ -181,7 +190,7 @@ describe('Assistance', function () {
   it('tries 3 times in case of bad status code', async function () {
     fakeResponse = () => ({status: 500});
     await assert.isRejected(
-      checkSendForCompletion(),
+      checkGetAssistance(),
       "Sorry, the assistant is unavailable right now. " +
       "Try again in a few minutes. \n" +
       '(Error: AI service provider API returned status 500: {"status":500})',
@@ -197,7 +206,7 @@ describe('Assistance', function () {
       status: 429,
     });
     await assert.isRejected(
-      checkSendForCompletion(),
+      checkGetAssistance(),
       "Sorry, the assistant is facing some long term capacity issues. " +
       "Maybe try again tomorrow.",
     );
@@ -212,11 +221,11 @@ describe('Assistance', function () {
       status: 400,
     });
     await assert.isRejected(
-      checkSendForCompletion(),
+      checkGetAssistance(),
       /You'll need to either shorten your message or delete some columns/
     );
     checkModels([
-      OpenAIAssistant.DEFAULT_MODEL,
+      OpenAIFormulaAssistant.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
@@ -230,7 +239,7 @@ describe('Assistance', function () {
       status: 400,
     });
     await assert.isRejected(
-      checkSendForCompletion(),
+      checkGetAssistance(),
       /You'll need to either shorten your message or delete some columns/
     );
     fakeFetch.getCalls().map((callInfo, i) => {
@@ -262,11 +271,11 @@ describe('Assistance', function () {
       status: 200,
     });
     await assert.isRejected(
-      checkSendForCompletion(),
+      checkGetAssistance(),
       /You'll need to either shorten your message or delete some columns/
     );
     checkModels([
-      OpenAIAssistant.DEFAULT_MODEL,
+      OpenAIFormulaAssistant.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
@@ -280,7 +289,7 @@ describe('Assistance', function () {
       status: 400,
     });
     await assert.isRejected(
-      checkSendForCompletion({
+      checkGetAssistance({
         messages: [
           {role: "system", content: "Be good."},
           {role: "user", content: "Hi."},
@@ -290,7 +299,7 @@ describe('Assistance', function () {
       /You'll need to either shorten your message, restart the conversation, or delete some columns/
     );
     checkModels([
-      OpenAIAssistant.DEFAULT_MODEL,
+      OpenAIFormulaAssistant.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
@@ -320,9 +329,9 @@ describe('Assistance', function () {
         };
       }
     };
-    const result = await checkSendForCompletion();
+    const result = await checkGetAssistance();
     checkModels([
-      OpenAIAssistant.DEFAULT_MODEL,
+      OpenAIFormulaAssistant.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);

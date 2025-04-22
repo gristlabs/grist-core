@@ -12,23 +12,22 @@ import { Timings } from "app/gen-server/lib/Housekeeper";
 
 
 const fakeVersionUrl = 'https://whatever.computer/version';
-describe('updateChecker', () => {
+describe('updateChecker', function() {
   testUtils.setTmpLogLevel('error');
 
-  let fetchStub: sinon.SinonStub;
-  let setVersionStub: sinon.SinonStub;
-  let sandbox: sinon.SinonSandbox;
   let server: TestServer;
   let homeUrl: string;
+  let oldServerEnv: testUtils.EnvironmentSnapshot;
 
-  const oldServerEnv = new testUtils.EnvironmentSnapshot();
+  const sandbox = sinon.createSandbox();
 
   function setupTestServer(mockResponse: LatestVersion) {
     beforeEach(async function () {
+      oldServerEnv = new testUtils.EnvironmentSnapshot();
+
       // Stub out the fetch to the external version API endpoint so we
       // can specify what the latest publicly available version is.
-      fetchStub = sinon.stub(global, 'fetch');
-      fetchStub
+      sandbox.stub(global, 'fetch')
         .withArgs(fakeVersionUrl, sinon.match.any)
         .resolves(new Response(
           JSON.stringify(mockResponse),
@@ -46,14 +45,13 @@ describe('updateChecker', () => {
         setVersionResolved = resolve;
       });
       const originalSetMethod = FlexServer.prototype.setLatestVersionAvailable;
-      setVersionStub = sinon.stub(FlexServer.prototype, 'setLatestVersionAvailable')
+      sandbox.stub(FlexServer.prototype, 'setLatestVersionAvailable')
         .callsFake(function (this: FlexServer, ...args){
           originalSetMethod.apply(this, args);
           setVersionResolved();
         });
 
       // Remove the waiting time to do the first version check at startup
-      sandbox = sinon.createSandbox();
       sandbox.stub(Timings, 'VERSION_CHECK_OFFSET_MS').value(0);
 
       process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING = 'true';
@@ -65,8 +63,6 @@ describe('updateChecker', () => {
 
     afterEach(async function () {
       await server.stop();
-      fetchStub.restore();
-      setVersionStub.restore();
       oldServerEnv.restore();
       sandbox.restore();
     });

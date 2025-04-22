@@ -7,7 +7,6 @@ import {movable} from 'app/client/lib/popupUtils';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {ChatMessage} from 'app/client/models/entities/ColumnRec';
-import {HAS_FORMULA_ASSISTANT, WHICH_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {buildCodeHighlighter, buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {autoGrow} from 'app/client/ui/forms';
@@ -22,7 +21,8 @@ import {loadingDots} from 'app/client/ui2018/loaders';
 import {menu, menuItem} from 'app/client/ui2018/menus';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {ApiError} from 'app/common/ApiError';
-import {AssistanceResponse, AssistanceState, FormulaAssistanceContext} from 'app/common/AssistancePrompts';
+import {AssistanceState, FormulaAssistanceContext,
+        FormulaAssistanceResponse} from 'app/common/Assistance';
 import {isFreePlan} from 'app/common/Features';
 import {commonUrls} from 'app/common/gristUrls';
 import {TelemetryEvent, TelemetryMetadata} from 'app/common/Telemetry';
@@ -119,7 +119,7 @@ export class FormulaAssistant extends Disposable {
   }) {
     super();
 
-    this._assistantEnabled = HAS_FORMULA_ASSISTANT();
+    this._assistantEnabled = Boolean(getGristConfig().assistant);
 
     if (!this._options.field) {
       // TODO: field is not passed only for rules (as there is no preview there available to the user yet)
@@ -989,7 +989,7 @@ class ChatHistory extends Disposable {
               '"Please calculate the total invoice amount."'
             ),
           ),
-          (WHICH_FORMULA_ASSISTANT() === 'OpenAI') ? cssAiMessageBullet(
+          (getGristConfig().assistant?.provider === 'OpenAI') ? cssAiMessageBullet(
             cssTickIcon('Tick'),
             dom('div',
               t(
@@ -1046,16 +1046,17 @@ async function askAI(grist: GristDoc, options: {
   description: string,
   conversationId: string,
   state?: AssistanceState
-}): Promise<AssistanceResponse> {
+}): Promise<FormulaAssistanceResponse> {
   const {column, description, conversationId, state} = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
   return await grist.docApi.getAssistance({
+    type: 'formula',
     conversationId,
-    context: {type: 'formula', tableId, colId},
+    context: {tableId, colId},
     text: description,
     state,
-  });
+  }) as FormulaAssistanceResponse;
 }
 
 /** Builds avatar image for user or assistant. */

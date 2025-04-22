@@ -28,8 +28,9 @@
 
 
 import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
-import { DEPS, sendForCompletion } from "app/server/lib/Assistance";
 import log from 'app/server/lib/log';
+import { configureOpenAIFormulaAssistant } from "app/server/lib/configureOpenAIFormulaAssistant";
+import { DEPS } from "app/server/lib/FormulaAssistant";
 import crypto from 'crypto';
 import { parse } from 'csv-parse/sync';
 import fetch, {RequestInfo, RequestInit, Response} from 'node-fetch';
@@ -41,7 +42,7 @@ import * as os from 'os';
 import { pipeline } from 'stream';
 import { createDocTools } from "test/server/docTools";
 import { promisify } from 'util';
-import { AssistanceResponse, AssistanceState } from "app/common/AssistancePrompts";
+import { AssistanceState, FormulaAssistanceResponse } from "app/common/Assistance";
 import { CellValue } from "app/plugin/GristData";
 
 const streamPipeline = promisify(pipeline);
@@ -71,6 +72,11 @@ const SIMULATE_CONVERSATION = true;
 const FOLLOWUP_EVALUATE = false;
 
 export async function runCompletion() {
+  const assistant = configureOpenAIFormulaAssistant();
+  if (!assistant) {
+    throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
+  }
+
   // This could take a long time for LLMs running on underpowered hardware >:)
   ActiveDocDeps.ACTIVEDOC_TIMEOUT = 500000;
 
@@ -134,7 +140,7 @@ export async function runCompletion() {
     let activeDoc: ActiveDoc|undefined;
     for (const rec of records) {
       let success: boolean = false;
-      let suggestedActions: AssistanceResponse['suggestedActions'] | undefined;
+      let suggestedActions: FormulaAssistanceResponse['suggestedActions'] | undefined;
       let newValues: CellValue[] | undefined;
       let formula: string | undefined;
       let history: AssistanceState = {messages: []};
@@ -169,10 +175,10 @@ export async function runCompletion() {
         `, rec.col_id, rec.table_id);
           formula = colInfo?.formula;
 
-          const result = await sendForCompletion(session, activeDoc, {
+          const result = await assistant!.getAssistance(session, activeDoc, {
+            type: 'formula',
             conversationId: 'conversationId',
             context: {
-              type: 'formula',
               tableId,
               colId,
               evaluateCurrentFormula: Boolean(followUp) && FOLLOWUP_EVALUATE,
@@ -180,7 +186,7 @@ export async function runCompletion() {
             },
             state: history,
             text: followUp || description,
-          });
+          }) as FormulaAssistanceResponse;
           if (result.state) {
             history = result.state;
           }

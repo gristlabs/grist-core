@@ -52,7 +52,6 @@ import {
 } from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {CreatableArchiveFormats} from 'app/server/lib/Archive';
-import {sendForCompletion} from 'app/server/lib/Assistance';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
   getConfiguredAttachmentStoreConfigs,
@@ -1494,14 +1493,19 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/send-to-drive', canView, decodeGoogleToken, withDoc(exportToDrive));
 
     /**
-     * Send a request to the formula assistant to get completions for a formula. Increases the
-     * usage of the formula assistant for the billing account in case of success.
+     * Send a request to the assistant to get completions. Increases the
+     * usage of the assistant for the billing account in case of success.
      */
     this._app.post('/api/docs/:docId/assistant', canView, checkLimit('assistant'),
       withDoc(async (activeDoc, req, res) => {
         const docSession = docSessionFromRequest(req);
         const request = req.body;
-        const result = await sendForCompletion(docSession, activeDoc, request);
+        const assistant = this._grist.getAssistant();
+        if (!assistant) {
+          throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
+        }
+
+        const result = await assistant.getAssistance(docSession, activeDoc, request);
         const limit = await this._increaseLimit('assistant', req);
         res.json({
           ...result,

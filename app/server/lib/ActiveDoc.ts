@@ -96,8 +96,8 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
-import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
-import {AssistanceContext} from 'app/common/AssistancePrompts';
+import {AssistanceSchemaPromptV1Context} from 'app/server/lib/IAssistant';
+import {FormulaAssistanceContext} from 'app/common/Assistance';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
@@ -1538,7 +1538,7 @@ export class ActiveDoc extends EventEmitter {
   // Callback to compute an existing formula and return the result along with recorded values
   // of (possibly nested) attributes of `rec`.
   // Used by AI assistance to fix an incorrect formula.
-  public assistanceEvaluateFormula(options: AssistanceContext) {
+  public assistanceEvaluateFormula(options: FormulaAssistanceContext) {
     if (!options.evaluateCurrentFormula) {
       throw new Error('evaluateCurrentFormula must be true');
     }

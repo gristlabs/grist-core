@@ -57,6 +57,7 @@ import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {invokePrompt} from 'app/client/ui2018/modals';
+import {Assistant} from 'app/client/widgets/Assistant';
 import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
@@ -305,6 +306,15 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _disableAutoStartingTours: boolean = false;
   private _isShowingPopupSection = false;
   private _prevSectionId: number | null = null;
+
+  /**
+   * This holds a single Assistant and empties itself whenever the Assistant is
+   * disposed.
+   *
+   * The holder is maintained by GristDoc, so that we are guaranteed at most
+   * one instance of Assistant at any time.
+   */
+  private _assistantHolder = Holder.create<Assistant>(this);
 
   constructor(
     public readonly app: App,
@@ -598,6 +608,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
+      openAssistant: this._openAssistant.bind(this),
     }, this, true));
 
     this.listenTo(app.comm, 'docUserAction', this._onDocUserAction);
@@ -1943,6 +1954,16 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         }]
       });
     });
+  }
+
+  private _openAssistant() {
+    if (!this._assistantHolder.isEmpty()) {
+      // If an Assistant is already open, don't dispose and reopen it, which
+      // would cause its state to be reset.
+      return;
+    }
+
+    Assistant.create(this._assistantHolder, this);
   }
 }
 

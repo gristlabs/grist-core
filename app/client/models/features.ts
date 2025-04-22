@@ -14,15 +14,8 @@ export function COMMENTS(): Observable<boolean> {
   return G.window.COMMENTS;
 }
 
-/**
- * Does backend supports AI assistant.
- */
-export function HAS_FORMULA_ASSISTANT() {
-  return Boolean(getGristConfig().featureFormulaAssistant);
-}
-
-export function WHICH_FORMULA_ASSISTANT() {
-  return getGristConfig().assistantService;
+export function GRIST_NEW_ASSISTANT() {
+  return Boolean(getGristConfig().featureNewAssistant);
 }
 
 export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {

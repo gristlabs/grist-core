@@ -7,7 +7,6 @@ import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ColumnRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
-import {HAS_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -21,6 +20,7 @@ import {asyncOnce} from 'app/common/AsyncCreate';
 import {CellValue} from 'app/common/DocActions';
 import {isRaisedException} from 'app/common/gristTypes';
 import {undef} from 'app/common/gutil';
+import {getGristConfig} from 'app/common/urlUtils';
 import {decodeObject, RaisedException} from 'app/plugin/objtypes';
 import {Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import debounce = require('lodash/debounce');
@@ -336,7 +336,10 @@ export class FormulaEditor extends NewBaseEditor {
     if (!shouldShowPlaceholder) {
       editor.renderer.emptyMessageNode = null;
     } else {
-      const withAiButton = this._canDetach && !this.isDetached.get() && HAS_FORMULA_ASSISTANT();
+      const withAiButton =
+        this._canDetach &&
+        !this.isDetached.get() &&
+        Boolean(getGristConfig().assistant);
       editor.renderer.emptyMessageNode = cssFormulaPlaceholder(
           !withAiButton
           ? t('Enter formula.')
