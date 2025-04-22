@@ -1872,7 +1872,7 @@
         "Splunk": "Splunk",
         "Add destination": "Ajouter destination",
         "Add streaming destination": "Ajouter une destination de streaming",
-        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Êtes-vous certain de vouloir supprimer cette destination de streaming ? Cette action ne pourra pas être annulée.",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Êtes-vous certain·e de vouloir supprimer cette destination de streaming ? Cette action ne pourra pas être annulée.",
         "Delete streaming destination?": "Effacer la destination de streaming ?",
         "Delete": "Effacer",
         "Destination": "Destination",
@@ -1945,8 +1945,8 @@
         "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Les vues personnalisées sont **très puissantes** ! Certaines peuvent **lire et envoyer vos données** sur internet.",
         "Are you sure you **trust the resource** at this URL?": "Êtes-vous certain de **faire confiance** à la **ressource derrière cette URL** ?",
         "Do you **trust the person** who shared this link?": "Faites-vous **confiance à la personne** qui vous a **partagé ce lien** ?",
-        "Have you **reviewed the code** at this URL?": "Le cas échéant avez-vous pu **auditer le code derrière ce lien** ?",
-        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En cas de doute, vous pouvez transférer le lien aux équipes techniques responsable de votre instance.",
-        "I confirm that I understand these warnings and accept the risks": "j’ai bien lu ces recommandations et je confirme vouloir ajouter cette vue"
+        "Have you **reviewed the code** at this URL?": "Le cas échéant, avez-vous pu **auditer le code derrière ce lien** ?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En cas de doute, vous pouvez transférer le lien aux équipes techniques responsables de votre instance.",
+        "I confirm that I understand these warnings and accept the risks": "J’ai bien lu ces recommandations et je confirme vouloir ajouter cette vue."
     }
 }
