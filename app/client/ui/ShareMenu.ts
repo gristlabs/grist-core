@@ -287,7 +287,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       e.preventDefault();
       // Show warning.
       setTimeout(() => reportError(new UserError(
-        t("Exporting is only available from data pages. Please select a data page and try again."),
+        t("Exporting is only available from document pages. Please select a document page and try again."),
         {
           key: 'exporting-not-available',
           level: 'warning'
