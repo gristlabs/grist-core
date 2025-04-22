@@ -1547,7 +1547,8 @@
     },
     "FormContainer": {
         "Build your own form": "Build your own form",
-        "Powered by": "Powered by"
+        "Powered by": "Powered by",
+        "Powered by Grist": "Powered by Grist"
     },
     "FormErrorPage": {
         "Error": "Error"
@@ -1661,7 +1662,8 @@
         "New, Enterprise": "New, Enterprise",
         "Off": "Off",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more",
-        "On": "On"
+        "On": "On",
+        "Grist Instance": "Grist Instance"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1961,6 +1963,8 @@
         "Learn more": "Learn more",
         "Orgs": "Orgs",
         "Users": "Users",
-        "Workspaces": "Workspaces"
+        "Workspaces": "Workspaces",
+        "Admin Controls": "Admin Controls",
+        "Settings": "Settings"
     }
 }
