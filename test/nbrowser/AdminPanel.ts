@@ -2,9 +2,8 @@ import {TelemetryLevel} from 'app/common/Telemetry';
 import {assert, driver, Key, WebElement} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {Defer, serveSomething, Serving} from 'test/server/customUtil';
+import {FakeUpdateServer, startFakeUpdateServer} from 'test/server/customUtil';
 import * as testUtils from 'test/server/testUtils';
-import express from 'express';
 
 describe('AdminPanel', function() {
   this.timeout(300000);
@@ -20,7 +19,7 @@ describe('AdminPanel', function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = 'core';
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
-    fakeServer = await startFakeServer();
+    fakeServer = await startFakeUpdateServer();
     process.env.GRIST_TEST_VERSION_CHECK_URL = `${fakeServer.url()}/version`;
     await server.restart(true);
   });
@@ -261,7 +260,7 @@ describe('AdminPanel', function() {
     await waitForStatus(/Newer version available/);
     // And a version number.
     assert.isTrue(await versionBox().isDisplayed());
-    assert.match(await versionBox().getText(), /Version 9\.9\.9/);
+    assert.match(await versionBox().getText(), new RegExp(`Version ${fakeServer.latestVersion}`));
 
     // When we reload, we will auto check for updates.
     fakeServer.pause();
@@ -301,7 +300,7 @@ describe('AdminPanel', function() {
     await waitForStatus(/Grist is up to date/);
 
     // Update version once again.
-    fakeServer.latestVersion = '9.9.10';
+    fakeServer.bumpVersion();
     // Click lower check now.
     fakeServer.pause();
     await lowerCheckNow().click();
@@ -311,7 +310,7 @@ describe('AdminPanel', function() {
 
     // Make sure we see the new version.
     assert.isTrue(await versionBox().isDisplayed());
-    assert.match(await versionBox().getText(), /Version 9\.9\.10/);
+    assert.match(await versionBox().getText(), new RegExp(`Version ${fakeServer.latestVersion}`));
   });
 
   it('shows error message', async function() {
@@ -399,63 +398,6 @@ export function isEnabled(switchElem: WebElement|string) {
     switchElem = driver.find(`.test-admin-panel-item-value-${switchElem} .widget_switch`);
   }
   return switchElem.matches('[class*=switch_on]');
-}
-
-
-
-interface FakeUpdateServer {
-  latestVersion: string;
-  failNext: boolean;
-  payload: any;
-  close: () => Promise<void>;
-  pause: () => void;
-  resume: () => void;
-  url: () => string;
-}
-
-async function startFakeServer() {
-  let mutex: Defer|null = null;
-  const API: FakeUpdateServer = {
-    latestVersion: '9.9.9',
-    failNext: false,
-    payload: null,
-    close: async () => {
-      mutex?.resolve();
-      mutex = null;
-      await server?.shutdown();
-      server = null;
-    },
-    pause: () => {
-      mutex = new Defer();
-    },
-    resume: () => {
-      mutex?.resolve();
-      mutex = null;
-    },
-    url: () => {
-      return server!.url;
-    }
-  };
-
-  let server: Serving|null = await serveSomething((app) => {
-    app.use(express.json());
-    app.post('/version', async (req, res, next) => {
-      API.payload = req.body;
-      try {
-        await mutex;
-        if (API.failNext) {
-          res.status(500).json({error: 'some error'});
-          API.failNext = false;
-          return;
-        }
-        res.json({latestVersion: API.latestVersion});
-      } catch(ex) {
-        next(ex);
-      }
-    });
-  });
-
-  return API;
 }
 
 async function currentVersion() {
