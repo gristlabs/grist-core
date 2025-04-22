@@ -993,7 +993,7 @@ export function getOnboardingVideoId(): string {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return gristConfig && gristConfig.onboardingTutorialVideoId || defaultId;
   } else {
-    return process.env.GRIST_ONBOARDING_VIDEO || defaultId;
+    return process.env.GRIST_ONBOARDING_VIDEO_ID || defaultId;
   }
 }
 
