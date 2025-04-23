@@ -77,9 +77,6 @@ function Clipboard(app) {
     onDefaultFocus: () => {
       this.copypasteField.value = ' ';
       this.copypasteField.select();
-      if (window.gristRegionFocusSwitcher) {
-        window.gristRegionFocusSwitcher.focusActiveSection();
-      }
       this._app.trigger('clipboard_focus');
     },
     onDefaultBlur: () => {

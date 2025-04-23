@@ -1,5 +1,7 @@
 import {ClientScope} from 'app/client/components/ClientScope';
 import * as Clipboard from 'app/client/components/Clipboard';
+import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
+import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
 import {Comm} from 'app/client/components/Comm';
 import * as commandList from 'app/client/components/commandList';
 import * as commands from 'app/client/components/commands';
@@ -24,7 +26,6 @@ import {dom} from 'grainjs';
 import * as ko from 'knockout';
 import {makeT} from 'app/client/lib/localization';
 import { onClickOutside } from 'app/client/lib/domUtils';
-import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
 
 const t = makeT('App');
 
@@ -39,6 +40,7 @@ export interface App extends DisposableWithEvents {
   features: ko.Computed<ISupportedFeatures>;
   topAppModel: TopAppModel;
   pageModel?: DocPageModel;
+  regionFocusSwitcher?: RegionFocusSwitcher;
 }
 
 /**
@@ -55,6 +57,8 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   // Track the most recently created DocPageModel, for some error handling.
   public pageModel?: DocPageModel;
+
+  public regionFocusSwitcher?: RegionFocusSwitcher;
 
   private _settings: ko.Observable<{features?: ISupportedFeatures}>;
 
@@ -76,9 +80,10 @@ export class AppImpl extends DisposableWithEvents implements App {
     this._settings = ko.observable({});
     this.features = ko.computed(() => this._settings().features || {});
 
-    this.autoDispose(new KeyboardFocusHighlighter());
+    KeyboardFocusHighlighter.create(this);
 
     if (isDesktop()) {
+      this.regionFocusSwitcher = RegionFocusSwitcher.create(this, this);
       this.autoDispose(Clipboard.create(this));
     } else {
       // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted
