@@ -359,7 +359,8 @@ export class OIDCConfig {
     return {
       email: String(userInfo[this._emailPropertyKey]),
       name: this._extractName(userInfo),
-      extra: pick(userInfo, process.env.GRIST_OIDC_SP_EXTRA_PROPS_TO_STORE?.split(',') || [])
+      // extra fields could be returned by the IdP that we might want to store
+      extra: pick(userInfo, process.env.GRIST_IDP_EXTRA_PROPS?.split(',') || [])
     };
   }
 
