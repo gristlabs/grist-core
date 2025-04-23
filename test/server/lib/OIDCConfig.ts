@@ -587,6 +587,7 @@ describe('OIDCConfig', () => {
         extraChecks: checkUserProfile({
           email: FAKE_USER_INFO.email,
           name: FAKE_USER_INFO.name,
+          extra: {},
         })
       },
       {
@@ -619,6 +620,53 @@ describe('OIDCConfig', () => {
         extraChecks: checkUserProfile({
           email: 'fake-email2',
           name: 'fake-name2',
+          extra: {},
+        }),
+      },
+      {
+        itMsg: 'should store extra info returned by the SSO provider when the env var is set',
+        session: DEFAULT_SESSION,
+        env: {
+          GRIST_OIDC_SP_EXTRA_PROPS_TO_STORE: 'extrafield,anotherfield',
+        },
+        userInfo: {
+          ...FAKE_USER_INFO,
+          extrafield: 'randomvalue',
+        },
+        extraChecks: checkUserProfile({
+          email: 'fake-email',
+          name: 'fake-name',
+          extra: {
+            extrafield: 'randomvalue'}
+        }),
+      },
+      {
+        itMsg: 'should store extra info returned by the SSO provider when the env var is not set',
+        session: DEFAULT_SESSION,
+        userInfo: {
+          ...FAKE_USER_INFO,
+          extrafield: 'randomvalue',
+        },
+        extraChecks: checkUserProfile({
+          email: 'fake-email',
+          name: 'fake-name',
+          extra: {}
+        }),
+      },
+      {
+        itMsg: 'should not store extra info returned by the SSO provider when env var does not list it',
+        session: DEFAULT_SESSION,
+        env: {
+          GRIST_OIDC_SP_EXTRA_PROPS_TO_STORE: 'anotherfield',
+        },
+        userInfo: {
+          ...FAKE_USER_INFO,
+          extrafield: 'randomvalue',
+        },
+        extraChecks: checkUserProfile({
+          email: 'fake-email',
+          name: 'fake-name',
+          extra: {}
         }),
       },
       {
