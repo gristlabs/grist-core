@@ -22,7 +22,11 @@ interface SectionRegion {
   id: any // this matches a grist document view section id
 }
 type Region = PanelRegion | SectionRegion;
-type UpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
+type StateUpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
+interface State {
+  region?: Region;
+  initiator?: StateUpdateInitiator;
+}
 
 /**
  * RegionFocusSwitcher enables keyboard navigation between app panels and doc widgets.
@@ -30,11 +34,10 @@ type UpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
  * It also follow mouse clicks to focus panels accordingly.
  */
 export class RegionFocusSwitcher extends Disposable {
-  // Currently focused region
-  public readonly current: Observable<Region | undefined>;
+  // State with currently focused region
+  private readonly _state: Observable<State>;
 
   private _gristDocObs: Observable<GristDoc | null>;
-  private _currentUpdateInitiator?: UpdateInitiator;
   // Previously focused elements for each panel (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
     left: null,
@@ -48,7 +51,10 @@ export class RegionFocusSwitcher extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this.current = Observable.create(this, undefined);
+    this._state = Observable.create(this, {
+      region: undefined,
+      initiator: undefined,
+    });
     this._initiated = Observable.create(this, false);
   }
 
@@ -82,7 +88,7 @@ export class RegionFocusSwitcher extends Disposable {
       cancel: this._onEscapeKeypress.bind(this),
     }, this, true));
 
-    this.autoDispose(this.current.addListener(this._onCurrentUpdate.bind(this)));
+    this.autoDispose(this._state.addListener(this._onStateChange.bind(this)));
 
     const focusActiveSection = () => this.focusActiveSection();
     this._app.on('clipboard_focus', focusActiveSection);
@@ -99,7 +105,7 @@ export class RegionFocusSwitcher extends Disposable {
 
   public focusRegion(
     region: Region | undefined,
-    options: {initiator?: UpdateInitiator} = {}
+    options: {initiator?: StateUpdateInitiator} = {}
   ) {
     if (region?.type === 'panel' && !getPanelElement(region.id)) {
       return;
@@ -113,8 +119,7 @@ export class RegionFocusSwitcher extends Disposable {
       throw new Error('view section id is not supported when no view layout is rendered');
     }
 
-    this._currentUpdateInitiator = options.initiator;
-    this.current.set(region);
+    this._state.set({region, initiator: options.initiator});
   }
 
   public focusActiveSection() {
@@ -124,7 +129,7 @@ export class RegionFocusSwitcher extends Disposable {
     }
   }
 
-  public reset(initiator?: UpdateInitiator) {
+  public reset(initiator?: StateUpdateInitiator) {
     this.focusRegion(undefined, {initiator});
   }
 
@@ -155,7 +160,7 @@ export class RegionFocusSwitcher extends Disposable {
         if (!gristDoc) {
           return true;
         }
-        const current = use(this.current);
+        const current = use(this._state).region;
         // on a grist doc, panel content is focusable only if it's the current region
         if (current?.type === 'panel' && current.id === id) {
           return true;
@@ -186,8 +191,8 @@ export class RegionFocusSwitcher extends Disposable {
       }),
       dom.cls(`${cssFocusedPanel.className}-focused`, use => {
         use(this._initiated);
-        const current = use(this.current);
-        return this._currentUpdateInitiator?.type === 'cycle' && current?.type === 'panel' && current.id === id;
+        const current = use(this._state);
+        return current.initiator?.type === 'cycle' && current.region?.type === 'panel' && current.region.id === id;
       }),
     ];
   }
@@ -196,7 +201,7 @@ export class RegionFocusSwitcher extends Disposable {
     const gristDoc = this._getGristDoc();
     const cycleRegions = getCycleRegions(gristDoc);
     this.focusRegion(getSibling(
-      this.current.get(),
+      this._state.get().region,
       cycleRegions,
       direction,
       gristDoc
@@ -212,7 +217,7 @@ export class RegionFocusSwitcher extends Disposable {
    *   - make sure the internal current region info is set when user clicks on the view layout.
    */
   private _onClick(event: MouseEvent) {
-    const current = this.current.get();
+    const current = this._state.get().region;
     const gristDoc = this._getGristDoc();
     if (!gristDoc) {
       return;
@@ -255,12 +260,12 @@ export class RegionFocusSwitcher extends Disposable {
   }
 
   private _onEscapeKeypress() {
-    const current = this.current.get();
+    const {region: current, initiator} = this._state.get();
     // Do nothing if we are not focused on a panel
     if (current?.type !== 'panel') {
       return;
     }
-    const comesFromKeyboard = this._currentUpdateInitiator?.type === 'cycle';
+    const comesFromKeyboard = initiator?.type === 'cycle';
     const panelElement = getPanelElement(current.id);
     const activeElement = document.activeElement;
     const activeElementIsInPanel = panelElement?.contains(activeElement) && activeElement !== panelElement;
@@ -304,31 +309,38 @@ export class RegionFocusSwitcher extends Disposable {
     this._prevFocusedElements[prev.id] = document.activeElement;
   }
 
-  private _onCurrentUpdate(current: Region | undefined, prev: Region | undefined) {
+  private _onStateChange(current: State | undefined, prev: State | undefined) {
     if (isEqual(current, prev)) {
       return;
     }
 
+    console.log('mhl current update', current);
+
+
     const gristDoc = this._getGristDoc();
-    const mouseEvent = this._currentUpdateInitiator?.type === 'mouse'
-      ? this._currentUpdateInitiator.event
+    const mouseEvent = current?.initiator?.type === 'mouse'
+      ? current.initiator.event
       : undefined;
 
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
-      this._savePrevElementState(prev);
-      if (prev?.type === 'panel') {
-        blurPanelChild(prev);
+      this._savePrevElementState(prev?.region);
+      if (prev?.region?.type === 'panel') {
+        blurPanelChild(prev.region);
       }
     }
 
-    const isPanel = current?.type === 'panel';
-    const panelElement = isPanel && getPanelElement(current.id);
+    const isPanel = current?.region?.type === 'panel';
+    const panelElement = isPanel && current.region?.id && getPanelElement(current.region.id);
 
     // actually focus panel element if using keyboard
-    if (!mouseEvent && isPanel && panelElement) {
-      focusPanel(current, this._prevFocusedElements[current.id] as HTMLElement | null, gristDoc);
+    if (!mouseEvent && isPanel && panelElement && current.region) {
+      focusPanel(
+        current.region as PanelRegion,
+        this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
+        gristDoc
+      );
     }
 
     // just make sure view layout commands are disabled if we click on a panel
@@ -336,8 +348,8 @@ export class RegionFocusSwitcher extends Disposable {
       escapeViewLayout(gristDoc, !!(mouseEvent.target as Element)?.closest(`[${ATTRS.regionId}="right"]`));
     }
 
-    if (current?.type === 'section' && gristDoc) {
-      focusSection(current, gristDoc);
+    if (current?.region?.type === 'section' && gristDoc) {
+      focusSection(current.region, gristDoc);
     }
 
     if (current === undefined && gristDoc) {
@@ -356,7 +368,7 @@ export class RegionFocusSwitcher extends Disposable {
   }
 
   private _toggleCreatorPanel() {
-    const current = this.current.get();
+    const current = this._state.get().region;
     const gristDoc = this._getGristDoc();
     if (current?.type === 'panel' && current.id === 'right') {
       return this.focusRegion(gristDoc
