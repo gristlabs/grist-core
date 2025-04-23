@@ -280,7 +280,7 @@ export class UsersManager {
         needsSave = true;
       }
       if (Object.keys(props.options ?? []).length > 0) {
-        user.options = {...(user.options ?? {}), ...(props.options)};
+        user.options = {...(user.options ?? {}), ...({sso_extra: props.options})};
         needsSave = true;
       }
       if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
@@ -442,7 +442,7 @@ export class UsersManager {
       // We might want to store extra information returned by the identity provider
       if (options.profile?.extra) {
         // Update already existing user options
-        user.options = {...user.options, ...options.profile.extra};
+        user.options = {...user.options, ...{sso_extra: options.profile.extra}};
         needUpdate = true;
       }
 

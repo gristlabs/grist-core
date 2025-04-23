@@ -208,6 +208,7 @@ export interface UserOptions {
   isConsultant?: boolean;
   // Locale selected by the user. Defaults to 'en' if unset.
   locale?: string;
+  sso_extra?: Record<string, any>; // Extra fields from the user profile, e.g. from OIDC.
 }
 
 export interface PermissionDelta {
