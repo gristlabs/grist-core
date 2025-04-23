@@ -1462,8 +1462,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           ${asLiteral(tableId)} as tableId,
           ${asLiteral(colId)} as colId
         FROM ${quoteIdent(tableId)} AS t, json_each(t.${quoteIdent(colId)}) as a
-        -- json_each is needed because of https://github.com/gristlabs/grist-core/issues/1565 
         WHERE a.value = ${attId} AND json_valid(t.${quoteIdent(colId)})`);
+        // json_valid is needed because of https://github.com/gristlabs/grist-core/issues/1565
       }
     }
     try {
