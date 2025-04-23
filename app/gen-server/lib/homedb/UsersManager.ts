@@ -279,7 +279,7 @@ export class UsersManager {
         user.name = props.name;
         needsSave = true;
       }
-      if (Object.keys(props.options ?? []).length > 0) {
+      if (Object.keys(props.options ?? {}).length > 0) {
         user.options = {...(user.options ?? {}), ...({sso_extra: props.options})};
         needsSave = true;
       }
