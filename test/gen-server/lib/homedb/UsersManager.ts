@@ -795,7 +795,9 @@ describe('UsersManager', function () {
             picture: profile.picture,
             options: {
               authSubject: userOptions.authSubject,
-              extrafield: profile.extra!.extrafield,
+              sso_extra: {
+                extrafield: profile.extra!.extrafield,
+              },
             }
           });
           assert.deepInclude(updatedUser.logins[0], {
