@@ -208,9 +208,6 @@ export interface UserOptions {
   isConsultant?: boolean;
   // Locale selected by the user. Defaults to 'en' if unset.
   locale?: string;
-
-  // extra information, not used by Grist
-  extra?: object;
 }
 
 export interface PermissionDelta {
