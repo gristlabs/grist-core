@@ -279,10 +279,6 @@ export class UsersManager {
         user.name = props.name;
         needsSave = true;
       }
-      if (Object.keys(props.options ?? {}).length > 0) {
-        user.options = {...(user.options ?? {}), ...({sso_extra: props.options})};
-        needsSave = true;
-      }
       if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
         user.isFirstTimeUser = props.isFirstTimeUser;
         needsSave = true;
