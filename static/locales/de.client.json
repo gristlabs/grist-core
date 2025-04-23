@@ -1326,7 +1326,8 @@
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Zwei-Wege-Referenzen werden derzeit nicht für Formel- oder Trigger-Formelspalten unterstützt",
         "The preview below this header shows how the selected user will see this document": "Die Vorschau unter dieser Überschrift zeigt, wie der ausgewählte Benutzer dieses Dokument sehen wird",
         "[Learn more.]({{link}})": "[Erfahren Sie mehr.]({{link}})",
-        "Summary tables can only contain formula columns.": "Übersichtstabellen können nur Formelspalten enthalten."
+        "Summary tables can only contain formula columns.": "Übersichtstabellen können nur Formelspalten enthalten.",
+        "Manage users and resources in a Grist installation.": "Verwalten Sie Benutzer und Ressourcen in einer Grist-Installation."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1431,7 +1432,7 @@
         "Opt in to Telemetry": "Melden Sie sich für Telemetrie an",
         "Opted In": "Angemeldet",
         "Support Grist page": "Support Grist-Seite",
-        "Admin Panel": "Verwaltungsbereich",
+        "Admin Panel": "Administrations Bereich",
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Wir danken Ihnen! Wir wissen Ihr Vertrauen und Ihre Unterstützung sehr zu schätzen. Sie können sich jederzeit unter {{link}} im Benutzermenü abmelden."
     },
     "SupportGristPage": {
@@ -1574,7 +1575,8 @@
     },
     "FormContainer": {
         "Build your own form": "Erstellen Sie Ihr eigenes Formular",
-        "Powered by": "Angetrieben durch"
+        "Powered by": "Angetrieben durch",
+        "Powered by Grist": "Angetrieben von Grist"
     },
     "FormErrorPage": {
         "Error": "Fehler"
@@ -1617,7 +1619,9 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Einige erforderliche Spalten sind nicht zugeordnet",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Um dieses Widget zu verwenden, ordnen Sie bitte alle nicht-optionalen Spalten im Ersteller-Panel auf der rechten Seite zu."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Um dieses Widget zu verwenden, ordnen Sie bitte alle nicht-optionalen Spalten im Ersteller-Panel auf der rechten Seite zu.",
+        "Some required columns are hidden by access rules": "Einige erforderliche Spalten werden durch Zugriffsregeln ausgeblendet",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Um dieses Widget zu verwenden, müssen alle zugeordneten Spalten sichtbar sein. Bitte wenden Sie sich an den Eigentümer des Dokuments oder ändern Sie die Zugriffsregeln."
     },
     "FormSuccessPage": {
         "Form Submitted": "Formular eingereicht",
@@ -1646,7 +1650,7 @@
         "Select All": "Alle auswählen"
     },
     "AdminPanel": {
-        "Admin Panel": "Verwaltungsbereich",
+        "Admin Panel": "Administrations Bereich",
         "Current": "Aktuell",
         "Support Grist": "Unterstützen Sie Grist",
         "Telemetry": "Telemetrie",
@@ -1702,7 +1706,8 @@
         "Off": "Aus",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mehr",
         "Log Streaming": "Log Streaming",
-        "On": "An"
+        "On": "An",
+        "Grist Instance": "Grist Instanz"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -1852,7 +1857,7 @@
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Daten behalten und Widget löschen. Die Tabelle bleibt verfügbar in {{rawDataLink}}"
     },
     "AdminPanelName": {
-        "Admin Panel": "Verwaltungsbereich"
+        "Admin Panel": "Administrations Bereich"
     },
     "CustomWidgetGallery": {
         "(Missing info)": "(Fehlende Informationen)",
@@ -1915,7 +1920,7 @@
         "Delete two-way reference?": "Zwei-Wege-Referenz löschen?"
     },
     "SupportGristButton": {
-        "Admin Panel": "Verwaltungsbereich",
+        "Admin Panel": "Administrations Bereich",
         "Close": "Schließen",
         "Opted In": "Angemeldet",
         "Support Grist": "Unterstützen Sie Grist",
@@ -2016,6 +2021,14 @@
     },
     "AdminLeftPanel": {
         "Users": "Benutzer",
-        "Learn more": "Mehr erfahren"
+        "Learn more": "Mehr erfahren",
+        "Admin controls": "Administrations Steuerung",
+        "Admin Controls": "Admin-Kontrollen",
+        "Settings": "Einstellungen",
+        "Workspaces": "Arbeitsbereiche",
+        "Installation": "Installation",
+        "Orgs": "Organizationen",
+        "Admin area": "Verwaltungsbereich",
+        "Docs": "Dokumente"
     }
 }
