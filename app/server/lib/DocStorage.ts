@@ -1462,18 +1462,18 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           ${asLiteral(tableId)} as tableId,
           ${asLiteral(colId)} as colId
         FROM ${quoteIdent(tableId)} AS t, json_each(t.${quoteIdent(colId)}) as a
-        WHERE a.value = ${attId}`);
+        -- json_each is needed because of https://github.com/gristlabs/grist-core/issues/1565 
+        WHERE a.value = ${attId} AND json_valid(t.${quoteIdent(colId)})`);
       }
     }
     try {
       return (await this.all(queries.join(' UNION ALL '))) as any[];
     }
     catch (e) {
-      // We throw an informative error if we fail to process the attachment references
+      // We throw an informative error if we fail to process the attachment references, although this shouldn't happen
       // cf: https://github.com/gristlabs/grist-core/issues/1565
       const errorMessage = `findAttachmentReferences failed: unable to process attachment references` +
-      `for users with complicated access rules. ` +
-      `Make sure that there are no errors in attachments columns across the document. Details: ${e.message}`;
+      `for users with complicated access rules. Details: ${e.message}`;
       log.error(errorMessage, e);
       throw new Error(errorMessage);
     }
