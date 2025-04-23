@@ -1316,7 +1316,8 @@
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Las referencias bidireccionales no son compatibles actualmente con las columnas de fórmula o fórmula de activación",
         "The preview below this header shows how the selected user will see this document": "La vista previa debajo de este encabezado muestra cómo verá este documento el usuario seleccionado",
         "[Learn more.]({{link}})": "[Aprende más.]({{link}})",
-        "Summary tables can only contain formula columns.": "Mesas de resumen sólo pueden contener columnas de fórmula."
+        "Summary tables can only contain formula columns.": "Mesas de resumen sólo pueden contener columnas de fórmula.",
+        "Manage users and resources in a Grist installation.": "Gestionar usuarios y recursos en una instalación de Grist."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1594,11 +1595,14 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Algunas columnas obligatorias no están asignadas",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Para utilizar este widget, asigne todas las columnas no opcionales desde el panel del creador de la derecha."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Para utilizar este widget, asigne todas las columnas no opcionales desde el panel del creador de la derecha.",
+        "Some required columns are hidden by access rules": "Algunas columnas requeridas están ocultas por reglas de acceso",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Para usar este widget, todas las columnas mapeadas deben ser visibles. Por favor contacte al propietario del documento o modifique las reglas de acceso."
     },
     "FormContainer": {
         "Build your own form": "Cree su propio formulario",
-        "Powered by": "Desarrollado por"
+        "Powered by": "Desarrollado por",
+        "Powered by Grist": "Desarrollado por Grist"
     },
     "FormErrorPage": {
         "Error": "Error"
@@ -1698,7 +1702,8 @@
         "New, Enterprise": "Nuevo, Empresa",
         "Contact us": "Contáctenos",
         "Off": "Apagar",
-        "On": "Encendido"
+        "On": "Encendido",
+        "Grist Instance": "Instancia Grist"
     },
     "CreateTeamModal": {
         "Cancel": "Cancelar",
@@ -2003,5 +2008,17 @@
         "Please review the following before adding a new custom widget.": "Por favor, revise lo siguiente antes de añadir un nuevo widget personalizado.",
         "Are you sure you **trust the resource** at this URL?": "¿Está seguro de que **confía en el recurso** de esta URL?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En caso de duda, no instale este widget, o pida a un administrador de su organización que lo revise por seguridad."
+    },
+    "AdminLeftPanel": {
+        "Admin area": "Área de administración",
+        "Admin controls": "Controles administrativos",
+        "Installation": "Instalación",
+        "Learn more": "Más información",
+        "Orgs": "Organizaciones",
+        "Docs": "Documentos",
+        "Users": "Usuarios",
+        "Admin Controls": "Controles administrativos",
+        "Settings": "Ajustes",
+        "Workspaces": "Espacios de trabajo"
     }
 }
