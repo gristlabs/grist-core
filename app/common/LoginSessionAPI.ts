@@ -12,7 +12,7 @@ export interface UserProfile {
   loginMethod?: 'Google'|'Email + Password'|'External';
   locale?: string|null;
 
-  extra?: object; // extra fields from the user profile, e.g. from OIDC.
+  extra?: Record<string, any>; // extra fields from the user profile, e.g. from OIDC.
 }
 
 /**

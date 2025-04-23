@@ -248,7 +248,10 @@ describe('UsersManager', function () {
         email: makeEmail(localPart),
         name: `NewUser ${localPart}`,
         connectId: `ConnectId-${localPart}`,
-        picture: `https://mypic.com/${localPart}.png`
+        picture: `https://mypic.com/${localPart}.png`,
+        extra: {
+          extrafield: 'randomvalue'
+        }
       };
     }
 
@@ -790,13 +793,14 @@ describe('UsersManager', function () {
             name: profile.name,
             connectId: profile.connectId,
             picture: profile.picture,
+            options: {
+              authSubject: userOptions.authSubject,
+              extrafield: profile.extra!.extrafield,
+            }
           });
           assert.deepInclude(updatedUser.logins[0], {
             displayEmail: profile.email,
             email: originalNormalizedLoginEmail,
-          });
-          assert.deepInclude(updatedUser.options, {
-            authSubject: userOptions.authSubject,
           });
         });
       });
