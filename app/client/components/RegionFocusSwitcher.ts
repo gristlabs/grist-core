@@ -217,7 +217,6 @@ export class RegionFocusSwitcher extends Disposable {
    *   - make sure the internal current region info is set when user clicks on the view layout.
    */
   private _onClick(event: MouseEvent) {
-    const current = this._state.get().region;
     const gristDoc = this._getGristDoc();
     if (!gristDoc) {
       return;
@@ -228,7 +227,10 @@ export class RegionFocusSwitcher extends Disposable {
     }
     const targetRegionId = closestRegion.getAttribute(ATTRS.regionId);
     const targetsMain = targetRegionId === 'main';
+    const current = this._state.get().region;
     const currentlyInSection = current?.type === 'section';
+
+    console.log('mhl onClick', {event, closestRegion, targetRegionId, current, currentlyInSection});
 
     if (targetsMain && !currentlyInSection) {
       this.focusRegion(
@@ -280,6 +282,9 @@ export class RegionFocusSwitcher extends Disposable {
       if (comesFromKeyboard) {
         panelElement?.setAttribute('tabindex', '-1');
         panelElement?.focus();
+        if (activeElementIsInPanel) {
+          this._prevFocusedElements[current.id] = null;
+        }
       } else {
         this.reset();
       }
