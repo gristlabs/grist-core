@@ -40,8 +40,7 @@ if (require.main === module) {
 export function getProgram(): commander.Command {
   const program = commander.program;
   program
-    .name('grist-toolbox')    // haven't really settled on a name yet.
-                              // want to reserve "grist" for electron app?
+    .name('grist-cli')
     .description('a toolbox of handy Grist-related utilities');
 
   addAuditLogsCommand(program, {nested: true});
