@@ -24,8 +24,9 @@ function signInAgainButton() {
 export function createErrPage(appModel: AppModel) {
   const {errMessage, errPage, errTargetUrl} = getGristConfig();
   if (errTargetUrl) {
-    // In case the error page was reached via a redirect, replace the current URL with the target
-    // URL, so that the user can retry their action by simply refreshing the page.
+    // In case the error page was reached via a redirect (typically during sign-in),
+    // replace the current URL with the target URL, so that the user can retry their
+    // action by simply refreshing the page.
     history.replaceState(null, "", errTargetUrl);
   }
   return errPage === 'signed-out' ? createSignedOutPage(appModel) :

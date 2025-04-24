@@ -797,7 +797,9 @@ export interface GristLoadConfig {
   errMessage?: string;
 
   // When an error page is shown in response to a request for an URL, this is the URL that was
-  // requested. The error page will set the browser's current URL to that, so that the user can
+  // originally requested — this may not be the URL we're responding to, because of an
+  // intermediate redirect in case of e.g. an OIDC sign-in.
+  // The error page will set the browser's current URL to that, so that the user can
   // retry by simply refreshing the page.
   errTargetUrl?: string;
 
