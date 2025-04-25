@@ -3,7 +3,7 @@ import {loadUserManager} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
-import {reportWarning, UserError} from 'app/client/models/errors';
+import {reportWarning} from 'app/client/models/errors';
 import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {downloadDocModal, makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
