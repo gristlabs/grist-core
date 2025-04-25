@@ -627,21 +627,24 @@ describe('OIDCConfig', () => {
         itMsg: 'should store extra info returned by the SSO provider when the env var is set',
         session: DEFAULT_SESSION,
         env: {
-          GRIST_IDP_EXTRA_PROPS: 'extrafield,anotherfield',
+          GRIST_IDP_EXTRA_PROPS: 'extrafield,anotherfield,yetanotherfield',
         },
         userInfo: {
           ...FAKE_USER_INFO,
           extrafield: 'randomvalue',
+          anotherfield: 12,
         },
         extraChecks: checkUserProfile({
           email: 'fake-email',
           name: 'fake-name',
           extra: {
-            extrafield: 'randomvalue'}
+            extrafield: 'randomvalue',
+            anotherfield: 12,
+          }
         }),
       },
       {
-        itMsg: 'should store extra info returned by the SSO provider when the env var is not set',
+        itMsg: 'should not store extra info returned by the SSO provider when the env var is not set',
         session: DEFAULT_SESSION,
         userInfo: {
           ...FAKE_USER_INFO,

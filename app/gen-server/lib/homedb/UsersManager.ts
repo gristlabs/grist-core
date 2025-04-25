@@ -438,7 +438,7 @@ export class UsersManager {
       // We might want to store extra information returned by the identity provider
       if (options.profile?.extra) {
         // Update already existing user options
-        user.options = {...user.options, ...{sso_extra: options.profile.extra}};
+        user.options = {...user.options, ssoExtraInfo: options.profile.extra};
         needUpdate = true;
       }
 
