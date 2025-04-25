@@ -51,12 +51,16 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'A hash of the doc id.',
         dataType: 'string',
       },
+      version: {
+        description: 'The assistant version. May be either `1` or `2`.',
+        dataType: 'number',
+      },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
         dataType: 'string',
       },
       context: {
-        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        description: 'The context in which the assistant is open (e.g. column id).',
         dataType: 'object',
       },
       userId: {
@@ -99,12 +103,16 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'The id of the user that triggered this event.',
         dataType: 'number',
       },
+      version: {
+        description: 'The assistant version. May be either `1` or `2`.',
+        dataType: 'number',
+      },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
         dataType: 'string',
       },
       context: {
-        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        description: 'The context in which the assistant is open (e.g. column id).',
         dataType: 'object',
       },
       prompt: {
@@ -143,12 +151,16 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'The id of the user that triggered this event.',
         dataType: 'number',
       },
+      version: {
+        description: 'The assistant version. May be either `1` or `2`.',
+        dataType: 'number',
+      },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
         dataType: 'string',
       },
       context: {
-        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        description: 'The context in which the assistant is open (e.g. column id).',
         dataType: 'object',
       },
       message: {
@@ -172,12 +184,16 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'A hash of the doc id.',
         dataType: 'string',
       },
+      version: {
+        description: 'The assistant version. Always set to `1`.',
+        dataType: 'number',
+      },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
         dataType: 'string',
       },
       context: {
-        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        description: 'The context in which the assistant is open (e.g. column id).',
         dataType: 'object',
       },
       newFormula: {
@@ -209,6 +225,10 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'A hash of the doc id.',
         dataType: 'string',
       },
+      version: {
+        description: 'The assistant version. Always set to `1`.',
+        dataType: 'number',
+      },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
         dataType: 'string',
@@ -218,7 +238,7 @@ export const TelemetryContracts: TelemetryContracts = {
         dataType: 'number',
       },
       context: {
-        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        description: 'The context in which the assistant is open (e.g. column id).',
         dataType: 'object',
       },
       userId: {
@@ -240,6 +260,10 @@ export const TelemetryContracts: TelemetryContracts = {
       docIdDigest: {
         description: 'A hash of the doc id.',
         dataType: 'string',
+      },
+      version: {
+        description: 'The assistant version. Always set to `1`.',
+        dataType: 'number',
       },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
@@ -274,12 +298,16 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'A hash of the doc id.',
         dataType: 'string',
       },
+      version: {
+        description: 'The assistant version. May be either `1` or `2`.',
+        dataType: 'number',
+      },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
         dataType: 'string',
       },
       context: {
-        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        description: 'The context in which the assistant is open (e.g. column id).',
         dataType: 'object',
       },
       userId: {
@@ -301,6 +329,10 @@ export const TelemetryContracts: TelemetryContracts = {
       docIdDigest: {
         description: 'A hash of the doc id.',
         dataType: 'string',
+      },
+      version: {
+        description: 'The assistant version. Always set to `1`.',
+        dataType: 'number',
       },
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',

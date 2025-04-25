@@ -148,9 +148,8 @@ def run(sandbox):
     return objtypes.encode_object(eng.get_formula_error(table_id, col_id, row_id))
 
   @export
-  def get_formula_prompt(table_id, col_id, description, include_all_tables=True, lookups=True):
-    return formula_prompt.get_formula_prompt(eng, table_id, col_id, description,
-                                             include_all_tables, lookups)
+  def get_formula_prompt(table_id, col_id, include_all_tables=True, lookups=True):
+    return formula_prompt.get_formula_prompt(eng, table_id, col_id, include_all_tables, lookups)
 
   @export
   def convert_formula_completion(completion):

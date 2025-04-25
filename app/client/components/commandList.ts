@@ -120,7 +120,6 @@ export type CommandName =
   | 'createForm'
   | 'insertField'
   | 'pushUndoAction'
-  | 'openAssistant'
   ;
 
 export interface CommandDef {
@@ -195,11 +194,6 @@ export const groups: CommendGroupDef[] = [{
       name: 'reloadPlugins',
       keys: ['Mod+Alt+P'],
       desc: null, // reload plugins
-    }, {
-      // TODO: Remove and reuse `activateAssistant`.
-      name: 'openAssistant',
-      keys: [],
-      desc: null,
     }
 
   ],

@@ -3066,7 +3066,7 @@ function testDocApi(settings: {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/csv`, chimpy);
     assert.equal(resp.status, 400);
-    assert.deepEqual(resp.data, {error: 'tableId parameter should be a string: undefined'});
+    assert.deepEqual(resp.data, {error: 'tableId parameter is required'});
   });
 
   it("GET /docs/{did}/download/table-schema serves table-schema-encoded document", async function () {
@@ -3158,7 +3158,7 @@ function testDocApi(settings: {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema`, chimpy);
     assert.equal(resp.status, 400);
-    assert.deepEqual(resp.data, {error: 'tableId parameter should be a string: undefined'});
+    assert.deepEqual(resp.data, {error: 'tableId parameter is required'});
   });
 
 

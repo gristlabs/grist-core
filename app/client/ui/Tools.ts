@@ -1,8 +1,6 @@
 import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
-import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
-import {GRIST_NEW_ASSISTANT} from 'app/client/models/features';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {showExampleCard} from 'app/client/ui/ExampleCard';
@@ -10,7 +8,6 @@ import {buildExamples} from 'app/client/ui/ExampleInfo';
 import {
   createHelpTools,
   cssLinkText,
-  cssLinkTextAccent,
   cssMenuTrigger,
   cssPageEntry,
   cssPageEntryMain,
@@ -26,8 +23,8 @@ import {
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
+import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
 import noop from 'lodash/noop';
 
@@ -35,8 +32,6 @@ const testId = makeTestId('test-tools-');
 const t = makeT('Tools');
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
-  const showAssistant =
-    getGristConfig().assistant?.type === "full" && GRIST_NEW_ASSISTANT();
   const docPageModel = gristDoc.docPageModel;
   const isDocOwner = isOwner(docPageModel.currentDoc.get());
   const isOverridden = Boolean(docPageModel.userOverride.get());
@@ -50,16 +45,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader(cssSectionHeaderText(t("TOOLS"))),
-    cssPageEntry(
-      // TODO: Replace with a stub.
-      dom.show(showAssistant),
-      cssPageLink(
-        cssPageIcon('Robot'),
-        cssLinkText(t("Assistant")),
-        cssLinkTextAccent(t("New")),
-        dom.on('click', () => commands.allCommands.openAssistant.run()),
-      )
-    ),
+    buildOpenAssistantButton(gristDoc, testId('assistant')),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
       cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),

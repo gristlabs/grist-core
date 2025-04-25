@@ -157,7 +157,7 @@ export const cssPageLink = styled('a', `
     outline: none;
     color: inherit;
   }
-  &:not([href]) {
+  .${cssPageEntry.className}-disabled & {
     cursor: default;
   }
   .${cssTools.className}-collapsed & {

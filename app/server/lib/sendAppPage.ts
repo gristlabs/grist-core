@@ -105,7 +105,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     namespaces: readLoadedNamespaces(req?.i18n),
     featureComments: isAffirmative(process.env.COMMENTS),
     assistant: getAssistantConfig(server),
-    featureNewAssistant: isAffirmative(process.env.GRIST_NEW_ASSISTANT),
     permittedCustomWidgets: getPermittedCustomWidgets(server),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
@@ -255,8 +254,8 @@ function getAssistantConfig(gristServer?: GristServer|null): AssistantConfig|und
     return undefined;
   }
 
-  const {type, provider} = assistant;
-  return {type, provider};
+  const {provider, version} = assistant;
+  return {provider, version};
 }
 
 function getPermittedCustomWidgets(gristServer?: GristServer|null): IAttachedCustomWidget[] {

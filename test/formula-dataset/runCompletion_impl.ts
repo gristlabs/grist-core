@@ -29,8 +29,8 @@
 
 import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
 import log from 'app/server/lib/log';
-import { configureOpenAIFormulaAssistant } from "app/server/lib/configureOpenAIFormulaAssistant";
-import { DEPS } from "app/server/lib/FormulaAssistant";
+import { configureOpenAIAssistantV1 } from "app/server/lib/configureOpenAIAssistantV1";
+import { DEPS } from "app/server/lib/OpenAIAssistantV1";
 import crypto from 'crypto';
 import { parse } from 'csv-parse/sync';
 import fetch, {RequestInfo, RequestInit, Response} from 'node-fetch';
@@ -42,7 +42,7 @@ import * as os from 'os';
 import { pipeline } from 'stream';
 import { createDocTools } from "test/server/docTools";
 import { promisify } from 'util';
-import { AssistanceState, FormulaAssistanceResponse } from "app/common/Assistance";
+import { AssistanceResponseV1, AssistanceState } from "app/common/Assistance";
 import { CellValue } from "app/plugin/GristData";
 
 const streamPipeline = promisify(pipeline);
@@ -72,7 +72,7 @@ const SIMULATE_CONVERSATION = true;
 const FOLLOWUP_EVALUATE = false;
 
 export async function runCompletion() {
-  const assistant = configureOpenAIFormulaAssistant();
+  const assistant = configureOpenAIAssistantV1();
   if (!assistant) {
     throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
   }
@@ -140,7 +140,7 @@ export async function runCompletion() {
     let activeDoc: ActiveDoc|undefined;
     for (const rec of records) {
       let success: boolean = false;
-      let suggestedActions: FormulaAssistanceResponse['suggestedActions'] | undefined;
+      let suggestedActions: AssistanceResponseV1['suggestedActions'] | undefined;
       let newValues: CellValue[] | undefined;
       let formula: string | undefined;
       let history: AssistanceState = {messages: []};
@@ -176,7 +176,6 @@ export async function runCompletion() {
           formula = colInfo?.formula;
 
           const result = await assistant!.getAssistance(session, activeDoc, {
-            type: 'formula',
             conversationId: 'conversationId',
             context: {
               tableId,
@@ -186,7 +185,7 @@ export async function runCompletion() {
             },
             state: history,
             text: followUp || description,
-          }) as FormulaAssistanceResponse;
+          });
           if (result.state) {
             history = result.state;
           }

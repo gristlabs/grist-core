@@ -14,10 +14,6 @@ export function COMMENTS(): Observable<boolean> {
   return G.window.COMMENTS;
 }
 
-export function GRIST_NEW_ASSISTANT() {
-  return Boolean(getGristConfig().featureNewAssistant);
-}
-
 export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {
   const G = getBrowserGlobals('document', 'window');
   if (!G.window.PERMITTED_CUSTOM_WIDGETS) {

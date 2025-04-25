@@ -83,7 +83,9 @@ export const SHARE_KEY_PREFIX = 's.';
 export const commonUrls = {
   help: getHelpCenterUrl(),
   helpAccessRules: "https://support.getgrist.com/access-rules",
-  helpAssistantDataUse: "https://support.getgrist.com/ai-assistant/#data-use-policy",
+  helpAssistant: "https://support.getgrist.com/assistant",
+  helpAssistantDataUse: "https://support.getgrist.com/assistant/#data-use-policy",
+  helpFormulaAssistantDataUse: "https://support.getgrist.com/ai-assistant/#data-use-policy",
   helpColRefs: "https://support.getgrist.com/col-refs",
   helpConditionalFormatting: "https://support.getgrist.com/conditional-formatting",
   helpFilterButtons: "https://support.getgrist.com/search-sort-filter/#filter-buttons",
@@ -873,9 +875,6 @@ export interface GristLoadConfig {
   featureComments?: boolean;
 
   assistant?: AssistantConfig;
-
-  // TODO: remove once released.
-  featureNewAssistant?: boolean;
 
   permittedCustomWidgets?: IAttachedCustomWidget[];
 

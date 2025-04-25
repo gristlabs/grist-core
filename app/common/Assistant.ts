@@ -1,8 +1,8 @@
 export interface AssistantConfig {
-  type: AssistantType;
   provider: AssistantProvider;
+  version: AssistantVersion;
 }
 
-export type AssistantType = "formula" | "full";
-
 export type AssistantProvider = "OpenAI" | "Unknown" | null;
+
+export type AssistantVersion = 1 | 2;

@@ -1,3 +1,4 @@
+import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {DocAction} from 'app/common/DocActions';
 
 /**
@@ -15,59 +16,57 @@ export interface AssistanceState {
 }
 
 export interface AssistanceMessage {
-  role: "system" | "developer" | "user" | "assistant";
-  content: string | null;
+  role: "system" | "user" | "assistant" | "tool";
+  content?: string | null;
   tool_call_id?: string;
 }
 
-export type AssistanceRequest = DocAssistanceRequest | FormulaAssistanceRequest;
-
-/**
- * A request for document assistance.
- */
-interface DocAssistanceRequest extends BaseAssistanceRequest {
-  type: "doc";
-  context: DocAssistanceContext;
-}
+export type AssistanceRequest = AssistanceRequestV1 | AssistanceRequestV2;
 
 /**
  * A request for formula assistance.
  */
-export interface FormulaAssistanceRequest extends BaseAssistanceRequest {
-  type: "formula";
-  context: FormulaAssistanceContext;
+export interface AssistanceRequestV1 extends BaseAssistanceRequest {
+  context: AssistanceContextV1;
+}
+
+/**
+ * A request for document assistance.
+ */
+export interface AssistanceRequestV2 extends BaseAssistanceRequest {
+  context: AssistanceContextV2;
 }
 
 interface BaseAssistanceRequest {
   conversationId: string;
-  text: string;
+  text?: string;
   state?: AssistanceState;
-}
-
-interface DocAssistanceContext {
-  viewId?: number;
 }
 
 /**
  * Currently, requests for formula assistance always happen in the context
  * of the column of a particular table.
  */
-export interface FormulaAssistanceContext {
+export interface AssistanceContextV1 {
   tableId: string;
   colId: string;
   evaluateCurrentFormula?: boolean;
   rowId?: number;
 }
 
-export type AssistanceResponse =
-  | FormulaAssistanceResponse
-  | DocAssistanceResponse;
+export interface AssistanceContextV2 {
+  viewId?: number;
+}
 
-type DocAssistanceResponse = BaseAssistanceResponse;
+export type AssistanceResponse = AssistanceResponseV1 | AssistanceResponseV2;
 
-export interface FormulaAssistanceResponse extends BaseAssistanceResponse {
+export interface AssistanceResponseV1 extends BaseAssistanceResponse {
   suggestedActions: DocAction[];
   suggestedFormula?: string;
+}
+
+export interface AssistanceResponseV2 extends BaseAssistanceResponse {
+  appliedActions?: ApplyUAResult[];
 }
 
 /**
@@ -76,10 +75,12 @@ export interface FormulaAssistanceResponse extends BaseAssistanceResponse {
  * any follow-up requests.
  */
 interface BaseAssistanceResponse {
+  /**
+   * If the model can be trusted to issue a self-contained
+   * markdown-friendly string, it can be included here.
+   */
   reply?: string;
   state?: AssistanceState;
-  // If the model can be trusted to issue a self-contained
-  // markdown-friendly string, it can be included here.
   limit?: AssistanceLimit;
 }
 

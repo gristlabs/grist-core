@@ -92,6 +92,7 @@ export const BehavioralPrompt = StringUnion(
   'addNew',
   'rickRow',
   'calendarConfig',
+  'newAssistant',
 
   // The following were used in the past and should not be re-used.
   // 'customURL',
@@ -117,6 +118,7 @@ export const DismissedPopup = StringUnion(
   'supportGrist',         // nudge to opt in to telemetry
   'publishForm',          // confirmation for publishing a form
   'unpublishForm',        // confirmation for unpublishing a form
+  'upgradeNewAssistant',  // nudge to upgrade to enterprise shown in the formula assistant
 
   /* Deprecated */
   'onboardingCards',      // onboarding cards shown on the doc menu

@@ -97,7 +97,7 @@ import {
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/IAssistant';
-import {FormulaAssistanceContext} from 'app/common/Assistance';
+import {AssistanceContextV1} from 'app/common/Assistance';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
@@ -1510,7 +1510,9 @@ export class ActiveDoc extends EventEmitter {
     return this._pyCall('autocomplete', txt, tableId, columnId, rowId, user.toJSON());
   }
 
-  // Callback to generate a prompt containing schema info for assistance.
+  /**
+   * Callback to generate a prompt containing schema info for assistance.
+   */
   public async assistanceSchemaPromptV1(
     docSession: OptDocSession,
     context: AssistanceSchemaPromptV1Context
@@ -1524,21 +1526,28 @@ export class ActiveDoc extends EventEmitter {
       'get_formula_prompt',
       context.tableId,
       context.colId,
-      context.docString,
       context.includeAllTables ?? true,
       context.includeLookups ?? true
     );
   }
 
-  // Callback to make a data-engine formula tweak for assistance.
+  /**
+   * Callback to make a data-engine formula tweak for assistance.
+   *
+   * Only used by version 1 of the AI assistant.
+   */
   public assistanceFormulaTweak(txt: string) {
     return this._pyCall('convert_formula_completion', txt);
   }
 
-  // Callback to compute an existing formula and return the result along with recorded values
-  // of (possibly nested) attributes of `rec`.
-  // Used by AI assistance to fix an incorrect formula.
-  public assistanceEvaluateFormula(options: FormulaAssistanceContext) {
+  /**
+   * Callback to compute an existing formula and return the result along with recorded values
+   * of (possibly nested) attributes of `rec`.
+   * Used by AI assistance to fix an incorrect formula.
+   *
+   * Only used by version 1 of the AI assistant.
+   */
+  public assistanceEvaluateFormula(options: AssistanceContextV1) {
     if (!options.evaluateCurrentFormula) {
       throw new Error('evaluateCurrentFormula must be true');
     }

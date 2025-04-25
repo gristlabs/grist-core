@@ -1,10 +1,10 @@
 import {KoArray} from 'app/client/lib/koArray';
 import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
+import {ChatHistory} from 'app/client/models/ChatHistory';
 import {CellRec, DocModel, IRowModel, recordSet,
         refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
-import {AssistanceState} from 'app/common/Assistance';
 import * as gristTypes from 'app/common/gristTypes';
 import {getReferencedTableId} from 'app/common/gristTypes';
 import {
@@ -230,40 +230,4 @@ export function formatterForRec(
     docSettings: docModel.docInfoRow.documentSettingsJson(),
   };
   return func(args);
-}
-
-/**
- * A chat message. Either send by the user or by the AI.
- */
-export interface ChatMessage {
-  /**
-   * The message to display. It is a prompt typed by the user or a formula returned from the AI.
-   */
-  message: string;
-  /**
-   * The sender of the message. Either the user or the AI.
-   */
-  sender: 'user' | 'ai';
-  /**
-   * The formula returned from the AI. It is only set when the sender is the AI.
-   */
-  formula?: string|null;
-  /**
-   * Suggested actions returned from the AI.
-   */
-  action?: any;
-}
-
-/**
- * The state of assistance for a particular column.
- * ChatMessages are what are shown in the UI, whereas state is
- * how the back-end represents the conversation. The two are
- * similar but not the same because of post-processing.
- * It may be possible to reconcile them when things settle down
- * a bit?
- */
-export interface ChatHistory {
-  messages: ChatMessage[];
-  conversationId?: string;
-  state?: AssistanceState;
 }

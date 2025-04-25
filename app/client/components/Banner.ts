@@ -13,10 +13,20 @@ export interface BannerOptions {
   /**
    * The banner style.
    *
-   * Warning banners have a yellow background. Error banners have a red
-   * background.
+   * Warning banners have an orange background. Error banners have a red
+   * background. Info banners have a yellow background.
+   *
+   * Custom banners have no default background; a custom `backgrund` must be
+   * set.
    */
-  style: 'warning' | 'error' | 'info';
+  style: 'warning' | 'error' | 'info' | 'custom';
+
+  /**
+   * Custom background.
+   *
+   * May be any valid CSS `background` value.
+   */
+  background?: string;
 
   /**
    * Optional variant of `content` to display when screen width becomes narrow.
@@ -66,6 +76,7 @@ export class Banner extends Disposable {
   public buildDom() {
     return cssBanner({class: this._options.bannerCssClass || ''},
       cssBanner.cls(`-${this._options.style}`),
+      dom.style('background', this._options.background ?? ''),
       this._buildContent(),
       this._buildButtons(),
       testId('element')

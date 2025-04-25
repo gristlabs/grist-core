@@ -1,15 +1,14 @@
-import { ApiError } from "app/common/ApiError";
 import {
   AssistanceMessage,
-  AssistanceRequest,
-  FormulaAssistanceRequest,
-  FormulaAssistanceResponse,
+  AssistanceRequestV1,
+  AssistanceResponseV1,
 } from "app/common/Assistance";
-import { AssistantProvider, AssistantType } from "app/common/Assistant";
+import { AssistantProvider } from "app/common/Assistant";
 import { delay } from "app/common/delay";
+import { DocAction } from "app/common/DocActions";
 import {
-  formulaCompletionToResponse,
   getProviderFromHostname,
+  getUserHash,
   NonRetryableError,
   QuotaExceededError,
   RetryableError,
@@ -21,23 +20,16 @@ import {
   AssistanceDoc,
   AssistanceSchemaPromptGenerator,
   AssistanceSchemaPromptV1Options,
-  AssistantOptions,
-  IAssistant,
+  AssistantV1,
+  AssistantV1Options,
 } from "app/server/lib/IAssistant";
 import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { getFullUser, getLogMeta } from "app/server/lib/sessionUtils";
-import { createHash } from "crypto";
 import fetch from "node-fetch";
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
 export const DEPS = { fetch, delayTime: 1000 };
-
-type OpenAIFormulaAssistantOptions = Pick<
-  AssistantOptions,
-  "apiKey" | "completionEndpoint" | "model" | "longerContextModel" | "maxTokens"
->;
 
 /**
  * A flavor of assistant for use with the OpenAI chat completion endpoint
@@ -58,8 +50,8 @@ type OpenAIFormulaAssistantOptions = Pick<
  *
  * An optional ASSISTANT_MAX_TOKENS can be specified.
  */
-export class OpenAIFormulaAssistant implements IAssistant {
-  public static readonly type: AssistantType = "formula";
+export class OpenAIAssistantV1 implements AssistantV1 {
+  public static readonly VERSION = 1;
   public static readonly DEFAULT_MODEL = "gpt-4o-2024-08-06";
   public static readonly DEFAULT_LONGER_CONTEXT_MODEL = "";
 
@@ -71,7 +63,7 @@ export class OpenAIFormulaAssistant implements IAssistant {
   private _longerContextModel = this._options.longerContextModel;
   private _maxTokens = this._options.maxTokens;
 
-  public constructor(private _options: OpenAIFormulaAssistantOptions) {
+  public constructor(private _options: AssistantV1Options) {
     if (!this._apiKey && !_options.completionEndpoint) {
       throw new Error(
         "Please set ASSISTANT_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT"
@@ -79,21 +71,17 @@ export class OpenAIFormulaAssistant implements IAssistant {
     }
 
     if (!_options.completionEndpoint) {
-      this._model ||= OpenAIFormulaAssistant.DEFAULT_MODEL;
+      this._model ||= OpenAIAssistantV1.DEFAULT_MODEL;
       this._longerContextModel ||=
-        OpenAIFormulaAssistant.DEFAULT_LONGER_CONTEXT_MODEL;
+        OpenAIAssistantV1.DEFAULT_LONGER_CONTEXT_MODEL;
     }
   }
 
   public async getAssistance(
     optSession: OptDocSession,
     doc: AssistanceDoc,
-    request: AssistanceRequest
-  ): Promise<FormulaAssistanceResponse> {
-    if (request.type !== "formula") {
-      throw new ApiError(`Unsupported type: ${request.type}`, 400);
-    }
-
+    request: AssistanceRequestV1
+  ): Promise<AssistanceResponseV1> {
     const generatePrompt = this._buildSchemaPromptGenerator(
       optSession,
       doc,
@@ -132,6 +120,7 @@ export class OpenAIFormulaAssistant implements IAssistant {
     for (const [index, { role, content }] of newMessages.entries()) {
       doc.logTelemetryEvent(optSession, "assistantSend", {
         full: {
+          version: 1,
           conversationId: request.conversationId,
           context: request.context,
           prompt: {
@@ -152,7 +141,7 @@ export class OpenAIFormulaAssistant implements IAssistant {
     // It's nice to have this ready to uncomment for debugging.
     // console.log(completion);
 
-    const response = await formulaCompletionToResponse(
+    const response = await completionToResponse(
       doc,
       request,
       completion
@@ -170,6 +159,7 @@ export class OpenAIFormulaAssistant implements IAssistant {
     response.state = { messages };
     doc.logTelemetryEvent(optSession, "assistantReceive", {
       full: {
+        version: 1,
         conversationId: request.conversationId,
         context: request.context,
         message: {
@@ -182,8 +172,8 @@ export class OpenAIFormulaAssistant implements IAssistant {
     return response;
   }
 
-  public get type(): AssistantType {
-    return OpenAIFormulaAssistant.type;
+  public get version(): AssistantV1["version"] {
+    return OpenAIAssistantV1.VERSION;
   }
 
   public get provider(): AssistantProvider {
@@ -326,7 +316,7 @@ export class OpenAIFormulaAssistant implements IAssistant {
   private _buildSchemaPromptGenerator(
     optSession: OptDocSession,
     doc: AssistanceDoc,
-    request: FormulaAssistanceRequest
+    request: AssistanceRequestV1
   ): AssistanceSchemaPromptGenerator {
     return async (options) => ({
       role: "system",
@@ -353,18 +343,17 @@ export class OpenAIFormulaAssistant implements IAssistant {
 
 /**
  * Test assistant that mimics ChatGPT and just returns the input.
+ *
+ * @deprecated since version 2 of the AI assistant.
  */
-export class EchoFormulaAssistant implements IAssistant {
-  public static readonly type: AssistantType = "formula";
+export class EchoAssistantV1 implements AssistantV1 {
+  public static readonly VERSION = 1;
 
   public async getAssistance(
     _docSession: OptDocSession,
     doc: AssistanceDoc,
-    request: AssistanceRequest
-  ): Promise<FormulaAssistanceResponse> {
-    if (request.type !== "formula") {
-      throw new ApiError(`Unsupported type: ${request.type}`, 400);
-    }
+    request: AssistanceRequestV1
+  ): Promise<AssistanceResponseV1> {
     if (request.text === "ERROR") {
       throw new Error("ERROR");
     }
@@ -380,13 +369,13 @@ export class EchoFormulaAssistant implements IAssistant {
       role: "user",
       content: request.text,
     });
-    const completion = request.text;
+    const completion = request.text!;
     const history = { messages };
     history.messages.push({
       role: "assistant",
       content: completion,
     });
-    const response = await formulaCompletionToResponse(
+    const response = await completionToResponse(
       doc,
       request,
       completion,
@@ -396,8 +385,8 @@ export class EchoFormulaAssistant implements IAssistant {
     return response;
   }
 
-  public get type(): AssistantType {
-    return EchoFormulaAssistant.type;
+  public get version(): AssistantV1["version"] {
+    return EchoAssistantV1.VERSION;
   }
 
   public get provider(): AssistantProvider {
@@ -419,29 +408,35 @@ function replaceMarkdownCode(markdown: string, replaceValue: string) {
 async function makeSchemaPromptV1(
   session: OptDocSession,
   doc: AssistanceDoc,
-  request: FormulaAssistanceRequest,
+  request: AssistanceRequestV1,
   options: AssistanceSchemaPromptV1Options = {}
 ) {
   return doc.assistanceSchemaPromptV1(session, {
     tableId: request.context.tableId,
     colId: request.context.colId,
-    docString: request.text,
     ...options,
   });
 }
 
-function getUserHash(session: OptDocSession): string {
-  const user = getFullUser(session);
-  // Make it a bit harder to guess the user ID.
-  const salt = "7a8sb6987asdb678asd687sad6boas7f8b6aso7fd";
-  const hashSource = `${user?.id} ${user?.ref} ${salt}`;
-  const hash = createHash("sha256").update(hashSource).digest("base64");
-  // So that if we get feedback about a user ID hash, we can
-  // search for the hash in the logs to find the original user ID.
-  log.rawInfo("getUserHash", {
-    ...getLogMeta(session),
-    userRef: user?.ref,
-    hash,
-  });
-  return hash;
+async function completionToResponse(
+  doc: AssistanceDoc,
+  request: AssistanceRequestV1,
+  completion: string,
+  reply?: string
+): Promise<AssistanceResponseV1> {
+  const suggestedFormula = await doc.assistanceFormulaTweak(completion) || undefined;
+  // Suggest an action only if the completion is non-empty (that is,
+  // it actually looked like code).
+  const suggestedActions: DocAction[] = suggestedFormula ? [[
+    "ModifyColumn",
+    request.context.tableId,
+    request.context.colId, {
+      formula: suggestedFormula,
+    }
+  ]] : [];
+  return {
+    suggestedActions,
+    suggestedFormula,
+    reply,
+  };
 }

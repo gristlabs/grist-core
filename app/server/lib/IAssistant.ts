@@ -1,10 +1,13 @@
 import {
+  AssistanceContextV1,
   AssistanceMessage,
-  AssistanceRequest,
-  AssistanceResponse,
-  FormulaAssistanceContext,
+  AssistanceRequestV1,
+  AssistanceRequestV2,
+  AssistanceResponseV1,
+  AssistanceResponseV2,
+  AssistanceState,
 } from "app/common/Assistance";
-import { AssistantProvider, AssistantType } from "app/common/Assistant";
+import { AssistantProvider } from "app/common/Assistant";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { OptDocSession } from "app/server/lib/DocSession";
 
@@ -12,25 +15,43 @@ import { OptDocSession } from "app/server/lib/DocSession";
  * An assistant can help a user do things with their document by interfacing
  * with an external LLM endpoint.
  */
-export interface IAssistant {
-  readonly type: AssistantType;
+export type IAssistant = AssistantV1 | AssistantV2;
+
+export interface AssistantV1 {
   readonly provider: AssistantProvider;
+  readonly version: 1;
   /**
    * Service a request for assistance.
    */
   getAssistance(
     session: OptDocSession,
     doc: AssistanceDoc,
-    request: AssistanceRequest
-  ): Promise<AssistanceResponse>;
+    request: AssistanceRequestV1
+  ): Promise<AssistanceResponseV1>;
 }
 
-export interface AssistantOptions {
+export interface AssistantV2 {
+  readonly provider: AssistantProvider;
+  readonly version: 2;
+  /**
+   * Service a request for assistance.
+   */
+  getAssistance(
+    session: OptDocSession,
+    doc: AssistanceDoc,
+    request: AssistanceRequestV2
+  ): Promise<AssistanceResponseV2>;
+}
+
+export interface AssistantV1Options {
   apiKey?: string;
   completionEndpoint?: string;
   model?: string;
   longerContextModel?: string;
   maxTokens?: number;
+}
+
+export interface AssistantV2Options extends AssistantV1Options {
   maxToolCalls?: number;
 }
 
@@ -52,15 +73,19 @@ export interface AssistanceDoc extends ActiveDoc {
   ): Promise<string>;
   /**
    * Some tweaks to a formula after it has been generated.
+   *
+   * Only used by version 1 of the AI assistant.
    */
   assistanceFormulaTweak(txt: string): Promise<string>;
   /**
    * Compute the existing formula and return the result along with recorded values
    * of (possibly nested) attributes of `rec`.
    * Used by AI assistance to fix an incorrect formula.
+   *
+   * Only used by version 1 of the AI assistant.
    */
   assistanceEvaluateFormula(
-    options: FormulaAssistanceContext
+    options: AssistanceContextV1
   ): Promise<AssistanceFormulaEvaluationResult>;
 }
 
@@ -77,7 +102,6 @@ export interface AssistanceSchemaPromptV1Context
   extends AssistanceSchemaPromptV1Options {
   tableId: string;
   colId: string;
-  docString: string;
 }
 
 interface AssistanceFormulaEvaluationResult {
@@ -98,4 +122,62 @@ interface AssistanceFormulaEvaluationResult {
    * The code that was evaluated, without special Grist syntax.
    */
   formula: string;
+}
+
+export interface OpenAIChatCompletion {
+  choice: {
+    message: {
+      content: string;
+      tool_calls: OpenAIToolCall[];
+    };
+    finish_reason: string;
+  };
+  state: AssistanceState;
+}
+
+interface OpenAIToolCall {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
+export interface OpenAITool {
+  type: "function";
+  function: {
+    name: string;
+    description?: string;
+    parameters?: {
+      type: "object";
+      properties?: Record<string, ParameterProperties>;
+      required?: string[];
+      additionalProperties?: boolean;
+    };
+    strict?: boolean | null;
+  };
+}
+
+interface ParameterProperties {
+  type: string | string[];
+  description?: string;
+  items?: {
+    type?: string | string[];
+    description?: string;
+    properties?: Record<string, ParameterProperties>;
+    required?: string[];
+  };
+}
+
+export type FunctionCallResult = FunctionCallSuccess | FunctionCallFailure;
+
+export interface FunctionCallSuccess {
+  ok: true;
+  result: any;
+}
+
+interface FunctionCallFailure {
+  ok: false;
+  error: string;
 }

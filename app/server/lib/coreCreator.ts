@@ -3,7 +3,7 @@ import {
   checkMinIOExternalStorage,
   configureMinIOExternalStorage
 } from 'app/server/lib/configureMinIOExternalStorage';
-import {configureOpenAIFormulaAssistant} from 'app/server/lib/configureOpenAIFormulaAssistant';
+import {configureOpenAIAssistantV1} from 'app/server/lib/configureOpenAIAssistantV1';
 import {BaseCreate, ICreateStorageOptions} from 'app/server/lib/ICreate';
 import {Telemetry} from 'app/server/lib/Telemetry';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -27,6 +27,6 @@ export class CoreCreate extends BaseCreate {
   }
 
   public override Assistant() {
-    return configureOpenAIFormulaAssistant();
+    return configureOpenAIAssistantV1();
   }
 }

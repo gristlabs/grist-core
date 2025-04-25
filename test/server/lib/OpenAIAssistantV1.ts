@@ -1,9 +1,9 @@
-import {AssistanceState, FormulaAssistanceResponse} from 'app/common/Assistance';
+import {AssistanceState} from 'app/common/Assistance';
 import {ActiveDoc} from "app/server/lib/ActiveDoc";
-import {configureOpenAIFormulaAssistant} from 'app/server/lib/configureOpenAIFormulaAssistant';
+import {configureOpenAIAssistantV1} from 'app/server/lib/configureOpenAIAssistantV1';
 import {DocSession} from 'app/server/lib/DocSession';
-import {DEPS, OpenAIFormulaAssistant} from 'app/server/lib/FormulaAssistant';
-import {IAssistant} from 'app/server/lib/IAssistant';
+import {AssistantV1} from 'app/server/lib/IAssistant';
+import {DEPS, OpenAIAssistantV1} from 'app/server/lib/OpenAIAssistantV1';
 import {assert} from 'chai';
 import {Response} from 'node-fetch';
 import * as sinon from 'sinon';
@@ -23,13 +23,13 @@ chai.use(chaiAsPromised);
  */
 const LONGER_CONTEXT_MODEL_FOR_TEST = "fake";
 
-describe('OpenAIFormulaAssistant', function () {
+describe('OpenAIAssistantV1', function () {
   this.timeout(10000);
 
   const docTools = createDocTools({persistAcrossCases: true});
   const table1Id = "Table1";
   const table2Id = "Table2";
-  let assistant: IAssistant;
+  let assistant: AssistantV1;
   let session: DocSession;
   let doc: ActiveDoc;
   let oldEnv: EnvironmentSnapshot;
@@ -37,9 +37,9 @@ describe('OpenAIFormulaAssistant', function () {
     oldEnv = new EnvironmentSnapshot();
     process.env.OPENAI_API_KEY = "fake";
     process.env.ASSISTANT_LONGER_CONTEXT_MODEL = LONGER_CONTEXT_MODEL_FOR_TEST;
-    const openAIAssistant = configureOpenAIFormulaAssistant();
+    const openAIAssistant = configureOpenAIAssistantV1();
     if (!openAIAssistant) {
-      throw new Error('Please set ASSISTANT_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
+      throw new Error('no assistant');
     }
     assistant = openAIAssistant;
     session = docTools.createFakeSession();
@@ -58,12 +58,11 @@ describe('OpenAIFormulaAssistant', function () {
 
   function checkGetAssistance(state?: AssistanceState) {
     return assistant.getAssistance(session, doc, {
-      type: 'formula',
       conversationId: 'conversationId',
       context: {tableId: table1Id, colId},
       state,
       text: userMessageContent,
-    }) as Promise<FormulaAssistanceResponse>;
+    });
   }
 
   let fakeResponse: () => any;
@@ -107,7 +106,7 @@ describe('OpenAIFormulaAssistant', function () {
       status: 200,
     });
     const result = await checkGetAssistance();
-    checkModels([OpenAIFormulaAssistant.DEFAULT_MODEL]);
+    checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
     const callInfo = fakeFetch.getCall(0);
     const [url, request] = callInfo.args;
     assert.equal(url, 'https://api.openai.com/v1/chat/completions');
@@ -181,8 +180,8 @@ describe('OpenAIFormulaAssistant', function () {
     await assert.isRejected(
       checkGetAssistance(),
       "Sorry, the assistant is unavailable right now. " +
-      "Try again in a few minutes. \n" +
-      "(Error: Network error)",
+      "Try again in a few minutes.\n\n" +
+      "```\n(Error: Network error)\n```",
     );
     assert.equal(fakeFetch.callCount, 3);
   });
@@ -192,8 +191,8 @@ describe('OpenAIFormulaAssistant', function () {
     await assert.isRejected(
       checkGetAssistance(),
       "Sorry, the assistant is unavailable right now. " +
-      "Try again in a few minutes. \n" +
-      '(Error: AI service provider API returned status 500: {"status":500})',
+      "Try again in a few minutes.\n\n" +
+      '```\n(Error: AI service provider API returned status 500: {"status":500})\n```',
     );
     assert.equal(fakeFetch.callCount, 3);
   });
@@ -225,7 +224,7 @@ describe('OpenAIFormulaAssistant', function () {
       /You'll need to either shorten your message or delete some columns/
     );
     checkModels([
-      OpenAIFormulaAssistant.DEFAULT_MODEL,
+      OpenAIAssistantV1.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
@@ -275,7 +274,7 @@ describe('OpenAIFormulaAssistant', function () {
       /You'll need to either shorten your message or delete some columns/
     );
     checkModels([
-      OpenAIFormulaAssistant.DEFAULT_MODEL,
+      OpenAIAssistantV1.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
@@ -299,7 +298,7 @@ describe('OpenAIFormulaAssistant', function () {
       /You'll need to either shorten your message, restart the conversation, or delete some columns/
     );
     checkModels([
-      OpenAIFormulaAssistant.DEFAULT_MODEL,
+      OpenAIAssistantV1.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
@@ -331,7 +330,7 @@ describe('OpenAIFormulaAssistant', function () {
     };
     const result = await checkGetAssistance();
     checkModels([
-      OpenAIFormulaAssistant.DEFAULT_MODEL,
+      OpenAIAssistantV1.DEFAULT_MODEL,
       LONGER_CONTEXT_MODEL_FOR_TEST,
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
