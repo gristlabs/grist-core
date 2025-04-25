@@ -3,7 +3,7 @@ import {loadUserManager} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
-import {UserError} from 'app/client/models/errors';
+import {reportWarning, UserError} from 'app/client/models/errors';
 import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {downloadDocModal, makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
@@ -286,13 +286,12 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       // Disable navigation.
       e.preventDefault();
       // Show warning.
-      setTimeout(() => reportError(new UserError(
+      setTimeout(() => reportWarning(
         t("Exporting is only available from document pages. Please select a document page and try again."),
         {
           key: 'exporting-not-available',
-          level: 'warning'
         },
-      )), 0);
+      ));
     }
   });
 

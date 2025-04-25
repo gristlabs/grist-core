@@ -1,6 +1,6 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import * as log from 'app/client/lib/log';
-import {INotification, INotifyOptions, MessageType, NotificationLevel, Notifier} from 'app/client/models/NotifyModel';
+import {INotification, INotifyOptions, MessageType, Notifier} from 'app/client/models/NotifyModel';
 import {ErrorTooltips} from 'app/client/ui/GristTooltips';
 import {ApiErrorDetails} from 'app/common/ApiError';
 import {fetchFromHome, pageHasHome} from 'app/common/urlUtils';
@@ -23,11 +23,9 @@ export class MutedError extends Error {
 export class UserError extends Error {
   public name: string = "UserError";
   public key?: string;
-  public level?: NotificationLevel;
-  constructor(message: string, options: {key?: string, level?: NotificationLevel} = {}) {
+  constructor(message: string, options: {key?: string} = {}) {
     super(message);
     this.key = options.key;
-    this.level = options.level;
   }
 }
 
@@ -165,10 +163,7 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       // This is explicitly a user error, or one in the "Client Error" range, so treat it as user
       // error rather than a bug. Using message as the key causes same-message notifications to
       // replace previous ones rather than accumulate.
-      const options: Partial<INotifyOptions> = {
-        key: (err as UserError).key || message,
-        level: (err as UserError).level
-      };
+      const options: Partial<INotifyOptions> = {key: (err as UserError).key || message};
       if (details && details.tips && details.tips.some(tip => tip.action === 'ask-for-help')) {
         options.actions = ['ask-for-help'];
       }
