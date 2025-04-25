@@ -336,7 +336,7 @@ export const componentsCssMapping = {
   inputInvalid: 'input-invalid',
   inputFocus: 'input-focus',
   inputReadonlyBg: 'input-readonly-bg',
-  inputReadonlyBorder: 'themes-input-readonly-border',
+  inputReadonlyBorder: 'input-readonly-border',
   choiceTokenFg: 'choice-token-fg',
   choiceTokenBlankFg: 'choice-token-blank-fg',
   choiceTokenBg: 'choice-token-bg',
