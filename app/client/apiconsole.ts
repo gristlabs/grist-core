@@ -1,12 +1,16 @@
 import {loadCssFile, loadScript} from 'app/client/lib/loadScript';
+import {makeT} from 'app/client/lib/localization';
 import type {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {reportError} from 'app/client/models/errors';
 import {createAppPage} from 'app/client/ui/createAppPage';
+import {invokePrompt} from 'app/client/ui2018/modals';
 import {DocAPIImpl} from 'app/common/UserAPI';
 import type {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {dom, styled} from 'grainjs';
 import type SwaggerUI from 'swagger-ui';
+
+const t = makeT('apiconsole');
 
 /**
  * This loads the swagger resources as if included as separate <script> and <link> tags in <head>.
@@ -295,7 +299,7 @@ function initialize(appModel: AppModel) {
   return onComplete;
 }
 
-function requestInterceptor(request: SwaggerUI.Request) {
+async function requestInterceptor(request: SwaggerUI.Request) {
   delete request.headers.Authorization;
   const url = new URL(request.url);
   // Swagger will use this request interceptor for several kinds of
@@ -315,6 +319,33 @@ function requestInterceptor(request: SwaggerUI.Request) {
     // (i.e. file uploads) would fail in the API console. We want those
     // requests to succeed.
     request.headers['X-Requested-With'] = 'XMLHttpRequest';
+    if (request.method.toLowerCase() === 'delete') {
+      const text = await invokePrompt(
+        t('Confirm Deletion'), {
+          btnText: t('Delete'),
+          placeholder: t('Type DELETE here if you wish to proceed.'),
+          extraBody: [
+            dom(
+              'p',
+              t('Are you sure you want to delete the following?')
+            ),
+            dom(
+              'p',
+              dom('tt', url.pathname)
+            ),
+            dom(
+              'p',
+              t(`Type DELETE if you are sure you do indeed wish to do this deletion.
+If you are not sure, or do not understand what this operation will do,
+it would be wise to cancel it.`)
+            )
+          ]
+        });
+      if (text !== 'DELETE') {
+        reportError(t('Deletion was not confirmed, skipping.'));
+        throw new Error('Deletion was not confirmed');
+      }
+    }
   }
   return request;
 }

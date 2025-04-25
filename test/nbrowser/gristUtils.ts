@@ -2155,6 +2155,8 @@ export function getToasts(): Promise<string[]> {
 }
 
 export async function wipeToasts(): Promise<void> {
+  // call clearAppErrors if in a proper Grist window (and not, for
+  // example, in the API Console window).
   await driver.executeScript('window.gristApp.topAppModel.notifier.clearAppErrors()');
   return driver.executeScript(
     "for (const e of document.getElementsByClassName('test-notifier-toast-wrapper')) { e.remove(); }");
