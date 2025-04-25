@@ -434,7 +434,7 @@ data.")),
       ),
       dom('div',
         cssNewsPopupLink(t('Learn more'), {
-          href: commonUrls.helpLinkingWidgets,
+          href: commonUrls.helpAssistant,
           target: '_blank',
         }),
       ),
