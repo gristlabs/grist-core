@@ -632,9 +632,9 @@
         "You do not have write access to this site": "Vous n’avez pas d'accès en écriture à cet espace",
         "Workspace": "Dossier",
         "You do not have write access to the selected workspace": "Vous n’avez pas accès en écriture à ce dossier",
-        "Remove all data but keep the structure to use as a template": "Supprimer toutes les données mais garder la structure comme modèle",
-        "Remove document history (can significantly reduce file size)": "Supprimer l'historique du document (peut réduire sensiblement la taille du fichier)",
-        "Download full document and history": "Télécharger le document complet et l'historique",
+        "Remove all data but keep the structure to use as a template": "Télécharger uniquement la structure du document, sans les données",
+        "Remove document history (can significantly reduce file size)": "Télécharger le document complet sans l'historique (peut réduire sensiblement la taille du fichier)",
+        "Download full document and history": "Télécharger le document complet avec l'historique des modifications",
         "Download": "Télécharger",
         "Download document": "Télécharger le document"
     },
