@@ -795,7 +795,7 @@ describe('UsersManager', function () {
             picture: profile.picture,
             options: {
               authSubject: userOptions.authSubject,
-              sso_extra: {
+              ssoExtraInfo: {
                 extrafield: profile.extra!.extrafield,
               },
             }
