@@ -59,8 +59,8 @@ describe('ApiConsole', function () {
       await driver.findWait('button.test-modal-confirm', 3000).click();
       toasts = await gu.getToasts();
       assert.equal(toasts.length, 0);
-    } finally {    
-      // There is an extra browser tab open for the api console.    
+    } finally {
+      // There is an extra browser tab open for the api console.
       await driver.close();
       await myTab.open();
     }
