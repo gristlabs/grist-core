@@ -7,8 +7,6 @@ import {
   element,
   elementCount,
   elements,
-  FormElement,
-  formSchema,
   hiddenColumn,
   hiddenColumns,
   isSelected,
@@ -22,7 +20,7 @@ import {
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
-describe('FormView', function() {
+describe('FormView1', function() {
   this.timeout('4m');
   gu.bigScreen();
 
@@ -128,6 +126,7 @@ describe('FormView', function() {
         await driver.find('.test-form-success-page-text').getText(),
         'Thank you! Your response has been recorded.'
       );
+      assert.equal(await driver.getTitle(), 'Form Submitted - Grist');
     });
   }
 
@@ -144,173 +143,6 @@ describe('FormView', function() {
     await gu.waitForServer();
     assert.isFalse(await driver.find('.test-form-success-page').isPresent());
   }
-
-  describe('operations', async function() {
-
-    before(async function() {
-      const session = await gu.session().login();
-      docId = await session.tempNewDoc(cleanup);
-      api = session.createHomeApi();
-    });
-
-    gu.withClipboardTextArea();
-
-    it('duplicates default form', async function() {
-      // Create a default form for an empty table.
-      await gu.addNewPage('Form', 'Table1');
-      // Go to this page, to make sure we wait for it.
-      await gu.openPage('New page');
-      await gu.renamePage('New page', 'Original');
-      const revert = await gu.begin();
-
-      // Read the schema overall.
-      const origStruct1 = await formSchema();
-      // Now duplicate it.
-      await gu.duplicatePage('Original', 'Cloned');
-      // Check that the new page has the same form.
-      await gu.openPage('Cloned');
-      // Read the schema again.
-      const cloned = await formSchema();
-      assert.deepEqual(origStruct1, cloned);
-
-      // Make sure that when changed the original form isn't changed.
-      // Hide columns A and B
-      assert.equal(cloned[2].children.length, 5);
-      assert.deepEqual(cloned[2].children.filter(isField).map(label), ['A', 'B', 'C']);
-      await question('A').hover();
-      await question('A').remove();
-      await gu.waitForServer();
-      await question('B').hover();
-      await question('B').remove();
-      await gu.waitForServer();
-      // Read the schema again.
-      const clonedWithoutBC = await formSchema();
-      assert.notDeepEqual(origStruct1, clonedWithoutBC);
-      // Make sure we don't see those fields there.
-      assert.deepEqual(clonedWithoutBC[2].children.filter(isField).map(label), ['C']);
-
-      // Now go to the original page and make sure it still has all fields.
-      await gu.openPage('Original');
-      const origStruct2 = await formSchema();
-      assert.deepEqual(origStruct1, origStruct2);
-      // No remove column C here, to make sure duplicate is not affected.
-      await question('C').hover();
-      await question('C').remove();
-      await gu.waitForServer();
-      await gu.openPage('Cloned');
-
-      // Check that the new page has the same form.
-      const cloneAfterRemoval2 = await formSchema();
-      assert.deepEqual(clonedWithoutBC, cloneAfterRemoval2);
-
-      await revert();
-    });
-
-    it('duplicates modified form', async function() {
-      const revert = await gu.begin();
-
-      await gu.openPage('Original');
-      // Hide column A
-      await question('A').hover();
-      await question('A').remove();
-      await gu.waitForServer();
-      // Read schema
-      const origBC = await formSchema();
-      // Sanity check.
-      assert.deepEqual(origBC[2].children.filter(isField).map(label), ['B', 'C']);
-      // Now duplicate it.
-      await gu.duplicatePage('Original', 'Cloned');
-      // Check that the new page has the same form.
-      await gu.openPage('Cloned');
-      // Read the schema again.
-      const clonedBC = await formSchema();
-      assert.deepEqual(origBC, clonedBC);
-      // Sanity check.
-      assert.deepEqual(clonedBC[2].children.filter(isField).map(label), ['B', 'C']);
-
-      // Now remove column B from original, and make sure clone is not affected.
-      await gu.openPage('Original');
-      await question('B').hover();
-      await question('B').remove();
-      await gu.waitForServer();
-      const origC = await formSchema();
-      // Sanity check.
-      assert.deepEqual(origC[2].children.filter(isField).map(label), ['C']);
-      // Make sure clone is not affected.
-      await gu.openPage('Cloned');
-      assert.deepEqual(clonedBC, await formSchema());
-
-      // Cloned still has B and C, remove the C to make sure original is not affected.
-      await question('C').hover();
-      await question('C').remove();
-      await gu.waitForServer();
-
-      // Make sure original still has C
-      await gu.openPage('Original');
-      assert.deepEqual(origC, await formSchema());
-      await revert();
-
-    });
-
-    it('clones default form without publishing', async function() {
-      // Original form is not yet changed.
-      // Publish it.
-      await publish.click();
-      await confirm.click();
-      await gu.waitForServer();
-      await unpublish.wait();
-
-      await gu.duplicatePage('Original', 'Cloned');
-      await gu.openPage('Cloned');
-
-      // Make sure we have publish button.
-      assert.isTrue(await publish.isDisplayed());
-      assert.isFalse(await unpublish.isPresent());
-
-      // Now publish the clone also.
-      await publish.click();
-      await confirm.click();
-      await gu.waitForServer();
-      await unpublish.wait();
-
-      // And unpublish the clone to make sure the original is still published.
-      await unpublish.click();
-      await confirm.click();
-      await gu.waitForServer();
-      await publish.wait();
-
-      // Check original, should still be published.
-      await gu.openPage('Original');
-      assert.isFalse(await publish.isPresent());
-      assert.isTrue(await unpublish.isDisplayed());
-    });
-
-    it('can submit a form', async function() {
-      // Publish the clone and open the form.
-      await gu.openPage('Cloned');
-      await publish.click();
-      await confirm.click();
-      await gu.waitForServer();
-      await unpublish.wait();
-
-      await share.click();
-      await gu.waitForServer();
-      const link = await driver.findWait('.test-forms-link', 100).getAttribute('value');
-      await driver.get(link);
-
-      // Submit a record
-      await driver.findWait('input[name="A"]', 100).click();
-      await driver.findWait('input[name="A"]', 100).sendKeys('Hello');
-      await driver.findWait('input[type="submit"]', 1000).click();
-      await driver.findWait('.test-form-success-page-text', 1000);
-
-      // Check that the record was added to the table.
-      await driver.navigate().back();
-      await gu.waitForDocToLoad();
-      await gu.openPage('Table1');
-      assert.deepEqual(await gu.getVisibleGridCellsFast('A', [1]), ['Hello']);
-    });
-  });
 
   describe('on personal site', async function() {
     before(async function() {
@@ -373,12 +205,30 @@ describe('FormView', function() {
       await removeForm();
     });
 
+    it('has global markup correctly setup for screen reader users', async function() {
+      const formUrl = await createFormWith('Text');
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        // check we have main section, footer section, and "powered by grist" alt text is present
+        assert.isTrue(await driver.findWait('main', 2000).isDisplayed());
+        assert.isTrue(await driver.findWait('footer', 2000).isDisplayed());
+        assert.isTrue(await driver.findWait('[aria-label="Powered by Grist"]', 2000).isDisplayed());
+
+        await gu.sendKeys('Hello');
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+
+      });
+      await removeForm();
+    });
+
     it('can submit a form with single-line Text field', async function() {
       const formUrl = await createFormWith('Text');
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('Hello');
         assert.equal(await driver.find('input[name="D"]').value(), 'Hello');
         await driver.find('.test-form-reset').click();
@@ -404,7 +254,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('textarea[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the textarea
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('Hello');
         assert.equal(await driver.find('textarea[name="D"]').value(), 'Hello');
         await driver.find('.test-form-reset').click();
@@ -425,7 +276,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -449,7 +301,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -478,7 +331,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('01011999');
         assert.equal(await driver.find('input[name="D"]').getAttribute('value'), '1999-01-01');
         await driver.find('.test-form-reset').click();
@@ -513,6 +367,7 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('select[name="D"]', 2000);
+        await driver.findWait('label[for="D"]', 2000);
         // Make sure options are there.
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
@@ -527,13 +382,13 @@ describe('FormView', function() {
         await driver.find('.test-modal-confirm').click();
         assert.equal(await driver.find('select[name="D"]').value(), '');
         await driver.find('.test-form-search-select').click();
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         // Check keyboard shortcuts work.
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Bar');
         await gu.sendKeys(Key.BACK_SPACE);
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
         await gu.sendKeys(Key.ENTER);
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -557,7 +412,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         assert.deepEqual(
           await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
         );
@@ -580,7 +442,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -604,7 +467,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
         await gu.sendKeys('1983');
         assert.equal(await driver.find('input[name="D"]').value(), '1983');
         await driver.find('.test-form-reset').click();
@@ -704,6 +568,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D[]"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         await driver.findWait('input[name="D[]"][value="Bar"]', 2000).click();
         assert.equal(await driver.find('input[name="D[]"][value="Bar"]').getAttribute('checked'), 'true');
         await driver.find('.test-form-reset').click();
@@ -735,6 +607,7 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('select[name="D"]', 2000);
+        await driver.findWait('label[for="D"]', 2000);
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()),
           ['Select...', 'Foo', 'Bar', 'Baz']
@@ -753,13 +626,13 @@ describe('FormView', function() {
         await driver.find('.test-modal-confirm').click();
         assert.equal(await driver.find('select[name="D"]').value(), '');
         await driver.find('.test-form-search-select').click();
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         // Check keyboard shortcuts work.
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Bar');
         await gu.sendKeys(Key.BACK_SPACE);
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
         await gu.sendKeys(Key.ENTER);
-        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000 ).click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -786,7 +659,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         assert.deepEqual(
           await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
         );
@@ -826,6 +706,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const firstItem = await driver.findWait('input[name="D[]"]', 2000);
+        const container = await firstItem.findClosest('[aria-labelledby="D-label"]');
+        assert.isTrue(await container.isDisplayed());
+        assert.isTrue(await container.find('#D-label').isDisplayed());
+        assert.equal(await container.getAttribute('role'), 'group');
+
         assert.equal(await driver.findWait('label:has(input[name="D[]"][value="1"])', 2000).getText(), 'Foo');
         assert.equal(await driver.find('label:has(input[name="D[]"][value="2"])').getText(), 'Bar');
         assert.equal(await driver.find('label:has(input[name="D[]"][value="3"])').getText(), 'Baz');
@@ -1335,9 +1223,13 @@ describe('FormView', function() {
         await cb.paste();
       });
       await gu.waitForServer();
-      assert.deepEqual(await labels(), ['B', 'A', 'C']);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await labels(), ['B', 'A', 'C']);
+      });
       await gu.undo();
-      assert.deepEqual(await labels(), ['A', 'B', 'C']);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await labels(), ['A', 'B', 'C']);
+      });
 
       // To the same for paragraph.
       await plusButton().click();
@@ -1848,36 +1740,3 @@ describe('FormView', function() {
     });
   });
 });
-
-
-
-function isField(e: FormElement) {
-  return e.type === 'Field';
-}
-
-function label(e: FormElement) {
-  return e.label;
-}
-
-function button(selector: string) {
-  return {
-    async click() {
-      await driver.findWait(selector, 1000).click();
-    },
-    async wait() {
-      await driver.findWait(selector, 1000);
-    },
-    async isDisplayed() {
-      return await driver.find(selector).isDisplayed();
-    },
-    async isPresent() {
-      return await driver.find(selector).isPresent();
-    }
-  };
-}
-
-
-const publish = button('.test-forms-publish');
-const unpublish = button('.test-forms-unpublish');
-const confirm = button('.test-modal-confirm');
-const share = button('.test-forms-share');

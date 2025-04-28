@@ -23,6 +23,7 @@ import {
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
+import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
 import noop from 'lodash/noop';
@@ -44,6 +45,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
     cssSectionHeader(cssSectionHeaderText(t("TOOLS"))),
+    buildOpenAssistantButton(gristDoc, testId('assistant')),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
       cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),

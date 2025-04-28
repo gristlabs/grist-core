@@ -126,7 +126,7 @@ export function Section(...children: FormLayoutNode[]): FormLayoutNode {
     id: uuidv4(),
     type: 'Section',
     children: [
-      Paragraph(t('### **Header**')),
+      Paragraph(t('## **Header**')),
       Paragraph(t('Description')),
       ...children,
     ],

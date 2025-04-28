@@ -1,4 +1,5 @@
 import { hashCode } from "app/client/lib/hashUtils";
+import { splitPageInitial } from 'app/client/ui2018/pages';
 import { isValidHex, useBindable } from "app/common/gutil";
 import emojiRegex from "emoji-regex";
 import { BindableValue, dom, DomElementArg, styled } from "grainjs";
@@ -23,7 +24,7 @@ export function buildDocIcon(options: DocIconOptions, ...args: DomElementArg[]) 
       if (isEmoji(emoji)) {
         return cssEmoji(emoji);
       } else {
-        return cssInitials(getInitials(useBindable(use, docName)));
+        return cssInitials(getIconFromName(useBindable(use, docName)));
       }
     }),
     dom.style("color", (use) => {
@@ -56,13 +57,39 @@ function isEmoji(value: unknown): value is string {
   return emojiRegex().test(value);
 }
 
-function getInitials(name: string) {
+function getIconFromName(name: string) {
+  // If name starts with emoji, use this as icon, and name as rest.
+  // Reuse the method for getting page initials. If name starts with an emoji we want
+  // to show what pages are showing.
+  const pageInitials = splitPageInitial(name);
+  if (pageInitials.hasEmoji) {
+    return pageInitials.initial;
+  }
+
+  // Otherwise use first two letters/digits from two first words.
   const parts = name.trim().split(/\s+/);
   return parts
     .slice(0, 2)
     .map((w) => [...w][0])
     .join("")
+    // https://www.regular-expressions.info/unicode.html
+    .replace(/[^\p{L}\p{Nd}]$/u, '')
     .toUpperCase();
+}
+
+/**
+ * Extract the name part to display from doc name (by removing emoji from the start)
+ * and return it. If there is no emoji, return the name as is.
+ * If there is an preselected icon, return the name as is.
+ */
+export function stripIconFromName(name: string, hasIcon: boolean) {
+  if (hasIcon) {
+    return name;
+  }
+  // Reuse the page initials logic to get the display name. But if the display name is empty (name contains just the
+  // emoji), we want to show this emoji as a name, not the empty string like pages do.
+  const pageInitials = splitPageInitial(name);
+  return pageInitials.displayName;
 }
 
 const DEFAULT_DOC_ICON_COLORS = [

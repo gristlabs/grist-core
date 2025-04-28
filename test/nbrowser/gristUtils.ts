@@ -1347,7 +1347,7 @@ export async function addNewPage(
 
   // Click the 'Page' entry in the 'Add New' menu
   await driver.findWait('.test-dp-add-new', 2000).doClick();
-  await driver.find('.test-dp-add-new-page').doClick();
+  await driver.findWait('.test-dp-add-new-page', 2000).doClick();
 
   // add widget
   await selectWidget(typeRe, tableRe, options);
@@ -2780,6 +2780,7 @@ export function resizeWindowForSuite(width: number, height: number) {
     await setWindowDimensions(width, height);
   });
   after(async function () {
+    if (noCleanup) { return; }
     await setWindowDimensions(oldDimensions.width, oldDimensions.height);
   });
 }
@@ -4210,14 +4211,32 @@ export async function findOpenMenuAllItems<T>(
   return await driver.findAll(`.grist-floating-menu ${itemSelector}`, mapper);
 }
 
-export async function waitForNotPresent(selector: string) {
+/** Waits for the element to be not present in the dom */
+export async function notPresent(selector: string) {
   await waitToPass(async () => {
     assert.isFalse(await driver.find(selector).isPresent());
+  }, 100);
+}
+
+export async function waitForContent(selector: string, text: string|RegExp) {
+  await waitToPass(async () => {
+    assert.equal(await driver.find(selector).getText(), text);
+  });
+}
+
+export async function waitForDisplay(selector: string) {
+  await waitToPass(async () => {
+    assert.isTrue(await driver.find(selector).isDisplayed());
   });
 }
 
 export async function waitForMenuToClose() {
-  await waitForNotPresent('.grist-floating-menu');
+  await notPresent('.grist-floating-menu');
+}
+
+/** Finds a tab by its name and clicks it */
+export async function selectTab(name: string|RegExp) {
+  await driver.findContentWait('.test-component-tabs-tab', name, 100).click();
 }
 
 

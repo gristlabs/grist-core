@@ -57,6 +57,7 @@ import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {invokePrompt} from 'app/client/ui2018/modals';
+import {AssistantPopup} from 'app/client/widgets/AssistantPopup';
 import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
@@ -305,6 +306,15 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _disableAutoStartingTours: boolean = false;
   private _isShowingPopupSection = false;
   private _prevSectionId: number | null = null;
+
+  /**
+   * This holds a single AssistantPopup and empties itself whenever it's
+   * dispose.
+   *
+   * The holder is maintained by GristDoc, so that we are guaranteed at most
+   * one instance of AssistantPopup at any time.
+   */
+  private _assistantPopupHolder = Holder.create<AssistantPopup>(this);
 
   constructor(
     public readonly app: App,
@@ -598,6 +608,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
+      activateAssistant: this._activateAssistant.bind(this),
     }, this, true));
 
     this.listenTo(app.comm, 'docUserAction', this._onDocUserAction);
@@ -1674,7 +1685,11 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   }
 
   private async _promptForName() {
-    return await invokePrompt("Table name", "Create", '', "Default table name");
+    return await invokePrompt("Table name", {
+      btnText: "Create",
+      initial: "",
+      placeholder: "Default table name",
+    });
   }
 
   private async _replaceViewSection(
@@ -1943,6 +1958,16 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         }]
       });
     });
+  }
+
+  private _activateAssistant() {
+    if (!this._assistantPopupHolder.isEmpty()) {
+      // If an AssistantPopup is already open, don't dispose and reopen it, which
+      // would cause its state to be reset.
+      return;
+    }
+
+    AssistantPopup.create(this._assistantPopupHolder, this);
   }
 }
 

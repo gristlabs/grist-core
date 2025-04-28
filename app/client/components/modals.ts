@@ -150,7 +150,7 @@ export interface ShowTipPopupOptions {
 
 export function showTipPopup(
   refElement: Element,
-  title: string,
+  title: DomContents,
   content: DomContents,
   options: ShowTipPopupOptions
 ) {
@@ -212,7 +212,7 @@ export interface ShowNewsPopupOptions {
 
 export function showNewsPopup(
   refElement: Element,
-  title: string,
+  title: DomContents,
   content: DomContents,
   options: ShowNewsPopupOptions = {}
 ) {
@@ -467,7 +467,8 @@ const cssBehavioralPromptTitle = styled('div', `
 const cssNewsPopupTitle = styled('div', `
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
-  margin: 0 0 16px 0;
+  --icon-color: white;
+  margin: 0 16px 16px 0;
   line-height: 32px;
 `);
 

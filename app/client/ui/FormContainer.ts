@@ -24,7 +24,11 @@ export function buildFormFooter() {
   return [
     cssPoweredByGrist(
       cssPoweredByGristLink(
-        {href: commonUrls.forms, target: '_blank'},
+        {
+          href: commonUrls.forms,
+          target: '_blank',
+          'aria-label': t('Powered by Grist'),
+        },
         t('Powered by'),
         cssGristLogo(),
       )
@@ -50,7 +54,7 @@ export const cssFormMessageImage = styled('img', `
   width: 100%;
 `);
 
-export const cssFormMessageText = styled('div', `
+export const cssFormMessageText = styled('p', `
   color: ${colors.dark};
   text-align: center;
   font-weight: 600;
@@ -75,7 +79,7 @@ const cssFormMessage = styled('div', `
   margin: 0px auto;
 `);
 
-const cssFormMessageBody = styled('div', `
+const cssFormMessageBody = styled('main', `
   width: 100%;
   padding: 20px 48px 20px 48px;
 
@@ -86,7 +90,7 @@ const cssFormMessageBody = styled('div', `
   }
 `);
 
-const cssFormMessageFooter = styled('div', `
+const cssFormMessageFooter = styled('footer', `
   border-top: 1px solid ${colors.darkGrey};
   padding: 8px 16px;
   width: 100%;

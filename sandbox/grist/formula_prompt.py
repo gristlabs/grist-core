@@ -153,9 +153,7 @@ def class_schema(engine, table_id, exclude_col_id=None, lookups=False):
   return result
 
 
-def get_formula_prompt(engine, table_id, col_id, _description,
-                       include_all_tables=True,
-                       lookups=True):
+def get_formula_prompt(engine, table_id, col_id, include_all_tables=True, lookups=True):
   result = ""
   other_tables = (all_other_tables(engine, table_id)
     if include_all_tables else referenced_tables(engine, table_id))

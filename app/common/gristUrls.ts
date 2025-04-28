@@ -1,5 +1,5 @@
+import {AssistantConfig} from 'app/common/Assistant';
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
-import {LatestVersionAvailable} from 'app/common/version';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
@@ -83,7 +83,9 @@ export const SHARE_KEY_PREFIX = 's.';
 export const commonUrls = {
   help: getHelpCenterUrl(),
   helpAccessRules: "https://support.getgrist.com/access-rules",
-  helpAssistantDataUse: "https://support.getgrist.com/ai-assistant/#data-use-policy",
+  helpAssistant: "https://support.getgrist.com/assistant",
+  helpAssistantDataUse: "https://support.getgrist.com/assistant/#data-use-policy",
+  helpFormulaAssistantDataUse: "https://support.getgrist.com/ai-assistant/#data-use-policy",
   helpColRefs: "https://support.getgrist.com/col-refs",
   helpConditionalFormatting: "https://support.getgrist.com/conditional-formatting",
   helpFilterButtons: "https://support.getgrist.com/search-sort-filter/#filter-buttons",
@@ -107,6 +109,7 @@ export const commonUrls = {
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
+  onboardingTutorialVideoId: getOnboardingVideoId(),
   plans: "https://www.getgrist.com/pricing",
   contact: "https://www.getgrist.com/contact",
   templates: 'https://www.getgrist.com/templates',
@@ -127,7 +130,6 @@ export const commonUrls = {
   attachmentStorage: 'https://support.getgrist.com/document-settings/#external-attachments',
 };
 
-export const ONBOARDING_VIDEO_YOUTUBE_EMBED_ID = '56AieR9rpww';
 
 /**
  * Values representable in a URL. The current state is available as urlState().state observable
@@ -738,6 +740,10 @@ export interface ActivationState {
   }
 }
 
+export interface LatestVersionAvailable {
+  version: string;
+  isNewer: boolean;
+}
 
 /**
  * These settings get sent to the client along with the loaded page. At the minimum, the browser
@@ -868,14 +874,9 @@ export interface GristLoadConfig {
   // TODO: remove when comments will be released.
   featureComments?: boolean;
 
-  // TODO: remove once released.
-  featureFormulaAssistant?: boolean;
+  assistant?: AssistantConfig;
 
   permittedCustomWidgets?: IAttachedCustomWidget[];
-
-  // Used to determine which disclosure links should be provided to user of
-  // formula assistance.
-  assistantService?: 'OpenAI' | undefined;
 
   // Email address of the support user.
   supportEmail?: string;
@@ -897,6 +898,9 @@ export interface GristLoadConfig {
 
   // The doc id of the tutorial shown during onboarding.
   onboardingTutorialDocId?: string;
+
+  // The id of the Youtube video to show for the onboarding
+  onboardingTutorialVideoId?: string;
 
   // Whether to show the "Delete Account" button in the account page.
   canCloseAccount?: boolean;
@@ -978,6 +982,16 @@ export function getHelpCenterUrl(): string {
     return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
   } else {
     return process.env.GRIST_HELP_CENTER || defaultUrl;
+  }
+}
+
+export function getOnboardingVideoId(): string {
+  const defaultId = "56AieR9rpww";
+  if (isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.onboardingTutorialVideoId || defaultId;
+  } else {
+    return process.env.GRIST_ONBOARDING_VIDEO_ID || defaultId;
   }
 }
 

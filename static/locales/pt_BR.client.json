@@ -1326,7 +1326,8 @@
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Essa limitação ocorre quando uma extremidade de uma referência bidirecional é configurada como uma única referência.",
         "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento",
         "[Learn more.]({{link}})": "[Saiba mais]({{link}})",
-        "Summary tables can only contain formula columns.": "As tabelas de resumo só podem conter colunas de fórmula."
+        "Summary tables can only contain formula columns.": "As tabelas de resumo só podem conter colunas de fórmula.",
+        "Manage users and resources in a Grist installation.": "Gerencie usuários e recursos em uma instalação do Grist."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1551,7 +1552,7 @@
         "Code copied to clipboard": "Código copiado para a área de transferência",
         "Copy code": "Copiar código",
         "Preview": "Pré-visualização",
-        "## **Form Title**": "## **Título do formulário**",
+        "# **Form Title**": "# **Título do formulário**",
         "Your form description goes here.": "A descrição do seu formulário vai aqui."
     },
     "Menu": {
@@ -1604,11 +1605,14 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Algumas colunas obrigatórias não estão mapeadas",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Para usar este widget, mapeie todas as colunas não opcionais do painel criador à direita."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Para usar este widget, mapeie todas as colunas não opcionais do painel criador à direita.",
+        "Some required columns are hidden by access rules": "Algumas colunas necessárias estão ocultas por regras de acesso",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Para usar este widget, todas as colunas mapeadas devem ser visíveis. Entre em contato com o proprietário do documento ou modifique as regras de acesso."
     },
     "FormContainer": {
         "Build your own form": "Crie seu próprio formulário",
-        "Powered by": "Desenvolvido por"
+        "Powered by": "Desenvolvido por",
+        "Powered by Grist": "Desenvolvido por Grist"
     },
     "FormErrorPage": {
         "Error": "Erro"
@@ -1648,7 +1652,7 @@
     "Section": {
         "Insert section above": "Inserir seção acima",
         "Insert section below": "Inserir seção abaixo",
-        "### **Header**": "### **Cabeçalho**",
+        "## **Header**": "## **Cabeçalho**",
         "Description": "Descrição"
     },
     "AdminPanel": {
@@ -1708,7 +1712,8 @@
         "Off": "Desligado",
         "Audit Logs": "Registros de auditoria",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mais",
-        "On": "Ligado"
+        "On": "Ligado",
+        "Grist Instance": "Instância do Grist"
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -2013,5 +2018,17 @@
         "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Os widgets personalizados são **poderosos**! Eles podem ler e gravar os dados de seu documento e enviá-los para outro lugar.",
         "Do you **trust the person** who shared this link?": "Você **confia na pessoa** que compartilhou esse link?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "Em caso de dúvida, não instale esse widget ou peça a um administrador de sua organização para revisá-lo quanto à segurança."
+    },
+    "AdminLeftPanel": {
+        "Installation": "Instalação",
+        "Learn more": "Saiba mais",
+        "Admin Controls": "Controles administrativos",
+        "Settings": "Configurações",
+        "Docs": "Documentos",
+        "Admin controls": "Controles administrativos",
+        "Admin area": "Área administrativa",
+        "Orgs": "Organizações",
+        "Users": "Usuários",
+        "Workspaces": "Áreas de Trabalho"
     }
 }

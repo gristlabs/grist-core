@@ -46,6 +46,7 @@ export const Timings = {
 export class Housekeeper {
   private _deleteTrashinterval?: NodeJS.Timeout;
   private _logMetricsInterval?: NodeJS.Timeout;
+  private _checkVersionUpdatesTimeout?: NodeJS.Timeout;
   private _checkVersionUpdatesInterval?: NodeJS.Timeout;
 
   private _electionKey?: string;
@@ -66,7 +67,7 @@ export class Housekeeper {
     this._logMetricsInterval = setInterval(() => {
       this.logMetricsExclusively().catch(log.warn.bind(log));
     }, Timings.LOG_METRICS_PERIOD_MS);
-    setTimeout(() => {
+    this._checkVersionUpdatesTimeout = setTimeout(() => {
       this.checkVersionUpdates().catch(log.warn.bind(log));
     }, Timings.VERSION_CHECK_OFFSET_MS);
     this._checkVersionUpdatesInterval = setInterval(() => {
@@ -86,6 +87,8 @@ export class Housekeeper {
       clearInterval(this[interval]);
       this[interval] = undefined;
     }
+    clearTimeout(this._checkVersionUpdatesTimeout);
+    this._checkVersionUpdatesTimeout = undefined;
   }
 
   /**

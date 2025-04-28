@@ -1263,7 +1263,8 @@
         "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document",
         "[Learn more.]({{link}})": "[Learn more.]({{link}})",
         "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns.",
-        "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation."
+        "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation.",
+        "The new Grist Assistant is here!": "The new Grist Assistant is here!"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1495,7 +1496,7 @@
         "Share": "Share",
         "Share this form": "Share this form",
         "View": "View",
-        "## **Form Title**": "## **Form Title**",
+        "# **Form Title**": "# **Form Title**",
         "Your form description goes here.": "Your form description goes here."
     },
     "Editor": {
@@ -1547,7 +1548,8 @@
     },
     "FormContainer": {
         "Build your own form": "Build your own form",
-        "Powered by": "Powered by"
+        "Powered by": "Powered by",
+        "Powered by Grist": "Powered by Grist"
     },
     "FormErrorPage": {
         "Error": "Error"
@@ -1587,7 +1589,7 @@
     "Section": {
         "Insert section above": "Insert section above",
         "Insert section below": "Insert section below",
-        "### **Header**": "### **Header**",
+        "## **Header**": "## **Header**",
         "Description": "Description"
     },
     "CreateTeamModal": {
@@ -1661,7 +1663,8 @@
         "New, Enterprise": "New, Enterprise",
         "Off": "Off",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more",
-        "On": "On"
+        "On": "On",
+        "Grist Instance": "Grist Instance"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1961,6 +1964,33 @@
         "Learn more": "Learn more",
         "Orgs": "Orgs",
         "Users": "Users",
-        "Workspaces": "Workspaces"
+        "Workspaces": "Workspaces",
+        "Admin Controls": "Admin Controls",
+        "Settings": "Settings"
+    },
+    "Assistant": {
+        "AI Assistant is only available for logged in users.": "AI Assistant is only available for logged in users.",
+        "Apply": "Apply",
+        "For higher limits, contact the site owner.": "For higher limits, contact the site owner.",
+        "For higher limits, {{upgradeNudge}}.": "For higher limits, {{upgradeNudge}}.",
+        "Learn more.": "Learn more.",
+        "Press Enter to apply suggested formula.": "Press Enter to apply suggested formula.",
+        "Sign Up for Free": "Sign Up for Free",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Sign up for a free Grist account to start using the AI Assistant.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}",
+        "What do you need help with?": "What do you need help with?",
+        "You have used all available credits.": "You have used all available credits.",
+        "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
+        "start a new chat": "start a new chat",
+        "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
+        "upgrade your plan": "upgrade your plan"
+    },
+    "apiconsole": {
+        "Are you sure you want to delete the following?": "Are you sure you want to delete the following?",
+        "Confirm Deletion": "Confirm Deletion",
+        "Delete": "Delete",
+        "Deletion was not confirmed, skipping.": "Deletion was not confirmed, skipping.",
+        "Type DELETE here if you wish to proceed.": "Type DELETE here if you wish to proceed.",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it."
     }
 }

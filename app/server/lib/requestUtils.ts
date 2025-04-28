@@ -272,6 +272,9 @@ export function optStringParam(p: any, name: string, options: StringParamOptions
 
 export function stringParam(p: any, name: string, options: StringParamOptions = {}): string {
   const {allowed, allowEmpty = true} = options;
+  if (p === null || p === undefined) {
+    throw new ApiError(`${name} parameter is required`, 400);
+  }
   if (typeof p !== 'string') {
     throw new ApiError(`${name} parameter should be a string: ${p}`, 400);
   }

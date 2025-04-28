@@ -1,5 +1,5 @@
 import { ICustomWidget } from 'app/common/CustomWidget';
-import { GristDeploymentType, GristLoadConfig } from 'app/common/gristUrls';
+import { GristDeploymentType, GristLoadConfig, LatestVersionAvailable } from 'app/common/gristUrls';
 import { LocalPlugin } from 'app/common/plugin';
 import { SandboxInfo } from 'app/common/SandboxInfo';
 import { UserProfile } from 'app/common/UserAPI';
@@ -16,6 +16,7 @@ import { create } from 'app/server/lib/create';
 import { DocManager } from 'app/server/lib/DocManager';
 import { Hosts } from 'app/server/lib/extractOrg';
 import { GristJobs } from 'app/server/lib/GristJobs';
+import { IAssistant } from 'app/server/lib/IAssistant';
 import { createNullAuditLogger, IAuditLogger } from 'app/server/lib/IAuditLogger';
 import { IBilling } from 'app/server/lib/IBilling';
 import { ICreate } from 'app/server/lib/ICreate';
@@ -27,10 +28,9 @@ import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
 import { ITelemetry } from 'app/server/lib/Telemetry';
+import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
 import * as express from 'express';
 import { IncomingMessage } from 'http';
-import { IGristCoreConfig, loadGristCoreConfig } from "./configCore";
-import { LatestVersionAvailable } from 'app/common/version';
 
 /**
  * Basic information about a Grist server.  Accessible in many
@@ -64,6 +64,7 @@ export interface GristServer {
   getTelemetry(): ITelemetry;
   hasNotifier(): boolean;
   getNotifier(): INotifier;
+  getAssistant(): IAssistant|undefined;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
   sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void>;
@@ -169,6 +170,7 @@ export function createDummyGristServer(): GristServer {
     getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
     hasNotifier() { return false; },
+    getAssistant() { return undefined; },
     getDocTemplate() { throw new Error('no doc template'); },
     getTag() { return 'tag'; },
     sendAppPage() { return Promise.resolve(); },

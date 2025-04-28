@@ -8,7 +8,7 @@ import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
 import {buildAdminData} from 'app/client/ui/AdminControls';
-import {buildAdminLeftPanel} from 'app/client/ui/AdminLeftPanel';
+import {buildAdminLeftPanel, getPageNames} from 'app/client/ui/AdminLeftPanel';
 import {AdminSection, AdminSectionItem, cssValueLabel, HidableToggle} from 'app/client/ui/AdminPanelCss';
 import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
 import {AuditLogStreamingConfig, getDestinationDisplayName} from 'app/client/ui/AuditLogStreamingConfig';
@@ -41,27 +41,33 @@ export class AdminPanel extends Disposable {
   }
 
   public buildDom() {
+    const pageObs = Computed.create(this, use => use(urlState().state).adminPanel || 'admin');
     return pagePanels({
       leftPanel: buildAdminLeftPanel(this, this._appModel),
-      headerMain: this._buildMainHeader(),
+      headerMain: this._buildMainHeader(pageObs),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildMainContent(),
     });
   }
 
 
-  private _buildMainHeader() {
-    return dom.frag(
+  private _buildMainHeader(pageObs: Computed<AdminPanelPage>) {
+    const pageNames = getPageNames();
+    return [
       cssBreadcrumbs({style: 'margin-left: 16px;'},
         cssLink(
           urlState().setLinkUrl({}),
-          t('Home'),
+          t('Grist Instance'),
         ),
         separator(' / '),
         dom('span', getAdminPanelName()),
+        separator(' / '),
+        dom('span', dom.domComputed(use => pageNames.pages[use(pageObs)].section)),
+        separator(' / '),
+        dom('span', dom.domComputed(use => pageNames.pages[use(pageObs)].name)),
       ),
       createTopBarHome(this._appModel),
-    );
+    ];
   }
 
   private _buildMainContent() {

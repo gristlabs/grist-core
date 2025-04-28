@@ -1323,7 +1323,7 @@
         "Copy link": "Skopírovať odkaz",
         "Link copied to clipboard": "Odkaz bol skopírovaný do schránky",
         "Share": "Zdieľať",
-        "## **Form Title**": "## **Názov Formulára**",
+        "# **Form Title**": "# **Názov Formulára**",
         "Your form description goes here.": "Tu zadať popis vášho formulára."
     },
     "AdminPanel": {
@@ -1522,7 +1522,7 @@
     "Section": {
         "Insert section below": "Vložiť časť nižšie",
         "Insert section above": "Vložiť časť vyššie",
-        "### **Header**": "### **Hlavička**",
+        "## **Header**": "## **Hlavička**",
         "Description": "Popis"
     },
     "DropdownConditionEditor": {

@@ -1,5 +1,6 @@
 import { FullUser } from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
+import { StringUnion } from 'app/common/StringUnion';
 import { BillingAccount } from 'app/gen-server/entity/BillingAccount';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
@@ -91,6 +92,20 @@ export class BaseNotifier implements INotifier {
 
   public async deleteUser(_userId: number) {}
 }
+
+export type EventName = keyof INotifier;
+export const TemplateName = StringUnion(
+  "billingManagerInvite",
+  "invite",
+  "memberChange",
+  "trialPeriodEndingSoon",
+  "twoFactorDisabled",
+  "twoFactorEnabled",
+  "twoFactorMethodAdded",
+  "twoFactorMethodRemoved",
+  "twoFactorPhoneNumberChanged",
+);
+export type TemplateName = typeof TemplateName.type;
 
 /**
  * A notifier instance that does nothing. Used when no email

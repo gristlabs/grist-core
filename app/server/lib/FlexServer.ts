@@ -1,9 +1,8 @@
 import {ApiError} from 'app/common/ApiError';
-import {LatestVersionAvailable} from 'app/common/version';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
-        GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
+        GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {isAffirmative, safeJsonParse} from 'app/common/gutil';
@@ -55,6 +54,7 @@ import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
+import {IAssistant} from 'app/server/lib/IAssistant';
 import {IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -168,6 +168,7 @@ export class FlexServer implements GristServer {
   private _docWorkerMap: IDocWorkerMap;
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
+  private _assistant?: IAssistant;
   private _accessTokens: IAccessTokens;
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
   private _externalPermitStore: IPermitStore;  // store for permits that pass through outside servers
@@ -452,6 +453,10 @@ export class FlexServer implements GristServer {
     if (!this._notifier) { throw new Error('no notifier available'); }
     // Expose a wrapper around it that emits actions.
     return this._emitNotifier;
+  }
+
+  public getAssistant(): IAssistant | undefined {
+    return this._assistant;
   }
 
   public getInstallAdmin(): InstallAdmin {
@@ -1871,6 +1876,11 @@ export class FlexServer implements GristServer {
       });
     }
     this._emitNotifier.sendGridExtensions = this._notifier.testSendGridExtensions?.();
+  }
+
+  public addAssistant() {
+    if (this._check('assistant')) { return; }
+    this._assistant = this.create.Assistant();
   }
 
   // for test purposes, check if any notifications are in progress

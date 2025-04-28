@@ -30,6 +30,7 @@ export function createAppPage(
 
   // Add globals needed by test utils.
   G.window.gristApp = {
+    topAppModel,
     testNumPendingApiRequests: () => BaseAPI.numPendingRequests(),
   };
   dom.update(document.body, dom.maybe(topAppModel.appObs, (appModel) => {

@@ -6,7 +6,7 @@ import { docUrl, urlState } from "app/client/models/gristUrlState";
 import { HomeModel, ViewSettings } from "app/client/models/HomeModel";
 import { workspaceName } from "app/client/models/WorkspaceInfo";
 import { contextMenu } from "app/client/ui/contextMenu";
-import { buildDocIcon } from "app/client/ui/DocIcon";
+import { buildDocIcon, stripIconFromName } from "app/client/ui/DocIcon";
 import { STICKY_HEADER_HEIGHT_PX } from "app/client/ui/DocMenuCss";
 import { showRenameDocModal } from "app/client/ui/RenameDocModal";
 import { shadowScroll } from "app/client/ui/shadowScroll";
@@ -165,7 +165,10 @@ export class DocList extends Disposable {
                       testId("doc-icon")
                     ),
                     cssDocNameAndBadges(
-                      cssDocName(doc.name, testId("doc-name")),
+                      cssDocName(
+                        stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
+                        testId("doc-name")
+                      ),
                       cssDocBadges(
                         !doc.isPinned
                           ? null
@@ -186,7 +189,7 @@ export class DocList extends Disposable {
                     testId("doc-edited-at")
                   ),
                   cssDocDetailsCompact(
-                    cssDocName(doc.name),
+                    cssDocName(stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))),
                     cssDocEditedAt(
                       t("Edited {{at}}", {
                         at: getTimeFromNow(doc.updatedAt),

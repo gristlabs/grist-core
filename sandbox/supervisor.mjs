@@ -3,6 +3,12 @@ import {spawn} from 'child_process';
 let grist;
 
 function startGrist(newConfig={}) {
+  // Printing the user helps with setting volume permissions if
+  // using a container.
+  const uid = process.getuid();
+  const gid = process.getgid();
+  console.log(`Running Grist as user ${uid} with primary group ${gid}`);
+
   // H/T https://stackoverflow.com/a/36995148/11352427
   grist = spawn('./sandbox/run.sh', {
     stdio: ['inherit', 'inherit', 'inherit', 'ipc'],

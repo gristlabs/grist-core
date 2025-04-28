@@ -67,8 +67,132 @@ describe('DocMenu', function() {
     await gu.dismissCardPopups(null);
   });
 
+  it('should correctly detect initials in doc names', async function() {
+    // We will work on document Doc22, which is single pinned document in the August
+    // workspace.
+
+    await gu.openWorkspace('August');
+    await gu.selectTab('Pinned');
+    assert.deepEqual(
+      await getDocNames(),
+      ['Doc22']
+    );
+
+    await testName('A', 'A');
+    await testName('Aa', 'A');
+    await testName('A A', 'AA');
+    await testName('A B', 'AB');
+    await testName('A Bc', 'AB');
+    await testName('A B C', 'AB');
+    await testName(' foo  bar cat', 'FB', 'foo bar cat');
+    await testName(' foo-bar cat', 'FC', 'foo-bar cat');
+    await testName('foo-bar', 'F');
+    await testName('  Something', 'S', 'Something');
+    await openDialog();
+    await typeName('      ');
+    await checkInitials('', '      ');
+    await cancel();
+  });
+
+  it('should correctly detect initials in doc names with emojis characters', async function() {
+    await testName('😀', '😀', '');
+    await testName('😀😀', '😀', '😀');
+    await testName('😀 Hello', '😀', 'Hello');
+    await testName('😀😀 World', '😀', '😀 World');
+    await testName('😀A', '😀', 'A');
+    await testName('😀 A', '😀', 'A');
+    await testName('😀-A', '😀', '-A');
+    await testName('😀_A', '😀', '_A');
+    await testName('😀123', '😀', '123');
+    await testName('😀😀😀', '😀', '😀😀');
+    await testName('😀😀 A', '😀', '😀 A');
+    await testName('😀-😀', '😀', '-😀');
+    await testName('😀_😀', '😀', '_😀');
+
+    // Now emoji should be ignored as a second character, alongside any non letter/digit.
+    await testName('A😀A', 'A', 'A😀A');
+    await testName('A😀', 'A', 'A😀');
+    await testName('A😀😀', 'A', 'A😀😀');
+    await testName('A😀 😀', 'A', 'A😀 😀');
+    await testName('A😀-😀', 'A', 'A😀-😀');
+    await testName('A😀 B', 'AB');
+    await testName('A😀-B', 'A');
+    await testName('A😀_B', 'A');
+    await testName('A😀123', 'A');
+    await testName('A😀😀 😀B', 'A');
+    await testName('A😀😀 😀B C', 'A');
+  });
+
+  it('should ignore digits in the front of the name', async function() {
+    // Couple of more test cases with digits.
+    await testName('1😀 Foo', '1F', '1😀 Foo');
+    await testName('1😀😀 Foo', '1F', '1😀😀 Foo');
+    await testName('1😀 😀Foo', '1',  '1😀 😀Foo'); // second word must start with a letter/digit
+    await testName('1😀 1Foo', '11',  '1😀 1Foo'); // second word must start with a letter/digit
+    await testName('1😀 AFoo', '1A',  '1😀 AFoo'); // second word must start with a letter/digit
+    await testName('A😀 1Foo', 'A1',  'A😀 1Foo'); // second word must start with a letter/digit
+  });
+
+  it('should not ignore spaces around emojis', async function() {
+    await testName(' 😀', '',  '😀'); // with space in front, there is not icon at all.
+    await testName(' 😀 ', '',  '😀');
+    await testName('😀 ', '😀',  '');
+    await testName(' Foo Bar', 'FB',  'Foo Bar');
+    await testName(' Foo.', 'F', 'Foo.');
+    await testName(' Foo (Copy)', 'F', 'Foo (Copy)');
+    await testName(' Foo', 'F', 'Foo');
+    await testName(' Foo 1bar', 'F1', 'Foo 1bar');
+    await testName(' 1bar foo', '1F', '1bar foo');
+  });
+
+  it('should work with complex emojis', async function() {
+    // Complex emojis on the left.
+    await testName('👨‍👩‍👧‍👦 Foo', '👨‍👩‍👧‍👦', 'Foo');
+    await testName('👨‍👩‍👧‍👦1 Foo', '👨‍👩‍👧‍👦', '1 Foo');
+    await testName('1👨‍👩‍👧‍👦 Foo', '1F', '1👨‍👩‍👧‍👦 Foo');
+
+    // Complex emojis on the right, display name should be the same,
+    await testName('Foo 👨‍👩‍👧‍👦', 'F', 'Foo 👨‍👩‍👧‍👦');
+    await testName('Foo 👨‍👩‍👧‍👦1', 'F', 'Foo 👨‍👩‍👧‍👦1');
+    await testName('Foo 1👨‍👩‍👧‍👦', 'F1', 'Foo 1👨‍👩‍👧‍👦');
+
+    // Empty spaces.
+    await testName('Foo  👨‍👩‍👧‍👦', 'F', 'Foo 👨‍👩‍👧‍👦'); // Spaces between are ignored when getting it from driver.
+    await testName('Foo  👨‍👩‍👧‍👦  ', 'F', 'Foo 👨‍👩‍👧‍👦');
+    await testName('  Foo  👨‍👩‍👧‍👦  ', 'F', 'Foo 👨‍👩‍👧‍👦');
+
+    // Complex sequence emojis.
+    await testName('👨‍👩‍👧‍👦👨‍👩‍👧‍👦', '👨‍👩‍👧‍👦', '👨‍👩‍👧‍👦');
+    await testName('👨‍👩‍👧‍👦👨‍👩‍👧‍👦1', '👨‍👩‍👧‍👦', '👨‍👩‍👧‍👦1');
+    await testName('1👨‍👩‍👧‍👦👨‍👩‍👧‍👦 Foo', '1F', '1👨‍👩‍👧‍👦👨‍👩‍👧‍👦 Foo');
+    await testName('👨‍👩‍👧‍👦👨‍👩‍👧‍👦Foo Bar', '👨‍👩‍👧‍👦', '👨‍👩‍👧‍👦Foo Bar');
+  });
+
+  it('should correctly detect initials in doc names with special symbols', async function() {
+    // Only letters and digits all allowed in the initials.
+    await testName('A !A', 'A', 'A !A');
+    await testName('A @A', 'A', 'A @A');
+    await testName('A (Copy)', 'A', 'A (Copy)');
+    await testName('A (Copy) B', 'A', 'A (Copy) B');
+  });
+
+
+  it('should ignore emoji if icon is set', async function() {
+    // Now special symbols like, they should be ignored if the second word starts with it.
+    await testNameWithIcon('Foo Bar');
+    await testNameWithIcon('😀 Foo Bar');
+    await testNameWithIcon('😀😀 Foo Bar');
+
+    // Restore original name.
+    await openDialog();
+    await driver.find('.test-dm-reset-icon').click();
+    await confirm();
+    await testName('Doc22', 'D');
+  });
+
   it('should filter the docs via the workspace sidepane', async function() {
     // Assert that initially all doc blocks are visible
+    await driver.find('.test-dm-all-docs').click();
     await driver.findContent('.test-dm-doclist .test-component-tabs-tab', /All/).click();
     assert.deepEqual(
       await getDocNames(),
@@ -139,7 +263,7 @@ describe('DocMenu', function() {
 
   it('should allow adding, removing, and renaming docs', async function() {
     // Add a doc. Note that we prevent the loading of new pages in before().
-    await driver.find('.test-dm-add-new').doClick();
+    await openAddNew();
     await driver.find('.test-dm-new-doc').doClick();
     assert.deepEqual(await getDocNames('August'), ['Doc22', 'Doc23', 'Untitled document']);
 
@@ -152,6 +276,7 @@ describe('DocMenu', function() {
     // Rename the doc.
     await openDocMenu(/Untitled document/);
     await driver.find('.test-dm-rename-doc').doClick();
+    await driver.findWait('.test-modal-dialog', 100);
     // The input receives focus after a 10 ms delay.
     await driver.sleep(10);
     await driver.sendKeys('NewDocRenamed', Key.ENTER);
@@ -172,7 +297,7 @@ describe('DocMenu', function() {
 
   it('should allow adding, removing, and renaming workspaces', async function() {
     // Start adding a workspace, check that cancelling works.
-    await driver.find('.test-dm-add-new').doClick();
+    await openAddNew();
     await driver.find('.test-dm-new-workspace').doClick();
     await driver.sendKeys(Key.ESCAPE);
     let wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
@@ -221,15 +346,15 @@ describe('DocMenu', function() {
     await deleteWorkspace('Z1');
 
     async function addWorkspace(name: string) {
-      await driver.find('.test-dm-add-new').doClick();
-      await driver.find('.test-dm-new-workspace').doClick();
-      await driver.find('.test-dm-ws-name-editor').sendKeys(name, Key.ENTER);
+      await openAddNew();
+      await driver.findWait('.test-dm-new-workspace', 100).click();
+      await driver.findWait('.test-dm-ws-name-editor', 100).sendKeys(name, Key.ENTER);
     }
 
     async function deleteWorkspace(name: string) {
       await openWorkspaceMenu(gu.exactMatch(name));
-      await driver.find('.test-dm-delete-workspace').doClick();
-      await driver.find('.test-modal-confirm').click();
+      await driver.findWait('.test-dm-delete-workspace', 100).doClick();
+      await driver.findWait('.test-modal-confirm', 100).click();
     }
 
     async function selectWs(name: string) {
@@ -247,7 +372,7 @@ describe('DocMenu', function() {
     await driver.findContent('.test-dm-workspace', /Real estate/).click();
 
     // Open the Add menu; Create/Import options should be disabled, and not work.
-    await driver.find('.test-dm-add-new').doClick();
+    await openAddNew();
     assert.include((await driver.find('.test-dm-new-doc').getAttribute('className')).split(/\s+/), 'disabled');
     assert.include((await driver.find('.test-dm-import').getAttribute('className')).split(/\s+/), 'disabled');
     const docs1 = await getDocNames();
@@ -261,7 +386,8 @@ describe('DocMenu', function() {
     await driver.findContent('.test-dm-workspace', /August/).click();
 
     // Open the Add menu; the Create/Import option should be enabled, and should create a doc.
-    await driver.find('.test-dm-add-new').doClick();
+    await openAddNew();
+    await gu.findOpenMenu();
     assert.notInclude((await driver.find('.test-dm-new-doc').getAttribute('className')).split(/\s+/), 'disabled');
     assert.notInclude((await driver.find('.test-dm-import').getAttribute('className')).split(/\s+/), 'disabled');
     assert.deepEqual(await getDocNames(), ['Doc22', 'Doc23']);
@@ -292,7 +418,7 @@ describe('DocMenu', function() {
     assert.equal(await driver.find('.test-modal-cancel').isPresent(), false);
     // Hit escape to close the menu
     await driver.sendKeys(Key.ESCAPE);
-    assert.equal(await driver.find('.test-dm-rename-doc').isPresent(), false);
+    await gu.notPresent('.test-dm-rename-doc');
   });
 
   it('should show pinned docs', async function() {
@@ -394,3 +520,78 @@ describe('DocMenu', function() {
     assert.deepInclude(await getDocNames(), 'Doc13');
   });
 });
+
+// Helper function to open the Add menu.
+async function openAddNew() {
+  await driver.find('.test-dm-add-new').click();
+  await gu.findOpenMenu();
+}
+
+
+async function openDialog() {
+  await gu.rightClick(driver.find('.test-dm-doc'));
+  await gu.findOpenMenuItem('li', /Rename and set icon/).click();
+  assert.isTrue(await driver.findWait('.test-modal-dialog', 100).isDisplayed());
+}
+
+async function typeName(name: string) {
+  await driver.find('.test-modal-dialog #name').click();
+  await gu.clearInput();
+  await gu.sendKeys(name);
+}
+
+async function checkInitials(initials: string, name: string) {
+  await gu.waitToPass(async () => {
+    assert.equal(
+      await driver.find('.test-dm-doc-icon-preview').getText(),
+      initials,
+      `Expected "${initials}" for "${name}"`
+    );
+  }, 100);
+}
+
+async function confirm() {
+  await driver.find('.test-modal-confirm').click();
+  await gu.notPresent('.test-modal-dialog');
+}
+
+async function cancel() {
+  await driver.find('.test-modal-cancel').click();
+  await gu.notPresent('.test-modal-dialog');
+}
+
+async function checkDocName(name: string) {
+  assert.equal(
+    await driver.find('.test-dm-doc-name').getText(),
+    name,
+  );
+}
+
+async function testName(enter: string, initials: string, docName?: string) {
+  await openDialog();
+  await typeName(enter);
+  await checkInitials(initials, enter);
+  await confirm();
+  assert.equal(
+    await driver.find('.test-dm-doc-name').getText(),
+    docName ?? enter,
+  );
+  await checkDocName(docName ?? enter);
+}
+
+async function testNameWithIcon(docName: string) {
+  await openDialog();
+  await typeName(docName);
+  await driver.find('.test-dm-choose-icon').click();
+  // Find span with emoji 📋
+  await gu.waitForDisplay('em-emoji-picker');
+  await driver.executeScript(() => {
+    const emojiPicker = document.querySelector('em-emoji-picker')?.shadowRoot;
+    const emojiSpan = Array.from(emojiPicker?.querySelectorAll('span') || [])
+      .find((el) => el.textContent === '📋') as HTMLSpanElement;
+    emojiSpan?.click();
+  });
+  await gu.waitForContent('.test-dm-doc-icon-preview', '📋');
+  await confirm();
+  await checkDocName(docName);
+}

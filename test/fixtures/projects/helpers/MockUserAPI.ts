@@ -9,9 +9,9 @@ import {createEmptyOrgUsageSummary, OrgUsageSummary} from 'app/common/DocUsage';
 import {arrayRemove} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {NonGuestRole} from 'app/common/roles';
-import {ActiveSessionInfo, DocAPI, Document, DocumentProperties, DocWorkerAPI,
+import {ActiveSessionInfo, DocAPI, Document, DocumentOptions, DocumentProperties, DocWorkerAPI,
         Organization, OrganizationProperties, PermissionData, PermissionDelta,
-        UserAPI, Workspace} from 'app/common/UserAPI';
+        RenameDocOptions, UserAPI, Workspace} from 'app/common/UserAPI';
 
 const createdAt = '2007-04-05T14:30Z';
 const updatedAt = '2007-04-05T14:30Z';
@@ -54,6 +54,7 @@ interface DocEntry {
   access: NonGuestRole;
   isPinned: boolean;
   age?: number;         // age in seconds
+  options?: DocumentOptions|null;
 }
 
 interface DocStore {
@@ -190,8 +191,9 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
       workspace,
       access: this._docs[docId].access,
       isPinned: this._docs[docId].isPinned,
+      options: this._docs[docId].options,
       updatedAt: this._docs[docId].age && new Date(Date.now() - this._docs[docId].age! * 1000).toUTCString(),
-    } as any));
+    } as Partial<Document> as any));
     return workspace;
   }
 
@@ -275,8 +277,11 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     this._workspaces[workspaceId].name = name;
   }
 
-  public async renameDoc(docId: string, name: string): Promise<void> {
+  public async renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void> {
     this._docs[docId].name = name;
+    if (options) {
+      this._docs[docId].options = {appearance: options};
+    }
   }
 
   public async updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void> {

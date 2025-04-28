@@ -203,6 +203,7 @@ describe('CustomWidgetsConfig', function () {
   });
 
   after(async function() {
+    if (gu.noCleanup) { return; }
     await server.testingHooks.setWidgetRepositoryUrl('');
     oldEnv.restore();
     await server.restart();
@@ -237,7 +238,7 @@ describe('CustomWidgetsConfig', function () {
     await clickOption('Hidden');
 
     // And make sure widget is rendered.
-    assert.isTrue(await driver.find('.test-custom-widget-ready').isDisplayed());
+    assert.isTrue(await driver.findWait('.test-custom-widget-ready', 250).isDisplayed());
 
     const api = mainSession.createHomeApi();
     const revert = await gu.beginAclTran(api, docId);
@@ -700,15 +701,19 @@ describe('CustomWidgetsConfig', function () {
 
     await toggleDrop(pickerDrop('Date'));
     assert.deepEqual(await getOptions(), ['Date']);
+    await gu.sendKeys(Key.ESCAPE);  // To ensure the open dropdown doesn't cover the next option we test
 
     await toggleDrop(pickerDrop('Date_Any'));
     assert.deepEqual(await getOptions(), ['Any', 'Date']);
+    await gu.sendKeys(Key.ESCAPE);
 
     await toggleDrop(pickerDrop('Date_Numeric'));
     assert.deepEqual(await getOptions(), ['Date', 'Numeric']);
+    await gu.sendKeys(Key.ESCAPE);
 
     await toggleDrop(pickerDrop('Any'));
     assert.deepEqual(await getOptions(), ['Any']);
+    await gu.sendKeys(Key.ESCAPE);
 
     await revert();
   });
@@ -885,6 +890,7 @@ describe('CustomWidgetsConfig', function () {
     await gu.setType(/Numeric/);
     await gu.selectSectionByTitle('Widget');
     await driver.find(".test-right-tab-pagewidget").click();
+    await gu.waitForServer();
     await widget.waitForPendingRequests();
     // Drop should be empty,
     await driver.wait(async () =>

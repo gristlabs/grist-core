@@ -1177,7 +1177,7 @@
         "Insert section above": "Vložit sekci nad tuto",
         "Insert section below": "Vložit sekci pod tuto",
         "Description": "Popis",
-        "### **Header**": "### **Záhlaví**"
+        "## **Header**": "## **Záhlaví**"
     },
     "ViewLayoutMenu": {
         "Copy anchor link": "Kopírovat odkaz kotvy",
@@ -1278,7 +1278,7 @@
         "Code copied to clipboard": "Kód zkopírovaný do schránky",
         "Anyone with the link below can see the empty form and submit a response.": "Kdokoli s níže uvedeným odkazem může zobrazit prázdný formulář a odeslat odpověď.",
         "Your form description goes here.": "Sem patří popis vašeho formuláře.",
-        "## **Form Title**": "## **Název formuláře**"
+        "# **Form Title**": "# **Název formuláře**"
     },
     "UnmappedFieldsConfig": {
         "Mapped": "Přiřazeno",

@@ -180,6 +180,7 @@ export class DocTriggers {
 
     // First we need a list of columns which must be included in full in the action summary
     const isReadyColIds: string[] = [];
+    let hasWatchedCols = false;
     for (const tableRef of Object.keys(triggersByTableRef).sort()) {
       const triggers = triggersByTableRef[tableRef];
       const tableId = getTableId(Number(tableRef))!;  // groupBy makes tableRef a string
@@ -191,10 +192,21 @@ export class DocTriggers {
             isReadyColIds.push(colId);
           }
         }
+        if (trigger.watchedColRefList) {
+          hasWatchedCols = true;
+        }
       }
     }
 
-    const summary = summarizeAction(localActionBundle, {alwaysPreserveColIds: isReadyColIds});
+    const summary = summarizeAction(localActionBundle, {
+      // Unset the default limit (10) for row deltas if there are any watched
+      // columns; full row deltas are needed to determine which columns were
+      // modified.
+      // TODO: find a better solution (maybe a field like `updateColumns`
+      // in the summary, containing only the IDs of modified columns).
+      maximumInlineRows: hasWatchedCols ? null : undefined,
+      alwaysPreserveColIds: isReadyColIds,
+    });
 
     // Work to do after fetching values from the document
     const tasks: Task[] = [];

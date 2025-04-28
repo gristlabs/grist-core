@@ -80,8 +80,8 @@ class TestFormulaPrompt(test_engine.EngineTestCase):
     self.assertEqual(column_type(self.engine, "Table2", col_id), expected_type)
 
   def assert_prompt(self, table_name, col_id, expected_prompt, lookups=False):
-    prompt = get_formula_prompt(self.engine, table_name, col_id, "description here",
-                                include_all_tables=False, lookups=lookups)
+    prompt = get_formula_prompt(self.engine, table_name, col_id, include_all_tables=False,
+                                lookups=lookups)
     # print(prompt)
     self.assertEqual(prompt, expected_prompt)
 

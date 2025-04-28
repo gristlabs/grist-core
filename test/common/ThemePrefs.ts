@@ -50,11 +50,12 @@ describe('ThemePrefs', function() {
     const invalidVars = [...tokensCssVars, ...componentsCssVars].filter(cssVar =>
       cssVar.startsWith('grist-')
       || cssVar.startsWith('theme-')
+      || cssVar.startsWith('themes-')
       || cssVar.startsWith('--')
     );
     if (invalidVars.length) {
       assert.fail(
-        'CSS variable names must not start with "grist-", "theme-" or "--".\n' +
+        'CSS variable names must not start with "grist-", "theme-", "themes-" or "--".\n' +
         'Change these in ThemePrefs: ' + invalidVars.join(', ')
       );
     }

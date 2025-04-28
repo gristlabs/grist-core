@@ -12,6 +12,7 @@ import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import {ExternalStorage, ExternalStorageCreator, UnsupportedPurposeError} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
+import {IAssistant} from 'app/server/lib/IAssistant';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {EmptyBilling, IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -68,6 +69,7 @@ export interface ICreate {
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
   AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
+  Assistant(): IAssistant|undefined;
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
@@ -149,6 +151,9 @@ export class BaseCreate implements ICreate {
   }
   public Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry {
     return createDummyTelemetry();
+  }
+  public Assistant(): IAssistant|undefined {
+    return undefined;
   }
   public NSandbox(options: ISandboxCreationOptions): ISandbox {
     return createSandbox('unsandboxed', options);

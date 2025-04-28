@@ -39,7 +39,8 @@ export interface ApiErrorDetails {
 export type ApiErrorCode =
   | 'UserNotConfirmed'
   | 'FormNotFound'
-  | 'FormNotPublished';
+  | 'FormNotPublished'
+  | 'ContextLimitExceeded';
 
 /**
  * An error with an http status code.

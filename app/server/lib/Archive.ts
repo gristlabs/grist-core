@@ -24,10 +24,8 @@ export interface Archive {
   fileExtension: string;
   /**
    * Starts packing files into the archive.
-   * This will block indefinitely if dataStream is never read from.
+   * This will block indefinitely if the data stream is never read from.
    * This resolves when all files are processed, or an error occurs.
-   * This will not close the destination stream. This is to allow the caller to decide how to handle
-   * error situations.
    * @returns {Promise<void>}
    */
   packInto: (destination: stream.Writable, options?: ArchivePackingOptions) => Promise<void>;

@@ -1,7 +1,7 @@
 import {ActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, ForkResult, FormulaTimingInfo,
         PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
-import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
+import {AssistanceRequest, AssistanceResponse} from 'app/common/Assistance';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
@@ -449,25 +449,23 @@ export interface UserAPI {
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
   /**
-   * Deletes account and personal org with all documents. Note: deleteUser doesn't clear documents,
-   * and this method is specific to Grist installation, and might not be supported. Pass current
-   * user's id so that we can verify that the user is deleting their own account. This is just to
-   * prevent accidental deletion from multiple tabs.
+   * Deletes account and personal org with all documents. Note: deleteUser doesn't clear documents, and this method
+   * is specific to Grist installation, and might not be supported. Pass current user's id so that we can verify
+   * that the user is deleting their own account. This is just to prevent accidental deletion from multiple tabs.
    *
-   * @returns true if the account was deleted, false if there was a mismatch with the current
-   *   user's id, and the account was probably already deleted.
+   * @returns true if the account was deleted, false if there was a mismatch with the current user's id, and the
+   * account was probably already deleted.
    */
   closeAccount(userId: number): Promise<boolean>;
   /**
-   * Deletes current non personal org with all documents. Note: deleteOrg doesn't clear documents,
-   * and this method is specific to Grist installation, and might not be supported.
+   * Deletes current non personal org with all documents. Note: deleteOrg doesn't clear documents, and this method
+   * is specific to Grist installation, and might not be supported.
    */
   closeOrg(): Promise<void>;
 }
 
 /**
- * Parameters for the download CSV and XLSX endpoint (/download/table-schema & /download/csv &
- * /download/csv).
+ * Parameters for the download CSV and XLSX endpoint (/download/table-schema & /download/csv & /download/csv).
  */
  export interface DownloadDocParams {
   tableId: string;
@@ -547,12 +545,10 @@ export interface DocAPI {
   getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string;
 
   /**
-   * Exports current document to the Google Drive as a spreadsheet file. To invoke this method,
-   * first acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
-   * @param code Authorization code returned from Google (requested via Grist's Google Auth
-   *   Endpoint)
-   * @param title Name of the spreadsheet that will be created (should use a Grist document's
-   *   title)
+   * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
+   * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
+   * @param code Authorization code returned from Google (requested via Grist's Google Auth Endpoint)
+   * @param title Name of the spreadsheet that will be created (should use a Grist document's title)
    */
   sendToDrive(code: string, title: string): Promise<{url: string}>;
   // Upload a single attachment and return the resulting metadata row ID.
@@ -604,8 +600,7 @@ export interface DocAPI {
   setAttachmentStore(type: AttachmentStore): Promise<void>;
   /**
    * Lists available external attachment stores. For now it contains at most one store.
-   * If there is one store available it means that external storage is configured and can be used
-   * by this document.
+   * If there is one store available it means that external storage is configured and can be used by this document.
    */
   getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}>;
 }
@@ -1251,7 +1246,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return response.data;
   }
 
-  public async getAssistance(params: AssistanceRequest): Promise<AssistanceResponse> {
+  public async getAssistance(
+    params: AssistanceRequest
+  ): Promise<AssistanceResponse> {
     return await this.requestJson(`${this._url}/assistant`, {
       method: 'POST',
       body: JSON.stringify(params),

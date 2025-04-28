@@ -381,7 +381,8 @@
         "External": "Externe",
         "Internal": "Interne",
         "**Some existing attachments are still [external]({{externalLink}})**.": "Certains pièces jointes existantes sont toujours [externes]({{externalLink}}).",
-        "[Learn more.]({{learnLink}})": "[En savoir plus.]{{learnLink}}"
+        "[Learn more.]({{learnLink}})": "[En savoir plus.]{{learnLink}}",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certaines pièces jointes existantes sont toujours internes({{internalLink}})** (stockées dans le fichier SQLite)."
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -632,9 +633,9 @@
         "You do not have write access to this site": "Vous n’avez pas d'accès en écriture à cet espace",
         "Workspace": "Dossier",
         "You do not have write access to the selected workspace": "Vous n’avez pas accès en écriture à ce dossier",
-        "Remove all data but keep the structure to use as a template": "Supprimer toutes les données mais garder la structure comme modèle",
-        "Remove document history (can significantly reduce file size)": "Supprimer l'historique du document (peut réduire sensiblement la taille du fichier)",
-        "Download full document and history": "Télécharger le document complet et l'historique",
+        "Remove all data but keep the structure to use as a template": "Télécharger uniquement la structure du document, sans les données",
+        "Remove document history (can significantly reduce file size)": "Télécharger le document complet sans l'historique (peut réduire sensiblement la taille du fichier)",
+        "Download full document and history": "Télécharger le document complet avec l'historique des modifications",
         "Download": "Télécharger",
         "Download document": "Télécharger le document"
     },
@@ -1261,7 +1262,10 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "Pour permettre des assignations multiples, modifiez le type de la colonne Référence en Référence Multiple.",
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Cette limitation se produit lorsque l'une des extrémités d'une référence bidirectionnelle est configurée comme une référence unique.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Les références bidirectionnelles ne peuvent pas contenir des formules ou des formules d'initialisation",
-        "The preview below this header shows how the selected user will see this document": "L'aperçu sous cette entête montre ce que l'utilisateur sélectionné peut voir"
+        "The preview below this header shows how the selected user will see this document": "L'aperçu sous cette entête montre ce que l'utilisateur sélectionné peut voir",
+        "Manage users and resources in a Grist installation.": "Gérer les utilisateurs et les ressources de Grist.",
+        "[Learn more.]({{link}})": "[En savoir plus.]({{link}})",
+        "Summary tables can only contain formula columns.": "Les tables récapitulatives ne peuvent contenir que des formules."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1491,7 +1495,7 @@
         "Reset": "Réinitialiser",
         "Share": "Partager",
         "Your form description goes here.": "Vous pouvez écrire une description ici.",
-        "## **Form Title**": "## **Titre du formulaire**"
+        "# **Form Title**": "# **Titre du formulaire**"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
@@ -1539,11 +1543,14 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Certaines colonnes obligatoires ne sont pas utilisées",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Pour utiliser cette vue, utilisez toutes les colonnes obligatoires à partir du panneau du créateur sur la droite."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Pour utiliser cette vue, utilisez toutes les colonnes obligatoires à partir du panneau du créateur sur la droite.",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Pour utiliser ce widget, toutes les colonnes utilisées doivent être visibles. Veuillez contacter le propriétaire du document ou modifier les accès.",
+        "Some required columns are hidden by access rules": "Certaines colonnes obligatoires sont cachées faute d'accès"
     },
     "FormContainer": {
         "Build your own form": "Créez votre propre formulaire",
-        "Powered by": "Créé avec"
+        "Powered by": "Créé avec",
+        "Powered by Grist": "Créé avec Grist"
     },
     "FormErrorPage": {
         "Error": "Erreur"
@@ -1583,7 +1590,7 @@
     "Section": {
         "Insert section above": "Ajouter une section ci-dessus",
         "Insert section below": "Ajouter une section ci-dessous",
-        "### **Header**": "### **Titre**",
+        "## **Header**": "## **Titre**",
         "Description": "Description"
     },
     "AdminPanel": {
@@ -1643,7 +1650,8 @@
         "Log Streaming": "Flux de journalisation",
         "Audit Logs": "Journaux d'audit",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} supplémentaires",
-        "On": "Activé"
+        "On": "Activé",
+        "Grist Instance": "Instance de Grist"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -1872,7 +1880,7 @@
         "Splunk": "Splunk",
         "Add destination": "Ajouter destination",
         "Add streaming destination": "Ajouter une destination de streaming",
-        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Êtes-vous certain de vouloir supprimer cette destination de streaming ? Cette action ne pourra pas être annulée.",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Êtes-vous certain·e de vouloir supprimer cette destination de streaming ? Cette action ne pourra pas être annulée.",
         "Delete streaming destination?": "Effacer la destination de streaming ?",
         "Delete": "Effacer",
         "Destination": "Destination",
@@ -1929,7 +1937,7 @@
         "Choose icon": "Choisir l'icône",
         "Enter document name": "Entrez le nom du document",
         "Rename and set icon": "Renommer et définir l'icône",
-        "Reset icon": "Icône de réinitialisation"
+        "Reset icon": "Réinitialiser l’icône"
     },
     "RightPanelUtils": {
         "Columns_one": "Colonnes",
@@ -1945,8 +1953,20 @@
         "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Les vues personnalisées sont **très puissantes** ! Certaines peuvent **lire et envoyer vos données** sur internet.",
         "Are you sure you **trust the resource** at this URL?": "Êtes-vous certain de **faire confiance** à la **ressource derrière cette URL** ?",
         "Do you **trust the person** who shared this link?": "Faites-vous **confiance à la personne** qui vous a **partagé ce lien** ?",
-        "Have you **reviewed the code** at this URL?": "Le cas échéant avez-vous pu **auditer le code derrière ce lien** ?",
-        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En cas de doute, vous pouvez transférer le lien aux équipes techniques responsable de votre instance.",
-        "I confirm that I understand these warnings and accept the risks": "j’ai bien lu ces recommandations et je confirme vouloir ajouter cette vue"
+        "Have you **reviewed the code** at this URL?": "Le cas échéant, avez-vous pu **auditer le code derrière ce lien** ?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "En cas de doute, vous pouvez transférer le lien aux équipes techniques responsables de votre instance.",
+        "I confirm that I understand these warnings and accept the risks": "J’ai bien lu ces recommandations et je confirme vouloir ajouter cette vue"
+    },
+    "AdminLeftPanel": {
+        "Orgs": "Organisations",
+        "Users": "Utilisateurs",
+        "Workspaces": "Espace de travail",
+        "Admin controls": "Contrôles administrateur",
+        "Installation": "Installation",
+        "Learn more": "En savoir plus",
+        "Admin Controls": "Contrôles administrateur",
+        "Settings": "Paramètres",
+        "Admin area": "Zone d'administration",
+        "Docs": "Documentation"
     }
 }
