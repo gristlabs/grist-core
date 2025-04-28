@@ -109,6 +109,7 @@ export const commonUrls = {
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
+  onboardingTutorialVideoId: getOnboardingVideoId(),
   plans: "https://www.getgrist.com/pricing",
   contact: "https://www.getgrist.com/contact",
   templates: 'https://www.getgrist.com/templates',
@@ -129,7 +130,6 @@ export const commonUrls = {
   attachmentStorage: 'https://support.getgrist.com/document-settings/#external-attachments',
 };
 
-export const ONBOARDING_VIDEO_YOUTUBE_EMBED_ID = '56AieR9rpww';
 
 /**
  * Values representable in a URL. The current state is available as urlState().state observable
@@ -899,6 +899,9 @@ export interface GristLoadConfig {
   // The doc id of the tutorial shown during onboarding.
   onboardingTutorialDocId?: string;
 
+  // The id of the Youtube video to show for the onboarding
+  onboardingTutorialVideoId?: string;
+
   // Whether to show the "Delete Account" button in the account page.
   canCloseAccount?: boolean;
 
@@ -979,6 +982,16 @@ export function getHelpCenterUrl(): string {
     return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
   } else {
     return process.env.GRIST_HELP_CENTER || defaultUrl;
+  }
+}
+
+export function getOnboardingVideoId(): string {
+  const defaultId = "56AieR9rpww";
+  if (isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.onboardingTutorialVideoId || defaultId;
+  } else {
+    return process.env.GRIST_ONBOARDING_VIDEO_ID || defaultId;
   }
 }
 

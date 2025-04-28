@@ -27,22 +27,23 @@ if [[ $current_user_id == 0 ]]; then
   exec setpriv --reuid "$target_user" --regid "$target_group" --init-groups /usr/bin/env bash "$0" "$@"
 fi
 
-# Printing the user helps with setting volume permissions.
-echo "Running Grist as user $(id -u) with primary group $(id -g)"
-
 # Validate that this user has access to the top level of each important directory.
 # There might be a benefit to testing individual files, but this is simpler as the dir may start empty.
 for dir in "${important_read_dirs[@]}"; do
   if ! { test -r "$dir" ;} ; then
+    echo "Running Grist as user $(id -u) with primary group $(id -g)"
     echo "Invalid permissions, cannot read '$dir'. Aborting." >&2
     exit 1
   fi
 done
 for dir in "${important_write_dirs[@]}"; do
   if ! { test -r "$dir" && test -w "$dir" ;} ; then
+    echo "Running Grist as user $(id -u) with primary group $(id -g)"
     echo "Invalid permissions, cannot write '$dir'. Aborting." >&2
     exit 1
   fi
 done
 
+# Allow running commands in the current directory, specifically "cli".
+export PATH=$PWD:$PATH
 exec /usr/bin/tini -s -- "$@"

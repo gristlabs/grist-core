@@ -1504,7 +1504,8 @@
         "Link copied to clipboard": "Link copiato negli Appunti",
         "View": "Vedi",
         "Your form description goes here.": "La descrizione del form va inserita qui.",
-        "## **Form Title**": "## **Titolo del form**"
+        "## **Form Title**": "## **Titolo del form**",
+        "# **Form Title**": "# **Titolo del modulo**"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Pulisci",
