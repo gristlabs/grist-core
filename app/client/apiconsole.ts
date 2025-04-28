@@ -324,7 +324,7 @@ async function requestInterceptor(request: SwaggerUI.Request) {
         t('Confirm Deletion'), {
           btnText: t('Delete'),
           placeholder: t('Type DELETE here if you wish to proceed.'),
-          extraBody: [
+          body: [
             dom(
               'p',
               t('Are you sure you want to delete the following?')

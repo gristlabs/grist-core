@@ -431,7 +431,7 @@ export function promptModal(
   initial?: string,
   placeholder?: string,
   onCancel?: () => void,
-  extraBody?: DomElementArg,
+  body?: DomElementArg,
 ): void {
   saveModal((ctl, owner): ISaveModalOptions => {
     let confirmed = false;
@@ -439,7 +439,7 @@ export function promptModal(
     const txtInput = input(text, { onInput : true }, { placeholder }, cssInput.cls(''), testId('modal-prompt'));
     const options: ISaveModalOptions = {
       title,
-      body: [extraBody, txtInput],
+      body: [body, txtInput],
       saveLabel: btnText || t('Save'),
       saveFunc: () => {
         // Mark that confirm was invoked.
@@ -471,15 +471,15 @@ export function promptModal(
  * @param options.btnText: Text of the confirm button, default is "Ok".
  * @param options.initial: Initial value in the input element.
  * @param options.placeholder: Placeholder for the input element.
- * @param options.extraBody: More material before the input element.
+ * @param options.body: More material before the input element.
  */
 export function invokePrompt(
   title: string,
-  options?: {
+  options: {
     btnText?: string,
     initial?: string,
     placeholder?: string,
-    extraBody?: DomElementArg,
+    body?: DomElementArg,
   }
 ): Promise<string|undefined> {
   let onResolve: (text: string|undefined) => any;
@@ -490,7 +490,7 @@ export function invokePrompt(
     if (onResolve) {
       onResolve(undefined);
     }
-  }, options?.extraBody);
+  }, options?.body);
   return prom;
 }
 
