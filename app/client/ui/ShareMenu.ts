@@ -3,7 +3,12 @@ import {loadUserManager} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
 import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
-import {downloadDocModal, makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
+import {
+  downloadAttachmentsModal,
+  downloadDocModal,
+  makeCopy,
+  replaceTrunkWithFork
+} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
 import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
@@ -277,7 +282,13 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
         menuItem(() => downloadDocModal(doc, pageModel),
-        menuIcon('Download'), t("Download..."), testId('tb-share-option'))
+        menuIcon('Download'), t("Download document..."), testId('tb-share-option'))
+    ),
+    menuItem(
+      () => downloadAttachmentsModal(doc, pageModel),
+      menuIcon('Download'),
+      t('Download attachments...'),
+      testId('tb-share-option'),
     ),
     menuItemSubmenu(
       () => [

@@ -10,7 +10,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {cssInput} from 'app/client/ui/cssInput';
-import {bigBasicButton, bigPrimaryButtonLink, primaryButtonLink} from 'app/client/ui2018/buttons';
+import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {
   cssRadioCheckboxOptions,
   labeledSquareCheckbox,
@@ -22,7 +22,7 @@ import {IOptionFull, linkSelect, select} from 'app/client/ui2018/menus';
 import {
   confirmModal,
   cssModalBody,
-  cssModalButtons, cssModalSubheading,
+  cssModalButtons,
   cssModalTitle,
   modal,
   saveModal
@@ -30,7 +30,6 @@ import {
 import * as roles from 'app/common/roles';
 import {
   CreatableArchiveFormats,
-  DocAPI,
   DocAttachmentsLocation,
   Document,
   isTemplatesOrg,
@@ -48,11 +47,9 @@ import {
   subscribe,
   subscribeElem
 } from 'grainjs';
-import {inlineMarkdown} from 'app/client/lib/markdown';
 import {cssWarningIcon} from 'app/client/components/Forms/styles';
 import {cssLink} from 'app/client/ui2018/links';
 import sortBy = require('lodash/sortBy');
-import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {components, tokens} from 'app/common/ThemePrefs';
 
 const t = makeT('MakeCopyMenu');
@@ -330,121 +327,155 @@ class SaveCopyModal extends Disposable {
   }
 }
 
-type DownloadOption = 'full' | 'nohistory' | 'template' | 'attachments-zip' | 'attachments-tar';
+type DownloadOption = 'full' | 'nohistory' | 'template';
 
 export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
   return modal((ctl, owner) => {
     const docApi = pageModel.appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, 'full');
 
+    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+    docApi.getAttachmentTransferStatus()
+      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
+      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+
+    const hasExternalAttachments =
+      Computed.create(owner, attachmentStatusObs, (use, status) => status === 'external' || status === 'none');
+
+    const options = dom.domComputed(attachmentStatusObs, (status) => {
+      const isInternal = status === 'internal' || status === 'none';
+      const downloadText = isInternal ? t("Download full document and history") : t("Download document and history");
+      return cssRadioCheckboxOptions(
+        radioCheckboxOption(selected, 'full', downloadText),
+        radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
+        radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
+      );
+    });
+
     return [
       cssModalTitle(t(`Download document`)),
-      cssRadioCheckboxOptions(
-          radioCheckboxOption(selected, 'full', t("Download full document and history")),
-          radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
-          radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
-      ),
-      buildDownloadAttachmentArchiveSection(owner, docApi),
-      cssModalButtons(
-        dom.domComputed(use => {
-          const href = use(selected).startsWith('attachments')
-            ? docApi.getDownloadAttachmentsArchiveUrl({ format: use(selected).includes('zip') ? 'zip' : 'tar' })
-            : docApi.getDownloadUrl({
-              template: use(selected) === "template",
-              removeHistory: use(selected) === "nohistory" || use(selected) === "template",
+      dom.maybe((use) => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
+      dom.maybe((use) => use(attachmentStatusObs) !== undefined, () => [
+        options,
+        dom.maybe(hasExternalAttachments, () => cssAttachmentsWarning(
+          t(
+            "Attachments are external and not included in this download. " +
+            "If uploading the document to a separate Grist installation, " +
+            "you will also need to {{downloadLink}} separately. ",
+            //"{{learnMoreLink}}.",
+            {
+              downloadLink: cssLink(t("download attachments"), {
+                href: docApi.getDownloadAttachmentsArchiveUrl({ format: 'tar' })
+              }),
+              //learnMoreLink: cssLink(t("Learn more"), {
+              //  href: "https://TODO"
+              //}),
+            },
+          )
+        )),
+        cssCopyMenuModalButtons(
+          dom.domComputed((modalButtonUse) => {
+            const href = docApi.getDownloadUrl({
+              template: modalButtonUse(selected) === "template",
+              removeHistory: modalButtonUse(selected) === "nohistory" || modalButtonUse(selected) === "template",
             });
-          return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
-              href,
-              target: '_blank',
-              download: ''
-            }),
-            dom.on('click', () => {
-              ctl.close();
-            }),
-            testId('download-button-link'),
-          );
-        }),
-        bigBasicButton(t('Cancel'), dom.on('click', () => {
-          ctl.close();
-        }))
-      )
+            return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
+                href,
+                target: '_blank',
+                download: ''
+              }),
+              dom.on('click', () => {
+                ctl.close();
+              }),
+              testId('download-button-link'),
+            );
+          }),
+          bigBasicButton(t('Cancel'), dom.on('click', () => {
+            ctl.close();
+          }))
+        )
+      ]),
     ];
   });
 }
 
-function buildDownloadAttachmentArchiveSection(owner: Disposable, docApi: DocAPI) {
-  const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
-  const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
-    { value: 'tar', label: t('.tar (recommended)')},
-    { value: 'zip', label: t('.zip')}
-  ];
-  const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
-    const format = use(formatObs);
-    return docApi.getDownloadAttachmentsArchiveUrl({ format });
+export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel) {
+  return modal((ctl, owner) => {
+    const docApi = pageModel.appModel.api.getDocAPI(doc.id);
+
+    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+    docApi.getAttachmentTransferStatus()
+      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
+      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+    const isExternal = Computed.create(owner, attachmentStatusObs,
+      (use, status) => status !== 'none' && status !== 'internal'
+    );
+
+    const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
+    const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
+      { value: 'tar', label: t('.tar (recommended)')},
+      { value: 'zip', label: t('.zip')}
+    ];
+    const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
+      const format = use(formatObs);
+      return docApi.getDownloadAttachmentsArchiveUrl({ format });
+    });
+
+
+    return [
+      cssModalTitle(t(`Download attachments`)),
+      dom.maybe((use) => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
+      dom.maybe((use) => use(attachmentStatusObs) !== undefined, () => [
+        cssEagerWrap(dom('p', t('Download an archive of all the attachments present in this document.'))),
+        dom.maybe(isExternal, () => cssEagerWrap(dom('p',
+            t(
+              'If you\'re planning to upload this document to a Grist installation, ' +
+              'you will need the archive in the ".tar." format to restore attachments. '
+              /*'{{learnMore}}.',
+              {
+                learnMore: cssLink(t("Learn more"), {
+                  href: "https://TODO",
+                }),
+              },
+              */
+            )
+        ))),
+        cssAttachmentsDownloadRow(
+          t('Format:'),
+          dom.update(
+            cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
+            testId('attachments-format-select'),
+          ),
+        ),
+        dom.maybe((use) => use(formatObs) === 'zip', () => attachmentsWarningBlock([
+          dom('div',
+            t('If you need to re-upload attachments to Grist, use a .tar archive instead. '),
+            cssLink({}, t('Learn more.')),
+            testId('attachments-reupload-warning')
+          )
+        ])),
+        cssCopyMenuModalButtons(
+          cssDownloadAttachmentsButton(
+            t('Download attachments'),
+            (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
+              dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
+                href: href,
+                target: '_blank',
+                download: '',
+              }));
+            }),
+            dom.on('click', () => {
+              ctl.close();
+            }),
+            testId('download-attachments-button-link'),
+          ),
+          bigBasicButton(t('Cancel'), dom.on('click', () => {
+            ctl.close();
+          }))
+        ),
+      ])
+    ];
   });
-
-  const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
-  docApi.getAttachmentTransferStatus()
-    .then((status) => { attachmentStatusObs.set(status.locationSummary); })
-    .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
-
-  const attachmentStatusText = Computed.create<string>(owner, (use) => {
-    const status = use(attachmentStatusObs);
-    if (!status) {
-      return t('Checking attachment status...');
-    }
-    if (status === 'mixed' || status === 'external') {
-      return t('Attachments are **not** included in the document download.');
-    }
-    if (status === 'unknown') {
-      return t('Attachments **may not** be included in the document download');
-    }
-    return t('Attachments are included in the document download');
-  });
-
-  const anyAttachmentsExternal = Computed.create<boolean>(owner, (use) =>
-    ['mixed', 'external', 'unknown'].includes(use(attachmentStatusObs) || "")
-  );
-
-  return cssAttachmentsDownloadSection(
-    cssModalSubheading(t(`Download attachments separately`)),
-    dom('div',
-      dom.domComputed(anyAttachmentsExternal, (isExternal) => {
-        const contents = dom('span', inlineMarkdown(attachmentStatusText));
-        if (isExternal) {
-          return withInfoTooltip(contents, 'attachmentsNotIncluded');
-        }
-        return contents;
-      }),
-      testId("attachments-included"),
-    ),
-    cssAttachmentsDownloadRow(
-      t('Format:'),
-      dom.update(
-        cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
-        testId('attachments-format-select'),
-      ),
-      cssDownloadAttachmentsButton(
-        t('Download attachments'),
-        (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
-          dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
-            href: href,
-            target: '_blank',
-            download: '',
-          }));
-        }),
-        testId('download-attachments-button-link'),
-      ),
-      testId('download-attachments-row'),
-    ),
-    dom.maybe((use) => use(formatObs) === 'zip', () => attachmentsWarningBlock([
-      dom('div',
-        t('If you need to re-upload attachments to Grist, use a .tar archive instead. '),
-        cssLink({}, t('Learn more.')),
-        testId('attachments-reupload-warning')
-      )
-    ])),
-  );
 }
 
 export const cssField = styled('div', `
@@ -477,22 +508,16 @@ const cssCheckbox = styled(labeledSquareCheckbox, `
   margin-top: 8px;
 `);
 
-const cssAttachmentsDownloadSection = styled('div', `
-  margin: 24px 0;
-`);
-
 const cssAttachmentsDownloadRow = styled('div', `
-  margin: 10px 0;
+  margin: 16px 0;
   display: flex;
   gap: 16px;
   align-items: center;
 `);
 
-const cssArchiveFormatSelect = styled(linkSelect, `
-  flex-grow: 1;
-`);
+const cssArchiveFormatSelect = styled(linkSelect, ``);
 
-const cssDownloadAttachmentsButton = styled(primaryButtonLink, `
+const cssDownloadAttachmentsButton = styled(bigPrimaryButtonLink, `
   text-wrap: nowrap;
 `);
 
@@ -513,3 +538,11 @@ const cssEagerWrap = styled('div', `
   width: 0;
 `);
 
+const cssAttachmentsWarning = styled(cssEagerWrap, `
+  margin: 16px 0;
+`);
+
+const cssCopyMenuModalButtons = styled(cssModalButtons, `
+  display: flex;
+  align-items: center;
+`);
