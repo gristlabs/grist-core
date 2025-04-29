@@ -363,7 +363,9 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
             //"{{learnMoreLink}}.",
             {
               downloadLink: cssLink(t("download attachments"), {
-                href: docApi.getDownloadAttachmentsArchiveUrl({ format: 'tar' })
+                href: docApi.getDownloadAttachmentsArchiveUrl({ format: 'tar' }),
+                target: "_blank",
+                download: "",
               }),
               //learnMoreLink: cssLink(t("Learn more"), {
               //  href: "https://TODO"

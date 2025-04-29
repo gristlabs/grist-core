@@ -198,6 +198,8 @@ describe("AttachmentsTransfer", function() {
       const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl({ format: 'tar' }));
       assert.equal(downloadUrl.pathname, idealUrl.pathname, "wrong download link called");
       assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
+      // Ensures the page isn't modified / navigated away from by the link, as subsequent tests will fail.
+      await driver.find('.test-external-attachments-info a').click();
     } finally {
       // Try to close the modal to minimise the chances of other tests failing.
       await driver.findContent("button", "Cancel").click();
