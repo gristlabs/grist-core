@@ -257,6 +257,7 @@ describe("AttachmentsTransfer", function() {
       // Don't care about checking attachments reconnect behaviour - API tests cover that.
       /0 attachment files reconnected/
     );
+    await driver.find('.test-notifier-toast-close').click();
   });
 
   it('should transfer files to internal storage', async function() {
