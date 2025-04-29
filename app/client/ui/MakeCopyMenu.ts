@@ -40,14 +40,12 @@ import {
   Computed,
   Disposable,
   dom,
-  IDomArgs,
   input,
   Observable,
   styled,
   subscribe,
   subscribeElem
 } from 'grainjs';
-import {cssWarningIcon} from 'app/client/components/Forms/styles';
 import {cssLink} from 'app/client/ui2018/links';
 import sortBy = require('lodash/sortBy');
 import {components, tokens} from 'app/common/ThemePrefs';
@@ -449,13 +447,6 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
             testId('attachments-format-select'),
           ),
         ),
-        dom.maybe((use) => use(formatObs) === 'zip', () => attachmentsWarningBlock([
-          dom('div',
-            t('If you need to re-upload attachments to Grist, use a .tar archive instead. '),
-            cssLink({}, t('Learn more.')),
-            testId('attachments-reupload-warning')
-          )
-        ])),
         cssCopyMenuModalButtons(
           cssDownloadAttachmentsButton(
             t('Download attachments'),
@@ -522,17 +513,6 @@ const cssArchiveFormatSelect = styled(linkSelect, ``);
 const cssDownloadAttachmentsButton = styled(bigPrimaryButtonLink, `
   text-wrap: nowrap;
 `);
-
-const cssAttachmentsWarningBlock = styled('div', `
-  display: grid;
-  margin-left: 0px;
-  grid-template-columns: 16px 1fr;
-  grid-gap: 8px;
-`);
-const attachmentsWarningBlock = (contents: IDomArgs<HTMLDivElement>) => cssAttachmentsWarningBlock(
-  cssWarningIcon('Warning'),
-  cssEagerWrap(...contents),
-);
 
 // Prevents the div from expanding the parent and makes it only use available space instead.
 const cssEagerWrap = styled('div', `
