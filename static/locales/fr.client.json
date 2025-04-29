@@ -32,7 +32,7 @@
         "Attribute name": "Nom de l’attribut",
         "Everyone": "Tout le monde",
         "Everyone Else": "Tous les autres",
-        "Type a message...": "Ajouter un message…",
+        "Type message to display when this rule blocks an action…": "Ajouter un message…",
         "Enter Condition": "Entrer la condition",
         "Remove {{- name }} user attribute": "Supprimer l'attribut utilisateur {{-name}}",
         "Remove {{- tableId }} rules": "Supprimer les règles pour la table {{-tableId}}",

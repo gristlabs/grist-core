@@ -1842,7 +1842,7 @@ class ObsRulePart extends Disposable {
             wide ? cssCell4.cls('') : null,
             this._memoEditor = aclMemoEditor(this._memo,
               {
-                placeholder: t("Type a message..."),
+                placeholder: t("Type message to display when this rule blocks an action…"),
               },
               dom.onKeyDown({
                 // Match the behavior of the formula editor.

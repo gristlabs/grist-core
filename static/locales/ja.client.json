@@ -382,7 +382,7 @@
         "Saved": "保存済み",
         "Remove column {{- colId }} from {{- tableId }} rules": "{{- tableId }} ルールから列{{- colId }} を削除",
         "Allow everyone to view Access Rules.": "誰でもアクセスルールを閲覧できるようにする。",
-        "Type a message...": "メッセージを入力してください。",
+        "Type message to display when this rule blocks an action…": "メッセージを入力してください。",
         "Lookup Table": "参照テーブル",
         "Add Table Rules": "テーブルのルールを追加",
         "Invalid": "無効",

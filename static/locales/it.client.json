@@ -521,7 +521,7 @@
         "Save": "Salva",
         "Saved": "Salvato",
         "Special Rules": "Regole speciali",
-        "Type a message...": "Inserisci un messaggio…",
+        "Type message to display when this rule blocks an action…": "Inserisci un messaggio…",
         "User Attributes": "Attributi dell'utente",
         "Seed rules": "Regole pre-inserite",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Quando si mettono regole per la tabella, inserire sempre una che dà pieno accesso a OWNER.",

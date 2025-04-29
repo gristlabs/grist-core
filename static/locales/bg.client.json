@@ -25,7 +25,7 @@
         "Remove {{- name }} user attribute": "Премани потребителски атрибут {{- name }}",
         "Reset": "Нулирай",
         "Save": "Съхрани",
-        "Type a message...": "Напиши съобщение.…",
+        "Type message to display when this rule blocks an action…": "Напиши съобщение.…",
         "User Attributes": "Потреибтелски атрибути",
         "View As": "Разгледай като",
         "Permission to edit document structure": "Пълномощия за редакция на документната структура",

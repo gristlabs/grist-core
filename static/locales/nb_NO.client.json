@@ -439,7 +439,7 @@
         "Remove {{- tableId }} rules": "Fjern {{- tableId }}-regler",
         "Remove {{- name }} user attribute": "Fjern {{- name }}-brukerattributt",
         "Reset": "Tilbakestill",
-        "Type a message...": "Skriv en melding …",
+        "Type message to display when this rule blocks an action…": "Skriv en melding …",
         "User Attributes": "Brukerattributter",
         "View As": "Vis som",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Tillat alle å kopiere hele dokumentet, eller å vise det i sin helhet i fiklingsmodus.\nNyttig for eksempler og maler, men ikke for sensitiv data.",

@@ -16,7 +16,7 @@
         "Save": "Shrani",
         "Saved": "Shranjeno",
         "Special Rules": "Posebna pravila",
-        "Type a message...": "Vnesite sporočilo…",
+        "Type message to display when this rule blocks an action…": "Vnesite sporočilo…",
         "User Attributes": "Atributi uporabnika",
         "View As": "Poglej kot",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Pri dodajanju pravil za tabele samodejno dodaj pravilo, ki lastniku omogoča popoln dostop.",

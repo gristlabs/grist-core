@@ -474,7 +474,7 @@
         "Saved": "已儲存",
         "Remove column {{- colId }} from {{- tableId }} rules": "從 {{- tableId }} 規則中移除欄位 {{- colId }}",
         "Allow everyone to view Access Rules.": "允許所有人檢視存取規則。",
-        "Type a message...": "輸入訊息…",
+        "Type message to display when this rule blocks an action…": "輸入訊息…",
         "Lookup Table": "查詢表格",
         "View As": "檢視為",
         "Add Table Rules": "新增表格規則",

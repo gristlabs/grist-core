@@ -12,7 +12,7 @@
         "Reset": "Restablecer",
         "Save": "Guardar",
         "Saved": "Guardado",
-        "Type a message...": "Escribe un mensaje…",
+        "Type message to display when this rule blocks an action…": "Escribe un mensaje…",
         "User Attributes": "Atributos de usuario",
         "Users": "Usuarios",
         "Add Column Rule": "Agregar Regla de Columna",

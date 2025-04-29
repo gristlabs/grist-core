@@ -335,7 +335,7 @@
         "Lookup Column": "Стовпець пошуку",
         "Saved": "Збережено",
         "Special Rules": "Особливі правила",
-        "Type a message...": "Введіть повідомлення…",
+        "Type message to display when this rule blocks an action…": "Введіть повідомлення…",
         "User Attributes": "Атрибути користувача",
         "View As": "Переглянути як",
         "Permission to edit document structure": "Дозвіл на редагування структури документа",

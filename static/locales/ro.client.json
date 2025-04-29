@@ -59,7 +59,7 @@
         "Saved": "Salvat",
         "Remove column {{- colId }} from {{- tableId }} rules": "Eliminați coloana {{- colId }} din regulile {{- tableId }}",
         "Allow everyone to view Access Rules.": "Permiteți tuturor să vadă Regulile de acces.",
-        "Type a message...": "Scrie un mesaj…",
+        "Type message to display when this rule blocks an action…": "Scrie un mesaj…",
         "Lookup Table": "Tabel de căutare",
         "View As": "Vizualizare ca",
         "Add Table Rules": "Adăugați reguli pentru tabel",

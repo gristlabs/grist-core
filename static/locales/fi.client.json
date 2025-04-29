@@ -143,7 +143,7 @@
         "Save": "Tallenna",
         "Saved": "Tallennettu",
         "Special Rules": "Erikoissäännöt",
-        "Type a message...": "Kirjoita viesti…",
+        "Type message to display when this rule blocks an action…": "Kirjoita viesti…",
         "User Attributes": "Käyttäjäominaisuudet",
         "Allow everyone to view Access Rules.": "Salli kenen tahansa nähdä pääsysäännöt.",
         "Permission to view Access Rules": "Oikeus nähdä pääsysäännöt",

@@ -31,7 +31,7 @@
         "Save": "Сохранить",
         "Special Rules": "Специальные правила",
         "User Attributes": "Пользовательские атрибуты",
-        "Type a message...": "Введите сообщение…",
+        "Type message to display when this rule blocks an action…": "Введите сообщение…",
         "Saved": "Сохранено",
         "Permission to edit document structure": "Разрешение на редактирование структуры документа",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "При добавлении правил таблицы, автоматически добавить правило для предоставления ВЛАДЕЛЬЦУ полного доступа.",

@@ -34,7 +34,7 @@
         "Rules for table ": "테이블 규칙: ",
         "Save": "저장",
         "Saved": "저장됨",
-        "Type a message...": "메시지 입력…",
+        "Type message to display when this rule blocks an action…": "메시지 입력…",
         "User Attributes": "사용자 속성",
         "View As": "다음 사용자로 보기",
         "Seed rules": "기본 규칙 생성",

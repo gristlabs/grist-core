@@ -7,7 +7,7 @@
         "Save": "保存",
         "Saved": "已保存",
         "Special Rules": "特殊规则",
-        "Type a message...": "输入一个拒绝时的提示信息…",
+        "Type message to display when this rule blocks an action…": "输入一个拒绝时的提示信息…",
         "User Attributes": "用户属性",
         "View As": "查看为",
         "Seed rules": "种子规则",
