@@ -42,7 +42,7 @@
         "Remove {{- name }} user attribute": "Kendu {{- name}} erabiltzailearen atributua",
         "Remove column {{- colId }} from {{- tableId }} rules": "Kendu {{- colId }} zutabea {{- tableId }} arauetatik",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Taula-arauak gehitzean, automatikoki gehitu arau bat JABEAri sarbide osoa emateko.",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Baimendu editoreei egitura editatzea (adibidez, taulak, zutabeak, antolaketa aldatu eta ezabatzea), eta datu guztietarako sarbidea ematen duten formulak idaztea, irakurketaren murrizketak kontuan hartu gabe."
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Baimendu editoreei egitura editatzea (adibidez, taulak, zutabeak, antolaketa aldatu eta ezabatzea), eta datu guztietarako sarbidea ematen duten formulak idaztea, irakurketaren murrizketak kontuan hartu gabe."
     },
     "AccountPage": {
         "API": "APIa",

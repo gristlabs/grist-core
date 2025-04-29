@@ -38,7 +38,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Khi thêm quy tắc bảng, tự động thêm quy tắc để cấp cho CHỦ SỞ HỮU toàn quyền truy cập.",
         "This default should be changed if editors' access is to be limited. ": "Mặc định này nên được thay đổi nếu quyền truy cập của biên tập viên bị hạn chế. ",
         "Add Table-wide Rule": "Thêm quy tắc toàn bảng",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Cho phép người chỉnh sửa chỉnh sửa cấu trúc (ví dụ: sửa đổi và xóa bảng, cột, bố cục) và viết công thức, cho phép truy cập vào tất cả dữ liệu bất kể hạn chế đọc.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Cho phép người chỉnh sửa chỉnh sửa cấu trúc (ví dụ: sửa đổi và xóa bảng, cột, bố cục) và viết công thức, cho phép truy cập vào tất cả dữ liệu bất kể hạn chế đọc.",
         "Add Table Rules": "Thêm quy tắc cho bảng",
         "Add User Attributes": "Thêm thuộc tính người dùng",
         "Invalid": "Không hợp lệ",

@@ -42,7 +42,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Ao adicionar regras de tabela, adicione automaticamente uma regra para conceder ao PROPRIETÁRIO acesso total.",
         "Permission to edit document structure": "Permissão para editar a estrutura do documento",
         "This default should be changed if editors' access is to be limited. ": "Esse padrão deve ser alterado se o acesso dos editores for limitado. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permita que os editores editem a estrutura (por exemplo, modifiquem e excluam tabelas, colunas, layouts) e escrevam fórmulas, que dão acesso a todos os dados, independentemente das restrições de leitura.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Permita que os editores editem a estrutura (por exemplo, modifiquem e excluam tabelas, colunas, layouts) e escrevam fórmulas, que dão acesso a todos os dados, independentemente das restrições de leitura.",
         "Add Table-wide Rule": "Adicionar regra para toda a tabela"
     },
     "AccountPage": {

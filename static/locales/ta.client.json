@@ -36,7 +36,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "அட்டவணை விதிகளைச் சேர்க்கும்போது, உரிமையாளருக்கு முழு அணுகலை வழங்க தானாக ஒரு விதியைச் சேர்க்கவும்.",
         "Permission to edit document structure": "ஆவண கட்டமைப்பைத் திருத்த இசைவு",
         "This default should be changed if editors' access is to be limited. ": "எடிட்டர்களின் அணுகல் குறைவாக இருந்தால் இந்த இயல்புநிலை மாற்றப்பட வேண்டும். ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "கட்டமைப்பைத் திருத்த ஆசிரியர்களை அனுமதிக்கவும் (எ.கா. அட்டவணைகள், நெடுவரிசைகள், தளவமைப்புகளை மாற்றியமைத்து நீக்கவும்) மற்றும் சூத்திரங்களை எழுதவும், அவை வாசிப்பு கட்டுப்பாடுகளைப் பொருட்படுத்தாமல் எல்லா தரவிற்கும் அணுகலை வழங்குகின்றன.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "கட்டமைப்பைத் திருத்த ஆசிரியர்களை அனுமதிக்கவும் (எ.கா. அட்டவணைகள், நெடுவரிசைகள், தளவமைப்புகளை மாற்றியமைத்து நீக்கவும்) மற்றும் சூத்திரங்களை எழுதவும், அவை வாசிப்பு கட்டுப்பாடுகளைப் பொருட்படுத்தாமல் எல்லா தரவிற்கும் அணுகலை வழங்குகின்றன.",
         "Add Table-wide Rule": "அட்டவணை அளவிலான விதியைச் சேர்க்கவும்"
     },
     "AccountPage": {

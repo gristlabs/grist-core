@@ -36,7 +36,7 @@
         "Seed rules": "Reglas de semillas",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Al agregar reglas de tabla, agregue automáticamente una regla para otorgar acceso completo al PROPIETARIO.",
         "Permission to edit document structure": "Permiso para editar la estructura del documento",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permitir a los editores editar la estructura (por ejemplo, modificar y eliminar tablas, columnas, diseños), y escribir fórmulas, que dan acceso a todos los datos independientemente de las restricciones de lectura.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Permitir a los editores editar la estructura (por ejemplo, modificar y eliminar tablas, columnas, diseños), y escribir fórmulas, que dan acceso a todos los datos independientemente de las restricciones de lectura.",
         "This default should be changed if editors' access is to be limited. ": "Este valor predeterminado debe cambiarse si se quiere limitar el acceso de los editores. ",
         "Add Table-wide Rule": "Añadir regla a toda la tabla"
     },

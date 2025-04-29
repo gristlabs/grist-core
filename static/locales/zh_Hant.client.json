@@ -493,7 +493,7 @@
         "Everyone": "所有人",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "允許所有人複製整份文件，或在完整模式下檢視。\n對於範例和範本很有用，但不適用於敏感資料。",
         "Add Default Rule": "新增預設規則",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "允許編輯者編輯結構（例如，修改和刪除表格、欄位、版面配置），並編寫公式，這些公式可以存取所有資料，無論讀取限制如何。",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "允許編輯者編輯結構（例如，修改和刪除表格、欄位、版面配置），並編寫公式，這些公式可以存取所有資料，無論讀取限制如何。",
         "This default should be changed if editors' access is to be limited. ": "如果要限制編輯者的存取權限，則應更改此預設值。 ",
         "Save": "儲存",
         "Rules for table ": "表格規則 ",

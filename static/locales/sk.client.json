@@ -40,7 +40,7 @@
         "This default should be changed if editors' access is to be limited. ": "Toto predvolené nastavenie by sa malo zmeniť, ak má byť prístup redaktorov obmedzený. ",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Umožnite každému skopírovať celý dokument alebo ho zobraziť celý v pokusnom móde.\n Užitočné pre príklady a šablóny, ale nie pre citlivé údaje.",
         "Saved": "Uložené",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Umožniť editorom upravovať štruktúru (napr. upravovať a mazať tabuľky, stĺpce, rozloženia) a písať vzorce, ktoré umožňujú prístup ku všetkým údajom bez ohľadu na obmedzenia čítania.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Umožniť editorom upravovať štruktúru (napr. upravovať a mazať tabuľky, stĺpce, rozloženia) a písať vzorce, ktoré umožňujú prístup ku všetkým údajom bez ohľadu na obmedzenia čítania.",
         "Remove {{- name }} user attribute": "Odstrániť používateľský atribút {{- name }}",
         "Add Table-wide Rule": "Pridať Pravidlo pre celú tabuľku"
     },

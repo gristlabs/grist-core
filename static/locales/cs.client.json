@@ -36,7 +36,7 @@
         "Rules for table ": "Pravidla pro tabulku ",
         "Special Rules": "Speciální Pravidla",
         "This default should be changed if editors' access is to be limited. ": "Toto výchozí nastavení by mělo být změněno, pokud má být přístup editorů omezen. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Povolit editorům upravovat strukturu (např. měnit a mazat tabulky, sloupce, rozvržení) a psát vzorce, které umožňují přístup ke všem datům bez ohledu na omezení čtení.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Povolit editorům upravovat strukturu (např. měnit a mazat tabulky, sloupce, rozvržení) a psát vzorce, které umožňují přístup ke všem datům bez ohledu na omezení čtení.",
         "Add Table-wide Rule": "Přidat pravidlo pro celou tabulku"
     },
     "ACUserManager": {

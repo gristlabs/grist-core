@@ -40,7 +40,7 @@
         "Seed rules": "Начални правила",
         "Rules for table ": "Правила за таблица ",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "При добавяне на правила за таблица, автоматично добави правило позволяващо пълен достъп на СОБСТВЕНИК.",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Позволете на редакторите да редактират структура (напр. да променят и изтриват таблици, колони, оформления) и да пишат формули, които дават достъп до всички данни, независимо от ограниченията за четене.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Позволете на редакторите да редактират структура (напр. да променят и изтриват таблици, колони, оформления) и да пишат формули, които дават достъп до всички данни, независимо от ограниченията за четене.",
         "This default should be changed if editors' access is to be limited. ": "Това по подразбиране трябва да се промени, ако трябва да се ограничи достъпът на редакторите. ",
         "Add Table-wide Rule": "Добавете правило за цялата таблица"
     },

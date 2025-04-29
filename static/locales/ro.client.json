@@ -78,7 +78,7 @@
         "Everyone": "Toată lumea",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Permiteți tuturor să copieze întregul document sau să-l vizualizeze integral în modul lăutăresc.\nUtil pentru exemple și șabloane, dar nu pentru date sensibile.",
         "Add Default Rule": "Adăugați o regulă implicită",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permite editorilor să editeze structura (de exemplu, să modifice și să șteargă tabele, coloane, machete) și să scrie formule, care oferă acces la toate datele, indiferent de restricțiile de citire.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Permite editorilor să editeze structura (de exemplu, să modifice și să șteargă tabele, coloane, machete) și să scrie formule, care oferă acces la toate datele, indiferent de restricțiile de citire.",
         "This default should be changed if editors' access is to be limited. ": "Această valoare implicită ar trebui schimbată dacă accesul editorilor trebuie să fie limitat. ",
         "Save": "Salvați",
         "Rules for table ": "Reguli pentru tabel ",

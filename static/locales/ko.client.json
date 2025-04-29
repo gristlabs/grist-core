@@ -41,7 +41,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "테이블 규칙 추가 시, 소유자(OWNER)에게 전체 접근 권한을 부여하는 규칙을 자동으로 추가합니다.",
         "Permission to edit document structure": "문서 구조 편집 권한",
         "This default should be changed if editors' access is to be limited. ": "편집자의 접근을 제한하려면 이 기본 설정을 변경해야 합니다. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "편집자가 구조(예: 테이블, 열, 레이아웃 수정 및 삭제)를 편집하고, 읽기 제한과 관계없이 모든 데이터에 접근할 수 있는 수식을 작성하도록 허용합니다.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "편집자가 구조(예: 테이블, 열, 레이아웃 수정 및 삭제)를 편집하고, 읽기 제한과 관계없이 모든 데이터에 접근할 수 있는 수식을 작성하도록 허용합니다.",
         "Add Table-wide Rule": "테이블 전체 규칙 추가"
     },
     "ViewAsDropdown": {

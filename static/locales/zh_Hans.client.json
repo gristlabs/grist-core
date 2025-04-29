@@ -35,7 +35,7 @@
         "Permissions": "权限",
         "Remove column {{- colId }} from {{- tableId }} rules": "从 {{- tableId }} 规则中删除列 {{- colId }}",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "添加表规则时，自动添加规则以授予 OWNER 完全访问权限。",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "允许编辑者编辑结构（例如修改和删除表、列、布局）和编写公式，无论读取限制如何，都可以访问所有数据。",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "允许编辑者编辑结构（例如修改和删除表、列、布局）和编写公式，无论读取限制如何，都可以访问所有数据。",
         "This default should be changed if editors' access is to be limited. ": "如果要限制编辑者的访问权限，则应更改此默认值。 ",
         "Add Table-wide Rule": "添加全表规则"
     },

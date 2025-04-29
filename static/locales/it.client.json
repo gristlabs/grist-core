@@ -526,7 +526,7 @@
         "Seed rules": "Regole pre-inserite",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Quando si mettono regole per la tabella, inserire sempre una che dà pieno accesso a OWNER.",
         "This default should be changed if editors' access is to be limited. ": "Questo valore di default può essere cambiato se si vuole limitare l'accesso agli editor. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permette agli editor di modificare la struttura (es., modificare ed eliminare tabelle, colonne, viste) e scrivere formule, cosa che permette l'accesso ai dati indipendentemente dalle restrizioni in lettura.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Permette agli editor di modificare la struttura (es., modificare ed eliminare tabelle, colonne, viste) e scrivere formule, cosa che permette l'accesso ai dati indipendentemente dalle restrizioni in lettura.",
         "Add Table-wide Rule": "Aggiungi regola per tutta la tabella"
     },
     "ACUserManager": {

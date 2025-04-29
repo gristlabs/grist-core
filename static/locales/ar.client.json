@@ -3,7 +3,7 @@
         "Permission to access the document in full when needed": "الإذن بالنفاذ إلى المستند بالكامل عند الحاجة",
         "Permissions": "الأذون",
         "Type message to display when this rule blocks an action…": "اكتب رسالة…",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "السماح للمحررين بتحرير البنية (أي التعديل والحذف في الجداول والأعمدة والترتيبات)، وكتابة الصيغ الرياضية، وهذا يجعلهم نافذين إلى كل البيانات بغض النظر عن قيود القراءة.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "السماح للمحررين بتحرير البنية (أي التعديل والحذف في الجداول والأعمدة والترتيبات)، وكتابة الصيغ الرياضية، وهذا يجعلهم نافذين إلى كل البيانات بغض النظر عن قيود القراءة.",
         "Save": "حفظ"
     },
     "AccountPage": {

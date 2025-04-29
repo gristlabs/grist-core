@@ -40,7 +40,7 @@
         "Lookup Table": "جستجوی جدول",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "هنگام افزودن قوانین جدول، به‌طور خودکار یک قانون برای اعطای دسترسی کامل به مالک اضافه کنید.",
         "This default should be changed if editors' access is to be limited. ": "این پیش‌فرض باید تغییر کند اگر قرار است دسترسی ویرایشگران محدود شود. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "اجازه دهید ویرایشگران ساختار را ویرایش کنند (مانند تغییر و حذف جداول، ستون‌ها، چیدمان‌ها) و فرمول‌ها را بنویسند، که به تمام داده‌ها بدون توجه به محدودیت‌های خواندنی دسترسی دارند.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "اجازه دهید ویرایشگران ساختار را ویرایش کنند (مانند تغییر و حذف جداول، ستون‌ها، چیدمان‌ها) و فرمول‌ها را بنویسند، که به تمام داده‌ها بدون توجه به محدودیت‌های خواندنی دسترسی دارند.",
         "Permission to edit document structure": "اجازه‌ی ویرایش ساختار سند",
         "Add Table-wide Rule": "افزودن قانون سراسری جدول"
     },

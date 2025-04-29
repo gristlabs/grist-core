@@ -455,7 +455,7 @@
         "Lookup Column": "Oppslagskolonne",
         "Permission to access the document in full when needed": "Tilgang til hele dokumentet når det trengs",
         "Save": "Lagre",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Tillat de som redigerer å endre struktur (f.eks. endre og slette tabeller, kolonner, oppsett), og å skrive formler, som gir tilgang til all data uavhengig av begrensninger.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Tillat de som redigerer å endre struktur (f.eks. endre og slette tabeller, kolonner, oppsett), og å skrive formler, som gir tilgang til all data uavhengig av begrensninger.",
         "This default should be changed if editors' access is to be limited. ": "Dette forvalget må endres hvis de som redigerer ikke skal ha tilgang, "
     },
     "ChartView": {

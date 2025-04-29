@@ -406,7 +406,7 @@
         "Special Rules": "特別ルール",
         "View As": "役割で表示",
         "Seed rules": "シード・ルール",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。",
         "Add Table-wide Rule": "テーブル全体のルールを追加"
     },
     "FieldEditor": {
