@@ -148,6 +148,8 @@ export interface DocumentOptions {
                              // Not used in grist-core, but handy for Electron app.
   tutorial?: TutorialMetadata|null;
   appearance?: DocumentAppearance|null;
+  // Whether search engines should index this document. Defaults to `false`.
+  allowIndex?: boolean;
 }
 
 export interface TutorialMetadata {
