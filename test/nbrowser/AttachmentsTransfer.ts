@@ -185,13 +185,32 @@ describe("AttachmentsTransfer", function() {
     assert.lengthOf(await messages(), 0);
   });
 
+  it('warns users downloading the doc that attachments are external', async function() {
+    try {
+      await driver.find('.test-tb-share').click();
+      await driver.findContentWait('.test-tb-share-option', /Download document/, 5000).click();
+      const attachmentsMsg = await driver.findWait('.test-external-attachments-info', 1000).getText();
+
+      assert.match(attachmentsMsg, /Attachments are external/, "should be informed attachments aren't included");
+
+      const downloadHref = await driver.find('.test-external-attachments-info a').getAttribute('href');
+      const downloadUrl = new URL(downloadHref);
+      const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl({ format: 'tar' }));
+      assert.equal(downloadUrl.pathname, idealUrl.pathname, "wrong download link called");
+      assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
+    } finally {
+      // Try to close the modal to minimise the chances of other tests failing.
+      await driver.findContent("button", "Cancel").click();
+    }
+  });
+
   it('can download attachments', async function() {
     try {
       await driver.find('.test-tb-share').click();
-      await driver.findContentWait('.test-tb-share-option', /Download/, 5000).click();
-      const attachmentsStatus = await driver.findWait('.test-attachments-included', 1000).getText();
+      await driver.findContentWait('.test-tb-share-option', /Download attachments/, 5000).click();
+      const attachmentsStatus = await driver.findWait('.test-attachments-external-message', 1000).getText();
 
-      assert.match(attachmentsStatus, /are not included/, "users should be warned attachments aren't included");
+      assert.match(attachmentsStatus, /in the ".tar" format/, "users should be advised to use .tar");
 
       const selectFormat = async (formatRegex: RegExp) => {
         await driver.findWait('.test-attachments-format-select', 500).click();
@@ -220,10 +239,6 @@ describe("AttachmentsTransfer", function() {
       await selectFormat(/.tar/);
       await gu.waitToPass(() => testDownloadLink({format: 'tar'}), 500);
       await selectFormat(/.zip/);
-
-      const uploadWarning = await driver.findWait('.test-attachments-reupload-warning', 2000).getText();
-      assert.match(uploadWarning, /use a \.tar archive instead/);
-
       await gu.waitToPass(() => testDownloadLink({format: 'zip'}), 500);
     } finally {
       // Try to close the modal to minimise the chances of other tests failing.
@@ -236,7 +251,6 @@ describe("AttachmentsTransfer", function() {
     await fileDialogUpload(file, async () => {
       await driver.find('.test-settings-upload-attachment-archive').click();
     });
-    await driver.sleep(20000);
     assert.match(
       await driver.findWait('.test-notifier-toast-message', 1000).getText(),
       // Only care that the request is made, and that the UI behaves as expected.

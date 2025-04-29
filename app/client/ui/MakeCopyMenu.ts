@@ -371,7 +371,8 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
               //  href: "https://TODO"
               //}),
             },
-          )
+          ),
+          testId('external-attachments-info')
         )),
         cssCopyMenuModalButtons(
           dom.domComputed((modalButtonUse) => {
@@ -428,17 +429,18 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
       dom.maybe((use) => use(attachmentStatusObs) !== undefined, () => [
         cssEagerWrap(dom('p', t('Download an archive of all the attachments present in this document.'))),
         dom.maybe(isExternal, () => cssEagerWrap(dom('p',
-            t(
-              'If you\'re planning to upload this document to a Grist installation, ' +
-              'you will need the archive in the ".tar." format to restore attachments. '
-              /*'{{learnMore}}.',
-              {
-                learnMore: cssLink(t("Learn more"), {
-                  href: "https://TODO",
-                }),
-              },
-              */
-            )
+          t(
+            'If you\'re planning to upload this document to a Grist installation, ' +
+            'you will need the archive in the ".tar" format to restore attachments. '
+            /*'{{learnMore}}.',
+            {
+              learnMore: cssLink(t("Learn more"), {
+                href: "https://TODO",
+              }),
+            },
+            */
+          ),
+          testId('attachments-external-message')
         ))),
         cssAttachmentsDownloadRow(
           t('Format:'),
