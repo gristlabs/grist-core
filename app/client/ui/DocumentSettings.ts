@@ -407,6 +407,8 @@ export class DocSettingsPage extends Disposable {
         title: "Attachments upload complete",
         message: `${uploadResult.added} attachment files reconnected`,
         level: 'info',
+        canUserClose: true,
+        expireSec: 5,
       });
     } catch (err) {
       reportWarning(err.toString(), {
