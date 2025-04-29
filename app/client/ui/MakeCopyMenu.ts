@@ -18,7 +18,7 @@ import {
 } from 'app/client/ui2018/checkbox';
 import {testId} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {IOptionFull, linkSelect, select} from 'app/client/ui2018/menus';
+import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {
   confirmModal,
   cssModalBody,
@@ -510,7 +510,7 @@ const cssAttachmentsDownloadRow = styled('div', `
   align-items: center;
 `);
 
-const cssArchiveFormatSelect = styled(linkSelect, ``);
+const cssArchiveFormatSelect = styled(select, ``);
 
 const cssDownloadAttachmentsButton = styled(bigPrimaryButtonLink, `
   text-wrap: nowrap;
