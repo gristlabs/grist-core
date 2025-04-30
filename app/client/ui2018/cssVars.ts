@@ -137,7 +137,7 @@ export const vars = {
   controlFg: new CustomProp('control-fg', tokens.primary),
   controlFgHover: new CustomProp('primary-fg-hover', tokens.primaryMuted),
 
-  controlBorder: new CustomProp('control-border', '1px solid #11b683'),
+  controlBorder: new CustomProp('control-border', components.controlBorder),
   controlBorderRadius: new CustomProp('border-radius', tokens.controlBorderRadius),
 
   logoBg: new CustomProp('logo-bg', tokens.logoBg),
