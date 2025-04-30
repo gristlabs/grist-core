@@ -39,7 +39,7 @@ import { IncomingMessage } from 'http';
  *
  */
 export interface StorageCoordinator {
-  hardDeleteDoc(docId:string): Promise<void>;
+  hardDeleteDoc(docId: string): Promise<void>;
 }
 
 /**
