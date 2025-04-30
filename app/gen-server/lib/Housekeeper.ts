@@ -122,6 +122,16 @@ export class Housekeeper {
       // and then deleting it without ceremony.  But, for consistency, and because
       // it will be useful for other purposes, we work through the api using special
       // temporary permits.
+      try {
+        await this._server.hardDeleteDoc(doc.id);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          log.error(`failed to delete document ${doc.id}: error status ${err.status} ${err.message}`);
+        } else {
+          log.error(`failed to delete document ${doc.id}: error status ${String(err)}`);
+        }
+      }
+
       const permitKey = await this._permitStore.setPermit({docId: doc.id});
       try {
         const result = await fetch(await this._server.getHomeUrlByDocId(doc.id, `/api/docs/${doc.id}`), {
