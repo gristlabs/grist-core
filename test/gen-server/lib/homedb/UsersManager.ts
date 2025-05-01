@@ -273,7 +273,7 @@ describe('UsersManager', function () {
            */
           async hardDeleteDoc(docId: string) {
             const parts = parseUrlId(docId);
-            await db.connection.query('delete from docs where id = ?', [parts.forkId || parts.trunkId]);
+            await db.connection.query('delete from docs where id = $1', [parts.forkId || parts.trunkId]);
             docDeletes.push(docId);
           }
         },
@@ -1291,7 +1291,7 @@ describe('UsersManager', function () {
 
         // Check the fork is listed in the home db.
         assert.deepEqual(
-          await db.connection.query("select name from docs where id = ?", [fork.forkId]),
+          await db.connection.query("select name from docs where id = $1", [fork.forkId]),
           [{name: 'doc-name'}]
         );
 
@@ -1300,7 +1300,7 @@ describe('UsersManager', function () {
 
         // Confirm the fork is no longer listed in the home db.
         assert.deepEqual(
-          await db.connection.query("select name from docs where id = ?", [fork.forkId]),
+          await db.connection.query("select name from docs where id = $1", [fork.forkId]),
           []
         );
         assert.isFalse(await fse.pathExists(docPath));
