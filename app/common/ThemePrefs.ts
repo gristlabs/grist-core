@@ -626,6 +626,7 @@ export const legacyVarsMapping: {old: string, new: string}[] = [
   {old: '--grist-primary-bg', new: tokens.white.var()},
   {old: '--grist-primary-fg-hover', new: tokens.primaryMuted.var()},
   {old: '--grist-primary-fg', new: tokens.primary.var()},
+  {old: '--grist-control-border', new: components.controlBorder.var()},
   {old: '--grist-border-radius', new: tokens.controlBorderRadius.var()},
   {old: '--grist-logo-bg', new: tokens.logoBg.var()},
   {old: '--grist-logo-size', new: tokens.logoSize.var()},
