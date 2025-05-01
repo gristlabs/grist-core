@@ -1,4 +1,5 @@
 import {ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
+import { delay } from 'app/common/delay';
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import {SCHEMA_VERSION} from 'app/common/schema';
 import {DocWorkerMap, getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
@@ -1087,27 +1088,84 @@ describe('HostedStorageManager', function() {
 
   // This is a performance test, to check if the backup settings are plausible.
   describe('backupSqliteDatabase', async function() {
+
+    async function makeDb(rows: number) {
+      const tmpDir = await createTmpDir();
+      const src = path.join(tmpDir, "src.db");
+      const dest = path.join(tmpDir, "dest.db");
+      const db = await SQLiteDB.openDBRaw(src);
+      await db.run("create table data(x,y,z)");
+      await db.execTransaction(async () => {
+        const stmt = await db.prepare("INSERT INTO data VALUES (?,?,?)");
+        for (let i = 0; i < rows; i++) {
+          // Silly code to make a long random string to insert.
+          // We can make a big db faster this way.
+          const str = (new Array(100)).fill(1).map((_: any) => Math.random().toString(2)).join();
+          await stmt.run(str, str, str);
+        }
+        await stmt.finalize();
+      });
+      return {src, dest, db};
+    }
+
+    // If competing with intense user writes, backups should pause writes.
+    it(`backups will make time for themselves if competing with writes`, async function() {
+      this.timeout('10s');
+      for (const allowPause of [false, true] as const) {
+        const {db, src, dest} = await makeDb(1000);
+        let busy = 0;
+        let done = false;
+        function progress(event: BackupEvent) {
+          if (event.error && event.error.includes('SQLITE_BUSY')) {
+            busy++;
+          }
+          if (event.action === 'close' && event.phase === 'after') {
+            done = true;
+          }
+        }
+        let running = true;
+        const writerThread = (async() => {
+          while (running) {
+            // If checking without pauses, null any pause before it
+            // takes effect.
+            if (!allowPause) { db.unpause(); }
+            // Open a write transaction.
+            await db.exec('BEGIN IMMEDIATE');
+            // Hold it open a long time.
+            await delay(500);
+            // Close the write transaction.
+            await db.exec('COMMIT', { testIgnorePause: true });
+          }
+        })();
+        try {
+          const backup = backupSqliteDatabase(db, src, dest, progress);
+          await Promise.race([
+            backup,
+            delay(3000),
+          ]);
+          assert.equal(done, allowPause);
+          assert.isAbove(busy, 10);
+          running = false;
+          await Promise.race([
+            backup,
+            delay(3000),
+          ]);
+          assert.equal(done, true);
+        } finally {
+          running = false;
+          await writerThread;
+          await db.close();
+        }
+      }
+    });
+
     for (const mode of ['without-doc', 'with-doc', 'with-closing-doc'] as const) {
 
       it(`backups are robust to locking (${mode})`, async function() {
         // Takes some time to create large db and play with it.
         this.timeout('30s');
 
-        const tmpDir = await createTmpDir();
-        const src = path.join(tmpDir, "src.db");
-        const dest = path.join(tmpDir, "dest.db");
-        const db = await SQLiteDB.openDBRaw(src);
-        await db.run("create table data(x,y,z)");
-        await db.execTransaction(async () => {
-          const stmt = await db.prepare("INSERT INTO data VALUES (?,?,?)");
-          for (let i = 0; i < 30000; i++) {
-            // Silly code to make a long random string to insert.
-            // We can make a big db faster this way.
-            const str = (new Array(100)).fill(1).map((_: any) => Math.random().toString(2)).join();
-            await stmt.run(str, str, str);
-          }
-          await stmt.finalize();
-        });
+        const {db, src, dest} = await makeDb(30000);
         const stat = await fse.stat(src);
         assert(stat.size > 150 * 1000 * 1000);
         let done: boolean = false;
@@ -1180,11 +1238,11 @@ describe('HostedStorageManager', function() {
         assert(!done);
 
         // Lock the db up completely for a while.
-        await db.exec('PRAGMA locking_mode = EXCLUSIVE');
-        await db.exec('BEGIN EXCLUSIVE');
+        await db.exec('PRAGMA locking_mode = EXCLUSIVE', { testIgnorePause: true });
+        await db.exec('BEGIN EXCLUSIVE', { testIgnorePause: true });
         await bluebird.delay(500);
-        await db.exec('COMMIT');
-        await db.exec('PRAGMA locking_mode = NORMAL');
+        await db.exec('COMMIT', { testIgnorePause: true });
+        await db.exec('PRAGMA locking_mode = NORMAL', { testIgnorePause: true });
 
         assert(!done);
         while (!done) {

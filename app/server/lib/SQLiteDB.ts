@@ -258,6 +258,9 @@ export class SQLiteDB implements ISQLiteDB {
   private _migrationError: Error|null = null;
   private _needVacuum: boolean = false;
   private _closed: boolean = false;
+  private _paused: Promise<void>|undefined = undefined;
+  private _pauseResolve: (() => void)|undefined = undefined;
+  private _pauseReject: (() => void)|undefined = undefined;
 
   private constructor(protected _db: MinDB, private _dbPath: string) {
   }
@@ -282,11 +285,18 @@ export class SQLiteDB implements ISQLiteDB {
     return result;
   }
 
-  public run(sql: string, ...args: any[]): Promise<MinRunResult> {
+  public async run(sql: string, ...args: any[]): Promise<MinRunResult> {
+    await this._applyPause();
     return this._db.run(sql, ...args);
   }
 
-  public exec(sql: string): Promise<void> {
+  public async exec(sql: string, options?: {
+    // For testing purposes, don't respect pause.
+    testIgnorePause?: boolean
+  }): Promise<void> {
+    if (!options?.testIgnorePause) {
+      await this._applyPause();
+    }
     return this._db.exec(sql);
   }
 
@@ -365,6 +375,7 @@ export class SQLiteDB implements ISQLiteDB {
     const alreadyClosed = this._closed;
     this._closed = true;
     if (!alreadyClosed) {
+      this._pauseReject?.();
       let tries: number = 0;
       // We might not be able to close immediately if a backup is in
       // progress. We will retry for about 10 seconds. Worst case is
@@ -467,10 +478,32 @@ export class SQLiteDB implements ISQLiteDB {
     return metadata;
   }
 
+  /**
+   * Call this if you'd like the next write to be held until unpause() is
+   * called. Used by the backup system.
+   */
+  public pause() {
+    if (this._paused || this._closed) { return; }
+    this._paused = new Promise((resolve, reject) => {
+      this._pauseResolve = resolve;
+      this._pauseReject = reject;
+    });
+  }
+
+  /**
+   * Completes or cancels any pause on writing.
+   */
+  public unpause() {
+    this._pauseResolve?.();
+    this._pauseResolve = undefined;
+    this._pauseReject = undefined;
+  }
+
   // Implementation of execTransction.
   private async _execTransactionImpl<T>(callback: () => Promise<T>): Promise<T> {
     // We need to swallow errors, so that one failed transaction doesn't cause the next one to fail.
     await this._prevTransaction.catch(noop);
+    await this._applyPause();
     await this.exec("BEGIN");
     try {
       const value = await callback();
@@ -558,6 +591,11 @@ export class SQLiteDB implements ISQLiteDB {
           this._dbPath, tname, JSON.stringify(metadata[tname]), JSON.stringify(expected[tname]));
       }
     }
+  }
+
+  private async _applyPause() {
+    if (this._inTransaction) { return; }
+    await this._paused;
   }
 }
 
