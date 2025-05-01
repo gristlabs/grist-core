@@ -138,7 +138,7 @@ export class MergedServer {
   public readonly flexServer: FlexServer;
   private readonly _serverTypes: ServerType[];
   private readonly _options: ServerOptions;
-  // It can be useful to start up a bunch of extra workers within,
+  // It can be useful to start up a bunch of extra workers within
   // a single process mostly for testing purposes, but conceivably
   // for real too.
   private readonly _extraWorkers: MergedServer[] = [];
@@ -240,7 +240,7 @@ export class MergedServer {
     if (this.flexServer.worker?.id === docWorkerId) {
       return this;
     }
-    for (const worker of this._extraWorkers || []) {
+    for (const worker of this._extraWorkers) {
       if (worker.flexServer.worker.id === docWorkerId) {
         return worker;
       }

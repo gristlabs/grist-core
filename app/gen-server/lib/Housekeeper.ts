@@ -117,11 +117,7 @@ export class Housekeeper {
         throw new Error(`attempted to hard-delete a document that was not soft-deleted: ${doc.id}`);
       }
       // In general, documents can only be manipulated with the coordination of the
-      // document worker to which they are assigned.  For an old soft-deleted doc,
-      // we could probably get away with ensuring the document is closed/unloaded
-      // and then deleting it without ceremony.  But, for consistency, and because
-      // it will be useful for other purposes, we work through the api using special
-      // temporary permits.
+      // document worker to which they are assigned.
       try {
         await this._server.hardDeleteDoc(doc.id);
       } catch (err) {
@@ -130,21 +126,6 @@ export class Housekeeper {
         } else {
           log.error(`failed to delete document ${doc.id}: error status ${String(err)}`);
         }
-      }
-
-      const permitKey = await this._permitStore.setPermit({docId: doc.id});
-      try {
-        const result = await fetch(await this._server.getHomeUrlByDocId(doc.id, `/api/docs/${doc.id}`), {
-          method: 'DELETE',
-          headers: {
-            Permit: permitKey
-          }
-        });
-        if (result.status !== 200) {
-          log.error(`failed to delete document ${doc.id}: error status ${result.status}`);
-        }
-      } finally {
-        await this._permitStore.removePermit(permitKey);
       }
     }
 
