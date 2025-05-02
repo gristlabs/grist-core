@@ -67,6 +67,9 @@ export interface SandboxActionBundle {
   rowCount: RowCounts;
   // Mapping of keys (hashes of request args) to all unique requests made in a round of calculation
   requests?: Record<string, SandboxRequest>;
+
+  // Optionally we can measure and include how many bytes it took to represent this bundle.
+  numBytes?: number;
 }
 
 // Represents a unique call to the Python REQUEST function

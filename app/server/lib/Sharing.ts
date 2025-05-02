@@ -130,6 +130,7 @@ export class Sharing {
         otherId: info.otherId,
         numDocActions: localActionBundle.stored.length,
         numRows: localActionBundle.stored.reduce((n, env) => n + getNumRows(env[1]), 0),
+        ...(sandboxActionBundle.numBytes ? {numBytes: sandboxActionBundle.numBytes} : {}),
         author: info.user,
         ...(altSessionId ? {session: altSessionId}: {}),
       };

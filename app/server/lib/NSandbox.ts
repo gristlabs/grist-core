@@ -84,7 +84,12 @@ export interface SandboxProcess {
   sendData?: (data: any) => void;  // use a callback instead of a pipe to send data
 }
 
-type ResolveRejectPair = [(value?: any) => void, (reason?: unknown) => void];
+interface CallResponse {
+  data: unknown;
+  numBytes: number;   // Size of the marshalled version of the response, for diagnostics.
+}
+
+type ResolveRejectPair = [(value: CallResponse) => void, (reason?: unknown) => void];
 
 // Type for basic message identifiers, available as constants in sandboxUtil.
 type MsgCode = null | true | false;
@@ -112,6 +117,9 @@ export class NSandbox implements ISandbox {
   private _streamFromSandbox: Stream;
   private _dataToSandbox?: (data: any) => void;
   private _lastStderr: Uint8Array;  // Record last error line seen.
+
+  // Size of the last pyCall() response in bytes.
+  private _lastResponseNumBytes: number|undefined = undefined;
 
   // Create a unique subdirectory for each sandbox process so they can be replayed separately
   private _recordBuffersDir = recordBuffersRoot ? path.resolve(recordBuffersRoot, new Date().toISOString()) : null;
@@ -216,10 +224,16 @@ export class NSandbox implements ISandbox {
       log.rawWarn('Slow pyCall', {...this._logMeta, funcName});
     }, 10000);
     try {
-      return await this._pyCallWait(funcName, startTime);
+      const {data, numBytes} = await this._pyCallWait(funcName, startTime);
+      this._lastResponseNumBytes = numBytes;
+      return data;
     } finally {
       clearTimeout(slowCallCheck);
     }
+  }
+
+  public getLastResponseNumBytes(): number|undefined {
+    return this._lastResponseNumBytes;
   }
 
   /**
@@ -311,7 +325,7 @@ export class NSandbox implements ISandbox {
     });
   }
 
-  private async _pyCallWait(funcName: string, startTime: number): Promise<any> {
+  private async _pyCallWait(funcName: string, startTime: number): Promise<CallResponse> {
     try {
       return await new Promise((resolve, reject) => {
         this._pendingReads.push([resolve, reject]);
@@ -389,7 +403,7 @@ export class NSandbox implements ISandbox {
       if (this._recordBuffersDir) {
         fs.appendFileSync(path.resolve(this._recordBuffersDir, "output"), buf);
       }
-      this._onSandboxMsg(value[0], value[1]);
+      this._onSandboxMsg(value[0], value[1], buf.length);
     });
   }
 
@@ -423,7 +437,7 @@ export class NSandbox implements ISandbox {
   /**
    * Process a parsed message from the sandboxed process.
    */
-  private _onSandboxMsg(msgCode: MsgCode, data: any) {
+  private _onSandboxMsg(msgCode: MsgCode, data: any, numBytes: number) {
     if (msgCode === sandboxUtil.CALL) {
       // Handle calls FROM the sandbox.
       if (!Array.isArray(data) || data.length === 0) {
@@ -454,7 +468,7 @@ export class NSandbox implements ISandbox {
         if (msgCode === sandboxUtil.EXC) {
           resolvePair[1](new Error(data));
         } else if (msgCode === sandboxUtil.DATA) {
-          resolvePair[0](data);
+          resolvePair[0]({data, numBytes});
         } else {
           log.rawWarn("Sandbox invalid message from sandbox", this._logMeta);
         }
