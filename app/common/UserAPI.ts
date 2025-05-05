@@ -478,7 +478,7 @@ export const CreatableArchiveFormats = StringUnion('zip', 'tar');
 export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
 
 export interface AttachmentsArchiveParams {
-   format?: CreatableArchiveFormats,
+  format?: CreatableArchiveFormats,
 }
 
 export interface ArchiveUploadResult {
