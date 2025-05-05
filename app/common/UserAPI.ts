@@ -1238,9 +1238,11 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     const response = await this.requestAxios(`${this._url}/attachments/archive`, {
       method: 'POST',
       data: formData,
-      // On browser, it is important not to set Content-Type so that the browser takes care
-      // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
-      // for setting the HTTP headers.
+      // On the browser, Content-Type shouldn't be set as it prevents the browser from setting
+      // Content-Type with the correct boundary expression to delimit form fields.
+      // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects#sending_files_using_a_formdata_object
+      // Therefore we omit Content-Type, and allow Axios to handle it as it sees fit - which works
+      // correctly in the browser and in Node.
       headers: {...this.defaultHeadersWithoutContentType()},
     });
     return response.data;
