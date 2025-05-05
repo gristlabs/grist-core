@@ -5,9 +5,8 @@ import fetch, { RequestInit } from 'node-fetch';
 import {ProxyAgent, ProxyAgentOptions} from "proxy-agent";
 
 /**
- * A simple class derived from ProxyAgent which does all the work.
- *
- * ProxyAgent is a class that is responsible for proxying the request using either HttpProxyAgent or HttpsProxyAgent
+ * GristProxyAgent derives from ProxyAgent which is a class that is responsible for proxying the request using either
+ * HttpProxyAgent or HttpsProxyAgent (or other supported proxy agents)
  * depending on the URL requested when using fetch().
  *
  * We configure the getProxyForUrl to not let ProxyAgent magically read the env variables
@@ -51,7 +50,7 @@ export const test_generateProxyAgents = generateProxyAgents;
 export const agents = generateProxyAgents();
 
 /**
- * If configured using GRIST_PROXY_FOR_UNTRUSTED_URLS env var, use node-fetch with conigured proxy agemt
+ * If configured using GRIST_PROXY_FOR_UNTRUSTED_URLS env var, use node-fetch with configured proxy agent
  * Otherwise just use fetch without agent.
  *
  * If the request failed with agent, log a warning with relevant information.
