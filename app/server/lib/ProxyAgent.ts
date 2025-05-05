@@ -54,6 +54,12 @@ export const agents = generateProxyAgents();
  * Otherwise just use fetch without agent.
  *
  * If the request failed with agent, log a warning with relevant information.
+ *
+ * FIXME: Remove it and rather let the caller log a warning?
+ * The original function has been introduced by this commit:
+ * https://github.com/gristlabs/grist-core/commit/be5cb9124a5d1fec8c2ed6dff5cdbf786fac2991
+ * Here are written thoughts and doubts about this function:
+ * https://github.com/gristlabs/grist-core/pull/1363#discussion_r2034871615
  */
 export async function fetchUntrustedWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
   const agent = agents.untrusted;
