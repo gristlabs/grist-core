@@ -1208,7 +1208,7 @@ describe('UsersManager', function () {
       process.env.REDIS_URL = process.env.TEST_REDIS_URL;
       dataDir = await createTestDir('UsersManager');
       // TODO: may need to manage the port range here if it
-      // could stop on some other parallel test, but I think
+      // could stomp on some other parallel test, but I think
       // this may be currently OK for gen-server tests.
       server = await MergedServer.create(34365, ['home'], {
         extraWorkers: 5,
@@ -1295,7 +1295,7 @@ describe('UsersManager', function () {
           [{name: 'doc-name'}]
         );
 
-        // Delete the user, and make sure the fork is deleted.
+        // Delete the user.
         await db.deleteUser({userId: userToDelete.id}, userToDelete.id);
 
         // Confirm the fork is no longer listed in the home db.
@@ -1303,6 +1303,7 @@ describe('UsersManager', function () {
           await db.connection.query("select name from docs where id = $1", [fork.forkId]),
           []
         );
+        // Confirm the fork is no longer on the file system.
         assert.isFalse(await fse.pathExists(docPath));
 
         // Confirm the user is gone.

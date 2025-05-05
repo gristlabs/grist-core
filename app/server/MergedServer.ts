@@ -264,6 +264,8 @@ export async function startMain() {
     let extraWorkers = 0;
     if (process.env.DOC_WORKER_COUNT) {
       extraWorkers = parseInt(process.env.DOC_WORKER_COUNT, 10);
+      // If the main server functions also as a doc worker, then
+      // we need one fewer extra servers.
       if (serverTypes.includes('docs')) { extraWorkers--; }
     }
 
