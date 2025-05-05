@@ -28,6 +28,7 @@ import {
   saveModal
 } from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
+import {components, tokens} from 'app/common/ThemePrefs';
 import {
   CreatableArchiveFormats,
   DocAttachmentsLocation,
@@ -48,7 +49,6 @@ import {
 } from 'grainjs';
 import {cssLink} from 'app/client/ui2018/links';
 import sortBy = require('lodash/sortBy');
-import {components, tokens} from 'app/common/ThemePrefs';
 
 const t = makeT('MakeCopyMenu');
 

@@ -11,9 +11,11 @@ import {makeT} from 'app/client/lib/localization';
 import {cssMarkdownSpan} from 'app/client/lib/markdown';
 import {reportError} from 'app/client/models/AppModel';
 import type {DocPageModel} from 'app/client/models/DocPageModel';
+import {reportWarning} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
+import {openFilePicker} from 'app/client/ui/FileDialog';
 import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
@@ -49,8 +51,6 @@ import {
   styled
 } from 'grainjs';
 import * as moment from 'moment-timezone';
-import {openFilePicker} from 'app/client/ui/FileDialog';
-import {reportWarning} from 'app/client/models/errors';
 
 const t = makeT('DocumentSettings');
 const testId = makeTestId('test-settings-');
