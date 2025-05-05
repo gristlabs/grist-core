@@ -299,6 +299,9 @@ export class ActiveDoc extends EventEmitter {
   private _doShutdown?: Promise<void>;
   private _intervals: Interval[] = [];
 
+  // Size of the last _rawPyCall() response in bytes.
+  private _lastPyCallResponseSize: number|undefined;
+
   constructor(
     private readonly _docManager: DocManager,
     private _docName: string,
@@ -1851,6 +1854,7 @@ export class ActiveDoc extends EventEmitter {
       }
       const user = docSession ? await this._granularAccess.getCachedUser(docSession) : undefined;
       sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions, user?.toJSON());
+      sandboxActionBundle.numBytes = this._lastPyCallResponseSize;
       const {requests} = sandboxActionBundle;
       if (requests) {
         this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
@@ -3023,7 +3027,9 @@ export class ActiveDoc extends EventEmitter {
   private async _rawPyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
     const dataEngine = await this._getEngine();
     try {
-      return await dataEngine.pyCall(funcName, ...varArgs);
+      const data = await dataEngine.pyCall(funcName, ...varArgs);
+      this._lastPyCallResponseSize = dataEngine.getLastResponseNumBytes?.();
+      return data;
     } catch (e) {
       if (e instanceof UnavailableSandboxMethodError && this._isSnapshot) {
         throw new UnavailableSandboxMethodError('pyCall is not available in snapshots');

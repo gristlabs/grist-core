@@ -35,6 +35,7 @@ export const FetchSelectedOptions = t.iface([], {
   "keepEncoded": t.opt("boolean"),
   "format": t.opt(t.union(t.lit('rows'), t.lit('columns'))),
   "includeColumns": t.opt(t.union(t.lit('shown'), t.lit('normal'), t.lit('all'))),
+  "expandRefs": t.opt("boolean"),
 });
 
 export const GristView = t.iface([], {

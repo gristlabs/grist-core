@@ -148,6 +148,8 @@ export interface DocumentOptions {
                              // Not used in grist-core, but handy for Electron app.
   tutorial?: TutorialMetadata|null;
   appearance?: DocumentAppearance|null;
+  // Whether search engines should index this document. Defaults to `false`.
+  allowIndex?: boolean;
 }
 
 export interface TutorialMetadata {
@@ -208,6 +210,7 @@ export interface UserOptions {
   isConsultant?: boolean;
   // Locale selected by the user. Defaults to 'en' if unset.
   locale?: string;
+  ssoExtraInfo?: Record<string, any>; // Extra fields from the user profile, e.g. from OIDC.
 }
 
 export interface PermissionDelta {
@@ -431,6 +434,7 @@ export interface UserAPI {
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
   updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
+  getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo>;
   getWorkerAPI(key: string): Promise<DocWorkerAPI>;
   getBillingAPI(): BillingAPI;
   getDocAPI(docId: string): DocAPI;
@@ -865,11 +869,16 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async getWorker(key: string): Promise<string> {
+    const full = await this.getWorkerFull(key);
+    return getPublicDocWorkerUrl(this._homeUrl, full);
+  }
+
+  public async getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo> {
     const json = (await this.requestJson(`${this._url}/api/worker/${key}`, {
       method: 'GET',
       credentials: 'include'
     })) as PublicDocWorkerUrlInfo;
-    return getPublicDocWorkerUrl(this._homeUrl, json);
+    return json;
   }
 
   public async getWorkerAPI(key: string): Promise<DocWorkerAPI> {
@@ -1323,9 +1332,11 @@ export interface AttachmentTransferStatus {
 export type PublicDocWorkerUrlInfo = {
   selfPrefix: string;
   docWorkerUrl: null;
+  docWorkerId: null;
 } | {
   selfPrefix: null;
   docWorkerUrl: string;
+  docWorkerId: string;
 }
 
 export function getUrlFromPrefix(homeUrl: string, prefix: string) {

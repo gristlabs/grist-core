@@ -1,4 +1,4 @@
-This examples shows how to start up Grist that:
+This example shows how to start up Grist that:
 - Uses Postgres as a home database,
 - Redis as a state store.
 - MinIO for snapshot storage

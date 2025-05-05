@@ -475,7 +475,13 @@ describe('OIDCConfig', () => {
       {
         itMsg: 'should reject when no OIDC information is present in the session',
         session: {},
-        expectedErrorMsg: /Missing OIDC information/
+        expectedErrorMsg: /Missing OIDC information/,
+        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+          Sinon.assert.calledWith(sendAppPageStub,
+            Sinon.match.any,
+            Sinon.match.any,
+            Sinon.match.hasNested('config.errTargetUrl', '/'));
+        }
       },
       {
         itMsg: 'should resolve when the state and the code challenge are found in the session',
@@ -555,7 +561,7 @@ describe('OIDCConfig', () => {
         },
         expectedErrorMsg: /email not verified for/,
         extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
-          assert.equal(sendAppPageStub.firstCall.args[2].config.errMessage, 'oidc.emailNotVerifiedError');
+          assert.equal(sendAppPageStub.firstCall.lastArg.config.errMessage, 'oidc.emailNotVerifiedError');
         }
       },
       {
@@ -587,6 +593,7 @@ describe('OIDCConfig', () => {
         extraChecks: checkUserProfile({
           email: FAKE_USER_INFO.email,
           name: FAKE_USER_INFO.name,
+          extra: {},
         })
       },
       {
@@ -619,6 +626,56 @@ describe('OIDCConfig', () => {
         extraChecks: checkUserProfile({
           email: 'fake-email2',
           name: 'fake-name2',
+          extra: {},
+        }),
+      },
+      {
+        itMsg: 'should store extra info returned by the SSO provider when the env var is set',
+        session: DEFAULT_SESSION,
+        env: {
+          GRIST_IDP_EXTRA_PROPS: 'extrafield,anotherfield,yetanotherfield',
+        },
+        userInfo: {
+          ...FAKE_USER_INFO,
+          extrafield: 'randomvalue',
+          anotherfield: 12,
+        },
+        extraChecks: checkUserProfile({
+          email: 'fake-email',
+          name: 'fake-name',
+          extra: {
+            extrafield: 'randomvalue',
+            anotherfield: 12,
+          }
+        }),
+      },
+      {
+        itMsg: 'should not store extra info returned by the SSO provider when the env var is not set',
+        session: DEFAULT_SESSION,
+        userInfo: {
+          ...FAKE_USER_INFO,
+          extrafield: 'randomvalue',
+        },
+        extraChecks: checkUserProfile({
+          email: 'fake-email',
+          name: 'fake-name',
+          extra: {}
+        }),
+      },
+      {
+        itMsg: 'should not store extra info returned by the SSO provider when env var does not list it',
+        session: DEFAULT_SESSION,
+        env: {
+          GRIST_IDP_EXTRA_PROPS: 'anotherfield',
+        },
+        userInfo: {
+          ...FAKE_USER_INFO,
+          extrafield: 'randomvalue',
+        },
+        extraChecks: checkUserProfile({
+          email: 'fake-email',
+          name: 'fake-name',
+          extra: {}
         }),
       },
       {
@@ -635,6 +692,26 @@ describe('OIDCConfig', () => {
           }
         },
         extraChecks: checkRedirect('http://localhost:8484/some/path'),
+      },
+      {
+        itMsg: 'should tell error page to use targetUrl when it is present in the session if login fails',
+        session: {
+          oidc: {
+            ...DEFAULT_SESSION.oidc,
+            targetUrl: '/some/path'
+          }
+        },
+        userInfo: {
+          ...FAKE_USER_INFO,
+          email_verified: false,
+        },
+        expectedErrorMsg: /email not verified for/,
+        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+          Sinon.assert.calledWith(sendAppPageStub,
+            Sinon.match.any,
+            Sinon.match.any,
+            Sinon.match.hasNested('config.errTargetUrl', '/some/path'));
+        }
       },
       {
         itMsg: "should redact confidential information in the tokenSet in the logs",
@@ -695,7 +772,7 @@ describe('OIDCConfig', () => {
           assert.isTrue(logErrorStub.calledOnce);
           assert.match(logErrorStub.firstCall.args[0], ctx.expectedErrorMsg);
           assert.isTrue(sendAppPageStub.calledOnceWith(req, fakeRes));
-          assert.include(sendAppPageStub.firstCall.args[2], {
+          assert.include(sendAppPageStub.firstCall.lastArg, {
             path: 'error.html',
             status: 500,
           });

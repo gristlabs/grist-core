@@ -1292,8 +1292,9 @@ Useful for examples and templates, but not for sensitive data.`),
   },
   SchemaEdit: {
     name: t("Permission to edit document structure"),
-    description: t("Allow editors to edit structure (e.g. modify and delete tables, columns, \
-layouts), and to write formulas, which give access to all data regardless of read restrictions."),
+    description: t("Allow editors to edit structure (e.g., modify and delete tables, columns, \
+and layouts) and write formulas. Regardless of the permissions set at \
+the table and column level, formulas can still be edited and can access all data."),
     availableBits: ['schemaEdit'],
     ...schemaEditRules.denyEditors,
   },
@@ -1842,7 +1843,7 @@ class ObsRulePart extends Disposable {
             wide ? cssCell4.cls('') : null,
             this._memoEditor = aclMemoEditor(this._memo,
               {
-                placeholder: t("Type a message..."),
+                placeholder: t("Type message to display when this rule blocks an action…"),
               },
               dom.onKeyDown({
                 // Match the behavior of the formula editor.

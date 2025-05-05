@@ -32,7 +32,7 @@
         "Attribute name": "Nom de l’attribut",
         "Everyone": "Tout le monde",
         "Everyone Else": "Tous les autres",
-        "Type a message...": "Ajouter un message…",
+        "Type message to display when this rule blocks an action…": "Ajouter un message…",
         "Enter Condition": "Entrer la condition",
         "Remove {{- name }} user attribute": "Supprimer l'attribut utilisateur {{-name}}",
         "Remove {{- tableId }} rules": "Supprimer les règles pour la table {{-tableId}}",
@@ -42,7 +42,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Pour chaque ajout de règle pour une table, ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
         "Permission to edit document structure": "Droits d'édition de la structure",
         "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture.",
         "Add Table-wide Rule": "Ajouter une règle pour l'ensemble du tableau"
     },
     "AccountPage": {
@@ -633,9 +633,9 @@
         "You do not have write access to this site": "Vous n’avez pas d'accès en écriture à cet espace",
         "Workspace": "Dossier",
         "You do not have write access to the selected workspace": "Vous n’avez pas accès en écriture à ce dossier",
-        "Remove all data but keep the structure to use as a template": "Télécharger uniquement la structure du document, sans les données",
-        "Remove document history (can significantly reduce file size)": "Télécharger le document complet sans l'historique (peut réduire sensiblement la taille du fichier)",
-        "Download full document and history": "Télécharger le document complet avec l'historique des modifications",
+        "Download document structure only (no data, for template use)": "Télécharger uniquement la structure du document, sans les données",
+        "Download document without history (can significantly reduce file size)": "Télécharger le document complet sans l'historique (peut réduire sensiblement la taille du fichier)",
+        "Download document and history": "Télécharger le document complet avec l'historique des modifications",
         "Download": "Télécharger",
         "Download document": "Télécharger le document"
     },

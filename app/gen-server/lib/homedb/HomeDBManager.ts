@@ -70,6 +70,7 @@ import {
 } from 'app/gen-server/sqlUtils';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {getOrCreateConnection} from 'app/server/lib/dbUtils';
+import {StorageCoordinator} from 'app/server/lib/GristServer';
 import {makeId} from 'app/server/lib/idUtils';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
@@ -290,7 +291,8 @@ export class HomeDBManager {
     return this._connection.driver.options.type;
   }
 
-  public constructor(private _notifier: INotifier = EmptyNotifier) {
+  public constructor(public storageCoordinator?: StorageCoordinator,
+                     private _notifier: INotifier = EmptyNotifier) {
   }
 
   public usersManager() {

@@ -33,10 +33,20 @@ import * as express from 'express';
 import { IncomingMessage } from 'http';
 
 /**
+ *
+ * Coordinate storage for documents across file systems,
+ * external storage, and the home database.
+ *
+ */
+export interface StorageCoordinator {
+  hardDeleteDoc(docId: string): Promise<void>;
+}
+
+/**
  * Basic information about a Grist server.  Accessible in many
  * contexts, including request handlers and ActiveDoc methods.
  */
-export interface GristServer {
+export interface GristServer extends StorageCoordinator {
   readonly create: ICreate;
   readonly testPending: boolean;
   settings?: IGristCoreConfig;
@@ -193,6 +203,7 @@ export function createDummyGristServer(): GristServer {
     isRestrictedMode() { return false; },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },
+    hardDeleteDoc() { return Promise.resolve(); },
   };
 }
 

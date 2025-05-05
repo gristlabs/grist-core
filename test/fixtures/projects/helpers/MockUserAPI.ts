@@ -396,8 +396,16 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     window.location.href = window.location.origin;
   }
 
-  public async getWorker(key: string): Promise<string> {
+  public async getWorker(): Promise<string> {
     return "/";
+  }
+
+  public async getWorkerFull() {
+    return {
+      selfPrefix: '/',
+      docWorkerUrl: null,
+      docWorkerId: null,
+    };
   }
 
   public async getWorkerAPI(key: string): Promise<DocWorkerAPI> {

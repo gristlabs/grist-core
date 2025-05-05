@@ -345,8 +345,10 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
       const downloadText = isInternal ? t("Download full document and history") : t("Download document and history");
       return cssRadioCheckboxOptions(
         radioCheckboxOption(selected, 'full', downloadText),
-        radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
-        radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
+        radioCheckboxOption(selected, 'nohistory', t(
+          "Download document without history (can significantly reduce file size)"
+        )),
+        radioCheckboxOption(selected, 'template', t("Download document structure only (no data, for template use)")),
       );
     });
 

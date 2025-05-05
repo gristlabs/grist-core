@@ -815,9 +815,36 @@ export class FlexServer implements GristServer {
     this._hosts = new Hosts(this._defaultBaseDomain, this._dbManager, this);
   }
 
+  /**
+   * Delete all the storage related to a document, across the file system,
+   * external storage, and the home database. Since a doc worker may have
+   * the document open, this is done via the API.
+   */
+  public async hardDeleteDoc(docId: string) {
+    if (!this._internalPermitStore) {
+      throw new Error('permit store not available');
+    }
+    // In general, documents can only be manipulated with the coordination of the
+    // document worker to which they are assigned.
+    const permitKey = await this._internalPermitStore.setPermit({docId});
+    try {
+      const result = await fetch(await this.getHomeUrlByDocId(docId, `/api/docs/${docId}`), {
+        method: 'DELETE',
+        headers: {
+          Permit: permitKey
+        }
+      });
+      if (result.status !== 200) {
+        throw new ApiError((await result.json()).error, result.status);
+      }
+    } finally {
+      await this._internalPermitStore.removePermit(permitKey);
+    }
+  }
+
   public async initHomeDBManager() {
     if (this._check('homedb')) { return; }
-    this._dbManager = new HomeDBManager(this._emitNotifier);
+    this._dbManager = new HomeDBManager(this, this._emitNotifier);
     this._dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
     await this._dbManager.connect();
     await this._dbManager.initializeSpecialIds();

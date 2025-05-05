@@ -34,7 +34,7 @@
         "Save": "Salvar",
         "Saved": "Salvo",
         "Special Rules": "Regras Especiais",
-        "Type a message...": "Escreva uma mensagem…",
+        "Type message to display when this rule blocks an action…": "Escreva uma mensagem…",
         "User Attributes": "Atributos de Usuário",
         "Users": "Usuários",
         "View As": "Ver como",
@@ -42,7 +42,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Ao adicionar regras de tabela, adicione automaticamente uma regra para conceder ao PROPRIETÁRIO acesso total.",
         "Permission to edit document structure": "Permissão para editar a estrutura do documento",
         "This default should be changed if editors' access is to be limited. ": "Esse padrão deve ser alterado se o acesso dos editores for limitado. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permita que os editores editem a estrutura (por exemplo, modifiquem e excluam tabelas, colunas, layouts) e escrevam fórmulas, que dão acesso a todos os dados, independentemente das restrições de leitura.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Permita que os editores editem a estrutura (por exemplo, modifiquem e excluam tabelas, colunas, layouts) e escrevam fórmulas, que dão acesso a todos os dados, independentemente das restrições de leitura.",
         "Add Table-wide Rule": "Adicionar regra para toda a tabela"
     },
     "AccountPage": {
@@ -668,9 +668,9 @@
         "Workspace": "Área de Trabalho",
         "You do not have write access to the selected workspace": "Você não tem acesso de gravação na área de trabalho selecionada",
         "You do not have write access to this site": "Você não tem acesso de gravação a este site",
-        "Download full document and history": "Baixe documento completo e histórico",
-        "Remove all data but keep the structure to use as a template": "Remova todos os dados, mas mantenha a estrutura para usar como um modelo",
-        "Remove document history (can significantly reduce file size)": "Remova o histórico do documento (pode reduzir significativamente o tamanho do arquivo)",
+        "Download document and history": "Baixe documento completo e histórico",
+        "Download document structure only (no data, for template use)": "Remova todos os dados, mas mantenha a estrutura para usar como um modelo",
+        "Download document without history (can significantly reduce file size)": "Remova o histórico do documento (pode reduzir significativamente o tamanho do arquivo)",
         "Download": "Baixar",
         "Download document": "Baixar documento"
     },
