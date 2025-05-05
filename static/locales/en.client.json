@@ -793,7 +793,8 @@
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
         "Export as...": "Export as...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
-        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)"
+        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)",
+        "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again."
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
