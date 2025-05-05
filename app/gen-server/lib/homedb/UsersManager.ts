@@ -1,6 +1,7 @@
 import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
 import { PERSONAL_FREE_PLAN } from 'app/common/Features';
+import { buildUrlId } from 'app/common/gristUrls';
 import { UserOrgPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {
@@ -26,7 +27,7 @@ import { Permissions } from 'app/gen-server/lib/Permissions';
 import { Pref } from 'app/gen-server/entity/Pref';
 
 import flatten from 'lodash/flatten';
-import { EntityManager } from 'typeorm';
+import { EntityManager, IsNull, Not } from 'typeorm';
 
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -510,6 +511,37 @@ export class UsersManager {
     if (userIdDeleting !== userIdToDelete) {
       throw new ApiError('not permitted to delete this user', 403);
     }
+
+    // Deleting a user leaves their forks orphaned, inaccessible.
+    // Worse, even Grist loses track of how to access them on
+    // disk and in external storage, since they are identified
+    // using a composite key that includes the user id. So we
+    // delete the forks now. Deleting can be a relatively slow
+    // operation, since in general it needs to work via
+    // communication with doc workers. So we do it outside
+    // the main transaction for deleting the user. Within
+    // the transaction, we simply check that no forks have
+    // since appeared. Staying outside the transaction is
+    // important also for single-process Grist combining
+    // home server and doc worker.
+    const forksToDelete = await this._connection.getRepository(Document).find({
+      where: {
+        createdBy: userIdToDelete,
+        trunkId: Not(IsNull()),
+      }});
+    // Delete external storage for orphaned forks.
+    // This might take some time, if there's a lot of them.
+    for (const doc of forksToDelete) {
+      // In tests the storage coordinator may not be present and
+      // that's usually fine. But if we're deleting forks it had
+      // better be there.
+      if (!this._homeDb.storageCoordinator) {
+        throw new Error('no mechanism available to delete forks');
+      }
+      const fullId = buildUrlId({trunkId: doc.trunkId!, forkId: doc.id, forkUserId: doc.createdBy!});
+      await this._homeDb.storageCoordinator.hardDeleteDoc(fullId);
+    }
+
     return await this._connection.transaction(async manager => {
       const user = await manager.findOne(User, {where: {id: userIdToDelete},
                                                 relations: ["logins", "personalOrg", "prefs"]});
@@ -524,7 +556,15 @@ export class UsersManager {
       // Unset 'created_by' on any documents created by this user. It's sad to lose this info, but
       // we can't leave an invalid reference (and violate the foreign-key constraint)
       const docs = await manager.getRepository(Document).find({where: {createdBy: userIdToDelete}});
-      docs.forEach(doc => { doc.createdBy = null; });
+      docs.forEach(doc => {
+        if (doc.trunkId) {
+          // We tried cleaning up forks before starting the
+          // transaction but one snuck back in? Just bail.
+          throw new ApiError('Untimely document addition? Please retry.', 503);
+        } else {
+          doc.createdBy = null;
+        }
+      });
       await manager.save(docs);
 
       await manager.remove([...user.logins]);
