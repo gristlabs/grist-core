@@ -104,7 +104,7 @@ export function create_tar_archive(
         // Cast is required due to a bug with @types/node 18.X missing the parameter
         pipeline = stream.promises.pipeline(archive, passthrough, destination, { end: options.endDestStream } as any);
         for await (const entry of entries) {
-          const entryStream = archive.entry({ name: entry.name, size: entry.size, mtime: new Date("1999-01-01") });
+          const entryStream = archive.entry({ name: entry.name, size: entry.size });
           await stream.promises.pipeline(entry.data, entryStream);
         }
         archive.finalize();
