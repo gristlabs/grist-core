@@ -230,11 +230,12 @@ describe("AttachmentsTransfer", function() {
         });
         // Download the file so we've got a copy available for uploading.
         const fileName = `attachments.${params.format}`;
+        assert.notInclude(await fse.readdir(tmpDownloadsFolder), fileName, "attachments file shouldn't exist yet");
         await stream.promises.pipeline(
           response.data,
           fs.createWriteStream(path.join(tmpDownloadsFolder, fileName))
         );
-        assert.include(await fse.readdir(tmpDownloadsFolder), 'attachments.tar', "attachments file wasn't downloaded");
+        assert.include(await fse.readdir(tmpDownloadsFolder), fileName, "attachments file wasn't downloaded");
       };
 
 
