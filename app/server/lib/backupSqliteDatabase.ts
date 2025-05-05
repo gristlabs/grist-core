@@ -80,6 +80,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
     let prevError: Error|null = null;
     let errorMsgTime: number = 0;
     let restartMsgTime: number = 0;
+    let busyCount: number = 0;
     for (;;) {
       // For diagnostic purposes, issue a message if the backup appears to have been
       // restarted by sqlite.  The symptom of a restart we use is that the number of
@@ -95,15 +96,23 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       if (remaining >= 0 && backup.remaining > remaining && stepStart - restartMsgTime > 1000) {
         _log.info(null, `copy of ${src} (${label}) restarted`);
         restartMsgTime = stepStart;
-        if (testProgress) { testProgress({action: 'restart'}); }
+        testProgress?.({action: 'restart'});
       }
       remaining = backup.remaining;
-      if (testProgress) { testProgress({action: 'step', phase: 'before'}); }
+      testProgress?.({action: 'step', phase: 'before'});
       let isCompleted: boolean = false;
       if (mainDb?.isClosed()) { throw new Error('source closed'); }
       try {
         isCompleted = Boolean(await fromCallback(cb => backup!.step(PAGES_TO_BACKUP_PER_STEP, cb)));
       } catch (err) {
+        testProgress?.({action: 'error', error: String(err)});
+        if (String(err).match(/SQLITE_BUSY/)) {
+          busyCount++;
+          if (busyCount === 10 && mainDb) {
+            _log.info(null, `pausing (${src} ${label}): serializing backup`);
+            mainDb?.pause();
+          }
+        }
         if (String(err) !== String(prevError) || Date.now() - errorMsgTime > 1000) {
           _log.info(null, `error (${src} ${label}): ${err}`);
           errorMsgTime = Date.now();
@@ -127,7 +136,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
           maxNonFinalStepTimeMs = stepTimeMs;
         }
       }
-      if (testProgress) { testProgress({action: 'step', phase: 'after'}); }
+      testProgress?.({action: 'step', phase: 'after'});
       if (isCompleted) {
         _log.info(null, `copy of ${src} (${label}) completed successfully`);
         success = true;
@@ -136,8 +145,9 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
       await delay(PAUSE_BETWEEN_BACKUP_STEPS_IN_MS);
     }
   } finally {
+    mainDb?.unpause();
     if (backup) { await fromCallback(cb => backup!.finish(cb)); }
-    if (testProgress) { testProgress({action: 'close', phase: 'before'}); }
+    testProgress?.({action: 'close', phase: 'before'});
     try {
       if (db) { await fromCallback(cb => db!.close(cb)); }
     } catch (err) {
@@ -152,7 +162,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
         _log.debug(null, `problem removing copy of ${src} (${label}): ${err}`);
       }
     }
-    if (testProgress) { testProgress({action: 'close', phase: 'after'}); }
+    testProgress?.({action: 'close', phase: 'after'});
     _log.rawLog('debug', null, `stopped copy of ${src} (${label})`, {
       finalStepTimeMs,
       maxStepTimeMs,
@@ -168,8 +178,9 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
  * A summary of an event during a backup.  Emitted for test purposes, to check timing.
  */
 export interface BackupEvent {
-  action: 'step' | 'close' | 'open' | 'restart';
+  action: 'step' | 'close' | 'open' | 'restart' | 'error';
   phase?: 'before' | 'after';
+  error?: string;
 }
 
 /**
