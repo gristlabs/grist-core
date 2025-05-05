@@ -79,21 +79,10 @@ import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
 import { Sessions } from 'app/server/lib/Sessions';
 
 import * as express from 'express';
+import pick from 'lodash/pick';
 import {
   Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
 } from 'openid-client';
-import { Sessions } from './Sessions';
-import log from 'app/server/lib/log';
-import { AppSettings, appSettings } from './AppSettings';
-import { RequestWithLogin } from './Authorizer';
-import { UserProfile } from 'app/common/LoginSessionAPI';
-import { SendAppPageFunction } from 'app/server/lib/sendAppPage';
-import { StringUnionError } from 'app/common/StringUnion';
-import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
-import { SessionObj } from './BrowserSession';
-import { getOriginUrl } from './requestUtils';
-import pick from 'lodash/pick';
-import { proxyAgentForTrustedRequests } from './ProxyAgent';
 
 const CALLBACK_URL = '/oauth2/callback';
 
