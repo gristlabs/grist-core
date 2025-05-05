@@ -177,7 +177,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
       header: dom.maybe(rightPanel, (panel) => panel.header),
       content: dom.maybe(rightPanel, (panel) => panel.content),
     },
-    headerMain: dom.create(createTopBarDoc, appModel, pageModel, appObj.allCommands),
+    headerMain: dom.create(createTopBarDoc, appModel, pageModel),
     contentMain: dom.maybe(pageModel.gristDoc, (gristDoc) => gristDoc.buildDom()),
     onResize,
     testId,

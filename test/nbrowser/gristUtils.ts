@@ -1486,8 +1486,8 @@ export async function removeTable(tableId: string, options: {dismissTips?: boole
   const menus = await driver.findAll(".test-raw-data-table .test-raw-data-table-menu");
   assert.equal(menus.length, tableIdList.length);
   await menus[tableIndex].click();
-  await driver.find(".test-raw-data-menu-remove-table").click();
-  await driver.find(".test-modal-confirm").click();
+  await driver.findWait(".test-raw-data-menu-remove-table", 100).click();
+  await driver.findWait(".test-modal-confirm", 100).click();
   await waitForServer();
 }
 

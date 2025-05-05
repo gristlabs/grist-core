@@ -1,11 +1,13 @@
-import {makeT} from 'app/client/lib/localization';
+import {allCommands} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {loadSearch} from 'app/client/lib/imports';
-import type * as searchModule from 'app/client/ui2018/search';
+import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
+import {COMMENTS} from 'app/client/models/features';
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
+import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
 import {buildNotifyMenuButton} from 'app/client/ui/NotifyUI';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {UpgradeButton} from 'app/client/ui/ProductUpgrades';
@@ -13,13 +15,11 @@ import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
 import {SupportGristButton} from 'app/client/ui/SupportGristButton';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
-import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
 import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {cssHideForNarrowScreen, isNarrowScreenObs, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
-import {menuAnnotate} from 'app/client/ui2018/menus';
-import {COMMENTS} from 'app/client/models/features';
+import type * as searchModule from 'app/client/ui2018/search';
 import * as roles from 'app/common/roles';
 import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 
@@ -50,7 +50,7 @@ export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean
   ];
 }
 
-export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageModel: DocPageModel, allCommands: any) {
+export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageModel: DocPageModel) {
   const doc = pageModel.currentDoc;
   const renameDoc = (val: string) => pageModel.renameDoc(val);
   const displayNameWs = Computed.create(owner, pageModel.currentWorkspace,
@@ -158,19 +158,16 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
 function buildShowDiscussionButton(pageModel: DocPageModel) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
-    cssBeta('Beta'),
     hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
     testId('open-discussion'),
-    dom.on('click', () => pageModel.gristDoc.get()!.showTool('discussion'))
+    dom.on('click', () => {
+      const gristDoc = pageModel.gristDoc.get();
+      if (!gristDoc) { return; }
+      gristDoc.showTool('discussion');
+      allCommands.rightPanelOpen.run();
+    })
   );
 }
-
-const cssBeta = styled(menuAnnotate, `
-  position: absolute;
-  top: 4px;
-  right: -9px;
-  font-weight: bold;
-`);
 
 // Given the GristDoc instance, returns a rename function for the current active page.
 // If the current page is not able to be renamed or the new name is invalid, the function is a noop.

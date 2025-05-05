@@ -2625,8 +2625,8 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const {docActions, docSession} = this._activeBundle;
     const snapShot = await this.createSnapshotWithCells();
-    const cellView = new CellData(snapShot);
-    await cellView.applyAndCheck(
+    await applyAndCheckActionsForCells(
+      snapShot,
       docActions,
       userIsOwner,
       this._ruler.haveRules(),
@@ -3482,8 +3482,7 @@ export class CellData {
   }
 
   /**
-   * Reads all SingleCellInfo from docActions or from docData if action doesn't have enough enough
-   * information.
+   * Reads all SingleCellInfo from docActions or from docData if action doesn't have enough information.
    */
   public convertToCells(action: DocAction): SingleCellInfo[] {
     if (!isDataAction(action)) { return []; }
@@ -3538,6 +3537,7 @@ export class CellData {
         content: [],
         rowId: [],
         userRef: [],
+        parentId: [],
       }
     ];
     for(const cell of ids) {
@@ -3551,6 +3551,7 @@ export class CellData {
       action[3].type.push(dataCell.type);
       action[3].root.push(dataCell.root);
       action[3].rowId.push(dataCell.rowId);
+      action[3].parentId.push(dataCell.parentId);
     }
     return action[2].length > 1 ? action :
            action[2].length == 1 ? [...getSingleAction(action)][0] : null;
@@ -3586,123 +3587,136 @@ export class CellData {
     return action[2].length > 1 ? action :
           action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
+}
 
-  /**
-   * Tests if the user can modify cell's data. Will modify
-   */
-  public async applyAndCheck(
-    docActions: DocAction[],
-    userIsOwner: boolean,
-    haveRules: boolean,
-    userRef: string,
-    hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>
-  ) {
-    // Owner can modify all comments, without exceptions.
-    if (userIsOwner) {
-      return;
+
+/**
+ * Tests if the user can modify cell's data. Will modify the docData
+ * to reflect the changes that are done by actions (without reverting if one of the actions fails).
+ *
+ * If user can't modify the cell, it will throw an error.
+ */
+async function applyAndCheckActionsForCells(
+  docData: DocData,
+  docActions: DocAction[],
+  userIsOwner: boolean,
+  haveRules: boolean,
+  userRef: string,
+  hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>
+) {
+  // Owner can modify all comments, without exceptions.
+  if (userIsOwner) {
+    return;
+  }
+  // First check if we even have actions that modify cell's data.
+  const cellsActions = docActions.filter(
+    docAction => getTableId(docAction) === '_grist_Cells' && isDataAction(docAction)
+    );
+
+  // If we don't have any actions, we are good to go.
+  if (cellsActions.length === 0) { return; }
+  const fail = () => {
+    throw new ErrorWithCode('ACL_DENY', 'Cannot access cell');
+  };
+
+  // In nutshell we will just test action one by one, and see if user
+  // can apply it. To do it, we need to keep track of a database state after
+  // each action (just like regular access is done). Unfortunately, cells' info
+  // can be partially updated, so we won't be able to determine what cells they
+  // are attached to. We will assume that bundle has a complete set of information, and
+  // with this assumption we will skip such actions, and wait for the whole cell to form.
+
+
+  // Create a view for current state.
+  const cellData = new CellData(docData);
+
+  // Some cells meta data will be added before rows (for example, when undoing). We will
+  // postpone checking of such actions until we have a full set of information.
+  let postponed: Array<number> = [];
+  // Now one by one apply all actions to the snapshot recording all changes
+  // to the cell table.
+  for(const docAction of docActions) {
+    if (!(getTableId(docAction) === '_grist_Cells' && isDataAction(docAction))) {
+      docData.receiveAction(docAction);
+      continue;
     }
-    // First check if we even have actions that modify cell's data.
-    const cellsActions = docActions.filter(
-      docAction => getTableId(docAction) === '_grist_Cells' && isDataAction(docAction)
-      );
-
-    // If we don't have any actions, we are good to go.
-    if (cellsActions.length === 0) { return; }
-    const fail = () => { throw new ErrorWithCode('ACL_DENY', 'Cannot access cell'); };
-
-    // In nutshell we will just test action one by one, and see if user
-    // can apply it. To do it, we need to keep track of a database state after
-    // each action (just like regular access is done). Unfortunately, cells' info
-    // can be partially updated, so we won't be able to determine what cells they
-    // are attached to. We will assume that bundle has a complete set of information, and
-    // with this assumption we will skip such actions, and wait for the whole cell to form.
-
-    // Create a minimal snapshot of all tables that will be touched by this bundle,
-    // with all cells info that is needed to check access.
-    const lastState = this._docData;
-
-    // Create a view for current state.
-    const cellData = this;
-
-    // Some cells meta data will be added before rows (for example, when undoing). We will
-    // postpone checking of such actions until we have a full set of information.
-    let postponed: Array<number> = [];
-    // Now one by one apply all actions to the snapshot recording all changes
-    // to the cell table.
-    for(const docAction of docActions) {
-      if (!(getTableId(docAction) === '_grist_Cells' && isDataAction(docAction))) {
-        lastState.receiveAction(docAction);
-        continue;
-      }
-      // Convert any bulk actions to normal actions
-      for(const single of getSingleAction(docAction)) {
-        const id = getRowIdsFromDocAction(single)[0];
-        if (isAddRecordAction(docAction)) {
-          // Apply this action, as it might not have full information yet.
-          lastState.receiveAction(single);
-          if (haveRules) {
-            const cell = cellData.getCell(id);
-            if (cell && cellData.isAttached(cell)) {
-              // If this is undo, action cell might not yet exist, so we need to check for that.
-              const record = lastState.getTable(cell.tableId)?.getRecord(cell.rowId);
-              if (!record) {
-                postponed.push(id);
-              } else if (!await hasAccess(cell, lastState)) {
-                fail();
-              }
-            } else {
-              postponed.push(id);
-            }
-          }
-        } else if (isRemoveRecordAction(docAction)) {
-          // See if we can remove this cell.
+    // Convert any bulk actions to normal actions
+    for(const single of getSingleAction(docAction)) {
+      const id = getRowIdsFromDocAction(single)[0];
+      if (isAddRecordAction(docAction)) {
+        // Apply this action, as it might not have full information yet.
+        docData.receiveAction(single);
+        if (haveRules) {
           const cell = cellData.getCell(id);
-          lastState.receiveAction(single);
-          if (cell) {
-            // We can remove cell information for any row/column that was removed already.
-            const record = lastState.getTable(cell.tableId)?.getRecord(cell.rowId);
-            if (!record || !cell.colId || !(cell.colId in record)) {
-              continue;
-            }
-            if (cell.userRef && cell.userRef !== (userRef || '')) {
+          if (cell && cellData.isAttached(cell)) {
+            // If this is undo, action cell might not yet exist, so we need to check for that.
+            const record = docData.getTable(cell.tableId)?.getRecord(cell.rowId);
+            if (!record) {
+              postponed.push(id);
+            } else if (!await hasAccess(cell, docData)) {
               fail();
             }
+          } else {
+            postponed.push(id);
           }
-          postponed = postponed.filter((i) => i !== id);
-        } else {
-          // We are updating a cell metadata. We will need to check if we can update it.
-          let cell = cellData.getCell(id);
-          if (!cell) {
-            return fail();
+        }
+      } else if (isRemoveRecordAction(docAction)) {
+        // See if we can remove this cell.
+        const cell = cellData.getCell(id);
+        docData.receiveAction(single);
+        if (cell) {
+          // We can remove cell information for any row/column that was removed already.
+          const record = docData.getTable(cell.tableId)?.getRecord(cell.rowId);
+          if (!record || !cell.colId || !(cell.colId in record)) {
+            continue;
           }
-          // We can't update cells, that are not ours.
           if (cell.userRef && cell.userRef !== (userRef || '')) {
             fail();
           }
-          // And if the cell was attached before, we will need to check if we can access it.
-          if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, lastState)) {
-            fail();
-          }
-          // Now receive the action, and test if we can still see the cell (as the info might be moved
-          // to a different cell).
-          lastState.receiveAction(single);
-          cell = cellData.getCell(id)!;
-          if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, lastState)) {
-            fail();
-          }
+        }
+        postponed = postponed.filter((i) => i !== id);
+      } else {
+        // We are updating a cell metadata. We will need to check if we can update it.
+        let cell = cellData.getCell(id);
+        if (!cell) {
+          return fail();
+        }
+
+        // We can update any cell if the column or table for this cell was removed already.
+        // In that case, cell is updated before being removed.
+        if (!cell.colId || !cell.tableId || !cell.rowId) {
+          docData.receiveAction(single);
+          continue;
+        }
+
+
+        // We can't update cells, that are not ours.
+        if (cell.userRef && cell.userRef !== (userRef || '')) {
+          fail();
+        }
+        // And if the cell was attached before, we will need to check if we can access it.
+        if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, docData)) {
+          fail();
+        }
+        // Now receive the action, and test if we can still see the cell (as the info might be moved
+        // to a different cell).
+        docData.receiveAction(single);
+        cell = cellData.getCell(id)!;
+        if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, docData)) {
+          fail();
         }
       }
     }
-    // Now test every cell that was added before row (so we added it, but without
-    // full information, like new rowId or tableId or colId).
-    for(const id of postponed) {
-      const cell = cellData.getCell(id);
-      if (cell && !this.isAttached(cell)) {
-        return fail();
-      }
-      if (haveRules && cell && !await hasAccess(cell, lastState)) {
-        fail();
-      }
+  }
+  // Now test every cell that was added before row (so we added it, but without
+  // full information, like new rowId or tableId or colId).
+  for(const id of postponed) {
+    const cell = cellData.getCell(id);
+    if (cell && !cellData.isAttached(cell)) {
+      return fail();
+    }
+    if (haveRules && cell && !await hasAccess(cell, docData)) {
+      fail();
     }
   }
 }

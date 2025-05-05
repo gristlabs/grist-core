@@ -44,4 +44,5 @@
   height: 0;
   border-top: 11px solid var(--grist-color-orange);
   border-left: 11px solid transparent;
+  cursor: pointer;
 }
