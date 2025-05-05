@@ -518,8 +518,7 @@ const cssDownloadAttachmentsButton = styled(bigPrimaryButtonLink, `
 
 // Prevents the div from expanding the parent and makes it only use available space instead.
 const cssEagerWrap = styled('div', `
-  min-width: 100%;
-  width: 0;
+  contain: inline-size;
 `);
 
 const cssAttachmentsWarning = styled(cssEagerWrap, `
