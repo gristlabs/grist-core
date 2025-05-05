@@ -321,7 +321,7 @@ export class OIDCConfig {
     req: express.Request,
     res: express.Response,
     userFriendlyMessage?: string,
-    targetUrl: string = "/"
+    targetUrl?: string
   ) {
     return this._sendAppPage(req, res, {
       path: 'error.html',
@@ -329,7 +329,8 @@ export class OIDCConfig {
       config: {
         errPage: 'signin-failed',
         errMessage: userFriendlyMessage,
-        errTargetUrl: targetUrl,
+        // Always set an errTargetUrl so that the browser isn't left on the callback URL.
+        errTargetUrl: targetUrl ?? "/",
       },
     });
   }
