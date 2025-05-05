@@ -22,7 +22,13 @@ function signInAgainButton() {
 }
 
 export function createErrPage(appModel: AppModel) {
-  const {errMessage, errPage} = getGristConfig();
+  const {errMessage, errPage, errTargetUrl} = getGristConfig();
+  if (errTargetUrl) {
+    // In case the error page was reached via a redirect (typically during sign-in),
+    // replace the current URL with the target URL, so that the user can retry their
+    // action by simply refreshing the page.
+    history.replaceState(null, "", errTargetUrl);
+  }
   return errPage === 'signed-out' ? createSignedOutPage(appModel) :
     errPage === 'not-found' ? createNotFoundPage(appModel, errMessage) :
     errPage === 'access-denied' ? createForbiddenPage(appModel, errMessage) :
@@ -104,7 +110,7 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
 }
 
 export function createSigninFailedPage(appModel: AppModel, message?: string) {
-  document.title = t("Sign-in failed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
+  document.title = t("Sign-in failed{{suffix}}", { suffix: getPageTitleSuffix(getGristConfig()) });
   return pagePanelsError(appModel, t("Sign-in failed{{suffix}}", {suffix: ''}), [
     cssErrorText(message ??
       t("Failed to log in.{{separator}}Please try again or contact support.", {
