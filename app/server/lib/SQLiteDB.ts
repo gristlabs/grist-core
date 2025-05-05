@@ -260,7 +260,7 @@ export class SQLiteDB implements ISQLiteDB {
   private _closed: boolean = false;
   private _paused: Promise<void>|undefined = undefined;
   private _pauseResolve: (() => void)|undefined = undefined;
-  private _pauseReject: (() => void)|undefined = undefined;
+  private _pauseReject: ((reason?: any) => void)|undefined = undefined;
 
   private constructor(protected _db: MinDB, private _dbPath: string) {
   }
@@ -375,7 +375,7 @@ export class SQLiteDB implements ISQLiteDB {
     const alreadyClosed = this._closed;
     this._closed = true;
     if (!alreadyClosed) {
-      this._pauseReject?.();
+      this._pauseReject?.(new Error('SQLiteDB closing, writes should stop'));
       let tries: number = 0;
       // We might not be able to close immediately if a backup is in
       // progress. We will retry for about 10 seconds. Worst case is
@@ -497,6 +497,7 @@ export class SQLiteDB implements ISQLiteDB {
     this._pauseResolve?.();
     this._pauseResolve = undefined;
     this._pauseReject = undefined;
+    this._paused = undefined;
   }
 
   // Implementation of execTransction.
