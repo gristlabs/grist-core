@@ -104,7 +104,7 @@ export function create_tar_archive(
         // Cast is required due to a bug with @types/node 18.X missing the parameter
         pipeline = stream.promises.pipeline(archive, passthrough, destination, { end: options.endDestStream } as any);
         for await (const entry of entries) {
-          const entryStream = archive.entry({ name: entry.name, size: entry.size });
+          const entryStream = archive.entry({ name: entry.name, size: entry.size, mtime: new Date("1999-01-01") });
           await stream.promises.pipeline(entry.data, entryStream);
         }
         archive.finalize();
@@ -122,6 +122,7 @@ export function create_tar_archive(
 export interface UnpackedFile {
   path: string;
   data: stream.Readable;
+  size: number;
 }
 
 export async function unpackTarArchive(
@@ -144,6 +145,8 @@ export async function unpackTarArchive(
       onFile({
         path: header.name,
         data: contentStream,
+        // Realistically this should never be undefined - it's mandatory for files in a .tar archive
+        size: header.size ?? 0,
       })
       // No sensible behaviour when an error is thrown by onFile - it's onFile's responsibility
       // to handle it.
