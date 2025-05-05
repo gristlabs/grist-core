@@ -56,6 +56,8 @@ export type MessageType = string | (() => DomElementArg);
 // Identifies supported actions. These are implemented in NotifyUI.
 export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem'
                            | 'ask-for-help' | 'manage' | CustomAction;
+export type NotificationLevel = 'message' | 'info' | 'success' | 'warning' | 'error';
+
 export interface INotifyOptions {
   message: MessageType;     // A string, or a function that builds dom.
   timestamp?: number;
@@ -65,7 +67,7 @@ export interface INotifyOptions {
   inDropdown?: boolean;
   expireSec?: number;
   badgeCounter?: boolean;
-  level: 'message' | 'info' | 'success' | 'warning' | 'error';
+  level: NotificationLevel;
 
   memos?: string[];  // A list of relevant notes.
 
