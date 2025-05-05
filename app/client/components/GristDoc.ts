@@ -1685,7 +1685,11 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   }
 
   private async _promptForName() {
-    return await invokePrompt("Table name", "Create", '', "Default table name");
+    return await invokePrompt("Table name", {
+      btnText: "Create",
+      initial: "",
+      placeholder: "Default table name",
+    });
   }
 
   private async _replaceViewSection(

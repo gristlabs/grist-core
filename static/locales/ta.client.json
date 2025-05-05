@@ -4,7 +4,7 @@
         "Save": "சேமி",
         "Saved": "சேமிக்கப்பட்டது",
         "Special Rules": "சிறப்பு விதிகள்",
-        "Type a message...": "ஒரு செய்தியைத் தட்டச்சு செய்க…",
+        "Type message to display when this rule blocks an action…": "ஒரு செய்தியைத் தட்டச்சு செய்க…",
         "User Attributes": "பயனர் பண்புக்கூறுகள்",
         "View As": "காண்க",
         "Seed rules": "விதை விதிகள்",
@@ -36,7 +36,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "அட்டவணை விதிகளைச் சேர்க்கும்போது, உரிமையாளருக்கு முழு அணுகலை வழங்க தானாக ஒரு விதியைச் சேர்க்கவும்.",
         "Permission to edit document structure": "ஆவண கட்டமைப்பைத் திருத்த இசைவு",
         "This default should be changed if editors' access is to be limited. ": "எடிட்டர்களின் அணுகல் குறைவாக இருந்தால் இந்த இயல்புநிலை மாற்றப்பட வேண்டும். ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "கட்டமைப்பைத் திருத்த ஆசிரியர்களை அனுமதிக்கவும் (எ.கா. அட்டவணைகள், நெடுவரிசைகள், தளவமைப்புகளை மாற்றியமைத்து நீக்கவும்) மற்றும் சூத்திரங்களை எழுதவும், அவை வாசிப்பு கட்டுப்பாடுகளைப் பொருட்படுத்தாமல் எல்லா தரவிற்கும் அணுகலை வழங்குகின்றன.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "கட்டமைப்பைத் திருத்த ஆசிரியர்களை அனுமதிக்கவும் (எ.கா. அட்டவணைகள், நெடுவரிசைகள், தளவமைப்புகளை மாற்றியமைத்து நீக்கவும்) மற்றும் சூத்திரங்களை எழுதவும், அவை வாசிப்பு கட்டுப்பாடுகளைப் பொருட்படுத்தாமல் எல்லா தரவிற்கும் அணுகலை வழங்குகின்றன.",
         "Add Table-wide Rule": "அட்டவணை அளவிலான விதியைச் சேர்க்கவும்"
     },
     "AccountPage": {
@@ -474,9 +474,9 @@
         "Workspace": "பணியிடம்",
         "You do not have write access to the selected workspace": "தேர்ந்தெடுக்கப்பட்ட பணியிடத்திற்கு உங்களுக்கு எழுத்து அணுகல் இல்லை",
         "You do not have write access to this site": "இந்த தளத்திற்கு உங்களுக்கு எழுத்து அணுகல் இல்லை",
-        "Download full document and history": "முழு ஆவணத்தையும் வரலாற்றையும் பதிவிறக்கவும்",
-        "Remove all data but keep the structure to use as a template": "எல்லா தரவையும் அகற்று, ஆனால் ஒரு வார்ப்புருவாக பயன்படுத்த கட்டமைப்பை வைத்திருங்கள்",
-        "Remove document history (can significantly reduce file size)": "ஆவண வரலாற்றை அகற்று (கோப்பு அளவைக் கணிசமாகக் குறைக்க முடியும்)",
+        "Download document and history": "முழு ஆவணத்தையும் வரலாற்றையும் பதிவிறக்கவும்",
+        "Download document structure only (no data, for template use)": "எல்லா தரவையும் அகற்று, ஆனால் ஒரு வார்ப்புருவாக பயன்படுத்த கட்டமைப்பை வைத்திருங்கள்",
+        "Download document without history (can significantly reduce file size)": "ஆவண வரலாற்றை அகற்று (கோப்பு அளவைக் கணிசமாகக் குறைக்க முடியும்)",
         "Download": "பதிவிறக்கம்",
         "Download document": "ஆவணத்தைப் பதிவிறக்கவும்"
     },

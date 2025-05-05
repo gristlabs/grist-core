@@ -34,14 +34,14 @@
         "Save": "Save",
         "Saved": "Saved",
         "Special Rules": "Special Rules",
-        "Type a message...": "Type a message…",
+        "Type message to display when this rule blocks an action…": "Type message to display when this rule blocks an action…",
         "User Attributes": "User Attributes",
         "View As": "View As",
         "Seed rules": "Seed rules",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access.",
         "Permission to edit document structure": "Permission to edit document structure",
         "This default should be changed if editors' access is to be limited. ": "This default should be changed if editors' access is to be limited. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.",
         "Add Table-wide Rule": "Add Table-wide Rule"
     },
     "AccountPage": {
@@ -636,11 +636,11 @@
         "Workspace": "Workspace",
         "You do not have write access to the selected workspace": "You do not have write access to the selected workspace",
         "You do not have write access to this site": "You do not have write access to this site",
-        "Download full document and history": "Download full document and history",
-        "Remove all data but keep the structure to use as a template": "Remove all data but keep the structure to use as a template",
-        "Remove document history (can significantly reduce file size)": "Remove document history (can significantly reduce file size)",
         "Download": "Download",
-        "Download document": "Download document"
+        "Download document": "Download document",
+        "Download document and history": "Download document and history",
+        "Download document without history (can significantly reduce file size)": "Download document without history (can significantly reduce file size)",
+        "Download document structure only (no data, for template use)": "Download document structure only (no data, for template use)"
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -793,7 +793,8 @@
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
         "Export as...": "Export as...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
-        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)"
+        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)",
+        "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again."
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -1263,7 +1264,8 @@
         "The preview below this header shows how the selected user will see this document": "The preview below this header shows how the selected user will see this document",
         "[Learn more.]({{link}})": "[Learn more.]({{link}})",
         "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns.",
-        "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation."
+        "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation.",
+        "The new Grist Assistant is here!": "The new Grist Assistant is here!"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1966,5 +1968,30 @@
         "Workspaces": "Workspaces",
         "Admin Controls": "Admin Controls",
         "Settings": "Settings"
+    },
+    "Assistant": {
+        "AI Assistant is only available for logged in users.": "AI Assistant is only available for logged in users.",
+        "Apply": "Apply",
+        "For higher limits, contact the site owner.": "For higher limits, contact the site owner.",
+        "For higher limits, {{upgradeNudge}}.": "For higher limits, {{upgradeNudge}}.",
+        "Learn more.": "Learn more.",
+        "Press Enter to apply suggested formula.": "Press Enter to apply suggested formula.",
+        "Sign Up for Free": "Sign Up for Free",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Sign up for a free Grist account to start using the AI Assistant.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}",
+        "What do you need help with?": "What do you need help with?",
+        "You have used all available credits.": "You have used all available credits.",
+        "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
+        "start a new chat": "start a new chat",
+        "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
+        "upgrade your plan": "upgrade your plan"
+    },
+    "apiconsole": {
+        "Are you sure you want to delete the following?": "Are you sure you want to delete the following?",
+        "Confirm Deletion": "Confirm Deletion",
+        "Delete": "Delete",
+        "Deletion was not confirmed, skipping.": "Deletion was not confirmed, skipping.",
+        "Type DELETE here if you wish to proceed.": "Type DELETE here if you wish to proceed.",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it."
     }
 }

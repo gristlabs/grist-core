@@ -58,9 +58,12 @@ export function attachAppEndpoint(options: AttachOptions): void {
       req.params.docId, docWorkerMap, gristServer.getTag()
     );
     const info: PublicDocWorkerUrlInfo = selfPrefix ?
-      { docWorkerUrl: null, selfPrefix } :
-      { docWorkerUrl: customizeDocWorkerUrl(docWorker!.publicUrl, req), selfPrefix: null };
-
+      { docWorkerUrl: null, docWorkerId: null, selfPrefix } :
+      {
+        docWorkerUrl: customizeDocWorkerUrl(docWorker!.publicUrl, req),
+        docWorkerId: docWorker!.id,
+        selfPrefix: null
+      };
     return res.json(info);
   }));
 

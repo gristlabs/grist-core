@@ -1,6 +1,6 @@
 services:
   grist:
-    image: gristlabs/grist:1.5.1
+    image: gristlabs/grist:latest
     restart: on-failure
     environment:
       # Postgres database setup

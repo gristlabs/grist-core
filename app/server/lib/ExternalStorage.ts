@@ -48,6 +48,7 @@ export interface ExternalStorage {
   // Remove content for this key from the store, if it exists.  Can delete specific versions
   // if specified.  If no version specified, all versions are removed.  If versions specified,
   // newest should be given first.
+  // If the content specified is not present on the store, no error is thrown.
   remove(key: string, snapshotIds?: string[]): Promise<void>;
 
   // Removes all keys which start with the given prefix

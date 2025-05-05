@@ -1,5 +1,6 @@
+import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
-import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PREVIEWER_EMAIL, UserOptions } from 'app/common/UserAPI';
+import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PREVIEWER_EMAIL, UserAPIImpl, UserOptions } from 'app/common/UserAPI';
 import { AclRuleOrg } from 'app/gen-server/entity/AclRule';
 import { Document } from 'app/gen-server/entity/Document';
 import { Group } from 'app/gen-server/entity/Group';
@@ -13,15 +14,18 @@ import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/home
 import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { updateDb } from 'app/server/lib/dbUtils';
 import { EmitNotifier } from 'app/server/lib/FlexServer';
-import { EnvironmentSnapshot } from 'test/server/testUtils';
+import { MergedServer } from 'app/server/MergedServer';
+import { createTestDir, EnvironmentSnapshot } from 'test/server/testUtils';
 import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
 
 import log from 'app/server/lib/log';
 import { assert } from 'chai';
+import * as fse from 'fs-extra';
 import Sinon, { SinonSandbox, SinonSpy } from 'sinon';
 import { EntityManager } from 'typeorm';
 import winston from 'winston';
 import omit from 'lodash/omit';
+import fetch from 'node-fetch';
 
 import { delay } from 'app/common/delay';
 
@@ -206,6 +210,7 @@ describe('UsersManager', function () {
     let db: HomeDBManager;
     let notifier: EmitNotifier;
     let sandbox: SinonSandbox;
+    const docDeletes: Array<string> = [];
     const uniqueLocalPart = new Set<string>();
 
 
@@ -248,7 +253,10 @@ describe('UsersManager', function () {
         email: makeEmail(localPart),
         name: `NewUser ${localPart}`,
         connectId: `ConnectId-${localPart}`,
-        picture: `https://mypic.com/${localPart}.png`
+        picture: `https://mypic.com/${localPart}.png`,
+        extra: {
+          extrafield: 'randomvalue'
+        }
       };
     }
 
@@ -257,7 +265,22 @@ describe('UsersManager', function () {
       process.env.TEST_CLEAN_DATABASE = 'true';
       setUpDB(this);
       notifier = new EmitNotifier();
-      db = new HomeDBManager(notifier);
+      db = new HomeDBManager(
+        {
+          /**
+           * This is called if a document row should be deleted
+           * in the database and we want to make sure any associated
+           * storage is cleaned up. There is S3 cleanup, and file system
+           * cleanup, which is coordinated with some doc worker.
+           * We mock that here and just delete from home db.
+           */
+          async hardDeleteDoc(docId: string) {
+            const parts = parseUrlId(docId);
+            await db.connection.query('delete from docs where id = $1', [parts.forkId || parts.trunkId]);
+            docDeletes.push(docId);
+          }
+        },
+        notifier);
       await createInitialDb();
       await db.connect();
       await db.initializeSpecialIds();
@@ -710,7 +733,7 @@ describe('UsersManager', function () {
         assert.notExists(await db.getExistingUserByLogin(email));
 
         const before = Date.now();
-        // We are storing time without miliseconds, so make sure at least 1 second has passed
+        // We are storing time without milliseconds, so make sure at least 1 second has passed
         await delay(2000);
         const user = await db.getUserByLogin(makeEmail(localPart.toUpperCase()));
         const after = Date.now();
@@ -718,7 +741,7 @@ describe('UsersManager', function () {
         assert.equal(user.loginEmail, email);
         assert.equal(user.logins[0].displayEmail, makeEmail(localPart.toUpperCase()));
         assert.equal(user.name, '');
-        asssertBetween(before, user.lastConnectionAt?.getTime(), after);
+        assertBetween(before, user.lastConnectionAt?.getTime(), after);
       });
 
       it('should create a personnal organization for the new user', async function () {
@@ -790,13 +813,16 @@ describe('UsersManager', function () {
             name: profile.name,
             connectId: profile.connectId,
             picture: profile.picture,
+            options: {
+              authSubject: userOptions.authSubject,
+              ssoExtraInfo: {
+                extrafield: profile.extra!.extrafield,
+              },
+            }
           });
           assert.deepInclude(updatedUser.logins[0], {
             displayEmail: profile.email,
             email: originalNormalizedLoginEmail,
-          });
-          assert.deepInclude(updatedUser.options, {
-            authSubject: userOptions.authSubject,
           });
         });
       });
@@ -926,6 +952,70 @@ describe('UsersManager', function () {
           assert.isFalse(await userHasGroupUsers(userToDelete.id, manager));
           assert.isFalse(await userHasPrefs(userToDelete.id, manager));
         });
+      });
+
+      it('should remove the user and their forks', async function () {
+        const localPart = 'deleteuser-removes-forks';
+        const userToDelete = await createUniqueUser(localPart, {
+          profile: {
+            name: 'someone to delete',
+            email: makeEmail(localPart),
+          }
+        });
+
+        // Make a little org owned by someone else, to hold a doc
+        // owned by that someone else, which our user will fork.
+        const support = (await db.getUser(db.getSupportUserId()))!;
+        await db.addOrg(support, {
+          name: 'deleteuser-org',
+          domain: 'deleteuser-org',
+        }, {
+          setUserAsOwner: false,
+          useNewPlan: true,
+        });
+        // Grant everyone access to org.
+        await db.updateOrgPermissions({userId: support.id},
+                                      'deleteuser-org', {
+                                        users: {
+                                          'everyone@getgrist.com': 'owners'
+                                        }
+                                      });
+        // Get the default workspace.
+        const ws = db.unwrapQueryResult(
+          await db.getOrgWorkspaces({userId: support.id},
+                                    'deleteuser-org')
+        )[0];
+        // Add a document to the workspace.
+        const doc = db.unwrapQueryResult(
+          await db.addDocument({userId: support.id}, ws.id,
+                               {name: 'doc-name'})
+        );
+        // Have our user-to-delete fork the document.
+        const forkId = db.unwrapQueryResult(
+          await db.forkDoc(userToDelete.id, doc, 'xyz')
+        );
+        const urlId = buildUrlId({trunkId: doc.id, forkId, forkUserId: userToDelete.id});
+
+        // Check the fork is listed in the home db.
+        assert.deepEqual(
+          await db.connection.query("select name from docs where id = 'xyz'"),
+          [{name: 'doc-name'}]
+        );
+
+        // Delete the user, and make sure the fork is deleted.
+        docDeletes.length = 0;
+        await db.deleteUser({userId: userToDelete.id}, userToDelete.id);
+        assert.lengthOf(docDeletes, 1);
+        assert.deepEqual(docDeletes, [urlId]);
+
+        // Confirm the fork is no longer listed in the home db.
+        assert.deepEqual(
+          await db.connection.query("select name from docs where id = 'xyz'"),
+          []
+        );
+
+        // Confirm the user is gone.
+        assert.notExists(await db.getUser(userToDelete.id));
       });
 
       it("should remove the user when passed name corresponds to the user's name", async function () {
@@ -1104,7 +1194,128 @@ describe('UsersManager', function () {
         }
       });
     });
+  });
 
+  /**
+   * Run selected tests in the context of multiple workers.
+   * This tests document deletion more thoroughly. Requires
+   * Redis.
+   */
+  describe('multi-worker', function () {
+    let server: MergedServer;
+    let env: EnvironmentSnapshot;
+    let db: HomeDBManager;
+    let dataDir: string;
+    before(async function() {
+      if (!process.env.TEST_REDIS_URL) { this.skip(); }
+      setUpDB(this);
+      await createInitialDb();
+      env = new EnvironmentSnapshot();
+      process.env.REDIS_URL = process.env.TEST_REDIS_URL;
+      dataDir = await createTestDir('UsersManager');
+      // TODO: may need to manage the port range here if it
+      // could stomp on some other parallel test, but I think
+      // this may be currently OK for gen-server tests.
+      server = await MergedServer.create(34365, ['home'], {
+        extraWorkers: 5,
+        dataDir,
+      });
+      await server.run();
+      db = server.flexServer.getHomeDBManager();
+      process.env.APP_HOME_URL = server.flexServer.getOwnUrl();
+    });
+
+    after(async function() {
+      env.restore();
+      await server.close();
+      if (dataDir) {
+        await fse.remove(dataDir);
+      }
+    });
+
+    describe('deleteUser()', function () {
+
+      it('should remove the user and their forks', async function () {
+        const apiKey = 'youllneverguess';
+        const userToDelete = await db.getUserByLogin(
+          'deleteuser-removes-forks-multi@getgrist.com',
+        );
+        userToDelete.apiKey = apiKey;
+        await userToDelete.save();
+        const api = new UserAPIImpl(server.flexServer.getDefaultHomeUrl(), {
+          fetch: fetch as any,
+          headers: {
+            Authorization: `Bearer ${apiKey}`
+          }
+        });
+
+        // Make a little org owned by someone else, to hold a doc
+        // owned by that someone else, which our user will fork.
+        const support = (await db.getUser(db.getSupportUserId()))!;
+        await db.addOrg(support, {
+          name: 'deleteuser-org-multi',
+          domain: 'deleteuser-org-multi',
+        }, {
+          setUserAsOwner: false,
+          useNewPlan: true,
+        });
+        // Grant everyone access to org.
+        await db.updateOrgPermissions({userId: support.id},
+                                      'deleteuser-org-multi', {
+                                        users: {
+                                          'everyone@getgrist.com': 'owners'
+                                        }
+                                      });
+        // Get the default workspace.
+        const ws = db.unwrapQueryResult(
+          await db.getOrgWorkspaces({userId: support.id},
+                                    'deleteuser-org-multi')
+        )[0];
+        // Add a document to the workspace.
+        // Created by user-to-delete, but belongs to workspace.
+        const doc = await api.newDoc({
+          name: 'doc-name',
+        }, ws.id);
+        // Have our user-to-delete fork the document.
+        const fork = await api.getDocAPI(doc).fork();
+        //const urlId = buildUrlId({trunkId: doc.id, forkId, forkUserId: userToDelete.id});
+        const urlId = fork.docId;
+
+        // Check the fork exists.
+        const rows = await api.getDocAPI(urlId).getRows('_grist_Tables');
+        assert.deepEqual(rows.tableId, ['Table1']);
+
+        // Ok, tricky part, let's find where the doc is stored on disk.
+        const worker = await api.getWorkerFull(urlId);
+        const dw = server.testGetWorkerFromId(worker.docWorkerId!);
+        // Storage paths as configured here don't actually vary
+        // between workers (but they could if external
+        // storage were available).
+        const storage = dw.flexServer.getStorageManager();
+        const docPath = storage.getPath(urlId);
+        assert.isTrue(await fse.pathExists(docPath));
+
+        // Check the fork is listed in the home db.
+        assert.deepEqual(
+          await db.connection.query("select name from docs where id = $1", [fork.forkId]),
+          [{name: 'doc-name'}]
+        );
+
+        // Delete the user.
+        await db.deleteUser({userId: userToDelete.id}, userToDelete.id);
+
+        // Confirm the fork is no longer listed in the home db.
+        assert.deepEqual(
+          await db.connection.query("select name from docs where id = $1", [fork.forkId]),
+          []
+        );
+        // Confirm the fork is no longer on the file system.
+        assert.isFalse(await fse.pathExists(docPath));
+
+        // Confirm the user is gone.
+        assert.notExists(await db.getUser(userToDelete.id));
+      });
+    });
   });
 });
 
@@ -1112,13 +1323,13 @@ describe('UsersManager', function () {
 * Works around lacks of type narrowing after asserting the value is defined.
 * This is fixed in latest versions of @types/chai
 *
-* FIXME: once upgrading @types/chai to 4.3.17 or higher, remove this function which would not be usefull anymore
+* FIXME: once upgrading @types/chai to 4.3.17 or higher, remove this function which would not be useful anymore
 */
 function assertExists<T>(value?: T, message?: string): asserts value is T {
   assert.exists(value, message);
 }
 
-function asssertBetween(min: number, value: number|null|undefined, max: number, message?: string) {
+function assertBetween(min: number, value: number|null|undefined, max: number, message?: string) {
   assert.isNotNull(value, message);
   assert.isDefined(value, message);
   if (value !== null && value !== undefined) {
