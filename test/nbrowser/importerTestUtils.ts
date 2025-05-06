@@ -41,8 +41,9 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
 
   // Check if we can see row number 1
   await driver.findContentWait('.test-importer-preview .gridview_data_row_num', "1", 5000);
+  console.log({colNames: await gu.getColumnNames()});
   await gu.waitForServer();
-  await driver.sleep(1000);
+  console.log({colNames: await gu.getColumnNames()});
 };
 
 // Helper that gets the list of visible column matching rows to the left of the preview.
