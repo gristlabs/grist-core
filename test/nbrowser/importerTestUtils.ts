@@ -35,24 +35,15 @@ export const getPreviewDiffCellValues = stackWrapFunc(async (cols: number[], row
 
 // Helper that waits for the diff preview to finish loading.
 export const waitForDiffPreviewToLoad = async (): Promise<void> => {
+  gu.waitToPass(async () => {
+    if (await gu.isImporting()) { throw new Error('still importing'); }
+  }, 10000);
   await gu.waitForServer();
   await driver.wait(() => driver.find('.test-importer-preview').isPresent(), 5000);
-  await driver.findWait('.test-importer-preview .gridview_row', 1000);
 
+  await driver.findWait('.test-importer-preview .gridview_row', 1000);
   // Check if we can see row number 1
   await driver.findContentWait('.test-importer-preview .gridview_data_row_num', "1", 5000);
-  async function getColumnNames() {
-    return await driver.findAll('.test-importer-preview .column_name',
-                                el => el.getText());
-  }
-  console.log({importing: await gu.isImporting()});
-  console.log({colNames: await getColumnNames()});
-  await gu.waitForServer();
-  console.log({colNames: await getColumnNames()});
-  console.log({importing: await gu.isImporting()});
-  gu.waitToPass(async () => {
-    if (await gu.isImporting()) { throw new Error('importing'); }
-  }, 3000);
 };
 
 // Helper that gets the list of visible column matching rows to the left of the preview.

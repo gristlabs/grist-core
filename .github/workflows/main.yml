@@ -154,6 +154,16 @@ jobs:
           ./do_the_thing.sh 8
           ./do_the_thing.sh 9
           ./do_the_thing.sh 10
+          ./do_the_thing.sh 11
+          ./do_the_thing.sh 12
+          ./do_the_thing.sh 13
+          ./do_the_thing.sh 14
+          ./do_the_thing.sh 15
+          ./do_the_thing.sh 16
+          ./do_the_thing.sh 17
+          ./do_the_thing.sh 18
+          ./do_the_thing.sh 19
+          ./do_the_thing.sh 20
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
