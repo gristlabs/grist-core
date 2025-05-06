@@ -2202,6 +2202,10 @@ export async function getTestState(): Promise<TestState> {
   return state || {};
 }
 
+export async function isImporting(): Promise<boolean> {
+  return Boolean((await getTestState())?.importing);
+}
+  
 // Get the full text from an element containing an Ace editor.
 export async function getAceText(el: WebElement): Promise<string> {
   return driver.executeScript('return ace.edit(arguments[0]).getValue()',

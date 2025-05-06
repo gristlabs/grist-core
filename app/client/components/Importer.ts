@@ -11,6 +11,7 @@ import {makeTestId} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
+import {setTestState} from 'app/client/lib/testState';
 import {EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -728,6 +729,7 @@ export class Importer extends DisposableWithEvents {
     if (!isMerging) { return; }
 
     this._hasScheduledDiffUpdate = true;
+    setTestState({importing: true});
     this._isLoadingDiff.set(true);
     await this._debouncedUpdateDiff(info);
   }
@@ -757,9 +759,10 @@ export class Importer extends DisposableWithEvents {
     // Put the document in comparison mode with the diff data.
     this._gristDoc.comparison = diff;
 
-    // If more updates where scheduled since we started the update, leave the loading spinner up.
+    // If more updates were scheduled since we started the update, leave the loading spinner up.
     if (!this._hasScheduledDiffUpdate) {
       this._isLoadingDiff.set(false);
+      setTestState({importing: false});
     }
   }
 
@@ -781,6 +784,7 @@ export class Importer extends DisposableWithEvents {
     this._lastGenImportDiffPromise = null;
     this._hasScheduledDiffUpdate = false;
     this._isLoadingDiff.set(false);
+    setTestState({importing: false});
   }
 
   // The importer state showing import in progress, with a list of tables, and a preview.

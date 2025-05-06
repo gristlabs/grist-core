@@ -45,9 +45,14 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
     return await driver.findAll('.test-importer-preview .column_name',
                                 el => el.getText());
   }
+  console.log({importing: await gu.isImporting()});
   console.log({colNames: await getColumnNames()});
   await gu.waitForServer();
   console.log({colNames: await getColumnNames()});
+  console.log({importing: await gu.isImporting()});
+  gu.waitToPass(async () => {
+    if (await gu.isImporting()) { throw new Error('importing'); }
+  }, 3000);
 };
 
 // Helper that gets the list of visible column matching rows to the left of the preview.
