@@ -144,16 +144,20 @@ jobs:
         run: |
           mkdir -p $MOCHA_WEBDRIVER_LOGDIR
           export GREP_TESTS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
@@ -221,18 +225,3 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
-  candidate:
-    needs: build_and_test
-    if: ${{ success() && github.event_name == 'push' }}
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Fetch new candidate branch
-        uses: actions/checkout@v3
-
-      - name: Update candidate branch
-        uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: latest_candidate
-          force: true
