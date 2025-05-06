@@ -20,7 +20,7 @@ jobs:
         python-version: [3.11]
         node-version: [22.x]
         tests:
-          - ':nbrowser-^Importer2:'
+          - ':nbrowser-^Importer:'
     steps:
       - uses: actions/checkout@v3
 
