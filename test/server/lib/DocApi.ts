@@ -169,6 +169,42 @@ describe('DocApi', function () {
     });
   });
 
+  for (const { limit, expected, desc } of [
+    { limit: '10', expected: 10, desc: 'should limit to 10 requests' },
+    { limit: '20', expected: 20, desc: 'should limit to 20 requests' },
+    { limit: '0', expected: 30, desc: 'should not limit the requests' },
+  ]) {
+    describe(`With GRIST_MAX_PARALLEL_REQUESTS_PER_DOC=${limit}`, async () => {
+      setup(`limit-${limit}-playground`, async () => {
+        const additionalEnvConfiguration = {
+          ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+          GRIST_DATA_DIR: dataDir,
+          GRIST_MAX_PARALLEL_REQUESTS_PER_DOC: limit,
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
+        };
+        home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
+        homeUrl = serverUrl = home.serverUrl;
+        hasHomeApi = true;
+      });
+
+      it(desc, async function () {
+        const chimpy = makeConfig('Chimpy');
+        // Launch ${limit} number of requests in parallel and see how
+        // many are honored and how many return 429s. The timing of
+        // this test is a bit delicate. We close the doc to increase
+        // the odds that results won't start coming back before all
+        // the requests have passed authorization. May need to do
+        // something more sophisticated if this proves unreliable.
+        await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, chimpy);
+        const reqs = [...Array(30).keys()].map(
+          _i => axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy));
+        const responses = await Promise.all(reqs);
+        assert.lengthOf(responses.filter(r => r.status === 200), expected);
+        assert.lengthOf(responses.filter(r => r.status === 429), 30 - expected);
+      });
+    });
+  }
+
   // the way these tests are written, non-merged server requires redis.
   if (process.env.TEST_REDIS_URL) {
     describe("should work with a home server and a docworker", async () => {
@@ -3300,20 +3336,6 @@ function testDocApi(settings: {
     resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
       makeConfig('Chimpy'));
     assert.equal(resp.status, 200);
-  });
-
-  it('limits parallel requests', async function () {
-    // Launch 30 requests in parallel and see how many are honored and how many
-    // return 429s.  The timing of this test is a bit delicate.  We close the doc
-    // to increase the odds that results won't start coming back before all the
-    // requests have passed authorization.  May need to do something more sophisticated
-    // if this proves unreliable.
-    await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, chimpy);
-    const reqs = [...Array(30).keys()].map(
-      i => axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy));
-    const responses = await Promise.all(reqs);
-    assert.lengthOf(responses.filter(r => r.status === 200), 10);
-    assert.lengthOf(responses.filter(r => r.status === 429), 20);
   });
 
   it('allows forced reloads', async function () {
