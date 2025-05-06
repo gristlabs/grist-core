@@ -1049,7 +1049,10 @@ export async function uploadFiles(...files: string[]) {
 export async function importFileDialog(filePath: string): Promise<void> {
   await fileDialogUpload(filePath, async () => {
     await driver.wait(() => driver.find('.test-dp-add-new').isDisplayed(), 3000);
-    await driver.findWait('.test-dp-add-new', 1000).doClick();
+    // Sometimes the button won't click, I'm not sure why.
+    await waitToPass(async () => {
+      await driver.findWait('.test-dp-add-new', 1000).doClick();
+    });
     await findOpenMenuItem('.test-dp-import-option', /Import from file/i).doClick();
   });
   await driver.findWait('.test-importer-dialog', 5000);
