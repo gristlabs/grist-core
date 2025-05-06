@@ -21,7 +21,7 @@ import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {GristObjCode} from 'app/plugin/GristData';
 import {Deps as DocClientsDeps} from 'app/server/lib/DocClients';
 import {DocManager} from 'app/server/lib/DocManager';
-import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
+import {docSessionFromRequest, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {filterColValues, GranularAccess} from 'app/server/lib/GranularAccess';
 import {globalUploadSet} from 'app/server/lib/uploads';
 import {assert} from 'chai';
@@ -3199,16 +3199,12 @@ describe('GranularAccess', function() {
     // Make an exceptional session with full unconditional access.
     const systemSession = makeExceptionalDocSession('system');
     // Make a fake regular session with access-rule-dependent access.
-    const userSession = {
-      client: null,
-      req: {
-        docAuth: {
-          access: 'viewers',
-        },
-        user: {id: 1, logins: [{displayEmail: 'someone@getgrist.com'}]},
-        get: () => null,
-      } as any
-    };
+    const userSession = docSessionFromRequest({
+      docAuth: {access: 'viewers'},
+      userId: 1,
+      fullUser: {id: 1, email: 'someone@getgrist.com', name: ''},
+      get: () => undefined,
+    } as any);
     // Deny everyone access to Table1, and a column and row of Table2.
     await activeDoc.applyUserActions(systemSession, [
       ['AddTable', 'Table1', [{id: 'A'}, {id: 'B'}]],

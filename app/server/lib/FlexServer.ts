@@ -1272,7 +1272,8 @@ export class FlexServer implements GristServer {
       hosts: this._hosts,
       loginMiddleware: this._loginMiddleware,
       httpsServer: this.httpsServer,
-      i18Instance: this.i18Instance
+      i18Instance: this.i18Instance,
+      dbManager: this.getHomeDBManager(),
     });
   }
   /**

@@ -123,7 +123,7 @@ export class Sharing {
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
       };
 
-      const altSessionId = client?.getAltSessionId();
+      const altSessionId = client?.authSession.altSessionId;
       const logMeta = {
         actionNum,
         linkId: info.linkId,

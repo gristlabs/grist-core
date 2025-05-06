@@ -202,6 +202,9 @@ export class UsersManager {
       locale: user.options?.locale,
       prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
     };
+    if (user.firstLoginAt) {
+      result.firstLoginAt = user.firstLoginAt;
+    }
     if (this.getAnonymousUserId() === user.id) {
       result.anonymous = true;
     }

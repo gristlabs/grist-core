@@ -2,7 +2,6 @@ import {ActionGroup} from 'app/common/ActionGroup';
 import {DocAction} from 'app/common/DocActions';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
-import {UserProfile} from 'app/common/LoginSessionAPI';
 import {StringUnion} from 'app/common/StringUnion';
 import {AttachmentTransferStatus} from 'app/common/UserAPI';
 
@@ -169,9 +168,6 @@ export interface CommClientConnect extends CommMessageBase {
 
   // Object containing server settings and features which should be used to initialize the client.
   settings?: {[key: string]: unknown};
-
-  // Object containing session profile information if the user is signed in, or null otherwise.
-  profile: UserProfile|null;
 
   dup?: boolean;  // Flag that's set to true when it's a duplicate clientConnect message.
 }

@@ -1,9 +1,9 @@
-import { UserProfile } from "app/common/LoginSessionAPI";
+import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { UserOptions } from "app/common/UserAPI";
 import * as roles from 'app/common/roles';
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
-import { Organization } from "app/gen-server/entity/Organization";
+import { AccessOptionWithRole, Organization } from "app/gen-server/entity/Organization";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
@@ -79,3 +79,16 @@ interface AccessChanges {
   >;
 }
 
+// Defines a subset of HomeDBManager used for logins. In practice we still just pass around
+// the full HomeDBManager, but this makes it easier to know which of its methods matter.
+export interface HomeDBAuth {
+  getAnonymousUserId(): number;
+  getSupportUserId(): number;
+  getAnonymousUser(): User;
+  getUser(userId: number, options?: {includePrefs?: boolean}): Promise<User|undefined>;
+  getUserByKey(apiKey: string): Promise<User|undefined>;
+  getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
+  getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
+  getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
+  makeFullUser(user: User): FullUser;
+}

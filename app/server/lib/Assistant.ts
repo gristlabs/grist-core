@@ -7,7 +7,7 @@ import {
   AssistantV2Options,
 } from "app/server/lib/IAssistant";
 import log from "app/server/lib/log";
-import { getFullUser, getLogMeta } from "app/server/lib/sessionUtils";
+import { getLogMeta } from "app/server/lib/sessionUtils";
 import { createHash } from "crypto";
 
 export function getAssistantV1Options(): AssistantV1Options {
@@ -80,7 +80,7 @@ export function getProviderFromHostname(url: string): AssistantProvider {
 }
 
 export function getUserHash(session: OptDocSession): string {
-  const user = getFullUser(session);
+  const user = session.fullUser;
   // Make it a bit harder to guess the user ID.
   const salt = "7a8sb6987asdb678asd687sad6boas7f8b6aso7fd";
   const hashSource = `${user?.id} ${user?.ref} ${salt}`;

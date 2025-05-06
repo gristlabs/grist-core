@@ -69,8 +69,7 @@ export class ActiveDocImport {
                            parseOptions: ParseOptions, prevTableIds: string[]): Promise<ImportResult> {
     this._activeDoc.startBundleUserActions(docSession);
     await this._removeHiddenTables(docSession, prevTableIds);
-    const userId = docSession.authorizer.getUserId();
-    const accessId = this._activeDoc.makeAccessId(userId);
+    const accessId = this._activeDoc.makeAccessId(docSession.userId);
     const uploadInfo: UploadInfo = globalUploadSet.getUploadInfo(dataSource.uploadId, accessId);
     return this._importFiles(docSession, uploadInfo, dataSource.transforms, {parseOptions}, true);
   }
@@ -84,8 +83,7 @@ export class ActiveDocImport {
     this._activeDoc.startBundleUserActions(docSession);
     try {
       await this._removeHiddenTables(docSession, prevTableIds);
-      const userId = docSession.authorizer.getUserId();
-      const accessId = this._activeDoc.makeAccessId(userId);
+      const accessId = this._activeDoc.makeAccessId(docSession.userId);
       const uploadInfo: UploadInfo = globalUploadSet.getUploadInfo(dataSource.uploadId, accessId);
       const importResult = await this._importFiles(docSession, uploadInfo, dataSource.transforms,
                                                    importOptions, false);

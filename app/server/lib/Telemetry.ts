@@ -24,7 +24,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {hashId} from 'app/server/lib/hashingUtils';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {stringParam} from 'app/server/lib/requestUtils';
-import {getFullUser, getLogMeta, isRequest, RequestOrSession} from 'app/server/lib/sessionUtils';
+import {getAuthSession, getLogMeta, isRequest, RequestOrSession} from 'app/server/lib/sessionUtils';
 import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
@@ -270,21 +270,15 @@ export class Telemetry implements ITelemetry {
     let isTeamSite: boolean | undefined;
     let visitorId: string | null | undefined;
     if (requestOrSession) {
-      let email: string | undefined;
-      let org: string | undefined;
-      if (isRequest(requestOrSession)) {
-        email = requestOrSession.user?.loginEmail;
-        org = requestOrSession.org;
-        if (isAnonymousUser) {
-          visitorId = this._getAndSetMatomoVisitorId(requestOrSession);
-        }
-      } else {
-        email = getFullUser(requestOrSession)?.email;
-        org = requestOrSession.client?.getOrg() ?? requestOrSession.req?.org;
+      const authSession = getAuthSession(requestOrSession);
+      if (isRequest(requestOrSession) && isAnonymousUser) {
+        visitorId = this._getAndSetMatomoVisitorId(requestOrSession);
       }
+      const email = authSession.normalizedEmail;
       if (email) {
         isInternalUser = email !== 'anon@getgrist.com' && email.endsWith('@getgrist.com');
       }
+      const org = authSession.org;
       if (org && !process.env.GRIST_SINGLE_ORG) {
         isTeamSite = !this._dbManager.isMergedOrg(org);
       }

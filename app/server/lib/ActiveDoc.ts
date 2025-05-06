@@ -115,13 +115,10 @@ import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
 import {
-  getAltSessionId,
   getDocSessionAccess,
   getDocSessionAccessOrNull,
   getDocSessionUsage,
-  getFullUser,
   getLogMeta,
-  getUserId,
   RequestOrSession,
 } from 'app/server/lib/sessionUtils';
 import {shortDesc} from 'app/server/lib/shortDesc';
@@ -870,7 +867,7 @@ export class ActiveDoc extends EventEmitter {
    * It returns the list of rowIds for the rows created in the _grist_Attachments table.
    */
   public async addAttachments(docSession: OptDocSession, uploadId: number): Promise<number[]> {
-    const userId = getUserId(docSession);
+    const userId = docSession.userId;
     const upload: UploadInfo = globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId));
     try {
       // We'll assert that the upload won't cause limits to be exceeded, retrying once after
@@ -1411,7 +1408,6 @@ export class ActiveDoc extends EventEmitter {
     const options = sanitizeApplyUAOptions(unsanitizedOptions);
     const actionBundles = await this._actionHistory.getActions(actionNums);
     let fromOwnHistory: boolean = true;
-    const user = getFullUser(docSession);
     let oldestSource: number = Date.now();
     for (const [index, bundle] of actionBundles.entries()) {
       const actionNum = actionNums[index];
@@ -1419,8 +1415,8 @@ export class ActiveDoc extends EventEmitter {
       if (!bundle) { throw new Error(`Could not find actionNum ${actionNum}`); }
       const info = bundle.info[1];
       const bundleEmail = info.user || '';
-      const sessionEmail = user?.email || '';
-      if (normalizeEmail(sessionEmail) !== normalizeEmail(bundleEmail)) {
+      const sessionEmail = docSession.normalizedEmail || '';
+      if (sessionEmail !== normalizeEmail(bundleEmail)) {
         fromOwnHistory = false;
       }
       if (info.time && info.time < oldestSource) {
@@ -1558,7 +1554,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {
-    return fetchURL(url, this.makeAccessId(docSession.authorizer.getUserId()), options);
+    return fetchURL(url, this.makeAccessId(docSession.userId), options);
   }
 
   public async forwardPluginRpc(docSession: DocSession, pluginId: string, msg: IMessage): Promise<any> {
@@ -1607,7 +1603,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fork(docSession: OptDocSession): Promise<ForkResult> {
     const dbManager = this._getHomeDbManagerOrFail();
-    const user = getFullUser(docSession);
+    const user = docSession.fullUser;
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
     if (!user || !await this.canDownload(docSession)) {
@@ -1667,7 +1663,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async getAccessToken(docSession: OptDocSession, options: AccessTokenOptions): Promise<AccessTokenResult> {
     const tokens = this._server.getAccessTokens();
-    const userId = getUserId(docSession);
+    const userId = docSession.userId;
     const docId = this.docName;
     const access = getDocSessionAccess(docSession);
     // If we happen to be using a "readOnly" connection, max out at "readOnly"
@@ -1782,7 +1778,7 @@ export class ActiveDoc extends EventEmitter {
     };
     const isShared = new Set<string>();
 
-    const userId = getUserId(docSession);
+    const userId = docSession.userId;
     if (!userId) { throw new Error('Cannot determine user'); }
 
     const parsed = parseUrlId(this.docName);
@@ -1823,7 +1819,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   // Get recent actions in ActionGroup format with summaries included.
-  public async getActionSummaries(docSession: DocSession): Promise<ActionGroup[]> {
+  public async getActionSummaries(docSession: OptDocSession): Promise<ActionGroup[]> {
     return this.getRecentActions(docSession, true);
   }
 
@@ -2438,9 +2434,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
-    const client = docSession.client;
-    const user = docSession.mode === 'system' ? 'grist' :
-      (client?.getProfile()?.email || '');
+    const user = docSession.mode === 'system' ? 'grist' : (docSession.displayEmail || '');
     return {
       time: Date.now(),
       user,
@@ -2973,10 +2967,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
-    const altSessionId = getAltSessionId(docSession);
     return merge(
       getTelemetryMeta(docSession),
-      altSessionId ? {altSessionId} : {},
       {
         limited: {
           docIdDigest: this._docName,
@@ -3345,15 +3337,13 @@ function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLe
   if (!docSession) { return {}; }
 
   const access = getDocSessionAccessOrNull(docSession);
-  const user = getFullUser(docSession);
-  const {client} = docSession;
   return {
     limited: {
       access,
     },
     full: {
-      ...(user ? {userId: user.id} : {}),
-      ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
+      userId: docSession.userId,
+      altSessionId: docSession.altSessionId,
     },
   };
 }

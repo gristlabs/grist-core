@@ -5,7 +5,7 @@ import {AttachmentStoreProvider, IAttachmentStoreProvider} from 'app/server/lib/
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
-import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
+import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {getAppRoot} from 'app/server/lib/places';
@@ -91,8 +91,10 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
   const systemSession = makeExceptionalDocSession('system');
   return {
     /** create a fake session for use when applying user actions to a document */
-    createFakeSession(role: Role = 'editors'): DocSession {
-      return {client: null, authorizer: new DummyAuthorizer(role, 'doc')} as any as DocSession;
+    createFakeSession(role: Role = 'editors'): OptDocSession {
+      const docSession = makeOptDocSession(null);
+      docSession.authorizer = new DummyAuthorizer(role, 'doc');
+      return docSession;
     },
 
     /** create a throw-away, empty document for testing purposes */

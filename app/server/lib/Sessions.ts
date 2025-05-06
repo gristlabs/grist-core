@@ -1,4 +1,5 @@
 import {ScopedSession} from 'app/server/lib/BrowserSession';
+import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {cookieName, SessionStore} from 'app/server/lib/gristSessions';
 import * as cookie from 'cookie';
 import * as cookieParser from 'cookie-parser';
@@ -33,12 +34,12 @@ export class Sessions {
    * Get the session id and organization from the request (or just pass it in if known), and
    * return the identified session.
    */
-  public getOrCreateSessionFromRequest(req: Request, options?: {
+  public getOrCreateSessionFromRequest(req: RequestWithOrg | Request, options?: {
     sessionId?: string,
     org?: string
   }): ScopedSession {
     const sid = options?.sessionId ?? this.getSessionIdFromRequest(req);
-    const org = options?.org ?? (req as any).org;
+    const org = options?.org ?? ('org' in req ? req.org : undefined);
     if (!sid) { throw new Error("session not found"); }
     return this.getOrCreateSession(sid, org, '');  // TODO: allow for tying to a preferred user.
   }
@@ -46,10 +47,11 @@ export class Sessions {
   /**
    * Get or create a session given the session id and organization name.
    */
-  public getOrCreateSession(sid: string, domain: string, userSelector: string): ScopedSession {
-    const key = this._getSessionOrgKey(sid, domain, userSelector);
+  public getOrCreateSession(sid: string, org: string|undefined, userSelector: string = ''): ScopedSession {
+    org = org || '';
+    const key = this._getSessionOrgKey(sid, org, userSelector);
     if (!this._sessions.has(key)) {
-      const scopedSession = new ScopedSession(sid, this._sessionStore, domain, userSelector);
+      const scopedSession = new ScopedSession(sid, this._sessionStore, org, userSelector);
       this._sessions.set(key, scopedSession);
     }
     return this._sessions.get(key)!;
@@ -99,7 +101,7 @@ export class Sessions {
    * Also, clients may now want to be tied to a particular user available within
    * a session, so we add that into key too.
    */
-  private _getSessionOrgKey(sid: string, domain: string, userSelector: string): string {
-    return `${sid}__${domain}__${userSelector}`;
+  private _getSessionOrgKey(sid: string, org: string, userSelector: string): string {
+    return `${sid}__${org}__${userSelector}`;
   }
 }

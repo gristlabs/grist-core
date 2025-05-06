@@ -46,12 +46,7 @@ import { IPermissionInfo, MixedPermissionSetWithContext,
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
 import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
-import {
-  getAltSessionId,
-  getDocSessionAccess,
-  getDocSessionShare,
-  getFullUser,
-} from 'app/server/lib/sessionUtils';
+import { getDocSessionAccess, getDocSessionShare } from 'app/server/lib/sessionUtils';
 import { quoteIdent } from 'app/server/lib/SQLiteDB';
 import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
@@ -385,7 +380,7 @@ export class GranularAccess implements GranularAccessForBundle {
         fullUser = attrs.override.user;
       }
     } else {
-      fullUser = getFullUser(docSession);
+      fullUser = docSession.fullUser;
     }
     const user = new User();
     user.Access = access;
@@ -401,7 +396,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Include origin info if accessed via the rest api.
     // TODO: could also get this for websocket access, just via a different route.
     user.Origin = docSession.req?.get('origin') || null;
-    user.SessionID = isAnonymous ? `a${getAltSessionId(docSession)}` : `u${user.UserID}`;
+    user.SessionID = isAnonymous ? `a${docSession.altSessionId}` : `u${user.UserID}`;
     user.IsLoggedIn = !isAnonymous;
     user.UserRef = fullUser?.ref || null; // Empty string should be treated as null.
 
