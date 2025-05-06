@@ -338,7 +338,7 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
       .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
 
     const hasExternalAttachments =
-      Computed.create(owner, attachmentStatusObs, (use, status) => status === 'external' || status === 'none');
+      Computed.create(owner, attachmentStatusObs, (use, status) => status !== 'internal' && status !== 'none');
 
     const options = dom.domComputed(attachmentStatusObs, (status) => {
       const isInternal = status === 'internal' || status === 'none';
