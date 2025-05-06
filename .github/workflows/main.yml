@@ -144,20 +144,16 @@ jobs:
         run: |
           mkdir -p $MOCHA_WEBDRIVER_LOGDIR
           export GREP_TESTS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
+          ./do_the_thing.sh
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
