@@ -144,16 +144,16 @@ jobs:
         run: |
           mkdir -p $MOCHA_WEBDRIVER_LOGDIR
           export GREP_TESTS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
-          ./do_the_thing.sh
+          ./do_the_thing.sh 1
+          ./do_the_thing.sh 2
+          ./do_the_thing.sh 3
+          ./do_the_thing.sh 4
+          ./do_the_thing.sh 5
+          ./do_the_thing.sh 6
+          ./do_the_thing.sh 7
+          ./do_the_thing.sh 8
+          ./do_the_thing.sh 9
+          ./do_the_thing.sh 10
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
