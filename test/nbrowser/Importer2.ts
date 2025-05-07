@@ -736,7 +736,10 @@ describe('Importer2', function() {
       ]);
       await waitForDiffPreviewToLoad();
       // Click any cell that we see to set the focus.
-      await driver.findWait('.test-importer-preview .field_clip', 100).click();
+      // Brute force retry.
+      await gu.waitToPass(async() => {
+        await driver.findWait('.test-importer-preview .field_clip', 100).click();
+      });
       // Wait for the focus to be set.
       await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
       // Go to the first row.
