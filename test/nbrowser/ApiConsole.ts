@@ -4,7 +4,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('ApiConsole', function () {
-  this.timeout(200000);
+  this.timeout(20000);
   const cleanup = setupTestSuite();
 
   before(async function () {
@@ -14,8 +14,6 @@ describe('ApiConsole', function () {
   });
 
   it('confirms delete operations before doing them', async function() {
-    for (let i = 0; i < 20; i++) {
-      console.log("Try", i);
     const myTab = await gu.myTab();
     await openApiConsolePage();
 
@@ -65,7 +63,6 @@ describe('ApiConsole', function () {
       // There is an extra browser tab open for the api console.
       await driver.close();
       await myTab.open();
-    }
     }
   });
 });
