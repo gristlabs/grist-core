@@ -736,14 +736,22 @@ describe('Importer2', function() {
       ]);
       await waitForDiffPreviewToLoad();
       // Click any cell that we see to set the focus.
-      // Brute force retry.
-      await gu.waitToPass(async() => {
-        await driver.findWait('.test-importer-preview .field_clip', 100).click();
-      });
-      // Wait for the focus to be set.
-      await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
-      // Go to the first row.
+      // Brute force search. The first match may be way out of view
+      // sometimes.
+      const cells = await driver.findAll('.test-importer-preview .field_clip.has_cursor');
+      for (const cell of cells) {
+        try {
+          await gu.scrollIntoView(cell);
+          await cell.click();
+          // Wait for the focus to be set.
+          await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
+        } catch (e) {
+          continue;
+        }
+      }
+      // Go to the first cell.
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
+      await gu.sendKeys(Key.HOME);
       // Make sure we see the first row.
       await driver.findContentWait('.test-importer-preview .field_clip', 'Kabul', 100);
 
