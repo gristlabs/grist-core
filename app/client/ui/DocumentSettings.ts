@@ -370,11 +370,14 @@ export class DocSettingsPage extends Disposable {
           if (!file) {
             return;
           }
+          if (isUploadingObs.isDisposed()) { return; }
           isUploadingObs.set(true);
           try {
             await this._uploadAttachmentsArchive(file);
           } finally {
-            isUploadingObs.set(false);
+            if (!isUploadingObs.isDisposed()) {
+              isUploadingObs.set(false);
+            }
           }
         }),
       dom.prop('disabled', isUploadingObs),
