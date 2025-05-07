@@ -16,6 +16,7 @@ processes = []
   ALLOWED_WEBHOOK_DOMAINS="webhook.site"
   PORT = "8080"
   FLY_DEPLOY_EXPIRATION = "{FLY_DEPLOY_EXPIRATION}"
+  # <FLY_ENV__> -- fly-deploy.js will insert extra env variables here.
 
 [experimental]
   allowed_public_ports = []
