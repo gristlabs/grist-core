@@ -740,15 +740,18 @@ describe('Importer', function() {
 
       // Check the preview diff of City. The population should have doubled in every row.
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]),
-        [
-          'Kabul', 'Kabol', ['1780000', '3560000', undefined], '2', ['1780', '3560', undefined],
-          'Qandahar', 'Qandahar', ['237500', '475000', undefined], '2', ['237.5', '475', undefined],
-          'Herat', 'Herat', ['186800', '373600', undefined], '2', ['186.8', '373.6', undefined],
-          'Mazar-e-Sharif', 'Balkh', ['127800', '255600', undefined], '2', ['127.8', '255.6', undefined],
-          'Amsterdam', 'Noord-Holland', ['731200', '1462400', undefined], '159',  ['731.2', '1462.4', undefined],
-        ]
-      );
+      // Sometimes takes a while, not sure what condition to wait on?
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]),
+          [
+            'Kabul', 'Kabol', ['1780000', '3560000', undefined], '2', ['1780', '3560', undefined],
+            'Qandahar', 'Qandahar', ['237500', '475000', undefined], '2', ['237.5', '475', undefined],
+            'Herat', 'Herat', ['186800', '373600', undefined], '2', ['186.8', '373.6', undefined],
+            'Mazar-e-Sharif', 'Balkh', ['127800', '255600', undefined], '2', ['127.8', '255.6', undefined],
+            'Amsterdam', 'Noord-Holland', ['731200', '1462400', undefined], '159',  ['731.2', '1462.4', undefined],
+          ]
+        )
+      }, 10000);
 
       // For sheet Country, merge on Code.
       await driver.findContent('.test-importer-source', /Country/).click();
