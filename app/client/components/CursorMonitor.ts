@@ -40,12 +40,11 @@ export class CursorMonitor extends Disposable {
     /**
      * When document loads last cursor position should be restored from local storage.
      */
-    this._whenDocumentLoadsRestorePosition(doc);
-
+    if (0) this._whenDocumentLoadsRestorePosition(doc);
     /**
      * When a cursor position changes, its value is stored in a local storage.
      */
-    this._whenCursorHasChangedStoreInMemory(doc);
+    if (0) this._whenCursorHasChangedStoreInMemory(doc);
   }
 
   public clear() {
