@@ -2,7 +2,7 @@
  * Testing utilities used in Importer test suites.
  */
 
-import {driver, stackWrapFunc, WebElementPromise} from 'mocha-webdriver';
+import {driver, Key, stackWrapFunc, WebElementPromise} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 
 // Helper to get the input of a matching parse option in the ParseOptions dialog.
@@ -41,6 +41,34 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
 
   // Check if we can see row number 1
   await driver.findContentWait('.test-importer-preview .gridview_data_row_num', "1", 5000);
+
+  // Click any cell that we see to set the focus, to try to make the
+  // state after waiting more deterministic.
+  // There is something odd occasionally, depending perhaps on scrolling,
+  // where the first row isn't clickable. Just working around it, and trying each
+  // of the first ten records, since this problem has persisted a very long time.
+  // TODO: find a more sensible fix.
+  const records = await driver.findAll('.test-importer-preview .record-hlines');
+  let success = false;
+  await gu.scrollIntoView(await records[0].find('.field_clip'));
+  for (const rec of records.slice(0, 10)) {
+    try {
+      const cell = await rec.find('.field_clip');
+      await cell.click();
+      // Wait for the focus to be set.
+      await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
+      // Go to the first cell.
+      await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
+      await gu.sendKeys(Key.HOME);
+      success = true;
+      break;
+    } catch (e) {
+      continue;
+    }
+  }
+  if (!success) {
+    throw Error(`tried cells without success`);
+  }
 };
 
 // Helper that gets the list of visible column matching rows to the left of the preview.
