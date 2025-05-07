@@ -738,23 +738,31 @@ describe('Importer2', function() {
       // Click any cell that we see to set the focus.
       // Brute force search. The first match may be way out of view
       // sometimes.
-      const cells = await driver.findAll('.test-importer-preview .field_clip.has_cursor');
-      for (const cell of cells) {
+      const recs = await driver.findAll('.test-importer-preview .record-hlines');
+      let fails = 0;
+      let success = false;
+      await gu.scrollIntoView(await recs[0].find('.field_clip'));
+      for (const rec of recs) {
         try {
-          await gu.scrollIntoView(cell);
+          const cell = await rec.find('.field_clip');
+          console.log(`Trying ${cell} ${fails}`);
           await cell.click();
           // Wait for the focus to be set.
           await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
+          // Go to the first cell.
+          await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
+          await gu.sendKeys(Key.HOME);
+          await driver.findContentWait('.test-importer-preview .field_clip', 'Kabul', 100);
+          success = true;
+          break;
         } catch (e) {
+          fails++;
           continue;
         }
       }
-      // Go to the first cell.
-      await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
-      await gu.sendKeys(Key.HOME);
-      // Make sure we see the first row.
-      await driver.findContentWait('.test-importer-preview .field_clip', 'Kabul', 100);
-
+      if (!success) {
+        throw Error(`tried ${fails} cells without success`);
+      }
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [
         'Kabul', 'Kabol', [undefined, undefined, '1780000'], '', [undefined, undefined, '1780'],
         'Qandahar', 'Qandahar', [undefined, undefined, '237500'], [undefined, undefined, '2'],
