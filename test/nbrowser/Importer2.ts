@@ -736,16 +736,16 @@ describe('Importer2', function() {
       ]);
       await waitForDiffPreviewToLoad();
       // Click any cell that we see to set the focus.
-      // Brute force search. The first match may be way out of view
-      // sometimes.
-      const recs = await driver.findAll('.test-importer-preview .record-hlines');
-      let fails = 0;
+      // There is something odd occasionally, depending perhaps on scrolling,
+      // where the first row isn't clickable. Just working around it, and trying each
+      // of the first ten records, since this problem has persisted a very long time.
+      // TODO: find a more sensible fix.
+      const records = await driver.findAll('.test-importer-preview .record-hlines');
       let success = false;
-      await gu.scrollIntoView(await recs[0].find('.field_clip'));
-      for (const rec of recs) {
+      await gu.scrollIntoView(await records[0].find('.field_clip'));
+      for (const rec of records.slice(0, 10)) {
         try {
           const cell = await rec.find('.field_clip');
-          console.log(`Trying ${cell} ${fails}`);
           await cell.click();
           // Wait for the focus to be set.
           await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
@@ -756,12 +756,11 @@ describe('Importer2', function() {
           success = true;
           break;
         } catch (e) {
-          fails++;
           continue;
         }
       }
       if (!success) {
-        throw Error(`tried ${fails} cells without success`);
+        throw Error(`tried cells without success`);
       }
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [
         'Kabul', 'Kabol', [undefined, undefined, '1780000'], '', [undefined, undefined, '1780'],
