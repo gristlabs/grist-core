@@ -116,10 +116,26 @@ async function prepConfig(name, volName) {
     .replace(/{APP_NAME}/g, name)
     .replace(/{VOLUME_NAME}/g, volName)
     .replace(/{FLY_DEPLOY_EXPIRATION}/g, expiration)
+
+    // If there are any process.env vars starting with "FLY_ENV__",
+    // append them (without the prefix) at the point after the line
+    // with the <FLY_ENV__> tag.
+    .replace(/<FLY_ENV__>.*/, `$&\n${extraVars()}`)
+
     // If there are any env vars, append them after line with <fly-template.env> tag.
     .replace(/<fly-template.env>.*/, `$&\n${envVars.join("\n")}`);
 
   await fs.writeFile(configPath, config);
+}
+
+function extraVars() {
+  const lines = [];
+  for (const [name, value] of Object.entries(process.env)) {
+    if (name.startsWith('FLY_ENV__')) {
+      lines.push(`  ${name.slice('FLY_ENV__'.length)} = ${value}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 // Stringify a string for safe inclusion into toml. (We are careful not to allow it to escape

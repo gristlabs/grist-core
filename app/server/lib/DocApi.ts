@@ -120,11 +120,7 @@ import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
 import {v4 as uuidv4} from "uuid";
-
-// Cap on the number of requests that can be outstanding on a single document via the
-// rest doc api.  When this limit is exceeded, incoming requests receive an immediate
-// reply with status 429.
-const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
+import {appSettings} from "app/server/lib/AppSettings";
 
 // This is NOT the number of docs that can be handled at a time.
 // It's a very generous upper bound of what that number might be.
@@ -185,6 +181,16 @@ export class DocWorkerApi {
   // to number of requests previously served for that combination.
   // We multiply by 5 because there are 5 relevant keys per doc at any time (current/next day/hour and current minute).
   private _dailyUsage = new LRUCache<string, number>({max: 5 * MAX_ACTIVE_DOCS_USAGE_CACHE});
+
+  // Cap on the number of requests that can be outstanding on a single
+  // document via the rest doc api. When this limit is exceeded,
+  // incoming requests receive an immediate reply with status 429.
+  private _maxParallelRequestsPerDoc = appSettings.section("docApi").flag("maxParallelRequestsPerDoc")
+    .requireInt({
+      envVar: 'GRIST_MAX_PARALLEL_REQUESTS_PER_DOC',
+      defaultValue: 10,
+      minValue: 0,
+    });
 
   constructor(private _app: Application, private _docWorker: DocWorker,
               private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
@@ -1987,7 +1993,7 @@ export class DocWorkerApi {
       try {
         const count = this._currentUsage.get(docId) || 0;
         this._currentUsage.set(docId, count + 1);
-        if (count + 1 > MAX_PARALLEL_REQUESTS_PER_DOC) {
+        if (this._maxParallelRequestsPerDoc > 0 && count + 1 > this._maxParallelRequestsPerDoc) {
           throw new ApiError(`Too many backlogged requests for document ${docId} - ` +
             `try again later?`, 429);
         }
