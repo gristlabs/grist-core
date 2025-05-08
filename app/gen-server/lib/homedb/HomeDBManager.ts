@@ -3926,6 +3926,9 @@ export class HomeDBManager {
     // Extract the forkId from the urlId and use it to find the fork in the db.
     const {forkId} = parseUrlId(scope.urlId);
     let query = this._docs(options.manager)
+      .leftJoinAndSelect('docs.trunk', 'trunk')
+      .leftJoinAndSelect('trunk.workspace', 'trunk_workspace')
+      .leftJoinAndSelect('trunk_workspace.org', 'trunk_org')
       .where('docs.id = :forkId', {forkId});
 
     // Compute whether we have access to the fork.

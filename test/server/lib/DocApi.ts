@@ -4324,7 +4324,7 @@ function testDocApi(settings: {
     };
 
     let redisMonitor: any;
-    let redisCalls: any[];
+    let redisCalls: any[] = [];
 
     // Create couple of promises that can be used to monitor
     // if the endpoint was called.
