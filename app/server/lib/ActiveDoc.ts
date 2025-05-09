@@ -2605,7 +2605,7 @@ export class ActiveDoc extends EventEmitter {
     const attachments = this.docData?.getMetaTable("_grist_Attachments").getRecords();
     for (const attachmentRec of attachments ?? []) {
       const newSize = newFileSizesByFileIdent.get(attachmentRec.fileIdent);
-      if (newSize) {
+      if (newSize && newSize !== attachmentRec.fileSize) {
         rowIdsToUpdate.push(attachmentRec.id);
         newFileSizesForRows.push(newSize);
       }
