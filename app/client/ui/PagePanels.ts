@@ -115,7 +115,7 @@ export function pagePanels(page: PageContents) {
     dom.autoDispose(sub2),
     dom.autoDispose(commandsGroup),
     dom.autoDispose(leftOverlap),
-    dom('div', page.contentTop, elem => { contentTopDom = elem; }),
+    dom('div', testId('top-panel'), page.contentTop, elem => { contentTopDom = elem; }),
     dom.maybe(page.banner, () => {
       let elem: HTMLElement;
       const updateTop = () => {
