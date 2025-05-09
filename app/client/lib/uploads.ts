@@ -123,9 +123,23 @@ export async function uploadFiles(
     }
   }
 
-  return new Promise<UploadResult>((resolve, reject) => {
+  return uploadFormData(docUrl(options.docWorkerUrl, UPLOAD_URL_PATH), formData, onProgress);
+}
+
+/**
+ * POSTs the provided form data to the given endpoint.
+ * Provides progress tracking, error handling and promises.
+ * @param {string} url - Endpoint to send form data to.
+ * @param {FormData} formData - Data to send
+ * @param {ProgressCB} onProgress - Called periodically during the upload
+ * @returns {Promise<any>} - Parsed JSON from the endpoint. Uses `any` as no validation is performed.
+ */
+async function uploadFormData(
+  url: string, formData: FormData, onProgress: ProgressCB = noop
+): Promise<any> {
+  return new Promise<any>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('post', docUrl(options.docWorkerUrl, UPLOAD_URL_PATH), true);
+    xhr.open('post', url, true);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xhr.withCredentials = true;
     xhr.upload.addEventListener('progress', (e) => {
