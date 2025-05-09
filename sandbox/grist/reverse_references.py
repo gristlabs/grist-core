@@ -1,5 +1,4 @@
 from collections import defaultdict
-import six
 from usertypes import get_referenced_table_id
 
 class _RefUpdates(object):
@@ -30,7 +29,7 @@ def get_reverse_adjustments(row_ids, old_values, new_values, value_iterator, rel
   adjustments = []
 
   # For each target row (that needs to be updated, and was change in our column)
-  for target_row_id, updates in six.iteritems(affected_target_rows):
+  for target_row_id, updates in affected_target_rows.items():
     # Get the value stored in that column by using our own relation object (which should store
     # correct values - the same that are stored in that reverse column). `reverse_value` is the
     # value in that reverse cell

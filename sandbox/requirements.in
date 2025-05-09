@@ -1,4 +1,4 @@
-# python 3 requirements, see requirements.txt for python 2
+# python requirements,
 # From this, "./build python3" generates requirements.txt by running pip-compile.
 
 friendly-traceback
@@ -9,7 +9,6 @@ chardet
 iso8601
 phonenumberslite
 python-dateutil
-six
 sortedcontainers
 unittest-xml-reporting
 typing-extensions  # used by astroid before Python 3.11

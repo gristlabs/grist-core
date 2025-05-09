@@ -4,8 +4,6 @@ It's used for collecting calculated values for formula columns.
 """
 from collections import namedtuple
 
-import six
-
 import actions
 from objtypes import equal_encoding
 
@@ -78,7 +76,7 @@ class ActionSummary(object):
     """
     if not column_delta:
       return
-    full_row_ids = sorted(r for r, (before, after) in six.iteritems(column_delta)
+    full_row_ids = sorted(r for r, (before, after) in column_delta.items()
                           if not equal_encoding(before, after))
 
     defunct = is_defunct(table_id) or is_defunct(col_id)
