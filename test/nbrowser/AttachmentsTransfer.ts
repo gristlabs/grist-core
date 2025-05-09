@@ -425,25 +425,3 @@ async function waitForNotPresent(fn: () => WebElementPromise) {
 }
 
 const attachmentSection = () => driver.find('.test-admin-panel-item-preferredStorage');
-
-/*
-type FileMatcher = (filePath: string) => boolean;
-async function findFileInDownloadDir(fileMatcher: FileMatcher) {
-  const files = await fs.promises.readdir(server.testDir);
-  console.log(files);
-  return files.find(fileMatcher);
-}
-
-async function waitForFileDownload(fileMatcher: FileMatcher): Promise<string> {
-  const errorMessage = "file does not exist in download folder";
-  let file: string | undefined;
-  await gu.waitToPass(async () => {
-    file = await findFileInDownloadDir(fileMatcher);
-    assert(file, errorMessage);
-    await fs.promises.access(file ?? "");
-  });
-  if (!file) { throw new Error(errorMessage); }
-  return file;
-}
-*/
-
