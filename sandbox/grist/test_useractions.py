@@ -679,10 +679,10 @@ class TestUserActions(test_engine.EngineTestCase):
     ])
     self.assertTableData('Schools', cols="subset", data=[
       ["id",  "city",         "A"   ],
-      [1,     "New York",     0.0   ],
-      [2,     "Colombia",     0.0   ],
+      [1,     "New York",     None  ],
+      [2,     "Colombia",     None  ],
       [3,     "New York",     -17.6 ],
-      [4,     "",             0.0   ],
+      [4,     "",             None  ],
     ])
 
     # Undo, and set a formula for the new column instead.
