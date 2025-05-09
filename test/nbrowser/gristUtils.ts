@@ -876,6 +876,39 @@ export async function enterGridRows(cell: ICellSelect, rowsOfValues: string[][])
 }
 
 /**
+ * Enters values into a grid starting at the specified row and column index.
+ */
+export async function enterGridValues(
+  startRowIndex: number,
+  startColIndex: number,
+  dataMatrix: any[][]): Promise<void> {
+  const transpose = dataMatrix[0].map((_, colIndex) => dataMatrix.map(row => row[colIndex]));
+  await enterGridRows({ col: startColIndex, rowNum: startRowIndex + 1 }, transpose);
+}
+
+/**
+ * Selects all cells in a GridView between and including startCell and endCell
+ * @param startCell - An array where:
+ *                    startCell[0]: 1-based row index.
+ *                    startCell[1]: 0-based column index.
+ * @param endCell - An array where:
+ *                  endCell[0]: 1-based row index.
+ *                  endCell[1]: 0-based column index.
+ */
+export async function selectGridArea(startCell: [number, number], endCell: [number, number]) {
+  const [startRowNum, startCol] = startCell;
+  const [endRowNum, endCol] = endCell;
+
+  if (startRowNum === endRowNum && startCol === endCol) {
+    await getCell({ rowNum: endRowNum, col: endCol }).click();
+  } else {
+    const start = await getCell({ rowNum: startRowNum, col: startCol });
+    const end = await getCell({ rowNum: endRowNum, col: endCol });
+    await driver.withActions((a) => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
+  }
+}
+
+/**
  * Set api key for user.  User should exist before this is called.
  */
 export async function setApiKey(username: string, apiKey?: string) {
@@ -1218,15 +1251,21 @@ export async function getDocId() {
  * Confirms dialog for removing rows. In the future, can be used for other dialogs.
  */
 export async function confirm(save = true, remember = false) {
-  if (await driver.find(".test-confirm-save").isPresent()) {
-    if (remember) {
-      await driver.find(".test-confirm-remember").click();
-    }
-    if (save) {
-      await driver.find(".test-confirm-save").click();
-    } else {
-      await driver.find(".test-confirm-cancel").click();
-    }
+  try {
+    // Wait a bit for this dialog to show up. This is equivalent of:
+    // driver.findWait('.test-confirm-save', 50).isPresent();
+    // Which doesn't work.
+    await driver.findWait('.test-confirm-save', 50);
+  } catch (err) {
+    return;
+  }
+  if (remember) {
+    await driver.find(".test-confirm-remember").click();
+  }
+  if (save) {
+    await driver.find(".test-confirm-save").click();
+  } else {
+    await driver.find(".test-confirm-cancel").click();
   }
 }
 

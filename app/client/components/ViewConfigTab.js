@@ -10,7 +10,7 @@ var {CustomSectionElement} = require('../lib/CustomSectionElement');
 const {ChartConfig} = require('./ChartView');
 const {Computed, dom: grainjsDom, makeTestId, Holder} = require('grainjs');
 
-const {cssRow} = require('app/client/ui/RightPanelStyles');
+const {cssRow, cssWarningBox, cssWarningHeader} = require('app/client/ui/RightPanelStyles');
 const {SortFilterConfig} = require('app/client/ui/SortFilterConfig');
 const {primaryButton} = require('app/client/ui2018/buttons');
 const {select} = require('app/client/ui2018/menus');
@@ -134,6 +134,16 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
         kd.style('text-align', 'left'),
         kd.style('margin-top', '1.5rem')
       ),
+
+      kf.helpRow(kd.hide(isCollapsed),
+        cssWarningBox(
+          cssWarningHeader(
+            t("⚠️ Deprecated Feature"),
+          ),
+          t("On-Demand Tables have been deprecated due to lack of functionality and usability concerns."),
+        )
+      ),
+
       kf.row(kd.hide(isCollapsed),
         dom('div', primaryButton(
           kd.text(() => table.onDemand() ? t("Unmark On-Demand") : t("Make On-Demand")),

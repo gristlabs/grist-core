@@ -223,6 +223,7 @@ describe('Importer2', function() {
     await waitForColumnMapping();
     await driver.find('.test-importer-update-existing-records').click();
     await driver.find('.test-importer-merge-fields-select').click();
+    await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
     await driver.findContent(
       '.test-multi-select-menu .test-multi-select-menu-option',
       /CourseId/
@@ -715,6 +716,7 @@ describe('Importer2', function() {
       // Now toggle 'Update existing records', and merge on 'Name' and 'District'.
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Name/
@@ -762,7 +764,8 @@ describe('Importer2', function() {
 
       // For "Pop. '000", deliberately map a duplicate column (so we can later check if import succeeded).
       await openSourceFor(/Pop\. '000/);
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
+      await gu.waitAppFocus(false);
       await gu.sendKeys('$city_pop', Key.ENTER);
       await gu.waitForServer();
 
