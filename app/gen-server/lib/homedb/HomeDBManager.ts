@@ -1088,7 +1088,8 @@ export class HomeDBManager {
    *   to force a distinct non-individual billing account to be used for this org.
    *   NOTE: Currently it is always a true - billing account is one to one with org.
    * @param product: if set, controls the type of plan used for the org. Only
-   *   meaningful for team sites currently.
+   *   meaningful for team sites currently, where it defaults to the plan in GRIST_DEFAULT_PRODUCT
+   *   env variable, or else STUB_PLAN.
    * @param billing: if set, controls the billing account settings for the org.
    */
   public async addOrg(
@@ -1097,7 +1098,7 @@ export class HomeDBManager {
     options: {
       setUserAsOwner: boolean,
       useNewPlan: boolean,
-      product?: string, // Default to PERSONAL_FREE_PLAN or TEAM_FREE_PLAN env variable.
+      product?: string,
       billing?: BillingOptions
     },
     transaction?: EntityManager
@@ -3454,6 +3455,7 @@ export class HomeDBManager {
         .leftJoinAndSelect('docs.aclRules', 'doc_acl_rules')
         .leftJoinAndSelect('doc_acl_rules.group', 'doc_groups')
         .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
+        .andWhere('docs.removed_at IS NULL')  // Don't grant guest access for soft-deleted docs.
         .andWhere('doc_users.id is not null');
       const wsWithDocs = await wsWithDocsQuery.getOne();
       await this._groupsManager.setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
@@ -3480,6 +3482,7 @@ export class HomeDBManager {
       if (!org) { throw new Error('cannot find org'); }
       const workspaceQuery = this._workspaces(manager)
       .where('workspaces.org_id = :orgId', {orgId: org.id})
+      .andWhere('workspaces.removed_at IS NULL')  // Don't grant guest access for soft-deleted workspaces.
       .leftJoinAndSelect('workspaces.aclRules', 'workspace_acl_rules')
       .leftJoinAndSelect('workspace_acl_rules.group', 'workspace_group')
       .leftJoinAndSelect('workspace_group.memberUsers', 'workspace_users')
@@ -4712,6 +4715,10 @@ export class HomeDBManager {
       await manager.createQueryBuilder()
         .update(Workspace).set({removedAt}).where({id: workspace.id})
         .execute();
+
+      // Update the guests in the org after soft-deleting/undeleting this workspace.
+      await this._repairOrgGuests(scope, workspace.org.id, manager);
+
       return {status: 200, data: workspace};
     });
   }
@@ -4735,6 +4742,11 @@ export class HomeDBManager {
       await manager.createQueryBuilder()
         .update(Document).set({removedAt}).where({id: doc.id})
         .execute();
+
+      // Update guests of the workspace and org after soft-deleting/undeleting this doc.
+      await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
+      await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
+
       return {status: 200, data: doc};
     });
   }

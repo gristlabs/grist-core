@@ -3612,7 +3612,7 @@ export function withEnvironmentSnapshot(vars: Record<string, any>) {
     await server.restart();
   });
   after(async () => {
-    if (!oldEnv) { return; }
+    if (!oldEnv || noCleanup) { return; }
     oldEnv.restore();
     await server.restart();
   });
