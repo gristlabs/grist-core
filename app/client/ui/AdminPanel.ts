@@ -4,6 +4,7 @@ import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
+import {App} from 'app/client/ui/App';
 import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
@@ -35,7 +36,7 @@ const t = makeT('AdminPanel');
 export class AdminPanel extends Disposable {
   private _page = Computed.create<AdminPanelPage>(this, (use) => use(urlState().state).adminPanel || 'admin');
 
-  constructor(private _appModel: AppModel) {
+  constructor(private _appModel: AppModel, private _appObj: App) {
     super();
     document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
   }
@@ -47,6 +48,8 @@ export class AdminPanel extends Disposable {
       headerMain: this._buildMainHeader(pageObs),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildMainContent(),
+    }, {
+      regionFocusSwitcher: this._appObj.regionFocusSwitcher,
     });
   }
 
