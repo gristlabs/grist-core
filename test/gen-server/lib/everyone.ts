@@ -164,6 +164,15 @@ describe('everyone', function() {
     assert.deepEqual((await altApi.getWorkspace(wsId)).docs.map(doc => doc.name),
                      ['another example']);
 
+    // Check also that test user can only get doc prefs for documents shared with them through a
+    // route other than public sharing. No API endpoint here, so use DB method directly.
+    const dbManager = home.dbManager;
+    const userId = (await dbManager.getExistingUserByLogin('testuser@getgrist.com'))!.id;
+    await assert.isRejected(home.dbManager.getDocPrefs({userId, org: 'nasa', urlId: docId}),
+      /access denied/);
+    assert.deepEqual((await home.dbManager.getDocPrefs({userId, org: 'nasa', urlId: docId2})),
+      { docDefaults: {}, currentUser: {} });
+
     // Check that a viewer at org level can see all docs listed, and access them
     // (there was a bug where a doc shared with everyone@ as viewer would get hidden
     // from top-level viewers)

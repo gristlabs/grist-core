@@ -61,6 +61,21 @@ export interface OrgPrefs extends Prefs {
   customLogoUrl?: string|null;
 }
 
+export interface DocPrefs {
+  // Notification configuration; used in the enterprise version.
+  notifications?: object;
+}
+
+/**
+ * Combination of DocPrefs for the document and for the current user. This is mostly intended to
+ * be the same type, with docDefaults serving as the defaults, and currentUser override them. For
+ * prefs that can't be overridden by a user, DocumentOptions may be more suitable.
+ */
+export interface FullDocPrefs {
+  docDefaults: DocPrefs;
+  currentUser: DocPrefs;
+}
+
 /**
  * List of all deprecated warnings that user can see and dismiss.
  * All of them are marked as seen for new users in FlexServer.ts (welcomeNewUser handler).

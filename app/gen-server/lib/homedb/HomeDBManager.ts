@@ -9,6 +9,7 @@ import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
+import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
 import {
@@ -32,6 +33,7 @@ import {Alias} from "app/gen-server/entity/Alias";
 import {BillingAccount} from "app/gen-server/entity/BillingAccount";
 import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
 import {Config} from "app/gen-server/entity/Config";
+import {DocPref} from "app/gen-server/entity/DocPref";
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
 import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
@@ -180,6 +182,11 @@ interface QueryOptions {
                                  // potentially overriding markPermissions.
 }
 
+interface DocQueryOptions extends QueryOptions {
+  // Override AccessStyle (defaults to 'open'). E.g. 'openNoPublic' ignores public access.
+  accessStyle?: AccessStyle;
+}
+
 // Information about a change in billable users.
 export interface UserChange {
   userId: number;            // who initiated the change
@@ -206,7 +213,9 @@ export interface Scope {
 
 // Flag for whether we are listing resources or opening them.  This makes a difference
 // for public resources, which we allow users to open but not necessarily list.
-type AccessStyle = 'list' | 'open';
+// 'openNoPublic' is like open, but ignores public shares, i.e. only allows users who are listed
+// as collaborators, either directly or by inheriting access.
+type AccessStyle = 'list' | 'open' | 'openNoPublic';
 
 // A Scope for documents, with mandatory urlId.
 export interface DocScope extends Scope {
@@ -610,7 +619,7 @@ export class HomeDBManager {
     // ordering (Sqlite does support NULL LAST syntax now, but not on our fork yet).
     qb = qb.addOrderBy('coalesce(prefs.org_id, 0)', 'DESC');
     qb = qb.addOrderBy('coalesce(prefs.user_id, 0)', 'DESC');
-    const result = await this._verifyAclPermissions(qb);
+    const result: QueryResult<any> = await this._verifyAclPermissions(qb);
     if (result.status === 200) {
       // Return the only org.
       result.data = result.data[0];
@@ -702,7 +711,7 @@ export class HomeDBManager {
     // Allow an empty result for the merged org for the anonymous user.  The anonymous user
     // has no home org or workspace.  For all other sitations, expect at least one workspace.
     const emptyAllowed = this.isMergedOrg(orgKey) && scope.userId === this._usersManager.getAnonymousUserId();
-    const result = await this._verifyAclPermissions(query, { scope, emptyAllowed });
+    const result: QueryResult<any> = await this._verifyAclPermissions(query, { scope, emptyAllowed });
     // Return the workspaces, not the org(s).
     if (result.status === 200) {
       // Place ownership information in workspaces, available for the merged org.
@@ -743,7 +752,7 @@ export class HomeDBManager {
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
     queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs'], 'list');
-    const result = await this._verifyAclPermissions(queryBuilder, { scope });
+    const result: QueryResult<any> = await this._verifyAclPermissions(queryBuilder, { scope });
     // Return a single workspace.
     if (result.status === 200) {
       result.data = result.data[0];
@@ -818,7 +827,7 @@ export class HomeDBManager {
       throw new ApiError(result.errMessage || 'failed to select user', result.status);
     }
     if (!result.data.length) { return null; }
-    const options: AccessOptionWithRole[] = result.data[0].accessOptions;
+    const options: AccessOptionWithRole[] = result.data[0].accessOptions!;
     if (!options.length) { return null; }
     const role = roles.getStrongestRole(...options.map(option => option.access));
     return options.find(option => option.access === role) || null;
@@ -3170,6 +3179,49 @@ export class HomeDBManager {
     });
   }
 
+  public async getDocPrefs(scope: DocScope): Promise<FullDocPrefs> {
+    return await this.runInTransaction<FullDocPrefs>(undefined, async (manager) => {
+      const [, prefs] = await this._doGetDocPrefs(scope, manager);
+      return prefs;
+    });
+  }
+
+  public async setDocPrefs(scope: DocScope, newPrefs: Partial<FullDocPrefs>): Promise<void> {
+    const {urlId: docId, userId} = scope;
+    return await this.runInTransaction(undefined, async (manager) => {
+      const [doc, origPrefs] = await this._doGetDocPrefs(scope, manager);
+      const updates = [];
+      if (newPrefs.docDefaults) {
+        if (doc.access !== roles.OWNER) {
+          throw new ApiError('Only document owners may update document prefs', 403);
+        }
+        const prefs = {...origPrefs.docDefaults, ...newPrefs.docDefaults};
+        updates.push({docId, userId: null, prefs});
+      }
+      if (newPrefs.currentUser) {
+        const prefs = {...origPrefs.currentUser, ...newPrefs.currentUser};
+        updates.push({docId, userId, prefs});
+      }
+      await manager.createQueryBuilder()
+        .insert().into(DocPref)
+        .values(updates)
+        .onConflict(`(doc_id, COALESCE(user_id, 0)) DO UPDATE SET prefs = EXCLUDED.prefs`)
+        .execute();
+    });
+  }
+
+  /**
+   * Combines default and per-user DocPrefs. Does not check access.
+   */
+  public async getDocPrefsForUsers(docId: string, userIds: number[]): Promise<Map<number|null, DocPrefs>> {
+    const records = await this._connection.createQueryBuilder()
+      .select('doc_pref')
+      .from(DocPref, 'doc_pref')
+      .where('doc_id = :docId AND (user_id IS NULL OR user_id IN (:...userIds))', {docId, userIds})
+      .getMany();
+    return new Map<number|null, DocPrefs>(records.map(r => [r.userId, r.prefs]));
+  }
+
   /**
    * Run an operation in an existing transaction if available, otherwise create
    * a new transaction for it.
@@ -3177,10 +3229,10 @@ export class HomeDBManager {
    * @param transaction: the manager of an existing transaction, or undefined.
    * @param op: the operation to run in a transaction.
    */
-  public runInTransaction(
+  public runInTransaction<T>(
     transaction: EntityManager|undefined,
-    op: (manager: EntityManager) => Promise<any>
-  ): Promise<any> {
+    op: (manager: EntityManager) => Promise<T>
+  ): Promise<T> {
     if (transaction) { return op(transaction); }
     return this._connection.transaction(op);
   }
@@ -3188,6 +3240,24 @@ export class HomeDBManager {
   // Convenient helpers for database utilities that depend on _dbType.
   public makeJsonArray(content: string): string { return makeJsonArray(this._dbType, content); }
   public readJson(selection: any) { return readJson(this._dbType, selection); }
+
+  private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
+    const {urlId: docId, userId} = scope;
+    const docQb = this._doc(scope, {accessStyle: 'openNoPublic', manager});
+    // The following combination throws ApiError for insufficient access.
+    const doc = this.unwrapQueryResult(await this._verifyAclPermissions(docQb))[0];
+
+    const records = await manager.createQueryBuilder()
+      .select('doc_pref')
+      .from(DocPref, 'doc_pref')
+      .where('doc_id = :docId AND (user_id IS NULL OR user_id = :userId)', {docId, userId})
+      .getMany();
+
+    return [doc, {
+      docDefaults: records.find(r => r.userId === null)?.prefs || {},
+      currentUser: records.find(r => r.userId === userId)?.prefs || {},
+    }];
+  }
 
   private async _createNotFoundUsers(options: {
     analysis: PermissionDeltaAnalysis;
@@ -3507,7 +3577,7 @@ export class HomeDBManager {
     transaction?: EntityManager
   ): Promise<Workspace> {
     if (!props.name) { throw new ApiError('Bad request: name required', 400); }
-    return await this.runInTransaction(transaction, async manager => {
+    return await this.runInTransaction<Workspace>(transaction, async manager => {
       // Create a new workspace.
       const workspace = new Workspace();
       workspace.checkProperties(props);
@@ -3534,7 +3604,7 @@ export class HomeDBManager {
         // guest group to include the owner.
         await this._repairOrgGuests({userId: ownerId}, org.id, manager);
       }
-      return result[0];
+      return result[0] as Workspace;
     });
   }
 
@@ -3799,7 +3869,7 @@ export class HomeDBManager {
    *
    * In order to accept urlIds, the aliases, workspaces, and orgs tables are joined.
    */
-  private _doc(scope: DocScope, options: QueryOptions = {}): SelectQueryBuilder<Document> {
+  private _doc(scope: DocScope, options: DocQueryOptions = {}): SelectQueryBuilder<Document> {
     const {urlId, userId} = scope;
     // Check if doc is being accessed with a merged org url.  If so,
     // we will only filter urlId matches, and will allow docId matches
@@ -3825,10 +3895,12 @@ export class HomeDBManager {
             return urlIdQuery;
           }));
       }));
+
     // TODO includeSupport should really be false, and the support for it should be removed.
     // (For this, example doc URLs should be under docs.getgrist.com rather than team domains.)
     // Add access information and query limits
-    query = this._applyLimit(query, {...scope, includeSupport: true}, ['docs', 'workspaces', 'orgs'], 'open');
+    const accessStyle = options.accessStyle || 'open';
+    query = this._applyLimit(query, {...scope, includeSupport: true}, ['docs', 'workspaces', 'orgs'], accessStyle);
     if (options.markPermissions) {
       let effectiveUserId = userId;
       let threshold = options.markPermissions;
@@ -3839,7 +3911,7 @@ export class HomeDBManager {
       }
       // Compute whether we have access to the doc
       query = query.addSelect(
-        this._markIsPermitted('docs', effectiveUserId, 'open', threshold),
+        this._markIsPermitted('docs', effectiveUserId, accessStyle, threshold),
         'is_permitted'
       );
     }
@@ -4120,7 +4192,7 @@ export class HomeDBManager {
       emptyAllowed?: boolean,
       scope?: Scope,
     } = {}
-  ): Promise<QueryResult<any>> {
+  ): Promise<QueryResult<T[]>> {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
@@ -4409,9 +4481,11 @@ export class HomeDBManager {
           // we may include this code with different user ids in the
           // same query
           cond = cond.where(`${users} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
-          // Support the special "everyone" user.
-          const everyoneId = this._usersManager.getEveryoneUserId();
-          cond = cond.orWhere(`${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
+          // Support public access via the special "everyone" user, except for 'openStrict' mode.
+          if (accessStyle !== 'openNoPublic') {
+            const everyoneId = this._usersManager.getEveryoneUserId();
+            cond = cond.orWhere(`${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
+          }
           if (accessStyle === 'list') {
             // Support also the special anonymous user.  Currently, by convention, sharing a
             // resource with anonymous should make it listable.
