@@ -1,0 +1,213 @@
+replicaCount: 1
+
+image:
+  repository: gristlabs/grist
+  pullPolicy: IfNotPresent
+  tag: "1.3.3"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8484
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""  # "nginx", "traefik", etc.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    # nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  hosts:
+    - host: grist.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  # - secretName: grist-tls
+  #   hosts:
+  #     - grist.local
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: grist
+    password: grist-password
+    database: grist
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+  architecture: standalone
+
+# Redis configuration
+redis:
+  enabled: false
+  auth:
+    enabled: true
+    password: redis-password
+  architecture: standalone
+  master:
+    persistence:
+      enabled: false
+      size: 8Gi
+
+# MinIO configuration
+minio:
+  enabled: false
+  auth:
+    rootUser: minio-admin
+    rootPassword: minio-password
+  defaultBuckets: "grist-documents"
+  persistence:
+    enabled: true
+    size: 10Gi
+
+config:
+  # Custom app title
+  APP_TITLE: "Grist"
+
+  # Session secret (will be auto-generated if not set)
+  GRIST_SESSION_SECRET: ""  # Will be auto-generated if not set
+
+  # Extra environment variables
+  extraEnv: {}
+    # # User management
+    # GRIST_DEFAULT_EMAIL: ""              # Default email for the first user
+    # GRIST_SINGLE_ORG: ""                 # Name of the single organization to use
+    # GRIST_ORG_IN_PATH: "false"           # Whether to include org in URL paths
+    # GRIST_HIDE_UI_ELEMENTS: ""           # Hide specific UI elements (comma-separated)
+    # GRIST_HIDE_SEND_TO_DRIVE: "false"    # Hide "Send to Google Drive" option
+    # GRIST_FORCE_LOGIN: "false"           # Require login for all access
+    # GRIST_MAX_UPLOAD_BYTES: "25000000"   # Maximum file upload size (bytes)
+
+    # GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
+    # GRIST_FORWARD_AUTH_LOGOUT_PATH: /_oauth/logout
+
+    # # OIDC settings
+    # # Note: https://<grist-domain>/oauth2/callback should be added to the allowed callback URLs in your IDP
+    # GRIST_OIDC_SP_HOST: https://<grist-domain> # or http://localhost:8484
+    # GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED: "true"
+    # GRIST_OIDC_IDP_ISSUER: https://<your-auth0-app-domain>
+    # GRIST_OIDC_IDP_SCOPES: openid profile email
+    # GRIST_OIDC_IDP_CLIENT_ID:
+    # GRIST_OIDC_IDP_CLIENT_SECRET:
+
+    # # GRIST_SAML_IDP_UNENCRYPTED: true # I needed this to use Keycloak
+    # GRIST_SAML_SP_HOST: https://grist.my-org.com
+    # GRIST_SAML_IDP_LOGIN: https://kc.my-org.com/realms/master/protocol/saml
+    # GRIST_SAML_IDP_LOGOUT: https://kc.my-org.com/realms/master/protocol/saml
+    # GRIST_SAML_SP_KEY: /saml/sp.key
+    # GRIST_SAML_SP_CERT: /saml/sp.crt
+    # GRIST_SAML_IDP_CERTS: /saml/idp.crt
+
+    # # Document settings
+    # GRIST_THROTTLE_CPU: "false"          # Throttle CPU usage
+    # GRIST_THROTTLE_MEM: "false"          # Throttle memory usage
+    # GRIST_SANDBOX_FLAVOR: ""             # Sandbox configuration
+    # GRIST_IGNORE_SESSION: "false"        # Ignore session cookies
+
+    # # Email settings
+    # GRIST_SMTP_HOST: ""                  # SMTP server hostname
+    # GRIST_SMTP_PORT: ""                  # SMTP server port
+    # GRIST_SMTP_USER: ""                  # SMTP username
+    # GRIST_SMTP_PASSWORD: ""              # SMTP password
+    # GRIST_SMTP_SECURE: "true"            # Use secure SMTP
+    # GRIST_SMTP_FROM: ""                  # From email address
+
+    # # Custom settings
+    # GRIST_WIDGET_LIST_URL: ""            # Custom widget list URL
+
+    # APP_HOME_URL: "http://localhost"     # Home URL for the app
+    # ALLOWED_HOSTS: "*"  # Only used when ingress is disabled
+    # GOOGLE_CLIENT_ID: ""
+    # GOOGLE_CLIENT_SECRET: ""
+    # TELEMETRY: "none"
+    # DEBUG: 1
+    # TYPEORM_LOGGING: "true"
+
+  # Database configuration (used if postgresql.enabled is false)
+  database:
+    host: ""
+    port: 5432
+    name: grist
+    user: grist
+    password: grist-password
+
+  # Redis configuration (used if redis.enabled is false)
+  redis:
+    enabled: false
+    url: ""
+    password: redis-password
+
+  # MinIO configuration (used if minio.enabled is false)
+  minio:
+    enabled: false
+    endpoint: ""
+    port: 9000
+    bucket: grist-docs
+    accessKey: grist
+    secretKey: minio-password
+    useSSL: false
+
+persistence:
+  enabled: false
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+probes:
+  liveness:
+    enabled: false
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readiness:
+    enabled: false
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  startup:
+    enabled: false
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
