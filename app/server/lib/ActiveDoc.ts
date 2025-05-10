@@ -1038,6 +1038,8 @@ export class ActiveDoc extends EventEmitter {
       unused: 0,
     };
 
+    const sizesToUpdate = new Map<string, number>();
+
     await unpackTarArchive(tarFile, async (file) => {
       try {
         const fileIdent = archiveFilePathToAttachmentIdent(file.path);
@@ -1047,6 +1049,7 @@ export class ActiveDoc extends EventEmitter {
           fallbackStoreId,
         );
         if (isAdded) {
+          sizesToUpdate.set(fileIdent, file.size);
           results.added += 1;
         } else {
           results.unused += 1;
@@ -1059,6 +1062,11 @@ export class ActiveDoc extends EventEmitter {
         this._log.error(docSession, `Failed to upload attachment: ${err}`);
       }
     });
+
+    // This updates _grist_Attachments.fileSize with the size of the uploaded files.
+    // This prevents a loophole where a user has altered `fileSize`, imported the altered document,
+    // then restored the originals.
+    await this._updateAttachmentFileSizesUsingFileIdent(docSession, sizesToUpdate);
 
     return results;
   }
@@ -2594,6 +2602,33 @@ export class ActiveDoc extends EventEmitter {
       imageWidth: dimensions.width,
       timeUploaded: Date.now()
     }];
+  }
+
+  private async _updateAttachmentFileSizesUsingFileIdent(docSession: OptDocSession,
+                                                         newFileSizesByFileIdent: Map<string, number>): Promise<void> {
+    const rowIdsToUpdate: number[] = [];
+    const newFileSizesForRows: CellValue[] = [];
+    const attachments = this.docData?.getMetaTable("_grist_Attachments").getRecords();
+    for (const attachmentRec of attachments ?? []) {
+      const newSize = newFileSizesByFileIdent.get(attachmentRec.fileIdent);
+      if (newSize && newSize !== attachmentRec.fileSize) {
+        rowIdsToUpdate.push(attachmentRec.id);
+        newFileSizesForRows.push(newSize);
+      }
+    }
+
+    const action: BulkUpdateRecord = ['BulkUpdateRecord', '_grist_Attachments', rowIdsToUpdate, {
+      fileSize: newFileSizesForRows
+    }];
+
+    await this._applyUserActionsWithExtendedOptions(
+      docSession,
+      [action],
+      { attachment: true },
+    );
+
+    // Updates doc's overall attachment usage to reflect any changes to file sizes.
+    await this._updateAttachmentsSize();
   }
 
   /**
