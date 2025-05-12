@@ -386,7 +386,10 @@
         "Transfer in progress": "Transfer in progress",
         "**Some existing attachments are still [external]({{externalLink}})**.": "**Some existing attachments are still [external]({{externalLink}})**.",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).",
-        "[Learn more.]({{learnLink}})": "[Learn more.]({{learnLink}})"
+        "[Learn more.]({{learnLink}})": "[Learn more.]({{learnLink}})",
+        "Upload": "Upload",
+        "Upload missing attachments": "Upload missing attachments",
+        "Uploading...": "Uploading..."
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -640,7 +643,15 @@
         "Download document": "Download document",
         "Download document and history": "Download document and history",
         "Download document without history (can significantly reduce file size)": "Download document without history (can significantly reduce file size)",
-        "Download document structure only (no data, for template use)": "Download document structure only (no data, for template use)"
+        "Download document structure only (no data, for template use)": "Download document structure only (no data, for template use)",
+        ".tar (recommended)": ".tar (recommended)",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "Download an archive of all the attachments present in this document.",
+        "Download attachments": "Download attachments",
+        "Download full document and history": "Download full document and history",
+        "Format:": "Format:",
+        "Learn more": "Learn more",
+        "download attachments": "download attachments"
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -794,7 +805,9 @@
         "Export as...": "Export as...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
         "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)",
-        "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again."
+        "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again.",
+        "Download attachments...": "Download attachments...",
+        "Download document...": "Download document..."
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
