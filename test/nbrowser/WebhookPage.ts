@@ -290,6 +290,24 @@ describe('WebhookPage', function () {
     await gu.waitForServer();
     assert.equal(await getField(1, 'Memo'), '1234');
   });
+
+  it('does not allow adding webhooks to forks', async function () {
+    // First, let's make sure it's there to begin with.
+    await gu.wipeToasts();
+    await gu.openDocumentSettings();
+    await gu.scrollIntoView(driver.findContentWait('a', /API/i, 3000));
+    assert.equal(await driver.find('.test-admin-panel-item-name-webhooks').isPresent(), true);
+
+    // Now let's make sure it's not in a fork
+    await driver.find('.test-tb-share').click();
+    await driver.find('.test-work-on-copy').click();
+    await gu.waitForUrl(/~/);
+    await gu.waitForDocToLoad();
+    await gu.wipeToasts();
+    await gu.openDocumentSettings();
+    await gu.scrollIntoView(driver.findContentWait('a', /API/i, 3000));
+    assert.equal((await driver.findAll('.test-admin-panel-item-name-webhooks')).length, 0);
+  });
 });
 
 async function setField(rowNum: number, col: string, text: string) {

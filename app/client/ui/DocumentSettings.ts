@@ -218,7 +218,7 @@ export class DocSettingsPage extends Disposable {
             href: getApiConsoleLink(docPageModel),
           }),
         }),
-        dom.create(AdminSectionItem, {
+        this._gristDoc.docPageModel.isFork.get() ? null : dom.create(AdminSectionItem, {
           id: 'webhooks',
           name: t('Webhooks'),
           description: t('Notify other services on doc changes'),
