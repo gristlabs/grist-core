@@ -350,6 +350,10 @@ export class DocWorkerApi {
     );
 
     const registerWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, webhook: WebhookFields) => {
+      if (activeDoc.isFork) {
+        throw new ApiError('Unsaved document copies cannot have webhooks', 400);
+      }
+
       const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, null, webhook);
       if (!fields.eventTypes?.length) {
         throw new ApiError(`eventTypes must be a non-empty array`, 400);

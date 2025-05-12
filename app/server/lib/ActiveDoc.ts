@@ -247,6 +247,8 @@ export class ActiveDoc extends EventEmitter {
   public readonly triggersLock: Mutex = new Mutex();
   public isTimingOn = false;
 
+  public isFork: boolean;
+
   protected _actionHistory: ActionHistory;
   protected _sharing: Sharing;
   // This lock is used to avoid reading sandbox state while it is being modified but before
@@ -307,8 +309,9 @@ export class ActiveDoc extends EventEmitter {
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
+    this.isFork = Boolean(forkId);
     this._isSnapshot = Boolean(snapshotId);
-    this._isForkOrSnapshot = Boolean(forkId || snapshotId);
+
     if (!this._isSnapshot) {
       /**
        * In cases where large numbers of documents are restarted simultaneously
@@ -372,7 +375,7 @@ export class ActiveDoc extends EventEmitter {
         });
       }
 
-      if (!this._isForkOrSnapshot) {
+      if (!(this.isFork || this._isSnapshot)) {
         /* Note: We don't currently persist usage for forks or snapshots anywhere, so
          * we need to hold off on setting _docUsage here. Normally, usage is set shortly
          * after initialization finishes, after data/attachments size has finished
