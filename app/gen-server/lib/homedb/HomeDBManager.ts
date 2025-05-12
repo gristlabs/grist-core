@@ -5,7 +5,7 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features, isFreePlan} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -26,24 +26,25 @@ import {
   PREVIEWER_EMAIL,
   UserAccessData,
   UserOptions,
-  WorkspaceProperties,
-} from "app/common/UserAPI";
-import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
-import {Alias} from "app/gen-server/entity/Alias";
-import {BillingAccount} from "app/gen-server/entity/BillingAccount";
-import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
-import {Config} from "app/gen-server/entity/Config";
-import {DocPref} from "app/gen-server/entity/DocPref";
-import {Document} from "app/gen-server/entity/Document";
-import {Group} from "app/gen-server/entity/Group";
-import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
-import {Pref} from "app/gen-server/entity/Pref";
-import {getDefaultProductNames, personalFreeFeatures, Product} from "app/gen-server/entity/Product";
-import {Secret} from "app/gen-server/entity/Secret";
-import {Share} from "app/gen-server/entity/Share";
-import {User} from "app/gen-server/entity/User";
-import {Workspace} from "app/gen-server/entity/Workspace";
+  WorkspaceProperties
+} from 'app/common/UserAPI';
+import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from 'app/gen-server/entity/AclRule';
+import {Alias} from 'app/gen-server/entity/Alias';
+import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
+import {BillingAccountManager} from 'app/gen-server/entity/BillingAccountManager';
+import {Config} from 'app/gen-server/entity/Config';
+import {DocPref} from 'app/gen-server/entity/DocPref';
+import {Document} from 'app/gen-server/entity/Document';
+import {Group} from 'app/gen-server/entity/Group';
 import {Limit} from 'app/gen-server/entity/Limit';
+import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/entity/Organization';
+import {Pref} from 'app/gen-server/entity/Pref';
+import {getDefaultProductNames, personalFreeFeatures, Product} from 'app/gen-server/entity/Product';
+import {Secret} from 'app/gen-server/entity/Secret';
+import {Share} from 'app/gen-server/entity/Share';
+import {User} from 'app/gen-server/entity/User';
+import {Workspace} from 'app/gen-server/entity/Workspace';
+import {GroupsManager} from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
   DocumentAccessChanges,
@@ -55,11 +56,11 @@ import {
   QueryResult,
   Resource,
   UserProfileChange,
-  WorkspaceAccessChanges,
+  WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
-import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
+import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
 import {
   bitOr,
@@ -78,11 +79,11 @@ import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
-import {WebHookSecret} from "app/server/lib/Triggers";
-
-import {Request} from "express";
+import {expectedResetDate} from 'app/server/lib/serverUtils';
+import {WebHookSecret} from 'app/server/lib/Triggers';
+import {Request} from 'express';
 import {defaultsDeep, flatten, pick, size} from 'lodash';
-import moment from "moment";
+import moment from 'moment';
 import {
   Brackets,
   DatabaseType,
@@ -91,9 +92,9 @@ import {
   ObjectLiteral,
   SelectQueryBuilder,
   WhereExpressionBuilder
-} from "typeorm";
-import {v4 as uuidv4} from "uuid";
-import { GroupsManager } from './GroupsManager';
+} from 'typeorm';
+import {v4 as uuidv4} from 'uuid';
+
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -2769,11 +2770,11 @@ export class HomeDBManager {
   }
 
   public async getLimit(accountId: number, limitType: LimitType): Promise<Limit|null> {
-    return await this._getOrCreateLimit(accountId, limitType, true);
+    return await this._getOrCreateLimitAndReset(accountId, limitType, true);
   }
 
   public async peekLimit(accountId: number, limitType: LimitType): Promise<Limit|null> {
-    return await this._getOrCreateLimit(accountId, limitType, false);
+    return await this._getOrCreateLimitAndReset(accountId, limitType, false);
   }
 
   public async removeLimit(scope: Scope, limitType: LimitType): Promise<void> {
@@ -2802,34 +2803,21 @@ export class HomeDBManager {
   public async increaseUsage(scope: Scope, limitType: LimitType, options: {
     delta: number,
     dryRun?: boolean,
-  }): Promise<Limit|null> {
-    const limitOrError: Limit|ApiError|null = await this._connection.transaction(async manager => {
+  }, transaction?: EntityManager): Promise<Limit|null> {
+    const limitOrError: Limit|ApiError|null = await this.runInTransaction(transaction, async manager => {
       const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
-        .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
-        .innerJoinAndSelect('billing_account.product', 'product')
-        .leftJoinAndSelect('billing_account.limits', 'limit', 'limit.type = :limitType', {limitType})
         .getOne();
       // If the org doesn't exists, or is a fake one (like for anonymous users), don't do anything.
       if (!org || org.id === 0) {
         // This API shouldn't be called, it should be checked first if the org is valid.
         throw new ApiError(`Can't create a limit for non-existing organization`, 500);
       }
-      let existing = org?.billingAccount?.limits?.[0];
+      const existing = await this._getOrCreateLimitAndReset(org.billingAccountId, limitType, true, manager);
       if (!existing) {
-        const features = org?.billingAccount?.getFeatures();
-        if (!features) {
-          throw new ApiError(`getLimit: no product found for org`, 500);
-        }
-        if (features.baseMaxAssistantCalls === undefined) {
-          // If the product has no assistantLimit, then it is not billable yet, and we don't need to
-          // track usage as it is basically unlimited.
-          return null;
-        }
-        existing = new Limit();
-        existing.billingAccountId = org.billingAccountId;
-        existing.type = limitType;
-        existing.limit = features.baseMaxAssistantCalls ?? 0;
-        existing.usage = 0;
+        throw new ApiError(
+          `Can't create a limit for non-existing organization`,
+          500,
+        );
       }
       const limitLess = existing.limit === -1; // -1 means no limit, it is not possible to do in stripe.
       const projectedValue = existing.usage + options.delta;
@@ -3344,20 +3332,63 @@ export class HomeDBManager {
     );
   }
 
-  private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
+  private async _getOrCreateLimitAndReset(
+    accountId: number,
+    limitType: LimitType,
+    force: boolean,
+    transaction?: EntityManager
+  ): Promise<Limit|null> {
     if (accountId === 0) {
       throw new Error(`getLimit: called for not existing account`);
     }
-    const result = this._connection.transaction(async manager => {
+    const result = this.runInTransaction(transaction, async manager => {
       let existing = await manager.createQueryBuilder()
         .select('limit')
         .from(Limit, 'limit')
-        .innerJoin('limit.billingAccount', 'account')
+        .innerJoinAndSelect('limit.billingAccount', 'account')
+        .innerJoinAndSelect('account.product', 'product')
         .where('account.id = :accountId', {accountId})
           .andWhere('limit.type = :limitType', {limitType})
         .getOne();
-      if (!force && !existing) { return null; }
-      if (existing) { return existing; }
+
+      // If we don't have a limit, and we can't create one, return null.
+      if (!existing && !force) { return null; }
+
+      // If we have a limit, check if we don't need to reset it.
+      if (existing) {
+        // We reset the limit if current date (in UTC) is greater then last billing period and the limit
+        // wasn't reset yet. We store the last reset date in the limit itself.
+
+        // We can only reset the limit if we know the billing period end date, and this is not a free plan.
+        if (existing.billingAccount.status?.currentPeriodEnd
+            && existing.billingAccount.status?.currentPeriodStart
+            && existing.billingAccount.inGoodStanding
+            && !isFreePlan(existing.billingAccount.product.name)
+           ) {
+          const startDate = new Date(existing.billingAccount.status.currentPeriodStart).getTime();
+          const endDate = new Date(existing.billingAccount.status.currentPeriodEnd).getTime();
+
+          // Calculate the date the limit should be cleared.
+          const timestamp = new Date();
+          const expected = expectedResetDate(startDate, endDate, timestamp.getTime());
+          if (expected) {
+            // If we expect to see a reset date, make sure it was reset at that date or little bit after.
+            const wasResetOk = existing.resetAt && expected < existing.resetAt.getTime();
+            if (!wasResetOk) {
+              // So the limit wasn't reset yet, or before the date we expected.
+              existing.usage = 0;
+              existing.resetAt = timestamp;
+              log.info(
+                `Resetting limit ${limitType} for account ` +
+                `${accountId} (${existing.billingAccount.stripeSubscriptionId}) at ${timestamp}`
+              );
+              await manager.save(existing);
+            }
+          }
+        }
+
+        return existing;
+      }
       const product = await manager.createQueryBuilder()
         .select('product')
         .from(Product, 'product')

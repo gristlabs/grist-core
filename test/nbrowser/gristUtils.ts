@@ -2037,6 +2037,7 @@ export async function openDocDropdown(docNameOrRow: string|WebElement): Promise<
     docNameOrRow;
   await docRow.mouseMove();
   await docRow.find('.test-dm-doc-options,.test-dm-pinned-doc-options').mouseMove().click();
+  await findOpenMenu();
 }
 
  /**
