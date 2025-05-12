@@ -1115,7 +1115,9 @@
         "Show resolved comments": "Show resolved comments",
         "Showing last {{nb}} comments": "Showing last {{nb}} comments",
         "Started discussion": "Started discussion",
-        "Write a comment": "Write a comment"
+        "Write a comment": "Write a comment",
+        "Remove thread": "Remove thread",
+        "updated": "updated"
     },
     "EditorTooltip": {
         "Convert column to formula": "Convert column to formula"
