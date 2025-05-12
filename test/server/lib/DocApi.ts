@@ -5375,6 +5375,22 @@ function testDocApi(settings: {
               watchedColIds: ['A']
             };
 
+            // make sure it doesn't work on forks.
+            const doc = userApi.getDocAPI(docId);
+            const fork = await doc.fork();
+            const {data: errorData} = await axios.post(
+              `${serverUrl}/api/docs/${fork.docId}/webhooks`,
+              {
+                webhooks: [{
+                  fields: {
+                    ...origFields,
+                    url: `${serving.url}/foo`
+                  }
+                }]
+              }, chimpy
+            );
+            assert.equal(errorData.error, 'Unsaved document copies cannot have webhooks');
+
             // subscribe
             const {data} = await axios.post(
               `${serverUrl}/api/docs/${docId}/webhooks`,
