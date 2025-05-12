@@ -11,9 +11,11 @@ import {makeT} from 'app/client/lib/localization';
 import {cssMarkdownSpan} from 'app/client/lib/markdown';
 import {reportError} from 'app/client/models/AppModel';
 import type {DocPageModel} from 'app/client/models/DocPageModel';
+import {reportWarning} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
+import {openFilePicker} from 'app/client/ui/FileDialog';
 import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
@@ -226,11 +228,11 @@ export class DocSettingsPage extends Disposable {
         }),
       ]),
 
-      isDocOwner ? this._buildTransferDom() : null,
+      isDocOwner ? this._buildAttachmentStorageSection() : null,
     );
   }
 
-  private _buildTransferDom() {
+  private _buildAttachmentStorageSection() {
     const INTERNAL = 'internal', EXTERNAL = 'external';
 
     const storageType = Computed.create(this, use => {
@@ -350,13 +352,79 @@ export class DocSettingsPage extends Disposable {
           ]),
         ]),
       ),
+      this._buildAttachmentUploadSection(),
     ]);
   }
 
+  private _buildAttachmentUploadSection() {
+    const isUploadingObs = Observable.create(this, false);
+    const buttonText = Computed.create(this, (use) => use(isUploadingObs) ? t('Uploading...') : t('Upload'));
+
+    const uploadButton = cssSmallButton(
+      dom.text(buttonText),
+      dom.on('click',
+        async () => {
+          // This may never return due to openFilePicker. Anything past this point isn't guaranteed
+          // to execute.
+          const file = await this._pickAttachmentsFile();
+          if (!file) {
+            return;
+          }
+          if (isUploadingObs.isDisposed()) { return; }
+          isUploadingObs.set(true);
+          try {
+            await this._uploadAttachmentsArchive(file);
+          } finally {
+            if (!isUploadingObs.isDisposed()) {
+              isUploadingObs.set(false);
+            }
+          }
+        }),
+      dom.prop('disabled', isUploadingObs),
+      testId('upload-attachment-archive')
+    );
+
+    return dom.create(AdminSectionItem, {
+      id: 'uploadAttachments',
+      name: withInfoTooltip(
+        dom('span', t('Upload missing attachments'), testId('transfer-header')),
+        'uploadAttachments',
+      ),
+      value: uploadButton,
+    });
+  }
+
+  // May never finish - see `openFilePicker` for more info.
+  private async _pickAttachmentsFile(): Promise<File | undefined> {
+    const files = await openFilePicker({
+      multiple: false,
+      accept: ".tar",
+    });
+    return files[0];
+  }
+
+  private async _uploadAttachmentsArchive(file: File) {
+    try {
+      const uploadResult = await this._gristDoc.docApi.uploadAttachmentArchive(file);
+      this._gristDoc.app.topAppModel.notifier.createNotification({
+        title: "Attachments upload complete",
+        message: `${uploadResult.added} attachment files reconnected`,
+        level: 'info',
+        canUserClose: true,
+        expireSec: 5,
+      });
+    } catch (err) {
+      reportWarning(err.toString(), {
+        key: "attachmentArchiveUploadError",
+        title: "Attachments upload failed",
+        level: 'error'
+      });
+    }
+  }
+
   private async _reloadEngine(ask = true) {
-    const docPageModel = this._gristDoc.docPageModel;
     const handler =  async () => {
-      await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+      await this._gristDoc.docApi.forceReload();
       document.location.reload();
     };
     if (!ask) {
@@ -377,7 +445,6 @@ export class DocSettingsPage extends Disposable {
   }
 
   private async _startTiming() {
-    const docPageModel = this._gristDoc.docPageModel;
     modal((ctl, owner) => {
       this.onDispose(() => ctl.close());
       const selected = Observable.create<TimingModalOption>(owner, TimingModalOption.Adhoc);
@@ -387,7 +454,7 @@ export class DocSettingsPage extends Disposable {
         if (selected.get() === TimingModalOption.Reload) {
           page.set(TimingModalPage.Spinner);
           await this._gristDoc.docApi.startTiming();
-          await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+          await this._gristDoc.docApi.forceReload();
           ctl.close();
           urlState().pushUrl({docPage: 'timing'}).catch(reportError);
         } else {
@@ -551,10 +618,9 @@ export class DocSettingsPage extends Disposable {
   }
 
   private async _doSetEngine(val: EngineCode|undefined) {
-    const docPageModel = this._gristDoc.docPageModel;
     if (this._engine.get() !== val) {
       await this._docInfo.documentSettingsJson.prop('engine').saveOnly(val);
-      await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+      await this._gristDoc.docApi.forceReload();
     }
   }
 }
@@ -697,7 +763,6 @@ function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
     }
   });
 }
-
 
 const cssContainer = styled('div', `
   overflow-y: auto;

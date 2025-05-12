@@ -80,8 +80,16 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {Document as APIDocument, AttachmentTransferStatus,
-        DocReplacementOptions, DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {
+  Document as APIDocument,
+  ArchiveUploadResult,
+  AttachmentTransferStatus,
+  CreatableArchiveFormats,
+  DocReplacementOptions,
+  DocState,
+  DocStateComparison,
+  NEW_DOCUMENT_CODE
+} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -92,7 +100,7 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {
   Archive,
-  ArchiveEntry, CreatableArchiveFormats,
+  ArchiveEntry,
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
@@ -3346,12 +3354,6 @@ function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLe
       altSessionId: docSession.altSessionId,
     },
   };
-}
-
-export interface ArchiveUploadResult {
-  added: number;
-  errored: number;
-  unused: number;
 }
 
 export function attachmentToArchiveFilePath(fileDetails: { fileIdent: string, fileName: string } ): string {

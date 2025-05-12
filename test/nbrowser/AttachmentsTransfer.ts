@@ -1,34 +1,47 @@
-import {DocAPI} from 'app/common/UserAPI';
+import {AttachmentsArchiveParams, DocAPI} from 'app/common/UserAPI';
 import fs from 'fs';
 import {assert, driver, Key, WebElementPromise} from 'mocha-webdriver';
 import os from 'os';
 import path from 'path';
 import * as gu from 'test/nbrowser/gristUtils';
-import {TestUser} from 'test/nbrowser/gristUtils';
+import {fileDialogUpload, TestUser} from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import * as testUtils from 'test/server/testUtils';
+import {createTmpDir} from 'test/server/docTools';
+import axios from 'axios';
+import stream from 'node:stream';
+import fse from 'fs-extra';
 
 describe("AttachmentsTransfer", function() {
   this.timeout('6m');
   const cleanup = setupTestSuite();
   let docId: string;
   let session: gu.Session;
-  let tmpFolder: string;
+  let tmpAttachmentsFolder: string;
+  let tmpDownloadsFolder: string;
+  let reqHeaders: { Authorization: string } | undefined;
   let api: DocAPI;
   let oldEnv: testUtils.EnvironmentSnapshot;
 
   /** Files will be stored in a folder inside the tmpFolder. Here is a helper that will get files names from it. */
   const files = () => {
-    const dirs = fs.readdirSync(tmpFolder).filter(f => fs.statSync(path.join(tmpFolder, f)).isDirectory());
+    const isDir = (f: string) => fs.statSync(path.join(tmpAttachmentsFolder, f)).isDirectory();
+    const dirs = fs.readdirSync(tmpAttachmentsFolder).filter(isDir);
     if (dirs.length === 0) { return []; }
     if (dirs.length > 1) { throw new Error("Unexpected number of directories"); }
-    const innerFiles = fs.readdirSync(path.join(tmpFolder, dirs[0]));
+    const innerFiles = fs.readdirSync(path.join(tmpAttachmentsFolder, dirs[0]));
     return innerFiles;
   };
 
   before(async function() {
-    tmpFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'grist_attachments_'));
+    tmpAttachmentsFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'grist_attachments_'));
+    tmpDownloadsFolder = await createTmpDir();
     oldEnv = new testUtils.EnvironmentSnapshot();
+
+    session = await gu.session().teamSite.login();
+    reqHeaders = {
+      Authorization: `Bearer ${session.getApiKey()}`
+    };
   });
 
   afterEach(async function() {
@@ -42,10 +55,8 @@ describe("AttachmentsTransfer", function() {
   });
 
   it('should show message that transfers are not configured', async function() {
-    session = await gu.session().teamSite.login();
     docId = await session.tempNewDoc(cleanup);
     api = session.createHomeApi().getDocAPI(docId);
-    console.log(docId);
 
     // Open document settings.
     await gu.openDocumentSettings();
@@ -84,7 +95,7 @@ describe("AttachmentsTransfer", function() {
     // Now restart the server.
     Object.assign(process.env, {
       GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
-      GRIST_TEST_ATTACHMENTS_DIR: tmpFolder,
+      GRIST_TEST_ATTACHMENTS_DIR: tmpAttachmentsFolder,
       GRIST_TEST_TRANSFER_DELAY: '500'
     });
     await server.restart();
@@ -174,6 +185,84 @@ describe("AttachmentsTransfer", function() {
     assert.lengthOf(await messages(), 0);
   });
 
+  it('warns users downloading the doc that attachments are external', async function() {
+    try {
+      await driver.find('.test-tb-share').click();
+      await driver.findContentWait('.test-tb-share-option', /Download document/, 5000).click();
+      const attachmentsMsg = await driver.findWait('.test-external-attachments-info', 1000).getText();
+
+      assert.match(attachmentsMsg, /Attachments are external/, "should be informed attachments aren't included");
+
+      const downloadHref = await driver.find('.test-external-attachments-info a').getAttribute('href');
+      const downloadUrl = new URL(downloadHref);
+      const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl({ format: 'tar' }));
+      assert.equal(downloadUrl.pathname, idealUrl.pathname, "wrong download link called");
+      assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
+      // Ensures the page isn't modified / navigated away from by the link, as subsequent tests will fail.
+      await driver.find('.test-external-attachments-info a').click();
+    } finally {
+      // Try to close the modal to minimise the chances of other tests failing.
+      await driver.findContent("button", "Cancel").click();
+    }
+  });
+
+  it('can download attachments', async function() {
+    try {
+      await driver.find('.test-tb-share').click();
+      await driver.findContentWait('.test-tb-share-option', /Download attachments/, 5000).click();
+      const attachmentsStatus = await driver.findWait('.test-attachments-external-message', 1000).getText();
+
+      assert.match(attachmentsStatus, /in the ".tar" format/, "users should be advised to use .tar");
+
+      const selectFormat = async (formatRegex: RegExp) => {
+        await driver.findWait('.test-attachments-format-select', 500).click();
+        await driver.findContentWait('.test-attachments-format-options .test-select-row', formatRegex, 500).click();
+      };
+
+      const testDownloadLink = async (params: AttachmentsArchiveParams) => {
+        const downloadUrl = new URL(await driver.find('.test-download-attachments-button-link').getAttribute('href'));
+        const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl(params));
+        assert.equal(downloadUrl.pathname, idealUrl.pathname, "wrong download link called");
+        assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
+        const response = await axios.get(downloadUrl.toString(), {
+          headers: reqHeaders,
+          responseType: "stream"
+        });
+        // Download the file so we've got a copy available for uploading.
+        const fileName = `attachments.${params.format}`;
+        assert.notInclude(await fse.readdir(tmpDownloadsFolder), fileName, "attachments file shouldn't exist yet");
+        await stream.promises.pipeline(
+          response.data,
+          fs.createWriteStream(path.join(tmpDownloadsFolder, fileName))
+        );
+        assert.include(await fse.readdir(tmpDownloadsFolder), fileName, "attachments file wasn't downloaded");
+      };
+
+
+      await selectFormat(/.tar/);
+      await gu.waitToPass(() => testDownloadLink({format: 'tar'}), 500);
+      await selectFormat(/.zip/);
+      await gu.waitToPass(() => testDownloadLink({format: 'zip'}), 500);
+    } finally {
+      // Try to close the modal to minimise the chances of other tests failing.
+      await driver.findContent("button", "Cancel").click();
+    }
+  });
+
+  it('can upload attachments', async function() {
+    const file = path.join(tmpDownloadsFolder, 'attachments.tar');
+    await fileDialogUpload(file, async () => {
+      await driver.find('.test-settings-upload-attachment-archive').click();
+    });
+    assert.match(
+      await driver.findWait('.test-notifier-toast-message', 1000).getText(),
+      // Only care that the request is made, and that the UI behaves as expected.
+      // Don't care about checking attachments reconnect behaviour - API tests cover that.
+      /0 attachment files reconnected/
+    );
+    await driver.findWait('.test-notifier-toast-close', 2000).click();
+  });
+
   it('should transfer files to internal storage', async function() {
     // Switch to internal.
     await storageType.select('Internal');
@@ -214,6 +303,7 @@ describe("AttachmentsTransfer", function() {
     assert.lengthOf(await messages(), 0);
     assert.equal(await storageType.value(), 'Internal');
   });
+
 
   // Here we do the same stuff but with the API calls, and we expect that the UI will react to it.
   it('user should be able to observe background actions', async function() {
@@ -284,6 +374,7 @@ describe("AttachmentsTransfer", function() {
     await waitForNotPresent(startTransferButton);
     assert.lengthOf(await messages(), 0);
   });
+
 });
 
 
@@ -334,6 +425,3 @@ async function waitForNotPresent(fn: () => WebElementPromise) {
 }
 
 const attachmentSection = () => driver.find('.test-admin-panel-item-preferredStorage');
-
-
-

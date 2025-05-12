@@ -11,14 +11,43 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {cssInput} from 'app/client/ui/cssInput';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {
+  cssRadioCheckboxOptions,
+  labeledSquareCheckbox,
+  radioCheckboxOption
+} from 'app/client/ui2018/checkbox';
+import {testId} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {select} from 'app/client/ui2018/menus';
-import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, modal, saveModal} from 'app/client/ui2018/modals';
+import {IOptionFull, select} from 'app/client/ui2018/menus';
+import {
+  confirmModal,
+  cssModalBody,
+  cssModalButtons,
+  cssModalTitle,
+  modal,
+  saveModal
+} from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
-import {Document, isTemplatesOrg, Organization, Workspace} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, input, Observable, styled, subscribe} from 'grainjs';
+import {components, tokens} from 'app/common/ThemePrefs';
+import {
+  CreatableArchiveFormats,
+  DocAttachmentsLocation,
+  Document,
+  isTemplatesOrg,
+  Organization,
+  Workspace
+} from 'app/common/UserAPI';
+import {
+  Computed,
+  Disposable,
+  dom,
+  input,
+  Observable,
+  styled,
+  subscribe,
+  subscribeElem
+} from 'grainjs';
+import {cssLink} from 'app/client/ui2018/links';
 import sortBy = require('lodash/sortBy');
 
 const t = makeT('MakeCopyMenu');
@@ -245,8 +274,8 @@ class SaveCopyModal extends Disposable {
   }
 
   /**
-   * Fetch a list of workspaces for the given org, in the same order in which we list them in HomeModel,
-   * and set this._workspaces to it. While fetching, this._workspaces is set to null.
+   * Fetch a list of workspaces for the given org, in the same order in which we list them in
+   * HomeModel, and set this._workspaces to it. While fetching, this._workspaces is set to null.
    * Once fetched, we also set this._destWS.
    */
   private async _updateWorkspaces(org: Organization|null) {
@@ -300,36 +329,148 @@ type DownloadOption = 'full' | 'nohistory' | 'template';
 
 export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
   return modal((ctl, owner) => {
+    const docApi = pageModel.appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, 'full');
+
+    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+    docApi.getAttachmentTransferStatus()
+      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
+      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+
+    const hasExternalAttachments =
+      Computed.create(owner, attachmentStatusObs, (use, status) => status !== 'internal' && status !== 'none');
+
+    const options = dom.domComputed(attachmentStatusObs, (status) => {
+      const isInternal = status === 'internal' || status === 'none';
+      const downloadText = isInternal ? t("Download full document and history") : t("Download document and history");
+      return cssRadioCheckboxOptions(
+        radioCheckboxOption(selected, 'full', downloadText),
+        radioCheckboxOption(selected, 'nohistory', t(
+          "Download document without history (can significantly reduce file size)"
+        )),
+        radioCheckboxOption(selected, 'template', t("Download document structure only (no data, for template use)")),
+      );
+    });
 
     return [
       cssModalTitle(t(`Download document`)),
-      cssRadioCheckboxOptions(
-          radioCheckboxOption(selected, 'full', t("Download document and history")),
-        radioCheckboxOption(selected, 'nohistory', t("Download document without history \
-(can significantly reduce file size)")),
-          radioCheckboxOption(selected, 'template', t("Download document structure only (no data, for template use)")),
-      ),
-      cssModalButtons(
-        dom.domComputed(use =>
-          bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
-              href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl({
-                template: use(selected) === "template",
-                removeHistory: use(selected) === "nohistory" || use(selected) === "template",
+      dom.maybe((use) => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
+      dom.maybe((use) => use(attachmentStatusObs) !== undefined, () => [
+        options,
+        dom.maybe(hasExternalAttachments, () => cssAttachmentsWarning(
+          t(
+            "Attachments are external and not included in this download. " +
+            "If uploading the document to a separate Grist installation, " +
+            "you will also need to {{downloadLink}} separately. ",
+            //"{{learnMoreLink}}.",
+            {
+              downloadLink: cssLink(t("download attachments"), {
+                href: docApi.getDownloadAttachmentsArchiveUrl({ format: 'tar' }),
+                target: "_blank",
+                download: "",
               }),
-              target: '_blank',
-              download: ''
+              //learnMoreLink: cssLink(t("Learn more"), {
+              //  href: "https://TODO"
+              //}),
+            },
+          ),
+          testId('external-attachments-info')
+        )),
+        cssCopyMenuModalButtons(
+          dom.domComputed((modalButtonUse) => {
+            const href = docApi.getDownloadUrl({
+              template: modalButtonUse(selected) === "template",
+              removeHistory: modalButtonUse(selected) === "nohistory" || modalButtonUse(selected) === "template",
+            });
+            return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
+                href,
+                target: '_blank',
+                download: ''
+              }),
+              dom.on('click', () => {
+                ctl.close();
+              }),
+              testId('download-button-link'),
+            );
+          }),
+          bigBasicButton(t('Cancel'), dom.on('click', () => {
+            ctl.close();
+          }))
+        )
+      ]),
+    ];
+  });
+}
+
+export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel) {
+  return modal((ctl, owner) => {
+    const docApi = pageModel.appModel.api.getDocAPI(doc.id);
+
+    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
+    docApi.getAttachmentTransferStatus()
+      .then((status) => { attachmentStatusObs.set(status.locationSummary); })
+      .catch((err) => { reportError(err); attachmentStatusObs.set('unknown'); });
+    const isExternal = Computed.create(owner, attachmentStatusObs,
+      (use, status) => status !== 'none' && status !== 'internal'
+    );
+
+    const formatObs = Observable.create<CreatableArchiveFormats>(owner, 'tar');
+    const allFormats: IOptionFull<CreatableArchiveFormats>[] = [
+      { value: 'tar', label: t('.tar (recommended)')},
+      { value: 'zip', label: t('.zip')}
+    ];
+    const attachmentArchiveDownloadHref: Computed<string> = Computed.create(owner, (use) => {
+      const format = use(formatObs);
+      return docApi.getDownloadAttachmentsArchiveUrl({ format });
+    });
+
+
+    return [
+      cssModalTitle(t(`Download attachments`)),
+      dom.maybe((use) => use(attachmentStatusObs) === undefined, () => cssSpinner(loadingSpinner())),
+      dom.maybe((use) => use(attachmentStatusObs) !== undefined, () => [
+        cssEagerWrap(dom('p', t('Download an archive of all the attachments present in this document.'))),
+        dom.maybe(isExternal, () => cssEagerWrap(dom('p',
+          t(
+            'If you\'re planning to upload this document to a Grist installation, ' +
+            'you will need the archive in the ".tar" format to restore attachments. '
+            /*'{{learnMore}}.',
+            {
+              learnMore: cssLink(t("Learn more"), {
+                href: "https://TODO",
+              }),
+            },
+            */
+          ),
+          testId('attachments-external-message')
+        ))),
+        cssAttachmentsDownloadRow(
+          t('Format:'),
+          dom.update(
+            cssArchiveFormatSelect(formatObs, allFormats, { menuCssClass: "test-attachments-format-options" }),
+            testId('attachments-format-select'),
+          ),
+        ),
+        cssCopyMenuModalButtons(
+          cssDownloadAttachmentsButton(
+            t('Download attachments'),
+            (elem) => subscribeElem(elem, attachmentArchiveDownloadHref, (href) => {
+              dom.attrsElem(elem, hooks.maybeModifyLinkAttrs({
+                href: href,
+                target: '_blank',
+                download: '',
+              }));
             }),
             dom.on('click', () => {
               ctl.close();
             }),
-            testId('download-button-link'),
+            testId('download-attachments-button-link'),
           ),
+          bigBasicButton(t('Cancel'), dom.on('click', () => {
+            ctl.close();
+          }))
         ),
-        bigBasicButton(t('Cancel'), dom.on('click', () => {
-          ctl.close();
-        }))
-      )
+      ])
     ];
   });
 }
@@ -341,8 +482,8 @@ export const cssField = styled('div', `
 
 export const cssLabel = styled('label', `
   font-weight: normal;
-  font-size: ${vars.mediumFontSize};
-  color: ${theme.text};
+  font-size: ${tokens.mediumFontSize};
+  color: ${components.text};
   margin: 8px 16px 0 0;
   white-space: nowrap;
   width: 80px;
@@ -350,7 +491,7 @@ export const cssLabel = styled('label', `
 `);
 
 const cssWarningText = styled('div', `
-  color: ${theme.errorText};
+  color: ${components.errorText};
   margin-top: 8px;
 `);
 
@@ -362,4 +503,31 @@ const cssSpinner = styled('div', `
 
 const cssCheckbox = styled(labeledSquareCheckbox, `
   margin-top: 8px;
+`);
+
+const cssAttachmentsDownloadRow = styled('div', `
+  margin: 16px 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+`);
+
+const cssArchiveFormatSelect = styled(select, ``);
+
+const cssDownloadAttachmentsButton = styled(bigPrimaryButtonLink, `
+  text-wrap: nowrap;
+`);
+
+// Prevents the div from expanding the parent and makes it only use available space instead.
+const cssEagerWrap = styled('div', `
+  contain: inline-size;
+`);
+
+const cssAttachmentsWarning = styled(cssEagerWrap, `
+  margin: 16px 0;
+`);
+
+const cssCopyMenuModalButtons = styled(cssModalButtons, `
+  display: flex;
+  align-items: center;
 `);

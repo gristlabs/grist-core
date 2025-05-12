@@ -28,7 +28,15 @@ import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
-import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {
+  ArchiveUploadResult,
+  CreatableArchiveFormats,
+  DocReplacementOptions,
+  DocState,
+  DocStateComparison,
+  DocStates,
+  NEW_DOCUMENT_CODE
+} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -45,12 +53,10 @@ import {
 } from 'app/plugin/TableOperationsImpl';
 import {
   ActiveDoc,
-  ArchiveUploadResult,
   colIdToRef as colIdToReference,
   getRealTableId,
   tableIdToRef
 } from "app/server/lib/ActiveDoc";
-import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
   getConfiguredAttachmentStoreConfigs,
@@ -115,7 +121,6 @@ import * as _ from "lodash";
 import LRUCache from 'lru-cache';
 import * as moment from 'moment';
 import fetch from 'node-fetch';
-import * as stream from 'node:stream';
 import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
@@ -602,16 +607,13 @@ export class DocWorkerApi {
       try {
         await archive.packInto(res, { endDestStream: false });
       } catch(err) {
-        // Most behaviours here result in a poor user experience. The options are:
+        // This only behaves sensibly if the 'download' attribute is on the <a> tag.
+        // Otherwise you get a poor user experience, such as:
         // - No data written to the stream: open a new tab with a 500 error.
         // - Destroy the stream: open a new tab with a connection reset error.
         // - Return some data without res.destroy(): download shows as successful, despite being corrupt.
-        // Sending headers then resetting the connection shows as 'Download failed', which is preferable.
-        // There's no way to guarantee headers have been flushed except by writing data, which is
-        // why we write some arbitrary data then destroy the stream.
-
-        // Need to cast { end: false } to any because @types/node for node 18 has a missing parameter.
-        await stream.promises.pipeline(stream.Readable.from("Internal server error"), res, { end: false } as any);
+        // Sending headers then resetting the connection shows as 'Download failed', regardless of the
+        // 'download' attribute being set.
         res.destroy(err);
       }
       res.end();
