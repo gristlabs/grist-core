@@ -4200,9 +4200,9 @@ describe('GranularAccess', function() {
       const ownerPayload = await getPayload();
       await reopenClients({linkParameters: {aclAsUser: 'charon@getgrist.com'}});
       const aclPayload = await getPayload();
-      assert(aclPayload!.userId != ownerPayload!.userId);
-    })
-  })
+      assert(aclPayload.userId != ownerPayload.userId);
+    });
+  });
 });
 
 async function closeClient(cli: GristClient) {
