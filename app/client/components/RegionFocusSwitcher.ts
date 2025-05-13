@@ -94,11 +94,11 @@ export class RegionFocusSwitcher extends Disposable {
     this._app.on('clipboard_focus', focusActiveSection);
     this.onDispose(() => this._app.off('clipboard_focus', focusActiveSection));
 
-    if (this._gristDocObs) {
+    /*if (this._gristDocObs) {
       const onClick = this._onClick.bind(this);
       pageContainer.addEventListener('mouseup', onClick);
       this.onDispose(() => pageContainer.removeEventListener('mouseup', onClick));
-    }
+    }*/
 
     this._initiated.set(true);
   }
@@ -216,7 +216,7 @@ export class RegionFocusSwitcher extends Disposable {
    *   - if necessary, make it easier to tab through things inside panels by "unfocusing" the view section,
    *   - make sure the internal current region info is set when user clicks on the view layout.
    */
-  private _onClick(event: MouseEvent) {
+  /*private _onClick(event: MouseEvent) {
     const gristDoc = this._getGristDoc();
     if (!gristDoc) {
       return;
@@ -259,7 +259,7 @@ export class RegionFocusSwitcher extends Disposable {
     if (!targetsMain && getPanelElement(targetRegionId as Panel) === event.target) {
       focusPanel();
     }
-  }
+  }*/
 
   private _onEscapeKeypress() {
     const {region: current, initiator} = this._state.get();
@@ -558,7 +558,7 @@ const getPanelElementId = (id: Panel): string => {
   return `[${ATTRS.regionId}="${id}"]`;
 };
 
-const isFocusableElement = (el: EventTarget | null): boolean => {
+/*const isFocusableElement = (el: EventTarget | null): boolean => {
   if (!el) {
     return false;
   }
@@ -569,7 +569,7 @@ const isFocusableElement = (el: EventTarget | null): boolean => {
     return true;
   }
   return false;
-};
+};*/
 
 /**
  * Remove the visual highlight on elements that are styled as focused elements of panels.
