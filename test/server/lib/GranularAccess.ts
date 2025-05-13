@@ -18,6 +18,7 @@ import {OpenDocOptions} from 'app/common/DocListAPI';
 import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {isLongerThan, pruneArray} from 'app/common/gutil';
 import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
+import {AccessTokenResult} from 'app/plugin/GristAPI';
 import {GristObjCode} from 'app/plugin/GristData';
 import {Deps as DocClientsDeps} from 'app/server/lib/DocClients';
 import {DocManager} from 'app/server/lib/DocManager';
@@ -28,6 +29,7 @@ import axios from "axios";
 import {assert} from 'chai';
 import {cloneDeep, isMatch, pick} from 'lodash';
 import * as sinon from 'sinon';
+import * as jwt from 'jsonwebtoken';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {createDocTools} from 'test/server/docTools';
 import {GristClient, openClient} from 'test/server/gristClient';
@@ -4184,6 +4186,23 @@ describe('GranularAccess', function() {
       [ 'AddRecord', 'Data1', 5, { A: '16', B: true, manualSort: 5 } ]
     ]);
   });
+
+  describe("accessToken", function() {
+    it('respects aclAsUser', async function() {
+      await freshDoc();
+      async function getPayload() {
+        const tokenResult: AccessTokenResult = (await cliOwner.send('getAccessToken', 0, {})).data;
+        const token = tokenResult.token;
+        const payload: any = jwt.decode(token);
+        return payload;
+      }
+
+      const ownerPayload = await getPayload();
+      await reopenClients({linkParameters: {aclAsUser: 'charon@getgrist.com'}});
+      const aclPayload = await getPayload();
+      assert(aclPayload!.userId != ownerPayload!.userId);
+    })
+  })
 });
 
 async function closeClient(cli: GristClient) {
