@@ -104,7 +104,10 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
-import {AssistanceSchemaPromptV1Context} from 'app/server/lib/IAssistant';
+import {
+  AssistanceFormulaEvaluationResult,
+  AssistanceSchemaPromptV1Context,
+} from 'app/server/lib/IAssistant';
 import {AssistanceContextV1} from 'app/common/Assistance';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -1559,7 +1562,7 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceFormulaTweak(txt: string) {
+  public assistanceFormulaTweak(txt: string): Promise<string> {
     return this._pyCall('convert_formula_completion', txt);
   }
 
@@ -1570,7 +1573,9 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceEvaluateFormula(options: AssistanceContextV1) {
+  public assistanceEvaluateFormula(
+    options: AssistanceContextV1
+  ): Promise<AssistanceFormulaEvaluationResult> {
     if (!options.evaluateCurrentFormula) {
       throw new Error('evaluateCurrentFormula must be true');
     }
