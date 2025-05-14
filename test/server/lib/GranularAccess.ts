@@ -3479,10 +3479,10 @@ describe('GranularAccess', function() {
     ]);
 
     // Add some attachments.
-    const i1 = await owner.getDocAPI(docId).uploadAttachment('data1', '1.png');
-    const i2 = await owner.getDocAPI(docId).uploadAttachment('data2', '2.png');
-    const i3 = await owner.getDocAPI(docId).uploadAttachment('data3', '3.png');
-    const i4 = await owner.getDocAPI(docId).uploadAttachment('data4', '4.png');
+    const i1 = await owner.getDocAPI(docId).uploadAttachment('content1', '1.txt');
+    const i2 = await owner.getDocAPI(docId).uploadAttachment('content2', '2.txt');
+    const i3 = await owner.getDocAPI(docId).uploadAttachment('content3', '3.txt');
+    const i4 = await owner.getDocAPI(docId).uploadAttachment('content4', '4.txt');
     await owner.getDocAPI(docId).updateRows('Data1', {id: [1], Pics: [[GristObjCode.List, i1, i2]]});
     await owner.getDocAPI(docId).updateRows('Data1', {id: [2], Pics: [[GristObjCode.List, i3]]});
     await owner.getDocAPI(docId).updateRows('Data1', {id: [3], Pics: [[GristObjCode.List, i4]]});
@@ -3491,10 +3491,10 @@ describe('GranularAccess', function() {
     await owner.updateDocPermissions(docId, { users: { 'everyone@getgrist.com': 'editors' } });
 
     // Check an editor can only access the attachments we expect.
-    assert.equal(await getAttachment(editor, docId, i1), 'data1');
-    assert.equal(await getAttachment(editor, docId, i2), 'data2');
+    assert.equal(await getAttachment(editor, docId, i1), 'content1');
+    assert.equal(await getAttachment(editor, docId, i2), 'content2');
     await assert.isRejected(getAttachment(editor, docId, i3), /403.*Cannot access attachment/);
-    assert.equal(await getAttachment(editor, docId, i4), 'data4');
+    assert.equal(await getAttachment(editor, docId, i4), 'content4');
 
     // Add another table with an attachment column, leaving access open.
     await owner.applyUserActions(docId, [
@@ -3534,14 +3534,14 @@ describe('GranularAccess', function() {
     ), /403.*Cannot access attachment/);
 
     // Check that user can add attachments they just uploaded.
-    const i5 = await editor.getDocAPI(docId).uploadAttachment('data5', '5.png');
+    const i5 = await editor.getDocAPI(docId).uploadAttachment('content5', '5.txt');
     await assert.isFulfilled(editor.getDocAPI(docId).updateRows(
       'Data2',
       {id: [1], MorePics: [[GristObjCode.List, i5]]}
     ));
 
     // Check that non-owner cannot add attachments uploaded by someone else.
-    const i6 = await owner.getDocAPI(docId).uploadAttachment('data6', '6.png');
+    const i6 = await owner.getDocAPI(docId).uploadAttachment('content6', '6.txt');
     await assert.isRejected(editor.getDocAPI(docId).updateRows(
       'Data2',
       {id: [1], MorePics: [[GristObjCode.List, i6]]}
@@ -3574,7 +3574,7 @@ describe('GranularAccess', function() {
     // will grant them access to the attachment's contents.
     await assert.isRejected(getAttachment(editor, docId, i3), /403.*Cannot access attachment/);
     await owner.getDocAPI(docId).updateRows('Data2', {id: [1], MorePics: [[GristObjCode.List, i3]]});
-    assert.equal(await getAttachment(editor, docId, i3), 'data3');
+    assert.equal(await getAttachment(editor, docId, i3), 'content3');
   });
 
   it('can add attachments when there are row-level rules', async function() {
@@ -3610,7 +3610,7 @@ describe('GranularAccess', function() {
     assert.lengthOf(attachments, 0);
 
     // Add an attachment as an owner.
-    const i1 = await owner.getDocAPI(docId).uploadAttachment('data1', '1.png');
+    const i1 = await owner.getDocAPI(docId).uploadAttachment('content1', '1.txt');
     await owner.getDocAPI(docId).updateRows('Data1', {id: [1],
                                                       Pics: [[GristObjCode.List, i1]]});
 
@@ -3626,7 +3626,7 @@ describe('GranularAccess', function() {
     // attachment cell change.
     cliEditor.flush();
     cliOwner.flush();
-    const i2 = await editor.getDocAPI(docId).uploadAttachment('data2', '2.png');
+    const i2 = await editor.getDocAPI(docId).uploadAttachment('content2', '2.txt');
     // Owner should see attachment info already (no filtering for them).
     let msg = await cliOwner.readMessage();
     let gristAttachmentAction: any[] = msg.data.docActions[0];
@@ -3660,7 +3660,7 @@ describe('GranularAccess', function() {
 
     // Check if an attachment is added to a cell the editor cannot read, they aren't
     // told about it.
-    const i3 = await owner.getDocAPI(docId).uploadAttachment('data3', '3.png');
+    const i3 = await owner.getDocAPI(docId).uploadAttachment('content3', '3.txt');
     await owner.getDocAPI(docId).updateRows('Data1', {id: [3], Pics: [[GristObjCode.List, i3]]});
     await cliOwner.waitForServer();
     await cliEditor.waitForServer();
@@ -3729,7 +3729,7 @@ describe('GranularAccess', function() {
     ]);
 
     // Add an attachment through regular mechanism.
-    const i1 = await owner.getDocAPI(docId).uploadAttachment('data1', '1.png');
+    const i1 = await owner.getDocAPI(docId).uploadAttachment('content1', '1.txt');
     await owner.getDocAPI(docId).addRows('Data1', {Pics: [[GristObjCode.List, i1]]});
 
     // Try to modify _grist_Attachments by shady means.
