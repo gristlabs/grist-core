@@ -17,6 +17,25 @@ export type ThemeNameOrTokens = ThemeName | ThemeTokens;
 export const themeNames = ['GristLight', 'GristDark'] as const;
 export type ThemeName = typeof themeNames[number];
 
+export const themeNameAppearances = {
+  GristLight: 'light',
+  GristDark: 'dark',
+} as const;
+
+export function getDefaultThemePrefs(): ThemePrefs {
+  return {
+    appearance: 'light',
+    syncWithOS: true,
+    colors: {
+      // Note: the colors object is not used for its original purpose.
+      // It's currently our way to store the theme name in user prefs (without having to change the user prefs schema).
+      // This is why we just repeat the name in both `light` and `dark` properties.
+      light: 'GristLight',
+      dark: 'GristLight',
+    }
+  };
+}
+
 export interface Theme {
   appearance: ThemeAppearance;
   colors: ThemeTokens;
@@ -1216,16 +1235,4 @@ export interface ThemeTokens extends
   Omit<BaseThemeTokens, 'components'>,
   Omit<SpecificThemeTokens, 'components'> {
   components: BaseThemeTokens['components'] & SpecificThemeTokens['components'];
-}
-
-
-export function getDefaultThemePrefs(): ThemePrefs {
-  return {
-    appearance: 'light',
-    syncWithOS: true,
-    colors: {
-      light: 'GristLight',
-      dark: 'GristDark',
-    }
-  };
 }
