@@ -3607,10 +3607,10 @@ describe('GranularAccess', function() {
     ), /403.*Cannot access attachment/);
 
     const readTokenResult = (await cliEditor.send("getAccessToken", 0, {readOnly: true})).data;
-    await assert.isRejected(postAttachment(editor, docId, readTokenResult.token, "dataError", "error.txt"))
+    await assert.isRejected(postAttachment(editor, docId, readTokenResult.token, "dataError", "error.txt"));
 
     const tokenResult = (await cliEditor.send("getAccessToken", 0, {readOnly: false})).data;
-    const i7 = await postAttachment(editor, docId, tokenResult.token, "data7", "7.txt")
+    const i7 = await postAttachment(editor, docId, tokenResult.token, "data7", "7.txt");
     await assert.isFulfilled(getAttachment(owner, docId, i7));
     //await assert.isFulfilled(getAttachment(editor, docId, i7));
     await editor.getDocAPI(docId).updateRows('Data1', {id: [1], Pics: [[GristObjCode.List, i7]]});
