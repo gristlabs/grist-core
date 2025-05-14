@@ -129,8 +129,8 @@ export class RegionFocusSwitcher extends Disposable {
     }
   }
 
-  public reset(initiator?: StateUpdateInitiator) {
-    this.focusRegion(undefined, {initiator});
+  public reset() {
+    this.focusRegion(undefined);
   }
 
   public panelAttrs(id: Panel, ariaLabel: string) {
@@ -139,7 +139,11 @@ export class RegionFocusSwitcher extends Disposable {
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
       dom.cls('kb-focus-highlighter-group', use => {
-        use(this._initiated);
+        const initiated = use(this._initiated);
+        if (!initiated) {
+          return false;
+        }
+
         // highlight focused elements everywhere except in the grist doc views
         if (id !== 'main') {
           return true;
@@ -154,7 +158,11 @@ export class RegionFocusSwitcher extends Disposable {
         return isSpecialPage(gristDoc);
       }),
       dom.cls('clipboard_group_focus', use => {
-        use(this._initiated);
+        const initiated = use(this._initiated);
+        if (!initiated) {
+          return false;
+        }
+
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
         if (!gristDoc) {
@@ -172,7 +180,11 @@ export class RegionFocusSwitcher extends Disposable {
         return isSpecialPage(gristDoc);
       }),
       dom.cls('clipboard_forbid_focus', use => {
-        use(this._initiated);
+        const initiated = use(this._initiated);
+        if (!initiated) {
+          return false;
+        }
+
         // forbid focus only on the main panel when on an actual document view (and not a special page)
         if (id !== 'main') {
           return false;
@@ -190,11 +202,24 @@ export class RegionFocusSwitcher extends Disposable {
         return true;
       }),
       dom.cls(`${cssFocusedPanel.className}-focused`, use => {
-        use(this._initiated);
+        const initiated = use(this._initiated);
+        if (!initiated) {
+          return false;
+        }
+
         const current = use(this._state);
         return current.initiator?.type === 'cycle' && current.region?.type === 'panel' && current.region.id === id;
       }),
     ];
+  }
+
+  /**
+   * this is smelly code that is just here because I don't initialize the region focus switcher correctly…
+   */
+  public onAppPageModelUpdate() {
+    if (this._app.pageModel?.gristDoc) {
+      this._gristDocObs = this._app.pageModel.gristDoc;
+    }
   }
 
   private _cycle(direction: 'next' | 'prev') {
@@ -318,9 +343,6 @@ export class RegionFocusSwitcher extends Disposable {
     if (isEqual(current, prev)) {
       return;
     }
-
-    console.log('mhl current update', current);
-
 
     const gristDoc = this._getGristDoc();
     const mouseEvent = current?.initiator?.type === 'mouse'
