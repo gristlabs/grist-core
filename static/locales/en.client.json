@@ -1329,7 +1329,8 @@
         "Webhook Id": "Webhook Id",
         "Table": "Table",
         "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)",
-        "Header Authorization": "Header Authorization"
+        "Header Authorization": "Header Authorization",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks Unavailable In Unsaved Document Copies"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",
