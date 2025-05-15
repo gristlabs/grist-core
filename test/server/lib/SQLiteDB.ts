@@ -527,6 +527,25 @@ describe('SQLiteDB', function() {
     await assert.isRejected(sdb2.all("SELECT * FROM Foo5"));
     await sdb2.close();
   });
+
+  // This used to tickle a deadlock.
+  it("should handle pauses and transactions", async function() {
+    const sdb = await SQLiteDB.openDB(dbPath('testPauseWithTransaction'), schemaInfo, OpenMode.OPEN_CREATE);
+    const t1 = sdb.execTransaction(async () => {
+      await sdb.exec('create table if not exists data(x,y,z)');
+    });
+    const t2 = sdb.execTransaction(async () => {
+      await sdb.exec('create table if not exists data(x,y,z)');
+    });
+    const t3 = sdb.execTransaction(async () => {
+      await sdb.exec('create table if not exists data(x,y,z)');
+    });
+    sdb.pause();
+    assert.isFalse(await timeoutReached(
+      1000,
+      Promise.all([t1, t2, t3])
+    ));
+  });
 });
 
 
