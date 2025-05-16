@@ -720,37 +720,106 @@ export const convertThemeKeysToCssVars = (theme: Theme): ThemeWithCssVars => {
  * tokens that a given theme must always define
  */
 export interface SpecificThemeTokens {
+  /**
+   * main body text
+   */
   body: Token;
+
+  /**
+   * pronounced text
+   */
   emphasis: Token;
+
+  /**
+   * secondary, less visually pronounced text
+   */
   secondary: Token;
+
+  /**
+   * text that is always light, whatever the current appearance (light or dark theme)
+   */
   veryLight: Token;
 
+  /**
+   * default body bg color
+   */
   bg: Token;
+
+  /**
+   * bg color mostly used on panels
+   */
   bgSecondary: Token;
+
+  /**
+   * transparent bg, mostly used on hover effects
+   */
   bgTertiary: Token;
+
+  /**
+   * pronounced bg color, mostly used on selected items
+   */
   bgEmphasis: Token;
 
+  /**
+   * main decoration color, mostly used on borders
+   */
   decoration: Token;
+
+  /**
+   * less pronounced decoration color
+   */
   decorationSecondary: Token;
+
+  /**
+   * even less pronounced decoration color
+   */
   decorationTertiary: Token;
 
+  /**
+   * main accent color used mostly on interactive elements
+   */
   primary: Token;
+
+  /**
+   * alternative primary color, mostly used on hover effects
+   */
   primaryMuted: Token;
+
+  /**
+   * dimmer primary color, rarely used
+   */
   primaryDim: Token;
+
+  /**
+   * more pronounced primary color variant, rarely used
+   */
   primaryEmphasis: Token;
 
   controlBorderRadius: Token;
 
+  /**
+   * cursor color in widgets
+   */
   cursor: Token;
   cursorInactive: Token;
 
+  /**
+   * transparent background of selected cells
+   */
   selection: Token;
   selectionOpaque: Token;
   selectionDarkerOpaque: Token;
   selectionDarker: Token;
   selectionDarkest: Token;
 
+  /**
+   * non-transparent hover effect color, rarely used
+   */
   hover: Token;
+
+  /**
+   * transparent modal backdrop bg color
+   */
   backdrop: Token;
 
   components: {
