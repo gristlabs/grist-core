@@ -1,6 +1,7 @@
 import {detectCurrentLang, makeT} from 'app/client/lib/localization';
 import {checkName} from 'app/client/lib/nameUtils';
 import {AppModel, reportError} from 'app/client/models/AppModel';
+import {App} from 'app/client/ui/App';
 import {urlState} from 'app/client/models/gristUrlState';
 import * as css from 'app/client/ui/AccountPageCss';
 import {ApiKey} from 'app/client/ui/ApiKey';
@@ -39,7 +40,7 @@ export class AccountPage extends Disposable {
   private _allowGoogleLogin = Computed.create(this, (use) => use(this._userObs)?.allowGoogleLogin ?? false)
     .onWrite((val) => this._updateAllowGooglelogin(val));
 
-  constructor(private _appModel: AppModel) {
+  constructor(private _appModel: AppModel, private _appObj: App) {
     super();
     this._setPageTitle();
     this._fetchAll().catch(reportError);
@@ -58,6 +59,8 @@ export class AccountPage extends Disposable {
       headerMain: this._buildHeaderMain(),
       contentMain: this._buildContentMain(),
       testId,
+    }, {
+      regionFocusSwitcher: this._appObj.regionFocusSwitcher,
     });
   }
 

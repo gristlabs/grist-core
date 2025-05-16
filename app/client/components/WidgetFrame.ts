@@ -215,7 +215,7 @@ export class WidgetFrame extends DisposableWithEvents {
     this._iframe = dom(
       'iframe',
       dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
-      dom.cls('clipboard_focus'),
+      dom.cls('clipboard_allow_focus'),
       dom.cls('custom_view'),
       dom.attr('src', this._url),
       // Allow widgets to write to the clipboard via the Clipboard API.
