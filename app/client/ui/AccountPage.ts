@@ -62,7 +62,7 @@ export class AccountPage extends Disposable {
   }
 
   private _buildContentMain() {
-    const {enableCustomCss} = getGristConfig();
+    const {features} = getGristConfig();
     const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
     const languageOptions = supportedLngs
       .map((lng) => ({value: lng, label: translateLocale(lng)!}))
@@ -143,7 +143,7 @@ designed to ensure that you're the only person who can access your account, even
         ),
         css.header(t("Theme")),
         // Custom CSS is incompatible with custom themes.
-        enableCustomCss ? null : dom.create(ThemeConfig, this._appModel),
+        features?.includes('themes') ? dom.create(ThemeConfig, this._appModel) : null,
         css.subHeader(t("Language")),
         css.dataRow({ style: 'width: 300px'},
           select(userLocale, languageOptions, {

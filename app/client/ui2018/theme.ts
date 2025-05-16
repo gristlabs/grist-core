@@ -60,8 +60,8 @@ let _gristThemeObs: Computed<Theme> | undefined;
 export function gristThemeObs() {
   if (!_gristThemeObs) {
     _gristThemeObs = Computed.create(null, (use) => {
-      // Custom CSS is incompatible with custom themes.
-      if (getGristConfig().enableCustomCss) { return DEFAULT_LIGHT_THEME; }
+      // Default to light theme if themes are disabled in config.
+      if (!getGristConfig().features?.includes('themes')) { return DEFAULT_LIGHT_THEME; }
 
       // If a user's preference is known, return it.
       const themePrefs = use(gristThemePrefs);

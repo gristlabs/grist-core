@@ -35,7 +35,7 @@ export function getThemeBackgroundSnippet() {
   return `
 <script>
 try {
-  if (localStorage.getItem('appearance') === 'dark' && !window.gristConfig.enableCustomCss) {
+  if (localStorage.getItem('appearance') === 'dark' && (window.gristConfig.features || []).includes('themes')) {
     const style = document.createElement('style');
     style.setAttribute('id', 'grist-theme');
     style.textContent = ':root {\\n' +
