@@ -919,6 +919,9 @@ export interface GristLoadConfig {
 
   // Set on /admin pages only, when AdminControls are available and should be enabled in UI.
   adminControls?: boolean;
+
+  // TODO: remove once released (this is only expected to be released in enterprise edition)
+  featureNotifications?: boolean;
 }
 
 export const Features = StringUnion(

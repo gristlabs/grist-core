@@ -42,7 +42,7 @@ COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
 # Copy locales files early. During build process they are validated.
 COPY static/locales /grist/static/locales
-RUN yarn run build:prod
+RUN WEBPACK_EXTRA_MODULE_PATHS=/node_modules yarn run build:prod
 # We don't need them anymore, they will by copied to the final image.
 RUN rm -rf /grist/static/locales
 

@@ -53,7 +53,7 @@ export class BaseAPI {
   private _headers: Record<string, string>;
   private _extraParameters?: Map<string, string>;
 
-  constructor(options: IOptions = {}) {
+  constructor(public readonly options: IOptions = {}) {
     this.fetch = options.fetch || tbind(window.fetch, window);
     this.newFormData = options.newFormData || (() => new FormData());
     this._headers = {

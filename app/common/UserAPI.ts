@@ -511,6 +511,8 @@ export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
  * reasons, such as downloads.
  */
 export interface DocAPI {
+  readonly options: IOptions;
+  getBaseUrl(): string;
   // Immediate flag is a currently not-advertised feature, allowing a query to proceed without
   // waiting for a document to be initialized. This is useful if the calculations done when
   // opening a document are irrelevant.
