@@ -1,10 +1,12 @@
 import {ThemeName, ThemeTokens} from 'app/common/ThemePrefs';
 import {GristDark} from 'app/common/themes/GristDark';
 import {GristLight} from 'app/common/themes/GristLight';
+import {HighContrastLight} from 'app/common/themes/HighContrastLight';
 
 const THEMES: Readonly<Record<ThemeName, ThemeTokens>> = {
   GristLight,
   GristDark,
+  HighContrastLight,
 };
 
 export function getThemeTokens(themeName: ThemeName): ThemeTokens {

@@ -262,6 +262,7 @@ export const Base: BaseThemeTokens = {
     rightPanelSubtabFg: tokens.primary,
     rightPanelSubtabSelectedFg: tokens.body,
     rightPanelSubtabSelectedUnderline: tokens.primary,
+    rightPanelSubtabUnderlineSize: '1px',
     rightPanelSubtabHoverUnderline: tokens.primary,
     rightPanelDisabledOverlay: tokens.bgSecondary,
     rightPanelToggleButtonEnabledFg: tokens.white,
@@ -488,5 +489,7 @@ export const Base: BaseThemeTokens = {
     /* Card Button */
     cardButtonBorderSelected: tokens.primary,
     cardButtonShadow: 'rgba(0,0,0,0.1)',
+
+    formulaIcon: '#D0D0D0',
   }
 };

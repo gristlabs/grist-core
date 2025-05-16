@@ -133,6 +133,10 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     nameOrTokens = urlParams?.themeName;
   }
 
+  if (syncWithOS) {
+    nameOrTokens = userAgentPrefersDarkTheme ? 'GristDark' : 'GristLight';
+  }
+
   let themeTokens: ThemeTokens;
   if (typeof nameOrTokens === 'string') {
     themeTokens = getThemeTokens(nameOrTokens);

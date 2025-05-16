@@ -31,7 +31,7 @@
   }
 
   .formula_field .field-icon, .formula_field_edit::before {
-    background-color: #D0D0D0;
+    background-color: var(--grist-theme-formula-icon, #D0D0D0);
   }
   .formula_field_edit:not(.readonly)::before {
     background-color: var(--grist-color-cursor);
