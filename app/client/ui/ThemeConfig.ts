@@ -48,6 +48,7 @@ export class ThemeConfig extends Disposable {
             [
               {value: 'GristLight', label: 'Light'},
               {value: 'GristDark', label: 'Dark'},
+              {value: 'HighContrastLight', label: 'Light (High Contrast)'},
             ],
             {
               disabled: this._syncWithOS,
@@ -84,5 +85,5 @@ export class ThemeConfig extends Disposable {
 }
 
 const cssAppearanceSelect = styled('div', `
-  width: 120px;
+  width: 180px;
 `);
