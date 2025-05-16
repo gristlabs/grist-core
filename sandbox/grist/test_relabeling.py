@@ -3,13 +3,12 @@ import sys
 import relabeling
 
 from sortedcontainers import SortedListWithKey
-from six.moves import zip as izip, xrange
 
 # Shortcut to keep code more concise.
 r = relabeling
 
 def skipfloats(x, n):
-  for i in xrange(n):
+  for i in range(n):
     x = relabeling.nextfloat(x)
   return x
 
@@ -63,12 +62,12 @@ class ItemList(object):
     # indices if we scan items in a backwards order.
     items = [self._slist.pop(index) for (index, key) in reversed(adjustments)]
     items.reverse()
-    for (index, key), item in izip(adjustments, items):
+    for (index, key), item in zip(adjustments, items):
       item.key = key
     self._slist.update(items)
 
     # Now add the new items.
-    self._slist.update(Item(val, new_key) for (val, _), new_key in izip(val_key_pairs, new_keys))
+    self._slist.update(Item(val, new_key) for (val, _), new_key in zip(val_key_pairs, new_keys))
 
     # For testing, pass along the return value from prepare_inserts.
     return adjustments, new_keys
@@ -260,11 +259,11 @@ class TestRelabeling(unittest.TestCase):
   def _do_test_renumber_ends(self, initial):
     # Test insertions that happen together on the left and on the right.
     slist = ItemList(initial)
-    for i in xrange(2000):
+    for i in range(2000):
       slist.insert_items([(i, float('-inf')), (-i, float('inf'))])
 
     self.assertEqual(slist.get_values(),
-                     rev_range(2000) + [v for v,k in initial] + list(xrange(0, -2000, -1)))
+                     rev_range(2000) + [v for v,k in initial] + list(range(0, -2000, -1)))
     #print slist.num_update_events, slist.num_updated_keys
     self.assertLess(slist.avg_updated_keys(), 3)
     self.assertLess(slist.num_update_events, 80)
@@ -272,18 +271,18 @@ class TestRelabeling(unittest.TestCase):
   def test_renumber_left(self):
     slist = ItemList(zip("abcd", [4,5,6,7]))
     ins_item = slist.find_value('c')
-    for i in xrange(1000):
+    for i in range(1000):
       slist.insert_items([(i, ins_item.key)])
 
     # Check the end result
-    self.assertEqual(slist.get_values(), ['a', 'b'] + list(xrange(1000)) + ['c', 'd'])
+    self.assertEqual(slist.get_values(), ['a', 'b'] + list(range(1000)) + ['c', 'd'])
     self.assertAlmostEqual(slist.avg_updated_keys(), 3.5, delta=1)
     self.assertLess(slist.num_update_events, 40)
 
   def test_renumber_right(self):
     slist = ItemList(zip("abcd", [4,5,6,7]))
     ins_item = slist.find_value('b')
-    for i in xrange(1000):
+    for i in range(1000):
       slist.insert_items([(i, r.nextfloat(ins_item.key))])
 
     # Check the end result
@@ -297,15 +296,15 @@ class TestRelabeling(unittest.TestCase):
     # the test fast.)
     slist = ItemList(zip("abcd", [4,5,6,7]))
     ins_item = slist.find_value('c')
-    for i in xrange(1000):
+    for i in range(1000):
       slist.insert_items([(i, ins_item.key)], prepare_inserts=r.prepare_inserts_dumb)
-    self.assertEqual(slist.get_values(), ['a', 'b'] + list(xrange(1000)) + ['c', 'd'])
+    self.assertEqual(slist.get_values(), ['a', 'b'] + list(range(1000)) + ['c', 'd'])
     self.assertGreater(slist.avg_updated_keys(), 8)
 
   def test_renumber_right_dumb(self):
     slist = ItemList(zip("abcd", [4,5,6,7]))
     ins_item = slist.find_value('b')
-    for i in xrange(1000):
+    for i in range(1000):
       slist.insert_items([(i, r.nextfloat(ins_item.key))], prepare_inserts=r.prepare_inserts_dumb)
     self.assertEqual(slist.get_values(), ['a', 'b'] + rev_range(1000) + ['c', 'd'])
     self.assertGreater(slist.avg_updated_keys(), 8)
@@ -318,7 +317,7 @@ class TestRelabeling(unittest.TestCase):
     # We insert items on either side of each of the original items (a, b, c, d).
     ins_items = list(slist.get_list())
     N = 250
-    for i in xrange(N):
+    for i in range(N):
       slist.insert_items([("%sr%s" % (x.value, i), r.nextfloat(x.key)) for x in ins_items] +
                          [("%sl%s" % (x.value, i), x.key) for x in ins_items] +
                          # After the first insertion, also insert items next on either side of the
@@ -334,9 +333,9 @@ class TestRelabeling(unittest.TestCase):
     #  aL1, al0, al1, a, ar1, ar0, aR1, ...
     #  aL1, al0, aL2, al1, al2, a, ar2, ar1, aR2, ar0, aR1, ...
     def left_half(val):
-      half = list(xrange(2*N - 1))
-      half[0::2] = ['%sL%d' % (val, i) for i in xrange(1, N + 1)]
-      half[1::2] = ['%sl%d' % (val, i) for i in xrange(0, N - 1)]
+      half = list(range(2*N - 1))
+      half[0::2] = ['%sL%d' % (val, i) for i in range(1, N + 1)]
+      half[1::2] = ['%sl%d' % (val, i) for i in range(0, N - 1)]
       half[-1] = '%sl%d' % (val, N - 1)
       return half
 
@@ -355,7 +354,7 @@ class TestRelabeling(unittest.TestCase):
 
 
 def rev_range(n):
-  return list(reversed(list(xrange(n))))
+  return list(reversed(list(range(n))))
 
 if __name__ == "__main__":
   unittest.main()

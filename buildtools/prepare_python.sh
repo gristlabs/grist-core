@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eEu -o pipefail
 
 # Use a built-in standalone version of Python if available in a directory
 # called python. This is used for Electron packaging. The standalone Python
@@ -10,21 +10,27 @@ for possible_path in python/bin/python python/bin/python3 \
                      python/Scripts/python.exe python/python.exe; do
   if [[ -e $possible_path ]]; then
     echo "found $possible_path"
-    buildtools/prepare_python3.sh $possible_path python
-    # Make sure Python2 sandbox is not around.
-    rm -rf venv
+    if [[ -e sandbox_venv3 ]]; then
+     echo "Have Python3 sandbox"
+      exit 0
+    fi
+    echo "Updating Python3 packages"
+    $possible_path -m pip install --no-deps -r sandbox/requirements.txt
+    echo "Moving ./python to sandbox_venv3"
+    mv ./python sandbox_venv3
+    echo "Python3 packages ready in sandbox_venv3"
     exit 0
   fi
 done
 
-echo "Use Python3 if available and recent enough, otherwise Python2"
-if python3 -c 'import sys; assert sys.version_info >= (3,9)' 2> /dev/null; then
-  # Default to python3 if recent enough.
-  buildtools/prepare_python3.sh python3
-  # Make sure python2 isn't around.
-  rm -rf venv
-else
-  buildtools/prepare_python2.sh
-  # Make sure python3 isn't around.
-  rm -rf sandbox_venv3
-fi
+echo "Use Python3 if available and recent enough"
+! [ -x "$(command -v python3)" ] && echo "Error: python3 must be installed" && exit 1
+! python3 -c 'import sys; assert sys.version_info >= (3,9)' 2> /dev/null && echo "Error: python must be >= 3.9" && exit 1
+
+# Default to python3 if recent enough.
+echo "Making Python3 sandbox"
+python3 -m venv sandbox_venv3
+echo "Updating Python3 packages"
+sandbox_venv3/bin/pip install --no-deps -r sandbox/requirements.txt
+echo "Python3 packages ready in sandbox_venv3"
+exit 0

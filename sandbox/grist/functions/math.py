@@ -8,10 +8,6 @@ import operator
 import random
 import uuid
 from functools import reduce  # pylint: disable=redefined-builtin
-
-from six.moves import zip, xrange
-import six
-
 from functions.info import ISNUMBER, ISLOGICAL
 from functions.unimplemented import unimplemented
 import roman
@@ -200,8 +196,8 @@ def COMBIN(n, k):
   k = min(k, n-k)
   if k == 0:
     return 1
-  numer = reduce(operator.mul, xrange(n, n-k, -1))
-  denom = reduce(operator.mul, xrange(1, k+1))
+  numer = reduce(operator.mul, range(n, n-k, -1))
+  denom = reduce(operator.mul, range(1, k+1))
   return numer//denom
 
 def COS(angle):
@@ -297,7 +293,7 @@ def FACTDOUBLE(value):
   >>> FACTDOUBLE(4)
   8
   """
-  return reduce(operator.mul, xrange(value, 1, -2))
+  return reduce(operator.mul, range(value, 1, -2))
 
 def FLOOR(value, factor=1):
   """
@@ -899,9 +895,6 @@ def UUID():
   except Exception:
     # Pynbox doesn't support the above because it doesn't support `os.urandom()`.
     # Using the `random` module is less secure but should be OK.
-    if six.PY2:
-      byts = [chr(random.randrange(0, 256)) for _ in xrange(0, 16)]
-    else:
-      byts = bytes([random.randrange(0, 256) for _ in range(0, 16)])
+    byts = bytes([random.randrange(0, 256) for _ in range(0, 16)])
     uid = uuid.UUID(bytes=byts, version=4)
   return str(uid)

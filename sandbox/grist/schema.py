@@ -11,8 +11,6 @@ Before changing this file, please review:
 import itertools
 from collections import OrderedDict, namedtuple
 
-import six
-
 import actions
 
 SCHEMA_VERSION = 43
@@ -419,7 +417,7 @@ def cols_to_dict_list(cols):
 
 def clone_schema(schema):
   return OrderedDict((t, SchemaTable(s.tableId, s.columns.copy()))
-                     for (t, s) in six.iteritems(schema))
+                     for (t, s) in schema.items())
 
 def get_reverse_col_id_lookup_func(collist):
   """
