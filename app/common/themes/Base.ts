@@ -262,6 +262,7 @@ export const Base: BaseThemeTokens = {
     rightPanelSubtabFg: tokens.primary,
     rightPanelSubtabSelectedFg: tokens.body,
     rightPanelSubtabSelectedUnderline: tokens.primary,
+    rightPanelSubtabUnderlineSize: '1px',
     rightPanelSubtabHoverUnderline: tokens.primary,
     rightPanelDisabledOverlay: tokens.bgSecondary,
     rightPanelToggleButtonEnabledFg: tokens.white,

@@ -35,5 +35,6 @@ export const HighContrastLight: ThemeTokens = {
     rightPanelTabBorder: tokens.decoration,
     rightPanelSubtabSelectedFg: '#000',
     rightPanelSubtabSelectedUnderline: '#000',
+    rightPanelSubtabUnderlineSize: '2px',
   }
 };

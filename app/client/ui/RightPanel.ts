@@ -49,6 +49,7 @@ import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {components} from 'app/common/ThemePrefs';
 import {isFullReferencingType} from "app/common/gristTypes";
 import {not} from 'app/common/gutil';
 import {StringUnion} from 'app/common/StringUnion';
@@ -1253,16 +1254,16 @@ const cssSubTab = styled('div', `
 
   &-selected {
     color: ${theme.rightPanelSubtabSelectedFg};
-    border-bottom: 1px solid ${theme.rightPanelSubtabSelectedUnderline};
+    border-bottom: ${components.rightPanelSubtabUnderlineSize} solid ${theme.rightPanelSubtabSelectedUnderline};
   }
   &:not(&-selected):hover {
     color: ${theme.rightPanelSubtabHoverFg};
   }
   &:hover {
-    border-bottom: 1px solid ${theme.rightPanelSubtabHoverUnderline};
+    border-bottom: ${components.rightPanelSubtabUnderlineSize} solid ${theme.rightPanelSubtabHoverUnderline};
   }
   .${cssSubTabContainer.className}:hover > &-selected:not(:hover) {
-    border-bottom: 1px solid ${theme.pagePanelsBorder};
+    border-bottom: ${components.rightPanelSubtabUnderlineSize} solid ${theme.pagePanelsBorder};
   }
 `);
 

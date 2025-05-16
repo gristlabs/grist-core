@@ -322,6 +322,7 @@ export const componentsCssMapping = {
   rightPanelSubtabFg: 'right-panel-subtab-fg',
   rightPanelSubtabSelectedFg: 'right-panel-subtab-selected-fg',
   rightPanelSubtabSelectedUnderline: 'right-panel-subtab-selected-underline',
+  rightPanelSubtabUnderlineSize: 'right-panel-subtab-selected-underline-size',
   rightPanelSubtabHoverFg: 'right-panel-subtab-hover-fg',
   rightPanelSubtabHoverUnderline: 'right-panel-subtab-hover-underline',
   rightPanelDisabledOverlay: 'right-panel-disabled-overlay',
@@ -1148,6 +1149,7 @@ export interface BaseThemeTokens {
     rightPanelSubtabFg: Token;
     rightPanelSubtabSelectedFg: Token;
     rightPanelSubtabSelectedUnderline: Token;
+    rightPanelSubtabUnderlineSize: Token;
     rightPanelSubtabHoverUnderline: Token;
     rightPanelDisabledOverlay: Token;
     rightPanelToggleButtonEnabledFg: Token;
