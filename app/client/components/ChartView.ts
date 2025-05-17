@@ -577,7 +577,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // The label to show for the first field in the axis configurator.
   private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef), (
-    (_use, chartType) => firstFieldIsLabels(chartType) ? 'LABEL' : 'X-AXIS'
+    (_use, chartType) => firstFieldIsLabels(chartType) ? 'LABEL' : t('X-AXIS')
   ));
 
   // A computed that returns `this._section.chartTypeDef` and that takes care of removing the group
@@ -608,41 +608,41 @@ export class ChartConfig extends GrainJSDisposable {
     return [
       cssRow(
         select(this._chartType, [
-          {value: 'bar',          label: 'Bar Chart',         icon: 'ChartBar'   },
-          {value: 'pie',          label: 'Pie Chart',         icon: 'ChartPie'   },
-          {value: 'donut',        label: 'Donut Chart',       icon: 'ChartDonut' },
-          {value: 'area',         label: 'Area Chart',        icon: 'ChartArea'  },
-          {value: 'line',         label: 'Line Chart',        icon: 'ChartLine'  },
-          {value: 'scatter',      label: 'Scatter Plot',      icon: 'ChartLine'  },
-          {value: 'kaplan_meier', label: 'Kaplan-Meier Plot', icon: 'ChartKaplan'},
+          {value: 'bar',          label: t('Bar Chart'),         icon: 'ChartBar'   },
+          {value: 'pie',          label: t('Pie Chart'),         icon: 'ChartPie'   },
+          {value: 'donut',        label: t('Donut Chart'),       icon: 'ChartDonut' },
+          {value: 'area',         label: t('Area Chart'),        icon: 'ChartArea'  },
+          {value: 'line',         label: t('Line Chart'),        icon: 'ChartLine'  },
+          {value: 'scatter',      label: t('Scatter Plot'),      icon: 'ChartLine'  },
+          {value: 'kaplan_meier', label: t('Kaplan-Meier Plot'), icon: 'ChartKaplan'},
         ]),
         testId("type"),
       ),
       dom.maybe((use) => !isPieLike(use(this._section.chartTypeDef)), () => [
         // These options don't make much sense for a pie chart.
-        cssCheckboxRowObs('Split series', this._groupData),
-        cssCheckboxRow('Invert Y-axis', this._optionsObj.prop('invertYAxis')),
+        cssCheckboxRowObs(t('Split series'), this._groupData),
+        cssCheckboxRow(t('Invert Y-axis'), this._optionsObj.prop('invertYAxis')),
         cssRow(
-          cssRowLabel('Orientation'),
+          cssRowLabel(t('Orientation')),
           dom('div', linkSelect(fromKoSave(this._optionsObj.prop('orientation')), [
-            {value: 'v', label: 'Vertical'},
-            {value: 'h', label: 'Horizontal'}
-          ], {defaultLabel: 'Vertical'})),
+            {value: 'v', label: t('Vertical')},
+            {value: 'h', label: t('Horizontal')}
+          ], {defaultLabel: t('Vertical')})),
           testId('orientation'),
         ),
-        cssCheckboxRow('Log scale Y-axis', this._optionsObj.prop('logYAxis')),
+        cssCheckboxRow(t('Log scale Y-axis'), this._optionsObj.prop('logYAxis')),
       ]),
       dom.maybeOwned((use) => use(this._section.chartTypeDef) === 'donut', (owner) => [
         cssSlideRow(
-          'Hole Size',
+          t('Hole Size'),
           Computed.create(owner, (use) => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
           (val: number) => this._optionsObj.prop('donutHoleSize').saveOnly(val),
           testId('option')
         ),
-        cssCheckboxRow('Show Total', this._optionsObj.prop('showTotal')),
+        cssCheckboxRow(t('Show Total'), this._optionsObj.prop('showTotal')),
         dom.maybe(this._optionsObj.prop('showTotal'), () => (
           cssNumberWithSpinnerRow(
-            'Text Size',
+            t('Text Size'),
             Computed.create(owner, (use) => use(this._optionsObj.prop('textSize')) ??  DONUT_DEFAULT_TEXT_SIZE),
             (val: number) => this._optionsObj.prop('textSize').saveOnly(val),
             testId('option')
@@ -650,18 +650,18 @@ export class ChartConfig extends GrainJSDisposable {
         ))
       ]),
       dom.maybe((use) => use(this._section.chartTypeDef) === 'line', () => [
-        cssCheckboxRow('Connect gaps', this._optionsObj.prop('lineConnectGaps')),
-        cssCheckboxRow('Show markers', this._optionsObj.prop('lineMarkers')),
+        cssCheckboxRow(t('Connect gaps'), this._optionsObj.prop('lineConnectGaps')),
+        cssCheckboxRow(t('Show markers'), this._optionsObj.prop('lineMarkers')),
       ]),
       dom.maybe((use) => ['line', 'bar'].includes(use(this._section.chartTypeDef)), () => [
-        cssCheckboxRow('Stack series', this._optionsObj.prop('stacked')),
+        cssCheckboxRow(t('Stack series'), this._optionsObj.prop('stacked')),
         cssRow(
-          cssRowLabel('Error bars'),
+          cssRowLabel(t('Error bars')),
           dom('div', linkSelect(fromKoSave(this._optionsObj.prop('errorBars')), [
-            {value: '', label: 'None'},
-            {value: 'symmetric', label: 'Symmetric'},
-            {value: 'separate', label: 'Above+Below'},
-          ], {defaultLabel: 'None'})),
+            {value: '', label: t('None')},
+            {value: 'symmetric', label: t('Symmetric')},
+            {value: 'separate', label: t('Above+Below')},
+          ], {defaultLabel: t('None')})),
           testId('error-bars'),
         ),
         dom.domComputed(this._optionsObj.prop('errorBars'), (value: ChartOptions["errorBars"]) =>
@@ -676,7 +676,7 @@ export class ChartConfig extends GrainJSDisposable {
       cssSeparator(),
 
       dom.maybe(this._groupData, () => [
-        cssLabel('Split Series'),
+        cssLabel(t('Split Series')),
         cssRow(
           select(this._groupDataColId, this._groupDataOptions),
           testId('group-by-column'),
@@ -693,13 +693,13 @@ export class ChartConfig extends GrainJSDisposable {
         ),
         testId('x-axis'),
       ),
-      cssCheckboxRowObs('Aggregate values', this._isValueAggregated),
+      cssCheckboxRowObs(t('Aggregate values'), this._isValueAggregated),
 
-      cssLabel('SERIES'),
+      cssLabel(t('SERIES')),
       this._buildYAxis(),
       cssRow(
         cssAddYAxis(
-          cssAddIcon('Plus'), 'Add Series',
+          cssAddIcon('Plus'), t('Add Series'),
           menu(() => {
             const hiddenColumns = this._section.hiddenColumns.peek();
             const filterFunc = this._isCompatibleSeries.bind(this);
@@ -714,8 +714,8 @@ export class ChartConfig extends GrainJSDisposable {
               nonNumericCount ? menuText(
                 `${nonNumericCount} ` + (
                   nonNumericCount > 1 ?
-                    `non-numeric columns are not shown` :
-                    `non-numeric column is not shown`
+                    t(`non-numeric columns are not shown`) :
+                    t(`non-numeric column is not shown`)
                 ),
                 testId('yseries-picker-message'),
               ) : null,
@@ -846,7 +846,7 @@ export class ChartConfig extends GrainJSDisposable {
     return cssFieldEntry(
       cssFieldLabel(dom.text(col.label)),
       cssRemoveIcon(
-        'Remove',
+        t('Remove'),
         dom.on('click', () => this._configFieldsHelper.removeField(col)),
         testId('ref-select-remove'),
       ),
