@@ -80,8 +80,16 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {Document as APIDocument, AttachmentTransferStatus,
-        DocReplacementOptions, DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {
+  Document as APIDocument,
+  ArchiveUploadResult,
+  AttachmentTransferStatus,
+  CreatableArchiveFormats,
+  DocReplacementOptions,
+  DocState,
+  DocStateComparison,
+  NEW_DOCUMENT_CODE
+} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -92,7 +100,7 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {
   Archive,
-  ArchiveEntry, CreatableArchiveFormats,
+  ArchiveEntry,
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
@@ -239,6 +247,8 @@ export class ActiveDoc extends EventEmitter {
   public readonly triggersLock: Mutex = new Mutex();
   public isTimingOn = false;
 
+  public isFork: boolean;
+
   protected _actionHistory: ActionHistory;
   protected _sharing: Sharing;
   // This lock is used to avoid reading sandbox state while it is being modified but before
@@ -299,8 +309,9 @@ export class ActiveDoc extends EventEmitter {
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
+    this.isFork = Boolean(forkId);
     this._isSnapshot = Boolean(snapshotId);
-    this._isForkOrSnapshot = Boolean(forkId || snapshotId);
+
     if (!this._isSnapshot) {
       /**
        * In cases where large numbers of documents are restarted simultaneously
@@ -364,7 +375,7 @@ export class ActiveDoc extends EventEmitter {
         });
       }
 
-      if (!this._isForkOrSnapshot) {
+      if (!(this.isFork || this._isSnapshot)) {
         /* Note: We don't currently persist usage for forks or snapshots anywhere, so
          * we need to hold off on setting _docUsage here. Normally, usage is set shortly
          * after initialization finishes, after data/attachments size has finished
@@ -3346,12 +3357,6 @@ function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLe
       altSessionId: docSession.altSessionId,
     },
   };
-}
-
-export interface ArchiveUploadResult {
-  added: number;
-  errored: number;
-  unused: number;
 }
 
 export function attachmentToArchiveFilePath(fileDetails: { fileIdent: string, fileName: string } ): string {

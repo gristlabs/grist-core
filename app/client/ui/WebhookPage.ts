@@ -366,6 +366,11 @@ export class WebhookPage extends DisposableWithEvents {
   public buildDom() {
     const viewSectionModel = this.gristDoc.docModel.viewSections.getRowModel('vt_webhook_fs1' as any);
     ViewSectionHelper.create(this, this.gristDoc, viewSectionModel);
+    if (this.gristDoc.docPageModel.isFork.get()) {
+      return cssContainer(
+        cssHeader(t('Webhooks Unavailable In Unsaved Document Copies')),
+      );
+    }
     return cssContainer(
       cssHeader(t('Webhook Settings')),
       cssControlRow(

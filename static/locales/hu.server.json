@@ -1,5 +1,10 @@
 {
     "oidc": {
         "emailNotVerifiedError": "Kérem ellenőrizze az e-mail címet az azonosítási szolgáltatónál, és jelentkezzen be újra."
+    },
+    "sendAppPage": {
+        "og-description": "Egy modern, nyílt forrású táblazatkezelő, ami több, mint egy táblázat",
+        "Loading...": "Betöltés...",
+        "og-title": "Grist, a táblázatkezelők evolúciója"
     }
 }

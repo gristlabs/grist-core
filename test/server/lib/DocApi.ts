@@ -2988,12 +2988,12 @@ function testDocApi(settings: {
         assert.deepEqual(tarUploadResp.data, { error: "File is not a valid .tar" });
       });
 
-      it("POST /docs/{did}/copy fails when the document has external attachments", async function () {
+      it("POST /docs/{did}/copy doesn't throw when the document has external attachments", async function () {
         const worker1 = await userApi.getWorkerAPI(docId);
-        await assert.isRejected(worker1.copyDoc(docId, undefined, 'copy'), /status 400/);
+        await worker1.copyDoc(docId, undefined, 'copy');
       });
 
-      it("POST /docs/{did} with sourceDocId fails to copy a document with external attachments", async function () {
+      it("POST /docs/{did} with sourceDocId can copy a document with external attachments", async function () {
         const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
         const resp = await axios.post(`${homeUrl}/api/docs`, {
           sourceDocumentId: docId,
@@ -3001,8 +3001,9 @@ function testDocApi(settings: {
           asTemplate: false,
           workspaceId: chimpyWs
         }, chimpy);
-        assert.equal(resp.status, 400);
-        assert.match(resp.data.error, /external attachments/);
+        assert.equal(resp.status, 200);
+        assert.isString(resp.data);
+        // There's no expectation that the external attachments are copied - just that the document is.
       });
     });
   });
@@ -5374,6 +5375,22 @@ function testDocApi(settings: {
               memo: 'Sync store',
               watchedColIds: ['A']
             };
+
+            // make sure it doesn't work on forks.
+            const doc = userApi.getDocAPI(docId);
+            const fork = await doc.fork();
+            const {data: errorData} = await axios.post(
+              `${serverUrl}/api/docs/${fork.docId}/webhooks`,
+              {
+                webhooks: [{
+                  fields: {
+                    ...origFields,
+                    url: `${serving.url}/foo`
+                  }
+                }]
+              }, chimpy
+            );
+            assert.equal(errorData.error, 'Unsaved document copies cannot have webhooks');
 
             // subscribe
             const {data} = await axios.post(
