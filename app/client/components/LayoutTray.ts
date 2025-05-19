@@ -144,9 +144,9 @@ export class LayoutTray extends DisposableWithEvents {
     };
   }
 
-/* -------------------------------------------
-  /*Builds a popup for a maximized section. */
 // MOD DMH
+/* -------------------------------------------
+  Builds a popup for a maximized section. */
 public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, close: () => void) {
   const section = Observable.create<number|null>(owner, null);
 
@@ -160,37 +160,36 @@ public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, cl
     section.set(cur);
   }));
 
-return dom.domComputed(section, (id) => {
-  if (!id) {
-    return null;
-  }
+  return dom.domComputed(section, (id) => {
+    if (!id) return null;
 
-  const viewSections = this.viewLayout.viewModel.viewSections.peek();
-  const vs = viewSections.all().find((s: ViewSectionRec) => s.getRowId() === id);
-  const title = vs?.title.peek()?.trim().toUpperCase();
+    const viewSections = this.viewLayout.viewModel.viewSections.peek();
+    const vs = viewSections.all().find((s: ViewSectionRec) => s.getRowId() === id);
+    const title = vs?.title.peek()?.trim().toUpperCase();
 
-  if (title === "🔍 SEARCH") {
-    setTimeout(() => {
-      const input = document.querySelector('input[placeholder="Search in document"]');
-      if (input instanceof HTMLInputElement) {
-        input.focus();
-        input.select();
-        console.log("✅ [Patch] Focused search input for 🔍 SEARCH popup.");
-      } else {
-        console.warn("⚠️ [Patch] Search input not found or not an input element.");
-      }
-    }, 300);
-  }
+    if (title === "🔍 SEARCH") {
+      setTimeout(() => {
+        const input = document.querySelector('input[placeholder="Search in document"]');
+        if (input instanceof HTMLInputElement) {
+          input.focus();
+          input.select();
+          console.log("✅ [Patch] Focused search input for 🔍 SEARCH popup.");
+        } else {
+          console.warn("⚠️ [Patch] Search input not found or not an input element.");
+        }
+      }, 300);
+    }
 
-  return dom.update(
-    buildViewSectionDom({
-      gristDoc: this.viewLayout.gristDoc,
-      sectionRowId: id,
-      draggable: false,
-      focusable: false,
-    })
-  );
-});
+    return dom.update(
+      buildViewSectionDom({
+        gristDoc: this.viewLayout.gristDoc,
+        sectionRowId: id,
+        draggable: false,
+        focusable: false
+      })
+    );
+  });
+}
 // end MOD DMH
 
 // MOD DMH
@@ -205,13 +204,14 @@ public buildDom() {
           cssCollapsedTray.cls('-is-target', this.over.state),
           syncHover(this.hovering),
           dom.create(CollapsedDropZone, this),
-          this.layout.buildDom(),
+          this.layout.buildDom() // ✅ No trailing comma here
         )
       )
     )
   );
 }
 // end MOD DMH
+
 
   public buildContentDom(id: string|number) {
     return buildCollapsedSectionDom({
