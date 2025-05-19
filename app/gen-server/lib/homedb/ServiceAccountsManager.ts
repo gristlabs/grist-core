@@ -66,13 +66,20 @@ export class ServiceAccountsManager {
       return await manager.createQueryBuilder()
         .select("*")
         .from(ServiceAccount, "service_accounts")
-        .where(
-          "owner_id = :ownerId AND service_account_id = :serviceAccountId",
-          {
-            ownerId,
-            serviceAccountId
-          }
-        )
+        .where("owner_id = :ownerId", {ownerId})
+        .andWhere("service_account_id = :serviceAccountId", {serviceAccountId})
+        .execute();
+    });
+  }
+
+  public async readAllServiceAccounts(
+    ownerId: number,
+  ){
+    await this._connection.transaction(async manager => {
+      return await manager.createQueryBuilder()
+        .select("*")
+        .from(ServiceAccount, "service_accounts")
+        .where("owner_id = :ownerId", {ownerId})
         .execute();
     });
   }
