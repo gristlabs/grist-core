@@ -165,10 +165,10 @@ export class TestingHooks implements ITestingHooks {
   public async closeDocs(): Promise<void> {
     log.info("TestingHooks.closeDocs called");
     if (this._server) {
-      await this._server.closeDocs();
+      await this._server.testCloseDocs();
     }
     for (const server of this._workerServers) {
-      await server.closeDocs();
+      await server.testCloseDocs();
     }
   }
 

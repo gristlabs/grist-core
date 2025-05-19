@@ -161,11 +161,13 @@ import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {getPubSubPrefix} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import merge = require('lodash/merge');
 import pick = require('lodash/pick');
 import sum = require('lodash/sum');
+import throttle = require('lodash/throttle');
 import without = require('lodash/without');
 
 bluebird.promisifyAll(tmp);
@@ -181,7 +183,7 @@ const DEFAULT_LOCALE = process.env.GRIST_DEFAULT_LOCALE || "en-US";
 const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 
 // We'll wait this long between re-measuring sandbox memory.
-const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
+const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
 
 // Apply the UpdateCurrentTime user action every hour
 const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
@@ -272,7 +274,7 @@ export class ActiveDoc extends EventEmitter {
                                     // If set, wait on this to be sure the ActiveDoc is fully
                                     // initialized.  True on success.
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
-  private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
+  private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
@@ -300,6 +302,17 @@ export class ActiveDoc extends EventEmitter {
 
   // Size of the last _rawPyCall() response in bytes.
   private _lastPyCallResponseSize: number|undefined;
+
+  private _reportDataEngineMemoryThrottled:
+    | ((() => Promise<void>) & Cancelable)
+    | null = throttle(
+    this._reportDataEngineMemory.bind(this),
+    MEMORY_MEASUREMENT_THROTTLE_WAIT_MS,
+    {
+      leading: true,
+      trailing: true,
+    }
+  );
 
   constructor(
     private readonly _docManager: DocManager,
@@ -1858,7 +1871,7 @@ export class ActiveDoc extends EventEmitter {
       if (requests) {
         this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
       }
-      await this._reportDataEngineMemory();
+      await this._reportDataEngineMemoryThrottled?.();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
       sandboxActionBundle = createEmptySandboxActionBundle();
@@ -2177,6 +2190,10 @@ export class ActiveDoc extends EventEmitter {
     return await this._pyCall('get_timings');
   }
 
+  public getMemoryUsedMB(): number {
+    return this._memoryUsedMB;
+  }
+
   /**
    * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
    * metadata.
@@ -2333,6 +2350,9 @@ export class ActiveDoc extends EventEmitter {
 
       await Promise.all(this._intervals.map(interval =>
         safeCallAndWait("interval.disableAndFinish", () => interval.disableAndFinish())));
+
+      this._reportDataEngineMemoryThrottled?.cancel();
+      this._reportDataEngineMemoryThrottled = null;
 
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
@@ -2701,6 +2721,10 @@ export class ActiveDoc extends EventEmitter {
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
+        // Report preliminary usage. The "Calculate" action below also reports usage, but
+        // since it may take a while to complete, it's helpful to report an early measurement.
+        await this._reportDataEngineMemoryThrottled?.();
+
         if (this.isTimingOn) {
           await this._doStartTiming();
         }
@@ -2708,7 +2732,6 @@ export class ActiveDoc extends EventEmitter {
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
         await this._applyUserActionsAsSystem([['Calculate']]);
-        await this._reportDataEngineMemory();
       }
 
       this._fullyLoaded = true;
@@ -2932,14 +2955,14 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _reportDataEngineMemory() {
-    const now = Date.now();
-    if (now >= this._lastMemoryMeasurement + MEMORY_MEASUREMENT_INTERVAL_MS) {
-      this._lastMemoryMeasurement = now;
-      if (this._dataEngine && !this._shuttingDown) {
-        const dataEngine = await this._getEngine();
-        await dataEngine.reportMemoryUsage();
-      }
+    if (!this._dataEngine || this._shuttingDown) {
+      return;
     }
+
+    const dataEngine = await this._getEngine();
+    const memoryUsedBytes = await dataEngine.reportMemoryUsage();
+    this._memoryUsedMB = memoryUsedBytes / (1024 * 1024);
+    this._docManager.setMemoryUsedMB(this, this._memoryUsedMB);
   }
 
   private async _initializeDocUsage(docSession: OptDocSession) {

@@ -58,6 +58,11 @@ export class DocManager extends EventEmitter {
   private _activeDocs: Map<string, Promise<ActiveDoc>> = new Map();
 
   /**
+   * Maps ActiveDoc to memory used in MB.
+   */
+  private _memoryUsedMB: Map<ActiveDoc, number> = new Map();
+
+  /**
    * Maps docName to the SQLiteDB object, if available. The db may be
    * closed by the time you read or use it.
    */
@@ -420,15 +425,24 @@ export class DocManager extends EventEmitter {
   }
 
   /**
-   * Shut down all open docs. This is called, in particular, on server shutdown.
+   * Shut down all open docs.
    */
-  public async shutdownAll() {
+  public async shutdownDocs() {
     await Promise.all(Array.from(
       this._activeDocs.values(),
       adocPromise => adocPromise.then(async adoc => {
-        log.debug('DocManager.shutdownAll starting activeDoc shutdown', adoc.docName);
+        log.debug('DocManager.shutdownDocs starting activeDoc shutdown', adoc.docName);
         await adoc.shutdown();
       })));
+  }
+
+  /**
+   * Shut down all open docs, including doc storage and any related timers.
+   *
+   * This is called, in particular, on server shutdown.
+   */
+  public async shutdownAll() {
+    await this.shutdownDocs();
     try {
       await this.storageManager.closeStorage();
     } catch (err) {
@@ -477,6 +491,7 @@ export class DocManager extends EventEmitter {
   public removeActiveDoc(activeDoc: ActiveDoc): void {
     this.unregisterSQLiteDB(activeDoc.docName);
     this._activeDocs.delete(activeDoc.docName);
+    this._memoryUsedMB.delete(activeDoc);
   }
 
   public async renameDoc(client: Client, oldName: string, newName: string): Promise<void> {
@@ -541,6 +556,18 @@ export class DocManager extends EventEmitter {
   public isAnonymous(userId: number): boolean {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
     return userId === this._homeDbManager.getAnonymousUserId();
+  }
+
+  public setMemoryUsedMB(activeDoc: ActiveDoc, memoryUsedMB: number) {
+    this._memoryUsedMB.set(activeDoc, memoryUsedMB);
+  }
+
+  public getTotalMemoryUsedMB(): number {
+    let result = 0;
+    for (const value of this._memoryUsedMB.values()) {
+      result += value;
+    }
+    return result;
   }
 
   /**

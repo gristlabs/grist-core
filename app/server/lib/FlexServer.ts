@@ -46,6 +46,7 @@ import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
 import {getSqliteMode} from 'app/server/lib/DocStorage';
 import {DocWorker} from 'app/server/lib/DocWorker';
+import {DocWorkerLoadTracker, getDocWorkerLoadTracker} from 'app/server/lib/DocWorkerLoadTracker';
 import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -166,6 +167,7 @@ export class FlexServer implements GristServer {
   private _telemetry: ITelemetry;
   private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
   private _docWorkerMap: IDocWorkerMap;
+  private _docWorkerLoadTracker?: DocWorkerLoadTracker;
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
   private _assistant?: IAssistant;
@@ -1128,6 +1130,7 @@ export class FlexServer implements GristServer {
       if (this.worker) {
         await this._startServers(this.server, this.httpsServer, this.name, this.port, false);
         await this._addSelfAsWorker(this._docWorkerMap);
+        this._docWorkerLoadTracker?.start();
       }
       this._disabled = false;
     }
@@ -1466,6 +1469,15 @@ export class FlexServer implements GristServer {
     shutdown.addCleanupHandler(null, this._shutdown.bind(this), 25000, 'FlexServer._shutdown');
 
     if (!isSingleUserMode()) {
+      this._docWorkerLoadTracker = getDocWorkerLoadTracker(
+        this.worker,
+        this._docWorkerMap,
+        docManager
+      );
+      if (this._docWorkerLoadTracker) {
+        await this._docWorkerMap.setWorkerLoad(this.worker, this._docWorkerLoadTracker.getLoad());
+        this._docWorkerLoadTracker.start();
+      }
       this._comm.registerMethods({
         openDoc:                  docManager.openDoc.bind(docManager),
       });
@@ -1987,15 +1999,6 @@ export class FlexServer implements GristServer {
     return this._startServers(servers.server, servers.httpsServer, name2, port2, true);
   }
 
-  /**
-   * Close all documents currently held open.
-   */
-  public async closeDocs(): Promise<void> {
-    if (this._docManager) {
-      return this._docManager.shutdownAll();
-    }
-  }
-
   public addGoogleAuthEndpoint() {
     if (this._check('google-auth')) { return; }
     const messagePage = makeMessagePage(getAppPathTo(this.appRoot, 'static'));
@@ -2079,6 +2082,15 @@ export class FlexServer implements GristServer {
       throw new Error('getTag called too early');
     }
     return this.tag;
+  }
+
+  /**
+   * Close all documents currently held open.
+   */
+  public async testCloseDocs(): Promise<void> {
+    if (this._docManager) {
+      return this._docManager.shutdownDocs();
+    }
   }
 
   /**
@@ -2206,6 +2218,7 @@ export class FlexServer implements GristServer {
 
   private async _removeSelfAsWorker(workers: IDocWorkerMap, docWorkerId: string) {
     this._healthy = false;
+    this._docWorkerLoadTracker?.stop();
     await workers.removeWorker(docWorkerId);
     if (process.env.GRIST_ROUTER_URL) {
       await axios.get(process.env.GRIST_ROUTER_URL,
