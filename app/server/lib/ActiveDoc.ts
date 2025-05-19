@@ -622,8 +622,12 @@ export class ActiveDoc extends EventEmitter {
    * same document.
    */
   public async shutdown(options: {
+    beforeShutdown?: () => Promise<void>,
     afterShutdown?: () => Promise<void>
   } = {}): Promise<void> {
+    if (options.beforeShutdown && !this._doShutdown) {
+      await options.beforeShutdown();
+    }
     if (options.afterShutdown) {
       this._afterShutdownCallback = options.afterShutdown;
     }
@@ -3241,7 +3245,9 @@ export class ActiveDoc extends EventEmitter {
 
   private async _onInactive() {
     if (Deps.ACTIVEDOC_TIMEOUT_ACTION === 'shutdown') {
-      await this.shutdown();
+      await this.shutdown({
+        beforeShutdown: async () => { await this.docStorage.requestVacuum(); }
+      });
     }
   }
 
