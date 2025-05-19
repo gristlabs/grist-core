@@ -594,10 +594,10 @@ onThemeChange((newTheme) => {
   attachCssThemeVars(_theme);
 });
 
-function attachCssThemeVars({appearance, colors: cssVars}: any) {
+function attachCssThemeVars({appearance, name, colors: cssVars}: any) {
   // Prepare the custom properties needed for applying the theme.
   const properties = Object.entries(cssVars)
-    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
+    .map(([propName, value]) => `--grist-theme-${propName}: ${value};`);
 
   // Include properties for styling the scrollbar.
   properties.push(...getCssScrollbarProperties(appearance));
@@ -614,6 +614,10 @@ ${properties.join('\n')}
 
   // Make the browser aware of the color scheme.
   document.documentElement.style.setProperty(`color-scheme`, appearance);
+
+  // Add data-attributes to let plugins easily identify theme name and appearance with CSS.
+  document.documentElement.setAttribute('data-grist-theme', name);
+  document.documentElement.setAttribute('data-grist-appearance', appearance);
 }
 
 function getCssScrollbarProperties(appearance: 'light' | 'dark') {

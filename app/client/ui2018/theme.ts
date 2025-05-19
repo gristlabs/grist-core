@@ -176,6 +176,10 @@ ${properties.join('\n')}
   // Make the browser aware of the color scheme.
   document.documentElement.style.setProperty(`color-scheme`, appearance);
 
+  // Add data-attributes to ease up custom css overrides.
+  document.documentElement.setAttribute('data-grist-theme', theme.name);
+  document.documentElement.setAttribute('data-grist-appearance', theme.appearance);
+
   // Cache the appearance in local storage; this is currently used to apply a suitable
   // background image that's shown while the application is loading.
   getStorage().setItem('appearance', appearance);
