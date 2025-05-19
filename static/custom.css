@@ -4,12 +4,25 @@
   Otherwise, you can copy and paste this file and use it as a base for your customization needs.
 */
 @layer grist-custom {
+  /* theme-agnostic overrides
+   *
+   * These are always applied regardless of the current theme.
+   */
   :root {
     /* logo */
     --icon-GristLogo: url("ui-icons/Logo/GristLogo.svg");
     --grist-theme-logo-bg: #040404;
     --grist-theme-logo-size: 22px 22px;
+  }
 
+  /*
+   * theme-dependent overrides
+   *
+   * You can filter your CSS rules with the [data-grist-appearance] and [data-grist-theme] attributes to apply rules conditionally:
+   *  - [data-grist-appearance] is the current appearance (light or dark)
+   *  - [data-grist-theme] is the current theme (GristLight, GristDark, or HighContrastLight)
+   */
+  :root[data-grist-theme="GristLight"] {
     /* colors */
     --grist-theme-body: #262633; /* main body text */
     --grist-theme-emphasis: var(--grist-theme-black); /* pronounced text */
