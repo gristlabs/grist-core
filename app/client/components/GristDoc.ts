@@ -1,4 +1,16 @@
 /**
+ * GristDoc.ts
+ *
+ * Manages the open Grist document, including document state, view navigation, cursor behavior,
+ * undo stack, plugin loading, and various interactive workflows such as tours, raw data access,
+ * and custom widgets.
+ *
+ * 🔧 MOD DMH — May 2025:
+ * - Reduced layout padding by modifying `cssViewContentPane`
+ * - All changes are marked with `// MOD DMH` and `// end MOD DMH`
+ */
+
+/**
  * GristDoc manages an open Grist document on the client side.
  */
 // tslint:disable:no-console
@@ -1984,7 +1996,11 @@ const cssViewContentPane = styled('div', `
   overflow: visible;
   position: relative;
   min-width: 240px;
-  padding: var(--view-content-page-padding, 12px);
+  
+  // MOD DMH - Removes gap above green line in Layout Tray. 
+  // This also has the effect of removing border around main body, which also saves more screen space 
+  padding: var(--view-content-page-padding, 0px);   // was 12px
+  // end MOD DMH
   @media ${mediaSmall} {
     & {
       padding: 4px;
