@@ -33,6 +33,7 @@ function setupTest() {
     currentDocId: Observable.create(null, 'docId'),
     currentDoc: Observable.create(null, {access: 'owners'}),
     type: Observable.create(null, null),
+    isFork: Observable.create(null, false),
   };
   const gristDoc: any = {
     docInfo,
