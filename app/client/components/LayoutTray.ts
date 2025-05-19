@@ -1,6 +1,6 @@
 /**
  * LayoutTray.ts
- * 
+ *
  * 📦 Patch: Floating Expand-on-Hover Layout Tray
  * 📄 File: /app/client/components/LayoutTray.ts
  * 📅 Applied: May 2025
@@ -40,7 +40,7 @@ import {Computed, Disposable, dom, IDisposable, IDisposableOwner,
         makeTestId, obsArray, Observable, styled} from 'grainjs';
 import isEqual from 'lodash/isEqual';
 // MOD DMH - to make search button open automatically
-import { ViewSectionRec } from 'app/client/models/DocModel';   
+import { ViewSectionRec } from 'app/client/models/DocModel';
 // end MOD DMH
 
 console.log("✅ [Custom Patch] Floating LayoutTray.ts v0.2");
@@ -160,40 +160,38 @@ public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, cl
     section.set(cur);
   }));
 
-  return dom.domComputed(section, (id) => {
-    if (!id) return null;
+return dom.domComputed(section, (id) => {
+  if (!id) {
+    return null;
+  }
 
-    const viewSections = this.viewLayout.viewModel.viewSections.peek();
-    const vs = viewSections.all().find((s: ViewSectionRec) => s.getRowId() === id);
-    const title = vs?.title.peek()?.trim().toUpperCase();
+  const viewSections = this.viewLayout.viewModel.viewSections.peek();
+  const vs = viewSections.all().find((s: ViewSectionRec) => s.getRowId() === id);
+  const title = vs?.title.peek()?.trim().toUpperCase();
 
-    if (title === "🔍 SEARCH") {
-      setTimeout(() => {
-        const input = document.querySelector('input[placeholder="Search in document"]') as HTMLInputElement | null;
-        if (input) {
-          input.focus();
-          input.select();
-          console.log("✅ [Patch] Focused search input for 🔍 SEARCH popup.");
-        } else {
-          console.warn("⚠️ [Patch] Search input not found.");
-        }
-      }, 300);
-    }
+  if (title === "🔍 SEARCH") {
+    setTimeout(() => {
+      const input = document.querySelector('input[placeholder="Search in document"]');
+      if (input instanceof HTMLInputElement) {
+        input.focus();
+        input.select();
+        console.log("✅ [Patch] Focused search input for 🔍 SEARCH popup.");
+      } else {
+        console.warn("⚠️ [Patch] Search input not found or not an input element.");
+      }
+    }, 300);
+  }
 
-    return dom.update(
-      buildViewSectionDom({
-        gristDoc: this.viewLayout.gristDoc,
-        sectionRowId: id,
-        draggable: false,
-        focusable: false,
-      }),
-    );
-  });
-}
-
+  return dom.update(
+    buildViewSectionDom({
+      gristDoc: this.viewLayout.gristDoc,
+      sectionRowId: id,
+      draggable: false,
+      focusable: false,
+    }),
+  );
+});
 // end MOD DMH
-
-
 
 // MOD DMH
 public buildDom() {
