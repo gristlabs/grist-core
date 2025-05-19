@@ -195,6 +195,9 @@ const LOG_DOCUMENT_METRICS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 10
 // For items of work that need to happen at shutdown, timeout before aborting the wait for them.
 const SHUTDOWN_ITEM_TIMEOUT_MS = 5000;
 
+// Vacuum a document every twenty minutes.
+const VACUUM_DOCUMENT_DELAY = {delayMs: 20 * 60 * 1000, varianceMs: 120 * 1000};
+
 // We keep a doc open while a user action is pending, but not longer than this. If it's pending
 // this long, the ACTIVEDOC_TIMEOUT will still kick in afterwards, and in the absence of other
 // activity, the doc would still get shut down, with the action's effect lost. This is to prevent
@@ -339,6 +342,12 @@ export class ActiveDoc extends EventEmitter {
           () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
           UPDATE_DATA_SIZE_DELAY,
           {onError: (e) => this._log.error(null, 'failed to update data size', e)},
+        ),
+        // Vacuum the document every hour.
+        new Interval(
+          () => this.docStorage.requestVacuum(),
+          VACUUM_DOCUMENT_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to vacuum Grist document', e)}
         ),
         // Log document metrics every hour.
         new Interval(
