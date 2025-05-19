@@ -10,7 +10,6 @@ import {
   Theme,
   ThemeAppearance,
   ThemePrefs,
-  ThemeTokens,
   tokens,
   tokensCssMapping
 } from 'app/common/ThemePrefs';
@@ -19,8 +18,8 @@ import { getGristConfig } from 'app/common/urlUtils';
 import { Computed, Observable } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
-const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', colors: getThemeTokens('GristLight')};
-const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', colors: getThemeTokens('GristDark')};
+const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', name: 'GristLight', colors: getThemeTokens('GristLight')};
+const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', name: 'GristDark', colors: getThemeTokens('GristDark')};
 
 /**
  * A singleton observable for the current user's Grist theme preferences.
@@ -124,27 +123,17 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     syncWithOS = urlParams?.themeSyncWithOs;
   }
 
+  let themeName = themePrefs.colors[appearance];
+  if (urlParams?.themeName) {
+    themeName = urlParams?.themeName;
+  }
+
   if (syncWithOS) {
     appearance = userAgentPrefersDarkTheme ? 'dark' : 'light';
+    themeName = userAgentPrefersDarkTheme ? 'GristDark' : 'GristLight';
   }
 
-  let nameOrTokens = themePrefs.colors[appearance];
-  if (urlParams?.themeName) {
-    nameOrTokens = urlParams?.themeName;
-  }
-
-  if (syncWithOS) {
-    nameOrTokens = userAgentPrefersDarkTheme ? 'GristDark' : 'GristLight';
-  }
-
-  let themeTokens: ThemeTokens;
-  if (typeof nameOrTokens === 'string') {
-    themeTokens = getThemeTokens(nameOrTokens);
-  } else {
-    themeTokens = nameOrTokens;
-  }
-
-  return {appearance, colors: themeTokens};
+  return {appearance, colors: getThemeTokens(themeName), name: themeName};
 }
 
 function attachCssThemeVars(theme: Theme) {
