@@ -188,7 +188,7 @@ return dom.domComputed(section, (id) => {
       sectionRowId: id,
       draggable: false,
       focusable: false,
-    }),
+    })
   );
 });
 // end MOD DMH
