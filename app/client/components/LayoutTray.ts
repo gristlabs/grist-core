@@ -1,2078 +1,1355 @@
 /**
- * GristDoc.ts
+ * LayoutTray.ts
  *
- * Manages the open Grist document, including document state, view navigation, cursor behavior,
- * undo stack, plugin loading, and various interactive workflows such as tours, raw data access,
- * and custom widgets.
+ * 📦 Patch: Floating Expand-on-Hover Layout Tray
+ * 📄 File: /app/client/components/LayoutTray.ts
+ * 📅 Applied: May 2025
+ * 👤 Author: You (DMH)
  *
- * 🔧 MOD DMH — May 2025:
- * - Reduced layout padding by modifying `cssViewContentPane`
- * - All changes are marked with `// MOD DMH` and `// end MOD DMH`
+ * Summary:
+ * - Replaces the standard LayoutTray bar with a small green bar that expands on hover.
+ * - Tray is hidden when empty, collapsed to 3px when containing widgets but not hovered.
+ * - Expands smoothly to 45px when hovered.
+ * - Special behavior: if tray contains a widget titled "🔍 SEARCH", the search input is auto-focused when expanded.
+ *
+ * Modified Blocks:
+ * - Import of `ViewSectionRec` for search detection
+ * - `buildPopup()` override for search auto-focus
+ * - `buildDom()` override for tray wrapper/float behavior
+ * - Custom tray + wrapper styles for hover and visibility
+ * - Layout padding tweaks for visual alignment
  */
+
+// Make sure TypeScript treats this as a module
+export {};
+
+import BaseView from 'app/client/components/BaseView';
+import {buildCollapsedSectionDom, buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
+import * as commands from 'app/client/components/commands';
+import {ContentBox} from 'app/client/components/Layout';
+import type {ViewLayout} from 'app/client/components/ViewLayout';
+import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {detachNode} from 'app/client/lib/dom';
+import {Signal} from 'app/client/lib/Signal';
+import {urlState} from 'app/client/models/gristUrlState';
+import {TransitionWatcher} from 'app/client/ui/transitions';
+import {theme} from 'app/client/ui2018/cssVars';
+import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
+import {isNonNullish} from 'app/common/gutil';
+import {Computed, Disposable, dom, IDisposable, IDisposableOwner,
+        makeTestId, obsArray, Observable, styled} from 'grainjs';
+import isEqual from 'lodash/isEqual';
+// MOD DMH - to make search button open automatically
+import { ViewSectionRec } from 'app/client/models/DocModel';
+// end MOD DMH
+
+console.log("✅ [Custom Patch] Floating LayoutTray.ts v0.2");
+
+const testId = makeTestId('test-layoutTray-');
+
+const G = getBrowserGlobals('document', 'window', '$');
+
 
 /**
- * GristDoc manages an open Grist document on the client side.
+ * Adds a tray for minimizing and restoring sections. It is built as a plugin for the ViewLayout component.
  */
-// tslint:disable:no-console
+export class LayoutTray extends DisposableWithEvents {
+  // We and LayoutEditor will emit this event with the box that is being dragged. When the
+  // drag is over there will be another event with null.
+  public drag = Signal.create<Dropped|null>(this, null);
+  // Event for dropping, contains a dropped element.
+  public drop = Signal.create<Dropped|null>(this, null);
+  // Monitor if the cursor is over the our tray.
+  public hovering = Signal.create(this, false);
+  // If the drag is active and the mouse is over the tray make a signal..
+  public over = Signal.compute(this, on => Boolean(on(this.drag) && on(this.hovering)));
+  // Mouse events during dragging (without a state).
+  public dragging = Signal.create<MouseEvent|null>(this, null);
+  // Create a layout to actually render the collapsed sections.
+  public layout = CollapsedLayout.create(this, this);
+  // Whether we are active (have a dotted border, that indicates we are ready to receive a drop)
+  public active = Signal.create(this, false);
 
-import {AccessRules} from 'app/client/aclui/AccessRules';
-import {ActionLog} from 'app/client/components/ActionLog';
-import BaseView from 'app/client/components/BaseView';
-import type {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
-import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
-import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
-import * as commands from 'app/client/components/commands';
-import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
-import {DocComm} from 'app/client/components/DocComm';
-import {Drafts} from "app/client/components/Drafts";
-import {EditorMonitor} from "app/client/components/EditorMonitor";
-import {buildDefaultFormLayout} from 'app/client/components/Forms/FormView';
-import GridView from 'app/client/components/GridView';
-import {importFromFile, selectAndImport} from 'app/client/components/Importer';
-import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
-import {RecordCardPopup} from 'app/client/components/RecordCardPopup';
-import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
-import {ViewLayout} from 'app/client/components/ViewLayout';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {DocPluginManager} from 'app/client/lib/DocPluginManager';
-import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
-import {makeT} from 'app/client/lib/localization';
-import {createSessionObs} from 'app/client/lib/sessionObs';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {setTestState} from 'app/client/lib/testState';
-import {AppModel, reportError} from 'app/client/models/AppModel';
-import BaseRowModel from 'app/client/models/BaseRowModel';
-import DataTableModel from 'app/client/models/DataTableModel';
-import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
-import {DocData} from 'app/client/models/DocData';
-import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {UserError} from 'app/client/models/errors';
-import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
-import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
-import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
-import {App} from 'app/client/ui/App';
-import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
-import {DocHistory} from 'app/client/ui/DocHistory';
-import {startDocTour} from "app/client/ui/DocTour";
-import {DocTutorial} from 'app/client/ui/DocTutorial';
-import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
-import {isTourActive, isTourActiveObs} from "app/client/ui/OnBoardingPopups";
-import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
-import {TimingPage} from 'app/client/ui/TimingPage';
-import {WebhookPage} from 'app/client/ui/WebhookPage';
-import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
-import {getTelemetryWidgetTypeFromPageWidget} from 'app/client/ui/widgetTypesMap';
-import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
-import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {invokePrompt} from 'app/client/ui2018/modals';
-import {AssistantPopup} from 'app/client/widgets/AssistantPopup';
-import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
-import {FieldEditor} from "app/client/widgets/FieldEditor";
-import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
-import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
-import {delay} from 'app/common/delay';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {isSchemaAction, UserAction} from 'app/common/DocActions';
-import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {isList, isListType, isRefListType} from 'app/common/gristTypes';
-import {HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
-import {undef, waitObs} from 'app/common/gutil';
-import {LocalPlugin} from "app/common/plugin";
-import type {UserOrgPrefs} from 'app/common/Prefs';
-import {StringUnion} from 'app/common/StringUnion';
-import {TableData} from 'app/common/TableData';
-import {getGristConfig} from 'app/common/urlUtils';
-import {AttachmentTransferStatus, DocAPI, DocStateComparison} from 'app/common/UserAPI';
-import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType} from 'app/common/widgetTypes';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {
-  bundleChanges,
-  Computed,
-  dom,
-  DomContents,
-  Emitter,
-  fromKo,
-  Holder,
-  IDisposable,
-  IDomComponent,
-  IKnockoutObservable,
-  keyframes,
-  Observable,
-  styled,
-  subscribe,
-  toKo
-} from 'grainjs';
-import * as ko from 'knockout';
-import cloneDeepWith = require('lodash/cloneDeepWith');
-import isEqual = require('lodash/isEqual');
+  private _rootElement: HTMLElement;
 
-const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
+  constructor(public viewLayout: ViewLayout) {
+    super();
 
-const t = makeT('GristDoc');
+    // Create a proxy for the LayoutEditor. It will mimic the same interface as CollapsedLeaf.
+    const externalLeaf = ExternalLeaf.create(this, this);
 
-const G = getBrowserGlobals('document', 'window');
+    // Build layout using saved settings.
+    this.layout.buildLayout(this.viewLayout.viewModel.collapsedSections.peek());
 
-// Re-export some tools to move them from main webpack bundle to the one with GristDoc.
-export {DocComm, startDocTour};
+    this._registerCommands();
 
-export interface TabContent {
-  showObs?: any;
-  header?: boolean;
-  label?: any;
-  items?: any;
-  buildDom?: any;
-  keywords?: any;
-}
+    // Override the drop event, to detect if we are dropped on the tray, and no one else
+    // gets the value.
+    this.drop.before((value, emit) => {
+      // Emit the value, if someone else will handle it, he should grab the state from it.
+      emit(value);
+      // See if the state is still there.
+      if (value && this.drop.state.get()) {
+        // No one took it, so we should handle it if we are over the tray.
+        if (this.over.state.get()) {
+          const leafId = value.leafId();
+          // Add it as a last element.
+          this.layout.addBox(leafId);
+          // Ask it to remove itself from the target.
+          value.removeFromLayout();
+        }
+      }
+      // Clear the state, any other listener will get null.
+      this.drop.state.set(null);
+    });
 
-export interface TabOptions {
-  shortLabel?: string;
-  hideSearchContent?: boolean;
-  showObs?: any;
-  category?: any;
-}
+    // Now wire up active state.
 
-const RightPanelTool = StringUnion("none", "docHistory", "validations", "discussion");
+    // When a drag is started, get the top point of the tray, over which we will activate.
+    let topPoint = 48; // By default it is 48 pixels.
+    this.autoDispose(externalLeaf.drag.listen(d => {
+      if (!d) { return; }
+      topPoint = (this._rootElement.parentElement?.getBoundingClientRect().top ?? 61) - 13;
+    }));
 
-export interface IExtraTool {
-  icon: IconName;
-  label: DomContents;
-  content: TabContent[] | IDomComponent;
-}
+    // First we can be activated when a drag has started and we have some boxes.
+    this.drag.map(drag => drag && this.layout.count.get() > 0)
+             .flag() // Map to a boolean, and emit only when the value changes.
+             .filter(Boolean) // Only emit when it is set to true
+             .pipe(this.active);
 
-interface PopupSectionOptions {
-  viewSection: ViewSectionRec;
-  hash: HashLink;
-  close: () => void;
-}
+    // Second, we can be activated when the drag has started by the main layout, and we don't have any boxes yet, but
+    // mouse pointer is relatively high on the screen.
+    Signal.compute(this, on => {
+      const drag = on(externalLeaf.drag);
+      if (!drag) { return false; }
+      const mouseEvent = on(externalLeaf.dragMove);
+      const over = mouseEvent && mouseEvent.clientY < topPoint;
+      return !!over;
+    }).flag().filter(Boolean).pipe(this.active);
 
-interface AddSectionOptions {
-  /** If focus should move to the new section. Defaults to `true`. */
-  focus?: boolean;
-  /** If popups should be shown (e.g. Card Layout tip). Defaults to `true`. */
-  popups?: boolean;
-}
-
-export interface GristDoc extends DisposableWithEvents {
-  app: App;
-  appModel: AppModel;
-  docComm: DocComm;
-  docPageModel: DocPageModel;
-  docModel: DocModel;
-  viewModel: ViewRec;
-  activeViewId: Observable<IDocPage>;
-  currentPageName: Observable<string>;
-  docData: DocData;
-  docInfo: DocInfoRec;
-  docPluginManager: DocPluginManager;
-  rightPanelTool: Observable<IExtraTool | null>;
-  isReadonly: Observable<boolean>;
-  isReadonlyKo: IKnockoutObservable<boolean>;
-  comparison: DocStateComparison | null;
-  cursorMonitor: CursorMonitor;
-  editorMonitor?: EditorMonitor;
-  hasCustomNav: Observable<boolean>;
-  resizeEmitter: Emitter;
-  fieldEditorHolder: Holder<IDisposable>;
-  activeEditor: Observable<FieldEditor | null>;
-  currentView: Observable<BaseView | null>;
-  cursorPosition: Observable<ViewCursorPos | undefined>;
-  userOrgPrefs: Observable<UserOrgPrefs>;
-  behavioralPromptsManager: BehavioralPromptsManager;
-  maximizedSectionId: Observable<number | null>;
-  externalSectionId: Observable<number | null>;
-  viewLayout: ViewLayout | null;
-  docApi: DocAPI;
-  isTimingOn: Observable<boolean>;
-  attachmentTransfer: Observable<AttachmentTransferStatus | null>;
-  canShowRawData: Observable<boolean>;
-
-  docId(): string;
-  openDocPage(viewId: IDocPage): Promise<void>;
-  showTool(tool: typeof RightPanelTool.type): void;
-  onSetCursorPos(rowModel: BaseRowModel | undefined, fieldModel?: ViewFieldRec): Promise<void>;
-  moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void>;
-  getUndoStack(): UndoStack;
-  getTableModel(tableId: string): DataTableModel;
-  getTableModelMaybeWithDiff(tableId: string): DataTableModel;
-  addEmptyTable(): Promise<void>;
-  addWidgetToPage(widget: IPageWidget): Promise<void>;
-  addNewPage(val: IPageWidget): Promise<void>;
-  saveViewSection(section: ViewSectionRec, newVal: IPageWidget): Promise<ViewSectionRec>;
-  saveLink(linkId: string, sectionId?: number): Promise<any>;
-  selectBy(widget: IPageWidget): any[];
-  forkIfNeeded(): Promise<void>;
-
-  getCsvLink(): string;
-  getTsvLink(): string;
-  getDsvLink(): string;
-  getXlsxActiveViewLink(): string;
-  recursiveMoveToCursorPos(
-    cursorPos: CursorPos,
-    setAsActiveSection: boolean,
-    silent?: boolean,
-    visitedSections?: number[]
-  ): Promise<boolean>;
-  activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void>;
-}
-
-export class GristDocImpl extends DisposableWithEvents implements GristDoc {
-  public docModel: DocModel;
-  public viewModel: ViewRec;
-  public activeViewId: Observable<IDocPage>;
-  public currentPageName: Observable<string>;
-  public docData: DocData;
-  public docInfo: DocInfoRec;
-  public docPluginManager: DocPluginManager;
-  public querySetManager: QuerySetManager;
-  public rightPanelTool: Observable<IExtraTool | null>;
-  public isReadonly = this.docPageModel.isReadonly;
-  public isReadonlyKo = toKo(ko, this.isReadonly);
-  public comparison: DocStateComparison | null;
-  // component for keeping track of latest cursor position
-  public cursorMonitor: CursorMonitor;
-  // component for keeping track of a cell that is being edited
-  public editorMonitor?: EditorMonitor;
-  // component for keeping track of a cell that is being edited
-  public draftMonitor: Drafts;
-  // will document perform its own navigation (from anchor link)
-  public hasCustomNav: Observable<boolean>;
-  // Emitter triggered when the main doc area is resized.
-  public readonly resizeEmitter = this.autoDispose(new Emitter());
-
-  // This holds a single FieldEditor. When a new FieldEditor is created (on edit), it replaces the
-  // previous one if any. The holder is maintained by GristDoc, so that we are guaranteed at
-  // most one instance of FieldEditor at any time.
-  public readonly fieldEditorHolder = Holder.create(this);
-  // active field editor
-  public readonly activeEditor: Observable<FieldEditor | null> = Observable.create(this, null);
-
-  // Holds current view that is currently rendered
-  public currentView: Observable<BaseView | null>;
-
-  // Holds current cursor position with a view id
-  public cursorPosition: Computed<ViewCursorPos | undefined>;
-
-  public readonly userOrgPrefs = getUserOrgPrefsObs(this.docPageModel.appModel);
-
-  public readonly behavioralPromptsManager = this.docPageModel.appModel.behavioralPromptsManager;
-  // One of the section can be expanded (as requested from the Layout), we will
-  // store its id in this variable. NOTE: expanded section looks exactly the same as a section
-  // in the popup. But they are rendered differently, as section in popup is probably an external
-  // section (or raw data section) that is not part of this view. Maximized section is a section
-  // in the view, so there is no need to render it twice, layout just hides all other sections to make
-  // the space.
-  public maximizedSectionId: Observable<number | null> = Observable.create(this, null);
-  // This is id of the section that is currently shown in the popup. Probably this is an external
-  // section, like raw data view, or a section from another view.
-  public externalSectionId: Observable<number | null>;
-  public viewLayout: ViewLayout | null = null;
-
-  // Holder for the popped up formula editor.
-  public readonly formulaPopup = Holder.create(this);
-
-  public get docApi() {
-    return this.docPageModel.appModel.api.getDocAPI(this.docPageModel.currentDocId.get()!);
+    // If a drag has ended, we should deactivate.
+    this.drag.flag().filter(d => !d).pipe(this.active);
   }
 
-  public isTimingOn = Observable.create(this, false);
-
-  /**
-   * Observable for the attachment transfer status. It is send by the ActiveDoc whenever attachments'
-   * transfer job is started or finished or when the external storage is changed through the API.
-   * Note: direct json manipulation (in the DocInfoRec) are not notified by the ActiveDoc.
-   * Note: GristDoc doesn't load it at the start, it just listens to changes, so the user of this API
-   * needs to load the status manually if it is not yet set.
-   */
-  public attachmentTransfer = Observable.create(this, null as AttachmentTransferStatus|null);
-
-  /**
-   * Checks if it is ok to show raw data popup for currently selected section.
-   * We can't show raw data if:
-   * - we already have full screen section (which looks the same)
-   * - we are already showing raw data
-   *
-   * Extracted to single computed as it is used here and in menus.
-   */
-  public canShowRawData: Computed<boolean>;
-
-  private _actionLog: ActionLog;
-  private _undoStack: UndoStack;
-  private _lastOwnActionGroup: ActionGroupWithCursorPos | null = null;
-  private _rightPanelTabs = new Map<string, TabContent[]>();
-  private _docHistory: DocHistory;
-  private _discussionPanel: DiscussionPanel;
-  private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
-  private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
-  private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
-  private _popupSectionOptions: Observable<PopupSectionOptions | null> = Observable.create(this, null);
-  private _activeContent: Computed<IDocPage>;
-  private _docTutorialHolder = Holder.create<DocTutorial>(this);
-  private _isRickRowing: Observable<boolean> = Observable.create(this, false);
-  private _showBackgroundVideoPlayer: Observable<boolean> = Observable.create(this, false);
-  private _backgroundVideoPlayerHolder: Holder<YouTubePlayer> = Holder.create(this);
-  private _disableAutoStartingTours: boolean = false;
-  private _isShowingPopupSection = false;
-  private _prevSectionId: number | null = null;
-
-  /**
-   * This holds a single AssistantPopup and empties itself whenever it's
-   * dispose.
-   *
-   * The holder is maintained by GristDoc, so that we are guaranteed at most
-   * one instance of AssistantPopup at any time.
-   */
-  private _assistantPopupHolder = Holder.create<AssistantPopup>(this);
-
-  constructor(
-    public readonly app: App,
-    public readonly appModel: AppModel,
-    public readonly docComm: DocComm,
-    public readonly docPageModel: DocPageModel,
-    openDocResponse: OpenLocalDocResult,
-    plugins: LocalPlugin[],
-    options: {
-      comparison?: DocStateComparison  // initial comparison with another document
-    } = {}
-  ) {
-    super();
-    console.log("RECEIVED DOC RESPONSE", openDocResponse);
-    this.isTimingOn.set(openDocResponse.isTimingOn);
-    this.docData = new DocData(this.docComm, openDocResponse.doc);
-    this.docModel = this.autoDispose(new DocModel(this.docData, this.docPageModel));
-    this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
-    this.docPluginManager = new DocPluginManager({
-      plugins,
-      untrustedContentOrigin: app.topAppModel.getUntrustedContentOrigin(),
-      docComm: this.docComm,
-      clientScope: app.clientScope,
-    });
-
-    // Maintain the MetaRowModel for the global document info, including docId and peers.
-    this.docInfo = this.docModel.docInfoRow;
-
-    const defaultViewId = this.docInfo.newDefaultViewId;
-
-    // Grainjs observable for current view id, which may be a string such as 'code'.
-    this.activeViewId = Computed.create(this, (use) => {
-      const {docPage} = use(urlState().state);
-
-      // Return most special pages like 'code' and 'acl' as is
-      if (typeof docPage === 'string' && docPage !== 'GristDocTour' && SpecialDocPage.guard(docPage)) {
-        return docPage;
+  public replaceLayout() {
+    const savedSections = this.viewLayout.viewModel.collapsedSections.peek();
+    this.viewLayout.viewModel.activeCollapsedSections(savedSections);
+    const boxes = this.layout.buildLayout(savedSections);
+    return {
+      dispose() {
+        boxes.forEach(box => box.dispose());
+        boxes.length = 0;
       }
-
-      // GristDocTour is a special table that is usually hidden from users, but putting /p/GristDocTour
-      // in the URL navigates to it and makes it visible in the list of pages in the sidebar
-      // For GristDocTour, find the view with that name.
-      // Otherwise find the view with the given row ID, because letting a non-existent row ID pass through here is bad.
-      // If no such view exists, return the default view.
-      const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage);
-      return viewId || use(defaultViewId);
-    });
-    this._activeContent = Computed.create(this, use => use(this.activeViewId));
-    this.externalSectionId = Computed.create(this, use => {
-      const externalContent = use(this._popupSectionOptions);
-      return externalContent ? use(externalContent.viewSection.id) : null;
-    });
-    // This viewModel reflects the currently active view, relying on the fact that
-    // createFloatingRowModel() supports an observable rowId for its argument.
-    // Although typings don't reflect it, createFloatingRowModel() accepts non-numeric values,
-    // which yield an empty row, which is why we can cast activeViewId.
-    this.viewModel = this.autoDispose(
-      this.docModel.views.createFloatingRowModel(toKo(ko, this.activeViewId) as ko.Computed<number>));
-
-    // When active section is changed, clear the maximized state.
-    this.autoDispose(this.viewModel.activeSectionId.subscribe((id) => {
-      if (id === this.maximizedSectionId.get()) {
-        return;
-      }
-      this.maximizedSectionId.set(null);
-      // If we have layout, update it.
-      if (!this.viewLayout?.isDisposed()) {
-        this.viewLayout?.maximized.set(null);
-      }
-    }));
-
-    // Grainjs observable reflecting the name of the current document page.
-    this.currentPageName = Computed.create(this, this.activeViewId,
-      (use, docPage) => typeof docPage === 'number' ? use(this.viewModel.name) : docPage);
-
-    // Whenever the active viewModel is deleted, switch to the default view.
-    this.autoDispose(this.viewModel._isDeleted.subscribe((isDeleted) => {
-      if (isDeleted) {
-        // This should not be done synchronously, as that affects the same viewModel that triggered
-        // this callback, and causes some obscure effects on knockout subscriptions.
-        Promise.resolve().then(() => urlState().pushUrl({docPage: undefined})).catch(() => null);
-      }
-    }));
-
-    // Subscribe to URL state, and navigate to anchor or open a popup if necessary.
-    this.autoDispose(subscribe(urlState().state, async (use, state) => {
-      if (!state.hash) {
-        return;
-      }
-
-      try {
-        if (state.hash.popup || state.hash.recordCard) {
-          await this._openPopup(state.hash);
-        } else {
-          // Navigate to an anchor if one is present in the url hash.
-          const cursorPos = this._getCursorPosFromHash(state.hash);
-          await this.recursiveMoveToCursorPos(cursorPos, true);
-        }
-
-        const isTourOrTutorialActive = isTourActive() || this.docModel.isTutorial();
-        if (state.hash.rickRow && !this._isRickRowing.get() && !isTourOrTutorialActive) {
-          YouTubePlayer.create(this._backgroundVideoPlayerHolder, RICK_ROLL_YOUTUBE_EMBED_ID, {
-            height: '100%',
-            width: '100%',
-            origin: getMainOrgUrl(),
-            playerVars: {
-              controls: 0,
-              disablekb: 1,
-              fs: 0,
-              iv_load_policy: 3,
-              modestbranding: 1,
-            },
-            onPlayerStateChange: (_player, event) => {
-              if (event.data === PlayerState.Playing) {
-                this._isRickRowing.set(true);
-              }
-            },
-          }, cssYouTubePlayer.cls(''));
-          this._showBackgroundVideoPlayer.set(true);
-          this._waitForView()
-            .then(() => {
-              const cursor = document.querySelector('.selected_cursor.active_cursor');
-              if (!cursor) {
-                return;
-              }
-
-              this.behavioralPromptsManager.showPopup(cursor, 'rickRow', {
-                onDispose: () => this._playRickRollVideo(),
-              });
-            })
-            .catch(reportError);
-        }
-      } catch (e) {
-        reportError(e);
-      } finally {
-        setTimeout(finalizeAnchor, 0);
-      }
-    }));
-
-    this.autoDispose(subscribe(
-      urlState().state,
-      isTourActiveObs(),
-      fromKo(this.docModel.isTutorial),
-      async (_use, state, hasActiveTour, isTutorial) => {
-        // Tours and tutorials can interfere with in-product tips and announcements.
-        const hasPendingDocTour = state.docTour || await this._shouldAutoStartDocTour();
-        const hasPendingWelcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
-        const isPopupManagerDisabled = this.behavioralPromptsManager.isDisabled();
-        if (
-          (hasPendingDocTour || hasPendingWelcomeTour || hasActiveTour || isTutorial) &&
-          !isPopupManagerDisabled
-        ) {
-          this.behavioralPromptsManager.disable();
-        } else if (isPopupManagerDisabled) {
-          this.behavioralPromptsManager.enable();
-        }
-      }
-    ));
-
-    let isStartingTourOrTutorial = false;
-    this.autoDispose(subscribe(urlState().state, async (_use, state) => {
-      // Only start a tour or tutorial when the full interface is showing, i.e. not when in
-      // embedded mode.
-      if (state.params?.style === 'singlePage') {
-        return;
-      }
-
-      const isTutorial = this.docModel.isTutorial();
-      // Onboarding tours were not designed with mobile support in mind. Disable until fixed.
-      if (isNarrowScreen() && !isTutorial) {
-        return;
-      }
-
-      // Onboarding tours can conflict with rick rowing.
-      if (state.hash?.rickRow) {
-        this._disableAutoStartingTours = true;
-      }
-
-      // If we have an active tour or tutorial (or are in the process of starting one), don't start
-      // a new one.
-      const hasActiveTourOrTutorial = isTourActive() || !this._docTutorialHolder.isEmpty();
-      if (isStartingTourOrTutorial || hasActiveTourOrTutorial) {
-        return;
-      }
-
-      const shouldStartTutorial = isTutorial;
-      const shouldStartDocTour = state.docTour || await this._shouldAutoStartDocTour();
-      const shouldStartWelcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
-      if (shouldStartTutorial || shouldStartDocTour || shouldStartWelcomeTour) {
-        isStartingTourOrTutorial = true;
-        try {
-          await this._waitForView();
-
-          // Remove any tour-related hash-tags from the URL. So #repeat-welcome-tour and
-          // #repeat-doc-tour are used as triggers, but will immediately disappear.
-          await urlState().pushUrl({welcomeTour: false, docTour: false},
-            {replace: true, avoidReload: true});
-
-          if (shouldStartTutorial) {
-            await DocTutorial.create(this._docTutorialHolder, this).start();
-          } else if (shouldStartDocTour) {
-            const onFinishCB = () => (
-              !this._seenDocTours.get()?.includes(this.docId())
-              && markAsSeen(this._seenDocTours, this.docId())
-            );
-            await startDocTour(this.docData, this.docComm, onFinishCB);
-            if (this.docPageModel.isTemplate.get()) {
-              const doc = this.docPageModel.currentDoc.get();
-              if (!doc) { return; }
-
-              logTelemetryEvent('openedTemplateTour', {
-                full: {
-                  templateId: parseUrlId(doc.urlId || doc.id).trunkId,
-                },
-              });
-            }
-          } else {
-            startWelcomeTour(() => this._showGristTour.set(false));
-          }
-        } finally {
-          isStartingTourOrTutorial = false;
-        }
-      }
-    }));
-
-    // Importer takes a function for creating previews.
-    const createPreview = (vs: ViewSectionRec) => {
-      const preview = GridView.create(this, vs, true);
-      // We need to set the instance to the newly created section. This is important, as
-      // GristDoc is responsible for changing the cursor position not the cursor itself. Final
-      // cursor position is determined by finding active (or visible) section and passing this
-      // command (setCursor) to its instance.
-      vs.viewInstance(preview);
-      preview.autoDisposeCallback(() => vs.viewInstance(null));
-      return preview;
     };
+  }
 
-    const importSourceElems = ImportSourceElement.fromArray(this.docPluginManager.pluginsList);
-    const importMenuItems = [
-      {
-        label: t("Import from file"),
-        action: () => importFromFile(this, createPreview),
+/* -------------------------------------------
+  /*Builds a popup for a maximized section. */
+// MOD DMH
+public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, close: () => void) {
+  const section = Observable.create<number|null>(owner, null);
+
+  owner.autoDispose(selected.addListener((cur, prev) => {
+    if (prev) {
+      this.layout.getBox(prev)?.attach();
+    }
+    if (cur) {
+      this.layout.getBox(cur)?.detach();
+    }
+    section.set(cur);
+  }));
+
+return dom.domComputed(section, (id) => {
+  if (!id) {
+    return null;
+  }
+
+  const viewSections = this.viewLayout.viewModel.viewSections.peek();
+  const vs = viewSections.all().find((s: ViewSectionRec) => s.getRowId() === id);
+  const title = vs?.title.peek()?.trim().toUpperCase();
+
+  if (title === "🔍 SEARCH") {
+    setTimeout(() => {
+      const input = document.querySelector('input[placeholder="Search in document"]');
+      if (input instanceof HTMLInputElement) {
+        input.focus();
+        input.select();
+        console.log("✅ [Patch] Focused search input for 🔍 SEARCH popup.");
+      } else {
+        console.warn("⚠️ [Patch] Search input not found or not an input element.");
+      }
+    }, 300);
+  }
+
+  return dom.update(
+    buildViewSectionDom({
+      gristDoc: this.viewLayout.gristDoc,
+      sectionRowId: id,
+      draggable: false,
+      focusable: false,
+    }),
+  );
+});
+// end MOD DMH
+
+// MOD DMH
+public buildDom() {
+  return this._rootElement = cssVFull(
+    dom.maybe(use => use(this.layout.count) > 0, () =>
+      cssCollapsedTrayWrapper(
+        dom.cls('collapsed-tray-wrapper'),  // 👈 Required for hover effect to work
+        cssCollapsedTray(
+          testId('editor'),
+          cssCollapsedTray.cls('-is-active', this.active.state),
+          cssCollapsedTray.cls('-is-target', this.over.state),
+          syncHover(this.hovering),
+          dom.create(CollapsedDropZone, this),
+          this.layout.buildDom(),
+        )
+      )
+    )
+  );
+}
+// end MOD DMH
+
+  public buildContentDom(id: string|number) {
+    return buildCollapsedSectionDom({
+      gristDoc: this.viewLayout.gristDoc,
+      sectionRowId: id,
+    });
+  }
+
+  private _registerCommands() {
+    const viewLayout = this.viewLayout;
+    // Add custom commands for options in the menu.
+    const commandGroup = {
+      // Collapse visible section.
+      collapseSection: () => {
+        const leafId = viewLayout.viewModel.activeSectionId();
+        if (!leafId) { return; }
+
+        // Find the box for this section in the layout.
+        const box = viewLayout.layoutEditor.getBox(leafId);
+        if (!box) { return; }
+
+        // Change the active section now. This is important as this will destroy the view before we
+        // remove the box from the dom. Charts are very sensitive for this.
+        viewLayout.viewModel.activeSectionId(
+          // We can't collapse last section, so the main layout will always have at least one section.
+          viewLayout.layoutEditor.layout.getAllLeafIds().filter(x => x !== leafId)[0]
+        );
+
+        // Add the box to our collapsed editor (it will transfer the viewInstance).
+        this.layout.addBox(leafId);
+
+        // Remove it from the main layout.
+        box.dispose();
+
+        // And ask the viewLayout to save the specs.
+        viewLayout.saveLayoutSpec().catch(reportError);
       },
-      ...importSourceElems.map(importSourceElem => ({
-        label: importSourceElem.importSource.label,
-        action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview)
-      }))
-    ];
-
-    // Set the available import sources in the DocPageModel.
-    this.docPageModel.importSources = importMenuItems;
-
-    this._actionLog = this.autoDispose(ActionLog.create({gristDoc: this}));
-    this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, {gristDoc: this}));
-    this._docHistory = DocHistory.create(this, this.docPageModel, this._actionLog);
-    this._discussionPanel = DiscussionPanel.create(this, this);
-
-    // Tap into docData's sendActions method to save the cursor position with every action, so that
-    // undo/redo can jump to the right place.
-    this.autoDispose(this.docData.sendActionsEmitter.addListener(this._onSendActionsStart, this));
-    this.autoDispose(this.docData.sendActionsDoneEmitter.addListener(this._onSendActionsEnd, this));
-
-    /* Command binding */
-    this.autoDispose(commands.createGroup({
-      undo() {
-        this._undoStack.sendUndoAction().catch(reportError);
+      restoreSection: () => {
+        // Get the section that is collapsed and clicked (we are setting this value).
+        const leafId = viewLayout.viewModel.activeCollapsedSectionId();
+        if (!leafId) { return; }
+        viewLayout.viewModel.activeCollapsedSectionId(0);
+        viewLayout.viewModel.activeCollapsedSections(
+          viewLayout.viewModel.activeCollapsedSections.peek().filter(x => x !== leafId)
+        );
+        viewLayout.viewModel.activeSectionId(leafId);
+        viewLayout.saveLayoutSpec().catch(reportError);
       },
-      redo() {
-        this._undoStack.sendRedoAction().catch(reportError);
-      },
-      reloadPlugins() {
-        void this.docComm.reloadPlugins().then(() => G.window.location.reload(false));
-      },
-      async showRawData(sectionId: number = 0) {
-        if (!this.canShowRawData.get()) {
-          return;
-        }
-        if (!sectionId) {
-          const viewSection = this.viewModel.activeSection();
-          if (viewSection?.isDisposed()) { return; }
-          if (viewSection.isRaw.peek()) {
+      // Delete collapsed section.
+      deleteCollapsedSection: async () => {
+        // This section is still in the view (but not in the layout). So we can just remove it.
+        const leafId = viewLayout.viewModel.activeCollapsedSectionId();
+        if (!leafId) { return; }
+
+        viewLayout.docModel.docData.bundleActions('removing section', async () => {
+          if (!await this.viewLayout.removeViewSection(leafId)) {
             return;
           }
-          sectionId = viewSection.id.peek();
-        }
-        const anchorUrlState = { hash: { sectionId, popup: true } };
-        await urlState().pushUrl(anchorUrlState, { replace: true });
-      },
-      // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
-      // This is overridden by the formula editor to insert "$col" variables when clicking cells.
-      setCursor: this.onSetCursorPos.bind(this),
-      createForm: this._onCreateForm.bind(this),
-      pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
-      activateAssistant: this._activateAssistant.bind(this),
-    }, this, true));
-
-    this.listenTo(app.comm, 'docUserAction', this._onDocUserAction);
-
-    this.listenTo(app.comm, 'docUsage', this._onDocUsageMessage);
-
-    this.listenTo(app.comm, 'docChatter', this._onDocChatter);
-
-    this._handleTriggerQueueOverflowMessage();
-
-    this.rightPanelTool = Computed.create(this, (use) => this._getToolContent(use(this._rightPanelTool)));
-
-    this.comparison = options.comparison || null;
-
-    // We need prevent default here to allow drop events to fire.
-    this.autoDispose(dom.onElem(window, 'dragover', (ev) => ev.preventDefault()));
-    // The default action is to open dragged files as a link, navigating out of the app.
-    this.autoDispose(dom.onElem(window, 'drop', (ev) => ev.preventDefault()));
-
-    // On window resize, trigger the resizeEmitter to update ViewLayout and individual BaseViews.
-    this.autoDispose(dom.onElem(window, 'resize', () => this.resizeEmitter.emit()));
-
-    // create current view observer
-    this.currentView = Observable.create<BaseView | null>(this, null);
-
-    // create computed observable for viewInstance - if it is loaded or not
-
-    // GrainJS will not recalculate section.viewInstance correctly because it will be
-    // modified (updated from null to a correct instance) in the same tick. We need to
-    // switch for a moment to knockout to fix this.
-    const viewInstance = fromKo(this.autoDispose(ko.pureComputed(() => {
-      const viewId = toKo(ko, this.activeViewId)();
-      if (!isViewDocPage(viewId)) {
-        return null;
+          // We need to manually update the layout. Main layout editor doesn't care about missing sections.
+          // but we can't afford that. Without removing it, user can add another section that will be collapsed
+          // from the start, as the id will be the same as the one we just removed.
+          const currentSpec = viewLayout.viewModel.layoutSpecObj();
+          const validSections = new Set(viewLayout.viewModel.viewSections.peek().peek().map(vs => vs.id.peek()));
+          validSections.delete(leafId);
+          currentSpec.collapsed = currentSpec.collapsed
+            ?.filter(x => typeof x.leaf === 'number' && validSections.has(x.leaf));
+          await viewLayout.saveLayoutSpec(currentSpec);
+        }).catch(reportError);
       }
-      const section = this.viewModel.activeSection();
-      if (section?.isDisposed()) { return null; }
-      const view = section.viewInstance();
-      return view;
-    })));
+    };
+    this.autoDispose(commands.createGroup(commandGroup, this, true));
+  }
+}
 
-    // then listen if the view is present, because we still need to wait for it load properly
-    this.autoDispose(viewInstance.addListener(async (view) => {
-      if (view) {
-        await view.getLoadingDonePromise();
-      }
-      if (view?.isDisposed()) {
-        return;
-      }
-      // finally set the current view as fully loaded
-      this.currentView.set(view);
-    }));
+/**
+ * Main component that detects where the section should be dropped.
+ */
+class CollapsedDropZone extends Disposable {
+  private _rootElement: HTMLElement;
+  // Some operations will be blocked when we are waiting for an animation to finish.
+  private _animation = Observable.create(this, 0);
+  private _lastTarget: TargetLeaf | undefined;
+  private _lastIndex = -1;
 
-    // create observable for current cursor position
-    this.cursorPosition = Computed.create<ViewCursorPos | undefined>(this, use => {
-      // get the BaseView
-      const view = use(this.currentView);
-      if (!view) {
-        return undefined;
-      }
-      const viewId = use(this.activeViewId);
-      if (!isViewDocPage(viewId)) {
-        return undefined;
-      }
-      // read latest position
-      const currentPosition = use(view.cursor.currentPosition);
-      if (currentPosition) {
-        return {...currentPosition, viewId};
-      }
-      return undefined;
-    });
+  constructor(protected model: LayoutTray) {
+    super();
+    // When the drag has started or has finished we will add an empty leaf that can accept
+    // dragged section. Event is fire only once, and it will be fired with a null when the draggable
+    // has finished.
+    let pushedLeaf: EmptyLeaf | undefined;
+    const layout = model.layout;
 
-    this.hasCustomNav = Computed.create(this, urlState().state, (_, state) => {
-      const hash = state.hash;
-      return !!(hash && (undef(hash.colRef, hash.rowId, hash.sectionId) !== undefined));
-    });
-
-    this.draftMonitor = Drafts.create(this, this);
-    this.cursorMonitor = CursorMonitor.create(this, this);
-    this.editorMonitor = EditorMonitor.create(this, this);
-
-    // When active section is changed to a chart or custom widget, change the tab in the creator
-    // panel to the table.
-    this.autoDispose(this.viewModel.activeSection.subscribe((section) => {
-      if (section.isDisposed() || section._isDeleted.peek()) {
-        return;
-      }
-      if (['chart', 'custom'].includes(section.parentKey.peek())) {
-        commands.allCommands.viewTabFocus.run();
+    this.autoDispose(model.active.distinct().listen(ok => {
+      if (ok) {
+        pushedLeaf = EmptyLeaf.create(null, this.model);
+        layout.addBox(pushedLeaf);
+      } else if (pushedLeaf) {
+        layout.destroy(pushedLeaf);
       }
     }));
-
-    this.autoDispose(this._popupSectionOptions.addListener((popupOptions) => {
-      if (!popupOptions) {
-        this._isShowingPopupSection = false;
-        this._prevSectionId = null;
-      }
-    }));
-
-    this.canShowRawData = Computed.create(this, (use) => {
-      const isSinglePage = use(urlState().state).params?.style === 'singlePage';
-      if (isSinglePage || use(this.maximizedSectionId)) {
-        return false;
-      }
-      return true;
-    });
   }
 
-  /**
-   * Returns current document's id
-   */
-  public docId() {
-    return this.docPageModel.currentDocId.get()!;
-  }
-
-  /**
-   * Builds the DOM for this GristDoc.
-   */
   public buildDom() {
-    return cssViewContentPane(
-      testId('gristdoc'),
-      cssViewContentPane.cls("-special-page", use =>
-        ['data', 'settings', 'code'].includes(use(this.activeViewId) as string)),
-      dom.maybe(this._isRickRowing, () => cssStopRickRowingButton(
-        cssCloseIcon('CrossBig'),
-        dom.on('click', () => {
-          this._isRickRowing.set(false);
-          this._showBackgroundVideoPlayer.set(false);
-        }),
-        testId('gristdoc-stop-rick-rowing'),
-      )),
-      dom.domComputed(this._activeContent, (content) => {
-        return  (
-          content === 'code' ? dom.create(CodeEditorPanel, this) :
-          content === 'acl' ? dom.create(AccessRules, this) :
-          content === 'data' ? dom.create(RawDataPage, this) :
-          content === 'settings' ? dom.create(DocSettingsPage, this) :
-          content === 'webhook' ? dom.create(WebhookPage, this) :
-          content === 'timing' ? dom.create(TimingPage, this) :
-          content === 'GristDocTour' ? null :
-          [
-            dom.create((owner) => {
-              this.viewLayout = ViewLayout.create(owner, this, content);
-              this.viewLayout.maximized.addListener(sectionId => {
-                this.maximizedSectionId.set(sectionId);
-
-                if (sectionId === null && !this._isShowingPopupSection) {
-                  // If we didn't navigate to another section in the popup, move focus
-                  // back to the previous section.
-                  this._focusPreviousSection();
-                }
-              });
-              owner.onDispose(() => this.viewLayout = null);
-              return this.viewLayout;
-            }),
-            dom.maybe(this._popupSectionOptions, (popupOptions) => {
-              return dom.create((owner) => {
-                // In case user changes a page, close the popup.
-                owner.autoDispose(this.activeViewId.addListener(popupOptions.close));
-
-                // In case the section is removed, close the popup.
-                popupOptions.viewSection.autoDispose({dispose: popupOptions.close});
-
-                const {recordCard, rowId} = popupOptions.hash;
-                if (recordCard) {
-                  if (!rowId || rowId === 'new') {
-                    // Should be unreachable, but just to be sure (and to satisfy type checking)...
-                    throw new Error('Unable to open Record Card: undefined row id');
-                  }
-
-                  return dom.create(RecordCardPopup, {
-                    gristDoc: this,
-                    rowId,
-                    viewSection: popupOptions.viewSection,
-                    onClose: popupOptions.close,
-                  });
-                } else {
-                  return dom.create(RawDataPopup, this, popupOptions.viewSection, popupOptions.close);
-                }
-              });
-            }),
-          ]
-        );
-      }),
-      dom.maybe(this._showBackgroundVideoPlayer, () => [
-        cssBackgroundVideo(
-          this._backgroundVideoPlayerHolder.get()?.buildDom(),
-          cssBackgroundVideo.cls('-fade-in-and-out', this._isRickRowing),
-          testId('gristdoc-background-video'),
-        ),
-      ]),
-    );
-  }
-
-  // Open the given page. Note that links to pages should use <a> elements together with setLinkUrl().
-  public openDocPage(viewId: IDocPage) {
-    return urlState().pushUrl({docPage: viewId});
-  }
-
-  public showTool(tool: typeof RightPanelTool.type): void {
-    this._rightPanelTool.set(tool);
-  }
-
-  public async onSetCursorPos(rowModel: BaseRowModel | undefined, fieldModel?: ViewFieldRec) {
-    return this._setCursorPos({
-      rowIndex: rowModel?._index() || 0,
-      fieldIndex: fieldModel?._index() || 0,
-      sectionId: fieldModel?.viewSection().getRowId(),
-    });
-  }
-
-  /**
-   * Switch to the view/section and scroll to the record indicated by cursorPos. If cursorPos is
-   * null, then moves to a position best suited for optActionGroup (not yet implemented).
-   */
-  public async moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void> {
-    if (!cursorPos || !cursorPos.sectionId) {
-      // TODO We could come up with a suitable cursorPos here based on the action itself.
-      // This should only come up if trying to undo/redo after reloading a page (since the cursorPos
-      // associated with the action is only stored in memory of the current JS process).
-      // A function like `getCursorPosForActionGroup(ag)` would also be useful to jump to the best
-      // place from any action in the action log.
-      // When user deletes table from Raw Data view, the section id will be 0 and undoing that
-      // operation will move cursor to the empty section row (with id 0).
-      return;
-    }
-    try {
-      await this._setCursorPos(cursorPos);
-    } catch (e) {
-      reportError(e);
-    }
-  }
-
-  public getUndoStack() {
-    return this._undoStack;
-  }
-
-  public getTableModel(tableId: string): DataTableModel {
-    return this.docModel.getTableModel(tableId);
-  }
-
-  // Get a DataTableModel, possibly wrapped to include diff data if a comparison is
-  // in effect.
-  public getTableModelMaybeWithDiff(tableId: string): DataTableModel {
-    const tableModel = this.getTableModel(tableId);
-    if (!this.comparison?.details) {
-      return tableModel;
-    }
-    // TODO: cache wrapped models and share between views.
-    return new DataTableModelWithDiff(tableModel, this.comparison.details);
-  }
-
-  /**
-   * Sends an action to create a new empty table and switches to that table's primary view.
-   */
-  public async addEmptyTable(): Promise<void> {
-    const name = await this._promptForName();
-    if (name === undefined) {
-      return;
-    }
-    const tableInfo = await this.docData.sendAction(['AddEmptyTable', name || null]);
-    await this.openDocPage(this.docModel.tables.getRowModel(tableInfo.id).primaryViewId());
-  }
-
-  /**
-   * Adds a view section described by val to the current page.
-   */
-  public async addWidgetToPage(widget: IPageWidget): Promise<void> {
-    const {table, type} = widget;
-    let tableId: string | null | undefined;
-    if (table === 'New Table') {
-      tableId = await this._promptForName();
-      if (tableId === undefined) {
-        return;
-      }
-    }
-    if (type === 'custom') {
-      return showCustomWidgetGallery(this, {
-        addWidget: () => this._addWidgetToPage(widget, tableId),
-      });
-    }
-
-    const viewName = this.viewModel.name.peek();
-    await this.docData.bundleActions(
-      t("Added new linked section to view {{viewName}}", {viewName}),
-      () => this._addWidgetToPage(widget, tableId ?? null)
-    );
-    return;
-  }
-
-  /**
-   * Adds a new page (aka: view) with a single view section (aka: page widget) described by `val`.
-   */
-  public async addNewPage(val: IPageWidget): Promise<void> {
-    const {table, type} = val;
-    let tableId: string | null | undefined;
-    if (table === 'New Table') {
-      tableId = await this._promptForName();
-      if (tableId === undefined) { return; }
-    }
-    if (type === 'custom') {
-      return showCustomWidgetGallery(this, {
-        addWidget: () => this._addPage(val, tableId ?? null) as Promise<{
-          viewRef: number;
-          sectionRef: number;
-        }>,
-      });
-    }
-
-    const {sectionRef, viewRef} = await this.docData.bundleActions(
-      'Add new page',
-      () => this._addPage(val, tableId ?? null)
-    );
-    await this._focus({sectionRef, viewRef});
-    this._showNewWidgetPopups(type);
-  }
-
-  public async saveViewSection(section: ViewSectionRec, newVal: IPageWidget) {
-    const docData = this.docModel.docData;
-    const oldVal: IPageWidget = toPageWidget(section);
-    const viewModel = section.view();
-    const colIds = section.viewFields().all().map((f) => f.column().colId());
-
-    if (isEqual(oldVal, newVal)) {
-      // nothing to be done
-      return section;
-    }
-
-    return await this.viewLayout!.freezeUntil(docData.bundleActions(
-      t("Saved linked section {{title}} in view {{name}}", {title: section.title(), name: viewModel.name()}),
-      async () => {
-
-        // if table changes or a table is made a summary table, let's replace the view section by a
-        // new one, and return.
-        if (oldVal.table !== newVal.table || oldVal.summarize !== newVal.summarize) {
-          return await this._replaceViewSection(section, oldVal, newVal);
-        }
-
-        // if type changes, let's save it.
-        if (oldVal.type !== newVal.type) {
-          await section.parentKey.saveOnly(newVal.type);
-        }
-
-        // if grouped by column changes, let's use the specific user action.
-        if (!isEqual(oldVal.columns, newVal.columns)) {
-          await docData.sendAction(
-            ['UpdateSummaryViewSection', section.getRowId(), newVal.columns]
-          );
-          // Charts needs to keep view fields consistent across update.
-          if (newVal.type === 'chart' && oldVal.type === 'chart') {
-            await this._setSectionViewFieldsFromArray(section, colIds);
+    const obsRects = Observable.create(this, [] as Array<VRect|null>);
+    return (this._rootElement = cssVirtualZone(
+      // We are only rendered when mouse is over the tray and it has some dragged leaf with it.
+      dom.maybeOwned(this.model.over.state, (owner) => {
+        // Get the bounding rect of the rootElement, virtual rects are relative, so we will be
+        // adjusting coordinates.
+        const root = this._rootElement.getBoundingClientRect();
+        // We store rects in an observable, that might be used to visualize the zones.
+        // Create the mouseMove listener.
+        const listener = async (e: MouseEvent) => {
+          if (owner.isDisposed() || this._isAnimating()) {
+            return;
           }
-        }
-
-        // update link
-        if (oldVal.link !== newVal.link) {
-          await this.saveLink(newVal.link);
-        }
-        return section;
-      },
-      {nestInActiveBundle: true}
+           // If there are some previous rects (from previous calculation), test if we are still in one of them.
+          if (this._lastTarget) {
+            const stillThere = obsRects.get()[this._lastIndex]?.contains(e);
+            if (stillThere) {
+              return;
+            }
+          }
+          // Calculate the virtual zones.
+          obsRects.set(this._calculate(root));
+          // Find the one under the mouse.
+          const underMouse = obsRects.get().findIndex((x) => x?.contains(e));
+          // If it is still the same, do nothing.
+          if (underMouse === this._lastIndex) { return; }
+          // If we found something, insert a drop target.
+          if (underMouse !== -1) {
+            this._insertDropTarget(underMouse)
+              .catch((err) => console.error(`Failed to insert zone:`, err)); // This should not happen.
+            return;
+          }
+          // We haven't found anything, remove the last drop target.
+          this._removeDropZone().catch((err) => console.error(`Failed to remove zone:`, err));// This should not happen.
+        };
+        G.window.addEventListener('mousemove', listener);
+        // When mouse leaves, we need to remove the last drop target.
+        owner.onDispose(() => {
+          this._removeDropZone().catch((err) => console.error(`Failed to remove zone:`, err));// This should not happen.
+        });
+        owner.onDispose(() => G.window.removeEventListener('mousemove', listener));
+        // For debugging, we can show the virtual zones.
+        const show = false;
+        return !show ? null : dom.domComputed(
+          obsRects,
+          rects => rects.filter(isNonNullish).map((rect: VRect) => cssVirtualPart(
+            {style: `left: ${rect.left}px; width: ${rect.width}px; top: ${rect.top}px; height: ${rect.height}px;`}
+        )));
+      })
     ));
   }
 
-  // Save link for a given section, by default the active section.
-  public async saveLink(linkId: string, sectionId?: number) {
-    sectionId = sectionId || this.viewModel.activeSection.peek().getRowId();
-    const link = linkFromId(linkId);
-    if (link.targetColRef) {
-      const targetTable = this.docModel.viewSections.getRowModel(sectionId).table();
-      const targetCol = this.docModel.columns.getRowModel(link.targetColRef);
-      if (targetTable.id() !== targetCol.table().id()) {
-        // targetColRef is actually not a column in the target table.
-        // This should mean that the target table is a summary table (which didn't exist when the
-        // option was selected) and targetColRef is from the source table.
-        // Change it to the corresponding summary table column instead.
-        link.targetColRef = targetTable.columns().all().find(c => c.summarySourceCol() === link.targetColRef)!.id();
+  private _start() {
+    this._animation.set(this._animation.get() + 1);
+  }
+  private _stop() {
+    this._animation.set(this._animation.get() - 1);
+  }
+  private _isAnimating() {
+    return this._animation.get() > 0;
+  }
+  private _calculate(parentRect: DOMRect) {
+    const boxes = this.model.layout.all();
+    const rects: Array<VRect|null> = [];
+    // Boxes can be wrapped, we will detect the line offset.
+    let lineOffset = 12;
+    // We will always have at least one box, so we can use it to get the height.
+    const height = boxes[0]?.rootElement.getBoundingClientRect().height;
+    for (let i = 0; i < boxes.length; i++) {
+      const box = boxes[i];
+      const prev = boxes[i - 1];
+      const next = boxes[i + 1];
+
+      // First handle edge cases (don't add targets for first elements in next lines), it will mess up the wrapping.
+      if (prev && prev?.rootElement.offsetTop !== box.rootElement.offsetTop) {
+        rects.push(null);
+        continue;
+      }
+
+      // Now handle normal cases.
+      const root = box.rootElement;
+      lineOffset = root.offsetTop;
+
+      if (i === 0 && box instanceof CollapsedLeaf) {
+        // For the first one, we have very little rectangle, from the left + 50px past the left border.
+        const left = 0;
+        const right = root.offsetLeft + 50;
+        rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
+      } else if (box instanceof CollapsedLeaf && i === boxes.length - 1) {
+        // Last one is very similar, little rectangle on the left part.
+        const left = root.offsetLeft + root.offsetWidth - 30;
+        const right = root.offsetLeft + root.offsetWidth + 30;
+        rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
+      } else if (box instanceof CollapsedLeaf && prev instanceof CollapsedLeaf) {
+        // In between, we have a rectangle from the left border to the right border.
+        const leftRoot = prev.rootElement;
+        const rightRoot = root;
+        const left = leftRoot.offsetLeft + leftRoot.offsetWidth - 30;
+        const right = rightRoot.offsetLeft + 30;
+        rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
+      } else if (next && box instanceof TargetLeaf && i === 0) {
+        // If this is a first box and it is a target, the first rectangle will be much larger, it should cover
+        // the TargetLeaf width.
+        const left = 0;
+        const right = next.rootElement.offsetLeft;
+        rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
+      } else if (box instanceof TargetLeaf && prev instanceof CollapsedLeaf && next instanceof CollapsedLeaf) {
+        // If this box is target between two collapsed boxes, we will have a rectangle from the prev to next
+        // covering the whole target leaf.
+        const left = prev.rootElement.offsetLeft + prev.rootElement.offsetWidth - 30;
+        const right = next.rootElement.offsetLeft + 30;
+        rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
       }
     }
-    return this.docData.sendAction(
-      ['UpdateRecord', '_grist_Views_section', sectionId, {
-        linkSrcSectionRef: link.srcSectionRef,
-        linkSrcColRef: link.srcColRef,
-        linkTargetColRef: link.targetColRef
-      }]
-    );
+    return rects;
   }
-
-
-  // Returns the list of all the valid links to link from one of the sections in the active view to
-  // the page widget 'widget'.
-  public selectBy(widget: IPageWidget) {
-    const viewSections = this.viewModel.viewSections.peek().peek();
-    return selectBy(this.docModel, viewSections, widget);
-  }
-
-  // Fork the document if it is in prefork mode.
-  public async forkIfNeeded() {
-    if (this.docPageModel.isPrefork.get()) {
-      await this.docComm.forkAndUpdateUrl();
-    }
-  }
-
-  public getCsvLink() {
-    const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
-  }
-
-  public getTsvLink() {
-    const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadTsvUrl(params);
-  }
-
-  public getDsvLink() {
-    const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadDsvUrl(params);
-  }
-
-  public getXlsxActiveViewLink() {
-    const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params);
-  }
-
-  /**
-   * Move to the desired cursor position.  If colRef is supplied, the cursor will be
-   * moved to a field with that colRef.  Any linked sections that need their cursors
-   * moved in order to achieve the desired outcome are handled recursively.
-   * If setAsActiveSection is true, the section in cursorPos is set as the current
-   * active section.
-   */
-  public async recursiveMoveToCursorPos(
-    cursorPos: CursorPos,
-    setAsActiveSection: boolean,
-    silent: boolean = false,
-    visitedSections: number[] = []): Promise<boolean> {
+  private async _insertDropTarget(index: number) {
+    this._start();
     try {
-      if (!cursorPos.sectionId) {
-        throw new Error('sectionId required');
-      }
-      if (!cursorPos.rowId) {
-        throw new Error('rowId required');
-      }
-      const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
-      if (!section.id.peek()) {
-        throw new Error(`Section ${cursorPos.sectionId} does not exist`);
-      }
-
-      if (visitedSections.includes(section.id.peek())) {
-        // We've already been here (we hit a cycle), just return immediately
-        return true;
-      }
-
-      const srcSection = section.linkSrcSection.peek();
-      const linkingRowId = cursorPos.linkingRowIds?.[0];
-      const linkingRowIds = cursorPos.linkingRowIds?.slice(1);
-      if (srcSection.id.peek()) {
-        // We're in a linked section, so we need to recurse to make sure the row we want
-        // will be visible.
-        const linkTargetCol = section.linkTargetCol.peek();
-        let controller: any;
-        if (linkTargetCol.colId.peek()) {
-          const destTable = await this._getTableData(section);
-          if (cursorPos.rowId === 'new') {
-            controller = 'new';
-          } else {
-            controller = destTable.getValue(cursorPos.rowId, linkTargetCol.colId.peek());
-          }
-        } else {
-          controller = cursorPos.rowId;
-        }
-        const colId = section.linkSrcCol.peek().colId.peek();
-        let srcRowId: any;
-        const isSrcSummary = srcSection.table.peek().summarySource.peek().id.peek();
-        if (!colId && !isSrcSummary) {
-          // Simple case - source linked by rowId, not a summary.
-          if (isList(controller)) {
-            // Should be a reference list. Use linkingRowId if available and present in the list,
-            if (linkingRowId && controller.indexOf(linkingRowId) > 0) {
-              controller = linkingRowId;
-            } else {
-              // Otherwise, pick the first reference.
-              controller = controller[1];  // [0] is the L type code, [1] is the first value
-            }
-          } else if (controller === 'new' && linkingRowId) {
-            controller = linkingRowId;
-          }
-          srcRowId = controller;
-        } else {
-          const srcTable = await this._getTableData(srcSection);
-          const query: ClientQuery = {tableId: srcTable.tableId, filters: {}, operations: {}};
-          if (colId) {
-            query.operations[colId] = isRefListType(section.linkSrcCol.peek().type.peek()) ? 'intersects' : 'in';
-            query.filters[colId] = isList(controller) ? controller.slice(1) : [controller];
-          } else {
-            // must be a summary -- otherwise dealt with earlier.
-            const destTable = await this._getTableData(section);
-            for (const srcCol of srcSection.table.peek().groupByColumns.peek()) {
-              const filterCol = srcCol.summarySource.peek();
-              const filterColId = filterCol.colId.peek();
-              controller = destTable.getValue(cursorPos.rowId, filterColId);
-              // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
-              // should match against an empty list in the source table.
-              query.operations[filterColId] = isListType(filterCol.type.peek()) && !controller ? 'empty' : 'in';
-              query.filters[filterColId] = isList(controller) ? controller.slice(1) : [controller];
-            }
-          }
-          srcRowId = srcTable.getRowIds().find(getFilterFunc(this.docData, query));
-        }
-        if (!srcRowId || (typeof srcRowId !== 'number' && srcRowId !== 'new')) {
-          throw new Error('cannot trace rowId');
-        }
-        await this.recursiveMoveToCursorPos({
-          rowId: srcRowId,
-          sectionId: srcSection.id.peek(),
-          linkingRowIds,
-        }, false, silent, visitedSections.concat([section.id.peek()]));
-      }
-      const view: ViewRec = section.view.peek();
-      const isRawOrRecordCardView = section.isRaw.peek() || section.isRecordCard.peek();
-      const docPage: ViewDocPage = isRawOrRecordCardView ? 'data' : view.getRowId();
-      if (docPage != this.activeViewId.get()) {
-        await this.openDocPage(docPage);
-      }
-      if (setAsActiveSection) {
-        view.activeSectionId(cursorPos.sectionId);
-      }
-      const fieldIndex = cursorPos.fieldIndex;
-      const viewInstance = await waitObs(section.viewInstance);
-      if (!viewInstance) {
-        throw new Error('view not found');
-      }
-      // Give any synchronous initial cursor setting a chance to happen.
-      await delay(0);
-      viewInstance.setCursorPos({...cursorPos, fieldIndex});
-      // TODO: column selection not working on card/detail view, or getting overridden -
-      // look into it (not a high priority for now since feature not easily discoverable
-      // in this view).
-
-      // even though the cursor is at right place, the scroll could not have yet happened
-      // wait for a bit (scroll is done in a setTimeout 0)
-      await delay(0);
-      return true;
-    } catch (e) {
-      console.debug(`_recursiveMoveToCursorPos(${JSON.stringify(cursorPos)}): ${e}`);
-      if (!silent) {
-        throw new UserError('There was a problem finding the desired cell.');
-      }
-      return false;
+      await this._lastTarget?.remove();
+      this._lastTarget = TargetLeaf.create(null, this.model);
+      await this._lastTarget.insert(index);
+      this._lastIndex = index;
+    } finally {
+      this._stop();
     }
+  }
+  private async _removeDropZone() {
+    if (!this._lastTarget) { return; }
+    this._start();
+    try {
+      await this._lastTarget?.remove();
+      this._lastTarget = undefined;
+      this._lastIndex = -1;
+    } finally {
+      this._stop();
+    }
+  }
+}
+
+
+/**
+ * UI component that renders and owns all the collapsed leaves.
+ */
+class CollapsedLayout extends Disposable {
+  public rootElement: HTMLElement;
+  /**
+   * Leaves owner. Adding or removing leaves will not dispose them automatically, as they are released and
+   * return to the caller. Only those leaves that were not removed will be disposed with the layout.
+   */
+  public holder = ArrayHolder.create(this);
+  /**
+   * Number of leaves in the layout.
+   */
+  public count: Computed<number>;
+
+  private _boxes = this.autoDispose(obsArray<Leaf>());
+
+  constructor(protected model: LayoutTray) {
+    super();
+
+    // Whenever we add or remove box, update the model. This is used to test if the section is collapsed or not.
+    this._boxes.addListener(l => model.viewLayout.viewModel.activeCollapsedSections(this.leafIds()));
+
+    this.count = Computed.create(this, use => use(this._boxes).length);
+  }
+
+  public all() {
+    return this._boxes.get();
+  }
+
+  public buildLayout(leafs: number[]) {
+    if (isEqual(leafs, this._boxes.get().map((box) => box.id.get()))) { return []; }
+    const removed = this._boxes.splice(0, this._boxes.get().length,
+      ...leafs.map((id) => CollapsedLeaf.create(this.holder, this.model, id)));
+    removed.forEach((box) => this.holder.release(box));
+    return removed;
+  }
+
+  public addBox(id: number|Leaf, index?: number) {
+    index ??= -1;
+    const box = typeof id === 'number' ? CollapsedLeaf.create(this.holder, this.model, id): id;
+    if (typeof id !== 'number') {
+      this.holder.autoDispose(box);
+    }
+    return this.insert(index, box);
+  }
+
+  public indexOf(box: Leaf) {
+    return this._boxes.get().indexOf(box);
+  }
+
+  public insert(index: number, leaf: Leaf) {
+    this.holder.autoDispose(leaf);
+    if (index < 0) {
+      this._boxes.push(leaf);
+    } else {
+      this._boxes.splice(index, 0, leaf);
+    }
+    return leaf;
   }
 
   /**
-   * Opens up an editor at cursor position
-   * @param input Optional. Cell's initial value
+   * Removes the leaf from the list but doesn't dispose it.
    */
-  public async activateEditorAtCursor(options?: { init?: string, state?: any }) {
-    const view = await this._waitForView();
-    view?.activateEditorAtCursor(options);
+  public remove(leaf: Leaf) {
+    const index = this._boxes.get().indexOf(leaf);
+    if (index >= 0) {
+      const removed = this._boxes.splice(index, 1)[0];
+      if (removed) {
+        this.holder.release(removed);
+      }
+      return removed || null;
+    }
+    return null;
   }
 
   /**
-   * Renames table. Method exposed primarily for tests.
+   * Removes and dispose the leaf from the list.
    */
-  public async testRenameTable(tableId: string, newTableName: string) {
-    const tableRec = this.docModel.visibleTables.all().find(tb => tb.tableId.peek() === tableId);
-    if (!tableRec) {
-      throw new UserError(`No table with id ${tableId}`);
-    }
-    await tableRec.tableName.saveOnly(newTableName);
+  public destroy(leaf: Leaf) {
+    this.remove(leaf)?.dispose();
   }
 
-  // Set section's viewFields to be colIds in that order. Omit any column id that do not belong to
-  // section's table.
-  private async _setSectionViewFieldsFromArray(section: ViewSectionRec, colIds: string[]) {
-
-    // remove old view fields
-    await Promise.all(section.viewFields.peek().all().map((viewField) => (
-      this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()])
-    )));
-
-    // create map
-    const mapColIdToColumn = new Map();
-    for (const col of section.table().columns().all()) {
-      mapColIdToColumn.set(col.colId(), col);
-    }
-
-    // If split series and/or x-axis do not exist any more in new table, update options to make them
-    // undefined
-    if (colIds.length) {
-      if (section.optionsObj.prop('multiseries')()) {
-        if (!mapColIdToColumn.has(colIds[0])) {
-          await section.optionsObj.prop('multiseries').saveOnly(false);
-        }
-        if (colIds.length > 1 && !mapColIdToColumn.has(colIds[1])) {
-          await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
-        }
-      } else if (!mapColIdToColumn.has(colIds[0])) {
-        await section.optionsObj.prop('isXAxisUndefined').saveOnly(true);
-      }
-    }
-
-    // adds new view fields; ignore colIds that do not exist in new table.
-    await Promise.all(colIds.map((colId, i) => {
-      if (!mapColIdToColumn.has(colId)) {
-        return;
-      }
-      const colInfo = {
-        parentId: section.id(),
-        colRef: mapColIdToColumn.get(colId).id(),
-        parentPos: i
-      };
-      const action = ['AddRecord', null, colInfo];
-      return this.docModel.viewFields.sendTableAction(action);
-    }));
+  public leafIds() {
+    return this._boxes.get().map(l => l.id.get()).filter(x => x && typeof x === 'number');
   }
 
-  private async _onCreateForm() {
-    const table = this.currentView.get()?.viewSection.tableRef.peek();
-    if (!table) {
-      return;
-    }
-    await this.addWidgetToPage({
-      ...DefaultPageWidget(),
-      table,
-      type: WidgetType.Form,
-    });
-    commands.allCommands.expandSection.run();
+  public getBox(leaf: number): CollapsedLeaf|undefined {
+    return this._boxes.get().find(l => l.id.get() === leaf) as CollapsedLeaf|undefined;
   }
 
-  private _onDocChatter(message: CommDocChatter) {
-    if (!this.docComm.isActionFromThisDoc(message)) {
-      return;
-    }
+  public buildDom() {
+    return (this.rootElement = cssLayout(
+      testId('layout'),
+      useDragging(),
+      dom.hide(use => use(this._boxes).length === 0),
+      dom.forEach(this._boxes, line => line.buildDom())
+    ));
+  }
+}
 
-    if (message.data.webhooks) {
-      if (message.data.webhooks.type == 'webhookOverflowError') {
-        this.trigger('webhookOverflowError',
-          t('New changes are temporarily suspended. Webhooks queue overflowed.' +
-            ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
-      } else {
-        this.trigger('webhooks', message.data.webhooks);
-      }
-    } else if (message.data.timing) {
-      this.isTimingOn.set(message.data.timing.status !== 'disabled');
-    } else if (message.data.attachmentTransfer) {
-      // This is message about the attachments transfer job. Look at the comment
-      // for the observable for more info.
-      this.attachmentTransfer.set(message.data.attachmentTransfer);
-    }
+interface Draggable {
+  dragStart?: (ev: DragEvent, floater: MiniFloater) => Draggable|null;
+  dragEnd?: (ev: DragEvent, floater: MiniFloater) => void;
+  drag?: (ev: DragEvent, floater: MiniFloater) => void;
+  drop?: (ev: DragEvent, floater: MiniFloater) => void;
+}
+
+interface Dropped {
+  removeFromLayout(): void;
+  leafId(): number;
+}
+
+/**
+ * Base class for all the leaves in the layout tray.
+ */
+abstract class Leaf extends Disposable {
+  public id = Observable.create(this, 0);
+  public rootElement: HTMLElement;
+  public buildDom(): HTMLElement|null {
+    return null;
+  }
+}
+
+/**
+ * Empty leaf that is used to represent the empty space in the collapsed layout. Can be used to drop boxes.
+ */
+class EmptyLeaf extends Leaf {
+  public name = Observable.create(this, 'empty');
+
+  // If we are hovering over the empty leaf.
+  private _onHover = Signal.create(this, false);
+
+  constructor(protected model: LayoutTray) {
+    super();
+    this.monitorDrop();
   }
 
-  /**
-   * Process usage and product received from the server by updating their respective
-   * observables.
-   */
-  private _onDocUsageMessage(message: CommDocUsage) {
-    if (!this.docComm.isActionFromThisDoc(message)) {
-      return;
-    }
-
-    bundleChanges(() => {
-      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
-      this.docPageModel.currentProduct.set(message.data.product ?? null);
-    });
-  }
-
-
-  /**
-   * Process actions received from the server by forwarding them to `docData.receiveAction()` and
-   * pushing them to actionLog.
-   */
-  private _onDocUserAction(message: CommDocUserAction) {
-    console.log("GristDoc.onDocUserAction", message);
-    let schemaUpdated = false;
-    /**
-     * If an operation is applied successfully to a document, and then information about
-     * it is broadcast to clients, and one of those broadcasts has a failure (due to
-     * granular access control, which is client-specific), then that error is logged on
-     * the server and also sent to the client via an `error` field.  Under normal operation,
-     * there should be no such errors, but if they do arise it is best to make them as visible
-     * as possible.
-     */
-    if (message.data.error) {
-      reportError(new Error(message.data.error));
-      return;
-    }
-    if (this.docComm.isActionFromThisDoc(message)) {
-      const docActions = message.data.docActions;
-      for (let i = 0, len = docActions.length; i < len; i++) {
-        console.log("GristDoc applying #%d", i, docActions[i]);
-        this.docData.receiveAction(docActions[i]);
-        this.docPluginManager.receiveAction(docActions[i]);
-
-        if (!schemaUpdated && isSchemaAction(docActions[i])) {
-          schemaUpdated = true;
-        }
-      }
-      // Add fromSelf property to actionGroup indicating if it's from the current session.
-      const actionGroup = message.data.actionGroup;
-      actionGroup.fromSelf = message.fromSelf || false;
-      // Push to the actionLog and the undoStack.
-      if (!actionGroup.internal) {
-        this._actionLog.pushAction(actionGroup);
-        this._undoStack.pushAction(actionGroup);
-        if (actionGroup.fromSelf) {
-          this._lastOwnActionGroup = actionGroup;
-        }
-      }
-      if (schemaUpdated) {
-        this.trigger('schemaUpdateAction', docActions);
-      }
-      this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
-      this.trigger('onDocUserAction', docActions);
-    }
-  }
-
-  private async _setCursorPos(cursorPos: CursorPos) {
-    if (cursorPos.sectionId && cursorPos.sectionId !== this.externalSectionId.get()) {
-      const desiredSection: ViewSectionRec = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
-      // If the section id is 0, the section doesn't exist (can happen during undo/redo), and should
-      // be fixed there. For now ignore it, to not create empty sections or views (peeking a view will create it).
-      if (!desiredSection.id.peek()) {
-        return;
-      }
-      // If this is completely unknown section (without a parent), it is probably an import preview.
-      if (
-        !desiredSection.parentId.peek() &&
-        !desiredSection.isRaw.peek() &&
-        !desiredSection.isRecordCard.peek()
-      ) {
-        const view = desiredSection.viewInstance.peek();
-        // Make sure we have a view instance here - it will prove our assumption that this is
-        // an import preview. Section might also be disconnected during undo/redo.
-        if (view && !view.isDisposed()) {
-          view.setCursorPos(cursorPos);
+  public monitorDrop() {
+    this.autoDispose(
+      this.model.drop.listen((box) => {
+        // If some box was dropped, and the cursor is over this leaf, we will add the box to the layout.
+        if (!box || !this._onHover.state.get()) {
           return;
         }
-      }
-      if (desiredSection.view.peek().getRowId() !== this.activeViewId.get()) {
-        // This may be asynchronous. In other cases, the change is synchronous, and some code
-        // relies on it (doesn't wait for this function to resolve).
-        await this._switchToSectionId(cursorPos.sectionId);
-      } else if (desiredSection !== this.viewModel.activeSection.peek()) {
-        this.viewModel.activeSectionId(cursorPos.sectionId);
-      }
-    }
-    const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
-    viewInstance?.setCursorPos(cursorPos);
-  }
-
-  /**
-   * Returns an object representing the position of the cursor, including the section. It will have
-   * fields { sectionId, rowId, fieldIndex }. Fields may be missing if no section is active.
-   */
-  private _getCursorPos(): CursorPos {
-    const pos = {sectionId: this.viewModel.activeSectionId()};
-    const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
-    return Object.assign(pos, viewInstance ? viewInstance.cursor.getCursorPos() : {});
-  }
-
-  private async _addWidgetToPage(
-    widget: IPageWidget,
-    tableId: string | null = null,
-    {focus = true, popups = true}: AddSectionOptions= {}
-  ) {
-    const {columns, link, summarize, table, type} = widget;
-    const viewRef = this.activeViewId.get();
-    const tableRef = table === 'New Table' ? 0 : table;
-    const result: {viewRef: number, sectionRef: number} = await this.docData.sendAction(
-      ['CreateViewSection', tableRef, viewRef, type, summarize ? columns : null, tableId]
+        this.model.drop.state.set(null);
+        // Replace the empty leaf with the dropped box.
+        const myIndex = this.model.layout.indexOf(this);
+        const leafId = box.leafId();
+        this.model.layout.addBox(leafId, myIndex);
+        box.removeFromLayout();
+      })
     );
-    if (type === 'chart') {
-      await this._ensureOneNumericSeries(result.sectionRef);
-    }
-    if (type === 'form') {
-      await this._setDefaultFormLayoutSpec(result.sectionRef);
-    }
-    await this.saveLink(link, result.sectionRef);
-    const widgetType = getTelemetryWidgetTypeFromPageWidget(widget);
-    logTelemetryEvent('addedWidget', {full: {docIdDigest: this.docId(), widgetType}});
-    if (link !== NoLink) {
-      logTelemetryEvent('linkedWidget', {full: {docIdDigest: this.docId(), widgetType}});
-    }
-    if (focus) { await this._focus({sectionRef: result.sectionRef}); }
-    if (popups) { this._showNewWidgetPopups(type); }
-    return result;
   }
 
-  private async _addPage(
-    widget: IPageWidget,
-    tableId: string | null = null,
-    {focus = true, popups = true}: AddSectionOptions = {}
-  ) {
-    const {columns, summarize, table, type} = widget;
-    let viewRef: number;
-    let sectionRef: number | undefined;
-    if (table === 'New Table') {
-      if (type === WidgetType.Table) {
-        const result = await this.docData.sendAction(['AddEmptyTable', tableId]);
-        viewRef = result.views[0].id;
-      } else {
-        // This will create a new table and page.
-        const result = await this.docData.sendAction(
-          ['CreateViewSection', 0, 0, type, null, tableId]
-        );
-        [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
-      }
-    } else {
-      const result = await this.docData.sendAction(
-        ['CreateViewSection', table, 0, type, summarize ? columns : null, null]
-      );
-      [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
-      if (type === 'chart') {
-        await this._ensureOneNumericSeries(sectionRef!);
-      }
-    }
-    if (type === 'form') {
-      await this._setDefaultFormLayoutSpec(sectionRef!);
-    }
-    logTelemetryEvent('addedPage', {full: {docIdDigest: this.docId()}});
-    logTelemetryEvent('addedWidget', {
-      full: {
-        docIdDigest: this.docId(),
-        widgetType: getTelemetryWidgetTypeFromPageWidget(widget),
-      },
+  public buildDom() {
+    return (this.rootElement = cssEmptyBox(
+      cssEmptyBox.cls('-can-accept', this._onHover.state),
+      syncHover(this._onHover),
+      testId('empty-box'),
+    ));
+  }
+}
+
+/**
+ * This is an empty leaf that supports animation when added to the list.
+ */
+class TargetLeaf extends EmptyLeaf {
+  public buildDom() {
+    this.name.set('target');
+    const element = super.buildDom();
+    dom.update(element,
+      testId('target-box'),
+      dom.cls(cssProbe.className),
+      { style: 'width: 2px;' }
+    );
+    return element;
+  }
+
+  public insert(index: number) {
+    // First insert the drop target leaf.
+    this.model.layout.insert(index, this);
+    // Force the reflow, so that we can start the animation.
+    this.rootElement.getBoundingClientRect();
+    // Start and wait for the animation to finish.
+    return new Promise((resolve) => {
+      const watcher = new TransitionWatcher(this.rootElement);
+      watcher.onDispose(() => {
+        resolve(undefined);
+      });
+      this.rootElement.style.width = '';
     });
-    if (focus) { await this._focus({viewRef, sectionRef}); }
-    if (popups) { this._showNewWidgetPopups(type); }
-    return {viewRef, sectionRef};
   }
 
-  private async _focus({viewRef, sectionRef}: {viewRef?: number, sectionRef?: number}) {
-    if (viewRef) { await this.openDocPage(viewRef); }
-    if (sectionRef) { this.viewModel.activeSectionId(sectionRef); }
+  public remove() {
+    return new Promise((resolve) => {
+      const watcher = new TransitionWatcher(this.rootElement);
+      watcher.onDispose(() => {
+        this.model.layout.destroy(this);
+        resolve(undefined);
+      });
+      this.rootElement.style.width = '0px';
+    });
+  }
+}
+
+/**
+ * This is the collapsed widget that is shown in the collapsed layout. It can be dragged and dropped.
+ */
+class CollapsedLeaf extends Leaf implements Draggable, Dropped {
+  // The content of the leaf that is rendered. Stored in an observable so that we can update it when the
+  // content changes or put it in the floater.
+  private _content: Observable<HTMLElement|null> = Observable.create(this, null);
+
+  // Computed to get the view instance from the viewSection.
+  private _viewInstance: Computed<BaseView|null>;
+
+  // An observable for the dom that holds the viewInstance and displays it in a hidden element.
+  // This is owned by this leaf and is disposed separately from the dom that is returned by buildDom. Like a
+  // singleton, this element will be moved from one "instance" (a result of buildDom) to another.
+  // When a leaf is removed from the dom (e.g. when we remove the collapsed section or move it to the main area)
+  // the dom of this element is disposed, but the hidden element stays with this instance and can be disposed
+  // later on, giving anyone a chance to grab the viewInstance and display it somewhere else.
+  private _hiddenViewInstance: Observable<HTMLElement|null> = Observable.create(this, null);
+
+  // Helper to keeping track of the index of the leaf in the layout.
+  private _indexWhenDragged = 0;
+
+  // A helper variable that indicates that this section is in a popup, and we should
+  // make any attempt to grab it and attach to our dom. Note: this is not a computed variable.
+  private _detached = false;
+
+  constructor(protected model: LayoutTray, id: number) {
+    super();
+    this.id.set(id);
+    this._viewInstance = Computed.create(this, use => {
+      const sections = use(use(this.model.viewLayout.viewModel.viewSections).getObservable());
+      const view = sections.find(s => use(s.id) === use(this.id));
+      if (!view) { return null; }
+      const instance = use(view.viewInstance);
+      return instance;
+    });
+    this._buildHidden();
+    this.onDispose(() => {
+      const instance = this._hiddenViewInstance.get();
+      instance && dom.domDispose(instance);
+    });
   }
 
-  private _showNewWidgetPopups(type: IWidgetType) {
-    this._maybeShowEditCardLayoutTip(type).catch(reportError);
-
-    if (AttachedCustomWidgets.guard(type)) {
-      this._handleNewAttachedCustomWidget(type).catch(reportError);
-    }
+  public detach() {
+    this._detached = true;
   }
 
-  /**
-   * Opens popup with a section data (used by Raw Data view).
-   */
-  private async _openPopup(hash: HashLink) {
-    // We can only open a popup for a section.
-    if (!hash.sectionId) {
-      return;
-    }
-    if (!this._prevSectionId) {
-      this._prevSectionId = this.viewModel.activeSection.peek().id();
-    }
-    // We might open popup either for a section in this view or some other section (like Raw Data Page).
-    if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId)) {
-      this.viewModel.activeSectionId(hash.sectionId);
-      // If the anchor link is valid, set the cursor.
-      if (hash.colRef || hash.rowId) {
-        const activeSection = this.viewModel.activeSection.peek();
-        const {rowId} = hash;
-        let fieldIndex = undefined;
-        if (hash.colRef) {
-          const maybeFieldIndex = activeSection.viewFields.peek().all()
-            .findIndex(f => f.colRef.peek() === hash.colRef);
-          if (maybeFieldIndex !== -1) { fieldIndex = maybeFieldIndex; }
-        }
-        const view = await this._waitForView(activeSection);
-        view?.setCursorPos({rowId, fieldIndex});
-      }
-      this.viewLayout?.maximized.set(hash.sectionId);
-      return;
-    }
-    this._isShowingPopupSection = true;
-    // We will borrow active viewModel and will trick him into believing that
-    // the section from the link is his viewSection and it is active. Fortunately
-    // he doesn't care. After popup is closed, we will restore the original.
-    this.viewModel.activeSectionId(hash.sectionId);
-    // Now we have view section we want to show in the popup.
-    const popupSection = this.viewModel.activeSection.peek();
-    // We need to make it active, so that cursor on this section will be the
-    // active one. This will change activeViewSectionId on a parent view of this section,
-    // which might be a different view from what we currently have. If the section is
-    // a raw data or record card section, it will use `EmptyRowModel` as these sections
-    // don't currently have parent views.
-    popupSection.hasFocus(true);
-    this._popupSectionOptions.set({
-      hash,
-      viewSection: popupSection,
-      close: () => {
-        // In case we are already closed, do nothing.
-        if (!this._popupSectionOptions.get()) {
+  public attach() {
+    this._detached = false;
+    const previous = this._hiddenViewInstance.get();
+    this._buildHidden();
+    previous && dom.domDispose(previous);
+  }
+
+  public buildDom() {
+    this._content.set(this.model.buildContentDom(this.id.get()));
+    return this.rootElement = cssBox(
+      testId('leaf-box'),
+      dom.domComputed(this._content, c => c),
+      // Add draggable interface.
+      asDraggable(this),
+      dom.on('click', (e) => {
+        this.model.viewLayout.viewModel.activeCollapsedSectionId(this.id.get());
+        // Sanity (and type) check.
+        if (!(e.target instanceof HTMLElement)) {
           return;
         }
-        if (popupSection.id() !== this._prevSectionId) {
-          // We need to blur the popup section. Otherwise it will automatically be opened
-          // on raw data view. Note: raw data and record card sections don't have parent views;
-          // they use the empty row model as a parent (which feels like a hack).
-          if (!popupSection.isDisposed()) {
-            popupSection.hasFocus(false);
+        // If the click not landed in a draggable-handle ignore it. Might be a click to open the menu.
+        if (!e.target.closest('.draggable-handle')) {
+          return;
+        }
+        // Apparently the click was to open the section in the popup. Use the anchor link to do that.
+        // Show my section on a popup using anchor link. We can't use maximize section for it, as we
+        // would need to rebuild the layout (as this is not a part of it).
+        urlState().pushUrl({
+          hash: {
+            sectionId: this.id.get(),
+            popup: true
           }
-          // When this popup was opened we tricked active view by setting its activeViewSection
-          // to our viewSection (which might be a completely different section or a raw data section) not
-          // connected to this view. We need to return focus back to the previous section.
-          this._focusPreviousSection();
-        }
-        // Clearing popup section data will close this popup.
-        this._popupSectionOptions.set(null);
-      }
-    });
-    // If the anchor link is valid, set the cursor.
-    if (hash.rowId || hash.colRef) {
-      const {rowId} = hash;
-      let fieldIndex;
-      if (hash.colRef) {
-        const maybeFieldIndex = popupSection.viewFields.peek().all()
-          .findIndex(f => f.colRef.peek() === hash.colRef);
-        if (maybeFieldIndex !== -1) { fieldIndex = maybeFieldIndex; }
-      }
-      const view = await this._waitForView(popupSection);
-      view?.setCursorPos({rowId, fieldIndex});
+        }).catch(() => {});
+        e.preventDefault();
+        e.stopPropagation();
+      }),
+      detachedNode(this._hiddenViewInstance),
+    );
+  }
+
+  // Implement the drag interface. All those methods are called by the draggable helper.
+
+  public dragStart(ev: DragEvent, floater: MiniFloater) {
+    // Get the element.
+    const myElement = this._content.get();
+    this._content.set(null);
+    floater.content.set(myElement);
+    // Create a clone.
+    const clone = CollapsedLeaf.create(floater, this.model, this.id.get());
+    clone._indexWhenDragged = this.model.layout.indexOf(this);
+    this.model.drag.emit(clone);
+
+    // Remove self from the layout (it will dispose this instance, but the viewInstance was moved to the floater)
+    this.model.layout.destroy(this);
+    return clone;
+  }
+
+  public dragEnd(ev: DragEvent) {
+    this.model.drag.emit(null);
+  }
+
+  public drag(ev: DragEvent) {
+    this.model.dragging.emit(ev);
+  }
+
+  public drop(ev: DragEvent, floater: MiniFloater) {
+    // Take back the element.
+    const element = floater.content.get();
+    floater.content.set(null);
+    this._content.set(element);
+    this.model.drop.emit(this);
+    // If I wasn't moved somewhere else, read myself back.
+    if (this.id.get() !== 0) {
+      this.model.layout.addBox(this.id.get(), this._indexWhenDragged);
     }
   }
 
-  /**
-   * Starts playing the music video for Never Gonna Give You Up in the background.
-   */
-  private async _playRickRollVideo() {
-    const backgroundVideoPlayer = this._backgroundVideoPlayerHolder.get();
-    if (!backgroundVideoPlayer) {
-      return;
-    }
-
-    await backgroundVideoPlayer.isLoaded();
-    backgroundVideoPlayer.play();
-
-    const setVolume = async (start: number, end: number, step: number) => {
-      let volume: number;
-      const condition = start <= end
-        ? () => volume <= end
-        : () => volume >= end;
-      const afterthought = start <= end
-        ? () => volume += step
-        : () => volume -= step;
-      for (volume = start; condition(); afterthought()) {
-        backgroundVideoPlayer.setVolume(volume);
-        await delay(250);
-      }
-    };
-
-    await setVolume(0, 100, 5);
-
-    await delay(190 * 1000);
-    if (!this._isRickRowing.get()) {
-      return;
-    }
-
-    await setVolume(100, 0, 5);
-
-    this._isRickRowing.set(false);
-    this._showBackgroundVideoPlayer.set(false);
+  public removeFromLayout() {
+    // Set the id to 0 so that the layout doesn't try to read me back.
+    this.id.set(0);
+    this.model.layout.destroy(this);
   }
 
-  private _focusPreviousSection() {
-    const prevSectionId = this._prevSectionId;
-    if (!prevSectionId) { return; }
-
-    if (
-      this.viewModel.viewSections.peek().all().some(s =>
-        !s.isDisposed() && s.id.peek() === prevSectionId)
-    ) {
-      this.viewModel.activeSectionId(prevSectionId);
-    }
-    this._prevSectionId = null;
+  public leafId() {
+    return this.id.get();
   }
 
-  /**
-   * Waits for a view to be ready
-   */
-  private async _waitForView(popupSection?: ViewSectionRec) {
-    const sectionToCheck = popupSection ?? this.viewModel.activeSection.peek();
-    // For pages like ACL's, there isn't a view instance to wait for.
-    if (!sectionToCheck.getRowId()) {
-      return null;
-    }
-
-    async function singleWait(s: ViewSectionRec): Promise<BaseView> {
-      const view = await waitObs(
-        sectionToCheck.viewInstance,
-        vsi => Boolean(vsi && !vsi.isDisposed())
-      );
-      return view!;
-    }
-
-    let view = await singleWait(sectionToCheck);
-    if (view.isDisposed()) {
-      // If the view is disposed (it can happen, as wait is not reliable enough, because it uses
-      // subscription for testing the predicate, which might dispose object before we have a chance to test it).
-      // This can happen when section is recreating itself on a popup.
-      if (popupSection) {
-        view = await singleWait(popupSection);
-      }
-      if (view.isDisposed()) {
-        return null;
-      }
-    }
-    await view.getLoadingDonePromise();
-    // Wait extra bit for scroll to happen.
-    await delay(0);
-    return view;
+  private _buildHidden() {
+    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, view => {
+      return this._detached ? null : view.viewPane;
+    })));
   }
+}
 
-  private _getToolContent(tool: typeof RightPanelTool.type): IExtraTool | null {
-    switch (tool) {
-      case 'docHistory': {
-        return {icon: 'Log', label: 'Document History', content: this._docHistory};
-      }
-      case 'validations': {
-        const content = this._rightPanelTabs.get("Validate Data");
-        return content ? {icon: 'Validation', label: 'Validation Rules', content} : null;
-      }
-      case 'discussion': {
-        return {icon: 'Chat', label: this._discussionPanel.buildMenu(), content: this._discussionPanel};
-      }
-      case 'none':
-      default: {
-        return null;
-      }
-    }
-  }
-
-  private async _maybeShowEditCardLayoutTip(selectedWidgetType: IWidgetType) {
-    if (
-      // Don't show the tip if a non-card widget was selected.
-      !['single', 'detail'].includes(selectedWidgetType) ||
-      // Or if we shouldn't see the tip.
-      !this.behavioralPromptsManager.shouldShowPopup('editCardLayout')
-    ) {
-      return;
-    }
-
-    // Open the right panel to the widget subtab.
-    commands.allCommands.viewTabOpen.run();
-
-    // Wait for the right panel to finish animation if it was collapsed before.
-    await commands.allCommands.rightPanelOpen.run();
-
-    const editLayoutButton = document.querySelector('.behavioral-prompt-edit-card-layout');
-    if (!editLayoutButton) {
-      throw new Error('GristDoc failed to find edit card layout button');
-    }
-
-    this.behavioralPromptsManager.showPopup(editLayoutButton, 'editCardLayout', {
-      popupOptions: {
-        placement: 'left-start',
-      }
+/**
+ * This is analogous component to the main Floater in the LayoutEditor. It holds the little preview of a widget,
+ * while it is dragged.
+ */
+class MiniFloater extends Disposable {
+  public content: Observable<HTMLElement|null> = Observable.create(this, null);
+  public rootElement: HTMLElement;
+  constructor() {
+    super();
+    this.rootElement = this.buildDom();
+    G.document.body.appendChild(this.rootElement);
+    this.onDispose(() => {
+      this.rootElement.remove();
+      dom.domDispose(this.rootElement);
     });
   }
 
-  private async _handleNewAttachedCustomWidget(widget: IAttachedCustomWidget) {
-    switch (widget) {
-      case 'custom.calendar': {
-        if (this.behavioralPromptsManager.shouldShowPopup('calendarConfig')) {
-          // Open the right panel to the calendar subtab.
-          commands.allCommands.viewTabOpen.run();
+  public buildDom() {
+    return cssMiniFloater(
+      dom.show(use => Boolean(use(this.content))),
+      // dom.cls('layout_editor_floater'),
+      dom.domComputed(this.content, c => c)
+    );
+  }
 
-          // Wait for the right panel to finish animation if it was collapsed before.
-          await commands.allCommands.rightPanelOpen.run();
-        }
-        break;
-      }
+  public onMove(ev: MouseEvent) {
+    if (this.content.get()) {
+      this.rootElement.style.left = `${ev.clientX}px`;
+      this.rootElement.style.top = `${ev.clientY}px`;
     }
   }
+}
 
-  private async _promptForName() {
-    return await invokePrompt("Table name", {
-      btnText: "Create",
-      initial: "",
-      placeholder: "Default table name",
-    });
-  }
+/**
+ * ExternalLeaf pretends that it is a collapsed leaf and acts as a proxy between collapsed tray and the
+ * ViewLayout.
+ */
+class ExternalLeaf extends Disposable implements Dropped {
+  // If external element is in drag mode
+  public drag: Signal<Dropped>;
+  // Event when external leaf is being dragged.
+  public dragMove: Signal<MouseEvent>;
 
-  private async _replaceViewSection(
-    section: ViewSectionRec,
-    oldVal: IPageWidget,
-    newVal: IPageWidget
-  ) {
+  // Event when external leaf is dropped.
+  private _drop: Signal<ContentBox>;
 
-    const docModel = this.docModel;
-    const viewModel = section.view();
-    const docData = this.docModel.docData;
-    const options = section.options();
-    const colIds = section.viewFields().all().map((f) => f.column().colId());
-    const chartType = section.chartType();
-    const sectionTheme = section.theme();
+  constructor(protected model: LayoutTray) {
+    super();
+    // Wire up external events to mimic that we are a part.
 
-    // we must read the current layout from the view layout because it can override the one in
-    // `section.layoutSpec` (in particular it provides a default layout when missing from the
-    // latter).
-    const layoutSpec = this.viewLayout!.layoutSpec();
+    // First we will replace all events, so that they won't emit anything if we are the only leaf
+    // in the layout.
+    const multipleLeaves = () => this.model.viewLayout.layout.getAllLeafIds().length > 1;
 
-    const sectionTitle = section.title();
-    const sectionId = section.id();
+    this.drag = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragStart', 'dragEnd')
+                      .filter(multipleLeaves);
 
-    // create a new section
-    const sectionCreationResult = await this._addWidgetToPage(newVal, null, {focus: false, popups: false});
+    this._drop = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragDrop')
+                      .filter(multipleLeaves);
 
-    // update section name
-    const newSection: ViewSectionRec = docModel.viewSections.getRowModel(sectionCreationResult.sectionRef);
-    await newSection.title.saveOnly(sectionTitle);
+    this.dragMove = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragMove')
+                          .filter(multipleLeaves);
 
-    // replace old section id with new section id in the layout spec and save
-    const newLayoutSpec = cloneDeepWith(layoutSpec, (val) => {
-      if (typeof val === 'object' && val.leaf === sectionId) {
-        return {...val, leaf: newSection.id()};
+    // Now bubble up those events to the model.
+
+    // For dragging we just need to know that it is on or off.
+    this.drag.map(box => {
+      // We are tricking the model, we report that we are dragged, not the external leaf.
+      return box ? this as Dropped : null;
+    }).distinct().pipe(this.model.drag);
+
+
+    // When the external box is dropped, we will pretend that we were dropped.
+    this._drop.map(x => this as Dropped|null).pipe(this.model.drop);
+
+    // Listen to the inDrag state in the model, if the dragged element is not us, update
+    // target hits. Otherwise target hits will be updated by the viewLayout.
+    this.autoDispose(model.dragging.listen(ev => {
+      // If the dragged box is not us, we need to update the targets.
+      if (ev && model.drag.state.get() !== this) {
+        this.model.viewLayout.layoutEditor.updateTargets(ev);
       }
-    });
-    await viewModel.layoutSpec.saveOnly(JSON.stringify(newLayoutSpec));
-
-    // persist options
-    await newSection.options.saveOnly(options);
-
-    // charts needs to keep view fields consistent across updates
-    if (oldVal.type === 'chart' && newVal.type === 'chart') {
-      await this._setSectionViewFieldsFromArray(newSection, colIds);
-    }
-
-    // update theme, and chart type
-    await newSection.theme.saveOnly(sectionTheme);
-    await newSection.chartType.saveOnly(chartType);
-
-    // The newly-added section should be given focus.
-    this.viewModel.activeSectionId(newSection.getRowId());
-
-    // remove old section
-    await docData.sendAction(['RemoveViewSection', sectionId]);
-    return newSection;
-  }
-
-  /**
-   * Helper called before an action is sent to the server. It saves cursor position to come back to
-   * in case of Undo.
-   */
-  private _onSendActionsStart(ev: { cursorPos: CursorPos }) {
-    this._lastOwnActionGroup = null;
-    ev.cursorPos = this._getCursorPos();
-  }
-
-  /**
-   * Helper called when server responds to an action. It attaches the saved cursor position to the
-   * received action (if any), and stores also the resulting position.
-   */
-  private _onSendActionsEnd(ev: { cursorPos: CursorPos }) {
-    const a = this._lastOwnActionGroup;
-    if (a) {
-      a.cursorPos = ev.cursorPos;
-      if (a.rowIdHint) {
-        a.cursorPos.rowId = a.rowIdHint;
-      }
-    }
-  }
-
-  private _getDocApiDownloadParams() {
-    const activeSection = this.viewModel.activeSection();
-    const filters = activeSection.activeFilters.get().map(filterInfo => ({
-      colRef: filterInfo.fieldOrColumn.origCol().origColRef(),
-      filter: filterInfo.filter()
     }));
-    const linkingFilter: FilterColValues = activeSection.linkingFilter();
 
-    return {
-      viewSection: this.viewModel.activeSectionId(),
-      tableId: activeSection.table().tableId(),
-      activeSortSpec: JSON.stringify(activeSection.activeSortSpec()),
-      filters: JSON.stringify(filters),
-      linkingFilter: JSON.stringify(linkingFilter),
-    };
-  }
-
-  /**
-   * Switch to a given sectionId, wait for it to load, and return a Promise for the instantiated
-   * viewInstance (such as an instance of GridView or DetailView).
-   */
-  private async _switchToSectionId(sectionId: number) {
-    const section: ViewSectionRec = this.docModel.viewSections.getRowModel(sectionId);
-    if (section.isRaw.peek() || section.isRecordCard.peek()) {
-      // This is a raw data or record card view.
-      await urlState().pushUrl({docPage: 'data'});
-      this.viewModel.activeSectionId(sectionId);
-    } else if (section.isVirtual.peek()) {
-      // this is a virtual table, and therefore a webhook page (that is the only
-      // place virtual tables are used so far)
-      await urlState().pushUrl({docPage: 'webhook'});
-      this.viewModel.activeSectionId(sectionId);
-    } else {
-      const view: ViewRec = section.view.peek();
-      await this.openDocPage(view.getRowId());
-      view.activeSectionId(sectionId);  // this.viewModel will reflect this with a delay.
-    }
-
-    // Returns the value of section.viewInstance() as soon as it is truthy.
-    return waitObs(section.viewInstance);
-  }
-
-  private async _getTableData(section: ViewSectionRec): Promise<TableData> {
-    const viewInstance = await waitObs(section.viewInstance);
-    if (!viewInstance) {
-      throw new Error('view not found');
-    }
-    await viewInstance.getLoadingDonePromise();
-    const table = this.docData.getTable(section.table.peek().tableId.peek());
-    if (!table) {
-      throw new Error('no section table');
-    }
-    return table;
-  }
-
-  /**
-   * Convert a url hash to a cursor position.
-   */
-  private _getCursorPosFromHash(hash: HashLink): CursorPos {
-    const cursorPos: CursorPos = {rowId: hash.rowId, sectionId: hash.sectionId};
-    if (cursorPos.sectionId != undefined && hash.colRef !== undefined) {
-      // translate colRef to a fieldIndex
-      const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
-      const fieldIndex = section.viewFields.peek().all()
-        .findIndex(x => x.colRef.peek() == hash.colRef);
-      if (fieldIndex >= 0) {
-        cursorPos.fieldIndex = fieldIndex;
+    // When drag is started by tray, we need to fire up user edit event. This is only needed
+    // because the viewLayout has a different UI when user is editing.
+    const miniDrag = Signal.compute(this, on => on(model.drag) && !on(this.drag)).map(Boolean).distinct();
+    this.autoDispose(miniDrag.listen(box => {
+      if (box) {
+        this.model.viewLayout.layoutEditor.triggerUserEditStart();
+      } else {
+        const dropTargeter = this.model.viewLayout.layoutEditor.dropTargeter;
+        dropTargeter.removeTargetHints();
+        // Save the layout immediately after the drop. Otherwise we would wait a bit,
+        // and the section won't be created on time.
+        this.model.viewLayout.layoutEditor.triggerUserEditStop();
+        // Manually save the layout.
+        this.model.viewLayout.saveLayoutSpec().catch(reportError);
       }
-      cursorPos.linkingRowIds = hash.linkingRowIds;
-    }
-    return cursorPos;
-  }
+    }));
 
-  /**
-   * Returns whether a doc tour should automatically be started.
-   *
-   * Currently, tours are started if a non-empty GristDocTour table exists and the
-   * user hasn't seen the tour before.
-   */
-  private async _shouldAutoStartDocTour(): Promise<boolean> {
-    if (
-      this._disableAutoStartingTours ||
-      this.docModel.isTutorial() ||
-      !this.docModel.hasDocTour() ||
-      this._seenDocTours.get()?.includes(this.docId())
-    ) {
-      return false;
-    }
 
-    const tableData = this.docData.getTable('GristDocTour')!;
-    await this.docData.fetchTable('GristDocTour');
-    return tableData.numRecords() > 0;
-  }
+    // We are responsible for saving the layout, when section is collapsed or expanded.
 
-  /**
-   * Returns whether a welcome tour should automatically be started.
-   *
-   * Currently, tours are started for first-time users on a personal org, as long as
-   * a doc tutorial or tour isn't available.
-   */
-  private _shouldAutoStartWelcomeTour(): boolean {
-    // For non-SaaS flavors of Grist, don't show the tour if the Help Center is explicitly
-    // disabled. A separate opt-out feature could be added down the road for more granularity,
-    // but will require communication in advance to avoid disrupting users.
-    const {features} = getGristConfig();
-    if (!features?.includes('helpCenter')) {
-      return false;
-    }
+    // Also we need to monitor when mini leaf is dropped, it will trigger a drop event,
+    // but non-one will listen to it.
+    this.autoDispose(
+      model.drop.listen(dropped => {
+        if (!dropped) {
+          return;
+        }
+        // If I was dropped (collapsed) over the tray, we don't need to do anything here.
+        // Our leaf was removed already and the layout will be saved by the miniDrag event.
 
-    // If a doc tutorial or tour are available, leave the welcome tour for another
-    // doc (e.g. a new one).
-    if (this._disableAutoStartingTours || this.docModel.isTutorial() || this.docModel.hasDocTour()) {
-      return false;
-    }
-
-    // Only show the tour if one is on a personal org and can edit. This excludes templates (on
-    // the Templates org, which may have their own tour) and team sites (where user's intended
-    // role is often other than document creator).
-    const appModel = this.docPageModel.appModel;
-    if (!appModel.currentOrg?.owner || this.isReadonly.get()) {
-      return false;
-    }
-    // Use the showGristTour pref if set; otherwise default to true for anonymous users, and false
-    // for real returning users.
-    return this._showGristTour.get() ?? (!appModel.currentValidUser);
-  }
-
-  /**
-   * Makes sure that the first y-series (ie: the view fields at index 1) is a numeric series. Does
-   * not handle chart with the group by option on: it is only intended to be used to make sure that
-   * newly created chart do have a visible y series.
-   */
-  private async _ensureOneNumericSeries(id: number) {
-    const viewSection = this.docModel.viewSections.getRowModel(id);
-    const viewFields = viewSection.viewFields.peek().peek();
-
-    // If no y-series, then simply return.
-    if (viewFields.length === 1) {
-      return;
-    }
-
-    const field = viewSection.viewFields.peek().peek()[1];
-    if (isNumericOnly(viewSection.chartTypeDef.peek()) &&
-      !isNumericLike(field.column.peek())) {
-      const actions: UserAction[] = [];
-
-      // remove non-numeric field
-      actions.push(['RemoveRecord', field.id.peek()]);
-
-      // add new field
-      const newField = viewSection.hiddenColumns.peek().find((col) => isNumericLike(col));
-      if (newField) {
-        const colInfo = {
-          parentId: viewSection.id.peek(),
-          colRef: newField.id.peek(),
-        };
-        actions.push(['AddRecord', null, colInfo]);
-      }
-
-      // send actions
-      await this.docModel.viewFields.sendTableActions(actions);
-    }
-  }
-
-  private async _setDefaultFormLayoutSpec(viewSectionId: number) {
-    const viewSection = this.docModel.viewSections.getRowModel(viewSectionId);
-    const viewFields = viewSection.viewFields.peek().peek();
-    await viewSection.layoutSpecObj.setAndSave(buildDefaultFormLayout(viewFields));
-  }
-
-  private _handleTriggerQueueOverflowMessage() {
-    this.listenTo(this, 'webhookOverflowError', (err: any) => {
-      this.app.topAppModel.notifier.createNotification({
-        message: err.toString(),
-        canUserClose: false,
-        level: "error",
-        badgeCounter: true,
-        expireSec: 5,
-        key: 'webhookOverflowError',
-        actions: [{
-          label: t('go to webhook settings'), action: async () => {
-            await urlState().pushUrl({docPage: 'webhook'});
+        // If I was dropped anywhere else, we don't need to do anything either, viewLayout will
+        // take care of it.
+        if (dropped === this) {
+          return;
+        }
+        // We only care when collapsed widget was dropped over the main area.
+        const externalEditor = this.model.viewLayout.layoutEditor;
+        const dropTargeter = this.model.viewLayout.layoutEditor.dropTargeter;
+        // Check that it was dropped over the main area.
+        if (dropTargeter?.activeTarget && !dropTargeter?.activeTarget?.box.isDisposed()) {
+          // Remove the widget from the tray, and at new leaf to the layout.
+          const part = dropTargeter.activeTarget;
+          dropTargeter.removeTargetHints();
+          const leaf = dropped.leafId();
+          const box = externalEditor.layout.buildLayoutBox({leaf});
+          dropped.removeFromLayout();
+          if (part.isChild) {
+            part.box.addChild(box, part.isAfter);
+          } else {
+            part.box.addSibling(box, part.isAfter);
           }
-        }]
-      });
+          this.model.viewLayout.viewModel.activeSectionId(leaf);
+          this.model.drop.state.set(null);
+        }
+      })
+    );
+    this._replaceFloater();
+  }
+
+  /**
+   * Dropped interface implementation, it is called only when a section in the main area is collapsed (dragged
+   * onto the valid target in the tray).
+   */
+  public removeFromLayout() {
+    const droppedBox = this._drop.state.get();
+    if (!droppedBox) { return; }
+    const leafId = this.leafId();
+    const otherSection = this.model.viewLayout.layoutEditor
+      .layout.getAllLeafIds().find(x => typeof x === 'number' && x !== leafId);
+    this.model.viewLayout.viewModel.activeSectionId(otherSection);
+    // We can safely remove the box, because we should be called after viewInstance is grabbed by
+    // the tray.
+    this.model.viewLayout.layoutEditor.doRemoveBox(droppedBox);
+  }
+
+  public leafId() {
+    return this._drop.state.get()?.leafId.peek() || 0;
+  }
+
+  /**
+   * Monitors the external floater element, and if it is on top of the collapsed tray, replaces its content.
+   */
+  private _replaceFloater() {
+    const model = this.model;
+    // We will replace floater just after it starts till it is about to be dropped.
+    const period = Signal.fromEvents(model, model.viewLayout.layoutEditor, 'dragStart', 'dragStop');
+    const overEditor = Signal.compute(model, on => Boolean(on(period) && on(model.over))).distinct();
+    let lastContent: HTMLElement|null = null;
+    let lastTransform: string|null = null;
+    let lastX: number|null = null;
+    let lastY: number|null = null;
+    // When the external box is on top of the tray, we need to replace the content to be much smaller.
+    model.autoDispose(
+      overEditor.listen(over => {
+        if (over) {
+          const floater = model.viewLayout.layoutEditor.floater;
+          const leafId = floater.leafId.peek();
+          if (typeof leafId !== 'number') {
+            return;
+          }
+          const content = floater.leafContent.peek() as HTMLElement;
+          if (content) {
+            lastContent = content;
+            // Hide this element.
+            content.style.display = 'none';
+            // Create another element to show in the floater.
+            const newContent = cssFloaterWrapper(content, buildCollapsedSectionDom({
+              gristDoc: model.viewLayout.gristDoc,
+              sectionRowId: leafId,
+            }));
+            floater.leafContent(newContent);
+            lastTransform = floater.dom.style.transform;
+            lastX = floater.mouseOffsetX;
+            lastY = floater.mouseOffsetY;
+            floater.dom.style.transform = 'none';
+            floater.mouseOffsetX = 0;
+            floater.mouseOffsetY = 0;
+          }
+        } else if (lastContent) {
+          lastContent.style.display = '';
+          const floater = model.viewLayout.layoutEditor.floater;
+          const currentContent = floater.leafContent.peek() as HTMLElement;
+          floater.leafContent(lastContent);
+          if (currentContent) {
+            dom.domDispose(currentContent);
+          }
+          lastContent = null;
+          floater.dom.style.transform = lastTransform!;
+          floater.mouseOffsetX = lastX!;
+          floater.mouseOffsetY = lastY!;
+        }
+      })
+    );
+  }
+}
+
+/**
+ * A class that holds an array of IDisposable objects, and disposes them all when it is disposed.
+ * The difference from a MultipleHolder is that it can release individual disposables from the array.
+ */
+class ArrayHolder extends Disposable {
+  private _array: IDisposable[] = [];
+
+  constructor() {
+    super();
+    this.onDispose(() => {
+      const seen = new Set();
+      for (const obj of this._array) {
+        if (!seen.has(obj)) {
+          seen.add(obj);
+          obj.dispose();
+        }
+      }
+      this._array = [];
     });
   }
 
-  private _activateAssistant() {
-    if (!this._assistantPopupHolder.isEmpty()) {
-      // If an AssistantPopup is already open, don't dispose and reopen it, which
-      // would cause its state to be reset.
-      return;
-    }
+  public autoDispose<T extends IDisposable>(obj: T): T {
+    this._array.push(obj);
+    return obj;
+  }
 
-    AssistantPopup.create(this._assistantPopupHolder, this);
+  public release(obj: IDisposable) {
+    const index = this._array.indexOf(obj);
+    if (index >= 0) {
+      return this._array.splice(index, 1);
+    }
+    return null;
   }
 }
 
-async function finalizeAnchor() {
-  await urlState().pushUrl({hash: {}}, {replace: true});
-  setTestState({anchorApplied: true});
+function syncHover(obs: Signal) {
+  return [dom.on('mouseenter', () => obs.emit(true)), dom.on('mouseleave', () => obs.emit(false))];
 }
 
-const cssViewContentPane = styled('div', `
-  --view-content-page-padding: 12px;
-  flex: auto;
+/**
+ * Helper function that renders an element from an observable, but prevents it from being disposed.
+ * Used to keep viewInstance from being disposed when it is added as a child in various containers.
+ */
+function detachedNode(node: Observable<HTMLElement|null>) {
+  return [
+    dom.maybe(node, n => n),
+    dom.onDispose(() => node.get() && detachNode(node.get()))
+  ];
+}
+
+/**
+ * Finds element that is marked as draggable from the mouse event.
+ */
+function findDraggable(ev: EventTarget|null) {
+  if (ev instanceof HTMLElement) {
+    const target = ev.closest(".draggable-handle")?.closest(".draggable");
+    return !target ? null : dom.getData(target, 'draggable') as Draggable;
+  }
+  return null;
+}
+
+/**
+ * Marks a dom element as draggable. It sets a class and a data attribute that is looked up by the useDragging helper.
+ */
+function asDraggable(item: Draggable) {
+  return [
+    dom.cls('draggable'),
+    dom.data('draggable', item)
+  ];
+}
+
+/**
+ * Attaches a mouse events for dragging to a parent container. This way we have a single mouse event listener
+ * for all draggable elements. All events are then delegated to the draggable elements.
+ *
+ * When a drag is started a MiniFloater is created, and the draggable element can be moved to the floater.
+ */
+function useDragging() {
+  return (el: HTMLElement) => {
+    // Implement them by hand, using mouseenter, mouseleave, and mousemove events.
+    // This is a inspired by LayoutEditor.ts.
+    let justStarted = false;
+    let isDragging = false;
+    let dragged: Draggable|null = null;
+    let floater: MiniFloater|null = null;
+    let downX: number|null = null;
+    let downY: number|null = null;
+    const listener = (ev: MouseEvent) => {
+      switch (ev.type) {
+        case 'mousedown':
+          // Only handle left button.
+          if (ev.button !== 0) {
+            return;
+          }
+          // If we haven't found a draggable element, return.
+          dragged = findDraggable(ev.target);
+          if (!dragged) {
+            return;
+          }
+          // If we had floater, dispose it.
+          floater?.dispose();
+          floater = new MiniFloater();
+          // Start drag and attach mousemove and mouseup listeners.
+          justStarted = true;
+          G.$(G.window).on('mousemove', mouseMoveListener);
+          G.$(G.window).on('mouseup', mouseUpListener);
+          downX = ev.clientX;
+          downY = ev.clientY;
+          return false;
+        case 'mouseup':
+          if (!dragged) {
+            return;
+          }
+          justStarted = false;
+          G.$(G.window).off('mousemove', mouseMoveListener);
+          G.$(G.window).off('mouseup', mouseUpListener);
+
+          if (isDragging) {
+            isDragging = false;
+            if (dragged?.drop) {
+              dragged.drop(ev as DragEvent, floater!);
+            }
+            if (dragged?.dragEnd) {
+              dragged.dragEnd(ev as DragEvent, floater!);
+            }
+          }
+          dragged = null;
+          floater?.dispose();
+          floater = null;
+          return false;
+        case 'mousemove':
+          if (justStarted) {
+            const slightMove = downX && downY &&
+              (Math.abs(ev.clientX - downX) > 3 || Math.abs(ev.clientY - downY) > 3);
+            if (slightMove) {
+              justStarted = false;
+              if (dragged?.dragStart) {
+                // Drag element has an opportunity to return a new draggable object.
+                dragged = dragged.dragStart(ev as DragEvent, floater!);
+                if (!dragged) {
+                  return;
+                }
+              }
+              // Now we are dragging.
+              isDragging = true;
+            }
+          }
+          if (!isDragging) {
+            return;
+          }
+          if (dragged?.drag) {
+            dragged.drag(ev as DragEvent, floater!);
+          }
+          floater!.onMove(ev);
+          return false;
+      }
+    };
+    const mouseMoveListener = (ev: MouseEvent) => listener(ev);
+    const mouseUpListener = (ev: MouseEvent) => listener(ev);
+    dom.autoDisposeElem(el, dom.onElem(G.window, 'mousedown', (e) => listener(e)));
+    dom.onDisposeElem(el, () => (floater?.dispose(), floater = null));
+  };
+}
+
+
+/**
+ * A virtual rectangle that is relative to a DOMRect.
+ */
+class VRect {
+  public left: number;
+  public width: number;
+  public top: number;
+  public right: number;
+  public height: number;
+  constructor(offset: DOMRect, params: Partial<VRect>) {
+    Object.assign(this, params);
+    this.left += offset.left;
+    this.right += offset.left;
+    this.top += offset.top;
+    this.width = this.right - this.left;
+  }
+  public contains(ev: MouseEvent) {
+    return ev.clientX >= this.left && ev.clientX <= this.right &&
+      ev.clientY >= this.top && ev.clientY <= this.top + this.height;
+  }
+}
+
+const cssVirtualZone = styled('div', `
+  position: absolute;
+  inset: 0;
+`);
+
+const cssFloaterWrapper = styled('div', `
+  height: 40px;     
+  width: 140px;
+  max-width: 140px;
+  background: ${theme.tableBodyBg};
+  border: 1px solid ${theme.widgetBorder};
+  border-radius: 4px;
+  -webkit-transform: rotate(5deg) scale(0.8) translate(-10px, 0px);
+  transform: rotate(5deg) scale(0.8) translate(-10px, 0px);
+  & .mini_section_container {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+`);
+
+// MOD DMH
+const cssVFull = styled('div', `
+  position: relative;
+  display: contents;   // ✅ Removes wrapper layout impact entirely
+`);
+
+
+const cssCollapsedTrayWrapper = styled('div', `
+  position: relative;
+  height: 13px;          // 3px green bar + 10px hover area
+  z-index: 100;
+`);
+
+// The actual collapsed tray content (green line initially) that expands on mouse hover/focus
+const cssCollapsedTray = styled('div.collapsed_layout', `
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  position: relative;
-  min-width: 240px;
-  
-  // MOD DMH - Removes gap above green line in Layout Tray. 
-  // This also has the effect of removing border around main body, which also saves more screen space 
-  padding: var(--view-content-page-padding, 0px);   // was 12px
-  // end MOD DMH
-  @media ${mediaSmall} {
-    & {
-      padding: 4px;
-    }
-  }
-  @media print {
-    & {
-      padding: 0px;
-    }
-  }
-  &-special-page {
-    overflow: hidden;
-    padding: 0px;
-  }
-`);
-
-const fadeInAndOut = keyframes(`
-  0% {
-    opacity: 0.01;
-  }
-  5%, 95% {
-    opacity: 0.2;
-  }
-  100% {
-    opacity: 0.01;
-  }
-`);
-
-const cssBackgroundVideo = styled('div', `
-  position: fixed;
+  overflow: hidden;
+  height: 3px;
+  background-color: #16b378;        // ✅ Green line color
+  transition: height 0.3s ease;
+  position: absolute;
+  z-index: 101;  /* ⬅️ Just slightly higher, to ensure it's topmost */
   top: 0;
+  left: 0;
   right: 0;
-  height: 100%;
-  width: 100%;
-  opacity: 0;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   pointer-events: none;
 
-  &-fade-in-and-out {
-    animation: ${fadeInAndOut} 200s;
+  .collapsed-tray-wrapper:hover &,
+  .collapsed-tray-wrapper:focus-within & {
+    pointer-events: auto;
+    height: 45px;
+    background-color: #f7f7f7;
+    padding-left: 20px;
+    padding-right: 20px;
+    border: none !important;             // ✅ Fixes grey border
+    border-radius: 0 !important;         // ✅ Removes rounded corners
+  }
+
+  &-is-active {
+    outline: 2px dashed ${theme.widgetBorder};
+  }
+
+  &-is-target {
+    outline: 2px dashed #7B8CEA;
+    background: rgba(123, 140, 234, 0.1);
+  }
+
+  @media print {
+    display: none;
   }
 `);
+// end MOD DMH
 
-const cssYouTubePlayer = styled('div', `
-  position: absolute;
-  width: 450%;
-  height: 450%;
-  top: -175%;
-  left: -175%;
+const cssRow = styled('div', `display: flex`);
 
-  @media ${mediaXSmall} {
-    & {
-      width: 450%;
-      height: 450%;
-      top: -175%;
-      left: -175%;
-    }
-  }
+// MOD DMH - modify layout of collapsed widgets
+const cssLayout = styled(cssRow, `
+  padding: 4px 24px 4px 24px;  /* MOD ⬅️ Reduced top padding */
+  column-gap: 16px;
+  row-gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
 `);
 
-const cssStopRickRowingButton = styled('div', `
-  position: fixed;
-  top: 0;
-  right: 0;
-  padding: 8px;
-  margin: 16px;
-  border-radius: 24px;
-  background-color: ${theme.toastBg};
+const cssBox = styled('div', `
+  border: 1px solid ${theme.widgetBorder};
+  border-radius: 3px;
+  background: ${theme.widgetBg};
+  min-width: 120px;
+  min-height: 34px;
   cursor: pointer;
 `);
 
-const cssCloseIcon = styled(icon, `
-  height: 24px;
-  width: 24px;
-  --icon-color: ${theme.toastControlFg};
+const cssEmptyBox = styled('div', `
+  text-align: center;
+  text-transform: uppercase;
+  color: ${theme.widgetBorder};
+  font-weight: bold;
+  letter-spacing: 1px;
+  border: 2px dashed ${theme.widgetBorder};
+  border-radius: 3px;
+  padding: 2px;
+  width: 120px;
+  min-height: 34px;
+
+  &-can-accept {
+    border: 2px dashed #7B8CEA;
+    background: rgba(123, 140, 234, 0.1);
+  }
 `);
+// end MOD DMH
+
+const cssProbe = styled('div', `
+  min-width: 0px;
+  padding: 0px;
+  transition: width 0.2s ease-out;
+`);
+
+const cssMiniFloater = styled(cssBox, `
+  pointer-events: none;
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+  -webkit-transform: rotate(5deg) scale(0.8);
+  transform: rotate(5deg) scale(0.8);
+  transform-origin: top left;
+`);
+
+const cssVirtualPart = styled('div', `
+  outline: 1px solid blue;
+  position: absolute;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.1);
+`);
+
+const cssHidden = styled('div', `display: none;`);
+
+export {};
