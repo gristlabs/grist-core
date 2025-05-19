@@ -1,4 +1,16 @@
 /**
+ * AccessRules.ts
+ * 
+ * Manages the Grist Access Rules UI, including rule creation, display, and syncing logic.
+ * Handles user attributes, special rules, and granular permission sets.
+ *
+ * 🔧 MOD DMH — May 2025:
+ * - Sorts access rules table list alphabetically for improved UX
+ * - Replaces unsorted `rules.getAllTableIds()` with `.slice().sort(...)` in `update()`
+ * - Commented for PR clarity with `// MOD DMH` and `// end MOD DMH` tags
+ */
+
+/**
  * UI for managing granular ACLs.
  */
 import {aclColumnList} from 'app/client/aclui/ACLColumnList';
@@ -250,12 +262,41 @@ export class AccessRules extends Disposable {
     this._ruleProblems.set(aclResources.problems);
     if (this.isDisposed()) { return; }
 
+/**
+     * // MOD DMH
+     * 🔧 Custom Patch: Alphabetically sort access control table rules
+     *
+     *
+     *  Implementation:
+     *   - Adds `.slice().sort(...)` to alphabetize without mutating original array.
+     *   - Keeps filtering and mapping logic unchanged.
+     *   - Includes a `console.log` line for runtime confirmation of patch.
+     *
+     * Replaced:
+     *   rules.getAllTableIds()
+     *     .filter(...)
+     *     .map(...)
+     * 
+     */
+
+    // Original:
+    // this._tableRules.set(
+    //   rules.getAllTableIds()
+    //     .filter(tableId => (tableId !== SPECIAL_RULES_TABLE_ID))
+    //     .map(tableId => TableRules.create(this._tableRules,
+    //         tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
+    // );
+
+    // Patched version with alphabetical sort:
     this._tableRules.set(
       rules.getAllTableIds()
-      .filter(tableId => (tableId !== SPECIAL_RULES_TABLE_ID))
-      .map(tableId => TableRules.create(this._tableRules,
-          tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
+        .slice().sort((a, b) => a.localeCompare(b))   // MOD DMH: Alphabetical sorting
+        .filter(tableId => (tableId !== SPECIAL_RULES_TABLE_ID))
+        .map(tableId => TableRules.create(this._tableRules,
+            tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
     );
+    console.log("[Patch] ✅ Table rules sorted alphabetically by tableId");  
+    // MOD DMH
 
     const withDefaultRules = ['SeedRule'];
     const separateRules = ['SchemaEdit', 'FullCopies', 'AccessRules'];
