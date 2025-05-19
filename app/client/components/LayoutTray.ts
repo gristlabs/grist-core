@@ -161,7 +161,9 @@ public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, cl
   }));
 
   return dom.domComputed(section, (id) => {
-    if (!id) return null;
+    if (!id) {
+      return null;
+    }
 
     const viewSections = this.viewLayout.viewModel.viewSections.peek();
     const vs = viewSections.all().find((s: ViewSectionRec) => s.getRowId() === id);
