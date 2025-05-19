@@ -1,6 +1,6 @@
 /**
  * AccessRules.ts
- * 
+ *
  * Manages the Grist Access Rules UI, including rule creation, display, and syncing logic.
  * Handles user attributes, special rules, and granular permission sets.
  *
@@ -276,7 +276,7 @@ export class AccessRules extends Disposable {
      *   rules.getAllTableIds()
      *     .filter(...)
      *     .map(...)
-     * 
+     *
      */
 
     // Original:
@@ -295,7 +295,7 @@ export class AccessRules extends Disposable {
         .map(tableId => TableRules.create(this._tableRules,
             tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
     );
-    console.log("[Patch] ✅ Table rules sorted alphabetically by tableId");  
+    console.log("[Patch] ✅ Table rules sorted alphabetically by tableId");
     // MOD DMH
 
     const withDefaultRules = ['SeedRule'];
