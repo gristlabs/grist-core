@@ -51,7 +51,7 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from 'app/server/lib/GoogleAuth';
-import {GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
+import {createGristJobs, GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
@@ -370,8 +370,16 @@ export class FlexServer implements GristServer {
    * Get interface to job queues.
    */
   public getJobs(): GristJobs {
-    const jobs = this._jobs || new GristBullMQJobs();
-    return jobs;
+    return this._jobs || (this._jobs = createGristJobs());
+  }
+
+  /**
+   * Return the GristBullMQJobs instance if that's what we are using for jobs. Fail otherwise.
+   */
+  public getBullMQJobs(): GristBullMQJobs {
+    const jobs = this.getJobs();
+    if (jobs instanceof GristBullMQJobs) { return jobs; }
+    throw new Error("No full-featured job queues because Redis is unavailable");
   }
 
   /**
