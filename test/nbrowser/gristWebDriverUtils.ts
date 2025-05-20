@@ -300,6 +300,15 @@ export class GristWebDriverUtils {
     }, name, argument);
     await this.waitForServer();
   }
+
+  public async openAccountMenu() {
+    await this.driver.findWait('.test-dm-account', 2000).click();
+    // Since the AccountWidget loads orgs and the user data asynchronously, the menu
+    // can expand itself causing the click to land on a wrong button.
+    await this.waitForServer();
+    await this.driver.findWait('.test-site-switcher-org', 2000);
+    await this.driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
+  }
 }
 
 export interface WindowDimensions {
