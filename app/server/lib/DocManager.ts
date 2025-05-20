@@ -18,7 +18,10 @@ import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
-import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {
+  getConfiguredStandardAttachmentStore,
+  IAttachmentStoreProvider
+} from 'app/server/lib/AttachmentStoreProvider';
 import {Client} from 'app/server/lib/Client';
 import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
@@ -27,13 +30,15 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
 import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
 import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
-import {SQLiteDB} from 'app/server/lib/SQLiteDB';
+import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
 import merge = require('lodash/merge');
 import noop = require('lodash/noop');
+import {DocumentSettings} from 'app/common/DocumentSettings';
+import {safeJsonParse} from 'app/common/gutil';
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
 // but is a bit of a burden under heavy traffic.
@@ -692,6 +697,7 @@ export class DocManager extends EventEmitter {
         const srcDocPath = uploadInfo.files[0].absPath;
         await checkAllegedGristDoc(docSession, srcDocPath);
         await docUtils.copyFile(srcDocPath, docPath);
+        await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
         // Go ahead and claim this document. If we wanted to serve it
         // from a potentially different worker, we'd call addToStorage(docName)
         // instead (we used to do this). The upload should already be happening
@@ -732,4 +738,42 @@ export class DocManager extends EventEmitter {
 // when the basename is empty or starts with a period.
 function extname(fpath: string): string {
   return path.extname("X" + fpath);
+}
+
+async function updateDocumentAttachmentStoreSettingToValidValue(fname: string, provider: IAttachmentStoreProvider) {
+  return updateDocumentSettingsInPlace(fname, (oldSettings) => {
+    const attachmentStoreId = oldSettings?.attachmentStoreId;
+    if (!attachmentStoreId || provider.storeExists(attachmentStoreId)) {
+      return oldSettings;
+    }
+    const newStoreLabel = getConfiguredStandardAttachmentStore();
+    const newStoreId = newStoreLabel && provider.getStoreIdFromLabel(newStoreLabel);
+
+    return {
+      ...oldSettings,
+      attachmentStoreId: newStoreId,
+    };
+  });
+}
+
+// Updates the document's settings (_grist_DocInfo.docSettings) without loading the document.
+async function updateDocumentSettingsInPlace(
+  fname: string,
+  makeChanges: (oldSettings: DocumentSettings | undefined) => DocumentSettings | undefined
+) {
+  const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_EXISTING);
+  const columns = await db.all("PRAGMA table_info(_grist_DocInfo)");
+  if (!columns.some(column => column.name === 'documentSettings')) {
+    return;
+  }
+  const results = await db.all('SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo');
+  const updatePromises = results.map(async (row) => {
+    const settings: DocumentSettings | undefined = safeJsonParse(row.documentSettings, undefined);
+    const newSettings = makeChanges(settings);
+    await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
+      JSON.stringify(newSettings, (k, v) => v === undefined ? null : v),
+      row.id
+    );
+  });
+  await Promise.all(updatePromises);
 }
