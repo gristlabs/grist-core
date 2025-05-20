@@ -54,7 +54,7 @@ describe('RecordCards', function() {
       await (await gu.openRowMenu(1)).findContent('li', /View as card/).click();
       assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
-      await driver.find('.test-confirm-save').click();
+      await gu.confirm(true);
       await gu.waitForServer();
       assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
     });
