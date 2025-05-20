@@ -19,7 +19,6 @@ import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
-import { DocAction, UserAction } from 'app/common/DocActions';
 import { TestState } from 'app/common/TestState';
 import { Organization as APIOrganization, DocStateComparison,
          UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
@@ -96,6 +95,7 @@ export const acceptAlert = webdriverUtils.acceptAlert.bind(webdriverUtils);
 export const isAlertShown = webdriverUtils.isAlertShown.bind(webdriverUtils);
 export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUtils);
 export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
+export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -1211,32 +1211,6 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 
 export async function waitForLabelInput(): Promise<void> {
   await driver.wait(async () => (await driver.findWait('.test-column-title-label', 100).hasFocus()), 300);
-}
-
-/**
- * Sends UserActions using client api from the browser.
- */
-export async function sendActions(actions: (DocAction|UserAction)[]) {
-  await driver.manage().setTimeouts({
-    script: 1000 * 2, /* 2 seconds, default is 0.5s */
-  });
-
-  // Make quick test that we have a list of actions not just a single action, by checking
-  // if the first element is an array.
-  if (actions.length && !Array.isArray(actions[0])) {
-    throw new Error('actions argument should be a list of actions, not a single action');
-  }
-
-  const result = await driver.executeAsyncScript(`
-    const done = arguments[arguments.length - 1];
-    const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
-    prom.then(() => done(null));
-    prom.catch((err) => done(String(err?.message || err)));
-  `);
-  if (result) {
-    throw new Error(result as string);
-  }
-  await waitForServer();
 }
 
 export async function getDocId() {
