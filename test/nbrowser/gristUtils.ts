@@ -96,6 +96,7 @@ export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUt
 export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
 export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
 export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
+export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -2946,15 +2947,6 @@ export function addSamplesForSuite(includeTutorial = false) {
   after(async function() {
     await removeTemplatesOrg();
   });
-}
-
-export async function openAccountMenu() {
-  await driver.findWait('.test-dm-account', 2000).click();
-  // Since the AccountWidget loads orgs and the user data asynchronously, the menu
-  // can expand itself causing the click to land on a wrong button.
-  await waitForServer();
-  await driver.findWait('.test-site-switcher-org', 2000);
-  await driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
 }
 
 export async function openProfileSettingsPage() {
