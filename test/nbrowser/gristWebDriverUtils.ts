@@ -8,6 +8,7 @@
  * easily.
  */
 
+import { CommandName } from 'app/client/components/commandList';
 import { DocAction, UserAction } from 'app/common/DocActions';
 import { WebDriver, WebElement } from 'mocha-webdriver';
 
@@ -282,6 +283,21 @@ export class GristWebDriverUtils {
     if (result) {
       throw new Error(result as string);
     }
+    await this.waitForServer();
+  }
+
+  /**
+   * Runs a Grist command in the browser window.
+   */
+  public async sendCommand(name: CommandName, argument: any = null) {
+    await this.driver.executeAsyncScript((name: any, argument: any, done: any) => {
+      const result = (window as any).gristApp.allCommands[name].run(argument);
+      if (result?.finally) {
+        result.finally(done);
+      } else {
+        done();
+      }
+    }, name, argument);
     await this.waitForServer();
   }
 }
