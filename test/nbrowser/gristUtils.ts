@@ -13,7 +13,6 @@ import * as path from 'path';
 import * as PluginApi from 'app/plugin/grist-plugin-api';
 
 import { BaseAPI } from 'app/common/BaseAPI';
-import {CommandName} from 'app/client/components/commandList';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
@@ -96,6 +95,7 @@ export const isAlertShown = webdriverUtils.isAlertShown.bind(webdriverUtils);
 export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUtils);
 export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
 export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
+export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -4023,21 +4023,6 @@ class Clipboard implements IClipboard {
     const menuItemName = action.charAt(0).toUpperCase() + action.slice(1);
     await findOpenMenuItem('li', menuItemName).click();
   }
-}
-
-/**
- * Runs a Grist command in the browser window.
- */
-export async function sendCommand(name: CommandName, argument: any = null) {
-  await driver.executeAsyncScript((name: any, argument: any, done: any) => {
-    const result = (window as any).gristApp.allCommands[name].run(argument);
-    if (result?.finally) {
-      result.finally(done);
-    } else {
-      done();
-    }
-  }, name, argument);
-  await waitForServer();
 }
 
 /**
