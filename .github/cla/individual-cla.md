@@ -1,6 +1,8 @@
 # Individual Contributor License Agreement ("Agreement"), v1.0
 
-(based on https://www.apache.org/licenses/icla.pdf)
+(Based on https://www.apache.org/licenses/icla.pdf by the Apache
+Foundation. Contact support@getgrist.com if you wish to execute a
+Corporate CLA.)
 
 Thank you for your interest in contributing to software projects made
 available by Grist Labs Inc ("Grist"). To clarify the intellectual
