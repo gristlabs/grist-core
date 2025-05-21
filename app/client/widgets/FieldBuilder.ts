@@ -26,7 +26,7 @@ import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
 import { FieldEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
-import { CellDiscussionPopup, EmptyCell } from 'app/client/widgets/DiscussionEditor';
+import { CommentPopup, EmptyCell } from 'app/client/widgets/DiscussionEditor';
 import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
 import { IEditorConstructor } from "app/client/widgets/NewBaseEditor";
@@ -711,7 +711,9 @@ export class FieldBuilder extends Disposable {
           kd.style('--grist-column-rule-background-color', ruleFill),
           this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
           kd.toggleClass('field-with-comments', hasComment),
-          kd.maybe(hasComment, () => dom('div.field-comment-indicator')),
+          kd.maybe(hasComment, () => dom('div.field-comment-indicator',
+            dom.on('click', () => commands.allCommands.openDiscussion.run()),
+          )),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
                                          kd.toggleClass('active_cursor', isActive)
@@ -826,15 +828,15 @@ export class FieldBuilder extends Disposable {
 
     // Reuse fieldEditor holder to make sure only one popup/editor is attached to the cell.
     const discussionHolder = MultiHolder.create(owner);
-    const discussions = EmptyCell.create(discussionHolder, {
+    const emptyCell = EmptyCell.create(discussionHolder, {
       gristDoc: this.gristDoc,
       tableRef,
       column: this.field.column.peek(),
       rowId: editRow.id.peek(),
     });
-    CellDiscussionPopup.create(discussionHolder, {
+    CommentPopup.create(discussionHolder, {
       domEl: cellElem,
-      topic: discussions,
+      cell: emptyCell,
       discussionId,
       gristDoc: this.gristDoc,
       closeClicked: () => owner.clear()

@@ -223,6 +223,7 @@ describe('Importer2', function() {
     await waitForColumnMapping();
     await driver.find('.test-importer-update-existing-records').click();
     await driver.find('.test-importer-merge-fields-select').click();
+    await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
     await driver.findContent(
       '.test-multi-select-menu .test-multi-select-menu-option',
       /CourseId/
@@ -715,6 +716,7 @@ describe('Importer2', function() {
       // Now toggle 'Update existing records', and merge on 'Name' and 'District'.
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Name/
@@ -735,15 +737,7 @@ describe('Importer2', function() {
         { source: 'Skip', destination: 'Pop. \'000' },
       ]);
       await waitForDiffPreviewToLoad();
-      // Click any cell that we see to set the focus.
-      await driver.findWait('.test-importer-preview .field_clip', 100).click();
-      // Wait for the focus to be set.
-      await driver.findWait('.test-importer-preview .field_clip.has_cursor', 100);
-      // Go to the first row.
-      await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
-      // Make sure we see the first row.
       await driver.findContentWait('.test-importer-preview .field_clip', 'Kabul', 100);
-
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [
         'Kabul', 'Kabol', [undefined, undefined, '1780000'], '', [undefined, undefined, '1780'],
         'Qandahar', 'Qandahar', [undefined, undefined, '237500'], [undefined, undefined, '2'],
@@ -770,7 +764,8 @@ describe('Importer2', function() {
 
       // For "Pop. '000", deliberately map a duplicate column (so we can later check if import succeeded).
       await openSourceFor(/Pop\. '000/);
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
+      await gu.waitAppFocus(false);
       await gu.sendKeys('$city_pop', Key.ENTER);
       await gu.waitForServer();
 

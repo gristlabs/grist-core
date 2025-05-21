@@ -31,12 +31,12 @@
         "Save": "Сохранить",
         "Special Rules": "Специальные правила",
         "User Attributes": "Пользовательские атрибуты",
-        "Type a message...": "Введите сообщение…",
+        "Type message to display when this rule blocks an action…": "Введите сообщение…",
         "Saved": "Сохранено",
         "Permission to edit document structure": "Разрешение на редактирование структуры документа",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "При добавлении правил таблицы, автоматически добавить правило для предоставления ВЛАДЕЛЬЦУ полного доступа.",
         "This default should be changed if editors' access is to be limited. ": "Это значение по умолчанию следует изменить, если требуется ограничить доступ редакторов. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Позволяет редакторам редактировать структуру (например, изменять и удалять таблицы, столбцы, макеты) и писать формулы, которые предоставляют доступ ко всем данным независимо от ограничений на чтение.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Позволяет редакторам редактировать структуру (например, изменять и удалять таблицы, столбцы, макеты) и писать формулы, которые предоставляют доступ ко всем данным независимо от ограничений на чтение.",
         "Add Table-wide Rule": "Добавить обще-табличное правило"
     },
     "ACUserManager": {
@@ -277,9 +277,9 @@
         "To save your changes, please sign up, then reload this page.": "Чтобы сохранить изменения, пожалуйста зарегистрируйтесь, а затем перезагрузите эту страницу.",
         "You do not have write access to the selected workspace": "У вас нет прав на запись в выбранное рабочее пространство",
         "You do not have write access to this site": "У вас нет права записи для этого сайта",
-        "Remove all data but keep the structure to use as a template": "Удалить все данные, но сохранить структуру для использования в качестве шаблона.",
-        "Download full document and history": "Скачать полный документ и историю",
-        "Remove document history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)",
+        "Download document structure only (no data, for template use)": "Удалить все данные, но сохранить структуру для использования в качестве шаблона.",
+        "Download document and history": "Скачать полный документ и историю",
+        "Download document without history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)",
         "Download": "Скачать",
         "Download document": "Скачать документ"
     },

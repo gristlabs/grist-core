@@ -140,7 +140,7 @@ export class HomeUtil {
     if (options.freshAccount) {
       this._apiKey.delete(email);
     }
-    if (options.cacheCredentials) {
+    if (options.cacheCredentials && email !== 'anon@getgrist.com') {
       // Take this opportunity to cache access info.
       if (!this._apiKey.has(email)) {
         await this.driver.get(this.server.getUrl(org || 'docs', ''));

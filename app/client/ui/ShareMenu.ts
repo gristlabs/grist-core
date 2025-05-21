@@ -1,23 +1,37 @@
 import {hooks} from 'app/client/Hooks';
 import {loadUserManager} from 'app/client/lib/imports';
+import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
+import {reportWarning} from 'app/client/models/errors';
 import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
-import {downloadDocModal, makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
+import {
+  downloadAttachmentsModal,
+  downloadDocModal,
+  makeCopy,
+  replaceTrunkWithFork
+} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
 import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menu, menuAnnotate, menuDivider, menuIcon, menuItem, menuItemLink, menuItemSubmenu,
-        menuText} from 'app/client/ui2018/menus';
+import {
+  menu,
+  menuAnnotate,
+  menuDivider,
+  menuIcon,
+  menuItem,
+  menuItemLink,
+  menuItemSubmenu,
+  menuText
+} from 'app/client/ui2018/menus';
 import {buildUrlId, isFeatureEnabled, parseUrlId} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {Document} from 'app/common/UserAPI';
 import {dom, DomContents, styled} from 'grainjs';
 import {cssMenuItem, MenuCreateFunc} from 'popweasel';
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('ShareMenu');
 
@@ -270,6 +284,22 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
+  const onClick = dom.on('click', e => {
+    const currentPage = pageModel.gristDoc.get()?.activeViewId.get();
+    const notDataPage = typeof currentPage !== 'number';
+    if (notDataPage) {
+      // Disable navigation.
+      e.preventDefault();
+      // Show warning.
+      setTimeout(() => reportWarning(
+        t("Exporting is only available from document pages. Please select a document page and try again."),
+        {
+          key: 'exporting-not-available',
+        },
+      ));
+    }
+  });
+
   // Note: This line adds the 'show in folder' option for electron and a download option for hosted.
   return [
     menuDivider(),
@@ -277,17 +307,33 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
         menuItem(() => downloadDocModal(doc, pageModel),
-        menuIcon('Download'), t("Download..."), testId('tb-share-option'))
+        menuIcon('Download'), t("Download document..."), testId('tb-share-option'))
+    ),
+    menuItem(
+      () => downloadAttachmentsModal(doc, pageModel),
+      menuIcon('Download'),
+      t('Download attachments...'),
+      testId('tb-share-option'),
     ),
     menuItemSubmenu(
       () => [
-        menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
-          t("Comma Separated Values (.csv)"), testId('tb-share-option')),
-        menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getTsvLink(), target: '_blank', download: ''}),
+        menuItemLink(
+          onClick,
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
+          t("Comma Separated Values (.csv)"),
+          testId('tb-share-option')
+        ),
+        menuItemLink(
+          onClick,
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getTsvLink(), target: '_blank', download: ''}),
           t("Tab Separated Values (.tsv)"), testId('tb-share-option')),
-        menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getDsvLink(), target: '_blank', download: ''}),
+        menuItemLink(
+          onClick,
+          hooks.maybeModifyLinkAttrs({ href: gristDoc.getDsvLink(), target: '_blank', download: ''}),
           t("DOO Separated Values (.dsv)"), testId('tb-share-option')),
-        menuItemLink(hooks.maybeModifyLinkAttrs({
+        menuItemLink(
+          onClick,
+          hooks.maybeModifyLinkAttrs({
           href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
           target: '_blank', download: ''
         }), t("Microsoft Excel (.xlsx)"), testId('tb-share-option')),

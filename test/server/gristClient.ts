@@ -169,9 +169,9 @@ export async function openClient(server: FlexServer, email: string, org: string,
     const cookie = resp.headers['set-cookie']![0];
     if (email !== 'anon@getgrist.com') {
       const cid = decodeURIComponent(cookie.split('=')[1].split(';')[0]);
-      const comm = server.getComm();
-      const sessionId = comm.getSessionIdFromCookie(cid)!;
-      const scopedSession = comm.getOrCreateSession(sessionId, {org});
+      const sessions = server.getSessions();
+      const sessionId = sessions.getSessionIdFromCookie(cid) as string;
+      const scopedSession = sessions.getOrCreateSession(sessionId, org);
       const profile = { email, email_verified: true, name: "Someone" };
       await scopedSession.updateUserProfile({} as any, profile);
     }

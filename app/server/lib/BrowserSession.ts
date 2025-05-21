@@ -184,6 +184,8 @@ export class ScopedSession {
     this._live = Boolean(process.env.GRIST_HOST || process.env.GRIST_HOSTED);
   }
 
+  public get org(): string { return this._org; }
+
   /**
    * Get the user entry from the current session.
    * @param prev: if supplied, this session object is used rather than querying the session again.

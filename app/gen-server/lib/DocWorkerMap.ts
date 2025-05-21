@@ -1,4 +1,5 @@
 import {MapWithTTL} from 'app/common/AsyncCreate';
+import {isAffirmative} from 'app/common/gutil';
 import * as version from 'app/common/version';
 import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import log from 'app/server/lib/log';
@@ -63,6 +64,10 @@ class DummyDocWorkerMap implements IDocWorkerMap {
 
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
     this._available = available;
+  }
+
+  public async setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void> {
+    // nothing to do
   }
 
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
@@ -164,6 +169,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  *   workers - the set of known active workers, identified by workerId
  *   workers-available - the set of workers available for assignment (a subset of the workers set)
  *   workers-available-{group} - the set of workers available for a given group
+ *   workers-available-by-load-{group} - the set of workers available for a given group, sorted by load
  *   worker-{workerId} - a hash of contact information for a worker
  *   worker-{workerId}-docs - a set of docs assigned to a worker, identified by docId
  *   worker-{workerId}-group - if set, marks the worker as serving a particular group
@@ -249,7 +255,9 @@ export class DocWorkerMap implements IDocWorkerMap {
       // Drop out of available set first.
       await this._client.sremAsync('workers-available', workerId);
       const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
+      // TODO: remove `workers-available-${group}`.
       await this._client.sremAsync(`workers-available-${group}`, workerId);
+      await this._client.zremAsync(`workers-available-by-load-${group}`, workerId);
       // At this point, this worker should no longer be receiving new doc assignments, though
       // clients may still be directed to the worker.
 
@@ -301,7 +309,14 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (available) {
       const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
       if (!docWorker) { throw new Error('no doc worker contact info available'); }
+      // TODO: remove `workers-available-${group}`.
       await this._client.saddAsync(`workers-available-${group}`, workerId);
+      await this._client.zaddAsync(
+        `workers-available-by-load-${group}`,
+        0.0,
+        workerId
+      );
+
       // If we're not assigned exclusively to a group, add this worker also to the general
       // pool of workers.
       if (!docWorker.group) {
@@ -309,12 +324,28 @@ export class DocWorkerMap implements IDocWorkerMap {
       }
     } else {
       await this._client.sremAsync('workers-available', workerId);
+      // TODO: remove `workers-available-${group}`.
       await this._client.sremAsync(`workers-available-${group}`, workerId);
+      await this._client.zremAsync(`workers-available-by-load-${group}`, workerId);
     }
+  }
+
+  /**
+   * Sets the load of the specified worker. Does nothing if the worker is not
+   * in the available set.
+   *
+   * Note: This method should only be called by the worker.
+   */
+  public async setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void> {
+    log.info(`DocWorkerMap.setWorkerLoad ${workerInfo.id} ${load}`);
+    const group = workerInfo.group || DEFAULT_GROUP;
+    // The "XX" argument means only update the key if it exists.
+    await this._client.zaddAsync(`workers-available-by-load-${group}`, 'XX', load, workerInfo.id);
   }
 
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
     const group = workerInfo.group || DEFAULT_GROUP;
+    // TODO: replace with `workers-available-by-load-${group}`.
     return Boolean(await this._client.sismemberAsync(`workers-available-${group}`, workerInfo.id));
   }
 
@@ -364,7 +395,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (docId === 'import') {
       const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
       try {
-        const _workerId = await this._client.srandmemberAsync(`workers-available-${DEFAULT_GROUP}`);
+        const _workerId = await this._getAvailableWorkerId(DEFAULT_GROUP);
         if (!_workerId) { throw new Error('no doc worker available'); }
         const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo|null;
         if (!docWorker) { throw new Error('no doc worker contact info available'); }
@@ -397,9 +428,8 @@ export class DocWorkerMap implements IDocWorkerMap {
         // Check if document has a preferred worker group set.
         const group = await this._client.getAsync(`doc-${docId}-group`) || DEFAULT_GROUP;
 
-        // Let's start off by assigning documents to available workers randomly.
-        // TODO: use a smarter algorithm.
-        workerId = await this._client.srandmemberAsync(`workers-available-${group}`) || undefined;
+        // Let's start off by assigning documents to available workers.
+        workerId = await this._getAvailableWorkerId(group) || undefined;
         if (!workerId) {
           // No workers available in the desired worker group.  Rather than refusing to
           // open the document, we fall back on assigning a worker from any of the workers
@@ -572,6 +602,83 @@ export class DocWorkerMap implements IDocWorkerMap {
     const checksum = (props?.[1] === 'null' ? null : props?.[1]) || null;
     if (doc) { doc.docMD5 = checksum; }  // the checksum goes in the DocStatus too.
     return {doc, checksum};
+  }
+
+  /**
+   * Returns the ID of an available worker or `null` if no workers are
+   * available.
+   *
+   * If `GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT` is set, selection will be
+   * biased towards workers with lower load. Otherwise, selection will
+   * be random.
+   */
+  private async _getAvailableWorkerId(group: string): Promise<string|null> {
+    // TODO: Make weighted random selection the default and remove feature flag.
+    if (isAffirmative(process.env.GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT)) {
+      return await this._getAvailableWorkerIdByLoad(group);
+    } else {
+      return await this._client.srandmemberAsync(`workers-available-${group}`);
+    }
+  }
+
+  /**
+   * Returns the ID of an available worker or `null` if no workers are
+   * available.
+   *
+   * Workers are chosen using weighted random selection, where weights are
+   * the complement of the load on a worker (`0.0` to `1.0` inclusive).
+   */
+  private async _getAvailableWorkerIdByLoad(group: string): Promise<string|null> {
+    const script = `
+      local workers = redis.call("ZRANGE", KEYS[1], 0, -1, "WITHSCORES")
+      if #workers == 0 then
+        return nil
+      end
+
+      -- Convert worker loads to weights
+      local worker_weights = {}
+      local worker_weights_sum = 0
+      for i = 2, #workers, 2 do
+        -- load is stored at even indexes (Lua tables start at index 1)
+        local load = tonumber(workers[i])
+        -- approximate weight by taking its complement
+        local weight = 1 - load
+        if weight < 0 then weight = 0 end
+        table.insert(worker_weights, weight)
+        worker_weights_sum = worker_weights_sum + weight
+      end
+
+      -- We pass in our own random number instead of using math.random(),
+      -- which seems to always use the same seed in Redis
+      local rand = tonumber(ARGV[1])
+
+      -- If all weights are 0, pick a worker randomly
+      if worker_weights_sum == 0 then
+        local count = #workers / 2
+        local idx = math.floor(rand * count) + 1
+        return workers[(idx - 1) * 2 + 1]
+      end
+
+      -- Otherwise, use weighted random selection
+      local target = rand * worker_weights_sum
+      local sum = 0
+      for i = 1, #workers, 2 do
+        local weight = worker_weights[(i + 1) / 2]
+        sum = sum + weight
+        if target <= sum then
+          return workers[i]
+        end
+      end
+
+      return nil
+    `;
+    const keyCountAndValues = [1, `workers-available-by-load-${group}`];
+    const args = [Math.random()];
+    return await this._client.evalAsync(
+      script,
+      ...keyCountAndValues,
+      ...args,
+    );
   }
 }
 

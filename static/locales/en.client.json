@@ -34,14 +34,14 @@
         "Save": "Save",
         "Saved": "Saved",
         "Special Rules": "Special Rules",
-        "Type a message...": "Type a message…",
+        "Type message to display when this rule blocks an action…": "Type message to display when this rule blocks an action…",
         "User Attributes": "User Attributes",
         "View As": "View As",
         "Seed rules": "Seed rules",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access.",
         "Permission to edit document structure": "Permission to edit document structure",
         "This default should be changed if editors' access is to be limited. ": "This default should be changed if editors' access is to be limited. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.",
         "Add Table-wide Rule": "Add Table-wide Rule"
     },
     "AccountPage": {
@@ -386,7 +386,10 @@
         "Transfer in progress": "Transfer in progress",
         "**Some existing attachments are still [external]({{externalLink}})**.": "**Some existing attachments are still [external]({{externalLink}})**.",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).",
-        "[Learn more.]({{learnLink}})": "[Learn more.]({{learnLink}})"
+        "[Learn more.]({{learnLink}})": "[Learn more.]({{learnLink}})",
+        "Upload": "Upload",
+        "Upload missing attachments": "Upload missing attachments",
+        "Uploading...": "Uploading..."
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -636,11 +639,19 @@
         "Workspace": "Workspace",
         "You do not have write access to the selected workspace": "You do not have write access to the selected workspace",
         "You do not have write access to this site": "You do not have write access to this site",
-        "Download full document and history": "Download full document and history",
-        "Remove all data but keep the structure to use as a template": "Remove all data but keep the structure to use as a template",
-        "Remove document history (can significantly reduce file size)": "Remove document history (can significantly reduce file size)",
         "Download": "Download",
-        "Download document": "Download document"
+        "Download document": "Download document",
+        "Download document and history": "Download document and history",
+        "Download document without history (can significantly reduce file size)": "Download document without history (can significantly reduce file size)",
+        "Download document structure only (no data, for template use)": "Download document structure only (no data, for template use)",
+        ".tar (recommended)": ".tar (recommended)",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "Download an archive of all the attachments present in this document.",
+        "Download attachments": "Download attachments",
+        "Download full document and history": "Download full document and history",
+        "Format:": "Format:",
+        "Learn more": "Learn more",
+        "download attachments": "download attachments"
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -793,7 +804,10 @@
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
         "Export as...": "Export as...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
-        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)"
+        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)",
+        "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again.",
+        "Download attachments...": "Download attachments...",
+        "Download document...": "Download document..."
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -883,7 +897,9 @@
         "Make On-Demand": "Make On-Demand",
         "Plugin: ": "Plugin: ",
         "Section: ": "Section: ",
-        "Unmark On-Demand": "Unmark On-Demand"
+        "Unmark On-Demand": "Unmark On-Demand",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.",
+        "⚠️ Deprecated Feature": "⚠️ Deprecated Feature"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Advanced Sort & Filter",
@@ -1114,7 +1130,9 @@
         "Show resolved comments": "Show resolved comments",
         "Showing last {{nb}} comments": "Showing last {{nb}} comments",
         "Started discussion": "Started discussion",
-        "Write a comment": "Write a comment"
+        "Write a comment": "Write a comment",
+        "Remove thread": "Remove thread",
+        "updated": "updated"
     },
     "EditorTooltip": {
         "Convert column to formula": "Convert column to formula"
@@ -1313,7 +1331,8 @@
         "Webhook Id": "Webhook Id",
         "Table": "Table",
         "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)",
-        "Header Authorization": "Header Authorization"
+        "Header Authorization": "Header Authorization",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks Unavailable In Unsaved Document Copies"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",

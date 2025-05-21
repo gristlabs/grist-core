@@ -428,13 +428,10 @@ describe('removedAt', function() {
       result = await charon.forRemoved().getOrgWorkspaces('testy');
       assert.lengthOf(result, 0);
 
-      // Deleted the shared doc, and check the friend sees it in trash.
-      // (There might be a case for only owners seeing it? i.e. you see something in
-      // trash if you have the power to restore it? But in a team site it might be
-      // useful to have some insight into what happened to a doc you can view.)
+      // Deleted the shared doc. The friend has no other reason to have any org access, so
+      // should lose access.
       await api.softDeleteDoc(shared);
-      result = await charon.forRemoved().getOrgWorkspaces('testy');
-      assert.deepEqual(docNames(result), ['wsWithSharing:shared']);
+      await assert.isRejected(charon.forRemoved().getOrgWorkspaces('testy'), /access denied/);
     });
   });
 });

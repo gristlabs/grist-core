@@ -148,6 +148,8 @@ export interface DocumentOptions {
                              // Not used in grist-core, but handy for Electron app.
   tutorial?: TutorialMetadata|null;
   appearance?: DocumentAppearance|null;
+  // Whether search engines should index this document. Defaults to `false`.
+  allowIndex?: boolean;
 }
 
 export interface TutorialMetadata {
@@ -432,6 +434,7 @@ export interface UserAPI {
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
   updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
+  getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo>;
   getWorkerAPI(key: string): Promise<DocWorkerAPI>;
   getBillingAPI(): BillingAPI;
   getDocAPI(docId: string): DocAPI;
@@ -473,6 +476,19 @@ export interface UserAPI {
   viewSection?: number;
   activeSortSpec?: string;
   filters?: string;
+}
+
+export const CreatableArchiveFormats = StringUnion('zip', 'tar');
+export type CreatableArchiveFormats = typeof CreatableArchiveFormats.type;
+
+export interface AttachmentsArchiveParams {
+  format?: CreatableArchiveFormats,
+}
+
+export interface ArchiveUploadResult {
+  added: number;
+  errored: number;
+  unused: number;
 }
 
 interface GetRowsParams {
@@ -530,6 +546,8 @@ export interface DocAPI {
   getDownloadTsvUrl(params: DownloadDocParams): string;
   getDownloadDsvUrl(params: DownloadDocParams): string;
   getDownloadTableSchemaUrl(params: DownloadDocParams): string;
+  getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string;
+
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
    * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
@@ -540,6 +558,7 @@ export interface DocAPI {
   // Upload a single attachment and return the resulting metadata row ID.
   // The arguments are passed to FormData.append.
   uploadAttachment(value: string | Blob, filename?: string): Promise<number>;
+  uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult>;
 
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
@@ -850,11 +869,16 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async getWorker(key: string): Promise<string> {
+    const full = await this.getWorkerFull(key);
+    return getPublicDocWorkerUrl(this._homeUrl, full);
+  }
+
+  public async getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo> {
     const json = (await this.requestJson(`${this._url}/api/worker/${key}`, {
       method: 'GET',
       credentials: 'include'
     })) as PublicDocWorkerUrlInfo;
-    return getPublicDocWorkerUrl(this._homeUrl, json);
+    return json;
   }
 
   public async getWorkerAPI(key: string): Promise<DocWorkerAPI> {
@@ -1192,6 +1216,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this._url + '/download/table-schema?' + encodeQueryParams({...params});
   }
 
+  public getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string {
+    return this._url + '/attachments/archive?' + encodeQueryParams({...params});
+  }
+
   public async sendToDrive(code: string, title: string): Promise<{url: string}> {
     const url = new URL(`${this._url}/send-to-drive`);
     url.searchParams.append('title', title);
@@ -1201,7 +1229,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async uploadAttachment(value: string | Blob, filename?: string): Promise<number> {
     const formData = this.newFormData();
-    formData.append('upload', value as Blob, filename);
+    formData.append('upload', value, filename);
     const response = await this.requestAxios(`${this._url}/attachments`, {
       method: 'POST',
       data: formData,
@@ -1211,6 +1239,22 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       headers: {...this.defaultHeadersWithoutContentType()},
     });
     return response.data[0];
+  }
+
+  public async uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult> {
+    const formData = this.newFormData();
+    formData.append('upload', archive, filename);
+    const response = await this.requestAxios(`${this._url}/attachments/archive`, {
+      method: 'POST',
+      data: formData,
+      // On the browser, Content-Type shouldn't be set as it prevents the browser from setting
+      // Content-Type with the correct boundary expression to delimit form fields.
+      // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects#sending_files_using_a_formdata_object
+      // Therefore we omit Content-Type, and allow Axios to handle it as it sees fit - which works
+      // correctly in the browser and in Node.
+      headers: {...this.defaultHeadersWithoutContentType()},
+    });
+    return response.data;
   }
 
   public async getAssistance(
@@ -1288,9 +1332,11 @@ export interface AttachmentTransferStatus {
 export type PublicDocWorkerUrlInfo = {
   selfPrefix: string;
   docWorkerUrl: null;
+  docWorkerId: null;
 } | {
   selfPrefix: null;
   docWorkerUrl: string;
+  docWorkerId: string;
 }
 
 export function getUrlFromPrefix(homeUrl: string, prefix: string) {

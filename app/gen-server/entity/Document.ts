@@ -152,6 +152,9 @@ export class Document extends Resource {
             }
           }
         }
+        if (props.options.allowIndex !== undefined) {
+          this.options.allowIndex = props.options.allowIndex;
+        }
         // Normalize so that null equates with absence.
         for (const key of Object.keys(this.options) as Array<keyof DocumentOptions>) {
           if (this.options[key] === null) {

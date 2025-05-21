@@ -7,6 +7,7 @@ import * as tmp from 'tmp';
 import {delay} from 'app/common/delay';
 import {OpenMode, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import * as testUtils from 'test/server/testUtils';
+import { timeoutReached } from 'app/common/gutil';
 
 tmp.setGracefulCleanup();
 
@@ -465,6 +466,85 @@ describe('SQLiteDB', function() {
     await assert.isRejected(db1.exec(`ATTACH '${dbPath('testAttach0')}' AS zing`),
                             /SQLITE_ERROR: too many attached databases - max 0/);
     await db1.close();
+  });
+
+  it("should honor pauses", async function() {
+    const sdb = await SQLiteDB.openDB(dbPath('testPause'), schemaInfo, OpenMode.OPEN_CREATE);
+
+    // Modification should happen immediately.
+    assert.isFalse(await timeoutReached(
+      100,
+      sdb.exec("CREATE TABLE Foo1(id INTEGER)")
+    ));
+
+    // Modification should not happen immediately once paused.
+    sdb.pause();
+    assert.isTrue(await timeoutReached(
+      100,
+      sdb.exec("CREATE TABLE Foo2(id INTEGER)")
+    ));
+
+    // After unpausing we should be back to immediate.
+    sdb.unpause();
+    assert.isFalse(await timeoutReached(
+      100,
+      sdb.exec("CREATE TABLE Foo3(id INTEGER)")
+    ));
+
+    // And we should be able to pause again.
+    sdb.pause();
+    assert.isTrue(await timeoutReached(
+      100,
+      sdb.exec("CREATE TABLE Foo4(id INTEGER)")
+    ));
+
+    // Check that all tables were made eventually once we
+    // unpause and wait a little bit, since the exec() calls
+    // above are never cancelled.
+    sdb.unpause();
+    await delay(100);
+    await assert.isRejected(sdb.all("SELECT * FROM Foo0"));
+    await assert.isFulfilled(sdb.all("SELECT * FROM Foo1"));
+    await assert.isFulfilled(sdb.all("SELECT * FROM Foo2"));
+    await assert.isFulfilled(sdb.all("SELECT * FROM Foo3"));
+    await assert.isFulfilled(sdb.all("SELECT * FROM Foo4"));
+
+    // Pause and start a write before closing.
+    sdb.pause();
+    assert.isTrue(await timeoutReached(
+      100,
+      sdb.exec("CREATE TABLE Foo5(id INTEGER)")
+    ));
+
+    await sdb.close();
+    // Take a little time to give that last write a chance (we don't
+    // expect it to write though, it should be cancelled).
+    await delay(100);
+
+    // Check the last write didn't happen.
+    const sdb2 = await SQLiteDB.openDB(dbPath('testPause'), schemaInfo, OpenMode.OPEN_EXISTING);
+    await assert.isFulfilled(sdb2.all("SELECT * FROM Foo4"));
+    await assert.isRejected(sdb2.all("SELECT * FROM Foo5"));
+    await sdb2.close();
+  });
+
+  // This used to tickle a deadlock.
+  it("should handle pauses and transactions", async function() {
+    const sdb = await SQLiteDB.openDB(dbPath('testPauseWithTransaction'), schemaInfo, OpenMode.OPEN_CREATE);
+    const t1 = sdb.execTransaction(async () => {
+      await sdb.exec('create table if not exists data(x,y,z)');
+    });
+    const t2 = sdb.execTransaction(async () => {
+      await sdb.exec('create table if not exists data(x,y,z)');
+    });
+    const t3 = sdb.execTransaction(async () => {
+      await sdb.exec('create table if not exists data(x,y,z)');
+    });
+    sdb.pause();
+    assert.isFalse(await timeoutReached(
+      1000,
+      Promise.all([t1, t2, t3])
+    ));
   });
 });
 

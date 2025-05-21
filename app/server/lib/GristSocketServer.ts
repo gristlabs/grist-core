@@ -18,8 +18,14 @@ export class GristSocketServer {
   private _wsServer: WS.Server;
   private _eioServer: EIO.Server;
   private _connectionHandler: (socket: GristServerSocket, req: http.IncomingMessage) => void;
+  private _originalHttpServerListeners: Function[];
 
-  constructor(server: http.Server, private _options?: GristSocketServerOptions) {
+  constructor(private _httpServer: http.Server, private _options?: GristSocketServerOptions) {
+    this._handleEIOConnection = this._handleEIOConnection.bind(this);
+    this._handleHTTPUpgrade = this._handleHTTPUpgrade.bind(this);
+    this._handleHTTPRequest = this._handleHTTPRequest.bind(this);
+    this._closeSocketServers = this._closeSocketServers.bind(this);
+
     this._wsServer = new WS.Server({ noServer: true, maxPayload: MAX_PAYLOAD });
 
     this._eioServer = new EIO.Server({
@@ -46,16 +52,66 @@ export class GristSocketServer {
       },
     });
 
-    this._eioServer.on('connection', this._onEIOConnection.bind(this));
+    this._addEIOServerListeners();
 
-    this._attach(server);
+    this._addHTTPServerListeners();
   }
 
   public set onconnection(handler: (socket: GristServerSocket, req: http.IncomingMessage) => void) {
     this._connectionHandler = handler;
   }
 
+  /**
+   * Closes the WS servers and removes any associated connection handlers.
+   *
+   * Removal of connection handlers is done as a precaution for scenarios where
+   * a new GristSocketServer is instantiated after a previous one was closed.
+   * Currently, this only happens during tests where the Comm object is shut
+   * down or restarted. (See `Comm.testServerShutdown` and
+   * `Comm.testServerRestart`.)
+   *
+   * If handlers are not removed, requests to the HTTP server associated with
+   * this GristSocketServer will continue to be handled by listeners for a
+   * previous GristSocketServer.
+   */
   public close(cb: (...args: any[]) => void) {
+    this._removeEIOServerListeners();
+    this._removeHTTPServerListeners();
+    this._closeSocketServers(cb);
+  }
+
+  private _addEIOServerListeners() {
+    this._eioServer.on("connection", this._handleEIOConnection);
+  }
+
+  private _addHTTPServerListeners() {
+    // At this point an Express app is installed as the handler for the server's
+    // "request" event. We need to install our own listener instead, to intercept
+    // requests that are meant for the Engine.IO polling implementation.
+    this._originalHttpServerListeners = this._httpServer.listeners("request");
+    this._httpServer.removeAllListeners("request");
+
+    this._httpServer.on("upgrade", this._handleHTTPUpgrade);
+    this._httpServer.on("request", this._handleHTTPRequest);
+    this._httpServer.on("close", this._closeSocketServers);
+  }
+
+  private _removeEIOServerListeners() {
+    this._eioServer.off("connection", this._handleEIOConnection);
+  }
+
+  private _removeHTTPServerListeners() {
+    this._httpServer.off("upgrade", this._handleHTTPUpgrade);
+    this._httpServer.off("request", this._handleHTTPRequest);
+    this._httpServer.off("close", this._closeSocketServers);
+
+    for (const listener of this._originalHttpServerListeners) {
+      this._httpServer.on("request", listener as any);
+    }
+    this._originalHttpServerListeners = [];
+  }
+
+  private _closeSocketServers(cb: (...args: any[]) => void) {
     this._eioServer.close();
 
     // Terminate all clients. WS.Server used to do it automatically in close() but no
@@ -66,18 +122,15 @@ export class GristSocketServer {
     this._wsServer.close(cb);
   }
 
-  private _attach(server: http.Server) {
-    // Forward all WebSocket upgrade requests to WS
+  private _handleEIOConnection(socket: EIO.Socket) {
+    const req = socket.request;
+    (socket as any).request = null; // Free initial request as recommended in the Engine.IO documentation
+    this._connectionHandler?.(new GristServerSocketEIO(socket), req);
+  }
 
-    // Wrapper for server event handlers that catches rejected promises, which would otherwise
-    // lead to "unhandledRejection" and process exit. Instead we abort the connection, which helps
-    // in testing this scenario. This is a fallback; in reality, handlers should never throw.
-    function destroyOnRejection(socket: stream.Duplex, func: () => Promise<void>) {
-      func().catch(e => { socket.destroy(); });
-    }
-
-    server.on('upgrade', (request, socket, head) => destroyOnRejection(socket, async () => {
-      if (this._options?.verifyClient && !await this._options.verifyClient(request)) {
+  private _handleHTTPUpgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffer) {
+    destroyOnRejection(socket, async () => {
+      if (this._options?.verifyClient && !await this._options.verifyClient(req)) {
         // Because we are handling an "upgrade" event, we don't have access to
         // a "response" object, just the raw socket. We can still construct
         // a well-formed HTTP error response.
@@ -85,17 +138,14 @@ export class GristSocketServer {
         socket.destroy();
         return;
       }
-      this._wsServer.handleUpgrade(request, socket as net.Socket, head, (client) => {
-        this._connectionHandler?.(new GristServerSocketWS(client), request);
+      this._wsServer.handleUpgrade(req, socket, head, (client) => {
+        this._connectionHandler?.(new GristServerSocketWS(client), req);
       });
-    }));
+    });
+  }
 
-    // At this point an Express app is installed as the handler for the server's
-    // "request" event. We need to install our own listener instead, to intercept
-    // requests that are meant for the Engine.IO polling implementation.
-    const listeners = [...server.listeners("request")];
-    server.removeAllListeners("request");
-    server.on("request", (req, res) => destroyOnRejection(req.socket, async() => {
+  private _handleHTTPRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+    destroyOnRejection(req.socket, async () => {
       // Intercept requests that have transport=polling in their querystring
       if (/[&?]transport=polling(&|$)/.test(req.url ?? '')) {
         if (this._options?.verifyClient && !await this._options.verifyClient(req)) {
@@ -106,18 +156,21 @@ export class GristSocketServer {
         this._eioServer.handleRequest(req as EngineRequest, res);
       } else {
         // Otherwise fallback to the pre-existing listener(s)
-        for (const listener of listeners) {
-          listener.call(server, req, res);
+        for (const listener of this._originalHttpServerListeners) {
+          listener.call(this._httpServer, req, res);
         }
       }
-    }));
-
-    server.on("close", this.close.bind(this));
+    });
   }
+}
 
-  private _onEIOConnection(socket: EIO.Socket) {
-    const req = socket.request;
-    (socket as any).request = null; // Free initial request as recommended in the Engine.IO documentation
-    this._connectionHandler?.(new GristServerSocketEIO(socket), req);
-  }
+/**
+ * Wrapper for server event handlers that catches rejected promises, which would otherwise
+ * lead to "unhandledRejection" and process exit. Instead we abort the connection, which helps
+ * in testing this scenario. This is a fallback; in reality, handlers should never throw.
+ */
+function destroyOnRejection(socket: stream.Duplex, func: () => Promise<void>) {
+  func().catch((_e) => {
+    socket.destroy();
+  });
 }

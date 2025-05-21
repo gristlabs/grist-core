@@ -350,6 +350,9 @@ def schema_create_actions():
       make_column("colRef",         "Ref:_grist_Tables_column"),
       make_column("rowId",          "Int"),
       # Cell metadata is stored as in hierarchical structure.
+      # We need to mark the root of the tree as we use autoremove feature of the engine. Without it
+      # we won't be able to detect if the root of the tree is deleted (root doesn't have parent, so
+      # it looks like a deleted leaf).
       make_column("root",           "Bool"),
       make_column("parentId",       "Ref:_grist_Cells"),
       # Type of information, currently we have only one type Comments (with value 1).

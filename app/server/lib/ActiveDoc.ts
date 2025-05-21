@@ -80,8 +80,16 @@ import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {Document as APIDocument, AttachmentTransferStatus,
-        DocReplacementOptions, DocState, DocStateComparison, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {
+  Document as APIDocument,
+  ArchiveUploadResult,
+  AttachmentTransferStatus,
+  CreatableArchiveFormats,
+  DocReplacementOptions,
+  DocState,
+  DocStateComparison,
+  NEW_DOCUMENT_CODE
+} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
@@ -92,11 +100,14 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {
   Archive,
-  ArchiveEntry, CreatableArchiveFormats,
+  ArchiveEntry,
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
-import {AssistanceSchemaPromptV1Context} from 'app/server/lib/IAssistant';
+import {
+  AssistanceFormulaEvaluationResult,
+  AssistanceSchemaPromptV1Context,
+} from 'app/server/lib/IAssistant';
 import {AssistanceContextV1} from 'app/common/Assistance';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -115,13 +126,10 @@ import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
 import {
-  getAltSessionId,
   getDocSessionAccess,
   getDocSessionAccessOrNull,
   getDocSessionUsage,
-  getFullUser,
   getLogMeta,
-  getUserId,
   RequestOrSession,
 } from 'app/server/lib/sessionUtils';
 import {shortDesc} from 'app/server/lib/shortDesc';
@@ -156,11 +164,13 @@ import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {getPubSubPrefix} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import merge = require('lodash/merge');
 import pick = require('lodash/pick');
 import sum = require('lodash/sum');
+import throttle = require('lodash/throttle');
 import without = require('lodash/without');
 
 bluebird.promisifyAll(tmp);
@@ -176,7 +186,7 @@ const DEFAULT_LOCALE = process.env.GRIST_DEFAULT_LOCALE || "en-US";
 const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 
 // We'll wait this long between re-measuring sandbox memory.
-const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
+const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
 
 // Apply the UpdateCurrentTime user action every hour
 const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
@@ -242,6 +252,8 @@ export class ActiveDoc extends EventEmitter {
   public readonly triggersLock: Mutex = new Mutex();
   public isTimingOn = false;
 
+  public isFork: boolean;
+
   protected _actionHistory: ActionHistory;
   protected _sharing: Sharing;
   // This lock is used to avoid reading sandbox state while it is being modified but before
@@ -265,7 +277,7 @@ export class ActiveDoc extends EventEmitter {
                                     // If set, wait on this to be sure the ActiveDoc is fully
                                     // initialized.  True on success.
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
-  private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
+  private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
@@ -291,6 +303,20 @@ export class ActiveDoc extends EventEmitter {
   private _doShutdown?: Promise<void>;
   private _intervals: Interval[] = [];
 
+  // Size of the last _rawPyCall() response in bytes.
+  private _lastPyCallResponseSize: number|undefined;
+
+  private _reportDataEngineMemoryThrottled:
+    | ((() => Promise<void>) & Cancelable)
+    | null = throttle(
+    this._reportDataEngineMemory.bind(this),
+    MEMORY_MEASUREMENT_THROTTLE_WAIT_MS,
+    {
+      leading: true,
+      trailing: true,
+    }
+  );
+
   constructor(
     private readonly _docManager: DocManager,
     private _docName: string,
@@ -299,8 +325,9 @@ export class ActiveDoc extends EventEmitter {
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
+    this.isFork = Boolean(forkId);
     this._isSnapshot = Boolean(snapshotId);
-    this._isForkOrSnapshot = Boolean(forkId || snapshotId);
+
     if (!this._isSnapshot) {
       /**
        * In cases where large numbers of documents are restarted simultaneously
@@ -364,7 +391,7 @@ export class ActiveDoc extends EventEmitter {
         });
       }
 
-      if (!this._isForkOrSnapshot) {
+      if (!(this.isFork || this._isSnapshot)) {
         /* Note: We don't currently persist usage for forks or snapshots anywhere, so
          * we need to hold off on setting _docUsage here. Normally, usage is set shortly
          * after initialization finishes, after data/attachments size has finished
@@ -867,7 +894,7 @@ export class ActiveDoc extends EventEmitter {
    * It returns the list of rowIds for the rows created in the _grist_Attachments table.
    */
   public async addAttachments(docSession: OptDocSession, uploadId: number): Promise<number[]> {
-    const userId = getUserId(docSession);
+    const userId = docSession.userId;
     const upload: UploadInfo = globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId));
     try {
       // We'll assert that the upload won't cause limits to be exceeded, retrying once after
@@ -1408,7 +1435,6 @@ export class ActiveDoc extends EventEmitter {
     const options = sanitizeApplyUAOptions(unsanitizedOptions);
     const actionBundles = await this._actionHistory.getActions(actionNums);
     let fromOwnHistory: boolean = true;
-    const user = getFullUser(docSession);
     let oldestSource: number = Date.now();
     for (const [index, bundle] of actionBundles.entries()) {
       const actionNum = actionNums[index];
@@ -1416,8 +1442,8 @@ export class ActiveDoc extends EventEmitter {
       if (!bundle) { throw new Error(`Could not find actionNum ${actionNum}`); }
       const info = bundle.info[1];
       const bundleEmail = info.user || '';
-      const sessionEmail = user?.email || '';
-      if (normalizeEmail(sessionEmail) !== normalizeEmail(bundleEmail)) {
+      const sessionEmail = docSession.normalizedEmail || '';
+      if (sessionEmail !== normalizeEmail(bundleEmail)) {
         fromOwnHistory = false;
       }
       if (info.time && info.time < oldestSource) {
@@ -1536,7 +1562,7 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceFormulaTweak(txt: string) {
+  public assistanceFormulaTweak(txt: string): Promise<string> {
     return this._pyCall('convert_formula_completion', txt);
   }
 
@@ -1547,7 +1573,9 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceEvaluateFormula(options: AssistanceContextV1) {
+  public assistanceEvaluateFormula(
+    options: AssistanceContextV1
+  ): Promise<AssistanceFormulaEvaluationResult> {
     if (!options.evaluateCurrentFormula) {
       throw new Error('evaluateCurrentFormula must be true');
     }
@@ -1555,7 +1583,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {
-    return fetchURL(url, this.makeAccessId(docSession.authorizer.getUserId()), options);
+    return fetchURL(url, this.makeAccessId(docSession.userId), options);
   }
 
   public async forwardPluginRpc(docSession: DocSession, pluginId: string, msg: IMessage): Promise<any> {
@@ -1604,7 +1632,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async fork(docSession: OptDocSession): Promise<ForkResult> {
     const dbManager = this._getHomeDbManagerOrFail();
-    const user = getFullUser(docSession);
+    const user = docSession.fullUser;
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
     if (!user || !await this.canDownload(docSession)) {
@@ -1664,7 +1692,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async getAccessToken(docSession: OptDocSession, options: AccessTokenOptions): Promise<AccessTokenResult> {
     const tokens = this._server.getAccessTokens();
-    const userId = getUserId(docSession);
+    const userId = docSession.userId;
     const docId = this.docName;
     const access = getDocSessionAccess(docSession);
     // If we happen to be using a "readOnly" connection, max out at "readOnly"
@@ -1779,7 +1807,7 @@ export class ActiveDoc extends EventEmitter {
     };
     const isShared = new Set<string>();
 
-    const userId = getUserId(docSession);
+    const userId = docSession.userId;
     if (!userId) { throw new Error('Cannot determine user'); }
 
     const parsed = parseUrlId(this.docName);
@@ -1820,7 +1848,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   // Get recent actions in ActionGroup format with summaries included.
-  public async getActionSummaries(docSession: DocSession): Promise<ActionGroup[]> {
+  public async getActionSummaries(docSession: OptDocSession): Promise<ActionGroup[]> {
     return this.getRecentActions(docSession, true);
   }
 
@@ -1843,11 +1871,12 @@ export class ActiveDoc extends EventEmitter {
       }
       const user = docSession ? await this._granularAccess.getCachedUser(docSession) : undefined;
       sandboxActionBundle = await this._rawPyCall('apply_user_actions', normalActions, user?.toJSON());
+      sandboxActionBundle.numBytes = this._lastPyCallResponseSize;
       const {requests} = sandboxActionBundle;
       if (requests) {
         this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
       }
-      await this._reportDataEngineMemory();
+      await this._reportDataEngineMemoryThrottled?.();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
       sandboxActionBundle = createEmptySandboxActionBundle();
@@ -2166,6 +2195,10 @@ export class ActiveDoc extends EventEmitter {
     return await this._pyCall('get_timings');
   }
 
+  public getMemoryUsedMB(): number {
+    return this._memoryUsedMB;
+  }
+
   /**
    * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
    * metadata.
@@ -2323,6 +2356,9 @@ export class ActiveDoc extends EventEmitter {
       await Promise.all(this._intervals.map(interval =>
         safeCallAndWait("interval.disableAndFinish", () => interval.disableAndFinish())));
 
+      this._reportDataEngineMemoryThrottled?.cancel();
+      this._reportDataEngineMemoryThrottled = null;
+
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
 
@@ -2434,9 +2470,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
-    const client = docSession.client;
-    const user = docSession.mode === 'system' ? 'grist' :
-      (client?.getProfile()?.email || '');
+    const user = docSession.mode === 'system' ? 'grist' : (docSession.displayEmail || '');
     return {
       time: Date.now(),
       user,
@@ -2692,6 +2726,10 @@ export class ActiveDoc extends EventEmitter {
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
+        // Report preliminary usage. The "Calculate" action below also reports usage, but
+        // since it may take a while to complete, it's helpful to report an early measurement.
+        await this._reportDataEngineMemoryThrottled?.();
+
         if (this.isTimingOn) {
           await this._doStartTiming();
         }
@@ -2699,7 +2737,6 @@ export class ActiveDoc extends EventEmitter {
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
         await this._applyUserActionsAsSystem([['Calculate']]);
-        await this._reportDataEngineMemory();
       }
 
       this._fullyLoaded = true;
@@ -2923,14 +2960,14 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _reportDataEngineMemory() {
-    const now = Date.now();
-    if (now >= this._lastMemoryMeasurement + MEMORY_MEASUREMENT_INTERVAL_MS) {
-      this._lastMemoryMeasurement = now;
-      if (this._dataEngine && !this._shuttingDown) {
-        const dataEngine = await this._getEngine();
-        await dataEngine.reportMemoryUsage();
-      }
+    if (!this._dataEngine || this._shuttingDown) {
+      return;
     }
+
+    const dataEngine = await this._getEngine();
+    const memoryUsedBytes = await dataEngine.reportMemoryUsage();
+    this._memoryUsedMB = memoryUsedBytes / (1024 * 1024);
+    this._docManager.setMemoryUsedMB(this, this._memoryUsedMB);
   }
 
   private async _initializeDocUsage(docSession: OptDocSession) {
@@ -2969,10 +3006,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
-    const altSessionId = getAltSessionId(docSession);
     return merge(
       getTelemetryMeta(docSession),
-      altSessionId ? {altSessionId} : {},
       {
         limited: {
           docIdDigest: this._docName,
@@ -3015,7 +3050,9 @@ export class ActiveDoc extends EventEmitter {
   private async _rawPyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
     const dataEngine = await this._getEngine();
     try {
-      return await dataEngine.pyCall(funcName, ...varArgs);
+      const data = await dataEngine.pyCall(funcName, ...varArgs);
+      this._lastPyCallResponseSize = dataEngine.getLastResponseNumBytes?.();
+      return data;
     } catch (e) {
       if (e instanceof UnavailableSandboxMethodError && this._isSnapshot) {
         throw new UnavailableSandboxMethodError('pyCall is not available in snapshots');
@@ -3339,23 +3376,15 @@ function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLe
   if (!docSession) { return {}; }
 
   const access = getDocSessionAccessOrNull(docSession);
-  const user = getFullUser(docSession);
-  const {client} = docSession;
   return {
     limited: {
       access,
     },
     full: {
-      ...(user ? {userId: user.id} : {}),
-      ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
+      userId: docSession.userId,
+      altSessionId: docSession.altSessionId,
     },
   };
-}
-
-export interface ArchiveUploadResult {
-  added: number;
-  errored: number;
-  unused: number;
 }
 
 export function attachmentToArchiveFilePath(fileDetails: { fileIdent: string, fileName: string } ): string {

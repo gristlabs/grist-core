@@ -1,7 +1,7 @@
 import {AssistanceState} from 'app/common/Assistance';
 import {ActiveDoc} from "app/server/lib/ActiveDoc";
 import {configureOpenAIAssistantV1} from 'app/server/lib/configureOpenAIAssistantV1';
-import {DocSession} from 'app/server/lib/DocSession';
+import {OptDocSession} from 'app/server/lib/DocSession';
 import {AssistantV1} from 'app/server/lib/IAssistant';
 import {DEPS, OpenAIAssistantV1} from 'app/server/lib/OpenAIAssistantV1';
 import {assert} from 'chai';
@@ -30,7 +30,7 @@ describe('OpenAIAssistantV1', function () {
   const table1Id = "Table1";
   const table2Id = "Table2";
   let assistant: AssistantV1;
-  let session: DocSession;
+  let session: OptDocSession;
   let doc: ActiveDoc;
   let oldEnv: EnvironmentSnapshot;
   before(async () => {

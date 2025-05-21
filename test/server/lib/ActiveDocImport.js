@@ -7,7 +7,7 @@ const testUtils        = require('test/server/testUtils');
 const tmp              = require('tmp');
 const _                = require('lodash');
 const {DummyAuthorizer} = require('app/server/lib/Authorizer');
-const {Client}         = require('app/server/lib/Client');
+const {makeOptDocSession} = require('app/server/lib/DocSession');
 const {getFileUploadInfo, globalUploadSet, moveUpload} = require('app/server/lib/uploads');
 
 
@@ -250,8 +250,8 @@ describe('ActiveDocImport', function() {
     }
   };
 
-  const fakeSession = {client: new Client(null, null, null),
-                       authorizer: new DummyAuthorizer('editors', 'doc')};
+  const fakeSession = makeOptDocSession(null);
+  fakeSession.authorizer = new DummyAuthorizer('editors', 'doc');
 
   function assertDocTables(activeDoc, expectedTableIds) {
     return activeDoc.fetchTable(docSession, '_grist_Tables')

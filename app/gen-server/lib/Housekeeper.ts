@@ -7,6 +7,7 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { fromNow } from 'app/gen-server/sqlUtils';
+import { appSettings } from 'app/server/lib/AppSettings';
 import { getAuthorizedUserId } from 'app/server/lib/Authorizer';
 import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
@@ -27,8 +28,17 @@ export const Timings = {
   VERSION_CHECK_OFFSET_MS: 20 * 1000, // wait 20 seconds before running the first check
   AGE_THRESHOLD_OFFSET: '-30 days',            // should be an interval known by postgres + sqlite
 
-  SYNC_WORK_LIMIT_MS: 50,      // Don't keep doing synchronous work longer than this.
-  SYNC_WORK_BREAK_MS: 50,      // Once reached SYNC_WORK_LIMIT_MS, take a break of this length.
+  // Don't keep doing synchronous work longer than this.
+  SYNC_WORK_LIMIT_MS: appSettings.section('telemetry').section('syncWork').flag('limitMs').requireInt({
+    envVar: 'GRIST_SYNC_WORK_LIMIT_MS',
+    defaultValue: 50,
+  }),
+
+  // Once reached SYNC_WORK_LIMIT_MS, take a break of this length.
+  SYNC_WORK_BREAK_MS: appSettings.section('telemetry').section('syncWork').flag('breakMs').requireInt({
+    envVar: 'GRIST_SYNC_WORK_BREAK_MS',
+    defaultValue: 50,
+  }),
 };
 
 /**
@@ -117,24 +127,15 @@ export class Housekeeper {
         throw new Error(`attempted to hard-delete a document that was not soft-deleted: ${doc.id}`);
       }
       // In general, documents can only be manipulated with the coordination of the
-      // document worker to which they are assigned.  For an old soft-deleted doc,
-      // we could probably get away with ensuring the document is closed/unloaded
-      // and then deleting it without ceremony.  But, for consistency, and because
-      // it will be useful for other purposes, we work through the api using special
-      // temporary permits.
-      const permitKey = await this._permitStore.setPermit({docId: doc.id});
+      // document worker to which they are assigned.
       try {
-        const result = await fetch(await this._server.getHomeUrlByDocId(doc.id, `/api/docs/${doc.id}`), {
-          method: 'DELETE',
-          headers: {
-            Permit: permitKey
-          }
-        });
-        if (result.status !== 200) {
-          log.error(`failed to delete document ${doc.id}: error status ${result.status}`);
+        await this._server.hardDeleteDoc(doc.id);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          log.error(`failed to delete document ${doc.id}: error status ${err.status} ${err.message}`);
+        } else {
+          log.error(`failed to delete document ${doc.id}: error status ${String(err)}`);
         }
-      } finally {
-        await this._permitStore.removePermit(permitKey);
       }
     }
 

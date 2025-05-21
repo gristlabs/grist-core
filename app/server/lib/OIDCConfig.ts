@@ -211,13 +211,15 @@ export class OIDCConfig {
       return this._sendErrorPage(req, res);
     }
 
+    let targetUrl: string | undefined;
+
     try {
       const params = this._client.callbackParams(req);
       if (!mreq.session.oidc) {
         throw new Error('Missing OIDC information associated to this session');
       }
 
-      const { targetUrl } = mreq.session.oidc;
+      targetUrl = mreq.session.oidc.targetUrl;
 
       const checks = this._protectionManager.getCallbackChecks(mreq.session.oidc);
 
@@ -264,7 +266,7 @@ export class OIDCConfig {
       // Also session deletion must be done before sending the response.
       delete mreq.session.oidc;
 
-      await this._sendErrorPage(req, res, err.userFriendlyMessage);
+      await this._sendErrorPage(req, res, err.userFriendlyMessage, targetUrl);
     }
   }
 
@@ -318,13 +320,20 @@ export class OIDCConfig {
     });
   }
 
-  private _sendErrorPage(req: express.Request, res: express.Response, userFriendlyMessage?: string) {
+  private _sendErrorPage(
+    req: express.Request,
+    res: express.Response,
+    userFriendlyMessage?: string,
+    targetUrl?: string
+  ) {
     return this._sendAppPage(req, res, {
       path: 'error.html',
       status: 500,
       config: {
         errPage: 'signin-failed',
-        errMessage: userFriendlyMessage
+        errMessage: userFriendlyMessage,
+        // Always set an errTargetUrl so that the browser isn't left on the callback URL.
+        errTargetUrl: targetUrl ?? "/",
       },
     });
   }

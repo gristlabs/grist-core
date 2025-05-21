@@ -258,6 +258,9 @@ export class SQLiteDB implements ISQLiteDB {
   private _migrationError: Error|null = null;
   private _needVacuum: boolean = false;
   private _closed: boolean = false;
+  private _paused: Promise<void>|undefined = undefined;
+  private _pauseResolve: (() => void)|undefined = undefined;
+  private _pauseReject: ((reason?: any) => void)|undefined = undefined;
 
   private constructor(protected _db: MinDB, private _dbPath: string) {
   }
@@ -282,11 +285,18 @@ export class SQLiteDB implements ISQLiteDB {
     return result;
   }
 
-  public run(sql: string, ...args: any[]): Promise<MinRunResult> {
+  public async run(sql: string, ...args: any[]): Promise<MinRunResult> {
+    await this._applyPause();
     return this._db.run(sql, ...args);
   }
 
-  public exec(sql: string): Promise<void> {
+  public async exec(sql: string, options?: {
+    // For testing purposes, don't respect pause.
+    testIgnorePause?: boolean
+  }): Promise<void> {
+    if (!options?.testIgnorePause) {
+      await this._applyPause();
+    }
     return this._db.exec(sql);
   }
 
@@ -365,6 +375,7 @@ export class SQLiteDB implements ISQLiteDB {
     const alreadyClosed = this._closed;
     this._closed = true;
     if (!alreadyClosed) {
+      this._pauseReject?.(new Error('SQLiteDB closing, writes should stop'));
       let tries: number = 0;
       // We might not be able to close immediately if a backup is in
       // progress. We will retry for about 10 seconds. Worst case is
@@ -414,29 +425,31 @@ export class SQLiteDB implements ISQLiteDB {
    *
    * This method can be nested.  The result is one big merged transaction that will succeed or
    * roll back as a single unit.
+   *
+   * We also expect execTransaction()s to be strictly ordered. For example, if many are
+   * started in quick succession, without waiting for previous ones to complete, later transactions
+   * should be able to rely on previous ones being complete before they run. This expectation
+   * and nesting are currently in conflict, and this method should be reworked, perhaps using
+   * AsyncLocalStorage.
+   *
    */
   public async execTransaction<T>(callback: () => Promise<T>): Promise<T> {
+    // If we're going to pause, pause now before we get into the
+    // transaction (if we're not already in one - if we are, the
+    // pause won't be honored).
+    await this._applyPause();
     if (this._inTransaction) {
       return callback();
     }
-    let outerResult;
+    let result;
     try {
-      outerResult = await (this._prevTransaction = this._execTransactionImpl(async () => {
-        this._inTransaction = true;
-        let innerResult;
-        try {
-          innerResult = await callback();
-        } finally {
-          this._inTransaction = false;
-        }
-        return innerResult;
-      }));
+      result = await (this._prevTransaction = this._execTransactionImpl(callback));
     } finally {
       if (this._needVacuum) {
         await this.requestVacuum();
       }
     }
-    return outerResult;
+    return result;
   }
 
   /**
@@ -467,22 +480,53 @@ export class SQLiteDB implements ISQLiteDB {
     return metadata;
   }
 
+  /**
+   * Call this if you'd like the next write to be held until unpause() is
+   * called. Used by the backup system.
+   */
+  public pause() {
+    if (this._paused || this._closed) { return; }
+    this._paused = new Promise((resolve, reject) => {
+      this._pauseResolve = resolve;
+      this._pauseReject = reject;
+    });
+  }
+
+  /**
+   * Completes or cancels any pause on writing.
+   */
+  public unpause() {
+    this._pauseResolve?.();
+    this._pauseResolve = undefined;
+    this._pauseReject = undefined;
+    this._paused = undefined;
+  }
+
   // Implementation of execTransction.
   private async _execTransactionImpl<T>(callback: () => Promise<T>): Promise<T> {
     // We need to swallow errors, so that one failed transaction doesn't cause the next one to fail.
     await this._prevTransaction.catch(noop);
-    await this.exec("BEGIN");
+    this._inTransaction = true;
     try {
-      const value = await callback();
-      await this.exec("COMMIT");
-      return value;
-    } catch (err) {
+      await this.exec("BEGIN");
       try {
-        await this.exec("ROLLBACK");
-      } catch (rollbackErr) {
-        log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
+        // It is important that nothing in this callback will honor
+        // pauses or we could deadlock, paused before we reach the
+        // COMMIT below. Since _inTransaction is true for the duration
+        // of this callback, that should be the case.
+        const value = await callback();
+        await this.exec("COMMIT");
+        return value;
+      } catch (err) {
+        try {
+          await this.exec("ROLLBACK");
+        } catch (rollbackErr) {
+          log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
+        }
+        throw err;    // Throw the original error from the transaction.
       }
-      throw err;    // Throw the original error from the transaction.
+    } finally {
+      this._inTransaction = false;
     }
   }
 
@@ -558,6 +602,11 @@ export class SQLiteDB implements ISQLiteDB {
           this._dbPath, tname, JSON.stringify(metadata[tname]), JSON.stringify(expected[tname]));
       }
     }
+  }
+
+  private async _applyPause() {
+    if (this._inTransaction) { return; }
+    await this._paused;
   }
 }
 

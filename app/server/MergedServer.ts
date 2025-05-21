@@ -59,6 +59,10 @@ interface ServerOptions extends FlexServerOptions {
   // If set, documents saved to external storage such as s3 (default is to check environment variables,
   // which get set in various ways in dev/test entry points)
   externalStorage?: boolean;
+
+  // If set, add this many extra dedicated doc workers,
+  // at ports above the main server.
+  extraWorkers?: number;
 }
 
 export class MergedServer {
@@ -134,6 +138,10 @@ export class MergedServer {
   public readonly flexServer: FlexServer;
   private readonly _serverTypes: ServerType[];
   private readonly _options: ServerOptions;
+  // It can be useful to start up a bunch of extra workers within
+  // a single process mostly for testing purposes, but conceivably
+  // for real too.
+  private readonly _extraWorkers: MergedServer[] = [];
 
   private constructor(port: number, serverTypes: ServerType[], options: ServerOptions = {}) {
     this._serverTypes = serverTypes;
@@ -197,10 +205,46 @@ export class MergedServer {
       this.flexServer.checkOptionCombinations();
       this.flexServer.summary();
       this.flexServer.ready();
+
+      if (this._options.extraWorkers) {
+        if (!process.env.REDIS_URL) {
+          throw new Error('Redis needed to support multiple workers');
+        }
+        for (let i = 1; i <= this._options.extraWorkers; i++) {
+          const server = await MergedServer.create(0, ['docs'], {
+            ...this._options,
+            extraWorkers: undefined,
+          });
+          await server.run();
+          this._extraWorkers.push(server);
+        }
+      }
     } catch(e) {
-      await this.flexServer.close();
+      await this.close();
       throw e;
     }
+  }
+
+  public async close() {
+    for (const worker of this._extraWorkers) {
+      await worker.flexServer.close();
+    }
+    await this.flexServer.close();
+  }
+
+  /**
+   * Look up a worker from its id in Redis.
+   */
+  public testGetWorkerFromId(docWorkerId: string): MergedServer {
+    if (this.flexServer.worker?.id === docWorkerId) {
+      return this;
+    }
+    for (const worker of this._extraWorkers) {
+      if (worker.flexServer.worker.id === docWorkerId) {
+        return worker;
+      }
+    }
+    throw new Error('Worker not found');
   }
 }
 
@@ -216,7 +260,17 @@ export async function startMain() {
 
     const port = parseInt(process.env.GRIST_PORT, 10);
 
-    const server = await MergedServer.create(port, serverTypes);
+    let extraWorkers = 0;
+    if (process.env.DOC_WORKER_COUNT) {
+      extraWorkers = parseInt(process.env.DOC_WORKER_COUNT, 10);
+      // If the main server functions also as a doc worker, then
+      // we need one fewer extra servers.
+      if (serverTypes.includes('docs')) { extraWorkers--; }
+    }
+
+    const server = await MergedServer.create(port, serverTypes, {
+      extraWorkers
+    });
     await server.run();
 
     const opt = process.argv[2];

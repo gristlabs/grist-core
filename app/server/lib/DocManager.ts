@@ -8,14 +8,15 @@ import pidusage from 'pidusage';
 import {ApiError} from 'app/common/ApiError';
 import {mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
-import {DocCreationInfo, DocEntry, DocListAPI, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
+import {DocCreationInfo, DocEntry, DocListAPI,
+        OpenDocMode, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {parseUrlId} from 'app/common/gristUrls';
 import {tbind} from 'app/common/tbind';
 import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
+import {Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {Client} from 'app/server/lib/Client';
@@ -55,6 +56,11 @@ export class DocManager extends EventEmitter {
    * will be long since resolved, with the resulting document cached.
    */
   private _activeDocs: Map<string, Promise<ActiveDoc>> = new Map();
+
+  /**
+   * Maps ActiveDoc to memory used in MB.
+   */
+  private _memoryUsedMB: Map<ActiveDoc, number> = new Map();
 
   /**
    * Maps docName to the SQLiteDB object, if available. The db may be
@@ -190,7 +196,7 @@ export class DocManager extends EventEmitter {
    * returns the new document's name/id.
    */
   public async importDoc(client: Client, uploadId: number): Promise<string> {
-    const userId = this._homeDbManager ? await client.requireUserId(this._homeDbManager) : null;
+    const userId = this._homeDbManager ? client.authSession.requiredUserId() : null;
     const result = await this._doImportDoc(makeOptDocSession(client),
       globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId)), {naming: 'classic'});
     return result.id;
@@ -314,46 +320,29 @@ export class DocManager extends EventEmitter {
     if (typeof options === 'string') {
       throw new Error('openDoc call with outdated parameter type');
     }
-    const openMode = options?.openMode || 'default';
+    const openMode: OpenDocMode = options?.openMode || 'default';
     const linkParameters = options?.linkParameters || {};
     const originalUrlId = options?.originalUrlId;
     let auth: Authorizer;
-    let userId: number | undefined;
     const dbManager = this._homeDbManager;
     if (!isSingleUserMode()) {
       if (!dbManager) { throw new Error("HomeDbManager not available"); }
       // Sets up authorization of the document.
-      const org = client.getOrg();
+      const org = client.authSession.org;
       if (!org) { throw new Error('Documents can only be opened in the context of a specific organization'); }
-      userId = await client.getUserId(dbManager) || dbManager.getAnonymousUserId();
-      const userRef = await client.getUserRef(dbManager);
 
       // We use docId in the key, and disallow urlId, so we can be sure that we are looking at the
       // right doc when we re-query the DB over the life of the websocket.
       const useShareUrlId = Boolean(originalUrlId && parseUrlId(originalUrlId).shareKey);
-      const key = {
-        urlId: useShareUrlId ? originalUrlId! : docId,
-        userId,
-        org
-      };
-      log.debug("DocManager.openDoc Authorizer key", key);
-      const docAuth = await dbManager.getDocAuthCached(key);
-      assertAccess('viewers', docAuth);
-
+      const urlId = useShareUrlId ? originalUrlId! : docId;
+      auth = new DocAuthorizer({dbManager, urlId, openMode, linkParameters, authSession: client.authSession});
+      await auth.assertAccess('viewers');
+      const docAuth = auth.getCachedAuth();
       if (docAuth.docId !== docId) {
         // The only plausible way to end up here is if we called openDoc with a urlId rather
         // than a docId.
         throw new Error(`openDoc expected docId ${docAuth.docId} not urlId ${docId}`);
       }
-      auth = new DocAuthorizer({
-        dbManager,
-        key,
-        openMode,
-        linkParameters,
-        userRef,
-        docAuth,
-        profile: client.getProfile() || undefined
-      });
     } else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
       auth = new DummyAuthorizer('owners', docId);
@@ -426,8 +415,8 @@ export class DocManager extends EventEmitter {
       this.gristServer.getTelemetry().logEvent(docSession, 'openedDoc', {
         full: {
           docIdDigest: docId,
-          userId,
-          altSessionId: client.getAltSessionId(),
+          userId: client.authSession.userId,
+          altSessionId: client.authSession.altSessionId,
         },
       });
 
@@ -436,15 +425,24 @@ export class DocManager extends EventEmitter {
   }
 
   /**
-   * Shut down all open docs. This is called, in particular, on server shutdown.
+   * Shut down all open docs.
    */
-  public async shutdownAll() {
+  public async shutdownDocs() {
     await Promise.all(Array.from(
       this._activeDocs.values(),
       adocPromise => adocPromise.then(async adoc => {
-        log.debug('DocManager.shutdownAll starting activeDoc shutdown', adoc.docName);
+        log.debug('DocManager.shutdownDocs starting activeDoc shutdown', adoc.docName);
         await adoc.shutdown();
       })));
+  }
+
+  /**
+   * Shut down all open docs, including doc storage and any related timers.
+   *
+   * This is called, in particular, on server shutdown.
+   */
+  public async shutdownAll() {
+    await this.shutdownDocs();
     try {
       await this.storageManager.closeStorage();
     } catch (err) {
@@ -493,6 +491,7 @@ export class DocManager extends EventEmitter {
   public removeActiveDoc(activeDoc: ActiveDoc): void {
     this.unregisterSQLiteDB(activeDoc.docName);
     this._activeDocs.delete(activeDoc.docName);
+    this._memoryUsedMB.delete(activeDoc);
   }
 
   public async renameDoc(client: Client, oldName: string, newName: string): Promise<void> {
@@ -500,7 +499,7 @@ export class DocManager extends EventEmitter {
     const docPromise = this._activeDocs.get(oldName);
     if (docPromise) {
       const adoc: ActiveDoc = await docPromise;
-      await adoc.renameDocTo({client}, newName);
+      await adoc.renameDocTo(makeOptDocSession(client), newName);
       this._activeDocs.set(newName, docPromise);
       const db = this._sqliteDbs.get(oldName);
       if (db) {
@@ -557,6 +556,18 @@ export class DocManager extends EventEmitter {
   public isAnonymous(userId: number): boolean {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
     return userId === this._homeDbManager.getAnonymousUserId();
+  }
+
+  public setMemoryUsedMB(activeDoc: ActiveDoc, memoryUsedMB: number) {
+    this._memoryUsedMB.set(activeDoc, memoryUsedMB);
+  }
+
+  public getTotalMemoryUsedMB(): number {
+    let result = 0;
+    for (const value of this._memoryUsedMB.values()) {
+      result += value;
+    }
+    return result;
   }
 
   /**

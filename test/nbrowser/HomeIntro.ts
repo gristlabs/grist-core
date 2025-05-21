@@ -28,8 +28,8 @@ describe('HomeIntro', function() {
       assert.equal(await driver.find('.test-welcome-title').getText(), 'Welcome to Grist!');
     });
 
-    it('should should intro screen for anon', () => testIntroScreen({anon: true, team: false}));
-    it('should should set meta tags for URL previews', testMetaTags);
+    it('should show intro screen for anon', () => testIntroScreen({anon: true, team: false}));
+    it('should set correct meta tags', testMetaTags);
     it('should not show Other Sites section', testOtherSitesSection);
     it('should allow create/import from intro screen', testCreateImport.bind(null, false));
     it('should link to examples page from the intro', testExamplesPage);
@@ -131,6 +131,8 @@ describe('HomeIntro', function() {
   }
 
   async function testMetaTags() {
+    assert.equal(await driver.find('meta[name="robots"]').getAttribute('content'), 'noindex');
+
     const expectedTitle = 'Grist, the evolution of spreadsheets';
     assert.equal(await driver.find('meta[name="twitter:title"]').getAttribute('content'), expectedTitle);
     assert.equal(await driver.find('meta[property="og:title"]').getAttribute('content'), expectedTitle);

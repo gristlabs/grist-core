@@ -227,9 +227,9 @@
         "Replacing the original requires editing rights on the original document.": "Erstatting av originalen krever redigeringsrettigheter til originaldokumentet.",
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Vær forsiktig, originalen har endringer som ikke finnes i dette dokumentet. De endringene vil bli overskrevet.",
         "However, it appears to be already identical.": "Dog later det til at det allerede er identisk.",
-        "Remove all data but keep the structure to use as a template": "Fjern all data, men behold strukturen til bruk som mal",
-        "Remove document history (can significantly reduce file size)": "Fjern dokumenthistorikk (kan redusere filstørrelse drastisk)",
-        "Download full document and history": "Last ned hele dokumentet og historikken"
+        "Download document structure only (no data, for template use)": "Fjern all data, men behold strukturen til bruk som mal",
+        "Download document without history (can significantly reduce file size)": "Fjern dokumenthistorikk (kan redusere filstørrelse drastisk)",
+        "Download document and history": "Last ned hele dokumentet og historikken"
     },
     "NotifyUI": {
         "Cannot find personal site, sorry!": "Finner ikke personlig side. Beklager.",
@@ -439,7 +439,7 @@
         "Remove {{- tableId }} rules": "Fjern {{- tableId }}-regler",
         "Remove {{- name }} user attribute": "Fjern {{- name }}-brukerattributt",
         "Reset": "Tilbakestill",
-        "Type a message...": "Skriv en melding …",
+        "Type message to display when this rule blocks an action…": "Skriv en melding …",
         "User Attributes": "Brukerattributter",
         "View As": "Vis som",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Tillat alle å kopiere hele dokumentet, eller å vise det i sin helhet i fiklingsmodus.\nNyttig for eksempler og maler, men ikke for sensitiv data.",
@@ -455,7 +455,7 @@
         "Lookup Column": "Oppslagskolonne",
         "Permission to access the document in full when needed": "Tilgang til hele dokumentet når det trengs",
         "Save": "Lagre",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Tillat de som redigerer å endre struktur (f.eks. endre og slette tabeller, kolonner, oppsett), og å skrive formler, som gir tilgang til all data uavhengig av begrensninger.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Tillat de som redigerer å endre struktur (f.eks. endre og slette tabeller, kolonner, oppsett), og å skrive formler, som gir tilgang til all data uavhengig av begrensninger.",
         "This default should be changed if editors' access is to be limited. ": "Dette forvalget må endres hvis de som redigerer ikke skal ha tilgang, "
     },
     "ChartView": {

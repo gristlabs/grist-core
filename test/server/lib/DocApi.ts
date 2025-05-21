@@ -169,6 +169,42 @@ describe('DocApi', function () {
     });
   });
 
+  for (const { limit, expected, desc } of [
+    { limit: '10', expected: 10, desc: 'should limit to 10 requests' },
+    { limit: '20', expected: 20, desc: 'should limit to 20 requests' },
+    { limit: '0', expected: 30, desc: 'should not limit the requests' },
+  ]) {
+    describe(`With GRIST_MAX_PARALLEL_REQUESTS_PER_DOC=${limit}`, async () => {
+      setup(`limit-${limit}-playground`, async () => {
+        const additionalEnvConfiguration = {
+          ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+          GRIST_DATA_DIR: dataDir,
+          GRIST_MAX_PARALLEL_REQUESTS_PER_DOC: limit,
+          GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
+        };
+        home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
+        homeUrl = serverUrl = home.serverUrl;
+        hasHomeApi = true;
+      });
+
+      it(desc, async function () {
+        const chimpy = makeConfig('Chimpy');
+        // Launch ${limit} number of requests in parallel and see how
+        // many are honored and how many return 429s. The timing of
+        // this test is a bit delicate. We close the doc to increase
+        // the odds that results won't start coming back before all
+        // the requests have passed authorization. May need to do
+        // something more sophisticated if this proves unreliable.
+        await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, chimpy);
+        const reqs = [...Array(30).keys()].map(
+          _i => axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy));
+        const responses = await Promise.all(reqs);
+        assert.lengthOf(responses.filter(r => r.status === 200), expected);
+        assert.lengthOf(responses.filter(r => r.status === 429), 30 - expected);
+      });
+    });
+  }
+
   // the way these tests are written, non-merged server requires redis.
   if (process.env.TEST_REDIS_URL) {
     describe("should work with a home server and a docworker", async () => {
@@ -2952,12 +2988,12 @@ function testDocApi(settings: {
         assert.deepEqual(tarUploadResp.data, { error: "File is not a valid .tar" });
       });
 
-      it("POST /docs/{did}/copy fails when the document has external attachments", async function () {
+      it("POST /docs/{did}/copy doesn't throw when the document has external attachments", async function () {
         const worker1 = await userApi.getWorkerAPI(docId);
-        await assert.isRejected(worker1.copyDoc(docId, undefined, 'copy'), /status 400/);
+        await worker1.copyDoc(docId, undefined, 'copy');
       });
 
-      it("POST /docs/{did} with sourceDocId fails to copy a document with external attachments", async function () {
+      it("POST /docs/{did} with sourceDocId can copy a document with external attachments", async function () {
         const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
         const resp = await axios.post(`${homeUrl}/api/docs`, {
           sourceDocumentId: docId,
@@ -2965,8 +3001,9 @@ function testDocApi(settings: {
           asTemplate: false,
           workspaceId: chimpyWs
         }, chimpy);
-        assert.equal(resp.status, 400);
-        assert.match(resp.data.error, /external attachments/);
+        assert.equal(resp.status, 200);
+        assert.isString(resp.data);
+        // There's no expectation that the external attachments are copied - just that the document is.
       });
     });
   });
@@ -3300,20 +3337,6 @@ function testDocApi(settings: {
     resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
       makeConfig('Chimpy'));
     assert.equal(resp.status, 200);
-  });
-
-  it('limits parallel requests', async function () {
-    // Launch 30 requests in parallel and see how many are honored and how many
-    // return 429s.  The timing of this test is a bit delicate.  We close the doc
-    // to increase the odds that results won't start coming back before all the
-    // requests have passed authorization.  May need to do something more sophisticated
-    // if this proves unreliable.
-    await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, chimpy);
-    const reqs = [...Array(30).keys()].map(
-      i => axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy));
-    const responses = await Promise.all(reqs);
-    assert.lengthOf(responses.filter(r => r.status === 200), 10);
-    assert.lengthOf(responses.filter(r => r.status === 429), 20);
   });
 
   it('allows forced reloads', async function () {
@@ -4301,7 +4324,7 @@ function testDocApi(settings: {
     };
 
     let redisMonitor: any;
-    let redisCalls: any[];
+    let redisCalls: any[] = [];
 
     // Create couple of promises that can be used to monitor
     // if the endpoint was called.
@@ -5352,6 +5375,22 @@ function testDocApi(settings: {
               memo: 'Sync store',
               watchedColIds: ['A']
             };
+
+            // make sure it doesn't work on forks.
+            const doc = userApi.getDocAPI(docId);
+            const fork = await doc.fork();
+            const {data: errorData} = await axios.post(
+              `${serverUrl}/api/docs/${fork.docId}/webhooks`,
+              {
+                webhooks: [{
+                  fields: {
+                    ...origFields,
+                    url: `${serving.url}/foo`
+                  }
+                }]
+              }, chimpy
+            );
+            assert.equal(errorData.error, 'Unsaved document copies cannot have webhooks');
 
             // subscribe
             const {data} = await axios.post(

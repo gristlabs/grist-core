@@ -89,9 +89,9 @@
         "You do not have write access to the selected workspace": "Ви не маєте права на запис у вибраному робочому просторі",
         "You do not have write access to this site": "Ви не маєте права на запис на цьому сайті",
         "However, it appears to be already identical.": "Втім, схоже, що вони вже ідентичні.",
-        "Remove all data but keep the structure to use as a template": "Видалити всі дані, але зберегти структуру, щоб використовувати як шаблон",
-        "Remove document history (can significantly reduce file size)": "Видалити історію документа (може значно зменшити розмір файлу)",
-        "Download full document and history": "Завантажити повний документ та історію"
+        "Download document structure only (no data, for template use)": "Видалити всі дані, але зберегти структуру, щоб використовувати як шаблон",
+        "Download document without history (can significantly reduce file size)": "Видалити історію документа (може значно зменшити розмір файлу)",
+        "Download document and history": "Завантажити повний документ та історію"
     },
     "SortConfig": {
         "Add Column": "Додати стовпець",
@@ -335,7 +335,7 @@
         "Lookup Column": "Стовпець пошуку",
         "Saved": "Збережено",
         "Special Rules": "Особливі правила",
-        "Type a message...": "Введіть повідомлення…",
+        "Type message to display when this rule blocks an action…": "Введіть повідомлення…",
         "User Attributes": "Атрибути користувача",
         "View As": "Переглянути як",
         "Permission to edit document structure": "Дозвіл на редагування структури документа",
@@ -346,7 +346,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "При додаванні правил таблиці, автоматично додавати правило для надання ВЛАСНИКУ повного доступу.",
         "Seed rules": "Успадковані правила",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних.",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
         "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. "
     },
     "AccountPage": {

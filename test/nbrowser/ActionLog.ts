@@ -6,6 +6,8 @@ import {setupTestSuite} from 'test/nbrowser/testUtils';
 describe('ActionLog', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
+  let session: gu.Session;
+  let docId: string;
 
   afterEach(() => gu.checkForErrors());
 
@@ -24,8 +26,8 @@ describe('ActionLog', function() {
   }
 
   before(async function() {
-    const session = await gu.session().user('user1').login();
-    await session.tempDoc(cleanup, 'Hello.grist');
+    session = await gu.session().user('user1').login();
+    docId = (await session.tempDoc(cleanup, 'Hello.grist')).id;
     await gu.dismissWelcomeTourIfNeeded();
   });
 
@@ -36,12 +38,34 @@ describe('ActionLog', function() {
     }
   });
 
-  it("should cross out undone actions", async function() {
+  it('should attribute websocket actions to user', async function() {
     // Open the action-log tab.
     await driver.findWait('.test-tools-log', 1000).click();
     await gu.waitToPass(() =>   // Click might not work while panel is sliding out to open.
       driver.findContentWait('.test-doc-history-tabs .test-select-button', 'Activity', 500).click());
 
+    // Perform an actions normally, i.e. it gets sent via the websocket.
+    await gu.enterGridRows({rowNum: 1, col: 0}, [['foo1']]);
+
+    // Check that we see the correct user email, and the correct action.
+    const item = await driver.find('.action_log .action_log_item');
+    assert.equal(await item.find('.action_log_cell_add').getText(), 'foo1');
+    assert.equal(await item.find('.action_info_user').getText(), gu.translateUser('user1').email);
+    await gu.undo();
+  });
+
+  it('should attribute api actions to user', async function() {
+    // Perform an action via the API.
+    const api = session.createHomeApi().getDocAPI(docId);
+    await api.updateRows('Table1', {id: [1], 'A': ['bar2']});
+
+    // Check that we see the correct user email, and the correct action.
+    const item = await driver.find('.action_log .action_log_item');
+    assert.equal(await item.find('.action_log_cell_add').getText(), 'bar2');
+    assert.equal(await item.find('.action_info_user').getText(), gu.translateUser('user1').email);
+  });
+
+  it("should cross out undone actions", async function() {
     // Perform some actions and check that they all appear as default.
     await gu.enterGridRows({rowNum: 1, col: 0}, [['a'], ['b'], ['c'], ['d']]);
 

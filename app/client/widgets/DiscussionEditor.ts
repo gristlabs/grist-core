@@ -17,6 +17,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
 import {CellInfoType} from 'app/common/gristTypes';
 import {FullUser} from 'app/common/UserAPI';
+import {MaybePromise} from 'app/plugin/gutil';
 import {
   bundleChanges,
   Computed,
@@ -41,16 +42,10 @@ const testId = makeTestId('test-discussion-');
 const t = makeT('DiscussionEditor');
 const COMMENTS_LIMIT = 200;
 
-interface DiscussionPopupProps {
-  domEl: Element,
-  topic: ICellView,
-  discussionId?: number,
-  gristDoc: GristDoc,
-  closeClicked: () => void;
-}
 
-interface ICellView {
+interface Cell {
   comments: Observable<CellRec[]>,
+  lastComment: Observable<CellRec|null>,
   comment(text: string): Promise<void>;
   reply(discussion: CellRec, text: string): Promise<void>;
   resolve(discussion: CellRec): Promise<void>;
@@ -59,11 +54,19 @@ interface ICellView {
   remove(comment: CellRec): Promise<void>;
 }
 
-export class CellWithComments extends Disposable implements ICellView {
-  public comments: Observable<CellRec[]>;
+export class CellImpl extends Disposable implements Cell {
+  public lastComment: Observable<CellRec|null>;
 
-  constructor(protected gristDoc: GristDoc) {
+  constructor(protected gristDoc: GristDoc, public comments: Observable<CellRec[]>) {
     super();
+
+    this.lastComment = Computed.create(this, use => {
+      const list = use(this.comments);
+      if (list.length) {
+        return list[list.length - 1];
+      }
+      return null;
+    });
   }
 
   public async comment(text: string): Promise<void> {
@@ -117,20 +120,21 @@ export class CellWithComments extends Disposable implements ICellView {
   }
 }
 
-export class EmptyCell extends CellWithComments implements ICellView {
+export class EmptyCell extends CellImpl implements Cell {
   constructor(public props: {
     gristDoc: GristDoc,
     column: ColumnRec,
     rowId: number,
     tableRef: number,
   }) {
-    super(props.gristDoc);
     const {column, rowId} = props;
-    this.comments = Computed.create(this, use => {
+    const comments = Computed.create(null, use => {
       const fromColumn = use(use(column.cells).getObservable());
       const forRow = fromColumn.filter(d => use(d.rowId) === rowId && use(d.root) && !use(d.hidden));
       return forRow;
     });
+    super(props.gristDoc, comments);
+    this.autoDispose(comments);
   }
   public async comment(text: string): Promise<void> {
     const props = this.props;
@@ -161,13 +165,19 @@ export class EmptyCell extends CellWithComments implements ICellView {
 /**
  * Discussion popup that is attached to a cell.
  */
-export class CellDiscussionPopup extends Disposable {
+export class CommentPopup extends Disposable {
   private _isEmpty: Computed<boolean>;
 
-  constructor(public props: DiscussionPopupProps) {
+  constructor(public props: {
+    domEl: Element,
+    cell: Cell,
+    discussionId?: number,
+    gristDoc: GristDoc,
+    closeClicked: () => void;
+  }) {
     super();
     this._isEmpty = Computed.create(this, use => {
-      const discussions = use(props.topic.comments);
+      const discussions = use(props.cell.comments);
       const notResolved = discussions.filter(d => !use(d.resolved));
       const visible = notResolved.filter(d => !use(d.hidden));
       return visible.length === 0;
@@ -176,29 +186,32 @@ export class CellDiscussionPopup extends Disposable {
       testId('popup'),
       dom.domComputed(use => use(this._isEmpty), empty => {
         if (!empty) {
-          return dom.create(CellWithCommentsView, {
-            topic: props.topic,
+          return dom.create(SingleThread, {
+            cell: props.cell,
             readonly: props.gristDoc.isReadonly,
             gristDoc: props.gristDoc,
-            panel: false,
             closeClicked: props.closeClicked,
           });
         } else {
-          return dom.create(EmptyCellView, {
+          return dom.create(EmptyThread, {
             closeClicked: props.closeClicked,
-            onSave: (text) => this.props.topic.comment(text),
+            onSave: (text) => this.props.cell.comment(text),
           });
         }
       })
     );
-    buildPopup(this, props.domEl, content, cellPopperOptions, this.props.closeClicked);
+    const popper = createPopper(props.domEl, content, cellPopperOptions);
+    this.onDispose(() => popper.destroy());
+    document.body.appendChild(content);
+    this.onDispose(() => { dom.domDispose(content); content.remove(); });
+    this.autoDispose(onClickOutside(content, this.props.closeClicked));
   }
 }
 
 /**
  * Component for starting discussion on a cell. Displays simple textbox and a button to start discussion.
  */
-class EmptyCellView extends Disposable {
+class EmptyThread extends Disposable {
   private _newText = Observable.create(this, '');
 
   constructor(public props: {
@@ -233,16 +246,19 @@ class EmptyCellView extends Disposable {
   }
 }
 
+
 /**
  * Main component for displaying discussion on a popup.
+ * Shows only comments that are not resolved. UI tries best to keep only one unresolved comment at a time.
+ * But if there are multiple unresolved comments, it will show all of them in a list.
  */
-class CellWithCommentsView extends Disposable implements IDomComponent {
+class SingleThread extends Disposable implements IDomComponent {
   // Holder for a new comment text.
   private _newText = Observable.create(this, '');
   // CommentList dom - used for scrolling.
-  private _discussionList!: HTMLDivElement;
+  private _commentList!: HTMLDivElement;
   // Currently edited comment.
-  private _commentInEdit = Observable.create<CommentView | null>(this, null);
+  private _commentInEdit = Observable.create<Comment | null>(this, null);
   // Helper variable to mitigate some flickering when closing editor.
   // We hide the editor before resolving discussion or clearing discussion, as
   // actions that create discussions and comments are asynchronous, so user can see
@@ -253,21 +269,17 @@ class CellWithCommentsView extends Disposable implements IDomComponent {
   private _truncated: Observable<boolean>;
 
   constructor(public props: {
-    topic: ICellView,
+    cell: Cell,
     readonly: Observable<boolean>,
     gristDoc: GristDoc,
-    panel?: boolean,
     closeClicked?: () => void
   }) {
     super();
-    if (props.panel) {
-      this._comments = Computed.create(this, use =>
-        use(props.topic.comments).filter(ds => !use(ds.hidden) && use(ds.root)));
-    } else {
-      // Don't show resolved comments on a popup.
-      this._comments = Computed.create(this,
-        use => use(props.topic.comments).filter(ds => !use(ds.resolved) && !use(ds.hidden) && use(ds.root)));
-    }
+    // On popup we will only show last non resolved comment.
+    this._comments = Computed.create(this,
+      use => use(props.cell.comments)
+        .filter(ds => !use(ds.resolved) && !use(ds.hidden) && use(ds.root))
+        .sort((a, b) => (use(a.timeCreated) ?? 0) - (use(b.timeCreated) ?? 0)));
     this._commentsToRender = Computed.create(this, use => {
       const sorted = use(this._comments).sort((a, b) => (use(a.timeCreated) ?? 0) - (use(b.timeCreated) ?? 0));
       const start = Math.max(0, sorted.length - COMMENTS_LIMIT);
@@ -279,42 +291,126 @@ class CellWithCommentsView extends Disposable implements IDomComponent {
   public buildDom() {
     return cssTopic(
       dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", {nb: COMMENTS_LIMIT}))),
-      cssTopic.cls('-panel', this.props.panel),
-      domOnCustom(CommentView.EDIT, (s: CommentView) => this._onEditComment(s)),
-      domOnCustom(CommentView.CANCEL, (s: CommentView) => this._onCancelEdit()),
+      domOnCustom(Comment.EDIT, (s: Comment) => this._onEditComment(s)),
+      domOnCustom(Comment.CANCEL, (s: Comment) => this._onCancelEdit()),
       dom.hide(this._closing),
       testId('topic'),
       testId('topic-filled'),
-      dom.maybe(!this.props.panel, () =>
-        cssHeaderBox(
-          testId('topic-header'),
-          // NOT IMPLEMENTED YET
-          // cssHoverButton(cssRotate('Expand'), dom.on('click', () => this._remove()), {title: 'Previous discussion'}),
-          // cssHoverButton(icon('Expand'), dom.on('click', () => this._remove()), {title: 'Next discussion'}),
-          dom('div', dom.style('align-self', 'center'), "Comments"),
-          cssSpacer(),
-          // NOT IMPLEMENTED YET
-          // cssIconButton(
-          //   icon('Dots'),
-          //   menu(() => [], {placement: 'bottom-start'}),
-          //   dom.on('click', stopPropagation)
-          // ),
-          cssHoverButton(
-            icon('Popup'),
-            testId('topic-button-panel'),
-            dom.on('click', () => this.props.gristDoc.showTool('discussion')),
-            {title: 'Open panel'}
-          ),
-          cssHeaderBox.cls("-border")
-        )),
-      this._discussionList = cssCommentList(
+      this._commentList = cssCommentList(
+        testId('topic-comments'),
+        dom.forEach(this._commentsToRender, comment => {
+          return cssDiscussion(
+            cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
+            dom.create(Comment, {
+              ...this.props,
+              comment
+            })
+          );
+        })
+      ),
+      this._createCommentEntry(),
+      dom.onKeyDown({
+        Escape: () => this.props.closeClicked?.(),
+      })
+    );
+  }
+
+
+  private _onCancelEdit() {
+    if (this._commentInEdit.get()) {
+      this._commentInEdit.get()?.isEditing.set(false);
+    }
+    this._commentInEdit.set(null);
+  }
+
+  private _onEditComment(el: Comment) {
+    if (this._commentInEdit.get()) {
+      this._commentInEdit.get()?.isEditing.set(false);
+    }
+    el.isEditing.set(true);
+    this._commentInEdit.set(el);
+  }
+
+  private async _save() {
+    try {
+      const list = this._commentsToRender.get();
+      if (!list.length) {
+        throw new Error("There should be only one comment in edit mode");
+      }
+      await this.props.cell.reply(list[list.length - 1], this._newText.get().trim());
+    } catch (err) {
+      return reportError(err);
+    } finally {
+      this._newText.set('');
+      this._commentList.scrollTo(0, 10000);
+    }
+  }
+
+  private _createCommentEntry() {
+    return cssReplyBox(dom.create(CommentEntry, {
+      mode: 'comment',
+      text: this._newText,
+      onSave: () => this._save(),
+      onCancel: () => this.props.closeClicked?.(),
+      mainButton: 'Reply',
+      editorArgs: [{placeholder: t('Reply')}],
+      args: [testId('editor-add')]
+    }));
+  }
+}
+
+
+/**
+ * List of comments (each can have multiple replies), used in discussion panel.
+ */
+class MultiThreads extends Disposable implements IDomComponent {
+  // Currently edited comment.
+  private _commentInEdit = Observable.create<Comment | null>(this, null);
+  // Helper variable to mitigate some flickering when closing editor.
+  // We hide the editor before resolving discussion or clearing discussion, as
+  // actions that create discussions and comments are asynchronous, so user can see
+  // that comments elements are removed.
+  private _closing = Observable.create(this, false);
+  private _comments: Observable<CellRec[]>;
+  private _commentsToRender: Observable<CellRec[]>;
+  private _truncated: Observable<boolean>;
+
+  constructor(public props: {
+    cell: Cell,
+    readonly: Observable<boolean>,
+    gristDoc: GristDoc,
+    closeClicked?: () => void
+  }) {
+    super();
+    this._comments = Computed.create(this, use =>
+      use(props.cell.comments).filter(ds => !use(ds.hidden) && use(ds.root)));
+
+    this._commentsToRender = Computed.create(this, use => {
+      const sorted = use(this._comments).sort((a, b) => (use(a.timeCreated) ?? 0) - (use(b.timeCreated) ?? 0));
+      const start = Math.max(0, sorted.length - COMMENTS_LIMIT);
+      return sorted.slice(start);
+    });
+    this._truncated = Computed.create(this, use => use(this._comments).length > COMMENTS_LIMIT);
+  }
+
+  public buildDom() {
+    return cssTopic(
+      dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", {nb: COMMENTS_LIMIT}))),
+      cssTopic.cls('-panel'),
+      domOnCustom(Comment.EDIT, (s: Comment) => this._onEditComment(s)),
+      domOnCustom(Comment.CANCEL, (s: Comment) => this._onCancelEdit()),
+      dom.hide(this._closing),
+      testId('topic'),
+      testId('topic-filled'),
+      cssCommentList(
         testId('topic-comments'),
         dom.forEach(this._commentsToRender, comment => {
           return cssDiscussionWrapper(
             cssDiscussion(
               cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
-              dom.create(CommentView, {
+              dom.create(Comment, {
                 ...this.props,
+                panel: true,
                 comment
               })
             )
@@ -322,7 +418,6 @@ class CellWithCommentsView extends Disposable implements IDomComponent {
         }
         )
       ),
-      !this.props.panel ? this._createCommentEntry() : null,
       dom.onKeyDown({
         Escape: () => this.props.closeClicked?.(),
       })
@@ -336,51 +431,20 @@ class CellWithCommentsView extends Disposable implements IDomComponent {
     this._commentInEdit.set(null);
   }
 
-  private _onEditComment(el: CommentView) {
+  private _onEditComment(el: Comment) {
     if (this._commentInEdit.get()) {
       this._commentInEdit.get()?.isEditing.set(false);
     }
     el.isEditing.set(true);
     this._commentInEdit.set(el);
   }
-
-  private async _save() {
-    try {
-      return await this.props.topic.comment(this._newText.get().trim());
-    } catch (err) {
-      return reportError(err);
-    } finally {
-      this._newText.set('');
-      this._discussionList.scrollTo(0, 10000);
-    }
-  }
-
-  private _createCommentEntry() {
-    return cssReplyBox(dom.create(CommentEntry, {
-      mode: 'comment',
-      text: this._newText,
-      onSave: () => this._save(),
-      onCancel: () => this.props.closeClicked?.(),
-      mainButton: 'Send',
-      editorArgs: [{placeholder: t('Comment')}],
-      args: [testId('editor-add')]
-    }));
-  }
 }
 
-interface CommentProps {
-  comment: CellRec,
-  topic: ICellView,
-  gristDoc: GristDoc,
-  isReply?: boolean,
-  panel?: boolean,
-  args?: DomArg<HTMLDivElement>[]
-}
 
 /**
  * Component for displaying a single comment, either in popup or discussion panel.
  */
-class CommentView extends Disposable {
+class Comment extends Disposable {
   // Public custom events. Those are propagated to the parent component (TopicView) to make
   // sure only one comment is in edit mode at a time.
   public static EDIT = 'comment-edit'; // comment is in edit mode
@@ -395,28 +459,49 @@ class CommentView extends Disposable {
   private _resolved: Computed<boolean>;
   private _showReplies: Computed<boolean>;
   private _bodyDom: Element;
+  private get _isReply() {
+    return !!this.props.parent;
+  }
   constructor(
-    public props: CommentProps) {
+    public props: {
+      comment: CellRec,
+      cell: Cell,
+      gristDoc: GristDoc,
+      parent?: CellRec|null,
+      panel?: boolean,
+      args?: DomArg<HTMLDivElement>[]
+  }) {
     super();
     this._replies = createObsArray(this, props.comment.children());
     this._hasReplies = Computed.create(this, use => use(this._replies).length > 0);
-    this._resolved = Computed.create(this, use => Boolean(use(props.comment.resolved)));
+    this._resolved = Computed.create(this, use =>
+      this._isReply && this.props.parent
+        ? Boolean(use(this.props.parent.resolved))
+        : Boolean(use(this.props.comment.resolved))
+    );
     this._showReplies = Computed.create(this, use => {
-      return !this.props.isReply && use(this._replies).length > 0 &&
-        (use(this._expanded) || !use(this.props.comment.resolved));
+      // We don't show replies if we are reply.
+      if (this._isReply) {
+        return false;
+      }
+      // Or we are resolved root comment on panel that is collapsed.
+      if (use(this.props.comment.resolved) && this.props.panel && !this._expanded.get()) {
+        return false;
+      }
+      return true;
     });
   }
   public buildDom() {
     const comment = this.props.comment;
-    const topic = this.props.topic;
+    const topic = this.props.cell;
     const user = (c: CellRec) =>
       comment.hidden() ? null : commentAuthor(this.props.gristDoc, c.userRef(), c.userName());
     this._bodyDom = cssComment(
       ...(this.props.args ?? []),
-      this.props.isReply ? testId('reply') : testId('comment'),
+      this._isReply  ? testId('reply') : testId('comment'),
       dom.on('click', () => {
-        if (this.props.isReply) { return; }
-        domDispatch(this._bodyDom, CommentView.SELECT, comment);
+        if (this._isReply ) { return; }
+        domDispatch(this._bodyDom, Comment.SELECT, comment);
         if (!this._resolved.get()) { return; }
         this._expanded.set(!this._expanded.get());
       }),
@@ -428,21 +513,24 @@ class CommentView extends Disposable {
           cssCommentHeader(
             // User name date and buttons
             cssCommentBodyHeader(
-              dom('div',
+              cssCommentBodyText(
                 buildNick(user(comment), testId('comment-nick')),
                 dom.domComputed(use => cssTime(
                   formatTime(use(comment.timeUpdated) ?? use(comment.timeCreated) ?? 0),
                   testId('comment-time'),
+                  use(comment.timeUpdated) ? dom('span', ' (' + t('updated') + ')') : null,
                 )),
               ),
-              cssSpacer(),
-              cssIconButton(
-                icon('Dots'),
-                testId('comment-menu'),
-                dom.style('margin-left', `3px`),
-                menu(() => this._menuItems(), {placement: 'bottom-start'}),
-                dom.on('click', stopPropagation)
-              )
+              // if this is reply in a resolved comment, don't show menu
+              dom.maybe(use => !(this._isReply && use(this._resolved)), () => [
+                cssIconButton(
+                  icon('Dots'),
+                  testId('comment-menu'),
+                  dom.style('margin-left', `3px`),
+                  menu(() => this._menuItems(), {placement: 'bottom-start'}),
+                  dom.on('click', stopPropagation)
+                )
+              ]),
             ),
           ),
         ),
@@ -474,11 +562,11 @@ class CommentView extends Disposable {
                 const value = text.get();
                 text.set("");
                 await topic.update(comment, value);
-                domDispatch(this._bodyDom, CommentView.CANCEL, this);
+                domDispatch(this._bodyDom, Comment.CANCEL, this);
                 this.isEditing.set(false);
               },
               onCancel: () => {
-                domDispatch(this._bodyDom, CommentView.CANCEL, this);
+                domDispatch(this._bodyDom, Comment.CANCEL, this);
                 this.isEditing.set(false);
               },
               mode: 'start',
@@ -492,10 +580,10 @@ class CommentView extends Disposable {
             cssReplyList(
               dom.forEach(this._replies, (commentReply) => {
                 return dom('div',
-                  dom.create(CommentView, {
+                  dom.create(Comment, {
                     ...this.props,
                     comment: commentReply,
-                    isReply: true,
+                    parent: this.props.comment,
                     args: [dom.style('padding-left', '0px'), dom.style('padding-right', '0px')],
                   })
                 );
@@ -504,7 +592,11 @@ class CommentView extends Disposable {
           )
         ),
         // Reply editor or button
-        dom.maybe(use => !use(this.isEditing) && !this.props.isReply && !use(comment.resolved),
+        dom.maybe(use =>
+          !use(this.isEditing) &&
+          !this._isReply &&
+          this.props.panel &&
+          !use(comment.resolved),
           () => dom.domComputed(use => {
             if (!use(this.replying)) {
               return cssReplyButton(icon('Message'), t('Reply'),
@@ -537,7 +629,7 @@ class CommentView extends Disposable {
         ),
         // Resolved marker
         dom.domComputed((use) => {
-          if (!use(comment.resolved) || this.props.isReply) { return null; }
+          if (!use(comment.resolved) || this._isReply) { return null; }
           return cssResolvedBlock(
             testId('comment-resolved'),
             icon('FieldChoice'),
@@ -552,27 +644,35 @@ class CommentView extends Disposable {
   }
   private _menuItems() {
     const currentUser = this.props.gristDoc.app.topAppModel.appObs.get()?.currentUser?.ref;
-    const canResolve = !this.props.comment.resolved() && !this.props.isReply;
+    const canResolve = !this.props.comment.resolved() && !this._isReply;
     const comment = this.props.comment;
+    const canOpen =
+      this._resolved.get() // if this discussion is resolved
+      && !this._isReply // and this is not a reply
+      && this.props.cell.lastComment.get() === comment; // and this is the last comment
+    const canEdit = !this._resolved.get();
     return [
       !canResolve ? null :
         menuItem(
-          () => this.props.topic.resolve(this.props.comment),
+          () => this.props.cell.resolve(this.props.comment),
           t('Resolve')
         ),
-      !comment.resolved() ? null :
+      !canOpen ? null :
         menuItem(
-          () => this.props.topic.open(comment),
+          () => this.props.cell.open(this.props.comment),
           t('Open')
         ),
       menuItem(
-        () => this.props.topic.remove(comment),
-        t('Remove'),
+        () => {
+          return this.props.cell.remove(comment);
+        },
+        comment.root.peek() ? t('Remove thread') : t('Remove'),
         dom.cls('disabled', use => {
           return currentUser !== use(comment.userRef);
         })
       ),
-      menuItem(
+      // If comment is resolved, we can't edit it.
+      !canEdit ? null : menuItem(
         () => this._edit(),
         t('Edit'),
         dom.cls('disabled', use => {
@@ -583,7 +683,7 @@ class CommentView extends Disposable {
   }
 
   private _edit() {
-    domDispatch(this._bodyDom, CommentView.EDIT, this);
+    domDispatch(this._bodyDom, Comment.EDIT, this);
     this.isEditing.set(true);
   }
 }
@@ -595,13 +695,13 @@ class CommentEntry extends Disposable {
   constructor(public props: {
     text: Observable<string>,
     mode?: 'comment' | 'start' | 'reply', // inline for reply, full for new discussion
-    onClick?: (button: string) => void,
-    onSave?: () => Promise<void>|void,
-    onCancel?: () => void, // On Escape
     mainButton?: string, // Text for the main button (defaults to Send)
     buttons?: string[], // Additional buttons to show.
     editorArgs?: DomArg<HTMLTextAreaElement>[]
-    args?: DomArg<HTMLDivElement>[]
+    args?: DomArg<HTMLDivElement>[],
+    onClick?: (button: string) => void,
+    onSave?: () => MaybePromise<void>,
+    onCancel?: () => void, // On Escape
   }) {
     super();
   }
@@ -791,8 +891,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       const filter = use(discussionFilter);
       return all.filter(filter);
     });
-    const topic = CellWithComments.create(owner, this._grist);
-    topic.comments = discussions;
+    const topic = CellImpl.create(owner, this._grist, discussions);
     owner.autoDispose(discussions.addListener((d) => this._length.set(d.length)));
     this._length.set(discussions.get().length);
     // Selector for page all whole document.
@@ -801,14 +900,13 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       testId('panel'),
       // Discussion list - actually we are showing first comment of each discussion.
       cssDiscussionPanelList(
-        dom.create(CellWithCommentsView, {
+        dom.create(MultiThreads, {
           readonly: this._grist.isReadonly,
           gristDoc: this._grist,
-          topic: topic,
-          panel: true
+          cell: topic,
         })
       ),
-      domOnCustom(CommentView.SELECT, (ds: CellRec) => {
+      domOnCustom(Comment.SELECT, (ds: CellRec) => {
         this._navigate(ds).catch(() => {});
       })
     );
@@ -920,20 +1018,6 @@ function bindProp(text: Observable<string>) {
   ];
 }
 
-
-function buildPopup(
-  owner: Disposable,
-  cell: Element,
-  content: HTMLElement,
-  options: Partial<PopperOptions>,
-  closeClicked: () => void
-) {
-  const popper = createPopper(cell, content, options);
-  owner.onDispose(() => popper.destroy());
-  document.body.appendChild(content);
-  owner.onDispose(() => { dom.domDispose(content); content.remove(); });
-  owner.autoDispose(onClickOutside(content, () => closeClicked()));
-}
 
 // Helper binding function to handle click outside an element. Takes into account floating menus.
 function onClickOutside(content: HTMLElement, click: () => void) {
@@ -1126,18 +1210,6 @@ const cssTextArea = styled('textarea', `
   }
 `);
 
-const cssHeaderBox = styled('div', `
-  color: ${theme.text};
-  background-color: ${theme.commentsPopupHeaderBg};
-  padding: 12px; /* 12px * 2 + 24px (size of the icon) == 48px in height */
-  padding-right: 16px;
-  display: flex;
-  gap: 8px;
-  &-border {
-    border-bottom: 1px solid ${theme.commentsPopupBorder};
-  }
-`);
-
 const cssTopic = styled('div', `
   position: relative;
   display: flex;
@@ -1165,6 +1237,7 @@ const cssTopic = styled('div', `
 
 const cssDiscussionWrapper = styled('div', `
   border-bottom: 1px solid ${theme.commentsPopupBorder};
+  max-height: inherit;
   &:last-child {
     border-bottom: none;
   }
@@ -1173,6 +1246,7 @@ const cssDiscussionWrapper = styled('div', `
     border-radius: 4px;
     background-color: ${theme.commentsPanelTopicBg};
     margin-bottom: 4px;
+    overflow: hidden;
   }
 `);
 
@@ -1180,6 +1254,7 @@ const cssDiscussion = styled('div', `
   display: flex;
   flex-direction: column;
   padding: 16px;
+  max-height: inherit;
   &-resolved {
     background-color: ${theme.commentsPanelResolvedTopicBg};
     cursor: pointer;
@@ -1231,7 +1306,7 @@ const cssComment = styled('div', `
 `);
 
 const cssReplyList = styled('div', `
-  margin-left: 16px;
+  margin-left: 8px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1249,6 +1324,11 @@ const cssCommentBodyHeader = styled('div', `
   display: flex;
   align-items: baseline;
   overflow: hidden;
+`);
+
+const cssCommentBodyText = styled('div', `
+  flex: 1;
+  min-width: 0px;
 `);
 
 const cssIconButton = styled('div', `
@@ -1295,6 +1375,7 @@ const cssTime = styled('div', `
   white-space: nowrap;
   letter-spacing: 0.02em;
   line-height: 16px;
+  overflow: hidden;
 `);
 
 const cssNick = styled('div', `
@@ -1307,33 +1388,6 @@ const cssNick = styled('div', `
     font-size: 12px;
   }
 `);
-
-const cssSpacer = styled('div', `
-  flex-grow: 1;
-`);
-
-const cssCloseButton = styled('div', `
-  padding: 4px;
-  border-radius: 4px;
-  line-height: 1px;
-  cursor: pointer;
-  --icon-color: ${theme.controlSecondaryFg};
-  &:hover {
-    background-color: ${theme.hover};
-  }
-`);
-
-const cssHoverButton = styled(cssCloseButton, `
-  &:hover {
-    --icon-color: ${theme.controlPrimaryBg};
-  }
-`);
-
-// NOT IMPLEMENTED YET
-// const cssRotate = styled(icon, `
-//   transform: rotate(180deg);
-// `);
-
 
 
 const cssResolvedBlock = styled('div', `

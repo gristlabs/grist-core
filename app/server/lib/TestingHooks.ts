@@ -75,8 +75,9 @@ export class TestingHooks implements ITestingHooks {
 
   public async setLoginSessionProfile(gristSidCookie: string, profile: UserProfile|null, org?: string): Promise<void> {
     log.info("TestingHooks.setLoginSessionProfile called with", gristSidCookie, profile, org);
-    const sessionId = this._comm.getSessionIdFromCookie(gristSidCookie);
-    const scopedSession = this._comm.getOrCreateSession(sessionId as string, {org});
+    const sessions = this._server.getSessions();
+    const sessionId = sessions.getSessionIdFromCookie(gristSidCookie);
+    const scopedSession = sessions.getOrCreateSession(sessionId as string, org);
     const req = {} as Request;
     await scopedSession.updateUserProfile(req, profile);
     this._server.getSessions().clearCacheIfNeeded({email: profile?.email, org});
@@ -164,10 +165,10 @@ export class TestingHooks implements ITestingHooks {
   public async closeDocs(): Promise<void> {
     log.info("TestingHooks.closeDocs called");
     if (this._server) {
-      await this._server.closeDocs();
+      await this._server.testCloseDocs();
     }
     for (const server of this._workerServers) {
-      await server.closeDocs();
+      await server.testCloseDocs();
     }
   }
 

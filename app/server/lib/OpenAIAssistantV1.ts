@@ -345,8 +345,6 @@ export class OpenAIAssistantV1 implements AssistantV1 {
 
 /**
  * Test assistant that mimics ChatGPT and just returns the input.
- *
- * @deprecated since version 2 of the AI assistant.
  */
 export class EchoAssistantV1 implements AssistantV1 {
   public static readonly VERSION = 1;

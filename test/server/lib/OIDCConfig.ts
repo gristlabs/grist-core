@@ -475,7 +475,13 @@ describe('OIDCConfig', () => {
       {
         itMsg: 'should reject when no OIDC information is present in the session',
         session: {},
-        expectedErrorMsg: /Missing OIDC information/
+        expectedErrorMsg: /Missing OIDC information/,
+        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+          Sinon.assert.calledWith(sendAppPageStub,
+            Sinon.match.any,
+            Sinon.match.any,
+            Sinon.match.hasNested('config.errTargetUrl', '/'));
+        }
       },
       {
         itMsg: 'should resolve when the state and the code challenge are found in the session',
@@ -555,7 +561,7 @@ describe('OIDCConfig', () => {
         },
         expectedErrorMsg: /email not verified for/,
         extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
-          assert.equal(sendAppPageStub.firstCall.args[2].config.errMessage, 'oidc.emailNotVerifiedError');
+          assert.equal(sendAppPageStub.firstCall.lastArg.config.errMessage, 'oidc.emailNotVerifiedError');
         }
       },
       {
@@ -688,6 +694,26 @@ describe('OIDCConfig', () => {
         extraChecks: checkRedirect('http://localhost:8484/some/path'),
       },
       {
+        itMsg: 'should tell error page to use targetUrl when it is present in the session if login fails',
+        session: {
+          oidc: {
+            ...DEFAULT_SESSION.oidc,
+            targetUrl: '/some/path'
+          }
+        },
+        userInfo: {
+          ...FAKE_USER_INFO,
+          email_verified: false,
+        },
+        expectedErrorMsg: /email not verified for/,
+        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+          Sinon.assert.calledWith(sendAppPageStub,
+            Sinon.match.any,
+            Sinon.match.any,
+            Sinon.match.hasNested('config.errTargetUrl', '/some/path'));
+        }
+      },
+      {
         itMsg: "should redact confidential information in the tokenSet in the logs",
         session: DEFAULT_SESSION,
         tokenSet: {
@@ -746,7 +772,7 @@ describe('OIDCConfig', () => {
           assert.isTrue(logErrorStub.calledOnce);
           assert.match(logErrorStub.firstCall.args[0], ctx.expectedErrorMsg);
           assert.isTrue(sendAppPageStub.calledOnceWith(req, fakeRes));
-          assert.include(sendAppPageStub.firstCall.args[2], {
+          assert.include(sendAppPageStub.firstCall.lastArg, {
             path: 'error.html',
             status: 500,
           });

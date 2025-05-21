@@ -39,9 +39,11 @@ import {GristSocketServer} from 'app/server/lib/GristSocketServer';
 import {GristServerSocket} from 'app/server/lib/GristServerSocket';
 
 import {parseFirstUrlPart} from 'app/common/gristUrls';
-import {firstDefined, safeJsonParse} from 'app/common/gutil';
+import {safeJsonParse} from 'app/common/gutil';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import * as version from 'app/common/version';
+import {HomeDBAuth} from "app/gen-server/lib/homedb/Interfaces";
+import {AuthSession} from "app/server/lib/AuthSession";
 import {ScopedSession} from "app/server/lib/BrowserSession";
 import {Client, ClientMethod} from "app/server/lib/Client";
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -55,6 +57,7 @@ import { trustOrigin } from './requestUtils';
 
 export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist
+  dbManager?: HomeDBAuth;                // HomeDBManager, just the part needed for auth.
   settings?: {[key: string]: unknown};  // The config object containing instance settings including features.
   hosts?: Hosts;  // If set, we use hosts.getOrgInfo(req) to extract an organization from a (possibly versioned) url.
   loginMiddleware?: GristLoginMiddleware; // If set, use custom getProfile method if available
@@ -112,24 +115,6 @@ export class Comm extends EventEmitter {
     const client = this._clients.get(clientId);
     if (!client) { throw new Error('Unrecognized clientId'); }
     return client;
-  }
-
-  /**
-   * Returns a ScopedSession object with the given session id from the list of sessions,
-   *  or adds a new one and returns that.
-   */
-  public getOrCreateSession(sessionId: string, req: {org?: string}, userSelector: string = ''): ScopedSession {
-    // ScopedSessions are specific to a session id / org combination.
-    const org = req.org || "";
-    return this.sessions.getOrCreateSession(sessionId, org, userSelector);
-  }
-
-
-  /**
-   * Returns the sessionId from the signed grist cookie.
-   */
-  public getSessionIdFromCookie(gristCookie: string): string|null {
-    return this.sessions.getSessionIdFromCookie(gristCookie) || null;
   }
 
   /**
@@ -192,19 +177,16 @@ export class Comm extends EventEmitter {
    * Returns a profile based on the request or session.
    */
   private async _getSessionProfile(scopedSession: ScopedSession, req: http.IncomingMessage): Promise<UserProfile|null> {
-    return await firstDefined(
-      async () => this._options.loginMiddleware?.overrideProfile?.(req),
-      async () => scopedSession.getSessionProfile(),
-    ) || null;
+    return (
+      (await this._options.loginMiddleware?.overrideProfile?.(req)) ??
+      (await scopedSession.getSessionProfile())
+    );
   }
 
   /**
    * Processes a new websocket connection, and associates the websocket and a Client object.
    */
   private async _onWebSocketConnection(websocket: GristServerSocket, req: http.IncomingMessage) {
-
-    // Parse the cookie in the request to get the sessionId.
-    const sessionId = this.sessions.getSessionIdFromRequest(req);
 
     const params = new URL(req.url!, `ws://${req.headers.host}`).searchParams;
     const existingClientId = params.get('clientId');
@@ -214,9 +196,6 @@ export class Comm extends EventEmitter {
     const lastSeqId = lastSeqIdStr ? parseInt(lastSeqIdStr) : null;
     const counter = params.get('counter');
     const userSelector = params.get('user') || '';
-
-    const scopedSession = this.getOrCreateSession(sessionId!, req as RequestWithOrg, userSelector);
-    const profile = await this._getSessionProfile(scopedSession, req);
 
     // Associate an ID with each websocket, reusing the supplied one if it's valid.
     let client: Client|undefined = this._clients.get(existingClientId!);
@@ -229,10 +208,13 @@ export class Comm extends EventEmitter {
 
     log.rawInfo('Comm: Got Websocket connection', {...client.getLogMeta(), urlPath: req.url, reuseClient});
 
-    client.setSession(scopedSession);                 // Add a Session object to the client.
-    client.setOrg((req as RequestWithOrg).org || "");
-    client.setProfile(profile);
-    client.setConnection({websocket, req, counter, browserSettings});
+    // Parse the cookie in the request to get the sessionId.
+    const sessionId = this.sessions.getSessionIdFromRequest(req);
+    const scopedSession = this.sessions.getOrCreateSession(sessionId!, (req as RequestWithOrg).org, userSelector);
+    const profile = await this._getSessionProfile(scopedSession, req);
+    const authSession = await getAuthSession(this._options.dbManager, scopedSession, profile);
+
+    client.setConnection({websocket, req, counter, browserSettings, authSession});
 
     await client.sendConnectMessage(newClient, reuseClient, lastSeqId, {
       serverVersion: this._serverVersion || version.gitcommit,
@@ -278,4 +260,17 @@ export class Comm extends EventEmitter {
     }
     return wss;
   }
+}
+
+// This is a subset of the logic in Authorizer addRequestUser(), but sufficient for websocket
+// connections, which rely on having an existing session.
+async function getAuthSession(
+  dbManager: HomeDBAuth|undefined, scopedSession: ScopedSession, profile: UserProfile|null
+): Promise<AuthSession> {
+  if (!dbManager) {
+    return AuthSession.unauthenticated();
+  }
+  const user = profile?.email ? await dbManager.getUserByLogin(profile.email) : dbManager.getAnonymousUser();
+  const fullUser = dbManager.makeFullUser(user);
+  return AuthSession.fromUser(fullUser, scopedSession.org, scopedSession.getAltSessionId());
 }

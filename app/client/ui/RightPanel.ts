@@ -824,12 +824,11 @@ export class RightPanel extends Disposable {
           cssRow.cls('-top-space'),
       )),
 
-      // TODO: "Advanced settings" is for "on-demand" marking of tables. This should only be shown
-      // for raw data tables (once that's supported), should have updated UI, and should possibly
-      // be hidden for free plans.
-      dom.maybe(viewConfigTab, (vct) => cssRow(
+      // TODO: "Advanced settings" is for "on-demand" marking of tables. This is now a deprecated feature. UIRowId
+      // is only shown for tables that are marked as "on-demand""
+      dom.domComputed(use => use(use(table).onDemand) && use(viewConfigTab), (vct) => vct ? cssRow(
         dom('div', vct._buildAdvancedSettingsDom()),
-      )),
+      ) : null),
 
       dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () => [
         cssSeparator(),

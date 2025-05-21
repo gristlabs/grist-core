@@ -28,7 +28,15 @@ import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
-import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {
+  ArchiveUploadResult,
+  CreatableArchiveFormats,
+  DocReplacementOptions,
+  DocState,
+  DocStateComparison,
+  DocStates,
+  NEW_DOCUMENT_CODE
+} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -45,12 +53,10 @@ import {
 } from 'app/plugin/TableOperationsImpl';
 import {
   ActiveDoc,
-  ArchiveUploadResult,
   colIdToRef as colIdToReference,
   getRealTableId,
   tableIdToRef
 } from "app/server/lib/ActiveDoc";
-import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
   getConfiguredAttachmentStoreConfigs,
@@ -115,16 +121,11 @@ import * as _ from "lodash";
 import LRUCache from 'lru-cache';
 import * as moment from 'moment';
 import fetch from 'node-fetch';
-import * as stream from 'node:stream';
 import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
 import {v4 as uuidv4} from "uuid";
-
-// Cap on the number of requests that can be outstanding on a single document via the
-// rest doc api.  When this limit is exceeded, incoming requests receive an immediate
-// reply with status 429.
-const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
+import {appSettings} from "app/server/lib/AppSettings";
 
 // This is NOT the number of docs that can be handled at a time.
 // It's a very generous upper bound of what that number might be.
@@ -185,6 +186,16 @@ export class DocWorkerApi {
   // to number of requests previously served for that combination.
   // We multiply by 5 because there are 5 relevant keys per doc at any time (current/next day/hour and current minute).
   private _dailyUsage = new LRUCache<string, number>({max: 5 * MAX_ACTIVE_DOCS_USAGE_CACHE});
+
+  // Cap on the number of requests that can be outstanding on a single
+  // document via the rest doc api. When this limit is exceeded,
+  // incoming requests receive an immediate reply with status 429.
+  private _maxParallelRequestsPerDoc = appSettings.section("docApi").flag("maxParallelRequestsPerDoc")
+    .requireInt({
+      envVar: 'GRIST_MAX_PARALLEL_REQUESTS_PER_DOC',
+      defaultValue: 10,
+      minValue: 0,
+    });
 
   constructor(private _app: Application, private _docWorker: DocWorker,
               private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
@@ -339,6 +350,10 @@ export class DocWorkerApi {
     );
 
     const registerWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, webhook: WebhookFields) => {
+      if (activeDoc.isFork) {
+        throw new ApiError('Unsaved document copies cannot have webhooks', 400);
+      }
+
       const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, null, webhook);
       if (!fields.eventTypes?.length) {
         throw new ApiError(`eventTypes must be a non-empty array`, 400);
@@ -596,16 +611,13 @@ export class DocWorkerApi {
       try {
         await archive.packInto(res, { endDestStream: false });
       } catch(err) {
-        // Most behaviours here result in a poor user experience. The options are:
+        // This only behaves sensibly if the 'download' attribute is on the <a> tag.
+        // Otherwise you get a poor user experience, such as:
         // - No data written to the stream: open a new tab with a 500 error.
         // - Destroy the stream: open a new tab with a connection reset error.
         // - Return some data without res.destroy(): download shows as successful, despite being corrupt.
-        // Sending headers then resetting the connection shows as 'Download failed', which is preferable.
-        // There's no way to guarantee headers have been flushed except by writing data, which is
-        // why we write some arbitrary data then destroy the stream.
-
-        // Need to cast { end: false } to any because @types/node for node 18 has a missing parameter.
-        await stream.promises.pipeline(stream.Readable.from("Internal server error"), res, { end: false } as any);
+        // Sending headers then resetting the connection shows as 'Download failed', regardless of the
+        // 'download' attribute being set.
         res.destroy(err);
       }
       res.end();
@@ -1137,8 +1149,15 @@ export class DocWorkerApi {
     // Soft-delete the specified doc.  If query parameter "permanent" is set,
     // delete permanently.
     this._app.post('/api/docs/:docId/remove', canEditMaybeRemoved, throttled(async (req, res) => {
-      const {data} = await this._removeDoc(req, res, isParameterOn(req.query.permanent));
-      if (data) { this._logRemoveDocumentEvents(req, data); }
+      const permanent = isParameterOn(req.query.permanent);
+      const {data} = await this._removeDoc(req, res, permanent);
+      if (data) {
+        if (permanent) {
+          this._logDeleteDocumentEvents(req, data);
+        } else {
+          this._logRemoveDocumentEvents(req, data);
+        }
+      }
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
@@ -1987,7 +2006,7 @@ export class DocWorkerApi {
       try {
         const count = this._currentUsage.get(docId) || 0;
         this._currentUsage.set(docId, count + 1);
-        if (count + 1 > MAX_PARALLEL_REQUESTS_PER_DOC) {
+        if (this._maxParallelRequestsPerDoc > 0 && count + 1 > this._maxParallelRequestsPerDoc) {
           throw new ApiError(`Too many backlogged requests for document ${docId} - ` +
             `try again later?`, 429);
         }
@@ -2347,10 +2366,12 @@ export class DocWorkerApi {
   }
 
   private _logDeleteDocumentEvents(req: RequestWithLogin, document: Document) {
+    // If we're deleting a fork, we need to get the org from the trunk.
+    const org = document.workspace?.org ?? document.trunk?.workspace.org;
     this._grist.getAuditLogger().logEvent(req, {
       action: "document.delete",
       context: {
-        site: _.pick(document.workspace.org, "id", "name", "domain"),
+        site: _.pick(org, "id", "name", "domain"),
       },
       details: {
         document: _.pick(document, "id", "name"),

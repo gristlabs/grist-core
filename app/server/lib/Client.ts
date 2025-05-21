@@ -1,20 +1,13 @@
-import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {CommClientConnect, CommMessage, CommResponse, CommResponseError} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
-import {normalizeEmail} from 'app/common/emails';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
-import {TelemetryMetadata} from 'app/common/Telemetry';
-import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
-import {User} from 'app/gen-server/entity/User';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer} from 'app/server/lib/Authorizer';
-import {ScopedSession} from 'app/server/lib/BrowserSession';
+import {AuthSession} from 'app/server/lib/AuthSession';
 import type {Comm} from 'app/server/lib/Comm';
 import {DocSession} from 'app/server/lib/DocSession';
 import {GristServerSocket} from 'app/server/lib/GristServerSocket';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {MemoryPool} from 'app/server/lib/MemoryPool';
@@ -23,7 +16,6 @@ import {shortDesc} from 'app/server/lib/shortDesc';
 import * as crypto from 'crypto';
 import {IncomingMessage} from 'http';
 import {i18n} from 'i18next';
-import moment from 'moment';
 
 // How many messages and bytes to accumulate for a disconnected client before booting it.
 // The benefit is that a client who temporarily disconnects and reconnects without missing much,
@@ -87,8 +79,6 @@ export class Client {
 
   public browserSettings: BrowserSettings = {};
 
-  private _session: ScopedSession|null = null;
-
   private _log = new LogMethods('Client ', (extra?: object|null) => this.getLogMeta(extra || {}));
 
   // Maps docFDs to DocSession objects.
@@ -100,10 +90,7 @@ export class Client {
   private _destroyed: boolean = false;
   private _websocket: GristServerSocket|null = null;
   private _req: IncomingMessage|null = null;
-  private _org: string|null = null;
-  private _profile: UserProfile|null = null;
-  private _user: FullUser|undefined = undefined;
-  private _firstLoginAt: Date|null = null;
+  private _authSession: AuthSession = AuthSession.unauthenticated();
   private _nextSeqId: number = 0;     // Next sequence-ID for messages sent to the client
 
   // Identifier for the current GristWSConnection object connected to this client.
@@ -128,25 +115,28 @@ export class Client {
     return this._i18Instance?.t(key, args) ?? key;
   }
 
-  public get locale(): string|undefined {
-    return this._locale;
-  }
-
   public setConnection(options: {
     websocket: GristServerSocket;
     req: IncomingMessage;
     counter: string|null;
     browserSettings: BrowserSettings;
+    authSession: AuthSession;
   }) {
     const {websocket, req, counter, browserSettings} = options;
     this._websocket = websocket;
     this._req = req;
     this._counter = counter;
     this.browserSettings = browserSettings;
+    if (!browserSettings.locale) { browserSettings.locale = this._locale; }
+    this._authSession = options.authSession;
 
     websocket.onerror = (err: Error) => this._onError(err);
     websocket.onclose = () => this._onClose();
     websocket.onmessage = (msg: string) => this._onMessage(msg);
+  }
+
+  public get authSession(): AuthSession {
+    return this._authSession;
   }
 
   public getConnectionRequest(): IncomingMessage|null {
@@ -347,7 +337,6 @@ export class Client {
       ...parts,
       type: 'clientConnect',
       clientId: this.clientId,
-      profile: this._profile,
       missedMessages,
       needReload,
     };
@@ -390,19 +379,6 @@ export class Client {
     return result;
   }
 
-  // Assigns the given ScopedSession to the client.
-  public setSession(session: ScopedSession): void {
-    this._session = session;
-  }
-
-  public getSession(): ScopedSession|null {
-    return this._session;
-  }
-
-  public getAltSessionId(): string|undefined {
-    return this._session?.getAltSessionId();
-  }
-
   /**
    * Destroys a client. If the same browser window reconnects later, it will get a new Client
    * object and clientId.
@@ -420,100 +396,13 @@ export class Client {
     this._destroyed = true;
   }
 
-  public setOrg(org: string): void {
-    this._org = org;
-  }
-
-  public getOrg(): string {
-    return this._org!;
-  }
-
-  public setProfile(profile: UserProfile|null): void {
-    this._profile = profile;
-    // Unset user, so that we look it up again on demand.
-    this._user = undefined;
-    this._firstLoginAt = null;
-  }
-
-  public getProfile(): UserProfile|null {
-    if (!this._profile) {
-      return {
-        name: 'Anonymous',
-        email: ANONYMOUS_USER_EMAIL,
-        anonymous: true,
-      };
-    }
-    // If we have a database, the user id and name will have been
-    // fetched before we start using the Client, so we take this
-    // opportunity to update the user name to use the latest user name
-    // in the database (important since user name is now exposed via
-    // user.Name in granular access support). TODO: might want to
-    // subscribe to changes in user name while the document is open.
-    return {...this._profile, ...this._user};
-  }
-
-  public getCachedUserId(): number|null {
-    return this._user?.id ?? null;
-  }
-
-  public getCachedUserRef(): string|null {
-    return this._user?.ref ?? null;
-  }
-
-  // Returns the userId for profile.email, or null when profile is not set; with caching.
-  public async getUserId(dbManager: HomeDBManager): Promise<number|null> {
-    if (!this._user) {
-      await this._refreshUser(dbManager);
-    }
-    return this._user?.id ?? null;
-  }
-
-  // Returns the userRef for profile.email, or null when profile is not set; with caching.
-  public async getUserRef(dbManager: HomeDBManager): Promise<string|null> {
-    if (!this._user) {
-      await this._refreshUser(dbManager);
-    }
-    return this._user?.ref ?? null;
-  }
-
-  // Returns the userId for profile.email, or throws 403 error when profile is not set.
-  public async requireUserId(dbManager: HomeDBManager): Promise<number> {
-    const userId = await this.getUserId(dbManager);
-    if (userId) { return userId; }
-    throw new ApiError(this._profile ? `user not known: ${this._profile.email}` : 'user not set', 403);
-  }
-
-  public getLogMeta(meta: {[key: string]: any} = {}) {
-    if (this._profile) { meta.email = this._user?.loginEmail || normalizeEmail(this._profile.email); }
-    // We assume the _user has already been cached, which will be true always (for all practical
-    // purposes) because it's set when the Authorizer checks this client.
-    if (this._user) { meta.userId = this._user.id; }
-    // Likewise for _firstLoginAt, which we learn along with _userId.
-    if (this._firstLoginAt) {
-      meta.age = Math.floor(moment.duration(moment().diff(this._firstLoginAt)).asDays());
-    }
-    if (this._org) { meta.org = this._org; }
-    const altSessionId = this.getAltSessionId();
-    if (altSessionId) { meta.altSessionId = altSessionId; }
-    meta.clientId = this.clientId;    // identifies a client connection, essentially a websocket
-    meta.counter = this._counter;     // identifies a GristWSConnection in the connected browser tab
-    return meta;
-  }
-
-  public getFullTelemetryMeta(): TelemetryMetadata {
-    const meta: TelemetryMetadata = {};
-    // We assume the _userId has already been cached, which will be true always (for all practical
-    // purposes) because it's set when the Authorizer checks this client.
-    if (this._user) { meta.userId = this._user.id; }
-    const altSessionId = this.getAltSessionId();
-    if (altSessionId) { meta.altSessionId = altSessionId; }
-    return meta;
-  }
-
-  private async _refreshUser(dbManager: HomeDBManager) {
-    const user = this._profile ? await this._fetchUser(dbManager) : dbManager.getAnonymousUser();
-    this._user = user ? dbManager.makeFullUser(user) : undefined;
-    this._firstLoginAt = user?.firstLoginAt || null;
+  public getLogMeta(meta: log.ILogMeta = {}): log.ILogMeta {
+    return {
+      ...meta,
+      ...this._authSession.getLogMeta(),
+      clientId: this.clientId,    // identifies a client connection, essentially a websocket
+      counter: this._counter,     // identifies a GristWSConnection in the connected browser tab
+    };
   }
 
   private async _onMessage(message: string): Promise<void> {
@@ -574,13 +463,6 @@ export class Client {
       }
     }
     await this.sendMessageOrInterrupt(response);
-  }
-
-  // Fetch the user database record from profile.email, or null when profile is not set.
-  private async _fetchUser(dbManager: HomeDBManager): Promise<User|undefined> {
-    return this._profile && this._profile.email ?
-      await dbManager.getUserByLogin(this._profile.email) :
-      undefined;
   }
 
   // Check that client still has access to all documents.  Used to determine whether

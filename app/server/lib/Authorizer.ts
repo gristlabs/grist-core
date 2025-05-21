@@ -7,7 +7,9 @@ import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
 import {UserOptions} from 'app/common/UserAPI';
 import {Document} from 'app/gen-server/entity/Document';
 import {User} from 'app/gen-server/entity/User';
+import {HomeDBAuth} from 'app/gen-server/lib/homedb/Interfaces';
 import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import type {AuthSession} from 'app/server/lib/AuthSession';
 import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
         SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -31,6 +33,7 @@ export interface RequestWithLogin extends Request {
   org?: string;
   isCustomHost?: boolean;  // when set, the request's domain is a recognized custom host linked
                            // with the specified org.
+  fullUser?: FullUser;
   users?: UserProfile[];
   userId?: number;
   user?: User;
@@ -130,6 +133,27 @@ export function getRequestProfile(req: Request|IncomingMessage,
   return profile;
 }
 
+function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: User) {
+  mreq.user = user;
+  mreq.userId = user.id;
+  mreq.userIsAuthorized = (user.id !== dbManager.getAnonymousUserId());
+
+  const fullUser = dbManager.makeFullUser(user);
+  // This is dumb, but historically, we used 'email' field inconsistently; in this Authorizer
+  // flow, it was set to the normalized email, rather than the display email. The difference is
+  // visible in the value of the `user.Email` attribute seen by access rules for **API requests**,
+  // while requests from web UI, via websocket, have 'email' set to the display email. We preserve
+  // this awful discrepancy until we find courage to risk breaking existing access rules. (The
+  // worst of it is addressed by using cases-insensitive comparisons for UserAttributes.)
+  if (fullUser.loginEmail) {
+    fullUser.email = fullUser.loginEmail;
+  }
+  mreq.fullUser = fullUser;
+  if (!mreq.users) {
+    mreq.users = [fullUser];
+  }
+}
+
 /**
  * Returns the express request object with user information added, if it can be
  * found based on passed in headers or the session.  Specifically, sets:
@@ -140,7 +164,7 @@ export function getRequestProfile(req: Request|IncomingMessage,
  *   - req.users: set for org-and-session-based logins, with list of profiles in session
  */
 export async function addRequestUser(
-  dbManager: HomeDBManager, permitStore: IPermitStore,
+  dbManager: HomeDBAuth, permitStore: IPermitStore,
   options: {
     gristServer: GristServer,
     skipSession?: boolean,
@@ -187,9 +211,7 @@ export async function addRequestUser(
         // anonymous user's profile via the api (e.g. how should the api key be managed).
         return res.status(401).send('Credentials cannot be presented for the anonymous user account via API key');
       }
-      mreq.user = user;
-      mreq.userId = user.id;
-      mreq.userIsAuthorized = true;
+      setRequestUser(mreq, dbManager, user);
       hasApiKey = true;
     }
   }
@@ -205,10 +227,7 @@ export async function addRequestUser(
     }
     const userId = dbManager.getSupportUserId();
     const user = await dbManager.getUser(userId);
-    mreq.user = user;
-    mreq.userId = userId;
-    mreq.users = [dbManager.makeFullUser(user!)];
-    mreq.userIsAuthorized = true;
+    setRequestUser(mreq, dbManager, user!);
     authDone = true;
   }
 
@@ -218,8 +237,7 @@ export async function addRequestUser(
     try {
       const permit = await permitStore.getPermit(permitKey);
       if (!permit) { return res.status(401).send('Bad request: unknown permit'); }
-      mreq.user = dbManager.getAnonymousUser();
-      mreq.userId = mreq.user.id;
+      setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
       mreq.specialPermit = permit;
     } catch (err) {
       log.error(`problem reading permit: ${err}`);
@@ -260,10 +278,7 @@ export async function addRequestUser(
         profile = candidateProfile;
         const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
         if (user) {
-          mreq.user = user;
-          mreq.users = [profile];
-          mreq.userId = user.id;
-          mreq.userIsAuthorized = true;
+          setRequestUser(mreq, dbManager, user);
         }
       }
     }
@@ -342,9 +357,8 @@ export async function addRequestUser(
             userOptions.authSubject = sessionUser.authSubject;
           }
           // In this special case of initially linking a profile, we need to look up the user's info.
-          mreq.user = await dbManager.getUserByLogin(option.email, {userOptions});
-          mreq.userId = option.id;
-          mreq.userIsAuthorized = true;
+          const user = await dbManager.getUserByLogin(option.email, {userOptions});
+          setRequestUser(mreq, dbManager, user);
         } else {
           // No profile has access to this org.  We could choose to
           // link no profile, in which case user will end up
@@ -374,9 +388,7 @@ export async function addRequestUser(
         }
         const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
         if (user) {
-          mreq.user = user;
-          mreq.userId = user.id;
-          mreq.userIsAuthorized = true;
+          setRequestUser(mreq, dbManager, user);
         }
       }
     }
@@ -384,11 +396,7 @@ export async function addRequestUser(
 
   // If no userId has been found yet, fall back on anonymous.
   if (!mreq.userId) {
-    const anon = dbManager.getAnonymousUser();
-    mreq.user = anon;
-    mreq.userId = anon.id;
-    mreq.userIsAuthorized = false;
-    mreq.users = [dbManager.makeFullUser(anon)];
+    setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
   }
 
   if (mreq.userId) {
@@ -549,15 +557,6 @@ export interface ResourceSummary {
  *
  */
 export interface Authorizer {
-  // get the id of user, or null if no authorization in place.
-  getUserId(): number|null;
-
-  // get user profile if available.
-  getUser(): FullUser|null;
-
-  // get the id of the document.
-  getDocId(): string;
-
   // get any link parameters in place when accessing the resource.
   getLinkParameters(): Record<string, string>;
 
@@ -573,14 +572,12 @@ export interface Authorizer {
   getCachedAuth(): DocAuthResult;
 }
 
-export interface DocAuthorizerOptions {
+interface DocAuthorizerOptions {
   dbManager: HomeDBManager;
-  key: DocAuthKey;
+  urlId: string;
   openMode: OpenDocMode;
   linkParameters: Record<string, string>;
-  userRef?: string|null;
-  docAuth?: DocAuthResult;
-  profile?: UserProfile;
+  authSession: AuthSession;
 }
 
 /**
@@ -591,28 +588,16 @@ export interface DocAuthorizerOptions {
 export class DocAuthorizer implements Authorizer {
   public readonly openMode: OpenDocMode;
   public readonly linkParameters: Record<string, string>;
+  private _key: DocAuthKey;
+  private _docAuth?: DocAuthResult;
   constructor(
     private _options: DocAuthorizerOptions
   ) {
     this.openMode = _options.openMode;
     this.linkParameters = _options.linkParameters;
-  }
-
-  public getUserId(): number {
-    return this._options.key.userId;
-  }
-
-  public getUser(): FullUser|null {
-    return this._options.profile ? {
-      id: this.getUserId(),
-      ref: this._options.userRef,
-      ...this._options.profile
-    } : null;
-  }
-
-  public getDocId(): string {
-    // We've been careful to require urlId === docId, see DocManager.
-    return this._options.key.urlId;
+    const {dbManager, authSession} = _options;
+    const userId = authSession.userId || dbManager.getAnonymousUserId();
+    this._key = {urlId: _options.urlId, userId, org: authSession.org || ""};
   }
 
   public getLinkParameters(): Record<string, string> {
@@ -620,26 +605,23 @@ export class DocAuthorizer implements Authorizer {
   }
 
   public async getDoc(): Promise<Document> {
-    return this._options.dbManager.getDoc(this._options.key);
+    return this._options.dbManager.getDoc(this._key);
   }
 
   public async assertAccess(role: 'viewers'|'editors'|'owners'): Promise<void> {
-    const docAuth = await this._options.dbManager.getDocAuthCached(this._options.key);
-    this._options.docAuth = docAuth;
+    const docAuth = await this._options.dbManager.getDocAuthCached(this._key);
+    this._docAuth = docAuth;
     assertAccess(role, docAuth, {openMode: this.openMode});
   }
 
   public getCachedAuth(): DocAuthResult {
-    if (!this._options.docAuth) { throw Error('no cached authentication'); }
-    return this._options.docAuth;
+    if (!this._docAuth) { throw Error('no cached authentication'); }
+    return this._docAuth;
   }
 }
 
 export class DummyAuthorizer implements Authorizer {
   constructor(public role: Role|null, public docId: string) {}
-  public getUserId() { return null; }
-  public getUser() { return null; }
-  public getDocId() { return this.docId; }
   public getLinkParameters() { return {}; }
   public async getDoc(): Promise<Document> { throw new Error("Not supported in standalone"); }
   public async assertAccess() { /* noop */ }

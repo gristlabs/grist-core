@@ -104,7 +104,7 @@ export interface AssistanceSchemaPromptV1Context
   colId: string;
 }
 
-interface AssistanceFormulaEvaluationResult {
+export interface AssistanceFormulaEvaluationResult {
   /**
    * True if an exception was raised.
    */

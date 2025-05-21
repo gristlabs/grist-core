@@ -542,6 +542,7 @@ describe('CommentAccess', function() {
         "type": [1, 1],
         "root": [true, true],
         "rowId": [1, 1],
+        "parentId": [0, 0],
         // Data is read from docData.
         "content": ["First", "Second"],
         "userRef": [ownerRef, ownerRef]
@@ -618,7 +619,8 @@ describe('CommentAccess', function() {
         content: first.content,
         root: true,
         type: 1,
-        userRef: ownerRef
+        userRef: ownerRef,
+        parentId: 0,
       }],
       // Update is sent only for existing cells.
       ["BulkUpdateRecord", "_grist_Cells", [2, 3], {
@@ -788,13 +790,13 @@ describe('CommentAccess', function() {
     deepEqual(await cliOwner.readDocUserAction(), [
       ["AddRecord", "_grist_Cells", 2, {
         "colRef": Censored, "content": "New Secret",
-        "userRef": ownerRef, "root": true, "rowId": 1, "tableRef": ChatTable, "type": 1
+        "userRef": ownerRef, "root": true, "rowId": 1, "tableRef": ChatTable, "type": 1, "parentId": 0
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
       ["AddRecord", "_grist_Cells", 2, {
         "colRef": Censored, "content": ['C'],
-        "userRef": "", "root": true, "rowId": 1, "tableRef": ChatTable, "type": 1
+        "userRef": "", "root": true, "rowId": 1, "tableRef": ChatTable, "type": 1, "parentId": 0
       }],
     ]);
 
@@ -967,7 +969,8 @@ describe('CommentAccess', function() {
         tableRef: await tableRef('Chat'),
         rowId: 1,
         root: true,
-        type: 1
+        type: 1,
+        parentId: 0
       }]
     ]);
   }

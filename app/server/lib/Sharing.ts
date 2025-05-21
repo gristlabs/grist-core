@@ -123,13 +123,14 @@ export class Sharing {
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
       };
 
-      const altSessionId = client?.getAltSessionId();
+      const altSessionId = client?.authSession.altSessionId;
       const logMeta = {
         actionNum,
         linkId: info.linkId,
         otherId: info.otherId,
         numDocActions: localActionBundle.stored.length,
         numRows: localActionBundle.stored.reduce((n, env) => n + getNumRows(env[1]), 0),
+        ...(sandboxActionBundle.numBytes ? {numBytes: sandboxActionBundle.numBytes} : {}),
         author: info.user,
         ...(altSessionId ? {session: altSessionId}: {}),
       };

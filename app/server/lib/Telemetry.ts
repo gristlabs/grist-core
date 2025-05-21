@@ -18,13 +18,14 @@ import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
 import {Activation} from 'app/gen-server/entity/Activation';
 import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {GristServer} from 'app/server/lib/GristServer';
 import {hashId} from 'app/server/lib/hashingUtils';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {stringParam} from 'app/server/lib/requestUtils';
-import {getFullUser, getLogMeta, isRequest, RequestOrSession} from 'app/server/lib/sessionUtils';
+import {getAuthSession, getLogMeta, isRequest, RequestOrSession} from 'app/server/lib/sessionUtils';
 import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
@@ -270,21 +271,15 @@ export class Telemetry implements ITelemetry {
     let isTeamSite: boolean | undefined;
     let visitorId: string | null | undefined;
     if (requestOrSession) {
-      let email: string | undefined;
-      let org: string | undefined;
-      if (isRequest(requestOrSession)) {
-        email = requestOrSession.user?.loginEmail;
-        org = requestOrSession.org;
-        if (isAnonymousUser) {
-          visitorId = this._getAndSetMatomoVisitorId(requestOrSession);
-        }
-      } else {
-        email = getFullUser(requestOrSession)?.email;
-        org = requestOrSession.client?.getOrg() ?? requestOrSession.req?.org;
+      const authSession = getAuthSession(requestOrSession);
+      if (isRequest(requestOrSession) && isAnonymousUser) {
+        visitorId = this._getAndSetMatomoVisitorId(requestOrSession);
       }
+      const email = authSession.normalizedEmail;
       if (email) {
         isInternalUser = email !== 'anon@getgrist.com' && email.endsWith('@getgrist.com');
       }
+      const org = authSession.org;
       if (org && !process.env.GRIST_SINGLE_ORG) {
         isTeamSite = !this._dbManager.isMergedOrg(org);
       }
@@ -383,7 +378,9 @@ export async function getTelemetryPrefs(
   db: HomeDBManager,
   activation?: Activation
 ): Promise<TelemetryPrefsWithSources> {
-  const GRIST_TELEMETRY_LEVEL = process.env.GRIST_TELEMETRY_LEVEL;
+  const GRIST_TELEMETRY_LEVEL = appSettings.section('telemetry').flag('level').readString({
+    envVar: 'GRIST_TELEMETRY_LEVEL'
+  });
   if (GRIST_TELEMETRY_LEVEL !== undefined) {
     const value = TelemetryLevels.check(GRIST_TELEMETRY_LEVEL);
     return {

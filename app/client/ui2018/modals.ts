@@ -630,6 +630,15 @@ export const cssModalTitle = styled('div', `
   overflow-wrap: break-word;
 `);
 
+export const cssModalSubheading = styled('div', `
+  font-size: ${vars.xlargeFontSize};
+  font-weight: ${vars.headerControlTextWeight};
+  color: ${theme.text};
+  margin: 0 0 16px 0;
+  line-height: 32px;
+  overflow-wrap: break-word;
+`);
+
 export const cssModalBody = styled('div', `
   color: ${theme.text};
   margin: 16px 0;

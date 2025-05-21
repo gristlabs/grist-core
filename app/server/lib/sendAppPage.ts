@@ -302,14 +302,19 @@ function getDocName(config: GristLoadConfig): string|null {
 /**
  * Returns a string representation of 0 or more HTML metadata elements.
  *
- * Currently includes the document description and thumbnail if the requested page is
- * for a document and the document has one set.
+ * Currently includes the noindex tag, and the document description and
+ * thumbnail if the requested page is for a document and the document has one
+ * set.
  *
  * Note: The string returned is escaped and safe to insert into HTML.
  */
 function getPageMetadataHtmlSnippet(req: express.Request, config: GristLoadConfig): string {
   const metadataElements: string[] = [];
   const maybeDoc = getDocFromConfig(config);
+
+  if (maybeDoc?.options?.allowIndex !== true) {
+    metadataElements.push('<meta name="robots" content="noindex">');
+  }
 
   metadataElements.push('<meta property="og:type" content="website">');
   metadataElements.push('<meta name="twitter:card" content="summary_large_image">');

@@ -36,6 +36,7 @@ export interface FullUser extends UserProfile {
   ref?: string|null; // Not filled for anonymous users.
   allowGoogleLogin?: boolean; // when present, specifies whether logging in via Google is possible.
   isSupport?: boolean; // set if user is a special support user.
+  firstLoginAt?: Date | null;
   prefs?: UserPrefs;
   createdAt?: Date; // Not filled for anonymous users.
 }

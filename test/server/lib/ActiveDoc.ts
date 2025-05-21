@@ -3,15 +3,16 @@ import {ServerQuery} from 'app/common/ActiveDocAPI';
 import {delay} from 'app/common/delay';
 import {BulkColValues, CellValue, fromTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
-import {GristObjCode} from 'app/plugin/GristData';
+import {CreatableArchiveFormats} from 'app/common/UserAPI';
 import {TableData} from 'app/common/TableData';
+import {GristObjCode} from 'app/plugin/GristData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {CreatableArchiveFormats} from 'app/server/lib/Archive';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
+import {AuthSession} from 'app/server/lib/AuthSession';
 import {Client} from 'app/server/lib/Client';
-import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import {guessExt} from 'app/server/lib/guessExt';
 import log from 'app/server/lib/log';
 import {timeoutReached} from 'app/server/lib/serverUtils';
@@ -823,11 +824,13 @@ describe('ActiveDoc', async function() {
   it('should not attribute Calculate actions to opening user', async function() {
     // Set up a fake test@test user session.
     const docName = 'calculate-attribution';
-    const userSession = {
-      client: new Client(null as any, null as any, null!),
-      authorizer: new DummyAuthorizer('owners', docName),
-    };
-    userSession.client.setProfile({email: 'test@test', name: 'Test McTester'});
+
+    // Make a fake client with a particular fake user.
+    const authSession = AuthSession.fromUser({id: 17, name: 'Test McTester', email: 'test@test'}, 'docs');
+    const client = new Client(null as any, null as any, null!);
+    client.setConnection({websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession});
+    const userSession = makeOptDocSession(client);
+    userSession.authorizer = new DummyAuthorizer('owners', docName);
 
     // Make a document with a cell that is set to "=NOW()"
     const activeDoc1 = await docTools.createDoc(docName);
@@ -865,16 +868,14 @@ describe('ActiveDoc', async function() {
     it('should send user info to the sandbox', async function() {
       // Set up a fake user session.
       const docName = 'user-info';
-      const userSession = makeExceptionalDocSession('system', {
-        client: new Client(null as any, null as any, '')
-      });
-      sinon.stub(userSession.client as Client, 'getCachedUserId').returns(567);
-      sinon.stub(userSession.client as Client, 'getCachedUserRef').returns('randomString');
-      sinon.stub(userSession.client as Client, 'getAltSessionId').returns('u567');
-      sinon.stub(userSession.client as Client, 'getProfile').returns({
-        email: 'test@test',
-        name: 'testUser',
-      });
+      const authSession = AuthSession.fromUser(
+        {id: 567, ref: 'randomString', name: 'testUser', email: 'test@test'},
+        '',
+        'u567'
+      );
+      const client = new Client(null as any, null as any, null!);
+      client.setConnection({websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession});
+      const userSession = makeExceptionalDocSession('system', {client});
 
       // Spy on calls to the sandbox.
       const rawPyCall = sandbox.spy(ActiveDoc.prototype, "_rawPyCall" as any);
