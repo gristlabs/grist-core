@@ -97,6 +97,7 @@ export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
 export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
 export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
 export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);
+export const openProfileSettingsPage = webdriverUtils.openProfileSettingsPage.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -2947,12 +2948,6 @@ export function addSamplesForSuite(includeTutorial = false) {
   after(async function() {
     await removeTemplatesOrg();
   });
-}
-
-export async function openProfileSettingsPage() {
-  await openAccountMenu();
-  await driver.find('.grist-floating-menu .test-dm-account-settings').click();
-  await driver.findWait('.test-account-page-login-method', 5000);
 }
 
 export async function openDocumentSettings() {

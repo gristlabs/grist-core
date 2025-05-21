@@ -309,6 +309,18 @@ export class GristWebDriverUtils {
     await this.driver.findWait('.test-site-switcher-org', 2000);
     await this.driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
   }
+
+  public async openProfileSettingsPage(): Promise<ProfileSettingsPage> {
+    await this.openAccountMenu();
+    await this.driver.find('.grist-floating-menu .test-dm-account-settings').click();
+    //close alert if it is shown
+    if (await this.isAlertShown()) {
+      await this.acceptAlert();
+    }
+    await this.driver.findWait('.test-account-page-login-method', 5000);
+    await this.waitForServer();
+    return new ProfileSettingsPage(this);
+  }
 }
 
 export interface WindowDimensions {
@@ -328,4 +340,20 @@ export interface PageWidgetPickerOptions {
   dismissTips?: boolean;
   /** Optional pattern of custom widget name to select in the gallery. */
   customWidget?: RegExp|string;
+}
+
+export class ProfileSettingsPage {
+  private _driver: WebDriver;
+  private _gu: GristWebDriverUtils;
+
+  constructor(gu: GristWebDriverUtils) {
+    this._gu = gu;
+    this._driver = gu.driver;
+  }
+
+  public async setLanguage(language: string) {
+    await this._driver.findWait('.test-account-page-language .test-select-open', 100).click();
+    await this._driver.findContentWait('.test-select-menu li', language, 100).click();
+    await this._gu.waitForServer();
+  }
 }
