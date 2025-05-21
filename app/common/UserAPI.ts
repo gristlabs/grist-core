@@ -240,13 +240,7 @@ export interface ManagerDelta {
   };
 }
 
-// Information about a user and their access to an unspecified resource of interest.
-export interface UserAccessData {
-  id: number;
-  name: string;
-  email: string;
-  ref?: string|null;
-  picture?: string|null; // When present, a url to a public image of unspecified dimensions.
+export interface UserAccess {
   // Represents the user's direct access to the resource of interest. Lack of access to a resource
   // is represented by a null value.
   access: roles.Role|null;
@@ -256,6 +250,15 @@ export interface UserAccessData {
   // access to the resource. Lack of access to the parent resource is represented by a null value.
   // If parent has non-inheritable access, this should be null.
   parentAccess?: roles.BasicRole|null;
+}
+
+// Information about a user and their access to an unspecified resource of interest.
+export interface UserAccessData extends UserAccess {
+  id: number;
+  name: string;
+  email: string;
+  ref?: string|null;
+  picture?: string|null; // When present, a url to a public image of unspecified dimensions.
   orgAccess?: roles.BasicRole|null;
   anonymous?: boolean;    // If set to true, the user is the anonymous user.
   isMember?: boolean;
@@ -264,8 +267,8 @@ export interface UserAccessData {
 /**
  * Combines access, parentAccess, and maxInheritedRole info into the resulting access role.
  */
-export function getRealAccess(user: UserAccessData, permissionData: PermissionData): roles.Role|null {
-  const inheritedAccess = roles.getWeakestRole(user.parentAccess || null, permissionData.maxInheritedRole || null);
+export function getRealAccess(user: UserAccess, inherited: {maxInheritedRole?: roles.BasicRole|null}): roles.Role|null {
+  const inheritedAccess = roles.getWeakestRole(user.parentAccess || null, inherited.maxInheritedRole || null);
   return roles.getStrongestRole(user.access, inheritedAccess);
 }
 

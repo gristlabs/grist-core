@@ -710,7 +710,7 @@ export class HomeDBManager {
                                 options: QueryOptions = {}): Promise<QueryResult<Workspace[]>> {
     const query = this._orgWorkspaces(scope, orgKey, options);
     // Allow an empty result for the merged org for the anonymous user.  The anonymous user
-    // has no home org or workspace.  For all other sitations, expect at least one workspace.
+    // has no home org or workspace.  For all other situations, expect at least one workspace.
     const emptyAllowed = this.isMergedOrg(orgKey) && scope.userId === this._usersManager.getAnonymousUserId();
     const result: QueryResult<any> = await this._verifyAclPermissions(query, { scope, emptyAllowed });
     // Return the workspaces, not the org(s).
@@ -2327,10 +2327,14 @@ export class HomeDBManager {
     const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
 
     const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
+    // The docMap gives the doc access of the user. It maps user to owners/editors/viewers/guests (member is org only),
+    // but since, doc is a leaf resource, in practice we won't have the guests group here.
     const docMap = GroupsManager.getMemberUserRoles(doc, this.defaultCommonGroupNames);
-    // The wsMap gives the ws access inherited by each user.
+    // The wsMap gives the ws access that can be inherited by each user (owners, editors, viewers)
     const wsMap = GroupsManager.getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
-    // The orgMap gives the org access inherited by each user.
+    // The wsMapWithMembership gives the ws access that users have to the workspace. Includes all groups.
+    const wsMapWithMembership = GroupsManager.getMemberUserRoles(doc.workspace, this.defaultGroupNames);
+    // The orgMap gives the org access that can be inherited by each user (owners, editors, viewers).
     const orgMap = GroupsManager.getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
     // The orgMapWithMembership gives the full access to the org for each user, including
     // the "members" level, which grants no default inheritable access but allows the user
@@ -2351,28 +2355,67 @@ export class HomeDBManager {
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)
         ),
         isMember: orgAccess && orgAccess !== 'guests',
-        isSupport: u.id === this._usersManager.getSupportUserId() ? true : undefined,
       };
     });
     let maxInheritedRole = this._groupsManager.getMaxInheritedRole(doc);
 
+    const thisUser = users.find(user => user.id === scope.userId);
+    const docRealAccess = thisUser ? getRealAccess(thisUser, {maxInheritedRole}) : null;
+    const canViewDoc = (user: UserAccessData) => roles.canView(getRealAccess(user, {maxInheritedRole}));
+    const personalMetadata: Pick<PermissionData, 'public'|'personal'> = {};
+
+    // Unlike other resources, documents rule for seeing other users are a little bit different.
+    // The simple rule is as follows:
+    // - If user is at least editor on the document (but not a public editor), then we return all users
+    //   who can see the document.
+    // - If such user is also an owner of a parent resource (workspace or org), then we include all users on
+    //   that resource, including guest users.
+
+    // Previewer user can see everyone on the list.
+    if (scope.userId === this._usersManager.getPreviewerUserId()) {
+      // No need to filter users, just return all of them.
+    } else {
+      const isPublic = !thisUser || thisUser.anonymous || !docRealAccess;
+      if (!isPublic && roles.canEdit(docRealAccess)) {
+        if (roles.canEditAccess(orgMap[scope.userId] ?? null)) {
+          // If this user is an org owner, return all users unfiltered.
+        } else if (roles.canEditAccess(thisUser?.parentAccess ?? null)) {
+          const canViewWorkspace = (user: UserAccessData) => roles.canView(getRealAccess({
+            // Figure out the access level on workspace (including inherited access from org).
+            access: wsMapWithMembership[user.id] || null,
+            parentAccess: orgMap[user.id] || null,
+          }, {maxInheritedRole: wsMaxInheritedRole}));
+          // If user is owner of the workspace, return all users on the workspace and on the document.
+          users = users.filter(user => canViewDoc(user) || canViewWorkspace(user));
+        } else {
+          // For any other editor/owner non-public user, we return all users who can see the document.
+          users = users.filter(user => canViewDoc(user));
+        }
+
+        // If user can't change access on the document, instruct UI to just show user's role.
+        if (!roles.canEditAccess(getRealAccess(thisUser, {maxInheritedRole}) ?? null)) {
+          personalMetadata.public = false;
+          personalMetadata.personal = true;
+        }
+      } else {
+        users = thisUser ? [thisUser] : [];
+        personalMetadata.public = isPublic;
+        personalMetadata.personal = true;
+      }
+    }
+
     if (options?.excludeUsersWithoutAccess) {
-      users = users.filter(user => {
-        const access = getRealAccess(user, { maxInheritedRole, users });
-        return roles.canView(access);
-      });
+      users = users.filter(canViewDoc);
     }
 
     if (forkId || snapshotId || options?.flatten) {
       for (const user of users) {
-        const access = getRealAccess(user, { maxInheritedRole, users });
+        const access = getRealAccess(user, {maxInheritedRole});
         user.access = access;
         user.parentAccess = undefined;
       }
       maxInheritedRole = null;
     }
-
-    const personal = this._filterAccessData(scope, users, maxInheritedRole, doc.id);
 
     // If we are on a fork, make any access changes needed. Assumes results
     // have been flattened.
@@ -2385,8 +2428,8 @@ export class HomeDBManager {
     return {
       status: 200,
       data: {
-        ...personal,
-        maxInheritedRole,
+        ...personalMetadata,
+        maxInheritedRole: maxInheritedRole,
         users
       }
     };
@@ -4566,7 +4609,7 @@ export class HomeDBManager {
   // connected to it directly or via subgroups.
   // Public for limited use by extensions of HomeDBManager in some flavors of Grist.
   // eslint-disable-next-line @typescript-eslint/member-ordering
-  public _joinToAllGroupUsers<T>(qb: SelectQueryBuilder<T>): SelectQueryBuilder<T> {
+  public _joinToAllGroupUsers<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>): SelectQueryBuilder<T> {
     return qb
       .leftJoin('group_groups', 'gg1', 'gg1.group_id = acl_rules.group_id')
       .leftJoin('group_groups', 'gg2', 'gg2.group_id = gg1.subgroup_id')
@@ -4873,7 +4916,7 @@ export class HomeDBManager {
     const thisUser = this._usersManager.getAnonymousUserId() === scope.userId
       ? null
       : users.find(user => user.id === scope.userId);
-    const realAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole, users }) : null;
+    const realAccess = thisUser ? getRealAccess(thisUser, {maxInheritedRole}) : null;
 
     // If we are an owner, don't filter user information.
     if (thisUser && realAccess === 'owners') { return; }

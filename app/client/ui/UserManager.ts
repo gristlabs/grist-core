@@ -503,10 +503,11 @@ export class UserManager extends Disposable {
   }
 
   private _buildSelfAccessDom() {
+    const meComputed = Computed.create(this,
+      use => use(this._model.membersEdited).find(m => m.id === this._model.activeUser?.id));
     return dom('div',
-      dom.domComputed(this._model.membersEdited, members =>
-        members[0] ? this._buildMemberDom(members[0]) : null
-      ),
+      dom.autoDispose(meComputed),
+      dom.domComputed(meComputed, me => me ? this._buildMemberDom(me) : null),
       testId('um-members'),
     );
   }

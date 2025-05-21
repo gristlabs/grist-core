@@ -1,5 +1,5 @@
 import {Role} from 'app/common/roles';
-import {PermissionData, PermissionDelta} from 'app/common/UserAPI';
+import {getRealAccess, PermissionData, PermissionDelta, UserAPI} from 'app/common/UserAPI';
 import {Deps} from 'app/gen-server/ApiServer';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
@@ -17,6 +17,7 @@ import * as sinon from 'sinon';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {configForUser} from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
+import * as roles from 'app/common/roles';
 
 const assert = chai.assert;
 
@@ -46,6 +47,9 @@ let charonRef = '';
 // Test concerns only access-related functions of the ApiServer. Created to help break up the
 // large amount of tests on the ApiServer.
 describe('ApiServerAccess', function() {
+  if (process.env.DEBUG) {
+    this.timeout('10m');
+  }
 
   testUtils.setTmpLogLevel('error');
 
@@ -1582,6 +1586,287 @@ describe('ApiServerAccess', function() {
     assert.equal(resp.status, 403);
   });
 
+  describe('GET /api/docs/{did}/access shows collaborators', async function() {
+    // Chimpy will be our org owner.
+    let thisDoc = ''; // This is a default document we will work with
+    let thisWs = 0; // This is the default workspace we will work with
+    let otherDocInWs = '';
+    const hamEmail = 'ham@getgrist.com';
+    let otherWs = 0;
+    let chimpyApi: UserAPI, kiwiApi: UserAPI, charonApi: UserAPI, hamApi: UserAPI, anonApi: UserAPI;
+
+    // This is the structure for Fish org.
+    // Fish: {
+    //   members: {
+    //     Chimpy: 'owners',
+    //     Kiwi: 'editors',
+    //     Charon: 'viewers'
+    //   },
+    //   workspaces: [
+    //     { name: 'Small', docs: ['Anchovy', 'Herring'] }
+    //     { name: 'Big', docs: ['Shark'] },
+    //   ]
+    // },
+
+    before(async function() {
+      // Create a new document and add some users to it.
+      chimpyApi = await server.createHomeApi('chimpy', 'fish', true);
+      kiwiApi = await server.createHomeApi('kiwi', 'fish', true);
+      charonApi = await server.createHomeApi('charon', 'fish', true);
+      hamApi = await server.createHomeApi('ham', 'fish', true, false);
+      anonApi = await server.createHomeApi('anonymous', 'fish', true, false);
+
+      otherWs = await chimpyApi.getOrgWorkspaces('fish').then(w => w.find(w => w.name === 'Big')!.id);
+      thisWs = await chimpyApi.getOrgWorkspaces('fish').then(w => w.find(w => w.name === 'Small')!.id);
+
+      thisDoc = await chimpyApi.getWorkspace(thisWs).then(w => w.docs.find(d => d.name === 'Anchovy')!.id);
+      otherDocInWs = await chimpyApi.getWorkspace(thisWs).then(w => w.docs.find(d => d.name === 'Herring')!.id);
+    });
+
+    // Each test will revert all changes in the permissions.
+
+    it('org owners should see all users', async function() {
+      // Owner see everyone.
+      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi']);
+
+      // Add Ham as a guest to the workspace.
+      let revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.VIEWER);
+
+      // Now we see the guest.
+      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi', 'Ham']);
+
+      // Add Ham as a guest to the doc.
+      await revert();
+      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi']);
+      revert = await shareDoc(chimpyApi, hamEmail, thisDoc, roles.VIEWER);
+      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi', 'Ham']);
+      await revert();
+
+      // Break the inheritance for the doc.
+      await breakInheritance(chimpyApi, thisDoc);
+
+      // Owner still see everyone.
+      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi']);
+
+      // Even ws level guests.
+      revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.VIEWER);
+      await check(chimpyApi, thisDoc, ['Chimpy', 'Charon', 'Kiwi', 'Ham']);
+      await revert();
+
+      // Restore the inheritance for the doc.
+      await fullInheritance(chimpyApi, thisDoc);
+    });
+
+    it('viewers should see themselves only', async function() {
+      // Add Ham as doc viewer guest.
+      let revert = await shareDoc(chimpyApi, hamEmail, thisDoc, roles.VIEWER);
+      await check(charonApi, thisDoc, ['Charon']);
+      await check(hamApi, thisDoc,  ['Ham']);
+      await revert();
+
+      // Add Ham as ws viewer guest.
+      revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.VIEWER);
+      await check(charonApi, thisDoc, ['Charon']);
+      await check(hamApi, thisDoc, ['Ham']);
+      await revert();
+    });
+
+    it('anonymous should see no one', async function() {
+      // Sanity check that anonymous user don't have access.
+      await assert.isRejected(anonApi.getDocAccess(thisDoc));
+      // Make doc public as viewers.
+      let revert = await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.VIEWER);
+      await check(anonApi, thisDoc, []);
+      await check(charonApi, thisDoc, ['Charon']);
+      await revert();
+
+      // Make ws public as viewers.
+      revert = await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.EDITOR);
+      await check(anonApi, thisDoc, []);
+      await check(charonApi, thisDoc, ['Charon']);
+      await revert();
+    });
+
+    it('non-team collaborators should see only users with access to doc', async function() {
+      // First lets remove charon from the org.
+      await unshareOrg(chimpyApi, charonEmail);
+
+      // And make him an owner of the second ws (Big)
+      await shareWs(chimpyApi, otherWs, charonEmail, roles.OWNER);
+
+      // Now lets see what ham (as guest) sees. Make him a guest editor on the thisDoc.
+      await shareDoc(chimpyApi, hamEmail, thisDoc, roles.EDITOR);
+
+      // Ham does not see Charon, as he is not a team member.
+      await check(hamApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi']);
+
+      // Check if Ham will see Charon if he is an owner of a doc in the same ws.
+      await unshareWs(chimpyApi, charonEmail, otherWs);
+      await shareDoc(chimpyApi, charonEmail, otherDocInWs, roles.OWNER);
+      // He still can't see him.
+      await check(hamApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi']);
+      // Check what Kiwi sees as a team member (editor on org). Charon should not be listed.
+      await check(kiwiApi, thisDoc, ['Chimpy', 'Ham', 'Kiwi' ]);
+      // But Chimpy sees everyone.
+      await check(chimpyApi, thisDoc, ['Charon', 'Chimpy', 'Ham', 'Kiwi']);
+
+      // Revert all.
+      await unshareDoc(chimpyApi, charonEmail, otherDocInWs);
+      await shareOrg(chimpyApi, charonEmail, roles.VIEWER);
+    });
+
+    it('doc collaborators should see users with view access on doc', async function() {
+      // Add Ham as workspace editor (so now he is a guest in the org)
+      let revert = await shareWs(chimpyApi, thisWs, hamEmail, roles.EDITOR);
+
+      // Team editor can see all doc collaborators
+      await check(kiwiApi, thisDoc, [
+        'Chimpy', 'Charon', 'Kiwi', 'Ham'
+      ]);
+      // Workspace editor can see all doc collaborators
+      await check(hamApi, thisDoc, [
+        'Chimpy', 'Charon', 'Kiwi', 'Ham'
+      ]);
+      await revert();
+
+      // Add Ham as doc editor guest.
+      revert = await shareDoc(chimpyApi, hamEmail, thisDoc, roles.EDITOR);
+      await check(kiwiApi, thisDoc, [
+        'Chimpy', 'Charon', 'Kiwi', 'Ham'
+      ]);
+      await check(hamApi, thisDoc, [
+        'Chimpy', 'Charon', 'Kiwi', 'Ham'
+      ]);
+      await revert();
+
+      // Now break the inheritance for the doc.
+      await breakInheritance(chimpyApi, thisDoc);
+
+      // No-one has access to the doc now.
+      await assert.isRejected(kiwiApi.getDocAccess(thisDoc));
+      await assert.isRejected(charonApi.getDocAccess(thisDoc));
+
+      // Share this doc with Kiwi as editor.
+      revert = await shareDoc(chimpyApi, kiwiEmail, thisDoc, roles.EDITOR);
+
+      // Kiwi is a team editor without any ownership, so he will only see doc collaborators
+      await check(kiwiApi, thisDoc, [
+        'Chimpy', 'Kiwi'
+      ]);
+
+      // Since Charon has no access to the doc, Kiwi doesn't see Charon listed at all.
+      assert.notInclude(await listUsers(kiwiApi, thisDoc), charonEmail);
+
+      // Chimpy should see Charon on the list without any access.
+      const charonAccess = await realAccess(chimpyApi, charonEmail, thisDoc);
+      assert.isNull(charonAccess);
+
+      // Sanity check for Chimpy access.
+      const chimpyAccess = await realAccess(kiwiApi, chimpyEmail, thisDoc);
+      assert.equal(chimpyAccess, roles.OWNER);
+
+      // Revert changes.
+      await revert();
+      await fullInheritance(chimpyApi, thisDoc);
+    });
+
+    it('public users see only themselves', async function() {
+      // Remove Kiwi from the org.
+      await unshareOrg(chimpyApi, kiwiEmail);
+
+      // Break the inheritance for the doc.
+      await breakInheritance(chimpyApi, thisDoc);
+
+      // Sanity check that Charon can't access the doc.
+      await assert.isRejected(charonApi.getDocAccess(thisDoc));
+
+      // Make doc public for viewers, now Charon can see it.
+      await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.VIEWER);
+      await assert.isFulfilled(charonApi.getDocAccess(thisDoc));
+      // And Charon can see only himself, he is public viewer.
+      await check(charonApi, thisDoc, ['Charon']);
+      // Make him public editor.
+      await shareDoc(chimpyApi, everyoneEmail, thisDoc, roles.EDITOR);
+      // Still, though he is team member, he has public access to the doc.
+      await check(charonApi, thisDoc, ['Charon']);
+      // Kiwi is an outside collaborator, so the list is empty, as grist treats Kiwi as anonymous
+      await assert.isFulfilled(kiwiApi.getDocAccess(thisDoc));
+      await check(kiwiApi, thisDoc, []);
+
+      // Revert all.
+      await unshareDoc(chimpyApi, everyoneEmail, thisDoc);
+      await fullInheritance(chimpyApi, thisDoc);
+      await shareOrg(chimpyApi, kiwiEmail, roles.EDITOR);
+    });
+
+    it('workspace owner should see all users from workspace', async function() {
+      // Remove everyone from the the org.
+      await unshareOrg(chimpyApi, kiwiEmail);
+      await unshareOrg(chimpyApi, charonEmail);
+
+      // Make Kiwi a workspace owner.
+      await shareWs(chimpyApi, thisWs, kiwiEmail, roles.OWNER);
+      // Share the other doc with Charon as an Editor. He is now a guest in the workspace.
+      await shareDoc(chimpyApi, charonEmail, otherDocInWs, roles.EDITOR);
+      // Now test what Ham would see as a guest editor.
+      await shareDoc(chimpyApi, hamEmail, thisDoc, roles.EDITOR);
+      // He will see only doc collaborators (so not Charon).
+      await check(hamApi, thisDoc, [
+        'Chimpy', 'Kiwi', 'Ham'
+      ]);
+      // But Kiwi as a workspace owner will see Charon.
+      await check(kiwiApi, thisDoc, [
+        'Chimpy', 'Kiwi', 'Ham', 'Charon'
+      ]);
+
+      // Make sure Kiwi, despite being a workspace owner, does not see Ham as a team member.
+      await unshareDoc(chimpyApi, hamEmail, thisDoc);
+      await shareOrg(chimpyApi, hamEmail, roles.EDITOR);
+      // With full inheritance, Kiwi can see Ham.
+      await check(kiwiApi, thisDoc, [
+        'Chimpy', 'Kiwi', 'Charon', 'Ham'
+      ]);
+
+      // Without workspace inheritance, Kiwi won't see Ham (he is a editor member of the org).
+      await breakInheritance(chimpyApi, thisWs);
+      await check(kiwiApi, thisDoc, [
+        'Chimpy', 'Kiwi', 'Charon'
+      ]);
+
+      // If we break inheritance for the doc, Kiwi won't be able to access document (despite being a ws owner).
+      await breakInheritance(chimpyApi, thisDoc);
+      await assert.isRejected(kiwiApi.getDocAccess(thisDoc));
+
+      // Now share this doc with Kiwi as a viewer.
+      await shareDoc(chimpyApi, kiwiEmail, thisDoc, roles.VIEWER);
+
+      // Kiwi still only sees Kiwi, as this is what viewer can see.
+      await check(kiwiApi, thisDoc, [
+        'Kiwi'
+      ]);
+
+      await unshareDoc(chimpyApi, kiwiEmail, thisDoc);
+      await assert.isRejected(kiwiApi.getDocAccess(thisDoc));
+
+      // Revert all.
+      await fullInheritance(chimpyApi, thisDoc);
+      await fullInheritance(chimpyApi, thisWs);
+      await unshareDoc(chimpyApi, charonEmail, otherDocInWs);
+      await unshareOrg(chimpyApi, hamEmail);
+      await shareOrg(chimpyApi, kiwiEmail, roles.EDITOR);
+      await shareOrg(chimpyApi, charonEmail, roles.EDITOR);
+    });
+
+    async function sees(view: UserAPI, doc: string) {
+      const access = await view.getDocAccess(doc);
+      return access.users.map((u: any) => u.name).sort();
+    }
+
+    async function check(userApi: UserAPI, doc: string, list: string[]) {
+      assert.deepEqual(await sees(userApi, doc), list.sort());
+    }
+  });
+
   it('should show special users if they are added', async function() {
     // TODO We may want to expose special flags in requests and responses rather than allow adding
     // and retrieving special email addresses. For now, just make sure that if we succeed adding a
@@ -2069,4 +2354,94 @@ async function testAllowNonOwnersToRemoveThemselves(url: string) {
     }
   }, kiwi);
   assert.equal(resp.status, 200);
+}
+
+async function listUsers(view: UserAPI, doc: string) {
+  return (await view.getDocAccess(doc)).users.map((u: any) => u.email);
+}
+
+async function realAccess(view: UserAPI, email: string, doc: string) {
+  const access = await view.getDocAccess(doc);
+  const user = access.users.find((u: any) => u.email === email);
+  if (!user) {
+    throw new Error(`User ${email} not found in doc ${doc}`);
+  }
+  const effective = getRealAccess(user, access);
+  return effective;
+}
+
+async function breakInheritance(api: UserAPI, docWs: string|number) {
+  if (typeof docWs === 'number') {
+    await api.updateWorkspacePermissions(docWs, {
+      maxInheritedRole: null,
+    });
+  } else {
+    // Break inheritance for the doc.
+    await api.updateDocPermissions(docWs, {
+      maxInheritedRole: null,
+    });
+  }
+}
+
+async function fullInheritance(api: UserAPI, docWs: string | number) {
+  if (typeof docWs === 'number') {
+    await api.updateWorkspacePermissions(docWs, {
+      maxInheritedRole: 'owners',
+    });
+  } else {
+    await api.updateDocPermissions(docWs, {
+      maxInheritedRole: 'owners',
+    });
+  }
+}
+
+async function unshareDoc(api: UserAPI, email: string, doc: string) {
+  await api.updateDocPermissions(doc, {
+    users: {
+      [email]: null
+    }
+  });
+}
+
+async function unshareWs(api: UserAPI, email: string, wsId: number) {
+  await api.updateWorkspacePermissions(wsId, {
+    users: {
+      [email]: null
+    }
+  });
+}
+
+async function unshareOrg(api: UserAPI, email: string) {
+  await api.updateOrgPermissions('fish', {
+    users: {
+      [email]: null
+    }
+  });
+}
+
+async function shareDoc(api: UserAPI, email: string, doc: string, role: roles.BasicRole) {
+  await api.updateDocPermissions(doc, {
+    users: {
+      [email]: role
+    }
+  });
+  return () => unshareDoc(api, email, doc);
+}
+
+async function shareWs(api: UserAPI, wsId: number, email: string, role: roles.BasicRole) {
+  await api.updateWorkspacePermissions(wsId, {
+    users: {
+      [email]: role
+    }
+  });
+  return () => unshareWs(api, email, wsId);
+}
+
+async function shareOrg(api: UserAPI, email: string, role: roles.BasicRole) {
+  await api.updateOrgPermissions('fish', {
+    users: {
+      [email]: role
+    }
+  });
+  return () => unshareOrg(api, email);
 }
