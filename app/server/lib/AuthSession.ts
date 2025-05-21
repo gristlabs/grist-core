@@ -8,8 +8,8 @@
  * well as methods that attempt to deal with it a bit more consistency.
  *
  * Here we make an attempt to simplify the situation:
- * (1) AuthSession represents the user and session, and is available both in Request and in Client
- *     as the member .authSession.
+ * (1) AuthSession represents the user and session, and is available for a Request as
+ *     AuthSession.fromReq(req) and for a Client as client.authSession.
  * (2) DocSession has fields specific to a particular Grist document. It is made available in
  *     Request and in Client as the member .docSession, once it's known that those requests
  *     represent a particular document.

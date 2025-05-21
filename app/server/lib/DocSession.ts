@@ -1,8 +1,10 @@
 import {BrowserSettings} from 'app/common/BrowserSettings';
+import {decodeLinkParameters} from 'app/common/gristUrls';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {AuthSession} from 'app/server/lib/AuthSession';
 import {Client} from 'app/server/lib/Client';
+import type {DocAuthorizer} from 'app/server/lib/DocAuthorizer';
 
 /**
  * OptDocSession allows for certain ActiveDoc operations to work with or without an open document.
@@ -28,18 +30,26 @@ export class OptDocSession extends AuthSession {
 
   // special permissions for creating, plugins, system, and share access
   public mode?: 'nascent'|'plugin'|'system'|'share';
-  public authorizer?: Authorizer;
+  public authorizer?: DocAuthorizer;
   public forkingAsOwner?: boolean;  // Set if it is appropriate in a pre-fork state to become an owner.
+  public linkParameters?: Record<string, string>;
 
   private get _authSession(): AuthSession {
     return this.client?.authSession ?? (this.req ? AuthSession.fromReq(this.req) : AuthSession.unauthenticated());
   }
 
-  constructor(options: {client?: Client|null, browserSettings?: BrowserSettings, req?: RequestWithLogin}) {
+  constructor(options: {
+    client?: Client|null,
+    browserSettings?: BrowserSettings,
+    req?: RequestWithLogin,
+    linkParameters?: Record<string, string>,
+  }) {
     super();
     this.client = options.client ?? null;
     this.browserSettings = options.browserSettings ?? (this.client?.browserSettings);
     this.req = options.req;
+    this.linkParameters = options.linkParameters ??
+      (this.req?.url ? decodeLinkParameters(new URLSearchParams(this.req.url.split('?')[1])) : undefined);
   }
 
   // Expose AuthSession interface directly. Note that other AuthSession helper methods are also
@@ -82,16 +92,33 @@ export function docSessionFromRequest(req: RequestWithLogin): OptDocSession {
 }
 
 /**
- * DocSession objects maintain information for a single session<->doc instance.
- * The main difference with OptDocSession is that there is a definite activeDoc and client.
+ * DocSessionPrecursor is used in DocManager while opening a document. It's close to a full
+ * DocSession, and is used to create a full DocSession once we have an activeDoc and fd.
  */
-export class DocSession extends OptDocSession {
-  constructor(
-    public readonly activeDoc: ActiveDoc,
-    public readonly client: Client,
-    public readonly fd: number,
-    public readonly authorizer: Authorizer
-  ) {
-    super(client);
+export class DocSessionPrecursor extends OptDocSession {
+  public readonly client: Client;
+  public readonly authorizer: DocAuthorizer;
+
+  constructor(client: Client, authorizer: DocAuthorizer, options: {
+    linkParameters?: Record<string, string>,
+  }) {
+    super({...options, client});
+    this.client = client;
+    this.authorizer = authorizer;
+  }
+}
+
+/**
+ * DocSession objects maintain information for a single session<->doc instance.
+ * Unlike OptDocSession, it has a definite activeDoc, client, authorizer, and fd.
+ */
+export class DocSession extends DocSessionPrecursor {
+  public readonly activeDoc: ActiveDoc;
+  public readonly fd: number;
+
+  constructor(ds: DocSessionPrecursor, activeDoc: ActiveDoc, fd: number) {
+    super(ds.client, ds.authorizer, {linkParameters: ds.linkParameters});
+    this.activeDoc = activeDoc;
+    this.fd = fd;
   }
 }

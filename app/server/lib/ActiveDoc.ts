@@ -110,7 +110,7 @@ import {
 } from 'app/server/lib/IAssistant';
 import {AssistanceContextV1} from 'app/common/Assistance';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
-import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
@@ -157,7 +157,7 @@ import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileMa
 import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
-import {DocSession, makeExceptionalDocSession, OptDocSession} from './DocSession';
+import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
 import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
@@ -600,11 +600,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Adds a client of this doc to the list of connected clients.
    * @param client: The client object maintaining the websocket connection.
-   * @param authorizer: The authorizer for the client/doc combination.
+   * @param docSessionPrecursor: The incomplete docSession, to be filled in and turned into real DocSession.
    * @returns docSession
    */
-  public addClient(client: Client, authorizer: Authorizer): DocSession {
-    const docSession: DocSession = this.docClients.addClient(client, authorizer);
+  public addClient(client: Client, docSessionPrecursor: DocSessionPrecursor): DocSession {
+    const docSession: DocSession = this.docClients.addClient(client, docSessionPrecursor);
 
     // If we had a shutdown scheduled, unschedule it.
     if (this._inactivityTimer.isEnabled()) {
@@ -1642,13 +1642,9 @@ export class ActiveDoc extends EventEmitter {
     const isAnonymous = this._docManager.isAnonymous(userId);
 
     // Get fresh document metadata (the cached metadata doesn't include the urlId).
-    let doc: Document | undefined;
-    if (docSession.authorizer) {
-      doc = await docSession.authorizer.getDoc();
-    } else if (docSession.req) {
-      doc = await dbManager.getDoc(docSession.req);
-    }
-    if (!doc) { throw new Error('Document not found'); }
+    const reqOrScope = docSession.authorizer?.getAuthKey() || docSession.req;
+    if (!reqOrScope) { throw new Error('Document not found'); }
+    const doc = await dbManager.getDoc(reqOrScope);
 
     // Don't allow creating forks of forks (for now).
     if (doc.trunkId) { throw new ApiError("Cannot fork a document that's already a fork", 400); }

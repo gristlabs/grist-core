@@ -340,7 +340,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * created by user-attribute rules.
    */
   public async getUser(docSession: OptDocSession): Promise<User> {
-    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
+    const linkParameters = docSession.linkParameters || {};
     let access: Role | null;
     let fullUser: FullUser | null;
     const attrs = this._getUserAttributes(docSession);
@@ -1243,7 +1243,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * document (as opposed to document-level operations).
    */
   public async getNominalAccess(docSession: OptDocSession): Promise<Role|null> {
-    const linkParameters = docSession.authorizer?.getLinkParameters() || {};
+    const linkParameters = docSession.linkParameters || {};
     const baseAccess = getDocSessionAccess(docSession);
     if ((linkParameters.aclAsUserId || linkParameters.aclAsUser) && baseAccess === 'owners') {
       const info = await this.getUser(docSession);

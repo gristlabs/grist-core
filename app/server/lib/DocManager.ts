@@ -16,11 +16,12 @@ import {tbind} from 'app/common/tbind';
 import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
-        RequestWithLogin} from 'app/server/lib/Authorizer';
+import {isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
 import {Client} from 'app/server/lib/Client';
-import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {DocSessionPrecursor,
+        makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -320,10 +321,11 @@ export class DocManager extends EventEmitter {
     if (typeof options === 'string') {
       throw new Error('openDoc call with outdated parameter type');
     }
+
     const openMode: OpenDocMode = options?.openMode || 'default';
     const linkParameters = options?.linkParameters || {};
     const originalUrlId = options?.originalUrlId;
-    let auth: Authorizer;
+    let auth: DocAuthorizer;
     const dbManager = this._homeDbManager;
     if (!isSingleUserMode()) {
       if (!dbManager) { throw new Error("HomeDbManager not available"); }
@@ -335,7 +337,7 @@ export class DocManager extends EventEmitter {
       // right doc when we re-query the DB over the life of the websocket.
       const useShareUrlId = Boolean(originalUrlId && parseUrlId(originalUrlId).shareKey);
       const urlId = useShareUrlId ? originalUrlId! : docId;
-      auth = new DocAuthorizer({dbManager, urlId, openMode, linkParameters, authSession: client.authSession});
+      auth = new DocAuthorizerImpl({dbManager, urlId, openMode, authSession: client.authSession});
       await auth.assertAccess('viewers');
       const docAuth = auth.getCachedAuth();
       if (docAuth.docId !== docId) {
@@ -348,15 +350,14 @@ export class DocManager extends EventEmitter {
       auth = new DummyAuthorizer('owners', docId);
     }
 
-    // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
-    const docSessionPrecursor = makeOptDocSession(client);
-    docSessionPrecursor.authorizer = auth;
+    const docSessionPrecursor: DocSessionPrecursor = new DocSessionPrecursor(client, auth, {linkParameters});
 
+    // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
     return this._withUnmutedDoc(docSessionPrecursor, docId, async () => {
       const activeDoc: ActiveDoc = await this.fetchDoc(docSessionPrecursor, docId);
 
       // Get a fresh DocSession object.
-      const docSession = activeDoc.addClient(client, auth);
+      const docSession = activeDoc.addClient(client, docSessionPrecursor);
 
       // If opening in (pre-)fork mode, check if it is appropriate to treat the user as
       // an owner for granular access purposes.

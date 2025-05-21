@@ -47,6 +47,8 @@ import {Workspace} from 'app/gen-server/entity/Workspace';
 import {GroupsManager} from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
+  DocAuthKey,
+  DocAuthResult,
   DocumentAccessChanges,
   GetUserOptions,
   GroupDescriptor,
@@ -221,25 +223,6 @@ type AccessStyle = 'list' | 'open' | 'openNoPublic';
 // A Scope for documents, with mandatory urlId.
 export interface DocScope extends Scope {
   urlId: string;
-}
-
-// Identifies a request to access a document. This combination of values is also used for caching
-// DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.
-export interface DocAuthKey {
-  urlId: string;              // May be docId. Must be unambiguous in the context of the org.
-  userId: number;             // The user accessing this doc. (Could be the ID of Anonymous.)
-  org?: string;               // Undefined if unknown (e.g. in API calls, but needs unique urlId).
-}
-
-// Document auth info. This is the minimum needed to resolve user access checks. For anything else
-// (e.g. doc title), the uncached getDoc() call should be used.
-export interface DocAuthResult {
-  docId: string|null;         // The unique identifier of the document. Null on error.
-  access: roles.Role|null;    // The access level for the requesting user. Null on error.
-  removed: boolean|null;      // Set if the doc is soft-deleted. Users may still have access
-                              // to removed documents for some purposes. Null on error.
-  error?: ApiError;
-  cachedDoc?: Document;       // For cases where stale info is ok.
 }
 
 // Represent a DocAuthKey as a string.  The format is "<urlId>:<org> <userId>".
