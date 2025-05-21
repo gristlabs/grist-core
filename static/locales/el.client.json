@@ -878,7 +878,9 @@
         "Compact": "Συμπαγής",
         "Section: ": "Τμήμα: ",
         "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Οι μεγάλοι πίνακες ενδέχεται να επισημαίνονται ως \"κατ' απαίτηση\" για να αποφευχθεί η φόρτωσή τους στη μηχανή δεδομένων.",
-        "Unmark On-Demand": "Κατάργηση Σήμανσης Κατ' Απαίτηση"
+        "Unmark On-Demand": "Κατάργηση Σήμανσης Κατ' Απαίτηση",
+        "⚠️ Deprecated Feature": "⚠️ Καταργημένη λειτουργία",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Οι πίνακες κατ' απαίτηση έχουν καταργηθεί λόγω έλλειψης λειτουργικότητας και ζητημάτων χρηστικότητας."
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Σύνθετη Ταξινόμηση & Φιλτράρισμα",
