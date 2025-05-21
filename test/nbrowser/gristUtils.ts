@@ -98,6 +98,7 @@ export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
 export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
 export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);
 export const openProfileSettingsPage = webdriverUtils.openProfileSettingsPage.bind(webdriverUtils);
+export const undo = webdriverUtils.undo.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -1508,18 +1509,6 @@ export async function removeTable(tableId: string, options: {dismissTips?: boole
   await driver.findWait(".test-modal-confirm", 100).click();
   await waitForServer();
 }
-
-/**
- * Click the Undo button and wait for server. If optCount is given, click Undo that many times.
- */
-export async function undo(optCount: number = 1, optTimeout?: number) {
-  await waitForServer(optTimeout);
-  for (let i = 0; i < optCount; ++i) {
-    await driver.find('.test-undo').doClick();
-    await waitForServer(optTimeout);
-  }
-}
-
 
 /**
  * Returns a function to undo all user actions from a particular point in time.
