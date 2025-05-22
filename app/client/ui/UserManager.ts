@@ -12,7 +12,7 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, DomElementArg, Observable, observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observable, styled} from 'grainjs';
 import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
@@ -206,6 +206,8 @@ function buildUserManagerModal(
  * Usage:
  *    const um = new UserManager(model);
  *    um.buildDom();
+ *
+ * Exported for tests.
  */
 export class UserManager extends Disposable {
   private _dom: HTMLDivElement;
@@ -228,6 +230,10 @@ export class UserManager extends Disposable {
       return this._buildSelfPublicAccessDom();
     }
 
+    if (this._model.hasOverview) {
+      return this._buildOverviewAccessDom();
+    }
+
     if (this._model.isPersonal) {
       return this._buildSelfAccessDom();
     }
@@ -246,7 +252,7 @@ export class UserManager extends Disposable {
       this._dom = shadowScroll(
         testId('um-members'),
         this._buildPublicAccessMember(),
-        dom.forEach(this._model.membersEdited, (member) => this._buildMemberDom(member)),
+        dom.forEach(this._model.membersEdited, (member) => this._buildMemberDom({member})),
       ),
     ];
   }
@@ -325,11 +331,16 @@ export class UserManager extends Disposable {
   }
 
   // Build a single member row.
-  private _buildMemberDom(member: IEditableMember) {
-    const disableRemove = Computed.create(null, (use) => this._options.isReadonly || (
-      this._model.isPersonal ? !member.origAccess :
-      Boolean(this._model.isActiveUser(member) || use(member.inheritedAccess)))
-    );
+  private _buildMemberDom({member, readonly}: {member: IEditableMember; readonly?: boolean;}) {
+    const disableRemove = Computed.create(null, (use) => {
+      if (this._options.isReadonly || readonly) {
+        return true;
+      }
+      if (this._model.isPersonal) {
+        return !member.origAccess;
+      }
+      return Boolean(this._model.isActiveUser(member) || use(member.inheritedAccess));
+    });
     return dom('div',
       dom.autoDispose(disableRemove),
       dom.maybe((use) => use(member.effectiveAccess) && use(member.effectiveAccess) !== roles.GUEST, () =>
@@ -372,7 +383,7 @@ export class UserManager extends Disposable {
           ),
           testId('um-member')
         )
-      )
+      ),
     );
   }
 
@@ -502,13 +513,31 @@ export class UserManager extends Disposable {
     );
   }
 
-  private _buildSelfAccessDom() {
+  private _buildSelfAccessDom(...args: IDomArgs<HTMLDivElement>) {
     const meComputed = Computed.create(this,
       use => use(this._model.membersEdited).find(m => m.id === this._model.activeUser?.id));
     return dom('div',
       dom.autoDispose(meComputed),
-      dom.domComputed(meComputed, me => me ? this._buildMemberDom(me) : null),
+      dom.domComputed(meComputed, me => me ? this._buildMemberDom({member: me}) : null),
       testId('um-members'),
+      ...args,
+    );
+  }
+
+  private _buildOverviewAccessDom() {
+    const othersComputed = Computed.create(this,
+      use => use(this._model.membersEdited).filter(m => m.id !== this._model.activeUser?.id));
+    return this._buildSelfAccessDom(
+      dom.autoDispose(othersComputed),
+      dom.domComputed(othersComputed, others => dom('div',
+        !others.length ? null : [
+          cssAccessOverview(t('Access overview')),
+          cssAccessOverviewList(
+            dom.forEach(others, (member) => this._buildMemberDom({member, readonly: true})),
+          ),
+          testId('um-access-overview')
+        ]
+      ))
     );
   }
 
@@ -802,6 +831,19 @@ const cssOrgName = styled('div', `
 
 const cssOrgDomain = styled('span', `
   color: ${theme.accentText};
+`);
+
+const cssAccessOverviewList = styled('div', `
+  max-height: min(374px, calc(100vh - 374px));
+  overflow-y: auto;
+`);
+
+const cssAccessOverview = styled('div', `
+  font-size: 16px;
+  margin-left: 64px;
+  margin-bottom: 14px;
+  margin-top: 16px;
+  font-weight: 600;
 `);
 
 const cssTitle = styled(cssModalTitle, `
