@@ -15,6 +15,7 @@ import {
 } from 'app/common/ThemePrefs';
 import { getThemeTokens } from 'app/common/Themes';
 import { getGristConfig } from 'app/common/urlUtils';
+import { isFeatureEnabled } from 'app/common/gristUrls';
 import { Computed, Observable } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
@@ -60,7 +61,7 @@ export function gristThemeObs() {
   if (!_gristThemeObs) {
     _gristThemeObs = Computed.create(null, (use) => {
       // Default to light theme if themes are disabled in config.
-      if (!getGristConfig().features?.includes('themes')) { return DEFAULT_LIGHT_THEME; }
+      if (!isFeatureEnabled('themes')) { return DEFAULT_LIGHT_THEME; }
 
       // If a user's preference is known, return it.
       const themePrefs = use(gristThemePrefs);

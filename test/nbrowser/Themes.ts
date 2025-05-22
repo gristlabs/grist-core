@@ -40,7 +40,6 @@ const assertAppliedTheme = async (expectedTheme: 'GristLight' | 'GristDark' | 'H
 describe('Themes', function () {
   describe('with default env', function () {
     this.timeout(20000);
-    console.log('prout1');
 
     setupTestSuite();
 
