@@ -3768,11 +3768,11 @@ export async function downloadSectionCsvGridCells(
 }
 
 export async function setGristTheme(options: {
-  appearance: 'light' | 'dark',
+  themeName: 'GristLight' | 'GristDark' | 'HighContrastLight',
   syncWithOS: boolean,
   skipOpenSettingsPage?: boolean,
 }) {
-  const {appearance, syncWithOS, skipOpenSettingsPage} = options;
+  const {themeName, syncWithOS, skipOpenSettingsPage} = options;
   if (!skipOpenSettingsPage) {
     await openProfileSettingsPage();
   }
@@ -3787,7 +3787,9 @@ export async function setGristTheme(options: {
   if (!syncWithOS) {
     await scrollIntoView(driver.find('.test-theme-config-appearance .test-select-open'));
     await driver.find('.test-theme-config-appearance .test-select-open').click();
-    await findOpenMenuItem('li', appearance === 'light' ? 'Light' : 'Dark')
+    await findOpenMenuItem('li', themeName === 'GristLight'
+      ? 'Light' : themeName === 'GristDark'
+      ? 'Dark' : 'Light (High Contrast)')
       .click();
     await waitForServer();
   }
