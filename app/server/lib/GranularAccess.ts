@@ -5,20 +5,20 @@ import { createEmptyActionSummary } from 'app/common/ActionSummary';
 import { ApplyUAExtendedOptions, ServerQuery } from 'app/common/ActiveDocAPI';
 import { ApiError } from 'app/common/ApiError';
 import { MapWithTTL } from 'app/common/AsyncCreate';
+import { AttachmentColumns, gatherAttachmentIds, getAttachmentColumns } from 'app/common/AttachmentColumns';
 import {
-  AddRecord,
   BulkAddRecord,
   BulkColValues,
   BulkRemoveRecord,
   BulkUpdateRecord,
+  DataAction,
   getColValues,
-  isBulkAddRecord,
-  isBulkRemoveRecord,
-  isBulkUpdateRecord,
-  isUpdateRecord,
+  getRowIdsFromDocAction,
+  isBulkAction,
+  isDataAction,
+  isSomeAddRecordAction,
+  isSomeRemoveRecordAction,
 } from 'app/common/DocActions';
-import { AttachmentColumns, gatherAttachmentIds, getAttachmentColumns } from 'app/common/AttachmentColumns';
-import { RemoveRecord, ReplaceTableData, UpdateRecord } from 'app/common/DocActions';
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
 import { getColIdsFromDocAction, TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
@@ -30,13 +30,14 @@ import { InfoEditor } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
 import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
 import { compilePredicateFormula, PredicateFormulaInput } from 'app/common/PredicateFormula';
-import { MetaRowRecord, SingleCell } from 'app/common/TableData';
+import { SingleCell } from 'app/common/TableData';
 import { EmptyRecordView, InfoView, RecordView } from 'app/common/RecordView';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { User } from 'app/common/User';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
+import { applyAndCheckActionsForCells, CellData, isCellDataAction } from 'app/server/lib/CellDataAccess';
 import { DocClients } from 'app/server/lib/DocClients';
 import { OptDocSession } from 'app/server/lib/DocSession';
 import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from 'app/server/lib/DocStorage';
@@ -45,7 +46,7 @@ import { IPermissionInfo, MixedPermissionSetWithContext,
          PermissionInfo, PermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { TablePermissionSetWithContext } from 'app/server/lib/PermissionInfo';
 import { integerParam } from 'app/server/lib/requestUtils';
-import { getRelatedRows, getRowIdsFromDocAction } from 'app/server/lib/RowAccess';
+import { getRelatedRows } from 'app/server/lib/RowAccess';
 import { getDocSessionAccess, getDocSessionShare } from 'app/server/lib/sessionUtils';
 import { quoteIdent } from 'app/server/lib/SQLiteDB';
 import cloneDeep = require('lodash/cloneDeep');
@@ -54,33 +55,6 @@ import get = require('lodash/get');
 import memoize = require('lodash/memoize');
 
 // tslint:disable:no-bitwise
-
-// Actions that add/update/remove/replace rows (DocActions only - UserActions
-// may also result in row changes but are not in this list).
-const ACTION_WITH_TABLE_ID = new Set(['AddRecord', 'BulkAddRecord', 'UpdateRecord', 'BulkUpdateRecord',
-                                      'RemoveRecord', 'BulkRemoveRecord',
-                                      'ReplaceTableData', 'TableData',
-                                    ]);
-type DataAction = AddRecord | BulkAddRecord | UpdateRecord | BulkUpdateRecord |
-  RemoveRecord | BulkRemoveRecord | ReplaceTableData | TableDataAction;
-
-// Check if action adds/updates/removes/replaces rows.
-function isDataAction(a: UserAction): a is DataAction {
-  return ACTION_WITH_TABLE_ID.has(String(a[0]));
-}
-
-function isAddRecordAction(a: DataAction): a is AddRecord | BulkAddRecord {
-  return ['AddRecord', 'BulkAddRecord'].includes(a[0]);
-}
-
-function isRemoveRecordAction(a: DataAction): a is RemoveRecord | BulkRemoveRecord {
-  return ['RemoveRecord', 'BulkRemoveRecord'].includes(a[0]);
-}
-
-function isBulkAction(a: DataAction): a is BulkAddRecord | BulkUpdateRecord |
-  BulkRemoveRecord | ReplaceTableData | TableDataAction {
-  return Array.isArray(a[2]);
-}
 
 // Check if a tableId is that of an ACL table.  Currently just _grist_ACLRules and
 // _grist_ACLResources are accepted.
@@ -1252,14 +1226,7 @@ export class GranularAccess implements GranularAccessForBundle {
     return baseAccess;
   }
 
-  public async createSnapshotWithCells(docActions?: DocAction[]) {
-    if (!docActions) {
-      if (!this._activeBundle) { throw new Error('no active bundle'); }
-      if (this._activeBundle.applied) {
-        throw new Error("Can't calculate last state for cell metadata");
-      }
-      docActions = this._activeBundle.docActions;
-    }
+  public async createSnapshotWithCells(docActions: DocAction[]) {
     const rows = new Map(getRelatedRows(docActions));
     const cellData = new CellData(this._docData);
     for(const action of docActions) {
@@ -1783,9 +1750,9 @@ export class GranularAccess implements GranularAccessForBundle {
     // practice.
     let rowsRec = rowsBefore;
     let rowsNewRec = rowsAfter;
-    if (isAddRecordAction(action)) {
+    if (isSomeAddRecordAction(action)) {
       rowsRec = rowsAfter;
-    } else if (isRemoveRecordAction(action)) {
+    } else if (isSomeRemoveRecordAction(action)) {
       rowsNewRec = rowsBefore;
     }
 
@@ -2241,7 +2208,7 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!isDataAction(filteredAction)) {
       throw new Error('_prefilterDocAction called with unexpected action');
     }
-    if (isRemoveRecordAction(filteredAction)) {
+    if (isSomeRemoveRecordAction(filteredAction)) {
       // removals do not mention columns or cells, so no further complications.
       return [filteredAction];
     }
@@ -2420,7 +2387,7 @@ export class GranularAccess implements GranularAccessForBundle {
       }
       const {action} = cursor;
       // Remove any additions or updates to the _grist_Attachments table.
-      if (!isDataAction(action) || isRemoveRecordAction(action) || getTableId(action) !== '_grist_Attachments') {
+      if (!isDataAction(action) || isSomeRemoveRecordAction(action) || getTableId(action) !== '_grist_Attachments') {
         result.push(cursor);
       }
     }
@@ -2449,7 +2416,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const {action, docSession} = cursor;
     if (!isDataAction(action)) { return empty; }
-    if (isRemoveRecordAction(action)) { return empty; }
+    if (isSomeRemoveRecordAction(action)) { return empty; }
     const tableId = getTableId(action);
     const step = await this._getMetaStep(cursor);
     const attachmentColumns = step.attachmentColumns;
@@ -2619,7 +2586,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const {docActions, docSession} = this._activeBundle;
-    const snapShot = await this.createSnapshotWithCells();
+    const snapShot = await this.createSnapshotWithCells(docActions);
     await applyAndCheckActionsForCells(
       snapShot,
       docActions,
@@ -3155,7 +3122,7 @@ async function applyToActionsRecursively(actions: (DocAction|UserAction)[],
 export function filterColValues(action: DataAction,
                                 shouldFilterRow: (idx: number) => boolean,
                                 shouldFilterCell: (value: CellValue) => boolean): DataAction[] {
-  if (isRemoveRecordAction(action)) {
+  if (isSomeRemoveRecordAction(action)) {
     // removals do not have cells, so nothing to do.
     return [action];
   }
@@ -3276,480 +3243,5 @@ class TransformColumnPermissionInfo implements IPermissionInfo {
   }
   public getRuleCollection(): ACLRuleCollection {
     return this._inner.getRuleCollection();
-  }
-}
-
-interface SingleCellInfo extends SingleCell {
-  userRef: string;
-  id: number;
-}
-
-/**
- * Helper class that extends DocData with cell specific functions.
- */
-export class CellData {
-  constructor(private _docData: DocData) {
-
-  }
-
-  public getCell(cellId: number) {
-    const row = this._docData.getMetaTable("_grist_Cells").getRecord(cellId);
-    return row ? this.convertToCellInfo(row) : null;
-  }
-
-  public getCellRecord(cellId: number) {
-    const row = this._docData.getMetaTable("_grist_Cells").getRecord(cellId);
-    return row || null;
-  }
-
-  /**
-   * Generates a patch for cell metadata. It assumes, that engine removes all
-   * cell metadata when cell (table/column/row) is removed and the bundle contains,
-   * all actions that are needed to remove the cell and cell metadata.
-   */
-  public generatePatch(actions: DocAction[]) {
-    const removedCells: Set<number> = new Set();
-    const addedCells: Set<number> = new Set();
-    const updatedCells: Set<number> = new Set();
-    function applyCellAction(action: DataAction) {
-      if (isAddRecordAction(action) || isBulkAddRecord(action)) {
-        for(const id of getRowIdsFromDocAction(action)) {
-          if (removedCells.has(id)) {
-            removedCells.delete(id);
-            updatedCells.add(id);
-          } else {
-            addedCells.add(id);
-          }
-        }
-      } else if (isRemoveRecordAction(action) || isBulkRemoveRecord(action)) {
-        for(const id of getRowIdsFromDocAction(action)) {
-          if (addedCells.has(id)) {
-            addedCells.delete(id);
-          } else {
-            removedCells.add(id);
-            updatedCells.delete(id);
-          }
-        }
-      } else {
-        for(const id of getRowIdsFromDocAction(action)) {
-          if (addedCells.has(id)) {
-            // ignore
-          } else {
-            updatedCells.add(id);
-          }
-        }
-      }
-    }
-
-    // Scan all actions and collect all cell ids that are added, removed or updated.
-    // When some rows are updated, include all cells for that row. Keep track of table
-    // renames.
-    const updatedRows: Map<string, Set<number>> = new Map();
-    for(const action of actions) {
-      if (action[0] === 'RenameTable') {
-        updatedRows.set(action[2], updatedRows.get(action[1]) || new Set());
-        continue;
-      }
-      if (action[0] === 'RemoveTable') {
-        updatedRows.delete(action[1]);
-        continue;
-      }
-      if (isDataAction(action) && isCellDataAction(action)) {
-        applyCellAction(action);
-        continue;
-      }
-      if (!isDataAction(action)) { continue; }
-      // We don't care about new rows, as they don't have meta data at this moment.
-      // If regular rows are removed, we also don't care about them, as they will
-      // produce metadata removal.
-      // We only care about updates, as it might change the metadata visibility.
-      if (isUpdateRecord(action) || isBulkUpdateRecord(action)) {
-        if (getTableId(action).startsWith("_grist")) { continue; }
-        // Updating a row, for us means that all metadata for this row should be refreshed.
-        for(const rowId of getRowIdsFromDocAction(action)) {
-          getSetMapValue(updatedRows, getTableId(action), () => new Set()).add(rowId);
-        }
-      }
-    }
-
-    for(const [tableId, rowIds] of updatedRows) {
-      for(const {id} of this.readCells(tableId, rowIds)) {
-        if (addedCells.has(id) || updatedCells.has(id) || removedCells.has(id)) {
-          // If we have this cell id in the list of added/updated/removed cells, ignore it.
-        } else {
-          updatedCells.add(id);
-        }
-      }
-    }
-
-    const insert = this.generateInsert([...addedCells]);
-    const update = this.generateUpdate([...updatedCells]);
-    const removes = this.generateRemovals([...removedCells]);
-    const patch: DocAction[] = [insert, update, removes].filter(Boolean) as DocAction[];
-    return patch.length ? patch : null;
-  }
-
-  public async censorCells(
-    docActions: DocAction[],
-    hasAccess: (cell: SingleCellInfo) => Promise<boolean>
-  ) {
-    for (const action of docActions) {
-      if (!isDataAction(action) || isRemoveRecordAction(action)) {
-        continue;
-      } else if (isDataAction(action) && getTableId(action) === '_grist_Cells') {
-        if (!isBulkAction(action)) {
-          const cell = this.getCell(action[2]);
-          if (!cell || !await hasAccess(cell)) {
-            action[3].content = [GristObjCode.Censored];
-            action[3].userRef = '';
-          }
-        } else {
-          for (let idx = 0; idx < action[2].length; idx++) {
-            const cell = this.getCell(action[2][idx]);
-            if (!cell || !await hasAccess(cell)) {
-              action[3].content[idx] = [GristObjCode.Censored];
-              action[3].userRef[idx] = '';
-            }
-          }
-        }
-      }
-    }
-    return docActions;
-  }
-
-  public convertToCellInfo(cell: MetaRowRecord<'_grist_Cells'>): SingleCellInfo {
-    const singleCell = {
-      tableId: this.getTableId(cell.tableRef) as string,
-      colId: this.getColId(cell.colRef) as string,
-      rowId: cell.rowId,
-      userRef: cell.userRef,
-      id: cell.id,
-    };
-    return singleCell;
-  }
-
-  public getColId(colRef: number) {
-    return this._docData.getMetaTable("_grist_Tables_column").getRecord(colRef)?.colId;
-  }
-
-  public getColRef(table: number|string, colId: string) {
-    const tableRef = typeof table === 'string' ? this.getTableRef(table) : table;
-    return this._docData.getMetaTable("_grist_Tables_column").filterRecords({colId})
-      .find(c => c.parentId === tableRef)?.id;
-  }
-
-  public getTableId(tableRef: number) {
-    return this._docData.getMetaTable("_grist_Tables").getRecord(tableRef)?.tableId;
-  }
-
-  public getTableRef(tableId: string) {
-    return this._docData.getMetaTable("_grist_Tables").findRow('tableId', tableId) || undefined;
-  }
-
-  /**
-   * Returns all cells for a given table and row ids.
-   */
-  public readCells(tableId: string, rowIds: Set<number>) {
-    const tableRef = this.getTableRef(tableId);
-    const cells =  this._docData.getMetaTable("_grist_Cells").filterRecords({
-      tableRef,
-    }).filter(r => rowIds.has(r.rowId));
-    return cells.map(this.convertToCellInfo.bind(this));
-  }
-
-  // Helper function that tells if a cell can be determined fully from the action itself.
-  // Otherwise we need to look in the docData.
-  public hasCellInfo(docAction: DocAction):
-      docAction is UpdateRecord|BulkUpdateRecord|AddRecord|BulkAddRecord {
-    if (!isDataAction(docAction)) { return false; }
-    if ((isAddRecordAction(docAction) || isUpdateRecord(docAction) || isBulkUpdateRecord(docAction))
-        && docAction[3].tableRef && docAction[3].colRef && docAction[3].rowId && docAction[3].userRef) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Checks if cell is 'attached', i.e. it has a tableRef, colRef, rowId and userRef.
-   */
-  public isAttached(cell: SingleCellInfo) {
-    return Boolean(cell.tableId && cell.rowId && cell.colId && cell.userRef);
-  }
-
-  /**
-   * Reads all SingleCellInfo from docActions or from docData if action doesn't have enough information.
-   */
-  public convertToCells(action: DocAction): SingleCellInfo[] {
-    if (!isDataAction(action)) { return []; }
-    if (getTableId(action) !== '_grist_Cells') { return []; }
-    const result: { tableId: string, rowId: number, colId: string, id: number, userRef: string}[] = [];
-    if (isBulkAction(action)) {
-      for (let idx = 0; idx < action[2].length; idx++) {
-        if (this.hasCellInfo(action)) {
-          result.push({
-            tableId: this.getTableId(action[3].tableRef[idx] as number) as string,
-            colId: this.getColId(action[3].colRef[idx] as number) as string,
-            rowId: action[3].rowId[idx] as number,
-            userRef: (action[3].userRef[idx] ?? '') as string,
-            id: action[2][idx],
-          });
-        } else {
-          const cellInfo = this.getCell(action[2][idx]);
-          if (cellInfo) {
-            result.push(cellInfo);
-          }
-        }
-      }
-    } else {
-      if (this.hasCellInfo(action)) {
-        result.push({
-          tableId: this.getTableId(action[3].tableRef as number) as string,
-          colId: this.getColId(action[3].colRef as number) as string,
-          rowId: action[3].rowId as number,
-          userRef: action[3].userRef as string,
-          id: action[2],
-        });
-      } else {
-        const cellInfo = this.getCell(action[2]);
-        if (cellInfo) {
-          result.push(cellInfo);
-        }
-      }
-    }
-    return result;
-  }
-
-  public generateInsert(ids: number[]): DataAction | null {
-    const action: BulkAddRecord = [
-      'BulkAddRecord',
-      '_grist_Cells',
-      [],
-      {
-        tableRef: [],
-        colRef: [],
-        type: [],
-        root: [],
-        content: [],
-        rowId: [],
-        userRef: [],
-        parentId: [],
-      }
-    ];
-    for(const cell of ids) {
-      const dataCell = this.getCellRecord(cell);
-      if (!dataCell) { continue; }
-      action[2].push(dataCell.id);
-      action[3].content.push(dataCell.content);
-      action[3].userRef.push(dataCell.userRef);
-      action[3].tableRef.push(dataCell.tableRef);
-      action[3].colRef.push(dataCell.colRef);
-      action[3].type.push(dataCell.type);
-      action[3].root.push(dataCell.root);
-      action[3].rowId.push(dataCell.rowId);
-      action[3].parentId.push(dataCell.parentId);
-    }
-    return action[2].length > 1 ? action :
-           action[2].length == 1 ? [...getSingleAction(action)][0] : null;
-  }
-
-  public generateRemovals(ids: number[]) {
-    const action: BulkRemoveRecord = [
-      'BulkRemoveRecord',
-      '_grist_Cells',
-      ids
-    ];
-    return action[2].length > 1 ? action :
-          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
-  }
-
-  public generateUpdate(ids: number[]) {
-    const action: BulkUpdateRecord = [
-      'BulkUpdateRecord',
-      '_grist_Cells',
-      [],
-      {
-        content: [],
-        userRef: [],
-      }
-    ];
-    for(const cell of ids) {
-      const dataCell = this.getCellRecord(cell);
-      if (!dataCell) { continue; }
-      action[2].push(dataCell.id);
-      action[3].content.push(dataCell.content);
-      action[3].userRef.push(dataCell.userRef);
-    }
-    return action[2].length > 1 ? action :
-          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
-  }
-}
-
-
-/**
- * Tests if the user can modify cell's data. Will modify the docData
- * to reflect the changes that are done by actions (without reverting if one of the actions fails).
- *
- * If user can't modify the cell, it will throw an error.
- */
-async function applyAndCheckActionsForCells(
-  docData: DocData,
-  docActions: DocAction[],
-  userIsOwner: boolean,
-  haveRules: boolean,
-  userRef: string,
-  hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>
-) {
-  // Owner can modify all comments, without exceptions.
-  if (userIsOwner) {
-    return;
-  }
-  // First check if we even have actions that modify cell's data.
-  const cellsActions = docActions.filter(
-    docAction => getTableId(docAction) === '_grist_Cells' && isDataAction(docAction)
-    );
-
-  // If we don't have any actions, we are good to go.
-  if (cellsActions.length === 0) { return; }
-  const fail = () => {
-    throw new ErrorWithCode('ACL_DENY', 'Cannot access cell');
-  };
-
-  // In nutshell we will just test action one by one, and see if user
-  // can apply it. To do it, we need to keep track of a database state after
-  // each action (just like regular access is done). Unfortunately, cells' info
-  // can be partially updated, so we won't be able to determine what cells they
-  // are attached to. We will assume that bundle has a complete set of information, and
-  // with this assumption we will skip such actions, and wait for the whole cell to form.
-
-
-  // Create a view for current state.
-  const cellData = new CellData(docData);
-
-  // Some cells meta data will be added before rows (for example, when undoing). We will
-  // postpone checking of such actions until we have a full set of information.
-  let postponed: Array<number> = [];
-  // Now one by one apply all actions to the snapshot recording all changes
-  // to the cell table.
-  for(const docAction of docActions) {
-    if (!(getTableId(docAction) === '_grist_Cells' && isDataAction(docAction))) {
-      docData.receiveAction(docAction);
-      continue;
-    }
-    // Convert any bulk actions to normal actions
-    for(const single of getSingleAction(docAction)) {
-      const id = getRowIdsFromDocAction(single)[0];
-      if (isAddRecordAction(docAction)) {
-        // Apply this action, as it might not have full information yet.
-        docData.receiveAction(single);
-        if (haveRules) {
-          const cell = cellData.getCell(id);
-          if (cell && cellData.isAttached(cell)) {
-            // If this is undo, action cell might not yet exist, so we need to check for that.
-            const record = docData.getTable(cell.tableId)?.getRecord(cell.rowId);
-            if (!record) {
-              postponed.push(id);
-            } else if (!await hasAccess(cell, docData)) {
-              fail();
-            }
-          } else {
-            postponed.push(id);
-          }
-        }
-      } else if (isRemoveRecordAction(docAction)) {
-        // See if we can remove this cell.
-        const cell = cellData.getCell(id);
-        docData.receiveAction(single);
-        if (cell) {
-          // We can remove cell information for any row/column that was removed already.
-          const record = docData.getTable(cell.tableId)?.getRecord(cell.rowId);
-          if (!record || !cell.colId || !(cell.colId in record)) {
-            continue;
-          }
-          if (cell.userRef && cell.userRef !== (userRef || '')) {
-            fail();
-          }
-        }
-        postponed = postponed.filter((i) => i !== id);
-      } else {
-        // We are updating a cell metadata. We will need to check if we can update it.
-        let cell = cellData.getCell(id);
-        if (!cell) {
-          return fail();
-        }
-
-        // We can update any cell if the column or table for this cell was removed already.
-        // In that case, cell is updated before being removed.
-        if (!cell.colId || !cell.tableId || !cell.rowId) {
-          docData.receiveAction(single);
-          continue;
-        }
-
-
-        // We can't update cells, that are not ours.
-        if (cell.userRef && cell.userRef !== (userRef || '')) {
-          fail();
-        }
-        // And if the cell was attached before, we will need to check if we can access it.
-        if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, docData)) {
-          fail();
-        }
-        // Now receive the action, and test if we can still see the cell (as the info might be moved
-        // to a different cell).
-        docData.receiveAction(single);
-        cell = cellData.getCell(id)!;
-        if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, docData)) {
-          fail();
-        }
-      }
-    }
-  }
-  // Now test every cell that was added before row (so we added it, but without
-  // full information, like new rowId or tableId or colId).
-  for(const id of postponed) {
-    const cell = cellData.getCell(id);
-    if (cell && !cellData.isAttached(cell)) {
-      return fail();
-    }
-    if (haveRules && cell && !await hasAccess(cell, docData)) {
-      fail();
-    }
-  }
-}
-
-/**
- * Checks if the action is a data action that modifies a _grist_Cells table.
- */
-export function isCellDataAction(a: DocAction) {
-  return getTableId(a) === '_grist_Cells' && isDataAction(a);
-}
-
-/**
- * Converts a bulk like data action to its non-bulk equivalent. For actions like TableData or ReplaceTableData
- * it will return a list of actions, one for each row.
- */
-export function* getSingleAction(a: DataAction): Iterable<DataAction> {
-  if (isAddRecordAction(a) && isBulkAction(a)) {
-    for(let idx = 0; idx < a[2].length; idx++) {
-      yield ['AddRecord', a[1], a[2][idx], fromPairs(Object.keys(a[3]).map(key => [key, a[3][key][idx]]))];
-    }
-  } else if (isRemoveRecordAction(a) && isBulkAction(a)) {
-    for(const rowId of a[2]) {
-      yield ['RemoveRecord', a[1], rowId];
-    }
-  } else if (a[0] == 'BulkUpdateRecord') {
-    for(let idx = 0; idx < a[2].length; idx++) {
-      yield ['UpdateRecord', a[1], a[2][idx], fromPairs(Object.keys(a[3]).map(key => [key, a[3][key][idx]]))];
-    }
-  } else if (a[0] == 'TableData') {
-    for(let idx = 0; idx < a[2].length; idx++) {
-      yield ['TableData', a[1], [a[2][idx]],
-        fromPairs(Object.keys(a[3]).map(key => [key, [a[3][key][idx]]]))];
-    }
-  } else if (a[0] == 'ReplaceTableData') {
-    for(let idx = 0; idx < a[2].length; idx++) {
-      yield ['ReplaceTableData', a[1], [a[2][idx]], fromPairs(Object.keys(a[3]).map(key => [key, [a[3][key][idx]]]))];
-    }
-  } else {
-    yield a;
   }
 }

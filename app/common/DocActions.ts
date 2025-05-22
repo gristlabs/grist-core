@@ -88,11 +88,29 @@ export function isSchemaAction(action: DocAction):
   return SCHEMA_ACTIONS.has(action[0]);
 }
 
-export function isDataAction(action: DocAction|UserAction):
-    action is AddRecord | RemoveRecord | UpdateRecord |
-              BulkAddRecord | BulkRemoveRecord | BulkUpdateRecord |
-              ReplaceTableData | TableDataAction {
+export type DataAction = AddRecord | RemoveRecord | UpdateRecord |
+  BulkAddRecord | BulkRemoveRecord | BulkUpdateRecord |
+  ReplaceTableData | TableDataAction;
+
+export type SingleDataAction = AddRecord | UpdateRecord | RemoveRecord;
+export type BulkDataAction = Exclude<DataAction, SingleDataAction>;
+
+// Check if action adds/updates/removes/replaces rows.
+export function isDataAction(action: DocAction|UserAction): action is DataAction {
   return DATA_ACTIONS.has(String(action[0]));
+}
+
+export function isSingleAction(action: DataAction): action is SingleDataAction {
+  return typeof action[2] === 'number';
+}
+export function isBulkAction(action: DataAction): action is BulkDataAction {
+  return !isSingleAction(action);
+}
+export function isSomeAddRecordAction(a: DataAction): a is AddRecord | BulkAddRecord {
+  return isAddRecord(a) || isBulkAddRecord(a);
+}
+export function isSomeRemoveRecordAction(a: DataAction): a is RemoveRecord | BulkRemoveRecord {
+  return isRemoveRecord(a) || isBulkRemoveRecord(a);
 }
 
 /**
@@ -101,6 +119,27 @@ export function isDataAction(action: DocAction|UserAction):
 export function getTableId(action: DocAction): string {
   return action[1];   // It happens to always be in the same position in the action tuple.
 }
+
+// Returns the action name from DocAction.
+export function getActionName<T extends DocAction>(action: T) { return action[0]; }
+
+// Returns rowId or rowIds for a DataAction.
+export function getRowIds(action: SingleDataAction): number;
+export function getRowIds(action: BulkDataAction): number[];
+export function getRowIds(action: DataAction): number|number[];
+export function getRowIds(action: DataAction): number|number[] { return action[2]; }
+
+// Returns the row ids in a DataAction as a list, even if the action is not a bulk action.
+export function getRowIdsFromDocAction(action: DataAction): number[] {
+  const ids = action[2];
+  return (typeof ids === 'number') ? [ids] : ids;
+}
+
+// Returns colValues from a DataAction other than a remove action (which doesn't have colValues).
+export function getActionColValues(action: Exclude<SingleDataAction, RemoveRecord>): ColValues;
+export function getActionColValues(action: Exclude<BulkDataAction, BulkRemoveRecord>): BulkColValues;
+export function getActionColValues(action: Exclude<DataAction, RemoveRecord|BulkRemoveRecord>): ColValues|BulkColValues;
+export function getActionColValues(action: Exclude<DataAction, RemoveRecord|BulkRemoveRecord>) { return action[3]; }
 
 export interface TableDataActionSet {
   [tableId: string]: TableDataAction;
@@ -243,4 +282,40 @@ export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRe
   } else {
     return [cellValues as CellValue];
   }
+}
+
+/**
+ * Converts a bulk-like data action to its non-bulk equivalent. For actions like TableData or ReplaceTableData
+ * it will return a list of single-row actions, one for each row.
+ */
+export function* getSingleAction(a: DataAction): Iterable<SingleDataAction|ReplaceTableData|TableDataAction> {
+  if (isBulkAddRecord(a)) {
+    const [, tableId, rowIds, colValues] = a;
+    for (let i = 0; i < rowIds.length; i++) {
+      yield ['AddRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
+    }
+  } else if (isBulkRemoveRecord(a)) {
+    const [, tableId, rowIds] = a;
+    for (const rowId of rowIds) {
+      yield ['RemoveRecord', tableId, rowId];
+    }
+  } else if (isBulkUpdateRecord(a)) {
+    const [, tableId, rowIds, colValues] = a;
+    for (let i = 0; i < rowIds.length; i++) {
+      yield ['UpdateRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
+    }
+  } else if (a[0] === 'TableData' || a[0] === 'ReplaceTableData') {
+    const [actionName, tableId, rowIds, colValues] = a;
+    for (let i = 0; i < rowIds.length; i++) {
+      yield [actionName, tableId, [rowIds[i]],
+        Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, [values[i]]]))
+      ];
+    }
+  } else {
+    yield a;
+  }
+}
+
+function getRowFromBulkColValues(colValues: BulkColValues, idx: number): ColValues {
+  return Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, values[idx]]));
 }
