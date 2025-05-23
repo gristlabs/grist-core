@@ -26,7 +26,7 @@ import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
 import { getAppRoot } from 'app/server/lib/places';
 
-import { GristWebDriverUtils, PageWidgetPickerOptions,
+import { noCleanup as _noCleanup, GristWebDriverUtils, PageWidgetPickerOptions,
          WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { APIConstructor, HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
@@ -40,6 +40,8 @@ import { lock } from 'proper-lockfile';
 // tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
 namespace gristUtils {
+
+export const noCleanup = _noCleanup;
 
 // Allow overriding the global 'driver' to use in gristUtil.
 let _driver: WebDriver|undefined;
@@ -84,6 +86,7 @@ export const waitForServer = webdriverUtils.waitForServer.bind(webdriverUtils);
 export const waitForSidePanel = webdriverUtils.waitForSidePanel.bind(webdriverUtils);
 export const toggleSidePanel = webdriverUtils.toggleSidePanel.bind(webdriverUtils);
 export const getWindowDimensions = webdriverUtils.getWindowDimensions.bind(webdriverUtils);
+export const setWindowDimensions = webdriverUtils.setWindowDimensions.bind(webdriverUtils);
 export const addNewSection = webdriverUtils.addNewSection.bind(webdriverUtils);
 export const selectWidget = webdriverUtils.selectWidget.bind(webdriverUtils);
 export const dismissBehavioralPrompts = webdriverUtils.dismissBehavioralPrompts.bind(webdriverUtils);
@@ -99,11 +102,10 @@ export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
 export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);
 export const openProfileSettingsPage = webdriverUtils.openProfileSettingsPage.bind(webdriverUtils);
 export const undo = webdriverUtils.undo.bind(webdriverUtils);
+export const bigScreen = webdriverUtils.bigScreen.bind(webdriverUtils);
+export const narrowScreen = webdriverUtils.narrowScreen.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
-
-// it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
-export const noCleanup = Boolean(process.env.NO_CLEANUP);
 
 export type WindowDimensions = WindowDimensionsBase;
 
@@ -2769,42 +2771,6 @@ export async function selectGrid() {
 
 export async function selectColumn(col: string|IColHeader) {
   await getColumnHeader(col).click();
-}
-
-/**
- * Sets browser window dimensions.
- */
-export function setWindowDimensions(width: number, height: number) {
-  return driver.manage().window().setRect({width, height});
-}
-
-/**
- * Changes browser window dimensions for the duration of a test suite.
- */
-export function resizeWindowForSuite(width: number, height: number) {
-  let oldDimensions: WindowDimensions;
-  before(async function () {
-    oldDimensions = await getWindowDimensions();
-    await setWindowDimensions(width, height);
-  });
-  after(async function () {
-    if (noCleanup) { return; }
-    await setWindowDimensions(oldDimensions.width, oldDimensions.height);
-  });
-}
-
-/**
- * Changes browser window dimensions to FullHd for a test suite.
- */
-export function bigScreen() {
-  resizeWindowForSuite(1920, 1080);
-}
-
-/**
- * Shrinks browser window dimensions to trigger mobile mode for a test suite.
- */
-export function narrowScreen() {
-  resizeWindowForSuite(400, 750);
 }
 
 export async function addSupportUserIfPossible() {

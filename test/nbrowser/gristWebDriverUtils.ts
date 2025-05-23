@@ -14,6 +14,9 @@ import { WebDriver, WebElement } from 'mocha-webdriver';
 
 type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom'|'Form';
 
+// it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
+export const noCleanup = Boolean(process.env.NO_CLEANUP);
+
 export class GristWebDriverUtils {
   public constructor(public driver: WebDriver) {
   }
@@ -81,6 +84,12 @@ export class GristWebDriverUtils {
     return {width, height};
   }
 
+  /**
+   * Sets browser window dimensions.
+   */
+  public setWindowDimensions(width: number, height: number) {
+    return this.driver.manage().window().setRect({ width, height });
+  }
 
   // Add a new widget to the current page using the 'Add New' menu.
   public async addNewSection(
@@ -331,6 +340,35 @@ export class GristWebDriverUtils {
       await this.driver.find('.test-undo').doClick();
       await this.waitForServer(optTimeout);
     }
+  }
+
+  /**
+   * Changes browser window dimensions for the duration of a test suite.
+   */
+  public resizeWindowForSuite(width: number, height: number) {
+    let oldDimensions: WindowDimensions;
+    before(async () => {
+      oldDimensions = await this.getWindowDimensions();
+      await this.setWindowDimensions(width, height);
+    });
+    after(async () => {
+      if (noCleanup) { return; }
+      await this.setWindowDimensions(oldDimensions.width, oldDimensions.height);
+    });
+  }
+
+  /**
+   * Changes browser window dimensions to FullHd for a test suite.
+   */
+  public bigScreen() {
+    this.resizeWindowForSuite(1920, 1080);
+  }
+
+  /**
+   * Shrinks browser window dimensions to trigger mobile mode for a test suite.
+   */
+  public narrowScreen() {
+    this.resizeWindowForSuite(400, 750);
   }
 }
 
