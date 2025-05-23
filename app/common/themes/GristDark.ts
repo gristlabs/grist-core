@@ -164,8 +164,6 @@ export const GristDark: ThemeTokens = {
     rightPanelTabSelectedIcon: '#16b378',
     rightPanelTabButtonHoverBg: '#0a5438',
     rightPanelSubtabSelectedUnderline: tokens.primaryMuted,
-    rightPanelSubtabHoverFg: tokens.primaryEmphasis,
-    rightPanelSubtabHoverUnderline: tokens.primaryEmphasis,
     rightPanelToggleButtonDisabledFg: tokens.bgEmphasis,
     rightPanelToggleButtonDisabledBg: tokens.bg,
     rightPanelFieldSettingsBg: '#404150',

@@ -33,9 +33,7 @@ export const HighContrastLight: ThemeTokens = {
     cardFormBorder: tokens.decoration,
     accessRulesFormulaEditorBgDisabled: tokens.decorationTertiary,
     rightPanelTabBorder: tokens.decoration,
-    rightPanelSubtabSelectedFg: '#000',
-    rightPanelSubtabSelectedUnderline: '#000',
-    rightPanelSubtabUnderlineSize: '2px',
+    rightPanelSubtabFg: tokens.secondary,
     formulaIcon: tokens.decoration,
   }
 };
