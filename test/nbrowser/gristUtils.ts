@@ -105,6 +105,7 @@ export const undo = webdriverUtils.undo.bind(webdriverUtils);
 export const bigScreen = webdriverUtils.bigScreen.bind(webdriverUtils);
 export const narrowScreen = webdriverUtils.narrowScreen.bind(webdriverUtils);
 export const exactMatch = webdriverUtils.exactMatch.bind(webdriverUtils);
+export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -234,16 +235,6 @@ export async function dismissWelcomeTourIfNeeded() {
 // Selects all text when a text element is currently active.
 export async function selectAll() {
   await driver.executeScript('document.activeElement.select()');
-}
-
-/**
- * Returns a WebElementPromise for the .viewsection_content element for the section which contains
- * the given text (case insensitive) content.
- */
-export function getSection(sectionOrTitle: string|WebElement): WebElement|WebElementPromise {
-  if (typeof sectionOrTitle !== 'string') { return sectionOrTitle; }
-  return driver.findContent(`.test-viewsection-title`, new RegExp("^" + escapeRegExp(sectionOrTitle) + "$", 'i'))
-    .findClosest('.viewsection_content');
 }
 
 /**
