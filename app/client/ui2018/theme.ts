@@ -9,6 +9,8 @@ import {
   legacyVarsMapping,
   Theme,
   ThemeAppearance,
+  ThemeName,
+  themeNameAppearances,
   ThemePrefs,
   tokens,
   tokensCssMapping
@@ -19,8 +21,8 @@ import { isFeatureEnabled } from 'app/common/gristUrls';
 import { Computed, Observable } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
-const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', name: 'GristLight', colors: getThemeTokens('GristLight')};
-const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', name: 'GristDark', colors: getThemeTokens('GristDark')};
+const DEFAULT_LIGHT_THEME: Theme = getThemeObject('GristLight');
+const DEFAULT_DARK_THEME: Theme = getThemeObject('GristDark');
 
 /**
  * A singleton observable for the current user's Grist theme preferences.
@@ -67,6 +69,13 @@ export function gristThemeObs() {
       const themePrefs = use(gristThemePrefs);
       const userAgentPrefersDarkTheme = use(prefersColorSchemeDarkObs());
       if (themePrefs) { return getThemeFromPrefs(themePrefs, userAgentPrefersDarkTheme); }
+
+      // If user pref is not set or not yet loaded, first check the previously known theme from local storage
+      // (this prevents the appearance being wrongly set for a few milliseconds while loading the page)
+      const storageTheme = getStorage().getItem('grist-theme');
+      if (storageTheme) {
+        return getThemeObject(storageTheme as ThemeName);
+      }
 
       // Otherwise, fall back to the user agent's preference.
       return userAgentPrefersDarkTheme ? DEFAULT_DARK_THEME : DEFAULT_LIGHT_THEME;
@@ -137,6 +146,14 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
   return {appearance, colors: getThemeTokens(themeName), name: themeName};
 }
 
+function getThemeObject(themeName: ThemeName): Theme {
+  return {
+    appearance: themeNameAppearances[themeName],
+    colors: getThemeTokens(themeName),
+    name: themeName
+  };
+}
+
 function attachCssThemeVars(theme: Theme) {
   const themeWithCssVars = convertThemeKeysToCssVars(theme);
   const {appearance, colors: cssVars} = themeWithCssVars;
@@ -184,6 +201,7 @@ ${properties.join('\n')}
   // Cache the appearance in local storage; this is currently used to apply a suitable
   // background image that's shown while the application is loading.
   getStorage().setItem('appearance', appearance);
+  getStorage().setItem('grist-theme', theme.name);
 }
 
 /**
