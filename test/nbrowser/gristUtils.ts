@@ -106,6 +106,7 @@ export const bigScreen = webdriverUtils.bigScreen.bind(webdriverUtils);
 export const narrowScreen = webdriverUtils.narrowScreen.bind(webdriverUtils);
 export const exactMatch = webdriverUtils.exactMatch.bind(webdriverUtils);
 export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
+export const getVisibleGridCells = webdriverUtils.getVisibleGridCells.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -310,54 +311,6 @@ export async function getSectionId() {
   const match = classList.match(/test-viewlayout-section-(\d+)/);
   if (!match) { throw new Error("Could not find section id"); }
   return parseInt(match[1]);
-}
-
-/**
- * Returns visible cells of the GridView from a single column and one or more rows. Options may be
- * given as arguments directly, or as an object.
- * - col: column name, or 0-based column index
- * - rowNums: array of 1-based row numbers, as visible in the row headers on the left of the grid.
- * - section: optional name of the section to use; will use active section if omitted.
- *
- * If given by an object, then an array of columns is also supported. In this case, the return
- * value is still a single array, listing all values from the first row, then the second, etc.
- *
- * Returns cell text by default. Mapper may be `identity` to return the cell objects.
- */
-export async function getVisibleGridCells(col: number|string, rows: number[], section?: string): Promise<string[]>;
-export async function getVisibleGridCells<T = string>(options: IColSelect<T>|IColsSelect<T>): Promise<T[]>;
-export async function getVisibleGridCells<T>(
-  colOrOptions: number|string|IColSelect<T>|IColsSelect<T>, _rowNums?: number[], _section?: string
-): Promise<T[]> {
-
-  if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
-    const {rowNums, section, mapper} = colOrOptions;    // tslint:disable-line:no-shadowed-variable
-    const columns = await Promise.all(colOrOptions.cols.map((oneCol) =>
-      getVisibleGridCells({col: oneCol, rowNums, section, mapper})));
-    // This zips column-wise data into a flat row-wise array of values.
-    return ([] as T[]).concat(...rowNums.map((r, i) => columns.map((c) => c[i])));
-  }
-
-  const {col, rowNums, section, mapper = el => el.getText()}: IColSelect<any> = (
-    typeof colOrOptions === 'object' ? colOrOptions :
-    { col: colOrOptions, rowNums: _rowNums!, section: _section}
-  );
-
-  if (rowNums.includes(0)) {
-    // Row-numbers should be what the users sees: 0 is a mistake, so fail with a helpful message.
-    throw new Error('rowNum must not be 0');
-  }
-
-  const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
-  const colIndex = (typeof col === 'number' ? col :
-    await sectionElem.findContent('.column_name', exactMatch(col)).index());
-
-  const visibleRowNums: number[] = await sectionElem.findAll('.gridview_data_row_num',
-    async (el) => parseInt(await el.getText(), 10));
-
-  const selector = `.gridview_data_scroll .record:not(.column_names) .field:nth-child(${colIndex + 1})`;
-  const fields = mapper ? await sectionElem.findAll(selector, mapper) : await sectionElem.findAll(selector);
-  return rowNums.map((n) => fields[visibleRowNums.indexOf(n)]);
 }
 
 /**
