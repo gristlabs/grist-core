@@ -1,3 +1,15 @@
+/**
+ * CodeEditorPanel.ts
+ * 
+ * Renders the "Code View" panel in Grist for displaying the schema of the current document.
+ * Uses highlight.js to provide syntax highlighting for Python-style Grist schema output.
+ *
+ * 🔧 MOD DMH — May 2025:
+ * - Adds alphabetical sorting of @grist.UserTable blocks by class name for improved readability
+ * - Replaces `this._schema.set(schema)` with custom sort logic
+ * - Marked with `// MOD DMH` and `// end MOD DMH` for traceability
+ */
+
 import {GristDoc} from 'app/client/components/GristDoc';
 import {reportError} from 'app/client/models/errors';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -51,7 +63,40 @@ export class CodeEditorPanel extends DisposableWithEvents {
     try {
       const schema = await this._gristDoc.docComm.fetchTableSchema();
       if (!this.isDisposed()) {
+
+        // 🔧 Custom Patch: Alphabetical sorting of @grist.UserTable blocks in schema view.
+        // 📅 Applied: 2025-05-05
+        // This improves readability by grouping schema definitions and sorting them alphabetically
+        // by the class name line within each block.
+        // Version: v0.3
+
+        /*
+        // 💤 Original line (now replaced):
         this._schema.set(schema);
+        */
+
+        // 🔧 [Custom Patch] Sort @grist.UserTable blocks alphabetically by class name (v0.3)
+        const lines = schema.split("\n");
+        const blocks: string[][] = [];
+        let current: string[] = [];
+        for (let line of lines) {
+          if (line.startsWith("@grist.UserTable")) {
+            if (current.length) blocks.push(current);
+            current = [line];
+          } else {
+            current.push(line);
+          }
+        }
+        if (current.length) blocks.push(current);
+        const sorted = blocks.sort((a, b) => {
+          const nameA = a.find(l => l.trim().startsWith("class")) ?? "";
+          const nameB = b.find(l => l.trim().startsWith("class")) ?? "";
+          return nameA.localeCompare(nameB);
+        });
+        const pretty = sorted.map(b => b.join("\n")).join("\n\n");
+        console.log("✅ [Custom Patch] CodeEditorPanel.ts");
+        this._schema.set(pretty);
+
         this._denied.set(false);
       }
     } catch (err) {
