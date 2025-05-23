@@ -104,6 +104,7 @@ export const openProfileSettingsPage = webdriverUtils.openProfileSettingsPage.bi
 export const undo = webdriverUtils.undo.bind(webdriverUtils);
 export const bigScreen = webdriverUtils.bigScreen.bind(webdriverUtils);
 export const narrowScreen = webdriverUtils.narrowScreen.bind(webdriverUtils);
+export const exactMatch = webdriverUtils.exactMatch.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -123,17 +124,6 @@ export interface ICellSelect {
 export interface IColHeader {
   col: number|string;
   section?: string|WebElement;
-}
-
-/**
- * Helper for exact string matches using interfaces that expect a RegExp. E.g.
- *    driver.findContent('.selector', exactMatch("Foo"))
- *
- * TODO It would be nice if mocha-webdriver allowed exact string match in findContent() (it now
- * supports a substring match, but we still need a helper for an exact match).
- */
-export function exactMatch(value: string, flags?: string): RegExp {
-  return new RegExp(`^${escapeRegExp(value)}$`, flags);
 }
 
 /**
