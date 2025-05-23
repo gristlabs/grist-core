@@ -8,7 +8,10 @@ import {TableData} from 'app/common/TableData';
 import {GristObjCode} from 'app/plugin/GristData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
-import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {
+  AttachmentStoreProvider,
+  IAttachmentStoreProvider
+} from 'app/server/lib/AttachmentStoreProvider';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
 import {AuthSession} from 'app/server/lib/AuthSession';
 import {Client} from 'app/server/lib/Client';
@@ -1228,32 +1231,76 @@ describe('ActiveDoc', async function() {
       }
     });
 
-    it('can import missing attachments from an archive', async function() {
-      const docName = 'add-missing-attachments';
-      const activeDoc = await docTools.createDoc(docName);
+    describe('restoring attachments', () => {
+      let activeDoc: ActiveDoc;
+      let provider: IAttachmentStoreProvider;
+      let externalStoreId: string;
 
-      const provider = docTools.getAttachmentStoreProvider();
-      const storeId = provider.listAllStoreIds()[0];
+      beforeEach(async function() {
+        activeDoc = await docTools.createDoc(this.currentTest?.title ?? 'restore-attachments');
+        provider = docTools.getAttachmentStoreProvider();
+        externalStoreId = provider.listAllStoreIds()[0];
 
-      await activeDoc.setAttachmentStore(fakeSession, storeId);
+        await activeDoc.setAttachmentStore(fakeSession, externalStoreId);
 
-      await uploadAttachments(activeDoc, testAttachments);
+        await uploadAttachments(activeDoc, testAttachments);
+      });
 
-      const attachmentsArchive = await activeDoc.getAttachmentsArchive(fakeSession, "tar");
-      const attachmentsTarStream = new MemoryWritableStream();
-      await attachmentsArchive.packInto(attachmentsTarStream);
-      const attachmentsTar = attachmentsTarStream.getBuffer();
+      async function deleteAttachmentsFromStorage() {
+        const store = (await provider.getStore(externalStoreId))!;
+        // Purge any attachments related to this doc.
+        await store.removePool(getDocPoolIdFromDocInfo({ id: activeDoc.docName, trunkId: undefined }));
+      }
 
-      const store = (await provider.getStore(storeId))!;
-      // Purge any attachments related to this doc.
-      await store.removePool(getDocPoolIdFromDocInfo({ id: activeDoc.docName, trunkId: undefined }));
+      async function downloadAttachmentsTarArchive() {
+        const attachmentsArchive = await activeDoc.getAttachmentsArchive(fakeSession, "tar");
+        const attachmentsTarStream = new MemoryWritableStream();
+        await attachmentsArchive.packInto(attachmentsTarStream);
+        return attachmentsTarStream.getBuffer();
+      }
 
-      const result1 = await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
-      assert.equal(result1.added, testAttachments.length, "all attachments should be added");
+      it('can import missing attachments from an archive', async function() {
+        const attachmentsTar = await downloadAttachmentsTarArchive();
+        await deleteAttachmentsFromStorage();
 
-      const result2 = await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
-      assert.equal(result2.added, 0, "no attachments should be added");
-      assert.equal(result2.unused, testAttachments.length, "all attachments should be unused");
+        const result1 = await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
+        assert.equal(result1.added, testAttachments.length, "all attachments should be added");
+
+        const result2 = await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
+        assert.equal(result2.added, 0, "no attachments should be added");
+        assert.equal(result2.unused, testAttachments.length, "all attachments should be unused");
+      });
+
+      it('updates the document\'s attachment usage on .tar upload', async function() {
+        const systemSession = makeExceptionalDocSession('system');
+
+        const attachmentsTar = await downloadAttachmentsTarArchive();
+        await deleteAttachmentsFromStorage();
+
+        const getAttachmentTableData = async () =>
+          (await activeDoc.fetchTable(systemSession, '_grist_Attachments')).tableData;
+
+        const rowIds = (await getAttachmentTableData())[2];
+
+        const getFileSizes = async () =>
+          (await getAttachmentTableData())[3].fileSize;
+
+        const originalFileSizes = await getFileSizes();
+        assert(originalFileSizes.every(size => size && size > 0), 'uploaded files should have non-zero sizes');
+
+        // Sets all file sizes in _grist_Attachments to zero.
+        await activeDoc.applyUserActions(
+          systemSession,
+          [['BulkUpdateRecord', '_grist_Attachments', rowIds, { fileSize: rowIds.map(() => 0) }]]
+        );
+
+        const zeroedFileSizes = await getFileSizes();
+        assert(zeroedFileSizes.every(size => size === 0), 'all file sizes should be 0');
+
+        await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
+        const restoredFileSizes = await getFileSizes();
+        assert.deepEqual(restoredFileSizes, originalFileSizes, 'restored file sizes should match originals');
+      });
     });
 
     /*

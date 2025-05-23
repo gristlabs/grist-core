@@ -1385,7 +1385,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         -- to make LENGTH() quickly read the stored length instead of actually reading the blob data.
         -- We use LENGTH() in the first place instead of _grist_Attachments.fileSize because the latter can
         -- be changed by users.
-        SELECT MAX(LENGTH(files.data)) AS len
+        -- External attachments have no internal blob data, so we need to use fileSize for those.
+        -- To avoid tampering with fileSize in offline records, we update it whenever files are
+        -- uploaded or retrieved.
+        SELECT
+          CASE WHEN files.storageId IS NOT NULL
+            THEN MAX(meta.fileSize)
+            ELSE MAX(LENGTH(files.data))
+          END AS len
         FROM _gristsys_Files AS files
           JOIN _grist_Attachments AS meta
             ON meta.fileIdent = files.ident
