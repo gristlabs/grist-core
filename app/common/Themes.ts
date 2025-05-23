@@ -35,14 +35,14 @@ export function getThemeBackgroundSnippet() {
   return `
 <script>
 try {
-  const appearance = localStorage.getItem('appearance');
-  const theme = localStorage.getItem('grist-theme');
   const useThemes = (window.gristConfig.features || []).includes('themes');
-  if (useThemes) {
-    document.documentElement.setAttribute('data-grist-appearance', appearance);
-    document.documentElement.setAttribute('data-grist-theme', theme);
+  if (!useThemes) { return; }
+
+  const appearance = localStorage.getItem('appearance');
+  if (appearance) {
+      document.documentElement.setAttribute('data-grist-appearance', appearance);
   }
-  if (useThemes && appearance === 'dark') {
+  if (appearance === 'dark') {
     const style = document.createElement('style');
     style.setAttribute('id', 'grist-theme-bg');
     style.textContent = '@layer grist-theme {\\n' +
@@ -52,6 +52,11 @@ try {
       '  }\\n' +
       '}';
     document.head.append(style);
+  }
+
+  const theme = localStorage.getItem('grist-theme');
+  if (theme) {
+      document.documentElement.setAttribute('data-grist-theme', theme);
   }
 } catch {
   /* Do nothing. */
