@@ -27,7 +27,7 @@ export interface IAttachmentStoreProvider {
 
   getAllStores(): Promise<IAttachmentStore[]>;
 
-  storeExists(id: AttachmentStoreId): Promise<boolean>;
+  storeExists(id: AttachmentStoreId): boolean;
 
   listAllStoreIds(): AttachmentStoreId[];
 }
@@ -96,7 +96,7 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
     );
   }
 
-  public async storeExists(id: AttachmentStoreId): Promise<boolean> {
+  public storeExists(id: AttachmentStoreId): boolean {
     return this._storeDetailsById.has(id);
   }
 
