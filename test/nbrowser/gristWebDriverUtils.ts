@@ -11,7 +11,7 @@
 import escapeRegExp = require('lodash/escapeRegExp');
 import { CommandName } from 'app/client/components/commandList';
 import { DocAction, UserAction } from 'app/common/DocActions';
-import { WebDriver, WebElement } from 'mocha-webdriver';
+import { WebDriver, WebElement, WebElementPromise } from 'mocha-webdriver';
 
 type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom'|'Form';
 
@@ -371,6 +371,17 @@ export class GristWebDriverUtils {
   public narrowScreen() {
     this.resizeWindowForSuite(400, 750);
   }
+
+  /**
+   * Returns a WebElementPromise for the .viewsection_content element for the section which contains
+   * the given text (case insensitive) content.
+   */
+  public getSection(sectionOrTitle: string | WebElement): WebElement | WebElementPromise {
+    if (typeof sectionOrTitle !== 'string') { return sectionOrTitle; }
+    return this.driver.findContent(`.test-viewsection-title`, new RegExp("^" + escapeRegExp(sectionOrTitle) + "$", 'i'))
+      .findClosest('.viewsection_content');
+  }
+
   /**
    * Helper for exact string matches using interfaces that expect a RegExp. E.g.
    *    driver.findContent('.selector', exactMatch("Foo"))
