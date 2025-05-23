@@ -111,6 +111,7 @@ export const exactMatch = webdriverUtils.exactMatch.bind(webdriverUtils);
 export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
 export const getVisibleGridCells = webdriverUtils.getVisibleGridCells.bind(webdriverUtils);
 export const getCell = webdriverUtils.getCell.bind(webdriverUtils);
+export const selectSectionByTitle = webdriverUtils.selectSectionByTitle.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -278,22 +279,6 @@ export async function detachFromLayout(section?: string) {
       await waitForServer();
     }
   };
-}
-
-/**
- * Click into a section without disrupting cursor positions.
- */
-export async function selectSectionByTitle(title: string|RegExp) {
-  try {
-    if (typeof title === 'string') {
-      title = new RegExp("^" + escapeRegExp(title) + "$", 'i');
-    }
-    // .test-viewsection is a special 1px width element added for tests only.
-    await driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
-  } catch (e) {
-    // We might be in mobile view.
-    await driver.findContent(`.test-viewsection-title`, title).findClosest(".view_leaf").click();
-  }
 }
 
 export async function expandSection(title?: string) {

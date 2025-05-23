@@ -457,6 +457,21 @@ export class GristWebDriverUtils {
     return new RegExp(`^${escapeRegExp(value)}$`, flags);
   }
 
+  /**
+   * Click into a section without disrupting cursor positions.
+   */
+  public async selectSectionByTitle(title: string | RegExp) {
+    try {
+      if (typeof title === 'string') {
+        title = new RegExp("^" + escapeRegExp(title) + "$", 'i');
+      }
+      // .test-viewsection is a special 1px width element added for tests only.
+      await this.driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
+    } catch (e) {
+      // We might be in mobile view.
+      await this.driver.findContent(`.test-viewsection-title`, title).findClosest(".view_leaf").click();
+    }
+  }
 }
 
 export interface WindowDimensions {
