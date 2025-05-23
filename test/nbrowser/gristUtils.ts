@@ -26,8 +26,9 @@ import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
 import { getAppRoot } from 'app/server/lib/places';
 
-import { noCleanup as _noCleanup, GristWebDriverUtils, IColsSelect, IColSelect,
-         PageWidgetPickerOptions, WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
+import { ICellSelect as _ICellSelect, noCleanup as _noCleanup, GristWebDriverUtils,
+         IColSelect, IColsSelect, PageWidgetPickerOptions,
+         WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { APIConstructor, HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
 import type { Cleanup } from 'test/nbrowser/testUtils';
@@ -41,7 +42,9 @@ import { lock } from 'proper-lockfile';
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
 namespace gristUtils {
 
+// Re-export types imported from gristWebDriverUtils
 export const noCleanup = _noCleanup;
+export type ICellSelect = _ICellSelect;
 
 // Allow overriding the global 'driver' to use in gristUtil.
 let _driver: WebDriver|undefined;
@@ -107,6 +110,7 @@ export const narrowScreen = webdriverUtils.narrowScreen.bind(webdriverUtils);
 export const exactMatch = webdriverUtils.exactMatch.bind(webdriverUtils);
 export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
 export const getVisibleGridCells = webdriverUtils.getVisibleGridCells.bind(webdriverUtils);
+export const getCell = webdriverUtils.getCell.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -116,12 +120,6 @@ export type WindowDimensions = WindowDimensionsBase;
 // code changes.
 server.simulateLogin = simulateLogin;
 server.removeLogin = removeLogin;
-
-export interface ICellSelect {
-  col: number|string;
-  rowNum: number;
-  section?: string|WebElement;
-}
 
 export interface IColHeader {
   col: number|string;
@@ -420,23 +418,6 @@ export async function getVisibleDetailCells<T>(
     el.findContent('.g_record_detail_label', exactMatch(colName))
     .findClosest('.g_record_detail_el').find('.g_record_detail_value')
   )));
-}
-
-
-/**
- * Returns a visible GridView cell. Options may be given as arguments directly, or as an object.
- * - col: column name, or 0-based column index
- * - rowNum: 1-based row numbers, as visible in the row headers on the left of the grid.
- * - section: optional name of the section to use; will use active section if omitted.
- */
-export function getCell(col: number|string, rowNum: number, section?: string): WebElementPromise;
-export function getCell(options: ICellSelect): WebElementPromise;
-export function getCell(colOrOptions: number|string|ICellSelect, rowNum?: number, section?: string): WebElementPromise {
-  const mapper = async (el: WebElement) => el;
-  const options: IColSelect<WebElement> = (typeof colOrOptions === 'object' ?
-    {col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper} :
-    {col: colOrOptions, rowNums: [rowNum!], section, mapper});
-  return new WebElementPromise(driver, getVisibleGridCells(options).then((elems) => elems[0]));
 }
 
 
