@@ -406,3 +406,18 @@ export class ProfileSettingsPage {
     await this._gu.waitForServer();
   }
 }
+
+export interface IColsSelect<T = WebElement> {
+  cols: Array<number|string>;
+  rowNums: number[];
+  section?: string|WebElement;
+  mapper?: (e: WebElement) => Promise<T>;
+}
+
+export interface IColSelect<T = WebElement> {
+  col: number|string;
+  rowNums: number[];
+  section?: string|WebElement;
+  mapper?: (e: WebElement) => Promise<T>;
+}
+
