@@ -1534,8 +1534,6 @@ export class FlexServer implements GristServer {
         server: this,
         docId: 'test',  // The id is just used in logging - no
                         // document is created or read at this level.
-        // In olden times, and in SaaS, Python 2 is supported. In modern
-        // times Python 2 is long since deprecated and defunct.
         preferredPythonVersion: '3',
       });
       info.flavor = sandbox.getFlavor();

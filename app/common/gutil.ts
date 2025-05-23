@@ -685,14 +685,14 @@ export function pruneArray<T>(arr: T[], indexes: number[]) {
 }
 
 /**
- * A List of python identifiers; the result of running keywords.kwlist in Python 2.7.6,
+ * A List of python identifiers; the result of running keywords.kwlist in Python 3.9,
  * plus additional illegal identifiers None, False, True
  * Using [] instead of new Array causes a "comprehension error" for some reason
  */
-const _kwlist = ['and', 'as', 'assert', 'break', 'class', 'continue', 'def',
-             'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 'from', 'global',
-             'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass', 'print', 'raise',
-             'return', 'try', 'while', 'with', 'yield', 'None', 'False', 'True'];
+const _kwlist = ['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
+                 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
+                 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
+                 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'];
 /**
  * Given an arbitrary string, makes substitutions to make it a valid SQL/Python identifier.
  * Corresponds to sandbox/grist/gencode.sanitize_ident

@@ -982,7 +982,6 @@ describe('ActiveDoc', async function() {
       oldEnv = new EnvironmentSnapshot();
       // Set environment variable that currently determines whether a sandbox choice is allowed.
       process.env.GRIST_EXPERIMENTAL_PLUGINS = '1';
-      delete process.env.PYTHON_VERSION;
       delete process.env.GRIST_SANDBOX_FLAVOR;
     });
 
@@ -1093,8 +1092,6 @@ describe('ActiveDoc', async function() {
     });
 
     it('can use python3 sandbox by default', async function() {
-      process.env.PYTHON_VERSION_ON_CREATION = '3';
-
       const docName = 'sandbox-default';
       const activeDoc = await docTools.createDoc(docName);
       await checkPythonIs3(activeDoc);
