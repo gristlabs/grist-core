@@ -8,6 +8,7 @@
  * easily.
  */
 
+import escapeRegExp = require('lodash/escapeRegExp');
 import { CommandName } from 'app/client/components/commandList';
 import { DocAction, UserAction } from 'app/common/DocActions';
 import { WebDriver, WebElement } from 'mocha-webdriver';
@@ -370,6 +371,17 @@ export class GristWebDriverUtils {
   public narrowScreen() {
     this.resizeWindowForSuite(400, 750);
   }
+  /**
+   * Helper for exact string matches using interfaces that expect a RegExp. E.g.
+   *    driver.findContent('.selector', exactMatch("Foo"))
+   *
+   * TODO It would be nice if mocha-webdriver allowed exact string match in findContent() (it now
+   * supports a substring match, but we still need a helper for an exact match).
+   */
+  public exactMatch(value: string, flags?: string): RegExp {
+    return new RegExp(`^${escapeRegExp(value)}$`, flags);
+  }
+
 }
 
 export interface WindowDimensions {
