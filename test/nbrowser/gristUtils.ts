@@ -26,8 +26,8 @@ import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
 import { getAppRoot } from 'app/server/lib/places';
 
-import { noCleanup as _noCleanup, GristWebDriverUtils, PageWidgetPickerOptions,
-         WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
+import { noCleanup as _noCleanup, GristWebDriverUtils, IColsSelect, IColSelect,
+         PageWidgetPickerOptions, WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { APIConstructor, HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
 import type { Cleanup } from 'test/nbrowser/testUtils';
@@ -114,13 +114,6 @@ export type WindowDimensions = WindowDimensionsBase;
 server.simulateLogin = simulateLogin;
 server.removeLogin = removeLogin;
 
-export interface IColSelect<T = WebElement> {
-  col: number|string;
-  rowNums: number[];
-  section?: string|WebElement;
-  mapper?: (e: WebElement) => Promise<T>;
-}
-
 export interface ICellSelect {
   col: number|string;
   rowNum: number;
@@ -130,13 +123,6 @@ export interface ICellSelect {
 export interface IColHeader {
   col: number|string;
   section?: string|WebElement;
-}
-
-export interface IColsSelect<T = WebElement> {
-  cols: Array<number|string>;
-  rowNums: number[];
-  section?: string|WebElement;
-  mapper?: (e: WebElement) => Promise<T>;
 }
 
 /**
