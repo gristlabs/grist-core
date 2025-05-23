@@ -421,6 +421,22 @@ export class GristWebDriverUtils {
   }
 
   /**
+   * Returns a visible GridView cell. Options may be given as arguments directly, or as an object.
+   * - col: column name, or 0-based column index
+   * - rowNum: 1-based row numbers, as visible in the row headers on the left of the grid.
+   * - section: optional name of the section to use; will use active section if omitted.
+   */
+  public getCell(col: number | string, rowNum: number, section?: string): WebElementPromise;
+  public getCell(options: ICellSelect): WebElementPromise;
+  public getCell(colOrOptions: number | string | ICellSelect, rowNum?: number, section?: string): WebElementPromise {
+    const mapper = async (el: WebElement) => el;
+    const options: IColSelect<WebElement> = (typeof colOrOptions === 'object' ?
+      { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
+      { col: colOrOptions, rowNums: [rowNum!], section, mapper });
+    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then((elems) => elems[0]));
+  }
+
+  /**
    * Returns a WebElementPromise for the .viewsection_content element for the section which contains
    * the given text (case insensitive) content.
    */
@@ -492,3 +508,8 @@ export interface IColSelect<T = WebElement> {
   mapper?: (e: WebElement) => Promise<T>;
 }
 
+export interface ICellSelect {
+  col: number|string;
+  rowNum: number;
+  section?: string|WebElement;
+}
