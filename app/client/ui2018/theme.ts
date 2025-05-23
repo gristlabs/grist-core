@@ -10,17 +10,17 @@ import {
   Theme,
   ThemeAppearance,
   ThemePrefs,
-  ThemeTokens,
   tokens,
   tokensCssMapping
 } from 'app/common/ThemePrefs';
 import { getThemeTokens } from 'app/common/Themes';
 import { getGristConfig } from 'app/common/urlUtils';
+import { isFeatureEnabled } from 'app/common/gristUrls';
 import { Computed, Observable } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
-const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', colors: getThemeTokens('GristLight')};
-const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', colors: getThemeTokens('GristDark')};
+const DEFAULT_LIGHT_THEME: Theme = {appearance: 'light', name: 'GristLight', colors: getThemeTokens('GristLight')};
+const DEFAULT_DARK_THEME: Theme = {appearance: 'dark', name: 'GristDark', colors: getThemeTokens('GristDark')};
 
 /**
  * A singleton observable for the current user's Grist theme preferences.
@@ -60,8 +60,8 @@ let _gristThemeObs: Computed<Theme> | undefined;
 export function gristThemeObs() {
   if (!_gristThemeObs) {
     _gristThemeObs = Computed.create(null, (use) => {
-      // Custom CSS is incompatible with custom themes.
-      if (getGristConfig().enableCustomCss) { return DEFAULT_LIGHT_THEME; }
+      // Default to light theme if themes are disabled in config.
+      if (!isFeatureEnabled('themes')) { return DEFAULT_LIGHT_THEME; }
 
       // If a user's preference is known, return it.
       const themePrefs = use(gristThemePrefs);
@@ -124,27 +124,17 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     syncWithOS = urlParams?.themeSyncWithOs;
   }
 
+  let themeName = themePrefs.colors[appearance];
+  if (urlParams?.themeName) {
+    themeName = urlParams?.themeName;
+  }
+
   if (syncWithOS) {
     appearance = userAgentPrefersDarkTheme ? 'dark' : 'light';
+    themeName = userAgentPrefersDarkTheme ? 'GristDark' : 'GristLight';
   }
 
-  let nameOrTokens = themePrefs.colors[appearance];
-  if (urlParams?.themeName) {
-    nameOrTokens = urlParams?.themeName;
-  }
-
-  if (syncWithOS) {
-    nameOrTokens = userAgentPrefersDarkTheme ? 'GristDark' : 'GristLight';
-  }
-
-  let themeTokens: ThemeTokens;
-  if (typeof nameOrTokens === 'string') {
-    themeTokens = getThemeTokens(nameOrTokens);
-  } else {
-    themeTokens = nameOrTokens;
-  }
-
-  return {appearance, colors: themeTokens};
+  return {appearance, colors: getThemeTokens(themeName), name: themeName};
 }
 
 function attachCssThemeVars(theme: Theme) {
@@ -186,6 +176,10 @@ ${properties.join('\n')}
 
   // Make the browser aware of the color scheme.
   document.documentElement.style.setProperty(`color-scheme`, appearance);
+
+  // Add data-attributes to ease up custom css overrides.
+  document.documentElement.setAttribute('data-grist-theme', theme.name);
+  document.documentElement.setAttribute('data-grist-appearance', theme.appearance);
 
   // Cache the appearance in local storage; this is currently used to apply a suitable
   // background image that's shown while the application is loading.

@@ -18,7 +18,7 @@ import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {cssLink} from 'app/client/ui2018/links';
 import {select} from 'app/client/ui2018/menus';
-import {getPageTitleSuffix} from 'app/common/gristUrls';
+import {getPageTitleSuffix, isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe} from 'grainjs';
@@ -62,7 +62,6 @@ export class AccountPage extends Disposable {
   }
 
   private _buildContentMain() {
-    const {enableCustomCss} = getGristConfig();
     const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
     const languageOptions = supportedLngs
       .map((lng) => ({value: lng, label: translateLocale(lng)!}))
@@ -142,8 +141,7 @@ designed to ensure that you're the only person who can access your account, even
           dom.create(MFAConfig, user),
         ),
         css.header(t("Theme")),
-        // Custom CSS is incompatible with custom themes.
-        enableCustomCss ? null : dom.create(ThemeConfig, this._appModel),
+        isFeatureEnabled('themes') ? dom.create(ThemeConfig, this._appModel) : null,
         css.subHeader(t("Language")),
         css.dataRow({ style: 'width: 300px'},
           select(userLocale, languageOptions, {

@@ -27,7 +27,7 @@ export class ThemeConfig extends Disposable {
       } else {
         // The user theme name is stored in both colors.light and colors.dark, just take one of them
         // This is a bit weird but this rather contained weirdness is preferred to changing the user prefs schema.
-        return prefs.colors.light as ThemeName;
+        return prefs.colors.light;
       }
     })
     .onWrite((themeName) => {

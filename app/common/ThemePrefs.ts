@@ -4,8 +4,8 @@ export interface ThemePrefs {
   appearance: ThemeAppearance;
   syncWithOS: boolean;
   colors: {
-    light: ThemeNameOrTokens;
-    dark: ThemeNameOrTokens;
+    light: ThemeName;
+    dark: ThemeName;
   }
 }
 
@@ -39,11 +39,13 @@ export function getDefaultThemePrefs(): ThemePrefs {
 
 export interface Theme {
   appearance: ThemeAppearance;
+  name: ThemeName;
   colors: ThemeTokens;
 }
 
 export interface ThemeWithCssVars {
   appearance: ThemeAppearance;
+  name: ThemeName;
   colors: {
     [key: string]: string;
   };

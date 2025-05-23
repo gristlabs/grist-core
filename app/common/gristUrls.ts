@@ -931,6 +931,7 @@ export const Features = StringUnion(
   "sendToDrive",
   "tutorials",
   "supportGrist",
+  "themes",
 );
 export type IFeature = typeof Features.type;
 
