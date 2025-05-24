@@ -76,7 +76,7 @@ function setupTest() {
     dom('h4', 'All icons'),
     dom('div#all_icons',
       allIcons(
-        dom.forEach(IconList.sort(), (name: IconName) =>
+        dom.forEach(IconList.slice().sort(), (name: IconName) =>
           iconBlock(iconBox(icon(name)), dom('span', name))
         ),
       )
