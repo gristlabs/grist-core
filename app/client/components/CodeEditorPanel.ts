@@ -1,7 +1,7 @@
 
 /**
  * CodeEditorPanel.ts
- * 
+ *
  * Renders the "Code View" panel in Grist for displaying the schema of the current document.
  * Uses highlight.js to provide syntax highlighting for Python-style Grist schema output.
  *
