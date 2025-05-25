@@ -1,6 +1,6 @@
 /**
  * ACLFormulaEditor.ts
- * 
+ *
  * Renders a themed ACE editor for Access Rules formulas in Grist.
  * Supports suggestions, syntax highlighting, theme switching, and placeholder text.
  *
