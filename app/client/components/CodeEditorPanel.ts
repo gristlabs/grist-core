@@ -1,3 +1,4 @@
+
 /**
  * CodeEditorPanel.ts
  * 
@@ -75,26 +76,32 @@ export class CodeEditorPanel extends DisposableWithEvents {
         this._schema.set(schema);
         */
 
-        // 🔧 [Custom Patch] Sort @grist.UserTable blocks alphabetically by class name (v0.3)
+        // MOD DMH - 🔧 [Custom Patch] Sort @grist.UserTable blocks alphabetically by class name
         const lines = schema.split("\n");
         const blocks: string[][] = [];
         let current: string[] = [];
-        for (let line of lines) {
+        for (const line of lines) {
           if (line.startsWith("@grist.UserTable")) {
-            if (current.length) blocks.push(current);
+            if (current.length) {
+              blocks.push(current);
+            }
             current = [line];
           } else {
             current.push(line);
           }
         }
-        if (current.length) blocks.push(current);
+        if (current.length) { blocks.push(current); }
         const sorted = blocks.sort((a, b) => {
-          const nameA = a.find(l => l.trim().startsWith("class")) ?? "";
-          const nameB = b.find(l => l.trim().startsWith("class")) ?? "";
+          const nameA = a.find(l => {
+            return l.trim().startsWith("class");
+          }) ?? "";
+          const nameB = b.find(l => {
+            return l.trim().startsWith("class");
+          }) ?? "";
           return nameA.localeCompare(nameB);
         });
         const pretty = sorted.map(b => b.join("\n")).join("\n\n");
-        console.log("✅ [Custom Patch] CodeEditorPanel.ts");
+        console.log("[Custom Patch] CodeEditorPanel.ts ✅ Sorted @grist.UserTable blocks by class name (v0.3)");
         this._schema.set(pretty);
 
         this._denied.set(false);
