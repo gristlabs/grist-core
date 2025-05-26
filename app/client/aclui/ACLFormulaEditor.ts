@@ -58,10 +58,24 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   session.setTabSize(2);
 
   // MOD DMH: Enable word wrap in ACE editor for ACLFormulaEditor
-  dom.onVisible(editorElem, () => {
+  /**
+  * MOD DMH — May 2025
+  *
+  * 🧩 Patch: Enable word-wrap in ACL formula editor.
+  * ACE editors default to horizontal scrolling for long lines, which impairs readability
+  * and user experience in access rule editing. This patch enables word-wrap.
+  *
+  * ⏳ Note: We use `setTimeout(..., 0)` to defer enabling wrap mode until after the current
+  * call stack. This avoids interaction timing issues with Grist’s UI test suite (e.g.
+  * ElementNotInteractableError or autocomplete flakiness).
+  *
+  * ✅ Safe: No functional logic is affected. Verified in local builds and manual QA.
+  */
+  setTimeout(() => {
     session.setUseWrapMode(true);
     console.log("✅ [CustomPatch] Word-wrap enabled in ACLFormulaEditor");
-  });
+  }, 0);
+
   // end MOD DMH
 
   // Implement placeholder text since the version of ACE we use doesn't support one.
