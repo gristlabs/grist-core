@@ -58,8 +58,10 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   session.setTabSize(2);
 
   // MOD DMH: Enable word wrap in ACE editor for ACLFormulaEditor
-  session.setUseWrapMode(true);
-  console.log("✅ [CustomPatch] Word-wrap enabled in ACLFormulaEditor");
+  dom.onVisible(editorElem, () => {
+    session.setUseWrapMode(true);
+    console.log("✅ [CustomPatch] Word-wrap enabled in ACLFormulaEditor");
+  });
   // end MOD DMH
 
   // Implement placeholder text since the version of ACE we use doesn't support one.
