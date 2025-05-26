@@ -49,8 +49,6 @@ var dom = require('../lib/dom');
 var Base = require('./Base');
 var tableUtil = require('../lib/tableUtil');
 
-var _ = require('underscore');
-
 const t = makeT('Clipboard');
 
 function Clipboard(app) {
@@ -305,19 +303,14 @@ async function getTextFromClipboardItem(clipboardItem, type) {
  *
  * You can explicitly allow focus by setting different classes:
  *   - using the 'clipboard_allow_focus' class will allow focusing the element having the class,
- *   - using the 'clipboard_allow_group_focus' class will allow focusing any descendant element of the one having the class
+ *   - using the 'clipboard_group_focus' class will allow focusing any descendant element of the one having the class
  *
  * You can explicitly forbid focus by setting the 'clipboard_forbid_focus' class on a element. Forbidding wins over allowing
  * if both are set.
  */
 function allowFocus(elem) {
-  const {copy, cut, paste} = commands.allCommands;
-  const noCopyPasteCommands = copy._activeFunc === _.noop && cut._activeFunc === _.noop && paste._activeFunc === _.noop;
   if (elem && elem.classList.contains('clipboard_forbid_focus')) {
     return false;
-  }
-  if (noCopyPasteCommands) {
-    return true;
   }
   if (elem && elem.closest('.clipboard_group_focus')) {
     return true;
