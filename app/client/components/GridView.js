@@ -338,7 +338,7 @@ GridView.gridCommands = {
     }
     this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
   },
-  copy: function() { console.log(this.getSelection()); return this.copy(this.getSelection()); },
+  copy: function() { return this.copy(this.getSelection()); },
   cut: function() { return this.cut(this.getSelection()); },
   paste: async function(pasteObj, cutCallback) {
     if (this.gristDoc.isReadonly.get()) { return; }
