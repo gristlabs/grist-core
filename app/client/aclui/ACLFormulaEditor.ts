@@ -56,8 +56,8 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   const session = editor.getSession();
   session.setMode('ace/mode/python');
   session.setTabSize(2);
+
   // MOD DMH: Enable word wrap in ACE editor for ACLFormulaEditor
-  // session.setUseWrapMode(false);
   session.setUseWrapMode(true);
   console.log("✅ [CustomPatch] Word-wrap enabled in ACLFormulaEditor");
   // end MOD DMH
