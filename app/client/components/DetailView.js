@@ -156,6 +156,8 @@ DetailView.prototype._updateFloatingRow = function() {
 
 /**
  * DetailView commands, enabled when the view is the active one.
+ *
+ * See BaseView.commonCommands for more details.
  */
 DetailView.detailCommands = {
   editLayout: function() {
@@ -174,6 +176,8 @@ DetailView.detailCommands = {
 
 /**
  * DetailView commands, enabled when the view is user-focused.
+ *
+ * See BaseView.commonCommands and BaseView.commonFocusedCommands for more details.
  */
 DetailView.detailFocusedCommands = {
   cursorUp: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() - 1); },
