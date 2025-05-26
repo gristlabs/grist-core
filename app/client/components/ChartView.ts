@@ -577,7 +577,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // The label to show for the first field in the axis configurator.
   private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef), (
-    (_use, chartType) => firstFieldIsLabels(chartType) ? 'LABEL' : t('X-AXIS')
+    (_use, chartType) => firstFieldIsLabels(chartType) ? t('LABEL') : t('X-AXIS')
   ));
 
   // A computed that returns `this._section.chartTypeDef` and that takes care of removing the group
@@ -846,7 +846,7 @@ export class ChartConfig extends GrainJSDisposable {
     return cssFieldEntry(
       cssFieldLabel(dom.text(col.label)),
       cssRemoveIcon(
-        t('Remove'),
+        t('Remove field from series'),
         dom.on('click', () => this._configFieldsHelper.removeField(col)),
         testId('ref-select-remove'),
       ),
