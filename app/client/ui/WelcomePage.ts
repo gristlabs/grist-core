@@ -59,8 +59,7 @@ export class WelcomePage extends Disposable {
         page === 'teams' ? dom.create(buildWelcomeSitePicker, this._appModel) :
         this._buildPageContent(page)
       ),
-    }, {
-      regionFocusSwitcher: this._appObj.regionFocusSwitcher,
+      app: this._appObj,
     });
   }
 

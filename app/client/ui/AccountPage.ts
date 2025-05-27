@@ -59,8 +59,7 @@ export class AccountPage extends Disposable {
       headerMain: this._buildHeaderMain(),
       contentMain: this._buildContentMain(),
       testId,
-    }, {
-      regionFocusSwitcher: this._appObj.regionFocusSwitcher,
+      app: this._appObj,
     });
   }
 

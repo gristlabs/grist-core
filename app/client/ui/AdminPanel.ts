@@ -48,8 +48,7 @@ export class AdminPanel extends Disposable {
       headerMain: this._buildMainHeader(pageObs),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildMainContent(),
-    }, {
-      regionFocusSwitcher: this._appObj.regionFocusSwitcher,
+      app: this._appObj,
     });
   }
 
