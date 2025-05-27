@@ -846,7 +846,7 @@ export class ChartConfig extends GrainJSDisposable {
     return cssFieldEntry(
       cssFieldLabel(dom.text(col.label)),
       cssRemoveIcon(
-        t('Remove field from series'),
+        t('Remove'),
         dom.on('click', () => this._configFieldsHelper.removeField(col)),
         testId('ref-select-remove'),
       ),
