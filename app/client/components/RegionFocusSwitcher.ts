@@ -1,4 +1,4 @@
-import {Disposable, dom, Listener, Observable, styled} from 'grainjs';
+import {Disposable, dom, Observable, styled} from 'grainjs';
 import {mod} from 'app/common/gutil';
 import {SpecialDocPage} from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
@@ -36,8 +36,7 @@ interface State {
 export class RegionFocusSwitcher extends Disposable {
   // State with currently focused region
   private readonly _state: Observable<State>;
-
-  private _gristDocObs?: Observable<GristDoc | null>;
+  private get _gristDocObs() { return this._app?.pageModel?.gristDoc; }
   // Previously focused elements for each panel (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
     left: null,
@@ -46,40 +45,12 @@ export class RegionFocusSwitcher extends Disposable {
     main: null,
   };
 
-  private _initiated: Observable<boolean>;
-  private _initListener?: Listener;
-
-  constructor(private _app: App) {
+  constructor(private _app?: App) {
     super();
     this._state = Observable.create(this, {
       region: undefined,
       initiator: undefined,
     });
-    this._initiated = Observable.create(this, false);
-  }
-
-  public init(pageContainer: HTMLElement) {
-    if (this._initiated.get()) {
-      if (this._initListener && !this._initListener.isDisposed()) {
-        this._initListener.dispose();
-      }
-      return;
-    }
-
-    if (this._app.pageModel?.gristDoc) {
-      this._gristDocObs = this._app.pageModel.gristDoc;
-    }
-
-    // if we have a grist doc, wait for it to be ready before doing anything
-    if (this._gristDocObs && this._gristDocObs.get() === null) {
-      this._initListener = this._gristDocObs.addListener((doc, prevDoc) => {
-        if (doc && prevDoc === null) {
-          doc.regionFocusSwitcher = this;
-          this.init(pageContainer);
-        }
-      });
-      return;
-    }
 
     this.autoDispose(commands.createGroup({
       nextRegion: () => this._cycle('next'),
@@ -91,16 +62,19 @@ export class RegionFocusSwitcher extends Disposable {
     this.autoDispose(this._state.addListener(this._onStateChange.bind(this)));
 
     const focusActiveSection = () => this.focusActiveSection();
-    this._app.on('clipboard_focus', focusActiveSection);
-    this.onDispose(() => this._app.off('clipboard_focus', focusActiveSection));
+    this._app?.on('clipboard_focus', focusActiveSection);
+    this.onDispose(() => {
+      this._app?.off('clipboard_focus', focusActiveSection);
+      this.reset();
+    });
+  }
 
+  public onPageDomLoaded(el: HTMLElement) {
     if (this._gristDocObs) {
       const onClick = this._onClick.bind(this);
-      pageContainer.addEventListener('mouseup', onClick);
-      this.onDispose(() => pageContainer.removeEventListener('mouseup', onClick));
+      el.addEventListener('mouseup', onClick);
+      this.onDispose(() => el.removeEventListener('mouseup', onClick));
     }
-
-    this._initiated.set(true);
   }
 
   public focusRegion(
@@ -139,11 +113,6 @@ export class RegionFocusSwitcher extends Disposable {
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
       dom.cls('kb-focus-highlighter-group', use => {
-        const initiated = use(this._initiated);
-        if (!initiated) {
-          return false;
-        }
-
         // highlight focused elements everywhere except in the grist doc views
         if (id !== 'main') {
           return true;
@@ -158,11 +127,6 @@ export class RegionFocusSwitcher extends Disposable {
         return isSpecialPage(gristDoc);
       }),
       dom.cls(use => {
-        const initiated = use(this._initiated);
-        if (!initiated) {
-          return '';
-        }
-
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
         if (!gristDoc) {
@@ -186,24 +150,10 @@ export class RegionFocusSwitcher extends Disposable {
         return '';
       }),
       cssFocusedPanel.cls('-focused', use => {
-        const initiated = use(this._initiated);
-        if (!initiated) {
-          return false;
-        }
-
         const current = use(this._state);
         return current.initiator?.type === 'cycle' && current.region?.type === 'panel' && current.region.id === id;
       }),
     ];
-  }
-
-  /**
-   * this is smelly code that is just here because I don't initialize the region focus switcher correctly…
-   */
-  public onAppPageModelUpdate() {
-    if (this._app.pageModel?.gristDoc) {
-      this._gristDocObs = this._app.pageModel.gristDoc;
-    }
   }
 
   private _cycle(direction: 'next' | 'prev') {
