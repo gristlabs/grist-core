@@ -67,7 +67,7 @@ export function hasOnlyTheseIdsOrNull(dbType: DatabaseType, ids: number[], colum
 export function hasAtLeastOneOfTheseIds(dbType: DatabaseType, ids: number[], columns: string[]): string {
   switch (dbType) {
     case 'postgres':
-      return `array[${ids.join(',')}] && array[${columns.join(',')}]`;
+      return `array[${ids.join(',')}] OPERATOR(pg_catalog.&&) array[${columns.join(',')}]`;
     case 'sqlite':
       return ids.map(id => `${id} in (${columns.join(',')})`).join(' OR ');
     default:

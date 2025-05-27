@@ -210,9 +210,8 @@ export class MergedServer {
         if (!process.env.REDIS_URL) {
           throw new Error('Redis needed to support multiple workers');
         }
-        const port = this.flexServer.port;
         for (let i = 1; i <= this._options.extraWorkers; i++) {
-          const server = await MergedServer.create(port + i, ['docs'], {
+          const server = await MergedServer.create(0, ['docs'], {
             ...this._options,
             extraWorkers: undefined,
           });

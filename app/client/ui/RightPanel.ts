@@ -49,6 +49,7 @@ import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {components} from 'app/common/ThemePrefs';
 import {isFullReferencingType} from "app/common/gristTypes";
 import {not} from 'app/common/gutil';
 import {StringUnion} from 'app/common/StringUnion';
@@ -824,12 +825,11 @@ export class RightPanel extends Disposable {
           cssRow.cls('-top-space'),
       )),
 
-      // TODO: "Advanced settings" is for "on-demand" marking of tables. This should only be shown
-      // for raw data tables (once that's supported), should have updated UI, and should possibly
-      // be hidden for free plans.
-      dom.maybe(viewConfigTab, (vct) => cssRow(
+      // TODO: "Advanced settings" is for "on-demand" marking of tables. This is now a deprecated feature. UIRowId
+      // is only shown for tables that are marked as "on-demand""
+      dom.domComputed(use => use(use(table).onDemand) && use(viewConfigTab), (vct) => vct ? cssRow(
         dom('div', vct._buildAdvancedSettingsDom()),
-      )),
+      ) : null),
 
       dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () => [
         cssSeparator(),
@@ -1253,16 +1253,16 @@ const cssSubTab = styled('div', `
 
   &-selected {
     color: ${theme.rightPanelSubtabSelectedFg};
-    border-bottom: 1px solid ${theme.rightPanelSubtabSelectedUnderline};
+    border-bottom: ${components.rightPanelSubtabUnderlineSize} solid ${theme.rightPanelSubtabSelectedUnderline};
   }
   &:not(&-selected):hover {
     color: ${theme.rightPanelSubtabHoverFg};
   }
   &:hover {
-    border-bottom: 1px solid ${theme.rightPanelSubtabHoverUnderline};
+    border-bottom: ${components.rightPanelSubtabUnderlineSize} solid ${theme.rightPanelSubtabHoverUnderline};
   }
   .${cssSubTabContainer.className}:hover > &-selected:not(:hover) {
-    border-bottom: 1px solid ${theme.pagePanelsBorder};
+    border-bottom: ${components.rightPanelSubtabUnderlineSize} solid ${theme.pagePanelsBorder};
   }
 `);
 

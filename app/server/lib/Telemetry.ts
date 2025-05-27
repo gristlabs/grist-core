@@ -18,6 +18,7 @@ import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
 import {Activation} from 'app/gen-server/entity/Activation';
 import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {GristServer} from 'app/server/lib/GristServer';
@@ -377,7 +378,9 @@ export async function getTelemetryPrefs(
   db: HomeDBManager,
   activation?: Activation
 ): Promise<TelemetryPrefsWithSources> {
-  const GRIST_TELEMETRY_LEVEL = process.env.GRIST_TELEMETRY_LEVEL;
+  const GRIST_TELEMETRY_LEVEL = appSettings.section('telemetry').flag('level').readString({
+    envVar: 'GRIST_TELEMETRY_LEVEL'
+  });
   if (GRIST_TELEMETRY_LEVEL !== undefined) {
     const value = TelemetryLevels.check(GRIST_TELEMETRY_LEVEL);
     return {

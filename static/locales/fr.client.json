@@ -637,7 +637,9 @@
         "Download document without history (can significantly reduce file size)": "Télécharger le document complet sans l'historique (peut réduire sensiblement la taille du fichier)",
         "Download document and history": "Télécharger le document complet avec l'historique des modifications",
         "Download": "Télécharger",
-        "Download document": "Télécharger le document"
+        "Download document": "Télécharger le document",
+        "Learn more": "En savoir plus",
+        "Download full document and history": "Télécharger le document complet avec l'historique des modifications"
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -1968,5 +1970,8 @@
         "Settings": "Paramètres",
         "Admin area": "Zone d'administration",
         "Docs": "Documentation"
+    },
+    "Assistant": {
+        "Learn more.": "En savoir plus."
     }
 }

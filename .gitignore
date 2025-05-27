@@ -97,3 +97,7 @@ xunit.xml
 
 # Sample grist documents
 /samples/
+
+/test/assistant/data/cache/
+/test/assistant/data/results/
+/test/assistant/data/templates/

@@ -9,7 +9,7 @@ import {GristObjCode} from 'app/plugin/GristData';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {DummyAuthorizer} from 'app/server/lib/Authorizer';
+import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {AuthSession} from 'app/server/lib/AuthSession';
 import {Client} from 'app/server/lib/Client';
 import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';

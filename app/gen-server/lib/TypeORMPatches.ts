@@ -13,6 +13,7 @@
 // changed during construction of a query.
 
 import * as sqlite3 from '@gristlabs/sqlite3';
+import {ApiError} from 'app/common/ApiError';
 import {delay} from 'app/common/delay';
 import log from 'app/server/lib/log';
 import {Mutex, MutexInterface} from 'async-mutex';
@@ -121,7 +122,11 @@ export function applyPatch() {
             clearInterval(timer);
           }
         } catch (err) {
-          log.debug(`TypeORM transaction error [${arg1} ${arg2}] - ${err}`);
+          if (!(err instanceof ApiError)) {
+            // Log with a stack trace in case of unexpected DB problems. Don't bother logging for
+            // errors (like ApiError) that clearly come from our own code.
+            log.debug('TypeORM transaction error', err);
+          }
           try {
             // we throw original error even if rollback thrown an error
             await queryRunner.rollbackTransaction();

@@ -242,6 +242,7 @@ export class NSandbox implements ISandbox {
   public async reportMemoryUsage() {
     const {memory} = await this._control.getUsage();
     log.rawDebug('Sandbox memory', {memory, ...this._logMeta});
+    return memory;
   }
 
   public isProcessDown() {

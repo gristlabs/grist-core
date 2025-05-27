@@ -118,6 +118,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),
+    featureNotifications: isAffirmative(process.env.GRIST_TEST_ENABLE_NOTIFICATIONS),
     ...extra,
   };
 }

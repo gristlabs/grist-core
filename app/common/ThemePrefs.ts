@@ -4,8 +4,8 @@ export interface ThemePrefs {
   appearance: ThemeAppearance;
   syncWithOS: boolean;
   colors: {
-    light: ThemeNameOrTokens;
-    dark: ThemeNameOrTokens;
+    light: ThemeName;
+    dark: ThemeName;
   }
 }
 
@@ -14,16 +14,38 @@ export type ThemeAppearance = typeof themeAppearances[number];
 
 export type ThemeNameOrTokens = ThemeName | ThemeTokens;
 
-export const themeNames = ['GristLight', 'GristDark'] as const;
+export const themeNames = ['GristLight', 'GristDark', 'HighContrastLight'] as const;
 export type ThemeName = typeof themeNames[number];
+
+export const themeNameAppearances = {
+  GristLight: 'light',
+  GristDark: 'dark',
+  HighContrastLight: 'light',
+} as const;
+
+export function getDefaultThemePrefs(): ThemePrefs {
+  return {
+    appearance: 'light',
+    syncWithOS: true,
+    colors: {
+      // Note: the colors object is not used for its original purpose.
+      // It's currently our way to store the theme name in user prefs (without having to change the user prefs schema).
+      // This is why we just repeat the name in both `light` and `dark` properties.
+      light: 'GristLight',
+      dark: 'GristLight',
+    }
+  };
+}
 
 export interface Theme {
   appearance: ThemeAppearance;
+  name: ThemeName;
   colors: ThemeTokens;
 }
 
 export interface ThemeWithCssVars {
   appearance: ThemeAppearance;
+  name: ThemeName;
   colors: {
     [key: string]: string;
   };
@@ -302,6 +324,7 @@ export const componentsCssMapping = {
   rightPanelSubtabFg: 'right-panel-subtab-fg',
   rightPanelSubtabSelectedFg: 'right-panel-subtab-selected-fg',
   rightPanelSubtabSelectedUnderline: 'right-panel-subtab-selected-underline',
+  rightPanelSubtabUnderlineSize: 'right-panel-subtab-selected-underline-size',
   rightPanelSubtabHoverFg: 'right-panel-subtab-hover-fg',
   rightPanelSubtabHoverUnderline: 'right-panel-subtab-hover-underline',
   rightPanelDisabledOverlay: 'right-panel-disabled-overlay',
@@ -556,6 +579,7 @@ export const componentsCssMapping = {
   cardButtonBorder: 'card-button-border',
   cardButtonBorderSelected: 'card-button-border-selected',
   cardButtonShadow: 'card-button-shadow',
+  formulaIcon: 'formula-icon',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -701,37 +725,106 @@ export const convertThemeKeysToCssVars = (theme: Theme): ThemeWithCssVars => {
  * tokens that a given theme must always define
  */
 export interface SpecificThemeTokens {
+  /**
+   * main body text
+   */
   body: Token;
+
+  /**
+   * pronounced text
+   */
   emphasis: Token;
+
+  /**
+   * secondary, less visually pronounced text
+   */
   secondary: Token;
+
+  /**
+   * text that is always light, whatever the current appearance (light or dark theme)
+   */
   veryLight: Token;
 
+  /**
+   * default body bg color
+   */
   bg: Token;
+
+  /**
+   * bg color mostly used on panels
+   */
   bgSecondary: Token;
+
+  /**
+   * transparent bg, mostly used on hover effects
+   */
   bgTertiary: Token;
+
+  /**
+   * pronounced bg color, mostly used on selected items
+   */
   bgEmphasis: Token;
 
+  /**
+   * main decoration color, mostly used on borders
+   */
   decoration: Token;
+
+  /**
+   * less pronounced decoration color
+   */
   decorationSecondary: Token;
+
+  /**
+   * even less pronounced decoration color
+   */
   decorationTertiary: Token;
 
+  /**
+   * main accent color used mostly on interactive elements
+   */
   primary: Token;
+
+  /**
+   * alternative primary color, mostly used on hover effects
+   */
   primaryMuted: Token;
+
+  /**
+   * dimmer primary color, rarely used
+   */
   primaryDim: Token;
+
+  /**
+   * more pronounced primary color variant, rarely used
+   */
   primaryEmphasis: Token;
 
   controlBorderRadius: Token;
 
+  /**
+   * cursor color in widgets
+   */
   cursor: Token;
   cursorInactive: Token;
 
+  /**
+   * transparent background of selected cells
+   */
   selection: Token;
   selectionOpaque: Token;
   selectionDarkerOpaque: Token;
   selectionDarker: Token;
   selectionDarkest: Token;
 
+  /**
+   * non-transparent hover effect color, rarely used
+   */
   hover: Token;
+
+  /**
+   * transparent modal backdrop bg color
+   */
   backdrop: Token;
 
   components: {
@@ -1059,6 +1152,7 @@ export interface BaseThemeTokens {
     rightPanelSubtabFg: Token;
     rightPanelSubtabSelectedFg: Token;
     rightPanelSubtabSelectedUnderline: Token;
+    rightPanelSubtabUnderlineSize: Token;
     rightPanelSubtabHoverUnderline: Token;
     rightPanelDisabledOverlay: Token;
     rightPanelToggleButtonEnabledFg: Token;
@@ -1209,6 +1303,7 @@ export interface BaseThemeTokens {
     appHeaderBg: Token;
     cardButtonBorderSelected: Token;
     cardButtonShadow: Token;
+    formulaIcon: Token;
   };
 }
 
@@ -1216,16 +1311,4 @@ export interface ThemeTokens extends
   Omit<BaseThemeTokens, 'components'>,
   Omit<SpecificThemeTokens, 'components'> {
   components: BaseThemeTokens['components'] & SpecificThemeTokens['components'];
-}
-
-
-export function getDefaultThemePrefs(): ThemePrefs {
-  return {
-    appearance: 'light',
-    syncWithOS: true,
-    colors: {
-      light: 'GristLight',
-      dark: 'GristDark',
-    }
-  };
 }

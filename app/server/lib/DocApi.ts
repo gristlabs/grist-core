@@ -350,6 +350,10 @@ export class DocWorkerApi {
     );
 
     const registerWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, webhook: WebhookFields) => {
+      if (activeDoc.isFork) {
+        throw new ApiError('Unsaved document copies cannot have webhooks', 400);
+      }
+
       const {fields, url, authorization} = await getWebhookSettings(activeDoc, req, null, webhook);
       if (!fields.eventTypes?.length) {
         throw new ApiError(`eventTypes must be a non-empty array`, 400);
@@ -1145,8 +1149,15 @@ export class DocWorkerApi {
     // Soft-delete the specified doc.  If query parameter "permanent" is set,
     // delete permanently.
     this._app.post('/api/docs/:docId/remove', canEditMaybeRemoved, throttled(async (req, res) => {
-      const {data} = await this._removeDoc(req, res, isParameterOn(req.query.permanent));
-      if (data) { this._logRemoveDocumentEvents(req, data); }
+      const permanent = isParameterOn(req.query.permanent);
+      const {data} = await this._removeDoc(req, res, permanent);
+      if (data) {
+        if (permanent) {
+          this._logDeleteDocumentEvents(req, data);
+        } else {
+          this._logRemoveDocumentEvents(req, data);
+        }
+      }
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
@@ -2355,10 +2366,12 @@ export class DocWorkerApi {
   }
 
   private _logDeleteDocumentEvents(req: RequestWithLogin, document: Document) {
+    // If we're deleting a fork, we need to get the org from the trunk.
+    const org = document.workspace?.org ?? document.trunk?.workspace.org;
     this._grist.getAuditLogger().logEvent(req, {
       action: "document.delete",
       context: {
-        site: _.pick(document.workspace.org, "id", "name", "domain"),
+        site: _.pick(org, "id", "name", "domain"),
       },
       details: {
         document: _.pick(document, "id", "name"),

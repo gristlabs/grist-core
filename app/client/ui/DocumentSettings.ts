@@ -16,6 +16,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
 import {openFilePicker} from 'app/client/ui/FileDialog';
+import {buildNotificationsConfig} from 'app/client/ui/Notifications';
 import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
@@ -82,7 +83,7 @@ export class DocSettingsPage extends Disposable {
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
 
-    return cssContainer(
+    return cssContainer({tabIndex: '-1'},
       dom.create(AdminSection, t('Document Settings'), [
         dom.create(AdminSectionItem, {
           id: 'timezone',
@@ -122,6 +123,8 @@ export class DocSettingsPage extends Disposable {
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
       ]),
+
+      dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),
 
       dom.create(AdminSection, t('Data Engine'), [
         dom.create(AdminSectionItem, {
@@ -220,11 +223,12 @@ export class DocSettingsPage extends Disposable {
             href: getApiConsoleLink(docPageModel),
           }),
         }),
-        dom.create(AdminSectionItem, {
+        this._gristDoc.docPageModel.isFork.get() ? null : dom.create(AdminSectionItem, {
           id: 'webhooks',
           name: t('Webhooks'),
           description: t('Notify other services on doc changes'),
           value: cssSmallLinkButtonSettings(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
+          disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
       ]),
 
@@ -589,7 +593,7 @@ export class DocSettingsPage extends Disposable {
             description:  t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
               'Anyone may edit, which will create a new unsaved copy.',
               {
-                fiddleModeDocUrl: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('fiddle mode'))
+                fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode'))
               }
             ),
             itemTestId: testId('doctype-modal-option-template'),
@@ -809,7 +813,7 @@ const cssInput = styled('div', `
 `);
 
 const cssHoverWrapper = styled('div', `
-  max-width: 170px;
+  max-width: var(--admin-select-width);
   text-overflow: ellipsis;
   overflow: hidden;
   text-wrap: nowrap;
@@ -931,7 +935,7 @@ const cssCopyLink = styled(cssLink, `
 `);
 
 const cssAutoComplete = `
-  width: 172px;
+  width: var(--admin-select-width);
   cursor: pointer;
   & input {
     text-overflow: ellipsis;
@@ -956,7 +960,7 @@ const cssRedText = styled('span', `
 
 const cssDocTypeContainer = styled('div', `
   display: flex;
-  width: 172px;
+  width: var(--admin-select-width);
   align-items: center;
   justify-content: space-between;
   & > * {
@@ -979,7 +983,7 @@ const cssSmallSelect = styled(select, `
 `);
 
 const cssSelect = styled(select, `
-  min-width: 170px; /* to match the width of the timezone picker */
+  min-width: var(--admin-select-width);
 `);
 
 const cssLoadingSpinner = styled(loadingSpinner, `
