@@ -2832,11 +2832,22 @@ export class HomeDBManager {
   }, transaction?: EntityManager): Promise<Limit|null> {
     const limitOrError: Limit|ApiError|null = await this.runInTransaction(transaction, async manager => {
       const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
+        .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
+        .innerJoinAndSelect('billing_account.product', 'product')
         .getOne();
       // If the org doesn't exists, or is a fake one (like for anonymous users), don't do anything.
       if (!org || org.id === 0) {
         // This API shouldn't be called, it should be checked first if the org is valid.
         throw new ApiError(`Can't create a limit for non-existing organization`, 500);
+      }
+      const features = org?.billingAccount?.getFeatures();
+      if (!features) {
+        throw new ApiError(`No product found for org ${org.id}`, 500);
+      }
+      if (features.baseMaxAssistantCalls === undefined) {
+        // If the product has no assistantLimit, then it is not billable yet, and we don't need to
+        // track usage as it is basically unlimited.
+        return null;
       }
       const existing = await this._getOrCreateLimitAndReset(org.billingAccountId, limitType, true, manager);
       if (!existing) {

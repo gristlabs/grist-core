@@ -897,7 +897,9 @@
         "Make On-Demand": "Make On-Demand",
         "Plugin: ": "Plugin: ",
         "Section: ": "Section: ",
-        "Unmark On-Demand": "Unmark On-Demand"
+        "Unmark On-Demand": "Unmark On-Demand",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.",
+        "⚠️ Deprecated Feature": "⚠️ Deprecated Feature"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Advanced Sort & Filter",

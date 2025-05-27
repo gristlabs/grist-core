@@ -2,6 +2,7 @@ import { ApiError } from 'app/common/ApiError';
 import { delay } from 'app/common/delay';
 import { buildUrlId } from 'app/common/gristUrls';
 import { normalizedDateTimeString } from 'app/common/normalizedDateTimeString';
+import { isAffirmative } from "app/common/gutil";
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
@@ -79,7 +80,7 @@ export class Housekeeper {
     }, Timings.LOG_METRICS_PERIOD_MS);
     this._checkVersionUpdatesTimeout = setTimeout(() => {
       this.checkVersionUpdates().catch(log.warn.bind(log));
-    }, Timings.VERSION_CHECK_OFFSET_MS);
+    }, isAffirmative(process.env.GRIST_TEST_IMMEDIATE_VERSION_CHECK) ? 0 : Timings.VERSION_CHECK_OFFSET_MS);
     this._checkVersionUpdatesInterval = setInterval(() => {
       this.checkVersionUpdatesExclusively().catch(log.warn.bind(log));
     }, Timings.VERSION_CHECK_PERIOD_MS);

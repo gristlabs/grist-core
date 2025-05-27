@@ -32,7 +32,7 @@ if (!process.env.GRIST_SINGLE_ORG) {
 }
 
 setDefaultEnv('GRIST_UI_FEATURES',
-  'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite,supportGrist');
+  'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite,supportGrist,themes');
 setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
 import {updateDb} from 'app/server/lib/dbUtils';
 import {MergedServer, parseServerTypes} from 'app/server/MergedServer';
