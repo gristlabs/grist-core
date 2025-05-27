@@ -35,9 +35,10 @@ import log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
+import isDeepEqual = require('lodash/isEqual')
 import merge = require('lodash/merge');
 import noop = require('lodash/noop');
-import {DocumentSettings} from 'app/common/DocumentSettings';
+import {DocumentSettings, DocumentSettingsChecker} from 'app/common/DocumentSettings';
 import {safeJsonParse} from 'app/common/gutil';
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
@@ -697,7 +698,12 @@ export class DocManager extends EventEmitter {
         const srcDocPath = uploadInfo.files[0].absPath;
         await checkAllegedGristDoc(docSession, srcDocPath);
         await docUtils.copyFile(srcDocPath, docPath);
-        await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
+        try {
+          await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
+        } catch (err) {
+          // This isn't critical to document operation, so shouldn't block importing.
+          log.error(`DocManager._doImportDoc: Unable to update attachment store of doc ${docName}`, err);
+        }
         // Go ahead and claim this document. If we wanted to serve it
         // from a potentially different worker, we'd call addToStorage(docName)
         // instead (we used to do this). The upload should already be happening
@@ -762,18 +768,40 @@ async function updateDocumentSettingsInPlace(
   makeChanges: (oldSettings: DocumentSettings | undefined) => DocumentSettings | undefined
 ) {
   const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_EXISTING);
-  const columns = await db.all("PRAGMA table_info(_grist_DocInfo)");
-  if (!columns.some(column => column.name === 'documentSettings')) {
-    return;
+  try {
+    const columns = await db.all("PRAGMA table_info(_grist_DocInfo)");
+    if (!columns.some(column => column.name === 'documentSettings')) {
+      return;
+    }
+    const results = await db.all('SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo');
+    const updatePromises = results.map(async (row) => {
+      const parsedSettings: unknown = safeJsonParse(row.documentSettings, undefined);
+
+      const isValidSettingsObject = DocumentSettingsChecker.test(parsedSettings);
+      // Throw if there's something expected in the settings object.
+      // This shouldn't occur unless there's a bug or a malformed doc.
+      if (parsedSettings && !isValidSettingsObject) {
+        DocumentSettingsChecker.check(parsedSettings);
+      }
+
+      const settings = parsedSettings && isValidSettingsObject ? parsedSettings : undefined;
+      const newSettings = makeChanges(settings);
+
+      // Avoid unnecessary DB updates
+      if (isDeepEqual(settings, newSettings)) {
+        return;
+      }
+
+      await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
+        JSON.stringify(newSettings),
+        row.id
+      );
+    });
+    // Ensures every update has resolved before closing the database.
+    await Promise.allSettled(updatePromises);
+    // Throws if anything has errored.
+    await Promise.all(updatePromises);
+  } finally {
+    await db.close();
   }
-  const results = await db.all('SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo');
-  const updatePromises = results.map(async (row) => {
-    const settings: DocumentSettings | undefined = safeJsonParse(row.documentSettings, undefined);
-    const newSettings = makeChanges(settings);
-    await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
-      JSON.stringify(newSettings, (k, v) => v === undefined ? null : v),
-      row.id
-    );
-  });
-  await Promise.all(updatePromises);
 }
