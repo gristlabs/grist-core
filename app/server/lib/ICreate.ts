@@ -179,7 +179,7 @@ export class BaseCreate implements ICreate {
   public getExtraHeadHtml() {
     const elements: string[] = [];
     if (process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true') {
-      elements.push('<link id="grist-custom-css" rel="stylesheet" href="custom.css">');
+      elements.push('<link id="grist-custom-css" rel="stylesheet" href="custom.css" crossorigin="anonymous">');
     }
     elements.push(getThemeBackgroundSnippet());
     return elements.join('\n');
