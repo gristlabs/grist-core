@@ -185,7 +185,7 @@
         "non-numeric columns are not shown": "non-numeric columns are not shown",
         "non-numeric column is not shown": "non-numeric column is not shown",
         "selected new x-axis": "selected new x-axis",
-        "Remove field from series": "Remove",
+        "Remove": "Remove",
         "Create separate series for each value of the selected column.": "Create separate series for each value of the selected column.",
         "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
         "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
