@@ -304,14 +304,8 @@ async function getTextFromClipboardItem(clipboardItem, type) {
  * You can explicitly allow focus by setting different classes:
  *   - using the 'clipboard_allow_focus' class will allow focusing the element having the class,
  *   - using the 'clipboard_group_focus' class will allow focusing any descendant element of the one having the class
- *
- * You can explicitly forbid focus by setting the 'clipboard_forbid_focus' class on a element. Forbidding wins over allowing
- * if both are set.
  */
 function allowFocus(elem) {
-  if (elem && elem.classList.contains('clipboard_forbid_focus')) {
-    return false;
-  }
   if (elem && elem.closest('.clipboard_group_focus')) {
     return true;
   }
