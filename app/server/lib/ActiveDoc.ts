@@ -50,16 +50,14 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {getDataLimitInfo, getDataLimitRatio, getSeverity, LimitExceededError} from 'app/common/DocLimits';
+import {getDataLimitInfo, getDataLimitRatio, getSeverity} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
-  APPROACHING_LIMIT_RATIO,
   DataLimitInfo,
   DocumentUsage,
   DocUsageSummary,
   FilteredDocUsageSummary,
-  getUsageRatio,
   RowCounts,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
@@ -69,6 +67,7 @@ import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
+import {APPROACHING_LIMIT_RATIO, getUsageRatio, LimitExceededError} from 'app/common/Limits';
 import {normalizedDateTimeString} from 'app/common/normalizedDateTimeString';
 import {
   compilePredicateFormula,

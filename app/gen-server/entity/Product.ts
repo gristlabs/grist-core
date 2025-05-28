@@ -41,6 +41,9 @@ export const teamFeatures: Features = {
    * through Stripe webhook. For canceled subscription the usage is not reset, as the billing cycle is not changed.
    */
   baseMaxAssistantCalls: 100,
+  // Added for documentation purposes, but note the docstring about Stripe.
+  baseMaxAttachmentsBytesPerDocument: 3 * 1024 * 1024 * 1024,  // 3GB
+  maxAttachmentsBytesPerOrg: 100 * 1024 * 1024 * 1024,  // 100GB
 };
 
 /**
@@ -56,6 +59,7 @@ export const teamFreeFeatures: Features = {
   baseMaxApiUnitsPerDocumentPerDay: 5000,
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
   baseMaxAttachmentsBytesPerDocument: 1 * 1024 * 1024 * 1024,  // 1GB
+  maxAttachmentsBytesPerOrg: 50 * 1024 * 1024 * 1024,  // 50GB
   gracePeriodDays: 14,
   /**
    * One time limit of 100 requests.
@@ -75,6 +79,7 @@ export const teamFreeFeatures: Features = {
   baseMaxApiUnitsPerDocumentPerDay: 5000,
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
   baseMaxAttachmentsBytesPerDocument: 1 * 1024 * 1024 * 1024,  // 1GB
+  maxAttachmentsBytesPerOrg: 50 * 1024 * 1024 * 1024,  // 50GB
   gracePeriodDays: 14,
   baseMaxAssistantCalls: 100,
 };

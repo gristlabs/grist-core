@@ -70,6 +70,7 @@ export interface Features {
   baseMaxDataSizePerDocument?: number;  // Similar maximum for number of bytes of 'normal' data in a document
   baseMaxAttachmentsBytesPerDocument?: number;  // Similar maximum for total number of bytes used
                                                 // for attached files in a document
+  maxAttachmentsBytesPerOrg?: number; // Limit across a site.
 
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
   noGraceBanner?: boolean;   // If set, a banner is hidden, used for enterprise plans.
@@ -102,6 +103,10 @@ export interface Features {
   installationGracePeriodDays?: number; // Duration of the grace period in days, before entering read-only mode
 
   installationNoGraceBanner?: boolean;  // If set, a banner is hidden.
+
+  // TODO: support attachment limits at the installation level. Planned but not
+  // yet implemented. Keep commented out until implemented.
+  // installationMaxAttachmentsBytes?: number;  // Limit of attachment storage across installation.
 }
 
 /**

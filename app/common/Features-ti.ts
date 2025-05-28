@@ -30,6 +30,7 @@ export const Features = t.iface([], {
   "baseMaxApiUnitsPerDocumentPerDay": t.opt("number"),
   "baseMaxDataSizePerDocument": t.opt("number"),
   "baseMaxAttachmentsBytesPerDocument": t.opt("number"),
+  "maxAttachmentsBytesPerOrg": t.opt("number"),
   "gracePeriodDays": t.opt("number"),
   "noGraceBanner": t.opt("boolean"),
   "baseMaxAssistantCalls": t.opt("number"),
