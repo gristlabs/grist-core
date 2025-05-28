@@ -459,7 +459,7 @@ describe('Importer2', function() {
       );
 
       // Click 'Skip', and check that the column mapping section and preview both updated.
-      await menu.findContent('.test-importer-column-match-menu-item', /Skip/).click();
+      await menu.findContentWait('.test-importer-column-match-menu-item', /Skip/, 100).click();
       await gu.waitForServer();
       assert.deepEqual(await getColumnMatchingRows(), [
         { destination: 'Name', source: 'Name' },
@@ -485,7 +485,7 @@ describe('Importer2', function() {
 
       // Click Country in the column mapping section, and clear the formula.
       await driver.findContent('.test-importer-column-match-source', /Country/).click();
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, Key.ENTER);
       await gu.waitForServer();
 
@@ -517,7 +517,7 @@ describe('Importer2', function() {
 
       // We want to map the same column twice, which is not possible through the menu, so we will
       // use the formula.
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, '$Population', Key.ENTER);
       await gu.waitForServer();
       assert.deepEqual(await getColumnMatchingRows(), [
@@ -542,7 +542,7 @@ describe('Importer2', function() {
 
       // Click Country (with formula 'Skip') in the column mapping section, and start typing a formula.
       await openSourceFor(/Country/);
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
       await gu.sendKeys('$');
       await gu.waitForServer();
 
@@ -594,7 +594,7 @@ describe('Importer2', function() {
     it('should reflect mappings when import to new table is finished', async function() {
       // Skip 'Population', so that we can test imports with skipped columns.
       await openSourceFor(/Population/);
-      await driver.findContent('.test-importer-column-match-menu-item', 'Skip').click();
+      await driver.findContentWait('.test-importer-column-match-menu-item', 'Skip', 100).click();
       await gu.waitForServer();
 
       // Finish importing, and check that the destination tables have the correct data.
@@ -682,14 +682,14 @@ describe('Importer2', function() {
 
       // Set formula for 'Name' to 'city_name' by typing in the formula.
       await openSourceFor(/Name/);
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
       await gu.sendKeys('$city_name', Key.ENTER);
       await gu.waitForServer();
 
       // Map 'District' to 'city_district' via the column mapping menu.
       await openSourceFor('District');
       const menu = gu.findOpenMenu();
-      await menu.findContent('.test-importer-column-match-menu-item', /city_district/).click();
+      await menu.findContentWait('.test-importer-column-match-menu-item', /city_district/, 100).click();
       await gu.waitForServer();
 
       // Check the column mapping section and preview both updated correctly.
@@ -758,7 +758,7 @@ describe('Importer2', function() {
       // we don't overwrite any values in the destination table. (A previous bug caused non-text
       // skipped columns to overwrite data with default values, like 0.)
       await openSourceFor(/Population/);
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
       await gu.sendKeys('$city_pop', Key.ENTER);
       await gu.waitForServer();
 

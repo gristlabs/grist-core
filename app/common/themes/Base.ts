@@ -193,6 +193,7 @@ export const Base: BaseThemeTokens = {
     widgetBg: tokens.bg,
     widgetBorder: tokens.decoration,
     widgetActiveBorder: tokens.primary,
+    widgetActiveNonFocusedBorder: tokens.primaryTransparent,
     widgetInactiveStripesLight: tokens.bgSecondary,
 
     /* Pinned Docs */
@@ -491,5 +492,7 @@ export const Base: BaseThemeTokens = {
     cardButtonShadow: 'rgba(0,0,0,0.1)',
 
     formulaIcon: '#D0D0D0',
+
+    kbFocusHighlight: tokens.primary,
   }
 };

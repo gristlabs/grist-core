@@ -25,6 +25,7 @@ export const GristLight: ThemeTokens = {
   primaryMuted: '#009058',
   primaryDim: '#007548',
   primaryEmphasis: '#b1ffe2',
+  primaryTransparent: 'rgba(22, 179, 120, 0.5)',
 
   controlBorderRadius: '4px',
 
