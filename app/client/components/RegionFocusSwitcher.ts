@@ -44,6 +44,12 @@ export class RegionFocusSwitcher extends Disposable {
     right: null,
     main: null,
   };
+  // Command history exclusively here to warn the user about the creator panel shortcut if needed
+  private _commandsHistory: {
+    name: 'nextRegion' | 'prevRegion' | 'creatorPanel',
+    timestamp: number
+  }[] = [];
+  private _warnedAboutCreatorPanel = false;
 
   constructor(private _app?: App) {
     super();
@@ -53,9 +59,20 @@ export class RegionFocusSwitcher extends Disposable {
     });
 
     this.autoDispose(commands.createGroup({
-      nextRegion: () => this._cycle('next'),
-      prevRegion: () => this._cycle('prev'),
-      creatorPanel: () => this._toggleCreatorPanel(),
+      nextRegion: () => {
+        this._logCommand('nextRegion');
+        this._maybeNotifyAboutCreatorPanel();
+        return this._cycle('next');
+      },
+      prevRegion: () => {
+        this._logCommand('prevRegion');
+        this._maybeNotifyAboutCreatorPanel();
+        return this._cycle('prev');
+      },
+      creatorPanel: () => {
+        this._logCommand('creatorPanel');
+        return this._toggleCreatorPanel();
+      },
       cancel: this._onEscapeKeypress.bind(this),
     }, this, true));
 
@@ -151,9 +168,6 @@ export class RegionFocusSwitcher extends Disposable {
       direction,
       gristDoc
     ), {initiator: {type: 'cycle'}});
-    if (gristDoc) {
-      maybeNotifyAboutCreatorPanel(gristDoc, cycleRegions);
-    }
   }
 
   /**
@@ -166,6 +180,7 @@ export class RegionFocusSwitcher extends Disposable {
     if (!gristDoc) {
       return;
     }
+    this._commandsHistory = [];
     const closestRegion = (event.target as HTMLElement)?.closest(`[${ATTRS.regionId}]`);
     if (!closestRegion) {
       return;
@@ -359,6 +374,56 @@ export class RegionFocusSwitcher extends Disposable {
       return doc;
     }
     return null;
+  }
+
+  private _logCommand(name: 'nextRegion' | 'prevRegion' | 'creatorPanel') {
+    if (this._commandsHistory.length > 20) {
+      this._commandsHistory.shift();
+    }
+    this._commandsHistory.push({name, timestamp: Date.now()});
+  }
+
+  /**
+   * As a user, it's not obvious that the creator panel needs a different shortcut than the other regions.
+   *
+   * So the user might try to use the next/prevRegion shortcut to access the creator panel.
+   * We show a warning letting him now about the specific creator panel shortcut when we think he is "searching" for it.
+   */
+  private _maybeNotifyAboutCreatorPanel() {
+    if (this._warnedAboutCreatorPanel) {
+      return;
+    }
+    const usedCreatorPanelCommand = this._commandsHistory.some(cmd => cmd.name === 'creatorPanel');
+    if (usedCreatorPanelCommand) {
+      return;
+    }
+    const gristDoc = this._getGristDoc();
+    if (!gristDoc) {
+      return;
+    }
+    const now = Date.now();
+    const commandsInLast20Secs = this._commandsHistory.filter(cmd => cmd.timestamp > now - (1000 * 20));
+    const cycleRegions = getCycleRegions(gristDoc);
+    // the logic is: if in the last 20 seconds, the user pressed the same cycle shortcut enough times
+    // to do 2 full cycles through the regions, we assume he is trying to access the creator panel.
+    const warn = commandsInLast20Secs.length > ((cycleRegions.length * 2) - 1)
+      && (
+        commandsInLast20Secs.every(cmd => cmd.name === 'nextRegion')
+        || commandsInLast20Secs.every(cmd => cmd.name === 'prevRegion')
+      );
+    if (warn) {
+      this._app?.topAppModel.notifier.createUserMessage(
+        t(
+          'Trying to access the creator panel? Use {{key}}.',
+          {key: commands.allCommands.creatorPanel.humanKeys}
+        ),
+        {
+          level: 'info',
+          key: 'rfs-cp-warn',
+        }
+      );
+      this._warnedAboutCreatorPanel = true;
+    }
   }
 }
 
@@ -572,50 +637,6 @@ const isSpecialPage = (doc: GristDoc | null) => {
     return true;
   }
   return false;
-};
-
-
-const maybeNotifyAboutCreatorPanel = (gristDoc: GristDoc, cycleRegions: Region[]) => {
-  // @TODO: have a better way to track if we already warned about the creator panel?
-  // Currently showing the warning every 15 days or until we showed it 3 times.
-  // Feels a bit convoluted…
-  const localStoreKey = 'grist-rfs-cp-warn';
-  const lastWarning = localStorage.getItem(localStoreKey);
-  const lastWarningData = lastWarning ? JSON.parse(lastWarning) : { lastTime: 0, count: 0 };
-  const toDay = (ms: number) => ms / 1000 / 60 / 60 / 24;
-  if (lastWarningData.count >= 3 || toDay(Date.now()) - toDay(lastWarningData.lastTime) < 15) {
-    return;
-  }
-
-  // We warn the user about creator panel shortcut existing if
-  // all the commands he pressed in the last 10 seconds are only nextRegion and prevRegion,
-  // and they did a full cycle through the regions at least once.
-  const commandsHistory = commands.getCommandsHistory(Date.now() - (1000 * 10));
-  const uniqueCommands = [...new Set(commandsHistory)];
-  const regionsCount = cycleRegions.length > 10 ? 10 : cycleRegions.length;
-
-  const warn = commandsHistory.length > regionsCount
-    && uniqueCommands.length <= 2
-    && uniqueCommands.every(cmd => cmd === 'nextRegion' || cmd === 'prevRegion');
-
-  if (!warn) {
-    return;
-  }
-  gristDoc.appModel.notifier.createUserMessage(
-    t(
-      'Trying to access the creator panel? Use {{key}}.',
-      {key: commands.allCommands.creatorPanel.humanKeys}
-    ),
-    {
-      level: 'info',
-      key: localStoreKey,
-    }
-  );
-  // save warning info for next time
-  localStorage.setItem(localStoreKey, JSON.stringify({
-    lastTime: Date.now(),
-    count: lastWarningData.count + 1,
-  }));
 };
 
 const cssFocusedPanel = styled('div', `
