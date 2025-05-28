@@ -95,6 +95,11 @@
   border-left: 1px solid var(--grist-theme-widget-active-border, var(--grist-color-light-green));
 }
 
+.active_section--no-focus > .view_data_pane_container {
+  box-shadow: -2px 0 0 0px var(--grist-theme-widget-active-non-focused-border);
+  border-left: 1px solid var(--grist-theme-widget-active-non-focused-border);
+}
+
 .active_section > .view_data_pane_container.viewsection_type_detail {
   /* this color is a translucent version of grist-color-light-green */
   box-shadow: -2px 0 0 0px var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
