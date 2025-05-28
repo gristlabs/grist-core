@@ -3,8 +3,8 @@ import {mod} from 'app/common/gutil';
 import {SpecialDocPage} from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
 import {makeT} from 'app/client/lib/localization';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
 import * as commands from 'app/client/components/commands';
-import {triggerFocusGrab} from 'app/client/components/Clipboard';
 import {App} from 'app/client/ui/App';
 import {GristDoc} from 'app/client/components/GristDoc';
 import BaseView from 'app/client/components/BaseView';
@@ -423,7 +423,7 @@ const focusPanelElement = (panelElement: HTMLElement) => {
 };
 
 const focusViewLayout = (gristDoc: GristDoc) => {
-  triggerFocusGrab();
+  FocusLayer.grabFocus();
   gristDoc.viewModel.focusedRegionState('in');
 };
 
