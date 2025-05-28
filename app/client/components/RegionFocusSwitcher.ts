@@ -7,8 +7,8 @@ import * as commands from 'app/client/components/commands';
 import {triggerFocusGrab} from 'app/client/components/Clipboard';
 import {App} from 'app/client/ui/App';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {theme} from 'app/client/ui2018/cssVars';
 import BaseView from 'app/client/components/BaseView';
+import {components} from 'app/common/ThemePrefs';
 
 const t = makeT('RegionFocusSwitcher');
 
@@ -619,19 +619,12 @@ const maybeNotifyAboutCreatorPanel = (gristDoc: GristDoc, cycleRegions: Region[]
 };
 
 const cssFocusedPanel = styled('div', `
-  &-focused:focus-within {
-    outline: 1px solid ${theme.widgetActiveBorder} !important;
-    outline-offset: -1px !important;
-  }
-
   &-focused:focus {
-    outline: 3px solid ${theme.widgetActiveBorder} !important;
+    outline: 3px solid ${components.kbFocusHighlight} !important;
     outline-offset: -3px !important;
   }
 
-  /* the selector is intentionally heavy to apply more css weight than KeyboardFocusHighlighter styling…
-   * ideally we would not need KeyboardFocusHighlighter, but for now it's a good enough fallback */
-  &-focused [${ATTRS.focusedElement}][${ATTRS.focusedElement}]:focus {
-    outline-width: 3px !important;
+  &-focused [${ATTRS.focusedElement}]:focus {
+    outline: 3px solid ${components.kbFocusHighlight} !important;
   }
 `);
