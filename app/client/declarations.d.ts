@@ -373,3 +373,8 @@ interface Size {
   width: number;
   height: number;
 }
+
+declare module "dom-focus-lock" {
+  export function on(el: HTMLElement): void;
+  export function off(el: HTMLElement): void;
+}
