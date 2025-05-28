@@ -580,6 +580,7 @@ export const componentsCssMapping = {
   cardButtonBorderSelected: 'card-button-border-selected',
   cardButtonShadow: 'card-button-shadow',
   formulaIcon: 'formula-icon',
+  kbFocusHighlight: 'kb-focus-highlight',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -1304,6 +1305,7 @@ export interface BaseThemeTokens {
     cardButtonBorderSelected: Token;
     cardButtonShadow: Token;
     formulaIcon: Token;
+    kbFocusHighlight: Token;
   };
 }
 
