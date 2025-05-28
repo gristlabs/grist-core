@@ -110,11 +110,11 @@ export const STICKY_HEADER_HEIGHT_PX = 76;
 export const stickyHeader = styled(headerWrap, `
   height: ${STICKY_HEADER_HEIGHT_PX}px;
   position: sticky;
-  top: 0px;
+  top: 3px; /* leave room for the kb focus highlight when using nextRegion command */
   background-color: ${theme.mainPanelBg};
   z-index: ${vars.stickyHeaderZIndex};
   margin-bottom: 0px;
-  padding: 16px 0px 24px 0px;
+  padding: 13px 0px 24px 0px;
 `);
 
 export const allDocsTemplates = styled('div', `
