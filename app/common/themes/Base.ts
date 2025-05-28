@@ -490,5 +490,7 @@ export const Base: BaseThemeTokens = {
     cardButtonShadow: 'rgba(0,0,0,0.1)',
 
     formulaIcon: '#D0D0D0',
+
+    kbFocusHighlight: tokens.primary,
   }
 };

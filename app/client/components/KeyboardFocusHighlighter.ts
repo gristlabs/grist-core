@@ -7,6 +7,7 @@
  * This is done as a quick way to make sure focus rings are correctly visible when using a kb,
  * without impacting touch/mouse users, and without having to change the whole codebase.
  */
+import { components } from "app/common/ThemePrefs";
 import { Disposable, dom, styled } from "grainjs";
 
 export class KeyboardFocusHighlighter extends Disposable {
@@ -34,8 +35,6 @@ export class KeyboardFocusHighlighter extends Disposable {
 
 const cssKeyboardUser = styled('div', `
   & .kb-focus-highlighter-group :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible {
-    /* simulate default browser focus ring */
-    outline: 2px solid Highlight !important;
-    outline: 2px solid -webkit-focus-ring-color !important;
+    outline: 2px solid ${components.kbFocusHighlight} !important;
   }
 `);
