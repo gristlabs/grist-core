@@ -35,6 +35,6 @@ export class KeyboardFocusHighlighter extends Disposable {
 
 const cssKeyboardUser = styled('div', `
   & .kb-focus-highlighter-group :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible {
-    outline: 2px solid ${components.kbFocusHighlight} !important;
+    outline: 3px solid ${components.kbFocusHighlight} !important;
   }
 `);
