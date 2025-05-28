@@ -193,6 +193,7 @@ export const Base: BaseThemeTokens = {
     widgetBg: tokens.bg,
     widgetBorder: tokens.decoration,
     widgetActiveBorder: tokens.primary,
+    widgetActiveNonFocusedBorder: tokens.primaryTransparent,
     widgetInactiveStripesLight: tokens.bgSecondary,
 
     /* Pinned Docs */
