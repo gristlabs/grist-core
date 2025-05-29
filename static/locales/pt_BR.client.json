@@ -163,7 +163,40 @@
         "Each Y series is followed by two series, for top and bottom error bars.": "Cada série Y é seguida por duas séries, para as barras de erro superior e inferior.",
         "Pick a column": "Escolha uma coluna",
         "Toggle chart aggregation": "Alternar a agregação de gráficos",
-        "selected new group data columns": "novas colunas de dados de grupo selecionadas"
+        "selected new group data columns": "novas colunas de dados de grupo selecionadas",
+        "LABEL": "ETIQUETA",
+        "Bar Chart": "Gráfico de barras",
+        "Pie Chart": "Gráfico de torta",
+        "Donut Chart": "Gráfico de Donut",
+        "Area Chart": "Gráfico de área",
+        "Line Chart": "Gráfico de linha",
+        "Scatter Plot": "Gráfico de dispersão",
+        "Kaplan-Meier Plot": "Gráfico Kaplan-Meier",
+        "Split series": "Série de divisão",
+        "Orientation": "Orientação",
+        "Vertical": "Vertical",
+        "Log scale Y-axis": "Escala logarítmica no eixo Y",
+        "Hole Size": "Tamanho do furo",
+        "Text Size": "Tamanho do texto",
+        "Connect gaps": "Conecte lacunas",
+        "Show markers": "Mostrar marcadores",
+        "Stack series": "Série de pilha",
+        "Error bars": "Barras de erro",
+        "None": "Nenhum",
+        "Symmetric": "Simétrico",
+        "Above+Below": "Acima+Abaixo",
+        "X-AXIS": "EIXO-X",
+        "SERIES": "SÉRIES",
+        "Add Series": "Adicionar série",
+        "non-numeric columns are not shown": "colunas não numéricas não são mostradas",
+        "non-numeric column is not shown": "coluna não numérica não é mostrada",
+        "Remove": "Remover",
+        "Aggregate values": "Valores agregados",
+        "Show Total": "Mostrar Total",
+        "Split Series": "Série de divisão",
+        "Invert Y-axis": "Inverter eixo Y",
+        "Horizontal": "Horizontal",
+        "selected new x-axis": "novo eixo x selecionado"
     },
     "CodeEditorPanel": {
         "Access denied": "Acesso negado",
@@ -394,7 +427,10 @@
         "Transfer in progress": "Transferência em andamento",
         "**Some existing attachments are still [external]({{externalLink}})**.": "**Alguns anexos existentes ainda são [externos]({{externalLink}})**.",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Alguns anexos existentes ainda são [internos]({{internalLink}})** (armazenados no arquivo SQLite).",
-        "[Learn more.]({{learnLink}})": "[Saiba mais]({{learnLink}})"
+        "[Learn more.]({{learnLink}})": "[Saiba mais]({{learnLink}})",
+        "Upload": "Carregar",
+        "Upload missing attachments": "Carregar anexos ausentes",
+        "Uploading...": "Carregando..."
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -672,7 +708,15 @@
         "Download document structure only (no data, for template use)": "Remova todos os dados, mas mantenha a estrutura para usar como um modelo",
         "Download document without history (can significantly reduce file size)": "Remova o histórico do documento (pode reduzir significativamente o tamanho do arquivo)",
         "Download": "Baixar",
-        "Download document": "Baixar documento"
+        "Download document": "Baixar documento",
+        "Download attachments": "Baixar anexos",
+        "Download full document and history": "Baixe documento completo e histórico",
+        "Format:": "Formato:",
+        "Learn more": "Saiba mais",
+        "download attachments": "baixar anexos",
+        ".zip": ".zip",
+        ".tar (recommended)": ".tar (recomendado)",
+        "Download an archive of all the attachments present in this document.": "Baixe um arquivo de todos os anexos presentes neste documento."
     },
     "NTextBox": {
         "false": "falso",
@@ -844,7 +888,10 @@
         "Export as...": "Exportar como...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
         "Comma Separated Values (.csv)": "Valores separados por vírgula (.csv)",
-        "DOO Separated Values (.dsv)": "Valores separados por DOO (.dsv)"
+        "DOO Separated Values (.dsv)": "Valores separados por DOO (.dsv)",
+        "Download attachments...": "Baixar anexos...",
+        "Download document...": "Baixar documento...",
+        "Exporting is only available from document pages. Please select a document page and try again.": "A exportação só está disponível a partir de páginas de documentos. Por favor, selecione uma página de documento e tente novamente."
     },
     "SiteSwitcher": {
         "Create new team site": "Criar novo site de equipe",
@@ -937,7 +984,9 @@
         "Plugin: ": "Plugin: ",
         "Section: ": "Secção: ",
         "Unmark On-Demand": "Desmarcar Sob-Demanda",
-        "Unmark table On-Demand?": "Desmarcar a tabela Sob-Demanda?"
+        "Unmark table On-Demand?": "Desmarcar a tabela Sob-Demanda?",
+        "⚠️ Deprecated Feature": "⚠ Recurso Depreciado",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "As Tabelas On-Demand foram depreciadas devido à falta de funcionalidades e preocupações de usabilidade."
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Ordenar & filtrar avançados",
@@ -1180,7 +1229,9 @@
         "Open": "Abrir",
         "Remove": "Remover",
         "Save": "Salvar",
-        "Show resolved comments": "Mostrar comentários resolvidos"
+        "Show resolved comments": "Mostrar comentários resolvidos",
+        "Remove thread": "Remover tópico",
+        "updated": "atualizado"
     },
     "FieldBuilder": {
         "CELL FORMAT": "FORMATO DA CÉLULA",
@@ -1327,7 +1378,8 @@
         "The preview below this header shows how the selected user will see this document": "A visualização abaixo desse cabeçalho mostra como o usuário selecionado verá esse documento",
         "[Learn more.]({{link}})": "[Saiba mais]({{link}})",
         "Summary tables can only contain formula columns.": "As tabelas de resumo só podem conter colunas de fórmula.",
-        "Manage users and resources in a Grist installation.": "Gerencie usuários e recursos em uma instalação do Grist."
+        "Manage users and resources in a Grist installation.": "Gerencie usuários e recursos em uma instalação do Grist.",
+        "The new Grist Assistant is here!": "O novo assistente Grist está aqui!"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1368,7 +1420,8 @@
         "Webhook Id": "Id do webhook",
         "Table": "Tabela",
         "Filter for changes in these columns (semicolon-separated ids)": "Filtrar as alterações nessas Colunas (ids separados por ponto e vírgula)",
-        "Header Authorization": "Autorização de cabeçalho"
+        "Header Authorization": "Autorização de cabeçalho",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks Indisponível Em cópias de documentos não salvas"
     },
     "FieldContextMenu": {
         "Copy anchor link": "Copiar link de âncora",
@@ -2030,5 +2083,30 @@
         "Orgs": "Organizações",
         "Users": "Usuários",
         "Workspaces": "Áreas de Trabalho"
+    },
+    "Assistant": {
+        "AI Assistant is only available for logged in users.": "O Assistente de IA só está disponível para usuários conectados.",
+        "Apply": "Aplicar",
+        "Press Enter to apply suggested formula.": "Pressione Enter para aplicar a fórmula sugerida.",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Registre-se gratuitamente no Grist para começar a usar o Assistente IA.",
+        "What do you need help with?": "Em que você precisa de ajuda?",
+        "You have {{numCredits}} remaining credits.": "Você tem {{numCredits}} créditos restantes.",
+        "start a new chat": "iniciar um novo chat",
+        "upgrade to the Pro Team plan": "atualize para o plano Pro Team",
+        "upgrade your plan": "Atualize seu plano",
+        "For higher limits, contact the site owner.": "Para limites maiores, entre em contato com o proprietário do site.",
+        "For higher limits, {{upgradeNudge}}.": "Para limites maiores, {{upgradeNudge}}.",
+        "Learn more.": "Saiba mais.",
+        "Sign Up for Free": "Cadastre-se gratuitamente",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Atualize para a Grist Enterprise para experimentar o novo assistente de Grist. {{learnMoreLink}}",
+        "You have used all available credits.": "Você utilizou todos os créditos disponíveis."
+    },
+    "apiconsole": {
+        "Type DELETE here if you wish to proceed.": "Digite DELETE aqui se você deseja prosseguir.",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Digite DELETE se você tem certeza de que você realmente deseja fazer esta exclusão.\nSe você não tem certeza, ou não entende o que esta operação vai fazer,\nseria sensato cancelar.",
+        "Confirm Deletion": "Confirmar exclusão",
+        "Are you sure you want to delete the following?": "Tem certeza de que deseja excluir o seguinte?",
+        "Delete": "Eliminar",
+        "Deletion was not confirmed, skipping.": "A exclusão não foi confirmada, pulando."
     }
 }
