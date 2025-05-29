@@ -83,6 +83,18 @@ declare module "app/client/components/BaseView" {
   export = BaseView;
 }
 
+declare module "app/client/components/DetailView" {
+  class DetailView extends BaseView {
+    public static create(...args: any[]): any;
+
+    public recordLayout: any;
+  }
+
+  namespace DetailView {}
+
+  export = DetailView;
+}
+
 declare module 'app/client/components/GridView' {
   import BaseView from 'app/client/components/BaseView';
   import {GristDoc} from 'app/client/components/GristDoc';
