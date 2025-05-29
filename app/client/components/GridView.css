@@ -414,15 +414,3 @@
   margin-right: 4px;
   z-index: 1;
 }
-
-.g-column-label .kf_editable_label {
-  padding-left: 1px;
-  padding-right: 1px;
-  z-index: 1;
-}
-
-.g-column-label-spacer {
-  width: calc(13px + 4px + 4px);
-  height: 17px;
-  flex-shrink: 100;
-}

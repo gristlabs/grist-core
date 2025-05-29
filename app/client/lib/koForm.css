@@ -450,39 +450,6 @@ div:hover > .kf_tooltip {
   color: #888;
 }
 
-/** For editableLabel*/
-.kf_editable_label {
-  min-height: 1.8rem;
-  white-space: nowrap;
-  position: relative;
-  overflow: hidden;
-}
-
-.kf_elabel_text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.kf_elabel_input {
-  border-width: 0px;
-  text-align: inherit;
-  top: 0;
-  left: 0;
-  padding: 0;
-  color: var(--grist-theme-input-fg, #333);
-}
-
-.elabel_content_measure {
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  padding-top: 2px;
-  padding-right: 1em;
-  border: none;
-  visibility: hidden;
-  overflow: visible;
-}
-
 /****/
 .kf_num_text {
   display: block;

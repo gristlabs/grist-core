@@ -18,8 +18,6 @@ var Promise = require('bluebird');
 
 var gutil = require('app/common/gutil');
 
-var commands = require('../components/commands');
-
 var dom      = require('./dom');
 var kd       = require('./koDom');
 var koArray  = require('./koArray');
@@ -860,76 +858,6 @@ exports.statusPanel = function(valueObservable, options) {
     )
   );
 };
-
-/**
- * A label which can have editing turned on and off
- * When clicked a input area is created on top of the text.
- * The Enter key or a blur event calls save() on the observable.
- * The input area is removed if the user presses Esc without triggering any change.
- * @param {Observable} valueObservable - If the observable has a save interface it will be used to
- *   save changes.  see modelUtil.addSaveInterface
- * @param {Observable} optToggleObservable - If another observable is provided, it will be used to
- *   toggle whether or not the field is editable. It will also prevent clicks from affecting whether
- *   the label is editable.
- */
-exports.editableLabel = function(valueObservable, optToggleObservable) {
-  var isEditing = optToggleObservable || ko.observable(false);
-  var cancelEdit = false;
-
-  var editingCommands = {
-    cancel: function() {
-      cancelEdit = true;
-      isEditing(false);
-    },
-    accept: function() {
-      cancelEdit = false;
-      isEditing(false);
-    }
-  };
-
-  var contentSizer;
-  return dom('div.kf_editable_label',
-    dom('div.kf_elabel_text',
-      kd.text(valueObservable),
-      kd.hide(isEditing)
-    ),
-    contentSizer = dom('div.elabel_content_measure'),
-    (!optToggleObservable ? dom.on('click', () => isEditing(true)) : null),
-    kd.maybe(isEditing, function() {
-      var commandGroup = commands.createGroup(editingCommands, this, true);
-      return dom('input.kf_elabel_input', {type: 'text'},
-        elem => dom.hide(elem), // Don't display until we've had a chance to resize
-        kd.value(valueObservable),
-        dom.autoDispose(commandGroup),
-        commandGroup.attach(),
-        dom.on('blur', function() { isEditing(false); }),
-        dom.on('change', function() { isEditing(false); }),
-        dom.on('input', function() {
-          // Resize the textbox whenever user types in it.
-          _resizeElem(this, contentSizer);
-        }),
-        dom.onDispose(elem => {
-          if (!cancelEdit && valueObservable() !== elem.value) {
-            setSaveValue(valueObservable, elem.value);
-          }
-        }),
-        dom.defer(function(elem) {
-          cancelEdit = false;
-          _resizeElem(elem, contentSizer);
-          dom.show(elem); // Once resized, display the input
-          elem.focus();
-          elem.select();
-        })
-      );
-    })
-  );
-};
-
-function _resizeElem(elem, contentSizer) {
-  contentSizer.textContent = elem.value;
-  var rect = contentSizer.getBoundingClientRect();
-  elem.style.width = Math.ceil(rect.width) + 'px';
-}
 
 /**
  * Accepts any number of children. If an argument is numeric, it specifies the number of columns

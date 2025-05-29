@@ -504,7 +504,7 @@ export function getColumnHeader(colOrColOptions: string|IColHeader): WebElementP
   const sectionElem = section ? getSection(section) : driver.findWait('.active_section', 4000);
   return new WebElementPromise(driver, typeof col === 'number' ?
     sectionElem.find(`.column_name:nth-child(${col + 1})`) :
-    sectionElem.findContent('.column_name .kf_elabel_text', exactMatch(col)).findClosest('.column_name'));
+    sectionElem.findContent('.column_name .test-column-title-text', exactMatch(col)).findClosest('.column_name'));
 }
 
 export function getSelectedColumn() {
