@@ -73,7 +73,7 @@
         "Select Custom Widget": "사용자 정의 위젯 선택",
         "Widget needs to {{read}} the current table.": "위젯은 현재 테이블을 {{read}}해야 합니다.",
         "Widget needs {{fullAccess}} to this document.": "위젯은 이 문서에 대한 {{fullAccess}} 권한이 필요합니다.",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{columnType}} 유형이 아닌 열 1개가 표시되지 않습니다.",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}}개의 {{columnType}} 형식이 아닌 열은 표시되지 않습니다",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{columnType}} 유형이 아닌 열 {{wrongTypeCount}}개가 표시되지 않습니다.",
         "Clear selection": "선택 해제",
         "No {{columnType}} columns in table.": "테이블에 {{columnType}} 유형의 열이 없습니다.",
@@ -109,7 +109,7 @@
         "Document ID": "문서 ID",
         "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "REST API에서 {{docId}}를 요구할 때 사용할 문서 ID입니다. {{apiURL}} 참조",
         "Find slow formulas": "느린 수식 찾기",
-        "For currency columns": "통화 열용",
+        "For currency columns": "통화 형식 열용",
         "Coming soon": "출시 예정",
         "Engine (experimental {{span}} change at own risk):": "Engine (실험적 {{span}} 변경 시 책임은 본인에게 있음):",
         "Locale:": "언어:",
@@ -177,14 +177,17 @@
         "**Some existing attachments are still [external]({{externalLink}})**.": "**일부 기존 첨부 파일이 여전히 [외부]({{externalLink}})에 있습니다**.",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**일부 기존 첨부 파일이 여전히 [내부]({{internalLink}})(SQLite 파일에 저장됨)에 있습니다**.",
         "[Learn more.]({{learnLink}})": "[자세히 알아보기.]({{learnLink}})",
-        "Reload data engine?": "데이터 엔진을 새로고침하시겠습니까?",
-        "Formula times": "수식 시간",
+        "Reload data engine?": "데이터 엔진을 다시 불러오시겠습니까?",
+        "Formula times": "수식 계산 시점",
         "Locale": "언어",
         "Formula timer": "수식 타이머",
         "This document's ID (for API use):": "이 문서 ID (API용):",
         "ID for API use": "API 사용 ID",
         "Try API calls from the browser": "브라우저에서 API를 호출하세요",
-        "Force reload the document while timing formulas, and show the result.": "문서를 강제로 새로고침하면서 수식 시간을 측정하고 결과를 표시합니다."
+        "Force reload the document while timing formulas, and show the result.": "수식 계산 시간을 측정하는 동안 문서를 강제로 다시 불러오고, 결과를 표시합니다.",
+        "Uploading...": "업로드 중...",
+        "Upload missing attachments": "누락 첨부를 업로드",
+        "Upload": "업로드"
     },
     "DocumentUsage": {
         "Rows": "행",
@@ -301,9 +304,9 @@
         "Merge rows that match these fields:": "다음 필드와 일치하는 행 병합:",
         "Select fields to match on": "일치시킬 필드 선택",
         "Update existing records": "기존 레코드 업데이트",
-        "{{count}} unmatched field in import_one": "가져오기에 일치하지 않는 필드 1개",
+        "{{count}} unmatched field in import_one": "가져오기에 일치하지 않는 필드 {{count}}개",
         "{{count}} unmatched field in import_other": "가져오기에 일치하지 않는 필드 {{count}}개",
-        "{{count}} unmatched field_one": "일치하지 않는 필드 1개",
+        "{{count}} unmatched field_one": "일치하지 않는 필드 {{count}}개",
         "{{count}} unmatched field_other": "일치하지 않는 필드 {{count}}개",
         "Column Mapping": "열 매핑",
         "Column mapping": "열 매핑",
@@ -479,7 +482,9 @@
         "Save": "저장",
         "Show resolved comments": "해결된 댓글 표시",
         "Showing last {{nb}} comments": "마지막 댓글 {{nb}}개 표시 중",
-        "Started discussion": "토론 시작됨"
+        "Started discussion": "토론 시작됨",
+        "Remove thread": "댓글 스레드 삭제",
+        "updated": "갱신됨"
     },
     "EditorTooltip": {
         "Convert column to formula": "열을 수식으로 변환"
@@ -590,7 +595,9 @@
         "Community widgets are created and maintained by Grist community members.": "커뮤니티 위젯은 Grist 커뮤니티 회원들이 만들고 관리합니다.",
         "Creates a reverse column in target table that can be edited from either end.": "대상 테이블에 양쪽 끝에서 편집할 수 있는 역방향 열을 만듭니다.",
         "[Learn more.]({{link}})": "[자세히 알아보기.]({{link}})",
-        "Summary tables can only contain formula columns.": "요약 테이블에는 수식 열만 포함될 수 있습니다."
+        "Summary tables can only contain formula columns.": "요약 테이블에는 수식 열만 포함될 수 있습니다.",
+        "The new Grist Assistant is here!": "새로운 Grist 도우미가 도착했습니다!",
+        "Manage users and resources in a Grist installation.": "Grist 설치 환경에서 사용자와 리소스를 관리합니다."
     },
     "UserManager": {
         "Invite people to {{resourceType}}": "{{resourceType}}에 사용자 초대",
@@ -677,7 +684,8 @@
         "Share this form": "이 양식 공유하기",
         "View": "보기",
         "## **Form Title**": "## **양식 제목**",
-        "Your form description goes here.": "여기에 양식 설명을 입력하세요."
+        "Your form description goes here.": "여기에 양식 설명을 입력하세요.",
+        "# **Form Title**": "# **폼 제목**"
     },
     "FormConfig": {
         "Horizontal": "가로",
@@ -696,7 +704,9 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "일부 필수 열이 매핑되지 않았습니다.",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "이 위젯을 사용하려면 오른쪽 생성기 패널에서 모든 필수 열을 매핑하세요."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "이 위젯을 사용하려면 오른쪽 생성기 패널에서 모든 필수 열을 매핑하세요.",
+        "Some required columns are hidden by access rules": "일부 필수 열이 접근 규칙에 의해 숨겨짐",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "이 위젯을 사용하려면 모든 매핑된 열이 표시되어야 합니다. 문서 소유자에게 문의하거나 접근 규칙을 수정하세요."
     },
     "CreateTeamModal": {
         "Domain name is invalid": "도메인 이름이 잘못되었습니다.",
@@ -769,7 +779,8 @@
         "New, Enterprise": "신규, 엔터프라이즈",
         "Off": "끄기",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}}개 더보기",
-        "On": "켜기"
+        "On": "켜기",
+        "Grist Instance": "Grist 인스턴스"
     },
     "Toggle": {
         "Checkbox": "체크박스",
@@ -922,7 +933,8 @@
     },
     "FormContainer": {
         "Build your own form": "나만의 양식 만들기",
-        "Powered by": "제공:"
+        "Powered by": "제공:",
+        "Powered by Grist": "Grist에서 제공"
     },
     "FormErrorPage": {
         "Error": "오류"
@@ -939,15 +951,15 @@
     },
     "ToggleEnterpriseWidget": {
         "Paste your activation key": "활성화 키 붙여넣기",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "활성화 키는 30일의 평가판 기간이 만료된 후 Grist Enterprise를 실행하는 데 사용됩니다. [Grist Enterprise 가입]({{signupLink}})하여 활성화 키를 받으세요. Grist Core를 실행하는 데는 활성화 키가 필요하지 않습니다.\n\n자세한 내용은 [도움말 센터]({{helpCenter}})에서 알아보세요.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "활성화 키는 30일의 평가판 기간이 만료된 후\nGrist Enterprise를 실행하는 데 사용됩니다.\n[Grist Enterprise 가입]({{signupLink}})하여 활성화 키를 받으세요.\nGrist Core를 실행하는 데는 활성화 키가 필요하지 않습니다.\n\n자세한 내용은 [도움말 센터]({{helpCenter}})에서 알아보세요.",
         "Disable Grist Enterprise": "Grist Enterprise 비활성화",
         "Enable Grist Enterprise": "Grist Enterprise 활성화",
         "Grist Enterprise is **enabled**.": "Grist Enterprise가 **활성화**되었습니다.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "활성화 키는 30일의 평가판 기간이 만료된 후 Grist Enterprise를 실행하는 데 사용됩니다. 오늘 [문의하기]({{contactLink}})를 통해 활성화 키를 받으세요. Grist Core를 실행하는 데는 활성화 키가 필요하지 않습니다.\n\n자세한 내용은 [도움말 센터]({{helpCenter}})에서 알아보세요.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "활성화 키는 30일의 평가판 기간이 만료된 후 Grist Enterprise를 실행하는 데 사용됩니다.\n오늘 [문의하기]({{contactLink}})를 통해 활성화 키를 받으세요.\nGrist Core를 실행하는 데는 활성화 키가 필요하지 않습니다.\n\n자세한 내용은 [도움말 센터]({{helpCenter}})에서 알아보세요.",
         "Activate": "활성화",
         "Activation key": "활성화 키",
-        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "활성화 키는 30일의 평가판 기간이 만료된 후 Grist Enterprise를 실행하는 데 사용됩니다. [Grist Enterprise 가입]({{signupLink}})하여 활성화 키를 받으세요. Grist Core를 실행하는 데는 활성화 키가 필요하지 않습니다.",
-        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Grist Enterprise를 계속 사용하려면 활성 구독이 필요합니다. [Grist Enterprise 가입]({{signupLink}})하고 아래에 활성화 키를 붙여넣어 구독을 활성화할 수 있습니다.",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "활성화 키는 30일의 평가판 기간이 만료된 후 Grist Enterprise를 실행하는 데 사용됩니다.\n[Grist Enterprise 가입]({{signupLink}})하여 활성화 키를 받으세요.\nGrist Core를 실행하는 데는\n활성화 키가 필요하지 않습니다.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Grist Enterprise를 계속 사용하려면 활성 구독이 필요합니다.\n[Grist Enterprise 가입]({{signupLink}})하고 아래에 활성화 키를 붙여넣어\n구독을 활성화할 수 있습니다.",
         "Copy to clipboard": "클립보드에 복사",
         "Expiration date": "만료 날짜",
         "Installation ID copied to clipboard": "설치 ID가 클립보드에 복사되었습니다.",
@@ -955,13 +967,13 @@
         "Installation seats": "설치 시트 수",
         "Learn more in our [Help Center]({{helpCenter}}).": "자세한 내용은 [도움말 센터]({{helpCenter}})에서 알아보세요.",
         "Plan name": "요금제 이름",
-        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Grist Enterprise를 계속 사용하려면 활성화 키를 받기 위해 [문의하기]({{signupLink}})가 필요합니다.",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Grist Enterprise를 계속 사용하려면 활성화 키를 받기 위해\n[문의하기]({{signupLink}})가 필요합니다.",
         "You are currently trialing Grist Enterprise.": "현재 Grist Enterprise 평가판을 사용 중입니다.",
         "You do not have an active subscription.": "활성 구독이 없습니다.",
         "Your activation key has expired due to exceeding limits.": "한도 초과로 인해 활성화 키가 만료되었습니다.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "**{{days}}**일 후에 인스턴스가 **읽기 전용** 모드가 됩니다.",
         "Your subscription expired on {{date}}.": "구독이 {{date}}에 만료되었습니다.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "평가판 기간이 **{{expireAt}}**에 만료되었습니다. Grist Enterprise를 계속 사용하려면 [Grist Enterprise 가입]({{signupLink}})하고 아래에 활성화 키를 붙여넣어야 합니다."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "평가판 기간이 **{{expireAt}}**에 만료되었습니다. Grist Enterprise를 계속 사용하려면\n[Grist Enterprise 가입]({{signupLink}})하고 아래에 활성화 키를 붙여넣어야 합니다."
     },
     "AuditLogsPage": {
         "Audit logs for {{siteName}}": "{{siteName}}의 감사 로그",
@@ -1075,12 +1087,45 @@
         "personal site": "개인 사이트"
     },
     "ChartView": {
-        "Create separate series for each value of the selected column.": "선택한 열의 각 값에 대해 별도의 시리즈를 생성합니다.",
+        "Create separate series for each value of the selected column.": "선택한 열의 각 값에 대해 별도의 계열을 생성합니다.",
         "Toggle chart aggregation": "차트 집계 전환",
         "Pick a column": "열 선택",
         "selected new group data columns": "선택된 새 그룹 데이터 열",
-        "Each Y series is followed by two series, for top and bottom error bars.": "각 Y 시리즈 뒤에는 상단 및 하단 오차 막대에 대한 두 개의 시리즈가 따릅니다.",
-        "Each Y series is followed by a series for the length of error bars.": "각 Y 시리즈 뒤에는 오차 막대의 길이에 대한 시리즈가 따릅니다."
+        "Each Y series is followed by two series, for top and bottom error bars.": "각 Y 계열 뒤에는 위쪽 및 아래쪽 오차 막대를 위한 두 개의 계열이 이어집니다.",
+        "Each Y series is followed by a series for the length of error bars.": "각 Y 계열 뒤에는 오차 막대 길이를 나타내는 계열이 이어집니다.",
+        "LABEL": "레이블",
+        "Bar Chart": "막대 그래프",
+        "Pie Chart": "파이 그래프",
+        "Donut Chart": "도넛 그래프",
+        "Area Chart": "면적 그래프",
+        "Line Chart": "선 그래프",
+        "Kaplan-Meier Plot": "카플란-마이어 곡선",
+        "Invert Y-axis": "Y축 반전",
+        "Orientation": "방향",
+        "Vertical": "세로",
+        "Horizontal": "가로",
+        "Log scale Y-axis": "로그 스케일 Y축",
+        "Hole Size": "중앙 구멍 크기",
+        "Show Total": "합계 보이기",
+        "Text Size": "텍스트 크기",
+        "Connect gaps": "빈 구간 연결",
+        "Show markers": "마커 표시",
+        "Error bars": "오차 막대",
+        "None": "없음",
+        "Symmetric": "대칭",
+        "Above+Below": "위 + 아래",
+        "Split Series": "계열 분할",
+        "X-AXIS": "X축",
+        "Aggregate values": "집계 값",
+        "SERIES": "계열",
+        "Add Series": "계열 추가",
+        "non-numeric columns are not shown": "숫자 데이터가 아닌 열은 생략됩니다",
+        "non-numeric column is not shown": "숫자 데이터가 아닌 열은 생략됩니다",
+        "selected new x-axis": "새로 선택한 X축",
+        "Remove": "제거",
+        "Stack series": "계열 누적",
+        "Scatter Plot": "산점도",
+        "Split series": "계열 분할"
     },
     "AccountPage": {
         "API": "API",
@@ -1328,7 +1373,15 @@
         "Download document structure only (no data, for template use)": "모든 데이터를 제거하되, 템플릿으로 사용할 구조는 유지합니다.",
         "Download document without history (can significantly reduce file size)": "문서 기록 제거 (파일 크기를 크게 줄일 수 있음)",
         "Download": "다운로드",
-        "Download document": "문서 다운로드"
+        "Download document": "문서 다운로드",
+        "Download attachments": "첨부 다운로드",
+        "Download full document and history": "전체 문서 및 히스토리 다운로드",
+        "Format:": "형식:",
+        "Learn more": "더 배우기",
+        "download attachments": "첨부 다운로드",
+        ".tar (recommended)": "tar파일(권장)",
+        ".zip": "zip파일",
+        "Download an archive of all the attachments present in this document.": "이 문서에 포함된 모든 첨부 파일을 압축하여 다운로드합니다."
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Grist 비디오 둘러보기",
@@ -1464,7 +1517,10 @@
         "DOO Separated Values (.dsv)": "DOO로 구분된 값 (.dsv)",
         "Export as...": "다음으로 내보내기...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
-        "Tab Separated Values (.tsv)": "탭으로 구분된 값 (.tsv)"
+        "Tab Separated Values (.tsv)": "탭으로 구분된 값 (.tsv)",
+        "Exporting is only available from document pages. Please select a document page and try again.": "내보내기는 문서 페이지에서만 사용할 수 있습니다. 문서 페이지를 선택한 후 다시 시도하세요.",
+        "Download document...": "문서 다운로드...",
+        "Download attachments...": "첨부 다운로드..."
     },
     "SiteSwitcher": {
         "Create new team site": "새 팀 사이트 만들기",
@@ -1554,7 +1610,9 @@
         "Make On-Demand": "요청 시 로드로 설정",
         "Plugin: ": "플러그인: ",
         "Section: ": "섹션: ",
-        "Unmark On-Demand": "요청 시 로드 해제"
+        "Unmark On-Demand": "요청 시 로드 해제",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "기능 부족과 사용성 문제로 인해 On-Demand Table은 더 이상 지원되지 않습니다.",
+        "⚠️ Deprecated Feature": "⚠️ 지원 중단된 기능"
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "편집할 수 있지만, 편집 내용은 새 사본으로 생성되며\n원본 문서에는 영향을 주지 않습니다.",
@@ -1713,7 +1771,8 @@
         "Webhook Id": "웹훅 ID",
         "Table": "테이블",
         "Filter for changes in these columns (semicolon-separated ids)": "이 열의 변경 사항 필터링 (세미콜론으로 구분된 ID)",
-        "Header Authorization": "헤더 Authorization"
+        "Header Authorization": "헤더 Authorization",
+        "Webhooks Unavailable In Unsaved Document Copies": "저장되지 않은 문서 복사본에서는 Webhook 사용 불가"
     },
     "FormulaAssistant": {
         "Ask the bot.": "봇에게 질문하세요.",
@@ -1838,7 +1897,8 @@
         "Insert section above": "위에 섹션 삽입",
         "Insert section below": "아래에 섹션 삽입",
         "### **Header**": "### **헤더**",
-        "Description": "설명"
+        "Description": "설명",
+        "## **Header**": "## **제목**"
     },
     "ReferenceUtils": {
         "No choices to select": "선택할 항목 없음",
@@ -1949,5 +2009,42 @@
         "Have you **reviewed the code** at this URL?": "이 URL의 **코드를 검토**하셨습니까?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "확신이 없다면 이 위젯을 설치하지 마거나, 조직의 관리자에게 안전성 검토를 요청하세요.",
         "I confirm that I understand these warnings and accept the risks": "이 경고를 이해했으며 위험을 감수함을 확인합니다."
+    },
+    "Assistant": {
+        "upgrade your plan": "플랜을 업그레이드하기",
+        "upgrade to the Pro Team plan": "Pro Team 플랜으로 업그레이드",
+        "Sign up for a free Grist account to start using the AI Assistant.": "AI 도우미를 사용하려면 무료 Grist 계정에 가입하세요.",
+        "What do you need help with?": "무엇을 도와드릴까요?",
+        "Sign Up for Free": "무료로 가입하기",
+        "AI Assistant is only available for logged in users.": "AI 도우미는 로그인한 사용자만 사용할 수 있습니다.",
+        "For higher limits, {{upgradeNudge}}.": "제한을 높이시려면 업그레이드하세요 {{upgradeNudge}}.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "새로운 Grist 도우미를 사용하려면 Grist Enterprise로 업그레이드하세요. {{learnMoreLink}}",
+        "Apply": "적용",
+        "For higher limits, contact the site owner.": "제한을 늘리려면 사이트 관리자에게 문의하십시오.",
+        "Learn more.": "더 알아보기.",
+        "Press Enter to apply suggested formula.": "제안 수식을 적용하려면 엔터 키를 누르세요.",
+        "You have used all available credits.": "사용 가능한 크레딧을 모두 사용하셨습니다.",
+        "You have {{numCredits}} remaining credits.": "남은 크레딧은 {{numCredits}}입니다.",
+        "start a new chat": "새로운 대화 시작하기"
+    },
+    "AdminLeftPanel": {
+        "Admin controls": "관리자 설정",
+        "Admin area": "관리자 영역",
+        "Docs": "문서 관리",
+        "Installation": "설치",
+        "Workspaces": "워크스페이스 관리",
+        "Admin Controls": "관리자 설정",
+        "Settings": "설정",
+        "Users": "사용자 관리",
+        "Learn more": "더 알아보기",
+        "Orgs": "조직 관리"
+    },
+    "apiconsole": {
+        "Confirm Deletion": "삭제 확인",
+        "Are you sure you want to delete the following?": "다음 항목을 삭제하시겠습니까?",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "정말로 이 삭제를 원하신다면 DELETE를 입력하세요.\n확신이 없거나 이 작업이 무엇을 하는지 잘 모르겠다면, \n취소하는 것이 좋습니다.",
+        "Delete": "삭제",
+        "Deletion was not confirmed, skipping.": "삭제가 취소되어 건너뜁니다.",
+        "Type DELETE here if you wish to proceed.": "진행하려면 DELETE를 입력해 주세요."
     }
 }
