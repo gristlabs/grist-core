@@ -85,7 +85,7 @@ describe('DocumentUsage', function() {
     let docId: string;
 
     before(async () => {
-      docId = await session.tempNewDoc(cleanup, `AttachmentUsageTestDoc - internal`);
+      docId = await session.tempNewDoc(cleanup, `AttachmentUsageTestDoc - external`);
       const docApi = api.getDocAPI(docId);
       await docApi.setAttachmentStore("external");
       assert.equal((await docApi.getAttachmentStore()).type, "external");
