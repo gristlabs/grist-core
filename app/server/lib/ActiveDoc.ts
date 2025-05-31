@@ -2611,6 +2611,10 @@ export class ActiveDoc extends EventEmitter {
       }
     }
 
+    if (rowIdsToUpdate.length === 0) {
+      return;
+    }
+
     const action: BulkUpdateRecord = ['BulkUpdateRecord', '_grist_Attachments', rowIdsToUpdate, {
       fileSize: newFileSizesForRows
     }];
