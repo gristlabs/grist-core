@@ -2622,7 +2622,7 @@ export class ActiveDoc extends EventEmitter {
     await this._applyUserActionsWithExtendedOptions(
       docSession,
       [action],
-      { attachment: true },
+      {attachment: true},
     );
 
     // Updates doc's overall attachment usage to reflect any changes to file sizes.
