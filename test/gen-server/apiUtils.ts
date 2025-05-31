@@ -281,14 +281,16 @@ export class TestSession {
                              useApiKey: boolean = false,
                              checkAccess: boolean = true): Promise<UserAPIImpl> {
     const headers: {[key: string]: string} = {};
-    if (useApiKey) {
-      headers.Authorization = 'Bearer api_key_for_' + userName.toLowerCase();
-    } else {
-      const cookie = await this.getCookieLogin(orgDomain, {
-        email: `${userName.toLowerCase()}@getgrist.com`,
-        name: userName
-      });
-      headers.Cookie = cookie.headers.Cookie;
+    if (userName !== 'anonymous') {
+      if (useApiKey) {
+        headers.Authorization = 'Bearer api_key_for_' + userName.toLowerCase();
+      } else {
+        const cookie = await this.getCookieLogin(orgDomain, {
+          email: `${userName.toLowerCase()}@getgrist.com`,
+          name: userName
+        });
+        headers.Cookie = cookie.headers.Cookie;
+      }
     }
     const api = new UserAPIImpl(`${this.home.getOwnUrl()}/o/${orgDomain}`, {
       fetch: fetch as any,

@@ -106,6 +106,7 @@ export const commonUrls = {
   helpAPI: 'https://support.getgrist.com/api',
   helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
   helpAdminControls: "https://support.getgrist.com/admin-controls",
+  helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
@@ -581,12 +582,11 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (sp.has('compare')) {
     state.params!.compare = sp.get('compare')!;
   }
-  for (const [k, v] of sp.entries()) {
-    if (k.endsWith('_')) {
-      if (!state.params!.linkParameters) { state.params!.linkParameters = {}; }
-      state.params!.linkParameters[k.slice(0, k.length - 1)] = v;
-    }
+  const linkParameters = decodeLinkParameters(sp);
+  if (linkParameters) {
+    state.params!.linkParameters = linkParameters;
   }
+
   if (location.hash) {
     const hash = location.hash;
     const hashParts = hash.split('.');
@@ -641,6 +641,17 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.upgradeTeam = hashMap.get('#') === 'upgrade-team';
   }
   return state;
+}
+
+export function decodeLinkParameters(sp: URLSearchParams) {
+  let linkParameters: Record<string, string>|undefined = undefined;
+  for (const [k, v] of sp.entries()) {
+    if (k.endsWith('_')) {
+      if (!linkParameters) { linkParameters = {}; }
+      linkParameters[k.slice(0, k.length - 1)] = v;
+    }
+  }
+  return linkParameters;
 }
 
 // Returns a function suitable for user with makeUrl/setHref/etc, which updates aclAsUser*
@@ -919,6 +930,9 @@ export interface GristLoadConfig {
 
   // Set on /admin pages only, when AdminControls are available and should be enabled in UI.
   adminControls?: boolean;
+
+  // TODO: remove once released (this is only expected to be released in enterprise edition)
+  featureNotifications?: boolean;
 }
 
 export const Features = StringUnion(
@@ -931,6 +945,7 @@ export const Features = StringUnion(
   "sendToDrive",
   "tutorials",
   "supportGrist",
+  "themes",
 );
 export type IFeature = typeof Features.type;
 

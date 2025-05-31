@@ -129,8 +129,11 @@ declare module "app/client/components/ViewConfigTab" {
   class ViewConfigTab extends Disposable {
     constructor(options: {gristDoc: GristDoc, viewModel: ViewRec});
     public buildSortFilterDom(): DomContents;
-    // TODO: these should be made private or renamed.
+    /**
+     * @deprecated On-demand tables where deprecated as of 2025-05-01.
+     */
     public _buildAdvancedSettingsDom(): DomArg;
+    // TODO: these should be made private or renamed.
     public _buildThemeDom(): DomArg;
     public _buildChartConfigDom(): DomContents;
     public _buildLayoutDom(): DomArg;

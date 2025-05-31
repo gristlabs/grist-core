@@ -5,10 +5,11 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features, isFreePlan} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
+import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
 import {
@@ -25,25 +26,29 @@ import {
   PREVIEWER_EMAIL,
   UserAccessData,
   UserOptions,
-  WorkspaceProperties,
-} from "app/common/UserAPI";
-import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
-import {Alias} from "app/gen-server/entity/Alias";
-import {BillingAccount} from "app/gen-server/entity/BillingAccount";
-import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
-import {Config} from "app/gen-server/entity/Config";
-import {Document} from "app/gen-server/entity/Document";
-import {Group} from "app/gen-server/entity/Group";
-import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
-import {Pref} from "app/gen-server/entity/Pref";
-import {getDefaultProductNames, personalFreeFeatures, Product} from "app/gen-server/entity/Product";
-import {Secret} from "app/gen-server/entity/Secret";
-import {Share} from "app/gen-server/entity/Share";
-import {User} from "app/gen-server/entity/User";
-import {Workspace} from "app/gen-server/entity/Workspace";
+  WorkspaceProperties
+} from 'app/common/UserAPI';
+import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from 'app/gen-server/entity/AclRule';
+import {Alias} from 'app/gen-server/entity/Alias';
+import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
+import {BillingAccountManager} from 'app/gen-server/entity/BillingAccountManager';
+import {Config} from 'app/gen-server/entity/Config';
+import {DocPref} from 'app/gen-server/entity/DocPref';
+import {Document} from 'app/gen-server/entity/Document';
+import {Group} from 'app/gen-server/entity/Group';
 import {Limit} from 'app/gen-server/entity/Limit';
+import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/entity/Organization';
+import {Pref} from 'app/gen-server/entity/Pref';
+import {getDefaultProductNames, personalFreeFeatures, Product} from 'app/gen-server/entity/Product';
+import {Secret} from 'app/gen-server/entity/Secret';
+import {Share} from 'app/gen-server/entity/Share';
+import {User} from 'app/gen-server/entity/User';
+import {Workspace} from 'app/gen-server/entity/Workspace';
+import {GroupsManager} from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
+  DocAuthKey,
+  DocAuthResult,
   DocumentAccessChanges,
   GetUserOptions,
   GroupDescriptor,
@@ -53,11 +58,11 @@ import {
   QueryResult,
   Resource,
   UserProfileChange,
-  WorkspaceAccessChanges,
+  WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
-import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
+import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
 import {
   bitOr,
@@ -76,11 +81,11 @@ import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
-import {WebHookSecret} from "app/server/lib/Triggers";
-
-import {Request} from "express";
+import {expectedResetDate} from 'app/server/lib/serverUtils';
+import {WebHookSecret} from 'app/server/lib/Triggers';
+import {Request} from 'express';
 import {defaultsDeep, flatten, pick, size} from 'lodash';
-import moment from "moment";
+import moment from 'moment';
 import {
   Brackets,
   DatabaseType,
@@ -89,9 +94,9 @@ import {
   ObjectLiteral,
   SelectQueryBuilder,
   WhereExpressionBuilder
-} from "typeorm";
-import {v4 as uuidv4} from "uuid";
-import { GroupsManager } from './GroupsManager';
+} from 'typeorm';
+import {v4 as uuidv4} from 'uuid';
+
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -180,6 +185,11 @@ interface QueryOptions {
                                  // potentially overriding markPermissions.
 }
 
+interface DocQueryOptions extends QueryOptions {
+  // Override AccessStyle (defaults to 'open'). E.g. 'openNoPublic' ignores public access.
+  accessStyle?: AccessStyle;
+}
+
 // Information about a change in billable users.
 export interface UserChange {
   userId: number;            // who initiated the change
@@ -206,30 +216,13 @@ export interface Scope {
 
 // Flag for whether we are listing resources or opening them.  This makes a difference
 // for public resources, which we allow users to open but not necessarily list.
-type AccessStyle = 'list' | 'open';
+// 'openNoPublic' is like open, but ignores public shares, i.e. only allows users who are listed
+// as collaborators, either directly or by inheriting access.
+type AccessStyle = 'list' | 'open' | 'openNoPublic';
 
 // A Scope for documents, with mandatory urlId.
 export interface DocScope extends Scope {
   urlId: string;
-}
-
-// Identifies a request to access a document. This combination of values is also used for caching
-// DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.
-export interface DocAuthKey {
-  urlId: string;              // May be docId. Must be unambiguous in the context of the org.
-  userId: number;             // The user accessing this doc. (Could be the ID of Anonymous.)
-  org?: string;               // Undefined if unknown (e.g. in API calls, but needs unique urlId).
-}
-
-// Document auth info. This is the minimum needed to resolve user access checks. For anything else
-// (e.g. doc title), the uncached getDoc() call should be used.
-export interface DocAuthResult {
-  docId: string|null;         // The unique identifier of the document. Null on error.
-  access: roles.Role|null;    // The access level for the requesting user. Null on error.
-  removed: boolean|null;      // Set if the doc is soft-deleted. Users may still have access
-                              // to removed documents for some purposes. Null on error.
-  error?: ApiError;
-  cachedDoc?: Document;       // For cases where stale info is ok.
 }
 
 // Represent a DocAuthKey as a string.  The format is "<urlId>:<org> <userId>".
@@ -610,7 +603,7 @@ export class HomeDBManager {
     // ordering (Sqlite does support NULL LAST syntax now, but not on our fork yet).
     qb = qb.addOrderBy('coalesce(prefs.org_id, 0)', 'DESC');
     qb = qb.addOrderBy('coalesce(prefs.user_id, 0)', 'DESC');
-    const result = await this._verifyAclPermissions(qb);
+    const result: QueryResult<any> = await this._verifyAclPermissions(qb);
     if (result.status === 200) {
       // Return the only org.
       result.data = result.data[0];
@@ -700,9 +693,9 @@ export class HomeDBManager {
                                 options: QueryOptions = {}): Promise<QueryResult<Workspace[]>> {
     const query = this._orgWorkspaces(scope, orgKey, options);
     // Allow an empty result for the merged org for the anonymous user.  The anonymous user
-    // has no home org or workspace.  For all other sitations, expect at least one workspace.
+    // has no home org or workspace.  For all other situations, expect at least one workspace.
     const emptyAllowed = this.isMergedOrg(orgKey) && scope.userId === this._usersManager.getAnonymousUserId();
-    const result = await this._verifyAclPermissions(query, { scope, emptyAllowed });
+    const result: QueryResult<any> = await this._verifyAclPermissions(query, { scope, emptyAllowed });
     // Return the workspaces, not the org(s).
     if (result.status === 200) {
       // Place ownership information in workspaces, available for the merged org.
@@ -743,7 +736,7 @@ export class HomeDBManager {
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
     queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs'], 'list');
-    const result = await this._verifyAclPermissions(queryBuilder, { scope });
+    const result: QueryResult<any> = await this._verifyAclPermissions(queryBuilder, { scope });
     // Return a single workspace.
     if (result.status === 200) {
       result.data = result.data[0];
@@ -818,7 +811,7 @@ export class HomeDBManager {
       throw new ApiError(result.errMessage || 'failed to select user', result.status);
     }
     if (!result.data.length) { return null; }
-    const options: AccessOptionWithRole[] = result.data[0].accessOptions;
+    const options: AccessOptionWithRole[] = result.data[0].accessOptions!;
     if (!options.length) { return null; }
     const role = roles.getStrongestRole(...options.map(option => option.access));
     return options.find(option => option.access === role) || null;
@@ -2317,10 +2310,14 @@ export class HomeDBManager {
     const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
 
     const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
+    // The docMap gives the doc access of the user. It maps user to owners/editors/viewers/guests (member is org only),
+    // but since, doc is a leaf resource, in practice we won't have the guests group here.
     const docMap = GroupsManager.getMemberUserRoles(doc, this.defaultCommonGroupNames);
-    // The wsMap gives the ws access inherited by each user.
+    // The wsMap gives the ws access that can be inherited by each user (owners, editors, viewers)
     const wsMap = GroupsManager.getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
-    // The orgMap gives the org access inherited by each user.
+    // The wsMapWithMembership gives the ws access that users have to the workspace. Includes all groups.
+    const wsMapWithMembership = GroupsManager.getMemberUserRoles(doc.workspace, this.defaultGroupNames);
+    // The orgMap gives the org access that can be inherited by each user (owners, editors, viewers).
     const orgMap = GroupsManager.getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
     // The orgMapWithMembership gives the full access to the org for each user, including
     // the "members" level, which grants no default inheritable access but allows the user
@@ -2341,28 +2338,67 @@ export class HomeDBManager {
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)
         ),
         isMember: orgAccess && orgAccess !== 'guests',
-        isSupport: u.id === this._usersManager.getSupportUserId() ? true : undefined,
       };
     });
     let maxInheritedRole = this._groupsManager.getMaxInheritedRole(doc);
 
+    const thisUser = users.find(user => user.id === scope.userId);
+    const docRealAccess = thisUser ? getRealAccess(thisUser, {maxInheritedRole}) : null;
+    const canViewDoc = (user: UserAccessData) => roles.canView(getRealAccess(user, {maxInheritedRole}));
+    const personalMetadata: Pick<PermissionData, 'public'|'personal'> = {};
+
+    // Unlike other resources, documents rule for seeing other users are a little bit different.
+    // The simple rule is as follows:
+    // - If user is at least editor on the document (but not a public editor), then we return all users
+    //   who can see the document.
+    // - If such user is also an owner of a parent resource (workspace or org), then we include all users on
+    //   that resource, including guest users.
+
+    // Previewer user can see everyone on the list.
+    if (scope.userId === this._usersManager.getPreviewerUserId()) {
+      // No need to filter users, just return all of them.
+    } else {
+      const isPublic = !thisUser || thisUser.anonymous || !docRealAccess;
+      if (!isPublic && roles.canEdit(docRealAccess)) {
+        if (roles.canEditAccess(orgMap[scope.userId] ?? null)) {
+          // If this user is an org owner, return all users unfiltered.
+        } else if (roles.canEditAccess(thisUser?.parentAccess ?? null)) {
+          const canViewWorkspace = (user: UserAccessData) => roles.canView(getRealAccess({
+            // Figure out the access level on workspace (including inherited access from org).
+            access: wsMapWithMembership[user.id] || null,
+            parentAccess: orgMap[user.id] || null,
+          }, {maxInheritedRole: wsMaxInheritedRole}));
+          // If user is owner of the workspace, return all users on the workspace and on the document.
+          users = users.filter(user => canViewDoc(user) || canViewWorkspace(user));
+        } else {
+          // For any other editor/owner non-public user, we return all users who can see the document.
+          users = users.filter(user => canViewDoc(user));
+        }
+
+        // If user can't change access on the document, instruct UI to just show user's role.
+        if (!roles.canEditAccess(getRealAccess(thisUser, {maxInheritedRole}) ?? null)) {
+          personalMetadata.public = false;
+          personalMetadata.personal = true;
+        }
+      } else {
+        users = thisUser ? [thisUser] : [];
+        personalMetadata.public = isPublic;
+        personalMetadata.personal = true;
+      }
+    }
+
     if (options?.excludeUsersWithoutAccess) {
-      users = users.filter(user => {
-        const access = getRealAccess(user, { maxInheritedRole, users });
-        return roles.canView(access);
-      });
+      users = users.filter(canViewDoc);
     }
 
     if (forkId || snapshotId || options?.flatten) {
       for (const user of users) {
-        const access = getRealAccess(user, { maxInheritedRole, users });
+        const access = getRealAccess(user, {maxInheritedRole});
         user.access = access;
         user.parentAccess = undefined;
       }
       maxInheritedRole = null;
     }
-
-    const personal = this._filterAccessData(scope, users, maxInheritedRole, doc.id);
 
     // If we are on a fork, make any access changes needed. Assumes results
     // have been flattened.
@@ -2375,8 +2411,8 @@ export class HomeDBManager {
     return {
       status: 200,
       data: {
-        ...personal,
-        maxInheritedRole,
+        ...personalMetadata,
+        maxInheritedRole: maxInheritedRole,
         users
       }
     };
@@ -2760,11 +2796,11 @@ export class HomeDBManager {
   }
 
   public async getLimit(accountId: number, limitType: LimitType): Promise<Limit|null> {
-    return await this._getOrCreateLimit(accountId, limitType, true);
+    return await this._getOrCreateLimitAndReset(accountId, limitType, true);
   }
 
   public async peekLimit(accountId: number, limitType: LimitType): Promise<Limit|null> {
-    return await this._getOrCreateLimit(accountId, limitType, false);
+    return await this._getOrCreateLimitAndReset(accountId, limitType, false);
   }
 
   public async removeLimit(scope: Scope, limitType: LimitType): Promise<void> {
@@ -2793,34 +2829,32 @@ export class HomeDBManager {
   public async increaseUsage(scope: Scope, limitType: LimitType, options: {
     delta: number,
     dryRun?: boolean,
-  }): Promise<Limit|null> {
-    const limitOrError: Limit|ApiError|null = await this._connection.transaction(async manager => {
+  }, transaction?: EntityManager): Promise<Limit|null> {
+    const limitOrError: Limit|ApiError|null = await this.runInTransaction(transaction, async manager => {
       const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
         .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
         .innerJoinAndSelect('billing_account.product', 'product')
-        .leftJoinAndSelect('billing_account.limits', 'limit', 'limit.type = :limitType', {limitType})
         .getOne();
       // If the org doesn't exists, or is a fake one (like for anonymous users), don't do anything.
       if (!org || org.id === 0) {
         // This API shouldn't be called, it should be checked first if the org is valid.
         throw new ApiError(`Can't create a limit for non-existing organization`, 500);
       }
-      let existing = org?.billingAccount?.limits?.[0];
+      const features = org?.billingAccount?.getFeatures();
+      if (!features) {
+        throw new ApiError(`No product found for org ${org.id}`, 500);
+      }
+      if (features.baseMaxAssistantCalls === undefined) {
+        // If the product has no assistantLimit, then it is not billable yet, and we don't need to
+        // track usage as it is basically unlimited.
+        return null;
+      }
+      const existing = await this._getOrCreateLimitAndReset(org.billingAccountId, limitType, true, manager);
       if (!existing) {
-        const features = org?.billingAccount?.getFeatures();
-        if (!features) {
-          throw new ApiError(`getLimit: no product found for org`, 500);
-        }
-        if (features.baseMaxAssistantCalls === undefined) {
-          // If the product has no assistantLimit, then it is not billable yet, and we don't need to
-          // track usage as it is basically unlimited.
-          return null;
-        }
-        existing = new Limit();
-        existing.billingAccountId = org.billingAccountId;
-        existing.type = limitType;
-        existing.limit = features.baseMaxAssistantCalls ?? 0;
-        existing.usage = 0;
+        throw new ApiError(
+          `Can't create a limit for non-existing organization`,
+          500,
+        );
       }
       const limitLess = existing.limit === -1; // -1 means no limit, it is not possible to do in stripe.
       const projectedValue = existing.usage + options.delta;
@@ -3170,6 +3204,49 @@ export class HomeDBManager {
     });
   }
 
+  public async getDocPrefs(scope: DocScope): Promise<FullDocPrefs> {
+    return await this.runInTransaction<FullDocPrefs>(undefined, async (manager) => {
+      const [, prefs] = await this._doGetDocPrefs(scope, manager);
+      return prefs;
+    });
+  }
+
+  public async setDocPrefs(scope: DocScope, newPrefs: Partial<FullDocPrefs>): Promise<void> {
+    const {urlId: docId, userId} = scope;
+    return await this.runInTransaction(undefined, async (manager) => {
+      const [doc, origPrefs] = await this._doGetDocPrefs(scope, manager);
+      const updates = [];
+      if (newPrefs.docDefaults) {
+        if (doc.access !== roles.OWNER) {
+          throw new ApiError('Only document owners may update document prefs', 403);
+        }
+        const prefs = {...origPrefs.docDefaults, ...newPrefs.docDefaults};
+        updates.push({docId, userId: null, prefs});
+      }
+      if (newPrefs.currentUser) {
+        const prefs = {...origPrefs.currentUser, ...newPrefs.currentUser};
+        updates.push({docId, userId, prefs});
+      }
+      await manager.createQueryBuilder()
+        .insert().into(DocPref)
+        .values(updates)
+        .onConflict(`(doc_id, COALESCE(user_id, 0)) DO UPDATE SET prefs = EXCLUDED.prefs`)
+        .execute();
+    });
+  }
+
+  /**
+   * Combines default and per-user DocPrefs. Does not check access.
+   */
+  public async getDocPrefsForUsers(docId: string, userIds: number[]): Promise<Map<number|null, DocPrefs>> {
+    const records = await this._connection.createQueryBuilder()
+      .select('doc_pref')
+      .from(DocPref, 'doc_pref')
+      .where('doc_id = :docId AND (user_id IS NULL OR user_id IN (:...userIds))', {docId, userIds})
+      .getMany();
+    return new Map<number|null, DocPrefs>(records.map(r => [r.userId, r.prefs]));
+  }
+
   /**
    * Run an operation in an existing transaction if available, otherwise create
    * a new transaction for it.
@@ -3177,10 +3254,10 @@ export class HomeDBManager {
    * @param transaction: the manager of an existing transaction, or undefined.
    * @param op: the operation to run in a transaction.
    */
-  public runInTransaction(
+  public runInTransaction<T>(
     transaction: EntityManager|undefined,
-    op: (manager: EntityManager) => Promise<any>
-  ): Promise<any> {
+    op: (manager: EntityManager) => Promise<T>
+  ): Promise<T> {
     if (transaction) { return op(transaction); }
     return this._connection.transaction(op);
   }
@@ -3188,6 +3265,24 @@ export class HomeDBManager {
   // Convenient helpers for database utilities that depend on _dbType.
   public makeJsonArray(content: string): string { return makeJsonArray(this._dbType, content); }
   public readJson(selection: any) { return readJson(this._dbType, selection); }
+
+  private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
+    const {urlId: docId, userId} = scope;
+    const docQb = this._doc(scope, {accessStyle: 'openNoPublic', manager});
+    // The following combination throws ApiError for insufficient access.
+    const doc = this.unwrapQueryResult(await this._verifyAclPermissions(docQb))[0];
+
+    const records = await manager.createQueryBuilder()
+      .select('doc_pref')
+      .from(DocPref, 'doc_pref')
+      .where('doc_id = :docId AND (user_id IS NULL OR user_id = :userId)', {docId, userId})
+      .getMany();
+
+    return [doc, {
+      docDefaults: records.find(r => r.userId === null)?.prefs || {},
+      currentUser: records.find(r => r.userId === userId)?.prefs || {},
+    }];
+  }
 
   private async _createNotFoundUsers(options: {
     analysis: PermissionDeltaAnalysis;
@@ -3274,20 +3369,63 @@ export class HomeDBManager {
     );
   }
 
-  private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
+  private async _getOrCreateLimitAndReset(
+    accountId: number,
+    limitType: LimitType,
+    force: boolean,
+    transaction?: EntityManager
+  ): Promise<Limit|null> {
     if (accountId === 0) {
       throw new Error(`getLimit: called for not existing account`);
     }
-    const result = this._connection.transaction(async manager => {
+    const result = this.runInTransaction(transaction, async manager => {
       let existing = await manager.createQueryBuilder()
         .select('limit')
         .from(Limit, 'limit')
-        .innerJoin('limit.billingAccount', 'account')
+        .innerJoinAndSelect('limit.billingAccount', 'account')
+        .innerJoinAndSelect('account.product', 'product')
         .where('account.id = :accountId', {accountId})
           .andWhere('limit.type = :limitType', {limitType})
         .getOne();
-      if (!force && !existing) { return null; }
-      if (existing) { return existing; }
+
+      // If we don't have a limit, and we can't create one, return null.
+      if (!existing && !force) { return null; }
+
+      // If we have a limit, check if we don't need to reset it.
+      if (existing) {
+        // We reset the limit if current date (in UTC) is greater then last billing period and the limit
+        // wasn't reset yet. We store the last reset date in the limit itself.
+
+        // We can only reset the limit if we know the billing period end date, and this is not a free plan.
+        if (existing.billingAccount.status?.currentPeriodEnd
+            && existing.billingAccount.status?.currentPeriodStart
+            && existing.billingAccount.inGoodStanding
+            && !isFreePlan(existing.billingAccount.product.name)
+           ) {
+          const startDate = new Date(existing.billingAccount.status.currentPeriodStart).getTime();
+          const endDate = new Date(existing.billingAccount.status.currentPeriodEnd).getTime();
+
+          // Calculate the date the limit should be cleared.
+          const timestamp = new Date();
+          const expected = expectedResetDate(startDate, endDate, timestamp.getTime());
+          if (expected) {
+            // If we expect to see a reset date, make sure it was reset at that date or little bit after.
+            const wasResetOk = existing.resetAt && expected < existing.resetAt.getTime();
+            if (!wasResetOk) {
+              // So the limit wasn't reset yet, or before the date we expected.
+              existing.usage = 0;
+              existing.resetAt = timestamp;
+              log.info(
+                `Resetting limit ${limitType} for account ` +
+                `${accountId} (${existing.billingAccount.stripeSubscriptionId}) at ${timestamp}`
+              );
+              await manager.save(existing);
+            }
+          }
+        }
+
+        return existing;
+      }
       const product = await manager.createQueryBuilder()
         .select('product')
         .from(Product, 'product')
@@ -3507,7 +3645,7 @@ export class HomeDBManager {
     transaction?: EntityManager
   ): Promise<Workspace> {
     if (!props.name) { throw new ApiError('Bad request: name required', 400); }
-    return await this.runInTransaction(transaction, async manager => {
+    return await this.runInTransaction<Workspace>(transaction, async manager => {
       // Create a new workspace.
       const workspace = new Workspace();
       workspace.checkProperties(props);
@@ -3534,7 +3672,7 @@ export class HomeDBManager {
         // guest group to include the owner.
         await this._repairOrgGuests({userId: ownerId}, org.id, manager);
       }
-      return result[0];
+      return result[0] as Workspace;
     });
   }
 
@@ -3799,7 +3937,7 @@ export class HomeDBManager {
    *
    * In order to accept urlIds, the aliases, workspaces, and orgs tables are joined.
    */
-  private _doc(scope: DocScope, options: QueryOptions = {}): SelectQueryBuilder<Document> {
+  private _doc(scope: DocScope, options: DocQueryOptions = {}): SelectQueryBuilder<Document> {
     const {urlId, userId} = scope;
     // Check if doc is being accessed with a merged org url.  If so,
     // we will only filter urlId matches, and will allow docId matches
@@ -3825,10 +3963,12 @@ export class HomeDBManager {
             return urlIdQuery;
           }));
       }));
+
     // TODO includeSupport should really be false, and the support for it should be removed.
     // (For this, example doc URLs should be under docs.getgrist.com rather than team domains.)
     // Add access information and query limits
-    query = this._applyLimit(query, {...scope, includeSupport: true}, ['docs', 'workspaces', 'orgs'], 'open');
+    const accessStyle = options.accessStyle || 'open';
+    query = this._applyLimit(query, {...scope, includeSupport: true}, ['docs', 'workspaces', 'orgs'], accessStyle);
     if (options.markPermissions) {
       let effectiveUserId = userId;
       let threshold = options.markPermissions;
@@ -3839,7 +3979,7 @@ export class HomeDBManager {
       }
       // Compute whether we have access to the doc
       query = query.addSelect(
-        this._markIsPermitted('docs', effectiveUserId, 'open', threshold),
+        this._markIsPermitted('docs', effectiveUserId, accessStyle, threshold),
         'is_permitted'
       );
     }
@@ -3854,6 +3994,9 @@ export class HomeDBManager {
     // Extract the forkId from the urlId and use it to find the fork in the db.
     const {forkId} = parseUrlId(scope.urlId);
     let query = this._docs(options.manager)
+      .leftJoinAndSelect('docs.trunk', 'trunk')
+      .leftJoinAndSelect('trunk.workspace', 'trunk_workspace')
+      .leftJoinAndSelect('trunk_workspace.org', 'trunk_org')
       .where('docs.id = :forkId', {forkId});
 
     // Compute whether we have access to the fork.
@@ -4120,7 +4263,7 @@ export class HomeDBManager {
       emptyAllowed?: boolean,
       scope?: Scope,
     } = {}
-  ): Promise<QueryResult<any>> {
+  ): Promise<QueryResult<T[]>> {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
@@ -4409,9 +4552,11 @@ export class HomeDBManager {
           // we may include this code with different user ids in the
           // same query
           cond = cond.where(`${users} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
-          // Support the special "everyone" user.
-          const everyoneId = this._usersManager.getEveryoneUserId();
-          cond = cond.orWhere(`${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
+          // Support public access via the special "everyone" user, except for 'openStrict' mode.
+          if (accessStyle !== 'openNoPublic') {
+            const everyoneId = this._usersManager.getEveryoneUserId();
+            cond = cond.orWhere(`${everyoneId} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
+          }
           if (accessStyle === 'list') {
             // Support also the special anonymous user.  Currently, by convention, sharing a
             // resource with anonymous should make it listable.
@@ -4458,7 +4603,7 @@ export class HomeDBManager {
   // connected to it directly or via subgroups.
   // Public for limited use by extensions of HomeDBManager in some flavors of Grist.
   // eslint-disable-next-line @typescript-eslint/member-ordering
-  public _joinToAllGroupUsers<T>(qb: SelectQueryBuilder<T>): SelectQueryBuilder<T> {
+  public _joinToAllGroupUsers<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>): SelectQueryBuilder<T> {
     return qb
       .leftJoin('group_groups', 'gg1', 'gg1.group_id = acl_rules.group_id')
       .leftJoin('group_groups', 'gg2', 'gg2.group_id = gg1.subgroup_id')
@@ -4765,7 +4910,7 @@ export class HomeDBManager {
     const thisUser = this._usersManager.getAnonymousUserId() === scope.userId
       ? null
       : users.find(user => user.id === scope.userId);
-    const realAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole, users }) : null;
+    const realAccess = thisUser ? getRealAccess(thisUser, {maxInheritedRole}) : null;
 
     // If we are an owner, don't filter user information.
     if (thisUser && realAccess === 'owners') { return; }

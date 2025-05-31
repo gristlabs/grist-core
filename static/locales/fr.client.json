@@ -637,7 +637,10 @@
         "Download document without history (can significantly reduce file size)": "Télécharger le document complet sans l'historique (peut réduire sensiblement la taille du fichier)",
         "Download document and history": "Télécharger le document complet avec l'historique des modifications",
         "Download": "Télécharger",
-        "Download document": "Télécharger le document"
+        "Download document": "Télécharger le document",
+        "Learn more": "En savoir plus",
+        "Download full document and history": "Télécharger le document complet avec l'historique des modifications",
+        "Download an archive of all the attachments present in this document.": "Télécharger une archive de toutes les PJ présentes dans ce document."
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -790,7 +793,8 @@
         "Export as...": "Exporter en tant que...",
         "Comma Separated Values (.csv)": "Valeurs séparées par des virgules (.csv)",
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
-        "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)"
+        "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)",
+        "Download document...": "Télécharger le document..."
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -1790,7 +1794,7 @@
     "ViewLayout": {
         "Delete": "Supprimer",
         "Delete data and this widget.": "Supprimer les données et le composant.",
-        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer le composant. La table restera disponible dans {{rawDataLink}}",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer la vue. La table restera disponible dans {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
         "raw data page": "page de données brutes"
     },
@@ -1968,5 +1972,8 @@
         "Settings": "Paramètres",
         "Admin area": "Zone d'administration",
         "Docs": "Documentation"
+    },
+    "Assistant": {
+        "Learn more.": "En savoir plus."
     }
 }

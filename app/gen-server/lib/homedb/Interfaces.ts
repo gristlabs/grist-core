@@ -1,3 +1,4 @@
+import { ApiError } from 'app/common/ApiError';
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { UserOptions } from "app/common/UserAPI";
 import * as roles from 'app/common/roles';
@@ -79,6 +80,26 @@ interface AccessChanges {
   >;
 }
 
+// Identifies a request to access a document. This combination of values is also used for caching
+// DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.
+export interface DocAuthKey {
+  urlId: string;              // May be docId. Must be unambiguous in the context of the org.
+  userId: number;             // The user accessing this doc. (Could be the ID of Anonymous.)
+  org?: string;               // Undefined if unknown (e.g. in API calls, but needs unique urlId).
+}
+
+// Document auth info. This is the minimum needed to resolve user access checks. For anything else
+// (e.g. doc title), the uncached getDoc() call should be used.
+export interface DocAuthResult {
+  docId: string|null;         // The unique identifier of the document. Null on error.
+  access: roles.Role|null;    // The access level for the requesting user. Null on error.
+  removed: boolean|null;      // Set if the doc is soft-deleted. Users may still have access
+                              // to removed documents for some purposes. Null on error.
+  error?: ApiError;
+  cachedDoc?: Document;       // For cases where stale info is ok.
+}
+
+
 // Defines a subset of HomeDBManager used for logins. In practice we still just pass around
 // the full HomeDBManager, but this makes it easier to know which of its methods matter.
 export interface HomeDBAuth {
@@ -91,4 +112,11 @@ export interface HomeDBAuth {
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
   getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
   makeFullUser(user: User): FullUser;
+}
+
+// Defines a subset of HomeDBManager needed for doc authorization. In practice we still just pass
+// around the full HomeDBManager, but this makes it easier to know which of its methods matter.
+export interface HomeDBDocAuth {
+  getDocAuthCached(key: DocAuthKey): Promise<DocAuthResult>;
+  getAnonymousUserId(): number;
 }

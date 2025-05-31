@@ -10,6 +10,7 @@ import {Features, mergedFeatures} from 'app/common/Features';
 // like "free trial running out in N days".
 export interface BillingAccountStatus {
   stripeStatus?: string;
+  currentPeriodStart?: string;
   currentPeriodEnd?: string;
   message?: string;
 }

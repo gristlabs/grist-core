@@ -163,7 +163,11 @@
         "Each Y series is followed by two series, for top and bottom error bars.": "Auf jede Y-Reihe folgen zwei Reihen für die oberen und unteren Fehlerbalken.",
         "Pick a column": "Wählen Sie eine Spalte",
         "Toggle chart aggregation": "Diagramm-Aggregation umschalten",
-        "selected new group data columns": "ausgewählte neue Gruppendaten-Spalten"
+        "selected new group data columns": "ausgewählte neue Gruppendaten-Spalten",
+        "LABEL": "ETIKETT",
+        "Bar Chart": "Balkendiagramm",
+        "Pie Chart": "Tortendiagramm",
+        "Donut Chart": "Donutdiagramm"
     },
     "CodeEditorPanel": {
         "Access denied": "Zugriff verweigert",

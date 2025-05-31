@@ -104,10 +104,13 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
-import {AssistanceSchemaPromptV1Context} from 'app/server/lib/IAssistant';
+import {
+  AssistanceFormulaEvaluationResult,
+  AssistanceSchemaPromptV1Context,
+} from 'app/server/lib/IAssistant';
 import {AssistanceContextV1} from 'app/common/Assistance';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
-import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
@@ -154,18 +157,20 @@ import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileMa
 import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
-import {DocSession, makeExceptionalDocSession, OptDocSession} from './DocSession';
+import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
 import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
 import {getPubSubPrefix} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import merge = require('lodash/merge');
 import pick = require('lodash/pick');
 import sum = require('lodash/sum');
+import throttle = require('lodash/throttle');
 import without = require('lodash/without');
 
 bluebird.promisifyAll(tmp);
@@ -181,7 +186,7 @@ const DEFAULT_LOCALE = process.env.GRIST_DEFAULT_LOCALE || "en-US";
 const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 
 // We'll wait this long between re-measuring sandbox memory.
-const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
+const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
 
 // Apply the UpdateCurrentTime user action every hour
 const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
@@ -247,6 +252,8 @@ export class ActiveDoc extends EventEmitter {
   public readonly triggersLock: Mutex = new Mutex();
   public isTimingOn = false;
 
+  public isFork: boolean;
+
   protected _actionHistory: ActionHistory;
   protected _sharing: Sharing;
   // This lock is used to avoid reading sandbox state while it is being modified but before
@@ -270,7 +277,7 @@ export class ActiveDoc extends EventEmitter {
                                     // If set, wait on this to be sure the ActiveDoc is fully
                                     // initialized.  True on success.
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
-  private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
+  private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
@@ -299,6 +306,17 @@ export class ActiveDoc extends EventEmitter {
   // Size of the last _rawPyCall() response in bytes.
   private _lastPyCallResponseSize: number|undefined;
 
+  private _reportDataEngineMemoryThrottled:
+    | ((() => Promise<void>) & Cancelable)
+    | null = throttle(
+    this._reportDataEngineMemory.bind(this),
+    MEMORY_MEASUREMENT_THROTTLE_WAIT_MS,
+    {
+      leading: true,
+      trailing: true,
+    }
+  );
+
   constructor(
     private readonly _docManager: DocManager,
     private _docName: string,
@@ -307,8 +325,9 @@ export class ActiveDoc extends EventEmitter {
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
+    this.isFork = Boolean(forkId);
     this._isSnapshot = Boolean(snapshotId);
-    this._isForkOrSnapshot = Boolean(forkId || snapshotId);
+
     if (!this._isSnapshot) {
       /**
        * In cases where large numbers of documents are restarted simultaneously
@@ -372,7 +391,7 @@ export class ActiveDoc extends EventEmitter {
         });
       }
 
-      if (!this._isForkOrSnapshot) {
+      if (!(this.isFork || this._isSnapshot)) {
         /* Note: We don't currently persist usage for forks or snapshots anywhere, so
          * we need to hold off on setting _docUsage here. Normally, usage is set shortly
          * after initialization finishes, after data/attachments size has finished
@@ -581,11 +600,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Adds a client of this doc to the list of connected clients.
    * @param client: The client object maintaining the websocket connection.
-   * @param authorizer: The authorizer for the client/doc combination.
+   * @param docSessionPrecursor: The incomplete docSession, to be filled in and turned into real DocSession.
    * @returns docSession
    */
-  public addClient(client: Client, authorizer: Authorizer): DocSession {
-    const docSession: DocSession = this.docClients.addClient(client, authorizer);
+  public addClient(client: Client, docSessionPrecursor: DocSessionPrecursor): DocSession {
+    const docSession: DocSession = this.docClients.addClient(client, docSessionPrecursor);
 
     // If we had a shutdown scheduled, unschedule it.
     if (this._inactivityTimer.isEnabled()) {
@@ -1551,7 +1570,7 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceFormulaTweak(txt: string) {
+  public assistanceFormulaTweak(txt: string): Promise<string> {
     return this._pyCall('convert_formula_completion', txt);
   }
 
@@ -1562,7 +1581,9 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceEvaluateFormula(options: AssistanceContextV1) {
+  public assistanceEvaluateFormula(
+    options: AssistanceContextV1
+  ): Promise<AssistanceFormulaEvaluationResult> {
     if (!options.evaluateCurrentFormula) {
       throw new Error('evaluateCurrentFormula must be true');
     }
@@ -1629,13 +1650,9 @@ export class ActiveDoc extends EventEmitter {
     const isAnonymous = this._docManager.isAnonymous(userId);
 
     // Get fresh document metadata (the cached metadata doesn't include the urlId).
-    let doc: Document | undefined;
-    if (docSession.authorizer) {
-      doc = await docSession.authorizer.getDoc();
-    } else if (docSession.req) {
-      doc = await dbManager.getDoc(docSession.req);
-    }
-    if (!doc) { throw new Error('Document not found'); }
+    const reqOrScope = docSession.authorizer?.getAuthKey() || docSession.req;
+    if (!reqOrScope) { throw new Error('Document not found'); }
+    const doc = await dbManager.getDoc(reqOrScope);
 
     // Don't allow creating forks of forks (for now).
     if (doc.trunkId) { throw new ApiError("Cannot fork a document that's already a fork", 400); }
@@ -1863,7 +1880,7 @@ export class ActiveDoc extends EventEmitter {
       if (requests) {
         this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
       }
-      await this._reportDataEngineMemory();
+      await this._reportDataEngineMemoryThrottled?.();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
       sandboxActionBundle = createEmptySandboxActionBundle();
@@ -2182,6 +2199,10 @@ export class ActiveDoc extends EventEmitter {
     return await this._pyCall('get_timings');
   }
 
+  public getMemoryUsedMB(): number {
+    return this._memoryUsedMB;
+  }
+
   /**
    * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
    * metadata.
@@ -2338,6 +2359,9 @@ export class ActiveDoc extends EventEmitter {
 
       await Promise.all(this._intervals.map(interval =>
         safeCallAndWait("interval.disableAndFinish", () => interval.disableAndFinish())));
+
+      this._reportDataEngineMemoryThrottled?.cancel();
+      this._reportDataEngineMemoryThrottled = null;
 
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
@@ -2737,6 +2761,10 @@ export class ActiveDoc extends EventEmitter {
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
+        // Report preliminary usage. The "Calculate" action below also reports usage, but
+        // since it may take a while to complete, it's helpful to report an early measurement.
+        await this._reportDataEngineMemoryThrottled?.();
+
         if (this.isTimingOn) {
           await this._doStartTiming();
         }
@@ -2744,7 +2772,6 @@ export class ActiveDoc extends EventEmitter {
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
         await this._applyUserActionsAsSystem([['Calculate']]);
-        await this._reportDataEngineMemory();
       }
 
       this._fullyLoaded = true;
@@ -2968,14 +2995,14 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _reportDataEngineMemory() {
-    const now = Date.now();
-    if (now >= this._lastMemoryMeasurement + MEMORY_MEASUREMENT_INTERVAL_MS) {
-      this._lastMemoryMeasurement = now;
-      if (this._dataEngine && !this._shuttingDown) {
-        const dataEngine = await this._getEngine();
-        await dataEngine.reportMemoryUsage();
-      }
+    if (!this._dataEngine || this._shuttingDown) {
+      return;
     }
+
+    const dataEngine = await this._getEngine();
+    const memoryUsedBytes = await dataEngine.reportMemoryUsage();
+    this._memoryUsedMB = memoryUsedBytes / (1024 * 1024);
+    this._docManager.setMemoryUsedMB(this, this._memoryUsedMB);
   }
 
   private async _initializeDocUsage(docSession: OptDocSession) {

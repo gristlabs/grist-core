@@ -135,3 +135,21 @@ export const cssConfigContainer = styled('div.test-config-container', `
     pointer-events: none;
   }
 `);
+
+export const cssWarningBox = styled('div', `
+  text-align: left;
+  margin-top: 1.5rem;
+  border: 1px solid #fbeed5;
+  border-radius: 4px;
+  background: #fcf8e3;
+  padding: 8px;
+  color: #845d1a;
+  display: flex;
+  flex-direction: column;
+`);
+
+export const cssWarningHeader = styled('div', `
+  font-weight: bold;
+  margin-bottom: 1rem;
+  align-self: flex-start;
+`);

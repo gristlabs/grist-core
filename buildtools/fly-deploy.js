@@ -132,7 +132,8 @@ function extraVars() {
   const lines = [];
   for (const [name, value] of Object.entries(process.env)) {
     if (name.startsWith('FLY_ENV__')) {
-      lines.push(`  ${name.slice('FLY_ENV__'.length)} = ${value}`);
+      const varName = name.slice('FLY_ENV__'.length);
+      lines.push(`  ${stringifyTomlString(varName)} = ${stringifyTomlString(value)}`);
     }
   }
   return lines.join('\n');

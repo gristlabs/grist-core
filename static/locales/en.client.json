@@ -152,10 +152,43 @@
         "Copy with headers": "Copy with headers"
     },
     "ChartView": {
+        "LABEL": "LABEL",
+        "Bar Chart": "Bar Chart",
+        "Pie Chart": "Pie Chart",
+        "Donut Chart": "Donut Chart",
+        "Area Chart": "Area Chart",
+        "Line Chart": "Line Chart",
+        "Scatter Plot": "Scatter Plot",
+        "Kaplan-Meier Plot": "Kaplan-Meier Plot",
+        "Split series": "Split series",
+        "Invert Y-axis": "Invert Y-axis",
+        "Orientation": "Orientation",
+        "Vertical": "Vertical",
+        "Horizontal": "Horizontal",
+        "Log scale Y-axis": "Log scale Y-axis",
+        "Hole Size": "Hole Size",
+        "Show Total": "Show Total",
+        "Text Size": "Text Size",
+        "Connect gaps": "Connect gaps",
+        "Show markers": "Show markers",
+        "Stack series": "Stack series",
+        "Error bars": "Error bars",
+        "None": "None",
+        "Symmetric": "Symmetric",
+        "Above+Below": "Above+Below",
+        "Split Series": "Split Series",
+        "X-AXIS": "X-AXIS",
+        "Pick a column": "Pick a column",
+        "Aggregate values": "Aggregate values",
+        "SERIES": "SERIES",
+        "Add Series": "Add Series",
+        "non-numeric columns are not shown": "non-numeric columns are not shown",
+        "non-numeric column is not shown": "non-numeric column is not shown",
+        "selected new x-axis": "selected new x-axis",
+        "Remove": "Remove",
         "Create separate series for each value of the selected column.": "Create separate series for each value of the selected column.",
         "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
         "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
-        "Pick a column": "Pick a column",
         "Toggle chart aggregation": "Toggle chart aggregation",
         "selected new group data columns": "selected new group-data columns"
     },
@@ -897,7 +930,9 @@
         "Make On-Demand": "Make On-Demand",
         "Plugin: ": "Plugin: ",
         "Section: ": "Section: ",
-        "Unmark On-Demand": "Unmark On-Demand"
+        "Unmark On-Demand": "Unmark On-Demand",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.",
+        "⚠️ Deprecated Feature": "⚠️ Deprecated Feature"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Advanced Sort & Filter",
@@ -1329,7 +1364,8 @@
         "Webhook Id": "Webhook Id",
         "Table": "Table",
         "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)",
-        "Header Authorization": "Header Authorization"
+        "Header Authorization": "Header Authorization",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks Unavailable In Unsaved Document Copies"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",
@@ -1424,7 +1460,8 @@
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
         "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}",
-        "Inherit access: ": "Inherit access: "
+        "Inherit access: ": "Inherit access: ",
+        "Access overview": "Access overview"
     },
     "SearchModel": {
         "Search all pages": "Search all pages",

@@ -1,6 +1,6 @@
 {
   "name": "grist-core",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "license": "Apache-2.0",
   "description": "Grist is the evolution of spreadsheets",
   "homepage": "https://github.com/gristlabs/grist-core",
@@ -187,7 +187,7 @@
     "marked": "14.0.0",
     "marked-highlight": "2.1.4",
     "marked-linkify-it": "3.1.11",
-    "minio": "8.0.0",
+    "minio": "8.0.5",
     "moment": "2.29.4",
     "moment-timezone": "0.5.35",
     "morgan": "1.9.1",

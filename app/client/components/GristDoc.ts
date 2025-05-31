@@ -1779,6 +1779,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       filter: filterInfo.filter()
     }));
     const linkingFilter: FilterColValues = activeSection.linkingFilter();
+    const userOverride = this.docPageModel.userOverride.get();
 
     return {
       viewSection: this.viewModel.activeSectionId(),
@@ -1786,6 +1787,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       activeSortSpec: JSON.stringify(activeSection.activeSortSpec()),
       filters: JSON.stringify(filters),
       linkingFilter: JSON.stringify(linkingFilter),
+      ...(userOverride ? {aclAsUser_: userOverride.user?.email} : {}),
     };
   }
 

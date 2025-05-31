@@ -13,12 +13,13 @@ describe('Importer', function() {
   const cleanup = setupTestSuite();
 
   let docUrl: string|undefined;
+  let session: gu.Session;
 
   beforeEach(async function() {
     // Log in and import a sample document. If this is already done, we can skip these tests, to
     // have tests go faster. Each successful test case should leave the document unchanged.
     if (!docUrl || !await gu.testCurrentUrl(docUrl)) {
-      const session = await gu.session().teamSite.login();
+      session = await gu.session().teamSite.login();
       // TODO: tests check colors literally, so need to be in
       // light theme - but calling gu.setGristTheme results in
       // some problems so right now if you are a dev you just
@@ -325,10 +326,11 @@ describe('Importer', function() {
 
     // Add a new column, with a formula to examine the first.
     await gu.openColumnMenu('Birthday', 'Insert column to the right');
-    await driver.find('.test-new-columns-menu-add-new').click();
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
     await gu.waitForServer();
     await driver.sendKeys(Key.ESCAPE);
     await gu.getCell({col: 2, rowNum: 1}).click();
+    await gu.waitAppFocus();
     await driver.sendKeys('=type($Birthday).__name__', Key.ENTER);
     await gu.waitForServer();
     // Ensure that there is no ValueError in second row
@@ -371,16 +373,19 @@ describe('Importer', function() {
   });
 
   it('should support importing into on-demand tables', async function() {
-    // Mark EmptyDate as on-demand.
+    // On demand tables are deprecated now and not available by default from UI.
     await gu.getPageItem('EmptyDate').click();
     await gu.waitForServer();
     await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-config-data').click();
-    await driver.find('[data-test-id=ViewConfig_advanced').click();
-    await driver.find('[data-test-id=ViewConfig_onDemandBtn').click();
-    await driver.find('.test-modal-confirm').click();
-    await gu.waitForServer();
-    await gu.waitForDocToLoad();
+    const api = session.createHomeApi().getDocAPI(await gu.getDocId());
+    const [table] = await api.getRecords('_grist_Tables', {
+      filters: {tableId: ['EmptyDate']},
+    });
+    await gu.sendActions([
+      ['UpdateRecord', '_grist_Tables', table.id, {onDemand: true}],
+    ]);
+    await api.forceReload();
+    await gu.reloadDoc();
 
     // Import EmptyDate.csv into EmptyDate and check the import was successful.
     await gu.importFileDialog('./uploads/EmptyDate.csv');
@@ -439,6 +444,8 @@ describe('Importer', function() {
 
       // Open the field select menu and check that all the preview table columns are available options.
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
+
       assert.deepEqual(
         await driver.findAll('.test-multi-select-menu .test-multi-select-menu-option-text', e => e.getText()),
         ['Name', 'Phone', 'Title']
@@ -461,9 +468,10 @@ describe('Importer', function() {
 
       // Select a merge field, and check that the red outline is gone.
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
+        100
       ).click();
       assert.match(
         await driver.find('.test-importer-merge-fields-select').getCssValue('border'),
@@ -477,7 +485,7 @@ describe('Importer', function() {
 
 
     it('should not throw an error when a column in the preview is clicked', async function() {
-      // A bug was previosuly causing an error to be thrown whenever a column header was
+      // A bug was previously causing an error to be thrown whenever a column header was
       // clicked while merge columns were set.
       await driver.findContent('.test-importer-preview .column_name', /Name/).click();
       await gu.checkForErrors();
@@ -518,9 +526,10 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
-      await driver.findContent(
+      await driver.findContentWait(
         '.test-multi-select-menu .test-multi-select-menu-option',
-        /Name/
+        /Name/,
+        100
       ).click();
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
@@ -599,6 +608,7 @@ describe('Importer', function() {
 
       // Now pick the merge fields, and check that the preview diff looks correct.
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Name/
@@ -634,6 +644,7 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /CourseId/
@@ -724,6 +735,8 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
+
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Name/
@@ -758,6 +771,7 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Code/
@@ -788,6 +802,7 @@ describe('Importer', function() {
       await waitForColumnMapping();
       await driver.find('.test-importer-update-existing-records').click();
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /Country/
@@ -908,12 +923,14 @@ describe('Importer', function() {
 
       // Select 'CourseId' as the merge column, and check that the preview now contains a diff of old/new values.
       await driver.find('.test-importer-merge-fields-select').click();
+      await driver.findWait('.test-multi-select-menu .test-multi-select-menu-option', 100);
       await driver.findContent(
         '.test-multi-select-menu .test-multi-select-menu-option',
         /CourseId/
       ).click();
       await gu.sendKeys(Key.ESCAPE);
       await gu.waitForServer();
+      await waitForDiffPreviewToLoad();
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
         [ 'BUS100',      'Intro to Business',   [undefined, undefined, 'Mariyam Melania'], '01/13/2021', '',
           'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
@@ -950,7 +967,7 @@ describe('Importer', function() {
       await waitForDiffPreviewToLoad();
       await driver.findContent('.test-importer-column-match-source-destination', /CourseId/)
         .find('.test-importer-column-match-formula').click();
-      await driver.find('.test-importer-apply-formula').click();
+      await driver.findWait('.test-importer-apply-formula', 100).click();
       await gu.sendKeys(' + "-NEW"');
 
       // Before saving the formula, check that the preview isn't showing the hidden helper column ids.

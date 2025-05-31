@@ -13,13 +13,11 @@ import * as path from 'path';
 import * as PluginApi from 'app/plugin/grist-plugin-api';
 
 import { BaseAPI } from 'app/common/BaseAPI';
-import {CommandName} from 'app/client/components/commandList';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
-import { DocAction, UserAction } from 'app/common/DocActions';
 import { TestState } from 'app/common/TestState';
 import { Organization as APIOrganization, DocStateComparison,
          UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
@@ -28,7 +26,8 @@ import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
 import { getAppRoot } from 'app/server/lib/places';
 
-import { GristWebDriverUtils, PageWidgetPickerOptions,
+import { ICellSelect as _ICellSelect, noCleanup as _noCleanup, GristWebDriverUtils,
+         IColSelect, IColsSelect, PageWidgetPickerOptions,
          WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { APIConstructor, HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
@@ -44,6 +43,10 @@ import {mkdtemp} from 'fs-extra';
 // tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
 namespace gristUtils {
+
+// Re-export types imported from gristWebDriverUtils
+export const noCleanup = _noCleanup;
+export type ICellSelect = _ICellSelect;
 
 // Allow overriding the global 'driver' to use in gristUtil.
 let _driver: WebDriver|undefined;
@@ -88,6 +91,7 @@ export const waitForServer = webdriverUtils.waitForServer.bind(webdriverUtils);
 export const waitForSidePanel = webdriverUtils.waitForSidePanel.bind(webdriverUtils);
 export const toggleSidePanel = webdriverUtils.toggleSidePanel.bind(webdriverUtils);
 export const getWindowDimensions = webdriverUtils.getWindowDimensions.bind(webdriverUtils);
+export const setWindowDimensions = webdriverUtils.setWindowDimensions.bind(webdriverUtils);
 export const addNewSection = webdriverUtils.addNewSection.bind(webdriverUtils);
 export const selectWidget = webdriverUtils.selectWidget.bind(webdriverUtils);
 export const dismissBehavioralPrompts = webdriverUtils.dismissBehavioralPrompts.bind(webdriverUtils);
@@ -98,11 +102,20 @@ export const acceptAlert = webdriverUtils.acceptAlert.bind(webdriverUtils);
 export const isAlertShown = webdriverUtils.isAlertShown.bind(webdriverUtils);
 export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUtils);
 export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
+export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
+export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
+export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);
+export const openProfileSettingsPage = webdriverUtils.openProfileSettingsPage.bind(webdriverUtils);
+export const undo = webdriverUtils.undo.bind(webdriverUtils);
+export const bigScreen = webdriverUtils.bigScreen.bind(webdriverUtils);
+export const narrowScreen = webdriverUtils.narrowScreen.bind(webdriverUtils);
+export const exactMatch = webdriverUtils.exactMatch.bind(webdriverUtils);
+export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
+export const getVisibleGridCells = webdriverUtils.getVisibleGridCells.bind(webdriverUtils);
+export const getCell = webdriverUtils.getCell.bind(webdriverUtils);
+export const selectSectionByTitle = webdriverUtils.selectSectionByTitle.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
-
-// it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
-export const noCleanup = Boolean(process.env.NO_CLEANUP);
 
 export type WindowDimensions = WindowDimensionsBase;
 
@@ -111,40 +124,9 @@ export type WindowDimensions = WindowDimensionsBase;
 server.simulateLogin = simulateLogin;
 server.removeLogin = removeLogin;
 
-export interface IColSelect<T = WebElement> {
-  col: number|string;
-  rowNums: number[];
-  section?: string|WebElement;
-  mapper?: (e: WebElement) => Promise<T>;
-}
-
-export interface ICellSelect {
-  col: number|string;
-  rowNum: number;
-  section?: string|WebElement;
-}
-
 export interface IColHeader {
   col: number|string;
   section?: string|WebElement;
-}
-
-export interface IColsSelect<T = WebElement> {
-  cols: Array<number|string>;
-  rowNums: number[];
-  section?: string|WebElement;
-  mapper?: (e: WebElement) => Promise<T>;
-}
-
-/**
- * Helper for exact string matches using interfaces that expect a RegExp. E.g.
- *    driver.findContent('.selector', exactMatch("Foo"))
- *
- * TODO It would be nice if mocha-webdriver allowed exact string match in findContent() (it now
- * supports a substring match, but we still need a helper for an exact match).
- */
-export function exactMatch(value: string, flags?: string): RegExp {
-  return new RegExp(`^${escapeRegExp(value)}$`, flags);
 }
 
 /**
@@ -258,16 +240,6 @@ export async function selectAll() {
 }
 
 /**
- * Returns a WebElementPromise for the .viewsection_content element for the section which contains
- * the given text (case insensitive) content.
- */
-export function getSection(sectionOrTitle: string|WebElement): WebElement|WebElementPromise {
-  if (typeof sectionOrTitle !== 'string') { return sectionOrTitle; }
-  return driver.findContent(`.test-viewsection-title`, new RegExp("^" + escapeRegExp(sectionOrTitle) + "$", 'i'))
-    .findClosest('.viewsection_content');
-}
-
-/**
  * Detaches section from the layout. Used for manipulating sections in the layout.
  */
 export async function detachFromLayout(section?: string) {
@@ -311,22 +283,6 @@ export async function detachFromLayout(section?: string) {
   };
 }
 
-/**
- * Click into a section without disrupting cursor positions.
- */
-export async function selectSectionByTitle(title: string|RegExp) {
-  try {
-    if (typeof title === 'string') {
-      title = new RegExp("^" + escapeRegExp(title) + "$", 'i');
-    }
-    // .test-viewsection is a special 1px width element added for tests only.
-    await driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
-  } catch (e) {
-    // We might be in mobile view.
-    await driver.findContent(`.test-viewsection-title`, title).findClosest(".view_leaf").click();
-  }
-}
-
 export async function expandSection(title?: string) {
   const select = title
     ? driver.findContent(`.test-viewsection-title`, exactMatch(title)).findClosest(".viewsection_title")
@@ -340,54 +296,6 @@ export async function getSectionId() {
   const match = classList.match(/test-viewlayout-section-(\d+)/);
   if (!match) { throw new Error("Could not find section id"); }
   return parseInt(match[1]);
-}
-
-/**
- * Returns visible cells of the GridView from a single column and one or more rows. Options may be
- * given as arguments directly, or as an object.
- * - col: column name, or 0-based column index
- * - rowNums: array of 1-based row numbers, as visible in the row headers on the left of the grid.
- * - section: optional name of the section to use; will use active section if omitted.
- *
- * If given by an object, then an array of columns is also supported. In this case, the return
- * value is still a single array, listing all values from the first row, then the second, etc.
- *
- * Returns cell text by default. Mapper may be `identity` to return the cell objects.
- */
-export async function getVisibleGridCells(col: number|string, rows: number[], section?: string): Promise<string[]>;
-export async function getVisibleGridCells<T = string>(options: IColSelect<T>|IColsSelect<T>): Promise<T[]>;
-export async function getVisibleGridCells<T>(
-  colOrOptions: number|string|IColSelect<T>|IColsSelect<T>, _rowNums?: number[], _section?: string
-): Promise<T[]> {
-
-  if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
-    const {rowNums, section, mapper} = colOrOptions;    // tslint:disable-line:no-shadowed-variable
-    const columns = await Promise.all(colOrOptions.cols.map((oneCol) =>
-      getVisibleGridCells({col: oneCol, rowNums, section, mapper})));
-    // This zips column-wise data into a flat row-wise array of values.
-    return ([] as T[]).concat(...rowNums.map((r, i) => columns.map((c) => c[i])));
-  }
-
-  const {col, rowNums, section, mapper = el => el.getText()}: IColSelect<any> = (
-    typeof colOrOptions === 'object' ? colOrOptions :
-    { col: colOrOptions, rowNums: _rowNums!, section: _section}
-  );
-
-  if (rowNums.includes(0)) {
-    // Row-numbers should be what the users sees: 0 is a mistake, so fail with a helpful message.
-    throw new Error('rowNum must not be 0');
-  }
-
-  const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
-  const colIndex = (typeof col === 'number' ? col :
-    await sectionElem.findContent('.column_name', exactMatch(col)).index());
-
-  const visibleRowNums: number[] = await sectionElem.findAll('.gridview_data_row_num',
-    async (el) => parseInt(await el.getText(), 10));
-
-  const selector = `.gridview_data_scroll .record:not(.column_names) .field:nth-child(${colIndex + 1})`;
-  const fields = mapper ? await sectionElem.findAll(selector, mapper) : await sectionElem.findAll(selector);
-  return rowNums.map((n) => fields[visibleRowNums.indexOf(n)]);
 }
 
 /**
@@ -497,23 +405,6 @@ export async function getVisibleDetailCells<T>(
     el.findContent('.g_record_detail_label', exactMatch(colName))
     .findClosest('.g_record_detail_el').find('.g_record_detail_value')
   )));
-}
-
-
-/**
- * Returns a visible GridView cell. Options may be given as arguments directly, or as an object.
- * - col: column name, or 0-based column index
- * - rowNum: 1-based row numbers, as visible in the row headers on the left of the grid.
- * - section: optional name of the section to use; will use active section if omitted.
- */
-export function getCell(col: number|string, rowNum: number, section?: string): WebElementPromise;
-export function getCell(options: ICellSelect): WebElementPromise;
-export function getCell(colOrOptions: number|string|ICellSelect, rowNum?: number, section?: string): WebElementPromise {
-  const mapper = async (el: WebElement) => el;
-  const options: IColSelect<WebElement> = (typeof colOrOptions === 'object' ?
-    {col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper} :
-    {col: colOrOptions, rowNums: [rowNum!], section, mapper});
-  return new WebElementPromise(driver, getVisibleGridCells(options).then((elems) => elems[0]));
 }
 
 
@@ -878,6 +769,39 @@ export async function enterGridRows(cell: ICellSelect, rowsOfValues: string[][])
 }
 
 /**
+ * Enters values into a grid starting at the specified row and column index.
+ */
+export async function enterGridValues(
+  startRowIndex: number,
+  startColIndex: number,
+  dataMatrix: any[][]): Promise<void> {
+  const transpose = dataMatrix[0].map((_, colIndex) => dataMatrix.map(row => row[colIndex]));
+  await enterGridRows({ col: startColIndex, rowNum: startRowIndex + 1 }, transpose);
+}
+
+/**
+ * Selects all cells in a GridView between and including startCell and endCell
+ * @param startCell - An array where:
+ *                    startCell[0]: 1-based row index.
+ *                    startCell[1]: 0-based column index.
+ * @param endCell - An array where:
+ *                  endCell[0]: 1-based row index.
+ *                  endCell[1]: 0-based column index.
+ */
+export async function selectGridArea(startCell: [number, number], endCell: [number, number]) {
+  const [startRowNum, startCol] = startCell;
+  const [endRowNum, endCol] = endCell;
+
+  if (startRowNum === endRowNum && startCol === endCol) {
+    await getCell({ rowNum: endRowNum, col: endCol }).click();
+  } else {
+    const start = await getCell({ rowNum: startRowNum, col: startCol });
+    const end = await getCell({ rowNum: endRowNum, col: endCol });
+    await driver.withActions((a) => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
+  }
+}
+
+/**
  * Set api key for user.  User should exist before this is called.
  */
 export async function setApiKey(username: string, apiKey?: string) {
@@ -1182,32 +1106,6 @@ export async function waitForLabelInput(): Promise<void> {
   await driver.wait(async () => (await driver.findWait('.test-column-title-label', 100).hasFocus()), 300);
 }
 
-/**
- * Sends UserActions using client api from the browser.
- */
-export async function sendActions(actions: (DocAction|UserAction)[]) {
-  await driver.manage().setTimeouts({
-    script: 1000 * 2, /* 2 seconds, default is 0.5s */
-  });
-
-  // Make quick test that we have a list of actions not just a single action, by checking
-  // if the first element is an array.
-  if (actions.length && !Array.isArray(actions[0])) {
-    throw new Error('actions argument should be a list of actions, not a single action');
-  }
-
-  const result = await driver.executeAsyncScript(`
-    const done = arguments[arguments.length - 1];
-    const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
-    prom.then(() => done(null));
-    prom.catch((err) => done(String(err?.message || err)));
-  `);
-  if (result) {
-    throw new Error(result as string);
-  }
-  await waitForServer();
-}
-
 export async function getDocId() {
   const docId = await driver.wait(() => driver.executeScript(`
     return window.gristDocPageModel.currentDocId.get()
@@ -1220,15 +1118,21 @@ export async function getDocId() {
  * Confirms dialog for removing rows. In the future, can be used for other dialogs.
  */
 export async function confirm(save = true, remember = false) {
-  if (await driver.find(".test-confirm-save").isPresent()) {
-    if (remember) {
-      await driver.find(".test-confirm-remember").click();
-    }
-    if (save) {
-      await driver.find(".test-confirm-save").click();
-    } else {
-      await driver.find(".test-confirm-cancel").click();
-    }
+  try {
+    // Wait a bit for this dialog to show up. This is equivalent of:
+    // driver.findWait('.test-confirm-save', 50).isPresent();
+    // Which doesn't work.
+    await driver.findWait('.test-confirm-save', 50);
+  } catch (err) {
+    return;
+  }
+  if (remember) {
+    await driver.find(".test-confirm-remember").click();
+  }
+  if (save) {
+    await driver.find(".test-confirm-save").click();
+  } else {
+    await driver.find(".test-confirm-cancel").click();
   }
 }
 
@@ -1495,18 +1399,6 @@ export async function removeTable(tableId: string, options: {dismissTips?: boole
   await driver.findWait(".test-modal-confirm", 100).click();
   await waitForServer();
 }
-
-/**
- * Click the Undo button and wait for server. If optCount is given, click Undo that many times.
- */
-export async function undo(optCount: number = 1, optTimeout?: number) {
-  await waitForServer(optTimeout);
-  for (let i = 0; i < optCount; ++i) {
-    await driver.find('.test-undo').doClick();
-    await waitForServer(optTimeout);
-  }
-}
-
 
 /**
  * Returns a function to undo all user actions from a particular point in time.
@@ -2000,6 +1892,7 @@ export async function openDocDropdown(docNameOrRow: string|WebElement): Promise<
     docNameOrRow;
   await docRow.mouseMove();
   await docRow.find('.test-dm-doc-options,.test-dm-pinned-doc-options').mouseMove().click();
+  await findOpenMenu();
 }
 
  /**
@@ -2768,42 +2661,6 @@ export async function selectColumn(col: string|IColHeader) {
   await getColumnHeader(col).click();
 }
 
-/**
- * Sets browser window dimensions.
- */
-export function setWindowDimensions(width: number, height: number) {
-  return driver.manage().window().setRect({width, height});
-}
-
-/**
- * Changes browser window dimensions for the duration of a test suite.
- */
-export function resizeWindowForSuite(width: number, height: number) {
-  let oldDimensions: WindowDimensions;
-  before(async function () {
-    oldDimensions = await getWindowDimensions();
-    await setWindowDimensions(width, height);
-  });
-  after(async function () {
-    if (noCleanup) { return; }
-    await setWindowDimensions(oldDimensions.width, oldDimensions.height);
-  });
-}
-
-/**
- * Changes browser window dimensions to FullHd for a test suite.
- */
-export function bigScreen() {
-  resizeWindowForSuite(1920, 1080);
-}
-
-/**
- * Shrinks browser window dimensions to trigger mobile mode for a test suite.
- */
-export function narrowScreen() {
-  resizeWindowForSuite(400, 750);
-}
-
 export async function addSupportUserIfPossible() {
   if (!server.isExternalServer() && process.env.TEST_SUPPORT_API_KEY) {
     // Make sure we have a test support user.
@@ -2934,21 +2791,6 @@ export function addSamplesForSuite(includeTutorial = false) {
   after(async function() {
     await removeTemplatesOrg();
   });
-}
-
-export async function openAccountMenu() {
-  await driver.findWait('.test-dm-account', 2000).click();
-  // Since the AccountWidget loads orgs and the user data asynchronously, the menu
-  // can expand itself causing the click to land on a wrong button.
-  await waitForServer();
-  await driver.findWait('.test-site-switcher-org', 2000);
-  await driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
-}
-
-export async function openProfileSettingsPage() {
-  await openAccountMenu();
-  await driver.find('.grist-floating-menu .test-dm-account-settings').click();
-  await driver.findWait('.test-account-page-login-method', 5000);
 }
 
 export async function openDocumentSettings() {
@@ -3753,11 +3595,11 @@ export async function downloadSectionCsvGridCells(
 }
 
 export async function setGristTheme(options: {
-  appearance: 'light' | 'dark',
+  themeName: 'GristLight' | 'GristDark' | 'HighContrastLight',
   syncWithOS: boolean,
   skipOpenSettingsPage?: boolean,
 }) {
-  const {appearance, syncWithOS, skipOpenSettingsPage} = options;
+  const {themeName, syncWithOS, skipOpenSettingsPage} = options;
   if (!skipOpenSettingsPage) {
     await openProfileSettingsPage();
   }
@@ -3772,7 +3614,9 @@ export async function setGristTheme(options: {
   if (!syncWithOS) {
     await scrollIntoView(driver.find('.test-theme-config-appearance .test-select-open'));
     await driver.find('.test-theme-config-appearance .test-select-open').click();
-    await findOpenMenuItem('li', appearance === 'light' ? 'Light' : 'Dark')
+    await findOpenMenuItem('li', themeName === 'GristLight'
+      ? 'Light' : themeName === 'GristDark'
+      ? 'Dark' : 'Light (High Contrast)')
       .click();
     await waitForServer();
   }
@@ -4032,21 +3876,6 @@ class Clipboard implements IClipboard {
     const menuItemName = action.charAt(0).toUpperCase() + action.slice(1);
     await findOpenMenuItem('li', menuItemName).click();
   }
-}
-
-/**
- * Runs a Grist command in the browser window.
- */
-export async function sendCommand(name: CommandName, argument: any = null) {
-  await driver.executeAsyncScript((name: any, argument: any, done: any) => {
-    const result = (window as any).gristApp.allCommands[name].run(argument);
-    if (result?.finally) {
-      result.finally(done);
-    } else {
-      done();
-    }
-  }, name, argument);
-  await waitForServer();
 }
 
 /**

@@ -20,7 +20,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   id: string,
   name?: DomContents,
   description?: DomContents,
-  value?: DomContents,
+  value?: DomElementArg,
   expandedContent?: DomContents,
   disabled?: false|string,
 }) {
@@ -172,10 +172,11 @@ const cssItemDescription = styled('div', `
 
 const cssItemValue = styled('div', `
   flex: none;
-  margin: -8px;
-  padding: 16px;
+  margin: -8px 0;
+  padding: 8px;
   cursor: auto;
   max-width: 200px;
+  --admin-select-width: 176px;
 
   .${cssItemShort.className}-disabled & {
     pointer-events: none;

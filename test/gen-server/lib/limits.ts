@@ -3,6 +3,7 @@ import {Features} from 'app/common/Features';
 import {resetOrg} from 'app/common/resetOrg';
 import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
+import {Limit} from 'app/gen-server/entity/Limit';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -22,12 +23,17 @@ describe('limits', function() {
   let product: Product;
   let api: UserAPI;
   let nasa: UserAPI;
+  let billingId: number;
+  let oldEnv: testUtils.EnvironmentSnapshot;
 
   testUtils.setTmpLogLevel('error');
 
   this.timeout('10s');
 
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
+    process.env.OPENAI_API_KEY = "test";
+
     home = new TestServer(this);
     await home.start(["home", "docs"]);
 
@@ -42,7 +48,7 @@ describe('limits', function() {
     // Create a new user
     const samHome = await createUser(dbManager, 'sam');
     // Overwrite default product
-    const billingId = samHome.billingAccount.id;
+    billingId = samHome.billingAccount.id;
     await dbManager.connection.createQueryBuilder()
       .update(BillingAccount)
       .set({product})
@@ -65,6 +71,7 @@ describe('limits', function() {
 
   after(async function() {
     await home.stop();
+    oldEnv.restore();
   });
 
   async function setFeatures(features: Features) {
@@ -554,4 +561,44 @@ describe('limits', function() {
     await assert.isRejected(docApi.uploadAttachment('d', 'd.txt'));
   });
 
+  it('can enforce limits on assistant usage', async function() {
+    const setLimit = async (limit: number | undefined) => {
+      await setFeatures({baseMaxAssistantCalls: limit});
+      if (limit !== undefined) {
+        await dbManager.connection.createQueryBuilder()
+          .update(Limit)
+          .set({limit})
+          .where('billing_account_id = :billingId', {billingId})
+          .execute();
+      }
+    };
+
+    const sendAndAssert = async ({fulfilled}: {fulfilled: boolean}) => {
+      const response = docApi.getAssistance({
+        conversationId: 'id',
+        text: 'text',
+        context: {},
+      });
+      if (fulfilled) {
+        await assert.isFulfilled(response);
+      } else {
+        await assert.isRejected(response);
+      }
+    };
+
+    const workspaces = await api.getOrgWorkspaces('current');
+    const docId = await api.newDoc({name: 'doc2'}, workspaces[0].id);
+    const docApi = api.getDocAPI(docId);
+
+    await setLimit(0);
+    await sendAndAssert({fulfilled: false});
+
+    await setLimit(2);
+    await sendAndAssert({fulfilled: true});
+    await sendAndAssert({fulfilled: true});
+    await sendAndAssert({fulfilled: false});
+
+    await setLimit(undefined);
+    await sendAndAssert({fulfilled: true});
+  });
 });

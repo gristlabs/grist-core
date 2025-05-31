@@ -1213,10 +1213,7 @@ describe('UsersManager', function () {
       env = new EnvironmentSnapshot();
       process.env.REDIS_URL = process.env.TEST_REDIS_URL;
       dataDir = await createTestDir('UsersManager');
-      // TODO: may need to manage the port range here if it
-      // could stomp on some other parallel test, but I think
-      // this may be currently OK for gen-server tests.
-      server = await MergedServer.create(34365, ['home'], {
+      server = await MergedServer.create(0, ['home'], {
         extraWorkers: 5,
         dataDir,
       });

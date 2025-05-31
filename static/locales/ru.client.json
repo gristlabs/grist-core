@@ -281,7 +281,15 @@
         "Download document and history": "Скачать полный документ и историю",
         "Download document without history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)",
         "Download": "Скачать",
-        "Download document": "Скачать документ"
+        "Download document": "Скачать документ",
+        ".tar (recommended)": ".tar (рекомендуемый)",
+        ".zip": ".zip",
+        "Download attachments": "Скачать вложения",
+        "Format:": "Формат:",
+        "Learn more": "Узнать больше",
+        "download attachments": "скачать вложения",
+        "Download full document and history": "Скачать полный документ и историю",
+        "Download an archive of all the attachments present in this document.": "Загрузите архив всех вложений, присутствующих в этом документе."
     },
     "ShareMenu": {
         "Back to Current": "Вернуться к текущему",
@@ -309,7 +317,10 @@
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
         "Tab Separated Values (.tsv)": "Значения, разделенные табуляцией (.tsv)",
         "DOO Separated Values (.dsv)": "DOO Разделенные значения (.dsv)",
-        "Export as...": "Экспортировать как..."
+        "Export as...": "Экспортировать как...",
+        "Exporting is only available from document pages. Please select a document page and try again.": "Экспорт доступен только на страницах документов. Пожалуйста, выберите страницу документа и попробуйте еще раз.",
+        "Download attachments...": "Загрузка вложений...",
+        "Download document...": "Загрузка документа..."
     },
     "SortConfig": {
         "Search Columns": "Поиск по столбцам",
@@ -507,7 +518,10 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Новые загруженные вложения будут помещены во Внутреннее хранилище.",
         "No external stores available": "Внешние хранилища недоступны",
         "Preferred storage for this document": "Предпочтительное место хранения для этого документа",
-        "Start transfer": "Начать передачу"
+        "Start transfer": "Начать передачу",
+        "Upload": "Загрузить",
+        "Upload missing attachments": "Загрузите недостающие вложения",
+        "Uploading...": "Загрузка..."
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -896,7 +910,9 @@
         "Plugin: ": "Плагин: ",
         "Edit Card Layout": "Редактирование шаблона карточки",
         "Blocks": "Блоками",
-        "Compact": "Компактная"
+        "Compact": "Компактная",
+        "⚠️ Deprecated Feature": "⚠️ Устаревшая функция",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Таблицы по запросу устарели из-за отсутствия функциональности и удобства использования."
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Расширенная Сортировка & Фильтрация",
@@ -993,7 +1009,8 @@
         "Show resolved comments": "Показать решенные комментарии",
         "Started discussion": "Начатое обсуждение",
         "Write a comment": "Написать комментарий",
-        "Reply to a comment": "Ответить на комментарий"
+        "Reply to a comment": "Ответить на комментарий",
+        "updated": "обновлено"
     },
     "NumericTextBox": {
         "Number Format": "Числовой формат",
@@ -1264,7 +1281,8 @@
         "[Learn more.]({{link}})": "[Подробнее.]({{link}})",
         "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ",
         "Manage users and resources in a Grist installation.": "Управляйте пользователями и ресурсами напрямую в Grist.",
-        "Summary tables can only contain formula columns.": "Сводные таблицы могут содержать только столбцы формул."
+        "Summary tables can only contain formula columns.": "Сводные таблицы могут содержать только столбцы формул.",
+        "The new Grist Assistant is here!": "Новый Ассистент Grist здесь!"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1313,7 +1331,8 @@
         "URL": "URL",
         "Webhook Id": "Вебхук Id",
         "Table": "Таблица",
-        "Header Authorization": "Заголовок для авторизации"
+        "Header Authorization": "Заголовок для авторизации",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks Недоступно в Несохраненных Копиях Документов"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Спроси у бота.",
@@ -1548,7 +1567,8 @@
     },
     "FormContainer": {
         "Build your own form": "Создайте свою собственную форму",
-        "Powered by": "Разработано"
+        "Powered by": "Разработано",
+        "Powered by Grist": "Разработано в Grist"
     },
     "FormModel": {
         "There was a problem loading the form.": "Возникла проблема с загрузкой формы.",
@@ -1648,7 +1668,8 @@
         "Off": "Выкл",
         "New, Enterprise": "Новый, Корпоративный",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} больше",
-        "On": "На"
+        "On": "На",
+        "Grist Instance": "Экземпляр Grist"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1960,6 +1981,32 @@
         "Learn more": "Изучить больше",
         "Orgs": "Организации",
         "Users": "Пользователи",
-        "Workspaces": "Рабочие пространства"
+        "Workspaces": "Рабочие пространства",
+        "Settings": "Настройки"
+    },
+    "Assistant": {
+        "What do you need help with?": "В чем вам нужна помощь?",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Зарегистрируйте бесплатную учетную запись Grist, чтобы начать использовать AI Ассистент.",
+        "You have {{numCredits}} remaining credits.": "У вас есть {{numCredits}} оставшиеся кредиты.",
+        "You have used all available credits.": "Вы использовали все доступные кредиты.",
+        "upgrade to the Pro Team plan": "обновить на Pro Team план",
+        "upgrade your plan": "Обновите свой план",
+        "For higher limits, {{upgradeNudge}}.": "Для увеличения лимитов, {{upgradeNudge}}.",
+        "Learn more.": "Изучить больше.",
+        "Apply": "Применить",
+        "Sign Up for Free": "Зарегистрироваться бесплатно",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Обновитесь до Grist Enterprise, чтобы опробовать новый инструмент Grist Ассистент. {{learnMoreLink}}",
+        "start a new chat": "начать новый чат",
+        "AI Assistant is only available for logged in users.": "AI Ассистент доступен только для зарегистрированных пользователей.",
+        "Press Enter to apply suggested formula.": "Нажмите Enter, чтобы применить предложенную формулу.",
+        "For higher limits, contact the site owner.": "Для увеличения лимитов, обратитесь к владельцу сайта."
+    },
+    "apiconsole": {
+        "Confirm Deletion": "Подтвердите удаление",
+        "Delete": "Удалить",
+        "Deletion was not confirmed, skipping.": "Удаление не было подтверждено, пропуск.",
+        "Type DELETE here if you wish to proceed.": "Введите DELETE здесь если вы хотите продолжить.",
+        "Are you sure you want to delete the following?": "Вы уверены, что хотите удалить следующее?",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Введите DELETE если вы уверены, что действительно хотите сделать это удаление.\nЕсли вы не уверены или не понимаете, что будет делать эта операция,\nбыло бы разумно отменить это."
     }
 }

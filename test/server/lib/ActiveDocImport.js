@@ -6,7 +6,7 @@ const {createDocTools} = require('test/server/docTools');
 const testUtils        = require('test/server/testUtils');
 const tmp              = require('tmp');
 const _                = require('lodash');
-const {DummyAuthorizer} = require('app/server/lib/Authorizer');
+const {DummyAuthorizer} = require('app/server/lib/DocAuthorizer');
 const {makeOptDocSession} = require('app/server/lib/DocSession');
 const {getFileUploadInfo, globalUploadSet, moveUpload} = require('app/server/lib/uploads');
 

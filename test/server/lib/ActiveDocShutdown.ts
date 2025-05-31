@@ -2,20 +2,21 @@ import {assert} from 'chai';
 import * as sinon from 'sinon';
 
 import {delay} from 'app/common/delay';
+import {Role} from 'app/common/roles';
 import {ParseFileResult} from 'app/plugin/FileParserAPI';
 import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
-import {Authorizer, DummyAuthorizer} from 'app/server/lib/Authorizer';
+import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {Client} from 'app/server/lib/Client';
 import {DocPluginManager} from 'app/server/lib/DocPluginManager';
-import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
+import {DocSession, DocSessionPrecursor, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {createDocTools, createUpload} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 
 // This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
 function _makeFakeClient(): Client {
-  const addDocSession = sinon.stub().callsFake(function(this: Client, adoc: ActiveDoc, auth: Authorizer) {
-    return new DocSession(adoc, this, 0, auth);
+  const addDocSession = sinon.stub().callsFake(function(adoc: ActiveDoc, optDocSession: DocSessionPrecursor) {
+    return new DocSession(optDocSession, adoc, 0);
   });
   const removeDocSession = sinon.spy();
   const getLogMeta = sinon.spy();
@@ -52,6 +53,11 @@ describe('ActiveDocShutdown', function() {
     await waitForIt(async () => assert.equal(docTools.getDocManager().numOpenDocs(), 0), 10 * timeout);
   });
 
+  function makeDummySession(client: Client, role: Role|null, docId: string) {
+    const authorizer = new DummyAuthorizer(role, docId);
+    return new DocSessionPrecursor(client, authorizer, {});
+  }
+
   it('should not close ActiveDoc while there are clients connected', async function() {
     const docName = 'active_doc_shutdown2';
     const adoc = await docTools.createDoc(docName);
@@ -59,7 +65,7 @@ describe('ActiveDocShutdown', function() {
 
     // Create and add one fake client.
     const fakeClient1 = _makeFakeClient();
-    const docSession1 = adoc.addClient(fakeClient1, new DummyAuthorizer('editors', 'doc'));
+    const docSession1 = adoc.addClient(fakeClient1, makeDummySession(fakeClient1, 'editors', 'doc'));
     assert.equal((fakeClient1.addDocSession as sinon.SinonSpy).callCount, 1);
 
     // Wait longer than the timeout and check that doc is still open.
@@ -69,7 +75,7 @@ describe('ActiveDocShutdown', function() {
 
     // Create and add a second fake client.
     const fakeClient2 = _makeFakeClient();
-    const docSession2 = adoc.addClient(fakeClient2, new DummyAuthorizer('editors', 'doc'));
+    const docSession2 = adoc.addClient(fakeClient2, makeDummySession(fakeClient2, 'editors', 'doc'));
     assert.equal((fakeClient2.addDocSession as sinon.SinonSpy).callCount, 1);
 
     // "Disconnect" the first client.

@@ -11,7 +11,7 @@
         "Condition": "Baldintza",
         "Default Rules": "Defektuzko arauak",
         "Delete Table Rules": "Ezabatu taularen arauak",
-        "Enter Condition": "Sartu Baldintza",
+        "Enter Condition": "Sartu baldintza",
         "Everyone": "Guztiek",
         "Everyone Else": "Beste guztiek",
         "Invalid": "Ez da baliozkoa",
@@ -376,7 +376,7 @@
         "Attachments Size": "Eranskinen tamaina",
         "Usage": "Erabilera",
         "Data Size": "Datuen tamaina",
-        "For higher limits, ": "Muga altuetarako, ",
+        "For higher limits, ": "Muga altuagoetarako, ",
         "Rows": "Errenkadak",
         "Contact the site owner to upgrade the plan to raise limits.": "Jarri gunearen jabearekin harremanetan planaren mugak handitzeko.",
         "Usage statistics are only available to users with full access to the document data.": "Erabilera-estatistikak dokumentuen datuetarako sarbide osoa duten erabiltzaileentzat baino ez dira.",
@@ -612,8 +612,8 @@
     "Pages": {
         "Delete": "Ezabatu",
         "Delete data and this page.": "Ezabatu datuak eta orri hau.",
-        "The following tables will no longer be visible_one": "Ondorengo taula ez da aurrerantzean ikusgarri egongo",
-        "The following tables will no longer be visible_other": "Ondorengo taulak ez dira aurrerantzean ikusgarri egongo"
+        "The following tables will no longer be visible_one": "Ondorengo taula ez da aurrerantzean ikusgai egongo",
+        "The following tables will no longer be visible_other": "Ondorengo taulak ez dira aurrerantzean ikusgai egongo"
     },
     "PermissionsWidget": {
         "Allow All": "Baimendu guztia",
@@ -1150,7 +1150,9 @@
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Bi noranzkoko erreferentziak ez dira unean bateragarriak Formula edo formula-abiarazle zutabeekin.",
         "The preview below this header shows how the selected user will see this document": "Hautatutako erabiltzaileak dokumentua nola ikusiko duen erakusten du goiburuaren azpiko aurrebistak",
         "[Learn more.]({{link}})": "[Ikasi gehiago.]({{link}})",
-        "Summary tables can only contain formula columns.": "Laburpen-taulek formula-zutabeak besterik ezin dituzte eduki."
+        "Summary tables can only contain formula columns.": "Laburpen-taulek formula-zutabeak besterik ezin dituzte eduki.",
+        "The new Grist Assistant is here!": "Hemen da Grist Laguntzaile berria!",
+        "Manage users and resources in a Grist installation.": "Kudeatu Grist instalazio bateko erabiltzaileak eta baliabideak."
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "Zutabearen IDa arbelera kopiatu da",
@@ -1224,8 +1226,8 @@
         "There are some things you should know when working with me:": "Gauza batzuk jakin beharko zenituzke nirekin lan egitean:",
         "What do you need help with?": "Zerrekin behar duzu laguntza?",
         "Formula AI Assistant is only available for logged in users.": "AA formula-laguntzailea saioa hasitako erabiltzaileentzat bakarrik dago eskuragarri.",
-        "For higher limits, contact the site owner.": "Muga handiagoetarako, jarri harremanetan gunearen jabearekin.",
-        "For higher limits, {{upgradeNudge}}.": "Muga handiagoetarako, {{upgradeNudge}}.",
+        "For higher limits, contact the site owner.": "Muga altuagoetarako, jarri harremanetan gunearen jabearekin.",
+        "For higher limits, {{upgradeNudge}}.": "Muga altuagoetarako, {{upgradeNudge}}.",
         "upgrade to the Pro Team plan": "Pro Team planera pasa zaitez",
         "You have {{numCredits}} remaining credits.": "{{numCredits}} kreditu gelditzen zaizkizu.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Formulekin bakarrik lagundu dezaket. Ezin ditut taulak, zutabeak eta bistak sortu, ezta sarbide-arauak idatzi ere.",
@@ -1619,7 +1621,8 @@
         "New, Enterprise": "Berria, Enpresa",
         "Audit Logs": "Erregistro-auditoretza",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} gehiago",
-        "On": "Piztuta"
+        "On": "Piztuta",
+        "Grist Instance": "Grist instantzia"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -1695,11 +1698,14 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Nahitaezko zutabe batzuk ez daude esleituta",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Widget hau erabiltzeko, esleitu aukerakoak ez diren zutabeak sortzaileen mahaigainetik, eskuinean."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Widget hau erabiltzeko, esleitu aukerakoak ez diren zutabeak sortzaileen mahaigainetik, eskuinean.",
+        "Some required columns are hidden by access rules": "Sarbide-arauak beharrezko zutabe batzuk ezkutatzen ari dira",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Widgeta erabili ahal izateko, esleitutako zutabe guztiak ikusgai egon behar dira. Jarri harremanetan dokumentuaren jabearekin edo aldatu sarbide-arauak."
     },
     "FormContainer": {
         "Build your own form": "Sortu zure formularioa",
-        "Powered by": "Honi esker:"
+        "Powered by": "Honi esker:",
+        "Powered by Grist": "Gristi esker"
     },
     "FormErrorPage": {
         "Error": "Errorea"
@@ -1949,5 +1955,42 @@
         "I confirm that I understand these warnings and accept the risks": "Baieztatzen dut abisu hauek ulertzen eta arriskuak onartzen ditudala",
         "Please review the following before adding a new custom widget.": "Berrikusi honakoa widget pertsonalizatu bat gehitu baino lehen.",
         "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Widget pertsonalizatuak **boteretsuak** dira! Zure fitxategiko datuak irakurri eta gainidaztzi litzakete, eta beste norabait bidali ere bai."
+    },
+    "Assistant": {
+        "For higher limits, contact the site owner.": "Muga altuagoetarako, jarri harremanetan gunearen jabearekin.",
+        "AI Assistant is only available for logged in users.": "AA laguntzailea saioa hasita duten erabiltzaileentzat dago soilik erabilgarri.",
+        "Apply": "Aplikatu",
+        "Learn more.": "Ikasi gehiago.",
+        "Press Enter to apply suggested formula.": "Sakatu Enter iradokitutako formula aplikatzeko.",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Eman izena Grist doako kontu batean AA laguntzailea erabiltzen hasteko.",
+        "Sign Up for Free": "Eman izena doan",
+        "For higher limits, {{upgradeNudge}}.": "Muga altuagoetarako, {{upgradeNudge}}.",
+        "What do you need help with?": "Zertan behar duzu laguntza?",
+        "You have used all available credits.": "Kreditu guztiak erabili dituzu.",
+        "You have {{numCredits}} remaining credits.": "{{numCredits}} kreditu gelditzen zaizkizu.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Grist Enterprise planera pasa zaitez Grist laguntzaile berria probatzeko. {{learnMoreLink}}",
+        "start a new chat": "hasi txat berria",
+        "upgrade your plan": "hobetu zure plana",
+        "upgrade to the Pro Team plan": "Pro Team planera pasa zaitez"
+    },
+    "AdminLeftPanel": {
+        "Settings": "Ezarpenak",
+        "Admin Controls": "Administratzailearen kontrolak",
+        "Admin area": "Administratzailearen gunea",
+        "Admin controls": "Administratzailearen kontrolak",
+        "Installation": "Instalazioa",
+        "Learn more": "Ikasi gehiago",
+        "Orgs": "Erakundeak",
+        "Users": "Erabiltzaileak",
+        "Docs": "Dokumentuak",
+        "Workspaces": "Lan-eremuak"
+    },
+    "apiconsole": {
+        "Delete": "Ezabatu",
+        "Deletion was not confirmed, skipping.": "Ezabapena ez da baieztatu, ez da ezabatuko.",
+        "Type DELETE here if you wish to proceed.": "Idatzi DELETE hemen aurrera egin nahi baduzu.",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Idatzi DELETE hemen aurrera egin nahi baduzu.\nZiur ez bazaude, edo eragiketak zer egingo duen ulertzen ez baduzu,\nzuhur jokatu eta utzi bertan behera.",
+        "Confirm Deletion": "Baieztatu ezabapena",
+        "Are you sure you want to delete the following?": "Ziur honakoa ezabatu nahi duzula?"
     }
 }

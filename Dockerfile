@@ -42,7 +42,7 @@ COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
 # Copy locales files early. During build process they are validated.
 COPY static/locales /grist/static/locales
-RUN yarn run build:prod
+RUN WEBPACK_EXTRA_MODULE_PATHS=/node_modules yarn run build:prod
 # We don't need them anymore, they will by copied to the final image.
 RUN rm -rf /grist/static/locales
 
@@ -129,6 +129,10 @@ COPY --from=builder /grist/node_modules_prod /grist/node_modules
 COPY --from=builder /grist/_build /grist/_build
 COPY --from=builder /grist/static /grist/static-built
 COPY --from=builder /grist/app/cli.sh /grist/cli
+# Patterm match here is to copy assets only if it exists in the
+# builder stage, otherwise matches nothing.
+# https://stackoverflow.com/a/70096420/11352427
+COPY --from=builder /grist/ext/asset[s] /grist/ext/assets
 
 # Copy python2 files.
 COPY --from=collector-py2 /usr/bin/python2.7 /usr/bin/python2.7
