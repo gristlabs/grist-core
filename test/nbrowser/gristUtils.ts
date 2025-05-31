@@ -3598,17 +3598,17 @@ export async function availableBehaviorOptions() {
  * Useful for local testing of features that depend on environment variables, as it avoids the need
  * to restart the server when those variables are already set.
  */
-export function withEnvironmentSnapshot(vars: Record<string, any>) {
+export function withEnvironmentSnapshot(vars: Record<string, any>, restoreOnlyNamedVars = false) {
   let oldEnv: testUtils.EnvironmentSnapshot|null = null;
   before(async () => {
     // Test if the vars are already set, and if so, skip.
     if (Object.keys(vars).every(k => process.env[k] === vars[k])) { return; }
-    oldEnv = new testUtils.EnvironmentSnapshot();
+    oldEnv = new testUtils.EnvironmentSnapshot(restoreOnlyNamedVars ? Object.keys(vars) : undefined);
     for(const key of Object.keys(vars)) {
       if (vars[key] === undefined || vars[key] === null) {
         delete process.env[key];
       } else {
-        process.env[key] = vars[key];
+        process.env[key] = typeof vars[key] === 'function' ? await vars[key]() : vars[key];
       }
     }
     await server.restart();
@@ -3620,50 +3620,20 @@ export function withEnvironmentSnapshot(vars: Record<string, any>) {
   });
 }
 
-export function enableExternalAttachments(transferDelay?: string, preserveEnvVars = true) {
-  const envVars: Record<string, string> = {
+export function enableExternalAttachments(transferDelay?: string) {
+  const envVars: Record<string, any> = {
     GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
-    GRIST_TEST_ATTACHMENTS_DIR: "",
+    GRIST_TEST_ATTACHMENTS_DIR: async () => {
+      const tempFolder = await createTmpDir();
+      return await mkdtemp(path.join(tempFolder, 'attachments'));
+    },
   };
 
   if (transferDelay) {
     envVars.GRIST_TEST_TRANSFER_DELAY = transferDelay;
   }
 
-  const originalEnv: Record<string, string | undefined> = {};
-
-  before(async () => {
-    const tempFolder = await createTmpDir();
-    envVars.GRIST_TEST_ATTACHMENTS_DIR = await mkdtemp(path.join(tempFolder, 'attachments'));
-
-    if (preserveEnvVars) {
-      for (const envVar of Object.keys(envVars)) {
-        originalEnv[envVar] = process.env[envVar];
-      }
-    }
-
-    for (const [envVar, value] of Object.entries(envVars)) {
-      process.env[envVar] = value;
-    }
-
-    await server.restart();
-  });
-
-  after(async () => {
-    if (!preserveEnvVars) { return; }
-
-    const originalEnvVars = Object.entries(originalEnv);
-
-    for (const [envVar, value] of originalEnvVars) {
-      if (value === undefined) {
-        delete process.env[envVar];
-      } else {
-        process.env[envVar] = value;
-      }
-    }
-
-    await server.restart();
-  });
+  withEnvironmentSnapshot(envVars, true);
 
   return {
     envVars,

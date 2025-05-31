@@ -24,6 +24,7 @@ import { serialize } from 'winston/lib/winston/common';
 import * as docUtils from 'app/server/lib/docUtils';
 import log from 'app/server/lib/log';
 import { getAppRoot } from 'app/server/lib/places';
+import * as process from 'node:process';
 
 /**
  * Creates a temporary file with the given contents.
@@ -319,14 +320,21 @@ export class EnvironmentSnapshot {
 
   private _oldEnv: NodeJS.ProcessEnv;
 
-  public constructor() {
-    this._oldEnv = clone(process.env);
+  public constructor(vars?: string[]) {
+    if (vars) {
+      this._oldEnv = {};
+      for (const v of vars) {
+        this._oldEnv[v] = process.env[v];
+      }
+    } else {
+      this._oldEnv = clone(process.env);
+    }
   }
   // Reset environment variables.
   public restore() {
     Object.assign(process.env, this._oldEnv);
     for (const key of Object.keys(process.env)) {
-      if (this._oldEnv[key] === undefined) {
+      if (key in this._oldEnv && this._oldEnv[key] === undefined) {
         delete process.env[key];
       }
     }
