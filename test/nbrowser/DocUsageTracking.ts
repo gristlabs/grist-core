@@ -16,10 +16,7 @@ describe('DocumentUsage', function() {
   gu.enableExternalAttachments();
 
   async function makeSessionAndLogin() {
-    // login() needs an options object passing to bypass an optimization that causes .login()
-    // to think we're already logged in when we're not after using `server.restart()`.
-    // Without this we end up with old credentials on the original session, or bad credentials on a new one.
-    session = await gu.session().user(ownerUser).login({ retainExistingLogin: false });
+    session = await gu.session().user(ownerUser).login();
     api = session.createHomeApi();
   }
 
