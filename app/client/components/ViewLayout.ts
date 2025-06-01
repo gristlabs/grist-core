@@ -43,6 +43,7 @@ import {
 } from 'grainjs';
 import * as ko from 'knockout';
 import debounce from 'lodash/debounce';
+import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
 
 const t = makeT('ViewLayout');
 
@@ -195,6 +196,9 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     const commandGroup = {
       deleteSection: () => { this.removeViewSection(this.viewModel.activeSectionId()).catch(reportError); },
+      duplicateSection: () => {
+        buildDuplicateWidgetModal(this.gristDoc, this.viewModel.activeSectionId()).catch(reportError);
+      },
       nextSection: () => { this._otherSection(+1); },
       prevSection: () => { this._otherSection(-1); },
       printSection: () => { printViewSection(this.layout, this.viewModel.activeSection()).catch(reportError); },

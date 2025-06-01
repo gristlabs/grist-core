@@ -105,6 +105,8 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       dom.cls('disabled', dontCollapseSection()),
       dom.hide(viewSection.isRecordCard),
       testId('section-collapse')),
+    menuItemCmd(allCommands.duplicateSection, t("Duplicate widget"),
+      testId('duplicate-section')),
     menuItemCmd(allCommands.deleteSection, t("Delete widget"),
       dom.cls('disabled', dontRemoveSection()),
       dom.hide(viewSection.isRecordCard),
