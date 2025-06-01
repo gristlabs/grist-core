@@ -798,37 +798,39 @@ async function updateDocumentSettingsInPlace(
   const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_EXISTING);
   try {
     const columns = await db.all("PRAGMA table_info(_grist_DocInfo)");
+    // This protects against errors with old Grist document versions, before this column was introduced.
     if (!columns.some(column => column.name === 'documentSettings')) {
       return;
     }
-    const results = await db.all('SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo');
-    const updatePromises = results.map(async (row) => {
-      const parsedSettings: unknown = safeJsonParse(row.documentSettings, undefined);
+    const docInfoRow = await db.get('SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo');
+    // This is an edge case that shouldn't happen. If it does, our only options are to error or do nothing.
+    // Do nothing and log for now, so that we can track if this ever comes up.
+    if (!docInfoRow) {
+      log.warn("Doc has no rows in _grist_DocInfo - cannot update document settings.");
+      return;
+    }
 
-      const isValidSettingsObject = DocumentSettingsChecker.test(parsedSettings);
-      // Throw if there's something expected in the settings object.
-      // This shouldn't occur unless there's a bug or a malformed doc.
-      if (parsedSettings && !isValidSettingsObject) {
-        DocumentSettingsChecker.check(parsedSettings);
-      }
+    const parsedSettings: unknown = safeJsonParse(docInfoRow.documentSettings, undefined);
 
-      const settings = parsedSettings && isValidSettingsObject ? parsedSettings : undefined;
-      const newSettings = makeChanges(settings);
+    const isValidSettingsObject = DocumentSettingsChecker.test(parsedSettings);
+    // Throw if there's something expected in the settings object.
+    // This shouldn't occur unless there's a bug or a malformed doc, as DocSettings is backwards compatible.
+    if (parsedSettings && !isValidSettingsObject) {
+      DocumentSettingsChecker.check(parsedSettings);
+    }
 
-      // Avoid unnecessary DB updates
-      if (isDeepEqual(settings, newSettings)) {
-        return;
-      }
+    const settings = parsedSettings && isValidSettingsObject ? parsedSettings : undefined;
+    const newSettings = makeChanges(settings);
 
-      await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
-        JSON.stringify(newSettings),
-        row.id
-      );
-    });
-    // Ensures every update has resolved before closing the database.
-    await Promise.allSettled(updatePromises);
-    // Throws if anything has errored.
-    await Promise.all(updatePromises);
+    // Avoid unnecessary DB updates
+    if (isDeepEqual(settings, newSettings)) {
+      return;
+    }
+
+    await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
+      JSON.stringify(newSettings),
+      docInfoRow.id
+    );
   } finally {
     await db.close();
   }
