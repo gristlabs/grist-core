@@ -37,8 +37,6 @@ import * as testUtils from 'test/server/testUtils';
 import type { AssertionError } from 'assert';
 import axios from 'axios';
 import { lock } from 'proper-lockfile';
-import {createTmpDir} from 'test/server/docTools';
-import {mkdtemp} from 'fs-extra';
 
 // tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
@@ -3460,59 +3458,6 @@ export function withEnvironmentSnapshot(vars: Record<string, any>) {
     oldEnv.restore();
     await server.restart();
   });
-}
-
-export function enableExternalAttachments(transferDelay?: string, preserveEnvVars = true) {
-  const envVars: Record<string, string> = {
-    GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
-    GRIST_TEST_ATTACHMENTS_DIR: "",
-  };
-
-  if (transferDelay) {
-    envVars.GRIST_TEST_TRANSFER_DELAY = transferDelay;
-  }
-
-  const originalEnv: Record<string, string | undefined> = {};
-
-  before(async () => {
-    const tempFolder = await createTmpDir();
-    envVars.GRIST_TEST_ATTACHMENTS_DIR = await mkdtemp(path.join(tempFolder, 'attachments'));
-
-    if (preserveEnvVars) {
-      for (const envVar of Object.keys(envVars)) {
-        originalEnv[envVar] = process.env[envVar];
-      }
-    }
-
-    for (const [envVar, value] of Object.entries(envVars)) {
-      process.env[envVar] = value;
-    }
-
-    await server.restart();
-  });
-
-  after(async () => {
-    if (!preserveEnvVars) { return; }
-
-    const originalEnvVars = Object.entries(originalEnv);
-
-    for (const [envVar, value] of originalEnvVars) {
-      if (value === undefined) {
-        delete process.env[envVar];
-      } else {
-        process.env[envVar] = value;
-      }
-    }
-
-    await server.restart();
-  });
-
-  return {
-    envVars,
-    getAttachmentsDir() {
-      return envVars.GRIST_TEST_ATTACHMENTS_DIR;
-    }
-  };
 }
 
 /**

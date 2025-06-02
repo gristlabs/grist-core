@@ -2,6 +2,7 @@ import {AttachmentsArchiveParams, DocAPI} from 'app/common/UserAPI';
 import fs from 'fs';
 import {assert, driver, Key, WebElementPromise} from 'mocha-webdriver';
 import path from 'path';
+import {enableExternalAttachmentsForTestSuite} from 'test/nbrowser/externalAttachmentsHelpers';
 import * as gu from 'test/nbrowser/gristUtils';
 import {fileDialogUpload, TestUser} from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
@@ -74,7 +75,7 @@ describe("AttachmentsTransfer", function() {
   });
 
   describe("with external attachments enabled", () => {
-    const externalAttachments = gu.enableExternalAttachments('500');
+    const externalAttachments = enableExternalAttachmentsForTestSuite('500');
 
     /** Files will be stored in a folder inside the tmpFolder. Here is a helper that will get files names from it. */
     const files = () => {

@@ -4,6 +4,9 @@ import fetch from 'node-fetch';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server} from 'test/nbrowser/testServer';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
+import {
+  enableExternalAttachmentsForTestSuite
+} from 'test/nbrowser/externalAttachmentsHelpers';
 
 describe('DocumentUsage', function() {
   this.timeout(20000);
@@ -13,7 +16,7 @@ describe('DocumentUsage', function() {
   let api: UserAPI;
   let session: gu.Session;
 
-  gu.enableExternalAttachments();
+  enableExternalAttachmentsForTestSuite();
 
   async function makeSessionAndLogin() {
     session = await gu.session().user(ownerUser).login();
