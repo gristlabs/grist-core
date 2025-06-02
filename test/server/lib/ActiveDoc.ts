@@ -973,8 +973,8 @@ describe('ActiveDoc', async function() {
     });
   });
 
-  describe('python3', async function() {
-    let oldEnv: EnvironmentSnapshot;
+  describe('sandboxed python3', async function() {
+    let oldEnv: EnvironmentSnapshot | undefined;
 
     before(async function() {
       // Skip this test if sandbox is not present.
@@ -987,7 +987,7 @@ describe('ActiveDoc', async function() {
     });
 
     after(async function() {
-      oldEnv.restore();
+      oldEnv?.restore();
     });
 
     // Adds an Info table containing `sys.version`, and checks python
