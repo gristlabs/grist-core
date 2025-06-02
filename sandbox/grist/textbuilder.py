@@ -11,8 +11,6 @@ import bisect
 import re
 from collections import namedtuple
 
-import six
-
 Patch = namedtuple('Patch', ('start', 'end', 'old_text', 'new_text'))
 
 line_start_re = re.compile(r'^', re.M)
@@ -158,8 +156,8 @@ class Combiner(Builder):
     self._parts = parts
     self._offsets = []
     text_parts = [
-      (p if isinstance(p, six.text_type) else
-       p.decode('utf8') if isinstance(p, six.binary_type) else
+      (p if isinstance(p, str) else
+       p.decode('utf8') if isinstance(p, bytes) else
        p.get_text())
       for p in self._parts]
     self._text = ''.join(text_parts)
@@ -182,4 +180,4 @@ class Combiner(Builder):
     offset = self._offsets[start_index - 1]
     part = self._parts[start_index - 1]
     in_patch = Patch(patch.start - offset, patch.end - offset, patch.old_text, patch.new_text)
-    return None if isinstance(part, six.string_types) else part.map_back_patch(in_patch)
+    return None if isinstance(part, str) else part.map_back_patch(in_patch)

@@ -15,8 +15,6 @@ import traceback
 from datetime import date, datetime
 from math import isnan
 
-import six
-
 import friendly_errors
 import moment
 import records
@@ -170,25 +168,25 @@ def encode_object(value):
   # pylint: disable=unidiomatic-typecheck
   try:
     # A primitive type can be returned directly.
-    if type(value) in (six.text_type, float, bool) or value is None:
+    if type(value) in (str, float, bool) or value is None:
       return value
     # Other instances of these types must be derived; cast these to the primitive type to ensure
     # they are marshallable.
-    elif isinstance(value, six.text_type):
-      return six.text_type(value)
+    elif isinstance(value, str):
+      return str(value)
     elif isinstance(value, float):
       return float(value)
     elif isinstance(value, bool):
       return bool(value)
-    elif isinstance(value, six.binary_type):
+    elif isinstance(value, bytes):
       return value.decode('utf8')
-    elif isinstance(value, six.integer_types):
+    elif isinstance(value, int):
       if not is_int_short(value):
         return ['U', str(value)]
       # Cast to a primitive type to ensure it's marshallable (e.g. enum.IntEnum would not be).
       return int(value)
     elif isinstance(value, AltText):
-      return six.text_type(value)
+      return str(value)
     elif isinstance(value, records.Record):
       return ['R', value._table.table_id, value._row_id]
     elif isinstance(value, RecordStub):
@@ -206,9 +204,9 @@ def encode_object(value):
     elif isinstance(value, RecordSetStub):
       return ['r', value.table_id, value.row_ids]
     elif isinstance(value, dict):
-      if not all(isinstance(key, six.string_types) for key in value):
+      if not all(isinstance(key, str) for key in value):
         raise UnmarshallableError("Dict with non-string keys")
-      return ['O', {key: encode_object(val) for key, val in six.iteritems(value)}]
+      return ['O', {key: encode_object(val) for key, val in value.items()}]
     elif value == _pending_sentinel:
       return ['P']
     elif value == _censored_sentinel:
@@ -247,7 +245,7 @@ def decode_object(value):
     elif code == 'l':
       return ReferenceLookup(*args)
     elif code == 'O':
-      return {decode_object(key): decode_object(val) for key, val in six.iteritems(args[0])}
+      return {decode_object(key): decode_object(val) for key, val in args[0].items()}
     elif code == 'P':
       return _pending_sentinel
     elif code == 'C':
@@ -428,5 +426,5 @@ class ReferenceLookup(object):
       values = self.value
       if not isinstance(values, list):
         values = [values]
-      result = ", ".join(map(six.text_type, values))
+      result = ", ".join(map(str, values))
     return result

@@ -2,8 +2,6 @@ import copy
 import logging
 import time
 
-import six
-
 import objtypes
 import testutil
 import test_engine
@@ -677,8 +675,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       [1,     0,    0,    div_error(0)],
     ])
     message = 'float division by zero'
-    if six.PY3:
-      message += """
+    message += """
 
 A `ZeroDivisionError` occurs when you are attempting to divide a value
 by zero either directly or by using some other mathematical operation.

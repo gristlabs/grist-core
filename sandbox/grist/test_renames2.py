@@ -2,7 +2,6 @@ import textwrap
 import unittest
 
 import logging
-import six
 import test_engine
 
 log = logging.getLogger(__name__)
@@ -189,7 +188,6 @@ class TestRenames2(test_engine.EngineTestCase):
     self.assertTableData("Games", cols="subset", data=self.games_data)
 
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renames_b(self):
     # Rename Games.name: affects People.Games_Won, Games.win4_game_name
     out_actions = self.apply_user_action(["RenameColumn", "Games", "name", "nombre"])
@@ -263,7 +261,6 @@ class TestRenames2(test_engine.EngineTestCase):
     self.assertTableData("Games", cols="subset", data=self.games_data)
 
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renames_d(self):
     # Rename People.name: affects People.N, People.ParnerNames
     # TODO: PartnerNames does NOT get updated correctly because astroid doesn't infer meanings of
@@ -292,7 +289,6 @@ class TestRenames2(test_engine.EngineTestCase):
     self.assertTableData("Games", cols="subset", data=self.games_data)
 
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renames_e(self):
     # Rename People.partner: affects People.partner4
     # TODO: partner4 ($partner.partner.partner.partner) only gets updated partly because of
@@ -314,7 +310,6 @@ class TestRenames2(test_engine.EngineTestCase):
     self.assertTableData("Games", cols="subset", data=self.games_data)
 
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_renames_f(self):
     # Rename People.win -> People.pwin. Make sure only Game.win is not affected.
     out_actions = self.apply_user_action(["RenameColumn", "People", "win", "pwin"])

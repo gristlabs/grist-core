@@ -192,7 +192,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       const product = use(this.currentProduct);
       if (!product) { return null; }
       const ba = use(this.currentOrg)?.billingAccount?.features ?? {};
-      const merged = mergedFeatures(product.features, ba);
+      const merged = mergedFeatures(ba, product.features);
       return merged;
     });
 

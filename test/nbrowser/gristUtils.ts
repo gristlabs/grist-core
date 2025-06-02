@@ -1664,15 +1664,15 @@ export async function renameRawTable(tableId: string, newName?: string, newDescr
     .findClosest('.test-raw-data-table')
     .find('.test-raw-data-table-menu')
     .click();
-  await driver.find('.test-raw-data-menu-rename-table').click();
+  await findOpenMenuItem('li', 'Rename Table').click();
   if (newName !== undefined) {
-    const input = await driver.find(".test-widget-title-table-name-input");
+    const input = await driver.findWait(".test-widget-title-table-name-input", 100);
     await input.doClear();
     await input.click();
     await driver.sendKeys(newName);
   }
   if (newDescription !== undefined) {
-    const input = await driver.find(".test-widget-title-section-description-input");
+    const input = await driver.findWait(".test-widget-title-section-description-input", 100);
     await input.doClear();
     await input.click();
     await driver.sendKeys(newDescription);

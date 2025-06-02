@@ -775,9 +775,18 @@ export class HomeDBManager {
 
     // Return an aggregate count of documents, grouped by data limit status.
     const summary = createEmptyOrgUsageSummary();
+    let totalAttachmentsSizeBytes = 0;
     for (const {usage: docUsage, gracePeriodStart} of docs) {
       const dataLimitStatus = getDataLimitInfo({docUsage, gracePeriodStart, productFeatures}).status;
-      if (dataLimitStatus) { summary[dataLimitStatus] += 1; }
+      totalAttachmentsSizeBytes += docUsage?.attachmentsSizeBytes ?? 0;
+      if (dataLimitStatus) { summary.countsByDataLimitStatus[dataLimitStatus] += 1; }
+    }
+    const maxAttachmentsBytesPerOrg = productFeatures.maxAttachmentsBytesPerOrg;
+    summary.attachments = {
+      totalBytes: totalAttachmentsSizeBytes,
+    };
+    if (maxAttachmentsBytesPerOrg && totalAttachmentsSizeBytes > maxAttachmentsBytesPerOrg) {
+      summary.attachments.limitExceeded = true;
     }
     return summary;
   }
@@ -1879,7 +1888,8 @@ export class HomeDBManager {
       // of other information.
       const updated = pick(billingAccountCopy, 'inGoodStanding', 'status', 'stripeCustomerId',
                            'stripeSubscriptionId', 'stripePlanId', 'product', 'externalId',
-                           'externalOptions', 'paymentLink');
+                           'externalOptions', 'paymentLink',
+                           'features');
       billingAccount.paid = undefined;  // workaround for a typeorm bug fixed upstream in
                                         // https://github.com/typeorm/typeorm/pull/4035
       await transaction.save(Object.assign(billingAccount, updated));

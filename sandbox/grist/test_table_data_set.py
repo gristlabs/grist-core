@@ -1,5 +1,3 @@
-import six
-
 import actions
 import schema
 import table_data_set
@@ -39,7 +37,7 @@ class TestTableDataSet(unittest.TestCase):
       if a.table_id not in self._table_data_set.all_tables:
         self._table_data_set.apply_doc_action(a)
 
-    for a in six.itervalues(sample["SCHEMA"]):
+    for a in sample["SCHEMA"].values():
       self._table_data_set.BulkAddRecord(*a)
 
     # Create AddTable actions for each table described in the metadata.
@@ -63,11 +61,11 @@ class TestTableDataSet(unittest.TestCase):
       })
 
     # Sort the columns in the schema according to the parentPos field from the column records.
-    for action in six.itervalues(add_tables):
+    for action in add_tables.values():
       action.columns.sort(key=lambda r: r["parentPos"])
       self._table_data_set.AddTable(*action)
 
-    for a in six.itervalues(sample["DATA"]):
+    for a in sample["DATA"].values():
       self._table_data_set.ReplaceTableData(*a)
 
 
@@ -94,7 +92,7 @@ class TestTableDataSet(unittest.TestCase):
           if "USE_SAMPLE" in data:
             expected_data = self.samples[data.pop("USE_SAMPLE")]["DATA"].copy()
           expected_data.update({t: testutil.table_data_from_rows(t, tdata[0], tdata[1:])
-                                for (t, tdata) in six.iteritems(data)})
+                                for (t, tdata) in data.items()})
           self._verify_data(expected_data)
         else:
           raise ValueError("Unrecognized step %s in test script" % step)
@@ -119,7 +117,7 @@ class TestTableDataSet(unittest.TestCase):
 
   def _verify_data(self, expected_data, ignore_formulas=False):
     observed_data = {t: self._prep_data(*data)
-                     for t, data in six.iteritems(self._table_data_set.all_tables)
+                     for t, data in self._table_data_set.all_tables.items()
                      if not t.startswith("_grist_")}
     if ignore_formulas:
       observed_data = self._strip_formulas(observed_data)
@@ -127,7 +125,7 @@ class TestTableDataSet(unittest.TestCase):
 
     if observed_data != expected_data:
       lines = []
-      for table in sorted(six.viewkeys(observed_data) | six.viewkeys(expected_data)):
+      for table in sorted(observed_data.keys() | expected_data.keys()):
         if table not in expected_data:
           lines.append("*** Table %s observed but not expected\n" % table)
         elif table not in observed_data:
@@ -143,11 +141,11 @@ class TestTableDataSet(unittest.TestCase):
       self.fail("\n" + "".join(lines))
 
   def _strip_formulas(self, all_data):
-    return {t: self._strip_formulas_table(*data) for t, data in six.iteritems(all_data)}
+    return {t: self._strip_formulas_table(*data) for t, data in all_data.items()}
 
   def _strip_formulas_table(self, table_id, row_ids, columns):
     return actions.TableData(table_id, row_ids, {
-      col_id: col for col_id, col in six.iteritems(columns)
+      col_id: col for col_id, col in columns.items()
       if not self._table_data_set.get_col_info(table_id, col_id)["isFormula"]
     })
 
@@ -157,7 +155,7 @@ class TestTableDataSet(unittest.TestCase):
       return [v for r, v in sorted(zip(row_ids, col))]
 
     sorted_data = actions.TableData(table_id, sorted(row_ids),
-                                    {c: sort(col) for c, col in six.iteritems(columns)})
+                                    {c: sort(col) for c, col in columns.items()})
     return actions.encode_objects(testutil.replace_nans(sorted_data))
 
   @classmethod

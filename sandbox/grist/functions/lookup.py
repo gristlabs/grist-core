@@ -2,8 +2,7 @@
 from collections import OrderedDict, namedtuple
 import os
 
-import six
-from six.moves import urllib_parse
+import urllib.parse
 from .unimplemented import unimplemented
 
 @unimplemented
@@ -110,20 +109,20 @@ def SELF_HYPERLINK(label=None, page=None, **kwargs):
   txt = os.environ.get('DOC_URL')
   if not txt:
     return None
-  txt = six.text_type(txt)
+  txt = str(txt)
   if page:
     txt += "/p/{}".format(page)
   if kwargs:
-    parts = list(urllib_parse.urlparse(txt))
-    query = OrderedDict(urllib_parse.parse_qsl(parts[4]))
-    for [key, value] in sorted(six.iteritems(kwargs)):
+    parts = list(urllib.parse.urlparse(txt))
+    query = OrderedDict(urllib.parse.parse_qsl(parts[4]))
+    for [key, value] in sorted(kwargs.items()):
       key_parts = key.split('LinkKey_')
       if len(key_parts) == 2 and key_parts[0] == '':
         query[key_parts[1] + '_'] = value
       else:
         raise TypeError("unexpected keyword argument '{}' (not of form LinkKey_NAME)".format(key))
-    parts[4] = urllib_parse.urlencode(query)
-    txt = urllib_parse.urlunparse(parts)
+    parts[4] = urllib.parse.urlencode(query)
+    txt = urllib.parse.urlunparse(parts)
   if label:
     txt = u"{} {}".format(label, txt)
   return txt

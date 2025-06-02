@@ -11,7 +11,7 @@ export const DocumentSettings = t.iface([], {
   "attachmentStoreId": t.opt("string"),
 });
 
-export const EngineCode = t.union(t.lit('python2'), t.lit('python3'));
+export const EngineCode = t.lit('python3');
 
 const exportedTypeSuite: t.ITypeSuite = {
   DocumentSettings,

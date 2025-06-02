@@ -24,7 +24,7 @@
         "Everyone Else": "그 외 모든 사용자",
         "Invalid": "잘못됨",
         "Lookup Column": "조회 열",
-        "Lookup Table": "조회 표",
+        "Lookup Table": "조회용 테이블",
         "Permission to access the document in full when needed": "필요시 문서 전체에 접근할 권한",
         "Permissions": "권한",
         "Remove column {{- colId }} from {{- tableId }} rules": "{{- tableId }} 규칙에서 {{- colId }} 열 제거",
@@ -643,7 +643,8 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "자신의 접근 권한을 제거하면, {{resourceType}}에 충분한 접근 권한이 있는 다른 사람의 도움 없이는 다시 접근 권한을 얻을 수 없습니다.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "사용자는 내부에 있는 리소스에 대한 수동 설정된 접근 권한으로 인해 {{resource}}에 대한 보기 접근 권한을 갖습니다. 여기서 제거하면 이 사용자는 내부 리소스에 대한 접근 권한을 잃게 됩니다.",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "사용자는 {{parent}}에서 권한을 상속받습니다. 제거하려면 '접근 상속' 옵션을 '없음'으로 설정하세요.",
-        "You are about to remove your own access to this {{resourceType}}": "이 {{resourceType}}에 대한 자신의 접근 권한을 제거하려고 합니다"
+        "You are about to remove your own access to this {{resourceType}}": "이 {{resourceType}}에 대한 자신의 접근 권한을 제거하려고 합니다",
+        "Access overview": "접근 권한 개요"
     },
     "SupportGristPage": {
         "Sponsor": "후원",

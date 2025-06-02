@@ -2249,9 +2249,14 @@ describe('ApiServer', function() {
 
       // Check that what's reported by /usage is accurate.
       await assertOrgUsage(freeTeamOrgId, chimpy, {
-        approachingLimit: 1,
-        gracePeriod: 1,
-        deleteOnly: 1,
+        countsByDataLimitStatus: {
+          approachingLimit: 1,
+          gracePeriod: 1,
+          deleteOnly: 1,
+        },
+        attachments: {
+          totalBytes: 16384,
+        },
       });
     });
 
@@ -2276,17 +2281,27 @@ describe('ApiServer', function() {
 
       // Check that /usage includes that document in the count.
       await assertOrgUsage(freeTeamOrgId, chimpy, {
-        approachingLimit: 1,
-        gracePeriod: 2,
-        deleteOnly: 1,
+        countsByDataLimitStatus: {
+          approachingLimit: 1,
+          gracePeriod: 2,
+          deleteOnly: 1,
+        },
+        attachments: {
+          totalBytes: 1000016383,
+        },
       });
 
       // Now soft-delete the newly added document; make sure /usage no longer counts it.
       await axios.post(`${homeUrl}/api/docs/${docId}/remove`, {}, chimpy);
       await assertOrgUsage(freeTeamOrgId, chimpy, {
-        approachingLimit: 1,
-        gracePeriod: 1,
-        deleteOnly: 1,
+        countsByDataLimitStatus: {
+          approachingLimit: 1,
+          gracePeriod: 1,
+          deleteOnly: 1,
+        },
+        attachments: {
+          totalBytes: 16384,
+        },
       });
     });
 

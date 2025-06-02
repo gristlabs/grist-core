@@ -144,12 +144,8 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
 /**
  * Only offer choices of engine on experimental deployments (staging/dev).
  */
-export function getSupportedEngineChoices(): EngineCode[]|undefined {
-  if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1' ||
-      process.env.PYTHON_VERSION_ON_CREATION) {
-    return ['python2', 'python3'];
-  }
-  return undefined;
+export function getSupportedEngineChoices(): EngineCode[] {
+  return ['python3'];
 }
 
 /**

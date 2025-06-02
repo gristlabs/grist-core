@@ -8,8 +8,6 @@ When communicating with Node, docActions are represented as arrays [actionName, 
 from collections import namedtuple
 import inspect
 
-import six
-
 import objtypes
 
 def _eq_with_type(self, other):
@@ -88,7 +86,7 @@ def _add_simplify(SingleActionType, BulkActionType):
   else:
     def get_first(self):
       return SingleActionType(self.table_id, self.row_ids[0],
-                              { key: col[0] for key, col in six.iteritems(self.columns)})
+                              { key: col[0] for key, col in self.columns.items()})
   def simplify(self):
     return None if not self.row_ids else (get_first(self) if len(self.row_ids) == 1 else self)
 
@@ -130,7 +128,7 @@ def convert_recursive_helper(converter, data):
         return convert_recursive_helper(my_convert, data)
   """
   if isinstance(data, dict):
-    return {converter(k): converter(v) for k, v in six.iteritems(data)}
+    return {converter(k): converter(v) for k, v in data.items()}
   elif isinstance(data, list):
     return [converter(el) for el in data]
   elif isinstance(data, tuple):
@@ -144,11 +142,11 @@ def convert_action_values(converter, action):
   """
   if isinstance(action, (AddRecord, UpdateRecord)):
     return type(action)(action.table_id, action.row_id,
-                        {k: converter(v) for k, v in six.iteritems(action.columns)})
+                        {k: converter(v) for k, v in action.columns.items()})
   if isinstance(action, (BulkAddRecord, BulkUpdateRecord, ReplaceTableData, TableData)):
     return type(action)(
       action.table_id, action.row_ids,
-      {k: [converter(value) for value in values] for k, values in six.iteritems(action.columns)}
+      {k: [converter(value) for value in values] for k, values in action.columns.items()}
     )
   return action
 
@@ -179,7 +177,7 @@ def decode_bulk_values(bulk_values, decoder=objtypes.decode_object):
   """
   return {
     k: [decoder(value) for value in values]
-    for k, values in six.iteritems(bulk_values)
+    for k, values in bulk_values.items()
   }
 
 def transpose_bulk_action(bulk_action):

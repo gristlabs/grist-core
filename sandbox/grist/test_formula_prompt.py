@@ -1,5 +1,4 @@
 import unittest
-import six
 from asttokens.util import fstring_positions_work
 
 import test_engine
@@ -29,7 +28,6 @@ class FakeTable(object):
 fake_table = FakeTable()
 
 
-@unittest.skipUnless(six.PY3, "Python 3 only")
 class TestFormulaPrompt(test_engine.EngineTestCase):
   def test_values_type(self):
     self.assertEqual(values_type([1, 2, 3]), "int")

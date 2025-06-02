@@ -3,9 +3,7 @@ import string
 import timeit
 import unittest
 
-import six
-from six.moves import xrange
-from six.moves.collections_abc import Hashable  # pylint:disable-all
+from collections.abc import Hashable  # pylint:disable-all
 
 import match_counter
 from testutil import repeat_until_passes
@@ -26,7 +24,7 @@ class MatchCounterOther(object):
         pass
 
     matches = 0
-    for v, n in six.iteritems(self.sample_counts):
+    for v, n in self.sample_counts.items():
       if n > 0:
         matches += 1
         self.sample_counts[v] = 0
@@ -66,18 +64,18 @@ r = random.Random(17)
 
 def random_string():
   length = r.randint(10,20)
-  return ''.join(r.choice(string.ascii_letters) for x in xrange(length))
+  return ''.join(r.choice(string.ascii_letters) for x in range(length))
 
 def sample_with_repl(population, n):
-  return [r.choice(population) for x in xrange(n)]
+  return [r.choice(population) for x in range(n)]
 
 # Here's some sample generated data.
-sample = [random_string() for x in xrange(200)]
-data1 = sample_with_repl([random_string() for x in xrange(20)] + r.sample(sample, 5), 1000)
-data2 = sample_with_repl([random_string() for x in xrange(100)] + r.sample(sample, 15), 500)
+sample = [random_string() for x in range(200)]
+data1 = sample_with_repl([random_string() for x in range(20)] + r.sample(sample, 5), 1000)
+data2 = sample_with_repl([random_string() for x in range(100)] + r.sample(sample, 15), 500)
 
 # Include an example with an unhashable value, to ensure all implementation can handle it.
-data3 = sample_with_repl([random_string() for x in xrange(10)] + sample, 2000) + [[1,2,3]]
+data3 = sample_with_repl([random_string() for x in range(10)] + sample, 2000) + [[1,2,3]]
 
 
 class TestMatchCounter(unittest.TestCase):
