@@ -1,9 +1,6 @@
 import datetime
 import logging
 import unittest
-
-import six
-
 import moment
 import objtypes
 import testutil
@@ -114,26 +111,21 @@ class TestLookupFind(test_engine.EngineTestCase):
       dict(id=2, Name="Bob", MyDate=D(2023,1,1), LTDate=0, LEDate=0, GTDate=5, GEDate=5, EQDate=0),
     ])
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_lookup_find(self):
     self.do_test_lookup_find()
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_lookup_underscore_find(self):
     # Repeat the previous test case with _find in place of find. Normally, we can use
     # lookupRecords(...).find.*, but if a column named "find" exists, it will shadow this method,
     # and lookupRecords(...)._find.* may be used instead (with an underscore). Check that it works.
     self.do_test_lookup_find(find="_find")
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_lookup_find_ref_any(self):
     self.do_test_lookup_find(ref_type_to_use='Any')
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_lookup_find_ref_reflist(self):
     self.do_test_lookup_find(ref_type_to_use='RefList:Purchases')
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_lookup_find_empty(self):
     self.do_setup()
     self.add_column("Customers", "P", type='RefList:Purchases',
@@ -157,7 +149,6 @@ class TestLookupFind(test_engine.EngineTestCase):
       dict(id=2, Name="Bob", MyDate=D(2023,12,10), LTDate=0, LEDate=0, GTDate=0, GEDate=0, EQDate=0),
     ])
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_lookup_find_unsorted(self):
     self.do_setup()
     self.add_column("Customers", "P", type='RefList:Purchases',
@@ -168,21 +159,6 @@ class TestLookupFind(test_engine.EngineTestCase):
       dict(id=1, Name="Alice", MyDate=D(2023,12,5), LTDate=err),
       dict(id=2, Name="Bob", MyDate=D(2023,12,10), LTDate=err),
     ])
-
-
-  @unittest.skipUnless(six.PY2, "Python 2 only")
-  def test_lookup_find_py2(self):
-    self.do_setup()
-
-    self.add_column("Customers", "LTDate", type="Ref:Purchases",
-        formula="Purchases.lookupRecords(Customer=$id, sort_by='Date').find.lt($MyDate)")
-
-    err = objtypes.RaisedException(NotImplementedError())
-    self.assertTableData('Customers', data=[
-      dict(id=1, Name="Alice", MyDate=D(2023,12,5), LTDate=err),
-      dict(id=2, Name="Bob", MyDate=D(2023,12,10), LTDate=err),
-    ])
-
 
   def test_column_named_find(self):
     # Test that we can add a column named "find", use it, and remove it.
@@ -204,7 +180,6 @@ class TestLookupFind(test_engine.EngineTestCase):
     ])
 
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
   def test_rename_find_attrs(self):
     """
     Check that in formulas like Table.lookupRecords(...).find.lt(...).ColID, renames of ColID

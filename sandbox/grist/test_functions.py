@@ -3,9 +3,6 @@ import os
 import random
 import re
 import unittest
-
-import six
-
 import functions
 import moment
 
@@ -23,9 +20,8 @@ def date_tearDown(doc_test):
 
 class Py23DocChecker(doctest.OutputChecker):
   def check_output(self, want, got, optionflags):
-    if six.PY3:
-      want = re.sub(r"^u'(.*?)'$", r"'\1'", want)
-      want = re.sub(r'^u"(.*?)"$', r'"\1"', want)
+    want = re.sub(r"^u'(.*?)'$", r"'\1'", want)
+    want = re.sub(r'^u"(.*?)"$', r'"\1"', want)
     return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
 # This works with the unittest module to turn all the doctests in the functions' doc-comments into

@@ -8,7 +8,6 @@ from os.path import commonprefix
 
 import astroid
 import asttokens
-import six
 
 import friendly_errors
 import textbuilder
@@ -39,7 +38,7 @@ def make_formula_body(formula, default_value, assoc_value=None):
   with the formula transformed to replace `$foo` with `rec.foo`, and to insert `return` if
   appropriate. Assoc_value is associated with textbuilder.Text() to be returned by map_back_patch.
   """
-  if isinstance(formula, six.binary_type):
+  if isinstance(formula, bytes):
     formula = formula.decode('utf8')
 
   if not formula.strip():
@@ -201,7 +200,7 @@ def _create_syntax_error_code(builder, input_text, err):
   if isinstance(err, GristSyntaxError):
     # Just use SyntaxError in the final code
     err_type = SyntaxError
-  elif six.PY3:
+  else:
     # Add explanation from friendly-traceback.
     # Only supported in Python 3.
     # Not helpful for Grist-specific errors.
@@ -547,7 +546,7 @@ def parse_order_group_by(atok, node):
   mentioned, to support automatic formula updates when a mentioned column is renamed.
   """
   if isinstance(node, astroid.nodes.Const):
-    if isinstance(node.value, six.string_types):
+    if isinstance(node.value, str):
       start, end = atok.get_text_range(node)
       # Account for opening/closing quote, and optional leading "-".
       return [(start + 2, end - 1, node.value[1:]) if node.value.startswith("-") else
@@ -560,14 +559,6 @@ def save_to_linecache(source_code):
   """
   Makes source code available to friendly-traceback and traceback formatting in general.
   """
-  if six.PY3:
-    import friendly_traceback.source_cache    # pylint: disable=import-error
+  import friendly_traceback.source_cache    # pylint: disable=import-error
 
-    friendly_traceback.source_cache.cache.add(code_filename, source_code)
-  else:
-    linecache.cache[code_filename] = (
-      len(source_code),
-      None,
-      [line + '\n' for line in source_code.splitlines()],
-      code_filename,
-    )
+  friendly_traceback.source_cache.cache.add(code_filename, source_code)

@@ -4,8 +4,6 @@ import types
 from collections import namedtuple
 from numbers import Number
 
-import six
-
 import actions
 import depend
 import objtypes
@@ -317,8 +315,6 @@ class SafeSortKey(object):
   Sort key that deals with errors raised by normal comparison,
   in particular for values of different types or values that can't
   be compared at all (e.g. None).
-  This somewhat mimics the way that Python 2 compares values.
-  This is only needed in Python 3.
   """
 
   __slots__ = ("value",)
@@ -352,13 +348,6 @@ class SafeSortKey(object):
       not isinstance(self.value, Number),
       type(self.value).__name__,
     )
-
-
-if six.PY2:
-  _doc = SafeSortKey.__doc__
-  def SafeSortKey(x):
-    return x
-  SafeSortKey.__doc__ =_doc
 
 
 class PositionColumn(NumericColumn):
@@ -406,7 +395,7 @@ class ChoiceListColumn(ChoiceColumn):
   def set(self, row_id, value):
     # When a JSON string is loaded, set it to a tuple parsed from it. When a list is loaded,
     # convert to a tuple to keep values immutable.
-    if isinstance(value, six.string_types) and value.startswith(u'['):
+    if isinstance(value, str) and value.startswith(u'['):
       try:
         value = tuple(json.loads(value))
       except Exception:
@@ -597,7 +586,7 @@ class ReferenceListColumn(BaseReferenceColumn):
   Accessing them yields RecordSets.
   """
   def _clean_up_value(self, value):
-    if isinstance(value, six.string_types):
+    if isinstance(value, str):
       # This is second part of a "hack" we have to do when we rename tables. During
       # the rename, we briefly change all Ref columns to Int columns (to lose the table
       # part), and then back to Ref columns. The values during this change are stored

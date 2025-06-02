@@ -2,10 +2,6 @@ import collections
 import itertools
 import logging
 import types
-
-import six
-from six.moves import xrange
-
 import column
 import depend
 import docmodel
@@ -202,7 +198,7 @@ class Table(object):
       return 0 < row_id < self._id_column.size() and self._id_column.raw_get(row_id) > 0
 
     def __iter__(self):
-      for row_id in xrange(self._id_column.size()):
+      for row_id in range(self._id_column.size()):
         if self._id_column.raw_get(row_id) > 0:
           yield row_id
 
@@ -333,7 +329,7 @@ class Table(object):
     new_cols['id'] = self._id_column
 
     # List of Columns in the same order as they appear in the generated Model definition.
-    col_items = [c for c in six.iteritems(self.Model.__dict__) if not c[0].startswith("_")]
+    col_items = [c for c in self.Model.__dict__.items() if not c[0].startswith("_")]
     col_items.sort(key=lambda c: self._get_sort_order(c[1]))
 
     for col_id, col_model in col_items:
@@ -342,7 +338,7 @@ class Table(object):
 
     # Note that we reuse previous special columns like lookup maps, since those not affected by
     # column changes should stay the same. These get removed when unneeded using other means.
-    new_cols.update(sorted(six.iteritems(self._special_cols)))
+    new_cols.update(sorted(self._special_cols.items()))
 
     self._update_record_classes(self.all_columns, new_cols)
 
@@ -407,7 +403,7 @@ class Table(object):
           if isinstance(group_col_obj, (column.ChoiceListColumn, column.ReferenceListColumn)):
             # Check that ChoiceList/ReferenceList cells have appropriate types.
             # Don't iterate over characters of a string.
-            if isinstance(lookup_value, (six.binary_type, six.text_type)):
+            if isinstance(lookup_value, (bytes, str)):
               return []
             try:
               # We only care about the unique choices
@@ -435,7 +431,7 @@ class Table(object):
           if row_id:
             result.append(row_id)
           else:
-            for col, value in six.iteritems(values_dict):
+            for col, value in values_dict.items():
               values_to_add.setdefault(col, []).append(value)
             new_row_ids.append(None)
 
@@ -504,7 +500,7 @@ class Table(object):
     Resizes all columns as needed so that all valid row_ids are valid indices into all columns.
     """
     size = self.row_ids.max() + 1
-    for col_obj in six.itervalues(self.all_columns):
+    for col_obj in self.all_columns.values():
       col_obj.growto(size)
 
   def get_column(self, col_id):
@@ -634,7 +630,7 @@ class Table(object):
     # TODO: It should use indices, to avoid linear searching
     # TODO: It should create dependencies as needed when used from formulas.
     # TODO: It should return Record instead, for convenience of user formulas
-    col_values = [(self.all_columns[col_id], value) for (col_id, value) in six.iteritems(kwargs)]
+    col_values = [(self.all_columns[col_id], value) for (col_id, value) in kwargs.items()]
     for row_id in self.row_ids:
       if all(col.raw_get(row_id) == value for col, value in col_values):
         return row_id
@@ -649,7 +645,7 @@ class Table(object):
     # TODO: It should use indices, to avoid linear searching
     # TODO: It should create dependencies as needed when used from formulas.
     # TODO: It should return Record instead, for convenience of user formulas
-    col_values = [(self.all_columns[col_id], value) for (col_id, value) in six.iteritems(kwargs)]
+    col_values = [(self.all_columns[col_id], value) for (col_id, value) in kwargs.items()]
     for row_id in self.row_ids:
       if all(col.raw_get(row_id) == value for col, value in col_values):
         yield row_id
@@ -719,7 +715,7 @@ class Table(object):
       if col_id not in new_columns:
         self._remove_field_from_record_classes(col_id)
 
-    for col_id, col_obj in six.iteritems(new_columns):
+    for col_id, col_obj in new_columns.items():
       if col_obj != old_columns.get(col_id):
         self._add_field_to_record_classes(col_obj)
 
@@ -757,7 +753,7 @@ class Table(object):
 def make_sort_spec(order_by, sort_by, has_manual_sort):
   # Note that rowId is always an automatic fallback.
   if sort_by:
-    if not isinstance(sort_by, six.string_types):
+    if not isinstance(sort_by, str):
       # pylint: disable=line-too-long
       raise TypeError("sort_by must be a string column ID, with optional '-'; use order_by for tuples")
     # No fallback to 'manualSort' here, for backward compatibility.
@@ -765,7 +761,7 @@ def make_sort_spec(order_by, sort_by, has_manual_sort):
 
   if not isinstance(order_by, tuple):
     # Suppot None and single-string specs (for a single column)
-    if isinstance(order_by, six.string_types):
+    if isinstance(order_by, str):
       order_by = (order_by,)
     elif order_by is None:
       order_by = ()

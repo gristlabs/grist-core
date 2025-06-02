@@ -6,9 +6,6 @@ import re
 
 import dateutil.parser
 import phonenumbers
-import six
-from six import unichr         # pylint: disable=redefined-builtin
-from six.moves import xrange
 
 from usertypes import AltText  # pylint: disable=import-error
 from .math import ROUND
@@ -18,18 +15,18 @@ from .unimplemented import unimplemented
 def CHAR(table_number):
   """
   Convert a number into a character according to the current Unicode table.
-  Same as `unichr(number)`.
+  Same as `chr(number)`.
 
   >>> CHAR(65)
   u'A'
   >>> CHAR(33)
   u'!'
   """
-  return unichr(table_number)
+  return chr(table_number)
 
 
 # See http://stackoverflow.com/a/93029/328565
-_control_chars = ''.join(map(unichr, list(xrange(0,32)) + list(xrange(127,160))))
+_control_chars = ''.join(map(chr, list(range(0,32)) + list(range(127,160))))
 _control_char_re = re.compile('[%s]' % re.escape(_control_chars))
 
 def CLEAN(text):
@@ -78,8 +75,8 @@ def CONCATENATE(string, *more_strings):
   >>> assert CONCATENATE(2,  " crème ",  "brûlée") == u'2 crème brûlée'
   """
   return u''.join(
-    val.decode('utf8') if isinstance(val, six.binary_type) else   # pylint:disable=no-member
-    six.text_type(val)
+    val.decode('utf8') if isinstance(val, bytes) else   # pylint:disable=no-member
+    str(val)
     for val in (string,) + more_strings
   )
 
@@ -345,7 +342,7 @@ If formatting a value from a Numeric column, convert that column to Text first.
   if not value:
     return value
 
-  if not isinstance(value, six.string_types):
+  if not isinstance(value, str):
     raise TypeError("Phone number must be a text value. " +
       "If formatting a value from a Numeric column, convert that column to Text first.")
 
@@ -601,9 +598,9 @@ def SUBSTITUTE(text, old_text, new_text, instance_num=None):
   >>> SUBSTITUTE( "crème", u"è", "e")
   u'creme'
   """
-  text = six.text_type(text)
-  old_text = six.text_type(old_text)
-  new_text = six.text_type(new_text)
+  text = str(text)
+  old_text = str(old_text)
+  new_text = str(new_text)
 
   if not old_text:
     return text
@@ -616,7 +613,7 @@ def SUBSTITUTE(text, old_text, new_text, instance_num=None):
 
   # No trivial way to replace nth occurrence.
   i = -1
-  for c in xrange(instance_num):
+  for c in range(instance_num):
     i = text.find(old_text, i + 1)
     if i < 0:
       return text
@@ -642,9 +639,9 @@ def T(value):
   >>> T(float('nan'))
   u''
   """
-  return (value.decode('utf8') if isinstance(value, six.binary_type) else
-          value if isinstance(value, six.text_type) else
-          six.text_type(value) if isinstance(value, AltText) else u"")
+  return (value.decode('utf8') if isinstance(value, bytes) else
+          value if isinstance(value, str) else
+          str(value) if isinstance(value, AltText) else u"")
 
 def TASTEME(food):
   """

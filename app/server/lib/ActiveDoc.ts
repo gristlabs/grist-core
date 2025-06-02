@@ -445,7 +445,7 @@ export class ActiveDoc extends EventEmitter {
       .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
-    // corresponding to one process for pynbox, more for gvisor).
+    // corresponding to many processes for gvisor).
     // The data engine runs user-defined python code including formula calculations.
     // It maintains all document data and metadata, and applies translates higher-level UserActions
     // into lower-level DocActions.
@@ -453,8 +453,8 @@ export class ActiveDoc extends EventEmitter {
     // Creation of the data engine needs to be deferred since we need to look at the document to
     // see what kind of engine it needs. This doesn't delay loading the document, but could delay
     // first calculation and modification.
-    // TODO: consider caching engine requirement for doc in home db - or running python2
-    // in gvisor (but would still need to look at doc to know what process to start in sandbox)
+    // TODO: consider caching engine requirement for doc in home db
+    // (but would still need to look at doc to know what process to start in sandbox)
 
     this._activeDocImport = new ActiveDocImport(this);
 
@@ -2453,13 +2453,7 @@ export class ActiveDoc extends EventEmitter {
     const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
     const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
     const documentSettings: DocumentSettings = { locale };
-    const pythonVersion = process.env.PYTHON_VERSION_ON_CREATION;
-    if (pythonVersion) {
-      if (pythonVersion !== '2' && pythonVersion !== '3') {
-        throw new Error(`PYTHON_VERSION_ON_CREATION must be 2 or 3, not: ${pythonVersion}`);
-      }
-      documentSettings.engine = (pythonVersion === '2') ? 'python2' : 'python3';
-    }
+    documentSettings.engine = 'python3';
     await this.docStorage.run('UPDATE _grist_DocInfo SET timezone = ?, documentSettings = ?',
                               timezone, JSON.stringify(documentSettings));
   }
@@ -3084,16 +3078,6 @@ export class ActiveDoc extends EventEmitter {
     return docSettings;
   }
 
-  private async _getDocumentSettingsIfPresent(): Promise<DocumentSettings|undefined> {
-    try {
-      return this._getDocumentSettings();
-    } catch (e) {
-      // If called before docData is initialized, pick up docSettings directly from SQLite.
-      const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(() => undefined);
-      return safeJsonParse(docInfo?.documentSettings || '', undefined);
-    }
-  }
-
   private async _updateDocumentSettings(docSessions: OptDocSession, settings: DocumentSettings): Promise<void> {
     const docInfo = this.docData?.docInfo();
     if (!docInfo) {
@@ -3107,23 +3091,7 @@ export class ActiveDoc extends EventEmitter {
 
   private async _makeEngine(): Promise<ISandbox> {
     // Figure out what kind of engine we need for this document.
-    let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '2' ? '2' : '3';
-
-    // Careful, migrations may not have run on this document and it may not have a
-    // documentSettings column.  Failures are treated as lack of an engine preference.
-    const docSettings = await this._getDocumentSettingsIfPresent();
-    if (docSettings) {
-      const engine = docSettings.engine;
-      if (engine) {
-        if (engine === 'python2') {
-          preferredPythonVersion = '2';
-        } else if (engine === 'python3') {
-          preferredPythonVersion = '3';
-        } else {
-          throw new Error(`engine type not recognized: ${engine}`);
-        }
-      }
-    }
+    const preferredPythonVersion = '3';
     return createSandbox({
       server: this._server,
       docId: this._docName,
@@ -3350,7 +3318,7 @@ export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions
 export function createSandbox(options: {
   server: GristServer,
   docId: string,
-  preferredPythonVersion: '2' | '3' | undefined,
+  preferredPythonVersion: '3',
   sandboxOptions?: Partial<ISandboxOptions>,
 }) {
   const {docId, preferredPythonVersion, sandboxOptions, server} = options;
