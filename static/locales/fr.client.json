@@ -156,7 +156,13 @@
         "Toggle chart aggregation": "Activer/désactiver l'agrégation des graphiques",
         "Orientation": "Orientation",
         "Vertical": "Vertical",
-        "Horizontal": "Horizontal"
+        "Horizontal": "Horizontal",
+        "Split series": "Décomposer les séries",
+        "None": "Aucune",
+        "Split Series": "Décomposer les séries",
+        "Remove": "Retirer",
+        "Symmetric": "Symétrique",
+        "Connect gaps": "Relier les points manquants"
     },
     "CodeEditorPanel": {
         "Access denied": "Accès refusé",
