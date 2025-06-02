@@ -726,12 +726,7 @@ export class DocManager extends EventEmitter {
         const srcDocPath = uploadInfo.files[0].absPath;
         await checkAllegedGristDoc(docSession, srcDocPath);
         await docUtils.copyFile(srcDocPath, docPath);
-        try {
-          await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
-        } catch (err) {
-          // This isn't critical to document operation, so shouldn't block importing.
-          log.error(`DocManager._doImportDoc: Unable to update attachment store of doc ${docName}`, err);
-        }
+        await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
         // Go ahead and claim this document. If we wanted to serve it
         // from a potentially different worker, we'd call addToStorage(docName)
         // instead (we used to do this). The upload should already be happening
