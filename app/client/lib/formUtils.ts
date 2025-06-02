@@ -126,6 +126,10 @@ export class TypedFormData {
     return type === 'Ref' || type === 'RefList' ? Number(value) : value;
   }
 
+  public setAttachmentId(key: string, value: number) {
+    this._formData.set(key, String(value));
+  }
+
   public getAll(key: string) {
     const values = Array.from(this._formData.getAll(key));
     if (['Ref', 'RefList'].includes(String(this.type(key)))) {

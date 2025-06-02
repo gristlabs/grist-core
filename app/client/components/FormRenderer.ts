@@ -898,6 +898,29 @@ class RefRenderer extends BaseFieldRenderer {
   }
 }
 
+class AttachmentsRenderer extends BaseFieldRenderer {
+  protected inputType = 'file';
+  private _value = Observable.create<File[]>(this, []);
+
+  public input() {
+    return css.attachmentInput(
+      dom.cls('field_clip'),
+      {
+        type: this.inputType,
+        name: this.name(),
+        id: this.id(),
+        required: this.field.options.formRequired,
+      },
+      dom.prop('value', this._value),
+      testId('attachment-input')
+    );
+  }
+
+  public resetInput(): void {
+    this._value.set([]);
+  }
+}
+
 const FieldRenderers = {
   'Text': TextRenderer,
   'Numeric': NumericRenderer,
@@ -909,6 +932,7 @@ const FieldRenderers = {
   'DateTime': DateTimeRenderer,
   'Ref': RefRenderer,
   'RefList': RefListRenderer,
+  'Attachments': AttachmentsRenderer,
 };
 
 const FormRenderers = {
