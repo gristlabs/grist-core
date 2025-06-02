@@ -90,6 +90,7 @@ export type FormOptionsSortOrder = 'default' | 'ascending' | 'descending';
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;
   createRecord(options: CreateRecordOptions): Promise<void>;
+  createAttachment(options: CreateAttachmentOptions): Promise<number>;
 }
 
 interface GetFormCommonOptions {
@@ -120,6 +121,20 @@ interface CreateRecordWithShareKeyOptions extends CreateRecordCommonOptions {
 }
 
 type CreateRecordOptions = CreateRecordWithDocIdOptions | CreateRecordWithShareKeyOptions;
+
+interface CreateAttachmentCommonOptions {
+  upload: File;
+}
+
+interface CreateAttachmentWithDocIdOptions extends CreateAttachmentCommonOptions {
+  docId: string;
+}
+
+interface CreateAttachmentWithShareKeyOptions extends CreateAttachmentCommonOptions {
+  shareKey: string;
+}
+
+type CreateAttachmentOptions = CreateAttachmentWithDocIdOptions | CreateAttachmentWithShareKeyOptions;
 
 export class FormAPIImpl extends BaseAPI implements FormAPI {
   constructor(private _homeUrl: string, options: IOptions = {}) {
@@ -152,6 +167,31 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
         body: JSON.stringify({records: [{fields: colValues}]}),
       });
     }
+  }
+
+  public async createAttachment(options: CreateAttachmentOptions): Promise<number> {
+    let url: string;
+
+    if ('docId' in options) {
+      const {docId} = options;
+      url = `${this._url}/api/docs/${docId}/attachments`;
+    } else {
+      const {shareKey} = options;
+      url = `${this._url}/api/s/${shareKey}/attachments`;
+    }
+
+    const result = await this.requestAxios(url, {
+      method: 'POST',
+      data: {
+        upload: options.upload,
+      },
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
+
+    return result.data[0]; // Get the Id of the uploaded file
   }
 
   private get _url(): string {
