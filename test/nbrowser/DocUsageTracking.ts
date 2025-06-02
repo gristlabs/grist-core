@@ -29,7 +29,19 @@ describe('DocumentUsage', function() {
 
   it('shows usage stats on the raw data page', async function() {
     await session.tempNewDoc(cleanup, "EmptyUsageDoc");
-    await testDocUsageStatsAreZero();
+
+    // Check that the Usage section exists.
+    await goToDocUsage();
+    assert.equal(await driver.find('.test-doc-usage-heading').getText(), 'Usage');
+    await assertUsageMessage(null);
+
+    // Check that usage is at 0.
+    await assertRowCount('0');
+    await assertDataSize('0.00');
+    await assertAttachmentsSize('0.00');
+
+    // Check that banners aren't shown on the raw data page.
+    await gu.assertBannerText(null);
   });
 
   function testAttachmentsUsage(getDocId: () => string) {
@@ -94,21 +106,6 @@ describe('DocumentUsage', function() {
     testAttachmentsUsage(() => docId);
   });
 });
-
-async function testDocUsageStatsAreZero() {
-  // Check that the Usage section exists.
-  await goToDocUsage();
-  assert.equal(await driver.find('.test-doc-usage-heading').getText(), 'Usage');
-  await assertUsageMessage(null);
-
-  // Check that usage is at 0.
-  await assertRowCount('0');
-  await assertDataSize('0.00');
-  await assertAttachmentsSize('0.00');
-
-  // Check that banners aren't shown on the raw data page.
-  await gu.assertBannerText(null);
-}
 
 async function goToDocUsage() {
   await driver.findWait('.test-tools-raw', 2000).click();
