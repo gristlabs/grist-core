@@ -30,11 +30,11 @@ const _defaultValues: {[key in GristType]: [CellValue, string]} = {
   'Date':             [ null,  "NULL"  ],
   'DateTime':         [ null,  "NULL"  ],
   'Id':               [ 0,     "0"     ],
-  'Int':              [ 0,     "0"     ],
+  'Int':              [ null,  "NULL"  ],
   // Note that "1e999" is a way to store Infinity into SQLite. This is verified by "Defaults"
   // tests in DocStorage.js. See also http://sqlite.1065341.n5.nabble.com/Infinity-td55327.html.
   'ManualSortPos':    [ Number.POSITIVE_INFINITY, "1e999" ],
-  'Numeric':          [ 0,     "0"     ],
+  'Numeric':          [ null,  "NULL"  ],
   'PositionNumber':   [ Number.POSITIVE_INFINITY, "1e999" ],
   'Ref':              [ 0,     "0"     ],
   'RefList':          [ null,  "NULL"  ],

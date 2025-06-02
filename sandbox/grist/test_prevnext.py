@@ -33,7 +33,7 @@ class TestPrevNext(test_engine.EngineTestCase):
           [24, "Category", "Text", False, "", "", ""],
           [25, "Amount", "Numeric", False, "", "", ""],
           [26, "Prev", "Ref:Purchases", True, "None", "", ""],    # To be filled
-          [27, "Cumul", "Numeric", True, "$Prev.Cumul + $Amount", "", ""],
+          [27, "Cumul", "Numeric", True, "($Prev.Cumul or 0) + $Amount", "", ""],
         ]],
       ],
       "DATA": {
