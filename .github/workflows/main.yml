@@ -184,7 +184,7 @@ jobs:
     services:
       # https://github.com/bitnami/bitnami-docker-minio/issues/16
       minio:
-        image: bitnami/minio:2025.4.8
+        image: bitnami/minio:2025.4.22
         env:
           MINIO_DEFAULT_BUCKETS: "grist-docs-test:public"
           MINIO_ROOT_USER: administrator
