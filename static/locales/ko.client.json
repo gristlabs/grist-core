@@ -2,14 +2,14 @@
     "ACUserManager": {
         "Invite new member": "새 멤버 초대",
         "Enter email address": "이메일 주소 입력",
-        "We'll email an invite to {{email}}": "{{email}} 주소로 초대 메일을 보내드립니다."
+        "We'll email an invite to {{email}}": "{{email}} 주소로 초대 메일을 보내드립니다"
     },
     "AccessRules": {
         "Add Column Rule": "열 규칙 추가",
         "Add Default Rule": "기본 규칙 추가",
         "Special Rules": "특별 규칙",
         "Permission to view Access Rules": "접근 규칙 보기 권한",
-        "Add Table Rules": "테이블 규칙 추가",
+        "Add Table Rules": "표 규칙 추가",
         "Add User Attributes": "사용자 속성 추가",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "모든 사용자가 전체 문서를 복사하거나 탐색 모드에서 전체 내용을 볼 수 있도록 허용합니다.\n예제 및 템플릿에는 유용하지만 민감한 데이터에는 적합하지 않습니다.",
         "Allow everyone to view Access Rules.": "모든 사용자가 접근 규칙을 볼 수 있도록 허용합니다.",
@@ -18,36 +18,36 @@
         "Checking...": "확인 중…",
         "Condition": "조건",
         "Default Rules": "기본 규칙",
-        "Delete Table Rules": "테이블 규칙 삭제",
+        "Delete Table Rules": "표 규칙 삭제",
         "Enter Condition": "조건 입력",
         "Everyone": "모든 사용자",
         "Everyone Else": "그 외 모든 사용자",
         "Invalid": "잘못됨",
         "Lookup Column": "조회 열",
-        "Lookup Table": "조회 테이블",
+        "Lookup Table": "조회용 테이블",
         "Permission to access the document in full when needed": "필요시 문서 전체에 접근할 권한",
         "Permissions": "권한",
         "Remove column {{- colId }} from {{- tableId }} rules": "{{- tableId }} 규칙에서 {{- colId }} 열 제거",
         "Remove {{- tableId }} rules": "{{- tableId }} 규칙 제거",
         "Remove {{- name }} user attribute": "{{- name }} 사용자 속성 제거",
         "Reset": "초기화",
-        "Rules for table ": "테이블 규칙: ",
+        "Rules for table ": "표 규칙: ",
         "Save": "저장",
         "Saved": "저장됨",
         "Type message to display when this rule blocks an action…": "메시지 입력…",
         "User Attributes": "사용자 속성",
         "View As": "다음 사용자로 보기",
         "Seed rules": "기본 규칙 생성",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "테이블 규칙 추가 시, 소유자(OWNER)에게 전체 접근 권한을 부여하는 규칙을 자동으로 추가합니다.",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "표 규칙 추가 시, 소유자(OWNER)에게 전체 접근 권한을 부여하는 규칙을 자동으로 추가합니다.",
         "Permission to edit document structure": "문서 구조 편집 권한",
         "This default should be changed if editors' access is to be limited. ": "편집자의 접근을 제한하려면 이 기본 설정을 변경해야 합니다. ",
-        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "편집자가 구조(예: 테이블, 열, 레이아웃 수정 및 삭제)를 편집하고, 읽기 제한과 관계없이 모든 데이터에 접근할 수 있는 수식을 작성하도록 허용합니다.",
-        "Add Table-wide Rule": "테이블 전체 규칙 추가"
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "편집자가 구조(예: 표, 열, 레이아웃 수정 및 삭제)를 편집하고, 읽기 제한과 관계없이 모든 데이터에 접근할 수 있는 수식을 작성하도록 허용합니다.",
+        "Add Table-wide Rule": "표 전체 규칙 추가"
     },
     "ViewAsDropdown": {
         "Example Users": "예시 사용자",
         "View As": "다음 사용자로 보기",
-        "Users from table": "테이블의 사용자"
+        "Users from table": "표에서 불러온 사용자"
     },
     "AddNewButton": {
         "Add New": "새로 추가"
@@ -56,7 +56,7 @@
         "Description": "설명",
         "Key": "키",
         "Memory Error": "메모리 오류",
-        "Translators: please translate this only when your language is ready to be offered to users": "번역가 참고: 이 문구는 해당 언어 지원이 준비되었을 때만 번역하세요."
+        "Translators: please translate this only when your language is ready to be offered to users": "번역가 참고: 이 문구는 해당 언어 지원이 준비되었을 때만 번역하세요"
     },
     "CustomSectionConfig": {
         "No document access": "문서 접근 불가",
@@ -69,14 +69,14 @@
         "Open configuration": "구성 열기",
         "Pick a column": "열 선택",
         "Pick a {{columnType}} column": "{{columnType}} 유형의 열 선택",
-        "Read selected table": "선택한 테이블 읽기",
+        "Read selected table": "선택한 표 읽기",
         "Select Custom Widget": "사용자 정의 위젯 선택",
-        "Widget needs to {{read}} the current table.": "위젯은 현재 테이블을 {{read}}해야 합니다.",
+        "Widget needs to {{read}} the current table.": "위젯은 현재 표를 {{read}}해야 합니다.",
         "Widget needs {{fullAccess}} to this document.": "위젯은 이 문서에 대한 {{fullAccess}} 권한이 필요합니다.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}}개의 {{columnType}} 형식이 아닌 열은 표시되지 않습니다",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{columnType}} 유형이 아닌 열 {{wrongTypeCount}}개가 표시되지 않습니다.",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{columnType}} 유형이 아닌 열 {{wrongTypeCount}}개가 표시되지 않습니다",
         "Clear selection": "선택 해제",
-        "No {{columnType}} columns in table.": "테이블에 {{columnType}} 유형의 열이 없습니다.",
+        "No {{columnType}} columns in table.": "표에 {{columnType}} 유형의 열이 없습니다.",
         "ACCESS LEVEL": "접근 수준",
         "Accept": "수락",
         "Custom URL": "사용자 정의 URL",
@@ -89,14 +89,14 @@
     "DocPageModel": {
         "Error accessing document": "문서 접근 오류",
         "Document owners can attempt to recover the document. [{{error}}]": "문서 소유자는 문서 복구를 시도할 수 있습니다. [{{error}}]",
-        "Add Empty Table": "빈 테이블 추가",
+        "Add Empty Table": "빈 표 추가",
         "Add Page": "페이지 추가",
         "Add Widget to Page": "페이지에 위젯 추가",
         "Enter recovery mode": "복구 모드 진입",
         "Reload": "새로고침",
         "Sorry, access to this document has been denied. [{{error}}]": "죄송합니다. 이 문서에 대한 접근이 거부되었습니다. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "문서를 새로고침하거나 복구 모드를 사용할 수 있습니다. 복구 모드는 소유자에게는 문서 전체 접근 권한을 부여하고 다른 사용자에게는 접근을 차단합니다. 또한 수식을 비활성화합니다. [{{error}}]",
-        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다."
+        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다"
     },
     "DocumentSettings": {
         "Local currency ({{currency}})": "현지 통화 ({{currency}})",
@@ -122,12 +122,12 @@
         "Document Settings": "문서 설정",
         "Time Zone:": "시간대:",
         "API": "API",
-        "Document ID copied to clipboard": "문서 ID가 클립보드에 복사되었습니다.",
+        "Document ID copied to clipboard": "문서 ID가 클립보드에 복사되었습니다",
         "Ok": "확인",
         "Manage Webhooks": "웹훅 관리",
         "Webhooks": "웹훅",
         "API Console": "API 콘솔",
-        "API URL copied to clipboard": "API URL이 클립보드에 복사되었습니다.",
+        "API URL copied to clipboard": "API URL이 클립보드에 복사되었습니다",
         "API console": "API 콘솔",
         "API documentation.": "API 문서.",
         "Hard reset of data engine": "데이터 엔진 강제 초기화",
@@ -281,7 +281,7 @@
         "Visit our {{link}} to learn more.": "자세한 내용은 {{link}}를 방문하세요.",
         "Welcome to Grist!": "Grist에 오신 것을 환영합니다!",
         "Welcome to Grist, {{name}}!": "{{name}}님, Grist에 오신 것을 환영합니다!",
-        "Welcome to {{orgName}}": "{{orgName}}에 오신 것을 환영합니다.",
+        "Welcome to {{orgName}}": "{{orgName}}에 오신 것을 환영합니다",
         "You have read-only access to this site. Currently there are no documents.": "이 사이트에 대한 읽기 전용 접근 권한이 있습니다. 현재 문서가 없습니다.",
         "personal site": "개인 사이트",
         "Browse Templates": "템플릿 둘러보기",
@@ -293,7 +293,7 @@
         "This workspace is empty.": "이 워크스페이스는 비어 있습니다.",
         "{{signUp}} to save your work. ": "작업 내용을 저장하려면 {{signUp}}하세요. ",
         "Welcome to Grist, {{- name}}!": "{{- name}}님, Grist에 오신 것을 환영합니다!",
-        "Welcome to {{- orgName}}": "{{- orgName}}에 오신 것을 환영합니다.",
+        "Welcome to {{- orgName}}": "{{- orgName}}에 오신 것을 환영합니다",
         "Sign in": "로그인",
         "To use Grist, please either sign up or sign in.": "Grist를 사용하려면 가입하거나 로그인하세요.",
         "Visit our {{link}} to learn more about Grist.": "Grist에 대해 자세히 알아보려면 {{link}}를 방문하세요.",
@@ -310,14 +310,14 @@
         "{{count}} unmatched field_other": "일치하지 않는 필드 {{count}}개",
         "Column Mapping": "열 매핑",
         "Column mapping": "열 매핑",
-        "Destination table": "대상 테이블",
+        "Destination table": "대상 표",
         "Grist column": "Grist 열",
         "Import from file": "파일에서 가져오기",
-        "New Table": "새 테이블",
+        "New Table": "새 표",
         "Revert": "되돌리기",
         "Skip": "건너뛰기",
         "Skip Import": "가져오기 건너뛰기",
-        "Skip Table on Import": "가져오기 시 테이블 건너뛰기",
+        "Skip Table on Import": "가져오기 시 표 건너뛰기",
         "Source column": "원본 열"
     },
     "NotifyUI": {
@@ -366,9 +366,9 @@
         "Custom options": "사용자 정의 옵션"
     },
     "VisibleFieldsConfig": {
-        "Cannot drop items into Hidden Fields": "숨겨진 필드에는 항목을 놓을 수 없습니다.",
+        "Cannot drop items into Hidden Fields": "숨겨진 필드에는 항목을 놓을 수 없습니다",
         "Clear": "모두 해제",
-        "Hidden Fields cannot be reordered": "숨겨진 필드는 순서를 변경할 수 없습니다.",
+        "Hidden Fields cannot be reordered": "숨겨진 필드는 순서를 변경할 수 없습니다",
         "Select All": "모두 선택",
         "Visible {{label}}": "{{label}} 표시됨",
         "Hide {{label}}": "{{label}} 숨기기",
@@ -392,9 +392,9 @@
     },
     "WidgetTitle": {
         "Cancel": "취소",
-        "DATA TABLE NAME": "데이터 테이블 이름",
+        "DATA TABLE NAME": "데이터 표 이름",
         "Override widget title": "위젯 제목 재정의",
-        "Provide a table name": "테이블 이름 입력",
+        "Provide a table name": "표 이름 입력",
         "Save": "저장",
         "WIDGET TITLE": "위젯 제목",
         "WIDGET DESCRIPTION": "위젯 설명"
@@ -492,7 +492,7 @@
     "FieldBuilder": {
         "Apply Formula to Data": "수식을 데이터에 적용",
         "CELL FORMAT": "셀 형식",
-        "DATA FROM TABLE": "테이블의 데이터",
+        "DATA FROM TABLE": "표에서 불러 온 데이터",
         "Revert field settings for {{colId}} to common": "{{colId}}의 필드 설정을 공통으로 되돌리기",
         "Changing column type": "열 유형 변경 중",
         "Changing multiple column types": "여러 열 유형 변경 중",
@@ -515,7 +515,7 @@
         "Enter": "Enter",
         "Flying higher": "더 높이 날아오르기",
         "Help Center": "도움말 센터",
-        "Make it relational! Use the {{ref}} type to link tables. ": "관계형으로 만드세요! {{ref}} 유형을 사용하여 테이블을 연결하세요. ",
+        "Make it relational! Use the {{ref}} type to link tables. ": "관계형으로 만드세요! {{ref}} 유형을 사용하여 표를 연결하세요. ",
         "Reference": "참조",
         "Start with {{equal}} to enter a formula.": "{{equal}}로 시작하여 수식을 입력하세요.",
         "Toggle the {{creatorPanel}} to format columns, ": "{{creatorPanel}}을(를) 전환하여 열 서식을 지정하고, ",
@@ -537,11 +537,11 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "다중 할당을 허용하려면 참조(Reference) 열의 유형을 참조 목록(Reference List)으로 변경하세요.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "이 제한은 양방향 참조의 한 열이 참조(Reference) 유형을 가질 때 발생합니다.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "다중 할당을 허용하려면 참조된 열의 유형을 참조 목록(Reference List)으로 변경하세요.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "양방향 참조는 현재 수식 또는 트리거 수식 열에 대해 지원되지 않습니다.",
-        "The preview below this header shows how the selected user will see this document": "이 헤더 아래의 미리보기는 선택한 사용자가 이 문서를 어떻게 보게 될지 보여줍니다.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "양방향 참조는 현재 수식 또는 트리거 수식 열에 대해 지원되지 않습니다",
+        "The preview below this header shows how the selected user will see this document": "이 헤더 아래의 미리보기는 선택한 사용자가 이 문서를 어떻게 보게 될지 보여줍니다",
         "Apply conditional formatting to cells in this column when formula conditions are met.": "수식 조건이 충족되면 이 열의 셀에 조건부 서식을 적용합니다.",
         "Apply conditional formatting to rows based on formulas.": "수식을 기반으로 행에 조건부 서식을 적용합니다.",
-        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "참조 열의 셀은 항상 해당 테이블의 {{entire}} 레코드를 식별하지만, 해당 레코드에서 표시할 열을 선택할 수 있습니다.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "참조 열의 셀은 항상 해당 표의 {{entire}} 레코드를 식별하지만, 해당 레코드에서 표시할 열을 선택할 수 있습니다.",
         "Click on “Open row styles” to apply conditional formatting to rows.": "행에 조건부 서식을 적용하려면 \"행 스타일 열기\"를 클릭하세요.",
         "Click the Add New button to create new documents or workspaces, or import data.": "새 문서나 워크스페이스를 만들거나 데이터를 가져오려면 새로 추가 버튼을 클릭하세요.",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "각 셀에서 {{EyeHideIcon}} 아이콘을 클릭하면 필드를 삭제하지 않고 이 보기에서 숨깁니다.",
@@ -558,17 +558,17 @@
         "Rearrange the fields in your card by dragging and resizing cells.": "셀을 드래그하고 크기를 조절하여 카드의 필드를 재정렬합니다.",
         "Reference Columns": "참조 열",
         "Reference columns are the key to {{relational}} data in Grist.": "참조 열은 Grist에서 {{relational}} 데이터를 다루는 핵심입니다.",
-        "Select the table containing the data to show.": "표시할 데이터가 포함된 테이블을 선택합니다.",
-        "Select the table to link to.": "연결할 테이블을 선택합니다.",
+        "Select the table containing the data to show.": "표시할 데이터가 포함된 표를 선택합니다.",
+        "Select the table to link to.": "연결할 표를 선택합니다.",
         "Selecting Data": "데이터 선택하기",
-        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "원본 데이터 페이지에는 요약 테이블 및 페이지 레이아웃에 포함되지 않은 테이블을 포함하여 문서의 모든 데이터 테이블이 나열됩니다.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "원본 데이터 페이지에는 요약 표 및 페이지 레이아웃에 포함되지 않은 표를 포함하여 문서의 모든 데이터 표가 나열됩니다.",
         "The total size of all data in this document, excluding attachments.": "첨부 파일을 제외한 이 문서의 모든 데이터 총 크기입니다.",
         "They allow for one record to point (or refer) to another.": "하나의 레코드가 다른 레코드를 가리키거나 참조할 수 있게 합니다.",
         "This is the secret to Grist's dynamic and productive layouts.": "이것이 Grist의 동적이고 생산적인 레이아웃의 비결입니다.",
         "Try out changes in a copy, then decide whether to replace the original with your edits.": "사본에서 변경 사항을 시도해 본 다음, 원본을 편집 내용으로 교체할지 결정하세요.",
         "Unpin to hide the the button while keeping the filter.": "필터는 유지하면서 버튼을 숨기려면 고정을 해제하세요.",
         "Updates every 5 minutes.": "5분마다 업데이트됩니다.",
-        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "𝚺 아이콘을 사용하여 합계 또는 소계를 위한 요약(또는 피벗) 테이블을 만듭니다.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "𝚺 아이콘을 사용하여 합계 또는 소계를 위한 요약(또는 피벗) 표를 만듭니다.",
         "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "새 레코드의 타임스탬프나 작성자를 저장하고, 데이터를 정리하는 등에 유용합니다.",
         "You can filter by more than one column.": "둘 이상의 열로 필터링할 수 있습니다.",
         "relational": "관계형",
@@ -576,16 +576,16 @@
         "To configure your calendar, select columns for start": {
             "end dates and event titles. Note each column's type.": "캘린더를 구성하려면 시작/종료 날짜 및 이벤트 제목에 대한 열을 선택하세요. 각 열의 유형을 확인하세요."
         },
-        "Lookups return data from related tables.": "조회는 관련된 테이블의 데이터를 반환합니다.",
+        "Lookups return data from related tables.": "조회는 관련된 표의 데이터를 반환합니다.",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "접근 규칙을 사용하면 문서의 어느 부분을 누가 보거나 편집할 수 있는지 결정하는 세분화된 규칙을 만들 수 있습니다.",
-        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "𝚺 아이콘을 사용하여 합계 또는 소계를 위한 요약(또는 피벗) 테이블을 만듭니다.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "𝚺 아이콘을 사용하여 합계 또는 소계를 위한 요약(또는 피벗) 표를 만듭니다.",
         "Anchor Links": "바로가기 링크",
         "Custom Widgets": "사용자 정의 위젯",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "사용자를 특정 셀로 이동시키는 바로가기 링크를 만들려면 행을 클릭하고 {{shortcut}} 키를 누릅니다.",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "미리 만들어진 위젯 중 하나를 선택하거나 전체 URL을 제공하여 자신만의 위젯을 포함할 수 있습니다.",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "올바른 열을 찾을 수 없나요? '위젯 변경'을 클릭하여 이벤트 데이터가 있는 테이블을 선택하세요.",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "올바른 열을 찾을 수 없나요? '위젯 변경'을 클릭하여 이벤트 데이터가 있는 표를 선택하세요.",
         "Learn more": "자세히 알아보기",
-        "Use reference columns to relate data in different tables.": "참조 열을 사용하여 다른 테이블의 데이터를 연결합니다.",
+        "Use reference columns to relate data in different tables.": "참조 열을 사용하여 다른 표의 데이터를 연결합니다.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "드롭다운에서 사용 가능한 위젯 중에서 선택하거나, 전체 URL을 제공하여 자신만의 위젯을 포함할 수 있습니다.",
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "수식은 많은 Excel 함수, 완전한 Python 구문 및 유용한 AI 어시스턴트를 지원합니다.",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Grist에서 바로 간단한 양식을 만들고 새로운 위젯으로 클릭 한 번으로 공유하세요. {{learnMoreButton}}",
@@ -593,9 +593,9 @@
         "Example: {{example}}": "예시: {{example}}",
         "Filter displayed dropdown values with a condition.": "조건을 사용하여 표시되는 드롭다운 값을 필터링합니다.",
         "Community widgets are created and maintained by Grist community members.": "커뮤니티 위젯은 Grist 커뮤니티 회원들이 만들고 관리합니다.",
-        "Creates a reverse column in target table that can be edited from either end.": "대상 테이블에 양쪽 끝에서 편집할 수 있는 역방향 열을 만듭니다.",
+        "Creates a reverse column in target table that can be edited from either end.": "대상 표에 역방향 열을 만들어 양측에서 편집할 수 있도록 합니다.",
         "[Learn more.]({{link}})": "[자세히 알아보기.]({{link}})",
-        "Summary tables can only contain formula columns.": "요약 테이블에는 수식 열만 포함될 수 있습니다.",
+        "Summary tables can only contain formula columns.": "요약 표에는 수식 열만 포함될 수 있습니다.",
         "The new Grist Assistant is here!": "새로운 Grist 도우미가 도착했습니다!",
         "Manage users and resources in a Grist installation.": "Grist 설치 환경에서 사용자와 리소스를 관리합니다."
     },
@@ -609,7 +609,7 @@
         "Collaborator": "협업자",
         "Confirm": "확인",
         "Copy Link": "링크 복사",
-        "Create a team to share with more people": "더 많은 사람들과 공유하려면 팀을 만드세요.",
+        "Create a team to share with more people": "더 많은 사람들과 공유하려면 팀을 만드세요",
         "Grist support": "Grist 지원",
         "Guest": "게스트",
         "Remove my access": "내 접근 권한 제거",
@@ -619,7 +619,7 @@
         "Add {{member}} to your team": "팀에 {{member}} 추가",
         "Allow anyone with the link to open.": "링크가 있는 모든 사람이 열 수 있도록 허용합니다.",
         "Invite multiple": "여러 명 초대",
-        "Link copied to clipboard": "링크가 클립보드에 복사되었습니다.",
+        "Link copied to clipboard": "링크가 클립보드에 복사되었습니다",
         "Manage members of team site": "팀 사이트 멤버 관리",
         "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "기본 접근 권한 없음은 전체 팀 사이트 대신 개별 문서나 워크스페이스에 접근 권한을 부여할 수 있게 합니다.",
         "Off": "끄기",
@@ -631,7 +631,7 @@
         "Public access": "공개 접근",
         "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "{{parent}}에서 상속된 공개 접근입니다. 제거하려면 '접근 상속' 옵션을 '없음'으로 설정하세요.",
         "Public access: ": "공개 접근: ",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "사용자는 {{parent}}에서 권한을 상속받습니다. 제거하려면 '접근 상속' 옵션을 '없음'으로 설정하세요.",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "사용자는 {{parent})}에서 권한을 상속받습니다. 제거하려면 '접근 상속' 옵션을 '없음'으로 설정하세요.",
         "Your role for this team site": "이 팀 사이트에서의 역할",
         "Your role for this {{resourceType}}": "이 {{resourceType}}에서의 역할",
         "free collaborator": "무료 협업자",
@@ -643,7 +643,8 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "자신의 접근 권한을 제거하면, {{resourceType}}에 충분한 접근 권한이 있는 다른 사람의 도움 없이는 다시 접근 권한을 얻을 수 없습니다.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "사용자는 내부에 있는 리소스에 대한 수동 설정된 접근 권한으로 인해 {{resource}}에 대한 보기 접근 권한을 갖습니다. 여기서 제거하면 이 사용자는 내부 리소스에 대한 접근 권한을 잃게 됩니다.",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "사용자는 {{parent}}에서 권한을 상속받습니다. 제거하려면 '접근 상속' 옵션을 '없음'으로 설정하세요.",
-        "You are about to remove your own access to this {{resourceType}}": "이 {{resourceType}}에 대한 자신의 접근 권한을 제거하려고 합니다."
+        "You are about to remove your own access to this {{resourceType}}": "이 {{resourceType}}에 대한 자신의 접근 권한을 제거하려고 합니다",
+        "Access overview": "접근 권한 개요"
     },
     "SupportGristPage": {
         "Sponsor": "후원",
@@ -666,7 +667,7 @@
     },
     "FormView": {
         "Copy link": "링크 복사",
-        "Code copied to clipboard": "코드가 클립보드에 복사되었습니다.",
+        "Code copied to clipboard": "코드가 클립보드에 복사되었습니다",
         "Copy code": "코드 복사",
         "Publish": "게시",
         "Publish your form?": "양식을 게시하시겠습니까?",
@@ -675,7 +676,7 @@
         "Anyone with the link below can see the empty form and submit a response.": "아래 링크가 있는 누구나 빈 양식을 보고 응답을 제출할 수 있습니다.",
         "Are you sure you want to reset your form?": "양식을 초기화하시겠습니까?",
         "Embed this form": "이 양식 포함하기",
-        "Link copied to clipboard": "링크가 클립보드에 복사되었습니다.",
+        "Link copied to clipboard": "링크가 클립보드에 복사되었습니다",
         "Preview": "미리보기",
         "Reset": "초기화",
         "Reset form": "양식 초기화",
@@ -703,29 +704,29 @@
         "Ascending": "오름차순"
     },
     "CustomView": {
-        "Some required columns aren't mapped": "일부 필수 열이 매핑되지 않았습니다.",
+        "Some required columns aren't mapped": "일부 필수 열이 매핑되지 않았습니다",
         "To use this widget, please map all non-optional columns from the creator panel on the right.": "이 위젯을 사용하려면 오른쪽 생성기 패널에서 모든 필수 열을 매핑하세요.",
         "Some required columns are hidden by access rules": "일부 필수 열이 접근 규칙에 의해 숨겨짐",
         "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "이 위젯을 사용하려면 모든 매핑된 열이 표시되어야 합니다. 문서 소유자에게 문의하거나 접근 규칙을 수정하세요."
     },
     "CreateTeamModal": {
-        "Domain name is invalid": "도메인 이름이 잘못되었습니다.",
+        "Domain name is invalid": "도메인 이름이 잘못되었습니다",
         "Go to your site": "사이트로 이동",
         "Create site": "사이트 만들기",
-        "Domain name is required": "도메인 이름은 필수입니다.",
+        "Domain name is required": "도메인 이름은 필수입니다",
         "Team name": "팀 이름",
         "Cancel": "취소",
         "Choose a name and url for your team site": "팀 사이트의 이름과 URL을 선택하세요",
-        "Team name is required": "팀 이름은 필수입니다.",
+        "Team name is required": "팀 이름은 필수입니다",
         "Team site created": "팀 사이트 생성됨",
         "Team url": "팀 URL",
         "Work as a Team": "팀으로 작업하기",
-        "Billing is not supported in grist-core": "grist-core에서는 청구가 지원되지 않습니다."
+        "Billing is not supported in grist-core": "grist-core에서는 청구가 지원되지 않습니다"
     },
     "AdminPanel": {
         "Sandbox settings for data engine": "데이터 엔진용 샌드박스 설정",
         "Current authentication method": "현재 인증 방식",
-        "Grist is up to date": "Grist가 최신 버전입니다.",
+        "Grist is up to date": "Grist가 최신 버전입니다",
         "Grist releases are at ": "Grist 릴리스는 다음에 있습니다: ",
         "Last checked {{time}}": "마지막 확인: {{time}}",
         "Learn more.": "자세히 알아보기.",
@@ -762,7 +763,7 @@
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist는 SAML 및 OIDC를 포함한 다양한 유형의 인증을 구성할 수 있도록 허용합니다. Grist가 네트워크를 통해 접근 가능하거나 여러 사람에게 제공되는 경우 이 중 하나를 활성화하는 것을 권장합니다.",
         "No fault detected.": "결함 감지되지 않음.",
         "Notes": "참고",
-        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "또는 대체 방법으로 환경에서 {{bootKey}}를 설정하고 {{url}}을(를) 방문할 수 있습니다.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "또는 대체 방법으로 환경에서 {{bootKey}}를 설정하고 {{url}}을(를) 방문할 수 있습니다",
         "Results": "결과",
         "Self Checks": "자체 검사",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "관리자 패널에 접근할 권한이 없습니다.\n관리자로 로그인하세요.",
@@ -828,8 +829,8 @@
     "ViewLayout": {
         "Delete": "삭제",
         "Delete data and this widget.": "데이터 및 이 위젯을 삭제합니다.",
-        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "데이터는 유지하고 위젯만 삭제합니다. 테이블은 {{rawDataLink}}에서 계속 사용할 수 있습니다.",
-        "Table {{tableName}} will no longer be visible": "{{tableName}} 테이블이 더 이상 표시되지 않습니다.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "데이터는 유지하고 위젯만 삭제합니다. 표는 {{rawDataLink}}에서 계속 사용할 수 있습니다",
+        "Table {{tableName}} will no longer be visible": "{{tableName}} 표는 더 이상 표시되지 않습니다",
         "raw data page": "원본 데이터 페이지"
     },
     "HomeIntroCards": {
@@ -847,12 +848,12 @@
     },
     "ReverseReferenceConfig": {
         "Delete": "삭제",
-        "Delete column {{column}} in table {{table}}?": "{{table}} 테이블의 {{column}} 열을 삭제하시겠습니까?",
-        "It is the reverse of the reference column {{column}} in table {{table}}.": "이것은 {{table}} 테이블의 {{column}} 참조 열의 역방향입니다.",
-        "Table": "테이블",
+        "Delete column {{column}} in table {{table}}?": "{{table}} 표의 {{column}} 열을 삭제하시겠습니까?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "이것은 {{table}} 표의 {{column}} 참조 열의 역방향입니다.",
+        "Table": "표",
         "Two-way Reference": "양방향 참조",
         "Delete two-way reference?": "양방향 참조를 삭제하시겠습니까?",
-        "Target table": "대상 테이블",
+        "Target table": "대상 표",
         "Add two-way reference": "양방향 참조 추가",
         "Column": "열"
     },
@@ -891,8 +892,8 @@
         "Columns_one": "열",
         "Columns_other": "열",
         "Fields_other": "필드",
-        "Series_one": "시리즈",
-        "Series_other": "시리즈"
+        "Series_one": "계열",
+        "Series_other": "계열"
     },
     "ColumnTitle": {
         "Column description": "열 설명",
@@ -903,7 +904,7 @@
         "Add description": "설명 추가",
         "COLUMN ID: ": "열 ID: ",
         "Cancel": "취소",
-        "Column ID copied to clipboard": "열 ID가 클립보드에 복사되었습니다."
+        "Column ID copied to clipboard": "열 ID가 클립보드에 복사되었습니다"
     },
     "SupportGristNudge": {
         "Admin Panel": "관리자 패널",
@@ -962,7 +963,7 @@
         "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Grist Enterprise를 계속 사용하려면 활성 구독이 필요합니다.\n[Grist Enterprise 가입]({{signupLink}})하고 아래에 활성화 키를 붙여넣어\n구독을 활성화할 수 있습니다.",
         "Copy to clipboard": "클립보드에 복사",
         "Expiration date": "만료 날짜",
-        "Installation ID copied to clipboard": "설치 ID가 클립보드에 복사되었습니다.",
+        "Installation ID copied to clipboard": "설치 ID가 클립보드에 복사되었습니다",
         "Installation ID:": "설치 ID:",
         "Installation seats": "설치 시트 수",
         "Learn more in our [Help Center]({{helpCenter}}).": "자세한 내용은 [도움말 센터]({{helpCenter}})에서 알아보세요.",
@@ -1024,12 +1025,12 @@
         "Record Card Disabled": "레코드 카드 비활성화됨",
         "Click to copy": "클릭하여 복사",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "{{formattedTableName}} 데이터를 삭제하고 모든 페이지에서 제거하시겠습니까?",
-        "Duplicate Table": "테이블 복제",
-        "Raw Data Tables": "원본 데이터 테이블",
-        "Table ID copied to clipboard": "테이블 ID가 클립보드에 복사되었습니다.",
-        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다.",
-        "Remove Table": "테이블 제거",
-        "Rename Table": "테이블 이름 변경"
+        "Duplicate Table": "표 복제",
+        "Raw Data Tables": "원본 데이터 표",
+        "Table ID copied to clipboard": "표 ID가 클립보드에 복사되었습니다",
+        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다",
+        "Remove Table": "표 제거",
+        "Rename Table": "표 이름 변경"
     },
     "ApiKey": {
         "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "API 키를 삭제하려고 합니다. 삭제하면 이 API 키를 사용하는 이후 모든 요청이 거부됩니다. 삭제하시겠습니까?",
@@ -1072,12 +1073,12 @@
         "Rename": "이름 변경",
         "Requires edit permissions": "편집 권한 필요",
         "Restore": "복원",
-        "This service is not available right now": "현재 이 서비스를 사용할 수 없습니다.",
+        "This service is not available right now": "현재 이 서비스를 사용할 수 없습니다",
         "To restore this document, restore the workspace first.": "이 문서를 복원하려면 먼저 워크스페이스를 복원하세요.",
         "Trash": "휴지통",
         "Trash is empty.": "휴지통이 비어 있습니다.",
         "Unpin Document": "문서 고정 해제",
-        "Workspace not found": "워크스페이스를 찾을 수 없습니다.",
+        "Workspace not found": "워크스페이스를 찾을 수 없습니다",
         "You are on the {{siteName}} site. You also have access to the following sites:": "현재 {{siteName}} 사이트에 있습니다. 다음 사이트에도 접근할 수 있습니다:",
         "You are on your personal site. You also have access to the following sites:": "현재 개인 사이트에 있습니다. 다음 사이트에도 접근할 수 있습니다:",
         "You may delete a workspace forever once it has no documents in it.": "워크스페이스에 문서가 없으면 영구적으로 삭제할 수 있습니다.",
@@ -1137,7 +1138,7 @@
         "Email": "이메일",
         "Login Method": "로그인 방식",
         "Name": "이름",
-        "Names only allow letters, numbers and certain special characters": "이름에는 문자, 숫자 및 일부 특수 문자만 사용할 수 있습니다.",
+        "Names only allow letters, numbers and certain special characters": "이름에는 문자, 숫자 및 일부 특수 문자만 사용할 수 있습니다",
         "Password & Security": "비밀번호 및 보안",
         "Save": "저장",
         "Theme": "테마",
@@ -1167,10 +1168,10 @@
     },
     "ActionLog": {
         "Action Log failed to load": "활동 로그 로드 실패",
-        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "{{colId}} 열은 이후 작업 #{{action.actionNum}}에서 제거되었습니다.",
-        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "{{tableId}} 테이블은 이후 작업 #{{actionNum}}에서 제거되었습니다.",
-        "This row was subsequently removed in action {{action.actionNum}}": "이 행은 이후 작업 #{{action.actionNum}}에서 제거되었습니다.",
-        "All tables": "모든 테이블"
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "{{colId}} 열은 이후 작업 #{{action.actionNum}}에서 제거되었습니다",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "{{tableId}} 표는 이후 작업 #{{actionNum}}에서 제거되었습니다",
+        "This row was subsequently removed in action {{action.actionNum}}": "이 행은 이후 작업 #{{action.actionNum}}에서 제거되었습니다",
+        "All tables": "모든 표"
     },
     "AppHeader": {
         "Home Page": "홈 페이지",
@@ -1249,7 +1250,7 @@
         "Only owners have access to snapshots for documents with access rules.": "접근 규칙이 있는 문서의 스냅샷은 소유자만 접근할 수 있습니다."
     },
     "DocTour": {
-        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "이 문서의 데이터로 문서 둘러보기를 구성할 수 없습니다. GristDocTour 테이블에 Title, Body, Placement, Location 열이 있는지 확인하세요.",
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "이 문서의 데이터로 문서 둘러보기를 구성할 수 없습니다. GristDocTour 표에 Title, Body, Placement, Location 열이 있는지 확인하세요.",
         "No valid document tour": "유효한 문서 둘러보기 없음"
     },
     "Drafts": {
@@ -1257,31 +1258,31 @@
         "Undo discard": "폐기 취소"
     },
     "DuplicateTable": {
-        "Copy all data in addition to the table structure.": "테이블 구조 외에 모든 데이터도 복사합니다.",
-        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "테이블을 복제하는 대신 연결된 보기를 사용하여 데이터를 분할하는 것이 일반적으로 더 좋습니다. {{link}}",
-        "Name for new table": "새 테이블 이름",
+        "Copy all data in addition to the table structure.": "표 구조 뿐 아니라 모든 데이터도 복사합니다.",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "표를 복제하는 대신 연결된 보기를 사용하여 데이터를 분할하는 것이 일반적으로 더 좋습니다. {{link}}",
+        "Name for new table": "새 표 이름",
         "Only the document default access rules will apply to the copy.": "문서의 기본 접근 규칙만 사본에 적용됩니다."
     },
     "ExampleInfo": {
         "Afterschool Program": "방과 후 프로그램",
         "Check out our related tutorial for how to link data, and create high-productivity layouts.": "데이터 연결 및 생산성 높은 레이아웃 생성 방법에 대한 관련 튜토리얼을 확인하세요.",
         "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "비즈니스 데이터 모델링, 수식 사용, 복잡성 관리 방법에 대한 관련 튜토리얼을 확인하세요.",
-        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "요약 테이블 및 차트 생성, 동적 차트 연결 방법에 대한 관련 튜토리얼을 확인하세요.",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "요약 표 및 차트 생성, 동적 차트 연결 방법에 대한 관련 튜토리얼을 확인하세요.",
         "Investment Research": "투자 리서치",
         "Lightweight CRM": "간편 CRM",
         "Tutorial: Analyze & Visualize": "튜토리얼: 분석 및 시각화",
         "Tutorial: Create a CRM": "튜토리얼: CRM 만들기",
         "Tutorial: Manage Business Data": "튜토리얼: 비즈니스 데이터 관리",
-        "Welcome to the Afterschool Program template": "방과 후 프로그램 템플릿에 오신 것을 환영합니다.",
-        "Welcome to the Investment Research template": "투자 리서치 템플릿에 오신 것을 환영합니다.",
-        "Welcome to the Lightweight CRM template": "간편 CRM 템플릿에 오신 것을 환영합니다."
+        "Welcome to the Afterschool Program template": "방과 후 프로그램 템플릿에 오신 것을 환영합니다",
+        "Welcome to the Investment Research template": "투자 리서치 템플릿에 오신 것을 환영합니다",
+        "Welcome to the Lightweight CRM template": "간편 CRM 템플릿에 오신 것을 환영합니다"
     },
     "FieldConfig": {
         "COLUMN BEHAVIOR": "열 동작",
         "COLUMN LABEL AND ID": "열 레이블 및 ID",
         "Clear and make into formula": "내용 지우고 수식으로 만들기",
         "Clear and reset": "내용 지우고 초기화",
-        "Column options are limited in summary tables.": "요약 테이블에서는 열 옵션이 제한됩니다.",
+        "Column options are limited in summary tables.": "요약 표에서는 열 옵션이 제한됩니다.",
         "Convert column to data": "열을 데이터로 변환",
         "Convert to trigger formula": "트리거 수식으로 변환",
         "Data Columns_one": "데이터 열",
@@ -1367,10 +1368,10 @@
         "Update": "업데이트",
         "Update Original": "원본 업데이트",
         "Workspace": "워크스페이스",
-        "You do not have write access to the selected workspace": "선택한 워크스페이스에 쓰기 접근 권한이 없습니다.",
-        "You do not have write access to this site": "이 사이트에 쓰기 접근 권한이 없습니다.",
+        "You do not have write access to the selected workspace": "선택한 워크스페이스에 쓰기 접근 권한이 없습니다",
+        "You do not have write access to this site": "이 사이트에 쓰기 접근 권한이 없습니다",
         "Download document and history": "전체 문서 및 기록 다운로드",
-        "Download document structure only (no data, for template use)": "모든 데이터를 제거하되, 템플릿으로 사용할 구조는 유지합니다.",
+        "Download document structure only (no data, for template use)": "모든 데이터를 제거하되, 템플릿으로 사용할 구조는 유지합니다",
         "Download document without history (can significantly reduce file size)": "문서 기록 제거 (파일 크기를 크게 줄일 수 있음)",
         "Download": "다운로드",
         "Download document": "문서 다운로드",
@@ -1398,8 +1399,8 @@
     "Pages": {
         "Delete": "삭제",
         "Delete data and this page.": "데이터 및 이 페이지를 삭제합니다.",
-        "The following tables will no longer be visible_one": "다음 테이블이 더 이상 표시되지 않습니다.",
-        "The following tables will no longer be visible_other": "다음 테이블들이 더 이상 표시되지 않습니다."
+        "The following tables will no longer be visible_one": "다음 표는 더 이상 표시되지 않습니다",
+        "The following tables will no longer be visible_other": "다음 표들은 더 이상 표시되지 않습니다"
     },
     "PermissionsWidget": {
         "Allow All": "모두 허용",
@@ -1430,8 +1431,8 @@
         "Change Widget": "위젯 변경",
         "Columns_one": "열",
         "Columns_other": "열",
-        "DATA TABLE": "데이터 테이블",
-        "DATA TABLE NAME": "데이터 테이블 이름",
+        "DATA TABLE": "데이터 표",
+        "DATA TABLE NAME": "데이터 표 이름",
         "Data": "데이터",
         "Detach": "분리",
         "Edit Data Selection": "데이터 선택 편집",
@@ -1447,14 +1448,14 @@
         "SOURCE DATA": "원본 데이터",
         "Save": "저장",
         "Select Widget": "위젯 선택",
-        "Series_one": "시리즈",
-        "Series_other": "시리즈",
+        "Series_one": "계열",
+        "Series_other": "계열",
         "Sort & Filter": "정렬 및 필터",
         "TRANSFORM": "변환",
         "Theme": "테마",
         "WIDGET TITLE": "위젯 제목",
         "Widget": "위젯",
-        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다.",
+        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다",
         "Add referenced columns": "참조된 열 추가",
         "Reset form": "양식 초기화",
         "Configuration": "구성",
@@ -1472,7 +1473,7 @@
         "Submit another response": "다른 응답 제출",
         "Submit button label": "제출 버튼 레이블",
         "Success text": "성공 텍스트",
-        "Table column name": "테이블 열 이름",
+        "Table column name": "표 열 이름",
         "Enter redirect URL": "리디렉션 URL 입력",
         "No field selected": "선택된 필드 없음",
         "Thank you! Your response has been recorded.": "감사합니다! 응답이 기록되었습니다."
@@ -1486,7 +1487,7 @@
         "Insert row above": "위에 행 삽입",
         "Insert row below": "아래에 행 삽입",
         "View as card": "카드로 보기",
-        "Use as table headers": "테이블 헤더로 사용"
+        "Use as table headers": "표 헤더로 사용"
     },
     "SelectionSummary": {
         "Copied to clipboard": "클립보드에 복사됨"
@@ -1516,7 +1517,7 @@
         "Comma Separated Values (.csv)": "쉼표로 구분된 값 (.csv)",
         "DOO Separated Values (.dsv)": "DOO로 구분된 값 (.dsv)",
         "Export as...": "다음으로 내보내기...",
-        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Microsoft Excel (.xlsx)": "마이크로소프트 엑셀 (.xlsx)",
         "Tab Separated Values (.tsv)": "탭으로 구분된 값 (.tsv)",
         "Exporting is only available from document pages. Please select a document page and try again.": "내보내기는 문서 페이지에서만 사용할 수 있습니다. 문서 페이지를 선택한 후 다시 시도하세요.",
         "Download document...": "문서 다운로드...",
@@ -1602,7 +1603,7 @@
     },
     "ViewConfigTab": {
         "Advanced settings": "고급 설정",
-        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "큰 테이블은 데이터 엔진으로 로드하는 것을 피하기 위해 \"요청 시 로드\"로 표시될 수 있습니다.",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "큰 표는 데이터 엔진으로 로드하는 것을 피하기 위해 \"요청 시 로드\"로 표시될 수 있습니다.",
         "Blocks": "블록",
         "Compact": "간결하게",
         "Edit Card Layout": "카드 레이아웃 편집",
@@ -1630,7 +1631,7 @@
         "Duplicate Page": "페이지 복제",
         "Remove": "제거",
         "Rename": "이름 변경",
-        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다."
+        "You do not have edit access to this document": "이 문서를 편집할 접근 권한이 없습니다"
     },
     "CellStyle": {
         "Header Style": "헤더 스타일",
@@ -1662,7 +1663,7 @@
     },
     "ACLUsers": {
         "Example Users": "예시 사용자",
-        "Users from table": "테이블의 사용자",
+        "Users from table": "표에서 불러온 사용자",
         "View As": "다음 사용자로 보기"
     },
     "TypeTransform": {
@@ -1691,7 +1692,7 @@
         "Add conditional style": "조건부 스타일 추가",
         "Error in style rule": "스타일 규칙 오류",
         "Row Style": "행 스타일",
-        "Rule must return True or False": "규칙은 True 또는 False를 반환해야 합니다.",
+        "Rule must return True or False": "규칙은 True 또는 False를 반환해야 합니다",
         "Conditional Style": "조건부 스타일",
         "IF...": "만약..."
     },
@@ -1699,15 +1700,15 @@
         "Invalid currency": "잘못된 통화"
     },
     "FieldEditor": {
-        "It should be impossible to save a plain data value into a formula column": "수식 열에는 일반 데이터 값을 저장할 수 없어야 합니다.",
+        "It should be impossible to save a plain data value into a formula column": "수식 열에는 일반 데이터 값을 저장할 수 없어야 합니다",
         "Unable to finish saving edited cell": "편집된 셀 저장 완료 불가"
     },
     "FormulaEditor": {
-        "Column or field is required": "열 또는 필드가 필요합니다.",
+        "Column or field is required": "열 또는 필드가 필요합니다",
         "Error in the cell": "셀 오류",
         "Errors in all {{numErrors}} cells": "모든 {{numErrors}}개 셀 오류",
         "Errors in {{numErrors}} of {{numCells}} cells": "{{numCells}}개 셀 중 {{numErrors}}개 오류",
-        "editingFormula is required": "editingFormula가 필요합니다.",
+        "editingFormula is required": "editingFormula가 필요합니다",
         "Enter formula or {{button}}.": "수식을 입력하거나 {{button}}.",
         "Enter formula.": "수식 입력.",
         "Expand Editor": "편집기 확장",
@@ -1769,7 +1770,7 @@
         "Status": "상태",
         "URL": "URL",
         "Webhook Id": "웹훅 ID",
-        "Table": "테이블",
+        "Table": "표",
         "Filter for changes in these columns (semicolon-separated ids)": "이 열의 변경 사항 필터링 (세미콜론으로 구분된 ID)",
         "Header Authorization": "헤더 Authorization",
         "Webhooks Unavailable In Unsaved Document Copies": "저장되지 않은 문서 복사본에서는 Webhook 사용 불가"
@@ -1797,7 +1798,7 @@
         "Clear Conversation": "대화 지우기",
         "Code View": "코드 보기",
         "Hi, I'm the Grist Formula AI Assistant.": "안녕하세요, Grist 수식 AI 어시스턴트입니다.",
-        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "수식에 대해서만 도와드릴 수 있습니다. 테이블, 열, 뷰 생성 또는 접근 규칙 작성은 할 수 없습니다.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "수식에 대해서만 도와드릴 수 있습니다. 표, 열, 뷰 생성 또는 접근 규칙 작성은 할 수 없습니다.",
         "Learn more": "자세히 알아보기",
         "Press Enter to apply suggested formula.": "Enter 키를 눌러 제안된 수식을 적용하세요.",
         "Sign Up for Free": "무료로 가입하기",
@@ -1825,7 +1826,7 @@
     },
     "SearchModel": {
         "Search all pages": "모든 페이지 검색",
-        "Search all tables": "모든 테이블 검색"
+        "Search all tables": "모든 표 검색"
     },
     "searchDropdown": {
         "Search": "검색"
@@ -1910,7 +1911,7 @@
     },
     "Field": {
         "No choices configured": "구성된 선택 항목 없음",
-        "No values in show column of referenced table": "참조된 테이블의 표시 열에 값 없음",
+        "No values in show column of referenced table": "참조된 표의 표시 열에 값 없음",
         "Hide": "숨기기"
     },
     "ChoiceListEditor": {
@@ -1939,7 +1940,7 @@
         "Chart": "차트",
         "Custom": "사용자 정의",
         "Form": "양식",
-        "Table": "테이블"
+        "Table": "표"
     },
     "TimingPage": {
         "Average Time (s)": "평균 시간 (초)",
@@ -1948,7 +1949,7 @@
         "Loading timing data. Don't close this tab.": "시간 측정 데이터 로드 중. 이 탭을 닫지 마세요.",
         "Max Time (s)": "최대 시간 (초)",
         "Number of Calls": "호출 횟수",
-        "Table ID": "테이블 ID",
+        "Table ID": "표 ID",
         "Total Time (s)": "총 시간 (초)"
     },
     "AdminPanelName": {
@@ -1978,8 +1979,8 @@
                 "markdownguide.org) *inside*\n *      a Grainjs element.": "# 새 마크다운 함수\n *\n *      Grainjs 요소 *안에* _[일반적인 마크다운](https://markdownguide.org)_을\n *      작성할 수 있습니다."
             }
         },
-        "The toggle is **off**": "토글이 **꺼짐** 상태입니다.",
-        "The toggle is **on**": "토글이 **켜짐** 상태입니다."
+        "The toggle is **off**": "토글이 **꺼짐** 상태입니다",
+        "The toggle is **on**": "토글이 **켜짐** 상태입니다"
     },
     "markdown.d": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
@@ -1987,8 +1988,8 @@
                 "markdownguide.org) *inside*\n *      a Grainjs element.": "# 새 마크다운 함수\n *\n *      Grainjs 요소 *안에* _[일반적인 마크다운](https://markdownguide.org)_을\n *      작성할 수 있습니다."
             }
         },
-        "The toggle is **off**": "토글이 **꺼짐** 상태입니다.",
-        "The toggle is **on**": "토글이 **켜짐** 상태입니다."
+        "The toggle is **off**": "토글이 **꺼짐** 상태입니다",
+        "The toggle is **on**": "토글이 **켜짐** 상태입니다"
     },
     "buildReassignModal": {
         "Cancel": "취소",
@@ -2008,7 +2009,7 @@
         "Do you **trust the person** who shared this link?": "이 링크를 공유한 **사람을 신뢰**하십니까?",
         "Have you **reviewed the code** at this URL?": "이 URL의 **코드를 검토**하셨습니까?",
         "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "확신이 없다면 이 위젯을 설치하지 마거나, 조직의 관리자에게 안전성 검토를 요청하세요.",
-        "I confirm that I understand these warnings and accept the risks": "이 경고를 이해했으며 위험을 감수함을 확인합니다."
+        "I confirm that I understand these warnings and accept the risks": "이 경고를 이해했으며 위험을 감수함을 확인합니다"
     },
     "Assistant": {
         "upgrade your plan": "플랜을 업그레이드하기",
