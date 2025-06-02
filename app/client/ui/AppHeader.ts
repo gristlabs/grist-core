@@ -330,6 +330,8 @@ const cssAppLogo = styled('a._cssAppLogo', `
   overflow: hidden;
   border-right-color: var(--middle-border-color, ${theme.appHeaderBorder});
 
+  outline-offset: -1px;
+
   &-grist-logo {
     background-image: var(--icon-GristLogo);
     background-color: ${vars.logoBg};
