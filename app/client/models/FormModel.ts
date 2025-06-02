@@ -78,6 +78,17 @@ export class FormModelImpl extends Disposable implements FormModel {
     const form = this.form.get();
     if (!form) { throw new Error('form is not defined'); }
 
+    for (const key of formData.keys()) {
+      const value = formData.get(key);
+      if (value instanceof File) {
+        const uploadResult = await this._formAPI.createAttachment({
+          ...this._getDocIdOrShareKeyParam(),
+          upload: value,
+        });
+        formData.setAttachmentId(key, uploadResult);
+      }
+    }
+
     const colValues = typedFormDataToJson(formData);
     try {
       this.submitting.set(true);

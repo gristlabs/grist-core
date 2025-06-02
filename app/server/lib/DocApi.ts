@@ -1655,7 +1655,7 @@ export class DocWorkerApi {
           .filter(f => {
             const col = Tables_column.getRecord(f.colRef);
             // Formulas and attachments are currently unsupported.
-            return col && !(col.isFormula && col.formula) && col.type !== 'Attachments';
+            return col && !(col.isFormula && col.formula);
           });
 
         let {layoutSpec: formLayoutSpec} = section;
