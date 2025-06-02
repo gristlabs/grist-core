@@ -172,6 +172,7 @@ import pick = require('lodash/pick');
 import sum = require('lodash/sum');
 import throttle = require('lodash/throttle');
 import without = require('lodash/without');
+import {SandboxError} from 'app/server/lib/sandboxUtil';
 
 bluebird.promisifyAll(tmp);
 
@@ -2643,11 +2644,18 @@ export class ActiveDoc extends EventEmitter {
       fileSize: newFileSizesForRows
     }];
 
-    await this._applyUserActionsWithExtendedOptions(
-      docSession,
-      [action],
-      {attachment: true},
-    );
+    try {
+      await this._applyUserActionsWithExtendedOptions(
+        docSession,
+        [action],
+        {attachment: true},
+      );
+    } catch (e) {
+      if (e instanceof SandboxError) {
+        this._log.error(null, "Attachment sizes could not be updated due to a sandbox error: ", e);
+        throw new Error("Attachment sizes could not be updated due to a sandbox error", { cause: e });
+      }
+    }
 
     // Updates doc's overall attachment usage to reflect any changes to file sizes.
     await this._updateAttachmentsSize();
