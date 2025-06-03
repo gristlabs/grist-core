@@ -116,7 +116,7 @@ jobs:
 
       - name: Run a test using pyodide
         if: contains(matrix.tests, ':pyodide:')
-        run:
+        run: |
           cd sandbox/pyodide
           make setup
           cd ../..
