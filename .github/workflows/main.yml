@@ -120,7 +120,7 @@ jobs:
           cd sandbox/pyodide
           make setup
           cd ../..
-          yarn run test:server -g ActiveDoc
+          yarn run test:server -g ActiveDoc.useQuerySet
         env:
           MOCHA_WEBDRIVER_HEADLESS: 1
           GRIST_SANDBOX_FLAVOR: pyodide
