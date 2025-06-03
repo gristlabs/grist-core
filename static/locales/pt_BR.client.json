@@ -1559,7 +1559,8 @@
         "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} de {{limitTop}} {{collaborator}}s",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Nenhum acesso padrão permite que o acesso seja concedido a documentos ou espaços de trabalho individuais, em vez do site de equipe completo.",
         "You are about to remove your own access to this {{resourceType}}": "Você está prestes a remover seu próprio acesso a este {{resourceType}}",
-        "Inherit access: ": "Acesso herdado: "
+        "Inherit access: ": "Acesso herdado: ",
+        "Access overview": "Visão geral do acesso"
     },
     "SearchModel": {
         "Search all tables": "Procurar todas as tabelas",
