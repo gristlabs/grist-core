@@ -1546,7 +1546,8 @@
         "You are about to remove your own access to this {{resourceType}}": "Usted está a punto de quitar su propio acceso a este {{resourceType}}",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "El usuario hereda los permisos de {{parent}}. Para eliminarlo, establece la opción \"Heredar el acceso\" en \"Ninguno\".",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "El usuario tiene acceso de visualización a {{resource}} como resultado del acceso configurado manualmente a los recursos que contiene. Si se elimina aquí, este usuario perderá el acceso a los recursos que contiene.",
-        "Inherit access: ": "Heredar acceso: "
+        "Inherit access: ": "Heredar acceso: ",
+        "Access overview": "Panorama general"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPCIÓN"
