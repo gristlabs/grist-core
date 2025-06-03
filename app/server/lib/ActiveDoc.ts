@@ -125,6 +125,7 @@ import {LogMethods} from 'app/server/lib/LogMethods';
 import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
+import {SandboxError} from 'app/server/lib/sandboxUtil';
 import {
   getDocSessionAccess,
   getDocSessionAccessOrNull,
@@ -172,7 +173,6 @@ import pick = require('lodash/pick');
 import sum = require('lodash/sum');
 import throttle = require('lodash/throttle');
 import without = require('lodash/without');
-import {SandboxError} from 'app/server/lib/sandboxUtil';
 
 bluebird.promisifyAll(tmp);
 
@@ -2655,6 +2655,7 @@ export class ActiveDoc extends EventEmitter {
         this._log.error(null, "Attachment sizes could not be updated due to a sandbox error: ", e);
         throw new Error("Attachment sizes could not be updated due to a sandbox error", { cause: e });
       }
+      throw e;
     }
 
     // Updates doc's overall attachment usage to reflect any changes to file sizes.
