@@ -7,6 +7,7 @@ import {DocStorage} from 'app/server/lib/DocStorage';
 import {createDummyGristServer} from 'app/server/lib/GristServer';
 import {TrivialDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {DBMetadata, OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import {TestAttachmentVirusScanProvider} from 'app/server/lib/AttachmentVirusScanProvider';
 
 /**
  * A utility class for modifying a SQLite file to be viewed/edited with Grist.
@@ -55,7 +56,7 @@ export class Gristifier {
     // tables.
     const docManager = new DocManager(
       new TrivialDocStorageManager(), null, null,
-      new AttachmentStoreProvider([], ""), createDummyGristServer()
+      new AttachmentStoreProvider([], ""), [new TestAttachmentVirusScanProvider()], createDummyGristServer()
     );
     const activeDoc = new ActiveDoc(docManager, this._filename);
     const docSession = makeExceptionalDocSession('system');

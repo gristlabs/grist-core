@@ -31,8 +31,10 @@ import {
   AttachmentStoreProvider,
   checkAvailabilityAttachmentStoreOptions,
   getConfiguredAttachmentStoreConfigs,
+  getConfiguredVirusScanProviders,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
+import {IAttachmentVirusScanProvider} from 'app/server/lib/AttachmentVirusScanProvider';
 import {addRequestUser, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
@@ -161,6 +163,7 @@ export class FlexServer implements GristServer {
   private _installAdmin: InstallAdmin;
   private _instanceRoot: string;
   private _attachmentStoreProvider: IAttachmentStoreProvider;
+  private _virusScanProviders: IAttachmentVirusScanProvider[];
   private _docManager: DocManager;
   private _docWorker: DocWorker;
   private _hosts: Hosts;
@@ -1513,10 +1516,12 @@ export class FlexServer implements GristServer {
       await getConfiguredAttachmentStoreConfigs(),
       (await this.getActivations().current()).id,
     );
+    this._virusScanProviders = this._virusScanProviders || getConfiguredVirusScanProviders();
     this._docManager = this._docManager || new DocManager(this._storageManager,
       pluginManager,
       this._dbManager,
       this._attachmentStoreProvider,
+      this._virusScanProviders,
       this);
     const docManager = this._docManager;
 

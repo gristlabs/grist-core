@@ -1150,6 +1150,7 @@ describe('ActiveDoc', async function() {
     ] as const) {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'docUrlTest' + docUrl.length,
                                       new AttachmentStoreProvider([], "TEST-INSTALL-ID"),
+                                      [],
                                       { docUrl });
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [

@@ -1,11 +1,14 @@
 import {appSettings} from 'app/server/lib/AppSettings';
 import {FilesystemAttachmentStore, IAttachmentStore} from 'app/server/lib/AttachmentStore';
+import { IAttachmentVirusScanProvider } from 'app/server/lib/AttachmentVirusScanProvider';
 import {create} from 'app/server/lib/create';
 import log from 'app/server/lib/log';
 import {ICreateAttachmentStoreOptions} from 'app/server/lib/ICreate';
 import * as fse from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp-promise';
+
+import {TestAttachmentVirusScanProvider} from 'app/server/lib/AttachmentVirusScanProvider';
 
 export type AttachmentStoreId = string
 
@@ -202,4 +205,8 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
   }
   // GRIST_EXTERNAL_ATTACHMENTS_MODE has some value that doesn't make sense.
   throw new UnsupportedExternalAttachmentsMode(GRIST_EXTERNAL_ATTACHMENTS_MODE);
+}
+
+export function getConfiguredVirusScanProviders(): IAttachmentVirusScanProvider[] {
+  return [new TestAttachmentVirusScanProvider()];
 }
