@@ -1888,7 +1888,7 @@
         "Delete two-way reference?": "Supprimer la référence bi-directionnelle ?",
         "Column": "Colonne",
         "Table": "Table",
-        "It is the reverse of the reference column {{column}} in table {{table}}.": "Il s'agit de la référence retour de la colonne {{column}} de la table {{table}}."
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "C'est l'inverse de la colonne de référence {{colonne}} dans le tableau {{table}}."
     },
     "SupportGristButton": {
         "Admin Panel": "Panneau d'administration",
