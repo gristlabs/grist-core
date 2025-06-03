@@ -20,7 +20,7 @@ jobs:
         python-version: [3.11]
         node-version: [22.x]
         tests:
-          - ':lint:python:client:common:smoke:stubs:'
+          - ':lint:python:client:common:smoke:stubs:pyodide:'
           - ':server-1-of-2:'
           - ':server-2-of-2:'
           - ':gen-server:'
@@ -113,6 +113,17 @@ jobs:
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
+
+      - name: Run a test using pyodide
+        if: contains(matrix.test, ':pyodide:')
+        run:
+          cd sandbox/pyodide
+          make setup
+          cd ../..
+          yarn run test:gen-server -g ActiveDoc
+        env:
+          MOCHA_WEBDRIVER_HEADLESS: 1
+          GRIST_SANDBOX_FLAVOR: pyodide
 
       - name: Run gen-server tests with postgres, minio and redis
         if: contains(matrix.tests, ':gen-server:')
