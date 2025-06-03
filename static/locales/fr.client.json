@@ -184,7 +184,8 @@
         "Hole Size": "Taille de l’anneau",
         "Stack series": "Empiler les séries",
         "Above+Below": "Asymétrique",
-        "selected new x-axis": "Nouvel axe horizontal sélectionné"
+        "selected new x-axis": "Nouvel axe horizontal sélectionné",
+        "Pie Chart": "Camembert"
     },
     "CodeEditorPanel": {
         "Access denied": "Accès refusé",
@@ -412,8 +413,8 @@
         "External": "Externe",
         "Internal": "Interne",
         "**Some existing attachments are still [external]({{externalLink}})**.": "Certains pièces jointes existantes sont toujours [externes]({{externalLink}}).",
-        "[Learn more.]({{learnLink}})": "[En savoir plus.]{{learnLink}}",
-        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certaines pièces jointes existantes sont toujours internes({{internalLink}})** (stockées dans le fichier SQLite)."
+        "[Learn more.]({{learnLink}})": "[En savoir plus.]({{learnLink}})",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certains pièces jointes existantes sont toujours [internes]({{internalLink}})** (stockées dans un fichier SQLite)."
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -1529,7 +1530,7 @@
         "Share this form": "Partager ce formulaire",
         "Reset": "Réinitialiser",
         "Share": "Partager",
-        "Your form description goes here.": "Vous pouvez écrire une description ici.",
+        "Your form description goes here.": "Votre description se place ici.",
         "# **Form Title**": "# **Titre du formulaire**"
     },
     "HiddenQuestionConfig": {
