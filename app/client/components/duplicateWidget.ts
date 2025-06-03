@@ -70,13 +70,13 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
   });
 }
 
-// TODO - change this to 'duplicateWidgets'
-// TODO - Get it working
 // TODO - Export this to duplicatePage with same API
 // TODO - Simplify API where possible / improve code quality
 //      - Include a check to make sure all widgets are all coming from the same page.
 // TODO - Make sure all telemetry is still in place
 // TODO - Write tests that cover duplicating widgets
+// TODO - Check form handling
+// TODO - Check link handling
 
 export interface DuplicatedWidgetSpec {
   sourceViewSectionId: number;
@@ -88,6 +88,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
   const allViewSectionModels = gristDoc.docModel.viewSections.rowModels;
   const validWidgetSpecs = widgetSpecs.filter(spec => allViewSectionModels[spec.sourceViewSectionId]);
   const sourceViewSections = validWidgetSpecs.map(spec => allViewSectionModels[spec.sourceViewSectionId]);
+  let resolvedDestViewId = destViewId;
 
   // TODO - something if no valid widget specs exist. Should we also catch invalid ones and log?
 
@@ -98,7 +99,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
       const sourceView = sourceViewSections[0].view.peek();
       const newViewSectionsDetails = await createNewViewSections(gristDoc.docData, sourceViewSections, destViewId);
       // If a new view was created, this ensures everything following uses that new view.
-      destViewId = newViewSectionsDetails[0].viewRef;
+      resolvedDestViewId = newViewSectionsDetails[0].viewRef;
       const newViewSectionRefs: number[] = newViewSectionsDetails.map(result => result.sectionRef);
       // TODO - I feel like we should be doing some sanity checking here or something.
       const newViewSections = newViewSectionRefs.map(id => gristDoc.docModel.viewSections.rowModels[id]);
@@ -118,11 +119,16 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
         flatten(newViewFieldIds)) as {[id: number]: number};
 
       // update layout spec
-      const viewLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
+      let layoutSpecUpdatePromise = Promise.resolve();
+      // If we're creating a new page, we should copy the widget layout over.
+      if (destViewId < 1) {
+          const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
+          layoutSpecUpdatePromise = gristDoc.docData.sendAction(
+            ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}]
+          );
+      }
       await Promise.all([
-        gristDoc.docData.sendAction(
-          ['UpdateRecord', '_grist_Views', destViewId, { layoutSpec: JSON.stringify(viewLayoutSpec)}]
-        ),
+        layoutSpecUpdatePromise,
         updateViewSections(gristDoc, newViewSections, sourceViewSections, viewFieldsIdMap, viewSectionIdMap),
         copyFilters(gristDoc, sourceViewSections, viewSectionIdMap)
       ]);
@@ -132,7 +138,11 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
   );
 
   // Give copy focus
-  await gristDoc.openDocPage(destViewId);
+  await gristDoc.openDocPage(resolvedDestViewId);
+
+  return {
+    viewId: resolvedDestViewId,
+  };
 }
 
 /**
@@ -168,7 +178,7 @@ async function copyFilters(
  */
 async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSectionRec[],
                                   srcViewSections: ViewSectionRec[], fieldsMap: {[id: number]: number},
-                                  viewSectionMap: {[id: number]: number}) {
+                                  viewSectionMap: {[id: number]: number}, maintainLinks: boolean = true) {
 
   // collect all the records for the src view sections
   const records: RowRecord[] = [];
@@ -181,7 +191,7 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
     records.push({
       ...record,
       layoutSpec: JSON.stringify(viewSectionLayoutSpec),
-      linkSrcSectionRef: viewSectionMap[srcViewSection.linkSrcSectionRef.peek()],
+      linkSrcSectionRef: maintainLinks ? viewSectionMap[srcViewSection.linkSrcSectionRef.peek()] : false,
       shareOptions: '',
     });
   }
