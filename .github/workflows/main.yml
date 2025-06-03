@@ -115,12 +115,12 @@ jobs:
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
 
       - name: Run a test using pyodide
-        if: contains(matrix.test, ':pyodide:')
+        if: contains(matrix.tests, ':pyodide:')
         run:
           cd sandbox/pyodide
           make setup
           cd ../..
-          yarn run test:gen-server -g ActiveDoc
+          yarn run test:server -g ActiveDoc
         env:
           MOCHA_WEBDRIVER_HEADLESS: 1
           GRIST_SANDBOX_FLAVOR: pyodide
