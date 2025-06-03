@@ -8,7 +8,7 @@ import {
   enableExternalAttachmentsForTestSuite
 } from 'test/nbrowser/externalAttachmentsHelpers';
 
-describe('DocumentUsage', function() {
+describe('DocUsageTracking', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
@@ -48,10 +48,9 @@ describe('DocumentUsage', function() {
     it('updates attachments size usage when uploading attachments', async function () {
       const docId = getDocId();
       // Add a new 'Attachments' column of type Attachment to Table1.
-      await api.applyUserActions(docId, [['AddEmptyTable', "AttachmentsTable"]]);
+      await gu.sendActions([['AddEmptyTable', "AttachmentsTable"]]);
       await gu.getPageItem('AttachmentsTable').click();
-      await gu.waitForServer();
-      await addAttachmentColumn('Attachments');
+      await gu.addColumn("Attachments", "Attachment");
 
       // Upload some files into the first row. (We're putting Grist docs in a Grist doc!)
       await driver.sendKeys(Key.ENTER);
@@ -160,13 +159,6 @@ async function waitForDocUsage() {
   await gu.waitToPass(async () => {
     return assert.isFalse(await driver.find('.test-doc-usage-loading').isPresent());
   });
-}
-
-async function addAttachmentColumn(columnName: string) {
-  await gu.toggleSidePanel('right', 'open');
-  await driver.find('.test-right-tab-field').click();
-  await gu.addColumn(columnName);
-  await gu.setType(/Attachment/);
 }
 
 async function removeUnusedAttachments(api: UserAPI, docId: string) {
