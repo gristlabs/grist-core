@@ -1756,11 +1756,18 @@ export type ColumnType =
 
 /**
  * Sets the type of the currently selected field to value.
+ * It a type change is already active and cancellable, cancel
+ * that one first by default.
  */
 export async function setType(
   type: RegExp|ColumnType,
   options: {skipWait?: boolean, apply?: boolean} = {}
 ) {
+  if (await driver.find('.test-type-transform-cancel').isPresent()) {
+    await driver.find(".test-type-transform-cancel").click();
+    await waitForServer();
+  }
+
   const {skipWait, apply} = options;
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-field').click();

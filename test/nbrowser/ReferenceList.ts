@@ -2,9 +2,14 @@ import {assert, driver, Key, stackWrapFunc} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {Session} from 'test/nbrowser/gristUtils';
+import * as testUtils from 'test/server/testUtils';
 
 describe('ReferenceList', function() {
   this.timeout(60000);
+
+  // Sandboxing disrupts timing a bit.
+  testUtils.withoutSandboxing();
+
   let session: Session;
   const cleanup = setupTestSuite({team: true});
 

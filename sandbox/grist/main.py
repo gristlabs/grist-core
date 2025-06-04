@@ -5,6 +5,7 @@ and starts the grist sandbox. See engine.py for the API documentation.
 import os
 import random
 import sys
+import time
 
 from timing import DummyTiming, Timing
 sys.path.append('thirdparty')
@@ -170,6 +171,34 @@ def run(sandbox):
   @export
   def get_timings():
     return eng._timing.get(False)
+
+  # Echo input for testing
+  @export
+  def test_echo(msg):
+    return msg
+
+  # Throw an expection for testing
+  @export
+  def test_fail(msg):
+    raise Exception(msg)
+
+  # Some sundry operations for tests only
+  @export
+  def test_operation(delay, operation, *inputs):
+    if delay != 0:
+      # We don't have time.sleep() available in the sandbox, so wait with a busy loop.
+      end = time.time() + delay
+      while time.time() < end:
+        pass
+    if operation == 'uppercase':
+      return inputs[0].upper()
+    if operation == 'triple':
+      return inputs[0] * 3
+    if operation == 'bigToSmall':
+      return len(inputs[0])
+    if operation == 'smallToBig':
+      return '*' * inputs[0]
+    raise Exception('unrecognized operation')
 
   export(parse_predicate_formula)
   export(eng.load_empty)

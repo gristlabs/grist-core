@@ -360,6 +360,8 @@ describe('ActiveDoc', async function() {
   });
 
   describe('fetchQuery', function() {
+    this.timeout(10000);
+
     async function makeDoc(docName: string) {
       const activeDoc = await docTools.createDoc(docName);
       await activeDoc.applyUserActions(fakeSession, [

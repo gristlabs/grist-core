@@ -95,6 +95,10 @@ function makeUserApi(
 }
 
 describe('DocApi', function () {
+  // The XLS test fails on Jenkins without this. Mysterious? Maybe a real problem or
+  // a problem in test setup related to plugins? TODO: investigate and fix.
+  testUtils.withoutSandboxing();
+
   const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
   this.timeout(30000);

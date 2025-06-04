@@ -14,6 +14,8 @@ import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 
 describe('OnDemandActions', function() {
+  testUtils.withoutSandboxing();
+
   // The maxSQLiteVariables test gets slower in WAL mode.
   this.timeout(15000);
 

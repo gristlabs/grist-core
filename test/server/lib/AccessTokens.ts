@@ -12,6 +12,7 @@ import * as testUtils from 'test/server/testUtils';
 
 describe('AccessTokens', function() {
   this.timeout(10000);
+  testUtils.withoutSandboxing();
   let home: TestServer;
   testUtils.setTmpLogLevel('error');
   let owner: UserAPI;

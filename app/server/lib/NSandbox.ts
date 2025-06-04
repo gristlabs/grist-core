@@ -62,6 +62,7 @@ export interface ISandboxOptions {
 
   useGristEntrypoint?: boolean;  // Should be set for everything except tests, which
                                  // may want to pass arguments to python directly.
+                                 // Now defaults to true.
 }
 
 /**
@@ -74,6 +75,7 @@ export interface ISandboxOptions {
  * sendData) replace pipes.
  */
 export interface SandboxProcess {
+  name: string;
   child?: ChildProcess;
   control: () => ISandboxControl;
   dataToSandboxDescriptor?: number;    // override sandbox's 'stdin' for data
@@ -133,13 +135,20 @@ export class NSandbox implements ISandbox {
    * Variants can be activated by passing in a non-default "spawner" function.
    *
    */
-  constructor(options: ISandboxOptions, spawner: SpawnFn) {
+  constructor(options: ISandboxOptions, spawner: SpawnFn = sandboxed) {
     this._logTimes = Boolean(options.logTimes || options.logCalls);
     this._exportedFunctions = options.exports || {};
 
     const sandboxProcess = spawner(options);
     this.childProc = sandboxProcess.child;
-    this._logMeta = {sandboxPid: this.childProc?.pid, ...options.logMeta};
+    this._logMeta = {
+      sandboxPid: this.childProc?.pid,
+      flavor: spawner.name,
+      ...options.logMeta
+    };
+    if (spawner.name !== sandboxProcess.name) {
+      this._logMeta.subflavor = sandboxProcess.name;
+    }
 
     // Handle childProc events early, especially the 'error' event which may lead to node exiting.
     this.childProc?.on('close', this._onExit.bind(this));
@@ -148,7 +157,7 @@ export class NSandbox implements ISandbox {
     this._control = sandboxProcess.control();
 
     if (this.childProc) {
-      if (options.minimalPipeMode) {
+      if (options.minimalPipeMode !== false) {
         this._initializeMinimalPipeMode(sandboxProcess);
       } else {
         this._initializeFivePipeMode(sandboxProcess);
@@ -246,7 +255,7 @@ export class NSandbox implements ISandbox {
   }
 
   public getFlavor() {
-    return this._logMeta.flavor;
+    return this._logMeta.subflavor || this._logMeta.flavor;
   }
 
   /**
@@ -488,6 +497,10 @@ const spawners = {
                       // user deliberately doesn't want sandboxing.
                       // The "unsandboxed" setting is ambiguous in this
                       // respect.
+  sandboxed,          // Use whatever sandboxing is available. Tries in
+                      // order: gvisor, macSandboxExec, then finally
+                      // falling back on pyodide (which can be made
+                      // to run anywhere).
 };
 
 function isFlavor(flavor: string): flavor is keyof typeof spawners {
@@ -568,7 +581,23 @@ export class NSandboxCreator implements ISandboxCreator {
 // A function that takes sandbox options and starts a sandbox process.
 export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 
+const hasRunsc = checkCommandExists('runsc');
+const hasSandboxExec = checkCommandExists('sandbox-exec');
+
 /**
+ * Currently for sandboxing use gvisor if available, otherwise
+ * try native sandboxing on macs, otherwise fall back on pyodide.
+ */
+function sandboxed(options: ISandboxOptions): SandboxProcess {
+  if (hasRunsc) {
+    return gvisor(options);
+  } else if (hasSandboxExec) {
+    return macSandboxExec(options);
+  }
+  return pyodide(options);
+}
+
+/*
  * Helper function to run python without sandboxing.  GRIST_SANDBOX should have
  * been set with an absolute path to a version of python within a virtualenv that
  * has all the dependencies installed (e.g. the sandbox_venv3 virtualenv created
@@ -578,7 +607,7 @@ export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 function unsandboxed(options: ISandboxOptions): SandboxProcess {
   const {args: pythonArgs, importDir} = options;
   const paths = getAbsolutePaths(options);
-  if (options.useGristEntrypoint) {
+  if (options.useGristEntrypoint !== false) {
     pythonArgs.unshift(paths.main);
   }
   const spawnOptions = {
@@ -596,10 +625,19 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   const command = findPython(options.command);
   const child = adjustedSpawn(command, pythonArgs,
                       {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
-  return {child, control: () => new DirectProcessControl(child, options.logMeta)};
+  return {
+    name: 'unsandboxed',
+    child,
+    control: () => new DirectProcessControl(child, options.logMeta)
+  };
 }
 
 function pyodide(options: ISandboxOptions): SandboxProcess {
+  if (options.minimalPipeMode === false) {
+    throw new Error("pyodide only supports 3-pipe operation");
+  }
+  options.minimalPipeMode = true;
+
   const paths = getAbsolutePaths(options);
   // We will fork with three regular pipes (stdin, stdout, stderr), then
   // ipc (mandatory for calling fork), and a replacement pipe for stdin
@@ -620,6 +658,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   const child = fork(path.join(base, 'sandbox', 'pyodide', 'pipe.js'),
                      {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
   return {
+    name: 'pyodide',
     child,
     control: () => new DirectProcessControl(child, options.logMeta),
     dataToSandboxDescriptor: 4,  // Cannot use normal descriptor, node
@@ -645,7 +684,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
  * Be sure to read setup instructions in that directory.
  */
 function gvisor(options: ISandboxOptions): SandboxProcess {
-  const {args: pythonArgs} = options;
+  const pythonArgs = options.args || [];
   let command = options.command;
   if (!command) {
     try {
@@ -659,7 +698,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
       throw new Error('runsc not found');
     }
   }
-  if (!options.minimalPipeMode) {
+  if (options.minimalPipeMode === false) {
     throw new Error("gvisor only supports 3-pipe operation");
   }
   const paths = getAbsolutePaths(options);
@@ -671,7 +710,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     wrapperArgs.addMount(paths.importDir);
     wrapperArgs.addEnv('IMPORTDIR', paths.importDir);
   }
-  if (options.useGristEntrypoint) {
+  if (options.useGristEntrypoint !== false) {
     pythonArgs.unshift(paths.main);
   }
   if (options.deterministicMode) {
@@ -693,13 +732,14 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   // between the checkpoint and how it gets used later).
   // If a sandbox is being used for import, it will have a special mount we can't
   // deal with easily right now. Should be possible to do in future if desired.
-  if (options.useGristEntrypoint && process.env.GRIST_CHECKPOINT && !paths.importDir) {
+  if (options.useGristEntrypoint !== false && process.env.GRIST_CHECKPOINT &&
+      !paths.importDir) {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
         adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
                         `python3`, '--', ...pythonArgs]);
       // We don't want process control for this.
-      return {child, control: () => new NoProcessControl(child)};
+      return {name: 'gvisor', child, control: () => new NoProcessControl(child)};
     }
     wrapperArgs.push('--restore');
     wrapperArgs.push(process.env.GRIST_CHECKPOINT!);
@@ -720,16 +760,20 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     return p.label.includes('runsc-sandbox');
   };
   // If docker is in use, this process control will log a warning message and do nothing.
-  return {child, control: () => new SubprocessControl({
-    pid: childPid,
-    recognizers: {
-      sandbox: recognizeSandboxProcess,   // this process we start and stop
-      memory: recognizeTracedProcess,     // measure memory for the ptraced process
-      cpu: recognizeTracedProcess,        // measure cpu for the ptraced process
-      traced: recognizeTracedProcess,     // the ptraced process
-    },
-    logMeta: options.logMeta
-  })};
+  return {
+    name: 'gvisor',
+    child,
+    control: () => new SubprocessControl({
+      pid: childPid,
+      recognizers: {
+        sandbox: recognizeSandboxProcess,   // this process we start and stop
+        memory: recognizeTracedProcess,     // measure memory for the ptraced process
+        cpu: recognizeTracedProcess,        // measure cpu for the ptraced process
+        traced: recognizeTracedProcess,     // the ptraced process
+      },
+      logMeta: options.logMeta
+    })
+  };
 }
 
 /**
@@ -740,10 +784,10 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
  */
 function docker(options: ISandboxOptions): SandboxProcess {
   const {args: pythonArgs, command} = options;
-  if (options.useGristEntrypoint) {
+  if (options.useGristEntrypoint !== false) {
     pythonArgs.unshift('grist/main.py');
   }
-  if (!options.minimalPipeMode) {
+  if (options.minimalPipeMode === false) {
     throw new Error("docker only supports 3-pipe operation (although runc has --preserve-file-descriptors)");
   }
   const paths = getAbsolutePaths(options);
@@ -769,7 +813,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
     ...pythonArgs,
   ]);
   log.rawDebug("cannot do process control via docker yet", {...options.logMeta});
-  return {child, control: () => new NoProcessControl(child)};
+  return {name: 'docker', child, control: () => new NoProcessControl(child)};
 }
 
 /**
@@ -782,11 +826,11 @@ function docker(options: ISandboxOptions): SandboxProcess {
  */
 function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const {args: pythonArgs} = options;
-  if (!options.minimalPipeMode) {
+  if (options.minimalPipeMode === false) {
     throw new Error("macSandboxExec flavor only supports 3-pipe operation");
   }
   const paths = getAbsolutePaths(options);
-  if (options.useGristEntrypoint) {
+  if (options.useGristEntrypoint !== false) {
     pythonArgs.unshift(paths.main);
   }
   const env = {
@@ -859,7 +903,11 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const profileString = profile.join('\n');
   const child = spawn('/usr/bin/sandbox-exec', ['-p', profileString, command, ...pythonArgs],
                       {cwd, env});
-  return {child, control: () => new DirectProcessControl(child, options.logMeta)};
+  return {
+    name: 'macSandboxExec',
+    child,
+    control: () => new DirectProcessControl(child, options.logMeta)
+  };
 }
 
 /**
@@ -868,7 +916,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
 export function getInsertedEnv(options: ISandboxOptions) {
   const env: NodeJS.ProcessEnv = {
     // use stdin/stdout/stderr only.
-    PIPE_MODE: options.minimalPipeMode ? 'minimal' : 'classic',
+    PIPE_MODE: (options.minimalPipeMode !== false) ? 'minimal' : 'classic',
   };
 
   if (options.deterministicMode) {
@@ -1015,6 +1063,7 @@ function findPython(command: string|undefined): string {
  * The commands run can be overridden by GRIST_SANDBOX2 (for python2), GRIST_SANDBOX3 (for python3),
  * or GRIST_SANDBOX (for either, if more specific variable is not specified).
  * For documents with no preferred python version specified, 3 is used
+ * TODO: This machinery can likely be removed now.
  */
 export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): ISandbox {
   const flavors = (process.env.GRIST_SANDBOX_FLAVOR || defaultFlavorSpec).split(',');
@@ -1055,5 +1104,17 @@ function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithou
     return spawn('choom', ['-n', oomScoreAdj, '--', cmd, ...args], options);
   } else {
     return spawn(cmd, args, options);
+  }
+}
+
+function checkCommandExists(cmd: string) {
+  try {
+    which.sync('runsc');
+    return true;
+  } catch (e) {
+    if (!String(e).match(/not found/)) {
+      throw e;
+    }
+    return false;
   }
 }

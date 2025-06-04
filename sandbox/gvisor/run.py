@@ -160,6 +160,13 @@ if include_bash or start:
 
 preserve("/usr/local/lib")
 
+# Support user-specific extra directories. This is handy if Python is
+# somewhere weird and there is a maze of soft links to get
+# through. And Python is so often somewhere weird.
+extra_dirs = os.environ.get('GVISOR_EXTRA_DIRS')
+if extra_dirs:
+  preserve(*extra_dirs.split(':'))
+
 # Do not attempt to include symlink directories, they are not supported
 # and will cause obscure failures. On debian bookworm /lib64 is a
 # symlink and we do not appear to need it, relative to debian buster

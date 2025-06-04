@@ -12,6 +12,8 @@ async function summarizeLastAction(doc: ActiveDoc): Promise<ActionSummary> {
 }
 
 describe("TimeQuery", function() {
+  // No sandboxing, to avoid change in speed.
+  testUtils.withoutSandboxing();
 
   // Comment this out to see debug-log output when debugging tests.
   testUtils.setTmpLogLevel('error');

@@ -356,4 +356,15 @@ export async function getBuildFile(relativePath: string): Promise<string> {
   return path.join('_build', 'core', relativePath);
 }
 
+export function withoutSandboxing() {
+  let env: EnvironmentSnapshot;
+  before(() => {
+    env = new EnvironmentSnapshot();
+    process.env.GRIST_SANDBOX_FLAVOR = 'unsandboxed';
+  });
+  after(() => {
+    env.restore();
+  });
+}
+
 export { assert };

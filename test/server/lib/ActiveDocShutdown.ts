@@ -26,6 +26,7 @@ function _makeFakeClient(): Client {
 }
 
 describe('ActiveDocShutdown', function() {
+  testUtils.withoutSandboxing();
   this.timeout(10000);
 
   // Turn off logging for this test, and restore afterwards.

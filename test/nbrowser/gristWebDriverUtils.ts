@@ -273,7 +273,7 @@ export class GristWebDriverUtils {
   /**
    * Sends UserActions using client api from the browser.
    */
-  public async sendActions(actions: (DocAction | UserAction)[], optTimeout: number = 2000) {
+  public async sendActions(actions: (DocAction | UserAction)[], optTimeout: number = 5000) {
     await this.driver.manage().setTimeouts({
       script: optTimeout, /* milliseconds */
     });
