@@ -1,3 +1,6 @@
+import {CheckerT, createCheckers} from 'ts-interface-checker';
+import DocumentSettingsTI from 'app/common/DocumentSettings-ti';
+
 export interface DocumentSettings {
   locale: string;
   currency?: string;
@@ -17,3 +20,6 @@ export interface DocumentSettings {
  * a gvisor-backed python3.
  */
 export type EngineCode = 'python3';
+
+const checkers = createCheckers(DocumentSettingsTI);
+export const DocumentSettingsChecker = checkers.DocumentSettings as CheckerT<DocumentSettings>;

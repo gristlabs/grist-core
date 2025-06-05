@@ -45,6 +45,7 @@ import pick = require('lodash/pick');
 import range = require('lodash/range')
 import {getDatabase} from 'test/testUtils';
 import {testDailyApiLimitFeatures} from 'test/gen-server/seed';
+import {readFixtureDoc} from 'test/server/testUtils';
 
 // some doc ids
 const docIds: { [name: string]: string } = {
@@ -3004,6 +3005,37 @@ function testDocApi(settings: {
         assert.equal(resp.status, 200);
         assert.isString(resp.data);
         // There's no expectation that the external attachments are copied - just that the document is.
+      });
+
+      it(
+        `enables documents with external attachments from other installations to work when imported`,
+        async function () {
+          const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+          const formData = new FormData();
+          formData.append(
+            'upload',
+            // This doc has a store id that won't exist on the server.
+            // This should be updated to a valid one by the server on import.
+            await readFixtureDoc('ExternalAttachmentsInvalidStoreId.grist'),
+            'ExternalAttachmentsInvalidStoreId.grist'
+          );
+          const config = defaultsDeep({headers: formData.getHeaders()}, chimpy);
+          const importResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/import`, formData, config);
+          assert.equal(importResp.status, 200);
+          const docId = importResp.data.id;
+          const docApi = userApi.getDocAPI(docId);
+
+          assert.equal((await docApi.getAttachmentStore()).type, 'external');
+
+          await addAttachmentsToDoc(docId, [{ name: 'Test.txt', contents: 'Irrelevant' }]);
+
+          const transferStatus = await docApi.getAttachmentTransferStatus();
+          assert.equal(transferStatus.locationSummary, 'external', 'all attachments should be external');
+
+          const url = `${homeUrl}/api/docs/${docId}/attachments`;
+          const resp = await axios.get(url, chimpy);
+          assert.equal(resp.status, 200);
+          assert.equal(resp.data.records[0].fields.fileName, 'Test.txt');
       });
     });
   });
