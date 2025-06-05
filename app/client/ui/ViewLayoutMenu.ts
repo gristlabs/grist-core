@@ -57,6 +57,9 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     (gristDoc.externalSectionId.get() === viewSection.getRowId()) ||
     (gristDoc.maximizedSectionId.get() === viewSection.getRowId());
 
+  const dontDuplicateSection = (use: UseCB) =>
+    use(viewSection.isRaw) || use(viewSection.isVirtual);
+
   const showRawData = (use: UseCB) => {
     return !use(viewSection.isRaw)// Don't show raw data if we're already in raw data.
         && !use(viewSection.isRecordCard)
@@ -106,6 +109,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       dom.hide(viewSection.isRecordCard),
       testId('section-collapse')),
     menuItemCmd(allCommands.duplicateSection, t("Duplicate widget"),
+      dom.cls('disabled', dontDuplicateSection),
       testId('duplicate-section')),
     menuItemCmd(allCommands.deleteSection, t("Delete widget"),
       dom.cls('disabled', dontRemoveSection()),
