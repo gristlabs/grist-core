@@ -683,6 +683,7 @@ class AttachmentsModel extends Question {
       css.cssAttachmentInput(
         dom.prop('name', u => u(u(this.field).colId)),
         dom.prop('type', 'file'),
+        dom.prop('multiple', true),
       ),
     );
   }

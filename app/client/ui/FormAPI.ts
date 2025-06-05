@@ -90,7 +90,7 @@ export type FormOptionsSortOrder = 'default' | 'ascending' | 'descending';
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;
   createRecord(options: CreateRecordOptions): Promise<void>;
-  createAttachment(options: CreateAttachmentOptions): Promise<number>;
+  createAttachments(options: CreateAttachmentOptions): Promise<number[]>;
 }
 
 interface FormTargetWithDocId {
@@ -117,7 +117,7 @@ interface CreateRecordCommonOptions {
 type CreateRecordOptions = CreateRecordCommonOptions & FormTarget;
 
 interface CreateAttachmentCommonOptions {
-  upload: File;
+  upload: File[];
 }
 
 type CreateAttachmentOptions = CreateAttachmentCommonOptions & FormTarget;
@@ -142,21 +142,23 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
     });
   }
 
-  public async createAttachment(options: CreateAttachmentOptions): Promise<number> {
+  public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
     const urlPrefix = this._getUrlPrefix(options);
 
-    const result = await this.requestAxios(`${urlPrefix}/attachments`, {
+    const formData = new FormData();
+    for (const file of options.upload) {
+      formData.append('upload', file);
+    }
+
+    const result = await this.fetch(`${urlPrefix}/attachments`, {
       method: 'POST',
-      data: {
-        upload: options.upload,
-      },
+      body: formData,
       headers: {
-        'Content-Type': 'multipart/form-data',
         'X-Requested-With': 'XMLHttpRequest',
       },
     });
 
-    return result.data[0]; // Get the Id of the uploaded file
+    return result.json();
   }
 
   private _getUrlPrefix(target: FormTarget): string {
