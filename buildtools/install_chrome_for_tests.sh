@@ -20,5 +20,6 @@ fi
 
 curl -sS -o /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
   && sudo apt-get install --allow-downgrades -y /tmp/chrome.deb \
-  && rm /tmp/chrome.deb /usr/bin/chromedriver \
+  && rm /tmp/chrome.deb \
+  && sudo rm /usr/bin/chromedriver \
   && node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
