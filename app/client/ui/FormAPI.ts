@@ -93,48 +93,34 @@ export interface FormAPI {
   createAttachment(options: CreateAttachmentOptions): Promise<number>;
 }
 
+interface FormTargetWithDocId {
+  docId: string;
+}
+
+interface FormTargetWithShareKey {
+  shareKey: string;
+}
+
+type FormTarget = FormTargetWithDocId | FormTargetWithShareKey;
+
 interface GetFormCommonOptions {
   vsId: number;
 }
 
-interface GetFormWithDocIdOptions extends GetFormCommonOptions {
-  docId: string;
-}
-
-interface GetFormWithShareKeyOptions extends GetFormCommonOptions {
-  shareKey: string;
-}
-
-type GetFormOptions = GetFormWithDocIdOptions | GetFormWithShareKeyOptions;
+type GetFormOptions = GetFormCommonOptions & FormTarget;
 
 interface CreateRecordCommonOptions {
   tableId: string;
   colValues: ColValues;
 }
 
-interface CreateRecordWithDocIdOptions extends CreateRecordCommonOptions {
-  docId: string;
-}
-
-interface CreateRecordWithShareKeyOptions extends CreateRecordCommonOptions {
-  shareKey: string;
-}
-
-type CreateRecordOptions = CreateRecordWithDocIdOptions | CreateRecordWithShareKeyOptions;
+type CreateRecordOptions = CreateRecordCommonOptions & FormTarget;
 
 interface CreateAttachmentCommonOptions {
   upload: File;
 }
 
-interface CreateAttachmentWithDocIdOptions extends CreateAttachmentCommonOptions {
-  docId: string;
-}
-
-interface CreateAttachmentWithShareKeyOptions extends CreateAttachmentCommonOptions {
-  shareKey: string;
-}
-
-type CreateAttachmentOptions = CreateAttachmentWithDocIdOptions | CreateAttachmentWithShareKeyOptions;
+type CreateAttachmentOptions = CreateAttachmentCommonOptions & FormTarget;
 
 export class FormAPIImpl extends BaseAPI implements FormAPI {
   constructor(private _homeUrl: string, options: IOptions = {}) {
@@ -142,45 +128,24 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {
-    if ('docId' in options) {
-      const {docId, vsId} = options;
-      return this.requestJson(`${this._url}/api/docs/${docId}/forms/${vsId}`, {method: 'GET'});
-    } else {
-      const {shareKey, vsId} = options;
-      return this.requestJson(`${this._url}/api/s/${shareKey}/forms/${vsId}`, {method: 'GET'});
-    }
+    const urlPrefix = this._getUrlPrefix(options);
+    return this.requestJson(`${urlPrefix}/forms/${options.vsId}`, {method: 'GET'});
   }
 
   public async createRecord(options: CreateRecordOptions): Promise<void> {
-    if ('docId' in options) {
-      const {docId, tableId, colValues} = options;
-      return this.requestJson(`${this._url}/api/docs/${docId}/tables/${tableId}/records`, {
-        method: 'POST',
-        body: JSON.stringify({records: [{fields: colValues}]}),
-      });
-    } else {
-      const {shareKey, tableId, colValues} = options;
-      const url = new URL(`${this._url}/api/s/${shareKey}/tables/${tableId}/records`);
-      url.searchParams.set('utm_source', 'grist-forms');
-      return this.requestJson(url.href, {
-        method: 'POST',
-        body: JSON.stringify({records: [{fields: colValues}]}),
-      });
-    }
+    const urlPrefix = this._getUrlPrefix(options);
+    const {tableId, colValues} = options;
+
+    return this.requestJson(`${urlPrefix}/tables/${tableId}/records`, {
+      method: 'POST',
+      body: JSON.stringify({records: [{fields: colValues}]}),
+    });
   }
 
   public async createAttachment(options: CreateAttachmentOptions): Promise<number> {
-    let url: string;
+    const urlPrefix = this._getUrlPrefix(options);
 
-    if ('docId' in options) {
-      const {docId} = options;
-      url = `${this._url}/api/docs/${docId}/attachments`;
-    } else {
-      const {shareKey} = options;
-      url = `${this._url}/api/s/${shareKey}/attachments`;
-    }
-
-    const result = await this.requestAxios(url, {
+    const result = await this.requestAxios(`${urlPrefix}/attachments`, {
       method: 'POST',
       data: {
         upload: options.upload,
@@ -192,6 +157,14 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
     });
 
     return result.data[0]; // Get the Id of the uploaded file
+  }
+
+  private _getUrlPrefix(target: FormTarget): string {
+    if ('docId' in target) {
+      return `${this._url}/api/docs/${target.docId}`;
+    } else {
+      return `${this._url}/api/s/${target.shareKey}`;
+    }
   }
 
   private get _url(): string {
