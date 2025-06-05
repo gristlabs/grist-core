@@ -912,6 +912,7 @@ class AttachmentsRenderer extends BaseFieldRenderer {
         required: this.field.options.formRequired,
       },
       dom.prop('value', this._value),
+      dom.prop('multiple', true),
       testId('attachment-input')
     );
   }
