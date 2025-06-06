@@ -3,13 +3,12 @@ import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { buildCodeHighlighter } from 'app/client/ui/CodeHighlight';
 import { renderer } from 'app/client/ui/MarkdownCellRenderer';
-import { sanitizeHTML } from 'app/client/ui/sanitizeHTML';
+import { sanitizeHTMLIntoDOM } from 'app/client/ui/sanitizeHTML';
 import { theme, vars } from 'app/client/ui2018/cssVars';
 import { handleGristLinkClick } from 'app/client/ui2018/links';
-import { gristThemeObs } from 'app/client/ui2018/theme';
 import { NTextBox } from 'app/client/widgets/NTextBox';
 import { AsyncCreate } from 'app/common/AsyncCreate';
-import { dom, styled, subscribeElem } from 'grainjs';
+import { dom, DomContents, styled } from 'grainjs';
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import markedLinkifyIt from 'marked-linkify-it';
@@ -19,6 +18,19 @@ import markedLinkifyIt from 'marked-linkify-it';
  */
 export class MarkdownTextBox extends NTextBox {
   private static _marked?: AsyncCreate<Marked>;
+  private static _markedResolved: Marked|undefined;
+
+  // Call render() synchronously if possible, or asynchronously otherwise. Aside from the first
+  // batch of renders, this will always be synchronous. This matters for printing, where we
+  // prepare a view in "beforeprint" callback, and async renders take place too late.
+  private static _domAsyncOrDirect(render: (marked: Marked) => DomContents) {
+    return this._markedResolved ?
+      render(this._markedResolved) :
+      domAsync(this._marked!.get().then(marked => {
+        this._markedResolved = marked;
+        return render(this._markedResolved);
+      }));
+  }
 
   constructor(field: ViewFieldRec) {
     super(field);
@@ -37,21 +49,12 @@ export class MarkdownTextBox extends NTextBox {
   }
 
   public buildDom(row: DataRowModel) {
-    const value = row.cells[this.field.colId()];
+    const valueObs = row.cells[this.field.colId()];
+
     return dom(
       "div.field_clip",
-      domAsync(
-        MarkdownTextBox._marked!.get().then(({ parse }) => {
-          const renderMarkdown = (el: HTMLElement) => {
-            el.innerHTML = sanitizeHTML(
-              parse(String(value.peek()), {
-                async: false,
-                gfm: false,
-                renderer,
-              })
-            );
-          };
-
+      MarkdownTextBox._domAsyncOrDirect(
+        ({parse}) => {
           return cssMarkdown(
             cssMarkdown.cls("-text-wrap", this.wrapping),
             dom.style("text-align", this.alignment),
@@ -62,16 +65,18 @@ export class MarkdownTextBox extends NTextBox {
               }
             }),
             dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
-            (el) => {
-              subscribeElem(el, value, () => renderMarkdown(el));
-              // Picking up theme changes currently requires a re-render.
-              // If we switch to using a custom Ace theme with CSS variables
-              // from `cssVars.ts`, we can remove this.
-              subscribeElem(el, gristThemeObs(), () => renderMarkdown(el));
+
+            dom.domComputed(valueObs, value => {
+              const source = parse(String(value), {
+                async: false,
+                gfm: false,
+                renderer,
+              });
               this.field.viewSection().events.trigger("rowHeightChange");
-            },
+              return sanitizeHTMLIntoDOM(source);
+            })
           );
-        })
+        }
       )
     );
   }

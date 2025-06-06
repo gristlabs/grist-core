@@ -4,6 +4,28 @@ export function sanitizeHTML(source: string | Node): string {
   return defaultPurifier.sanitize(source);
 }
 
+export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
+  try {
+    return defaultPurifier.sanitize(source, {RETURN_DOM_FRAGMENT: true});
+  } catch (err) {
+    // There seems to be a regression in Chrome during printing related to TrustedTypes (see
+    // https://issues.chromium.org/issues/40138301). We attempt a workaround by forcing
+    // DOMPurify to avoid using TrustedTypes. Keep workaround narrowly limited to printing.
+    if ((window as any).isCurrentlyPrinting) {
+      console.warn('Working around error from dompurify during printing', err);
+      return defaultPurifier.sanitize(source, {
+        RETURN_DOM_FRAGMENT: true,
+        TRUSTED_TYPES_POLICY: {
+          createHTML: (html: string) => html,
+          createScriptURL: (scriptUrl: string) => scriptUrl,
+        } as any    // We need a cast because it's an incomplete stub of TrustedTypePolicy,
+                    // just the bits that dompurify actually calls.
+      });
+    }
+    throw err;
+  }
+}
+
 export function sanitizeTutorialHTML(source: string | Node): string {
   return tutorialPurifier.sanitize(source, {
     ADD_TAGS: ['iframe'],
