@@ -162,7 +162,6 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.isHiddenCol = ko.pureComputed(() => gristTypes.isHiddenCol(this.colId()));
   this.isFormCol = ko.pureComputed(() => (
     !this.isHiddenCol() &&
-    this.pureType() !== 'Attachments' &&
     !this.isRealFormula()
   ));
 
