@@ -11,6 +11,7 @@ import { PluginManager } from 'app/server/lib/PluginManager';
 import * as childProcess from 'child_process';
 import * as fse from 'fs-extra';
 import * as util from 'util';
+import { TestAttachmentVirusScanProvider } from './lib/AttachmentVirusScanProvider';
 
 const execFile = util.promisify(childProcess.execFile);
 
@@ -35,7 +36,7 @@ export async function main(baseName: string) {
       await fse.remove(fname);
     }
     const docManager = new DocManager(storageManager, pluginManager, null as any,
-      new AttachmentStoreProvider([], ""), {
+      new AttachmentStoreProvider([], ""), [new TestAttachmentVirusScanProvider()], {
         create,
         getAuditLogger() { return createNullAuditLogger(); },
         getTelemetry() { return createDummyTelemetry(); },
