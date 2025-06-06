@@ -128,32 +128,29 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {
-    const urlPrefix = this._getUrlPrefix(options);
-    return this.requestJson(`${urlPrefix}/forms/${options.vsId}`, {method: 'GET'});
+    const {vsId} = options;
+    const url = this._getUrl(options, `forms/${vsId}`);
+    return this.requestJson(url.toString(), {method: 'GET'});
   }
 
   public async createRecord(options: CreateRecordOptions): Promise<void> {
-    const urlPrefix = this._getUrlPrefix(options);
     const {tableId, colValues} = options;
-    if ('shareKey' in options) {
-      url.searchParams.set('utm_source', 'grist-forms');
-    }
-
-    return this.requestJson(`${urlPrefix}/tables/${tableId}/records`, {
+    const url = this._getUrl(options, `tables/${tableId}/records`);
+    return this.requestJson(url.toString(), {
       method: 'POST',
       body: JSON.stringify({records: [{fields: colValues}]}),
     });
   }
 
   public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
-    const urlPrefix = this._getUrlPrefix(options);
+    const url = this._getUrl(options, 'attachments');
 
     const formData = new FormData();
     for (const file of options.upload) {
       formData.append('upload', file);
     }
 
-    const result = await this.fetch(`${urlPrefix}/attachments`, {
+    const result = await this.fetch(url.toString(), {
       method: 'POST',
       body: formData,
       headers: {
@@ -164,12 +161,15 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
     return result.json();
   }
 
-  private _getUrlPrefix(target: FormTarget): string {
+  private _getUrl(target: FormTarget, path: string): URL {
+    const url = new URL(this._url);
     if ('docId' in target) {
-      return `${this._url}/api/docs/${target.docId}`;
+      url.pathname = `/api/docs/${target.docId}/${path}`;
     } else {
-      return `${this._url}/api/s/${target.shareKey}`;
+      url.searchParams.set('utm_source', 'grist-forms');
+      url.pathname = `/api/s/${target.shareKey}/${path}`;
     }
+    return url;
   }
 
   private get _url(): string {
