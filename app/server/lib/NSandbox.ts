@@ -1109,7 +1109,7 @@ function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithou
 
 function checkCommandExists(cmd: string) {
   try {
-    which.sync('runsc');
+    which.sync(cmd);
     return true;
   } catch (e) {
     if (!String(e).match(/not found/)) {
