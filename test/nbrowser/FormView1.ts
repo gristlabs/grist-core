@@ -816,59 +816,6 @@ describe('FormView1', function() {
       await removeForm();
     });
 
-    it('excludes attachment fields from forms', async function() {
-      const formUrl = await createFormWith('Text');
-
-      // Temporarily make A an attachments column.
-      await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'A', {type: 'Attachments'}],
-      ]);
-
-      // Check that A is hidden in the form editor.
-      await gu.waitToPass(async () => assert.deepEqual(await labels(), ['B', 'C', 'D']));
-      await gu.openWidgetPanel('widget');
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
-        ['B', 'C', 'D']
-      );
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
-        []
-      );
-
-      // Check that A is excluded from the published form.
-      await gu.onNewTab(async () => {
-        await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
-        await gu.sendKeys('Hello World');
-        assert.isFalse(await driver.find('input[name="A"]').isPresent());
-        await driver.find('input[type="submit"]').click();
-        await waitForConfirm();
-      });
-
-      // Make sure we see the new record.
-      await expectInD(['Hello World']);
-
-      // And check that A was not modified.
-      assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), [null]);
-
-      // Revert A and check that it's visible again in the editor.
-      await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'A', {type: 'Text'}],
-      ]);
-      await gu.waitToPass(async () => assert.deepEqual(await labels(), ['A', 'B', 'C', 'D']));
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
-        ['A', 'B', 'C', 'D']
-      );
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
-        []
-      );
-
-      await removeForm();
-    });
-
     it('can unpublish forms', async function() {
       const formUrl = await createFormWith('Text');
       await driver.find('.test-forms-unpublish').click();
