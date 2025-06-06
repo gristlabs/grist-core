@@ -681,7 +681,7 @@ class AttachmentsModel extends Question {
   public renderInput() {
     return dom('div',
       css.cssAttachmentInput(
-        dom.prop('name', u => u(u(this.field).colId)),
+        dom.prop('name', use => use(use(this.field).colId)),
         dom.prop('type', 'file'),
         dom.prop('multiple', true),
       ),
