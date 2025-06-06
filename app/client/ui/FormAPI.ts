@@ -135,6 +135,9 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   public async createRecord(options: CreateRecordOptions): Promise<void> {
     const urlPrefix = this._getUrlPrefix(options);
     const {tableId, colValues} = options;
+    if ('shareKey' in options) {
+      url.searchParams.set('utm_source', 'grist-forms');
+    }
 
     return this.requestJson(`${urlPrefix}/tables/${tableId}/records`, {
       method: 'POST',
