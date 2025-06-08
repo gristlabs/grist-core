@@ -70,13 +70,13 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
   });
 }
 
-// TODO - Export this to duplicatePage with same API
+// TODO - Simplify by pairing: [{old, new}], then having the worker funcs produce the maps.
+//      - Dynamically build
 // TODO - Simplify API where possible / improve code quality
 //      - Include a check to make sure all widgets are all coming from the same page.
 // TODO - Make sure all telemetry is still in place
 // TODO - Write tests that cover duplicating widgets
-// TODO - Check form handling
-// TODO - Check link handling
+// TODO - Check things can't be duplicated that shouldn't be.
 
 export interface DuplicatedWidgetSpec {
   sourceViewSectionId: number;
@@ -88,6 +88,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
   const allViewSectionModels = gristDoc.docModel.viewSections.rowModels;
   const validWidgetSpecs = widgetSpecs.filter(spec => allViewSectionModels[spec.sourceViewSectionId]);
   const sourceViewSections = validWidgetSpecs.map(spec => allViewSectionModels[spec.sourceViewSectionId]);
+  const isNewView = destViewId < 1;
   let resolvedDestViewId = destViewId;
 
   // TODO - something if no valid widget specs exist. Should we also catch invalid ones and log?
@@ -121,7 +122,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
       // update layout spec
       let layoutSpecUpdatePromise = Promise.resolve();
       // If we're creating a new page, we should copy the widget layout over.
-      if (destViewId < 1) {
+      if (isNewView) {
           const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
           layoutSpecUpdatePromise = gristDoc.docData.sendAction(
             ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}]
@@ -178,23 +179,31 @@ async function copyFilters(
  */
 async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSectionRec[],
                                   srcViewSections: ViewSectionRec[], fieldsMap: {[id: number]: number},
-                                  viewSectionMap: {[id: number]: number}, maintainLinks: boolean = true) {
+                                  viewSectionMap: {[id: number]: number}) {
 
   // collect all the records for the src view sections
   const records: RowRecord[] = [];
-  for (const srcViewSection of srcViewSections) {
+  srcViewSections.forEach((srcViewSection, index) => {
+    const destViewSection = destViewSections[index];
+
     const viewSectionLayoutSpec =
       srcViewSection.parentKey.peek() === 'form'
           ? cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap)
           : patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
     const record = gristDoc.docData.getMetaTable('_grist_Views_section').getRecord(srcViewSection.getRowId())!;
+
+    const isNewView = srcViewSection.view.peek().id.peek() != destViewSection.view.peek().id.peek();
+    const originalLinkRef = srcViewSection.linkSrcSectionRef.peek();
+    const linkRef = isNewView ? viewSectionMap[originalLinkRef] : originalLinkRef;
+
     records.push({
       ...record,
       layoutSpec: JSON.stringify(viewSectionLayoutSpec),
-      linkSrcSectionRef: maintainLinks ? viewSectionMap[srcViewSection.linkSrcSectionRef.peek()] : false,
+      // TODO - Work out why a refresh is needed when targeting same-page widgets.
+      linkSrcSectionRef: linkRef ?? false,
       shareOptions: '',
     });
-  }
+  });
 
   // transpose data
   const sectionsInfo = getColValues(records);
