@@ -23,6 +23,19 @@ def _make_datetime(value):
   else:
     raise ValueError('Invalid date %r' % (value,))
 
+def _make_date(value):
+  # datetime.datetime is a subclass of datetime.date so it has to be checked first
+  if isinstance(value, datetime.datetime):
+    return value.date() 
+  elif isinstance(value, datetime.date):
+    return value
+  elif isinstance(value, str):
+    # Note: if the string is just a time, the result will be the current day
+    return dateutil.parser.parse(value).date()
+  else:
+    # Note: unlike _make_datetime, this does not accept a datetime.time
+    raise ValueError('Invalid date %r' % (value,))
+  
 def _get_global_tz():
   # If doc_info record is missing (e.g. in tests), default to UTC. We should not return None,
   # since that would produce naive datetime objects, which is not what we want.
@@ -233,11 +246,24 @@ def DATEDIF(start_date, end_date, unit):
   0
   >>> DATEDIF(DATE(2016, 2, 29), DATE(2017, 2, 29), "Y")
   1
-  """
-  if isinstance(start_date, datetime.datetime):
-    start_date = start_date.date()
-  if isinstance(end_date, datetime.datetime):
-    end_date = end_date.date()
+  >>> DATEDIF("2001/1/1", "2003/1/1", "Y")
+  2
+
+  Technically, the number of days between these two datetimes is 0:
+  >>> first_date, second_date = "2020-01-01 13:00 UTC+12:00", "2020-01-02 13:00 UTC-12:00"
+  >>> (dateutil.parser.parse(first_date) - dateutil.parser.parse(second_date)).days
+  0
+
+  But DATEDIF only looks at the date part, so it returns 1.
+  >>> DATEDIF(first_date, second_date, "D")
+  1
+
+  Compatibility Note: Google Sheets doesn't have timezone support, but it also 
+  only looks at the date part of datetime values. So in Sheets:
+  `DATEDIF(1.9, 2.1, "D") == 1` and `DATEDIF(2.1, 2.3, "D") == 0`
+  """  
+  start_date = _make_date(start_date)
+  end_date = _make_date(end_date)
   if unit == 'D':
     return (end_date - start_date).days
   elif unit == 'M':
@@ -828,3 +854,57 @@ def MOONPHASE(date, output="emoji"):
     if output == "lunacy":
       return "🐺" if index == 4 else "🕺"
     return ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"][index]
+
+def NETWORKDAYS(start_date, end_date, holidays=[]):
+  """
+  Calculates the net or number of work days between two dates.
+  The work days are Monday through Friday, excluding the dates in the `holidays` list.
+ 
+  For example, here are the first 2 weeks of January 2020:
+  ```
+  Mo Tu We Th Fr Sa Su
+         1  2  3  4  5
+   6  7  8  9 10 11 12
+  ```
+
+  >>> NETWORKDAYS(DATE(2020, 1, 1), DATE(2020, 1, 10))
+  8
+  >>> NETWORKDAYS(DATE(2020, 1, 1), DATE(2020, 1, 10), [DATE(2020, 1, 6)])
+  7
+
+  If the holiday falls on a weekend, it is ignored:
+  >>> NETWORKDAYS(DATE(2020, 1, 1), DATE(2020, 1, 10), [DATE(2020, 1, 5)])
+  8
+
+  Datetime objects are also accepted:
+  >>> NETWORKDAYS(DTIME("2020-1-1 13:00"), DTIME("2020-1-10"))
+  8
+  >>> NETWORKDAYS(DTIME("2020-1-1 13:00"), DTIME("2020-1-10"), [DTIME("2020-1-7 12:00")])
+  7
+
+  Strings are also accepted:
+  >>> NETWORKDAYS("2020-1-1", "2020-1-10")
+  8
+  >>> NETWORKDAYS("2020-1-1", "2020-1-10", ["2020-1-6"])
+  7
+  """
+  start_date = _make_date(start_date)
+  end_date = _make_date(end_date)
+
+  # Convert holidays to a set of dates for faster lookup
+  holidays = set(_make_date(h) for h in holidays)
+
+  # Initialize the weekday count
+  weekday_count = 0
+  one_day = datetime.timedelta(days=1)
+
+  # Loop through the range of dates
+  current_date = start_date
+  while current_date <= end_date:
+    # Check if the current date is a weekday (Monday=0, Sunday=6)
+    # 0 to 4 are weekdays 
+    if current_date.weekday() < 5 and not current_date in holidays:  
+      weekday_count += 1
+    current_date += one_day
+    
+  return weekday_count
