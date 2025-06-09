@@ -1559,7 +1559,8 @@
         "Your role for this team site": "Ihre Rolle für diese Teamseite",
         "{{collaborator}} limit exceeded": "{{collaborator}} Grenze überschritten",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Sobald Sie Ihren eigenen Zugriff entfernt haben, können Sie ihn nicht ohne die Hilfe einer anderen Person mit ausreichendem Zugriff auf den {{resourceType}} wiederherstellen.",
-        "Inherit access: ": "Zugang vererben: "
+        "Inherit access: ": "Zugang vererben: ",
+        "Access overview": "Zur Übersicht"
     },
     "SearchModel": {
         "Search all pages": "Alle Seiten durchsuchen",

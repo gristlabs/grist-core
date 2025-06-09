@@ -156,7 +156,36 @@
         "Toggle chart aggregation": "Activer/désactiver l'agrégation des graphiques",
         "Orientation": "Orientation",
         "Vertical": "Vertical",
-        "Horizontal": "Horizontal"
+        "Horizontal": "Horizontal",
+        "Split series": "Décomposer les séries",
+        "None": "Aucune",
+        "Split Series": "Décomposer les séries",
+        "Remove": "Retirer",
+        "Symmetric": "Symétrique",
+        "Connect gaps": "Relier les points manquants",
+        "Bar Chart": "Graphique à barres",
+        "Donut Chart": "Graphique en anneau",
+        "Area Chart": "Graphique en aires",
+        "Line Chart": "Graphique en courbes",
+        "Scatter Plot": "Nuages de points",
+        "Invert Y-axis": "Valeurs dans l’ordre inverse",
+        "Show Total": "Afficher le total",
+        "Text Size": "Taille du texte",
+        "Aggregate values": "Regrouper par valeurs identiques",
+        "SERIES": "SERIES",
+        "Add Series": "Ajouter une série",
+        "non-numeric columns are not shown": "Les colonnes non numériques ne sont pas affichées",
+        "non-numeric column is not shown": "La colonne non numérique n’est pas affichée",
+        "Error bars": "Barres d’erreur",
+        "Kaplan-Meier Plot": "Courbe de survie",
+        "Show markers": "Afficher les points",
+        "X-AXIS": "AXE HORIZONTAL",
+        "Log scale Y-axis": "Échelle logarithmique",
+        "Hole Size": "Taille de l’anneau",
+        "Stack series": "Empiler les séries",
+        "Above+Below": "Asymétrique",
+        "selected new x-axis": "Nouvel axe horizontal sélectionné",
+        "Pie Chart": "Camembert"
     },
     "CodeEditorPanel": {
         "Access denied": "Accès refusé",
@@ -384,8 +413,8 @@
         "External": "Externe",
         "Internal": "Interne",
         "**Some existing attachments are still [external]({{externalLink}})**.": "Certains pièces jointes existantes sont toujours [externes]({{externalLink}}).",
-        "[Learn more.]({{learnLink}})": "[En savoir plus.]{{learnLink}}",
-        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certaines pièces jointes existantes sont toujours internes({{internalLink}})** (stockées dans le fichier SQLite)."
+        "[Learn more.]({{learnLink}})": "[En savoir plus.]({{learnLink}})",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certains pièces jointes existantes sont toujours [internes]({{internalLink}})** (stockées dans un fichier SQLite)."
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -643,7 +672,9 @@
         "Download document": "Télécharger le document",
         "Learn more": "En savoir plus",
         "Download full document and history": "Télécharger le document complet avec l'historique des modifications",
-        "Download an archive of all the attachments present in this document.": "Télécharger une archive de toutes les PJ présentes dans ce document."
+        "Download an archive of all the attachments present in this document.": "Télécharger une archive de toutes les PJ présentes dans ce document.",
+        "download attachments": "télécharger les PJ",
+        "Download attachments": "Télécharger les PJ"
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -797,7 +828,8 @@
         "Comma Separated Values (.csv)": "Valeurs séparées par des virgules (.csv)",
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
         "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)",
-        "Download document...": "Télécharger le document..."
+        "Download document...": "Télécharger le document...",
+        "Download attachments...": "Télécharger les PJ..."
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -1501,7 +1533,7 @@
         "Share this form": "Partager ce formulaire",
         "Reset": "Réinitialiser",
         "Share": "Partager",
-        "Your form description goes here.": "Vous pouvez écrire une description ici.",
+        "Your form description goes here.": "Votre description se place ici.",
         "# **Form Title**": "# **Titre du formulaire**"
     },
     "HiddenQuestionConfig": {
@@ -1859,7 +1891,7 @@
         "Delete two-way reference?": "Supprimer la référence bi-directionnelle ?",
         "Column": "Colonne",
         "Table": "Table",
-        "It is the reverse of the reference column {{column}} in table {{table}}.": "Il s'agit de la référence retour de la colonne {{column}} de la table {{table}}."
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "C'est l'inverse de la colonne de référence {{colonne}} dans le tableau {{table}}."
     },
     "SupportGristButton": {
         "Admin Panel": "Panneau d'administration",

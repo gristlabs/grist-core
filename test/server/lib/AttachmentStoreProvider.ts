@@ -49,7 +49,7 @@ describe('AttachmentStoreProvider', () => {
 
     const provider = new AttachmentStoreProvider(storesConfig, testInstallationUUID);
 
-    assert(await provider.storeExists(expectedStoreId("filesystem1")));
+    assert.isTrue(provider.storeExists(expectedStoreId("filesystem1")));
   });
 });
 
