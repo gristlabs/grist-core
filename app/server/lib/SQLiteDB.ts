@@ -83,9 +83,13 @@ import fromPairs = require('lodash/fromPairs');
 import isEqual = require('lodash/isEqual');
 import noop = require('lodash/noop');
 import range = require('lodash/range');
+import {AsyncLocalStorage} from 'node:async_hooks';
 
 export type {PreparedStatement, ResultRow, Statement};
 export type RunResult = MinRunResult;
+
+// A little bit of async local storage, for nested transactions.
+const asyncLocalStorage = new AsyncLocalStorage<boolean>();
 
 function getVariant(): SqliteVariant {
   return create.getSqliteVariant?.() || new NodeSqliteVariant();
@@ -253,7 +257,6 @@ export class SQLiteDB implements ISQLiteDB {
 
 
   private _prevTransaction: Promise<any> = Promise.resolve();
-  private _inTransaction: boolean = false;
   private _migrationBackupPath: string|null = null;
   private _migrationError: Error|null = null;
   private _needVacuum: boolean = false;
@@ -428,28 +431,35 @@ export class SQLiteDB implements ISQLiteDB {
    *
    * We also expect execTransaction()s to be strictly ordered. For example, if many are
    * started in quick succession, without waiting for previous ones to complete, later transactions
-   * should be able to rely on previous ones being complete before they run. This expectation
-   * and nesting are currently in conflict, and this method should be reworked, perhaps using
-   * AsyncLocalStorage.
+   * should be able to rely on previous ones being complete before they run.
    *
    */
   public async execTransaction<T>(callback: () => Promise<T>): Promise<T> {
-    // If we're going to pause, pause now before we get into the
-    // transaction (if we're not already in one - if we are, the
-    // pause won't be honored).
-    await this._applyPause();
+    // If in a transaction, merge any nested transactions into the main one.
     if (this._inTransaction) {
       return callback();
     }
-    let result;
+    // If we're going to pause, pause now before we get into the
+    // transaction.
+    await this._applyPause();
     try {
-      result = await (this._prevTransaction = this._execTransactionImpl(callback));
+      // Create a promise that:
+      //   - Waits for any previous transaction to complete (swallowing errors).
+      //   - Runs the supplied callback within a BEGIN/COMMIT block.
+      //   - Runs that callback with async local storage set, to
+      //     facilitate nesting.
+      // Then assign that promise to _prevTransaction and wait for it.
+      return await (
+        this._prevTransaction =
+            this._prevTransaction.catch(noop).then(
+              () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback))
+            )
+      );
     } finally {
       if (this._needVacuum) {
         await this.requestVacuum();
       }
     }
-    return result;
   }
 
   /**
@@ -504,29 +514,22 @@ export class SQLiteDB implements ISQLiteDB {
 
   // Implementation of execTransction.
   private async _execTransactionImpl<T>(callback: () => Promise<T>): Promise<T> {
-    // We need to swallow errors, so that one failed transaction doesn't cause the next one to fail.
-    await this._prevTransaction.catch(noop);
-    this._inTransaction = true;
+    await this.exec("BEGIN");
     try {
-      await this.exec("BEGIN");
-      try {
-        // It is important that nothing in this callback will honor
-        // pauses or we could deadlock, paused before we reach the
-        // COMMIT below. Since _inTransaction is true for the duration
-        // of this callback, that should be the case.
-        const value = await callback();
-        await this.exec("COMMIT");
+      // It is important that nothing in this callback will honor
+      // pauses or we could deadlock, paused before we reach the
+      // COMMIT below. Since _inTransaction is true for the duration
+      // of this callback, that should be the case.
+      const value = await callback();
+      await this.exec("COMMIT");
         return value;
-      } catch (err) {
-        try {
-          await this.exec("ROLLBACK");
-        } catch (rollbackErr) {
+    } catch (err) {
+      try {
+        await this.exec("ROLLBACK");
+      } catch (rollbackErr) {
           log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
-        }
-        throw err;    // Throw the original error from the transaction.
       }
-    } finally {
-      this._inTransaction = false;
+      throw err;    // Throw the original error from the transaction.
     }
   }
 
@@ -607,6 +610,10 @@ export class SQLiteDB implements ISQLiteDB {
   private async _applyPause() {
     if (this._inTransaction) { return; }
     await this._paused;
+  }
+
+  private get _inTransaction() {
+    return asyncLocalStorage.getStore() !== undefined;
   }
 }
 
