@@ -3246,7 +3246,21 @@ export class ActiveDoc extends EventEmitter {
   private async _onInactive() {
     if (Deps.ACTIVEDOC_TIMEOUT_ACTION === 'shutdown') {
       await this.shutdown({
-        beforeShutdown: async () => { await this.docStorage.requestVacuum(); }
+        beforeShutdown: async () => {
+          // from sqlite official doc :
+          // The VACUUM command works by copying the contents of the
+          // database into a temporary database file and then overwriting
+          // the original with the contents of the temporary file.
+          // When overwriting the original, a rollback journal or write-ahead
+          // log WAL file is used just as it would be for any other database
+          // transaction. This means that when VACUUMing a database,
+          // as much as twice the size of the original database file is
+          // required in free disk space.
+          // ---
+          // The temporary copy and rollback machanisms must avoid any document
+          // corruption.
+          await this.docStorage.requestVacuum();
+        }
       });
     }
   }
