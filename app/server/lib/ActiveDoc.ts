@@ -3263,7 +3263,15 @@ export class ActiveDoc extends EventEmitter {
           // ---
           // The temporary copy and rollback machanisms must avoid any document
           // corruption.
-          await this.docStorage.requestVacuum();
+          try {
+            await this.docStorage.vacuum();
+          } catch (err) {
+            if (err.code === "ENOENT") {
+              this._log.error(null, `Vacuum on inactive : Doc ${this.docName} is no longer available`);
+            } else {
+              this._log.error(null, `Vacuum on inactive : Doc ${this.docName}\n ${err}`);
+            }
+          }
         }
       });
     }
