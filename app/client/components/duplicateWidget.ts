@@ -3,7 +3,6 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {BoxSpec, purgeBoxSpec} from 'app/client/lib/BoxSpec';
 import {makeT} from 'app/client/lib/localization';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {cssInput} from 'app/client/ui/cssInput';
 import {cssField, cssLabel} from 'app/client/ui/MakeCopyMenu';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
@@ -17,6 +16,7 @@ import flatten from 'lodash/flatten';
 import forEach from 'lodash/forEach';
 import zip from 'lodash/zip';
 import zipObject from 'lodash/zipObject';
+import {testId} from 'app/client/ui2018/cssVars';
 
 const t = makeT('duplicateWidget');
 
@@ -35,8 +35,6 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
   }
 
   saveModal((ctl, owner) => {
-    let titleInputEl: HTMLInputElement;
-    let descriptionInputEl: HTMLInputElement;
     const pageSelectObs = Observable.create<number>(owner, pageSelectOptions[0].value);
 
     return {
@@ -45,21 +43,12 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
         cssField(
           cssLabel("Page"),
           select(pageSelectObs, pageSelectOptions),
-        ),
-        cssField(
-          cssLabel("New title"),
-          titleInputEl = cssInput({value: ' (copy)'}),
-        ),
-        cssField(
-          cssLabel("New description"),
-          descriptionInputEl = cssInput({value: ' (copy)'}),
-        ),
+          testId("duplicate-widget-page-select"),
+        )
       ]),
       async saveFunc() {
         const newWidget: DuplicatedWidgetSpec = {
           sourceViewSectionId: viewSectionId,
-          title: titleInputEl.value.trim() || undefined,
-          description: descriptionInputEl.value.trim() || undefined,
         };
         // TODO - Make this actually respect newWidget's title and description properties.
         await duplicateWidgets(
@@ -80,8 +69,6 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
 
 export interface DuplicatedWidgetSpec {
   sourceViewSectionId: number;
-  title?: string;
-  description?: string;
 }
 
 export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: DuplicatedWidgetSpec[], destViewId: number) {

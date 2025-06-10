@@ -3156,7 +3156,6 @@ export function findSortRow(colName: RegExp|string) {
 export async function getSortColumns() {
   return await driver.findAll(".grist-floating-menu .test-sort-config-column", async (col) => {
     const classes = await col.find('.test-sort-config-order').getAttribute("class");
-    console.log(await col.getAttribute("class"));
     const match = classes.match(/test-sort-config-sort-order-(\w+)/);
     // Shouldn't happen - a sort should always have a direction.
     if (!match) {
