@@ -1719,6 +1719,24 @@ export async function toggleVisibleColumn(col: string) {
 }
 
 /**
+ * Lists all columns in the visible columns section.
+ */
+export async function getVisibleColumns() {
+  return await driver.findAll(".test-vfc-visible-fields .kf_draggable_content", async (row) => {
+    return row.getText();
+  });
+}
+
+/**
+ * Lists all columns in the hidden columns section.
+ */
+export async function getHiddenColumns() {
+  return await driver.findAll(".test-vfc-hidden-fields .kf_draggable_content", async (row) => {
+    return row.getText();
+  });
+}
+
+/**
  * Clicks `Hide Columns` button in visible columns section.
  */
 export async function hideVisibleColumns() {
@@ -3135,6 +3153,22 @@ export function findSortRow(colName: RegExp|string) {
   return driver.findContent(".test-sort-config-row", colName);
 }
 
+export async function getSortColumns() {
+  return await driver.findAll(".grist-floating-menu .test-sort-config-column", async (col) => {
+    const classes = await col.find('.test-sort-config-order').getAttribute("class");
+    console.log(await col.getAttribute("class"));
+    const match = classes.match(/test-sort-config-sort-order-(\w+)/);
+    // Shouldn't happen - a sort should always have a direction.
+    if (!match) {
+      throw new Error("Sort element is missing direction");
+    }
+    return {
+      column: await col.getText(),
+      dir: match[1],
+    };
+  });
+}
+
 // Opens more sort options menu
 export async function openMoreSortOptions(colName: RegExp|string) {
   const row = await findSortRow(colName);
@@ -4154,6 +4188,24 @@ export async function deleteWidgetWithData(title?: string) {
   const menu = await openSectionMenu('viewLayout', title);
   await menu.findContent('.test-cmd-name', 'Delete widget').click();
   await driver.findWait('.test-option-deleteOnlyWidget', 100).click();
+  await driver.find('.test-modal-confirm').click();
+  await waitForServer();
+}
+
+export async function duplicateWidget(title?: string, targetPageTitle?: string) {
+  const menu = await openSectionMenu('viewLayout', title);
+  await menu.findContent('.test-cmd-name', 'Duplicate widget').click();
+
+  if (targetPageTitle) {
+    const select = buildSelectComponent('.test-duplicate-widget-page-select');
+    const option = (await select.options()).find(option => option.startsWith(targetPageTitle));
+    if (!option) {
+      await driver.find('.test-modal-cancel').click();
+      throw new Error(`Unable to find page ${targetPageTitle} when duplicating widget`);
+    }
+    await select.select(option);
+  }
+
   await driver.find('.test-modal-confirm').click();
   await waitForServer();
 }
