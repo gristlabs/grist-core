@@ -580,6 +580,11 @@ export class HostedStorageManager implements IDocStorageManager {
     };
   }
 
+  public async getFsFileSize(docName: string): Promise<number> {
+    return (await fse.stat(this.getPath(docName))).size;
+  }
+
+
   /**
    * This is called when a document was edited by the user.
    */
