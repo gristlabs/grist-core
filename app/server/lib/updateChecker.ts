@@ -33,12 +33,23 @@ export async function checkForUpdates(gristServer: GristServer) {
   return await response.json();
 }
 
-export async function updateGristServerLatestVersion(gristServer: GristServer) {
+export async function updateGristServerLatestVersion(
+  gristServer: GristServer,
+  forceCheck = false,
+): Promise<LatestVersionAvailable | null> {
   // We only automatically check for versions in certain situations,
-  // such as for example, in Docker images that enable this envvar
-  if (!isAffirmative(process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING)) {
-    return;
+  // such as for example, in Docker images that enable
+  // `GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING`. If `doItAnyway` is
+  // true, we check, as this means the user explicitly requested a
+  // one-time version check.
+  const activation = await gristServer.getActivations().current();
+  const prefEnabled = activation.prefs?.checkForLatestVersion ?? true;
+  const envvarEnabled = isAffirmative(process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING);
+  const doIt = (envvarEnabled && prefEnabled) || forceCheck;
+  if (!doIt) {
+      return null;
   }
+
   const response = await checkForUpdates(gristServer);
 
   // naturalCompare correctly sorts version numbers.
