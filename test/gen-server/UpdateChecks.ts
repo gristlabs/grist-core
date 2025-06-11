@@ -9,7 +9,7 @@ import { Telemetry } from 'app/server/lib/Telemetry';
 import { Deps } from "app/server/lib/UpdateManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { delay } from "app/common/delay";
-import { LatestVersion } from 'app/common/InstallAPI';
+import { LatestVersion } from 'app/server/lib/UpdateManager';
 import { TelemetryEvent, TelemetryMetadataByLevel } from 'app/common/Telemetry';
 
 const assert = chai.assert;
