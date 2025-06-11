@@ -55,6 +55,7 @@ const fixtures: {[docName: string]: string|null} = {
 };
 
 describe('Authorizer', function() {
+  this.timeout(3000);
 
   testUtils.setTmpLogLevel('fatal');
 

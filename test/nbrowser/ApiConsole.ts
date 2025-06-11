@@ -76,6 +76,9 @@ async function openApiConsolePage() {
   assert.isDefined(newTab);
   await driver.switchTo().window(newTab);
   await driver.findContentWait('p', /An API for manipulating Grist/, 3000);
+  // Swagger code is external, a little slow, a little async.
+  // Give it some time. Not obvious what to wait on.
+  await driver.sleep(2000);
 }
 
 // The swagger-ui code is external, a little slow, a little async.
