@@ -48,7 +48,10 @@ export async function updateGristServerLatestVersion(gristServer: GristServer) {
   const latestVersionAvailable: LatestVersionAvailable = {
     version: response.latestVersion,
     isNewer: versions[1] !== installedVersion,
+    dateChecked: Date.now(),
+    releaseUrl: response.updateURL,
   };
 
   await gristServer.publishLatestVersionAvailable(latestVersionAvailable);
+  return latestVersionAvailable;
 }
