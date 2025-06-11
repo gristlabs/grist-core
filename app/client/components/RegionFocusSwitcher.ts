@@ -105,10 +105,12 @@ export class RegionFocusSwitcher extends Disposable {
 
     const gristDoc = this._getGristDoc();
     if (gristDoc && region?.type === 'panel' && region?.id === 'main') {
-      throw new Error('main panel is not supported when a view layout is rendered');
+      console.error('main panel is not supported when a view layout is rendered');
+      return;
     }
     if (!gristDoc && region?.type === 'section') {
-      throw new Error('view section id is not supported when no view layout is rendered');
+      console.error('view section id is not supported when no view layout is rendered');
+      return;
     }
 
     this._state.set({region, initiator: options.initiator});
