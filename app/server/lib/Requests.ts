@@ -2,15 +2,14 @@ import {SandboxRequest} from 'app/common/ActionBundle';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {httpEncoding} from 'app/server/lib/httpEncoding';
-import fetch from 'node-fetch';
 import * as path from 'path';
 import * as tmp from 'tmp';
 import * as fse from 'fs-extra';
 import log from 'app/server/lib/log';
-import {proxyAgent} from "app/server/lib/ProxyAgent";
 import chunk = require('lodash/chunk');
 import fromPairs = require('lodash/fromPairs');
 import zipObject = require('lodash/zipObject');
+import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
 
 export class DocRequests {
   // Request responses are briefly cached in files only to handle multiple requests in a formula
@@ -89,9 +88,8 @@ export class DocRequests {
       for (const [param, value] of Object.entries(params || {})) {
         urlObj.searchParams.append(param, value);
       }
-      const response = await fetch(urlObj.toString(), {
+      const response = await fetchUntrustedWithAgent(urlObj, {
         headers: headers || {},
-        agent: proxyAgent(urlObj),
         method,
         body
       });

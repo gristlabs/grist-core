@@ -19,14 +19,13 @@ import {decodeObject} from 'app/plugin/objtypes';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
-import {proxyAgent} from 'app/server/lib/ProxyAgent';
+import {fetchUntrustedWithAgent} from 'app/server/lib/ProxyAgent';
 import {matchesBaseDomain} from 'app/server/lib/requestUtils';
 import {delayAbort} from 'app/server/lib/serverUtils';
 import {LogSanitizer} from "app/server/utils/LogSanitizer";
 import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
 import {AbortController, AbortSignal} from 'node-abort-controller';
-import fetch from 'node-fetch';
 import {createClient, Multi, RedisClient} from 'redis';
 
 promisifyAll(RedisClient.prototype);
@@ -818,7 +817,7 @@ export class DocTriggers {
         if (attempt > 0) {
           await this._stats.logStatus(id, 'retrying');
         }
-        const response = await fetch(url, {
+        const response = await fetchUntrustedWithAgent(url, {
           method: 'POST',
           body,
           headers: {
@@ -826,7 +825,6 @@ export class DocTriggers {
             ...(authorization ? {'Authorization': authorization} : {}),
           },
           signal,
-          agent: proxyAgent(new URL(url)),
         });
         if (response.status === 200) {
           await this._stats.logBatch(id, 'success', { size, httpStatus: 200, error: null, attempts: attempt + 1 });
