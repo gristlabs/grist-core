@@ -14,6 +14,7 @@ export interface InstallPrefsWithSources {
   telemetry: {
     telemetryLevel: PrefWithSource<TelemetryLevel>;
   },
+  checkForLatestVersion: boolean;
 }
 
 export type TelemetryPrefsWithSources = InstallPrefsWithSources['telemetry'];

@@ -25,7 +25,7 @@ export class ActivationsManager {
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();
-        activation.prefs = {};
+        activation.prefs = {checkForLatestVersion: true};
         await activation.save();
       }
       return activation;
