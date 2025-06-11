@@ -27,7 +27,7 @@ describe('VersionUpdateBanner', function() {
 
   beforeEach(async function() {
     fakeServer.payload = null;
-    await server.restart();
+    await server.restart(true);
     assert.isNotNull(fakeServer.payload, 'fake server should have received a version payload');
   });
 
