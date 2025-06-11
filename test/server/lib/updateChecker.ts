@@ -1,4 +1,4 @@
-import { LatestVersion } from "app/common/InstallAPI";
+import { LatestVersion } from "app/server/lib/UpdateManager";
 import { version as installedVersion } from "app/common/version";
 import { TestServer } from 'test/gen-server/apiUtils';
 import { getGristConfig } from 'test/gen-server/testUtils';
