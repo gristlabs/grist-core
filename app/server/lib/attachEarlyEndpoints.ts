@@ -113,12 +113,13 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/prefs",
     expressWrap(async (_req, res) => {
       const activation = await gristServer.getActivations().current();
-
-      return sendOkReply(null, res, {
-        telemetry: await getTelemetryPrefs(
+      const telemetryPrefs = await getTelemetryPrefs(
           gristServer.getHomeDBManager(),
           activation
-        ),
+      );
+      return sendOkReply(null, res, {
+        telemetry: telemetryPrefs,
+        checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
       });
     })
   );
