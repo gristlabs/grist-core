@@ -12,6 +12,7 @@ import {DocSession, DocSessionPrecursor, makeExceptionalDocSession} from 'app/se
 import {createDocTools, createUpload} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
+import { ActionHistoryImpl } from 'app/server/lib/ActionHistoryImpl';
 
 // This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
 function _makeFakeClient(): Client {
@@ -308,5 +309,28 @@ return c
       + Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging RemoveTransformColumns action on shutdown
       + 1000;   // Hard-coded extra time NSandbox takes to kill an unresponsive process
     assert.closeTo(totalMsec, expectedTime, 500);
+  });
+
+  it("should VACUUM a document before closing it", async function () {
+    const docName = 'World-v0.grist';
+    const adoc = await docTools.loadFixtureDoc(docName);
+    const docSession = docTools.createFakeSession('owners');
+
+    // Remove the tables
+    await adoc.applyUserActions(docSession, [
+      ["RemoveTable", "City"],
+      ["RemoveTable", "CountryLanguage"],
+      ["RemoveTable", "Country"]
+    ]);
+
+    const hist = new ActionHistoryImpl(adoc.docStorage);
+    // Don't use deleteActions and use .wipe() instead so no VACUUM is requested.
+    await hist.wipe();
+    await hist.clearLocalActions();
+
+    const sizeBeforeShrink = await docTools.getStorageManager().getFsFileSize(adoc.docName);
+    await (adoc as any)._onInactive();
+    const sizeAfterShrink = await docTools.getStorageManager().getFsFileSize(adoc.docName);
+    assert.isBelow(sizeAfterShrink, sizeBeforeShrink / 2, "The new size should have drastically decreased");
   });
 });
