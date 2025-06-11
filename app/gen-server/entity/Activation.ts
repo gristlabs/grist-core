@@ -58,6 +58,8 @@ export class Activation extends BaseEntity {
         }
       }
 
+      this.prefs.checkForLatestVersion = props.prefs.checkForLatestVersion;
+
       for (const key of Object.keys(this.prefs) as Array<keyof InstallPrefs>) {
         if (this.prefs[key] === null) {
           delete this.prefs[key];
