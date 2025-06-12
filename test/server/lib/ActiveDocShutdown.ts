@@ -312,9 +312,11 @@ return c
   });
 
   it("should VACUUM a document before closing it", async function () {
+    const checkSnapshots = Boolean(process.env.GRIST_DOCS_MINIO_BUCKET);
     const docName = 'World-v0.grist';
     const adoc = await docTools.loadFixtureDoc(docName);
     const docSession = docTools.createFakeSession('owners');
+    const storageManager = docTools.getStorageManager();
 
     // Remove the tables
     await adoc.applyUserActions(docSession, [
@@ -328,9 +330,20 @@ return c
     await hist.wipe();
     await hist.clearLocalActions();
 
-    const sizeBeforeShrink = await docTools.getStorageManager().getFsFileSize(adoc.docName);
+    const sizeBeforeShrink = await storageManager.getFsFileSize(adoc.docName);
+    await storageManager.flushDoc(adoc.docName);
+    const versionsBefore = checkSnapshots ? await storageManager.getSnapshots(adoc.docName) : {snapshots: []};
+
     await (adoc as any)._onInactive();
-    const sizeAfterShrink = await docTools.getStorageManager().getFsFileSize(adoc.docName);
+    const sizeAfterShrink = await storageManager.getFsFileSize(adoc.docName);
     assert.isBelow(sizeAfterShrink, sizeBeforeShrink / 2, "The new size should have drastically decreased");
+
+    if (checkSnapshots) {
+      await waitForIt(async () => {
+        const versionsAfter = await storageManager.getSnapshots(adoc.docName);
+        assert.equal(versionsAfter.snapshots.length, versionsBefore.snapshots.length + 1,
+          "a new snapshot should have been pushed to S3");
+      }, 10 * timeout);
+    }
   });
 });
