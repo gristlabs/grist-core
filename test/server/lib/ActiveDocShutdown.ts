@@ -312,9 +312,7 @@ return c
   });
 
   it("should VACUUM a document before closing it", async function () {
-    const checkSnapshots = Boolean(process.env.GRIST_DOCS_MINIO_BUCKET);
-    const docName = 'World-v0.grist';
-    const adoc = await docTools.loadFixtureDoc(docName);
+    const adoc = await docTools.loadFixtureDoc('World-v0.grist');
     const docSession = docTools.createFakeSession('owners');
     const storageManager = docTools.getStorageManager();
 
@@ -332,18 +330,41 @@ return c
 
     const sizeBeforeShrink = await storageManager.getFsFileSize(adoc.docName);
     await storageManager.flushDoc(adoc.docName);
-    const versionsBefore = checkSnapshots ? await storageManager.getSnapshots(adoc.docName) : {snapshots: []};
 
+    const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
     await (adoc as any)._onInactive();
     const sizeAfterShrink = await storageManager.getFsFileSize(adoc.docName);
     assert.isBelow(sizeAfterShrink, sizeBeforeShrink / 2, "The new size should have drastically decreased");
+    sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
+  });
 
-    if (checkSnapshots) {
-      await waitForIt(async () => {
-        const versionsAfter = await storageManager.getSnapshots(adoc.docName);
-        assert.equal(versionsAfter.snapshots.length, versionsBefore.snapshots.length + 1,
-          "a new snapshot should have been pushed to S3");
-      }, 10 * timeout);
-    }
+  it("should not mark as changed if VACUUM does not reduce size significantly", async function () {
+    // Open a doc, do nothing particular and close it
+    const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+    const storageManager = docTools.getStorageManager();
+    const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+    await (adoc as any)._onInactive();
+    sinon.assert.notCalled(markAsChangedSpy);
+  });
+
+  it('should close the document anyway if the VACUUM fails', async function () {
+    const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+    const isDocOpen = async () => Boolean(await docTools.getDocManager().getActiveDoc(adoc.docName));
+    assert.isTrue(await isDocOpen(), 'doc should be open');
+
+    const storageManager = docTools.getStorageManager();
+    const error = new Error('whatever');
+    (error as any).code = "ENOENT";
+    const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+    sandbox.stub(storageManager, 'getFsFileSize').rejects(error);
+    const onInactivePromise = (adoc as any)._onInactive();
+    await testUtils.captureLog('warn', (messages) => {
+      return waitForIt(() => testUtils.assertMatchArray(messages, [/Vacuum on inactive.*no longer available/]),
+        10_000, 100);
+    });
+    await onInactivePromise;
+
+    sinon.assert.notCalled(markAsChangedSpy);
+    assert.isFalse(await isDocOpen(), 'doc should be closed');
   });
 });
