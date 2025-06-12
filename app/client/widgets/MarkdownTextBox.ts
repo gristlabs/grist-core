@@ -1,51 +1,17 @@
-import { domAsync } from 'app/client/lib/domAsync';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { buildCodeHighlighter } from 'app/client/ui/CodeHighlight';
-import { renderer } from 'app/client/ui/MarkdownCellRenderer';
-import { sanitizeHTMLIntoDOM } from 'app/client/ui/sanitizeHTML';
+import { renderCellMarkdown } from 'app/client/ui/MarkdownCellRenderer';
 import { theme, vars } from 'app/client/ui2018/cssVars';
 import { handleGristLinkClick } from 'app/client/ui2018/links';
 import { NTextBox } from 'app/client/widgets/NTextBox';
-import { AsyncCreate } from 'app/common/AsyncCreate';
-import { dom, DomContents, styled } from 'grainjs';
-import { Marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import markedLinkifyIt from 'marked-linkify-it';
+import { dom, styled } from 'grainjs';
 
 /**
  * Creates a widget for displaying Markdown-formatted text.
  */
 export class MarkdownTextBox extends NTextBox {
-  private static _marked?: AsyncCreate<Marked>;
-  private static _markedResolved: Marked|undefined;
-
-  // Call render() synchronously if possible, or asynchronously otherwise. Aside from the first
-  // batch of renders, this will always be synchronous. This matters for printing, where we
-  // prepare a view in "beforeprint" callback, and async renders take place too late.
-  private static _domAsyncOrDirect(render: (marked: Marked) => DomContents) {
-    return this._markedResolved ?
-      render(this._markedResolved) :
-      domAsync(this._marked!.get().then(marked => {
-        this._markedResolved = marked;
-        return render(this._markedResolved);
-      }));
-  }
-
   constructor(field: ViewFieldRec) {
     super(field);
-
-    if (!MarkdownTextBox._marked) {
-      MarkdownTextBox._marked = new AsyncCreate(async () => {
-        const highlight = await buildCodeHighlighter({ maxLines: 60 });
-        return new Marked(
-          markedHighlight({
-            highlight: (code) => highlight(code),
-          }),
-          markedLinkifyIt()
-        );
-      });
-    }
   }
 
   public buildDom(row: DataRowModel) {
@@ -53,30 +19,17 @@ export class MarkdownTextBox extends NTextBox {
 
     return dom(
       "div.field_clip",
-      MarkdownTextBox._domAsyncOrDirect(
-        ({parse}) => {
-          return cssMarkdown(
-            cssMarkdown.cls("-text-wrap", this.wrapping),
-            dom.style("text-align", this.alignment),
-            dom.on("contextmenu", (ev) => {
-              // Disable Grist cell context menu on links.
-              if ((ev.target as HTMLElement).closest("a")) {
-                ev.stopPropagation();
-              }
-            }),
-            dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
-
-            dom.domComputed(valueObs, value => {
-              const source = parse(String(value), {
-                async: false,
-                gfm: false,
-                renderer,
-              });
-              this.field.viewSection().events.trigger("rowHeightChange");
-              return sanitizeHTMLIntoDOM(source);
-            })
-          );
-        }
+      cssMarkdown(
+        cssMarkdown.cls("-text-wrap", this.wrapping),
+        dom.style("text-align", this.alignment),
+        dom.on("contextmenu", (ev) => {
+          // Disable Grist cell context menu on links.
+          if ((ev.target as HTMLElement).closest("a")) {
+            ev.stopPropagation();
+          }
+        }),
+        dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
+        dom.domComputed(valueObs, value => renderCellMarkdown(String(value))),
       )
     );
   }
