@@ -3263,9 +3263,9 @@ export class ActiveDoc extends EventEmitter {
             await this.docStorage.vacuum();
           } catch (err) {
             if (err.code === "ENOENT") {
-              this._log.error(null, `Vacuum on inactive : Doc ${this.docName} is no longer available`);
+              this._log.warn(null, `Vacuum on inactive: Doc ${this.docName} is no longer available`);
             } else {
-              this._log.error(null, `Vacuum on inactive : Doc ${this.docName}\n ${err}`);
+              this._log.warn(null, `Vacuum on inactive: Doc ${this.docName}\n ${err}`);
             }
           }
         }
