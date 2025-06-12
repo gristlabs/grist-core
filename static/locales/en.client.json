@@ -422,7 +422,10 @@
         "[Learn more.]({{learnLink}})": "[Learn more.]({{learnLink}})",
         "Upload": "Upload",
         "Upload missing attachments": "Upload missing attachments",
-        "Uploading...": "Uploading..."
+        "Uploading...": "Uploading...",
+        "Default": "Default",
+        "Default, template, or tutorial": "Default, template, or tutorial",
+        "Document type": "Document type"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
