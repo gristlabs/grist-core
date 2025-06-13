@@ -677,8 +677,18 @@ class RefModel extends RefListModel {
 
 const AnyModel = TextModel;
 
-// Attachments are not currently supported.
-const AttachmentsModel = TextModel;
+class AttachmentsModel extends Question {
+  public renderInput() {
+    return dom('div',
+      css.cssAttachmentInput(
+        dom.prop('name', use => use(use(this.field).colId)),
+        dom.prop('type', 'file'),
+        dom.prop('multiple', true),
+      ),
+      dom.style('width', '100%'),
+    );
+  }
+}
 
 function fieldConstructor(type: string): Constructor<Question> {
   switch (type) {
