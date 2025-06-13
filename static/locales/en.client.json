@@ -721,7 +721,8 @@
         "Delete": "Delete",
         "Delete data and this page.": "Delete data and this page.",
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
-        "The following tables will no longer be visible_other": "The following tables will no longer be visible"
+        "The following tables will no longer be visible_other": "The following tables will no longer be visible",
+        "Document pages": "Document pages"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",

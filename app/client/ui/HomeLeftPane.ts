@@ -74,52 +74,56 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         cssSectionHeader(
           cssSectionHeaderText(t("Workspaces")),
           // Give it a testId, because it's a good element to simulate "click-away" in tests.
-          testId('dm-ws-label')
+          testId('dm-ws-label'),
+          {id: 'grist-workspaces-heading'}
         ),
       ),
-      dom.forEach(home.workspaces, (ws) => {
-        if (ws.isSupportWorkspace) { return null; }
-        const info = getWorkspaceInfo(home.app, ws);
-        const isTrivial = computed((use) => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
-                                                    use(home.singleWorkspace)));
-        // TODO: Introduce a "SwitchSelector" pattern to avoid the need for N computeds (and N
-        // recalculations) to select one of N items.
-        const isRenaming = computed((use) => use(renaming) === ws);
-        return cssPageEntry(
-          dom.autoDispose(isRenaming),
-          dom.autoDispose(isTrivial),
-          dom.hide(isTrivial),
-          cssPageEntry.cls('-selected', (use) => use(home.currentWSId) === ws.id),
-          cssPageLink(cssPageIcon('Folder'), cssLinkText(workspaceName(home.app, ws)),
-            dom.hide(isRenaming),
-            urlState().setLinkUrl({ws: ws.id}),
-            // Don't show menu if workspace is personal and shared by another user; we could
-            // be a bit more nuanced here, but as of today the menu isn't particularly useful
-            // as all the menu options are disabled.
-            !info.self && info.owner ? null : cssMenuTrigger(icon('Dots'),
-              menu(() => workspaceMenu(home, ws, renaming),
-                {placement: 'bottom-start', parentSelectorToMark: '.' + cssPageEntry.className}),
+      dom('nav',
+        {'aria-labelledby': 'grist-workspaces-heading'},
+        dom.forEach(home.workspaces, (ws) => {
+          if (ws.isSupportWorkspace) { return null; }
+          const info = getWorkspaceInfo(home.app, ws);
+          const isTrivial = computed((use) => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
+                                                      use(home.singleWorkspace)));
+          // TODO: Introduce a "SwitchSelector" pattern to avoid the need for N computeds (and N
+          // recalculations) to select one of N items.
+          const isRenaming = computed((use) => use(renaming) === ws);
+          return cssPageEntry(
+            dom.autoDispose(isRenaming),
+            dom.autoDispose(isTrivial),
+            dom.hide(isTrivial),
+            cssPageEntry.cls('-selected', (use) => use(home.currentWSId) === ws.id),
+            cssPageLink(cssPageIcon('Folder'), cssLinkText(workspaceName(home.app, ws)),
+              dom.hide(isRenaming),
+              urlState().setLinkUrl({ws: ws.id}),
+              // Don't show menu if workspace is personal and shared by another user; we could
+              // be a bit more nuanced here, but as of today the menu isn't particularly useful
+              // as all the menu options are disabled.
+              !info.self && info.owner ? null : cssMenuTrigger(icon('Dots'),
+                menu(() => workspaceMenu(home, ws, renaming),
+                  {placement: 'bottom-start', parentSelectorToMark: '.' + cssPageEntry.className}),
 
-              // Clicks on the menu trigger shouldn't follow the link that it's contained in.
-              dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-              {'aria-label': t("{{ workspaceName }} - workspace options", {workspaceName: ws.name})},
-              testId('dm-workspace-options'),
+                // Clicks on the menu trigger shouldn't follow the link that it's contained in.
+                dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+                {'aria-label': t("{{ workspaceName }} - workspace options", {workspaceName: ws.name})},
+                testId('dm-workspace-options'),
+              ),
+              testId('dm-workspace'),
+              dom.cls('test-dm-workspace-selected', (use) => use(home.currentWSId) === ws.id),
             ),
-            testId('dm-workspace'),
-            dom.cls('test-dm-workspace-selected', (use) => use(home.currentWSId) === ws.id),
-          ),
-          cssPageEntry.cls('-renaming', isRenaming),
-          dom.maybe(isRenaming, () =>
-            cssPageLink(cssPageIcon('Folder'),
-              cssEditorInput({
-                initialValue: ws.name || '',
-                save: async (val) => (val !== ws.name) ? home.renameWorkspace(ws.id, val) : undefined,
-                close: () => renaming.set(null),
-              }, testId('dm-ws-name-editor'))
-            )
-          ),
-        );
-      }),
+            cssPageEntry.cls('-renaming', isRenaming),
+            dom.maybe(isRenaming, () =>
+              cssPageLink(cssPageIcon('Folder'),
+                cssEditorInput({
+                  initialValue: ws.name || '',
+                  save: async (val) => (val !== ws.name) ? home.renameWorkspace(ws.id, val) : undefined,
+                  close: () => renaming.set(null),
+                }, testId('dm-ws-name-editor'))
+              )
+            ),
+          );
+        }),
+      ),
       dom.maybe(creating, () => cssPageEntry(
         cssPageLink(cssPageIcon('Folder'),
           cssEditorInput({
@@ -130,9 +134,10 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         )
       )),
       cssHomeTools(
+        {'aria-labelledby': 'grist-resources-heading'},
         cssSectionHeader(
           cssPageColorIcon('GristLogo', {title: appVersion}),
-          cssSectionHeaderText(t("Grist Resources"))
+          cssSectionHeaderText(t("Grist Resources"), {id: 'grist-resources-heading'})
         ),
         cssPageEntry(
           dom.show(isFeatureEnabled("templates") && Boolean(templateOrg)),
