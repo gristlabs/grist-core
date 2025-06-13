@@ -98,6 +98,7 @@ export async function startFakeUpdateServer() {
   let mutex: Defer|null = null;
   const API: FakeUpdateServer = {
     latestVersion: bumpVersion(installedVersion),
+    isCritical: false,
     failNext: false,
     payload: null,
     close: async () => {
@@ -132,7 +133,10 @@ export async function startFakeUpdateServer() {
           API.failNext = false;
           return;
         }
-        res.json({latestVersion: API.latestVersion});
+        res.json({
+          latestVersion: API.latestVersion,
+          isCritical: API.isCritical,
+        });
       } catch(ex) {
         next(ex);
       }
@@ -152,6 +156,7 @@ function bumpVersion(version: string) {
 
 export interface FakeUpdateServer {
   latestVersion: string;
+  isCritical: boolean;
   failNext: boolean;
   payload: any;
   close: () => Promise<void>;
