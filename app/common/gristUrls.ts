@@ -732,8 +732,9 @@ export interface ActivationState {
 export interface LatestVersionAvailable {
   version: string;
   isNewer: boolean;
+  isCritical: boolean;
   dateChecked: number;
-  releaseUrl: string;
+  releaseUrl?: string;
 }
 
 /**

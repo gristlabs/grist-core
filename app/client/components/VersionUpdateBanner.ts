@@ -50,13 +50,18 @@ export class VersionUpdateBanner extends Disposable {
           return null;
         }
 
+        const versionParam = {version: latestVersionAvailable.version};
+        const msg = latestVersionAvailable.isCritical ?
+          t(
+`There is a critical Grist update available.
+Consider upgrading to version {{version}} as soon as possible.`, versionParam)
+          : t(
+`Your Grist version is outdated.
+Consider upgrading to version {{version}} as soon as possible.`, versionParam);
+
         return dom.create(Banner, {
-          content: buildBannerMessage(
-            t(`Your Grist version is outdated. ` +
-              `Consider upgrading to version ${latestVersionAvailable.version} as soon as possible.`),
-            testId('text')
-          ),
-          style: 'warning',
+          content: buildBannerMessage(msg, testId('text')),
+          style: latestVersionAvailable.isCritical ? 'error' : 'warning',
           showCloseButton: true,
           onClose: () => this._showVersionUpdateBannerPref.set({
             dismissed: true,
