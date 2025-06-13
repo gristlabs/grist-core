@@ -1,7 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { GristDeploymentType } from "app/common/gristUrls";
-import { LatestVersion } from 'app/common/InstallAPI';
 import { naturalCompare } from "app/common/SortFunc";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { expressWrap } from 'app/server/lib/expressWrap';
@@ -37,6 +36,31 @@ export const Deps = {
   GOOD_RESULT_TTL,
   BAD_RESULT_TTL,
 };
+
+/**
+ * JSON returned to the client (exported for tests).
+ */
+export interface LatestVersion {
+  /**
+   * Latest version of core component of the client.
+   */
+  latestVersion: string;
+  /**
+   * If there were any critical updates after client's version. Undefined if
+   * we don't know client version or couldn't figure this out for some other reason.
+   */
+  isCritical?: boolean;
+  /**
+   * Url where the client can download the latest version (if applicable)
+   */
+  updateURL?: string;
+
+  /**
+   * When the latest version was updated (in ISO format).
+   */
+  updatedAt?: string;
+}
+
 
 export class UpdateManager {
 

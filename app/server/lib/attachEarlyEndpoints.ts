@@ -24,7 +24,7 @@ import {
   stringParam,
 } from "app/server/lib/requestUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
-import { checkForUpdates } from "app/server/lib/updateChecker";
+import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 import {
   Application,
   json,
@@ -113,12 +113,13 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/prefs",
     expressWrap(async (_req, res) => {
       const activation = await gristServer.getActivations().current();
-
-      return sendOkReply(null, res, {
-        telemetry: await getTelemetryPrefs(
+      const telemetryPrefs = await getTelemetryPrefs(
           gristServer.getHomeDBManager(),
           activation
-        ),
+      );
+      return sendOkReply(null, res, {
+        telemetry: telemetryPrefs,
+        checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
       });
     })
   );
@@ -149,7 +150,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/updates",
     expressWrap(async (_req, res) => {
       try {
-        const updateData = await checkForUpdates(gristServer);
+        const updateData = await updateGristServerLatestVersion(gristServer, true);
         res.json(updateData);
       } catch (error) {
         res.status(error.status);

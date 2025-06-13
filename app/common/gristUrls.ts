@@ -754,6 +754,9 @@ export interface ActivationState {
 export interface LatestVersionAvailable {
   version: string;
   isNewer: boolean;
+  isCritical: boolean;
+  dateChecked: number;
+  releaseUrl?: string;
 }
 
 /**
@@ -872,6 +875,7 @@ export interface GristLoadConfig {
 
   activation?: ActivationState;
 
+  // Latest Grist release available
   latestVersionAvailable?: LatestVersionAvailable;
 
   // List of enabled features.

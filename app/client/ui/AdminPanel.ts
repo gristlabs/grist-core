@@ -1,6 +1,5 @@
 import {buildHomeBanners} from 'app/client/components/Banners';
 import {makeT} from 'app/client/lib/localization';
-import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
@@ -23,9 +22,8 @@ import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
 import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
-import {AdminPanelPage, commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
-import {InstallAPI, InstallAPIImpl, LatestVersion} from 'app/common/InstallAPI';
-import {naturalCompare} from 'app/common/SortFunc';
+import {AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable} from 'app/common/gristUrls';
+import {InstallAPI, InstallAPIImpl} from 'app/common/InstallAPI';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
 import {Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled} from 'grainjs';
@@ -93,8 +91,8 @@ export class AdminPanel extends Disposable {
 class AdminInstallationPanel extends Disposable {
   private _supportGrist = SupportGristPage.create(this, this._appModel);
   private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
-  private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private _checks: AdminChecks;
+  private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
 
   constructor(private _appModel: AppModel) {
     super();
@@ -345,34 +343,11 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
       ERROR,
     }
 
-    // Are updates enabled at all.
-    const defaultValue = {
-      onLoad: false,
-      lastCheckDate: null as number|null,
-      lastVersion: null as string|null,
-    };
-    const prop = <T extends keyof typeof defaultValue>(key: T) => {
-      const computed = Computed.create(owner, (use) => use(settings)[key]);
-      computed.onWrite((val) => settings.set({...settings.get(), [key]: val}));
-      return computed as Observable<typeof defaultValue[T]>;
-    };
-    const settings = owner.autoDispose(localStorageJsonObs('new-version-check', defaultValue));
-    const onLoad = prop('onLoad');
-    const latestVersion = prop('lastVersion');
-    const lastCheckDate = prop('lastCheckDate');
-    const comparison = Computed.create(owner, (use) => {
-      const versions = [version.version, use(latestVersion)];
-      if (!versions[1]) {
-        return null;
-      }
-      // Sort them in natural order, so that "1.10" comes after "1.9".
-      versions.sort(naturalCompare).reverse();
-      if (versions[0] === version.version) {
-        return 'old';
-      } else {
-        return 'new';
-      }
-    });
+    const latestVersionAvailable = Observable.create(owner, getGristConfig().latestVersionAvailable);
+    const checkForLatestVersion = Observable.create(owner, true);
+    this._installAPI.getInstallPrefs()
+      .then((prefs) => checkForLatestVersion.set(prefs.checkForLatestVersion ?? true))
+      .catch(reportError);
 
     // Observable state of the updates check.
     const state: Observable<State> = Observable.create(owner, State.NEVER);
@@ -387,8 +362,8 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
     const actions = {
       checkForUpdates: async () => {
         state.set(State.CHECKING);
-        latestVersion.set(null);
-        // We can be disabled, why the check is in progress.
+        latestVersionAvailable.set(undefined);
+        // We can be disabled, while the check is in progress.
         const controller = new AbortController();
         backgroundTask = {
           dispose() {
@@ -411,24 +386,23 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
       disableAutoCheck: () => {
         backgroundTask?.dispose();
         backgroundTask = null;
-        onLoad.set(false);
+        this._installAPI.updateInstallPrefs({checkForLatestVersion: false}).catch(reportError);
+        checkForLatestVersion.set(false);
       },
       enableAutoCheck: () => {
-        onLoad.set(true);
         if (state.get() !== State.CHECKING && state.get() !== State.AVAILABLE) {
           actions.checkForUpdates().catch(reportError);
+          this._installAPI.updateInstallPrefs({checkForLatestVersion: true}).catch(reportError);
+          checkForLatestVersion.set(true);
         }
       },
-      gotLatestVersion: (data: LatestVersion) => {
-        lastCheckDate.set(Date.now());
-        latestVersion.set(data.latestVersion);
-        releaseURL = data.updateURL || releaseURL;
-        const result = comparison.get();
-        switch (result) {
-          case 'old': state.set(State.CURRENT); break;
-          case 'new': state.set(State.AVAILABLE); break;
-          // This should not happen, but if it does, we should show the error.
-          default: state.set(State.ERROR); break;
+      gotLatestVersion: (data: LatestVersionAvailable) => {
+        latestVersionAvailable.set(data);
+        releaseURL = data.releaseUrl || releaseURL;
+        if (data.isNewer) {
+          state.set(State.AVAILABLE);
+        } else {
+          state.set(State.CURRENT);
         }
       }
     };
@@ -441,28 +415,33 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         case State.AVAILABLE: return t('Newer version available');
         case State.ERROR: return '❌ ' + t('Error checking for updates');
         case State.STALE: {
-          const lastCheck = use(lastCheckDate);
-          return t('Last checked {{time}}', {time: lastCheck ? getTimeFromNow(lastCheck) : 'n/a'});
+          const lastCheck = latestVersionAvailable.get()?.dateChecked;
+          return lastCheck ?
+            t('Last checked {{time}}', {time: getTimeFromNow(lastCheck)})
+            : t('No record of last version check');
         }
       }
     });
 
-    // Now trigger the initial state, by checking if we should auto-check.
-    if (onLoad.get()) {
-      actions.checkForUpdates().catch(reportError);
-    } else {
-      if (comparison.get() === 'new') {
-        state.set(State.AVAILABLE);
-      } else if (comparison.get() === 'old') {
+    // Now trigger the initial state
+    const lastCheck = latestVersionAvailable.get()?.dateChecked;
+    if (lastCheck) {
+      if (Date.now() - lastCheck > 14*24*60*60*1000) {
+        // It's been more than two weeks
         state.set(State.STALE);
-      } else {
-        state.set(State.NEVER); // default one.
+      } else if (latestVersionAvailable.get()?.isNewer === true) {
+        state.set(State.AVAILABLE);
+      } else if (latestVersionAvailable.get()?.isNewer === false) {
+        state.set(State.CURRENT);
       }
+    }
+    else {
+      state.set(State.NEVER);
     }
 
     // Toggle component operates on a boolean observable, without a way to set the value. So
     // create a controller for it to intercept the write and call the appropriate action.
-    const enabledController = Computed.create(owner, (use) => use(onLoad));
+    const enabledController = Computed.create(owner, (use) => use(checkForLatestVersion));
     enabledController.onWrite((val) => {
       if (val) {
         actions.enableAutoCheck();
@@ -500,8 +479,11 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
             );
           }
 
-          if (use(latestVersion)) {
-            return cssValueLabel(`Version ${use(latestVersion)}`, testId('admin-panel-updates-version'));
+          if (use(latestVersionAvailable)) {
+            return cssValueLabel(
+              `Version ${use(latestVersionAvailable)?.version}`,
+              testId('admin-panel-updates-version')
+            );
           }
 
           throw new Error('Invalid state');
@@ -511,12 +493,14 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         cssExpandedContent(
           dom('div', t('Grist releases are at '), makeLinks(releaseURL)),
         ),
-        dom.maybe(lastCheckDate, ms => cssExpandedContent(
+        dom.maybe(latestVersionAvailable, latest => cssExpandedContent(
           dom('div',
-            dom('span', t('Last checked {{time}}', {time: getTimeFromNow(ms)})),
+            dom('span', t('Last checked {{time}}', {
+              time: getTimeFromNow(latest.dateChecked)
+            })),
             dom('span', ' '),
             // Format date in local format.
-            cssGrayed(new Date(ms).toLocaleString()),
+            cssGrayed(`(${new Date(latest.dateChecked).toLocaleString()})`),
           ),
           // `Check now` button, only shown when auto checks are enabled and we are not in the
           // middle of checking. Otherwise the button is shown in the summary row, and there is
@@ -531,7 +515,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           ])
         )),
         cssExpandedContent(
-          dom('span', t('Auto-check when this page loads')),
+          dom('span', t('Auto-check weekly')),
           dom( 'div', toggle(enabledController, testId('admin-panel-updates-auto-check'))),
         ),
       )
