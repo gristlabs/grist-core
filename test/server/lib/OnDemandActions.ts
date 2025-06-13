@@ -17,7 +17,7 @@ describe('OnDemandActions', function() {
   testUtils.withoutSandboxing();
 
   // The maxSQLiteVariables test gets slower in WAL mode.
-  this.timeout(15000);
+  this.timeout(18000);
 
   // Turn off logging for this test, and restore afterwards.
   testUtils.setTmpLogLevel('warn');

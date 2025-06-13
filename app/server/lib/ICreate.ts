@@ -15,6 +15,7 @@ import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IAssistant} from 'app/server/lib/IAssistant';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {EmptyBilling, IBilling} from 'app/server/lib/IBilling';
+import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -94,6 +95,7 @@ export interface ICreate {
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   areAdminControlsAvailable(): boolean;
+  createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined;
 }
 
 export interface ICreateActiveDocOptions {
@@ -234,4 +236,7 @@ export class BaseCreate implements ICreate {
   }
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
   public areAdminControlsAvailable(): boolean { return false; }
+  public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined {
+    return undefined;
+  }
 }

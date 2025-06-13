@@ -115,6 +115,7 @@ export const NotifierEvents = StringUnion(
   'trialingSubscription',
   'scheduledCall',
   'twoFactorStatusChanged',
+  'docNotification',
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
@@ -3248,11 +3249,15 @@ export class HomeDBManager {
   /**
    * Combines default and per-user DocPrefs. Does not check access.
    */
-  public async getDocPrefsForUsers(docId: string, userIds: number[]): Promise<Map<number|null, DocPrefs>> {
+  public async getDocPrefsForUsers(docId: string, userIds: number[]|'any'): Promise<Map<number|null, DocPrefs>> {
     const records = await this._connection.createQueryBuilder()
       .select('doc_pref')
       .from(DocPref, 'doc_pref')
-      .where('doc_id = :docId AND (user_id IS NULL OR user_id IN (:...userIds))', {docId, userIds})
+      .where('doc_id = :docId', {docId})
+      .chain(qb => (
+        userIds === 'any' ? qb :
+        qb.andWhere('(user_id IS NULL OR user_id IN (:...userIds))', {userIds})
+      ))
       .getMany();
     return new Map<number|null, DocPrefs>(records.map(r => [r.userId, r.prefs]));
   }
@@ -3888,7 +3893,7 @@ export class HomeDBManager {
     // Get the user objects which map to non-null values in the userDelta.
     const userIds = Object.keys(userDelta).filter(userId => userDelta[userId])
       .map(userIdStr => parseInt(userIdStr, 10));
-    const users = await this._usersManager.getUsersByIds(userIds, manager);
+    const users = await this._usersManager.getUsersByIds(userIds, {manager});
 
     // Add unaffected users to the delta so that we have a record of where they are.
     groups.forEach(grp => {

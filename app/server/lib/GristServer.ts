@@ -21,6 +21,7 @@ import { createNullAuditLogger, IAuditLogger } from 'app/server/lib/IAuditLogger
 import { IBilling } from 'app/server/lib/IBilling';
 import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
+import { IDocNotificationManager } from 'app/server/lib/IDocNotificationManager';
 import { INotifier } from 'app/server/lib/INotifier';
 import { InstallAdmin } from 'app/server/lib/InstallAdmin';
 import { IPermitStore } from 'app/server/lib/Permit';
@@ -74,6 +75,7 @@ export interface GristServer extends StorageCoordinator {
   getTelemetry(): ITelemetry;
   hasNotifier(): boolean;
   getNotifier(): INotifier;
+  getDocNotificationManager(): IDocNotificationManager|undefined;
   getAssistant(): IAssistant|undefined;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
@@ -179,6 +181,7 @@ export function createDummyGristServer(): GristServer {
     getAuditLogger() { return createNullAuditLogger(); },
     getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
+    getDocNotificationManager(): IDocNotificationManager|undefined { return undefined; },
     hasNotifier() { return false; },
     getAssistant() { return undefined; },
     getDocTemplate() { throw new Error('no doc template'); },

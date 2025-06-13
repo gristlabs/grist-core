@@ -2203,6 +2203,10 @@ export class ActiveDoc extends EventEmitter {
     return this._memoryUsedMB;
   }
 
+  public async notifySubscribers(docSession: OptDocSession, accessControl: GranularAccessForBundle): Promise<void> {
+    return this._server.getDocNotificationManager()?.notifySubscribers(docSession, this._docName, accessControl);
+  }
+
   /**
    * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
    * metadata.

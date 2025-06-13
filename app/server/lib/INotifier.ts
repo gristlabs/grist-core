@@ -44,6 +44,12 @@ export interface INotifier {
   streamingDestinationsChange(orgId: number | null): Promise<void>;
 
   /**
+   * Deliver notification of a doc change or comment. Other code is responsible for preparing the
+   * payload; this method only needs to deliver it.
+   */
+  docNotification(userId: number, templateData: object): Promise<void>;
+
+  /**
    * This is a bit confusing. It isn't a notification, but
    * a request to purge a user from the notification system,
    * e.g. to remove from any email lists.
@@ -89,6 +95,7 @@ export class BaseNotifier implements INotifier {
   public async twoFactorStatusChanged(_event: TwoFactorEvent, _userId: number,
                                       _method?: 'TOTP' | 'SMS'): Promise<void> {}
 
+  public async docNotification(userId: number, templateData: object): Promise<void> {}
   public async deleteUser(_userId: number) {}
 }
 

@@ -490,30 +490,33 @@ describe('SQLiteDB', function() {
   it("should honor pauses", async function() {
     const sdb = await SQLiteDB.openDB(dbPath('testPause'), schemaInfo, OpenMode.OPEN_CREATE);
 
+    // Time that is certainly enough for SQLite statements to complete when not paused.
+    const delayMs = 200;
+
     // Modification should happen immediately.
     assert.isFalse(await timeoutReached(
-      100,
+      delayMs,
       sdb.exec("CREATE TABLE Foo1(id INTEGER)")
     ));
 
     // Modification should not happen immediately once paused.
     sdb.pause();
     assert.isTrue(await timeoutReached(
-      100,
+      delayMs,
       sdb.exec("CREATE TABLE Foo2(id INTEGER)")
     ));
 
     // After unpausing we should be back to immediate.
     sdb.unpause();
     assert.isFalse(await timeoutReached(
-      100,
+      delayMs,
       sdb.exec("CREATE TABLE Foo3(id INTEGER)")
     ));
 
     // And we should be able to pause again.
     sdb.pause();
     assert.isTrue(await timeoutReached(
-      100,
+      delayMs,
       sdb.exec("CREATE TABLE Foo4(id INTEGER)")
     ));
 
@@ -521,7 +524,7 @@ describe('SQLiteDB', function() {
     // unpause and wait a little bit, since the exec() calls
     // above are never cancelled.
     sdb.unpause();
-    await delay(100);
+    await delay(delayMs);
     await assert.isRejected(sdb.all("SELECT * FROM Foo0"));
     await assert.isFulfilled(sdb.all("SELECT * FROM Foo1"));
     await assert.isFulfilled(sdb.all("SELECT * FROM Foo2"));
@@ -531,14 +534,14 @@ describe('SQLiteDB', function() {
     // Pause and start a write before closing.
     sdb.pause();
     assert.isTrue(await timeoutReached(
-      100,
+      delayMs,
       sdb.exec("CREATE TABLE Foo5(id INTEGER)")
     ));
 
     await sdb.close();
     // Take a little time to give that last write a chance (we don't
     // expect it to write though, it should be cancelled).
-    await delay(100);
+    await delay(delayMs);
 
     // Check the last write didn't happen.
     const sdb2 = await SQLiteDB.openDB(dbPath('testPause'), schemaInfo, OpenMode.OPEN_EXISTING);

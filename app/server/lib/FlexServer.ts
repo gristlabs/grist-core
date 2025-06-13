@@ -51,13 +51,14 @@ import {DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/lib/expressWrap';
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from 'app/server/lib/GoogleAuth';
-import {createGristJobs, GristBullMQJobs, GristJobs} from 'app/server/lib/GristJobs';
+import {createGristJobs, GristJobs} from 'app/server/lib/GristJobs';
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
   RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {IAssistant} from 'app/server/lib/IAssistant';
 import {IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
+import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier, TestSendGridExtensions} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -170,6 +171,7 @@ export class FlexServer implements GristServer {
   private _docWorkerLoadTracker?: DocWorkerLoadTracker;
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
+  private _docNotificationManager: IDocNotificationManager|undefined|false = false;
   private _assistant?: IAssistant;
   private _accessTokens: IAccessTokens;
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
@@ -374,15 +376,6 @@ export class FlexServer implements GristServer {
   }
 
   /**
-   * Return the GristBullMQJobs instance if that's what we are using for jobs. Fail otherwise.
-   */
-  public getBullMQJobs(): GristBullMQJobs {
-    const jobs = this.getJobs();
-    if (jobs instanceof GristBullMQJobs) { return jobs; }
-    throw new Error("No full-featured job queues because Redis is unavailable");
-  }
-
-  /**
    * Get a url to an org that should be accessible by all signed-in users. For now, this
    * returns the base URL of the personal org (typically docs[-s]).
    */
@@ -463,6 +456,15 @@ export class FlexServer implements GristServer {
     if (!this._notifier) { throw new Error('no notifier available'); }
     // Expose a wrapper around it that emits actions.
     return this._emitNotifier;
+  }
+
+  public getDocNotificationManager(): IDocNotificationManager|undefined {
+    if (this._docNotificationManager === false) {
+      // The special value of 'false' is used to create only on first call. Afterwards,
+      // the value may be undefined, but no longer false.
+      this._docNotificationManager = this.create.createDocNotificationManager(this);
+    }
+    return this._docNotificationManager;
   }
 
   public getAssistant(): IAssistant | undefined {
@@ -1922,6 +1924,9 @@ export class FlexServer implements GristServer {
       });
     }
     this._emitNotifier.sendGridExtensions = this._notifier.testSendGridExtensions?.();
+
+    // For doc notifications, if we are a home server, initialize endpoints and job handling.
+    this.getDocNotificationManager()?.initHomeServer(this.app);
   }
 
   public addAssistant() {
@@ -2808,6 +2813,7 @@ export class EmitNotifier extends EventEmitter implements INotifier {
   public scheduledCall = this._wrapEvent('scheduledCall');
   public streamingDestinationsChange = this._wrapEvent('streamingDestinationsChange');
   public twoFactorStatusChanged = this._wrapEvent('twoFactorStatusChanged');
+  public docNotification = this._wrapEvent('docNotification');
 
   // Pass on deleteUser in the same way
   public deleteUser = this._wrapEvent('deleteUser');

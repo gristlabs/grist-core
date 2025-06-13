@@ -42,7 +42,7 @@ interface ApplyResult {
 
 export class Sharing {
   private _userActionLock = new Mutex();
-  private _log = new LogMethods('Sharing ', (s: OptDocSession|null) => this._activeDoc.getLogMeta(s));
+  private _log = new LogMethods('Sharing ', (s: OptDocSession) => this._activeDoc.getLogMeta(s));
 
   constructor(private _activeDoc: ActiveDoc, private _actionHistory: ActionHistory, private _modificationLock: Mutex) {
     assert(_actionHistory.isInitialized());
@@ -55,7 +55,7 @@ export class Sharing {
    * The only public interface. This may be called at any time, but the work happens for at most
    * one action at a time.
    */
-  public addUserAction(docSession: OptDocSession|null, action: UserActionBundle): Promise<ApplyUAResult> {
+  public addUserAction(docSession: OptDocSession, action: UserActionBundle): Promise<ApplyUAResult> {
     return this._userActionLock.runExclusive(async () => {
       try {
         return await this._doApplyUserActions(action.info, action.userActions, docSession, action.options || null);
@@ -67,7 +67,7 @@ export class Sharing {
   }
 
   private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
-                                    docSession: OptDocSession|null,
+                                    docSession: OptDocSession,
                                     options: ApplyUAExtendedOptions|null): Promise<ApplyUAResult> {
     const client = docSession && docSession.client;
 
@@ -196,6 +196,7 @@ export class Sharing {
       actionGroup.actionSummary = actionSummary;
       await accessControl.appliedBundle();
       await accessControl.sendDocUpdateForBundle(actionGroup, this._activeDoc.getDocUsageSummary());
+      await this._activeDoc.notifySubscribers(docSession, accessControl);
       // If the action was rejected, throw an exception, by this point data-engine should be in
       // sync with the database, and everyone should have the same view of the document.
       if (failure) {
@@ -227,7 +228,7 @@ export class Sharing {
   }
 
   private async _applyActionsToDataEngine(
-    docSession: OptDocSession|null,
+    docSession: OptDocSession,
     userActions: UserAction[],
     options: ApplyUAExtendedOptions|null): Promise<ApplyResult> {
     const applyResult = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);

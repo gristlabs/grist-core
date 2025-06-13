@@ -12,15 +12,21 @@ import {
   BulkRemoveRecord,
   BulkUpdateRecord,
   DataAction,
+  getActionColValues,
   getColValues,
+  getRowIds,
   getRowIdsFromDocAction,
+  getSingleAction,
+  isAddRecord,
   isBulkAction,
   isDataAction,
   isSomeAddRecordAction,
   isSomeRemoveRecordAction,
+  isUpdateRecord,
 } from 'app/common/DocActions';
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
 import { getColIdsFromDocAction, TableDataAction, UserAction } from 'app/common/DocActions';
+import { CellRecord, DocComment, makeDocComment } from 'app/common/DocComments';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
 import { DocUsageSummary, FilteredDocUsageSummary } from 'app/common/DocUsage';
@@ -38,6 +44,7 @@ import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
 import { applyAndCheckActionsForCells, CellData, isCellDataAction } from 'app/server/lib/CellDataAccess';
+import { DocAuthorizer, DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
 import { DocClients } from 'app/server/lib/DocClients';
 import { OptDocSession } from 'app/server/lib/DocSession';
 import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from 'app/server/lib/DocStorage';
@@ -196,6 +203,9 @@ export interface GranularAccessForBundle {
   appliedBundle(): Promise<void>;
   finishedBundle(): Promise<void>;
   sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsageSummary): Promise<void>;
+
+  getDirectTablesInBundle(userData: UserAccessData): Promise<string[]|null>;
+  getCommentsInBundle(userToFilterFor?: UserAccessData|null): Promise<DocComment[]>;
 }
 
 /**
@@ -729,6 +739,54 @@ export class GranularAccess implements GranularAccessForBundle {
                                               result.map(a => a.action));
   }
 
+  /**
+   * Returns the list of tables which are updated by the active action bundle. Considers only
+   * actions visible to the given user, and only direct actions (e.g. not tables updated by
+   * formulas). This is used for notifications.
+   */
+  public async getDirectTablesInBundle(userData: UserAccessData): Promise<string[]|null> {
+    if (!this._activeBundle) { throw new Error('no active bundle'); }
+    const { docActions, docSession, isDirect } = this._activeBundle;
+    const userDocSession: OptDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
+    //
+    const directActions = docActions.filter((_, index) => isDirect[index]);
+    const filtered = await this.filterOutgoingDocActions(userDocSession, directActions);
+    if (filtered.length === 0) { return null; }
+    const tableIds = new Set<string>();
+    for (const action of filtered) {
+      const t = getTableId(action);
+      if (!t.startsWith('_grist')) {
+        tableIds.add(t);
+      }
+    }
+    return [...tableIds];
+  }
+
+  public async getCommentsInBundle(userToFilterFor: UserAccessData|null = null): Promise<DocComment[]> {
+    if (!this._activeBundle) { throw new Error('no active bundle'); }
+    const { docActions, docSession } = this._activeBundle;
+
+    let filtered = docActions;
+    if (userToFilterFor) {
+      const userDocSession: OptDocSession = new PseudoDocSession(userToFilterFor, this._docId, docSession.org);
+      // TODO: this can probably be more efficient since we don't need full filtering.
+      filtered = await this.filterOutgoingDocActions(userDocSession, docActions);
+    }
+
+    const docComments: DocComment[] = [];
+    for (const action of filtered) {
+      if (!isCellDataAction(action) || isSomeRemoveRecordAction(action)) { continue; }
+      for (const single of getSingleAction(action)) {
+        if (isAddRecord(single) || isUpdateRecord(single)) {
+          const comment = makeDocComment(getRowIds(single), getActionColValues(single) as CellRecord);
+          if (comment) {
+            docComments.push(comment);
+          }
+        }
+      }
+    }
+    return docComments;
+  }
 
   /**
    * Filter an ActionGroup to be sent to a client.
@@ -3244,4 +3302,23 @@ class TransformColumnPermissionInfo implements IPermissionInfo {
   public getRuleCollection(): ACLRuleCollection {
     return this._inner.getRuleCollection();
   }
+}
+
+
+/**
+ * A version of DocSession that pretends to represent a particular user for the sake of applying
+ * access rules to notifications for that user.
+ */
+export class PseudoDocSession extends OptDocSession {
+  public readonly client = null;
+  public authorizer: DocAuthorizer = new DummyAuthorizer(this._userData.access, this._docId);
+
+  constructor(private _userData: UserAccessData, private _docId: string, private _org: string|undefined) {
+    super({});
+  }
+  public get org() { return this._org; }
+  public get altSessionId() { return null; }
+  public get userId() { return this._userData.id; }
+  public get userIsAuthorized() { return !this._userData.anonymous; }
+  public get fullUser() { return this._userData; }
 }

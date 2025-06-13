@@ -370,28 +370,6 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   if (state.params?.details) {
     queryParams.details = 'true';
   }
-  const hashParts: string[] = [];
-  if (state.hash && (state.hash.rowId || state.hash.popup || state.hash.recordCard)) {
-    const hash = state.hash;
-    if (hash.recordCard) {
-      hashParts.push('a3');
-    } else if (hash.popup) {
-      hashParts.push('a2');
-    } else {
-      hashParts.push('a1');
-    }
-    for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
-      let enhancedRowId: string|undefined;
-      if (key === 'rowId' && hash.linkingRowIds?.length) {
-        enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");
-      }
-      const partValue = enhancedRowId ?? hash[key];
-      if (partValue) {
-        const partKey = key === 'rowId' && state.hash?.rickRow ? 'rr' : key[0];
-        hashParts.push(`${partKey}${partValue}`);
-      }
-    }
-  }
   const queryStr = encodeQueryParams(queryParams);
 
   url.pathname = parts.join('');
@@ -401,7 +379,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     url.hash = state.homePageTab;
   } else if (state.hash) {
     // Project tests use hashes, so only set hash if there is an anchor.
-    url.hash = hashParts.join('.');
+    url.hash = makeAnchorLinkValue(state.hash);
   } else if (state.welcomeTour) {
     url.hash = 'repeat-welcome-tour';
   } else if (state.docTour) {
@@ -1220,6 +1198,40 @@ export interface HashLink {
   rickRow?: boolean;
   recordCard?: boolean;
   linkingRowIds?: UIRowId[];
+}
+
+/**
+ * Encode a HashLink as a string to include as the URL fragment (hash prooperty). For example,
+ * in https://templates.getgrist.com/doc/lightweight-crm#a1.s1.r7.c2, the "a1.s1.r7.c2" portion is
+ * the anchor link. The parts have the following meaning:
+ *    a = identifies the type of link (1 is normal, 2 for popup, 3 for record-card)
+ *    s = sectionId (rowId of the page-widget)
+ *    r = rowId (of the actual row in the user table)
+ *    c = colRef (rowId of the column's metadata record)
+ */
+export function makeAnchorLinkValue(hash: HashLink): string {
+  const hashParts: string[] = [];
+  if (hash.rowId || hash.popup || hash.recordCard) {
+    if (hash.recordCard) {
+      hashParts.push('a3');
+    } else if (hash.popup) {
+      hashParts.push('a2');
+    } else {
+      hashParts.push('a1');
+    }
+    for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
+      let enhancedRowId: string|undefined;
+      if (key === 'rowId' && hash.linkingRowIds?.length) {
+        enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");
+      }
+      const partValue = enhancedRowId ?? hash[key];
+      if (partValue) {
+        const partKey = key === 'rowId' && hash.rickRow ? 'rr' : key[0];
+        hashParts.push(`${partKey}${partValue}`);
+      }
+    }
+  }
+  return hashParts.join('.');
 }
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be

@@ -804,14 +804,18 @@ export class UsersManager {
   /**
    * Returns a Promise for an array of User entites for the given userIds.
    */
-  public async getUsersByIds(userIds: number[], optManager?: EntityManager): Promise<User[]> {
+  public async getUsersByIds(
+    userIds: number[],
+    options: {manager?: EntityManager, withLogins?: boolean} = {}
+  ): Promise<User[]> {
     if (userIds.length === 0) {
       return [];
     }
-    const manager = optManager || new EntityManager(this._connection);
+    const manager = options.manager || new EntityManager(this._connection);
     const queryBuilder = manager.createQueryBuilder()
       .select('users')
       .from(User, 'users')
+      .chain(qb => options.withLogins ? qb.leftJoinAndSelect('users.logins', 'logins') : qb)
       .where('users.id IN (:...userIds)', {userIds});
     return await queryBuilder.getMany();
   }

@@ -4,6 +4,10 @@ import log from 'app/server/lib/log';
 import { JobsOptions, Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
 
+// Name of the queue for doc-notification emails. Let's define queue names in this file, to ensure
+// that different users of GristJobs don't accidentally use conflicting queue names.
+export const docEmailsQueue = 'deq';
+
 /**
  *
  * Support for queues.
@@ -188,7 +192,7 @@ abstract class GristQueueScopeBase<Worker extends IWorker> {
 
   public getWorker(): Worker|undefined { return this._worker; }
 
-  public handleDefault(defaultCallback: JobHandler) {
+  public handleDefault(defaultCallback: JobHandler): void {
     // The default callback passes any recognized named jobs to
     // processors added with handleName(), then, if there is no
     // specific processor, calls the defaultCallback.
@@ -197,7 +201,6 @@ abstract class GristQueueScopeBase<Worker extends IWorker> {
       return processor(job);
     };
     this._worker = this.createWorker(this.queueName, callback);
-    return this._worker;
   }
 
   public handleName(name: string,
