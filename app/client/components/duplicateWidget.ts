@@ -205,12 +205,11 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
 
 async function updateViewFields(gristDoc: GristDoc, destViewSections: ViewSectionRec[],
                                 srcViewSections: ViewSectionRec[]) {
-  const actions: UserAction[] = [];
   const docData = gristDoc.docData;
 
   // First, remove all existing fields. Needed because `CreateViewSections` adds some by default.
   const toRemove = flatten(destViewSections.map((vs) => vs.viewFields.peek().peek().map((field) => field.getRowId())));
-  actions.push(['BulkRemoveRecord', '_grist_Views_section_field', toRemove]);
+  const removeAction: UserAction = ['BulkRemoveRecord', '_grist_Views_section_field', toRemove];
 
   // collect all the fields to add
   const fieldsToAdd: RowRecord[] = [];
@@ -227,10 +226,15 @@ async function updateViewFields(gristDoc: GristDoc, destViewSections: ViewSectio
   const fieldsInfo = {} as BulkColValues;
   forEach(schema._grist_Views_section_field, (val, key) => fieldsInfo[key] = fieldsToAdd.map(rec => rec[key]));
   const rowIds = arrayRepeat(fieldsInfo.parentId.length, null);
-  actions.push(['BulkAddRecord', '_grist_Views_section_field', rowIds, fieldsInfo]);
 
-  const results = await gristDoc.docData.sendActions(actions);
-  return results[1];
+  const addAction: UserAction = ['BulkAddRecord', '_grist_Views_section_field', rowIds, fieldsInfo];
+  // Add then remove to workaround a bug, where fields won't work in the UI when a duplicate widget
+  // has a 'SelectBy' set and all fields are showing.
+  const results = await gristDoc.docData.sendActions([
+    addAction,
+    removeAction
+  ]);
+  return results[0];
 }
 
 /**
