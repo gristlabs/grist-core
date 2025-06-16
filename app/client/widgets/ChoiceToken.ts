@@ -71,20 +71,42 @@ export const cssChoiceToken = styled('div', `
 
 const contrastCalculationsCache: Record<string, string> = {};
 
-function findMatchingShade(color: string, lightShade: string, darkShade: string) {
+// shades to pick from for automatic text color, ordered from lightest to darkest
+const grayShades = [
+  '#e8e8e8',
+  '#bfbfbf',
+  '#959595',
+  '#70707d',
+  '#44444c',
+  '#242428',
+  '#000000',
+];
+
+function findBestShade(color: string, shades: string[]) {
   const c = colord(color);
   const cache = contrastCalculationsCache;
-  const cacheKey = `${color}-${lightShade}-${darkShade}`;
-  if (cache[cacheKey] !== undefined) {
-    return cache[cacheKey];
+  if (cache[color] !== undefined) {
+    return cache[color];
   }
-  const withLightShade = c.contrast(lightShade);
-  const withDarkShade = c.contrast(darkShade);
-  const matchingShade = (withLightShade >= 4.5 || withLightShade > withDarkShade)
-    ? lightShade
-    : darkShade;
-  cache[cacheKey] = matchingShade;
-  return matchingShade;
+  // Find the best text gray shade for the given bg color.
+  // Logic is: we take the highest contrast ratio we can get, but stop searching
+  // when we find a contrast ratio > 7 (WCAG AAA level).
+  const matchingShade = shades.reduce((prev, current) => {
+    if (prev.foundBest) {
+      return prev;
+    }
+    const currentContrast = c.contrast(current);
+    if (currentContrast > 7 || currentContrast > prev.contrast) {
+      return {shade: current, contrast: currentContrast, foundBest: currentContrast > 7};
+    }
+    return prev;
+  }, {
+    shade: shades[0],
+    contrast: c.contrast(shades[0]),
+    foundBest: false,
+  });
+  cache[color] = matchingShade.shade;
+  return cache[color];
 }
 
 export function getReadableColorsCombo(
@@ -94,17 +116,11 @@ export function getReadableColorsCombo(
   const {fillColor, textColor} = token;
   const hasCustomBg = fillColor !== undefined;
   const hasCustomText = textColor !== undefined;
-  let bg = defaultColors.bg;
-  let fg = defaultColors.fg;
-  if (hasCustomBg && hasCustomText) {
+  let bg = fillColor || defaultColors.bg;
+  let fg = textColor || defaultColors.fg;
+  if (hasCustomBg && !hasCustomText) {
     bg = fillColor;
-    fg = textColor;
-  } else if (hasCustomText) {
-    bg = findMatchingShade(textColor, '#E8E8E8', '#70707d');
-    fg = textColor;
-  } else if (hasCustomBg) {
-    bg = fillColor;
-    fg = findMatchingShade(fillColor, '#ffffff', '#000000');
+    fg = findBestShade(fillColor, grayShades);
   }
   return {bg, fg};
 }
