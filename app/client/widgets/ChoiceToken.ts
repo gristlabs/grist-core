@@ -83,11 +83,11 @@ const grayShades = [
 ];
 
 function findBestShade(color: string, shades: string[]) {
-  const c = colord(color);
   const cache = contrastCalculationsCache;
   if (cache[color] !== undefined) {
     return cache[color];
   }
+  const c = colord(color);
   // Find the best text gray shade for the given bg color.
   // Logic is: we take the highest contrast ratio we can get, but stop searching
   // when we find a contrast ratio > 7 (WCAG AAA level).
