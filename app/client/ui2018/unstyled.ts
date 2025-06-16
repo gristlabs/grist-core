@@ -5,10 +5,14 @@
  */
 import {styled} from "grainjs";
 
-export const unstyledButton = styled('button', `
+const base = `
   margin: 0;
   padding: 0;
   border: 0 solid;
+`;
+
+export const unstyledButton = styled('button', `
+  ${base}
   font: inherit;
   letter-spacing: inherit;
   color: inherit;
@@ -17,3 +21,11 @@ export const unstyledButton = styled('button', `
   opacity: 1;
   appearance: button;
 `);
+
+const unstyledHeadings = `
+  ${base}
+  font-size: inherit;
+  font-weight: inherit;
+`;
+
+export const unstyledH2 = styled('h2', unstyledHeadings);
