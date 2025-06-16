@@ -162,7 +162,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         version: 1,
         conversationId: request.conversationId,
         context: request.context,
-        message: {
+        response: {
           index: messages.length - 1,
           content: completion,
         },
