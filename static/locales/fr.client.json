@@ -362,7 +362,7 @@
         "Base doc URL: {{docApiUrl}}": "URL de base pour ce document : {{docApiUrl}}",
         "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID du document à utiliser lorsque l'API REST fait appel à {{docId}}. Voir {{apiURL}}",
         "Python version used": "Version de Python utilisée",
-        "Notify other services on doc changes": "Informer d'autres services des changements du documents",
+        "Notify other services on doc changes": "Informer d'autres services des changements du document",
         "Manage webhooks": "Gérer les points d'ancrage Web",
         "ID for API use": "ID pour l'utilisation de l'API",
         "Find slow formulas": "Trouver les formules lentes",
