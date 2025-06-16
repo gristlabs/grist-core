@@ -1985,7 +1985,8 @@
         "Sort by date": "Sort by date",
         "Sort by name": "Sort by name",
         "Unpin": "Unpin",
-        "Workspace": "Workspace"
+        "Workspace": "Workspace",
+        "Documents list": "Documents list"
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
