@@ -855,6 +855,9 @@ export interface GristLoadConfig {
   // Latest Grist release available
   latestVersionAvailable?: LatestVersionAvailable;
 
+  // Is automatic version checking allowed?
+  automaticVersionCheckingAllowed?: boolean;
+
   // List of enabled features.
   features?: IFeature[];
 
