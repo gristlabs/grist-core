@@ -116,10 +116,9 @@ export function getReadableColorsCombo(
   const {fillColor, textColor} = token;
   const hasCustomBg = fillColor !== undefined;
   const hasCustomText = textColor !== undefined;
-  let bg = fillColor || defaultColors.bg;
+  const bg = fillColor || defaultColors.bg;
   let fg = textColor || defaultColors.fg;
   if (hasCustomBg && !hasCustomText) {
-    bg = fillColor;
     fg = findBestShade(fillColor, grayShades);
   }
   return {bg, fg};
