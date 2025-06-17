@@ -88,6 +88,8 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 # Now, start preparing final image.
 FROM node:22-bookworm-slim
 
+ARG GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
+
 # Install curl for docker healthchecks, libexpat1 and libsqlite3-0 for python3
 # library binary dependencies, and procps for managing gvisor processes.
 RUN \
@@ -179,6 +181,7 @@ ENV \
   GRIST_DATA_DIR=/persist/docs \
   GRIST_INST_DIR=/persist \
   GRIST_SESSION_COOKIE=grist_core \
+  GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING} \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
   GRIST_SANDBOX_FLAVOR=unsandboxed \
   NODE_OPTIONS="--no-deprecation" \
