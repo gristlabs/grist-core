@@ -35,29 +35,32 @@ export function getThemeBackgroundSnippet() {
   return `
 <script>
 try {
-  const useThemes = (window.gristConfig.features || []).includes('themes');
-  if (!useThemes) { return; }
+  function setup() {
+    const useThemes = (window.gristConfig.features || []).includes('themes');
+    if (!useThemes) { return; }
 
-  const appearance = localStorage.getItem('appearance');
-  if (appearance) {
-      document.documentElement.setAttribute('data-grist-appearance', appearance);
-  }
-  if (appearance === 'dark') {
-    const style = document.createElement('style');
-    style.setAttribute('id', 'grist-theme-bg');
-    style.textContent = '@layer grist-theme {\\n' +
-      '  :root {\\n' +
-      '    --grist-theme-bg: url("img/prismpattern.png");\\n' +
-      '    --grist-theme-bg-color: #333333;\\n' +
-      '  }\\n' +
-      '}';
-    document.head.append(style);
-  }
+    const appearance = localStorage.getItem('appearance');
+    if (appearance) {
+        document.documentElement.setAttribute('data-grist-appearance', appearance);
+    }
+    if (appearance === 'dark') {
+      const style = document.createElement('style');
+      style.setAttribute('id', 'grist-theme-bg');
+      style.textContent = '@layer grist-theme {\\n' +
+        '  :root {\\n' +
+        '    --grist-theme-bg: url("img/prismpattern.png");\\n' +
+        '    --grist-theme-bg-color: #333333;\\n' +
+        '  }\\n' +
+        '}';
+      document.head.append(style);
+    }
 
-  const theme = localStorage.getItem('grist-theme');
-  if (theme) {
-      document.documentElement.setAttribute('data-grist-theme', theme);
+    const theme = localStorage.getItem('grist-theme');
+    if (theme) {
+        document.documentElement.setAttribute('data-grist-theme', theme);
+    }
   }
+  setup();
 } catch {
   /* Do nothing. */
 }
