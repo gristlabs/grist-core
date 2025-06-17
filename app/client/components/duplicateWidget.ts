@@ -51,7 +51,6 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
         const newWidget: DuplicatedWidgetSpec = {
           sourceViewSectionId: viewSectionId,
         };
-        // TODO - Make this actually respect newWidget's title and description properties.
         await duplicateWidgets(
           gristDoc, [newWidget], pageSelectObs.get()
         );
@@ -64,7 +63,6 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
 //      - Dynamically build
 // TODO - Simplify API where possible / improve code quality
 //      - Include a check to make sure all widgets are all coming from the same page.
-// TODO - Write tests that cover duplicating widgets
 // TODO - Check things can't be duplicated that shouldn't be.
 
 export interface DuplicatedWidgetSpec {
@@ -78,7 +76,10 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
   const isNewView = destViewId < 1;
   let resolvedDestViewId = destViewId;
 
-  // TODO - something if no valid widget specs exist. Should we also catch invalid ones and log?
+  // Generally this shouldn't happen, but it catches a theoretically possible edge case.
+  if (validWidgetSpecs.length === 0) {
+    throw new Error("Unable to duplicate widgets as no valid source widget IDs were provided");
+  }
 
   await gristDoc.docData.bundleActions(
     t("Duplicate widgets"),
@@ -188,7 +189,6 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
     records.push({
       ...record,
       layoutSpec: JSON.stringify(viewSectionLayoutSpec),
-      // TODO - Work out why a refresh is needed when targeting same-page widgets.
       linkSrcSectionRef: linkRef ?? false,
       shareOptions: '',
     });
@@ -232,6 +232,9 @@ async function updateViewFields(gristDoc: GristDoc, destViewSections: ViewSectio
   const addAction: UserAction = ['BulkAddRecord', '_grist_Views_section_field', rowIds, fieldsInfo];
   // Add then remove to workaround a bug, where fields won't work in the UI when a duplicate widget
   // has a 'SelectBy' set and all fields are showing.
+  // This looks to be an issue deep within the computed values, where something isn't updating
+  // correctly / at the right time. Possibly due to the widget IDs being re-used if remove
+  // occurs before add.
   const results = await gristDoc.docData.sendActions([
     addAction,
     removeAction
