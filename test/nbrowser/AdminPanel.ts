@@ -18,6 +18,7 @@ describe('AdminPanel', function() {
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = 'core';
+    process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING = 'true';
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
     fakeServer = await startFakeUpdateServer();
     process.env.GRIST_TEST_VERSION_CHECK_URL = `${fakeServer.url()}/version`;
@@ -214,6 +215,7 @@ describe('AdminPanel', function() {
   const upperCheckNow = () => driver.find('.test-admin-panel-updates-upper-check-now');
   const lowerCheckNow = () => driver.find('.test-admin-panel-updates-lower-check-now');
   const autoCheckToggle = () => driver.find('.test-admin-panel-updates-auto-check');
+  const autoCheckToggleDisabled = () => driver.find('.test-admin-panel-updates-auto-check-disabled');
   const updateMessage = () => driver.find('.test-admin-panel-updates-message');
   const versionBox = () => driver.find('.test-admin-panel-updates-version');
   function waitForStatus(message: RegExp) {
@@ -237,12 +239,14 @@ describe('AdminPanel', function() {
     // We can expand.
     await toggleItem('updates');
 
-    // We see a toggle to update automatically.
+    // We see a toggle to update automatically, enabled by default
     assert.isTrue(await autoCheckToggle().isDisplayed());
-    assert.isFalse(await isEnabled(autoCheckToggle()));
+    assert.isTrue(await isEnabled(autoCheckToggle()));
 
-    // We can click it, Grist will turn on auto checks and do it right away.
+    // We can click it twice, Grist will do a check right away.
     fakeServer.pause();
+    await autoCheckToggle().click();
+    assert.isFalse(await isEnabled(autoCheckToggle()));
     await autoCheckToggle().click();
     assert.isTrue(await isEnabled(autoCheckToggle()));
 
@@ -262,30 +266,20 @@ describe('AdminPanel', function() {
     assert.isTrue(await versionBox().isDisplayed());
     assert.match(await versionBox().getText(), new RegExp(`Version ${fakeServer.latestVersion}`));
 
-    // When we reload, we will auto check for updates.
-    fakeServer.pause();
-    fakeServer.latestVersion = await currentVersion();
-    await driver.navigate().refresh();
-    await gu.waitForAdminPanel();
-    await waitForStatus(/Checking for updates/);
-    fakeServer.resume();
-    await waitForStatus(/Grist is up to date/);
-
     // Disable auto-checks.
-    await toggleItem('updates');
     assert.isTrue(await isEnabled(autoCheckToggle()));
     await autoCheckToggle().click();
     assert.isFalse(await isEnabled(autoCheckToggle()));
-    // Nothing should happen.
-    await waitForStatus(/Grist is up to date/);
+    // We remember that a newer version is available
+    await waitForStatus(/Newer version available/);
     assert.isTrue(await versionBox().isDisplayed());
-    assert.equal(await versionBox().getText(), `Version ${await currentVersion()}`);
+    assert.equal(await versionBox().getText(), `Version ${fakeServer.latestVersion}`);
 
     // Refresh to see if we are disabled.
     fakeServer.pause();
     await driver.navigate().refresh();
     await gu.waitForAdminPanel();
-    await waitForStatus(/Last checked .+ ago/);
+    await waitForStatus(/Newer version available/);
     fakeServer.resume();
     // Expand and see if the toggle is off.
     await toggleItem('updates');
@@ -293,9 +287,16 @@ describe('AdminPanel', function() {
   });
 
   it('shows up-to-date message', async function() {
+    // Restart the server to clear cached version check
+    await server.restart(true);
+    session = await gu.session().personalSite.login();
+    await session.loadDocMenu('/');
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+
     fakeServer.latestVersion = await currentVersion();
+
     // Click upper check now.
-    await waitForStatus(/Last checked .+ ago/);
     await upperCheckNow().click();
     await waitForStatus(/Grist is up to date/);
 
@@ -303,6 +304,7 @@ describe('AdminPanel', function() {
     fakeServer.bumpVersion();
     // Click lower check now.
     fakeServer.pause();
+    await toggleItem('updates');
     await lowerCheckNow().click();
     await waitForStatus(/Checking for updates/);
     fakeServer.resume();
@@ -311,6 +313,13 @@ describe('AdminPanel', function() {
     // Make sure we see the new version.
     assert.isTrue(await versionBox().isDisplayed());
     assert.match(await versionBox().getText(), new RegExp(`Version ${fakeServer.latestVersion}`));
+
+    // Make sure that checking it twice also works when a newer version is available
+    await autoCheckToggle().click();
+    assert.isFalse(await isEnabled(autoCheckToggle()));
+    await autoCheckToggle().click();
+    assert.isTrue(await isEnabled(autoCheckToggle()));
+    await waitForStatus(/Newer version available/);
   });
 
   it('shows error message', async function() {
@@ -331,6 +340,18 @@ describe('AdminPanel', function() {
       currentVersion: await currentVersion(),
     });
     assert.isNotEmpty(fakeServer.payload.installationId);
+  });
+
+  it('should show a message if automatic version checking is missing', async function () {
+    process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING='false';
+    await server.restart(true);
+    session = await gu.session().personalSite.login();
+    await session.loadDocMenu('/');
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+    await toggleItem('updates');
+    // The message should be there.
+    assert.isTrue(await autoCheckToggleDisabled().isDisplayed());
   });
 
   it('should survive APP_HOME_URL misconfiguration', async function() {
