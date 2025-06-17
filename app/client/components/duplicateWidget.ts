@@ -17,6 +17,7 @@ import forEach from 'lodash/forEach';
 import zip from 'lodash/zip';
 import zipObject from 'lodash/zipObject';
 import {testId} from 'app/client/ui2018/cssVars';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 
 const t = makeT('duplicateWidget');
 
@@ -63,7 +64,6 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
 //      - Dynamically build
 // TODO - Simplify API where possible / improve code quality
 //      - Include a check to make sure all widgets are all coming from the same page.
-// TODO - Make sure all telemetry is still in place
 // TODO - Write tests that cover duplicating widgets
 // TODO - Check things can't be duplicated that shouldn't be.
 
@@ -83,7 +83,9 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
   await gristDoc.docData.bundleActions(
     t("Duplicate widgets"),
     async () => {
-      //logTelemetryEvent('duplicateWidgets', {full: {docIdDigest: gristDoc.docId()}});
+      // TODO - Should we add a telemetry event for every widget copied, or just that a duplication occurred?
+      // TODO - Should we add any information on which widget was copied? Id? Name? Table?
+      logTelemetryEvent('duplicatedWidget', {full: {docIdDigest: gristDoc.docId(), destViewId}});
       const sourceView = sourceViewSections[0].view.peek();
       const newViewSectionsDetails = await createNewViewSections(gristDoc.docData, sourceViewSections, destViewId);
       // If a new view was created, this ensures everything following uses that new view.
