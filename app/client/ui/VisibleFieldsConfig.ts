@@ -520,7 +520,6 @@ const cssFieldListHeader = styled('span', `
 const cssRow = styled('div', `
   display: flex;
   margin: 16px;
-  overflow: hidden;
   gap: 8px;
   --icon-color: ${theme.lightText};
 `);
