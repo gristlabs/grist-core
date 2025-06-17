@@ -35,7 +35,7 @@ export function getThemeBackgroundSnippet() {
   return `
 <script>
 try {
-  function setup() {
+  function getGristThemeBackgroundSnippet() {
     const useThemes = (window.gristConfig.features || []).includes('themes');
     if (!useThemes) { return; }
 
@@ -60,7 +60,7 @@ try {
         document.documentElement.setAttribute('data-grist-theme', theme);
     }
   }
-  setup();
+  getGristThemeBackgroundSnippet();
 } catch {
   /* Do nothing. */
 }
