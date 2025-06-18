@@ -410,7 +410,10 @@
         "Start transfer": "Έναρξη μεταφοράς",
         "**Some existing attachments are still [external]({{externalLink}})**.": "**Ορισμένα υπάρχοντα συνημμένα εξακολουθούν να είναι [εξωτερικά]({{externalLink}})**.",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Ορισμένα υπάρχοντα συνημμένα εξακολουθούν να είναι [εσωτερικά]({{internalLink}})** (αποθηκευμένα σε αρχείο SQLite).",
-        "Uploading...": "Μεταφόρτωση..."
+        "Uploading...": "Μεταφόρτωση...",
+        "Default": "Προκαθορισμένο",
+        "Default, template, or tutorial": "Προκαθορισμένο, πρότυπο, ή εκπαιδευτικό",
+        "Document type": "Τύπος αρχείου"
     },
     "DocumentUsage": {
         "Data Size": "Μέγεθος δεδομένων",
