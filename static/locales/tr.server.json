@@ -1,1 +1,10 @@
-{}
+{
+    "oidc": {
+        "emailNotVerifiedError": "Lütfen e-postanızı kimlik sağlayıcısıyla doğrulayın ve tekrar giriş yapın."
+    },
+    "sendAppPage": {
+        "Loading...": "Yükleniyor...",
+        "og-description": "Izgara tasarımının ötesine geçen modern, açık kaynaklı bir e-tablo",
+        "og-title": "Grist, e-tabloların evrimi"
+    }
+}
