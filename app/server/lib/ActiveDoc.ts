@@ -270,13 +270,23 @@ export class ActiveDoc extends EventEmitter {
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
   private _tableMetadataLoader: TableMetadataLoader;
-  private _muted: boolean = false;  // If set, changes to this document should not propagate
-                                    // to outside world
-  private _migrating: number = 0;   // If positive, a migration is in progress
+  /**
+   * If set, changes to this document should not propagate to outside world
+   */
+  private _muted: boolean = false;
+  /**
+   * If positive, a migration is in progress
+   */
+  private _migrating: number = 0;
+  /**
+   * If set, wait on this to be sure the ActiveDoc is fully
+   * initialized.  True on success.
+   */
   private _initializationPromise: Promise<void>|null = null;
-                                    // If set, wait on this to be sure the ActiveDoc is fully
-                                    // initialized.  True on success.
-  private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
+  /**
+   * Becomes true once all columns are loaded/computed.
+   */
+  private _fullyLoaded: boolean = false;
   private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
@@ -620,18 +630,26 @@ export class ActiveDoc extends EventEmitter {
    * is completely shut down but before it is removed from the DocManager, ensuring
    * that the operation will not overlap with a new ActiveDoc starting up for the
    * same document.
+   *
+   * @param [options] Options to customize the shutdown process.
+   * @param [options.beforeShutdown] A function to call before shutdown.
+   * NOTE: If a shutdown is already in progress, this callback will be ignored (it would be too late, obviously).
+   * In other words, the first call to this function determines the `beforeShutdown` callback to use
+   * (or none if not provided).
+   *
+   * @param [options.afterShutdown] A function to call after shutdown.
+   * NOTE: Unlike `beforeShutdown`, providing an `afterShutdown` callback will set or overwrite
+   * the callback to be called after the shutdown, **even if** it is already in progress.
+   * In other words, the last call to this function determines the `afterShutdown` callback to use when provided.
    */
   public async shutdown(options: {
     beforeShutdown?: () => Promise<void>,
     afterShutdown?: () => Promise<void>
   } = {}): Promise<void> {
-    if (options.beforeShutdown && !this._doShutdown) {
-      await options.beforeShutdown();
-    }
     if (options.afterShutdown) {
       this._afterShutdownCallback = options.afterShutdown;
     }
-    this._doShutdown ||= this._doShutdownImpl();
+    this._doShutdown ||= this._doShutdownImpl({beforeShutdown: options.beforeShutdown});
     await this._doShutdown;
   }
 
@@ -2324,7 +2342,12 @@ export class ActiveDoc extends EventEmitter {
     return result;
   }
 
-  private async _doShutdownImpl(): Promise<void> {
+  private async _doShutdownImpl(options: {beforeShutdown?: () => Promise<void>}): Promise<void> {
+
+    // Immediately call beforeShutdown starting any operation
+    // No timeout on this callback: if it hangs, it will make the document unusable.
+    await options.beforeShutdown?.();
+
     const docSession = makeExceptionalDocSession('system');
     this._log.debug(docSession, "shutdown starting");
 
