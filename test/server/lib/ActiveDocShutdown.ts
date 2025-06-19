@@ -4,15 +4,15 @@ import * as sinon from 'sinon';
 import {delay} from 'app/common/delay';
 import {Role} from 'app/common/roles';
 import {ParseFileResult} from 'app/plugin/FileParserAPI';
+import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
-import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {Client} from 'app/server/lib/Client';
+import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {DocPluginManager} from 'app/server/lib/DocPluginManager';
 import {DocSession, DocSessionPrecursor, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {createDocTools, createUpload} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
-import { ActionHistoryImpl } from 'app/server/lib/ActionHistoryImpl';
 
 // This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
 function _makeFakeClient(): Client {
