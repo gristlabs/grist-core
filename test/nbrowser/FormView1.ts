@@ -1,5 +1,6 @@
 import {UserAPI} from 'app/common/UserAPI';
 import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
+import path from 'path';
 import {
   arrow,
   clickMenu,
@@ -19,6 +20,7 @@ import {
 } from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
+import {fixturesRoot} from 'test/server/testUtils';
 
 describe('FormView1', function() {
   this.timeout('4m');
@@ -68,6 +70,7 @@ describe('FormView1', function() {
         "Choice List",
         "Reference",
         "Reference List",
+        "Attachment"
       ].includes(type)
     ) {
       await clickMenu("More");
@@ -812,6 +815,46 @@ describe('FormView1', function() {
         await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
         []
       );
+
+      await removeForm();
+    });
+
+    it('can submit a form with file input', async function() {
+      const formUrl = await createFormWith('Attachment');
+
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+
+        // items should be wrapped in a labelled group for better screen reader support
+        const attachmentInput = await driver.findWait('input[name="D"]', 2000);
+        await driver.findWait('label[for="D"]', 2000);
+
+        const paths = [
+          path.resolve(fixturesRoot, "uploads/grist.png"),
+          path.resolve(fixturesRoot, "uploads/names.json"),
+        ].map(f => path.resolve(fixturesRoot, f)).join("\n");
+        await attachmentInput.sendKeys(paths);
+
+        await assertSubmitOnEnterIsDisabled();
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+
+      await expectInD([['L', 1, 2]]);
+
+      const docApi = api.getDocAPI(docId);
+      const url = `${docApi.getBaseUrl()}/attachments`;
+      const headers = {Authorization: `Bearer ${await api.fetchApiKey()}`};
+      const response = await fetch(url, {
+        headers,
+        method: "GET"
+      }).then(data => data.json());
+
+      assert.lengthOf(response.records, 2);
+      assert.equal(response.records[0].fields.fileName, "grist.png");
+      assert.isAbove(response.records[0].fields.fileSize, 0);
+      assert.equal(response.records[1].fields.fileName, "names.json");
+      assert.isAbove(response.records[1].fields.fileSize, 0);
 
       await removeForm();
     });
