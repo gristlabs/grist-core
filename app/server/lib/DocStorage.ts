@@ -1570,6 +1570,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._markAsChanged(db.requestVacuum());
   }
 
+  /**
+   * Run a VACUUM on the document and mark it as changed only
+   * if the saved space is above the ratio defined in SHRINK_RATIO_FOR_PUSH.
+   * Therefore if the doc storage is a remote one (like S3), it would be pushed
+   * only when we meet this condition, otherwise it is assumed not to be necessary.
+   */
   public async vacuum(): Promise<void> {
     const db = this._getDB();
     const initSize = await this.storageManager.getFsFileSize(this.docName);
@@ -1577,9 +1583,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     await db.vacuum();
     const size = await this.storageManager.getFsFileSize(this.docName);
     if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH) ) {
-      log.info(`Mark doc ${this.docName} as changed` +
-               `because vacuum gained more than ${SHRINK_RATIO_FOR_PUSH * 100}% space.\n` +
-               `init size = ${initSize}, current size = ${size}`);
+      log.rawInfo("Mark doc as changed because vacuuming saved more space than the minimal ratio.", {
+        docId: this.docName,
+        minimalRatio: SHRINK_RATIO_FOR_PUSH,
+        initSize,
+        currentSize: size,
+      });
       this._cachedDataSize = null;
       this.storageManager.markAsChanged(this.docName);
     }
