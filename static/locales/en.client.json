@@ -120,7 +120,8 @@
         "Team Site": "Team Site",
         "Grist Templates": "Grist Templates",
         "Billing Account": "Billing Account",
-        "Manage Team": "Manage Team"
+        "Manage Team": "Manage Team",
+        "{{ organizationName }} - Back to home": "{{ organizationName }} - Back to home"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
@@ -626,7 +627,8 @@
         "Workspaces": "Workspaces",
         "Tutorial": "Tutorial",
         "Terms of service": "Terms of service",
-        "Grist Resources": "Grist Resources"
+        "Grist Resources": "Grist Resources",
+        "Workspace options - {{- workspaceName }}": "Workspace options - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -722,7 +724,8 @@
         "Delete": "Delete",
         "Delete data and this page.": "Delete data and this page.",
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
-        "The following tables will no longer be visible_other": "The following tables will no longer be visible"
+        "The following tables will no longer be visible_other": "The following tables will no longer be visible",
+        "Document pages": "Document pages"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",
@@ -1325,7 +1328,9 @@
     },
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
-        "Open Creator Panel": "Open Creator Panel"
+        "Open Creator Panel": "Open Creator Panel",
+        "Close navigation panel (left panel)": "Close navigation panel (left panel)",
+        "Open navigation panel (left panel)": "Open navigation panel (left panel)"
     },
     "ColumnTitle": {
         "Add description": "Add description",
@@ -1983,7 +1988,9 @@
         "Sort by date": "Sort by date",
         "Sort by name": "Sort by name",
         "Unpin": "Unpin",
-        "Workspace": "Workspace"
+        "Workspace": "Workspace",
+        "Document options - {{- documentName }}": "Document options - {{- documentName }}",
+        "Documents list": "Documents list"
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
