@@ -2347,11 +2347,6 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _doShutdownImpl(options: {beforeShutdown?: () => Promise<void>}): Promise<void> {
-
-    // Immediately call beforeShutdown starting any operation
-    // No timeout on this callback: if it hangs, it will make the document unusable.
-    await options.beforeShutdown?.();
-
     const docSession = makeExceptionalDocSession('system');
     this._log.debug(docSession, "shutdown starting");
 
@@ -2368,6 +2363,9 @@ export class ActiveDoc extends EventEmitter {
     try {
 
       this.setMuted();
+      // No timeout on this callback: if it hangs, it will make the document unusable.
+      await options.beforeShutdown?.();
+
       this._inactivityTimer.disable();
       if (this.docClients.clientCount() > 0) {
         this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
