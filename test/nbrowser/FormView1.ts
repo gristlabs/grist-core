@@ -1,5 +1,6 @@
 import {UserAPI} from 'app/common/UserAPI';
 import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
+import path from 'path';
 import {
   arrow,
   clickMenu,
@@ -19,6 +20,7 @@ import {
 } from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
+import {fixturesRoot} from 'test/server/testUtils';
 
 describe('FormView1', function() {
   this.timeout('4m');
@@ -68,6 +70,7 @@ describe('FormView1', function() {
         "Choice List",
         "Reference",
         "Reference List",
+        "Attachment"
       ].includes(type)
     ) {
       await clickMenu("More");
@@ -816,55 +819,43 @@ describe('FormView1', function() {
       await removeForm();
     });
 
-    it('excludes attachment fields from forms', async function() {
-      const formUrl = await createFormWith('Text');
+    it('can submit a form with file input', async function() {
+      const formUrl = await createFormWith('Attachment');
 
-      // Temporarily make A an attachments column.
-      await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'A', {type: 'Attachments'}],
-      ]);
-
-      // Check that A is hidden in the form editor.
-      await gu.waitToPass(async () => assert.deepEqual(await labels(), ['B', 'C', 'D']));
-      await gu.openWidgetPanel('widget');
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
-        ['B', 'C', 'D']
-      );
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
-        []
-      );
-
-      // Check that A is excluded from the published form.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 2000).click();
-        await gu.sendKeys('Hello World');
-        assert.isFalse(await driver.find('input[name="A"]').isPresent());
+
+        const attachmentInput = await driver.findWait('input[name="D"]', 2000);
+        await driver.findWait('label[for="D"]', 2000);
+
+        const paths = [
+          path.resolve(fixturesRoot, "uploads/grist.png"),
+          path.resolve(fixturesRoot, "uploads/names.json"),
+        ].map(f => path.resolve(fixturesRoot, f)).join("\n");
+        await attachmentInput.sendKeys(paths);
+
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
 
-      // Make sure we see the new record.
-      await expectInD(['Hello World']);
+      // Expects the 2 attachments have been uploaded and have been associated
+      const expectedUploadIds = [1, 2];
+      await expectInD([['L', ...expectedUploadIds]]);
 
-      // And check that A was not modified.
-      assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), [null]);
+      const docApi = api.getDocAPI(docId);
+      const url = `${docApi.getBaseUrl()}/attachments`;
+      const headers = {Authorization: `Bearer ${await api.fetchApiKey()}`};
+      const response = await fetch(url, {
+        headers,
+        method: "GET"
+      }).then(data => data.json());
 
-      // Revert A and check that it's visible again in the editor.
-      await gu.sendActions([
-        ['ModifyColumn', 'Table1', 'A', {type: 'Text'}],
-      ]);
-      await gu.waitToPass(async () => assert.deepEqual(await labels(), ['A', 'B', 'C', 'D']));
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
-        ['A', 'B', 'C', 'D']
-      );
-      assert.deepEqual(
-        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
-        []
-      );
+      assert.lengthOf(response.records, 2);
+      assert.equal(response.records[0].fields.fileName, "grist.png");
+      assert.isAbove(response.records[0].fields.fileSize, 0);
+      assert.equal(response.records[1].fields.fileName, "names.json");
+      assert.isAbove(response.records[1].fields.fileSize, 0);
 
       await removeForm();
     });
