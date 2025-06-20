@@ -825,7 +825,6 @@ describe('FormView1', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
 
-        // items should be wrapped in a labelled group for better screen reader support
         const attachmentInput = await driver.findWait('input[name="D"]', 2000);
         await driver.findWait('label[for="D"]', 2000);
 
@@ -840,7 +839,9 @@ describe('FormView1', function() {
         await waitForConfirm();
       });
 
-      await expectInD([['L', 1, 2]]);
+      // Expects the 2 attachments have been uploaded and have been associated
+      const expectedUploadIds = [1, 2];
+      await expectInD([['L', ...expectedUploadIds]]);
 
       const docApi = api.getDocAPI(docId);
       const url = `${docApi.getBaseUrl()}/attachments`;
