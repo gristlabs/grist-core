@@ -1,10 +1,11 @@
-import {domAsync } from 'app/client/lib/domAsync';
+import {domAsync} from 'app/client/lib/domAsync';
 import {constructUrl} from 'app/client/models/gristUrlState';
 import {buildCodeHighlighter} from 'app/client/ui/CodeHighlight';
 import {sanitizeHTMLIntoDOM} from 'app/client/ui/sanitizeHTML';
-import {gristIconLink} from 'app/client/ui2018/links';
+import {cssLink, gristIconLink} from 'app/client/ui2018/links';
 import {AsyncCreate} from 'app/common/AsyncCreate';
-import {DomContents} from 'grainjs';
+import {removePrefix} from 'app/common/gutil';
+import {dom, DomContents} from 'grainjs';
 import escape from 'lodash/escape';
 import {marked, Marked} from 'marked';
 import {markedHighlight} from 'marked-highlight';
@@ -12,7 +13,15 @@ import markedLinkifyIt from 'marked-linkify-it';
 
 export const renderer = new marked.Renderer();
 
-renderer.link = ({href, text}) => gristIconLink(constructUrl(href), text).outerHTML;
+/**
+ * A custom link renderer that handles user references (for mentions) and normal links. For now mentions
+ * are not supported in cells.
+ */
+renderer.link = ({href, text}) => {
+  const userRef = removePrefix(href, 'user:');
+  return userRef ? cssLink({'data-userref': userRef}, text, dom.cls('grist-mention')).outerHTML :
+    gristIconLink(constructUrl(href), text).outerHTML;
+};
 
 // Disable Markdown features that we aren't ready to support yet.
 renderer.hr = ({raw}) => raw;
@@ -51,10 +60,18 @@ function domAsyncOrDirect(render: (markedObj: Marked) => DomContents) {
  *
  * The actual rendering will happen asynchronously on first use, while the markdown loads some
  * extensions (specifically, the code highlighter).
+ * @options {inline} - If true, renders the markdown as inline text, otherwise as block text. Inline markdown doesn't
+ *                     support block level elements, doesn't wrap text in <p> tags, preserves whitespace etc. Which is
+ *                     more suitable for chat like elements.
+ *
+ * See more at https://marked.js.org/using_advanced#inline
  */
-export function renderCellMarkdown(markdownValue: string): DomContents {
+export function renderCellMarkdown(markdownValue: string, options?: {
+  inline?: boolean;
+}): DomContents {
   return domAsyncOrDirect((markedObj: Marked) => {
-    const source = markedObj.parse(markdownValue, {
+    const parser = options?.inline ? markedObj.parseInline : markedObj.parse;
+    const source = parser(markdownValue, {
       async: false,
       gfm: false,
       renderer,

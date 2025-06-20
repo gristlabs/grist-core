@@ -1,47 +1,58 @@
-import { ColumnTransform } from 'app/client/components/ColumnTransform';
-import { Cursor } from 'app/client/components/Cursor';
-import { FormulaTransform } from 'app/client/components/FormulaTransform';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { addColTypeSuffix, guessWidgetOptionsSync, inferColTypeSuffix } from 'app/client/components/TypeConversion';
-import { TypeTransform } from 'app/client/components/TypeTransform';
-import { FloatingEditor } from 'app/client/widgets/FloatingEditor';
-import { UnsavedChange } from 'app/client/components/UnsavedChanges';
+import {ColumnTransform} from 'app/client/components/ColumnTransform';
+import * as commands from 'app/client/components/commands';
+import {Cursor} from 'app/client/components/Cursor';
+import {FormulaTransform} from 'app/client/components/FormulaTransform';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {addColTypeSuffix, guessWidgetOptionsSync, inferColTypeSuffix} from 'app/client/components/TypeConversion';
+import {TypeTransform} from 'app/client/components/TypeTransform';
+import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import dom from 'app/client/lib/dom';
-import { KoArray } from 'app/client/lib/koArray';
+import {KoArray} from 'app/client/lib/koArray';
 import * as kd from 'app/client/lib/koDom';
 import * as kf from 'app/client/lib/koForm';
 import * as koUtil from 'app/client/lib/koUtil';
-import { makeT } from 'app/client/lib/localization';
-import { reportError } from 'app/client/models/AppModel';
-import { DataRowModel } from 'app/client/models/DataRowModel';
-import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
-import { SaveableObjObservable, setSaveValue } from 'app/client/models/modelUtil';
-import { CombinedStyle, Style } from 'app/client/models/Styles';
-import { COMMENTS } from 'app/client/models/features';
-import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
-import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
-import { textButton } from 'app/client/ui2018/buttons';
-import { buttonSelect, cssButtonSelect } from 'app/client/ui2018/buttonSelect';
-import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
-import { DiffBox } from 'app/client/widgets/DiffBox';
-import { buildErrorDom } from 'app/client/widgets/ErrorDom';
-import { FieldEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
-import { CommentPopup, EmptyCell } from 'app/client/widgets/DiscussionEditor';
-import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
-import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
-import { IEditorConstructor } from "app/client/widgets/NewBaseEditor";
+import {makeT} from 'app/client/lib/localization';
+import {reportError} from 'app/client/models/AppModel';
+import {DataRowModel} from 'app/client/models/DataRowModel';
+import {ColumnRec, DocModel, ViewFieldRec} from 'app/client/models/DocModel';
+import {COMMENTS} from 'app/client/models/features';
+import {SaveableObjObservable, setSaveValue} from 'app/client/models/modelUtil';
+import {CombinedStyle, Style} from 'app/client/models/Styles';
+import {FieldSettingsMenu} from 'app/client/ui/FieldMenus';
+import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
+import {textButton} from 'app/client/ui2018/buttons';
+import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
+import {IOptionFull, menu, select} from 'app/client/ui2018/menus';
+import {DiffBox} from 'app/client/widgets/DiffBox';
+import {CommentPopup, DiscussionModelImpl} from 'app/client/widgets/DiscussionEditor';
+import {buildErrorDom} from 'app/client/widgets/ErrorDom';
+import {FieldEditor, saveWithoutEditor} from 'app/client/widgets/FieldEditor';
+import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
+import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
+import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
+import {IEditorConstructor} from 'app/client/widgets/NewBaseEditor';
 import * as UserType from 'app/client/widgets/UserType';
 import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
+import {getReferencedTableId, isFullReferencingType} from 'app/common/gristTypes';
 import * as gristTypes from 'app/common/gristTypes';
-import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
-import { WidgetType } from 'app/common/widgetTypes';
-import { CellValue } from 'app/plugin/GristData';
-import { bundleChanges, Computed, Disposable, fromKo,
-         dom as grainjsDom, makeTestId, MultiHolder, Observable, styled, toKo } from 'grainjs';
-import isEqual from 'lodash/isEqual';
+import {WidgetType} from 'app/common/widgetTypes';
+import {CellValue} from 'app/plugin/GristData';
+import {
+  bundleChanges,
+  Computed,
+  Disposable,
+  fromKo,
+  dom as grainjsDom,
+  makeTestId,
+  MultiHolder,
+  Observable,
+  styled,
+  toKo
+} from 'grainjs';
 import * as ko from 'knockout';
+import isEqual from 'lodash/isEqual';
 import * as _ from 'underscore';
-import * as commands from "../components/commands";
+import {CommentText} from 'app/client/widgets/MentionTextBox';
 
 const testId = makeTestId('test-fbuilder-');
 const t = makeT('FieldBuilder');
@@ -712,7 +723,10 @@ export class FieldBuilder extends Disposable {
           this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
           kd.toggleClass('field-with-comments', hasComment),
           kd.maybe(hasComment, () => dom('div.field-comment-indicator',
-            dom.on('click', () => commands.allCommands.openDiscussion.run()),
+            dom.on('click', (e: MouseEvent) => {
+              commands.allCommands.openDiscussion.run();
+              e.stopPropagation();
+            }),
           )),
           kd.toggleClass("readonly", toKo(ko, this._readonly)),
           kd.maybe(isSelected, () => dom('div.selected_cursor',
@@ -805,7 +819,11 @@ export class FieldBuilder extends Disposable {
     this.gristDoc.activeEditor.set(fieldEditor);
   }
 
-  public buildDiscussionPopup(editRow: DataRowModel, mainRowModel: DataRowModel, discussionId?: number) {
+  public buildDiscussionPopup(
+    editRow: DataRowModel,
+    mainRowModel: DataRowModel,
+    text: CommentText|null
+  ) {
     const owner = this.gristDoc.fieldEditorHolder;
     const cellElem: Element = this._rowMap.get(mainRowModel)!;
     if (this.columnTransform) {
@@ -824,22 +842,18 @@ export class FieldBuilder extends Disposable {
       return;
     }
 
-    const tableRef = this.field.viewSection.peek()!.tableRef.peek()!;
-
     // Reuse fieldEditor holder to make sure only one popup/editor is attached to the cell.
     const discussionHolder = MultiHolder.create(owner);
-    const emptyCell = EmptyCell.create(discussionHolder, {
-      gristDoc: this.gristDoc,
-      tableRef,
-      column: this.field.column.peek(),
-      rowId: editRow.id.peek(),
-    });
+    // When the cell element is disposed, we will dispose the discussion holder.
+    grainjsDom.autoDisposeElem(cellElem, discussionHolder);
+    const emptyCell = DiscussionModelImpl.fromCursor(discussionHolder, this.gristDoc, this._cursor.getCursorPos());
     CommentPopup.create(discussionHolder, {
       domEl: cellElem,
       cell: emptyCell,
-      discussionId,
       gristDoc: this.gristDoc,
-      closeClicked: () => owner.clear()
+      initialText: text,
+      closeClicked: () => owner.clear(),
+      cursorPos: this._cursor.getCursorPos(),
     });
   }
 

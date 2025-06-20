@@ -3,9 +3,11 @@
  */
 import {createPopper, Modifier, Instance as Popper, Options as PopperOptions} from '@popperjs/core';
 import {ACItem, ACResults, HighlightFunc} from 'app/client/lib/ACIndex';
+import {attachMouseOverOnMove, findAncestorChild} from 'app/client/lib/domUtils';
 import {reportError} from 'app/client/models/errors';
 import {testId, theme} from 'app/client/ui2018/cssVars';
-import {Disposable, dom, DomContents, EventCB, IDisposable} from 'grainjs';
+import {MaybePromise} from 'app/plugin/gutil';
+import {Disposable, dom, DomContents} from 'grainjs';
 import {obsArray, onKeyElem, styled} from 'grainjs';
 import merge = require('lodash/merge');
 import maxSize from 'popper-max-size-modifier';
@@ -27,17 +29,20 @@ export interface IAutocompleteOptions<Item extends ACItem> {
   // Defaults to the document body.
   attach?: Element|string|null;
 
+  // Defaults to true. If true, updates the input during selection (e.g. when using arrow keys or hovers over element).
+  liveUpdate?: boolean;
+
   // If provided, builds and shows the message when there are no items (excluding any extra items).
   buildNoItemsMessage?: () => DomContents;
 
   // Given a search term, return the list of Items to render.
-  search(searchText: string): Promise<ACResults<Item>>;
+  search(searchText: string): MaybePromise<ACResults<Item>>;
 
   // Function to render a single item.
   renderItem(item: Item, highlightFunc: HighlightFunc): HTMLElement;
 
   // Get text for the text input for a selected item, i.e. the text to present to the user.
-  getItemText(item: Item): string;
+  getItemText?(item: Item): string;
 
   // A callback triggered when user clicks one of the choices.
   onClick?(): void;
@@ -62,9 +67,10 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   private _items = this.autoDispose(obsArray<Item>([]));
   private _extraItems = this.autoDispose(obsArray<Item>([]));
   private _highlightFunc: HighlightFunc;
+  private _liveUpdate = this._options.liveUpdate ?? true;
 
   constructor(
-    private _triggerElem: HTMLInputElement | HTMLTextAreaElement,
+    private _triggerElem: HTMLElement,
     private readonly _options: IAutocompleteOptions<Item>,
   ) {
     super();
@@ -77,9 +83,9 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
         this._menuContent = dom('div',
           dom.forEach(this._items, (item) => _options.renderItem(item, this._highlightFunc)),
           dom.forEach(this._extraItems, (item) => _options.renderItem(item, this._highlightFunc)),
-          dom.on('mouseleave', (ev) => this._setSelected(-1, true)),
+          dom.on('mouseleave', (ev) => this._setSelected(-1, this._liveUpdate)),
           dom.on('click', (ev) => {
-            this._setSelected(this._findTargetItem(ev.target), true);
+            this._setSelected(this._findTargetItem(ev.target), this._liveUpdate);
             if (_options.onClick) { _options.onClick(); }
           }),
         ),
@@ -89,12 +95,12 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     );
 
     this._mouseOver = attachMouseOverOnMove(this._menuContent,
-      (ev) => this._setSelected(this._findTargetItem(ev.target), true));
+      (ev) => this._setSelected(this._findTargetItem(ev.target), this._liveUpdate));
 
     // Add key handlers to the trigger element as well as the menu if it is an input.
     this.autoDispose(onKeyElem(_triggerElem, 'keydown', {
-      ArrowDown: () => this._setSelected(this._getNext(1), true),
-      ArrowUp: () => this._setSelected(this._getNext(-1), true),
+      ArrowDown: () => this._setSelected(this._getNext(1), this._liveUpdate),
+      ArrowUp: () => this._setSelected(this._getNext(-1), this._liveUpdate),
     }));
 
     // Keeps track of the last value as typed by the user.
@@ -118,7 +124,26 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   }
 
   public search(findMatch?: (items: Item[]) => number) {
-    this._updateChoices(this._triggerElem.value, findMatch).catch(reportError);
+    this._updateChoices(this._value, findMatch).catch(reportError);
+  }
+
+  private get _value() {
+    if (this._triggerElem instanceof HTMLInputElement) {
+      return this._triggerElem.value;
+    } else if (this._triggerElem instanceof HTMLTextAreaElement) {
+      return this._triggerElem.value;
+    }
+    return this._triggerElem.innerText;
+  }
+
+  private set _value(value: string) {
+    if (this._triggerElem instanceof HTMLInputElement) {
+      this._triggerElem.value = value;
+    } else if (this._triggerElem instanceof HTMLTextAreaElement) {
+      this._triggerElem.value = value;
+    } else {
+      this._triggerElem.innerText = value;
+    }
   }
 
   // When the selected element changes, update the classes of the formerly and newly-selected
@@ -139,10 +164,10 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
     if (updateValue) {
       // Update trigger's value with the selected choice, or else with the last typed value.
-      if (elem) {
-        this._triggerElem.value = this._options.getItemText(this.getSelectedItem()!);
+      if (elem && this._options.getItemText) {
+        this._value = this._options.getItemText(this.getSelectedItem()!);
       } else {
-        this._triggerElem.value = this._lastAsTyped;
+        this._value = this._lastAsTyped;
       }
     }
   }
@@ -232,42 +257,9 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
  * Helper that finds the container according to attachElem. Null means
  * elem.parentNode; string is a selector for the closest matching ancestor, e.g. 'body'.
  */
- function getContainer(elem: Element, attachElem: Element|string|null): Node|null {
+function getContainer(elem: Element, attachElem: Element|string|null): Node|null {
   return (typeof attachElem === 'string') ? elem.closest(attachElem) :
     (attachElem || elem.parentNode);
-}
-
-/**
- * Helper function which returns the direct child of ancestor which is an ancestor of elem, or
- * null if elem is not a descendant of ancestor.
- */
-export function findAncestorChild(ancestor: Element, elem: Element|null): Element|null {
-  while (elem && elem.parentElement !== ancestor) {
-    elem = elem.parentElement;
-  }
-  return elem;
-}
-
-/**
- * A version of dom.onElem('mouseover') that doesn't start firing until there is first a 'mousemove'.
- * This way if an element is created under the mouse cursor (triggered by the keyboard, for
- * instance) it's not immediately highlighted, but only when a user moves the mouse.
- * Returns an object with a reset() method, which restarts the wait for mousemove.
- */
-export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: EventCB<MouseEvent, T>) {
-  let lis: IDisposable|undefined;
-  function setListener(eventType: 'mouseover'|'mousemove', cb: EventCB<MouseEvent, T>) {
-    if (lis) { lis.dispose(); }
-    lis = dom.onElem(elem, eventType, cb);
-  }
-  function reset() {
-    setListener('mousemove', (ev, _elem) => {
-      setListener('mouseover', callback);
-      callback(ev, _elem);
-    });
-  }
-  reset();
-  return {reset};
 }
 
 const cssMenuWrap = styled('div', `

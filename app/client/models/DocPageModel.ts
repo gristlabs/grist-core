@@ -2,6 +2,8 @@ import {GristDoc, GristDocImpl} from 'app/client/components/GristDoc';
 import {IUndoState} from 'app/client/components/UndoStack';
 import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {loadGristDoc} from 'app/client/lib/imports';
+import {makeT} from 'app/client/lib/localization';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {AppModel, getOrgNameOrGuest, reportError} from 'app/client/models/AppModel';
 import {getDoc} from 'app/client/models/gristConfigCache';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
@@ -15,6 +17,7 @@ import {bigBasicButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {menu, menuDivider, menuIcon, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
+import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, OpenDocOptions, UserOverride} from 'app/common/DocListAPI';
@@ -31,13 +34,12 @@ import {
   DocumentType,
   NEW_DOCUMENT_CODE,
   Organization,
+  PermissionData,
   UserAPI,
   Workspace
 } from 'app/common/UserAPI';
-import {Holder, Observable, subscribe} from 'grainjs';
-import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
+import {Computed, Disposable, dom, DomArg, DomElementArg, Holder, Observable, subscribe} from 'grainjs';
+import isEqual from 'lodash/isEqual';
 
 // tslint:disable:no-console
 
@@ -103,6 +105,9 @@ export interface DocPageModel {
 
   gristDoc: Observable<GristDoc|null>;             // Instance of GristDoc once it exists.
 
+  /** List of users with access to the document, null if not initialized. */
+  docUsers: Observable<PermissionData|null>;
+
   createLeftPane(leftPanelOpen: Observable<boolean>): DomArg;
   renameDoc(value: string): Promise<void>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
@@ -112,6 +117,11 @@ export interface DocPageModel {
   // document needs attention of an owner.
   offerRecovery(err: Error): void;
   clearUnsavedChanges(): void;
+  /**
+   * Fetches user with access to the document, and updates `docUsers` observable. Caches result
+   * for 60 seconds.
+   */
+  refreshDocumentAccess(): Promise<void>;
 }
 
 export interface ImportSource {
@@ -165,6 +175,11 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   // Observable set to the instance of GristDoc once it's created.
   public readonly gristDoc = Observable.create<GristDocImpl|null>(this, null);
+
+  public readonly docUsers = Observable.create<PermissionData|null>(this, null);
+
+  private readonly _docUsersData = new MapWithTTL<'users', Promise<PermissionData>>(60 * 1000);
+
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the
   // URL, and when it changes, we need to re-open.
@@ -241,6 +256,17 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         this._unsavedChangeHolder.clear();
       }
     }));
+  }
+
+  public async refreshDocumentAccess() {
+    const data = await mapGetOrSet(this._docUsersData, 'users', () =>
+      this.appModel.api.getDocAccess(this.currentDocId.get()!)
+    );
+    if (this.isDisposed()) { return; }
+    const existing = this.docUsers.get();
+    if (!existing || !isEqual(existing, data)) {
+      this.docUsers.set(data);
+    }
   }
 
   public createLeftPane(leftPanelOpen: Observable<boolean>) {

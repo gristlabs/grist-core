@@ -71,7 +71,6 @@ declare module "app/client/components/BaseView" {
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
     public activateEditorAtCursor(options?: Options): void;
-    public openDiscussionAtCursor(discussionId?: number): boolean;
     public onResize(): void;
     public prepareToPrint(onOff: boolean): void;
     public moveEditRowToCursor(): DataRowModel;

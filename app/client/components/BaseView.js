@@ -253,7 +253,10 @@ BaseView.commonCommands = {
 
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
   duplicateRows: function() { this._duplicateRows().catch(reportError); },
-  openDiscussion: function() { this.openDiscussionAtCursor(); },
+  openDiscussion: function(ev, payload) {
+    const state = typeof payload === 'object' && payload ? payload : null;
+    this._openDiscussionAtCursor(state);
+  },
   viewAsCard: function() {
     /* Overridden by subclasses.
      *
@@ -354,7 +357,7 @@ BaseView.prototype.activateEditorAtCursor = function(options) {
 /**
  * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
  */
- BaseView.prototype.openDiscussionAtCursor = function(id) {
+ BaseView.prototype._openDiscussionAtCursor = function(text) {
   if (!COMMENTS().get()) { return false; }
   var builder = this.activeFieldBuilder();
   if (builder.isEditorActive()) {
@@ -369,7 +372,7 @@ BaseView.prototype.activateEditorAtCursor = function(options) {
     return false;
   }
   this.editRowModel.assign(rowId);
-  builder.buildDiscussionPopup(this.editRowModel, lazyRow, id);
+  builder.buildDiscussionPopup(this.editRowModel, lazyRow, text);
   return true;
 };
 
