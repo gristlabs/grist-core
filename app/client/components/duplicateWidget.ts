@@ -19,6 +19,7 @@ import zipObject from 'lodash/zipObject';
 import {testId} from 'app/client/ui2018/cssVars';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import sortBy from 'lodash/sortBy';
+import {fromPairs} from 'lodash';
 
 const t = makeT('duplicateWidget');
 
@@ -100,20 +101,14 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
       // TODO - Should we add any information on which widget was copied? Id? Name? Table?
       logTelemetryEvent('duplicatedWidget', {full: {docIdDigest: gristDoc.docId(), destViewId}});
       const sourceView = sourceViewSections[0].view.peek();
-      const newViewSectionsDetails = await createNewViewSections(gristDoc.docData, sourceViewSections, destViewId);
-      // If a new view was created, this ensures everything following uses that new view.
-      resolvedDestViewId = newViewSectionsDetails[0].viewRef;
-      const newViewSectionRefs: number[] = newViewSectionsDetails.map(result => result.sectionRef);
-      // TODO - I feel like we should be doing some sanity checking here or something.
-      const newViewSections = newViewSectionRefs.map(id => gristDoc.docModel.viewSections.rowModels[id]);
+      const {
+        duplicatedViewSections,
+        viewRef,
+        viewSectionIdMap
+      } = await createNewViewSections(gristDoc, sourceViewSections, destViewId);
+      resolvedDestViewId = viewRef;
 
-      // create a map from source to target section ids
-      const viewSectionIdMap = zipObject(
-        sourceViewSections.map(vs => vs.getRowId()),
-        newViewSectionRefs,
-      );
-
-      const newViewFieldIds = await updateViewFields(gristDoc, newViewSections, sourceViewSections);
+      const newViewFieldIds = await updateViewFields(gristDoc, duplicatedViewSections);
 
       // TODO - Clean this up, it's horrifying and makes many assumptions about data ordering and structure.
       // create map for mapping from a src field's id to its corresponding dest field's id
@@ -217,19 +212,20 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
   await gristDoc.docData.sendAction(['BulkUpdateRecord', '_grist_Views_section', rowIds, sectionsInfo]);
 }
 
-async function updateViewFields(gristDoc: GristDoc, destViewSections: ViewSectionRec[],
-                                srcViewSections: ViewSectionRec[]) {
+async function updateViewFields(gristDoc: GristDoc, viewSectionPairs: DuplicatedViewSection[]) {
   const docData = gristDoc.docData;
 
   // First, remove all existing fields. Needed because `CreateViewSections` adds some by default.
-  const toRemove = flatten(destViewSections.map((vs) => vs.viewFields.peek().peek().map((field) => field.getRowId())));
+  const toRemove = flatten(
+    viewSectionPairs.map(({ dest }) => dest.viewFields.peek().peek().map((field) => field.getRowId()))
+  );
   const removeAction: UserAction = ['BulkRemoveRecord', '_grist_Views_section_field', toRemove];
 
   // collect all the fields to add
   const fieldsToAdd: RowRecord[] = [];
-  for (const [destViewSection, srcViewSection] of zip(destViewSections, srcViewSections)) {
-    const srcViewFields: ViewFieldRec[] = srcViewSection!.viewFields.peek().peek();
-    const parentId = destViewSection!.getRowId();
+  for (const { src, dest } of viewSectionPairs) {
+    const srcViewFields: ViewFieldRec[] = src.viewFields.peek().peek();
+    const parentId = dest.getRowId();
     for (const field of srcViewFields) {
       const record = docData.getMetaTable('_grist_Views_section_field').getRecord(field.getRowId())!;
       fieldsToAdd.push({...record, parentId});
@@ -251,24 +247,40 @@ async function updateViewFields(gristDoc: GristDoc, destViewSections: ViewSectio
     addAction,
     removeAction
   ]);
-  return results[0];
+
+  const newFieldIds = results[0];
+  return
 }
 
 /**
  * Create a new view containing all of the viewSections. Note that it doesn't copy view fields, for
  * which you can use `updateViewFields`.
  */
-async function createNewViewSections(docData: GristDoc['docData'], viewSections: ViewSectionRec[], viewId: number) {
+async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSectionRec[], viewId: number) {
   const [first, ...rest] = viewSections.map(toPageWidget);
 
   // Passing a viewId of 0 will create a new view.
-  const firstResult = await docData.sendAction(newViewSectionAction(first, viewId));
+  const firstResult = await gristDoc.docData.sendAction(newViewSectionAction(first, viewId));
 
-  const otherResult = await docData.sendActions(
+  const otherResult = await gristDoc.docData.sendActions(
     // other view section are added to the newly created view
     rest.map((widget) => newViewSectionAction(widget, firstResult.viewRef))
   );
-  return [firstResult, ...otherResult];
+
+  // TODO - can a race condition creep in here? If so, it was already there, but we should fix.
+  const createdViewSectionResults = [firstResult, ...otherResult];
+  const newViewSections = createdViewSectionResults.map(
+    result => gristDoc.docModel.viewSections.rowModels[result.sectionRef]
+  );
+
+  const duplicatedViewSections: DuplicatedViewSection[] =
+    viewSections.map((srcSection, index) => ({ src: srcSection, dest: newViewSections[index] }));
+
+  return {
+    duplicatedViewSections,
+    viewSectionIdMap: fromPairs(duplicatedViewSections.map(({ src, dest }) => [src.getRowId(), dest.getRowId()])),
+    viewRef: firstResult.viewRef,
+  };
 }
 
 // Helper to create an action that add widget to the view with viewId.
@@ -303,4 +315,9 @@ function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: {[id: number]: number}) {
     }
   });
   return cloned;
+}
+
+interface DuplicatedViewSection {
+  src: ViewSectionRec,
+  dest: ViewSectionRec,
 }
