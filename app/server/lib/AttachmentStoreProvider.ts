@@ -6,6 +6,8 @@ import {ICreateAttachmentStoreOptions} from './ICreate';
 import * as fse from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp-promise';
+import { TestAttachmentVirusScanProvider } from './AttachmentVirusScanProvider';
+import { IAttachmentVirusScanProvider } from './AttachmentVirusScanProvider';
 
 export type AttachmentStoreId = string
 
@@ -191,4 +193,8 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
     }];
   }
   return [];
+}
+
+export function getConfiguredVirusScanProviders(): IAttachmentVirusScanProvider[] {
+  return [new TestAttachmentVirusScanProvider()];
 }
