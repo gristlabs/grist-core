@@ -942,7 +942,7 @@ const cssSelectAll = styled(textButton, `
 `);
 const cssDotSeparator = styled('span', `
   color: ${theme.controlFg};
-  margin: 0 4px;
+  margin: 0 8px;
   user-select: none;
 `);
 const cssMenuDivider = styled(menuDivider, `
