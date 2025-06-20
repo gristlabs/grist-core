@@ -5,7 +5,7 @@ import {makeT} from 'app/client/lib/localization';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {cssField, cssLabel} from 'app/client/ui/MakeCopyMenu';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {IOptionFull, select} from 'app/client/ui2018/menus';
+import {select} from 'app/client/ui2018/menus';
 import {saveModal} from 'app/client/ui2018/modals';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
@@ -18,17 +18,27 @@ import zip from 'lodash/zip';
 import zipObject from 'lodash/zipObject';
 import {testId} from 'app/client/ui2018/cssVars';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
+import sortBy from 'lodash/sortBy';
 
 const t = makeT('duplicateWidget');
 
 // Duplicate page with pageId. Starts by prompting user for a new name.
 export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionId: number) {
-  const viewsTable = gristDoc.docModel.views;
-  console.log(viewsTable.tableData.getRecords());
-  const pageSelectOptions: IOptionFull<number>[] = viewsTable.rowModels.filter(x => x).map(row => ({
-    label: row.name.peek(),
-    value: row.getRowId(),
-  }));
+  const activeView = gristDoc.activeViewId.get();
+  const pages = sortBy(gristDoc.docModel.pages.rowModels.filter(p => p), [(row) => row.pagePos.peek()]);
+  const pageSelectOptions = pages.map(page => {
+    const view = page.view.peek();
+    const isActivePage = view.getRowId() === activeView;
+    const suffix = isActivePage? " (Active)" : "";
+    return {
+      label: `${view.name.peek()}${suffix}`,
+      value: view.getRowId(),
+      isActivePage: isActivePage,
+    };
+  });
+
+  console.log(pageSelectOptions);
+  console.log(JSON.stringify(pageSelectOptions[0]));
 
   // Logically this should never happen, as a Grist doc without pages should be impossible.
   if (pageSelectOptions.length < 1) {
@@ -36,7 +46,9 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
   }
 
   saveModal((ctl, owner) => {
-    const pageSelectObs = Observable.create<number>(owner, pageSelectOptions[0].value);
+    const initialSelectedPage =
+      pageSelectOptions.find(option => option.isActivePage)?.value ?? pageSelectOptions[0].value;
+    const pageSelectObs = Observable.create<number>(owner, initialSelectedPage);
 
     return {
       title: t('Duplicate widget'),
