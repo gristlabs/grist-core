@@ -126,6 +126,12 @@ describe("duplicateWidget", function() {
       // Ensure the 'select by' was cleared, as it was only valid on the same page.
       assert.equal(await gu.selectedBy(), 'Select Widget');
     });
+
+    it('can duplicate the widget to a new page', async function() {
+      await gu.openPage((await gu.getPageNames())[0]);
+      await gu.duplicateWidget('Widget 2', 'Create new page');
+      assert.equal(await gu.getCurrentPageName(), 'New page');
+    });
   });
 });
 
