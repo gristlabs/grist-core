@@ -70,11 +70,8 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
   });
 }
 
-// TODO - Simplify by pairing: [{old, new}], then having the worker funcs produce the maps.
-//      - Dynamically build
 // TODO - Simplify API where possible / improve code quality
 //      - Include a check to make sure all widgets are all coming from the same page.
-// TODO - Check things can't be duplicated that shouldn't be.
 
 export interface DuplicatedWidgetSpec {
   sourceViewSectionId: number;
@@ -83,22 +80,27 @@ export interface DuplicatedWidgetSpec {
 export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: DuplicatedWidgetSpec[], destViewId: number) {
   const allViewSectionModels = gristDoc.docModel.viewSections.rowModels;
   const validWidgetSpecs = widgetSpecs.filter(spec => allViewSectionModels[spec.sourceViewSectionId]);
-  const sourceViewSections = validWidgetSpecs.map(spec => allViewSectionModels[spec.sourceViewSectionId]);
-  const isNewView = destViewId < 1;
-  let resolvedDestViewId = destViewId;
 
   // Generally this shouldn't happen, but it catches a theoretically possible edge case.
   if (validWidgetSpecs.length === 0) {
     throw new Error("Unable to duplicate widgets as no valid source widget IDs were provided");
   }
 
+  const sourceViewSections = validWidgetSpecs.map(spec => allViewSectionModels[spec.sourceViewSectionId]);
+  const sourceView = sourceViewSections[0].view.peek();
+  const isNewView = destViewId < 1;
+  let resolvedDestViewId = destViewId;
+
+  logTelemetryEvent('duplicatedWidget', {
+    full: {
+      docIdDigest: gristDoc.docId(),
+      destPage: isNewView ? 'NEW' : (destViewId === sourceView.getRowId() ? 'SAME' : 'OTHER'),
+    }
+  });
+
   await gristDoc.docData.bundleActions(
     t("Duplicate widgets"),
     async () => {
-      // TODO - Should we add a telemetry event for every widget copied, or just that a duplication occurred?
-      // TODO - Should we add any information on which widget was copied? Id? Name? Table?
-      logTelemetryEvent('duplicatedWidget', {full: {docIdDigest: gristDoc.docId(), destViewId}});
-      const sourceView = sourceViewSections[0].view.peek();
       const {
         duplicatedViewSections,
         viewRef,

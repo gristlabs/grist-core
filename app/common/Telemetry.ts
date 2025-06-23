@@ -1618,8 +1618,8 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'A hash of the doc id.',
         dataType: 'string',
       },
-      destViewId: {
-        description: 'The id the page the widget is being duplicated to.',
+      destPage: {
+        description: 'The type of page the widget is being duplicated to. One of "SAME", "NEW", "OTHER"',
         dataType: 'string',
       },
       userId: {
