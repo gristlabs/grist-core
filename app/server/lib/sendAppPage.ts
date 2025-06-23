@@ -8,6 +8,7 @@ import {
   getOnboardingVideoId,
   getPageTitleSuffix,
   getTermsOfServiceUrl,
+  getWebinarsUrl,
   GristLoadConfig,
   IFeature
 } from 'app/common/gristUrls';
@@ -81,6 +82,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     termsOfServiceUrl: getTermsOfServiceUrl(),
     freeCoachingCallUrl: getFreeCoachingCallUrl(),
     onboardingTutorialVideoId: getOnboardingVideoId(),
+    webinarsUrl: getWebinarsUrl(),
     contactSupportUrl: getContactSupportUrl(),
     pathOnly,
     supportAnon: shouldSupportAnon(),
