@@ -355,6 +355,9 @@ export class EchoAssistantV1 implements AssistantV1 {
     if (request.text === "ERROR") {
       throw new Error("ERROR");
     }
+    if (request.text === "SLOW") {
+      await new Promise(r => setTimeout(r, 1000));
+    }
 
     const messages = request.state?.messages || [];
     if (messages.length === 0) {
