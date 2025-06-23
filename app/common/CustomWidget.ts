@@ -1,5 +1,3 @@
-import sortBy = require('lodash/sortBy');
-
 /**
  * Custom widget manifest definition.
  */
@@ -96,20 +94,27 @@ export function isSatisfied(current: AccessLevel, minimum: AccessLevel) {
   return ordered(current) >= ordered(minimum);
 }
 
+const GRIST_BUNDLED_WIDGET_SOURCE_NAME = "grist-bundled";
+
 /**
  * Find the best match for a widgetId/pluginId combination among the
  * given widgets. An exact widgetId match is required. A pluginId match
  * is preferred but not required.
+ *
+ * Widgets bundled internally (e.g. `@gristlabs/widget-calendar`) are
+ * given precedence over other widgets with the same widgetId.
  */
 export function matchWidget(widgets: ICustomWidget[], options: {
   widgetId: string,
   pluginId?: string,
 }): ICustomWidget|undefined {
-  const prefs = sortBy(widgets, (w) => {
-    return [w.widgetId !== options.widgetId,
-            (w.source?.pluginId||'') !== options.pluginId];
-  });
-  if (prefs.length === 0) { return; }
-  if (prefs[0].widgetId !== options.widgetId) { return; }
-  return prefs[0];
+  const { widgetId, pluginId } = options;
+  widgets = widgets.filter((w) => w.widgetId === widgetId);
+  if (pluginId) {
+    widgets = widgets.filter((w) => w.source?.pluginId === pluginId);
+  }
+  return (
+    widgets.find((w) => w.source?.name === GRIST_BUNDLED_WIDGET_SOURCE_NAME) ||
+    widgets[0]
+  );
 }
