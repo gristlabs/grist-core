@@ -1,7 +1,7 @@
 import {StringUnion} from 'app/common/StringUnion';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {buildSelectComponent} from 'test/nbrowser/gristUtils';
+import {buildSelectComponent, getFilterMenuState, openPinnedFilter} from 'test/nbrowser/gristUtils';
 import {assert} from 'chai';
 import {driver, Key} from 'mocha-webdriver';
 
@@ -9,12 +9,12 @@ describe("duplicateWidget", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   const testFormula = '"Test" == "Test"';
+  const testCellContent = "Rubber duck";
+  const testCellContent2 = "Plastic boat";
 
   before(async function() {
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup, 'DuplicateWidget.grist');
-
-
   });
 
   describe("duplicating a widget on the same page", async function() {
@@ -25,10 +25,16 @@ describe("duplicateWidget", function() {
 
       await gu.renameSection(allSections[0], 'Widget 1');
 
+      await gu.getCell('A', 1).click();
+      await driver.sendKeys(Key.ENTER + testCellContent + Key.ENTER);
+      await driver.sendKeys(Key.DOWN);
+      await driver.sendKeys(Key.ENTER + testCellContent2 + Key.ENTER);
+
+
       // Set as many properties on the widget as possible that we can check when duplicating.
       // Filters happen before widget change, as the gristUtils helpers are better for tables.
-      const filterCtrl = await gu.openColumnFilter('C');
-      await filterCtrl.none();
+      const filterCtrl = await gu.openColumnFilter('A');
+      await filterCtrl.toggleValue(testCellContent2);
       await filterCtrl.save();
 
       await gu.changeWidget('Card List');
@@ -68,6 +74,14 @@ describe("duplicateWidget", function() {
       assert.deepEqual(sortColumns, [{ column: 'A', dir: 'asc' }]);
     });
 
+    it('preserves column filters', async function() {
+      await openPinnedFilter('A');
+      const filterState = await getFilterMenuState();
+      const isChecked = (text: string) => filterState.find(entry => entry.value === text)?.checked;
+      assert.isTrue(isChecked(testCellContent), `${testCellContent} should be included`);
+      assert.isFalse(isChecked(testCellContent2), `${testCellContent2} should be filtered out`);
+    });
+
     it('can duplicate a widget with selectby and style rules', async function() {
       await gu.changeWidget('Table');
 
@@ -82,30 +96,22 @@ describe("duplicateWidget", function() {
       await renameLastWidget('Widget 3');
     });
 
-    it('preserves selectby', async function() {
-      await gu.getSection('Widget 3').click();
-      assert.equal(await gu.selectedBy(), 'Widget 1');
-    });
 
     it('preserves style rules', async function() {
+      await gu.getSection('Widget 3').click();
       await gu.openWidgetPanel('widget');
       const formula = await gu.getStyleRuleAt(0).find('.formula_field_sidepane').getText();
       assert.equal(formula.trim(), testFormula);
     });
-  });
 
-  // Test:
-  // Create a doc with a widget
-  // Set some custom settings
-  // Duplicate that widget
-  // Check settings maintained
-  //
-  // Change widget type
-  // Set select by
-  // Duplicate second widget, check select by maintained.
-  // Create a new page
-  // Duplicate widget 1 to new page, check.
-  // Duplicate widget 2 to new page, check.
+    it('preserves selectby', async function() {
+      await gu.getSection('Widget 3').click();
+      await gu.changeWidget('Card');
+      assert.equal(await gu.selectedBy(), 'Widget 1');
+      const text = await gu.getDetailCell('A', 1).getText();
+      assert.equal(text, testCellContent);
+    });
+  });
 });
 
 const CardListTheme = StringUnion('Form', 'Compact', 'Block');
