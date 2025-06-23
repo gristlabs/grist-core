@@ -36,8 +36,11 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
     };
   });
 
+  // TODO - Remove
   console.log(pageSelectOptions);
   console.log(JSON.stringify(pageSelectOptions[0]));
+
+  pageSelectOptions.push({ label: 'Create new page', value: 0, isActivePage: false });
 
   // Logically this should never happen, as a Grist doc without pages should be impossible.
   if (pageSelectOptions.length < 1) {
