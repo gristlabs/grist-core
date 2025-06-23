@@ -14,8 +14,6 @@ import {dom, Observable} from 'grainjs';
 import cloneDeepWith from 'lodash/cloneDeepWith';
 import flatten from 'lodash/flatten';
 import forEach from 'lodash/forEach';
-import zip from 'lodash/zip';
-import zipObject from 'lodash/zipObject';
 import {testId} from 'app/client/ui2018/cssVars';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import sortBy from 'lodash/sortBy';
@@ -108,13 +106,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
       } = await createNewViewSections(gristDoc, sourceViewSections, destViewId);
       resolvedDestViewId = viewRef;
 
-      const newViewFieldIds = await updateViewFields(gristDoc, duplicatedViewSections);
-
-      // TODO - Clean this up, it's horrifying and makes many assumptions about data ordering and structure.
-      // create map for mapping from a src field's id to its corresponding dest field's id
-      const viewFieldsIdMap = zipObject(
-        flatten(sourceViewSections.map((vs) => vs.viewFields.peek().peek().map((field) => field.getRowId()))),
-        flatten(newViewFieldIds)) as {[id: number]: number};
+      const viewFieldsIdMap = await updateViewFields(gristDoc, duplicatedViewSections);
 
       // update layout spec
       let layoutSpecUpdatePromise = Promise.resolve();
@@ -127,7 +119,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: Duplicat
       }
       await Promise.all([
         layoutSpecUpdatePromise,
-        updateViewSections(gristDoc, newViewSections, sourceViewSections, viewFieldsIdMap, viewSectionIdMap),
+        updateViewSections(gristDoc, duplicatedViewSections, viewFieldsIdMap, viewSectionIdMap),
         copyFilters(gristDoc, sourceViewSections, viewSectionIdMap)
       ]);
     },
@@ -174,15 +166,13 @@ async function copyFilters(
  * Update all of destViewSections with srcViewSections, use fieldsMap to patch the section layout
  * (for detail/cardlist sections), use viewSectionMap to patch the sections ids for linking.
  */
-async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSectionRec[],
-                                  srcViewSections: ViewSectionRec[], fieldsMap: {[id: number]: number},
-                                  viewSectionMap: {[id: number]: number}) {
+async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: DuplicatedViewSection[],
+                                  fieldsMap: {[id: number]: number}, viewSectionMap: {[id: number]: number}) {
 
   // collect all the records for the src view sections
+  const destRowIds: number[] = [];
   const records: RowRecord[] = [];
-  srcViewSections.forEach((srcViewSection, index) => {
-    const destViewSection = destViewSections[index];
-
+  for (const { srcViewSection, destViewSection } of duplicatedViewSections) {
     const viewSectionLayoutSpec =
       srcViewSection.parentKey.peek() === 'form'
           ? cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap)
@@ -193,13 +183,14 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
     const originalLinkRef = srcViewSection.linkSrcSectionRef.peek();
     const linkRef = isNewView ? viewSectionMap[originalLinkRef] : originalLinkRef;
 
+    destRowIds.push(destViewSection.getRowId());
     records.push({
       ...record,
       layoutSpec: JSON.stringify(viewSectionLayoutSpec),
       linkSrcSectionRef: linkRef ?? false,
       shareOptions: '',
     });
-  });
+  }
 
   // transpose data
   const sectionsInfo = getColValues(records);
@@ -208,27 +199,28 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
   delete sectionsInfo.parentId;
 
   // send action
-  const rowIds = destViewSections.map((vs) => vs.getRowId());
-  await gristDoc.docData.sendAction(['BulkUpdateRecord', '_grist_Views_section', rowIds, sectionsInfo]);
+  await gristDoc.docData.sendAction(['BulkUpdateRecord', '_grist_Views_section', destRowIds, sectionsInfo]);
 }
 
 async function updateViewFields(gristDoc: GristDoc, viewSectionPairs: DuplicatedViewSection[]) {
   const docData = gristDoc.docData;
 
   // First, remove all existing fields. Needed because `CreateViewSections` adds some by default.
-  const toRemove = flatten(
-    viewSectionPairs.map(({ dest }) => dest.viewFields.peek().peek().map((field) => field.getRowId()))
-  );
+  const toRemove = flatten(viewSectionPairs.map(
+    ({ destViewSection }) => destViewSection.viewFields.peek().peek().map((field) => field.getRowId())
+  ));
   const removeAction: UserAction = ['BulkRemoveRecord', '_grist_Views_section_field', toRemove];
 
   // collect all the fields to add
+  const srcViewFieldIds: number[] = [];
   const fieldsToAdd: RowRecord[] = [];
-  for (const { src, dest } of viewSectionPairs) {
-    const srcViewFields: ViewFieldRec[] = src.viewFields.peek().peek();
-    const parentId = dest.getRowId();
+  for (const { srcViewSection, destViewSection } of viewSectionPairs) {
+    const srcViewFields: ViewFieldRec[] = srcViewSection.viewFields.peek().peek();
+    const parentId = destViewSection.getRowId();
     for (const field of srcViewFields) {
       const record = docData.getMetaTable('_grist_Views_section_field').getRecord(field.getRowId())!;
       fieldsToAdd.push({...record, parentId});
+      srcViewFieldIds.push(field.getRowId());
     }
   }
 
@@ -248,8 +240,8 @@ async function updateViewFields(gristDoc: GristDoc, viewSectionPairs: Duplicated
     removeAction
   ]);
 
-  const newFieldIds = results[0];
-  return
+  const newFieldIds: number[] = results[0];
+  return fromPairs(srcViewFieldIds.map((srcId, index) => [srcId, newFieldIds[index]]));
 }
 
 /**
@@ -267,18 +259,22 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
     rest.map((widget) => newViewSectionAction(widget, firstResult.viewRef))
   );
 
-  // TODO - can a race condition creep in here? If so, it was already there, but we should fix.
+  // Technically a race condition can here, where the viewSections model isn't up to date with the
+  // backend. In practice, this typically won't occur, and a more correct solution would require major work.
+  // Either moving duplicate to the backend, or not using viewSection models at all (only ids).
   const createdViewSectionResults = [firstResult, ...otherResult];
   const newViewSections = createdViewSectionResults.map(
     result => gristDoc.docModel.viewSections.rowModels[result.sectionRef]
   );
 
   const duplicatedViewSections: DuplicatedViewSection[] =
-    viewSections.map((srcSection, index) => ({ src: srcSection, dest: newViewSections[index] }));
+    viewSections.map((srcSection, index) => ({ srcViewSection: srcSection, destViewSection: newViewSections[index] }));
 
   return {
     duplicatedViewSections,
-    viewSectionIdMap: fromPairs(duplicatedViewSections.map(({ src, dest }) => [src.getRowId(), dest.getRowId()])),
+    viewSectionIdMap: fromPairs(duplicatedViewSections.map((
+      { srcViewSection, destViewSection }) => [srcViewSection.getRowId(), destViewSection.getRowId()]
+    )),
     viewRef: firstResult.viewRef,
   };
 }
@@ -309,15 +305,14 @@ function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: {[id: number]: number}) {
     validLeafIds: Object.keys(mapIds).map(Number),
     restoreCollapsed: true
   });
-  const cloned = cloneDeepWith(layoutSpec, (val, key) => {
+  return cloneDeepWith(layoutSpec, (val, key) => {
     if (key === 'leaf' && mapIds[val]) {
       return mapIds[val];
     }
   });
-  return cloned;
 }
 
 interface DuplicatedViewSection {
-  src: ViewSectionRec,
-  dest: ViewSectionRec,
+  srcViewSection: ViewSectionRec,
+  destViewSection: ViewSectionRec,
 }
