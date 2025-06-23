@@ -1348,7 +1348,8 @@
         "Copy anchor link": "Copy anchor link",
         "Cut": "Cut",
         "Hide field": "Hide field",
-        "Paste": "Paste"
+        "Paste": "Paste",
+        "Comment": "Comment"
     },
     "WebhookPage": {
         "Clear Queue": "Clear Queue",
@@ -2048,5 +2049,8 @@
         "Deletion was not confirmed, skipping.": "Deletion was not confirmed, skipping.",
         "Type DELETE here if you wish to proceed.": "Type DELETE here if you wish to proceed.",
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it."
+    },
+    "MentionTextBox": {
+        "no access": "no access"
     }
 }
