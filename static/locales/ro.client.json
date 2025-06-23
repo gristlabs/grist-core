@@ -15,7 +15,23 @@
         "Toggle chart aggregation": "Comutați agregarea diagramelor",
         "Each Y series is followed by two series, for top and bottom error bars.": "Fiecare serie Y este urmată de două serii, pentru barele de eroare de sus și de jos.",
         "Create separate series for each value of the selected column.": "Creați serii separate pentru fiecare valoare a coloanei selectate.",
-        "selected new group data columns": "selectate noi coloane de date de grup"
+        "selected new group data columns": "selectate noi coloane de date de grup",
+        "Bar Chart": "Diagramă cu bare",
+        "Pie Chart": "Diagramă circulară",
+        "Area Chart": "Diagramă de suprafață",
+        "Line Chart": "Diagramă cu linii",
+        "Kaplan-Meier Plot": "Diagrama Kaplan-Meier",
+        "Orientation": "Orientare",
+        "Show Total": "Afișați totalul",
+        "Text Size": "Mărimea textului",
+        "Split series": "Serie separată",
+        "Error bars": "Bare de eroare",
+        "Donut Chart": "Diagramă cu gogoși",
+        "Symmetric": "Simetric",
+        "Scatter Plot": "Diagramă de dispersie",
+        "Remove": "Elimină",
+        "LABEL": "ETICHETA",
+        "Vertical": "Vertical"
     },
     "ColumnFilterMenu": {
         "Search values": "Căutați valori",
@@ -126,7 +142,8 @@
         "Reset {{count}} columns_other": "Resetați {{count}} coloane",
         "Reset {{count}} entire columns_one": "Resetați întreaga coloană",
         "Insert column to the left": "Inserați coloana la stânga",
-        "Paste": "Lipește"
+        "Paste": "Lipește",
+        "Copy with headers": "Copiați cu anteturi"
     },
     "AccountWidget": {
         "Add Account": "Adaugă cont",
@@ -246,7 +263,8 @@
         "Team Site": "Spaţiul echipei",
         "Legacy": "Versiune veche",
         "Grist Templates": "Șabloane Grist",
-        "Manage Team": "Gestionează echipa"
+        "Manage Team": "Gestionează echipa",
+        "Billing Account": "Cont de facturare"
     },
     "ViewAsDropdown": {
         "View As": "Vizualizare ca",
@@ -651,7 +669,9 @@
         "Confirm": "Confirmă",
         "On": "Activat",
         "Open Access Rules": "Reguli de acces deschis",
-        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Niciun acces implicit nu permite accesul la documente sau spații de lucru individuale, mai degrabă decât la spaţiul complet al echipei."
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Niciun acces implicit nu permite accesul la documente sau spații de lucru individuale, mai degrabă decât la spaţiul complet al echipei.",
+        "Access overview": "Prezentare generală a accesului",
+        "Inherit access: ": "Moşteneşte acess: "
     },
     "WelcomeQuestions": {
         "Welcome to Grist!": "Bun venit la Grist!",
@@ -893,7 +913,8 @@
         "Opted In": "A optat pentru a participa",
         "Contribute": "Contribuie",
         "Support Grist page": "Pagina Susține Grist",
-        "Admin Panel": "Panou administrator"
+        "Admin Panel": "Panou administrator",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Vă mulțumim! Încrederea și sprijinul dumneavoastră sunt foarte apreciate. Vă puteți dezabona oricând accesând {{link}} din meniul utilizatorului."
     },
     "ValidationPanel": {
         "Update formula (Shift+Enter)": "Actualizați formula (Shift+Enter)",

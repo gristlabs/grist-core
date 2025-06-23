@@ -1,13 +1,18 @@
 {
     "ACUserManager": {
-        "Invite new member": "Yeni Üye Davet gönder",
-        "Enter email address": "mail adresinizi girin",
-        "We'll email an invite to {{email}}": "{{email}} .. adresine davet gönderilecek"
+        "Invite new member": "Yeni üyeyi davet edin",
+        "Enter email address": "E-posta adresini girin",
+        "We'll email an invite to {{email}}": "{{email}} adresine bir davet e-postası göndereceğiz"
     },
     "AccessRules": {
         "Add Column Rule": "Sütuna Kural ekle",
-        "Add Default Rule": "Kural ekle (genel)",
-        "Add Table Rules": "Tabloya kural ekle"
+        "Add Default Rule": "Varsayılan kural ekle",
+        "Add Table Rules": "Tabloya kural ekle",
+        "Reset": "Sıfırla",
+        "Saved": "Kaydedildi",
+        "Attribute name": "Nitelik adı",
+        "Save": "Kaydet",
+        "Add User Attributes": "Kullanıcı özellikleri ekle"
     },
     "AdminPanel": {
         "Off": "Kapalı",
@@ -20,5 +25,27 @@
     },
     "Field": {
         "No choices configured": "Seçim yapılmamış"
+    },
+    "AccountPage": {
+        "API": "API",
+        "API Key": "API anahtarı",
+        "Edit": "Düzenle",
+        "Password & Security": "Parola ve Güvenlik",
+        "Language": "Dil",
+        "Save": "Kaydet",
+        "Email": "E-posta",
+        "Login Method": "Giriş yöntemi",
+        "Name": "Adı",
+        "Change Password": "Parola değiştir",
+        "Account settings": "Hesap ayarları"
+    },
+    "AccountWidget": {
+        "Access Details": "Erişim ayrıntıları",
+        "Add Account": "Hesap ekle",
+        "Document Settings": "Belge Ayarları",
+        "Profile Settings": "Profil Ayarları",
+        "Sign in": "Oturum aç",
+        "Accounts": "Hesaplar",
+        "Sign Out": "Oturumu kapat"
     }
 }
