@@ -112,7 +112,23 @@ describe("duplicateWidget", function() {
       assert.equal(text, testCellContent);
     });
   });
+
+  describe("duplicating a widget to a different page", async function() {
+    it('can duplicate the widget to another existing page', async function() {
+      await gu.addNewPage('Table', 'Table1');
+      const newPageName = 'Page 2';
+      await gu.renamePage('New page', newPageName);
+      // Go back to the first page.
+      await gu.openPage((await gu.getPageNames())[0]);
+      await gu.duplicateWidget('Widget 2', newPageName);
+      assert.equal(await gu.getCurrentPageName(), newPageName);
+      await renameLastWidget('Widget 4');
+      // Ensure the 'select by' was cleared, as it was only valid on the same page.
+      assert.equal(await gu.selectedBy(), 'Select Widget');
+    });
+  });
 });
+
 
 const CardListTheme = StringUnion('Form', 'Compact', 'Block');
 async function setCardListTheme(theme: typeof CardListTheme.type) {
