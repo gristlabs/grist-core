@@ -1,9 +1,11 @@
 import {StringUnion} from 'app/common/StringUnion';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import * as gu from 'test/nbrowser/gristUtils';
-import {buildSelectComponent, getFilterMenuState, openPinnedFilter} from 'test/nbrowser/gristUtils';
 import {assert} from 'chai';
 import {driver, Key} from 'mocha-webdriver';
+import * as gu from 'test/nbrowser/gristUtils';
+import {setupTestSuite} from 'test/nbrowser/testUtils';
+import {
+  sortAndFilter
+} from 'test/nbrowser/gristUtils';
 
 describe("duplicateWidget", function() {
   this.timeout(20000);
@@ -72,11 +74,13 @@ describe("duplicateWidget", function() {
       await gu.openSectionMenu('sortAndFilter', 'Widget 2');
       const sortColumns = await gu.getSortColumns();
       assert.deepEqual(sortColumns, [{ column: 'A', dir: 'asc' }]);
+      // Close the sort menu - can overlap with filter options on CI.
+      await gu.openSectionMenu('sortAndFilter', 'Widget 2');
     });
 
     it('preserves column filters', async function() {
-      await openPinnedFilter('A');
-      const filterState = await getFilterMenuState();
+      await gu.openPinnedFilter('A');
+      const filterState = await gu.getFilterMenuState();
       const isChecked = (text: string) => filterState.find(entry => entry.value === text)?.checked;
       assert.isTrue(isChecked(testCellContent), `${testCellContent} should be included`);
       assert.isFalse(isChecked(testCellContent2), `${testCellContent2} should be filtered out`);
@@ -139,13 +143,13 @@ describe("duplicateWidget", function() {
 const CardListTheme = StringUnion('Form', 'Compact', 'Block');
 async function setCardListTheme(theme: typeof CardListTheme.type) {
   await gu.openWidgetPanel('widget');
-  const select = buildSelectComponent('.test-vconfigtab-detail-theme');
+  const select = gu.buildSelectComponent('.test-vconfigtab-detail-theme');
   await select.select(theme);
 }
 
 async function getCardListTheme(): Promise<typeof CardListTheme.type> {
   await gu.openWidgetPanel('widget');
-  const select = buildSelectComponent('.test-vconfigtab-detail-theme');
+  const select = gu.buildSelectComponent('.test-vconfigtab-detail-theme');
   return CardListTheme.check(await select.value());
 }
 
