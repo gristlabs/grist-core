@@ -36,10 +36,6 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
     };
   });
 
-  // TODO - Remove
-  console.log(pageSelectOptions);
-  console.log(JSON.stringify(pageSelectOptions[0]));
-
   pageSelectOptions.push({ label: 'Create new page', value: 0, isActivePage: false });
 
   // Logically this should never happen, as a Grist doc without pages should be impossible.
@@ -62,34 +58,24 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
         )
       ]),
       async saveFunc() {
-        const newWidget: DuplicatedWidgetSpec = {
-          sourceViewSectionId: viewSectionId,
-        };
         await duplicateWidgets(
-          gristDoc, [newWidget], pageSelectObs.get()
+          gristDoc, [viewSectionId], pageSelectObs.get()
         );
       }
     };
   });
 }
 
-// TODO - Simplify API where possible / improve code quality
-//      - Include a check to make sure all widgets are all coming from the same page.
-
-export interface DuplicatedWidgetSpec {
-  sourceViewSectionId: number;
-}
-
-export async function duplicateWidgets(gristDoc: GristDoc, widgetSpecs: DuplicatedWidgetSpec[], destViewId: number) {
+export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: number[], destViewId: number) {
   const allViewSectionModels = gristDoc.docModel.viewSections.rowModels;
-  const validWidgetSpecs = widgetSpecs.filter(spec => allViewSectionModels[spec.sourceViewSectionId]);
+  const validWidgetIds = srcViewSectionIds.filter(id => allViewSectionModels[id]);
 
   // Generally this shouldn't happen, but it catches a theoretically possible edge case.
-  if (validWidgetSpecs.length === 0) {
+  if (validWidgetIds.length === 0) {
     throw new Error("Unable to duplicate widgets as no valid source widget IDs were provided");
   }
 
-  const sourceViewSections = validWidgetSpecs.map(spec => allViewSectionModels[spec.sourceViewSectionId]);
+  const sourceViewSections = validWidgetIds.map(id => allViewSectionModels[id]);
   const sourceView = sourceViewSections[0].view.peek();
   const isNewView = destViewId < 1;
   let resolvedDestViewId = destViewId;

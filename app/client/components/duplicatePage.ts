@@ -42,7 +42,7 @@ async function duplicatePage(gristDoc: GristDoc, pageId: number, pageName: strin
 
       const duplicateWidgetsResult = await duplicateWidgets(
         gristDoc,
-        viewSections.map(viewSection => ({ sourceViewSectionId: viewSection.id.peek() })),
+        viewSections.map(viewSection => viewSection.id.peek()),
         viewRef,
       );
 
