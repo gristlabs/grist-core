@@ -97,7 +97,9 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       } = await createNewViewSections(gristDoc, sourceViewSections, destViewId);
       resolvedDestViewId = viewRef;
 
-      const viewFieldsIdMap = await updateViewFields(gristDoc, duplicatedViewSections);
+      const defaultViewFieldIds = await listAllViewFields(duplicatedViewSections.map(pair => pair.destViewSection));
+
+      const viewFieldsIdMap = await copyOriginalViewFields(gristDoc, duplicatedViewSections);
 
       // update layout spec
       let layoutSpecUpdatePromise = Promise.resolve();
@@ -113,6 +115,10 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
         updateViewSections(gristDoc, duplicatedViewSections, viewFieldsIdMap, viewSectionIdMap),
         copyFilters(gristDoc, sourceViewSections, viewSectionIdMap)
       ]);
+
+      // Remove default view fields at the end - removing them earlier means they're still referenced in
+      // layout specs.
+      await removeViewFields(gristDoc, defaultViewFieldIds);
     },
     // If called from duplicatePage (or similar), we don't want to start a new bundle.
     {nestInActiveBundle: true}
@@ -193,14 +199,8 @@ async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: Du
   await gristDoc.docData.sendAction(['BulkUpdateRecord', '_grist_Views_section', destRowIds, sectionsInfo]);
 }
 
-async function updateViewFields(gristDoc: GristDoc, viewSectionPairs: DuplicatedViewSection[]) {
+async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: DuplicatedViewSection[]) {
   const docData = gristDoc.docData;
-
-  // First, remove all existing fields. Needed because `CreateViewSections` adds some by default.
-  const toRemove = flatten(viewSectionPairs.map(
-    ({ destViewSection }) => destViewSection.viewFields.peek().peek().map((field) => field.getRowId())
-  ));
-  const removeAction: UserAction = ['BulkRemoveRecord', '_grist_Views_section_field', toRemove];
 
   // collect all the fields to add
   const srcViewFieldIds: number[] = [];
@@ -228,11 +228,20 @@ async function updateViewFields(gristDoc: GristDoc, viewSectionPairs: Duplicated
   // occurs before add.
   const results = await gristDoc.docData.sendActions([
     addAction,
-    removeAction
   ]);
 
   const newFieldIds: number[] = results[0];
   return fromPairs(srcViewFieldIds.map((srcId, index) => [srcId, newFieldIds[index]]));
+}
+
+async function listAllViewFields(viewSections: ViewSectionRec[]) {
+  return flatten(viewSections.map(
+    (viewSection) => viewSection.viewFields.peek().peek().map((field) => field.getRowId())
+  ));
+}
+
+async function removeViewFields(gristDoc: GristDoc, fieldIds: number[]) {
+  await gristDoc.docData.sendAction(['BulkRemoveRecord', '_grist_Views_section_field', fieldIds]);
 }
 
 /**
