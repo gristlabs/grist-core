@@ -50,7 +50,15 @@ export interface DiscardedComment extends CursorPos {
 }
 
 interface DiscussionModel {
+  /**
+   * List of comments to show. In popup comments are only shown for the current cell. In panel comments are
+   * filtered manually by user.
+   */
   comments: Observable<CellRec[]>,
+  /**
+   * If there are no active comments in the list.
+   */
+  isEmpty: Computed<boolean>,
   /**
    * Saves a comment that creates a new discussion in the given cell.
    * Assumes that the cell has no comments yet.
@@ -98,13 +106,21 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     return model;
   }
 
+  public isEmpty: Computed<boolean>;
+
   constructor(
     protected gristDoc: GristDoc,
     public comments: Observable<CellRec[]>
   ) {
     super();
-  }
 
+    this.isEmpty = Computed.create(this, use => {
+      const discussions = use(comments);
+      const notResolved = discussions.filter(d => !use(d.resolved));
+      const visible = notResolved.filter(d => !use(d.hidden));
+      return visible.length === 0;
+    });
+  }
 
   public async startIn(pos: CursorPos, commentText: CommentText): Promise<void> {
     this.gristDoc.commentMonitor?.clear();
@@ -192,7 +208,6 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
  * Discussion popup that is attached to a cell.
  */
 export class CommentPopup extends Disposable {
-  private _isEmpty: Computed<boolean>;
   private _newText: Observable<CommentText> = Observable.create(this,
     this._props.initialText ?? new CommentText());
 
@@ -205,22 +220,15 @@ export class CommentPopup extends Disposable {
     closeClicked: () => void;
   }) {
     super();
-    this._isEmpty = Computed.create(this, use => {
-      const discussions = use(_props.cell.comments);
-      const notResolved = discussions.filter(d => !use(d.resolved));
-      const visible = notResolved.filter(d => !use(d.hidden));
-      return visible.length === 0;
-    });
     this._props.gristDoc.docPageModel.refreshDocumentAccess().catch(reportError);
     const content = dom('div',
       testId('popup'),
       dom.maybe(this._props.gristDoc.docPageModel.docUsers, access => [
-        dom.domComputed(this._isEmpty, empty => {
+        dom.domComputed(this._props.cell.isEmpty, empty => {
           if (!empty) {
             return dom.create(SingleThread, {
               text: this._newText,
               cell: _props.cell,
-              readonly: _props.gristDoc.isReadonly,
               gristDoc: _props.gristDoc,
               access,
               closeClicked: _props.closeClicked,
@@ -378,7 +386,6 @@ class SingleThread extends Disposable implements IDomComponent {
   constructor(public props: {
     text: Observable<CommentText>,
     cell: DiscussionModel,
-    readonly: Observable<boolean>,
     access: PermissionData,
     gristDoc: GristDoc,
     closeClicked?: () => void
@@ -428,7 +435,7 @@ class SingleThread extends Disposable implements IDomComponent {
           );
         })
       ),
-      this._createCommentEntry(),
+      dom.maybe(use => !use(this.props.gristDoc.isReadonly), () => this._createCommentEntry()),
       dom.onKeyDown({
         Escape: () => this.props.closeClicked?.(),
       })
@@ -438,16 +445,16 @@ class SingleThread extends Disposable implements IDomComponent {
 
   private _onCancelEdit() {
     if (this._commentInEdit.get()) {
-      this._commentInEdit.get()?.isEditing.set(false);
+      this._commentInEdit.get()?.setEditing(false);
     }
     this._commentInEdit.set(null);
   }
 
   private _onEditComment(el: Comment) {
     if (this._commentInEdit.get()) {
-      this._commentInEdit.get()?.isEditing.set(false);
+      this._commentInEdit.get()?.setEditing(false);
     }
-    el.isEditing.set(true);
+    el.setEditing(true);
     this._commentInEdit.set(el);
   }
 
@@ -546,16 +553,16 @@ class MultiThreads extends Disposable implements IDomComponent {
 
   private _onCancelEdit() {
     if (this._commentInEdit.get()) {
-      this._commentInEdit.get()?.isEditing.set(false);
+      this._commentInEdit.get()?.setEditing(false);
     }
     this._commentInEdit.set(null);
   }
 
   private _onEditComment(el: Comment) {
     if (this._commentInEdit.get()) {
-      this._commentInEdit.get()?.isEditing.set(false);
+      this._commentInEdit.get()?.setEditing(false);
     }
-    el.isEditing.set(true);
+    el.setEditing(true);
     this._commentInEdit.set(el);
   }
 }
@@ -570,8 +577,8 @@ class Comment extends Disposable {
   public static CANCEL = 'comment-cancel'; // edit mode was cancelled or turned off
   public static SELECT = 'comment-select'; // comment was clicked
   // Public modes that are modified by topic view.
-  public isEditing = Observable.create(this, false);
   public replying = Observable.create(this, false);
+  private _isEditing = Observable.create(this, false);
   private _replies: ObsArray<CellRec>;
   private _hasReplies: Computed<boolean>;
   private _expanded = Observable.create(this, false);
@@ -658,7 +665,7 @@ class Comment extends Disposable {
           ),
         ),
         // Comment text
-        dom.maybe(use => !use(this.isEditing),
+        dom.maybe(use => !use(this._isEditing),
           () => dom.domComputed(comment.hidden, (hidden) => {
             if (hidden) {
               return cssCommentCensored(
@@ -674,7 +681,7 @@ class Comment extends Disposable {
           })
         ),
         // Comment editor
-        dom.maybeOwned(this.isEditing,
+        dom.maybeOwned(this._isEditing,
           (owner) => {
             const text = Observable.create(owner, new CommentText(comment.text.peek() ?? ''));
             return dom.create(CommentEntry, {
@@ -685,12 +692,10 @@ class Comment extends Disposable {
               onSave: async () => {
                 const value = text.get();
                 await topic.update(comment, value);
-                domDispatch(this._bodyDom, Comment.CANCEL, this);
-                this.isEditing.set(false);
+                this.setEditing(false);
               },
               onCancel: () => {
-                domDispatch(this._bodyDom, Comment.CANCEL, this);
-                this.isEditing.set(false);
+                this.setEditing(false);
               },
               mode: 'start',
               args: [testId('editor-edit')],
@@ -718,9 +723,10 @@ class Comment extends Disposable {
         ),
         // Reply editor or button
         dom.maybe(use =>
-          !use(this.isEditing) &&
+          !use(this._isEditing) &&
           !this._isReply &&
           this.props.panel &&
+          !use(this.props.gristDoc.isReadonly) &&
           !use(comment.resolved),
           () => dom.domComputed(use => {
             if (!use(this.replying)) {
@@ -767,28 +773,50 @@ class Comment extends Disposable {
 
     return this._bodyDom;
   }
+
+  public setEditing(editing: boolean) {
+    if (this.props.gristDoc.isReadonly.get()) {
+      return;
+    }
+    if (this._isEditing.get() === editing) {
+      return;
+    }
+    this._isEditing.set(editing);
+    if (editing) {
+      domDispatch(this._bodyDom, Comment.EDIT, this);
+    } else {
+      domDispatch(this._bodyDom, Comment.CANCEL, this);
+    }
+  }
+
   private _menuItems() {
     const currentUser = this.props.gristDoc.currentUser.get()?.ref;
-    const canResolve = !this.props.comment.resolved()
-                    && !this._isReply
-                    && this._start.userRef.peek() === currentUser;
     const comment = this.props.comment;
     const lastComment = comment.column.peek().cells.peek().peek().at(-1);
-    const canOpen =
+
+    const resolveVisible = !this.props.comment.resolved()
+                        && !this._isReply;
+    const openVisible =
       this._resolved.get() // if this discussion is resolved
       && !this._isReply // and this is not a reply
       && lastComment === comment; // and this is the last comment
-    const canEdit = !this._resolved.get();
+    const editVisible = !this._resolved.get();
     return [
-      !canResolve ? null :
+      !resolveVisible ? null :
         menuItem(
-          () => this.props.cell.resolve(this.props.comment),
-          t('Resolve')
+          () => this.props.cell.resolve(comment),
+          t('Resolve'),
+          dom.cls('disabled', use => {
+            return use(this.props.gristDoc.isReadonly) || use(this._start.userRef) !== currentUser;
+          })
         ),
-      !canOpen ? null :
+      !openVisible ? null :
         menuItem(
-          () => this.props.cell.open(this.props.comment),
-          t('Open')
+          () => this.props.cell.open(comment),
+          t('Open'),
+          dom.cls('disabled', use => {
+            return use(this.props.gristDoc.isReadonly);
+          })
         ),
       menuItem(
         () => {
@@ -796,23 +824,18 @@ class Comment extends Disposable {
         },
         comment.root.peek() ? t('Remove thread') : t('Remove'),
         dom.cls('disabled', use => {
-          return currentUser !== use(comment.userRef);
+          return currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly);
         })
       ),
       // If comment is resolved, we can't edit it.
-      !canEdit ? null : menuItem(
-        () => this._edit(),
+      !editVisible ? null : menuItem(
+        () => this.setEditing(true),
         t('Edit'),
         dom.cls('disabled', use => {
-          return currentUser !== use(comment.userRef);
+          return currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly);
         })
       ),
     ];
-  }
-
-  private _edit() {
-    domDispatch(this._bodyDom, Comment.EDIT, this);
-    this.isEditing.set(true);
   }
 }
 
