@@ -145,8 +145,13 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
     const url = this._getUrl(options, 'attachments');
 
+    const upload = options.upload.filter(f => f.size > 0);
+    if (upload.length === 0) {
+      return [];
+    }
+
     const formData = new FormData();
-    for (const file of options.upload) {
+    for (const file of upload) {
       formData.append('upload', file);
     }
 
