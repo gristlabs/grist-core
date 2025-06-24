@@ -16,6 +16,7 @@ import {UploadResult} from 'app/common/uploads';
 import { GristObjCode } from 'app/plugin/GristData';
 import {Computed, dom, DomContents, fromKo, input, onElem, styled} from 'grainjs';
 import {extname} from 'path';
+import {FormFieldRulesConfig} from "app/client/components/Forms/FormConfig";
 
 
 /**
@@ -98,6 +99,12 @@ export class AttachmentsWidget extends NewAbstractWidget {
       cssSizeLabel('Size'),
       inputRange
     );
+  }
+
+  public buildFormConfigDom(): DomContents {
+    return [
+      dom.create(FormFieldRulesConfig, this.field),
+    ];
   }
 
   protected _buildAttachment(value: number, allValues: Computed<number[]>, cell: SingleCell): Element {
