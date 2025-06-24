@@ -1865,6 +1865,15 @@ export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', secti
 }
 
 /**
+ * Closes the section menu for a section, or the active section if no section is given
+ */
+export async function closeSectionMenu(which: 'sortAndFilter'|'viewLayout', section?: string|WebElement) {
+  const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
+  await sectionElem.find(`.test-section-menu-${which}`).click();
+  return notPresent(`.grist-floating-menu`);
+}
+
+/**
  * Opens Raw data view for current section.
  */
 export async function showRawData(section?: string|WebElement) {

@@ -72,7 +72,7 @@ describe("duplicateWidget", function() {
       const sortColumns = await gu.getSortColumns();
       assert.deepEqual(sortColumns, [{ column: 'A', dir: 'asc' }]);
       // Close the sort menu - can overlap with filter options on CI.
-      await gu.openSectionMenu('sortAndFilter', 'Widget 2');
+      await gu.closeSectionMenu('sortAndFilter', 'Widget 2');
     });
 
     it('preserves column filters', async function() {
