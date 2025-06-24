@@ -3350,6 +3350,7 @@ export async function openPinnedFilter(col: string) {
   const filterBar = driver.find('.active_section .test-filter-bar');
   const pinnedFilter = filterBar.findContent('.test-filter-field', col);
   await pinnedFilter.click();
+  await driver.findWait('.test-filter-menu-wrapper', 500);
   return {
     ...filterController,
     open: () => openPinnedFilter(col)
