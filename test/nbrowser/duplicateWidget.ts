@@ -3,9 +3,6 @@ import {assert} from 'chai';
 import {driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {
-  sortAndFilter
-} from 'test/nbrowser/gristUtils';
 
 describe("duplicateWidget", function() {
   this.timeout(20000);
