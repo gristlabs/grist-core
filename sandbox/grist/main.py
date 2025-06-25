@@ -182,6 +182,31 @@ def run(sandbox):
   def test_fail(msg):
     raise Exception(msg)
 
+  # File read/write methods for testing
+  @export
+  def test_write_file(filename, contents):
+    with open(filename, "w") as f:
+      f.write(contents)
+
+  @export
+  def test_read_file(filename):
+    with open(filename) as f:
+      return f.read()
+
+  @export
+  def test_get_sandbox_root():
+    return os.path.realpath(os.path.join(__file__, '..'))
+
+  @export
+  def test_list_files(path, include_files=True):
+    paths = []
+    for root, _, fnames in os.walk(path):
+      paths.append(root)
+      if include_files:
+        for fname in sorted(fnames):
+          paths.append(fname)
+    return paths
+
   # Some sundry operations for tests only
   @export
   def test_operation(delay, operation, *inputs):
