@@ -238,6 +238,7 @@ def make_command(root_dir, action):
              "-network",
              "none"] + action + [
              root_dir.replace('/', '_')]  # Derive an arbitrary container name.
+  print(command)
   return command
 
 # Generate the OCI spec as config.json in a temporary directory, and either show
