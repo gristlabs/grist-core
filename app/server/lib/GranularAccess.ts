@@ -29,7 +29,7 @@ import { getColIdsFromDocAction, TableDataAction, UserAction } from 'app/common/
 import { CellRecord, DocComment, makeDocComment } from 'app/common/DocComments';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
-import { DocUsageSummary, FilteredDocUsageSummary } from 'app/common/DocUsage';
+import { DocUsageSummary, FilteredDocUsageSummary, UsageRecommendations } from 'app/common/DocUsage';
 import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { InfoEditor } from 'app/common/GranularAccessClause';
@@ -43,6 +43,7 @@ import { User } from 'app/common/User';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
+import { appSettings } from 'app/server/lib/AppSettings';
 import { applyAndCheckActionsForCells, CellData, isCellDataAction } from 'app/server/lib/CellDataAccess';
 import { DocAuthorizer, DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
 import { DocClients } from 'app/server/lib/DocClients';
@@ -60,6 +61,16 @@ import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
 import memoize = require('lodash/memoize');
+import { getConfiguredStandardAttachmentStore } from './AttachmentStoreProvider';
+
+/**
+ * A threshold beyond which for this installation it would be
+ * better to use external attachments (if available).
+ */
+const GRIST_ATTACHMENTS_THRESHOLD_MB = appSettings.section("attachmentStores").flag("threshold").requireFloat({
+  envVar: "GRIST_ATTACHMENTS_THRESHOLD_MB",
+  defaultValue: 50,
+});
 
 // tslint:disable:no-bitwise
 
@@ -837,14 +848,34 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
+   * Figure out any recommendations based on usage to pass along.
+   */
+  public async getUsageRecommendations(
+    docSession: OptDocSession,
+    docUsage: DocUsageSummary,
+  ): Promise<UsageRecommendations> {
+    const rec: UsageRecommendations = {};
+    if (!this._docData.docSettings().attachmentStoreId &&
+        docUsage.attachmentsSizeBytes !== 'pending' &&
+        docUsage.attachmentsSizeBytes >= GRIST_ATTACHMENTS_THRESHOLD_MB * 1024 * 1024 &&
+        getConfiguredStandardAttachmentStore() &&
+        await this.isOwner(docSession)) {
+      rec.recommendExternal = true;
+    }
+    return rec;
+  }
+
+  /**
    * Filter DocUsageSummary to be sent to a client.
+   * Include usage recommendations.
    */
   public async filterDocUsageSummary(
     docSession: OptDocSession,
     docUsage: DocUsageSummary,
     options: {role?: Role | null} = {}
   ): Promise<FilteredDocUsageSummary> {
-    const result: FilteredDocUsageSummary = { ...docUsage };
+    const usageRecommendations = await this.getUsageRecommendations(docSession, docUsage);
+    const result: FilteredDocUsageSummary = { ...docUsage, usageRecommendations };
     // Owners can see everything all the time.
     if (await this.isOwner(docSession)) {
       return result;

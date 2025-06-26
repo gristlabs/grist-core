@@ -24,13 +24,32 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   expandedContent?: DomContents,
   disabled?: false|string,
 }) {
+  let item: HTMLDivElement|undefined;
   const itemContent = (...prefix: DomContents[]) => [
-    cssItemName(
+    item = cssItemName(
       ...prefix,
       options.name,
       testId(`admin-panel-item-name-${options.id}`),
+      dom.attr('id', options.id),  // Add an id for use as an anchor,
+                                   // although it needs tricks (below)
       prefix.length ? cssItemName.cls('-prefixed') : null,
       cssItemName.cls('-full', options.description === undefined),
+      () => {
+        // If there is an anchor, check if it points to us.
+        // If not, do nothing. If yes, focus here once rendered.
+        const hash = window.location.hash;
+        if (hash !== '#' + options.id) { return; }
+        // A setTimeout seems to be the "standard" for doing focus
+        // after rendering throughout the app. Feels a little hacky,
+        // but appears to work reliably, and consequences of failure
+        // are not extreme - we just don't autoscroll and highlight.
+        setTimeout(() => {
+          if (!item) { return; }
+          item.scrollIntoView();
+          item.focus();
+          item.classList.add(cssItemName.className + '-flash');
+        }, 0);
+      },
     ),
     cssItemDescription(options.description),
     cssItemValue(options.value,
@@ -148,6 +167,13 @@ const cssItemName = styled('div', `
   &-full {
     padding-left: 0;
     width: unset;
+  }
+  &-flash {
+    animation: flashToTransparent 1s ease-in-out forwards;
+  }
+  @keyframes flashToTransparent {
+    0%   { background-color: var(--grist-theme-primary-emphasis, inherit); }
+    100% { background-color: inherit; }
   }
   @container line (max-width: 500px) {
     & {

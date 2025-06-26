@@ -57,6 +57,10 @@ export type AdminPanelPage = typeof AdminPanelPage.type;
 export const AdminPanelTab = StringUnion('users', 'workspaces', 'docs', 'orgs', 'details');
 export type AdminPanelTab = typeof AdminPanelTab.type;
 
+export const PREFERRED_STORAGE_ANCHOR = 'preferredStorage';
+export const PersistentAnchor = StringUnion(PREFERRED_STORAGE_ANCHOR);
+export type PersistentAnchor = typeof PersistentAnchor.type;
+
 // Overall UI style.  "full" is normal, "singlePage" is a single page focused, panels hidden experience.
 export const InterfaceStyle = StringUnion('singlePage', 'full');
 export type InterfaceStyle = typeof InterfaceStyle.type;
@@ -377,6 +381,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
 
   if (state.homePageTab) {
     url.hash = state.homePageTab;
+  } else if (state.hash && state.hash.anchor) {
+    url.hash = state.hash.anchor;
   } else if (state.hash) {
     // Project tests use hashes, so only set hash if there is an anchor.
     url.hash = makeAnchorLinkValue(state.hash);
@@ -578,7 +584,12 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
     state.homePageTab = HomePageTab.parse(hashMap.get('#'));
     state.adminPanelTab = AdminPanelTab.parse(hashMap.get('#'));
-    if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
+    const anchor = PersistentAnchor.parse(hashMap.get('#'));
+    if (anchor) {
+      state.hash = {
+        anchor,
+      };
+    } else if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [
         'sectionId',
@@ -1198,6 +1209,7 @@ export interface HashLink {
   rickRow?: boolean;
   recordCard?: boolean;
   linkingRowIds?: UIRowId[];
+  anchor?: string;
 }
 
 /**
@@ -1216,6 +1228,8 @@ export function makeAnchorLinkValue(hash: HashLink): string {
       hashParts.push('a3');
     } else if (hash.popup) {
       hashParts.push('a2');
+    } else if (hash.anchor) {
+      hashParts.push(hash.anchor);
     } else {
       hashParts.push('a1');
     }

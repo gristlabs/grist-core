@@ -29,7 +29,7 @@ import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'a
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
 import {EngineCode} from 'app/common/DocumentSettings';
-import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
+import {commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
@@ -289,7 +289,7 @@ export class DocSettingsPage extends Disposable {
 
     return dom.create(AdminSection, t('Attachment storage'), [
       dom.create(AdminSectionItem, {
-        id: 'preferredStorage',
+        id: PREFERRED_STORAGE_ANCHOR,
         name: withInfoTooltip(
           dom('span', t('Preferred storage for this document'), testId('transfer-header')),
           'attachmentStorage',

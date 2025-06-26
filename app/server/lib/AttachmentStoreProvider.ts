@@ -184,7 +184,7 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
     }];
   }
   // TODO This mode should be removed once stores can be configured fully via env vars.
-  if(GRIST_EXTERNAL_ATTACHMENTS_MODE === 'test') {
+  if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'test') {
     return [{
       label: 'test-filesystem',
       spec: await makeTempFilesystemStoreSpec(),

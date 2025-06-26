@@ -409,8 +409,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     }));
 
     // Subscribe to URL state, and navigate to anchor or open a popup if necessary.
+    // If state.hash.anchor is set, we use it as a "normal" non-disappearing link hash,
+    // useful to linking to more normal, more web-like and less app-like pages.
     this.autoDispose(subscribe(urlState().state, async (use, state) => {
-      if (!state.hash) {
+      if (!state.hash || state.hash.anchor) {
         return;
       }
 
