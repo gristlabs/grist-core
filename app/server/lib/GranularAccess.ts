@@ -750,16 +750,25 @@ export class GranularAccess implements GranularAccessForBundle {
     const userDocSession: OptDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
     //
     const directActions = docActions.filter((_, index) => isDirect[index]);
-    const filtered = await this.filterOutgoingDocActions(userDocSession, directActions);
-    if (filtered.length === 0) { return null; }
-    const tableIds = new Set<string>();
-    for (const action of filtered) {
-      const t = getTableId(action);
-      if (!t.startsWith('_grist')) {
-        tableIds.add(t);
+    try {
+      const filtered = await this.filterOutgoingDocActions(userDocSession, directActions);
+      if (filtered.length === 0) { return null; }
+      const tableIds = new Set<string>();
+      for (const action of filtered) {
+        const t = getTableId(action);
+        if (!t.startsWith('_grist')) {
+          tableIds.add(t);
+        }
       }
+      return [...tableIds];
+    } catch (err) {
+      if (err.code === 'NEED_RELOAD') {
+        // If something changes that affects access and tells each client to reload, then consider
+        // it a change visible to all users, even though we can't tell which tables are affected.
+        return [];
+      }
+      throw err;
     }
-    return [...tableIds];
   }
 
   public async getCommentsInBundle(userToFilterFor: UserAccessData|null = null): Promise<DocComment[]> {
@@ -770,7 +779,18 @@ export class GranularAccess implements GranularAccessForBundle {
     if (userToFilterFor) {
       const userDocSession: OptDocSession = new PseudoDocSession(userToFilterFor, this._docId, docSession.org);
       // TODO: this can probably be more efficient since we don't need full filtering.
-      filtered = await this.filterOutgoingDocActions(userDocSession, docActions);
+      try {
+        filtered = await this.filterOutgoingDocActions(userDocSession, docActions);
+      } catch (err) {
+        if (err.code === 'NEED_RELOAD') {
+          // If something changes that affects access and tells each client to reload, then we
+          // can't tell what comment actions are visible. This should never happen in normal use
+          // of comments (since we don't expect comment actions to be in the same bundle with
+          // access-changing actions), so just assume there are no comments to worry about.
+          filtered = [];
+        }
+        throw err;
+      }
     }
 
     const docComments: DocComment[] = [];
