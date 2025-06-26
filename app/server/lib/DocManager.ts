@@ -22,6 +22,7 @@ import {
   getConfiguredStandardAttachmentStore,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
+import {IAttachmentVirusScanProvider} from 'app/server/lib/AttachmentVirusScanProvider';
 import {Client} from 'app/server/lib/Client';
 import {DocSessionPrecursor,
         makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
@@ -86,6 +87,7 @@ export class DocManager extends EventEmitter {
     public readonly pluginManager: PluginManager|null,
     private _homeDbManager: HomeDBManager|null,
     private _attachmentStoreProvider: IAttachmentStoreProvider,
+    private _virusScanProviders: IAttachmentVirusScanProvider[],
     public gristServer: GristServer,
   ) {
     super();
@@ -669,7 +671,7 @@ export class DocManager extends EventEmitter {
     const doc = await this._getDoc(docSession, docName);
     // Get URL for document for use with SELF_HYPERLINK().
     const docUrls = doc && await this._getDocUrls(doc);
-    const activeDoc = new ActiveDoc(this, docName, this._attachmentStoreProvider, {...docUrls, safeMode, doc});
+    const activeDoc = new ActiveDoc(this, docName, this._attachmentStoreProvider, this._virusScanProviders, {...docUrls, safeMode, doc});
     // Restore the timing mode of the document.
     activeDoc.isTimingOn = this._inTimingOn.get(docName) || false;
     return activeDoc;
