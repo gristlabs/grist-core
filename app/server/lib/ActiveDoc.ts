@@ -283,7 +283,6 @@ export class ActiveDoc extends EventEmitter {
    * initialized.  True on success.
    */
   private _initializationPromise: Promise<void>|null = null;
-  private _initDocUsagePromise: Promise<void>|null = null;
   /**
    * Becomes true once all columns are loaded/computed.
    */
@@ -2821,7 +2820,7 @@ export class ActiveDoc extends EventEmitter {
         // TODO: could offer a UI to control whether shares are activated.
         await this.syncShares(docSession, { skipIfNoShares: true });
       }
-      this._initDocUsagePromise = this._initializeDocUsage(docSession);
+      void this._initializeDocUsage(docSession);
 
       // Start the periodic work, unless this doc has already started shutting down.
       if (!this.muted) {
@@ -3282,7 +3281,6 @@ export class ActiveDoc extends EventEmitter {
           // The temporary copy and rollback machanisms must avoid any document
           // corruption.
           try {
-            await this._initDocUsagePromise?.catch(() => {});
             await this.docStorage.vacuum();
           } catch (err) {
             if (err.code === "ENOENT") {
