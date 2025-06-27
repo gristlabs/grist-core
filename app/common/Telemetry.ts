@@ -1608,6 +1608,30 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  duplicatedWidget: {
+    category: 'WidgetUsage',
+    description: 'Triggered when a widget is duplicated.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      destPage: {
+        description: 'The type of page the widget is being duplicated to. One of "SAME", "NEW", "OTHER"',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   linkedWidget: {
     category: 'WidgetUsage',
     description: 'Triggered when a widget is linked.',
@@ -1851,6 +1875,7 @@ export const TelemetryEvents = StringUnion(
   'deletedPage',
   'addedWidget',
   'deletedWidget',
+  'duplicatedWidget',
   'linkedWidget',
   'unlinkedWidget',
   'publishedForm',
