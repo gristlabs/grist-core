@@ -97,7 +97,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       // Field menus.
       const quick = ['Text', 'Numeric', 'Choice', 'Date'];
-      const disabled = ['Attachments'];
+      const disabled: string[] = [];
       const commonTypes = () => getNewColumnTypes(gristDoc, viewSection.tableId());
       const isQuick = ({colType}: {colType: string}) => quick.includes(colType);
       const notQuick = ({colType}: {colType: string}) => !quick.includes(colType);
