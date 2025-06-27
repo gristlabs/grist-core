@@ -1585,7 +1585,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     await db.get("SELECT 1");
 
     const initSize = await this.storageManager.getFsFileSize(this.docName);
-    log.info(`Start Vacuum of doc ${this.docName}`);
+    log.rawInfo("Start Vacuum of doc ", { docId: this.docName });
     await db.vacuum();
     const size = await this.storageManager.getFsFileSize(this.docName);
     if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH) ) {

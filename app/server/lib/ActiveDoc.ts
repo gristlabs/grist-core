@@ -2359,10 +2359,11 @@ export class ActiveDoc extends EventEmitter {
     try {
 
       this.setMuted();
+      this._inactivityTimer.disable();
+
       // No timeout on this callback: if it hangs, it will make the document unusable.
       await options.beforeShutdown?.();
 
-      this._inactivityTimer.disable();
       if (this.docClients.clientCount() > 0) {
         this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
         await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
