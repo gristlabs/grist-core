@@ -55,7 +55,13 @@ jobs:
 
       - name: Install Node.js packages
         run: yarn install
- 
+
+      - name: Install gvisor
+        run: |
+          docker create --name temp-runsc gristlabs/gvisor-unprivileged:buster /bin/true
+          sudo docker cp temp-runsc:/runsc /usr/bin/runsc
+          docker rm temp-runsc
+
       - name: Run eslint
         if: contains(matrix.tests, ':lint:')
         run: yarn run lint:ci
@@ -154,6 +160,8 @@ jobs:
           GRIST_DOCS_MINIO_ACCESS_KEY: administrator
           GRIST_DOCS_MINIO_SECRET_KEY: administrator
           TEST_REDIS_URL: "redis://localhost/11"
+          GVISOR_FLAGS: "-unprivileged -ignore-cgroups"
+          GVISOR_EXTRA_DIRS: /opt
           GRIST_DOCS_MINIO_USE_SSL: 0
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
@@ -168,6 +176,8 @@ jobs:
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          GVISOR_FLAGS: "-unprivileged -ignore-cgroups"
+          GVISOR_EXTRA_DIRS: /opt
           TESTDIR: ${{ runner.temp }}/test-logs
 
       - name: Prepare for saving artifact
