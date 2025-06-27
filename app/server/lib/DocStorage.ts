@@ -1578,6 +1578,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public async vacuum(): Promise<void> {
     const db = this._getDB();
+
+    // Other long queries may run at this moment. Due to the ATTACH call made by the VACUUM implementation,
+    // we have to wait for other queries to finish otherwise we create a deadlock.
+    // One way found for this purpose consists in just executing some dummy query and awaiting for its result.
+    await db.get("SELECT 1");
+
     const initSize = await this.storageManager.getFsFileSize(this.docName);
     log.info(`Start Vacuum of doc ${this.docName}`);
     await db.vacuum();
