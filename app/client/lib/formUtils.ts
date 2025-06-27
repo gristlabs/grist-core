@@ -126,7 +126,7 @@ export class TypedFormData {
     return type === 'Ref' || type === 'RefList' ? Number(value) : value;
   }
 
-  public setAttachmentIds(key: string, value: number[]) {
+  public set(key: string, value: any) {
     this._formData.set(key, JSON.stringify(value));
   }
 

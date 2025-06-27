@@ -85,7 +85,7 @@ export class FormModelImpl extends Disposable implements FormModel {
           ...this._getDocIdOrShareKeyParam(),
           upload: value as File[],
         });
-        formData.setAttachmentIds(key, uploadResult);
+        formData.set(key, uploadResult);
       }
     }
 
