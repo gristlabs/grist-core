@@ -5,6 +5,7 @@ import * as commands from 'app/client/components/commands';
 import {CustomCalendarView} from "app/client/components/CustomCalendarView";
 import {CustomView} from 'app/client/components/CustomView';
 import * as DetailView from 'app/client/components/DetailView';
+import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
 import {FormView} from 'app/client/components/Forms/FormView';
 import * as GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
@@ -43,7 +44,6 @@ import {
 } from 'grainjs';
 import * as ko from 'knockout';
 import debounce from 'lodash/debounce';
-import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
 
 const t = makeT('ViewLayout');
 

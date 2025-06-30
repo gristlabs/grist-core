@@ -21,7 +21,6 @@ import {fromPairs} from 'lodash';
 
 const t = makeT('duplicateWidget');
 
-// Duplicate page with pageId. Starts by prompting user for a new name.
 export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionId: number) {
   const activeView = gristDoc.activeViewId.get();
   const pages = sortBy(gristDoc.docModel.pages.rowModels.filter(p => p), [(row) => row.pagePos.peek()]);
@@ -37,11 +36,6 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
   });
 
   pageSelectOptions.push({ label: 'Create new page', value: 0, isActivePage: false });
-
-  // Logically this should never happen, as a Grist doc without pages should be impossible.
-  if (pageSelectOptions.length < 1) {
-    throw new Error("No pages available to duplicate widget to");
-  }
 
   saveModal((ctl, owner) => {
     const initialSelectedPage =
@@ -68,14 +62,12 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
 
 export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: number[], destViewId: number) {
   const allViewSectionModels = gristDoc.docModel.viewSections.rowModels;
-  const validWidgetIds = srcViewSectionIds.filter(id => allViewSectionModels[id]);
+  const sourceViewSections = srcViewSectionIds.map(id => allViewSectionModels[id]).filter(viewSec => viewSec);
 
   // Generally this shouldn't happen, but it catches a theoretically possible edge case.
-  if (validWidgetIds.length === 0) {
-    throw new Error("Unable to duplicate widgets as no valid source widget IDs were provided");
+  if (sourceViewSections.length === 0) {
+    throw new Error("Unable to duplicate widgets as no valid source widget ids were provided");
   }
-
-  const sourceViewSections = validWidgetIds.map(id => allViewSectionModels[id]);
   const sourceView = sourceViewSections[0].view.peek();
   const isNewView = destViewId < 1;
   let resolvedDestViewId = destViewId;
@@ -90,6 +82,8 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
   await gristDoc.docData.bundleActions(
     t("Duplicate widgets"),
     async () => {
+      // Creates new view sections using the existing ones as a template. This isn't a perfect
+      // copy, as only certain options can be passed when creating a new view section.
       const {
         duplicatedViewSections,
         viewRef,
@@ -97,13 +91,18 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       } = await createNewViewSections(gristDoc, sourceViewSections, destViewId);
       resolvedDestViewId = viewRef;
 
-      const defaultViewFieldIds = await listAllViewFields(duplicatedViewSections.map(pair => pair.destViewSection));
-
+      // Gets the IDs of the view fields that were automatically created above when we created
+      // the new view sections. These shouldn't be in the final duplicated widget, so they'll need
+      // to be removed later. They can't be removed now due as it breaks the widget's layout spec.
+      const autoCreatedViewFieldIds = listAllViewFields(duplicatedViewSections.map(pair => pair.destViewSection));
+      // Adds copies of the original fields to the new view sections. Retain a map of fields in the source
+      // view section to their copies in the new section, so that we can update the widget layout later with
+      // the new fields.
       const viewFieldsIdMap = await copyOriginalViewFields(gristDoc, duplicatedViewSections);
 
-      // update layout spec
+      // If we're creating a new page, we should copy the page layout over, updating its ids
+      // to match the newly created view sections.
       let layoutSpecUpdatePromise = Promise.resolve();
-      // If we're creating a new page, we should copy the widget layout over.
       if (isNewView) {
           const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
           layoutSpecUpdatePromise = gristDoc.docData.sendAction(
@@ -116,9 +115,14 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
         copyFilters(gristDoc, sourceViewSections, viewSectionIdMap)
       ]);
 
-      // Remove default view fields at the end - removing them earlier means they're still referenced in
-      // layout specs.
-      await removeViewFields(gristDoc, defaultViewFieldIds);
+      // Remove the fields that were automatically created when the view sections were created,.
+      // only after we've patched the widgets' layout specs.
+      // These specs are JSON representations of how the fields are laid out, and reference the ids
+      // of the automatically created fields.
+      // If we remove those fields before the removing the references in the layout spec,
+      // the UI will either break, throw errors, or both, due to it temporarily being in an invalid
+      // state (referencing non-existent fields).
+      await removeViewFields(gristDoc, autoCreatedViewFieldIds);
     },
     // If called from duplicatePage (or similar), we don't want to start a new bundle.
     {nestInActiveBundle: true}
@@ -166,7 +170,6 @@ async function copyFilters(
 async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: DuplicatedViewSection[],
                                   fieldsMap: {[id: number]: number}, viewSectionMap: {[id: number]: number}) {
 
-  // collect all the records for the src view sections
   const destRowIds: number[] = [];
   const records: RowRecord[] = [];
   for (const { srcViewSection, destViewSection } of duplicatedViewSections) {
@@ -192,10 +195,8 @@ async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: Du
   // transpose data
   const sectionsInfo = getColValues(records);
 
-  // ditch column parentId
   delete sectionsInfo.parentId;
 
-  // send action
   await gristDoc.docData.sendAction(['BulkUpdateRecord', '_grist_Views_section', destRowIds, sectionsInfo]);
 }
 
@@ -234,7 +235,7 @@ async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: Dupl
   return fromPairs(srcViewFieldIds.map((srcId, index) => [srcId, newFieldIds[index]]));
 }
 
-async function listAllViewFields(viewSections: ViewSectionRec[]) {
+function listAllViewFields(viewSections: ViewSectionRec[]) {
   return flatten(viewSections.map(
     (viewSection) => viewSection.viewFields.peek().peek().map((field) => field.getRowId())
   ));

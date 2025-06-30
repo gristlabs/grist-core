@@ -26,7 +26,7 @@ describe("duplicateWidget", function() {
 
       await gu.getCell('A', 1).click();
       await driver.sendKeys(Key.ENTER + testCellContent + Key.ENTER);
-      await driver.sendKeys(Key.DOWN);
+      await gu.waitAppFocus();
       await driver.sendKeys(Key.ENTER + testCellContent2 + Key.ENTER);
 
 

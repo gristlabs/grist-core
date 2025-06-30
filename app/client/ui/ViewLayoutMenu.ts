@@ -58,7 +58,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     (gristDoc.maximizedSectionId.get() === viewSection.getRowId());
 
   const dontDuplicateSection = (use: UseCB) =>
-    use(viewSection.isRaw) || use(viewSection.isVirtual);
+    use(viewSection.isRaw) || use(viewSection.isVirtual) || isReadonly;
 
   const showRawData = (use: UseCB) => {
     return !use(viewSection.isRaw)// Don't show raw data if we're already in raw data.
