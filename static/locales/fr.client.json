@@ -42,7 +42,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Pour chaque ajout de règle pour une table, ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
         "Permission to edit document structure": "Droits d'édition de la structure",
         "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",
-        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page) et à écrire des formules. Les formules peuvent être éditées et donner accès à l'ensemble des données, quelles que soient les droits d'accès au niveau des tables ou colonnes.",
         "Add Table-wide Rule": "Ajouter une règle pour l'ensemble du tableau"
     },
     "AccountPage": {
@@ -185,7 +185,8 @@
         "Stack series": "Empiler les séries",
         "Above+Below": "Asymétrique",
         "selected new x-axis": "Nouvel axe horizontal sélectionné",
-        "Pie Chart": "Camembert"
+        "Pie Chart": "Camembert",
+        "LABEL": "LABEL"
     },
     "CodeEditorPanel": {
         "Access denied": "Accès refusé",
@@ -414,7 +415,13 @@
         "Internal": "Interne",
         "**Some existing attachments are still [external]({{externalLink}})**.": "Certains pièces jointes existantes sont toujours [externes]({{externalLink}}).",
         "[Learn more.]({{learnLink}})": "[En savoir plus.]({{learnLink}})",
-        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certains pièces jointes existantes sont toujours [internes]({{internalLink}})** (stockées dans un fichier SQLite)."
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certains pièces jointes existantes sont toujours [internes]({{internalLink}})** (stockées dans un fichier SQLite).",
+        "Upload missing attachments": "Télécharger les PJ manquantes",
+        "Uploading...": "Téléchargement...",
+        "Upload": "Télécharger",
+        "Default": "Classique",
+        "Default, template, or tutorial": "Classique, modèle ou tutoriel",
+        "Document type": "Type de document"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -674,7 +681,10 @@
         "Download full document and history": "Télécharger le document complet avec l'historique des modifications",
         "Download an archive of all the attachments present in this document.": "Télécharger une archive de toutes les PJ présentes dans ce document.",
         "download attachments": "télécharger les PJ",
-        "Download attachments": "Télécharger les PJ"
+        "Download attachments": "Télécharger les PJ",
+        ".zip": ".zip",
+        "Format:": "Format :",
+        ".tar (recommended)": ".tar (recommandé)"
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -829,7 +839,8 @@
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
         "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)",
         "Download document...": "Télécharger le document...",
-        "Download attachments...": "Télécharger les PJ..."
+        "Download attachments...": "Télécharger les PJ...",
+        "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est disponible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer."
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -914,7 +925,9 @@
         "Blocks": "Blocs",
         "Edit Card Layout": "Disposition de la fiche",
         "Plugin: ": "Plugin : ",
-        "Section: ": "Section : "
+        "Section: ": "Section : ",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Les tables à la demande ne sont plus disponibles en raison d'un manque de fonctionnalités et de problèmes d'UX.",
+        "⚠️ Deprecated Feature": "⚠️ Fonctionnalité obsolète"
     },
     "ViewLayoutMenu": {
         "Delete record": "Supprimer la ligne",
@@ -1117,7 +1130,9 @@
         "Show resolved comments": "Montrer les commentaires résolus",
         "Resolve": "Résoudre",
         "Showing last {{nb}} comments": "Montrer les {{nb}} commentaires",
-        "Started discussion": "Discussion commencée"
+        "Started discussion": "Discussion commencée",
+        "Remove thread": "Supprimer le fil",
+        "updated": "mis à jour"
     },
     "FieldBuilder": {
         "Apply Formula to Data": "Appliquer une formule",
@@ -1304,7 +1319,8 @@
         "The preview below this header shows how the selected user will see this document": "L'aperçu sous cette entête montre ce que l'utilisateur sélectionné peut voir",
         "Manage users and resources in a Grist installation.": "Gérer les utilisateurs et les ressources de Grist.",
         "[Learn more.]({{link}})": "[En savoir plus.]({{link}})",
-        "Summary tables can only contain formula columns.": "Les tables récapitulatives ne peuvent contenir que des formules."
+        "Summary tables can only contain formula columns.": "Les tables récapitulatives ne peuvent contenir que des formules.",
+        "The new Grist Assistant is here!": "Le nouvel assistant Grist est là !"
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1353,7 +1369,8 @@
         "Enabled": "Activé",
         "Name": "Nom",
         "Sorry, not all fields can be edited.": "Désolé, tous les champs ne peuvent pas être modifiés.",
-        "Header Authorization": "Entête de sécurité"
+        "Header Authorization": "Entête de sécurité",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks indisponibles dans les copies de documents non enregistrées"
     },
     "FormulaAssistant": {
         "Grist's AI Formula Assistance. ": "Assistance des formules de l'IA de Grist ",
@@ -1475,7 +1492,8 @@
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utilisateur a un accès en lecture seule à {{resource}} résultant d'un accès des ressources à l'intérieur. S'il est supprimé ici, cet utilisateur perdra l'accès aux ressources à l'intérieur.",
         "You are about to remove your own access to this {{resourceType}}": "Vous êtes sur le point de supprimer votre propre accès à {{resourceType}}",
         "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "L'utilisateur hérite ses permissions de {{parent})}. Pour supprimer cela,            paramétrez 'Héritage d'accès à 'Aucun'.",
-        "Inherit access: ": "Hériter des droits d'accès : "
+        "Inherit access: ": "Hériter des droits d'accès : ",
+        "Access overview": "Aperçu de l'accès"
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
@@ -2009,6 +2027,28 @@
         "Docs": "Documentation"
     },
     "Assistant": {
-        "Learn more.": "En savoir plus."
+        "Learn more.": "En savoir plus.",
+        "You have used all available credits.": "Vous avez utilisé tous les crédits disponibles.",
+        "upgrade to the Pro Team plan": "passer au plan Pro Team",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Créez un compte Grist gratuit pour commencer à utiliser l'assistant IA.",
+        "start a new chat": "démarrer une nouvelle discussion",
+        "upgrade your plan": "mettez à niveau votre plan",
+        "For higher limits, {{upgradeNudge}}.": "Pour des limites plus élevées, {{upgradeNudge}}.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Passez à Grist Enterprise pour essayer le nouvel assistant Grist. {{learnMoreLink}}",
+        "What do you need help with?": "Pour quelle raison avez-vous besoin d’aide ?",
+        "Press Enter to apply suggested formula.": "Appuyez sur Entrée pour appliquer la formule suggérée.",
+        "AI Assistant is only available for logged in users.": "L'assistant AI n'est disponible que pour les utilisateurs connectés.",
+        "You have {{numCredits}} remaining credits.": "Il vous reste {{numCredits}} crédits.",
+        "For higher limits, contact the site owner.": "Pour des limites plus élevées, contactez le propriétaire du site.",
+        "Sign Up for Free": "Inscrivez-vous gratuitement",
+        "Apply": "Valider"
+    },
+    "apiconsole": {
+        "Type DELETE here if you wish to proceed.": "Tapez DELETE si vous souhaitez continuer.",
+        "Delete": "Supprimer",
+        "Deletion was not confirmed, skipping.": "La suppression n'a pas été confirmée, étape suivante.",
+        "Confirm Deletion": "Confirmer la suppression",
+        "Are you sure you want to delete the following?": "Êtes-vous sûr·e de vouloir supprimer les éléments suivants ?",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Tapez DELETE si vous êtes sûr·e de vouloir supprimer.\nEn cas de doute ou d'incompréhension de l'effet de cette opération, il est conseillé de ne pas poursuivre."
     }
 }

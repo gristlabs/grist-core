@@ -1348,7 +1348,8 @@
         "Copy anchor link": "Copy anchor link",
         "Cut": "Cut",
         "Hide field": "Hide field",
-        "Paste": "Paste"
+        "Paste": "Paste",
+        "Comment": "Comment"
     },
     "WebhookPage": {
         "Clear Queue": "Clear Queue",
@@ -1720,7 +1721,9 @@
         "Off": "Off",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more",
         "On": "On",
-        "Grist Instance": "Grist Instance"
+        "Grist Instance": "Grist Instance",
+        "Auto-check weekly": "Auto-check weekly",
+        "No record of last version check": "No record of last version check"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2048,5 +2051,12 @@
         "Deletion was not confirmed, skipping.": "Deletion was not confirmed, skipping.",
         "Type DELETE here if you wish to proceed.": "Type DELETE here if you wish to proceed.",
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it."
+    },
+    "MentionTextBox": {
+        "no access": "no access"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible."
     }
 }

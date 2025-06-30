@@ -31,7 +31,21 @@
         "Scatter Plot": "Diagramă de dispersie",
         "Remove": "Elimină",
         "LABEL": "ETICHETA",
-        "Vertical": "Vertical"
+        "Vertical": "Vertical",
+        "Horizontal": "Orizontal",
+        "Show markers": "Afișați marcajele",
+        "Invert Y-axis": "Inversați axa Y",
+        "Hole Size": "Dimensiunea găurii",
+        "Connect gaps": "Conectați golurile",
+        "X-AXIS": "Axa X",
+        "SERIES": "SERIE",
+        "None": "Nici unul",
+        "Above+Below": "Deasupra+Jos",
+        "Aggregate values": "Valori agregate",
+        "selected new x-axis": "noua axă x selectată",
+        "Add Series": "Adăugați o serie",
+        "non-numeric columns are not shown": "Coloanele non-numerice nu sunt afișate",
+        "non-numeric column is not shown": "coloana non-numerică nu este afișată"
     },
     "ColumnFilterMenu": {
         "Search values": "Căutați valori",
@@ -188,7 +202,14 @@
         "Pick a column": "Alegeți o coloană",
         "Clear selection": "Anulează selecția",
         "No document access": "Fără acces la documente",
-        "Widget does not require any permissions.": "Widgetul nu necesită nicio permisiune."
+        "Widget does not require any permissions.": "Widgetul nu necesită nicio permisiune.",
+        "Accept": "Accepta",
+        "Custom URL": "URL personalizat",
+        "Developer:": "Dezvoltator:",
+        "Last updated:": "Ultima actualizare:",
+        "Missing description and author information.": "Lipsesc descrierea și informațiile despre autor.",
+        "Reject": "Respinge",
+        "ACCESS LEVEL": "NIVEL DE ACCES"
     },
     "DocMenu": {
         "Discover More Templates": "Descoperiți mai multe șabloane",
@@ -229,7 +250,9 @@
         "You are on your personal site. You also have access to the following sites:": "Ești în spaţiul tău personal. De asemenea, aveți acces la următoarele spaţii:",
         "Restore": "Restaurează",
         "Move {{name}} to workspace": "Mutați {{name}} în spațiul de lucru",
-        "Permanently Delete \"{{name}}\"?": "Ștergeți definitiv „{{name}}”?"
+        "Permanently Delete \"{{name}}\"?": "Ștergeți definitiv „{{name}}”?",
+        "Create my first document": "Creează primul meu document",
+        "Any documents created in this site will appear here.": "Orice documente create pe acest site vor apărea aici."
     },
     "ActionLog": {
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Coloana {{colId}} a fost eliminată ulterior în acțiunea #{{action.actionNum}}",
@@ -868,7 +891,8 @@
         "Start timing": "Începe cronometrarea",
         "Manage webhooks": "Gestionează ancore Web",
         "Stop timing...": "Oprește cronometrarea...",
-        "python3 (recommended)": "python3 (recomandat)"
+        "python3 (recommended)": "python3 (recomandat)",
+        "Document type": "Tipul documentului"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "ID-ul coloanei a fost copiat în clipboard",

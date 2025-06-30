@@ -167,7 +167,7 @@ export function createDummyGristServer(): GristServer {
     getOwnUrl() { return 'http://localhost:4242'; },
     getPermitStore() { throw new Error('no permit store'); },
     getExternalPermitStore() { throw new Error('no external permit store'); },
-    getGristConfig() { return { homeUrl: '', timestampMs: 0, serveSameOrigin: true }; },
+    getGristConfig() { return { homeUrl: '', timestampMs: 0, serveSameOrigin: true, checkForLatestVersion: false }; },
     getOrgUrl() { return Promise.resolve(''); },
     getResourceUrl() { return Promise.resolve(''); },
     getSessions() { throw new Error('no sessions'); },

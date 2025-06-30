@@ -27,7 +27,7 @@ describe('VersionUpdateBanner', function() {
 
   beforeEach(async function() {
     fakeServer.payload = null;
-    await server.restart();
+    await server.restart(true);
     assert.isNotNull(fakeServer.payload, 'fake server should have received a version payload');
   });
 
@@ -52,7 +52,9 @@ describe('VersionUpdateBanner', function() {
     await session.loadDocMenu('/');
 
     await driver.findWait('.test-top-panel', 100);
-    assert.equal(await driver.find('.test-version-update-banner-text').isDisplayed(), true);
+    const banner = await driver.find('.test-version-update-banner-text');
+    assert.equal(await banner.isDisplayed(), true);
+    assert.notMatch(await banner.getText(), /critical/);
 
     // Should be dismissable
     await driver.find('.test-banner-close').click();
@@ -70,6 +72,23 @@ describe('VersionUpdateBanner', function() {
     session = await gu.session().personalSite.login({freshAccount: false});
     await session.loadDocMenu('/');
     assert.equal(await driver.find('.test-version-update-banner-text').isDisplayed(), true);
+  });
+
+  it('should highlight critical version updates to managers', async () => {
+    fakeServer.isCritical = true;
+    await server.restart(true);
+    session = await gu.session().personalSite.login({freshAccount: true});
+    await driver.executeScript('window.localStorage.clear();');
+    await session.loadDocMenu('/');
+
+    await driver.findWait('.test-top-panel', 100);
+    const banner = await driver.find('.test-version-update-banner-text');
+    assert.equal(await banner.isDisplayed(), true);
+    assert.match(await banner.getText(), /critical/);
+
+    await driver.sleep(10e3);
+
+    fakeServer.isCritical = false;
   });
 
   it('should not be shown to managers when there is no newer version', async () => {

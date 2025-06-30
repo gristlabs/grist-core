@@ -95,7 +95,7 @@ describe('Telemetry', function() {
         it('returns the current telemetry status', async function() {
           const resp = await axios.get(`${homeUrl}/api/install/prefs`, chimpy);
           assert.equal(resp.status, 200);
-          assert.deepEqual(resp.data, {
+          assert.deepInclude(resp.data, {
             telemetry: {
               telemetryLevel: {
                 value: telemetryLevel,
@@ -401,7 +401,7 @@ describe('Telemetry', function() {
     it('GET /install/prefs returns 200 for the default user', async function() {
       const resp = await axios.get(`${homeUrl}/api/install/prefs`, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, {
+      assert.deepInclude(resp.data, {
         telemetry: {
           telemetryLevel: {
             value: 'off',
@@ -425,13 +425,47 @@ describe('Telemetry', function() {
       assert.equal(resp.status, 200);
 
       resp = await axios.get(`${homeUrl}/api/install/prefs`, chimpy);
-      assert.deepEqual(resp.data, {
+      assert.deepInclude(resp.data, {
         telemetry: {
           telemetryLevel: {
             value: 'limited',
             source: 'preferences',
           },
         },
+      });
+    });
+
+    it('checkForLatestVersion can be modified independently', async function() {
+      let resp = await axios.get(`${homeUrl}/api/install/prefs`, chimpy);
+      assert.deepInclude(resp.data, {
+        telemetry: {
+          telemetryLevel: {
+            value: 'limited',
+            source: 'preferences',
+          },
+        },
+        checkForLatestVersion: true,
+      });
+
+      resp = await axios.patch(`${homeUrl}/api/install/prefs`, {
+        checkForLatestVersion: false,
+      }, chimpy);
+      assert.equal(resp.status, 200);
+
+      resp = await axios.patch(`${homeUrl}/api/install/prefs`, {
+        telemetry: {telemetryLevel: 'off'},
+      }, chimpy);
+      assert.equal(resp.status, 200);
+
+      resp = await axios.get(`${homeUrl}/api/install/prefs`, chimpy);
+      assert.deepInclude(resp.data, {
+        telemetry: {
+          telemetryLevel: {
+            value: 'off',
+            source: 'preferences',
+          },
+        },
+        checkForLatestVersion: false,
       });
     });
   });
