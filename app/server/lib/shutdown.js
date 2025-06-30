@@ -3,10 +3,10 @@
  */
 
 
-var log = require('app/server/lib/log');
-var Promise = require('bluebird');
+import log from 'app/server/lib/log';
+import Promise from 'bluebird';
 
-var os = require('os');
+import os from 'node:os';
 
 var cleanupHandlers = [];
 
@@ -21,7 +21,7 @@ var signalsHandled = {};
  *    because it's no good for a cleanup handler to block the shutdown process indefinitely.
  * @param {String} name A title to show in log messages to distinguish one handler from another.
  */
-function addCleanupHandler(context, method, timeout = 1000, name = 'unknown') {
+export function addCleanupHandler(context, method, timeout = 1000, name = 'unknown') {
   cleanupHandlers.push({
     context,
     method,
@@ -29,19 +29,17 @@ function addCleanupHandler(context, method, timeout = 1000, name = 'unknown') {
     name
   });
 }
-exports.addCleanupHandler = addCleanupHandler;
 
 /**
  * Removes all cleanup handlers with the given context.
  * @param {Object} context The context with which once or more cleanup handlers were added.
  */
-function removeCleanupHandlers(context) {
+export function removeCleanupHandlers(context) {
   // Maybe there should be gutil.removeFilter(func) which does this in-place.
   cleanupHandlers = cleanupHandlers.filter(function(handler) {
     return handler.context !== context;
   });
 }
-exports.removeCleanupHandlers = removeCleanupHandlers;
 
 
 var _cleanupHandlersPromise = null;
@@ -97,7 +95,7 @@ function signalExit(signal) {
  * signals to the process. This should only be used for signals that normally kill the process.
  * E.g. cleanupOnSignals('SIGINT', 'SIGTERM', 'SIGUSR2');
  */
-function cleanupOnSignals(varSignalNames) {
+export function cleanupOnSignals(varSignalNames) {
   for (var i = 0; i < arguments.length; i++) {
     var signal = arguments[i];
     if (signalsHandled[signal]) { continue; }
@@ -105,12 +103,11 @@ function cleanupOnSignals(varSignalNames) {
     process.once(signal, signalExit.bind(null, signal));
   }
 }
-exports.cleanupOnSignals = cleanupOnSignals;
 
 /**
  * Run cleanup handlers and exit the process with the given exit code (0 if omitted).
  */
-function exit(optExitCode) {
+export function exit(optExitCode) {
   var prog = 'grist[' + process.pid + ']';
   var code = optExitCode || 0;
   log.info("Server %s cleaning up", prog);
@@ -120,4 +117,3 @@ function exit(optExitCode) {
     process.exit(code);
   });
 }
-exports.exit = exit;
