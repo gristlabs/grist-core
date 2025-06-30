@@ -5,12 +5,7 @@ import {Role} from 'app/common/roles';
 /**
  * User type to distinguish beetween Users and service accounts
  */
-export enum UserTypes {
-  'login',
-  'service'
-}
-
-export type UserTypesStrings = keyof typeof UserTypes;
+export type UserTypes = 'login' | 'service';
 
 /**
  * Information about a user, including any user attributes.

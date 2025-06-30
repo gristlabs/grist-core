@@ -12,6 +12,7 @@ import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
+import { UserTypes } from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
   DocumentProperties,
@@ -481,8 +482,8 @@ export class HomeDBManager {
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
-    return this._usersManager.getUserByLogin(email, options);
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserTypes = 'login'): Promise<User> {
+    return this._usersManager.getUserByLogin(email, options, type);
   }
 
   /**

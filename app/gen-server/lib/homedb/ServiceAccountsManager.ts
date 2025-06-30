@@ -38,7 +38,8 @@ export class ServiceAccountsManager {
       //id to insert
       const uuid = uuidv4();
       const email = `${uuid}@serviceaccounts.local`;
-      const serviceUser = await this._homeDb.getUserByLogin(email);
+      const serviceUser = await this._homeDb.getUserByLogin(email, {}, 'service');
+      // TODO trigger user apikey creation
       // End of life is set to now leading to a non functionning service service_account_id
       // if not provided;
       const endOfLifeString = endOfLife ?
