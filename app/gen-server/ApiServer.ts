@@ -623,10 +623,28 @@ export class ApiServer {
       throw new ApiError('get by id Not implemented yet ;)', 501);
     }));
 
+    // PATCH /service-accounts/:said
+    // Modifies one particular service account of the user making the api call.
+    this._app.patch('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      throw new ApiError('patch by id Not implemented yet ;)', 501);
+    }));
+
     // DELETE /service-accounts/:said
     // Deletes one particular service account of the user making the api call.
     this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
       throw new ApiError('delete by id Not implemented yet ;)', 501);
+    }));
+
+    // POST /service-accounts/:said/key/regenerate
+    // Regenerate and return the apikey of a given Service Account
+    this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
+      throw new ApiError('regenerate api key by id Not implemented yet ;)', 501);
+    }));
+
+    // POST /service-accounts/:said/key/revoke
+    // Revokes the apikey of a given Service Account by deleting it
+    this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
+      throw new ApiError('deletes api key by id Not implemented yet ;)', 501);
     }));
   }
 
