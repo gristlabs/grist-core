@@ -13,6 +13,9 @@ export class ServiceAccount extends BaseEntity {
   public service_user_id: number;
 
   @Column({type: String})
+  public label: string;
+
+  @Column({type: String})
   public description: string;
 
   @Column({type: Date, nullable: false})

@@ -30,6 +30,7 @@ export class ServiceAccountsManager {
 
   public async createServiceAccount(
     ownerId: number,
+    label?: string,
     description?: string,
     endOfLife?: Date,
   ){
@@ -52,6 +53,7 @@ export class ServiceAccountsManager {
         .values({
           owner_id: ownerId,
           service_user_id: serviceUser.id,
+          label,
           description,
           endOfLife: endOfLifeString,
         })
@@ -91,6 +93,7 @@ export class ServiceAccountsManager {
     partial?: any,
   ){
     // FIXME Verify partial content
+    // only label, description, endOfLife can be updated
     await this._connection.transaction(async manager => {
       return await manager.createQueryBuilder()
         .update(ServiceAccount)
