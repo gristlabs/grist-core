@@ -1318,7 +1318,8 @@
         "[Learn more.]({{link}})": "[Learn more.]({{link}})",
         "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns.",
         "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation.",
-        "The new Grist Assistant is here!": "The new Grist Assistant is here!"
+        "The new Grist Assistant is here!": "The new Grist Assistant is here!",
+        "Formulas support many Excel functions and full Python syntax.": "Formulas support many Excel functions and full Python syntax."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -2058,5 +2059,9 @@
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.",
         "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible."
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.",
+        "Set the document to use external storage.": "Set the document to use external storage."
     }
 }
