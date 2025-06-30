@@ -604,11 +604,10 @@ export class ApiServer {
     // Creates a new service account attached to the user making the api call.
     this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccount: any = await this._dbManager.createServiceAccount(req.body);
+      const serviceAccount: any = await this._dbManager.createServiceAccount(userId);
       return sendOkReply(req, res, {
         key:serviceAccount.key,
       });
-      throw new ApiError(`${userId} post Not implemented yet ;)`, 501);
     }));
 
     // GET /service-accounts/
