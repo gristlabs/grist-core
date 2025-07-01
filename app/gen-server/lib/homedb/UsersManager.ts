@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
 import { PERSONAL_FREE_PLAN } from 'app/common/Features';
@@ -26,9 +27,14 @@ import {
 } from 'app/gen-server/lib/homedb/Interfaces';
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { Pref } from 'app/gen-server/entity/Pref';
+import log from 'app/server/lib/log';
 
 import flatten from 'lodash/flatten';
 import { EntityManager, IsNull, Not } from 'typeorm';
+
+export const Deps = {
+  apiKeyGenerator: () => crypto.randomBytes(20).toString('hex')
+};
 
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -875,6 +881,65 @@ export class UsersManager {
     if (ids.has(this.getEveryoneUserId()) && ids.has(this.getAnonymousUserId())) {
       throw new Error('this user cannot share with everyone and anonymous');
     }
+  }
+
+  public async getApiKey(userId: number){
+    const user = await User.findOne({where: {id: userId}});
+    if (user) {
+      // The null value is of no interest to the user, let's show empty string instead.
+      return user.apiKey || '';
+    }
+    throw new Error("user not known");
+  }
+
+  public async createApiKey(userId: number, force: boolean) {
+    await this._connection.transaction(async manager => {
+      let user = await manager.findOne(User, {where: {id: userId}});
+      if (!user) {
+        throw new Error("user not known");
+      }
+      if (!user.apiKey || force) {
+        user = await this._updateApiKeyWithRetry(manager, user);
+        return user.apiKey;
+      } else {
+        throw new Error("An apikey is already set, use `{force: true}` to override it.");
+      }
+    });
+  }
+
+  public async deleteApiKey(userId: number){
+    await this._connection.transaction(async manager => {
+      const user = await manager.findOne(User, {where: {id: userId}});
+      if (!user) {
+        throw new Error("user not known");
+      }
+      user.apiKey = null;
+      await manager.save(User, user);
+    });
+  }
+
+  /**
+  * Helper to update a user's apiKey. Update might fail because of the DB uniqueness constraint on
+  * the apiKey (although it is very unlikely according to `crypto`), we retry until success. Fails
+  * after 5 unsuccessful attempts.
+  */
+  private async _updateApiKeyWithRetry(manager: EntityManager, user: User): Promise<User> {
+    const currentKey = user.apiKey;
+    for (let i = 0; i < 5; ++i) {
+      user.apiKey = Deps.apiKeyGenerator();
+      try {
+        // if new key is the same as the current, the db update won't fail so we check it here (very
+        // unlikely to happen but but still better to handle)
+        if (user.apiKey === currentKey) {
+          throw new Error('the new key is the same as the current key');
+        }
+        return await manager.save(User, user);
+      } catch (e) {
+        // swallow and retry
+        log.warn(`updateApiKeyWithRetry: failed attempt ${i}/5, %s`, e);
+      }
+    }
+    throw new Error('Could not generate a valid api key.');
   }
 
   /**

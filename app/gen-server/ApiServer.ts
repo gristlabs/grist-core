@@ -605,6 +605,7 @@ export class ApiServer {
     this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const serviceAccount: any = await this._dbManager.createServiceAccount(userId);
+      console.log("query result", serviceAccount);
       return sendOkReply(req, res, {
         key:serviceAccount.key,
       });

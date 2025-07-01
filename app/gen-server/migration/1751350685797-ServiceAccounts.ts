@@ -19,16 +19,22 @@ export class ServiceAccounts1751350685797 implements MigrationInterface {
         columns: [
           {
             name: 'id',
-            type: 'int',
+            type: 'integer',
+            isGenerated: true,
+            generationStrategy: 'increment',
             isPrimary: true,
           },
           {
             name: 'owner_id',
-            type: 'int',
+            type: 'integer',
           },
           {
             name: 'service_user_id',
-            type: 'int',
+            type: 'integer',
+          },
+          {
+            name: 'label',
+            type: 'varchar',
           },
           {
             name: 'description',

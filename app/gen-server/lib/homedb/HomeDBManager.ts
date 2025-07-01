@@ -3294,7 +3294,7 @@ export class HomeDBManager {
     description?: string,
     endOfLife?: Date
   ){
-  return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
+    return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
   }
 
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
