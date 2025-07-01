@@ -126,6 +126,10 @@ export class TypedFormData {
     return type === 'Ref' || type === 'RefList' ? Number(value) : value;
   }
 
+  public set(key: string, value: any) {
+    this._formData.set(key, JSON.stringify(value));
+  }
+
   public getAll(key: string) {
     const values = Array.from(this._formData.getAll(key));
     if (['Ref', 'RefList'].includes(String(this.type(key)))) {

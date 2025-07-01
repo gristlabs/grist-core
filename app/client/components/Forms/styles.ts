@@ -736,6 +736,38 @@ export const cssFormDisabledOverlay = styled('div', `
   z-index: 100;
 `);
 
+export const cssAttachmentInput = styled('input', `
+  display: flex;
+  flex-wrap: wrap;
+  white-space: pre-wrap;
+  position: relative;
+  width: 100%;
+
+  &::file-selector-button, &::-webkit-file-upload-button {
+    background-color: ${theme.controlPrimaryBg};
+    border: 1px solid ${theme.controlPrimaryBg};
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    line-height: inherit;
+    outline-color: ${theme.controlPrimaryBg};
+  }
+
+  &::file-selector-button:hover, &::-webkit-file-upload-button:hover {
+    border-color: ${theme.controlPrimaryBg};
+    background-color: ${theme.controlPrimaryBg};
+  }
+
+  &::file-selector-button:disabled, &::-webkit-file-upload-button:disabled {
+    cursor: not-allowed;
+    color: ${colors.light};
+    background-color: ${colors.slate};
+    border-color: ${colors.slate};
+  }
+`);
+
 export function saveControls(editMode: Observable<boolean>, save: (ok: boolean) => void) {
   return [
     dom.onKeyDown({

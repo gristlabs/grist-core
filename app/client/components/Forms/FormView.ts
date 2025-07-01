@@ -139,7 +139,6 @@ export class FormView extends Disposable {
       return fields.filter(f => {
         const column = use(f.column);
         return (
-          use(column.pureType) !== 'Attachments' &&
           !(use(column.isRealFormula) && !use(column.colId).startsWith('gristHelper_Transform'))
         );
       });

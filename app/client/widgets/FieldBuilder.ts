@@ -144,15 +144,9 @@ export class FieldBuilder extends Disposable {
 
     // Observable with a list of available types.
     this._availableTypes = Computed.create(this, (use) => {
-      const isForm = use(this._isForm);
       const isFormula = use(this.origColumn.isFormula);
       const types: Array<IOptionFull<string>> = [];
       _.each(UserType.typeDefs, (def: any, key: string|number) => {
-        if (isForm && key === 'Attachments') {
-          // Attachments in forms are currently unsupported.
-          return;
-        }
-
         const o: IOptionFull<string> = {
           value: key as string,
           label: def.label,
