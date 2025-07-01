@@ -886,6 +886,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   // Sundry extra permissions that proved necessary. These work at the time of writing for
   // python versions installed by brew. Other arrangements could need tweaking.
   profile.push(`(allow file-read* (subpath "/usr/local/"))`);
+  profile.push(`(allow file-read* (subpath "/opt/homebrew/"))`);
   profile.push('(allow sysctl-read)');  // needed for os.uname()
   // From another python installation variant.
   profile.push(`(allow file-read* (subpath "/usr/lib/"))`);
