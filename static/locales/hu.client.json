@@ -156,6 +156,7 @@
         "non-numeric columns are not shown": "a nem numerikus oszlopok nem jelennek meg",
         "non-numeric column is not shown": "a nem numerikus oszlop nem jelenik meg",
         "selected new x-axis": "kiválasztott új x-tengely",
-        "Remove": "Töröl"
+        "Remove": "Eltávolít",
+        "Create separate series for each value of the selected column.": "A kiválasztott oszlop minden értékéhez új adatsort hoz létre"
     }
 }
