@@ -27,6 +27,135 @@
         "Permission to view Access Rules": "Engedély a hozzáférési szabályok megtekintésére",
         "Permissions": "Engedélyek",
         "Remove column {{- colId }} from {{- tableId }} rules": "A(z) {{- colId }} oszlop törlése a(z) {{- tableId }} szabályai közül",
-        "Remove {{- tableId }} rules": "{{- tableId }}  szabályainak törlése"
+        "Remove {{- tableId }} rules": "{{- tableId }} szabályainak törlése",
+        "Remove {{- name }} user attribute": "{{- name }} felhasználói attribútum törlése",
+        "Reset": "Újraindítás",
+        "Rules for table ": "Tábla szabályai ",
+        "Save": "Ment",
+        "Saved": "Mentve",
+        "Special Rules": "Különleges szabályok",
+        "Type message to display when this rule blocks an action…": "Írj be egy üzenetet, ami akkor jelenik meg, amikor ez a szabály megakadályoz valamit…",
+        "User Attributes": "Felhasználói attribútumok",
+        "View As": "Megjelenítés mint",
+        "Seed rules": "Kiindulási szabályok",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Táblaszabályok hozzáadásakor automatikusan biztosítsuk a TULAJDONOS teljes hozzáférését.",
+        "Permission to edit document structure": "Engedély a dokumentumstruktúra módosítására"
+    },
+    "AccountPage": {
+        "API Key": "API kulcs",
+        "Account settings": "Fiók beállítások",
+        "Edit": "Módosít",
+        "Email": "E-mail",
+        "Save": "Ment"
+    },
+    "AccountWidget": {
+        "Pricing": "Árak",
+        "Sign In": "Bejelentkezés",
+        "Sign Up": "Regisztráció",
+        "Use This Template": "Használjuk ezt a sablont"
+    },
+    "ViewAsDropdown": {
+        "View As": "Megjelenítés mint",
+        "Users from table": "A tábla felhasználói",
+        "Example Users": "Példa felhasználók"
+    },
+    "ActionLog": {
+        "Action Log failed to load": "A tevékenységnapló betöltése nem sikerült",
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "A(z) {{colId}} oszlopot a(z) {{action.actionNum}}. tevékenység eltávolította",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "A(z) {{tableId}} táblát a(z) {{actionNum}}. tevékenység eltávolította",
+        "This row was subsequently removed in action {{action.actionNum}}": "Ezt a sort a(z) {{action.actionNum}}. tevékenység eltávolította",
+        "All tables": "Minden tábla"
+    },
+    "AddNewButton": {
+        "Add New": "Új hozzáadása"
+    },
+    "ApiKey": {
+        "By generating an API key, you will be able to make API calls for your own account.": "API kulcs generálásával API hívásokat indíthatsz.",
+        "Click to show": "Kattints a megjelenítéshez",
+        "Create": "Létrehoz",
+        "Remove": "Eltávolít",
+        "Remove API Key": "API kulcs törlése",
+        "This API key can be used to access this account anonymously via the API.": "Ez az API kulcs arra használható, hogy anonim módon is hozzáférj ehhez a fiókhoz.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Ez az API kulcs hozzáférést biztosít a fiókodhoz az API-n keresztül. Ne oszd meg senkivel az API-kulcsot.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Törölni akarsz egy API kulcsot. Ennek következtében minden további, ezen API-kulccsal történő hozzáférést megtagad majd a rendszer. Biztosan törölni szeretnéd?"
+    },
+    "App": {
+        "Description": "Leírás",
+        "Key": "Kulcs",
+        "Memory Error": "Memória hiba"
+    },
+    "AppHeader": {
+        "Home Page": "Kezdőlap",
+        "Legacy": "Régi",
+        "Personal Site": "Személyes oldal",
+        "Team Site": "Csapat oldal",
+        "Grist Templates": "Grist sablonok",
+        "Billing Account": "Számlázási fiók",
+        "Manage Team": "Csapat kezelése"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "Ez egy szüneteltetett csapat-oldal. A dokumentumok olvashatók, de módosítani nem lehet őket."
+    },
+    "CellContextMenu": {
+        "Clear cell": "Cellatartalom törlése",
+        "Clear values": "Értékek törlése",
+        "Copy anchor link": "Link másolása",
+        "Delete {{count}} columns_one": "Oszlop törlése",
+        "Delete {{count}} columns_other": "{{count}} oszlop törlése",
+        "Delete {{count}} rows_one": "Sor törlése",
+        "Delete {{count}} rows_other": "{{count}} sor törlése",
+        "Duplicate rows_one": "Sor duplikálása",
+        "Duplicate rows_other": "Sorok duplikálása",
+        "Filter by this value": "Szűrés ezzel az értékkel",
+        "Insert column to the left": "Oszlop beszúrása balra",
+        "Insert column to the right": "Oszlop beszúrása jobbra",
+        "Insert row": "Sor beszúrása",
+        "Insert row above": "Sor beszúrása felülre",
+        "Insert row below": "Sor beszúrása alulra",
+        "Reset {{count}} columns_one": "Oszlop visszaállítása",
+        "Reset {{count}} columns_other": "{{count}} oszlop visszaállítása",
+        "Reset {{count}} entire columns_one": "Egész oszlop visszaállítása",
+        "Reset {{count}} entire columns_other": "{{count}} egész oszlop visszaállítása",
+        "Comment": "Megjegyzés",
+        "Copy": "Másol",
+        "Cut": "Kivág",
+        "Paste": "Beilleszt",
+        "Copy with headers": "Másolás fejlécekkel"
+    },
+    "ChartView": {
+        "LABEL": "CIMKE",
+        "Bar Chart": "Oszlopdiagram",
+        "Pie Chart": "Tortadiagram",
+        "Donut Chart": "Fánkdiagram",
+        "Area Chart": "Területdiagram",
+        "Line Chart": "Vonaldiagram",
+        "Scatter Plot": "Szórásdiagram",
+        "Kaplan-Meier Plot": "Kaplan-Meier diagram",
+        "Split series": "Adatsorok felosztása",
+        "Invert Y-axis": "Y-tengely megfordítása",
+        "Orientation": "Tájolás",
+        "Vertical": "Függőleges",
+        "Horizontal": "Vízszintes",
+        "Log scale Y-axis": "Y-tengely logaritmikus skálával",
+        "Hole Size": "Lyukméret",
+        "Show Total": "Összesítés megjelenítése",
+        "Text Size": "Szövegméret",
+        "Connect gaps": "Rések összekötése",
+        "Show markers": "Jelölők megjelenítése",
+        "Stack series": "Adatsorok halmozása",
+        "Error bars": "Hibás oszlopok",
+        "None": "Semmi",
+        "Symmetric": "Szimmetrikus",
+        "Above+Below": "Fölötte+alatta",
+        "Split Series": "Adatsorok felosztása",
+        "X-AXIS": "X-TENGELY",
+        "Pick a column": "Válassz oszlopot",
+        "Aggregate values": "Összesített értékek",
+        "SERIES": "ADATSOROK",
+        "Add Series": "Adatsor hozzáadása",
+        "non-numeric columns are not shown": "a nem numerikus oszlopok nem jelennek meg",
+        "non-numeric column is not shown": "a nem numerikus oszlop nem jelenik meg",
+        "selected new x-axis": "kiválasztott új x-tengely",
+        "Remove": "Töröl"
     }
 }
