@@ -22,6 +22,7 @@
         "Everyone Else": "Mindenki más",
         "Lookup Column": "Keresési oszlop",
         "Lookup Table": "Keresési táblázat",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Mindenki számára lehetővé teszi az egész dokumentum másolását vagy a teljes megtekintését játszótér-módban.\nEz minta-dokumentumoknál vagy sablonoknál hasznos, éles adatoknál ne használd!"
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Mindenki számára lehetővé teszi az egész dokumentum másolását vagy a teljes megtekintését játszótér-módban.\nEz minta-dokumentumoknál vagy sablonoknál hasznos, éles adatoknál ne használd.",
+        "Permission to access the document in full when needed": "Engedély a teljes dokumentumhoz hozzáféréshez, ha szükséges."
     }
 }
