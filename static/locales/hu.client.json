@@ -241,6 +241,14 @@
         "Last updated:": "Utoljára frissítve:",
         "Missing description and author information.": "Hiányzik a leírás és az információk a szerzőről.",
         "Reject": "Elutasít",
-        "Widget": "WIdget"
+        "Widget": "Widget"
+    },
+    "DataTables": {
+        "Click to copy": "Kattints a másoláshoz",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Töröljük {{formattedTableName}} adatait, egyúttal töröljük minden oldalról?",
+        "Duplicate Table": "Tábla duplikálása",
+        "Raw Data Tables": "Nyersadat-táblák",
+        "Table ID copied to clipboard": "A tábla azonosítóját a vágólapra másoltuk",
+        "You do not have edit access to this document": "Nincs módosítási hozzáférésed ehhez a dokumentumhoz"
     }
 }
