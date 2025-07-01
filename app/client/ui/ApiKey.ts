@@ -67,6 +67,7 @@ export class ApiKey extends Disposable {
             this._inputArgs
           ),
           cssTextBtn(
+            textButton.cls('-hover-bg-padding-none'),
             cssTextBtnIcon('Remove'), t("Remove"),
             dom.on('click', () => this._showRemoveKeyModal()),
             testId('delete'),
