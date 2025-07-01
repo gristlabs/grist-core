@@ -54,7 +54,7 @@ import {UserCreatedAt1738912357827 as UserCreatedAt} from 'app/gen-server/migrat
 import {DocPref1746246433628 as DocPref} from 'app/gen-server/migration/1746246433628-DocPref';
 import {GroupUsersCreatedAt1749454162428
   as GroupUsersCreatedAt} from 'app/gen-server/migration/1749454162428-GroupUsersCreatedAt';
-import {ServiceAccounts1730215435023 as ServiceAccounts} from 'app/gen-server/migration/1730215435023-ServiceAccounts';
+import {ServiceAccounts1751350685797 as ServiceAccounts} from 'app/gen-server/migration/1751350685797-ServiceAccounts';
 
 const home: HomeDBManager = new HomeDBManager();
 

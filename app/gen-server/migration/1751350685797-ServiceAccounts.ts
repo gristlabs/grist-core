@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey, TableIndex } from "typeorm";
 import * as sqlUtils from "app/gen-server/sqlUtils";
 
-export class ServiceAccounts1730215435023 implements MigrationInterface {
+export class ServiceAccounts1751350685797 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<any> {
     const dbType = queryRunner.connection.driver.options.type;
