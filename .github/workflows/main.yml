@@ -243,6 +243,54 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+  build_and_test_on_macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install Python packages
+        run: |
+          pip install virtualenv
+          yarn run install:python
+
+      - name: Install Node.js packages
+        run: yarn install
+
+      - name: Build Node.js code
+        run: yarn run build
+
+      - name: Run a couple of tests using pyodide
+        run: |
+          cd sandbox/pyodide
+          make setup
+          cd ../..
+          yarn run test:server -g 'ActiveDoc.useQuerySet|Sandbox'
+        env:
+          MOCHA_WEBDRIVER_HEADLESS: 1
+          GRIST_SANDBOX_FLAVOR: pyodide
+          GRIST_RUNNING_UNDER_MACOS: 1
+
+      - name: Run the sandbox tests with native sandboxing
+        run: |
+          yarn run test:server -g Sandbox
+        env:
+          GRIST_SANDBOX_FLAVOR: macSandboxExec
+          GRIST_RUNNING_UNDER_MACOS: 1
+
   candidate:
     needs: build_and_test
     if: ${{ success() && github.event_name == 'push' }}
