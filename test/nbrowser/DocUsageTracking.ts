@@ -16,7 +16,9 @@ describe('DocUsageTracking', function() {
   let api: UserAPI;
   let session: gu.Session;
 
-  enableExternalAttachmentsForTestSuite();
+  enableExternalAttachmentsForTestSuite({
+    thresholdMb: 0.5,
+  });
 
   async function makeSessionAndLogin() {
     session = await gu.session().user(ownerUser).login();
@@ -44,7 +46,7 @@ describe('DocUsageTracking', function() {
     await gu.assertBannerText(null);
   });
 
-  function testAttachmentsUsage(getDocId: () => string) {
+  function testAttachmentsUsage(getDocId: () => string, options: {external: boolean}) {
     it('updates attachments size usage when uploading attachments', async function () {
       const docId = getDocId();
       // Add a new 'Attachments' column of type Attachment to Table1.
@@ -70,6 +72,24 @@ describe('DocUsageTracking', function() {
       await assertDataSize('0.00');
       await assertAttachmentsSize('0.01');
 
+      // Check nudges appeared if not using external storage.
+      if (!options.external) {
+        await driver.findWait('.test-top-panel', 100);
+        assert.equal(await driver.find('.test-external-attachment-banner-text').isDisplayed(), true);
+        assert.match(await driver.find('.test-doc-usage-message-text').getText(), /Set the document to use external/);
+        // The link in the banner is implemented as a span.
+        await driver.find('.test-external-attachment-banner-text span').click();
+        // Make sure preferredStorage is present now and get its classes.
+        const classes = await driver.findWait('#preferredStorage', 1000).getAttribute('class');
+        // Check that element has a -flash class, meaning it was highlighted.
+        assert.equal(classes.includes('-flash'), true);
+        await driver.navigate().back();
+      } else {
+        await driver.findWait('.test-top-panel', 100);
+        assert.equal(await driver.find('.test-external-attachment-banner-text').isPresent(), false);
+        assert.equal(await driver.find('.test-doc-usage-message-text').isPresent(), false);
+      }
+
       // Delete the 'Attachments' column; usage should not immediately update.
       await api.applyUserActions(docId, [['RemoveColumn', 'AttachmentsTable', 'Attachments']]);
       await assertDataSize('0.00');
@@ -89,7 +109,7 @@ describe('DocUsageTracking', function() {
       docId = await session.tempNewDoc(cleanup, `AttachmentUsageTestDoc - internal`);
     });
 
-    testAttachmentsUsage(() => docId);
+    testAttachmentsUsage(() => docId, {external: false});
   });
 
   describe('attachment usage with external attachments', function() {
@@ -102,7 +122,7 @@ describe('DocUsageTracking', function() {
       assert.equal((await docApi.getAttachmentStore()).type, "external");
     });
 
-    testAttachmentsUsage(() => docId);
+    testAttachmentsUsage(() => docId, {external: true});
   });
 });
 

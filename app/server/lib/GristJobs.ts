@@ -1,7 +1,7 @@
 import { getSetMapValue } from 'app/common/gutil';
 import { makeId } from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
-import { JobsOptions, Queue, Worker } from 'bullmq';
+import { Job as BullMQJob, JobsOptions, Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
 
 // Name of the queue for doc-notification emails. Let's define queue names in this file, to ensure
@@ -65,8 +65,7 @@ export interface GristQueueScope {
    * to specify what happens to jobs not matching expected
    * names.
    */
-  handleName(name: string,
-             callback: (job: GristJob) => Promise<any>): void;
+  handleName(name: string, callback: JobHandler): void;
 
   /**
    * Shut everything down that we're responsible for.
@@ -79,7 +78,7 @@ export interface GristQueueScope {
 /**
  * The type of a function for handling jobs on a queue.
  */
-export type JobHandler = (job: GristJob) => Promise<any>;
+export type JobHandler<Job extends GristJob = GristJob> = (job: Job) => Promise<any>;
 
 /**
  * The name used for a queue if no specific name is given.
@@ -184,27 +183,26 @@ interface IWorker {
   close(): Promise<void>;
 }
 
-abstract class GristQueueScopeBase<Worker extends IWorker> {
+abstract class GristQueueScopeBase<Worker extends IWorker, Job extends GristJob = GristJob> {
   protected _worker: Worker|undefined;
-  private _namedProcessors: Record<string, JobHandler> = {};
+  private _namedProcessors: Record<string, JobHandler<Job>> = {};
 
   public constructor(public readonly queueName: string) {}
 
   public getWorker(): Worker|undefined { return this._worker; }
 
-  public handleDefault(defaultCallback: JobHandler): void {
+  public handleDefault(defaultCallback: JobHandler<Job>): void {
     // The default callback passes any recognized named jobs to
     // processors added with handleName(), then, if there is no
     // specific processor, calls the defaultCallback.
-    const callback = async (job: GristJob) => {
+    const callback = async (job: Job) => {
       const processor = this._namedProcessors[job.name] || defaultCallback;
       return processor(job);
     };
     this._worker = this.createWorker(this.queueName, callback);
   }
 
-  public handleName(name: string,
-                    callback: (job: GristJob) => Promise<any>) {
+  public handleName(name: string, callback: (data: Job) => Promise<any>) {
     this._namedProcessors[name] = callback;
   }
 
@@ -216,7 +214,7 @@ abstract class GristQueueScopeBase<Worker extends IWorker> {
   }
 
   protected abstract obliterate(): Promise<void>;
-  protected abstract createWorker(queueName: string, callback: JobHandler): Worker;
+  protected abstract createWorker(queueName: string, callback: JobHandler<Job>): Worker;
 }
 
 class GristInMemoryQueueScope extends GristQueueScopeBase<GristWorker> implements GristQueueScope {
@@ -239,7 +237,7 @@ class GristInMemoryQueueScope extends GristQueueScopeBase<GristWorker> implement
 /**
  * Work with a particular named queue.
  */
-export class GristBullMQQueueScope extends GristQueueScopeBase<Worker> implements GristQueueScope {
+export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob> implements GristQueueScope {
   private _queue: Queue|undefined;
 
   public constructor(queueName: string, private _owner: GristBullMQJobs) { super(queueName); }
@@ -261,11 +259,16 @@ export class GristBullMQQueueScope extends GristQueueScopeBase<Worker> implement
     });
   }
 
+  public getJobRedisKey(jobId: string): string {
+    // This isn't a well-documented method, so this was confirmed empirically.
+    return this._getQueue().toKey(jobId);
+  }
+
   protected override async obliterate() {
     await this._getQueue().obliterate({force: true});
   }
 
-  protected createWorker(queueName: string, callback: JobHandler): Worker {
+  protected createWorker(queueName: string, callback: JobHandler<BullMQJob>): Worker {
     const options = this._owner.getQueueOptions();
     return new Worker(this.queueName, callback, options);
   }

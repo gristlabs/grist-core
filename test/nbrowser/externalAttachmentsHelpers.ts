@@ -11,16 +11,23 @@ import * as process from 'node:process';
  * @param {string} transferDelay - Extra time to add to attachment transfers
  * @returns {{envVars: Record<string, string>, getAttachmentsDir(): string}}
  */
-export function enableExternalAttachmentsForTestSuite(transferDelay?: string):
+export function enableExternalAttachmentsForTestSuite(options: {
+  thresholdMb?: number,
+  transferDelay?: number,
+}):
   { envVars: Record<string, string>; getAttachmentsDir(): string; }
 {
+  const {thresholdMb, transferDelay} = options;
   const envVars: Record<string, string> = {
     GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
     GRIST_TEST_ATTACHMENTS_DIR: "",
   };
 
   if (transferDelay) {
-    envVars.GRIST_TEST_TRANSFER_DELAY = transferDelay;
+    envVars.GRIST_TEST_TRANSFER_DELAY = String(transferDelay);
+  }
+  if (thresholdMb) {
+    envVars.GRIST_ATTACHMENTS_THRESHOLD_MB = String(thresholdMb);
   }
 
   let originalEnv: Record<string, string | undefined> = {};

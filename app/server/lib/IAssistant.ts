@@ -186,6 +186,14 @@ interface JSONSchema {
    */
   description?: string;
   /**
+   * Minimum value for numeric properties.
+   */
+  minimum?: number;
+  /**
+   * Maximum value for numeric properties.
+   */
+  maximum?: number;
+  /**
    * Allowed values (e.g. `["error", "warning"]`).
    */
   enum?: any[];

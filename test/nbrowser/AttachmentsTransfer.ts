@@ -75,7 +75,7 @@ describe("AttachmentsTransfer", function() {
   });
 
   describe("with external attachments enabled", () => {
-    const externalAttachments = enableExternalAttachmentsForTestSuite('500');
+    const externalAttachments = enableExternalAttachmentsForTestSuite({transferDelay: 500});
 
     /** Files will be stored in a folder inside the tmpFolder. Here is a helper that will get files names from it. */
     const files = () => {

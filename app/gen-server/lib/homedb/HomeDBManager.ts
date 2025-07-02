@@ -897,6 +897,7 @@ export class HomeDBManager {
         .from(Share, 'shares')
         .leftJoinAndSelect('shares.doc', 'doc')
         .where('key = :key', {key: shareKey})
+        .andWhere('doc.removed_at IS NULL')
         .getOne();
       if (!res) {
         throw new ApiError('Share not known', 404);

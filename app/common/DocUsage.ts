@@ -34,12 +34,17 @@ export interface OrgUsageSummary {
   }
 }
 
+export interface UsageRecommendations {
+  recommendExternal?: boolean;
+}
+
 type FilteredDocUsage = {
   [Metric in keyof DocUsageOrPending]: DocUsageOrPending[Metric] | 'hidden'
 }
 
 export interface FilteredDocUsageSummary extends FilteredDocUsage {
   dataLimitInfo: DataLimitInfo;
+  usageRecommendations: UsageRecommendations;
 }
 
 /**

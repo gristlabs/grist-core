@@ -144,15 +144,9 @@ export class FieldBuilder extends Disposable {
 
     // Observable with a list of available types.
     this._availableTypes = Computed.create(this, (use) => {
-      const isForm = use(this._isForm);
       const isFormula = use(this.origColumn.isFormula);
       const types: Array<IOptionFull<string>> = [];
       _.each(UserType.typeDefs, (def: any, key: string|number) => {
-        if (isForm && key === 'Attachments') {
-          // Attachments in forms are currently unsupported.
-          return;
-        }
-
         const o: IOptionFull<string> = {
           value: key as string,
           label: def.label,
@@ -687,7 +681,6 @@ export class FieldBuilder extends Disposable {
     const hasComment = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return false; }   // Work around JS errors during field removal.
       if (!this._comments()) { return false; }
-      if (this.gristDoc.isReadonlyKo()) { return false; }
       const rowId = row.id();
       const discussion = this.field.column().cells().all()
         .find(d =>
@@ -824,16 +817,15 @@ export class FieldBuilder extends Disposable {
     mainRowModel: DataRowModel,
     text: CommentText|null
   ) {
-    const owner = this.gristDoc.fieldEditorHolder;
+    const holder = this.gristDoc.fieldEditorHolder;
     const cellElem: Element = this._rowMap.get(mainRowModel)!;
     if (this.columnTransform) {
       this.columnTransform.finalize().catch(reportError);
       return;
     }
-    if (editRow._isAddRow.peek() || this._readonly.get()) {
+    if (editRow._isAddRow.peek()) {
       return;
     }
-    const holder = this.gristDoc.fieldEditorHolder;
 
     const cell = editRow.cells[this.field.colId()];
     const value = cell && cell();
@@ -843,16 +835,21 @@ export class FieldBuilder extends Disposable {
     }
 
     // Reuse fieldEditor holder to make sure only one popup/editor is attached to the cell.
-    const discussionHolder = MultiHolder.create(owner);
+    const discussionHolder = MultiHolder.create(holder);
     // When the cell element is disposed, we will dispose the discussion holder.
     grainjsDom.autoDisposeElem(cellElem, discussionHolder);
-    const emptyCell = DiscussionModelImpl.fromCursor(discussionHolder, this.gristDoc, this._cursor.getCursorPos());
+    const model = DiscussionModelImpl.fromCursor(discussionHolder, this.gristDoc, this._cursor.getCursorPos());
+    // Don't show the popup if there are no active discussions.
+    if (model.isEmpty.get() && this.gristDoc.isReadonly.get()) {
+      holder.clear();
+      return;
+    }
     CommentPopup.create(discussionHolder, {
       domEl: cellElem,
-      cell: emptyCell,
+      cell: model,
       gristDoc: this.gristDoc,
       initialText: text,
-      closeClicked: () => owner.clear(),
+      closeClicked: () => holder.clear(),
       cursorPos: this._cursor.getCursorPos(),
     });
   }

@@ -142,7 +142,6 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       dom.maybe(use =>
         (
           use(pageModel.gristDoc)
-          && !use(use(pageModel.gristDoc)!.isReadonly)
           && use(COMMENTS())
         ),
         () => buildShowDiscussionButton(pageModel)),

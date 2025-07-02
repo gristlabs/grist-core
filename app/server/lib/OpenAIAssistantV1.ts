@@ -163,7 +163,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         version: 1,
         conversationId: request.conversationId,
         context: request.context,
-        message: {
+        response: {
           index: messages.length - 1,
           content: completion,
         },
@@ -356,6 +356,9 @@ export class EchoAssistantV1 implements AssistantV1 {
   ): Promise<AssistanceResponseV1> {
     if (request.text === "ERROR") {
       throw new Error("ERROR");
+    }
+    if (request.text === "SLOW") {
+      await new Promise(r => setTimeout(r, 1000));
     }
 
     const messages = request.state?.messages || [];

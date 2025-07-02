@@ -149,7 +149,7 @@ see or edit which parts of your document.')
     ...args,
   ),
   formulaColumn: (...args: DomElementArg[]) => cssTooltipContent(
-    dom('div', t('Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.')),
+    dom('div', t('Formulas support many Excel functions and full Python syntax.')),
     dom('div',
       cssLink({href: commonUrls.formulas, target: '_blank'}, t('Learn more.')),
     ),

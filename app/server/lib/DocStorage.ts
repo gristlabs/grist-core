@@ -661,7 +661,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   // ======================================================================
 
   public docPath: string; // path to document file on disk
-  private _db: SQLiteDB|null; // database handle
+  private _db: SQLiteDB|null|undefined; // database handle
 
   // Maintains { tableId: { colId: gristType } } mapping for all tables, including grist metadata
   // tables (obtained from auto-generated schema.js).
@@ -1824,7 +1824,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   private _getDB(): SQLiteDB {
     if (!this._db) {
-      throw new Error("Tried to use DocStorage database before it was opened");
+      if (this._db === undefined) {
+        throw new Error("Tried to use DocStorage database before it was opened");
+      } else {
+        throw new Error("Tried to use DocStorage database after it was closed");
+      }
     }
     return this._db;
   }

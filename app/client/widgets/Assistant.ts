@@ -95,8 +95,6 @@ export class Assistant extends Disposable {
   private _userInput = Observable.create(this, "");
   /** Dom element that holds the user input */
   private _input: HTMLTextAreaElement;
-  /** Is the request pending */
-  private _waiting = Observable.create(this, false);
   // Input wrapper element (used for resizing).
   private _inputWrapper: HTMLElement;
   /** Whether the low credit limit banner should be shown. */
@@ -119,6 +117,7 @@ export class Assistant extends Disposable {
   });
   /** Number of remaining credits. If null, assistant usage is unlimited. */
   private _numRemainingCredits = Observable.create<number | null>(this, null);
+  private _lastSendPromise: Promise<AssistanceResponse>|null = null;
 
   constructor(private _options: AssistantOptions) {
     super();
@@ -143,8 +142,8 @@ export class Assistant extends Disposable {
   }
 
   public clear() {
+    this._lastSendPromise = null;
     this._conversation.clear();
-    this._waiting.set(false);
     this._userInput.set("");
     this._options.logTelemetryEvent?.("assistantClearConversation", true);
   }
@@ -302,7 +301,7 @@ export class Assistant extends Disposable {
       dom.autoDispose(
         this._userInput.addListener((value) => (this._input.value = value))
       ),
-      dom.prop("disabled", this._waiting),
+      dom.prop("disabled", this._conversation.thinking),
       dom.prop("placeholder", (use) => {
         const lastFormula = use(this._conversation.lastSuggestedFormula);
         if (lastFormula && this._options.onApplyFormula) {
@@ -312,7 +311,7 @@ export class Assistant extends Disposable {
         }
       }),
       dom.autoDispose(
-        this._waiting.addListener((value) => {
+        this._conversation.thinking.addListener((value) => {
           if (!value) {
             setTimeout(() => this.focus(), 0);
           }
@@ -333,21 +332,29 @@ export class Assistant extends Disposable {
         dom.cls(cssTypography.className),
         this._input,
         cssInputButtonsRow(
-          cssSendMessageButton(
+          cssSendButton(
             icon("FieldAny"),
-            dom.on("click", this._handleSendMessageClick.bind(this)),
-            cssSendMessageButton.cls(
+            dom.on("click", this._ask.bind(this)),
+            dom.show(use => !use(this._conversation.thinking)),
+            cssButton.cls(
               "-disabled",
-              (use) => use(this._waiting) || use(this._userInput).length === 0
-            )
+              (use) => use(this._conversation.thinking) || use(this._userInput).length === 0
+            ),
+            testId("send")
+          ),
+          cssCancelButton(
+            cssCancelIcon("Stop"),
+            dom.on("click", this._cancel.bind(this)),
+            dom.show(this._conversation.thinking),
+            testId("cancel")
           ),
           dom.on("click", (ev) => {
             ev.stopPropagation();
             this.focus();
           }),
-          cssInputButtonsRow.cls("-disabled", this._waiting)
+          cssInputButtonsRow.cls("-disabled", this._conversation.thinking)
         ),
-        cssInputWrapper.cls("-disabled", this._waiting)
+        cssInputWrapper.cls("-disabled", this._conversation.thinking)
       )
     ));
   }
@@ -379,21 +386,7 @@ export class Assistant extends Disposable {
     }
   }
 
-  private async _handleSendMessageClick(ev: MouseEvent) {
-    if (this._waiting.get() || this._input.value.length === 0) {
-      return;
-    }
-
-    await this._ask();
-  }
-
-  private async _sendMessage(description: string) {
-    const conversationId = this.conversationId;
-    const response = await this._options.onSend(description);
-    if (this.isDisposed() || conversationId !== this.conversationId) {
-      return;
-    }
-
+  private _addResponse(response: AssistanceResponse) {
     console.debug("received assistant response: ", response);
     const { reply, state, limit } = response;
     let suggestedActions: DocAction[] | undefined;
@@ -438,7 +431,7 @@ export class Assistant extends Disposable {
   }
 
   private async _ask() {
-    if (this._waiting.get()) {
+    if (this._conversation.thinking.get()) {
       return;
     }
     const message = this._userInput.get();
@@ -451,13 +444,18 @@ export class Assistant extends Disposable {
   }
 
   private async _doAsk(message: string) {
-    const conversationId = this.conversationId;
-    this._conversation.thinking();
-    this._waiting.set(true);
+    this._conversation.thinking.set(true);
+    const sendPromise = this._options.onSend(message);
+    this._lastSendPromise = sendPromise;
     try {
-      await this._sendMessage(message);
+      const response = await sendPromise;
+      if (this.isDisposed() || this._lastSendPromise !== sendPromise) {
+        return;
+      }
+
+      this._addResponse(response);
     } catch (err: unknown) {
-      if (this.isDisposed() || conversationId !== this.conversationId) {
+      if (this.isDisposed() || this._lastSendPromise !== sendPromise) {
         return;
       }
 
@@ -475,11 +473,15 @@ export class Assistant extends Disposable {
 
       throw err;
     } finally {
-      if (!this.isDisposed() && conversationId === this.conversationId) {
-        this._conversation.thinking(false);
-        this._waiting.set(false);
+      if (!this.isDisposed() && this._lastSendPromise === sendPromise) {
+        this._conversation.thinking.set(false);
       }
     }
+  }
+
+  private _cancel() {
+    this._lastSendPromise = null;
+    this._conversation.thinking.set(false);
   }
 }
 
@@ -502,6 +504,7 @@ class AssistantConversation extends Disposable {
   public historyLength: Computed<number>;
   public suggestedFormulas: Computed<string[]>;
   public lastSuggestedFormula: Computed<string | null>;
+  public thinking: Observable<boolean>;
 
   private _history = this._options.history;
   private _gristDoc = this._options.gristDoc;
@@ -545,7 +548,7 @@ class AssistantConversation extends Disposable {
       })
     );
 
-    // Create observable array of messages that is connected to the column's chatHistory.
+    // Create observable array of messages that is connected to the ChatHistory.
     this.allMessages = this.autoDispose(obsArray(this._history.get().messages));
     this.autoDispose(
       this.allMessages.addListener((messages) => {
@@ -571,30 +574,18 @@ class AssistantConversation extends Disposable {
           ?.formula ?? null
       );
     });
-  }
 
-  public thinking(on = true) {
-    if (!on) {
-      // Find all index of all thinking messages.
-      const messages = [...this.allMessages.get()].filter(
-        (m) => m.message === "..."
-      );
-      // Remove all thinking messages.
-      for (const message of messages) {
-        this.allMessages.splice(this.allMessages.get().indexOf(message), 1);
+    this.thinking = Observable.create(this, false);
+    this.autoDispose(this.thinking.addListener((thinking) => {
+      if (thinking) {
+        this.scrollDown();
       }
-    } else {
-      this.allMessages.push({
-        message: "...",
-        sender: "ai",
-      });
-      this.scrollDown();
-    }
+    }));
   }
 
   public addResponse(message: ChatMessage) {
     // Clear any thinking from messages.
-    this.thinking(false);
+    this.thinking.set(false);
     const entry: ChatMessage = { ...message, sender: "ai" };
     this.allMessages.push(entry);
     this.newMessages.push(entry);
@@ -602,7 +593,7 @@ class AssistantConversation extends Disposable {
   }
 
   public addQuestion(message: string) {
-    this.thinking(false);
+    this.thinking.set(false);
     const entry: ChatMessage = { message, sender: "user" };
     this.allMessages.push(entry);
     this.newMessages.push(entry);
@@ -610,7 +601,7 @@ class AssistantConversation extends Disposable {
   }
 
   public addError(error: ApiError) {
-    this.thinking(false);
+    this.thinking.set(false);
     const entry: ChatMessage = { message: "", error, sender: "ai" };
     this.allMessages.push(entry);
     this.newMessages.push(entry);
@@ -618,7 +609,7 @@ class AssistantConversation extends Disposable {
   }
 
   public clear() {
-    this.thinking(false);
+    this.thinking.set(false);
     this.id.set(uuidv4());
     this.allMessages.set([]);
     this.newMessages.set([]);
@@ -659,13 +650,11 @@ class AssistantConversation extends Disposable {
               return dom("div",
                 cssAiMessage(
                   cssAvatar(cssAiImage()),
-                  entry.message === "..."
-                    ? cssLoadingDots()
-                    : this._render(
-                        entry.message,
-                        testId("message-ai"),
-                        testId("message")
-                      )
+                  this._render(
+                    entry.message,
+                    testId("message-ai"),
+                    testId("message")
+                  )
                 ),
                 !this._options.onApplyFormula
                   ? null
@@ -683,6 +672,14 @@ class AssistantConversation extends Disposable {
               );
             }
           }),
+          dom.maybe(this.thinking, () =>
+            dom("div",
+              cssAiMessage(
+                cssAvatar(cssAiImage()),
+                cssLoadingDots()
+              )
+            )
+          ),
           () => { this.scrollDown({ smooth: false }); },
         ));
       })
@@ -819,9 +816,9 @@ const cssTypography = styled("div", `
   color: ${theme.inputFg};
 `);
 
-const cssSendMessageButton = styled("div", `
-  padding: 3px;
+const cssButton = styled("div", `
   border-radius: 4px;
+  display: flex;
   align-self: flex-end;
   margin-bottom: 6px;
   margin-right: 6px;
@@ -840,6 +837,19 @@ const cssSendMessageButton = styled("div", `
   &:hover:not(&-disabled) {
     background-color: ${theme.controlPrimaryHoverBg};
   }
+`);
+
+const cssSendButton = styled(cssButton, `
+  padding: 3px;
+`);
+
+const cssCancelButton = styled(cssButton, `
+  padding: 6px;
+`);
+
+const cssCancelIcon = styled(icon, `
+  width: 10px;
+  height: 10px;
 `);
 
 const cssInputWrapper = styled("div", `

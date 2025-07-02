@@ -35,7 +35,7 @@ export class VersionUpdateBanner extends Disposable {
     return dom.maybe(this._appModel.isInstallAdmin(), () => {
       return dom.domComputed(use => {
         const {latestVersionAvailable} = getGristConfig();
-        if(!latestVersionAvailable?.isNewer) {
+        if (!latestVersionAvailable?.isNewer) {
           return null;
         }
 

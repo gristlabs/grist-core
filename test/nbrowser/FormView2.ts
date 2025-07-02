@@ -1,3 +1,4 @@
+import {UserAPI} from 'app/common/UserAPI';
 import {addToRepl, assert, driver} from 'mocha-webdriver';
 import {FormElement, formSchema, labels, question, questionType} from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
@@ -9,13 +10,17 @@ describe('FormView2', function() {
 
   const cleanup = setupTestSuite();
 
+  let api: UserAPI;
+  let docId: string;
+
   addToRepl('question', question);
   addToRepl('labels', labels);
   addToRepl('questionType', questionType);
 
   before(async function() {
     const session = await gu.session().login();
-    await session.tempNewDoc(cleanup);
+    api = session.createHomeApi();
+    docId = await session.tempNewDoc(cleanup);
   });
 
   gu.withClipboardTextArea();
@@ -120,10 +125,7 @@ describe('FormView2', function() {
   it('clones default form without publishing', async function() {
     // Original form is not yet changed.
     // Publish it.
-    await publish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await unpublish.wait();
+    await publishForm();
 
     await gu.duplicatePage('Original', 'Cloned');
     await gu.openPage('Cloned');
@@ -133,16 +135,10 @@ describe('FormView2', function() {
     assert.isFalse(await unpublish.isPresent());
 
     // Now publish the clone also.
-    await publish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await unpublish.wait();
+    await publishForm();
 
     // And unpublish the clone to make sure the original is still published.
-    await unpublish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await publish.wait();
+    await unpublishForm();
 
     // Check original, should still be published.
     await gu.openPage('Original');
@@ -153,10 +149,7 @@ describe('FormView2', function() {
   it('can submit a form', async function() {
     // Publish the clone and open the form.
     await gu.openPage('Cloned');
-    await publish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await unpublish.wait();
+    await publishForm();
 
     await share.click();
     await gu.waitForServer();
@@ -174,6 +167,39 @@ describe('FormView2', function() {
     await gu.waitForDocToLoad();
     await gu.openPage('Table1');
     assert.deepEqual(await gu.getVisibleGridCellsFast('A', [1]), ['Hello']);
+  });
+
+  it('does not load preview if doc is soft-deleted', async function() {
+    await gu.openPage('Original');
+    await unpublishForm();
+    const formUrl = await driver.find('.test-forms-preview').getAttribute('href');
+    await api.softDeleteDoc(docId);
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
+      assert.equal(
+        await driver.find('.test-form-error-page-text').getText(),
+        "Oops! The form you're looking for doesn't exist."
+      );
+    });
+    await api.undeleteDoc(docId);
+  });
+
+  it('does not load published form if doc is soft-deleted', async function() {
+    await publishForm();
+    await share.click();
+    await gu.waitForServer();
+    const formUrl = await driver.findWait('.test-forms-link', 100).getAttribute('value');
+    await api.softDeleteDoc(docId);
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
+      assert.equal(
+        await driver.find('.test-form-error-page-text').getText(),
+        "Oops! The form you're looking for doesn't exist."
+      );
+    });
+    await api.undeleteDoc(docId);
   });
 });
 
@@ -207,3 +233,17 @@ const publish = button('.test-forms-publish');
 const unpublish = button('.test-forms-unpublish');
 const confirm = button('.test-modal-confirm');
 const share = button('.test-forms-share');
+
+async function publishForm() {
+  await publish.click();
+  await confirm.click();
+  await gu.waitForServer();
+  await unpublish.wait();
+}
+
+async function unpublishForm() {
+  await unpublish.click();
+  await confirm.click();
+  await gu.waitForServer();
+  await publish.wait();
+}

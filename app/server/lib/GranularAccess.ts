@@ -29,7 +29,7 @@ import { getColIdsFromDocAction, TableDataAction, UserAction } from 'app/common/
 import { CellRecord, DocComment, makeDocComment } from 'app/common/DocComments';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
-import { DocUsageSummary, FilteredDocUsageSummary } from 'app/common/DocUsage';
+import { DocUsageSummary, FilteredDocUsageSummary, UsageRecommendations } from 'app/common/DocUsage';
 import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { InfoEditor } from 'app/common/GranularAccessClause';
@@ -43,6 +43,7 @@ import { User } from 'app/common/User';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
+import { appSettings } from 'app/server/lib/AppSettings';
 import { applyAndCheckActionsForCells, CellData, isCellDataAction } from 'app/server/lib/CellDataAccess';
 import { DocAuthorizer, DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
 import { DocClients } from 'app/server/lib/DocClients';
@@ -60,6 +61,16 @@ import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
 import memoize = require('lodash/memoize');
+import { getConfiguredStandardAttachmentStore } from './AttachmentStoreProvider';
+
+/**
+ * A threshold beyond which for this installation it would be
+ * better to use external attachments (if available).
+ */
+const GRIST_ATTACHMENTS_THRESHOLD_MB = appSettings.section("attachmentStores").flag("threshold").requireFloat({
+  envVar: "GRIST_ATTACHMENTS_THRESHOLD_MB",
+  defaultValue: 50,
+});
 
 // tslint:disable:no-bitwise
 
@@ -750,16 +761,25 @@ export class GranularAccess implements GranularAccessForBundle {
     const userDocSession: OptDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
     //
     const directActions = docActions.filter((_, index) => isDirect[index]);
-    const filtered = await this.filterOutgoingDocActions(userDocSession, directActions);
-    if (filtered.length === 0) { return null; }
-    const tableIds = new Set<string>();
-    for (const action of filtered) {
-      const t = getTableId(action);
-      if (!t.startsWith('_grist')) {
-        tableIds.add(t);
+    try {
+      const filtered = await this.filterOutgoingDocActions(userDocSession, directActions);
+      if (filtered.length === 0) { return null; }
+      const tableIds = new Set<string>();
+      for (const action of filtered) {
+        const t = getTableId(action);
+        if (!t.startsWith('_grist')) {
+          tableIds.add(t);
+        }
       }
+      return [...tableIds];
+    } catch (err) {
+      if (err.code === 'NEED_RELOAD') {
+        // If something changes that affects access and tells each client to reload, then consider
+        // it a change visible to all users, even though we can't tell which tables are affected.
+        return [];
+      }
+      throw err;
     }
-    return [...tableIds];
   }
 
   public async getCommentsInBundle(userToFilterFor: UserAccessData|null = null): Promise<DocComment[]> {
@@ -770,7 +790,18 @@ export class GranularAccess implements GranularAccessForBundle {
     if (userToFilterFor) {
       const userDocSession: OptDocSession = new PseudoDocSession(userToFilterFor, this._docId, docSession.org);
       // TODO: this can probably be more efficient since we don't need full filtering.
-      filtered = await this.filterOutgoingDocActions(userDocSession, docActions);
+      try {
+        filtered = await this.filterOutgoingDocActions(userDocSession, docActions);
+      } catch (err) {
+        if (err.code === 'NEED_RELOAD') {
+          // If something changes that affects access and tells each client to reload, then we
+          // can't tell what comment actions are visible. This should never happen in normal use
+          // of comments (since we don't expect comment actions to be in the same bundle with
+          // access-changing actions), so just assume there are no comments to worry about.
+          filtered = [];
+        }
+        throw err;
+      }
     }
 
     const docComments: DocComment[] = [];
@@ -817,14 +848,34 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
+   * Figure out any recommendations based on usage to pass along.
+   */
+  public async getUsageRecommendations(
+    docSession: OptDocSession,
+    docUsage: DocUsageSummary,
+  ): Promise<UsageRecommendations> {
+    const rec: UsageRecommendations = {};
+    if (!this._docData.docSettings().attachmentStoreId &&
+        docUsage.attachmentsSizeBytes !== 'pending' &&
+        docUsage.attachmentsSizeBytes >= GRIST_ATTACHMENTS_THRESHOLD_MB * 1024 * 1024 &&
+        getConfiguredStandardAttachmentStore() &&
+        await this.isOwner(docSession)) {
+      rec.recommendExternal = true;
+    }
+    return rec;
+  }
+
+  /**
    * Filter DocUsageSummary to be sent to a client.
+   * Include usage recommendations.
    */
   public async filterDocUsageSummary(
     docSession: OptDocSession,
     docUsage: DocUsageSummary,
     options: {role?: Role | null} = {}
   ): Promise<FilteredDocUsageSummary> {
-    const result: FilteredDocUsageSummary = { ...docUsage };
+    const usageRecommendations = await this.getUsageRecommendations(docSession, docUsage);
+    const result: FilteredDocUsageSummary = { ...docUsage, usageRecommendations };
     // Owners can see everything all the time.
     if (await this.isOwner(docSession)) {
       return result;
