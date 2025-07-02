@@ -170,6 +170,7 @@ export class MergedServer {
         this.flexServer.addEarlyApi();
         this.flexServer.addJsonSupport();
         this.flexServer.addUpdatesCheck();
+        this.flexServer.addWidgetRepository();
         // todo: add support for home api to standalone app
         this.flexServer.addHomeApi();
         this.flexServer.addScimApi();
@@ -190,6 +191,7 @@ export class MergedServer {
 
       if (this.hasComponent("docs")) {
         this.flexServer.addJsonSupport();
+        this.flexServer.addWidgetRepository();
         this.flexServer.addAuditLogger();
         await this.flexServer.addTelemetry();
         this.flexServer.addAssistant();

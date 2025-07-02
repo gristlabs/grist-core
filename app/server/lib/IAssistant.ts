@@ -1,3 +1,4 @@
+import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import {
   AssistanceContextV1,
   AssistanceMessage,
@@ -219,14 +220,18 @@ interface JSONSchema {
   additionalProperties?: boolean;
 }
 
-export type FunctionCallResult = FunctionCallSuccess | FunctionCallFailure;
+interface BaseFunctionCallResult {
+  appliedActions: ApplyUAResult[];
+}
 
-export interface FunctionCallSuccess {
+export interface FunctionCallSuccess extends BaseFunctionCallResult {
   ok: true;
   result: any;
 }
 
-interface FunctionCallFailure {
+interface FunctionCallFailure extends BaseFunctionCallResult {
   ok: false;
   error: string;
 }
+
+export type FunctionCallResult = FunctionCallSuccess | FunctionCallFailure;

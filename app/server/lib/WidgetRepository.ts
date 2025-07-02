@@ -11,8 +11,10 @@ import * as url from 'url';
 import { AsyncCreate } from 'app/common/AsyncCreate';
 import { agents } from 'app/server/lib/ProxyAgent';
 
-// Static url for UrlWidgetRepository
-const STATIC_URL = process.env.GRIST_WIDGET_LIST_URL;
+export const Deps = {
+  /** Static url for UrlWidgetRepository */
+  STATIC_URL: process.env.GRIST_WIDGET_LIST_URL,
+};
 
 /**
  * Widget Repository returns list of available Custom Widgets.
@@ -97,13 +99,13 @@ export class CombinedWidgetRepository implements IWidgetRepository {
  * Repository that gets a list of widgets from a URL.
  */
 export class UrlWidgetRepository implements IWidgetRepository {
-  constructor(private _staticUrl = STATIC_URL,
+  constructor(private _staticUrl = Deps.STATIC_URL,
               private _required: boolean = true) {}
 
   public async getWidgets(): Promise<ICustomWidget[]> {
     if (!this._staticUrl) {
       log.warn(
-        'WidgetRepository: Widget repository is not configured.' + (!STATIC_URL
+        'WidgetRepository: Widget repository is not configured.' + (!Deps.STATIC_URL
           ? ' Missing GRIST_WIDGET_LIST_URL environmental variable.'
           : '')
       );
@@ -183,7 +185,7 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
 
   public testSetUrl(overrideUrl: string|undefined) {
     const repos: IWidgetRepository[] = [];
-    this._staticUrl = overrideUrl ?? STATIC_URL;
+    this._staticUrl = overrideUrl ?? Deps.STATIC_URL;
     if (this._staticUrl) {
       const optional = isAffirmative(process.env.GRIST_WIDGET_LIST_URL_OPTIONAL);
       this._urlWidgets = new UrlWidgetRepository(this._staticUrl,
@@ -228,7 +230,7 @@ class CachedWidgetRepository extends WidgetRepositoryImpl {
 /**
  * Returns widget repository implementation.
  */
-export function buildWidgetRepository(gristServer: GristServer,
+export function buildWidgetRepository(gristServer?: GristServer,
                                       options?: {
                                         localOnly: boolean
                                       }) {

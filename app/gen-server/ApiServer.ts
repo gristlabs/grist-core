@@ -29,7 +29,6 @@ import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import log from 'app/server/lib/log';
 import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
-import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
 
 // exposed for testing purposes
@@ -114,8 +113,7 @@ export class ApiServer {
   constructor(
     private _gristServer: GristServer,
     private _app: express.Application,
-    private _dbManager: HomeDBManager,
-    private _widgetRepository: IWidgetRepository
+    private _dbManager: HomeDBManager
   ) {
     this._addEndpoints();
   }
@@ -292,7 +290,9 @@ export class ApiServer {
     // GET /api/widgets/
     // Get all widget definitions from external source.
     this._app.get('/api/widgets/', expressWrap(async (req, res) => {
-      const widgetList = await this._widgetRepository.getWidgets();
+      const widgetList = await this._gristServer
+        .getWidgetRepository()
+        .getWidgets();
       return sendOkReply(req, res, widgetList);
     }));
 

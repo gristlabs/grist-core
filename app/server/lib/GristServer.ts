@@ -29,6 +29,7 @@ import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
 import { ITelemetry } from 'app/server/lib/Telemetry';
+import { IWidgetRepository } from 'app/server/lib/WidgetRepository';
 import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
 import * as express from 'express';
 import { IncomingMessage } from 'http';
@@ -73,6 +74,7 @@ export interface GristServer extends StorageCoordinator {
   getStorageManager(): IDocStorageManager;
   getAuditLogger(): IAuditLogger;
   getTelemetry(): ITelemetry;
+  getWidgetRepository(): IWidgetRepository;
   hasNotifier(): boolean;
   getNotifier(): INotifier;
   getDocNotificationManager(): IDocNotificationManager|undefined;
@@ -180,6 +182,7 @@ export function createDummyGristServer(): GristServer {
     getStorageManager() { throw new Error('no storage manager'); },
     getAuditLogger() { return createNullAuditLogger(); },
     getTelemetry() { return createDummyTelemetry(); },
+    getWidgetRepository() { throw new Error('no widget repository'); },
     getNotifier() { throw new Error('no notifier'); },
     getDocNotificationManager(): IDocNotificationManager|undefined { return undefined; },
     hasNotifier() { return false; },

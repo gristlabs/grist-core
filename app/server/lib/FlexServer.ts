@@ -955,12 +955,18 @@ export class FlexServer implements GristServer {
     this.app.use('/api', jsonErrorHandler);
   }
 
+  public addWidgetRepository() {
+    if (this._check('widgets')) { return; }
+
+    this._widgetRepository = buildWidgetRepository(this);
+  }
+
   public addHomeApi() {
     if (this._check('api', 'homedb', 'json', 'api-mw')) { return; }
 
     // ApiServer's constructor adds endpoints to the app.
     // tslint:disable-next-line:no-unused-expression
-    new ApiServer(this, this.app, this._dbManager, this._widgetRepository = buildWidgetRepository(this));
+    new ApiServer(this, this.app, this._dbManager);
   }
 
   public addScimApi() {
@@ -1931,7 +1937,7 @@ export class FlexServer implements GristServer {
 
   public addAssistant() {
     if (this._check('assistant')) { return; }
-    this._assistant = this.create.Assistant();
+    this._assistant = this.create.Assistant(this);
   }
 
   // for test purposes, check if any notifications are in progress
