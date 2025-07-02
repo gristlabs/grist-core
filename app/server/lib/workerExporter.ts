@@ -3,7 +3,7 @@ import {FilterColValues} from "app/common/ActiveDocAPI";
 import {ActiveDocSource, doExportDoc, doExportSection, doExportTable,
         ExportData, ExportHeader, ExportParameters, Filter} from 'app/server/lib/Export';
 import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {Alignment, Border, Buffer as ExcelBuffer, stream as ExcelWriteStream,
         Fill, Workbook} from 'exceljs';
 import {Rpc} from 'grain-rpc';
