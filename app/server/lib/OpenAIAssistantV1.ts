@@ -26,6 +26,7 @@ import {
 import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
 import fetch from "node-fetch";
+import { agents } from 'app/server/lib/ProxyAgent';
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
@@ -207,6 +208,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
             }
           : undefined),
       }),
+      ...(agents.trusted ? { agent: agents.trusted } : {})
     });
     const resultText = await apiResponse.text();
     const result = JSON.parse(resultText);

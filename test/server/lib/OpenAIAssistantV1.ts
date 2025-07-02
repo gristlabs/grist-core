@@ -4,6 +4,7 @@ import {configureOpenAIAssistantV1} from 'app/server/lib/configureOpenAIAssistan
 import {OptDocSession} from 'app/server/lib/DocSession';
 import {AssistantV1} from 'app/server/lib/IAssistant';
 import {DEPS, OpenAIAssistantV1} from 'app/server/lib/OpenAIAssistantV1';
+import { GristProxyAgent } from 'app/server/lib/ProxyAgent';
 import {assert} from 'chai';
 import {Response} from 'node-fetch';
 import * as sinon from 'sinon';
@@ -111,7 +112,17 @@ describe('OpenAIAssistantV1', function () {
     const [url, request] = callInfo.args;
     assert.equal(url, 'https://api.openai.com/v1/chat/completions');
     assert.equal(request.method, 'POST');
-    const {messages: requestMessages} = JSON.parse(request.body);
+    const {messages: requestMessages, agent: requestAgent} = JSON.parse(request.body);
+    it('does not use the trusted proxy when not configured', async function () {
+      assert.isUndefined(requestAgent);
+    });
+
+    it('uses trusted proxy when configured', async function () {
+      const proxyURL = 'http://localhost-proxy:8080';
+      process.env.HTTPS_PROXY=proxyURL;
+      const trustedAgent = new GristProxyAgent(proxyURL);
+      assert.equal(requestAgent, trustedAgent);
+    });
     const systemMessageContent = requestMessages[0].content;
     assert.match(systemMessageContent, /def C\(rec: Table1\)/);
     assert.deepEqual(requestMessages, [
