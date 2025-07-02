@@ -2168,6 +2168,17 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 200);
     });
 
+    it('Endpoint POST /api/service-accounts should insert non empty values for label, description and endOfLifereturns',
+      async function() {
+      const body = {
+        label: "A label",
+        description: "A description",
+        endOfLife:"2042-07-21",
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      assert.equal(resp.status, 200);
+    });
+
     it('Endpoint POST /api/service-accounts returns 400 when missing parameter in request body', async function() {
       assert.fail();
     });
@@ -2208,8 +2219,20 @@ describe('ApiServer', function() {
     });
 
     it('Endpoint GET /api/service-accounts/{saId} is operational', async function() {
-      assert.fail();
-
+      const body = {
+        label: "A small service for the chimpy",
+        description: "A big service for robotkind",
+        endOfLife:"2042-07-21",
+      };
+      await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const expectedBody = {...body, endOfLife: `${body.endOfLife} 00:00:00.000`};
+      const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
+      const serviceId = resp.data[0].id;
+      const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      assert.equal(resp2.status, 200);
+      assert.isObject(resp2.data);
+      assert.hasAllKeys(resp2.data, ["id", "label", "description", "endOfLife"]);
+      assert.deepEqual(resp2.data, {id:serviceId, ...expectedBody});
     });
 
     it('Endpoint GET /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {

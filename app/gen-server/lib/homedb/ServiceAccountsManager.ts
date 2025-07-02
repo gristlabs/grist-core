@@ -48,7 +48,7 @@ export class ServiceAccountsManager {
       // End of life is set to now leading to a non functionning service service_account_id
       // if not provided;
       const endOfLifeString = endOfLife ?
-        endOfLife.toISOString().split('T')[0] :
+        new Date(endOfLife).toISOString().split('T')[0] :
         new Date().toISOString().split('T')[0];
       // FIXME use manager.save(entité);
       await manager.createQueryBuilder()
@@ -71,12 +71,12 @@ export class ServiceAccountsManager {
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
-      return await manager.createQueryBuilder()
+      return (await manager.createQueryBuilder()
         .select("*")
         .from(ServiceAccount, "service_accounts")
         .where("owner_id = :ownerId", {ownerId})
-        .andWhere("service_account_id = :serviceAccountId", {serviceAccountId})
-        .execute();
+        .andWhere("id = :serviceAccountId", {serviceAccountId})
+        .execute())[0];
     });
   }
 

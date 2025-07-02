@@ -592,7 +592,8 @@ export class ApiServer {
     // Creates a new service account attached to the user making the api call.
     this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const apiKey: any = await this._dbManager.createServiceAccount(userId);
+      const {label, description, endOfLife} = req.body;
+      const apiKey: any = await this._dbManager.createServiceAccount(userId, label, description, endOfLife);
       return sendOkReply(req, res, {
         apiKey,
       });
@@ -609,7 +610,15 @@ export class ApiServer {
     // GET /service-accounts/:said
     // Reads one particular service account of the user making the api call.
     this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
-      throw new ApiError('get by id Not implemented yet ;)', 501);
+      const userId = getAuthorizedUserId(req);
+      const data = await this._dbManager.getServiceAccount(userId, Number(req.params.said));
+      const respData = {
+        id: data.id,
+        label: data.label,
+        description: data.description,
+        endOfLife: data.endOfLife
+      };
+      return sendOkReply(req, res, respData);
     }));
 
     // PATCH /service-accounts/:said
