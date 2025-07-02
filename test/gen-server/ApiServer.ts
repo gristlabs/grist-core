@@ -2197,8 +2197,9 @@ describe('ApiServer', function() {
       await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       await axios.post(`${homeUrl}/api/service-accounts/`, body2, chimpy);
       const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
-      console.log(resp);
       assert.equal(resp.status, 200);
+      assert.isArray(resp.data);
+      assert.lengthOf(resp.data, 2);
     });
 
     it("Endpoint GET /api/service-accounts returns 404 when user don't own any service account", async function() {

@@ -3297,6 +3297,10 @@ export class HomeDBManager {
     return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
   }
 
+  public async getAllServiceAccounts(ownerId: number){
+    return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
+  }
+
   public async getApiKey(userId: number){
     return this._usersManager.getApiKey(userId);
   }

@@ -70,7 +70,7 @@ export class ServiceAccountsManager {
     serviceAccountId: number,
     ownerId: number,
   ){
-    await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async manager => {
       return await manager.createQueryBuilder()
         .select("*")
         .from(ServiceAccount, "service_accounts")
@@ -83,7 +83,7 @@ export class ServiceAccountsManager {
   public async readAllServiceAccounts(
     ownerId: number,
   ){
-    await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async manager => {
       return await manager.createQueryBuilder()
         .select("*")
         .from(ServiceAccount, "service_accounts")

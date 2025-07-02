@@ -601,7 +601,9 @@ export class ApiServer {
     // GET /service-accounts/
     // Reads all service accounts attached to the user making the api call.
     this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
-      throw new ApiError('get Not implemented yet ;)', 501);
+      const userId = getAuthorizedUserId(req);
+      const data = await this._dbManager.getAllServiceAccounts(userId);
+      return sendOkReply(req, res, data);
     }));
 
     // GET /service-accounts/:said
