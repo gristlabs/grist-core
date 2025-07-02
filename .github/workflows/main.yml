@@ -57,8 +57,10 @@ jobs:
         run: yarn install
 
       - name: Install gvisor
-        run: sudo apt install runsc
-
+        run: |
+          sudo apt update
+          sudo apt install runsc
+ 
       - name: Run eslint
         if: contains(matrix.tests, ':lint:')
         run: yarn run lint:ci
