@@ -131,7 +131,7 @@ const cssBanner = styled('div', `
   gap: 16px;
   color: ${colors.light};
 
-  a {
+  & a {
     color: ${colors.light};
     text-decoration: underline;
   }
