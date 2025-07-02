@@ -57,7 +57,10 @@ jobs:
         run: yarn install
 
       - name: Install gvisor
-        run: sudo apt install runsc
+        run: |
+          docker create --name temp-runsc gristlabs/gvisor-unprivileged:buster /bin/true
+          sudo docker cp temp-runsc:/runsc /usr/bin/runsc
+          docker rm temp-runsc
 
       - name: Run eslint
         if: contains(matrix.tests, ':lint:')
@@ -114,13 +117,13 @@ jobs:
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
 
-      - name: Run a test using pyodide
+      - name: Run a couple of tests using pyodide
         if: contains(matrix.tests, ':pyodide:')
         run: |
           cd sandbox/pyodide
           make setup
           cd ../..
-          yarn run test:server -g ActiveDoc.useQuerySet
+          yarn run test:server -g 'ActiveDoc.useQuerySet|Sandbox'
         env:
           MOCHA_WEBDRIVER_HEADLESS: 1
           GRIST_SANDBOX_FLAVOR: pyodide
@@ -157,6 +160,8 @@ jobs:
           GRIST_DOCS_MINIO_ACCESS_KEY: administrator
           GRIST_DOCS_MINIO_SECRET_KEY: administrator
           TEST_REDIS_URL: "redis://localhost/11"
+          GVISOR_FLAGS: "-unprivileged -ignore-cgroups"
+          GVISOR_EXTRA_DIRS: /opt
           GRIST_DOCS_MINIO_USE_SSL: 0
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
@@ -171,6 +176,8 @@ jobs:
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          GVISOR_FLAGS: "-unprivileged -ignore-cgroups"
+          GVISOR_EXTRA_DIRS: /opt
           TESTDIR: ${{ runner.temp }}/test-logs
 
       - name: Prepare for saving artifact
@@ -235,6 +242,54 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+  build_and_test_on_macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install Python packages
+        run: |
+          pip install virtualenv
+          yarn run install:python
+
+      - name: Install Node.js packages
+        run: yarn install
+
+      - name: Build Node.js code
+        run: yarn run build
+
+      - name: Run a couple of tests using pyodide
+        run: |
+          cd sandbox/pyodide
+          make setup
+          cd ../..
+          yarn run test:server -g 'ActiveDoc.useQuerySet|Sandbox'
+        env:
+          MOCHA_WEBDRIVER_HEADLESS: 1
+          GRIST_SANDBOX_FLAVOR: pyodide
+          GRIST_RUNNING_UNDER_MACOS: 1
+
+      - name: Run the sandbox tests with native sandboxing
+        run: |
+          yarn run test:server -g Sandbox
+        env:
+          GRIST_SANDBOX_FLAVOR: macSandboxExec
+          GRIST_RUNNING_UNDER_MACOS: 1
 
   candidate:
     needs: build_and_test
