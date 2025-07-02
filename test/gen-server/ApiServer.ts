@@ -2184,8 +2184,21 @@ describe('ApiServer', function() {
     });
 
     it('Endpoint GET /api/service-accounts is operational', async function() {
-      assert.fail();
-
+      const body = {
+        label: "A small service for the chimpy",
+        description: "A big service for robotkind",
+        endOfLife:"2042-07-21",
+      };
+      const body2 = {
+        label: "More service",
+        description: "More robots",
+        endOfLife:"2042-07-22",
+      };
+      await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      await axios.post(`${homeUrl}/api/service-accounts/`, body2, chimpy);
+      const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
+      console.log(resp);
+      assert.equal(resp.status, 200);
     });
 
     it("Endpoint GET /api/service-accounts returns 404 when user don't own any service account", async function() {
