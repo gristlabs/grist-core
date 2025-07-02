@@ -77,6 +77,17 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
 export const SHARE_KEY_PREFIX = 's.';
 
 /**
+ * Form framing is used to control the way forms are rendered in Grist.
+ * - 'border' adds a green border around the form, used to indicate that the forms can be created
+ *   by untrusted users and it makes phishing attacks harder.
+ * - 'minimal' doesn't show the border, used for trusted users.
+ *
+ * The default value is 'border', and it can be controlled by GRIST_FEATURE_FORM_FRAMING environment
+ * variable.
+ */
+export type FormFraming = 'border' | 'minimal';
+
+/**
  * Special ways to open a document, based on what the user intends to do.
  *   - view: Open document in read-only mode (even if user has edit rights)
  *   - fork: Open document in fork-ready mode.  This means that while edits are
@@ -929,6 +940,8 @@ export interface GristLoadConfig {
 
   // TODO: remove once released (this is only expected to be released in enterprise edition)
   featureNotifications?: boolean;
+
+  formFraming?: FormFraming;
 }
 
 export const Features = StringUnion(

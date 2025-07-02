@@ -29,6 +29,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {INITIAL_FIELDS_COUNT} from 'app/common/Forms';
 import {isOwner} from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
 import * as ko from 'knockout';
@@ -427,6 +428,7 @@ export class FormView extends Disposable {
       testId('editor'),
       this._formEditorBodyElement = style.cssFormEditBody(
         style.cssFormContainer(
+          style.cssFormContainer.cls('-border', getGristConfig().formFraming === 'border'),
           dom('div', testId('content'), dom.forEach(this._root.children, (child) => {
             if (!child) {
               return dom('div', 'Empty node');

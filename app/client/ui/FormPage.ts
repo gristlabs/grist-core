@@ -11,6 +11,7 @@ import {ApiError} from 'app/common/ApiError';
 import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 
 const t = makeT('FormPage');
 
@@ -58,23 +59,35 @@ export class FormPage extends Disposable {
         error: this._error,
       });
 
+      const formFraming = getGristConfig().formFraming;
+
       return dom('div',
-        cssForm(
-          cssFormBody(
-            cssFormContent(
-              dom.autoDispose(formRenderer),
-              formRenderer.render(),
-              handleSubmit({
-                pending: this._model.submitting,
-                onSubmit: (_formData, formElement) => this._handleFormSubmit(formElement),
-                onSuccess: () => this._handleFormSubmitSuccess(),
-                onError: (e) => this._handleFormError(e),
-              }),
+        cssFormBorder(
+          testId('framing'),
+          cssFormBorder.cls(`-${formFraming}`),
+          formFraming !== 'border' ? null :
+            cssFormBorderHelp(withInfoTooltip(
+              'Grist Form',
+              'formFraming',
+              {iconDomArgs: [cssFormBorderHelpButton.cls('')]}
+            )),
+          cssForm(
+            cssFormBody(
+              cssFormContent(
+                dom.autoDispose(formRenderer),
+                formRenderer.render(),
+                handleSubmit({
+                  pending: this._model.submitting,
+                  onSubmit: (_formData, formElement) => this._handleFormSubmit(formElement),
+                  onSuccess: () => this._handleFormSubmitSuccess(),
+                  onError: (e) => this._handleFormError(e),
+                }),
+              ),
             ),
           ),
-          cssFormFooter(
-            buildFormFooter(),
-          ),
+        ),
+        cssFormFooter(
+          buildFormFooter(),
         ),
         testId('page'),
       );
@@ -116,14 +129,51 @@ const cssPageContainer = styled('div', `
   overflow: auto;
 `);
 
+const cssFormBorder = styled('div', `
+  margin: 0px auto;
+  position: relative;
+  &-border {
+    border: 2px solid ${colors.lightGreen};
+    border-radius: 12px;
+    border-top-width: 20px;
+    padding: 12px;
+    max-width: 624px;
+    margin-bottom: 24px;
+  }
+  &-minimal {
+    max-width: 600px;
+  }
+`);
+
+const cssFormBorderHelp = styled('div', `
+  color: white;
+  position: absolute;
+  top: -18px;
+  right: 18px;
+  font-size: 12px;
+`);
+
+const cssFormBorderHelpButton = styled('div', `
+  border-color: white;
+  color: white;
+  height: 1rem;
+  width: 1rem;
+  font-size: 0.9rem;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-color: white;
+    color: white;
+  }
+`);
+
 const cssForm = styled('div', `
   display: flex;
+  position: relative;
+  overflow: hidden;
   flex-direction: column;
   align-items: center;
   background-color: white;
   border-radius: 3px;
-  max-width: 600px;
-  margin: 0px auto;
 `);
 
 const cssFormBody = styled('main', `

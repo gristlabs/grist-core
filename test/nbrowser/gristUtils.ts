@@ -1162,6 +1162,7 @@ export function getPageItem(pageName: string|RegExp): WebElementPromise {
 }
 
 export async function openPage(name: string|RegExp) {
+  await toggleSidePanel('left', 'open');
   await driver.findContentWait('.test-treeview-itemHeader', name, 500).find(".test-docpage-initial").doClick();
   await waitForServer(); // wait for table load
 }

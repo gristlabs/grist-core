@@ -258,7 +258,6 @@ export class DocWorkerApi {
       res.json(await activeDoc.applyUserActions(docSessionFromRequest(req), req.body, {parseStrings}));
     }));
 
-
     async function readTable(
       req: RequestWithLogin,
       activeDoc: ActiveDoc,

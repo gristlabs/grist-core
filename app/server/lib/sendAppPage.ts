@@ -2,6 +2,7 @@ import {AssistantConfig} from 'app/common/Assistant';
 import {
   commonUrls,
   Features,
+  FormFraming,
   getContactSupportUrl,
   getFreeCoachingCallUrl,
   getHelpCenterUrl,
@@ -16,6 +17,7 @@ import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget} from "app/common/widgetTypes";
+import {appSettings} from "app/server/lib/AppSettings";
 import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -41,6 +43,12 @@ const { escapeExpression } = handlebars.Utils;
  */
 const translate = (req: express.Request, key: string, args?: any) =>  req.t(`sendAppPage.${key}`, args)?.toString();
 
+const GRIST_FEATURE_FORM_FRAMING = appSettings.section("features").flag("formFraming")
+  .requireString({
+    envVar: 'GRIST_FEATURE_FORM_FRAMING',
+    defaultValue: 'border',
+    acceptedValues: ['border', 'minimal'],
+  });
 
 export interface ISendAppPageOptions {
   path: string;        // Ignored if .content is present (set to "" for clarity).
@@ -71,6 +79,9 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
   const pathOnly = (process.env.GRIST_ORG_IN_PATH === "true") ||
     (homeUrl && new URL(homeUrl).hostname === 'localhost') || false;
   const mreq = req as RequestWithOrg|undefined;
+
+    // Configure form framing behavior.
+
   return {
     homeUrl,
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
@@ -122,6 +133,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),
     featureNotifications: isAffirmative(process.env.GRIST_TEST_ENABLE_NOTIFICATIONS),
+    formFraming: GRIST_FEATURE_FORM_FRAMING as FormFraming,
     ...extra,
   };
 }

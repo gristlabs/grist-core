@@ -30,7 +30,7 @@ export class ParagraphModel extends BoxModel {
       overlay: this._overlay,
       editMode,
       content: css.cssMarkdownRendered(
-        css.markdown(use => use(text) || '', dom.hide(editMode)),
+        css.buildMarkdown(use => use(text) || '', dom.hide(editMode)),
         dom.maybe(use => !use(text) && !use(editMode), () => cssEmpty('(empty)')),
         css.cssMarkdownRendered.cls('-separator', isSeparator),
         dom.on('click', () => {

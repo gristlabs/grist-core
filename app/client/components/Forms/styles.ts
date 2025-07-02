@@ -1,12 +1,12 @@
 import type {App} from 'app/client/ui/App';
 import {textarea} from 'app/client/ui/inputs';
-import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
+import {sanitizeHTMLIntoDOM} from 'app/client/ui/sanitizeHTML';
 import {basicButton, basicButtonLink, primaryButtonLink, textButton} from 'app/client/ui2018/buttons';
 import {cssLabel} from 'app/client/ui2018/checkbox';
 import {colors, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {numericSpinner} from 'app/client/widgets/NumericSpinner';
-import {BindableValue, dom, DomElementArg, IDomArgs, Observable, styled, subscribeBindable} from 'grainjs';
+import {BindableValue, dom, DomElementArg, IDomArgs, Observable, styled} from 'grainjs';
 import {marked} from 'marked';
 
 export const cssFormView = styled('div.flexauto.flexvbox', `
@@ -34,6 +34,12 @@ export const cssFormContainer = styled('div', `
   max-width: calc(100% - 32px);
   gap: 8px;
   line-height: 1.42857143;
+  &-border {
+    border: 2px solid ${colors.lightGreen};
+    border-radius: 12px;
+    padding: 18px;
+    width: calc(600px + 32px);
+  }
 `);
 
 export const cssFieldEditor = styled('div.hover_border.field_editor', `
@@ -466,48 +472,72 @@ export const cssMarkdownRendered = styled('div', `
   }
 `);
 
-export const cssMarkdownRender = styled('div', `
-  & > p:last-child {
+const cssMarkdownContainer = styled('div', `
+  clip-path: inset(0px);
+`);
+
+const SHADOW_STYLE = `
+  :host > p:last-child {
     margin-bottom: 0px;
   }
-  & h1 {
+  strong {
+    font-weight: 600;
+  }
+  h1 {
     font-size: 24px;
     margin: 4px 0px;
     font-weight: normal;
   }
-  & h2 {
+  h2 {
     font-size: 22px;
     margin: 4px 0px;
     font-weight: normal;
   }
-  & h3 {
+  h3 {
     font-size: 16px;
     margin: 4px 0px;
     font-weight: normal;
   }
-  & h4 {
+  h4 {
     font-size: 13px;
     margin: 4px 0px;
     font-weight: normal;
   }
-  & h5 {
+  h5 {
     font-size: 11px;
     margin: 4px 0px;
     font-weight: normal;
   }
-  & h6 {
+  h6 {
     font-size: 10px;
     margin: 4px 0px;
     font-weight: normal;
   }
-`);
+`;
 
-export function markdown(obs: BindableValue<string>, ...args: IDomArgs<HTMLDivElement>) {
-  return cssMarkdownRender(el => {
-    dom.autoDisposeElem(el, subscribeBindable(obs, val => {
-      el.innerHTML = sanitizeHTML(marked(val, {async: false}));
-    }));
-  }, ...args);
+let shadowStyle: CSSStyleSheet | null = null;
+export function bindMarkdown(textObs: BindableValue<string>) {
+  if (!shadowStyle) {
+    shadowStyle = new CSSStyleSheet();
+    // TODO: remove casting once Typescript supports new API (from 4.8.2).
+    (shadowStyle as any).replaceSync(SHADOW_STYLE);
+  }
+  return function(container: HTMLElement) {
+    const shadow = container.attachShadow({mode: 'open'});
+    (shadow as any).adoptedStyleSheets = [shadowStyle!];
+    dom.update(shadow,
+      dom.domComputed(textObs, text => sanitizeHTMLIntoDOM(marked(text || '', {
+        async: false,
+      }))
+    ));
+  };
+}
+
+export function buildMarkdown(obs: BindableValue<string>, ...args: IDomArgs<HTMLDivElement>) {
+  return cssMarkdownContainer(
+    bindMarkdown(obs),
+    ...args
+  );
 }
 
 export const cssDrop = styled('div.test-forms-drag', `
