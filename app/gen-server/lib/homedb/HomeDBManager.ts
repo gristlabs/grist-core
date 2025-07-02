@@ -3297,6 +3297,18 @@ export class HomeDBManager {
     return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
   }
 
+  public async getApiKey(userId: number){
+    return this._usersManager.getApiKey(userId);
+  }
+
+  public async createApiKey(userId: number, force: boolean, transaction?: EntityManager) {
+    return this._usersManager.createApiKey(userId, force, transaction);
+  }
+
+  public async deleteApiKey(userId: number){
+    return this._usersManager.deleteApiKey(userId);
+  }
+
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
     const {urlId: docId, userId} = scope;
     const docQb = this._doc(scope, {accessStyle: 'openNoPublic', manager});

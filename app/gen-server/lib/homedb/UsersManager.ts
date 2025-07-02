@@ -892,29 +892,28 @@ export class UsersManager {
     throw new Error("user not known");
   }
 
-  public async createApiKey(userId: number, force: boolean) {
-    await this._connection.transaction(async manager => {
-      let user = await manager.findOne(User, {where: {id: userId}});
+  public async createApiKey(userId: number, force: boolean, transaction?: EntityManager): Promise<User> {
+    return await this._runInTransaction(transaction, async manager => {
+      const user = await manager.findOne(User, {where: {id: userId}});
       if (!user) {
         throw new Error("user not known");
       }
       if (!user.apiKey || force) {
-        user = await this._updateApiKeyWithRetry(manager, user);
-        return user.apiKey;
+        return await this._updateApiKeyWithRetry(manager, user);
       } else {
         throw new Error("An apikey is already set, use `{force: true}` to override it.");
       }
     });
   }
 
-  public async deleteApiKey(userId: number){
-    await this._connection.transaction(async manager => {
+  public async deleteApiKey(userId: number): Promise<User> {
+    return await this._connection.transaction(async manager => {
       const user = await manager.findOne(User, {where: {id: userId}});
       if (!user) {
         throw new Error("user not known");
       }
       user.apiKey = null;
-      await manager.save(User, user);
+      return await manager.save(User, user);
     });
   }
 

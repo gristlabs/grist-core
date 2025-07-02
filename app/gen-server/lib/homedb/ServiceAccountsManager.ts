@@ -34,22 +34,24 @@ export class ServiceAccountsManager {
     description?: string,
     endOfLife?: Date,
   ){
-    await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async manager => {
       //TODO create new service user in order to have its
       //id to insert
       const uuid = uuidv4();
       const email = `${uuid}@serviceaccounts.local`;
       const serviceUser = await this._homeDb.getUserByLogin(email, {manager}, 'service');
+      // TODO ideally create api key must be in the same transaction as getUserByLogin
+      // Cause we wan't a full revert of both creation if on fails
+      const apiKey = (await this._homeDb.createApiKey(serviceUser.id, false, manager)).apiKey;
       const securelabel: string = label ? label : "";
       const securedescription: string = description ? description : "";
-      // TODO trigger user apikey creation
       // End of life is set to now leading to a non functionning service service_account_id
       // if not provided;
       const endOfLifeString = endOfLife ?
         endOfLife.toISOString().split('T')[0] :
         new Date().toISOString().split('T')[0];
       // FIXME use manager.save(entité);
-      return await manager.createQueryBuilder()
+      await manager.createQueryBuilder()
         .insert()
         .into(ServiceAccount)
         .values({
@@ -60,6 +62,7 @@ export class ServiceAccountsManager {
           endOfLife: endOfLifeString,
         })
         .execute();
+      return apiKey;
     });
   }
 
