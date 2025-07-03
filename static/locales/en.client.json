@@ -1834,7 +1834,8 @@
         "What is your role?": "What is your role?",
         "What organization are you with?": "What organization are you with?",
         "Your organization": "Your organization",
-        "Your role": "Your role"
+        "Your role": "Your role",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different."
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",
