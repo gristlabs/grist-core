@@ -341,8 +341,8 @@ function buildTutorial(_owner: IDisposableOwner, incrementStep: IncrementStep) {
     cssHeading(
       t('Go hands-on with the Grist Basics tutorial'),
       cssSubHeading(
-        t("Grist may look like a spreadsheet, but it doesn't always "
-          + "act like one. Discover what makes Grist different."
+        t("Grist may look like a spreadsheet, but it doesn't always \
+act like one. Discover what makes Grist different."
         ),
       ),
     ),

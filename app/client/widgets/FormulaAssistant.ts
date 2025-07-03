@@ -560,8 +560,8 @@ function buildIntroMessage(...args: DomElementArg[]) {
         cssAiMessageBullet(
           cssTickIcon("Tick"),
           t(
-            "Talk to me like a person. No need to specify tables and column names. For example, you can ask " +
-              '"Please calculate the total invoice amount."'
+            'Talk to me like a person. No need to specify tables and column names. For example, you can ask \
+"Please calculate the total invoice amount."'
           )
         ),
         getGristConfig().assistant?.provider === "OpenAI"
@@ -569,8 +569,8 @@ function buildIntroMessage(...args: DomElementArg[]) {
               cssTickIcon("Tick"),
               dom("div",
                 t(
-                  "When you talk to me, your questions and your document structure (visible in {{codeView}}) " +
-                    "are sent to OpenAI. {{learnMore}}.",
+                  "When you talk to me, your questions and your document structure (visible in {{codeView}}) \
+are sent to OpenAI. {{learnMore}}.",
                   {
                     codeView: cssLink(
                       t("Code View"),
@@ -588,8 +588,8 @@ function buildIntroMessage(...args: DomElementArg[]) {
       ),
       cssAiMessageParagraph(
         t(
-          "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, " +
-            "or visit our {{community}} for more help.",
+          "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, \
+or visit our {{community}} for more help.",
           {
             functionList: cssLink(t("Function List"), {
               href: commonUrls.functions,

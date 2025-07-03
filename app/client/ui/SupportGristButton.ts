@@ -97,13 +97,13 @@ export class SupportGristButton extends Disposable {
     return [
       cssLeftAlignedHeader(t('Support Grist')),
       cssParagraph(t(
-        'Opt in to telemetry to help us understand how the product ' +
-        'is used, so that we can prioritize future improvements.'
+        'Opt in to telemetry to help us understand how the product \
+is used, so that we can prioritize future improvements.'
       )),
       cssParagraph(
         t(
-          'We only collect usage statistics, as detailed in our {{helpCenterLink}}, never ' +
-          'document contents. Opt out any time from the {{supportGristLink}} in the user menu.',
+          'We only collect usage statistics, as detailed in our {{helpCenterLink}}, never \
+document contents. Opt out any time from the {{supportGristLink}} in the user menu.',
           {
             helpCenterLink: helpCenterLink(),
             supportGristLink: adminPanelLink(),

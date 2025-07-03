@@ -191,8 +191,8 @@ see or edit which parts of your document.')
   ),
   twoWayReferences: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Creates a new Reference List column in the target table, with both this ' +
-        'and the target columns editable and synchronized.')
+      t('Creates a new Reference List column in the target table, with both this \
+and the target columns editable and synchronized.')
     ),
     ...args,
   ),
@@ -218,9 +218,9 @@ see or edit which parts of your document.')
   attachmentStorage: (...args: DomElementArg[]) => cssTooltipContent(
     cssMarkdownSpan(
       t(
-        "Internal storage means all attachments are stored in the document SQLite file, " +
-        "while external storage indicates all attachments are stored in the same " +
-        "external storage."
+        "Internal storage means all attachments are stored in the document SQLite file, \
+while external storage indicates all attachments are stored in the same \
+external storage."
       ) +
       "\n\n" +
       t(
@@ -238,8 +238,8 @@ see or edit which parts of your document.')
   uploadAttachments: (...args: DomElementArg[]) => cssTooltipContent(
     cssMarkdownSpan(
       t(
-        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. " +
-        "Only .tar attachment archives downloaded from Grist can be uploaded here."
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. \
+Only .tar attachment archives downloaded from Grist can be uploaded here."
       ),
     ),
     ...args,
@@ -438,8 +438,8 @@ data.")),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
         t(
-          "Understand, modify and work with your data and formulas " +
-            "with the help of Grist's new AI Assistant!",
+          "Understand, modify and work with your data and formulas \
+with the help of Grist's new AI Assistant!",
         )
       ),
       dom('div',
