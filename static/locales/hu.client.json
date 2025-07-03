@@ -324,6 +324,6 @@
         "Reload": "Újratölt",
         "Sorry, access to this document has been denied. [{{error}}]": "Elnézést kérünk, ehhez a dokumentumhoz nincs hozzáférése. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Megpróbálhatod a dokumentum újratöltését visszaállítási módban. Ebben a módban a dokumentumot teljeskörűen elérik a tulajdonosai, de mások számára nem hozzáférhetőek, valamint letiltja a képleteket is. [{{error}}]",
-        "You do not have edit access to this document": "Nincs módosítási jogosultságod ehhez a dokumentumhoz."
+        "You do not have edit access to this document": "Nincs módosítási jogosultságod ehhez a dokumentumhoz"
     }
 }
