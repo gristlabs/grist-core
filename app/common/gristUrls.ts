@@ -600,7 +600,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
       state.hash = {
         anchor,
       };
-    } else if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
+    } else if (hashMap.has('#') && ['a1', 'a2', 'a3', 'a4'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [
         'sectionId',
@@ -631,6 +631,8 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         link.popup = true;
       } else if (hashMap.get('#') === 'a3') {
         link.recordCard = true;
+      } else if (hashMap.get('#') === 'a4') {
+        link.comments = true;
       }
       state.hash = link;
     }
@@ -1226,6 +1228,7 @@ export interface HashLink {
   rowId?: UIRowId;
   colRef?: number;
   popup?: boolean;
+  comments?: boolean; // Whether to show comments in the popup.
   rickRow?: boolean;
   recordCard?: boolean;
   linkingRowIds?: UIRowId[];
@@ -1244,7 +1247,9 @@ export interface HashLink {
 export function makeAnchorLinkValue(hash: HashLink): string {
   const hashParts: string[] = [];
   if (hash.rowId || hash.popup || hash.recordCard) {
-    if (hash.recordCard) {
+    if (hash.comments) {
+      hashParts.push('a4');
+    } else if (hash.recordCard) {
       hashParts.push('a3');
     } else if (hash.popup) {
       hashParts.push('a2');

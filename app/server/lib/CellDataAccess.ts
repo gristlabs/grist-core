@@ -12,18 +12,20 @@ import {
   getTableId,
   isAddRecord,
   isBulkAction,
-  isBulkAddRecord,
   isBulkRemoveRecord,
   isBulkUpdateRecord,
   isDataAction,
   isRemoveRecord,
+  isSomeAddRecordAction,
   isSomeRemoveRecordAction,
   isUpdateRecord,
   UpdateRecord,
 } from 'app/common/DocActions';
+import { CommentContent } from 'app/common/DocComments';
 import { DocData } from 'app/common/DocData';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { getSetMapValue } from 'app/common/gutil';
+import { isCensored } from 'app/common/gristTypes';
+import { getSetMapValue, safeJsonParse } from 'app/common/gutil';
 import { MetaRowRecord, SingleCell } from 'app/common/TableData';
 import { GristObjCode } from 'app/plugin/GristData';
 
@@ -170,12 +172,90 @@ interface SingleCellInfo extends SingleCell {
   id: number;
 }
 
+interface SingleCellInfoWithData extends SingleCellInfo {
+  content: string;
+}
+
 /**
  * Helper class that extends DocData with cell specific functions.
  */
 export class CellData {
   constructor(private _docData: DocData) {
 
+  }
+
+  /**
+   * Finds if there are any new comments in the actions.
+   */
+  public hasNewComments(actions: DocAction[]): boolean {
+    return actions.some((action) => {
+      if (!isCellDataAction(action)) { return false; }
+      if (isSomeAddRecordAction(action)) {
+        return true;
+      }
+      return false;
+    });
+  }
+
+  public getNewComments(actions: DocAction[]): MetaRowRecord<'_grist_Cells'>[] {
+    const rows: MetaRowRecord<'_grist_Cells'>[] = [];
+    for (const action of actions) {
+      if (!isCellDataAction(action) || !isSomeAddRecordAction(action)) { continue; }
+      for (const single of getSingleAction(action)) {
+        const commentRow = getActionColValues(single as AddRecord);
+        if (isCensored(commentRow.content)) {
+          // If the content is censored, we don't want to return it.
+          continue;
+        }
+        const id = getRowIds(single);
+        rows.push({id, ...commentRow as any});
+      }
+    }
+    return rows;
+  }
+
+  /**
+   * Retrieves the audience (participants) for a given set of cell IDs.
+   *
+   * @param rowIds - An array of cell info IDs from the `_grist_Cells` table.
+   * @returns A map where the key is the cell ID and the value is an array of user references
+   *          (participants) associated with the whole thread, so all comments of the table/column/row
+   *          combination.
+   */
+  public getAudience(rowIds: number[]): Map<number, string[]> {
+    const result = new Map<number, string[]>(); // Stores the final mapping of cell IDs to participants.
+    const read = new Map<string, string[]>(); // Caches participants for specific table/column/row combinations.
+
+    for (const cId of rowIds) {
+      // Retrieve cell information for the given cell ID.
+      const cell = this.getCell(cId);
+      if (!cell) { continue; }
+      // Create a unique key for caching based on table, column, and row.
+      const tableId = cell.tableId;
+      const colId = cell.colId;
+      const rowId = cell.rowId;
+      const key = `${tableId}:${colId}:${rowId}`;
+
+      // If participants for this key are already cached, use them.
+      if (read.has(key)) {
+        result.set(cId, read.get(key) || []);
+      } else {
+        // Otherwise, compute participants for this table/column/row combination.
+        const participants = new Set(
+          this.readCells(tableId, new Set([rowId]), colId).flatMap(c => {
+            const parsed = safeJsonParse(c.content, {}) as CommentContent; // Parse the cell content.
+            return [c.userRef, ...parsed.mentions || []]; // Include the user reference and any mentions.
+          })
+        );
+
+        // Cache the computed participants for the key.
+        read.set(key, Array.from(participants));
+        // Add the participants to the result map for the current cell ID.
+        result.set(cId, Array.from(participants));
+      }
+    }
+
+    return result;
   }
 
   public getCell(cellId: number) {
@@ -198,7 +278,7 @@ export class CellData {
     const addedCells: Set<number> = new Set();
     const updatedCells: Set<number> = new Set();
     function applyCellAction(action: DataAction) {
-      if (isAddRecord(action) || isBulkAddRecord(action)) {
+      if (isSomeAddRecordAction(action)) {
         for(const id of getRowIdsFromDocAction(action)) {
           if (removedCells.has(id)) {
             removedCells.delete(id);
@@ -303,13 +383,14 @@ export class CellData {
     return docActions;
   }
 
-  public convertToCellInfo(cell: MetaRowRecord<'_grist_Cells'>): SingleCellInfo {
+  public convertToCellInfo(cell: MetaRowRecord<'_grist_Cells'>): SingleCellInfoWithData {
     const singleCell = {
       tableId: this.getTableId(cell.tableRef) as string,
       colId: this.getColId(cell.colRef) as string,
       rowId: cell.rowId,
       userRef: cell.userRef,
       id: cell.id,
+      content: cell.content || '',
     };
     return singleCell;
   }
@@ -326,14 +407,30 @@ export class CellData {
     return this._docData.getMetaTable("_grist_Tables").findRow('tableId', tableId) || undefined;
   }
 
+  public getColRef(tableId: string, colId: string) {
+    const parentId = this.getTableRef(tableId);
+    if (!parentId) {
+      throw new Error(`Table ${tableId} not found`);
+    }
+    const colRef = this._docData.getMetaTable("_grist_Tables_column").findMatchingRowId(
+      {parentId, colId}
+    );
+    if (!colRef) {
+      throw new Error(`Column ${colId} not found in table ${tableId}`);
+    }
+    return colRef;
+  }
+
   /**
    * Returns all cells for a given table and row ids.
    */
-  public readCells(tableId: string, rowIds: Set<number>) {
+  public readCells(tableId: string, rowIds: Set<number>, colId?: string) {
     const tableRef = this.getTableRef(tableId);
-    const cells =  this._docData.getMetaTable("_grist_Cells").filterRecords({
-      tableRef,
-    }).filter(r => rowIds.has(r.rowId));
+    const filter: Record<string, any> = {tableRef};
+    if (colId) {
+      filter.colRef = this.getColRef(tableId, colId);
+    }
+    const cells =  this._docData.getMetaTable("_grist_Cells").filterRecords(filter).filter(r => rowIds.has(r.rowId));
     return cells.map(this.convertToCellInfo.bind(this));
   }
 

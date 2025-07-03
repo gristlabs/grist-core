@@ -20,6 +20,7 @@ export interface CellRec extends IRowModel<"_grist_Cells"> {
   resolved: modelUtil.KoSaveableObservable<boolean|undefined>;
   resolvedBy: modelUtil.KoSaveableObservable<string|undefined>;
   mentions: modelUtil.KoSaveableObservable<string[]|undefined>;
+  sectionId: modelUtil.KoSaveableObservable<number|undefined>;
 }
 
 export function createCellRec(this: CellRec, docModel: DocModel): void {
@@ -42,4 +43,5 @@ export function createCellRec(this: CellRec, docModel: DocModel): void {
   this.resolved = optionJson.prop('resolved');
   this.resolvedBy = optionJson.prop('resolvedBy');
   this.mentions = optionJson.prop('mentions');
+  this.sectionId = optionJson.prop('sectionId');
 }

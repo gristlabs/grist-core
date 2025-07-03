@@ -18,9 +18,9 @@ import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
 import {buildMentionTextBox, CommentText} from 'app/client/widgets/MentionTextBox';
-import {CommentContent} from 'app/common/Comments';
 import {CellInfoType} from 'app/common/gristTypes';
 import {FullUser, PermissionData} from 'app/common/UserAPI';
+import {CommentContent} from 'app/common/DocComments';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {
   bundleChanges,
@@ -147,6 +147,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
         content: JSON.stringify({
           timeCreated: Date.now(),
           userName: author?.name ?? '',
+          sectionId: pos.sectionId,
           ...commentText,
         } as CommentContent)
       }
@@ -169,6 +170,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
             userName: author?.name ?? '',
             timeCreated: Date.now(),
             timeUpdated: null,
+            sectionId: comment.sectionId.peek(),
             ...commentText,
           } as CommentContent),
           tableRef: comment.tableRef.peek(),
