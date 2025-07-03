@@ -1932,7 +1932,9 @@
         "Opt in to Telemetry": "Opt in to Telemetry",
         "Opted In": "Opted In",
         "Support Grist": "Support Grist",
-        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu."
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu."
     },
     "buildReassignModal": {
         "Cancel": "Cancel",
