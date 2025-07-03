@@ -1974,7 +1974,9 @@
         "Home": "Home",
         "Log streaming": "Log streaming",
         "Only site owners may access audit logs.": "Only site owners may access audit logs.",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}."
     },
     "DocList": {
         "Access details": "Access details",
