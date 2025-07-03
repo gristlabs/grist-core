@@ -1414,7 +1414,10 @@
         "You have used all available credits.": "You have used all available credits.",
         "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
         "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\""
     },
     "GridView": {
         "Click to insert": "Click to insert"
