@@ -1259,8 +1259,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     if (message.data.webhooks) {
       if (message.data.webhooks.type == 'webhookOverflowError') {
         this.trigger('webhookOverflowError',
-          t('New changes are temporarily suspended. Webhooks queue overflowed.' +
-            ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
+          t('New changes are temporarily suspended. Webhooks queue overflowed. \
+Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
       } else {
         this.trigger('webhooks', message.data.webhooks);
       }
