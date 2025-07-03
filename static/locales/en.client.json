@@ -2066,7 +2066,8 @@
         "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
         "start a new chat": "start a new chat",
         "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance."
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "Are you sure you want to delete the following?",
