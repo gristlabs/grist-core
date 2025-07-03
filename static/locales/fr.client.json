@@ -1849,7 +1849,7 @@
         "Delete data and this widget.": "Supprimer les données et le composant.",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer la vue. La table restera disponible dans {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
-        "raw data page": "la page de tables sources"
+        "raw data page": "la page de données source"
     },
     "CustomWidgetGallery": {
         "(Missing info)": "(Information manquante)",
