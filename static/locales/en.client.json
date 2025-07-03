@@ -1973,7 +1973,8 @@
         "Splunk": "Splunk",
         "Start streaming": "Start streaming",
         "Token": "Token",
-        "URL": "URL"
+        "URL": "URL",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}."
     },
     "AuditLogsPage": {
         "Audit Logs": "Audit Logs",

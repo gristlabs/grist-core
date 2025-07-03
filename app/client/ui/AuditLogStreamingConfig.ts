@@ -37,9 +37,9 @@ export class AuditLogStreamingConfig extends Disposable {
         return dom("div",
           cssParagraph(
             t(
-              "Set up streaming of audit events from Grist to an external " +
-                "security information and event management (SIEM) system like " +
-                "Splunk. {{learnMoreLink}}.",
+              "Set up streaming of audit events from Grist to an external \
+security information and event management (SIEM) system like \
+Splunk. {{learnMoreLink}}.",
               {
                 learnMoreLink: cssLink(
                   { href: commonUrls.helpInstallAuditLogs, target: "_blank" },
