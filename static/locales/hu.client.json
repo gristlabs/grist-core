@@ -279,11 +279,18 @@
         "Delete": "Töröl",
         "Delete Forever": "Véglegesen töröl",
         "Delete {{name}}": "{{name}} törlése",
-        "Deleted {{at}}": "Törölve {{at}} időpontban",
+        "Deleted {{at}}": "Törölve {{at}}-kor",
         "Discover More Templates": "További sablonok felfedezése",
         "Document will be moved to Trash.": "A dokumentum a kukába kerül.",
         "Document will be permanently deleted.": "A dokumentumot véglegesen töröljük.",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "A dokumentumok 30 napig maradnak a kukában, ezután véglegesen törlődnek.",
-        "Edited {{at}}": "Szerkesztve {{at}}-kor"
+        "Edited {{at}}": "Szerkesztve {{at}}-kor",
+        "Examples & Templates": "Példák & sablonok",
+        "Examples and Templates": "Példák és sablonok",
+        "Featured": "Kiemelt",
+        "Manage Users": "Felhasználók kezelése",
+        "More Examples and Templates": "További példák és sablonok",
+        "Move": "Mozgat",
+        "Move {{name}} to workspace": "{{name}} áthelyezése a munkaterületre"
     }
 }
