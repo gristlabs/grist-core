@@ -2168,7 +2168,9 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 200);
     });
 
-    it('Endpoint POST /api/service-accounts should insert non empty values for label, description and endOfLifereturns',
+    // TODO test that non authentified user can't insert an api key
+
+    it('Endpoint POST /api/service-accounts should insert non-empty values for label, description and endOfLifereturns',
       async function() {
       const body = {
         label: "A label",
@@ -2179,19 +2181,17 @@ describe('ApiServer', function() {
       assert.equal(resp.status, 200);
     });
 
+    // TODO make on or more test of the behaviour of different values
     it('Endpoint POST /api/service-accounts returns 400 when missing parameter in request body', async function() {
       assert.fail();
     });
 
     it('Endpoint POST /api/service-accounts returns 400 on invalid endOfLife', async function() {
       assert.fail();
-
-
     });
 
     it('Endpoint POST /api/service-accounts creates a default description when not set', async function() {
       assert.fail();
-
     });
 
     it('Endpoint GET /api/service-accounts is operational', async function() {
@@ -2215,7 +2215,6 @@ describe('ApiServer', function() {
 
     it("Endpoint GET /api/service-accounts returns 404 when user don't own any service account", async function() {
       assert.fail();
-
     });
 
     it('Endpoint GET /api/service-accounts/{saId} is operational', async function() {
@@ -2237,68 +2236,56 @@ describe('ApiServer', function() {
 
     it('Endpoint GET /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
       assert.fail();
-
     });
 
     it('Endpoint UPDATE /api/service-accounts/{saId} is operational', async function() {
       assert.fail();
-
     });
 
     it('Endpoint UPDATE /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
       assert.fail();
-
     });
 
     it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 on empty label', async function() {
       assert.fail();
-
     });
 
     it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 on invalid endOfLife', async function() {
       assert.fail();
-
     });
 
     it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 if trying to update owner', async function() {
       assert.fail();
-
     });
 
     it('Endpoint DELETE /api/service-accounts/{saId} is operational', async function() {
       assert.fail();
-
     });
 
     it('Endpoint DELETE /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
       assert.fail();
-
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/regenerate is operational', async function() {
       assert.fail();
-
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/regenerate returns 404 on non-existing {saId}',
       async function() {
       assert.fail();
-
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/revoke is operational', async function() {
       assert.fail();
-
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/revoke returns 404 on non-existing {saId}',
       async function() {
       assert.fail();
-
     });
+
     it('Service user MUSN\'T log into the app', async function() {
       assert.fail();
-
     });
   });
 
