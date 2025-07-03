@@ -1512,7 +1512,11 @@
         "You can opt out of telemetry at any time from this page.": "You can opt out of telemetry at any time from this page.",
         "You have opted in to telemetry. Thank you!": "You have opted in to telemetry. Thank you!",
         "You have opted out of telemetry.": "You have opted out of telemetry.",
-        "Sponsor": "Sponsor"
+        "Sponsor": "Sponsor",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "You can support Grist open-source development by sponsoring us on our {{link}}."
     },
     "buildViewSectionDom": {
         "No data": "No data",
