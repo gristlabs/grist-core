@@ -689,7 +689,8 @@
         "Download full document and history": "Download full document and history",
         "Format:": "Format:",
         "Learn more": "Learn more",
-        "download attachments": "download attachments"
+        "download attachments": "download attachments",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. "
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
