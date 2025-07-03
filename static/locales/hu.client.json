@@ -241,7 +241,9 @@
         "Last updated:": "Utoljára frissítve:",
         "Missing description and author information.": "Hiányzik a leírás és az információk a szerzőről.",
         "Reject": "Elutasít",
-        "Widget": "Widget"
+        "Widget": "Widget",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} darab nem-{{columnType}} oszlop elrejtve",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} darab nem-{{columnType}} oszlop elrejtve"
     },
     "DataTables": {
         "Click to copy": "Kattints a másoláshoz",
@@ -249,6 +251,39 @@
         "Duplicate Table": "Tábla duplikálása",
         "Raw Data Tables": "Nyersadat-táblák",
         "Table ID copied to clipboard": "A tábla azonosítóját a vágólapra másoltuk",
-        "You do not have edit access to this document": "Nincs módosítási hozzáférésed ehhez a dokumentumhoz"
+        "You do not have edit access to this document": "Nincs módosítási hozzáférésed ehhez a dokumentumhoz",
+        "Edit Record Card": "Rekordkártya módosítása",
+        "Record Card": "Rekordkártya",
+        "Record Card Disabled": "Rekordkártya letiltva",
+        "Remove Table": "Tábla eltávolítása",
+        "Rename Table": "Tábla átnevezése",
+        "{{action}} Record Card": "Rekordkártya {{action}}"
+    },
+    "DocHistory": {
+        "Activity": "Tevékenység",
+        "Beta": "Béta",
+        "Compare to Current": "Összevetés a jelenlegivel",
+        "Compare to Previous": "Összevetés az előzővel",
+        "Open Snapshot": "Pillanatfelvétel megnyitása",
+        "Snapshots": "Pillanatfelvételek",
+        "Snapshots are unavailable.": "Pillanatfelvételek nem elérhetők.",
+        "Only owners have access to snapshots for documents with access rules.": "Csak a tulajdonosok férhetnek hozzá a hozzáférési szabályokkal rendelkező dokumentumok pillanatfelvételeihez."
+    },
+    "DocMenu": {
+        "(The organization needs a paid plan)": "(A szervezetnek előfizetésre van szüksége)",
+        "Access Details": "Hozzáférés részletei",
+        "All Documents": "Minden dokumentum",
+        "By Date Modified": "Módosítás dátuma szerint",
+        "By Name": "Név szerint",
+        "Current workspace": "Jelenlegi munkaterület",
+        "Delete": "Töröl",
+        "Delete Forever": "Véglegesen töröl",
+        "Delete {{name}}": "{{name}} törlése",
+        "Deleted {{at}}": "Törölve {{at}} időpontban",
+        "Discover More Templates": "További sablonok felfedezése",
+        "Document will be moved to Trash.": "A dokumentum a kukába kerül.",
+        "Document will be permanently deleted.": "A dokumentumot véglegesen töröljük.",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "A dokumentumok 30 napig maradnak a kukában, ezután véglegesen törlődnek.",
+        "Edited {{at}}": "Szerkesztve {{at}}-kor"
     }
 }
