@@ -1930,7 +1930,8 @@
         "Table": "Table",
         "Two-way Reference": "Two-way Reference",
         "Delete two-way reference?": "Delete two-way reference?",
-        "Target table": "Target table"
+        "Target table": "Target table",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}."
     },
     "SupportGristButton": {
         "Admin Panel": "Admin Panel",
