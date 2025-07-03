@@ -1321,7 +1321,11 @@
         "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns.",
         "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation.",
         "The new Grist Assistant is here!": "The new Grist Assistant is here!",
-        "Formulas support many Excel functions and full Python syntax.": "Formulas support many Excel functions and full Python syntax."
+        "Formulas support many Excel functions and full Python syntax.": "Formulas support many Excel functions and full Python syntax.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
