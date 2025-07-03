@@ -132,7 +132,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
             return forceLogin(req, res, next);
           }
         }
-        throw new ApiError('You do not have access to this document.', 403);
+        throw new ApiError(req.t("access.docNoAccess"), 403);
       }
       throw err;
     }
