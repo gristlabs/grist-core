@@ -112,17 +112,7 @@ describe('OpenAIAssistantV1', function () {
     const [url, request] = callInfo.args;
     assert.equal(url, 'https://api.openai.com/v1/chat/completions');
     assert.equal(request.method, 'POST');
-    const {messages: requestMessages, agent: requestAgent} = JSON.parse(request.body);
-    it('does not use the trusted proxy when not configured', async function () {
-      assert.isUndefined(requestAgent);
-    });
-
-    it('uses trusted proxy when configured', async function () {
-      const proxyURL = 'http://localhost-proxy:8080';
-      process.env.HTTPS_PROXY=proxyURL;
-      const trustedAgent = new GristProxyAgent(proxyURL);
-      assert.equal(requestAgent, trustedAgent);
-    });
+    const {messages: requestMessages} = JSON.parse(request.body);
     const systemMessageContent = requestMessages[0].content;
     assert.match(systemMessageContent, /def C\(rec: Table1\)/);
     assert.deepEqual(requestMessages, [
@@ -151,6 +141,33 @@ describe('OpenAIAssistantV1', function () {
         }
       }
     );
+  });
+  
+   it('does not use the trusted proxy when not configured', async function () {
+    let agentsFake = {trusted: undefined, untrusted: undefined};
+    sinon.replace(DEPS, 'agents', agentsFake);
+    await checkGetAssistance();
+    checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
+    const callInfo = fakeFetch.getCall(0);
+    const [url, request] = callInfo.args;
+    assert.equal(url, 'https://api.openai.com/v1/chat/completions');
+    assert.equal(request.method, 'POST');
+    assert.isUndefined(request.agent);
+  });
+  
+  it('uses trusted proxy when configured', async function () {
+    const proxyURL = 'http://localhost-proxy:8080';
+    process.env.HTTPS_PROXY=proxyURL;
+    const trustedAgent = new GristProxyAgent(proxyURL);
+    let agentsFake = {trusted: trustedAgent, untrusted: undefined};
+    sinon.replace(DEPS, 'agents', agentsFake);
+    await checkGetAssistance();
+    checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
+    const callInfo = fakeFetch.getCall(0);
+    const [url, request] = callInfo.args;
+    assert.equal(url, 'https://api.openai.com/v1/chat/completions');
+    assert.equal(request.method, 'POST');
+    assert.deepEqual(request.agent, trustedAgent);
   });
 
   it('does not suggest anything if formula is invalid', async function () {
