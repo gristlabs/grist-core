@@ -108,7 +108,7 @@ export class DocWorker {
     comm.registerMethods({
       closeDoc:                 activeDocMethod.bind(null, null, 'closeDoc'),
       fetchTable:               activeDocMethod.bind(null, 'viewers', 'fetchTable'),
-      fetchTableSchema:         activeDocMethod.bind(null, 'viewers', 'fetchTableSchema'),
+      fetchPythonCode:         activeDocMethod.bind(null, 'viewers', 'fetchPythonCode'),
       useQuerySet:              activeDocMethod.bind(null, 'viewers', 'useQuerySet'),
       disposeQuerySet:          activeDocMethod.bind(null, 'viewers', 'disposeQuerySet'),
       applyUserActions:         activeDocMethod.bind(null, 'editors', 'applyUserActions'),

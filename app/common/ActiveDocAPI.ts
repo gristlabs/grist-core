@@ -353,9 +353,9 @@ export interface ActiveDocAPI {
   fetchTable(tableId: string): Promise<TableFetchResult>;
 
   /**
-   * Fetches the generated Python code for this document. (TODO rename this misnomer.)
+   * Fetches the generated Python code for this document.
    */
-  fetchTableSchema(): Promise<string>;
+  fetchPythonCode(): Promise<string>;
 
   /**
    * Makes a query (documented elsewhere) and subscribes to it, so that the client receives
