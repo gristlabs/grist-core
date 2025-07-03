@@ -2166,6 +2166,8 @@ describe('ApiServer', function() {
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
+      assert.isObject(resp.data);
+      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife"]);
     });
 
     // TODO test that non authentified user can't insert an api key
@@ -2223,10 +2225,9 @@ describe('ApiServer', function() {
         description: "A big service for robotkind",
         endOfLife:"2042-07-21",
       };
-      await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
       const expectedBody = {...body, endOfLife: `${body.endOfLife} 00:00:00.000`};
-      const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
-      const serviceId = resp.data[0].id;
       const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
       assert.equal(resp2.status, 200);
       assert.isObject(resp2.data);
@@ -2259,7 +2260,19 @@ describe('ApiServer', function() {
     });
 
     it('Endpoint DELETE /api/service-accounts/{saId} is operational', async function() {
-      assert.fail();
+      const body = {
+        label: "Short life service",
+        description: "Doomed soon",
+        endOfLife:"2042-10-10",
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
+      const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      assert.equal(resp2.status, 200);
+      const resp3 = await axios.delete(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      assert.equal(resp3.status, 200);
+      const resp4 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      assert.equal(resp4.status, 404);
     });
 
     it('Endpoint DELETE /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {

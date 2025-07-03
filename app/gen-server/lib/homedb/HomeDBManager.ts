@@ -3301,8 +3301,14 @@ export class HomeDBManager {
     return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
   }
 
+  // TODO be consistent in argument order
   public async getServiceAccount(ownerId: number, serviceId: number){
     return this._serviceAccountsManager.readServiceAccount(serviceId, ownerId);
+  }
+
+  // TODO be consistent in argument order
+  public async deleteServiceAccount(ownerId: number, serviceId: number){
+    return this._serviceAccountsManager.deleteServiceAccount(serviceId, ownerId);
   }
 
   public async getApiKey(userId: number){

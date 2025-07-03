@@ -594,24 +594,27 @@ export class ApiServer {
       const userId = getAuthorizedUserId(req);
       const {label, description, endOfLife} = req.body;
       const apiKey: any = await this._dbManager.createServiceAccount(userId, label, description, endOfLife);
-      return sendOkReply(req, res, {
-        apiKey,
-      });
+      //TODO warning msg should be inserted here rather than in Model
+      return sendOkReply(req, res, apiKey);
     }));
 
     // GET /service-accounts/
     // Reads all service accounts attached to the user making the api call.
     this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
-      const userId = getAuthorizedUserId(req);
-      const data = await this._dbManager.getAllServiceAccounts(userId);
-      return sendOkReply(req, res, data);
+        const userId = getAuthorizedUserId(req);
+        const data = await this._dbManager.getAllServiceAccounts(userId);
+        return sendOkReply(req, res, data);
     }));
 
     // GET /service-accounts/:said
     // Reads one particular service account of the user making the api call.
     this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const data = await this._dbManager.getServiceAccount(userId, Number(req.params.said));
+      const serviceAccountId = req.params.said;
+      const data = await this._dbManager.getServiceAccount(userId, Number(serviceAccountId));
+      if (typeof data === "undefined"){
+         throw new ApiError(`No such service account ${serviceAccountId}`, 404);
+      }
       const respData = {
         id: data.id,
         label: data.label,
@@ -630,7 +633,9 @@ export class ApiServer {
     // DELETE /service-accounts/:said
     // Deletes one particular service account of the user making the api call.
     this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
-      throw new ApiError('delete by id Not implemented yet ;)', 501);
+      const userId = getAuthorizedUserId(req);
+      const data = await this._dbManager.deleteServiceAccount(userId, Number(req.params.said));
+      return sendOkReply(req, res, data);
     }));
 
     // POST /service-accounts/:said/key/regenerate

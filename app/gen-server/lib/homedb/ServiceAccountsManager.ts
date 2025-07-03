@@ -51,7 +51,7 @@ export class ServiceAccountsManager {
         new Date(endOfLife).toISOString().split('T')[0] :
         new Date().toISOString().split('T')[0];
       // FIXME use manager.save(entité);
-      await manager.createQueryBuilder()
+      const insert = await manager.createQueryBuilder()
         .insert()
         .into(ServiceAccount)
         .values({
@@ -62,7 +62,14 @@ export class ServiceAccountsManager {
           endOfLife: endOfLifeString,
         })
         .execute();
-      return apiKey;
+      return {
+        id: insert.raw,
+        key: apiKey,
+        msg: "Please save your api key. It's the only time you will see it.",
+        label: securelabel,
+        description: securedescription,
+        endOfLife: endOfLifeString
+      };
     });
   }
 
@@ -123,7 +130,7 @@ export class ServiceAccountsManager {
         .delete()
         .from(ServiceAccount)
         .where(
-          "owner_id = :ownerId AND service_account_id = :serviceAccountId",
+          "owner_id = :ownerId AND id = :serviceAccountId",
           {
             ownerId,
             serviceAccountId
