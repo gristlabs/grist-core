@@ -41,6 +41,7 @@ export interface IDocStorageManager {
   // Get information about how snapshot generation is going.
   getSnapshotProgress(docName: string): SnapshotProgress;
   replace(docName: string, options: DocReplacementOptions): Promise<void>;
+  getFsFileSize(docName: string): Promise<number>;
 }
 
 /**
@@ -73,6 +74,7 @@ export class TrivialDocStorageManager implements IDocStorageManager {
   public async removeSnapshots(): Promise<never> { throw new Error('no'); }
   public getSnapshotProgress(): SnapshotProgress { return new EmptySnapshotProgress(); }
   public async replace(): Promise<never> { throw new Error('no'); }
+  public async getFsFileSize(): Promise<number> { throw new Error('no'); }
 }
 
 
