@@ -25,8 +25,9 @@ import {
 } from "app/server/lib/IAssistant";
 import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import fetch from "node-fetch";
 import { agents } from 'app/server/lib/ProxyAgent';
+
+import fetch from "node-fetch";
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
