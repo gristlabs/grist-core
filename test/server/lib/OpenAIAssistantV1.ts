@@ -142,9 +142,9 @@ describe('OpenAIAssistantV1', function () {
       }
     );
   });
-  
+
    it('does not use the trusted proxy when not configured', async function () {
-    let agentsFake = {trusted: undefined, untrusted: undefined};
+    const agentsFake = {trusted: undefined, untrusted: undefined};
     sinon.replace(DEPS, 'agents', agentsFake);
     await checkGetAssistance();
     checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
@@ -154,12 +154,12 @@ describe('OpenAIAssistantV1', function () {
     assert.equal(request.method, 'POST');
     assert.isUndefined(request.agent);
   });
-  
+
   it('uses trusted proxy when configured', async function () {
     const proxyURL = 'http://localhost-proxy:8080';
     process.env.HTTPS_PROXY=proxyURL;
     const trustedAgent = new GristProxyAgent(proxyURL);
-    let agentsFake = {trusted: trustedAgent, untrusted: undefined};
+    const agentsFake = {trusted: trustedAgent, untrusted: undefined};
     sinon.replace(DEPS, 'agents', agentsFake);
     await checkGetAssistance();
     checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
