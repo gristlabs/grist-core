@@ -236,7 +236,7 @@ export interface AuditEventDetails {
     document: Pick<Document, "id">;
     sql_query: {
       statement: string;
-      arguments?: Array<string | number>;
+      arguments?: Array<string | number> | null;
     };
     options: {
       timeout_ms?: number;

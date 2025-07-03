@@ -86,7 +86,7 @@ export const TablesPatch = t.iface([], {
 
 export const SqlPost = t.iface([], {
   "sql": "string",
-  "args": t.opt(t.array("any")),
+  "args": t.opt(t.union(t.array("any"), "null")),
   "timeout": t.opt("number"),
 });
 
