@@ -115,7 +115,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
     const SQLITE_LIMIT_ATTACHED = (sqlite3 as any).LIMIT_ATTACHED;
     // Work around node-sqlite3 bug when `.configure()` is called while a
     // query is running.
-    // TODO: raise issue in node-sqlite3 repo
+    // See this issue upstream: https://github.com/TryGhost/node-sqlite3/issues/1838
     await new Promise(resolve => (this._db as any).wait(resolve));
     // Cast because types out of date.
     (this._db as any).configure('limit', SQLITE_LIMIT_ATTACHED, maxAttach);
