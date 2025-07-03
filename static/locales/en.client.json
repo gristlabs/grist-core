@@ -1348,7 +1348,8 @@
     },
     "Clipboard": {
         "Got it": "Got it",
-        "Unavailable Command": "Unavailable Command"
+        "Unavailable Command": "Unavailable Command",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}."
     },
     "FieldContextMenu": {
         "Clear field": "Clear field",
