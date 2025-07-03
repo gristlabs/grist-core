@@ -31,8 +31,8 @@ import { ICellSelect as _ICellSelect, noCleanup as _noCleanup, GristWebDriverUti
          WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { APIConstructor, HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
-import type { Cleanup } from 'test/nbrowser/testUtils';
 import { fetchScreenshotAndLogs } from 'test/nbrowser/webdriverUtils';
+import type { Cleanup } from 'test/server/testCleanup';
 import * as testUtils from 'test/server/testUtils';
 import type { AssertionError } from 'assert';
 import axios from 'axios';

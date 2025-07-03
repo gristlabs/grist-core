@@ -25,6 +25,7 @@ import { IDocNotificationManager } from 'app/server/lib/IDocNotificationManager'
 import { INotifier } from 'app/server/lib/INotifier';
 import { InstallAdmin } from 'app/server/lib/InstallAdmin';
 import { IPermitStore } from 'app/server/lib/Permit';
+import { IPubSubManager } from 'app/server/lib/PubSubManager';
 import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
@@ -78,6 +79,7 @@ export interface GristServer extends StorageCoordinator {
   hasNotifier(): boolean;
   getNotifier(): INotifier;
   getDocNotificationManager(): IDocNotificationManager|undefined;
+  getPubSubManager(): IPubSubManager;
   getAssistant(): IAssistant|undefined;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
@@ -185,6 +187,7 @@ export function createDummyGristServer(): GristServer {
     getWidgetRepository() { throw new Error('no widget repository'); },
     getNotifier() { throw new Error('no notifier'); },
     getDocNotificationManager(): IDocNotificationManager|undefined { return undefined; },
+    getPubSubManager(): IPubSubManager { throw new Error('no PubSubManager'); },
     hasNotifier() { return false; },
     getAssistant() { return undefined; },
     getDocTemplate() { throw new Error('no doc template'); },

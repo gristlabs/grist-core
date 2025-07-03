@@ -68,12 +68,13 @@ import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
+import { createPubSubManager, IPubSubManager } from 'app/server/lib/PubSubManager';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
         optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
 import {buildScimRouter} from 'app/server/lib/scim';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
-import {getDatabaseUrl, getPubSubPrefix, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
+import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
@@ -99,7 +100,6 @@ import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
-import {createClient, RedisClient} from 'redis';
 import * as serveStatic from 'serve-static';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
@@ -111,6 +111,9 @@ const HEALTH_CHECK_LOG_SHOW_EVERY_N = 100;
 // DocID of Grist doc to collect the Welcome questionnaire responses, such
 // as "GristNewUserInfo".
 const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO;
+
+// PubSub channel we use to inform all servers when a new available Grist version is detected.
+const latestVersionChannel = 'latestVersionAvailable';
 
 export interface FlexServerOptions {
   dataDir?: string;
@@ -172,6 +175,7 @@ export class FlexServer implements GristServer {
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
   private _docNotificationManager: IDocNotificationManager|undefined|false = false;
+  private _pubSubManager: IPubSubManager = createPubSubManager(process.env.REDIS_URL);
   private _assistant?: IAssistant;
   private _accessTokens: IAccessTokens;
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
@@ -209,7 +213,6 @@ export class FlexServer implements GristServer {
   private _emitNotifier = new EmitNotifier();
   private _testPendingNotifications: number = 0;
   private _latestVersionAvailable?: LatestVersionAvailable;
-  private _redisSubscriptionClient?: RedisClient|null;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -264,10 +267,12 @@ export class FlexServer implements GristServer {
     this.info.push(['defaultBaseDomain', this._defaultBaseDomain]);
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
 
-    if (process.env.REDIS_URL) {
-      this._redisSubscriptionClient = createClient(process.env.REDIS_URL);
-      this._subscribeToVersionUpdates();
-    }
+    // We don't bother unsubscribing because that's automatic when we close this._pubSubManager.
+    this.getPubSubManager().subscribe(latestVersionChannel, (message) => {
+      const latestVersionAvailable: LatestVersionAvailable = JSON.parse(message);
+      log.debug('FlexServer: setting latest version', latestVersionAvailable);
+      this.setLatestVersionAvailable(latestVersionAvailable);
+    });
 
     // The electron build is not supported at this time, but this stub
     // implementation of electronServerMethods is present to allow kicking
@@ -465,6 +470,10 @@ export class FlexServer implements GristServer {
       this._docNotificationManager = this.create.createDocNotificationManager(this);
     }
     return this._docNotificationManager;
+  }
+
+  public getPubSubManager(): IPubSubManager {
+    return this._pubSubManager;
   }
 
   public getAssistant(): IAssistant | undefined {
@@ -1054,7 +1063,7 @@ export class FlexServer implements GristServer {
     if (this._sessionStore) { await this._sessionStore.close(); }
     if (this._auditLogger) { await this._auditLogger.close(); }
     if (this._billing) { await this._billing.close?.(); }
-    if (this._redisSubscriptionClient) { await this._redisSubscriptionClient.quitAsync(); }
+    await this._pubSubManager.close();
   }
 
   public addDocApiForwarder() {
@@ -2067,20 +2076,10 @@ export class FlexServer implements GristServer {
   public async publishLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): Promise<void> {
     log.info(`Publishing ${latestVersionAvailable.version} as the latest available version`);
 
-    if (process.env.REDIS_URL) {
-      const client = createClient(process.env.REDIS_URL);
-      const prefix = getPubSubPrefix();
-      const channel = `${prefix}-latestVersionAvailable`;
-      try {
-        await client.publishAsync(channel, JSON.stringify(latestVersionAvailable));
-      } catch(error) {
-        log.error(`Error publishing latest version`, {error, latestVersionAvailable});
-      } finally {
-        await client.quitAsync();
-      }
-    } else {
-      // No Redis, so let's assume this is a single-server setup and skip pub/sub
-      this.setLatestVersionAvailable(latestVersionAvailable);
+    try {
+      await this.getPubSubManager().publish(latestVersionChannel, JSON.stringify(latestVersionAvailable));
+    } catch(error) {
+      log.error(`Error publishing latest version`, {error, latestVersionAvailable});
     }
   }
 
@@ -2415,23 +2414,6 @@ export class FlexServer implements GristServer {
       return true;
     }
     return false;
-  }
-
-  private _subscribeToVersionUpdates() {
-    // If we have a Redis client, subscribe it to get version updates
-    if (this._redisSubscriptionClient) {
-      const prefix = getPubSubPrefix();
-      const channel = `${prefix}-latestVersionAvailable`;
-      this._redisSubscriptionClient.subscribe(channel);
-      this._redisSubscriptionClient.on("message", async (_, message) => {
-        const latestVersionAvailable: LatestVersionAvailable = JSON.parse(message);
-        log.debug('subscribeToVersionUpdates: setting latest version', latestVersionAvailable);
-        this.setLatestVersionAvailable(latestVersionAvailable);
-      });
-      this._redisSubscriptionClient.on("error", async (error) => {
-        log.warn('subscribeToVersionUpdates: redis client error', error);
-      });
-    }
   }
 
   private _createServers() {
