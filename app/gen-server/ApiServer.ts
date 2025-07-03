@@ -627,7 +627,11 @@ export class ApiServer {
     // PATCH /service-accounts/:said
     // Modifies one particular service account of the user making the api call.
     this._app.patch('/api/service-accounts/:said', expressWrap(async (req, res) => {
-      throw new ApiError('patch by id Not implemented yet ;)', 501);
+      const userId = getAuthorizedUserId(req);
+      const serviceAccountId = req.params.said;
+      const partial = req.body;
+      const respData = await this._dbManager.updateServiceAccount(userId, Number(serviceAccountId), partial);
+      return sendOkReply(req, res, respData);
     }));
 
     // DELETE /service-accounts/:said

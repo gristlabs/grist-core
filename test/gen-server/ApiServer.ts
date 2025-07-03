@@ -2239,23 +2239,45 @@ describe('ApiServer', function() {
       assert.fail();
     });
 
-    it('Endpoint UPDATE /api/service-accounts/{saId} is operational', async function() {
+    it('Endpoint PATCH /api/service-accounts/{saId} is operational', async function() {
+      const body = {
+        label: "All thing must change",
+        description: "from a start",
+        endOfLife:"2042-07-21",
+      };
+      const newDescription = "to an end";
+      const patch = {
+        description: newDescription
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
+      const expectedBody = {
+        ...body,
+        id: serviceId,
+        description: newDescription,
+        endOfLife: `${body.endOfLife} 00:00:00.000`
+      };
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      assert.equal(resp2.status, 200);
+      const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      assert.isObject(resp3.data);
+      assert.hasAllKeys(resp3.data, ["id", "label", "description", "endOfLife"]);
+      assert.deepEqual(resp3.data, expectedBody);
+    });
+
+    it('Endpoint PATCH /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
       assert.fail();
     });
 
-    it('Endpoint UPDATE /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
+    it('Endpoint PATCH /api/service-accounts/{saId} returns 400 on empty label', async function() {
       assert.fail();
     });
 
-    it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 on empty label', async function() {
+    it('Endpoint PATCH /api/service-accounts/{saId} returns 400 on invalid endOfLife', async function() {
       assert.fail();
     });
 
-    it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 on invalid endOfLife', async function() {
-      assert.fail();
-    });
-
-    it('Endpoint UPDATE /api/service-accounts/{saId} returns 400 if trying to update owner', async function() {
+    it('Endpoint PATCH /api/service-accounts/{saId} returns 400 if trying to update owner', async function() {
       assert.fail();
     });
 

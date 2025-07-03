@@ -102,16 +102,16 @@ export class ServiceAccountsManager {
   public async updateServiceAccount(
     serviceAccountId: number,
     ownerId: number,
-    partial?: any,
+    partial: any,
   ){
     // FIXME Verify partial content
     // only label, description, endOfLife can be updated
-    await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async manager => {
       return await manager.createQueryBuilder()
         .update(ServiceAccount)
         .set(partial)
         .where(
-          "owner_id = :ownerId AND service_account_id = :serviceAccountId",
+          "owner_id = :ownerId AND id = :serviceAccountId",
           {
             ownerId,
             serviceAccountId

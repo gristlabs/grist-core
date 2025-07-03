@@ -3307,6 +3307,11 @@ export class HomeDBManager {
   }
 
   // TODO be consistent in argument order
+  public async updateServiceAccount(ownerId: number, serviceId: number, partial: any){
+    return this._serviceAccountsManager.updateServiceAccount(serviceId, ownerId, partial);
+  }
+
+  // TODO be consistent in argument order
   public async deleteServiceAccount(ownerId: number, serviceId: number){
     return this._serviceAccountsManager.deleteServiceAccount(serviceId, ownerId);
   }
