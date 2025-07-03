@@ -1733,7 +1733,9 @@
         "On": "On",
         "Grist Instance": "Grist Instance",
         "Auto-check weekly": "Auto-check weekly",
-        "No record of last version check": "No record of last version check"
+        "No record of last version check": "No record of last version check",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them."
     },
     "Columns": {
         "Remove Column": "Remove Column"
