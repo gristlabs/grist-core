@@ -849,9 +849,9 @@ describe('GranularAccess', function() {
     await owner.getDocAPI(docId).addRows('PartialPrivate', {A: [99, 100]});
     assert.equal(rowSteps.called, true);
 
-    // Check editor cannot see private table schema via fetchTableSchema.
-    assert.match((await cliEditor.send('fetchTableSchema', 0)).error!, /Cannot view code/);
-    assert.equal((await cliOwner.send('fetchTableSchema', 0)).error, undefined);
+    // Check editor cannot see private table schema via fetchPythonCode.
+    assert.match((await cliEditor.send('fetchPythonCode', 0)).error!, /Cannot view code/);
+    assert.equal((await cliOwner.send('fetchPythonCode', 0)).error, undefined);
   });
 
   it('reports memos sensibly', async function() {
