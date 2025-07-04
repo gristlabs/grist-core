@@ -2176,20 +2176,42 @@ describe('ApiServer', function() {
 
     // TODO test that non authentified user can't insert an api key
 
-    it('Endpoint POST /api/service-accounts should insert non-empty values for label, description and endOfLifereturns',
+    it(`Endpoint POST /api/service-accounts should return proper values
+for label, description and endOfLife when given`,
       async function() {
       const body = {
         label: "A label",
         description: "A description",
         endOfLife:"2042-07-21",
       };
+      const partialExpectedData = {
+        label: "A label",
+        msg: "Please save your api key. It's the only time you will see it.",
+        description: "A description",
+        endOfLife: "2042-07-21",
+      };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
+      assert.isObject(resp.data);
+      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife"]);
+      assert.isString(resp.data.key);
+      assert.isNotEmpty(resp.data.key);
+      assert.isNumber(resp.data.id);
+
+      const expectedData = { id: resp.data.id, key:resp.data.key, ...partialExpectedData };
+      assert.deepEqual(resp.data, expectedData);
     });
 
     // TODO make on or more test of the behaviour of different values
-    it('Endpoint POST /api/service-accounts returns 400 when missing parameter in request body', async function() {
-      assert.fail();
+    it('Endpoint POST /api/service-accounts returns default values on empty body', async function() {
+      const body = {
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      assert.equal(resp.status, 200);
+      assert.isObject(resp.data);
+      assert.isEmpty(resp.data.label);
+      assert.isEmpty(resp.data.description);
+      assert.isTrue(resp.data.endOfLife < new Date().toISOString());
     });
 
     it('Endpoint POST /api/service-accounts returns 400 on invalid endOfLife', async function() {
