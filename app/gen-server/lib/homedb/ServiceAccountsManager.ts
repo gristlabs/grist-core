@@ -1,7 +1,5 @@
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-//import { UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { EntityManager } from 'typeorm';
-import { User } from 'app/gen-server/entity/User';
 import {v4 as uuidv4} from 'uuid';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 
@@ -23,8 +21,7 @@ export class ServiceAccountsManager {
     const manager = optManager || new EntityManager(this._connection);
     const queryBuilder = manager.createQueryBuilder()
       .delete()
-      .from(User, 'users')
-      .where('users.type ="service"');
+      .from(ServiceAccount, 'service_accounts');
     return await queryBuilder.execute();
   }
 

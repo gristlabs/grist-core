@@ -2158,6 +2158,10 @@ describe('ApiServer', function() {
 
   describe('Service Accounts', function() {
 
+    afterEach(async ()=>{
+      await dbManager.deleteAllServiceAccounts();
+    });
+
     it('Endpoint POST /api/service-accounts is operational', async function() {
       const body = {
         label: "A small service for the chimpy",

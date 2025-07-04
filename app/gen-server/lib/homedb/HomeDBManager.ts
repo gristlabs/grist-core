@@ -3284,6 +3284,9 @@ export class HomeDBManager {
   public makeJsonArray(content: string): string { return makeJsonArray(this._dbType, content); }
   public readJson(selection: any) { return readJson(this._dbType, selection); }
 
+  // This method is implemented for test purpose only
+  // Using it outside of tests context will lead to partial db
+  // destruction
   public async deleteAllServiceAccounts(){
     return this._serviceAccountsManager.deleteAllServiceAccounts();
   }
