@@ -2214,12 +2214,12 @@ for label, description and endOfLife when given`,
       assert.isTrue(resp.data.endOfLife < new Date().toISOString());
     });
 
-    it('Endpoint POST /api/service-accounts returns 400 on invalid endOfLife', async function() {
-      assert.fail();
-    });
-
-    it('Endpoint POST /api/service-accounts creates a default description when not set', async function() {
-      assert.fail();
+    it('Endpoint POST /api/service-accounts returns 400 when wrong endOfLife is given', async function() {
+      const body = {
+        endOfLife: 'tutu',
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      assert.equal(resp.status, 400);
     });
 
     it('Endpoint GET /api/service-accounts is operational', async function() {

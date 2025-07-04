@@ -2,6 +2,7 @@ import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { EntityManager } from 'typeorm';
 import {v4 as uuidv4} from 'uuid';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
+import { ApiError } from 'app/common/ApiError';
 
 export class ServiceAccountsManager {
 
@@ -44,9 +45,14 @@ export class ServiceAccountsManager {
       const securedescription: string = description ? description : "";
       // End of life is set to now leading to a non functionning service service_account_id
       // if not provided;
-      const endOfLifeString = endOfLife ?
+      let endOfLifeString = "";
+      try {
+      endOfLifeString = endOfLife ?
         new Date(endOfLife).toISOString().split('T')[0] :
         new Date().toISOString().split('T')[0];
+      } catch (e){
+        throw new ApiError(`Bad Request: endOfLife ${endOfLife} is not a valid date.\n ${e}`, 400);
+      }
       // FIXME use manager.save(entité);
       const insert = await manager.createQueryBuilder()
         .insert()
