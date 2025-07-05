@@ -2242,7 +2242,8 @@ for label, description and endOfLife when given`,
     });
 
     it("Endpoint GET /api/service-accounts returns 404 when user don't own any service account", async function() {
-      assert.fail();
+      const resp = await axios.get(`${homeUrl}/api/service-accounts`, chimpy);
+      assert.equal(resp.status, 404);
     });
 
     it('Endpoint GET /api/service-accounts/{saId} is operational', async function() {
