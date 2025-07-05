@@ -2294,7 +2294,13 @@ for label, description and endOfLife when given`,
     });
 
     it('Endpoint PATCH /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
-      assert.fail();
+      const patch = {
+        description: "A description"
+      };
+      const resp = await axios.get(`${homeUrl}/api/service-accounts/1`, chimpy);
+      assert.equal(resp.status, 404, "get 404");
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/1`, patch, chimpy);
+      assert.equal(resp2.status, 404, "patch 404");
     });
 
     it('Endpoint PATCH /api/service-accounts/{saId} returns 400 on empty label', async function() {

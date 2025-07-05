@@ -634,6 +634,9 @@ export class ApiServer {
       const serviceAccountId = req.params.said;
       const partial = req.body;
       const respData = await this._dbManager.updateServiceAccount(userId, Number(serviceAccountId), partial);
+      if (respData.affected == 0){
+        throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
+      }
       return sendOkReply(req, res, respData);
     }));
 
