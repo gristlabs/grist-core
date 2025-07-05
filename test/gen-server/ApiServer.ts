@@ -2262,7 +2262,8 @@ for label, description and endOfLife when given`,
     });
 
     it('Endpoint GET /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
-      assert.fail();
+      const resp = await axios.get(`${homeUrl}/api/service-accounts/1`, chimpy);
+      assert.equal(resp.status, 404);
     });
 
     it('Endpoint PATCH /api/service-accounts/{saId} is operational', async function() {
