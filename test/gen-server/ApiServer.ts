@@ -2303,16 +2303,65 @@ for label, description and endOfLife when given`,
       assert.equal(resp2.status, 404, "patch 404");
     });
 
-    it('Endpoint PATCH /api/service-accounts/{saId} returns 400 on empty label', async function() {
-      assert.fail();
+    it('Endpoint PATCH /api/service-accounts/{saId} returns 400 on non valid label', async function() {
+      const body = {
+        label: "All thing must change",
+        description: "from a start",
+        endOfLife:"2042-07-21",
+      };
+      const patch = {
+        label: null
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      assert.equal(resp2.status, 400);
     });
 
     it('Endpoint PATCH /api/service-accounts/{saId} returns 400 on invalid endOfLife', async function() {
-      assert.fail();
+      const body = {
+        label: "All thing must change",
+        description: "from a start",
+        endOfLife:"2042-07-21",
+      };
+      const patch = {
+        endOfLife: "something"
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      assert.equal(resp2.status, 400);
     });
 
     it('Endpoint PATCH /api/service-accounts/{saId} returns 400 if trying to update owner', async function() {
-      assert.fail();
+      const body = {
+        label: "All thing must change",
+        description: "from a start",
+        endOfLife:"2042-07-21",
+      };
+      const patch = {
+        owner_id: 1,
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      assert.equal(resp2.status, 400);
+    });
+
+    it('Endpoint PATCH /api/service-accounts/{saId} returns 400 \
+if trying to update service Account user', async function() {
+      const body = {
+        label: "All thing must change",
+        description: "from a start",
+        endOfLife:"2042-07-21",
+      };
+      const patch = {
+        "service_owner_id": "something"
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      assert.equal(resp2.status, 400);
     });
 
     it('Endpoint DELETE /api/service-accounts/{saId} is operational', async function() {

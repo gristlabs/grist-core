@@ -107,8 +107,25 @@ export class ServiceAccountsManager {
     ownerId: number,
     partial: any,
   ){
-    // FIXME Verify partial content
-    // only label, description, endOfLife can be updated
+    const authorizedPatchKeys = ["label", "description", "endOfLife"];
+    for (const key in partial){
+      if (!authorizedPatchKeys.includes(key)){
+        throw new ApiError(`invalid key ${key}`, 400);
+      }
+    }
+    if (typeof partial.label != 'undefined' && typeof partial.label != 'string'){
+        throw new ApiError(`invalid value for label. Must be a string`, 400);
+    }
+    if (typeof partial.endOfLife != 'undefined'){
+      //TODO factorize this function existing above
+      try {
+        partial.endOfLife = partial.endOfLife ?
+        new Date(partial.endOfLife).toISOString().split('T')[0] :
+        new Date().toISOString().split('T')[0];
+      } catch (e){
+        throw new ApiError(`Bad Request: endOfLife ${partial.endOfLife} is not a valid date.\n ${e}`, 400);
+      }
+    }
     return await this._connection.transaction(async manager => {
       return await manager.createQueryBuilder()
         .update(ServiceAccount)
