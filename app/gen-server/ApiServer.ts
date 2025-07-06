@@ -644,8 +644,12 @@ export class ApiServer {
     // Deletes one particular service account of the user making the api call.
     this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const data = await this._dbManager.deleteServiceAccount(userId, Number(req.params.said));
-      return sendOkReply(req, res, data);
+      const serviceAccountId = req.params.said;
+      const respData = await this._dbManager.deleteServiceAccount(userId, Number(serviceAccountId));
+      if (respData.affected == 0){
+        throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
+      }
+      return sendOkReply(req, res, respData);
     }));
 
     // POST /service-accounts/:said/key/regenerate

@@ -2381,7 +2381,8 @@ if trying to update service Account user', async function() {
     });
 
     it('Endpoint DELETE /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
-      assert.fail();
+      const resp = await axios.delete(`${homeUrl}/api/service-accounts/1`, chimpy);
+      assert.equal(resp.status, 404);
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/regenerate is operational', async function() {
