@@ -613,8 +613,8 @@ export class ApiServer {
     // Reads one particular service account of the user making the api call.
     this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = req.params.said;
-      const data = await this._dbManager.getServiceAccount(userId, Number(serviceAccountId));
+      const serviceAccountId = Number(req.params.said);
+      const data = await this._dbManager.getServiceAccount(serviceAccountId, userId);
       if (typeof data === "undefined"){
          throw new ApiError(`No such service account ${serviceAccountId}`, 404);
       }
@@ -631,9 +631,9 @@ export class ApiServer {
     // Modifies one particular service account of the user making the api call.
     this._app.patch('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = req.params.said;
+      const serviceAccountId = Number(req.params.said);
       const partial = req.body;
-      const respData = await this._dbManager.updateServiceAccount(userId, Number(serviceAccountId), partial);
+      const respData = await this._dbManager.updateServiceAccount(serviceAccountId, userId, partial);
       if (respData.affected == 0){
         throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
       }
@@ -644,8 +644,8 @@ export class ApiServer {
     // Deletes one particular service account of the user making the api call.
     this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = req.params.said;
-      const respData = await this._dbManager.deleteServiceAccount(userId, Number(serviceAccountId));
+      const serviceAccountId = Number(req.params.said);
+      const respData = await this._dbManager.deleteServiceAccount(serviceAccountId, userId);
       if (respData.affected == 0){
         throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
       }
@@ -656,8 +656,8 @@ export class ApiServer {
     // Regenerate and return the apikey of a given Service Account
     this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = req.params.said;
-      const respData = await this._dbManager.regenerateServiceAccount(userId, Number(serviceAccountId));
+      const serviceAccountId = Number(req.params.said);
+      const respData = await this._dbManager.regenerateServiceAccount(serviceAccountId, userId);
       return sendOkReply(req, res, respData);
     }));
 
@@ -665,8 +665,8 @@ export class ApiServer {
     // Revokes the apikey of a given Service Account by deleting it
     this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = req.params.said;
-      const respData = await this._dbManager.revokeServiceAccount(userId, Number(serviceAccountId));
+      const serviceAccountId = Number(req.params.said);
+      const respData = await this._dbManager.revokeServiceAccount(serviceAccountId, userId);
       return sendOkReply(req, res, respData);
     }));
   }

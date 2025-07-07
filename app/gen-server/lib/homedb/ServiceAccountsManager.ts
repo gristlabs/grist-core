@@ -33,13 +33,9 @@ export class ServiceAccountsManager {
     endOfLife?: Date,
   ){
     return await this._connection.transaction(async manager => {
-      //TODO create new service user in order to have its
-      //id to insert
       const uuid = uuidv4();
       const email = `${uuid}@serviceaccounts.local`;
       const serviceUser = await this._homeDb.getUserByLogin(email, {manager}, 'service');
-      // TODO ideally create api key must be in the same transaction as getUserByLogin
-      // Cause we wan't a full revert of both creation if on fails
       const apiKey = (await this._homeDb.createApiKey(serviceUser.id, false, manager)).apiKey;
       const securelabel: string = label ? label : "";
       const securedescription: string = description ? description : "";
@@ -53,7 +49,7 @@ export class ServiceAccountsManager {
       } catch (e){
         throw new ApiError(`Bad Request: endOfLife ${endOfLife} is not a valid date.\n ${e}`, 400);
       }
-      // FIXME use manager.save(entité);
+      // FIXME use manager.save(entity);
       const insert = await manager.createQueryBuilder()
         .insert()
         .into(ServiceAccount)

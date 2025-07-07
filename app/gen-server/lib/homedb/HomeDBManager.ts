@@ -3304,26 +3304,23 @@ export class HomeDBManager {
     return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
   }
 
-  // TODO be consistent in argument order
-  public async getServiceAccount(ownerId: number, serviceId: number){
+  public async getServiceAccount(serviceId: number, ownerId: number){
     return this._serviceAccountsManager.readServiceAccount(serviceId, ownerId);
   }
 
-  // TODO be consistent in argument order
-  public async updateServiceAccount(ownerId: number, serviceId: number, partial: any){
+  public async updateServiceAccount(serviceId: number, ownerId: any, partial: any){
     return this._serviceAccountsManager.updateServiceAccount(serviceId, ownerId, partial);
   }
 
-  // TODO be consistent in argument order
-  public async deleteServiceAccount(ownerId: number, serviceId: number){
+  public async deleteServiceAccount(serviceId: number, ownerId: number){
     return this._serviceAccountsManager.deleteServiceAccount(serviceId, ownerId);
   }
 
-  public async regenerateServiceAccount(ownerId: number, serviceId: number){
+  public async regenerateServiceAccount(serviceId: number, ownerId: number){
     return this._serviceAccountsManager.regenerateServiceAccount(serviceId, ownerId);
   }
 
-  public async revokeServiceAccount(ownerId: number, serviceId: number){
+  public async revokeServiceAccount(serviceId: number, ownerId: number){
     return this._serviceAccountsManager.revokeServiceAccount(serviceId, ownerId);
   }
 

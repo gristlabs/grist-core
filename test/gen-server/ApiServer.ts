@@ -2210,7 +2210,6 @@ for label, description and endOfLife when given`,
       assert.deepEqual(resp.data, expectedData);
     });
 
-    // TODO make on or more test of the behaviour of different values
     it('Endpoint POST /api/service-accounts returns default values on empty body', async function() {
       const body = {
       };
@@ -2406,7 +2405,7 @@ if trying to update service Account user', async function() {
       const apikey2 = resp2.data.key;
       assert.equal(resp2.status, 200);
       assert.isNotEmpty(apikey2);
-      //todo get again to verify key is really persisted
+      //TODO get again to verify key is really persisted
       assert.notEqual(apikey1, apikey2);
     });
 
@@ -2427,7 +2426,7 @@ if trying to update service Account user', async function() {
       const serviceId = resp.data.id;
       const resp2 = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/key/revoke`, {}, chimpy);
       assert.equal(resp2.status, 200);
-      //todo add an active true false column in service account model
+      //TODO add an active true false column in service account model
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/revoke returns 404 on non-existing {saId}',
