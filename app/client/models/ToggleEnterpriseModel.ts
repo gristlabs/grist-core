@@ -42,7 +42,6 @@ export class ToggleEnterpriseModel extends Disposable {
       await retryOnNetworkError(() => this._configAPI.setValue({edition}));
       this.edition.set(edition);
       await retryOnNetworkError(() => this._configAPI.restartServer());
-      await this._reloadWhenReady();
     };
     await this._doWork(task);
   }
@@ -51,7 +50,6 @@ export class ToggleEnterpriseModel extends Disposable {
     const task = async () => {
       await this._activationAPI.activateEnterprise(key);
       await retryOnNetworkError(() => this._configAPI.restartServer());
-      await this._reloadWhenReady();
     };
     await this._doWork(task);
   }
@@ -60,11 +58,13 @@ export class ToggleEnterpriseModel extends Disposable {
     if (this.busy.get()) {
       throw new Error(t("Please wait for the previous operation to complete."));
     }
+    this.busy.set(true);
     try {
-      this.busy.set(true);
       await this._notifier.slowNotification(func());
-    } finally {
+      await this._reloadWhenReady();
+    } catch (err) {
       this.busy.set(false);
+      throw err;
     }
   }
 
@@ -84,7 +84,7 @@ export class ToggleEnterpriseModel extends Disposable {
         await delay(1000);
       }
     }
-    window.location.reload();
+    throw new Error(t("Timed out on waiting for the Grist backend to restart"));
   }
 }
 
