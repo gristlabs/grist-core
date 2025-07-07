@@ -112,6 +112,8 @@ export function attachEarlyEndpoints(options: AttachOptions) {
             "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
         });
       }
+      // We're going down, so we're no longer ready to serve requests.
+      gristServer.setReady(false);
       return res.status(200).send({ msg: "ok" });
     })
   );
