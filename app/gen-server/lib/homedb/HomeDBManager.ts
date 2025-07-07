@@ -3323,6 +3323,10 @@ export class HomeDBManager {
     return this._serviceAccountsManager.regenerateServiceAccount(serviceId, ownerId);
   }
 
+  public async revokeServiceAccount(ownerId: number, serviceId: number){
+    return this._serviceAccountsManager.revokeServiceAccount(serviceId, ownerId);
+  }
+
   public async getApiKey(userId: number){
     return this._usersManager.getApiKey(userId);
   }
@@ -3331,8 +3335,8 @@ export class HomeDBManager {
     return this._usersManager.createApiKey(userId, force, transaction);
   }
 
-  public async deleteApiKey(userId: number){
-    return this._usersManager.deleteApiKey(userId);
+  public async deleteApiKey(userId: number, transaction?: EntityManager){
+    return this._usersManager.deleteApiKey(userId, transaction);
   }
 
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {

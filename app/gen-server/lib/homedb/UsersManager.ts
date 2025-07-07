@@ -906,8 +906,8 @@ export class UsersManager {
     });
   }
 
-  public async deleteApiKey(userId: number): Promise<User> {
-    return await this._connection.transaction(async manager => {
+  public async deleteApiKey(userId: number, transaction?: EntityManager): Promise<User> {
+    return await this._runInTransaction(transaction, async manager => {
       const user = await manager.findOne(User, {where: {id: userId}});
       if (!user) {
         throw new Error("user not known");

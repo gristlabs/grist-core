@@ -186,4 +186,31 @@ export class ServiceAccountsManager {
       };
     });
   }
+
+  public async revokeServiceAccount(
+    serviceAccountId: number,
+    ownerId: number,
+  ){
+    return await this._connection.transaction(async manager => {
+      // TODO factorize with this.readServiceAccount
+      const serviceUser = (await manager.createQueryBuilder()
+        .select("*")
+        .from(ServiceAccount, "service_accounts")
+        .where("owner_id = :ownerId", {ownerId})
+        .andWhere("id = :serviceAccountId", {serviceAccountId})
+        .execute())[0];
+      if (typeof serviceUser === "undefined"){
+        throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountId}`, 404);
+      }
+      const apiKey = await this._homeDb.deleteApiKey(serviceUser.id, manager);
+      return {
+        id: serviceUser.id,
+        key: apiKey,
+        msg: "Please save your api key. It's the only time you will see it.",
+        label: serviceUser.label,
+        description: serviceUser.description,
+        endOfLife: serviceUser.endOfLife
+      };
+    });
+  }
 }

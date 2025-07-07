@@ -664,7 +664,10 @@ export class ApiServer {
     // POST /service-accounts/:said/key/revoke
     // Revokes the apikey of a given Service Account by deleting it
     this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
-      throw new ApiError('deletes api key by id Not implemented yet ;)', 501);
+      const userId = getAuthorizedUserId(req);
+      const serviceAccountId = req.params.said;
+      const respData = await this._dbManager.revokeServiceAccount(userId, Number(serviceAccountId));
+      return sendOkReply(req, res, respData);
     }));
   }
 
