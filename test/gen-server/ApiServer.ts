@@ -2438,10 +2438,22 @@ if trying to update service Account user', async function() {
 
     it('Service user MUSN\'T log into the app', async function() {
       assert.fail();
+      // TODO put it in the same test file that the on that test user login
+      // from front
     });
 
     //TODO test that revoked service account can't do api calls
+    // create a service account add its user to a document
+    // revoke it
+    // verify it can't access it via api (2)
+    //---
     //TODO test that outdated service account can't do api calls
+    // create a service account with an outdated api key add its user to a document
+    // verify it can't access it via api (3)
+    //---
+    //TODO test created service account can be added to a document then
+    //do some action via api (1)
+    //---
   });
 
   describe('GET /api/orgs/{oid}/usage', function() {
