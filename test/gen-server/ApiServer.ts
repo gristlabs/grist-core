@@ -2174,7 +2174,15 @@ describe('ApiServer', function() {
       assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife"]);
     });
 
-    // TODO test that non authentified user can't insert an api key
+    it('Endpoint POST /api/service-accounts with anonymous user is rejected', async function() {
+      const body = {
+        label: "A malicious key ?",
+        description: "Injected by anonymous",
+        endOfLife:"2042-07-21",
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, nobody);
+      assert.equal(resp.status, 401);
+    });
 
     it(`Endpoint POST /api/service-accounts should return proper values
 for label, description and endOfLife when given`,
