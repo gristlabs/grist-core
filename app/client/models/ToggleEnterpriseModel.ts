@@ -74,7 +74,9 @@ export class ToggleEnterpriseModel extends Disposable {
     let maxTries = 30;
     while(maxTries-- > 0) {
       try {
-        await this._configAPI.getValue('edition');
+        await this._configAPI.healthcheck();
+        // We're done, last step is to reload the page.
+        this.busy.set(false);
         window.location.reload();
         return;
       } catch (err) {
