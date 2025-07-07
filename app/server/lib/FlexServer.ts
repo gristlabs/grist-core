@@ -549,6 +549,11 @@ export class FlexServer implements GristServer {
     // If docWorkerRegistered=1 query parameter is included, status will include the status of the
     // doc worker registration in Redis.
     this.app.get('/status(/hooks)?', async (req, res) => {
+      log.rawDebug(`Healthcheck[${req.method}]:`, {
+        host: req.get('host'),
+        path: req.path,
+        query: req.query,
+      });
       const checks = new Map<string, Promise<boolean>|boolean>();
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
 
@@ -1879,6 +1884,7 @@ export class FlexServer implements GristServer {
   }
 
   public ready() {
+    log.debug('FlexServer is ready');
     this._isReady = true;
   }
 

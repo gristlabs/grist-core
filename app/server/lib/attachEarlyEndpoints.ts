@@ -86,12 +86,21 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.post(
     "/api/admin/restart",
-    expressWrap(async (_, res) => {
+    expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const meta = {
+        host: mreq.get('host'),
+        path: mreq.path,
+        email: mreq.user?.loginEmail,
+      };
+      log.rawDebug(`Restart[${mreq.method}] starting:`, meta);
       res.on("finish", () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
+        log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
         if (process.send) {
+          log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
         }
       });
