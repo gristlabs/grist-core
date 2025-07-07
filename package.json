@@ -10,8 +10,6 @@
     "start:debug": "NODE_INSPECT=--inspect sandbox/watch.sh",
     "start:debug-brk": "NODE_INSPECT=--inspect-brk sandbox/watch.sh",
     "install:python": "buildtools/prepare_python.sh",
-    "install:python2": "buildtools/prepare_python2.sh",
-    "install:python3": "buildtools/prepare_python3.sh",
     "build": "buildtools/build.sh",
     "build:prod": "buildtools/build.sh prod",
     "start:prod": "sandbox/run.sh",

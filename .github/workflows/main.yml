@@ -55,10 +55,7 @@ jobs:
 
       - name: Install Node.js packages
         run: yarn install
-
-      - name: Install gvisor
-        run: sudo apt install runsc
-
+ 
       - name: Run eslint
         if: contains(matrix.tests, ':lint:')
         run: yarn run lint:ci
