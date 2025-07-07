@@ -69,8 +69,9 @@ export class ToggleEnterpriseModel extends Disposable {
   }
 
   private async _reloadWhenReady() {
-    // Now wait for the server to come back up, and refresh the page.
-    let maxTries = 10;
+    // Now wait about 30 seconds for the server to come back up, and
+    // refresh the page.
+    let maxTries = 30;
     while(maxTries-- > 0) {
       try {
         await this._configAPI.getValue('edition');
