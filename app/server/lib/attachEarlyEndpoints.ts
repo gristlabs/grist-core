@@ -99,12 +99,11 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
-        if (process.send) {
+        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
           log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
         }
       });
-
       if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
