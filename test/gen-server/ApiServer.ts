@@ -2419,6 +2419,9 @@ if trying to update service Account user', async function() {
     it('Service user MUSN\'T log into the app', async function() {
       assert.fail();
     });
+
+    //TODO test that revoked service account can't do api calls
+    //TODO test that outdated service account can't do api calls
   });
 
   describe('GET /api/orgs/{oid}/usage', function() {
