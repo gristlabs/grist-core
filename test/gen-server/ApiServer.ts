@@ -2402,7 +2402,9 @@ if trying to update service Account user', async function() {
 
     it('Endpoint POST /api/service-accounts/{saId}/key/regenerate returns 404 on non-existing {saId}',
       async function() {
-      assert.fail();
+      const unexistingKeyId = 42;
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/${unexistingKeyId}/key/regenerate`, {}, chimpy);
+      assert.equal(resp.status, 404);
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/revoke is operational', async function() {

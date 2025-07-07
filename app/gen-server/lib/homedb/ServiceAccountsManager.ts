@@ -172,6 +172,9 @@ export class ServiceAccountsManager {
         .where("owner_id = :ownerId", {ownerId})
         .andWhere("id = :serviceAccountId", {serviceAccountId})
         .execute())[0];
+      if (typeof serviceUser === "undefined"){
+        throw new ApiError(`Can't regenerate api key of non existing service account ${serviceAccountId}`, 404);
+      }
       const apiKey = (await this._homeDb.createApiKey(serviceUser.id, true, manager)).apiKey;
       return {
         id: serviceUser.id,
