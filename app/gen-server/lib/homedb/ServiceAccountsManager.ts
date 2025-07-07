@@ -160,4 +160,27 @@ export class ServiceAccountsManager {
     });
   }
 
+  public async regenerateServiceAccount(
+    serviceAccountId: number,
+    ownerId: number,
+  ){
+    return await this._connection.transaction(async manager => {
+      // TODO factorize with this.readServiceAccount
+      const serviceUser = (await manager.createQueryBuilder()
+        .select("*")
+        .from(ServiceAccount, "service_accounts")
+        .where("owner_id = :ownerId", {ownerId})
+        .andWhere("id = :serviceAccountId", {serviceAccountId})
+        .execute())[0];
+      const apiKey = (await this._homeDb.createApiKey(serviceUser.id, true, manager)).apiKey;
+      return {
+        id: serviceUser.id,
+        key: apiKey,
+        msg: "Please save your api key. It's the only time you will see it.",
+        label: serviceUser.label,
+        description: serviceUser.description,
+        endOfLife: serviceUser.endOfLife
+      };
+    });
+  }
 }

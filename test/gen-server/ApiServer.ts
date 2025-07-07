@@ -2386,7 +2386,18 @@ if trying to update service Account user', async function() {
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/regenerate is operational', async function() {
-      assert.fail();
+      const body = {
+        label: "Short life service",
+        description: "Doomed soon",
+        endOfLife:"2042-10-10",
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceId = resp.data.id;
+      const apikey1 = resp.data.key;
+      const resp2 = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/key/regenerate`, {}, chimpy);
+      const apikey2 = resp2.data.key;
+      assert.isNotEmpty(apikey2);
+      assert.notEqual(apikey1, apikey2);
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/regenerate returns 404 on non-existing {saId}',

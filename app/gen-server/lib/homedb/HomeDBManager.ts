@@ -3319,6 +3319,10 @@ export class HomeDBManager {
     return this._serviceAccountsManager.deleteServiceAccount(serviceId, ownerId);
   }
 
+  public async regenerateServiceAccount(ownerId: number, serviceId: number){
+    return this._serviceAccountsManager.regenerateServiceAccount(serviceId, ownerId);
+  }
+
   public async getApiKey(userId: number){
     return this._usersManager.getApiKey(userId);
   }
