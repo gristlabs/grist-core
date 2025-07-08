@@ -42,13 +42,7 @@ export class ServiceAccountsManager {
       // End of life is set to now leading to a non functionning service service_account_id
       // if not provided;
       let endOfLifeString = "";
-      try {
-      endOfLifeString = endOfLife ?
-        new Date(endOfLife).toISOString().split('T')[0] :
-        new Date().toISOString().split('T')[0];
-      } catch (e){
-        throw new ApiError(`Bad Request: endOfLife ${endOfLife} is not a valid date.\n ${e}`, 400);
-      }
+      endOfLifeString = this._sanitizeDateString(endOfLife);
       // FIXME use manager.save(entity);
       const insert = await manager.createQueryBuilder()
         .insert()
@@ -113,14 +107,7 @@ export class ServiceAccountsManager {
         throw new ApiError(`invalid value for label. Must be a string`, 400);
     }
     if (typeof partial.endOfLife != 'undefined'){
-      //TODO factorize this function existing above
-      try {
-        partial.endOfLife = partial.endOfLife ?
-        new Date(partial.endOfLife).toISOString().split('T')[0] :
-        new Date().toISOString().split('T')[0];
-      } catch (e){
-        throw new ApiError(`Bad Request: endOfLife ${partial.endOfLife} is not a valid date.\n ${e}`, 400);
-      }
+      partial.endOfLife = this._sanitizeDateString(partial.endOfLife);
     }
     return await this._connection.transaction(async manager => {
       return await manager.createQueryBuilder()
@@ -208,5 +195,15 @@ export class ServiceAccountsManager {
         endOfLife: serviceUser.endOfLife
       };
     });
+  }
+
+  private _sanitizeDateString(dateString: any): string{
+    try {
+      return dateString ?
+        new Date(dateString).toISOString().split('T')[0] :
+        new Date().toISOString().split('T')[0];
+    } catch (e){
+      throw new ApiError(`Bad Request: endOfLife ${dateString} is not a valid date.\n ${e}`, 400);
+    }
   }
 }
