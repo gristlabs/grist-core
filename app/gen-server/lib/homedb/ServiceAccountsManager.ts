@@ -145,7 +145,7 @@ export class ServiceAccountsManager {
       return {
         id: serviceUser.id,
         key: apiKey,
-        msg: "Please save your api key. It's the only time you will see it.",
+        msg: this._msg,
         label: serviceUser.label,
         description: serviceUser.description,
         endOfLife: serviceUser.endOfLife
