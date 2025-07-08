@@ -149,13 +149,7 @@ export class ServiceAccountsManager {
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
-      // TODO factorize with this.readServiceAccount
-      const serviceUser = (await manager.createQueryBuilder()
-        .select("*")
-        .from(ServiceAccount, "service_accounts")
-        .where("owner_id = :ownerId", {ownerId})
-        .andWhere("id = :serviceAccountId", {serviceAccountId})
-        .execute())[0];
+      const serviceUser = await this.readServiceAccount(serviceAccountId, ownerId, manager);
       if (typeof serviceUser === "undefined"){
         throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountId}`, 404);
       }
@@ -176,13 +170,7 @@ export class ServiceAccountsManager {
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
-      // TODO factorize with this.readServiceAccount
-      const serviceUser = (await manager.createQueryBuilder()
-        .select("*")
-        .from(ServiceAccount, "service_accounts")
-        .where("owner_id = :ownerId", {ownerId})
-        .andWhere("id = :serviceAccountId", {serviceAccountId})
-        .execute())[0];
+      const serviceUser = await this.readServiceAccount(serviceAccountId, ownerId, manager);
       if (typeof serviceUser === "undefined"){
         throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountId}`, 404);
       }
