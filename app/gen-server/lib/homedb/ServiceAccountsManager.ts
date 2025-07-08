@@ -7,6 +7,9 @@ import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
 
 export class ServiceAccountsManager {
 
+  private _msg = "Please save your api key. It's the only time you will see it.";
+
+
   private get _connection () {
     return this._homeDb.connection;
   }
@@ -37,31 +40,23 @@ export class ServiceAccountsManager {
       const uuid = uuidv4();
       const email = `${uuid}@serviceaccounts.local`;
       const serviceUser = await this._homeDb.getUserByLogin(email, {manager}, 'service');
-      const apiKey = (await this._homeDb.createApiKey(serviceUser.id, false, manager)).apiKey;
-      const sanitizedLabel: string = label ? label : "";
-      const sanitizedDescription: string = description ? description : "";
+      const key = (await this._homeDb.createApiKey(serviceUser.id, false, manager)).apiKey;
+      const newServiceAccount = new ServiceAccount();
+      newServiceAccount.owner_id = ownerId;
+      newServiceAccount.service_user_id = serviceUser.id;
+      newServiceAccount.label = label ? label : "";
+      newServiceAccount.description = description ? description : "";
       // End of life is set to now leading to a non functionning service service_account_id
       // if not provided;
-      const sanitizedEndOfLife = this._sanitizeDateString(endOfLife);
-      // FIXME use manager.save(entity);
-      const insert = await manager.createQueryBuilder()
-        .insert()
-        .into(ServiceAccount)
-        .values({
-          owner_id: ownerId,
-          service_user_id: serviceUser.id,
-          label: sanitizedLabel,
-          description: sanitizedDescription,
-          endOfLife: sanitizedEndOfLife,
-        })
-        .execute();
+      newServiceAccount.endOfLife = this._sanitizeDateString(endOfLife);
+      const serviceAccount = await manager.save(newServiceAccount);
       return {
-        id: insert.raw,
-        key: apiKey,
-        msg: "Please save your api key. It's the only time you will see it.",
-        label: sanitizedLabel,
-        description: sanitizedDescription,
-        endOfLife: sanitizedEndOfLife,
+        id: serviceAccount.id,
+        key,
+        msg: this._msg,
+        label: serviceAccount.label,
+        description: serviceAccount.description,
+        endOfLife: serviceAccount.endOfLife
       };
     });
   }
