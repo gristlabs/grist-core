@@ -95,17 +95,11 @@ export class ServiceAccountsManager {
       partial.endOfLife = this._sanitizeDateString(partial.endOfLife);
     }
     return await this._connection.transaction(async manager => {
-      return await manager.createQueryBuilder()
-        .update(ServiceAccount)
-        .set(partial)
-        .where(
-          "owner_id = :ownerId AND id = :serviceAccountId",
-          {
-            ownerId,
-            serviceAccountId
-          }
-        )
-        .execute();
+      return await manager.update(
+        ServiceAccount,
+        {where: {id: serviceAccountId, owner_id: ownerId}},
+        partial
+      );
     });
   }
 
