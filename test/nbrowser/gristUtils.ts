@@ -3928,14 +3928,14 @@ export async function switchUser(email: string) {
 }
 
 /**
- * Waits for the toast message with the given text to appear.
+ * Waits for the toast message with 'access denied' to appear.
  */
 export async function waitForAccessDenied() {
   await waitToPass(async () => {
     assert.equal(
-      await driver.findWait('.test-notifier-toast-message', 1000).getText(),
+      await driver.findWait('.test-notifier-toast-message', 100).getText(),
       'access denied');
-  });
+  }, 500);
 }
 
 /**

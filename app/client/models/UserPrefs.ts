@@ -19,7 +19,7 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
    * for changes on the server, it will only change when set.
    */
   function getPrefsObs(appModel: AppModel): Observable<PrefsType> {
-    if (appModel.currentValidUser) {
+    if (appModel.currentValidUser && appModel.currentOrg) {
       let prefs: PrefsType | undefined;
       if (prefsTypeName === 'userPrefs') {
         prefs = appModel.currentValidUser.prefs;
