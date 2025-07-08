@@ -594,7 +594,6 @@ export class ApiServer {
       const userId = getAuthorizedUserId(req);
       const {label, description, endOfLife} = req.body;
       const apiKey: any = await this._dbManager.createServiceAccount(userId, label, description, endOfLife);
-      //TODO warning msg should be inserted here rather than in Model
       return sendOkReply(req, res, apiKey);
     }));
 
