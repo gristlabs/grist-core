@@ -614,16 +614,7 @@ export class ApiServer {
       const userId = getAuthorizedUserId(req);
       const serviceAccountId = Number(req.params.said);
       const data = await this._dbManager.getServiceAccount(serviceAccountId, userId);
-      if (data == null){
-         throw new ApiError(`No such service account ${serviceAccountId}`, 404);
-      }
-      const respData = {
-        id: data.id,
-        label: data.label,
-        description: data.description,
-        endOfLife: data.endOfLife
-      };
-      return sendOkReply(req, res, respData);
+      return sendOkReply(req, res, data);
     }));
 
     // PATCH /service-accounts/:said

@@ -2171,7 +2171,7 @@ describe('ApiServer', function() {
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
       assert.isObject(resp.data);
-      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife"]);
+      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife", "hasValidKey"]);
     });
 
     it('Endpoint POST /api/service-accounts with anonymous user is rejected', async function() {
@@ -2197,14 +2197,16 @@ for label, description and endOfLife when given`,
         msg: "Please save your api key. It's the only time you will see it.",
         description: "A description",
         endOfLife: "2042-07-21",
+        hasValidKey: true
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
       assert.isObject(resp.data);
-      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife"]);
+      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife", "hasValidKey"]);
       assert.isString(resp.data.key);
       assert.isNotEmpty(resp.data.key);
       assert.isNumber(resp.data.id);
+      assert.isBoolean(resp.data.hasValidKey);
 
       const expectedData = { id: resp.data.id, key:resp.data.key, ...partialExpectedData };
       assert.deepEqual(resp.data, expectedData);
@@ -2261,11 +2263,15 @@ for label, description and endOfLife when given`,
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       const serviceId = resp.data.id;
-      const expectedBody = {...body, endOfLife: `${body.endOfLife}T00:00:00.000Z`};
+      const expectedBody = {
+        ...body,
+        endOfLife: `${body.endOfLife}T00:00:00.000Z`,
+        hasValidKey: true
+      };
       const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
       assert.equal(resp2.status, 200);
       assert.isObject(resp2.data);
-      assert.hasAllKeys(resp2.data, ["id", "label", "description", "endOfLife"]);
+      assert.hasAllKeys(resp2.data, ["id", "label", "description", "endOfLife", "hasValidKey"]);
       assert.deepEqual(resp2.data, {id:serviceId, ...expectedBody});
     });
 
@@ -2290,13 +2296,14 @@ for label, description and endOfLife when given`,
         ...body,
         id: serviceId,
         description: newDescription,
-        endOfLife: `${body.endOfLife}T00:00:00.000Z`
+        endOfLife: `${body.endOfLife}T00:00:00.000Z`,
+        hasValidKey: true
       };
       const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
       assert.equal(resp2.status, 200);
       const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
       assert.isObject(resp3.data);
-      assert.hasAllKeys(resp3.data, ["id", "label", "description", "endOfLife"]);
+      assert.hasAllKeys(resp3.data, ["id", "label", "description", "endOfLife", "hasValidKey"]);
       assert.deepEqual(resp3.data, expectedBody);
     });
 
@@ -2424,9 +2431,16 @@ if trying to update service Account user', async function() {
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       const serviceId = resp.data.id;
+      const expectedBody = {
+        ...body,
+        id: serviceId,
+        endOfLife: `${body.endOfLife}T00:00:00.000Z`,
+        hasValidKey: true
+      };
       const resp2 = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/key/revoke`, {}, chimpy);
       assert.equal(resp2.status, 200);
-      //TODO add an active true false column in service account model
+      const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      assert.deepEqual(resp3.data, expectedBody);
     });
 
     it('Endpoint POST /api/service-accounts/{saId}/key/revoke returns 404 on non-existing {saId}',
