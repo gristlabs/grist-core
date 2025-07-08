@@ -1877,9 +1877,13 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public ready() {
-    log.debug('FlexServer is ready');
-    this._isReady = true;
+  public setReady(value: boolean) {
+    if(value) {
+      log.debug('FlexServer is ready');
+    } else {
+      log.debug('FlexServer is no longer ready');
+    }
+    this._isReady = value;
   }
 
   public checkOptionCombinations() {
