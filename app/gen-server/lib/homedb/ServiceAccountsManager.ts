@@ -73,11 +73,7 @@ export class ServiceAccountsManager {
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
-      return await manager.createQueryBuilder()
-        .select("*")
-        .from(ServiceAccount, "service_accounts")
-        .where("owner_id = :ownerId", {ownerId})
-        .execute();
+      return await manager.find(ServiceAccount, {where: {owner_id: ownerId}});
     });
   }
 
