@@ -401,7 +401,6 @@ export class UsersManager {
         // Special users do not have first time user set so that they don't get redirected to the
         // welcome page.
         user.isFirstTimeUser = !NON_LOGIN_EMAILS.includes(normalizedEmail);
-        // redémarrer lundi ici TODO
         user.type = type;
         login = new Login();
         login.email = normalizedEmail;
