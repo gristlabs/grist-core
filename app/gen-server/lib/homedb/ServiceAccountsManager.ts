@@ -37,12 +37,11 @@ export class ServiceAccountsManager {
       const email = `${uuid}@serviceaccounts.local`;
       const serviceUser = await this._homeDb.getUserByLogin(email, {manager}, 'service');
       const apiKey = (await this._homeDb.createApiKey(serviceUser.id, false, manager)).apiKey;
-      const securelabel: string = label ? label : "";
-      const securedescription: string = description ? description : "";
+      const sanitizedLabel: string = label ? label : "";
+      const sanitizedDescription: string = description ? description : "";
       // End of life is set to now leading to a non functionning service service_account_id
       // if not provided;
-      let endOfLifeString = "";
-      endOfLifeString = this._sanitizeDateString(endOfLife);
+      const sanitizedEndOfLife = this._sanitizeDateString(endOfLife);
       // FIXME use manager.save(entity);
       const insert = await manager.createQueryBuilder()
         .insert()
@@ -50,18 +49,18 @@ export class ServiceAccountsManager {
         .values({
           owner_id: ownerId,
           service_user_id: serviceUser.id,
-          label: securelabel,
-          description: securedescription,
-          endOfLife: endOfLifeString,
+          label: sanitizedLabel,
+          description: sanitizedDescription,
+          endOfLife: sanitizedEndOfLife,
         })
         .execute();
       return {
         id: insert.raw,
         key: apiKey,
         msg: "Please save your api key. It's the only time you will see it.",
-        label: securelabel,
-        description: securedescription,
-        endOfLife: endOfLifeString
+        label: sanitizedLabel,
+        description: sanitizedDescription,
+        endOfLife: sanitizedEndOfLife,
       };
     });
   }
