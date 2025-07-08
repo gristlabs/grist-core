@@ -614,7 +614,7 @@ export class ApiServer {
       const userId = getAuthorizedUserId(req);
       const serviceAccountId = Number(req.params.said);
       const data = await this._dbManager.getServiceAccount(serviceAccountId, userId);
-      if (typeof data === "undefined"){
+      if (data == null){
          throw new ApiError(`No such service account ${serviceAccountId}`, 404);
       }
       const respData = {
