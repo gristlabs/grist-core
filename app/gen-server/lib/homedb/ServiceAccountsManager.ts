@@ -1,8 +1,9 @@
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { EntityManager } from 'typeorm';
-import {v4 as uuidv4} from 'uuid';
-import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
+import { v4 as uuidv4 } from 'uuid';
 import { ApiError } from 'app/common/ApiError';
+import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
 
 export class ServiceAccountsManager {
 
@@ -12,7 +13,7 @@ export class ServiceAccountsManager {
 
   public constructor(
     private readonly _homeDb: HomeDBManager,
-    //private _runInTransaction: RunInTransaction
+    private _runInTransaction: RunInTransaction
   ) {}
 
   // This method is implemented for test purpose only
@@ -68,8 +69,9 @@ export class ServiceAccountsManager {
   public async readServiceAccount(
     serviceAccountId: number,
     ownerId: number,
+    transaction?: EntityManager
   ){
-    return await this._connection.transaction(async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       return (await manager.createQueryBuilder()
         .select("*")
         .from(ServiceAccount, "service_accounts")
