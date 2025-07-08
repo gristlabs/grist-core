@@ -65,12 +65,7 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ){
     return await this._runInTransaction(transaction, async manager => {
-      return (await manager.createQueryBuilder()
-        .select("*")
-        .from(ServiceAccount, "service_accounts")
-        .where("owner_id = :ownerId", {ownerId})
-        .andWhere("id = :serviceAccountId", {serviceAccountId})
-        .execute())[0];
+      return await manager.findOne(ServiceAccount, {where: {id: serviceAccountId, owner_id: ownerId}});
     });
   }
 
@@ -143,7 +138,7 @@ export class ServiceAccountsManager {
   ){
     return await this._connection.transaction(async manager => {
       const serviceUser = await this.readServiceAccount(serviceAccountId, ownerId, manager);
-      if (typeof serviceUser === "undefined"){
+      if (serviceUser == null){
         throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountId}`, 404);
       }
       const apiKey = (await this._homeDb.createApiKey(serviceUser.id, true, manager)).apiKey;
@@ -164,7 +159,7 @@ export class ServiceAccountsManager {
   ){
     return await this._connection.transaction(async manager => {
       const serviceUser = await this.readServiceAccount(serviceAccountId, ownerId, manager);
-      if (typeof serviceUser === "undefined"){
+      if (serviceUser == null){
         throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountId}`, 404);
       }
       const apiKey = await this._homeDb.deleteApiKey(serviceUser.id, manager);
