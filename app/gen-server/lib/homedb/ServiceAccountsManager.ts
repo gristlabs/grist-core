@@ -162,15 +162,8 @@ export class ServiceAccountsManager {
       if (serviceUser == null){
         throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountId}`, 404);
       }
-      const apiKey = await this._homeDb.deleteApiKey(serviceUser.id, manager);
-      return {
-        id: serviceUser.id,
-        key: apiKey,
-        msg: "Please save your api key. It's the only time you will see it.",
-        label: serviceUser.label,
-        description: serviceUser.description,
-        endOfLife: serviceUser.endOfLife
-      };
+      await this._homeDb.deleteApiKey(serviceUser.id, manager);
+      return;
     });
   }
 
