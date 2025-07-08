@@ -65,7 +65,10 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ){
     return await this._runInTransaction(transaction, async manager => {
-      return await manager.findOne(ServiceAccount, {where: {id: serviceAccountId, owner_id: ownerId}});
+      return await manager.findOne(
+        ServiceAccount,
+        {where: {id: serviceAccountId, owner_id: ownerId}}
+      );
     });
   }
 
@@ -73,7 +76,10 @@ export class ServiceAccountsManager {
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
-      return await manager.find(ServiceAccount, {where: {owner_id: ownerId}});
+      return await manager.find(
+        ServiceAccount,
+        {where: {owner_id: ownerId}}
+      );
     });
   }
 
