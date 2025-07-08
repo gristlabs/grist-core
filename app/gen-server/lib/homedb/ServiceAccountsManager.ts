@@ -46,8 +46,6 @@ export class ServiceAccountsManager {
       newServiceAccount.service_user_id = serviceUser.id;
       newServiceAccount.label = label ? label : "";
       newServiceAccount.description = description ? description : "";
-      // End of life is set to now leading to a non functionning service service_account_id
-      // if not provided;
       newServiceAccount.endOfLife = this._sanitizeDateString(endOfLife);
       const serviceAccount = await manager.save(newServiceAccount);
       return {
