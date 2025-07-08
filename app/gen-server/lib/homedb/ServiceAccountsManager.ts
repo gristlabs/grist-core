@@ -114,17 +114,10 @@ export class ServiceAccountsManager {
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
-      return await manager.createQueryBuilder()
-        .delete()
-        .from(ServiceAccount)
-        .where(
-          "owner_id = :ownerId AND id = :serviceAccountId",
-          {
-            ownerId,
-            serviceAccountId
-          }
-        )
-        .execute();
+      return await manager.delete(
+        ServiceAccount,
+        {where: {id: serviceAccountId, owner_id: ownerId}}
+      );
     });
   }
 
