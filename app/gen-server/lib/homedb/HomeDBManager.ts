@@ -3316,12 +3316,12 @@ export class HomeDBManager {
     return this._serviceAccountsManager.deleteServiceAccount(serviceId, ownerId);
   }
 
-  public async regenerateServiceAccount(serviceId: number, ownerId: number){
-    return this._serviceAccountsManager.regenerateServiceAccount(serviceId, ownerId);
+  public async rotateServiceAccountApiKey(serviceId: number, ownerId: number){
+    return this._serviceAccountsManager.rotateServiceAccountApiKey(serviceId, ownerId);
   }
 
-  public async revokeServiceAccount(serviceId: number, ownerId: number){
-    return this._serviceAccountsManager.revokeServiceAccount(serviceId, ownerId);
+  public async revokeServiceAccountApiKey(serviceId: number, ownerId: number){
+    return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceId, ownerId);
   }
 
   public async getApiKey(userId: number){

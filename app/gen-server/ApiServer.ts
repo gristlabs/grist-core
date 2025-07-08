@@ -657,7 +657,7 @@ export class ApiServer {
     this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const serviceAccountId = Number(req.params.said);
-      const respData = await this._dbManager.regenerateServiceAccount(serviceAccountId, userId);
+      const respData = await this._dbManager.rotateServiceAccountApiKey(serviceAccountId, userId);
       return sendOkReply(req, res, respData);
     }));
 
@@ -666,7 +666,7 @@ export class ApiServer {
     this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const serviceAccountId = Number(req.params.said);
-      const respData = await this._dbManager.revokeServiceAccount(serviceAccountId, userId);
+      const respData = await this._dbManager.revokeServiceAccountApiKey(serviceAccountId, userId);
       return sendOkReply(req, res, respData);
     }));
   }

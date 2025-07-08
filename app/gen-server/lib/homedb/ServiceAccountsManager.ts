@@ -142,7 +142,7 @@ export class ServiceAccountsManager {
     });
   }
 
-  public async regenerateServiceAccount(
+  public async rotateServiceAccountApiKey(
     serviceAccountId: number,
     ownerId: number,
   ){
@@ -155,7 +155,7 @@ export class ServiceAccountsManager {
         .andWhere("id = :serviceAccountId", {serviceAccountId})
         .execute())[0];
       if (typeof serviceUser === "undefined"){
-        throw new ApiError(`Can't regenerate api key of non existing service account ${serviceAccountId}`, 404);
+        throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountId}`, 404);
       }
       const apiKey = (await this._homeDb.createApiKey(serviceUser.id, true, manager)).apiKey;
       return {
@@ -169,7 +169,7 @@ export class ServiceAccountsManager {
     });
   }
 
-  public async revokeServiceAccount(
+  public async revokeServiceAccountApiKey(
     serviceAccountId: number,
     ownerId: number,
   ){
