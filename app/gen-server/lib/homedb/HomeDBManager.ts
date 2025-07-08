@@ -272,7 +272,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
 export class HomeDBManager {
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
-  private _serviceAccountsManager = new ServiceAccountsManager(this);
+  private _serviceAccountsManager = new ServiceAccountsManager(this, this.runInTransaction.bind(this));
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
