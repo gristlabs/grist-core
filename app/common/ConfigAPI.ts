@@ -25,6 +25,13 @@ export class ConfigAPI extends BaseAPI {
     await this.request(`${this._url}/api/admin/restart`, {method: 'POST'});
   }
 
+  public async healthcheck(): Promise<void> {
+    const resp = await this.request(`${this._homeUrl}/status?ready=1`);
+    if (!resp.ok) {
+      throw new Error(await resp.text());
+    }
+  }
+
   private get _url(): string {
     return addCurrentOrgToPath(this._homeUrl);
   }
