@@ -2261,7 +2261,7 @@ for label, description and endOfLife when given`,
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       const serviceId = resp.data.id;
-      const expectedBody = {...body, endOfLife: `${body.endOfLife} 00:00:00.000`};
+      const expectedBody = {...body, endOfLife: `${body.endOfLife}T00:00:00.000Z`};
       const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
       assert.equal(resp2.status, 200);
       assert.isObject(resp2.data);
@@ -2290,7 +2290,7 @@ for label, description and endOfLife when given`,
         ...body,
         id: serviceId,
         description: newDescription,
-        endOfLife: `${body.endOfLife} 00:00:00.000`
+        endOfLife: `${body.endOfLife}T00:00:00.000Z`
       };
       const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
       assert.equal(resp2.status, 200);

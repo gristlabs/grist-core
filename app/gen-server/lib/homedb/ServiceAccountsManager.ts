@@ -103,7 +103,7 @@ export class ServiceAccountsManager {
     return await this._connection.transaction(async manager => {
       return await manager.update(
         ServiceAccount,
-        {where: {id: serviceAccountId, owner_id: ownerId}},
+        {id: serviceAccountId, owner_id: ownerId},
         partial
       );
     });
@@ -116,7 +116,7 @@ export class ServiceAccountsManager {
     return await this._connection.transaction(async manager => {
       return await manager.delete(
         ServiceAccount,
-        {where: {id: serviceAccountId, owner_id: ownerId}}
+        {id: serviceAccountId, owner_id: ownerId}
       );
     });
   }
