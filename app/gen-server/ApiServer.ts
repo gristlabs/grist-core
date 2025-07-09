@@ -612,8 +612,8 @@ export class ApiServer {
     // Reads one particular service account of the user making the api call.
     this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = Number(req.params.said);
-      const data = await this._dbManager.getServiceAccount(serviceAccountId, userId);
+      const serviceAccountLogin = req.params.said;
+      const data = await this._dbManager.getServiceAccount(serviceAccountLogin, userId);
       return sendOkReply(req, res, data);
     }));
 
@@ -621,11 +621,11 @@ export class ApiServer {
     // Modifies one particular service account of the user making the api call.
     this._app.patch('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = Number(req.params.said);
+      const serviceAccountLogin = req.params.said;
       const partial = req.body;
-      const respData = await this._dbManager.updateServiceAccount(serviceAccountId, userId, partial);
+      const respData = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, partial);
       if (respData.affected == 0){
-        throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
+        throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
       }
       return sendOkReply(req, res, respData);
     }));
@@ -634,10 +634,10 @@ export class ApiServer {
     // Deletes one particular service account of the user making the api call.
     this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = Number(req.params.said);
-      const respData = await this._dbManager.deleteServiceAccount(serviceAccountId, userId);
+      const serviceAccountLogin = req.params.said;
+      const respData = await this._dbManager.deleteServiceAccount(serviceAccountLogin, userId);
       if (respData.affected == 0){
-        throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
+        throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
       }
       return sendOkReply(req, res, respData);
     }));
@@ -646,8 +646,8 @@ export class ApiServer {
     // Regenerate and return the apikey of a given Service Account
     this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = Number(req.params.said);
-      const respData = await this._dbManager.rotateServiceAccountApiKey(serviceAccountId, userId);
+      const serviceAccountLogin = req.params.said;
+      const respData = await this._dbManager.rotateServiceAccountApiKey(serviceAccountLogin, userId);
       return sendOkReply(req, res, respData);
     }));
 
@@ -655,8 +655,8 @@ export class ApiServer {
     // Revokes the apikey of a given Service Account by deleting it
     this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      const serviceAccountId = Number(req.params.said);
-      const respData = await this._dbManager.revokeServiceAccountApiKey(serviceAccountId, userId);
+      const serviceAccountLogin = req.params.said;
+      const respData = await this._dbManager.revokeServiceAccountApiKey(serviceAccountLogin, userId);
       return sendOkReply(req, res, respData);
     }));
   }

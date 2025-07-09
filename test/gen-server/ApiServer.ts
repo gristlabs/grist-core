@@ -2171,7 +2171,7 @@ describe('ApiServer', function() {
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
       assert.isObject(resp.data);
-      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife", "hasValidKey"]);
+      assert.hasAllKeys(resp.data, ["login", "key", "label", "msg", "description", "endOfLife", "hasValidKey"]);
     });
 
     it('Endpoint POST /api/service-accounts with anonymous user is rejected', async function() {
@@ -2202,13 +2202,13 @@ for label, description and endOfLife when given`,
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
       assert.isObject(resp.data);
-      assert.hasAllKeys(resp.data, ["id", "key", "label", "msg", "description", "endOfLife", "hasValidKey"]);
+      assert.hasAllKeys(resp.data, ["login", "key", "label", "msg", "description", "endOfLife", "hasValidKey"]);
       assert.isString(resp.data.key);
       assert.isNotEmpty(resp.data.key);
-      assert.isNumber(resp.data.id);
+      assert.isString(resp.data.login);
       assert.isBoolean(resp.data.hasValidKey);
 
-      const expectedData = { id: resp.data.id, key:resp.data.key, ...partialExpectedData };
+      const expectedData = { login: resp.data.login, key:resp.data.key, ...partialExpectedData };
       assert.deepEqual(resp.data, expectedData);
     });
 
@@ -2262,17 +2262,17 @@ for label, description and endOfLife when given`,
         endOfLife:"2042-07-21",
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
+      const serviceLogin = resp.data.login;
       const expectedBody = {
         ...body,
         endOfLife: `${body.endOfLife}T00:00:00.000Z`,
         hasValidKey: true
       };
-      const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
       assert.equal(resp2.status, 200);
       assert.isObject(resp2.data);
-      assert.hasAllKeys(resp2.data, ["id", "label", "description", "endOfLife", "hasValidKey"]);
-      assert.deepEqual(resp2.data, {id:serviceId, ...expectedBody});
+      assert.hasAllKeys(resp2.data, ["login", "label", "description", "endOfLife", "hasValidKey"]);
+      assert.deepEqual(resp2.data, {login:serviceLogin, ...expectedBody});
     });
 
     it('Endpoint GET /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
@@ -2291,19 +2291,19 @@ for label, description and endOfLife when given`,
         description: newDescription
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
+      const serviceLogin = resp.data.login;
       const expectedBody = {
         ...body,
-        id: serviceId,
+        login: serviceLogin,
         description: newDescription,
         endOfLife: `${body.endOfLife}T00:00:00.000Z`,
         hasValidKey: true
       };
-      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
       assert.equal(resp2.status, 200);
-      const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
       assert.isObject(resp3.data);
-      assert.hasAllKeys(resp3.data, ["id", "label", "description", "endOfLife", "hasValidKey"]);
+      assert.hasAllKeys(resp3.data, ["login", "label", "description", "endOfLife", "hasValidKey"]);
       assert.deepEqual(resp3.data, expectedBody);
     });
 
@@ -2327,8 +2327,8 @@ for label, description and endOfLife when given`,
         label: null
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
-      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      const serviceLogin = resp.data.login;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
       assert.equal(resp2.status, 400);
     });
 
@@ -2342,8 +2342,8 @@ for label, description and endOfLife when given`,
         endOfLife: "something"
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
-      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      const serviceLogin = resp.data.login;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
       assert.equal(resp2.status, 400);
     });
 
@@ -2357,8 +2357,8 @@ for label, description and endOfLife when given`,
         owner_id: 1,
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
-      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      const serviceLogin = resp.data.login;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
       assert.equal(resp2.status, 400);
     });
 
@@ -2373,8 +2373,8 @@ if trying to update service Account user', async function() {
         "service_owner_id": "something"
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
-      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
+      const serviceLogin = resp.data.login;
+      const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
       assert.equal(resp2.status, 400);
     });
 
@@ -2385,12 +2385,12 @@ if trying to update service Account user', async function() {
         endOfLife:"2042-10-10",
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
-      const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      const serviceLogin = resp.data.login;
+      const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
       assert.equal(resp2.status, 200);
-      const resp3 = await axios.delete(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      const resp3 = await axios.delete(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
       assert.equal(resp3.status, 200);
-      const resp4 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      const resp4 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
       assert.equal(resp4.status, 404);
     });
 
@@ -2406,9 +2406,9 @@ if trying to update service Account user', async function() {
         endOfLife:"2042-10-10",
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
+      const serviceLogin = resp.data.login;
       const apikey1 = resp.data.key;
-      const resp2 = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/key/regenerate`, {}, chimpy);
+      const resp2 = await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/regenerate`, {}, chimpy);
       const apikey2 = resp2.data.key;
       assert.equal(resp2.status, 200);
       assert.isNotEmpty(apikey2);
@@ -2429,16 +2429,16 @@ if trying to update service Account user', async function() {
         endOfLife:"2042-10-10",
       };
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-      const serviceId = resp.data.id;
+      const serviceLogin = resp.data.login;
       const expectedBody = {
         ...body,
-        id: serviceId,
+        login: serviceLogin,
         endOfLife: `${body.endOfLife}T00:00:00.000Z`,
-        hasValidKey: true
+        hasValidKey: false
       };
-      const resp2 = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/key/revoke`, {}, chimpy);
+      const resp2 = await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, chimpy);
       assert.equal(resp2.status, 200);
-      const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
+      const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
       assert.deepEqual(resp3.data, expectedBody);
     });
 

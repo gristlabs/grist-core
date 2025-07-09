@@ -3304,24 +3304,24 @@ export class HomeDBManager {
     return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
   }
 
-  public async getServiceAccount(serviceId: number, ownerId: number){
-    return this._serviceAccountsManager.readServiceAccount(serviceId, ownerId);
+  public async getServiceAccount(serviceLogin: string, ownerId: number){
+    return this._serviceAccountsManager.readServiceAccount(serviceLogin, ownerId);
   }
 
-  public async updateServiceAccount(serviceId: number, ownerId: any, partial: any){
-    return this._serviceAccountsManager.updateServiceAccount(serviceId, ownerId, partial);
+  public async updateServiceAccount(serviceLogin: string, ownerId: any, partial: any){
+    return this._serviceAccountsManager.updateServiceAccount(serviceLogin, ownerId, partial);
   }
 
-  public async deleteServiceAccount(serviceId: number, ownerId: number){
-    return this._serviceAccountsManager.deleteServiceAccount(serviceId, ownerId);
+  public async deleteServiceAccount(serviceLogin: string, ownerId: number){
+    return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, ownerId);
   }
 
-  public async rotateServiceAccountApiKey(serviceId: number, ownerId: number){
-    return this._serviceAccountsManager.rotateServiceAccountApiKey(serviceId, ownerId);
+  public async rotateServiceAccountApiKey(serviceLogin: string, ownerId: number){
+    return this._serviceAccountsManager.rotateServiceAccountApiKey(serviceLogin, ownerId);
   }
 
-  public async revokeServiceAccountApiKey(serviceId: number, ownerId: number){
-    return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceId, ownerId);
+  public async revokeServiceAccountApiKey(serviceLogin: string, ownerId: number){
+    return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceLogin, ownerId);
   }
 
   public async getApiKey(userId: number){

@@ -2,7 +2,6 @@ import { EntityManager } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiError } from 'app/common/ApiError';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
-import { User } from 'app/gen-server/entity/User';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
 
@@ -39,9 +38,9 @@ export class ServiceAccountsManager {
   ){
     return await this._connection.transaction(async manager => {
       const uuid = uuidv4();
-      const email = `${uuid}@serviceaccounts.local`;
-      const serviceUser = await this._homeDb.getUserByLogin(email, {manager}, 'service');
-      const ServiceUserWithkey = await this._homeDb.createApiKey(serviceUser.id, false, manager);
+      const login = `${uuid}@serviceaccounts.local`;
+      const serviceUser = await this._homeDb.getUserByLogin(login, {manager}, 'service');
+      const serviceUserWithkey = await this._homeDb.createApiKey(serviceUser.id, false, manager);
       const newServiceAccount = new ServiceAccount();
       newServiceAccount.owner_id = ownerId;
       newServiceAccount.service_user_id = serviceUser.id;
@@ -50,8 +49,8 @@ export class ServiceAccountsManager {
       newServiceAccount.endOfLife = this._sanitizeDateString(endOfLife);
       const serviceAccount = await manager.save(newServiceAccount);
       return {
-        id: serviceAccount.id,
-        key: ServiceUserWithkey.apiKey,
+        login: login,
+        key: serviceUserWithkey.apiKey,
         msg: this._msg,
         label: serviceAccount.label,
         description: serviceAccount.description,
@@ -62,21 +61,22 @@ export class ServiceAccountsManager {
   }
 
   public async readServiceAccount(
-    serviceAccountId: number,
+    serviceAccountLogin: string,
     ownerId: number,
     transaction?: EntityManager
   ){
     return await this._runInTransaction(transaction, async manager => {
+      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
       const serviceAccount = await manager.findOne(
         ServiceAccount,
-        {where: {id: serviceAccountId, owner_id: ownerId}}
+        {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
       );
       if (serviceAccount == null){
-         throw new ApiError(`No such service account ${serviceAccountId}`, 404);
+         throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
       }
-      const hasValidKey = await this._hasValidKey(serviceAccount, manager);
+      const hasValidKey = !(serviceUser.apiKey == null);
       return {
-        id: serviceAccount.id,
+        login: serviceAccountLogin,
         label: serviceAccount.label,
         description: serviceAccount.description,
         endOfLife: serviceAccount.endOfLife,
@@ -97,7 +97,7 @@ export class ServiceAccountsManager {
   }
 
   public async updateServiceAccount(
-    serviceAccountId: number,
+    serviceAccountLogin: string,
     ownerId: number,
     partial: any,
   ){
@@ -114,48 +114,47 @@ export class ServiceAccountsManager {
       partial.endOfLife = this._sanitizeDateString(partial.endOfLife);
     }
     return await this._connection.transaction(async manager => {
+      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
       return await manager.update(
         ServiceAccount,
-        {id: serviceAccountId, owner_id: ownerId},
+        {service_user_id: serviceUser.id, owner_id: ownerId},
         partial
       );
     });
   }
 
   public async deleteServiceAccount(
-    serviceAccountId: number,
+    serviceAccountLogin: string,
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
+      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
       return await manager.delete(
         ServiceAccount,
-        {id: serviceAccountId, owner_id: ownerId}
+        {service_user_id: serviceUser.id, owner_id: ownerId}
       );
     });
   }
 
   public async rotateServiceAccountApiKey(
-    serviceAccountId: number,
+    serviceAccountLogin: string,
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
+      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
       const serviceAccount = await manager.findOne(
         ServiceAccount,
-        {where: {id: serviceAccountId, owner_id: ownerId}}
+        {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
       );
       if (serviceAccount == null){
-        throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountId}`, 404);
+        throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountLogin}`, 404);
       }
-      const serviceUser = await manager.findOne(
-        User,
-        {where: {id: serviceAccount.service_user_id}}
-      );
       if (serviceUser == null){
         throw new ApiError(`Service User linked to service Account ${serviceAccount.id} no longer exists`, 500);
       }
       const updatedServiceUser = await this._homeDb.createApiKey(serviceUser.id, true, manager);
       return {
-        id: serviceAccount.id,
+        login: serviceAccountLogin,
         key: updatedServiceUser.apiKey,
         msg: this._msg,
         label: serviceAccount.label,
@@ -167,13 +166,20 @@ export class ServiceAccountsManager {
   }
 
   public async revokeServiceAccountApiKey(
-    serviceAccountId: number,
+    serviceAccountLogin: string,
     ownerId: number,
   ){
     return await this._connection.transaction(async manager => {
-      const serviceUser = await this.readServiceAccount(serviceAccountId, ownerId, manager);
+      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
       if (serviceUser == null){
-        throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountId}`, 404);
+        throw new ApiError(`Can't revoke api key of non existing service account User ${serviceAccountLogin}`, 404);
+      }
+      const serviceAccount = await manager.findOne(
+        ServiceAccount,
+        {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
+      );
+      if (serviceAccount == null){
+        throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountLogin}`, 404);
       }
       await this._homeDb.deleteApiKey(serviceUser.id, manager);
       return;
@@ -188,18 +194,5 @@ export class ServiceAccountsManager {
     } catch (e){
       throw new ApiError(`Bad Request: endOfLife ${dateString} is not a valid date.\n ${e}`, 400);
     }
-  }
-
-  private async _hasValidKey(serviceAccount: ServiceAccount, transaction: EntityManager): Promise<boolean> {
-    return await this._runInTransaction(transaction, async manager => {
-      const serviceUser = await manager.findOne(
-        User,
-        {where: {id: serviceAccount.service_user_id}}
-      );
-      if (serviceUser == null){
-        throw new ApiError(`Service User linked to service Account ${serviceAccount.id} no longer exists`, 500);
-      }
-      return !(serviceUser.apiKey == null);
-    });
   }
 }
