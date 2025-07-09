@@ -12,7 +12,7 @@
         "Add Default Rule": "இயல்புநிலை விதியைச் சேர்க்கவும்",
         "Add Table Rules": "அட்டவணை விதிகளைச் சேர்க்கவும்",
         "Add User Attributes": "பயனர் பண்புகளைச் சேர்க்கவும்",
-        "Remove {{- tableId }} rules": "{{- அட்டவணை}} விதிகளை அகற்று",
+        "Remove {{- tableId }} rules": "{{- tableId }} விதிகளை அகற்று",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "அனைவரையும் முழு ஆவணத்தையும் நகலெடுக்க அனுமதிக்கவும் அல்லது அதை ஃபிடில் பயன்முறையில் முழுமையாக பார்க்கவும்.\n எடுத்துக்காட்டுகள் மற்றும் வார்ப்புருக்களுக்கு பயனுள்ளதாக இருக்கும், ஆனால் முக்கியமான தரவுகளுக்கு அல்ல.",
         "Allow everyone to view Access Rules.": "அணுகல் விதிகளைக் காண அனைவரையும் அனுமதிக்கவும்.",
         "Attribute name": "பண்புக்கூறு பெயர்",
@@ -29,8 +29,8 @@
         "Permission to access the document in full when needed": "தேவைப்படும்போது ஆவணத்தை முழுமையாக அணுக இசைவு",
         "Permission to view Access Rules": "அணுகல் விதிகளைக் காண இசைவு",
         "Permissions": "அனுமதிகள்",
-        "Remove column {{- colId }} from {{- tableId }} rules": "{{- அட்டவணை}} விதிகளிலிருந்து {{- கோலிட்}} நெடுவரிசையை அகற்று",
-        "Remove {{- name }} user attribute": "{{- பெயர்}} பயனர் பண்புக்கூறு அகற்று",
+        "Remove column {{- colId }} from {{- tableId }} rules": "{{- tableId }} விதிகளிலிருந்து {{- colId }} நெடுவரிசையை அகற்று",
+        "Remove {{- name }} user attribute": "{{- name }} பயனர் பண்புக்கூறு அகற்று",
         "Reset": "மீட்டமை",
         "Rules for table ": "அட்டவணைக்கான விதிகள் ",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "அட்டவணை விதிகளைச் சேர்க்கும்போது, உரிமையாளருக்கு முழு அணுகலை வழங்க தானாக ஒரு விதியைச் சேர்க்கவும்.",
@@ -134,11 +134,11 @@
         "Pick a column": "ஒரு நெடுவரிசையைத் தேர்ந்தெடுங்கள்",
         "Pick a {{columnType}} column": "ஒரு {{columnType}} நெடுவரிசையைத் தேர்ந்தெடுக்கவும்",
         "Read selected table": "தேர்ந்தெடுக்கப்பட்ட அட்டவணையைப் படியுங்கள்",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{{wrongTypeCount}} non-{{columnType}} நெடுவரிசை காட்டப்படவில்லை",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} non-{{columnType}} நெடுவரிசை காட்டப்படவில்லை",
         "Select Custom Widget": "தனிப்பயன் விட்செட்டைத் தேர்ந்தெடுக்கவும்",
         "Widget needs to {{read}} the current table.": "விட்செட்டுக்கு தற்போதைய அட்டவணை {{read}}}}.",
         "Widget needs {{fullAccess}} to this document.": "இந்த ஆவணத்திற்கு விட்செட்டுக்கு {{fullAccess}} தேவை.",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{{wrongTypeCount}} non-{{columnType}} நெடுவரிசைகள் காட்டப்படவில்லை",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} non-{{columnType}} நெடுவரிசைகள் காட்டப்படவில்லை",
         "No {{columnType}} columns in table.": "அட்டவணையில் {{columnType}} நெடுவரிசைகள் இல்லை.",
         "ACCESS LEVEL": "அணுகல் நிலை",
         "Accept": "ஏற்றுக்கொள்",
@@ -165,7 +165,7 @@
         "{{action}} Record Card": "{{action}} பதிவு அட்டை"
     },
     "DocMenu": {
-        "Deleted {{at}}": "}} இல் {{நீக்கப்பட்டது",
+        "Deleted {{at}}": "{{at}} நீக்கப்பட்டது",
         "To restore this document, restore the workspace first.": "இந்த ஆவணத்தை மீட்டெடுக்க, முதலில் பணியிடத்தை மீட்டெடுக்கவும்.",
         "Trash": "குப்பை",
         "(The organization needs a paid plan)": "(நிறுவனத்திற்கு கட்டண திட்டம் தேவை)",
@@ -183,7 +183,7 @@
         "Document will be permanently deleted.": "ஆவணம் நிரந்தரமாக நீக்கப்படும்.",
         "Manage Users": "பயனர்களை நிர்வகிக்கவும்",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "ஆவணங்கள் 30 நாட்கள் குப்பைத்தொட்டியில் இருக்கும், அதன் பிறகு அவை நிரந்தரமாக நீக்கப்படும்.",
-        "Edited {{at}}": "}} At இல் திருத்தப்பட்டது",
+        "Edited {{at}}": "{{at}} திருத்தப்பட்டது",
         "Examples & Templates": "எடுத்துக்காட்டுகள் மற்றும் வார்ப்புருக்கள்",
         "Examples and Templates": "எடுத்துக்காட்டுகள் மற்றும் வார்ப்புருக்கள்",
         "More Examples and Templates": "மேலும் எடுத்துக்காட்டுகள் மற்றும் வார்ப்புருக்கள்",
@@ -275,7 +275,45 @@
         "You can make changes to the document, then stop timing to see the results.": "நீங்கள் ஆவணத்தில் மாற்றங்களைச் செய்யலாம், பின்னர் முடிவுகளைக் காண நேரத்தை நிறுத்துங்கள்.",
         "Only available to document editors": "ஆவண ஆசிரியர்களுக்கு மட்டுமே கிடைக்கும்",
         "Only available to document owners": "ஆவண உரிமையாளர்களுக்கு மட்டுமே கிடைக்கும்",
-        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "REST பநிஇ {{apiURL} க்கு க்கு அழைக்கும் போதெல்லாம் பயன்படுத்த ஆவண ஐடி. {{docId}} ஐப் பார்க்கவும்"
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "REST பநிஇ {{apiURL}} க்கு அழைக்கும் போதெல்லாம் பயன்படுத்த ஆவண ஐடி. {{docId}} ஐப் பார்க்கவும்",
+        "Template mode": "வார்ப்புரு பயன்முறை",
+        "Change document type": "ஆவண வகையை மாற்றவும்",
+        "Edit": "தொகு",
+        "Change nature of document": "ஆவணத்தின் தன்மையை மாற்றவும்",
+        "Regular document": "வழக்கமான ஆவணம்",
+        "Normal document behavior. All users work on the same copy of the document.": "சாதாரண ஆவண நடத்தை. அனைத்து பயனர்களும் ஆவணத்தின் ஒரே நகலில் வேலை செய்கிறார்கள்.",
+        "Regular": "வழக்கமான",
+        "Template": "வார்ப்புரு",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "ஆவணம் தானாகவே {{fiddleModeDocUrl} in இல் திறக்கிறது. யாரும் திருத்தலாம், இது புதிய சேமிக்கப்படாத நகலை உருவாக்கும்.",
+        "fiddle mode": "பிடில் பயன்முறை",
+        "Tutorial": "பயிற்சி",
+        "Document automatically opens as a user-specific copy.": "ஆவணம் தானாகவே பயனர் குறிப்பிட்ட நகலாக திறக்கும்.",
+        "Confirm change": "மாற்றத்தை உறுதிப்படுத்தவும்",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "இது தரவு இயந்திரத்தின் கடினமான மறுஏற்றம் செய்யும். தரவு இயந்திரம் எல்லையற்ற சுழற்சியில் சிக்கி, காலவரையின்றி அண்மைக் கால மாற்றத்தை செயலாக்குகிறது அல்லது செயலிழந்தால் இது உதவக்கூடும். தற்போது நிலுவையில் உள்ள செயல்களைத் தவிர வேறு எந்த தரவும் இழக்கப்படாது.",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "நீங்கள் நேரத்தைத் தொடங்கியதும், ஒவ்வொரு சூத்திரத்தையும் மதிப்பீடு செய்ய எடுக்கும் நேரத்தை கிரிச்ட் அளவிடும். ஒரு ஆவணம் முதன்முதலில் திறக்கப்படும்போது அல்லது மாற்றங்களுக்கு ஒரு ஆவணம் பதிலளிக்கும் போது மெதுவான செயல்திறனுக்கு எந்த சூத்திரங்கள் பொறுப்பு என்பதைக் கண்டறிய இது அனுமதிக்கிறது.",
+        "**Some existing attachments are still external**.": "** தற்போதுள்ள சில இணைப்புகள் இன்னும் வெளிப்புறமாக உள்ளன **.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "** தற்போதுள்ள சில இணைப்புகள் இன்னும் உள் ** (SQLite கோப்பில் சேமிக்கப்படுகின்றன).",
+        "Attachment storage": "இணைப்பு சேமிப்பு",
+        "Being transfer": "இடமாற்றம்",
+        "Click \"Start transfer\" to transfer those to External storage.": "வெளிப்புற சேமிப்பகத்திற்கு மாற்ற \"பரிமாற்றம்\" என்பதைக் சொடுக்கு செய்க.",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "உள் சேமிப்பகத்திற்கு மாற்ற \"பரிமாற்றம்\" என்பதைக் சொடுக்கு செய்க (ஆவண SQLITE கோப்பில் சேமிக்கப்படுகிறது).",
+        "Newly uploaded attachments will be placed in External storage.": "புதிதாக பதிவேற்றப்பட்ட இணைப்புகள் வெளிப்புற சேமிப்பகத்தில் வைக்கப்படும்.",
+        "Newly uploaded attachments will be placed in Internal storage.": "புதிதாக பதிவேற்றப்பட்ட இணைப்புகள் உள் சேமிப்பகத்தில் வைக்கப்படும்.",
+        "No external stores available": "வெளிப்புற கடைகள் எதுவும் கிடைக்கவில்லை",
+        "Preferred storage for this document": "இந்த ஆவணத்திற்கு விருப்பமான சேமிப்பு",
+        "Start transfer": "பரிமாற்றத்தைத் தொடங்குங்கள்",
+        "External": "வெளிப்புறம்",
+        "Internal": "உள்",
+        "Transfer in progress": "முன்னேற்றத்தில் பரிமாற்றம்",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "** தற்போதுள்ள சில இணைப்புகள் இன்னும் [வெளிப்புற] ({{externalLink}}) **.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "** தற்போதுள்ள சில இணைப்புகள் இன்னும் [உள்] ({{internalLink}}) ** (SQLite கோப்பில் சேமிக்கப்படுகிறது).",
+        "[Learn more.]({{learnLink}})": "[மேலும் அறிக.] ({{learnLink}})",
+        "Upload": "பதிவேற்றும்",
+        "Upload missing attachments": "காணாமல் போன இணைப்புகளை பதிவேற்றவும்",
+        "Uploading...": "பதிவேற்றுதல் ...",
+        "Default": "இயல்புநிலை",
+        "Default, template, or tutorial": "இயல்புநிலை, வார்ப்புரு அல்லது பயிற்சி",
+        "Document type": "ஆவண வகை"
     },
     "DocumentUsage": {
         "For higher limits, ": "அதிக வரம்புகளுக்கு, ",
@@ -478,7 +516,15 @@
         "Download document structure only (no data, for template use)": "எல்லா தரவையும் அகற்று, ஆனால் ஒரு வார்ப்புருவாக பயன்படுத்த கட்டமைப்பை வைத்திருங்கள்",
         "Download document without history (can significantly reduce file size)": "ஆவண வரலாற்றை அகற்று (கோப்பு அளவைக் கணிசமாகக் குறைக்க முடியும்)",
         "Download": "பதிவிறக்கம்",
-        "Download document": "ஆவணத்தைப் பதிவிறக்கவும்"
+        "Download document": "ஆவணத்தைப் பதிவிறக்கவும்",
+        ".tar (recommended)": ".tar (பரிந்துரைக்கப்படுகிறது)",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "இந்த ஆவணத்தில் உள்ள அனைத்து இணைப்புகளின் காப்பகத்தையும் பதிவிறக்கவும்.",
+        "Download attachments": "இணைப்புகளைப் பதிவிறக்கவும்",
+        "Download full document and history": "முழு ஆவணத்தையும் வரலாற்றையும் பதிவிறக்கவும்",
+        "Format:": "வடிவம்:",
+        "Learn more": "மேலும் அறிக",
+        "download attachments": "இணைப்புகளைப் பதிவிறக்கவும்"
     },
     "NotifyUI": {
         "Ask for help": "உதவி கேட்க",
@@ -559,7 +605,9 @@
         "Submit button label": "பொத்தான் லேபிளை சமர்ப்பிக்கவும்",
         "Enter redirect URL": "திருப்பி முகவரி ஐ உள்ளிடவும்",
         "No field selected": "எந்த புலமும் தேர்ந்தெடுக்கப்படவில்லை",
-        "Select a field in the form widget to configure.": "உள்ளமைக்க படிவ விட்செட்டில் ஒரு புலத்தைத் தேர்ந்தெடுக்கவும்."
+        "Select a field in the form widget to configure.": "உள்ளமைக்க படிவ விட்செட்டில் ஒரு புலத்தைத் தேர்ந்தெடுக்கவும்.",
+        "Submit": "சமர்ப்பிக்கவும்",
+        "Thank you! Your response has been recorded.": "நன்றி! உங்கள் பதில் பதிவு செய்யப்பட்டுள்ளது."
     },
     "RowContextMenu": {
         "Delete": "நீக்கு",
@@ -604,7 +652,9 @@
         "Edit Card Layout": "அட்டை தளவமைப்பைத் திருத்து",
         "Make On-Demand": "தேவைக்கேற்ப உருவாக்குங்கள்",
         "Plugin: ": "சொருகி: ",
-        "Section: ": "பிரிவு: "
+        "Section: ": "பிரிவு: ",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "செயல்பாட்டின் பற்றாக்குறை மற்றும் பயன்பாட்டினை கவலைகள் காரணமாக தேவைக்கேற்ப அட்டவணைகள் நீக்கப்பட்டுள்ளன.",
+        "⚠️ Deprecated Feature": "Defed நீக்கப்பட்ட நற்பொருத்தம்"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "மேம்பட்ட வரிசை & வடிகட்டி",
@@ -676,7 +726,11 @@
         "Reference": "குறிப்பு",
         "Reference List": "குறிப்பு பட்டியல்",
         "Attachment": "இணைப்பு",
-        "Search columns": "நெடுவரிசைகளைத் தேடுங்கள்"
+        "Search columns": "நெடுவரிசைகளைத் தேடுங்கள்",
+        "By Name": "பெயரால்",
+        "By Date Modified": "தேதியில் மாற்றியமைக்கப்பட்டது",
+        "Light": "ஒளி",
+        "Custom": "தனிப்பயன்"
     },
     "modals": {
         "Cancel": "ரத்துசெய்",
@@ -692,7 +746,8 @@
         "TIP": "உதவிக்குறிப்பு",
         "Are you sure you want to delete this record?": "இந்த பதிவை நீக்க விரும்புகிறீர்களா?",
         "Delete": "நீக்கு",
-        "Dismiss": "தள்ளுபடி"
+        "Dismiss": "தள்ளுபடி",
+        "Confirm": "உறுதிப்படுத்தவும்"
     },
     "ChoiceTextBox": {
         "CHOICES": "தேர்வுகள்"
@@ -818,7 +873,12 @@
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "இரு வழி குறிப்பின் ஒரு முனை ஒற்றை குறிப்பாக கட்டமைக்கப்படும்போது இந்த வரம்பு ஏற்படுகிறது.",
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "பல பணிகளை அனுமதிக்க, குறிப்பு நெடுவரிசையின் வகையை குறிப்பு பட்டியலுக்கு மாற்றவும்.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "இரு வழி குறிப்பில் ஒரு நெடுவரிசை குறிப்பு வகையைக் கொண்டிருக்கும்போது இந்த வரம்பு ஏற்படுகிறது.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "ஃபார்முலா அல்லது தூண்டுதல் சூத்திர நெடுவரிசைகளுக்கு இரு வழி குறிப்புகள் தற்போது ஆதரிக்கப்படவில்லை"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "ஃபார்முலா அல்லது தூண்டுதல் சூத்திர நெடுவரிசைகளுக்கு இரு வழி குறிப்புகள் தற்போது ஆதரிக்கப்படவில்லை",
+        "The preview below this header shows how the selected user will see this document": "தேர்ந்தெடுக்கப்பட்ட பயனர் இந்த ஆவணத்தை எவ்வாறு பார்ப்பார் என்பதை இந்த தலைப்புக்கு கீழே உள்ள முன்னோட்டம் காட்டுகிறது",
+        "[Learn more.]({{link}})": "[மேலும் அறிக.] ({{link}})",
+        "Summary tables can only contain formula columns.": "சுருக்க அட்டவணைகள் சூத்திர நெடுவரிசைகளை மட்டுமே கொண்டிருக்க முடியும்.",
+        "Manage users and resources in a Grist installation.": "ஒரு கிரிச்ட் நிறுவலில் பயனர்களையும் வளங்களையும் நிர்வகிக்கவும்.",
+        "The new Grist Assistant is here!": "புதிய கிரிச்ட் உதவியாளர் இங்கே இருக்கிறார்!"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "விவரம்"
@@ -833,7 +893,8 @@
         "Clear field": "தெளிவான புலம்",
         "Copy anchor link": "நங்கூரம் இணைப்பை நகலெடுக்கவும்",
         "Hide field": "புலம் மறைக்க",
-        "Paste": "ஒட்டு"
+        "Paste": "ஒட்டு",
+        "Comment": "கருத்து"
     },
     "WebhookPage": {
         "Removed webhook.": "வெப்ஊக் அகற்றப்பட்டது.",
@@ -852,7 +913,8 @@
         "Webhook Id": "வெப்ஊக் ஐடி",
         "Table": "அட்டவணை",
         "Filter for changes in these columns (semicolon-separated ids)": "இந்த நெடுவரிசைகளில் ஏற்படும் மாற்றங்களுக்கு வடிகட்டி (அரைக்காற்புள்ளியால் பிரிக்கப்பட்ட ஐடிஎச்)",
-        "Header Authorization": "தலைப்பு ஏற்பு"
+        "Header Authorization": "தலைப்பு ஏற்பு",
+        "Webhooks Unavailable In Unsaved Document Copies": "சேமிக்கப்படாத ஆவண நகல்களில் வெப்ஊக்ச் கிடைக்கவில்லை"
     },
     "FormulaAssistant": {
         "Grist's AI Formula Assistance. ": "கிரிச்டின் AI சூத்திர உதவி. ",
@@ -940,7 +1002,9 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "உங்கள் சொந்த அணுகலை நீங்கள் அகற்றியவுடன், {{resourceType} க்கு க்கு போதுமான அணுகல் கொண்ட வேறொருவரின் உதவி இல்லாமல் அதை திரும்பப் பெற முடியாது.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "பயனருக்கு {{resource} க்கு க்கான அணுகல் உள்ளது, இதன் விளைவாக உள்ளே உள்ள வளங்களுக்கான கைமுறையாக அமைக்கப்பட்டுள்ளது. இங்கே அகற்றப்பட்டால், இந்த பயனர் உள்ளே வளங்களுக்கான அணுகலை இழக்கும்.",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "{{parent} இருந்து இலிருந்து பயனர் அனுமதிகளைப் பெறுகிறார். அகற்ற, 'எதுவுமில்லை' என்ற 'அணுகல்' விருப்பத்தை அமைக்கவும்.",
-        "You are about to remove your own access to this {{resourceType}}": "இந்த {{resourceType} க்கு க்கான உங்கள் சொந்த அணுகலை நீங்கள் அகற்ற உள்ளீர்கள்"
+        "You are about to remove your own access to this {{resourceType}}": "இந்த {{resourceType} க்கு க்கான உங்கள் சொந்த அணுகலை நீங்கள் அகற்ற உள்ளீர்கள்",
+        "Inherit access: ": "அணுகலைப் பெறுதல்: ",
+        "Access overview": "அணுகல் கண்ணோட்டம்"
     },
     "SupportGristPage": {
         "Help Center": "உதவி நடுவண்",
@@ -997,7 +1061,9 @@
         "Preview": "முன்னோட்டம்",
         "Reset": "மீட்டமை",
         "Reset form": "படிவத்தை மீட்டமை",
-        "Save your document to publish this form.": "இந்த படிவத்தை வெளியிட உங்கள் ஆவணத்தை சேமிக்கவும்."
+        "Save your document to publish this form.": "இந்த படிவத்தை வெளியிட உங்கள் ஆவணத்தை சேமிக்கவும்.",
+        "# **Form Title**": "# ** படிவ தலைப்பு **",
+        "Your form description goes here.": "உங்கள் படிவ விளக்கம் இங்கே செல்கிறது."
     },
     "Editor": {
         "Delete": "நீக்கு"
@@ -1013,7 +1079,9 @@
         "Paragraph": "பத்தி",
         "Paste": "ஒட்டு",
         "Separator": "பிரிப்பான்",
-        "Unmapped fields": "தடையற்ற புலங்கள்"
+        "Unmapped fields": "தடையற்ற புலங்கள்",
+        "New question": "புதிய கேள்வி",
+        "More": "மேலும்"
     },
     "UnmappedFieldsConfig": {
         "Clear": "தெளிவான",
@@ -1096,7 +1164,9 @@
         "Log Streaming": "பதிவு ச்ட்ரீமிங்",
         "New, Enterprise": "புதிய, நிறுவன",
         "Off": "அணை",
-        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{{- retingdestinationsCount}} more"
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{{- retingdestinationsCount}} more",
+        "On": "ஆன்",
+        "Grist Instance": "கிரிச்ட் நிகழ்வு"
     },
     "Toggle": {
         "Field Format": "புலம் வடிவம்",
@@ -1166,7 +1236,26 @@
         "Disable Grist Enterprise": "கிரிச்ட் நிறுவனத்தை முடக்கு",
         "Enable Grist Enterprise": "கிரிச்ட் நிறுவனத்தை இயக்கவும்",
         "Grist Enterprise is **enabled**.": "கிரிச்ட் எண்டர்பிரைச் ** இயக்கப்பட்டது **.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "சோதனைக் காலத்திற்குப் பிறகு கிரிச்ட் நிறுவனத்தை இயக்க ஒரு செயல்படுத்தும் விசை பயன்படுத்தப்படுகிறது\n 30 நாட்கள் காலாவதியானது. இன்று [எங்களைத் தொடர்புகொள்வதன்] ({{contactLink}}) மூலம் செயல்படுத்தும் விசையைப் பெறுங்கள். நீங்கள் செய்கிறீர்கள்\n கிரிச்ட் கோரை இயக்க செயல்படுத்தும் விசை தேவையில்லை.\n\n எங்கள் [உதவி மையத்தில்] மேலும் அறிக ({{helpCenter}})."
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "சோதனைக் காலத்திற்குப் பிறகு கிரிச்ட் நிறுவனத்தை இயக்க ஒரு செயல்படுத்தும் விசை பயன்படுத்தப்படுகிறது\n 30 நாட்கள் காலாவதியானது. இன்று [எங்களைத் தொடர்புகொள்வதன்] ({{contactLink}}) மூலம் செயல்படுத்தும் விசையைப் பெறுங்கள். நீங்கள் செய்கிறீர்கள்\n கிரிச்ட் கோரை இயக்க செயல்படுத்தும் விசை தேவையில்லை.\n\n எங்கள் [உதவி மையத்தில்] மேலும் அறிக ({{helpCenter}}).",
+        "Activate": "செயல்படுத்து",
+        "Activation key": "செயல்படுத்தும் விசை",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "சோதனைக் காலத்திற்குப் பிறகு கிரிச்ட் நிறுவனத்தை இயக்க ஒரு செயல்படுத்தும் விசை பயன்படுத்தப்படுகிறது \n30 நாட்கள் காலாவதியானது. [கிரிச்டுக்கு பதிவுபெறுவதன் மூலம் செயல்படுத்தும் விசையைப் பெறுங்கள் \nநிறுவன] ({{signupLink}}). இயக்க உங்களுக்கு செயல்படுத்தும் விசை தேவையில்லை \nகிரிச்ட் கோர்.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "கிரிச்ட் எண்டர்பிரைசைப் பயன்படுத்துவதற்கு செயலில் சந்தா தேவை. உங்களால் முடியும் \n[கிரிச்ட் எண்டர்பிரைசுக்கு பதிவுபெறுதல்] ({{signupLink}}) மற்றும் உங்கள் சந்தாவை செயல்படுத்துகிறீர்கள் \nசெயல்படுத்தும் விசை கீழே.",
+        "Copy to clipboard": "இடைநிலைப்பலகைக்கு நகலெடுக்கவும்",
+        "Expiration date": "காலாவதி தேதி",
+        "Installation ID copied to clipboard": "நிறுவல் அடையாளம் இடைநிலைப்பலகைக்கு நகலெடுக்கப்பட்டது",
+        "Installation ID:": "நிறுவல் ஐடி:",
+        "Installation seats": "நிறுவல் இருக்கைகள்",
+        "Learn more in our [Help Center]({{helpCenter}}).": "எங்கள் [உதவி மையத்தில்] மேலும் அறிக ({{helpCenter}}).",
+        "Paste your activation key": "உங்கள் செயல்படுத்தும் விசையை ஒட்டவும்",
+        "Plan name": "திட்ட பெயர்",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "கிரிச்ட் நிறுவனத்தைப் பயன்படுத்த, நீங்கள் வேண்டும் \n.",
+        "You are currently trialing Grist Enterprise.": "நீங்கள் தற்போது கிரிச்ட் எண்டர்பிரைசை சோதனை செய்கிறீர்கள்.",
+        "You do not have an active subscription.": "உங்களிடம் செயலில் சந்தா இல்லை.",
+        "Your activation key has expired due to exceeding limits.": "உங்கள் செயல்படுத்தும் விசை வரம்புகளை மீறுவதால் காலாவதியானது.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "உங்கள் நிகழ்வு ** {{days}} ** நாள் (கள்) இல் ** படிக்க மட்டும் ** பயன்முறையில் இருக்கும்.",
+        "Your subscription expired on {{date}}.": "உங்கள் சந்தா {{date}} இல் காலாவதியானது.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "உங்கள் சோதனை காலம் ** {{expireAt}} ** இல் காலாவதியானது. கிரிச்ட் நிறுவனத்தைப் பயன்படுத்த, நீங்கள் வேண்டும் \n."
     },
     "ViewLayout": {
         "Delete": "நீக்கு",
@@ -1239,7 +1328,7 @@
     "ACUserManager": {
         "Enter email address": "மின்னஞ்சல் முகவரியை உள்ளிடவும்",
         "Invite new member": "புதிய உறுப்பினரை அழைக்கவும்",
-        "We'll email an invite to {{email}}": "{{email} க்கு க்கு அழைப்பை மின்னஞ்சல் செய்வோம்"
+        "We'll email an invite to {{email}}": "{{email}} க்கு அழைப்பை மின்னஞ்சல் செய்வோம்"
     },
     "buildReassignModal": {
         "Reassign to {{sourceTable}} record {{sourceName}}.": "{{sourceTable}} பதிவு {{sourceName} க்கு க்கு மறுசீரமைக்கவும்.",
@@ -1281,7 +1370,40 @@
         "Pick a column": "ஒரு நெடுவரிசையைத் தேர்ந்தெடுங்கள்",
         "Toggle chart aggregation": "விளக்கப்படம் திரட்டலை மாற்றவும்",
         "Each Y series is followed by two series, for top and bottom error bars.": "ஒவ்வொரு ஒய் தொடர்களும் இரண்டு தொடர்களைத் தொடர்ந்து, மேல் மற்றும் கீழ் பிழை பட்டிகளுக்கு.",
-        "selected new group data columns": "புதிய குழு-தரவு நெடுவரிசைகளைத் தேர்ந்தெடுத்தது"
+        "selected new group data columns": "புதிய குழு-தரவு நெடுவரிசைகளைத் தேர்ந்தெடுத்தது",
+        "LABEL": "சிட்டை",
+        "Bar Chart": "பார் விளக்கப்படம்",
+        "Pie Chart": "பை விளக்கப்படம்",
+        "Donut Chart": "டோனட் விளக்கப்படம்",
+        "Area Chart": "பகுதி விளக்கப்படம்",
+        "Line Chart": "வரி விளக்கப்படம்",
+        "Scatter Plot": "சிதறல் சூழ்ச்சி",
+        "Kaplan-Meier Plot": "கப்லான்-மேயர் சூழ்ச்சி",
+        "Split series": "பிளவு தொடர்",
+        "Invert Y-axis": "Y- அச்சு தலைகீழ்",
+        "Orientation": "நோக்குநிலை",
+        "Vertical": "செங்குத்து",
+        "Horizontal": "கிடைமட்டமாக",
+        "Log scale Y-axis": "பதிவு அளவிலான Y- அச்சு",
+        "Hole Size": "துளை அளவு",
+        "Show Total": "மொத்தத்தைக் காட்டு",
+        "Text Size": "உரை அளவு",
+        "Connect gaps": "இடைவெளிகளை இணைக்கவும்",
+        "Show markers": "குறிப்பான்களைக் காட்டு",
+        "Stack series": "அடுக்கு தொடர்",
+        "Error bars": "பிழை பார்கள்",
+        "None": "எதுவுமில்லை",
+        "Symmetric": "சமச்சீர்",
+        "Above+Below": "மேலே+கீழே",
+        "Split Series": "பிளவு தொடர்",
+        "X-AXIS": "எக்ச்-அச்சு",
+        "Aggregate values": "மொத்த மதிப்புகள்",
+        "SERIES": "தொடர்",
+        "Add Series": "தொடரைச் சேர்க்கவும்",
+        "non-numeric columns are not shown": "எண் அல்லாத நெடுவரிசைகள் காட்டப்படவில்லை",
+        "non-numeric column is not shown": "எண் அல்லாத நெடுவரிசை காட்டப்படவில்லை",
+        "selected new x-axis": "புதிய எக்ச்-அச்சு தேர்ந்தெடுக்கப்பட்டது",
+        "Remove": "அகற்று"
     },
     "CodeEditorPanel": {
         "Code View is available only when you have full document access.": "உங்களிடம் முழு ஆவண அணுகல் இருக்கும்போது மட்டுமே குறியீடு பார்வை கிடைக்கும்.",
@@ -1442,7 +1564,10 @@
         "DOO Separated Values (.dsv)": "DOO பிரிக்கப்பட்ட மதிப்புகள் (.DSV)",
         "Export as...": "ஏற்றுமதி ...",
         "Microsoft Excel (.xlsx)": "நுண்மென் எக்செல் (.xlsx)",
-        "Tab Separated Values (.tsv)": "தாவல் பிரிக்கப்பட்ட மதிப்புகள் (.tsv)"
+        "Tab Separated Values (.tsv)": "தாவல் பிரிக்கப்பட்ட மதிப்புகள் (.tsv)",
+        "Exporting is only available from document pages. Please select a document page and try again.": "ஏற்றுமதி ஆவண பக்கங்களிலிருந்து மட்டுமே கிடைக்கிறது. தயவுசெய்து ஒரு ஆவணப் பக்கத்தைத் தேர்ந்தெடுத்து மீண்டும் முயற்சிக்கவும்.",
+        "Download attachments...": "இணைப்புகளைப் பதிவிறக்குக ...",
+        "Download document...": "ஆவணத்தைப் பதிவிறக்குக ..."
     },
     "SortConfig": {
         "Update Data": "தரவைப் புதுப்பிக்கவும்",
@@ -1496,7 +1621,9 @@
         "Update formula (Shift+Enter)": "புதுப்பிப்பு தேற்றம் (சிப்ட்+என்டர்)"
     },
     "ViewAsBanner": {
-        "UnknownUser": "தெரியாத பயனர்"
+        "UnknownUser": "தெரியாத பயனர்",
+        "View as Yourself": "உங்களைப் போல பாருங்கள்",
+        "You are viewing this document as": "இந்த ஆவணத்தை நீங்கள் பார்க்கிறீர்கள்"
     },
     "ViewSectionMenu": {
         "(customized)": "(தனிப்பயனாக்கப்பட்டது)",
@@ -1624,7 +1751,9 @@
         "Show resolved comments": "தீர்க்கப்பட்ட கருத்துகளைக் காட்டுங்கள்",
         "Showing last {{nb}} comments": "கடைசி {{nb}} கருத்துகளைக் காட்டுகிறது",
         "Started discussion": "கலந்துரையாடல் தொடங்கியது",
-        "Write a comment": "ஒரு கருத்தை எழுதுங்கள்"
+        "Write a comment": "ஒரு கருத்தை எழுதுங்கள்",
+        "Remove thread": "நூலை அகற்று",
+        "updated": "புதுப்பிக்கப்பட்டது"
     },
     "EditorTooltip": {
         "Convert column to formula": "நெடுவரிசையை சூத்திரமாக மாற்றவும்"
@@ -1723,11 +1852,14 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "தேவையான சில நெடுவரிசைகள் வரைபடமாக்கப்படவில்லை",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "இந்த விட்செட்டைப் பயன்படுத்த, தயவுசெய்து படைப்பாளி பேனலில் இருந்து விருப்பமற்ற அனைத்து நெடுவரிசைகளையும் வலதுபுறத்தில் வரைபடமாக்கவும்."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "இந்த விட்செட்டைப் பயன்படுத்த, தயவுசெய்து படைப்பாளி பேனலில் இருந்து விருப்பமற்ற அனைத்து நெடுவரிசைகளையும் வலதுபுறத்தில் வரைபடமாக்கவும்.",
+        "Some required columns are hidden by access rules": "தேவையான சில நெடுவரிசைகள் அணுகல் விதிகளால் மறைக்கப்படுகின்றன",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "இந்த விட்செட்டைப் பயன்படுத்த, அனைத்து வரைபட நெடுவரிசைகளும் தெரியும். ஆவண உரிமையாளரைத் தொடர்பு கொள்ளவும் அல்லது அணுகல் விதிகளை மாற்றவும்."
     },
     "FormContainer": {
         "Build your own form": "உங்கள் சொந்த வடிவத்தை உருவாக்குங்கள்",
-        "Powered by": "மூலம் இயக்கப்படுகிறது"
+        "Powered by": "மூலம் இயக்கப்படுகிறது",
+        "Powered by Grist": "கிரிச்ட் மூலம் இயக்கப்படுகிறது"
     },
     "FormModel": {
         "Oops! The form you're looking for doesn't exist.": "அச்சச்சோ! நீங்கள் தேடும் வடிவம் இல்லை.",
@@ -1763,7 +1895,9 @@
     },
     "Section": {
         "Insert section above": "மேலே பகுதியைச் செருகவும்",
-        "Insert section below": "கீழே பகுதியைச் செருகவும்"
+        "Insert section below": "கீழே பகுதியைச் செருகவும்",
+        "## **Header**": "## ** தலைப்பு **",
+        "Description": "விவரம்"
     },
     "widgetTypesMap": {
         "Form": "வடிவம்",
@@ -1779,7 +1913,8 @@
     },
     "Field": {
         "No choices configured": "தேர்வுகள் கட்டமைக்கப்படவில்லை",
-        "No values in show column of referenced table": "குறிப்பிடப்பட்ட அட்டவணையின் நெடுவரிசையில் மதிப்புகள் இல்லை"
+        "No values in show column of referenced table": "குறிப்பிடப்பட்ட அட்டவணையின் நெடுவரிசையில் மதிப்புகள் இல்லை",
+        "Hide": "மறை"
     },
     "ChoiceEditor": {
         "Error in dropdown condition": "கீழ்தோன்றும் நிலையில் பிழை",
@@ -1826,5 +1961,96 @@
         "Complete the tutorial": "டுடோரியலை முடிக்கவும்",
         "Learn the basic of reference columns, linked widgets, column types, & cards.": "குறிப்பு நெடுவரிசைகள், இணைக்கப்பட்ட விட்செட்டுகள், நெடுவரிசை வகைகள் மற்றும் அட்டைகளின் அடிப்படையைக் கற்றுக்கொள்ளுங்கள்.",
         "Learn the basics of reference columns, linked widgets, column types, & cards.": "குறிப்பு நெடுவரிசைகள், இணைக்கப்பட்ட விட்செட்டுகள், நெடுவரிசை வகைகள் மற்றும் அட்டைகளின் அடிப்படைகளைக் கற்றுக்கொள்ளுங்கள்."
+    },
+    "DocList": {
+        "Access details": "அணுகல் விவரங்கள்",
+        "All": "அனைத்தும்",
+        "Current workspace": "தற்போதைய பணியிடம்",
+        "Delete": "நீக்கு",
+        "Delete {{name}}": "{{name}} ஐ நீக்கு",
+        "Document will be moved to Trash.": "ஆவணம் குப்பைக்கு நகர்த்தப்படும்.",
+        "Edited {{at}}": "}} At இல் திருத்தப்பட்டது",
+        "Last edited": "கடைசியாக திருத்தப்பட்டது",
+        "Manage users": "பயனர்களை நிர்வகிக்கவும்",
+        "Move": "நகர்த்தவும்",
+        "Move {{name}} to workspace": "{{name}} பணியிடத்திற்கு நகர்த்தவும்",
+        "Name": "பெயர்",
+        "No documents to show.": "காட்ட ஆவணங்கள் இல்லை.",
+        "Pin": "முள்",
+        "Pinned": "பின்",
+        "Recent": "அண்மைக் கால",
+        "Rename and set icon": "மறுபெயரிட்டு ஐகானை அமைக்கவும்",
+        "Requires edit permissions": "திருத்து அனுமதிகள் தேவை",
+        "Sort by date": "தேதியால் வரிசைப்படுத்துங்கள்",
+        "Sort by name": "பெயரால் வரிசைப்படுத்துங்கள்",
+        "Unpin": "Unpin",
+        "Workspace": "பணியிடம்"
+    },
+    "RenameDocModal": {
+        "Choose color": "வண்ணத்தைத் தேர்வுசெய்க",
+        "Choose icon": "ஐகானைத் தேர்வுசெய்க",
+        "Enter document name": "ஆவண பெயரை உள்ளிடவும்",
+        "Icon": "படவுரு",
+        "Name": "பெயர்",
+        "Rename and set icon": "மறுபெயரிட்டு ஐகானை அமைக்கவும்",
+        "Reset icon": "ஐகானை மீட்டமைக்கவும்"
+    },
+    "RightPanelUtils": {
+        "Columns_one": "நெடுவரிசைகள்",
+        "Columns_other": "நெடுவரிசைகள்",
+        "Fields_one": "புலங்கள்",
+        "Fields_other": "புலங்கள்",
+        "Series_one": "தொடர்",
+        "Series_other": "தொடர்"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "அறியப்படாத தனிப்பயன் விட்செட்களுடன் கவனமாக இருங்கள்",
+        "Please review the following before adding a new custom widget.": "புதிய தனிப்பயன் விட்செட்டைச் சேர்ப்பதற்கு முன் பின்வருவனவற்றை மதிப்பாய்வு செய்யவும்.",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "தனிப்பயன் விட்செட்டுகள் ** சக்திவாய்ந்தவை **! அவர்கள் உங்கள் ஆவணத் தரவை படித்து எழுதலாம், அதை வேறு இடத்திற்கு அனுப்பலாம்.",
+        "Are you sure you **trust the resource** at this URL?": "இந்த முகவரி இல் வளத்தை ** நம்புகிறீர்களா?",
+        "Do you **trust the person** who shared this link?": "நீங்கள் ** நபரை நம்புகிறீர்களா ** இந்த இணைப்பை யார் பகிர்ந்து கொண்டார்கள்?",
+        "Have you **reviewed the code** at this URL?": "இந்த முகவரி இல் நீங்கள் ** குறியீட்டை ** மதிப்பாய்வு செய்தீர்களா?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "ஐயம் இருந்தால், இந்த விட்செட்டை நிறுவ வேண்டாம், அல்லது உங்கள் நிறுவனத்தின் நிர்வாகியிடம் பாதுகாப்பிற்காக அதை மதிப்பாய்வு செய்யச் சொல்லுங்கள்.",
+        "I confirm that I understand these warnings and accept the risks": "இந்த எச்சரிக்கைகளை நான் புரிந்துகொண்டு அபாயங்களை ஏற்றுக்கொள்கிறேன் என்பதை உறுதிப்படுத்துகிறேன்"
+    },
+    "AdminLeftPanel": {
+        "Admin area": "நிர்வாக பகுதி",
+        "Admin controls": "நிர்வாக கட்டுப்பாடுகள்",
+        "Docs": "கோப்புகள்",
+        "Installation": "நிறுவல்",
+        "Learn more": "மேலும் அறிக",
+        "Orgs": "Orgs",
+        "Users": "பயனர்கள்",
+        "Workspaces": "பணியிடங்கள்",
+        "Admin Controls": "நிர்வாக கட்டுப்பாடுகள்",
+        "Settings": "அமைப்புகள்"
+    },
+    "Assistant": {
+        "AI Assistant is only available for logged in users.": "AI உதவியாளர் பயனர்களில் உள்நுழைந்தவருக்கு மட்டுமே கிடைக்கிறது.",
+        "Apply": "இடு",
+        "For higher limits, contact the site owner.": "அதிக வரம்புகளுக்கு, தள உரிமையாளரைத் தொடர்பு கொள்ளுங்கள்.",
+        "For higher limits, {{upgradeNudge}}.": "அதிக வரம்புகளுக்கு, {{upgradeNudge}}.",
+        "Learn more.": "மேலும் அறிக.",
+        "Press Enter to apply suggested formula.": "பரிந்துரைக்கப்பட்ட சூத்திரத்தை விண்ணப்பிக்க Enter ஐ அழுத்தவும்.",
+        "Sign Up for Free": "இலவசமாக பதிவு செய்க",
+        "Sign up for a free Grist account to start using the AI Assistant.": "AI உதவியாளரைப் பயன்படுத்தத் தொடங்க இலவச கிரிச்ட் கணக்கிற்கு பதிவுபெறுக.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "புதிய கிரிச்ட் உதவியாளரை முயற்சிக்க எண்டர்பிரைசுக்கு மேம்படுத்தவும். {{learnMoreLink}}}",
+        "What do you need help with?": "உங்களுக்கு என்ன உதவி தேவை?",
+        "You have used all available credits.": "கிடைக்கக்கூடிய அனைத்து வரவுகளையும் நீங்கள் பயன்படுத்தியுள்ளீர்கள்.",
+        "You have {{numCredits}} remaining credits.": "உங்களிடம் {{numCredits}} மீதமுள்ள வரவுகளை வைத்திருக்கிறீர்கள்.",
+        "start a new chat": "புதிய அரட்டையைத் தொடங்கவும்",
+        "upgrade to the Pro Team plan": "சார்பு குழு திட்டத்திற்கு மேம்படுத்தவும்",
+        "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்"
+    },
+    "apiconsole": {
+        "Are you sure you want to delete the following?": "பின்வருவனவற்றை நீக்க விரும்புகிறீர்களா?",
+        "Confirm Deletion": "நீக்குதலை உறுதிப்படுத்தவும்",
+        "Delete": "நீக்கு",
+        "Deletion was not confirmed, skipping.": "நீக்குதல் உறுதிப்படுத்தப்படவில்லை, தவிர்க்கப்பட்டது.",
+        "Type DELETE here if you wish to proceed.": "நீங்கள் தொடர விரும்பினால் இங்கே நீக்கு.",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "இந்த நீக்குதலை நீங்கள் செய்ய விரும்பினால் உறுதியாக இருந்தால் நீக்கு. \nஉங்களுக்கு உறுதியாக தெரியவில்லை என்றால், அல்லது இந்த செயல்பாடு என்ன செய்யும் என்று புரியவில்லை என்றால், \nஅதை ரத்து செய்வது புத்திசாலித்தனமாக இருக்கும்."
+    },
+    "MentionTextBox": {
+        "no access": "அணுகல் இல்லை"
     }
 }
