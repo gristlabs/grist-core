@@ -508,7 +508,11 @@
         "Table ID copied to clipboard": "Ідентифікатор таблиці скопійовано в буфер",
         "You do not have edit access to this document": "У вас немає доступу до редагування цього документа",
         "Edit Record Card": "Редагувати картку запису",
-        "Record Card": "Запис Картка"
+        "Record Card": "Картка запису",
+        "Record Card Disabled": "Карта запису вимкнена",
+        "Remove Table": "Вилучити таблицю",
+        "Rename Table": "Перейменувати таблицю",
+        "{{action}} Record Card": "{{дія}} Картка запису"
     },
     "DocHistory": {
         "Activity": "Активність",
