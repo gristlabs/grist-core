@@ -2412,7 +2412,6 @@ if trying to update service Account user', async function() {
       const apikey2 = resp2.data.key;
       assert.equal(resp2.status, 200);
       assert.isNotEmpty(apikey2);
-      //TODO get again to verify key is really persisted
       assert.notEqual(apikey1, apikey2);
     });
 
