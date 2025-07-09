@@ -264,7 +264,23 @@
         "Create separate series for each value of the selected column.": "Створіть окремі серії для кожного значення вибраного стовпця.",
         "Toggle chart aggregation": "Перемикання створення діаграм",
         "Each Y series is followed by a series for the length of error bars.": "За кожною серією Y слідує серія для довжини стовпців помилок.",
-        "Each Y series is followed by two series, for top and bottom error bars.": "За кожною серією Y слідують дві серії - для верхніх та нижніх стовпців помилок."
+        "Each Y series is followed by two series, for top and bottom error bars.": "За кожною серією Y слідують дві серії - для верхніх та нижніх стовпців помилок.",
+        "LABEL": "Назва",
+        "Bar Chart": "Діаграма стовпчиків",
+        "Pie Chart": "Графік \"пирога\"",
+        "Donut Chart": "Діаграма \"Пончика\"",
+        "Area Chart": "Діаграма області",
+        "Line Chart": "Діаграма лінії",
+        "Scatter Plot": "Діаграма розсіювання",
+        "Kaplan-Meier Plot": "Діаграма Каплана-Майєра",
+        "Split series": "Розділення серій",
+        "Invert Y-axis": "Інвертувати вісь Y",
+        "Orientation": "Орієнтація",
+        "Vertical": "Вертикальний",
+        "Horizontal": "Горизонтальний",
+        "Log scale Y-axis": "Шкала журналу Y-ось",
+        "Hole Size": "Розмір отвору",
+        "Show Total": "Показати Всього"
     },
     "ColumnFilterMenu": {
         "All": "Все",
@@ -347,7 +363,8 @@
         "Seed rules": "Успадковані правила",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних.",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
-        "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. "
+        "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. ",
+        "Add Table-wide Rule": "Додати загальностолове правило"
     },
     "AccountPage": {
         "API": "API",
@@ -423,7 +440,9 @@
         "Legacy": "Застаріла версія",
         "Personal Site": "Особистий сайт",
         "Team Site": "Сайт команди",
-        "Grist Templates": "Шаблони від Grist"
+        "Grist Templates": "Шаблони від Grist",
+        "Billing Account": "Розрахунковий рахунок",
+        "Manage Team": "Керувати командою"
     },
     "CellContextMenu": {
         "Clear cell": "Очистити клітинку",
@@ -448,7 +467,8 @@
         "Copy": "Копіювати",
         "Comment": "Коментар",
         "Cut": "Вирізати",
-        "Paste": "Вставити"
+        "Paste": "Вставити",
+        "Copy with headers": "Копіювати з заголовками"
     },
     "ColorSelect": {
         "Apply": "Застосовувати",
