@@ -94,7 +94,10 @@ function replaceMentionsInText(text: string) {
   if (!text) { return text; }
   // Very simple replacement of links mentions.
   // [@user](user:XXXXX) -> @user
-  return text.replace(/\[(@[^\]]+?)\]\(user:\w+\)/g, '$1');
+  // Also, replace 'nbsp' characters (non-breaking spaces) with regular spaces in this text
+  // version. (E.g. in Gmail, they seem to cause 'Message clipped' footer.)
+  return text.replace(/\[(@[^\]]+?)\]\(user:\w+\)/g, '$1')
+    .replace(/\u00A0/g, ' ');
 }
 
 export function getMentions(cellContent: string): string[] {
