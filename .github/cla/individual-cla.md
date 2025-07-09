@@ -1,6 +1,8 @@
 # Individual Contributor License Agreement ("Agreement"), v1.0
 
-(based on https://www.apache.org/licenses/icla.pdf)
+(Based on https://www.apache.org/licenses/icla.pdf by the Apache
+Foundation. Contact support@getgrist.com if you wish to execute a
+Corporate CLA.)
 
 Thank you for your interest in contributing to software projects made
 available by Grist Labs Inc ("Grist"). To clarify the intellectual
@@ -10,6 +12,9 @@ from each Contributor, indicating agreement with the license terms
 below. This agreement is for your protection as a Contributor as well
 as the protection of Grist and its users. It does not change your
 rights to use your own Contributions for any other purpose.
+
+Contributions entirely composed of commits with authorship at
+`*.gouv.fr` domains fall outside the scope of this agreement.
 
 You accept and agree to the following terms and conditions for Your
 Contributions (present and future) that you submit to Grist. Except
