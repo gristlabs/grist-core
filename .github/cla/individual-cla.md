@@ -13,6 +13,9 @@ below. This agreement is for your protection as a Contributor as well
 as the protection of Grist and its users. It does not change your
 rights to use your own Contributions for any other purpose.
 
+Contributions entirely composed of commits with authorship at
+`*.gouv.fr` domains fall outside the scope of this agreement.
+
 You accept and agree to the following terms and conditions for Your
 Contributions (present and future) that you submit to Grist. Except
 for the license granted herein to Grist and recipients of software
