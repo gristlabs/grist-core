@@ -280,7 +280,24 @@
         "Horizontal": "Горизонтальний",
         "Log scale Y-axis": "Шкала журналу Y-ось",
         "Hole Size": "Розмір отвору",
-        "Show Total": "Показати Всього"
+        "Show Total": "Показати все",
+        "Text Size": "Розмір тексту",
+        "Connect gaps": "З'єднати щілини",
+        "Show markers": "Показати маркери",
+        "Stack series": "Укласти серії",
+        "Error bars": "Смуги помилок",
+        "None": "Нічого",
+        "Symmetric": "Симетричні",
+        "Above+Below": "Вище+нижче",
+        "Split Series": "Розділити серії",
+        "X-AXIS": "Вісь X",
+        "Aggregate values": "Сукупні значення",
+        "SERIES": "Серії",
+        "Add Series": "Додати серії",
+        "non-numeric columns are not shown": "нецифрові стовпці не показані",
+        "non-numeric column is not shown": "нецифровий стовпець не показан",
+        "selected new x-axis": "вибрана нова вісь x",
+        "Remove": "Прибрати"
     },
     "ColumnFilterMenu": {
         "All": "Все",
@@ -319,7 +336,15 @@
         "Widget does not require any permissions.": "Віджет не вимагає ніяких дозволів.",
         "Widget needs to {{read}} the current table.": "Віджету необхідно {{read}} поточну таблицю.",
         "No {{columnType}} columns in table.": "У таблиці немає стовпців типу {{columnType}}.",
-        "Clear selection": "Очистити вибір"
+        "Clear selection": "Очистити вибір",
+        "ACCESS LEVEL": "РІВЕНЬ ДОСТУПУ",
+        "Accept": "Прийняти",
+        "Custom URL": "Користувацький URL",
+        "Developer:": "Розробник:",
+        "Last updated:": "Востаннє оновлено:",
+        "Missing description and author information.": "Відсутній опис та інформація про автора.",
+        "Reject": "Відхилити",
+        "Widget": "Віджет"
     },
     "ACUserManager": {
         "Invite new member": "Запросити нового користувача",
@@ -481,7 +506,9 @@
         "Duplicate Table": "Дублювати таблицю",
         "Raw Data Tables": "Таблиці необроблених даних",
         "Table ID copied to clipboard": "Ідентифікатор таблиці скопійовано в буфер",
-        "You do not have edit access to this document": "У вас немає доступу до редагування цього документа"
+        "You do not have edit access to this document": "У вас немає доступу до редагування цього документа",
+        "Edit Record Card": "Редагувати картку запису",
+        "Record Card": "Запис Картка"
     },
     "DocHistory": {
         "Activity": "Активність",
