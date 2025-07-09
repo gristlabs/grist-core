@@ -2485,21 +2485,48 @@ if trying to update service Account user', async function() {
       assert.equal(resp5.status, 200, "Service Account should list NASA org");
     });
 
+    // Revoked service account musn't do api calls
+    // create a service account add its user to a document
+    it ('with revoked key should fail to access ressource it is added to', async function() {
+      const body = {
+        label: "A small service for the chimpy",
+        description: "A big service for robotkind",
+        endOfLife:"2042-07-21",
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceLogin = resp.data.login;
+      const key = resp.data.key;
+      const serviceAccountConfig: AxiosRequestConfig = {
+        responseType: 'json',
+        validateStatus: (status: number) => true,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Authorization': `Bearer ${key}`
+        }
+      };
+      const login  = resp.data.login;
+      const oid = await dbManager.testGetId('NASA');
+      const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
+      assert.equal(resp2.status, 200, "chimpy should list NASA worksapces");
+      const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
+      assert.equal(resp3.status, 403);
+      const delta = {
+        "delta": {
+          "users": {}
+        }
+      };
+      (delta.delta.users as any)[login] = "owners";
+      const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
+      assert.equal(resp4.status, 200, "Chimpy should add service account to NASA org");
+      await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, chimpy);
+      const resp5 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+      assert.equal(resp5.status, 401, "Service Account should list NASA org");
+    });
+
     it('Service user MUSN\'T log into the app', async function() {
       assert.fail();
       // TODO put it in the same test file that the on that test user login
       // from front
-    });
-
-    // TODO Change this by sending login instead of service_account_id
-    // we need it to add it much more simply to a document
-
-    //TODO test that revoked service account can't do api calls
-    // create a service account add its user to a document
-    // revoke it
-    // verify it can't access it via api (2)
-    it ('with revoked key should fail to access ressource it is added to', async function() {
-      assert.fail();
     });
 
     //TODO test that outdated service account can't do api calls
