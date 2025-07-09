@@ -14,6 +14,7 @@
 
 import { theme, vars } from 'app/client/ui2018/cssVars';
 import { tbind } from 'app/common/tbind';
+import { components, tokens } from 'app/common/ThemePrefs';
 import { BindableValue, dom, DomElementArg, styled } from 'grainjs';
 
 export const cssButton = styled('button', `
@@ -103,7 +104,11 @@ export const primaryButtonLink = tbind(button, null, {link: true, primary: true}
 export const bigPrimaryButtonLink = tbind(button, null, {link: true, large: true, primary: true});
 
 // Button that looks like a link (have no background and no border).
+// On text button hover, allow theme to show a background and/or border.
+// It's done with a pseudo-element to add some "padding" to the background without moving the content.
 export const textButton = styled(cssButton, `
+  position: relative;
+  z-index: 1;
   border: none;
   padding: 0px;
   text-align: left;
@@ -111,6 +116,30 @@ export const textButton = styled(cssButton, `
   &:disabled {
     color: ${theme.controlPrimaryBg};
     opacity: 0.4;
+  }
+  &:hover::after {
+    z-index: -1;
+    content: '';
+    position: absolute;
+    inset: -3px;
+    left: -6px;
+    right: -6px;
+    border-radius: ${tokens.controlBorderRadius};
+    background-color: ${components.textButtonHoverBg};
+    border: 1px solid ${components.textButtonHoverBorder};
+  }
+  &-hover-bg-padding-none:hover::after {
+    top: 0px;
+    bottom: 0px;
+  }
+  &-hover-bg-padding-sm:hover::after {
+    inset: -1px;
+    left: -3px;
+    right: -3px;
+  }
+  &:active::after {
+    border-color: transparent;
+    background-color: transparent;
   }
 `);
 

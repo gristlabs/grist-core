@@ -578,6 +578,8 @@ export const componentsCssMapping = {
   cardButtonBorderSelected: 'card-button-border-selected',
   cardButtonShadow: 'card-button-shadow',
   formulaIcon: 'formula-icon',
+  textButtonHoverBg: 'text-button-hover-bg',
+  textButtonHoverBorder: 'text-button-hover-border',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -1300,6 +1302,8 @@ export interface BaseThemeTokens {
     cardButtonBorderSelected: Token;
     cardButtonShadow: Token;
     formulaIcon: Token;
+    textButtonHoverBg: Token;
+    textButtonHoverBorder: Token;
   };
 }
 
