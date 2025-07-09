@@ -2455,18 +2455,30 @@ if trying to update service Account user', async function() {
       // from front
     });
 
+    // TODO Change this by sending login instead of service_account_id
+    // we need it to add it much more simply to a document
+
     //TODO test that revoked service account can't do api calls
     // create a service account add its user to a document
     // revoke it
     // verify it can't access it via api (2)
-    //---
+    it ('with revoked key should fail to access ressource it is added to', async function() {
+      assert.fail();
+    });
+
     //TODO test that outdated service account can't do api calls
     // create a service account with an outdated api key add its user to a document
     // verify it can't access it via api (3)
-    //---
+    it ('with outdated endOfLife should fail to access ressource it is added to', async function() {
+      assert.fail();
+    });
+
     //TODO test created service account can be added to a document then
     //do some action via api (1)
-    //---
+    it ('with valid key and in its lifetime should access to ressources it is added to', async function() {
+      assert.fail();
+
+    });
   });
 
   describe('GET /api/orgs/{oid}/usage', function() {
