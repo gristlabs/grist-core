@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {getHomeUrl} from 'app/client/models/AppModel';
 import {Disposable, Observable} from "grainjs";
 import {ConfigAPI} from 'app/common/ConfigAPI';
@@ -6,6 +7,8 @@ import {delay} from 'app/common/delay';
 import {getGristConfig} from 'app/common/urlUtils';
 import {GristDeploymentType} from 'app/common/gristUrls';
 import {Notifier} from 'app/client/models/NotifyModel';
+
+const t = makeT('ToggleEnterprise');
 
 export class ToggleEnterpriseModel extends Disposable {
   public readonly edition: Observable<GristDeploymentType | null> = Observable.create(this, null);
@@ -39,7 +42,6 @@ export class ToggleEnterpriseModel extends Disposable {
       await retryOnNetworkError(() => this._configAPI.setValue({edition}));
       this.edition.set(edition);
       await retryOnNetworkError(() => this._configAPI.restartServer());
-      await this._reloadWhenReady();
     };
     await this._doWork(task);
   }
@@ -48,29 +50,33 @@ export class ToggleEnterpriseModel extends Disposable {
     const task = async () => {
       await this._activationAPI.activateEnterprise(key);
       await retryOnNetworkError(() => this._configAPI.restartServer());
-      await this._reloadWhenReady();
     };
     await this._doWork(task);
   }
 
   private async _doWork(func: () => Promise<void>) {
     if (this.busy.get()) {
-      throw new Error("Please wait for the previous operation to complete.");
+      throw new Error(t("Please wait for the previous operation to complete."));
     }
+    this.busy.set(true);
     try {
-      this.busy.set(true);
       await this._notifier.slowNotification(func());
-    } finally {
+      await this._reloadWhenReady();
+    } catch (err) {
       this.busy.set(false);
+      throw err;
     }
   }
 
   private async _reloadWhenReady() {
-    // Now wait for the server to come back up, and refresh the page.
-    let maxTries = 10;
+    // Now wait about 30 seconds for the server to come back up, and
+    // refresh the page.
+    let maxTries = 30;
     while(maxTries-- > 0) {
       try {
-        await this._configAPI.getValue('edition');
+        await this._configAPI.healthcheck();
+        // We're done, last step is to reload the page.
+        this.busy.set(false);
         window.location.reload();
         return;
       } catch (err) {
@@ -78,7 +84,7 @@ export class ToggleEnterpriseModel extends Disposable {
         await delay(1000);
       }
     }
-    window.location.reload();
+    throw new Error(t("Timed out on waiting for the Grist backend to restart"));
   }
 }
 

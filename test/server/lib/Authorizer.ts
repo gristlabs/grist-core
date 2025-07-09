@@ -43,7 +43,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   home.addApiErrorHandlers();
   home.finalizeEndpoints();
   await home.finalizePlugins(null);
-  home.ready();
+  home.setReady(true);
   serverUrl = home.getOwnUrl();
 }
 

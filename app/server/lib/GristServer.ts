@@ -103,6 +103,7 @@ export interface GristServer extends StorageCoordinator {
   isRestrictedMode(): boolean;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
+  setReady(value: boolean): void;
 }
 
 export interface GristLoginSystem {
@@ -213,6 +214,7 @@ export function createDummyGristServer(): GristServer {
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },
+    setReady() { /* do nothing */ },
   };
 }
 
