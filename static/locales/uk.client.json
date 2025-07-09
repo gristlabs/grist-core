@@ -512,7 +512,7 @@
         "Record Card Disabled": "Карта запису вимкнена",
         "Remove Table": "Вилучити таблицю",
         "Rename Table": "Перейменувати таблицю",
-        "{{action}} Record Card": "{{дія}} Картка запису"
+        "{{action}} Record Card": "{{action}} Картка запису"
     },
     "DocHistory": {
         "Activity": "Активність",
@@ -521,7 +521,8 @@
         "Compare to Previous": "Порівняти з попереднім",
         "Open Snapshot": "Відкрити знімок",
         "Snapshots": "Знімки",
-        "Snapshots are unavailable.": "Знімки недоступні."
+        "Snapshots are unavailable.": "Знімки недоступні.",
+        "Only owners have access to snapshots for documents with access rules.": "Доступ до знімків для документів з правилами доступу мають тільки власники."
     },
     "DocMenu": {
         "Access Details": "Параметри доступу",
@@ -562,7 +563,11 @@
         "Deleted {{at}}": "Видалити {{at}}",
         "Other Sites": "Інші сайти",
         "Workspace not found": "Робочий простір не знайдений",
-        "You are on the {{siteName}} site. You also have access to the following sites:": "Ви знаходитесь на сайті {{siteName}}. Також ви маєте доступ до наступних сайтів:"
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Ви знаходитесь на сайті {{siteName}}. Також ви маєте доступ до наступних сайтів:",
+        "Any documents created in this site will appear here.": "Будь-які документи, створені на цьому сайті, з'являться тут.",
+        "Create my first document": "Створіть мій перший документ",
+        "You have read-only access to this site. Currently there are no documents.": "Ви маєте доступ лише для читання на цей сайт. Наразі документів немає.",
+        "personal site": "персональний сайт"
     },
     "DocPageModel": {
         "Add Empty Table": "Додати порожню таблицю",
@@ -590,7 +595,34 @@
         "Ok": "ОК",
         "Engine (experimental {{span}} change at own risk):": "Обчислювальна система (експериментальна версія {{span}} змінюйте на власний ризик):",
         "Manage Webhooks": "Керування веб-хуками",
-        "Webhooks": "Веб-хуки"
+        "Webhooks": "Веб-хуки",
+        "API Console": "Консоль API",
+        "API URL copied to clipboard": "URL API скопійовано в буфер обміну",
+        "API console": "Консоль API",
+        "API documentation.": "Документація API.",
+        "Base doc URL: {{docApiUrl}}": "URL-адреса базового документа: {{docApiUrl}}",
+        "Coming soon": "Скоро",
+        "Copy to clipboard": "Копіювати в буфер обміну",
+        "Currency": "Валюта",
+        "Data Engine": "Механізм даних",
+        "Default for DateTime columns": "Типові для стовпців DateTime",
+        "Document ID": "Ідентифікатор документа",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Ідентифікатор документа для використання щоразу, коли REST API вимагає {{docId}}. Див. {{apiURL}}",
+        "Find slow formulas": "Знайти повільні формули",
+        "For currency columns": "Для валютних стовпчиків",
+        "For number and date formats": "Для форматів номерів і дат",
+        "Formula times": "Часи формули",
+        "Hard reset of data engine": "Жорстке скидання механізму даних",
+        "ID for API use": "ID для використання API",
+        "Locale": "Локальний",
+        "Manage webhooks": "Керування вебхуками",
+        "Notify other services on doc changes": "Повідомляти інші служби про зміни в документах",
+        "Python": "Пайтон",
+        "Python version used": "Використана версія Python",
+        "Reload": "Перезавантажити",
+        "Time Zone": "Часовий пояс",
+        "Try API calls from the browser": "Спробуйте виклики API з браузера",
+        "python2 (legacy)": "python2 (legacy)"
     },
     "DocTour": {
         "No valid document tour": "Немає дійсного огляду документа",
