@@ -156,7 +156,7 @@ function getPageTitle(req: express.Request, config: GristLoadConfig): string {
 In order to collect the keys, so they are added to the `en.client.json` file, you may run the following steps:
 1. Call the `t()` function as stated above
 2. Build the project using `yarn build` (or `yarn start`)
-3. Call the command `yarn generate:translation`, which scans the source in javascript (hence the `yarn build` above), and add the missing keys in `en.client.json`
+3. Call the command `yarn generate:translation`, which scans the source in javascript (hence the `yarn build` above), and adds the missing keys in `en.client.json`
 
 You may change locally the translations to check whether the localized strings are taken into account and revert afterwards.
 
