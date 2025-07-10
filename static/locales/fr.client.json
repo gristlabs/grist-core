@@ -1211,7 +1211,7 @@
         "Save": "Enregistrer"
     },
     "EditorTooltip": {
-        "Convert column to formula": "Convertir la colonne en formule"
+        "Convert column to formula": "Convertir en formule"
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Impossible de terminer l'enregistrement",
@@ -2045,7 +2045,7 @@
         "You have {{numCredits}} remaining credits.": "Il vous reste {{numCredits}} crédits.",
         "For higher limits, contact the site owner.": "Pour des limites plus élevées, contactez le propriétaire du site.",
         "Sign Up for Free": "Inscrivez-vous gratuitement",
-        "Apply": "Valider"
+        "Apply": "Appliquer"
     },
     "apiconsole": {
         "Type DELETE here if you wish to proceed.": "Tapez DELETE si vous souhaitez continuer.",
