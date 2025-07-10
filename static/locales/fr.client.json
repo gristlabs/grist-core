@@ -2063,6 +2063,7 @@
         "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Votre version de Grist est obsolète.\nEnvisagez de passer à la version {{version}} dès que possible."
     },
     "ExternalAttachmentBanner": {
-        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recommandation : {{storageRecommendation}}\nLorsque vous stockez des pièces jointes volumineuses, ou en grand nombre, nous vous recommandons de les conserver dans un stockage externe. Ce document utilise actuellement un stockage interne pour les pièces jointes, ce qui le rend autonome, mais peut limiter les performances."
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recommandation : {{storageRecommendation}}\nLorsque vous stockez des pièces jointes volumineuses, ou en grand nombre,\n nous vous recommandons de les conserver dans un stockage externe. \nCe document utilise actuellement un stockage interne pour les pièces jointes, \nce qui le rend autonome, mais peut limiter les performances.",
+        "Set the document to use external storage.": "Paramétrez le document pour utiliser un stockage externe."
     }
 }
