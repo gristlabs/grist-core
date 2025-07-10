@@ -96,10 +96,6 @@ function makeUserApi(
 }
 
 describe('DocApi', function () {
-  // The XLS test fails on Jenkins without this. Mysterious? Maybe a real problem or
-  // a problem in test setup related to plugins? TODO: investigate and fix.
-  testUtils.withoutSandboxing();
-
   const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
   this.timeout(30000);
@@ -110,6 +106,9 @@ describe('DocApi', function () {
   before(async function () {
     sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(30);
     oldEnv = new testUtils.EnvironmentSnapshot();
+    // The XLS test fails on Jenkins without this. Mysterious? Maybe a real problem or
+    // a problem in test setup related to plugins? TODO: investigate and fix.
+    process.env.GRIST_SANDBOX_FLAVOR = 'unsandboxed';
 
     await flushAllRedis();
 
