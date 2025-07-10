@@ -95,6 +95,7 @@ export type CommandName =
   | 'convertFormulasToData'
   | 'addSection'
   | 'deleteSection'
+  | 'duplicateSection'
   | 'collapseSection'
   | 'restoreSection'
   | 'deleteCollapsedSection'
@@ -603,6 +604,10 @@ export const groups: CommendGroupDef[] = [{
       name: 'deleteSection',
       keys: [],
       desc: 'Delete the currently active viewsection'
+    }, {
+      name: 'duplicateSection',
+      keys: [],
+      desc: 'Duplicate the currently active viewsection'
     }, {
       name: 'collapseSection',
       keys: [],
