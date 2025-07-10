@@ -1129,13 +1129,13 @@
         "Reply": "Répondre",
         "Show resolved comments": "Montrer les commentaires résolus",
         "Resolve": "Résoudre",
-        "Showing last {{nb}} comments": "Montrer les {{nb}} commentaires",
+        "Showing last {{nb}} comments": "Montrer les {{nb}} derniers commentaires",
         "Started discussion": "Discussion commencée",
         "Remove thread": "Supprimer le fil",
         "updated": "mis à jour"
     },
     "FieldBuilder": {
-        "Apply Formula to Data": "Appliquer une formule",
+        "Apply Formula to Data": "Appliquer la formule",
         "DATA FROM TABLE": "DONNÉES DE LA TABLE",
         "CELL FORMAT": "FORMAT DE CELLULE",
         "Mixed types": "Types composites",
@@ -1211,7 +1211,7 @@
         "Save": "Enregistrer"
     },
     "EditorTooltip": {
-        "Convert column to formula": "Convertir en formule"
+        "Convert column to formula": "Convertir la colonne en formule"
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Impossible de terminer l'enregistrement",
