@@ -359,19 +359,15 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
         options,
         dom.maybe(hasExternalAttachments, () => cssAttachmentsWarning(
           t(
-            "Attachments are external and not included in this download. " +
-            "If uploading the document to a separate Grist installation, " +
-            "you will also need to {{downloadLink}} separately. ",
-            //"{{learnMoreLink}}.",
+            "Attachments are external and not included in this download. \
+If uploading the document to a separate Grist installation, \
+you will also need to {{downloadLink}} separately. ",
             {
               downloadLink: cssLink(t("download attachments"), {
                 href: docApi.getDownloadAttachmentsArchiveUrl({ format: 'tar' }),
                 target: "_blank",
                 download: "",
               }),
-              //learnMoreLink: cssLink(t("Learn more"), {
-              //  href: "https://TODO"
-              //}),
             },
           ),
           testId('external-attachments-info')
@@ -432,8 +428,8 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
         cssEagerWrap(dom('p', t('Download an archive of all the attachments present in this document.'))),
         dom.maybe(isExternal, () => cssEagerWrap(dom('p',
           t(
-            'If you\'re planning to upload this document to a Grist installation, ' +
-            'you will need the archive in the ".tar" format to restore attachments. '
+            'If you\'re planning to upload this document to a Grist installation, \
+you will need the archive in the ".tar" format to restore attachments. '
             /*'{{learnMore}}.',
             {
               learnMore: cssLink(t("Learn more"), {

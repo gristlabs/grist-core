@@ -529,8 +529,8 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
             dom( 'div', toggle(enabledController, testId('admin-panel-updates-auto-check')))
           ) :
           cssExpandedContent(
-            dom('span', t('Automatic checks are disabled. '
-              + 'Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to enable them.'),
+            dom('span', t('Automatic checks are disabled. \
+Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to enable them.'),
             testId('admin-panel-updates-auto-check-disabled')),
           )
         )),
@@ -656,10 +656,10 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         id: "log-streaming",
         name: t("Log Streaming"),
         expandedContent: t(
-          "You can set up streaming of audit events from Grist to an " +
-            "external security information and event management (SIEM) " +
-            "system if you enable Grist Enterprise. {{contactUsLink}} to " +
-            "learn more.",
+          "You can set up streaming of audit events from Grist to an \
+external security information and event management (SIEM) \
+system if you enable Grist Enterprise. {{contactUsLink}} to \
+learn more.",
           {
             contactUsLink: cssLink(
               { href: commonUrls.contact, target: "_blank" },

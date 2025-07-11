@@ -327,7 +327,8 @@
         "Reload": "Reload",
         "Sorry, access to this document has been denied. [{{error}}]": "Sorry, access to this document has been denied. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]",
-        "You do not have edit access to this document": "You do not have edit access to this document"
+        "You do not have edit access to this document": "You do not have edit access to this document",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.",
@@ -579,7 +580,8 @@
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
         "Import from file": "Import from file",
         "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}",
-        "go to webhook settings": "go to webhook settings"
+        "go to webhook settings": "go to webhook settings",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue."
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -687,7 +689,8 @@
         "Download full document and history": "Download full document and history",
         "Format:": "Format:",
         "Learn more": "Learn more",
-        "download attachments": "download attachments"
+        "download attachments": "download attachments",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. "
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -1322,6 +1325,10 @@
         "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation.",
         "The new Grist Assistant is here!": "The new Grist Assistant is here!",
         "Formulas support many Excel functions and full Python syntax.": "Formulas support many Excel functions and full Python syntax.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}})."
     },
     "DescriptionConfig": {
@@ -1344,7 +1351,8 @@
     },
     "Clipboard": {
         "Got it": "Got it",
-        "Unavailable Command": "Unavailable Command"
+        "Unavailable Command": "Unavailable Command",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}."
     },
     "FieldContextMenu": {
         "Clear field": "Clear field",
@@ -1411,7 +1419,10 @@
         "You have used all available credits.": "You have used all available credits.",
         "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
         "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\""
     },
     "GridView": {
         "Click to insert": "Click to insert"
@@ -1506,7 +1517,11 @@
         "You can opt out of telemetry at any time from this page.": "You can opt out of telemetry at any time from this page.",
         "You have opted in to telemetry. Thank you!": "You have opted in to telemetry. Thank you!",
         "You have opted out of telemetry.": "You have opted out of telemetry.",
-        "Sponsor": "Sponsor"
+        "Sponsor": "Sponsor",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "You can support Grist open-source development by sponsoring us on our {{link}}."
     },
     "buildViewSectionDom": {
         "No data": "No data",
@@ -1558,7 +1573,11 @@
         "Share this form": "Share this form",
         "View": "View",
         "# **Form Title**": "# **Form Title**",
-        "Your form description goes here.": "Your form description goes here."
+        "Your form description goes here.": "Your form description goes here.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form."
     },
     "Editor": {
         "Delete": "Delete"
@@ -1727,7 +1746,9 @@
         "On": "On",
         "Grist Instance": "Grist Instance",
         "Auto-check weekly": "Auto-check weekly",
-        "No record of last version check": "No record of last version check"
+        "No record of last version check": "No record of last version check",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them."
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1821,7 +1842,8 @@
         "What is your role?": "What is your role?",
         "What organization are you with?": "What organization are you with?",
         "Your organization": "Your organization",
-        "Your role": "Your role"
+        "Your role": "Your role",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different."
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",
@@ -1917,7 +1939,8 @@
         "Table": "Table",
         "Two-way Reference": "Two-way Reference",
         "Delete two-way reference?": "Delete two-way reference?",
-        "Target table": "Target table"
+        "Target table": "Target table",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}."
     },
     "SupportGristButton": {
         "Admin Panel": "Admin Panel",
@@ -1926,7 +1949,9 @@
         "Opt in to Telemetry": "Opt in to Telemetry",
         "Opted In": "Opted In",
         "Support Grist": "Support Grist",
-        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu."
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu."
     },
     "buildReassignModal": {
         "Cancel": "Cancel",
@@ -1957,7 +1982,8 @@
         "Splunk": "Splunk",
         "Start streaming": "Start streaming",
         "Token": "Token",
-        "URL": "URL"
+        "URL": "URL",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}."
     },
     "AuditLogsPage": {
         "Audit Logs": "Audit Logs",
@@ -1966,7 +1992,9 @@
         "Home": "Home",
         "Log streaming": "Log streaming",
         "Only site owners may access audit logs.": "Only site owners may access audit logs.",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}."
     },
     "DocList": {
         "Access details": "Access details",
@@ -2046,7 +2074,8 @@
         "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
         "start a new chat": "start a new chat",
         "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance."
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "Are you sure you want to delete the following?",
