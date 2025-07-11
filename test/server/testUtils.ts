@@ -356,6 +356,12 @@ export async function getBuildFile(relativePath: string): Promise<string> {
   return path.join('_build', 'core', relativePath);
 }
 
+/**
+ * Setup a new environment in which sandboxing is disabled. Do not use
+ * this function if you also need to modify the environment in your
+ * own tests, because the environments will not be restored in the
+ * right order.
+ */
 export function withoutSandboxing() {
   let env: EnvironmentSnapshot;
   before(() => {

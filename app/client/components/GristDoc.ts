@@ -98,6 +98,7 @@ import {
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
+import pick = require('lodash/pick');
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
 
@@ -423,6 +424,22 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           // Navigate to an anchor if one is present in the url hash.
           const cursorPos = this._getCursorPosFromHash(state.hash);
           await this.recursiveMoveToCursorPos(cursorPos, true);
+
+          if (state.hash.comments) {
+            const section = this.viewModel.activeSection.peek();
+            // Wait for the view to load and be rendered (which is async operation already scheduled at 0).
+            this._waitForView(section).then(async () => {
+              // Sanity check that section is still there.
+              if (section.isDisposed() || !section.hasFocus.peek()) { return; }
+              // And the cursor position wasn't changed (it shouldn't as we were loaded by hash, so Grist
+              // should keep the position no matter what).
+              const current = this._getCursorPos();
+              const cell = (pos: CursorPos) => pick(pos, ['rowId', 'fieldId']);
+              if (!isEqual(cell(cursorPos), cell(current))) { return; }
+              // Open up the discussion panel.
+              commands.allCommands.openDiscussion.run();
+            }).catch(reportError);
+          }
         }
 
         const isTourOrTutorialActive = isTourActive() || this.docModel.isTutorial();

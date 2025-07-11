@@ -8,6 +8,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
 import {BehavioralPrompt} from 'app/common/Prefs';
+import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, DomElementArg, styled} from 'grainjs';
 
 const t = makeT('GristTooltips');
@@ -70,6 +71,7 @@ export type Tooltip =
   | 'attachmentStorage'
   | 'uploadAttachments'
   | 'adminControls'
+  | 'formFraming'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -242,6 +244,17 @@ external storage."
 Only .tar attachment archives downloaded from Grist can be uploaded here."
       ),
     ),
+    ...args,
+  ),
+  formFraming: (...args: DomElementArg[]) => cssTooltipContent(
+    cssMarkdownSpan(
+      t(
+"This form is created by a Grist user, and is not endorsed by Grist Labs. \
+Do not submit passwords through this form, and be careful with links in \
+it. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
+        mail: getGristConfig().supportEmail
+      }
+    )),
     ...args,
   ),
 };

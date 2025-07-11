@@ -31,8 +31,8 @@ import { ICellSelect as _ICellSelect, noCleanup as _noCleanup, GristWebDriverUti
          WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { APIConstructor, HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
-import type { Cleanup } from 'test/nbrowser/testUtils';
 import { fetchScreenshotAndLogs } from 'test/nbrowser/webdriverUtils';
+import type { Cleanup } from 'test/server/testCleanup';
 import * as testUtils from 'test/server/testUtils';
 import type { AssertionError } from 'assert';
 import axios from 'axios';
@@ -1162,6 +1162,7 @@ export function getPageItem(pageName: string|RegExp): WebElementPromise {
 }
 
 export async function openPage(name: string|RegExp) {
+  await toggleSidePanel('left', 'open');
   await driver.findContentWait('.test-treeview-itemHeader', name, 500).find(".test-docpage-initial").doClick();
   await waitForServer(); // wait for table load
 }
@@ -3927,14 +3928,14 @@ export async function switchUser(email: string) {
 }
 
 /**
- * Waits for the toast message with the given text to appear.
+ * Waits for the toast message with 'access denied' to appear.
  */
 export async function waitForAccessDenied() {
   await waitToPass(async () => {
     assert.equal(
-      await driver.findWait('.test-notifier-toast-message', 1000).getText(),
+      await driver.findWait('.test-notifier-toast-message', 100).getText(),
       'access denied');
-  });
+  }, 500);
 }
 
 /**

@@ -13,6 +13,8 @@ export const label = styled('div', `
 
 export const paragraph = styled('div', `
   overflow-wrap: break-word;
+  position: relative;
+  clip-path: inset(0px);
 
   &-alignment-left {
     text-align: left;

@@ -134,12 +134,19 @@ export const TwoFactorEvents = StringUnion(
 
 export type TwoFactorEvent = typeof TwoFactorEvents.type;
 
+export const DocNotificationEvents = StringUnion(
+  'docChanges',
+  'comments',
+);
+export type DocNotificationEvent = typeof DocNotificationEvents.type;
+
 export const TemplateName = StringUnion(
   "billingManagerInvite",
   "invite",
   "memberChange",
   "trialPeriodEndingSoon",
-  ... TwoFactorEvents.values
+  ...TwoFactorEvents.values,
+  ...DocNotificationEvents.values,
 );
 export type TemplateName = typeof TemplateName.type;
 

@@ -650,6 +650,7 @@ export async function createServer(port: number, initDb = createInitialDb): Prom
   flexServer.addHosts();
   flexServer.addAccessMiddleware();
   flexServer.addApiMiddleware();
+  flexServer.addWidgetRepository();
   flexServer.addHomeApi();
   flexServer.addScimApi();
   flexServer.addApiErrorHandlers();

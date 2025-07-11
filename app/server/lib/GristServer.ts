@@ -25,10 +25,12 @@ import { IDocNotificationManager } from 'app/server/lib/IDocNotificationManager'
 import { INotifier } from 'app/server/lib/INotifier';
 import { InstallAdmin } from 'app/server/lib/InstallAdmin';
 import { IPermitStore } from 'app/server/lib/Permit';
+import { IPubSubManager } from 'app/server/lib/PubSubManager';
 import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
 import { ITelemetry } from 'app/server/lib/Telemetry';
+import { IWidgetRepository } from 'app/server/lib/WidgetRepository';
 import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
 import * as express from 'express';
 import { IncomingMessage } from 'http';
@@ -73,9 +75,11 @@ export interface GristServer extends StorageCoordinator {
   getStorageManager(): IDocStorageManager;
   getAuditLogger(): IAuditLogger;
   getTelemetry(): ITelemetry;
+  getWidgetRepository(): IWidgetRepository;
   hasNotifier(): boolean;
   getNotifier(): INotifier;
   getDocNotificationManager(): IDocNotificationManager|undefined;
+  getPubSubManager(): IPubSubManager;
   getAssistant(): IAssistant|undefined;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
@@ -99,6 +103,7 @@ export interface GristServer extends StorageCoordinator {
   isRestrictedMode(): boolean;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
+  setReady(value: boolean): void;
 }
 
 export interface GristLoginSystem {
@@ -180,8 +185,10 @@ export function createDummyGristServer(): GristServer {
     getStorageManager() { throw new Error('no storage manager'); },
     getAuditLogger() { return createNullAuditLogger(); },
     getTelemetry() { return createDummyTelemetry(); },
+    getWidgetRepository() { throw new Error('no widget repository'); },
     getNotifier() { throw new Error('no notifier'); },
     getDocNotificationManager(): IDocNotificationManager|undefined { return undefined; },
+    getPubSubManager(): IPubSubManager { throw new Error('no PubSubManager'); },
     hasNotifier() { return false; },
     getAssistant() { return undefined; },
     getDocTemplate() { throw new Error('no doc template'); },
@@ -207,6 +214,7 @@ export function createDummyGristServer(): GristServer {
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },
+    setReady() { /* do nothing */ },
   };
 }
 

@@ -178,12 +178,12 @@ export async function delayAbort(msec: number, signal?: AbortSignal): Promise<vo
  */
 export function getPubSubPrefix(): string {
   const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) { return 'db-x'; }
+  if (!redisUrl) { return 'db-x-'; }
   const dbNumber = new URL(redisUrl).pathname.replace(/^\//, '');
   if (dbNumber.match(/[^0-9]/)) {
     throw new Error('REDIS_URL has an unexpected structure');
   }
-  return `db-${dbNumber}`;
+  return `db-${dbNumber}-`;
 }
 
 

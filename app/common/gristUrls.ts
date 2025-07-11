@@ -77,6 +77,17 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
 export const SHARE_KEY_PREFIX = 's.';
 
 /**
+ * Form framing is used to control the way forms are rendered in Grist.
+ * - 'border' adds a green border around the form, used to indicate that the forms can be created
+ *   by untrusted users and it makes phishing attacks harder.
+ * - 'minimal' doesn't show the border, used for trusted users.
+ *
+ * The default value is 'border', and it can be controlled by GRIST_FEATURE_FORM_FRAMING environment
+ * variable.
+ */
+export type FormFraming = 'border' | 'minimal';
+
+/**
  * Special ways to open a document, based on what the user intends to do.
  *   - view: Open document in read-only mode (even if user has edit rights)
  *   - fork: Open document in fork-ready mode.  This means that while edits are
@@ -589,7 +600,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
       state.hash = {
         anchor,
       };
-    } else if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
+    } else if (hashMap.has('#') && ['a1', 'a2', 'a3', 'a4'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [
         'sectionId',
@@ -620,6 +631,8 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         link.popup = true;
       } else if (hashMap.get('#') === 'a3') {
         link.recordCard = true;
+      } else if (hashMap.get('#') === 'a4') {
+        link.comments = true;
       }
       state.hash = link;
     }
@@ -929,6 +942,8 @@ export interface GristLoadConfig {
 
   // TODO: remove once released (this is only expected to be released in enterprise edition)
   featureNotifications?: boolean;
+
+  formFraming?: FormFraming;
 }
 
 export const Features = StringUnion(
@@ -1213,6 +1228,7 @@ export interface HashLink {
   rowId?: UIRowId;
   colRef?: number;
   popup?: boolean;
+  comments?: boolean; // Whether to show comments in the popup.
   rickRow?: boolean;
   recordCard?: boolean;
   linkingRowIds?: UIRowId[];
@@ -1231,7 +1247,9 @@ export interface HashLink {
 export function makeAnchorLinkValue(hash: HashLink): string {
   const hashParts: string[] = [];
   if (hash.rowId || hash.popup || hash.recordCard) {
-    if (hash.recordCard) {
+    if (hash.comments) {
+      hashParts.push('a4');
+    } else if (hash.recordCard) {
       hashParts.push('a3');
     } else if (hash.popup) {
       hashParts.push('a2');

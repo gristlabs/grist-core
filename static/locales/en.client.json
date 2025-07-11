@@ -725,7 +725,9 @@
         "Delete": "Delete",
         "Delete data and this page.": "Delete data and this page.",
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
-        "The following tables will no longer be visible_other": "The following tables will no longer be visible"
+        "The following tables will no longer be visible_other": "The following tables will no longer be visible",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Keep data and delete page. Table will remain available in {{rawDataLink}}",
+        "raw data page": "raw data page"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",
@@ -1326,7 +1328,8 @@
         "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.",
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.",
-        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!"
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}})."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -2092,5 +2095,9 @@
     "ExternalAttachmentBanner": {
         "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.",
         "Set the document to use external storage.": "Set the document to use external storage."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Please wait for the previous operation to complete.",
+        "Timed out on waiting for the Grist backend to restart": "Timed out on waiting for the Grist backend to restart"
     }
 }

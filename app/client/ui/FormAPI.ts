@@ -2,6 +2,7 @@ import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {CellValue, ColValues} from 'app/common/DocActions';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 
+
 /**
  * Form and associated field metadata from a Grist view section.
  *

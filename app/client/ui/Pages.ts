@@ -146,12 +146,16 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
         cssRadioCheckboxOptions(
           radioCheckboxOption(selected, 'data', t("Delete data and this page.")),
           radioCheckboxOption(selected, 'page',
-            [ // TODO i18n
-              `Keep data and delete page. `,
-              `Table will remain available in `,
-              cssLink(urlState().setHref({docPage: 'data'}), 'raw data page', { target: '_blank'}),
-              `.`
-            ]),
+            t("Keep data and delete page. Table will remain available in {{rawDataLink}}",
+              {
+                rawDataLink: cssLink(
+                  t('raw data page'),
+                  urlState().setHref({docPage: 'data'}),
+                  {target: '_blank'},
+                )
+              }
+            )
+          )
         )
       ),
       saveDisabled,

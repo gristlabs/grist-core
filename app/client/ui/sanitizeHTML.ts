@@ -39,16 +39,21 @@ const tutorialPurifier = createDOMPurifier();
 // If we are executed in a browser, we can add hooks to the purifiers to customize their behavior.
 // But sometimes this code is included in tests, where `window` is not defined.
 if (typeof window !== 'undefined') {
-  defaultPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
-  tutorialPurifier.addHook('uponSanitizeAttribute', handleSanitizeAttribute);
+  defaultPurifier.addHook('afterSanitizeAttributes', handleAfterSanitizeAttributes);
+
+  tutorialPurifier.addHook('afterSanitizeAttributes', handleAfterSanitizeAttributes);
   tutorialPurifier.addHook('uponSanitizeElement', handleSanitizeTutorialElement);
 }
 
-function handleSanitizeAttribute(node: Element) {
-  if (!('target' in node)) { return; }
-
-  node.setAttribute('target', '_blank');
+function handleAfterSanitizeAttributes(node: Element) {
+  // Code copied from:
+  // https://github.com/cure53/DOMPurify/blob/main/demos/hooks-target-blank-demo.html
+  if ('target' in node) {
+    node.setAttribute('target', '_blank');
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
 }
+
 
 function handleSanitizeTutorialElement(node: Node, data: createDOMPurifier.UponSanitizeElementHookEvent) {
   if (data.tagName !== 'iframe') { return; }

@@ -264,7 +264,40 @@
         "Create separate series for each value of the selected column.": "Створіть окремі серії для кожного значення вибраного стовпця.",
         "Toggle chart aggregation": "Перемикання створення діаграм",
         "Each Y series is followed by a series for the length of error bars.": "За кожною серією Y слідує серія для довжини стовпців помилок.",
-        "Each Y series is followed by two series, for top and bottom error bars.": "За кожною серією Y слідують дві серії - для верхніх та нижніх стовпців помилок."
+        "Each Y series is followed by two series, for top and bottom error bars.": "За кожною серією Y слідують дві серії - для верхніх та нижніх стовпців помилок.",
+        "LABEL": "Назва",
+        "Bar Chart": "Діаграма стовпчиків",
+        "Pie Chart": "Графік \"пирога\"",
+        "Donut Chart": "Діаграма \"Пончика\"",
+        "Area Chart": "Діаграма області",
+        "Line Chart": "Діаграма лінії",
+        "Scatter Plot": "Діаграма розсіювання",
+        "Kaplan-Meier Plot": "Діаграма Каплана-Майєра",
+        "Split series": "Розділення серій",
+        "Invert Y-axis": "Інвертувати вісь Y",
+        "Orientation": "Орієнтація",
+        "Vertical": "Вертикальний",
+        "Horizontal": "Горизонтальний",
+        "Log scale Y-axis": "Шкала журналу Y-ось",
+        "Hole Size": "Розмір отвору",
+        "Show Total": "Показати все",
+        "Text Size": "Розмір тексту",
+        "Connect gaps": "З'єднати щілини",
+        "Show markers": "Показати маркери",
+        "Stack series": "Укласти серії",
+        "Error bars": "Смуги помилок",
+        "None": "Нічого",
+        "Symmetric": "Симетричні",
+        "Above+Below": "Вище+нижче",
+        "Split Series": "Розділити серії",
+        "X-AXIS": "Вісь X",
+        "Aggregate values": "Сукупні значення",
+        "SERIES": "Серії",
+        "Add Series": "Додати серії",
+        "non-numeric columns are not shown": "нецифрові стовпці не показані",
+        "non-numeric column is not shown": "нецифровий стовпець не показан",
+        "selected new x-axis": "вибрана нова вісь x",
+        "Remove": "Прибрати"
     },
     "ColumnFilterMenu": {
         "All": "Все",
@@ -303,7 +336,15 @@
         "Widget does not require any permissions.": "Віджет не вимагає ніяких дозволів.",
         "Widget needs to {{read}} the current table.": "Віджету необхідно {{read}} поточну таблицю.",
         "No {{columnType}} columns in table.": "У таблиці немає стовпців типу {{columnType}}.",
-        "Clear selection": "Очистити вибір"
+        "Clear selection": "Очистити вибір",
+        "ACCESS LEVEL": "РІВЕНЬ ДОСТУПУ",
+        "Accept": "Прийняти",
+        "Custom URL": "Користувацький URL",
+        "Developer:": "Розробник:",
+        "Last updated:": "Востаннє оновлено:",
+        "Missing description and author information.": "Відсутній опис та інформація про автора.",
+        "Reject": "Відхилити",
+        "Widget": "Віджет"
     },
     "ACUserManager": {
         "Invite new member": "Запросити нового користувача",
@@ -347,7 +388,8 @@
         "Seed rules": "Успадковані правила",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних.",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
-        "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. "
+        "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. ",
+        "Add Table-wide Rule": "Додати загальностолове правило"
     },
     "AccountPage": {
         "API": "API",
@@ -423,7 +465,9 @@
         "Legacy": "Застаріла версія",
         "Personal Site": "Особистий сайт",
         "Team Site": "Сайт команди",
-        "Grist Templates": "Шаблони від Grist"
+        "Grist Templates": "Шаблони від Grist",
+        "Billing Account": "Розрахунковий рахунок",
+        "Manage Team": "Керувати командою"
     },
     "CellContextMenu": {
         "Clear cell": "Очистити клітинку",
@@ -448,7 +492,8 @@
         "Copy": "Копіювати",
         "Comment": "Коментар",
         "Cut": "Вирізати",
-        "Paste": "Вставити"
+        "Paste": "Вставити",
+        "Copy with headers": "Копіювати з заголовками"
     },
     "ColorSelect": {
         "Apply": "Застосовувати",
@@ -461,7 +506,13 @@
         "Duplicate Table": "Дублювати таблицю",
         "Raw Data Tables": "Таблиці необроблених даних",
         "Table ID copied to clipboard": "Ідентифікатор таблиці скопійовано в буфер",
-        "You do not have edit access to this document": "У вас немає доступу до редагування цього документа"
+        "You do not have edit access to this document": "У вас немає доступу до редагування цього документа",
+        "Edit Record Card": "Редагувати картку запису",
+        "Record Card": "Картка запису",
+        "Record Card Disabled": "Карта запису вимкнена",
+        "Remove Table": "Вилучити таблицю",
+        "Rename Table": "Перейменувати таблицю",
+        "{{action}} Record Card": "{{action}} Картка запису"
     },
     "DocHistory": {
         "Activity": "Активність",
@@ -470,7 +521,8 @@
         "Compare to Previous": "Порівняти з попереднім",
         "Open Snapshot": "Відкрити знімок",
         "Snapshots": "Знімки",
-        "Snapshots are unavailable.": "Знімки недоступні."
+        "Snapshots are unavailable.": "Знімки недоступні.",
+        "Only owners have access to snapshots for documents with access rules.": "Доступ до знімків для документів з правилами доступу мають тільки власники."
     },
     "DocMenu": {
         "Access Details": "Параметри доступу",
@@ -511,7 +563,11 @@
         "Deleted {{at}}": "Видалити {{at}}",
         "Other Sites": "Інші сайти",
         "Workspace not found": "Робочий простір не знайдений",
-        "You are on the {{siteName}} site. You also have access to the following sites:": "Ви знаходитесь на сайті {{siteName}}. Також ви маєте доступ до наступних сайтів:"
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Ви знаходитесь на сайті {{siteName}}. Також ви маєте доступ до наступних сайтів:",
+        "Any documents created in this site will appear here.": "Будь-які документи, створені на цьому сайті, з'являться тут.",
+        "Create my first document": "Створіть мій перший документ",
+        "You have read-only access to this site. Currently there are no documents.": "Ви маєте доступ лише для читання на цей сайт. Наразі документів немає.",
+        "personal site": "персональний сайт"
     },
     "DocPageModel": {
         "Add Empty Table": "Додати порожню таблицю",
@@ -539,7 +595,51 @@
         "Ok": "ОК",
         "Engine (experimental {{span}} change at own risk):": "Обчислювальна система (експериментальна версія {{span}} змінюйте на власний ризик):",
         "Manage Webhooks": "Керування веб-хуками",
-        "Webhooks": "Веб-хуки"
+        "Webhooks": "Веб-хуки",
+        "API Console": "Консоль API",
+        "API URL copied to clipboard": "URL API скопійовано в буфер обміну",
+        "API console": "Консоль API",
+        "API documentation.": "Документація API.",
+        "Base doc URL: {{docApiUrl}}": "URL-адреса базового документа: {{docApiUrl}}",
+        "Coming soon": "Скоро",
+        "Copy to clipboard": "Копіювати в буфер обміну",
+        "Currency": "Валюта",
+        "Data Engine": "Механізм даних",
+        "Default for DateTime columns": "Типові для стовпців DateTime",
+        "Document ID": "Ідентифікатор документа",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Ідентифікатор документа для використання щоразу, коли REST API вимагає {{docId}}. Див. {{apiURL}}",
+        "Find slow formulas": "Знайти повільні формули",
+        "For currency columns": "Для валютних стовпчиків",
+        "For number and date formats": "Для форматів номерів і дат",
+        "Formula times": "Часи формули",
+        "Hard reset of data engine": "Жорстке скидання механізму даних",
+        "ID for API use": "ID для використання API",
+        "Locale": "Локальний",
+        "Manage webhooks": "Керування вебхуками",
+        "Notify other services on doc changes": "Повідомляти інші служби про зміни в документах",
+        "Python": "Пайтон",
+        "Python version used": "Використана версія Python",
+        "Reload": "Перезавантажити",
+        "Time Zone": "Часовий пояс",
+        "Try API calls from the browser": "Спробуйте виклики API з браузера",
+        "python2 (legacy)": "python2 (legacy версія)",
+        "python3 (recommended)": "python3 (рекомендовано)",
+        "Cancel": "Скасувати",
+        "Force reload the document while timing formulas, and show the result.": "Примусово перезавантажте документ під час визначення часу формул і покажіть результат.",
+        "Formula timer": "Таймер формули",
+        "Reload data engine": "Перезавантажити механізм даних",
+        "Reload data engine?": "Перезавантажити механізм даних?",
+        "Start timing": "Початок часу",
+        "Stop timing...": "Зупинити час...",
+        "Time reload": "Перезавантаження часу",
+        "Timing is on": "Час увімкнено",
+        "You can make changes to the document, then stop timing to see the results.": "Ви можете внести зміни в документ, а потім припинити час, щоб побачити результати.",
+        "Only available to document editors": "Доступно лише для редакторів документів",
+        "Only available to document owners": "Доступно лише власникам документів",
+        "Template mode": "Режим шаблону",
+        "Change document type": "Змінити тип документа",
+        "Edit": "Редагувати",
+        "Change nature of document": "Змінити характер документа"
     },
     "DocTour": {
         "No valid document tour": "Немає дійсного огляду документа",

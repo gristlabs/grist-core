@@ -70,7 +70,7 @@ export interface ICreate {
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
   AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
-  Assistant(): IAssistant|undefined;
+  Assistant(gristConfig: GristServer): IAssistant|undefined;
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
@@ -154,7 +154,7 @@ export class BaseCreate implements ICreate {
   public Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry {
     return createDummyTelemetry();
   }
-  public Assistant(): IAssistant|undefined {
+  public Assistant(gristConfig: GristServer): IAssistant|undefined {
     return undefined;
   }
   public NSandbox(options: ISandboxCreationOptions): ISandbox {

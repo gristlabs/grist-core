@@ -284,7 +284,7 @@ describe('CustomWidgetsConfig', function () {
       "Some required columns aren't mapped");
 
     // Make sure that the iframe is not displayed.
-    assert.isFalse(await driver.find('.test-custom-widget-ready').isPresent());
+    assert.isFalse(await driver.find('.test-custom-widget-ready').isDisplayed());
 
     // Now map the column.
     await toggleDrop(pickerDrop('Column'));

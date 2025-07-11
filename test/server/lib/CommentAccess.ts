@@ -374,7 +374,7 @@ describe('CommentAccess', function() {
 
     // First test some basic helpers.
     deepEqual(helper.getCell(1), {
-      "tableId": "Chat", "colId": "Private", "rowId": 1, "userRef": ownerRef, "id": 1
+      "tableId": "Chat", "colId": "Private", "rowId": 1, "userRef": ownerRef, "id": 1, content: 'First',
     });
     assert.isNull(helper.getCell(400));
     assert.equal(helper.getColId(6), "Public");
@@ -384,49 +384,52 @@ describe('CommentAccess', function() {
     assert.isUndefined(helper.getTableRef('Chat2'));
     assert.equal(helper.getTableRef('Chat'), 2);
 
+    const firstComment = {tableId: "Chat", colId: "Private", rowId: 1, userRef: ownerRef, id: 1, content: "First"};
+    const secondComment = {tableId: "Chat", colId: "Public", rowId: 1, userRef: ownerRef, id: 2, content: "Second"};
+
     // Test method that converts docActions for _grist_Cells to a list of cells.
     deepEqual(helper.convertToCells(['RemoveColumn', 'Table1', 'Test']), []);
     // Single cell extractions from docData
     deepEqual(helper.convertToCells(['UpdateRecord', '_grist_Cells', 1, {}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['AddRecord', '_grist_Cells', 1, {tableRef: 10}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['RemoveRecord', '_grist_Cells', 1]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['BulkRemoveRecord', '_grist_Cells', [1]]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['BulkAddRecord', '_grist_Cells', [1], {}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['BulkUpdateRecord', '_grist_Cells', [1], {}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     // Multiple doc extractions from docData
     deepEqual(helper.convertToCells(['BulkUpdateRecord', '_grist_Cells', [1, 2], {}]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 2}
+        firstComment,
+        secondComment
       ]
     );
     deepEqual(helper.convertToCells(['BulkAddRecord', '_grist_Cells', [1, 2], {}]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 2}
+        firstComment,
+        secondComment
       ]
     );
     deepEqual(helper.convertToCells(['BulkRemoveRecord', '_grist_Cells', [1, 2]]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 2}
+        firstComment,
+        secondComment
       ]
     );
     deepEqual(helper.convertToCells(['BulkRemoveRecord', '_grist_Cells', [1, 10]]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
+        firstComment,
         // 10 is not a valid cell id
       ]
     );

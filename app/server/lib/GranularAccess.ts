@@ -12,21 +12,16 @@ import {
   BulkRemoveRecord,
   BulkUpdateRecord,
   DataAction,
-  getActionColValues,
   getColValues,
-  getRowIds,
   getRowIdsFromDocAction,
-  getSingleAction,
-  isAddRecord,
   isBulkAction,
   isDataAction,
   isSomeAddRecordAction,
   isSomeRemoveRecordAction,
-  isUpdateRecord,
 } from 'app/common/DocActions';
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from 'app/common/DocActions';
 import { getColIdsFromDocAction, TableDataAction, UserAction } from 'app/common/DocActions';
-import { CellRecord, DocComment, makeDocComment } from 'app/common/DocComments';
+import { DocComment, getMentions, makeDocComment } from 'app/common/DocComments';
 import { DocData } from 'app/common/DocData';
 import { UserOverride } from 'app/common/DocListAPI';
 import { DocUsageSummary, FilteredDocUsageSummary, UsageRecommendations } from 'app/common/DocUsage';
@@ -215,8 +210,12 @@ export interface GranularAccessForBundle {
   finishedBundle(): Promise<void>;
   sendDocUpdateForBundle(actionGroup: ActionGroup, docUsage: DocUsageSummary): Promise<void>;
 
+  // Null means that there are no changes to tables. Empty list means that there are some changes
+  // but no user tables to list. We still deliver notification for empty list, it is just empty
+  // informing that something has changed.
   getDirectTablesInBundle(userData: UserAccessData): Promise<string[]|null>;
-  getCommentsInBundle(userToFilterFor?: UserAccessData|null): Promise<DocComment[]>;
+  hasCommentsInBundle(): boolean;
+  getCommentsInBundle(userToFilterFor?: UserAccessData): Promise<DocComment[]>;
 }
 
 /**
@@ -756,13 +755,8 @@ export class GranularAccess implements GranularAccessForBundle {
    * formulas). This is used for notifications.
    */
   public async getDirectTablesInBundle(userData: UserAccessData): Promise<string[]|null> {
-    if (!this._activeBundle) { throw new Error('no active bundle'); }
-    const { docActions, docSession, isDirect } = this._activeBundle;
-    const userDocSession: OptDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
-    //
-    const directActions = docActions.filter((_, index) => isDirect[index]);
     try {
-      const filtered = await this.filterOutgoingDocActions(userDocSession, directActions);
+      const filtered = await this._getOutgoingDocActionsForNotifications(userData);
       if (filtered.length === 0) { return null; }
       const tableIds = new Set<string>();
       for (const action of filtered) {
@@ -782,41 +776,49 @@ export class GranularAccess implements GranularAccessForBundle {
     }
   }
 
-  public async getCommentsInBundle(userToFilterFor: UserAccessData|null = null): Promise<DocComment[]> {
+  public hasCommentsInBundle() {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
-    const { docActions, docSession } = this._activeBundle;
+    const { docActions, isDirect } = this._activeBundle;
+    // We are only interested in direct actions that add comments.
+    return docActions.filter((_, index) => isDirect[index]).some(a => {
+      return isDataAction(a) && isSomeAddRecordAction(a) && getTableId(a) === '_grist_Cells';
+    });
+  }
 
-    let filtered = docActions;
-    if (userToFilterFor) {
-      const userDocSession: OptDocSession = new PseudoDocSession(userToFilterFor, this._docId, docSession.org);
-      // TODO: this can probably be more efficient since we don't need full filtering.
-      try {
-        filtered = await this.filterOutgoingDocActions(userDocSession, docActions);
-      } catch (err) {
-        if (err.code === 'NEED_RELOAD') {
-          // If something changes that affects access and tells each client to reload, then we
-          // can't tell what comment actions are visible. This should never happen in normal use
-          // of comments (since we don't expect comment actions to be in the same bundle with
-          // access-changing actions), so just assume there are no comments to worry about.
-          filtered = [];
-        }
-        throw err;
-      }
-    }
+  /**
+   * Get comments in the active bundle, filtering them for a specific user if requested.
+   */
+  public async getCommentsInBundle(userToFilterFor?: UserAccessData): Promise<DocComment[]> {
+    if (!this._activeBundle) { throw new Error('no active bundle'); }
+    try {
+      const filtered: DocAction[] = await this._getOutgoingDocActionsForNotifications(userToFilterFor);
+      const cellData = new CellData(this._docData);
+      const newComments = cellData.getNewComments(filtered);
+      const audienceMap = cellData.getAudience(newComments.map(r => r.id));
 
-    const docComments: DocComment[] = [];
-    for (const action of filtered) {
-      if (!isCellDataAction(action) || isSomeRemoveRecordAction(action)) { continue; }
-      for (const single of getSingleAction(action)) {
-        if (isAddRecord(single) || isUpdateRecord(single)) {
-          const comment = makeDocComment(getRowIds(single), getActionColValues(single) as CellRecord);
-          if (comment) {
-            docComments.push(comment);
-          }
+      const docComments: DocComment[] = [];
+      for(const commentRow of newComments) {
+        const audience = audienceMap.get(commentRow.id) || [];
+        const mentions = getMentions(commentRow.content);
+        const docComment = makeDocComment(commentRow, audience, mentions);
+        if (!docComment) {
+          log.warn(`Comment row ${commentRow.id} does not have a valid comment`);
+          continue;
         }
+        docComments.push(docComment);
       }
+
+      return docComments;
+    } catch (err) {
+      if (err.code === 'NEED_RELOAD') {
+        // If something changes that affects access and tells each client to reload, then we
+        // can't tell what comment actions are visible. This should never happen in normal use
+        // of comments (since we don't expect comment actions to be in the same bundle with
+        // access-changing actions), so just assume there are no comments to worry about.
+        return [];
+      }
+      throw err;
     }
-    return docComments;
   }
 
   /**
@@ -2708,6 +2710,20 @@ export class GranularAccess implements GranularAccessForBundle {
 
   private _createCellAccess(docSession: OptDocSession, docData?: DocData) {
     return new CellAccessHelper(this, this._ruler, docSession, this._fetchQueryFromDB, docData);
+  }
+
+  private async _getOutgoingDocActionsForNotifications(
+    userData?: UserAccessData
+  ): Promise<DocAction[]> {
+    if (!this._activeBundle) { throw new Error('no active bundle'); }
+    const { docActions, isDirect, docSession } = this._activeBundle;
+    const relevant = docActions.filter((_, index) => isDirect[index]);
+    if (!userData) {
+      return relevant;
+    }
+    const userDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
+    const filtered = await this.filterOutgoingDocActions(userDocSession, relevant);
+    return filtered;
   }
 }
 
