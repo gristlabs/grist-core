@@ -5,7 +5,7 @@ import {makeT} from 'app/client/lib/localization';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {cssField, cssLabel} from 'app/client/ui/MakeCopyMenu';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {select} from 'app/client/ui2018/menus';
+import {IOption, select} from 'app/client/ui2018/menus';
 import {saveModal} from 'app/client/ui2018/modals';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
@@ -21,10 +21,12 @@ import {fromPairs} from 'lodash';
 
 const t = makeT('duplicateWidget');
 
+type PageSelectOption = IOption<number> & { isActivePage: boolean }
+
 export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionId: number) {
   const activeView = gristDoc.activeViewId.get();
   const pages = sortBy(gristDoc.docModel.pages.rowModels.filter(p => p), [(row) => row.pagePos.peek()]);
-  const pageSelectOptions = pages.map(page => {
+  const pageSelectOptions: PageSelectOption[] = pages.map(page => {
     const view = page.view.peek();
     const isActivePage = view.getRowId() === activeView;
     const suffix = isActivePage? " (Active)" : "";
@@ -35,7 +37,7 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
     };
   });
 
-  pageSelectOptions.push({ label: 'Create new page', value: 0, isActivePage: false });
+  pageSelectOptions.push({ label: 'Create new page', value: 0, isActivePage: false, icon: "Plus" });
 
   saveModal((ctl, owner) => {
     const initialSelectedPage =
