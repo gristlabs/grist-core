@@ -10,7 +10,7 @@ import {saveModal} from 'app/client/ui2018/modals';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {schema} from 'app/common/schema';
-import {dom, Observable} from 'grainjs';
+import {dom, fromKo, Observable} from 'grainjs';
 import cloneDeepWith from 'lodash/cloneDeepWith';
 import flatten from 'lodash/flatten';
 import forEach from 'lodash/forEach';
@@ -18,30 +18,36 @@ import {testId} from 'app/client/ui2018/cssVars';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import sortBy from 'lodash/sortBy';
 import {fromPairs} from 'lodash';
+import ko from 'knockout';
 
 const t = makeT('duplicateWidget');
 
 type PageSelectOption = IOption<number> & { isActivePage: boolean }
 
 export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionId: number) {
-  const activeView = gristDoc.activeViewId.get();
-  const pages = sortBy(gristDoc.docModel.pages.rowModels.filter(p => p), [(row) => row.pagePos.peek()]);
-  const pageSelectOptions: PageSelectOption[] = pages.map(page => {
-    const view = page.view.peek();
-    const isActivePage = view.getRowId() === activeView;
-    const suffix = isActivePage? " (Active)" : "";
-    return {
-      label: `${view.name.peek()}${suffix}`,
-      value: view.getRowId(),
-      isActivePage: isActivePage,
-    };
-  });
-
-  pageSelectOptions.push({ label: 'Create new page', value: 0, isActivePage: false, icon: "Plus" });
-
   saveModal((ctl, owner) => {
+    const activeView = gristDoc.activeViewId.get();
+    const pageSelectOptions = fromKo(ko.pureComputed(() => {
+      const allPages = gristDoc.docModel.allPages();
+      const validPages = allPages.filter(page => !page.isHidden());
+      const sortedPages = sortBy(validPages, [(page) => page.pagePos()]);
+      const views = sortedPages.map(page => page.view());
+
+      const options: PageSelectOption[] = views.map(view => {
+        const isActivePage = view.getRowId() === activeView;
+        const suffix = isActivePage ? " (Active)" : "";
+        return {
+          label: `${view.name()}${suffix}`,
+          value: view.getRowId(),
+          isActivePage: isActivePage,
+        };
+      });
+      options.push({ label: 'Create new page', value: 0, isActivePage: false, icon: "Plus" });
+      return options;
+    }));
+
     const initialSelectedPage =
-      pageSelectOptions.find(option => option.isActivePage)?.value ?? pageSelectOptions[0].value;
+      pageSelectOptions.get().find(option => option.isActivePage)?.value ?? pageSelectOptions.get()[0].value;
     const pageSelectObs = Observable.create<number>(owner, initialSelectedPage);
 
     return {
