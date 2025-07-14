@@ -1863,7 +1863,7 @@ export async function sendKeys(...args: (string|number)[]) {
  * An default ovveride for sendKeys that sends keys slowly, suitable for formula editor.
  */
 export async function sendKeysSlowly(...keys: string[]) {
-  return await sendKeys(10, ...keys);
+  return await sendKeys(30, ...keys);
 }
 
 /**
