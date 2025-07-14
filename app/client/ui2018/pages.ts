@@ -19,6 +19,8 @@ export interface PageActions {
   onDuplicate: () => void;
   isRemoveDisabled: () => boolean;
   isReadonly: Observable<boolean>;
+  saveCollapsedLabel: () => string;
+  onSaveCollapsed: () => Promise<void>;
 }
 
 function isTargetSelected(target: HTMLElement) {
@@ -41,6 +43,8 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
              dom.cls('disabled', (use) => use(actions.isReadonly) || actions.isRemoveDisabled())),
     menuItem(actions.onDuplicate, t("Duplicate Page"), testId('duplicate'),
              dom.cls('disabled', actions.isReadonly)),
+    menuItem(actions.onSaveCollapsed, actions.saveCollapsedLabel(), testId('save-collapsed'),
+            dom.cls('disabled', actions.isReadonly)),
     dom.maybe(actions.isReadonly, () => menuText(t("You do not have edit access to this document"))),
   ];
   let pageElem: HTMLElement;

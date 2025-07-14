@@ -31,6 +31,7 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
       pagePos: use(page.pagePos),
       viewRef: use(page.viewRef),
       hidden: use(page.isCensored),
+      collapsed: page.isCollapsed,
     }))
   );
   const getTreeTableData = (): TreeTableData => ({
@@ -67,8 +68,10 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
   }
 
   const {isReadonly} = activeDoc;
-  const pageName = pagesTable.rowModels[pageId].view.peek().name;
-  const viewId = pagesTable.rowModels[pageId].view.peek().id.peek();
+  const pageRec = pagesTable.rowModels[pageId];
+  const viewRec = pageRec.view.peek();
+  const pageName = viewRec.name;
+  const viewId = viewRec.id.peek();
 
   const actions: PageActions = {
     onRename: (newName: string) => newName.length && pageName.saveOnly(newName),
@@ -76,7 +79,12 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
     onDuplicate: () => buildDuplicatePageDialog(activeDoc, pageId),
     // Can't remove last visible page
     isRemoveDisabled: () => activeDoc.docModel.visibleDocPages.peek().length <= 1,
-    isReadonly
+    isReadonly,
+    saveCollapsedLabel: () =>
+      pageRec.isCollapsed.get()
+        ? t("Collapse by default")
+        : t("Expand by default"),
+    onSaveCollapsed: () => pageRec.saveCollapsed(),
   };
 
   return buildPageDom(fromKo(pageName), actions, urlState().setLinkUrl({docPage: viewId}));
