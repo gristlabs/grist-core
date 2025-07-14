@@ -73,10 +73,21 @@ function buildDom(id: number) {
   const isRemoveDisabled = () => false;
   const isReadonly = Observable.create(null, false);
   const onDuplicate = () => null;
+  const saveCollapsedLabel = () => "Collapse by default";
+  const onSaveCollapsed = async () => {};
   return buildPageDom(
-    page.name, {onRename, onRemove, isRemoveDisabled, isReadonly, onDuplicate},
-    testId('page'),
-    dom.on('click', () => {
+    page.name,
+    {
+      onRename,
+      onRemove,
+      isRemoveDisabled,
+      isReadonly,
+      onDuplicate,
+      saveCollapsedLabel,
+      onSaveCollapsed,
+    },
+    testId("page"),
+    dom.on("click", () => {
       const item = find(pagesModel.get(), (i: any) => i.record.id === id);
       selected.set(item || null);
     })
