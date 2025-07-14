@@ -143,9 +143,9 @@ export class DocSettingsPage extends Disposable {
             }
           }),
           expandedContent: dom('div', t(
-            'Once you start timing, Grist will measure the time it takes to evaluate each formula. ' +
-            'This allows diagnosing which formulas are responsible for slow performance when a ' +
-            'document is first opened, or when a document responds to changes.'
+            'Once you start timing, Grist will measure the time it takes to evaluate each formula. \
+This allows diagnosing which formulas are responsible for slow performance when a \
+document is first opened, or when a document responds to changes.'
           )),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
@@ -420,10 +420,10 @@ export class DocSettingsPage extends Disposable {
     }
     confirmModal(t('Reload data engine?'), t('Reload'), handler, {
       explanation: t(
-        'This will perform a hard reload of the data engine. This ' +
-        'may help if the data engine is stuck in an infinite loop, is ' +
-        'indefinitely processing the latest change, or has crashed. ' +
-        'No data will be lost, except possibly currently pending actions.'
+        'This will perform a hard reload of the data engine. This \
+may help if the data engine is stuck in an infinite loop, is \
+indefinitely processing the latest change, or has crashed. \
+No data will be lost, except possibly currently pending actions.'
       )
     });
   }
@@ -570,8 +570,8 @@ export class DocSettingsPage extends Disposable {
           docTypeOption({
             type: DocTypeOption.Template,
             label: t('Template'),
-            description:  t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
-              'Anyone may edit, which will create a new unsaved copy.',
+            description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
+Anyone may edit, which will create a new unsaved copy.',
               {
                 fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode'))
               }

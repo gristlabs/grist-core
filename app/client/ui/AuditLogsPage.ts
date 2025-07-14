@@ -108,9 +108,9 @@ export class AuditLogsPage extends Disposable {
     const { deploymentType } = getGristConfig();
     if (deploymentType === "core") {
       return t(
-        "You can set up streaming of audit events from Grist to an external " +
-          "SIEM (security information and event management) system if you " +
-          "enable Grist Enterprise. {{contactUsLink}} to learn more.",
+        "You can set up streaming of audit events from Grist to an external \
+SIEM (security information and event management) system if you \
+enable Grist Enterprise. {{contactUsLink}} to learn more.",
         {
           contactUsLink: cssLink(
             { href: commonUrls.contact, target: "_blank" },
@@ -123,9 +123,9 @@ export class AuditLogsPage extends Disposable {
       !this._appModel.currentFeatures?.teamAuditLogs
     ) {
       return t(
-        "You can set up streaming of audit events from Grist to an external " +
-          "SIEM (security information and event management) system if you " +
-          "{{upgradePlanButton}}.",
+        "You can set up streaming of audit events from Grist to an external \
+SIEM (security information and event management) system if you \
+{{upgradePlanButton}}.",
         {
           upgradePlanButton: textButton(
             dom.on("click", () => this._appModel.showUpgradeModal()),

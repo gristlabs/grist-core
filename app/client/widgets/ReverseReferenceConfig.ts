@@ -152,8 +152,8 @@ export class ReverseReferenceConfig extends Disposable {
     const myName = column.label.peek() || column.colId.peek();
 
     const explanation = t(
-      'This will delete the reference column {{refCol}} in table {{refTable}}. The reference column ' +
-      '{{myName}} will remain in the current table {{myTable}}.', {
+      'This will delete the reference column {{refCol}} in table {{refTable}}. The reference column \
+{{myName}} will remain in the current table {{myTable}}.', {
       refCol: dom('b', refCol),
       refTable: cssCode(refTable),
       myName: dom('b', myName),
