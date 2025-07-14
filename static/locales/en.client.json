@@ -722,7 +722,9 @@
         "Delete": "Delete",
         "Delete data and this page.": "Delete data and this page.",
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
-        "The following tables will no longer be visible_other": "The following tables will no longer be visible"
+        "The following tables will no longer be visible_other": "The following tables will no longer be visible",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Keep data and delete page. Table will remain available in {{rawDataLink}}",
+        "raw data page": "raw data page"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",
@@ -1319,7 +1321,8 @@
         "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns.",
         "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation.",
         "The new Grist Assistant is here!": "The new Grist Assistant is here!",
-        "Formulas support many Excel functions and full Python syntax.": "Formulas support many Excel functions and full Python syntax."
+        "Formulas support many Excel functions and full Python syntax.": "Formulas support many Excel functions and full Python syntax.",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}})."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -2063,5 +2066,9 @@
     "ExternalAttachmentBanner": {
         "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.",
         "Set the document to use external storage.": "Set the document to use external storage."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Please wait for the previous operation to complete.",
+        "Timed out on waiting for the Grist backend to restart": "Timed out on waiting for the Grist backend to restart"
     }
 }

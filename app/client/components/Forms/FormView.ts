@@ -146,7 +146,15 @@ export class FormView extends Disposable {
     });
 
     this._layoutSpec = jsonObservable(this.viewSection.layoutSpec, (layoutSpec: FormLayoutNode|null) => {
-      return layoutSpec ?? buildDefaultFormLayout(this._formFields.get());
+      // Sometimes the layout spec is not a form layout, but a layout from another type of widget
+      // This used to cause the document to crash (see: https://github.com/gristlabs/grist-core/issues/1677)
+      if (layoutSpec?.type === "Layout") {
+        // This is already a form layout. Let's keep it.
+        return layoutSpec;
+      } else {
+        // Overwrite old layout with a clean form layout
+        return buildDefaultFormLayout(this._formFields.get());
+      }
     });
 
     this._layout = Computed.create(this, use => {

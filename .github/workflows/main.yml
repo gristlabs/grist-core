@@ -11,12 +11,13 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     strategy:
       # it is helpful to know which sets of tests would have succeeded,
       # even when there is a failure.
       fail-fast: false
       matrix:
+        os: ['ubuntu-24.04']
         python-version: [3.11]
         node-version: [22.x]
         tests:
@@ -33,6 +34,11 @@ jobs:
           - tests: ':lint:python:client:common:smoke:'
             node-version: 22.x
             python-version: '3.10'
+            os: ubuntu-24.04
+          - tests: ':pyodide:macsandbox:'
+            node-version: 22.x
+            python-version: '3.11'
+            os: macos-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -55,13 +61,20 @@ jobs:
 
       - name: Install Node.js packages
         run: yarn install
- 
+
+      - name: Install gvisor
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          docker create --name temp-runsc gristlabs/gvisor-unprivileged:buster /bin/true
+          sudo docker cp temp-runsc:/runsc /usr/bin/runsc
+          docker rm temp-runsc
+
       - name: Run eslint
         if: contains(matrix.tests, ':lint:')
         run: yarn run lint:ci
 
       - name: Make sure bucket is versioned
-        if: contains(matrix.tests, ':server-') || contains(matrix.tests, ':gen-server:')
+        if: contains(matrix.os, 'ubuntu') && contains(matrix.tests, ':server-') || contains(matrix.os, 'ubuntu') && contains(matrix.tests, ':gen-server:')
         env:
           AWS_ACCESS_KEY_ID: administrator
           AWS_SECRET_ACCESS_KEY: administrator
@@ -111,16 +124,24 @@ jobs:
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
 
-      - name: Run a test using pyodide
+      - name: Run a couple of tests using pyodide
         if: contains(matrix.tests, ':pyodide:')
         run: |
           cd sandbox/pyodide
           make setup
           cd ../..
-          yarn run test:server -g ActiveDoc.useQuerySet
+          yarn run test:server -g 'ActiveDoc.useQuerySet|Sandbox'
         env:
           MOCHA_WEBDRIVER_HEADLESS: 1
           GRIST_SANDBOX_FLAVOR: pyodide
+
+      - name: Run a couple of tests using macSandboxExec
+        if: contains(matrix.tests, ':macsandbox:')
+        run: |
+          yarn run test:server -g Sandbox
+        env:
+          MOCHA_WEBDRIVER_HEADLESS: 1
+          GRIST_SANDBOX_FLAVOR: macSandboxExec
 
       - name: Run gen-server tests with postgres, minio and redis
         if: contains(matrix.tests, ':gen-server:')
@@ -154,6 +175,8 @@ jobs:
           GRIST_DOCS_MINIO_ACCESS_KEY: administrator
           GRIST_DOCS_MINIO_SECRET_KEY: administrator
           TEST_REDIS_URL: "redis://localhost/11"
+          GVISOR_FLAGS: "-unprivileged -ignore-cgroups"
+          GVISOR_EXTRA_DIRS: /opt
           GRIST_DOCS_MINIO_USE_SSL: 0
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
@@ -168,6 +191,8 @@ jobs:
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          GVISOR_FLAGS: "-unprivileged -ignore-cgroups"
+          GVISOR_EXTRA_DIRS: /opt
           TESTDIR: ${{ runner.temp }}/test-logs
 
       - name: Prepare for saving artifact
@@ -192,7 +217,7 @@ jobs:
     services:
       # https://github.com/bitnami/bitnami-docker-minio/issues/16
       minio:
-        image: bitnami/minio:2025.4.22
+        image: ${{ matrix.os == 'ubuntu-24.04' && 'bitnami/minio:2025.4.22' || '' }} 
         env:
           MINIO_DEFAULT_BUCKETS: "grist-docs-test:public"
           MINIO_ROOT_USER: administrator
@@ -206,7 +231,7 @@ jobs:
           --health-retries 5
 
       redis:
-        image: redis
+        image: ${{ matrix.os == 'ubuntu-24.04' && 'redis' || '' }}
         ports:
           - 6379:6379
         options: >-
@@ -216,7 +241,7 @@ jobs:
           --health-retries 5
 
       postgresql:
-        image: postgres:latest
+        image: ${{ matrix.os == 'ubuntu-24.04' && 'postgres:latest' || '' }}
         env:
           POSTGRES_USER: db_user
           POSTGRES_PASSWORD: db_password

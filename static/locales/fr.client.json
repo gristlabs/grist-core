@@ -1129,13 +1129,13 @@
         "Reply": "Répondre",
         "Show resolved comments": "Montrer les commentaires résolus",
         "Resolve": "Résoudre",
-        "Showing last {{nb}} comments": "Montrer les {{nb}} commentaires",
+        "Showing last {{nb}} comments": "Montrer les {{nb}} derniers commentaires",
         "Started discussion": "Discussion commencée",
         "Remove thread": "Supprimer le fil",
         "updated": "mis à jour"
     },
     "FieldBuilder": {
-        "Apply Formula to Data": "Appliquer une formule",
+        "Apply Formula to Data": "Appliquer la formule",
         "DATA FROM TABLE": "DONNÉES DE LA TABLE",
         "CELL FORMAT": "FORMAT DE CELLULE",
         "Mixed types": "Types composites",
@@ -1320,7 +1320,8 @@
         "Manage users and resources in a Grist installation.": "Gérer les utilisateurs et les ressources de Grist.",
         "[Learn more.]({{link}})": "[En savoir plus.]({{link}})",
         "Summary tables can only contain formula columns.": "Les tables récapitulatives ne peuvent contenir que des formules.",
-        "The new Grist Assistant is here!": "Le nouvel assistant Grist est là !"
+        "The new Grist Assistant is here!": "Le nouvel assistant Grist est là !",
+        "Formulas support many Excel functions and full Python syntax.": "Les formules prennent en charge de nombreuses fonctions Excel et la syntaxe Python complète."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1350,7 +1351,8 @@
         "Copy anchor link": "Copier un lien",
         "Cut": "Couper",
         "Hide field": "Masquer le champ",
-        "Paste": "Coller"
+        "Paste": "Coller",
+        "Comment": "Commentaire"
     },
     "WebhookPage": {
         "Clear Queue": "Effacer la file d'attente",
@@ -1708,7 +1710,9 @@
         "Audit Logs": "Journaux d'audit",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} supplémentaires",
         "On": "Activé",
-        "Grist Instance": "Instance de Grist"
+        "Grist Instance": "Instance de Grist",
+        "Auto-check weekly": "Vérification automatique hebdomadaire",
+        "No record of last version check": "Aucune sauvegarde de la dernière vérification de version"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2041,7 +2045,7 @@
         "You have {{numCredits}} remaining credits.": "Il vous reste {{numCredits}} crédits.",
         "For higher limits, contact the site owner.": "Pour des limites plus élevées, contactez le propriétaire du site.",
         "Sign Up for Free": "Inscrivez-vous gratuitement",
-        "Apply": "Valider"
+        "Apply": "Appliquer"
     },
     "apiconsole": {
         "Type DELETE here if you wish to proceed.": "Tapez DELETE si vous souhaitez continuer.",
@@ -2050,5 +2054,16 @@
         "Confirm Deletion": "Confirmer la suppression",
         "Are you sure you want to delete the following?": "Êtes-vous sûr·e de vouloir supprimer les éléments suivants ?",
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Tapez DELETE si vous êtes sûr·e de vouloir supprimer.\nEn cas de doute ou d'incompréhension de l'effet de cette opération, il est conseillé de ne pas poursuivre."
+    },
+    "MentionTextBox": {
+        "no access": "pas d'accès"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Une mise à jour critique de Grist est disponible.\nEnvisagez de passer à la version {{version}} dès que possible.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Votre version de Grist est obsolète.\nEnvisagez de passer à la version {{version}} dès que possible."
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recommandation : {{storageRecommendation}}\nLorsque vous stockez des pièces jointes volumineuses, ou en grand nombre,\n nous vous recommandons de les conserver dans un stockage externe. \nCe document utilise actuellement un stockage interne pour les pièces jointes, \nce qui le rend autonome, mais peut limiter les performances.",
+        "Set the document to use external storage.": "Paramétrez le document pour utiliser un stockage externe."
     }
 }
