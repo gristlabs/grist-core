@@ -176,7 +176,7 @@
         "Move {{name}} to workspace": "將 {{name}} 移至工作區",
         "Document will be moved to Trash.": "文件將被移至垃圾桶。",
         "Permanently Delete \"{{name}}\"?": "永久刪除 \"{{name}}\"？",
-        "Any documents created in this site will appear here.": "在此網站建立的所有文件都會顯示在此處"
+        "Any documents created in this site will appear here.": "在此網站建立的所有文件都會顯示在此處."
     },
     "ChartView": {
         "Each Y series is followed by a series for the length of error bars.": "每個 Y 數列後面都接著一個表示誤差棒長度的系列。",
@@ -734,7 +734,8 @@
         "Engine (experimental {{span}} change at own risk):": "引擎（實驗性 {{span}} 自行承擔風險變更）：",
         "Document Settings": "文件設定",
         "Locale:": "語言環境：",
-        "This document's ID (for API use):": "此文件的 ID（供 API 使用）："
+        "This document's ID (for API use):": "此文件的 ID（供 API 使用）：",
+        "Manage webhooks": "管理 Webhooks"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "欄位 ID 已複製到剪貼簿",
