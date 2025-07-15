@@ -876,9 +876,9 @@ def NETWORKDAYS(start_date, end_date, holidays=[]):
   >>> NETWORKDAYS(DATE(2020, 1, 1), DATE(2020, 1, 10), [DATE(2020, 1, 5)])
   8
 
-  If the start date is after the end date, the result is 0:
+  If the start date is after the end date, return a negative count of days:
   >>> NETWORKDAYS(DATE(2020, 1, 10), DATE(2020, 1, 1))
-  0
+  -8
 
   Datetime objects are also accepted:
   >>> NETWORKDAYS(DTIME("2020-1-1 13:00"), DTIME("2020-1-10"))
@@ -908,6 +908,13 @@ def NETWORKDAYS(start_date, end_date, holidays=[]):
   weekday_count = 0
   one_day = datetime.timedelta(days=1)
 
+  # If the start date is after the end date, return a negative count
+  # This follows the behavior of Excel and Google Sheets.
+  sign_of_count = 1
+  if start_date > end_date:
+    sign_of_count = -1
+    start_date, end_date = end_date, start_date
+
   # Loop through the range of dates
   current_date = start_date
   while current_date <= end_date:
@@ -917,4 +924,4 @@ def NETWORKDAYS(start_date, end_date, holidays=[]):
       weekday_count += 1
     current_date += one_day
 
-  return weekday_count
+  return sign_of_count * weekday_count
