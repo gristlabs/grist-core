@@ -48,12 +48,6 @@ interface Attachment {
  * download, add or remove attachments in the edited cell.
  */
 export class AttachmentsEditor extends NewBaseEditor {
-  public static skipEditor(typedVal: CellValue|undefined, origVal: CellValue): CellValue|undefined {
-    if (Array.isArray(typedVal)) {
-      return typedVal;
-    }
-  }
-
   private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _docComm: DocComm;
 
