@@ -175,15 +175,48 @@
         "Restore": "還原",
         "Move {{name}} to workspace": "將 {{name}} 移至工作區",
         "Document will be moved to Trash.": "文件將被移至垃圾桶。",
-        "Permanently Delete \"{{name}}\"?": "永久刪除 \"{{name}}\"？"
+        "Permanently Delete \"{{name}}\"?": "永久刪除 \"{{name}}\"？",
+        "Any documents created in this site will appear here.": "在此網站建立的所有文件都會顯示在此處"
     },
     "ChartView": {
-        "Each Y series is followed by a series for the length of error bars.": "每個 Y 系列後面都接著一個表示誤差棒長度的系列。",
+        "Each Y series is followed by a series for the length of error bars.": "每個 Y 數列後面都接著一個表示誤差棒長度的系列。",
         "Pick a column": "選擇一欄",
         "Toggle chart aggregation": "切換圖表聚合",
-        "Each Y series is followed by two series, for top and bottom error bars.": "每個 Y 系列後面都接著兩個系列，分別表示上方和下方的誤差棒。",
-        "Create separate series for each value of the selected column.": "為所選欄位的每個值建立單獨的系列。",
-        "selected new group data columns": "選擇新的群組資料欄位"
+        "Each Y series is followed by two series, for top and bottom error bars.": "每個 Y 數列後面都接著兩個數列，分別表示上方和下方的誤差棒。",
+        "Create separate series for each value of the selected column.": "為所選欄位的每個值建立單獨的數列。",
+        "selected new group data columns": "選擇新的群組資料欄位",
+        "LABEL": "標籤",
+        "Bar Chart": "長條圖",
+        "Pie Chart": "圓餅圖",
+        "Donut Chart": "環狀圖",
+        "Area Chart": "面積圖",
+        "Line Chart": "折線圖",
+        "Scatter Plot": "散布圖",
+        "Kaplan-Meier Plot": "Kaplan-Meier 圖",
+        "Invert Y-axis": "反轉 Y 軸",
+        "Orientation": "方向",
+        "Vertical": "垂直",
+        "Horizontal": "水平",
+        "Log scale Y-axis": "Y 軸對數刻度",
+        "Show Total": "顯示總計",
+        "Text Size": "字體大小",
+        "Show markers": "顯示標記",
+        "None": "無",
+        "Symmetric": "對稱",
+        "X-AXIS": "X 軸",
+        "Add Series": "增加數列",
+        "SERIES": "數列",
+        "non-numeric columns are not shown": "非數字欄不顯示",
+        "non-numeric column is not shown": "非數字欄不顯示",
+        "selected new x-axis": "選擇新 X 軸",
+        "Remove": "刪除",
+        "Split series": "拆分數列",
+        "Connect gaps": "連接間隔",
+        "Stack series": "堆疊數列",
+        "Error bars": "誤差線",
+        "Above+Below": "上下",
+        "Split Series": "拆分數列",
+        "Aggregate values": "彙總數值"
     },
     "RightPanel": {
         "WIDGET TITLE": "小工具標題",
@@ -389,7 +422,8 @@
         "Snapshots": "快照",
         "Activity": "活動",
         "Compare to Previous": "與前一版本比較",
-        "Beta": "測試版"
+        "Beta": "測試版",
+        "Only owners have access to snapshots for documents with access rules.": "只有擁有者能存取具有存取規則的文件快照."
     },
     "UserManager": {
         "Anyone with link ": "任何持有連結的人 ",
@@ -498,7 +532,8 @@
         "Save": "儲存",
         "Rules for table ": "表格規則 ",
         "Checking...": "正在檢查…",
-        "Special Rules": "特殊規則"
+        "Special Rules": "特殊規則",
+        "Add Table-wide Rule": "增加全表規則"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "不應該將一般資料值儲存到公式欄位",
@@ -576,7 +611,8 @@
         "Reset {{count}} columns_other": "重設 {{count}} 個欄位",
         "Reset {{count}} entire columns_one": "重設整欄",
         "Insert column to the left": "向左插入欄位",
-        "Paste": "貼上"
+        "Paste": "貼上",
+        "Copy with headers": "帶標頭複製"
     },
     "Importer": {
         "Merge rows that match these fields:": "將符合這些欄位條件的資料進行合併：",
@@ -834,7 +870,15 @@
         "Pick a column": "選擇一欄",
         "Clear selection": "清除選擇",
         "No document access": "無文件存取權限",
-        "Widget does not require any permissions.": "小工具不需要任何權限。"
+        "Widget does not require any permissions.": "小工具不需要任何權限。",
+        "ACCESS LEVEL": "權限等級",
+        "Accept": "接受",
+        "Custom URL": "自定義網址",
+        "Developer:": "開發者:",
+        "Last updated:": "最後更新:",
+        "Missing description and author information.": "缺少描述與作者資訊.",
+        "Reject": "拒絕",
+        "Widget": "小工具"
     },
     "WelcomeSitePicker": {
         "You have access to the following Grist sites.": "您可以存取以下的 Grist 網站。",
@@ -1012,7 +1056,7 @@
         "Error in style rule": "樣式規則錯誤"
     },
     "ColorSelect": {
-        "Apply": "應用",
+        "Apply": "套用",
         "Cancel": "取消",
         "Default cell style": "預設儲存格樣式"
     },
@@ -1074,7 +1118,9 @@
         "Home Page": "首頁",
         "Team Site": "團隊網站",
         "Legacy": "傳統",
-        "Grist Templates": "Grist 範本"
+        "Grist Templates": "Grist 範本",
+        "Billing Account": "帳單帳戶",
+        "Manage Team": "管理團隊"
     },
     "ViewAsDropdown": {
         "View As": "檢視為",
@@ -1087,7 +1133,13 @@
         "You do not have edit access to this document": "您無法編輯此文件",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "刪除 {{formattedTableName}} 資料，並從所有頁面中移除？",
         "Click to copy": "點選複製",
-        "Table ID copied to clipboard": "表格 ID 已複製到剪貼簿"
+        "Table ID copied to clipboard": "表格 ID 已複製到剪貼簿",
+        "Edit Record Card": "編輯記錄卡",
+        "Record Card": "記錄卡",
+        "Record Card Disabled": "記錄卡已停用",
+        "Remove Table": "刪除資料表",
+        "Rename Table": "更改表格名稱",
+        "{{action}} Record Card": "{{action}} 記錄卡"
     },
     "NTextBox": {
         "false": "否",
@@ -1160,7 +1212,7 @@
         "Revert": "還原"
     },
     "CodeEditorPanel": {
-        "Code View is available only when you have full document access.": "只有當您具有完整文件存取權限時，才能使用程式碼檢視。",
+        "Code View is available only when you have full document access.": "當您具有完整文件存取權限時，才能使用程式碼檢視。",
         "Access denied": "存取被拒"
     },
     "ACLUsers": {
