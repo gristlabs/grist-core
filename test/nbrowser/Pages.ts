@@ -17,6 +17,11 @@ describe('Pages', function() {
     session = await gu.session().teamSite.login();
     doc = await session.tempDoc(cleanup, 'Pages.grist');
     api = session.createHomeApi();
+    await api.updateDocPermissions(doc.id, {
+      users: {
+        [gu.translateUser('user2').email]: 'viewers',
+      },
+    });
   });
 
   it('should show censor pages', async () => {
@@ -358,6 +363,35 @@ describe('Pages', function() {
     // revert changes
     await gu.undo();
     await driver.findContent('.test-treeview-itemHeader', /Interactions/).find('.test-treeview-itemArrow').doClick();
+    assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
+  });
+
+  it('should allow saving collapsed state', async () => {
+    // Collapse Interactions and save. It should remain collapsed on page reload.
+    await driver.findContent('.test-treeview-itemHeader', /Interactions/).find('.test-treeview-itemArrow').doClick();
+    assert.deepEqual(await gu.getPageNames(), ['Interactions', '', 'People', 'User & Leads', 'Overview']);
+    await gu.openPageMenu('Interactions');
+    await gu.findOpenMenuItem(".test-docpage-save-collapsed", "Collapse by default").click();
+    await gu.waitForServer();
+    await driver.navigate().refresh();
+    await gu.waitForDocToLoad();
+    assert.deepEqual(await gu.getPageNames(), ['Interactions', '', 'People', 'User & Leads', 'Overview']);
+
+    // Check state is saved for all users.
+    const otherSession = await gu.session().teamSite.user('user2').login();
+    await otherSession.loadDoc(`/doc/${doc.id}`);
+    assert.deepEqual(await gu.getPageNames(), ['Interactions', '', 'People', 'User & Leads', 'Overview']);
+    const mainSession = await gu.session().teamSite.user('user1').login();
+    await mainSession.loadDoc(`/doc/${doc.id}`);
+
+    // Expand Interactions and save. It should remain expanded on page reload.
+    await driver.findContent('.test-treeview-itemHeader', /Interactions/).find('.test-treeview-itemArrow').doClick();
+    assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
+    await gu.openPageMenu('Interactions');
+    await gu.findOpenMenuItem(".test-docpage-save-collapsed", "Expand by default").click();
+    await gu.waitForServer();
+    await driver.navigate().refresh();
+    await gu.waitForDocToLoad();
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
   });
 
