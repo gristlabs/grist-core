@@ -273,7 +273,10 @@
         "TRANSFORM": "轉換",
         "SELECTOR FOR": "選擇器用於",
         "Sort & Filter": "排序與篩選",
-        "Widget": "小工具"
+        "Widget": "小工具",
+        "Reset form": "重置表格",
+        "Configuration": "設定",
+        "Default field value": "欄位預設值"
     },
     "FloatingPopup": {
         "Maximize": "最大化",
@@ -368,7 +371,8 @@
         "Pinning Filters": "固定篩選器",
         "Reference columns are the key to {{relational}} data in Grist.": "參考欄位是 Grist 中 {{relational}} 資料的關鍵。",
         "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "參考欄位中的儲存格總是識別該表格中的一個{{entire}}記錄，但您可以選擇從該記錄中顯示哪個欄位。",
-        "Use reference columns to relate data in different tables.": "使用參考欄位將不同表格中的資料相關聯。"
+        "Use reference columns to relate data in different tables.": "使用參考欄位將不同表格中的資料相關聯。",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "在 Grist 中直接建立簡易表單，並透過我們的新小工具一鍵分享。{{learnMoreButton}}"
     },
     "SortConfig": {
         "Add Column": "新增欄位",
@@ -1208,7 +1212,8 @@
         "Delete": "刪除",
         "The following tables will no longer be visible_other": "以下的多個表格將不再顯示",
         "Delete data and this page.": "刪除資料與此頁面。",
-        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "保留資料並刪除頁面。資料表仍存在於 {{rawDataLink}} 。"
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "保留資料並刪除頁面。資料表仍存在於 {{rawDataLink}}",
+        "raw data page": "原始資料頁面"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "描述"
