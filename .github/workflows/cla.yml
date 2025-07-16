@@ -26,4 +26,4 @@ jobs:
           path-to-signatures: '.github/cla/signatures.json'
           path-to-document: 'https://github.com/gristlabs/grist-core/blob/main/.github/cla/individual-cla.md'
           branch: 'main'
-          allowlist: github-actions[bot],dependabot[bot]
+          allowlist: github-actions[bot],dependabot[bot],fflorent,vviers,audez,hexaltation,manuhabitela,ohemelaar,jonathanperret
