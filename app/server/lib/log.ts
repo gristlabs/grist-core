@@ -2,12 +2,19 @@
  * Configures grist logging. This is merely a customization of the 'winston' logging module,
  * and all winston methods are available. Additionally provides log.timestamp() function.
  * Usage:
- *    var log = require('./lib/log');
+ *    import log from 'app/server/lib/log';
  *    log.info(...);
  */
 
 import {timeFormat} from 'app/common/timeFormat';
+import {appSettings} from 'app/server/lib/AppSettings';
 import * as winston from 'winston';
+
+const logAsJson = appSettings.section("log").flag("json").readBool({
+  envVar: ["GRIST_LOG_AS_JSON", "GRIST_HOSTED_VERSION"],
+  preferredEnvVar: "GRIST_LOG_AS_JSON",
+  defaultValue: false
+});
 
 interface LogWithTimestamp extends winston.LoggerInstance {
   timestamp(): string;
@@ -69,7 +76,7 @@ const fileTransportOptions = {
   level: process.env.GRIST_LOG_LEVEL || 'debug',
   timestamp: log.timestamp,
   colorize: true,
-  json: process.env.GRIST_HOSTED_VERSION ? true : false
+  json: logAsJson
 };
 
 // Configure logging to use console and simple timestamps.
@@ -86,6 +93,7 @@ declare namespace log { // eslint-disable-line @typescript-eslint/no-namespace
     [key: string]: any;
   }
 }
-type ILogMeta = log.ILogMeta;
+export type ILogMeta = log.ILogMeta;
 
-export = log;
+export { logAsJson };
+export default log;

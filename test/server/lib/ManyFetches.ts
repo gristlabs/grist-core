@@ -3,7 +3,7 @@ import {TableFetchResult} from 'app/common/ActiveDocAPI';
 import {UserAPIImpl} from 'app/common/UserAPI';
 import {delay} from 'app/common/delay';
 import {cookieName} from 'app/server/lib/gristSessions';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {getGristConfig} from 'test/gen-server/testUtils';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
 import {TestServer} from 'test/server/lib/helpers/TestServer';
