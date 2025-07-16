@@ -802,7 +802,11 @@
         "Any": "任何",
         "Numeric": "數值",
         "DateTime": "日期時間",
-        "Date": "日期"
+        "Date": "日期",
+        "By Name": "依名稱",
+        "By Date Modified": "依修改日期",
+        "Light": "日間",
+        "Custom": "自訂"
     },
     "DocPageModel": {
         "Sorry, access to this document has been denied. [{{error}}]": "抱歉，您被拒絕存取此文件。[{{error}}]",
@@ -933,7 +937,8 @@
         "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "大型表格可以標記為「按需」，以避免將它們載入資料引擎。",
         "Plugin: ": "插件： ",
         "Edit Card Layout": "編輯卡片佈局",
-        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "由於功能限制與使用性考量，隨選表格功能已停止支援。"
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "因功能不足及可用性問題，隨選表格已被淘汰。",
+        "⚠️ Deprecated Feature": "⚠️ 已淘汰功能"
     },
     "FieldBuilder": {
         "Mixed format": "混合格式",
@@ -996,7 +1001,8 @@
         "Show raw data": "顯示原始資料",
         "Delete widget": "刪除小工具",
         "Copy anchor link": "複製錨點連結",
-        "Download as CSV": "下載為 CSV"
+        "Download as CSV": "下載為 CSV",
+        "Create a form": "建立表單"
     },
     "ACUserManager": {
         "Invite new member": "邀請新成員",
@@ -1221,7 +1227,13 @@
         "Sign in again": "再次登入",
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "找不到請求的頁面。{{separator}}請檢查 URL 並再試一次。",
         "Sign in to access this organization's documents.": "登入以存取此組織的文件。",
-        "Contact support": "聯絡支援"
+        "Contact support": "聯絡支援",
+        "An unknown error occurred.": "發生未知錯誤。",
+        "Build your own form": "建立自己的表單",
+        "Form not found": "找不到表單",
+        "Powered by": "驅動於",
+        "Failed to log in.{{separator}}Please try again or contact support.": "登入失敗。{{separator}}請再試一次，或聯絡技術支援。",
+        "Sign-in failed{{suffix}}": "登入失敗{{suffix}}"
     },
     "RecordLayoutEditor": {
         "Show field {{- label}}": "顯示欄位 {{- label}}",
@@ -1466,7 +1478,12 @@
     "modals": {
         "Save": "儲存",
         "Cancel": "取消",
-        "Ok": "確定"
+        "Ok": "確定",
+        "Are you sure you want to delete these records?": "您確定要刪除這些紀錄嗎？",
+        "Are you sure you want to delete this record?": "您確定要刪除這筆紀錄嗎？",
+        "Delete": "刪除",
+        "Dismiss": "忽略",
+        "Don't ask again.": "不再詢問"
     },
     "SiteSwitcher": {
         "Switch Sites": "切換網站",
