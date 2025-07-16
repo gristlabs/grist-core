@@ -31,7 +31,9 @@
         "Workspaces": "工作區",
         "Workspace will be moved to Trash.": "工作區將被移至垃圾桶。",
         "Examples & Templates": "範本",
-        "Delete": "刪除"
+        "Delete": "刪除",
+        "Terms of service": "服務條款",
+        "Grist Resources": "Grist 資源"
     },
     "RowContextMenu": {
         "Insert row": "插入列",
@@ -134,7 +136,27 @@
         "Adding duplicates column": "新增重複欄位",
         "Hide {{count}} columns_one": "隱藏欄位",
         "Insert column to the left": "在左側插入欄位",
-        "Sorted (#{{count}})_other": "已排序 (#{{count}})"
+        "Sorted (#{{count}})_other": "已排序 (#{{count}})",
+        "Add column with type": "新增欄位並指定類型",
+        "Add formula column": "新增公式欄位",
+        "Add column": "新增欄位",
+        "Created at": "建立於",
+        "Created by": "由…建立",
+        "Detect duplicates in...": "偵測重複項目於...",
+        "Last updated at": "最後更新於",
+        "Last updated by": "最後由...更新",
+        "Any": "任何",
+        "Numeric": "數字",
+        "Text": "文字",
+        "Integer": "整數",
+        "Toggle": "切換",
+        "Date": "日期",
+        "DateTime": "日期時間",
+        "Choice": "選擇",
+        "Choice List": "選擇清單",
+        "Reference": "引用",
+        "Reference List": "引用清單",
+        "Attachment": "附件"
     },
     "DocMenu": {
         "This service is not available right now": "此服務目前無法使用",
@@ -283,7 +305,18 @@
         "However, it appears to be already identical.": "然而，它似乎已經完全相同。",
         "Update Original": "更新原始文件",
         "You do not have write access to this site": "您無法對此網站進行寫入",
-        "Download document and history": "下載完整文件和歷史"
+        "Download document and history": "下載完整文件和歷史",
+        "Download": "下載",
+        "Download document": "下載文件",
+        ".tar (recommended)": ".tar (建議)",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "下載包含此文件所有附件的歸檔檔案。",
+        "Download attachments": "下載附件",
+        "Download full document and history": "下載完整文件及歷史記錄",
+        "Format:": "格式:",
+        "Learn more": "了解更多",
+        "download attachments": "下載附件",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "附件為外部儲存，未包含在此次下載中。若要將此文件上傳至另一個 Grist 安裝環境，您會需要額外{{downloadLink}}。 "
     },
     "GristTooltips": {
         "They allow for one record to point (or refer) to another.": "它們允許一個記錄指向（或參考）另一個記錄。",
@@ -496,7 +529,8 @@
         "go to webhook settings": "前往 webhook 設定",
         "Saved linked section {{title}} in view {{name}}": "已在檢視 {{name}} 中儲存連結區段 {{title}}",
         "Added new linked section to view {{viewName}}": "已新增新的連結區段到檢視 {{viewName}}",
-        "Import from file": "從檔案匯入"
+        "Import from file": "從檔案匯入",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "新變更已暫時暫停。Webhooks 佇列已溢出。請檢查 Webhooks 設定，移除無效的 Webhook，並清理佇列。"
     },
     "AccessRules": {
         "Permission to access the document in full when needed": "需要時存取整份文件的權限",
@@ -792,7 +826,29 @@
         "Confirm change": "確認修改",
         "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "這將強制重新載入資料引擎。當資料引擎陷入無限迴圈、無限處理最近的變更，或已當機時，這可能有助於恢復。資料不會遺失，但當前尚未完成的操作可能會丟失。",
         "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "開始計時後，Grist 將會測量每個公式的運算時間。這有助於診斷在文件初次開啟或對變更做出回應時，哪些公式導致效能變慢。",
-        "**Some existing attachments are still external**.": "**部分現有的附件仍為外部檔案**"
+        "**Some existing attachments are still external**.": "**部分現有的附件仍為外部檔案**.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**部分現有的附件仍為外部檔案** (存於 SQLite 檔).",
+        "Attachment storage": "附件儲存空間",
+        "Being transfer": "傳輸中",
+        "Click \"Start transfer\" to transfer those to External storage.": "點擊「開始傳輸」以將這些檔案轉移至外部儲存空間。",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "點擊「開始傳輸」以將這些檔案轉移至內部儲存空間（儲存在文件的 SQLite 檔案中）.",
+        "Newly uploaded attachments will be placed in External storage.": "新上傳的附件將儲存在外部儲存空間中。",
+        "Newly uploaded attachments will be placed in Internal storage.": "新上傳的附件將儲存在內部儲存空間中。",
+        "No external stores available": "沒有可用的外部儲存空間",
+        "Preferred storage for this document": "文件偏好儲存空間",
+        "Start transfer": "開始傳輸",
+        "External": "外部",
+        "Internal": "內部",
+        "Transfer in progress": "傳輸進行中",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**部分現有的附件仍為[外部儲存]({{externalLink}})**。",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**部分現有的附件仍為[內部儲存]({{internalLink}})**（儲存在 SQLite 檔案中）.",
+        "[Learn more.]({{learnLink}})": "[了解更多]({{learnLink}})",
+        "Upload": "上傳",
+        "Upload missing attachments": "上傳缺少的附件",
+        "Uploading...": "上傳中...",
+        "Default": "預設",
+        "Default, template, or tutorial": "預設, 範本, 或教學",
+        "Document type": "文件類型"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "欄位 ID 已複製到剪貼簿",
@@ -908,7 +964,9 @@
         "Sign up": "註冊",
         "Sprouts Program": "Sprouts 計劃",
         "To use Grist, please either sign up or sign in.": "要使用 Grist，請註冊或登入。",
-        "Welcome to Grist!": "歡迎來到 Grist！"
+        "Welcome to Grist!": "歡迎來到 Grist！",
+        "Learn more in our {{helpCenterLink}}.": "前往 {{helpCenterLink}} 了解更多.",
+        "Only show documents": "僅顯示文件"
     },
     "CustomSectionConfig": {
         "Open configuration": "開啟設定",
@@ -1149,7 +1207,8 @@
         "The following tables will no longer be visible_one": "以下的表格將不再顯示",
         "Delete": "刪除",
         "The following tables will no longer be visible_other": "以下的多個表格將不再顯示",
-        "Delete data and this page.": "刪除資料與此頁面。"
+        "Delete data and this page.": "刪除資料與此頁面。",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "保留資料並刪除頁面。資料表仍存在於 {{rawDataLink}} 。"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "描述"
@@ -1228,7 +1287,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "完成",
-        "Next": "下一步"
+        "Next": "下一步",
+        "Previous": "上一個"
     },
     "Reference": {
         "CELL FORMAT": "儲存格格式",
