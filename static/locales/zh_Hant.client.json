@@ -176,7 +176,10 @@
         "Move {{name}} to workspace": "將 {{name}} 移至工作區",
         "Document will be moved to Trash.": "文件將被移至垃圾桶。",
         "Permanently Delete \"{{name}}\"?": "永久刪除 \"{{name}}\"？",
-        "Any documents created in this site will appear here.": "在此網站建立的所有文件都會顯示在此處."
+        "Any documents created in this site will appear here.": "在此網站建立的所有文件都會顯示在此處.",
+        "Create my first document": "創立我的第一份文件",
+        "You have read-only access to this site. Currently there are no documents.": "您只有此網站的唯讀存取權限。目前沒有文件。",
+        "personal site": "個人網站"
     },
     "ChartView": {
         "Each Y series is followed by a series for the length of error bars.": "每個 Y 數列後面都接著一個表示誤差棒長度的系列。",
@@ -718,7 +721,8 @@
         "Reload": "重新載入",
         "Error accessing document": "存取文件時發生錯誤",
         "Enter recovery mode": "進入復原模式",
-        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "您可以嘗試重新載入文件，或使用復原模式。復原模式將文件完全開放給擁有者，並對其他人設為不可存取。同時也會停用公式。[{{error}}]"
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "您可以嘗試重新載入文件，或使用復原模式。復原模式將文件完全開放給擁有者，並對其他人設為不可存取。同時也會停用公式。[{{error}}]",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "請重新載入文件，如果錯誤仍然存在，請聯絡文件擁有者以嘗試進行文件修復。［{{error}}］"
     },
     "DocumentSettings": {
         "Ok": "確定",
@@ -735,7 +739,20 @@
         "Document Settings": "文件設定",
         "Locale:": "語言環境：",
         "This document's ID (for API use):": "此文件的 ID（供 API 使用）：",
-        "Manage webhooks": "管理 Webhooks"
+        "Manage webhooks": "管理 Webhooks",
+        "API Console": "API 控制介面",
+        "API URL copied to clipboard": "API 網址已複製到剪貼簿",
+        "API console": "API 控制介面",
+        "API documentation.": "API 技術文件.",
+        "Base doc URL: {{docApiUrl}}": "基本文件網址: {{docApiUrl}}",
+        "Coming soon": "敬請期待",
+        "Copy to clipboard": "複製到剪貼簿",
+        "Currency": "貨幣",
+        "Data Engine": "數據引擎",
+        "Default for DateTime columns": "DateTime 欄位的預設值",
+        "Document ID": "文件 ID",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "當 REST API 需要 {{docId}} 時，請使用此文件 ID。參見 {{apiURL}}",
+        "Find slow formulas": "尋找 slow 公式"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "欄位 ID 已複製到剪貼簿",
