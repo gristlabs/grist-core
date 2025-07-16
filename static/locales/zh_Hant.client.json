@@ -372,7 +372,19 @@
         "Reference columns are the key to {{relational}} data in Grist.": "參考欄位是 Grist 中 {{relational}} 資料的關鍵。",
         "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "參考欄位中的儲存格總是識別該表格中的一個{{entire}}記錄，但您可以選擇從該記錄中顯示哪個欄位。",
         "Use reference columns to relate data in different tables.": "使用參考欄位將不同表格中的資料相關聯。",
-        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "在 Grist 中直接建立簡易表單，並透過我們的新小工具一鍵分享。{{learnMoreButton}}"
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "在 Grist 中直接建立簡易表單，並透過我們的新工具一鍵分享。{{learnMoreButton}}",
+        "Forms are here!": "表單功能上線了！",
+        "Learn more": "了解更多",
+        "These rules are applied after all column rules have been processed, if applicable.": "這些規則會在所有欄位規則處理完畢後套用（如適用）。",
+        "Example: {{example}}": "例:{{example}}",
+        "Filter displayed dropdown values with a condition.": "透過條件篩選下拉選單顯示內容.",
+        "Community widgets are created and maintained by Grist community members.": "社群小工具由 Grist 社群成員建立並維護。",
+        "Creates a reverse column in target table that can be edited from either end.": "在目標資料表中建立一個反向欄位，可從任一端進行編輯。",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "當雙向參照的一端被設定為單一參照時，會出現此限制。",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "若要允許多重指派，請將參照欄位的類型變更為參照清單。",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "當雙向參照中的其中一個欄位為參照類型時，會出現此限制。",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "若要允許多重指派，請將被參照欄位的類型變更為參照清單。",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "目前不支援在公式欄位或觸發公式欄位中使用雙向參照。"
     },
     "SortConfig": {
         "Add Column": "新增欄位",
