@@ -384,7 +384,8 @@
         "To allow multiple assignments, change the type of the Reference column to Reference List.": "若要允許多重指派，請將參照欄位的類型變更為參照清單。",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "當雙向參照中的其中一個欄位為參照類型時，會出現此限制。",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "若要允許多重指派，請將被參照欄位的類型變更為參照清單。",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "目前不支援在公式欄位或觸發公式欄位中使用雙向參照。"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "目前不支援在公式欄位或觸發公式欄位中使用雙向參照",
+        "The preview below this header shows how the selected user will see this document": "此標題下方的預覽顯示所選使用者查看此文件時的畫面。"
     },
     "SortConfig": {
         "Add Column": "新增欄位",
