@@ -420,7 +420,9 @@
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "內部儲存表示所有附件都儲存在文件的 SQLite 檔案中，而外部儲存則表示所有附件都儲存在同一個外部儲存空間中。",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "這可讓您補充外部儲存中遺漏的附件，例如匯入的文件中所缺少的部分。此處僅接受從 Grist 下載的 .tar 附件壓縮檔上傳。",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "透過 Grist 全新的 AI 助理，協助您理解、修改並操作資料與公式！",
-        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "此表單由 Grist 使用者建立，並未經 Grist Labs 認可。請勿透過此表單提交密碼，並留意其中的連結。如發現惡意表單，請回報至 [{{mail}}](mailto:{{mail}})。"
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "此表單由 Grist 使用者建立，並未經 Grist Labs 認可。請勿透過此表單提交密碼，並留意其中的連結。如發現惡意表單，請回報至 [{{mail}}](mailto:{{mail}})。",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "您可以從下拉選單中選擇可用的小工具，或輸入完整的網址以嵌入您自己的小工具。",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "公式支援多種 Excel 函數、完整的 Python 語法，並內建實用的 AI 助手。"
     },
     "SortConfig": {
         "Add Column": "新增欄位",
@@ -454,7 +456,9 @@
         "GitHub": "GitHub",
         "Sponsor": "贊助",
         "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist 軟體由 Grist Labs 開發，並提供免費與付費的雲端託管方案。我們也在 {{link}} 上以標準的自由開源軟體授權（Apache 2.0）提供 Grist 的原始碼。",
-        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "透過啟用遙測功能來支持 Grist，這有助於我們了解產品的使用情況，從而優先改進未來功能。"
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "透過啟用遙測功能來支持 Grist，這有助於我們了解產品的使用情況，從而優先改進未來功能。",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "我們是一個小而堅定的團隊，您的支持對我們意義重大。這也向其他人展現出，這個產品背後有一個充滿決心的社群。",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "您可以透過在我們的 {{link}} 上贊助，支持 Grist 的開源開發。"
     },
     "VisibleFieldsConfig": {
         "Show {{label}}": "顯示 {{label}}",
@@ -681,7 +685,9 @@
         "Only my threads": "僅限我的討論串",
         "Edit": "編輯",
         "Resolve": "解決",
-        "Showing last {{nb}} comments": "顯示最後 {{nb}} 則評論"
+        "Showing last {{nb}} comments": "顯示最後 {{nb}} 則評論",
+        "Remove thread": "刪除討論串",
+        "updated": "已更新"
     },
     "CellContextMenu": {
         "Copy anchor link": "複製錨點鏈結",
@@ -1257,7 +1263,9 @@
         "Row Style": "列樣式",
         "Add another rule": "新增其他規則",
         "Add conditional style": "新增條件樣式",
-        "Error in style rule": "樣式規則錯誤"
+        "Error in style rule": "樣式規則錯誤",
+        "Conditional Style": "條件格式",
+        "IF...": "如..."
     },
     "ColorSelect": {
         "Apply": "套用",
@@ -1365,7 +1373,11 @@
     },
     "NTextBox": {
         "false": "否",
-        "true": "是"
+        "true": "是",
+        "Field Format": "欄位格式",
+        "Lines": "行",
+        "Multi line": "多行",
+        "Single line": "單行"
     },
     "FilterBar": {
         "Search Columns": "搜尋欄位",
@@ -1382,7 +1394,11 @@
         "Decimals": "小數點",
         "Currency": "貨幣",
         "Default currency ({{defaultCurrency}})": "預設貨幣 ({{defaultCurrency}})",
-        "Number Format": "數字格式"
+        "Number Format": "數字格式",
+        "Field Format": "欄位格式",
+        "Text": "文字",
+        "max": "最大",
+        "min": "最小"
     },
     "App": {
         "Description": "描述",
@@ -1483,7 +1499,14 @@
         "Are you sure you want to delete this record?": "您確定要刪除這筆紀錄嗎？",
         "Delete": "刪除",
         "Dismiss": "忽略",
-        "Don't ask again.": "不再詢問"
+        "Don't ask again.": "不再詢問.",
+        "Don't show again.": "不再顯示.",
+        "Don't show tips": "不顯示提示",
+        "Undo to restore": "按一下「復原」可還原",
+        "Got it": "明白了",
+        "Don't show again": "不再顯示",
+        "TIP": "提示",
+        "Confirm": "確認"
     },
     "SiteSwitcher": {
         "Switch Sites": "切換網站",
@@ -1510,5 +1533,45 @@
     },
     "sendToDrive": {
         "Sending file to Google Drive": "正在將檔案傳送到 Google 雲端硬碟"
+    },
+    "CardContextMenu": {
+        "Copy anchor link": "複製錨點連結",
+        "Delete card": "刪除卡片",
+        "Duplicate card": "複製卡片",
+        "Insert card": "插入卡片",
+        "Insert card above": "在上方插入卡片",
+        "Insert card below": "在下方插入卡片"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "隱藏欄位"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "免費諮詢通話",
+        "Maybe Later": "暫時先不用",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "在通話中，我們會花時間了解您的需求，並根據您的情況量身打造內容。我們可以介紹 Grist 的基本功能，或是直接使用您的資料，幫您建立所需的儀表板。",
+        "Schedule Call": "預約通話",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "安排與我們團隊成員的 {{freeCoachingCall}}。"
+    },
+    "FormView": {
+        "Publish": "發佈",
+        "Publish your form?": "要發佈表單嗎？",
+        "Unpublish": "取消發佈",
+        "Unpublish your form?": "要取消發佈表單嗎？",
+        "Anyone with the link below can see the empty form and submit a response.": "擁有以下連結的任何人都可以查看空白表單並提交回覆。",
+        "Are you sure you want to reset your form?": "您確定要重設表單嗎？",
+        "Code copied to clipboard": "程式碼已複製到剪貼簿",
+        "Copy code": "複製程式碼",
+        "Copy link": "複製連結",
+        "Embed this form": "嵌入此表單",
+        "Link copied to clipboard": "連結已複製到剪貼簿",
+        "Preview": "預覽",
+        "Reset": "重置",
+        "Reset form": "重置表單",
+        "Save your document to publish this form.": "請先儲存文件以發布此表單。",
+        "Share": "分享",
+        "Share this form": "分享此表單",
+        "View": "檢視",
+        "# **Form Title**": "# **表單標題**",
+        "Your form description goes here.": "請在此輸入表單描述"
     }
 }
