@@ -84,7 +84,10 @@
         "Need help? Our AI assistant can help.": "需要幫忙？我們的 AI 幫手可以幫忙。",
         "AI Assistant": "AI 幫手",
         "For higher limits, {{upgradeNudge}}.": "如需更高的限制，{{upgradeNudge}}。",
-        "There are some things you should know when working with me:": "與我一起工作時，有些事情您應該知道："
+        "There are some things you should know when working with me:": "與我一起工作時，有些事情您應該知道：",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "如需更多公式相關協助，請參閱我們的 {{functionList}} 和 {{formulaCheatSheet}}，或造訪 {{community}} 尋求更多幫助。",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "當您與我互動時，您的問題與文件結構（可在 {{codeView}} 中查看）會傳送至 OpenAI。{{learnMore}}。",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "像與真人對話一樣與我互動，無需特別說明資料表和欄位名稱。例如，您可以這樣問：「請幫我計算發票總金額。」"
     },
     "GridViewMenus": {
         "Unfreeze {{count}} columns_one": "解凍此欄位",
@@ -241,7 +244,8 @@
         "Error bars": "誤差線",
         "Above+Below": "上下",
         "Split Series": "拆分數列",
-        "Aggregate values": "彙總數值"
+        "Aggregate values": "彙總數值",
+        "Hole Size": "內圈尺寸"
     },
     "RightPanel": {
         "WIDGET TITLE": "小工具標題",
@@ -385,7 +389,17 @@
         "This limitation occurs when one column in a two-way reference has the Reference type.": "當雙向參照中的其中一個欄位為參照類型時，會出現此限制。",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "若要允許多重指派，請將被參照欄位的類型變更為參照清單。",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "目前不支援在公式欄位或觸發公式欄位中使用雙向參照",
-        "The preview below this header shows how the selected user will see this document": "此標題下方的預覽顯示所選使用者查看此文件時的畫面。"
+        "The preview below this header shows how the selected user will see this document": "此標題下方的預覽顯示所選使用者查看此文件時的畫面",
+        "[Learn more.]({{link}})": "[了解更多]({{link}})",
+        "Summary tables can only contain formula columns.": "摘要表只能包含公式欄位。",
+        "Manage users and resources in a Grist installation.": "管理 Grist 安裝的使用者與資源。",
+        "The new Grist Assistant is here!": "全新的 Grist 助理上線了！",
+        "Formulas support many Excel functions and full Python syntax.": "公式支援多種 Excel 函數以及完整的 Python 語法。",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "在目標資料表中建立新的參照清單欄位，並可同步編輯此欄位與目標欄位的內容。",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "內部儲存表示所有附件都儲存在文件的 SQLite 檔案中，而外部儲存則表示所有附件都儲存在同一個外部儲存空間中。",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "這可讓您補充外部儲存中遺漏的附件，例如匯入的文件中所缺少的部分。此處僅接受從 Grist 下載的 .tar 附件壓縮檔上傳。",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "透過 Grist 全新的 AI 助理，協助您理解、修改並操作資料與公式！",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "此表單由 Grist 使用者建立，並未經 Grist Labs 認可。請勿透過此表單提交密碼，並留意其中的連結。如發現惡意表單，請回報至 [{{mail}}](mailto:{{mail}})。"
     },
     "SortConfig": {
         "Add Column": "新增欄位",
@@ -397,7 +411,8 @@
     },
     "Clipboard": {
         "Unavailable Command": "無效的指令",
-        "Got it": "瞭解了"
+        "Got it": "瞭解了",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "此瀏覽器不支援 {{action}} 選單指令。您仍可使用鍵盤快捷鍵 {{shortcut}} 來執行 {{action}}。"
     },
     "SupportGristPage": {
         "You have opted out of telemetry.": "您已選擇不參與遙測。",
@@ -415,7 +430,10 @@
         "Opt in to Telemetry": "選擇參與遙測",
         "You have opted in to telemetry. Thank you!": "您已選擇參與遙測。謝謝您！",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "此實例已選擇參與遙測。只有網站管理員有權更改此設定。",
-        "GitHub": "GitHub"
+        "GitHub": "GitHub",
+        "Sponsor": "贊助",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist 軟體由 Grist Labs 開發，並提供免費與付費的雲端託管方案。我們也在 {{link}} 上以標準的自由開源軟體授權（Apache 2.0）提供 Grist 的原始碼。",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "透過啟用遙測功能來支持 Grist，這有助於我們了解產品的使用情況，從而優先改進未來功能。"
     },
     "VisibleFieldsConfig": {
         "Show {{label}}": "顯示 {{label}}",
@@ -521,7 +539,9 @@
         "Confirm": "確認",
         "On": "開啟",
         "Open Access Rules": "開啟存取規則",
-        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "無預設存取權限允許將存取權限授予個別文件或工作區，而不是整個團隊網站。"
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "無預設存取權限允許將存取權限授予個別文件或工作區，而不是整個團隊網站。",
+        "Inherit access: ": "繼承存取權限： ",
+        "Access overview": "存取權限總覽"
     },
     "WelcomeQuestions": {
         "Welcome to Grist!": "歡迎來到 Grist！",
@@ -865,7 +885,8 @@
         "Uploading...": "上傳中...",
         "Default": "預設",
         "Default, template, or tutorial": "預設, 範本, 或教學",
-        "Document type": "文件類型"
+        "Document type": "文件類型",
+        "Regular document": "常規文件"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "欄位 ID 已複製到剪貼簿",
@@ -909,7 +930,9 @@
         "Help Center": "說明中心",
         "Opted In": "已選擇參與",
         "Contribute": "貢獻",
-        "Support Grist page": "支持 Grist 頁面"
+        "Support Grist page": "支持 Grist 頁面",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "感謝您！非常感激您的信任與支持。您可隨時透過使用者選單中的 {{link}} 取消參與。",
+        "Admin Panel": "後台管理"
     },
     "ValidationPanel": {
         "Update formula (Shift+Enter)": "更新公式 (Shift+Enter)",
@@ -1099,7 +1122,8 @@
         "Copy": "複製",
         "Paste": "貼上",
         "Clear field": "清除欄位",
-        "Cut": "剪下"
+        "Cut": "剪下",
+        "Comment": "評論"
     },
     "WidgetTitle": {
         "Override widget title": "覆寫小工具標題",
@@ -1233,7 +1257,23 @@
     },
     "WebhookPage": {
         "Webhook Settings": "Webhook 設定",
-        "Clear Queue": "清除佇列"
+        "Clear Queue": "清除佇列",
+        "Cleared webhook queue.": "已清除 Webhook 佇列。",
+        "Columns to check when update (separated by ;)": "更新時要檢查的欄位（以 ; 分隔）",
+        "Enabled": "已啟用",
+        "Event Types": "活動類型",
+        "Memo": "備註",
+        "Name": "名稱",
+        "Ready Column": "就緒欄位",
+        "Removed webhook.": "已刪除的 webhook.",
+        "Sorry, not all fields can be edited.": "抱歉，並非所有欄位都可編輯。",
+        "Status": "狀態",
+        "URL": "URL",
+        "Webhook Id": "Webhook Id",
+        "Table": "表",
+        "Filter for changes in these columns (semicolon-separated ids)": "篩選這些欄位的變更（以分號分隔的 ID）",
+        "Header Authorization": "Header 授權",
+        "Webhooks Unavailable In Unsaved Document Copies": "未儲存的文件副本中無法使用 Webhook"
     },
     "TriggerFormulas": {
         "Close": "關閉",
