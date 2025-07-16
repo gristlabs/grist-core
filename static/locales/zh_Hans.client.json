@@ -320,7 +320,7 @@
         "Compare to Previous": "与以前相比",
         "Open Snapshot": "打开快照",
         "Snapshots are unavailable.": "快照不可用。",
-        "Only owners have access to snapshots for documents with access rules.": "只有擁有者可以存取具有存取規則的文件快照。"
+        "Only owners have access to snapshots for documents with access rules.": "只有拥有者可以访问具有访问规则的文档快照。"
     },
     "WelcomeTour": {
         "Share": "分享",
