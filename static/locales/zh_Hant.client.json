@@ -778,12 +778,21 @@
         "You can make changes to the document, then stop timing to see the results.": "您可以先修改文件，然後停止計時以查看結果。",
         "Only available to document editors": "僅限文件編輯者使用",
         "Only available to document owners": "僅限文件擁有者使用",
-        "Template mode": "模板模式",
+        "Template mode": "範本模式",
         "Change document type": "變更文件類型",
         "Edit": "編輯",
         "Change nature of document": "修改文件屬性",
         "Normal document behavior. All users work on the same copy of the document.": "一般文件行為：所有使用者在同一份文件副本上共同作業。",
-        "Template": "範本"
+        "Template": "範本",
+        "Formula timer": "公式計時器",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "文件將自動在 {{fiddleModeDocUrl}} 中開啟。任何人都可以編輯，系統將建立一個新的未儲存副本。",
+        "fiddle mode": "沙盒模式",
+        "Tutorial": "教學",
+        "Document automatically opens as a user-specific copy.": "文件將自動開啟為個人專屬副本。",
+        "Confirm change": "確認修改",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "這將強制重新載入資料引擎。當資料引擎陷入無限迴圈、無限處理最近的變更，或已當機時，這可能有助於恢復。資料不會遺失，但當前尚未完成的操作可能會丟失。",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "開始計時後，Grist 將會測量每個公式的運算時間。這有助於診斷在文件初次開啟或對變更做出回應時，哪些公式導致效能變慢。",
+        "**Some existing attachments are still external**.": "**部分現有的附件仍為外部檔案**"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "欄位 ID 已複製到剪貼簿",
