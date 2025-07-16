@@ -42,7 +42,9 @@
         "Copy anchor link": "複製錨點連結",
         "Duplicate rows_one": "複製列",
         "Duplicate rows_other": "複製列",
-        "Insert row above": "在上方插入列"
+        "Insert row above": "在上方插入列",
+        "View as card": "以卡片方式檢視",
+        "Use as table headers": "用作表格標題"
     },
     "Drafts": {
         "Undo discard": "撤銷丟棄",
@@ -280,7 +282,26 @@
         "Widget": "小工具",
         "Reset form": "重置表格",
         "Configuration": "設定",
-        "Default field value": "欄位預設值"
+        "Default field value": "欄位預設值",
+        "Display button": "顯示按鈕",
+        "Enter text": "輸入文字",
+        "Field rules": "欄位規則",
+        "Field title": "欄位標題",
+        "Hidden field": "隱藏的欄位",
+        "Layout": "版面配置",
+        "Redirect automatically after submission": "提交後自動重新導向",
+        "Redirection": "重新導向",
+        "Required field": "必填欄位",
+        "Submission": "提交",
+        "Submit another response": "提交另一個回應",
+        "Submit button label": "提交按鈕標籤",
+        "Success text": "成功顯示文字",
+        "Table column name": "表格欄位名稱",
+        "Enter redirect URL": "輸入重新導向的網址",
+        "No field selected": "未選擇欄位",
+        "Select a field in the form widget to configure.": "請選擇表單元件中的欄位以進行設定。",
+        "Submit": "提交",
+        "Thank you! Your response has been recorded.": "感謝您！您的回應已被記錄。"
     },
     "FloatingPopup": {
         "Maximize": "最大化",
@@ -886,7 +907,8 @@
         "Default": "預設",
         "Default, template, or tutorial": "預設, 範本, 或教學",
         "Document type": "文件類型",
-        "Regular document": "常規文件"
+        "Regular document": "普通文件",
+        "Regular": "普通"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "欄位 ID 已複製到剪貼簿",
