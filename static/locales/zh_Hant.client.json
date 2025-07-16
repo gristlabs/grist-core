@@ -44,7 +44,7 @@
         "Duplicate rows_other": "複製列",
         "Insert row above": "在上方插入列",
         "View as card": "以卡片方式檢視",
-        "Use as table headers": "用作表格標題"
+        "Use as table headers": "用作表格標頭"
     },
     "Drafts": {
         "Undo discard": "撤銷丟棄",
@@ -783,7 +783,8 @@
         "Code View": "程式碼檢視",
         "Return to viewing as yourself": "返回以自己的身份檢視",
         "Raw Data": "原始資料",
-        "Document History": "文件歷史"
+        "Document History": "文件歷史",
+        "API Console": "API 控制台"
     },
     "menus": {
         "Reference List": "參考列表",
@@ -931,7 +932,8 @@
         "Make On-Demand": "設為按需",
         "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "大型表格可以標記為「按需」，以避免將它們載入資料引擎。",
         "Plugin: ": "插件： ",
-        "Edit Card Layout": "編輯卡片佈局"
+        "Edit Card Layout": "編輯卡片佈局",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "由於功能限制與使用性考量，隨選表格功能已停止支援。"
     },
     "FieldBuilder": {
         "Mixed format": "混合格式",
@@ -1064,7 +1066,8 @@
         "You can always switch sites using the account menu.": "您可以隨時使用帳戶選單切換網站。"
     },
     "TopBar": {
-        "Manage Team": "管理團隊"
+        "Manage Team": "管理團隊",
+        "Manage team": "管理團隊"
     },
     "GridOptions": {
         "Horizontal Gridlines": "水平網格線",
@@ -1104,7 +1107,15 @@
         "Manage Users": "管理使用者",
         "Unsaved": "未儲存",
         "Save Document": "儲存文件",
-        "Save Copy": "儲存副本"
+        "Save Copy": "儲存副本",
+        "Comma Separated Values (.csv)": "逗號分格值 (.csv)",
+        "DOO Separated Values (.dsv)": "DOO 分隔值 (.dsv)",
+        "Export as...": "匯出為...",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Tab Separated Values (.tsv)": "Tab 分隔值 (.tsv)",
+        "Exporting is only available from document pages. Please select a document page and try again.": "僅能從文件頁面進行匯出。請選擇一個文件頁面後再試一次。",
+        "Download attachments...": "下載附件...",
+        "Download document...": "下載文件..."
     },
     "UserManagerModel": {
         "View & Edit": "檢視與編輯",
@@ -1174,7 +1185,9 @@
         "Tutorial: Analyze & Visualize": "教學：分析與視覺化"
     },
     "ViewAsBanner": {
-        "UnknownUser": "未知使用者"
+        "UnknownUser": "未知使用者",
+        "View as Yourself": "以自己角色查看",
+        "You are viewing this document as": "您目前以以下身份檢視此文件"
     },
     "PermissionsWidget": {
         "Deny All": "全部拒絕",
