@@ -1572,6 +1572,123 @@
         "Share this form": "分享此表單",
         "View": "檢視",
         "# **Form Title**": "# **表單標題**",
-        "Your form description goes here.": "請在此輸入表單描述"
+        "Your form description goes here.": "請在此輸入表單描述.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "發布表單後將產生一個分享連結。擁有該連結的任何人都可以查看空白表單並提交回覆。",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "取消發布表單後，分享連結將會失效，透過該連結存取表單的使用者將會看到錯誤訊息。",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "使用者僅限提交項目（表格中的紀錄），以及閱讀指定欄位中的預設值，例如參照欄位和選項欄位。",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "您的表單已發布。所有變更都會即時生效，並對有權存取表單的使用者可見。如果您希望先進行草稿修改，請取消發布表單。"
+    },
+    "Editor": {
+        "Delete": "刪除"
+    },
+    "Menu": {
+        "Building blocks": "組件",
+        "Columns": "欄",
+        "Copy": "複製",
+        "Cut": "剪下",
+        "Insert question above": "在上方插入問題",
+        "Insert question below": "在下方插入問題",
+        "Paragraph": "段落",
+        "Paste": "貼上",
+        "Separator": "分隔線",
+        "Unmapped fields": "未對應的欄位",
+        "Header": "標頭",
+        "New question": "新的問題",
+        "More": "更多"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "清除",
+        "Map fields": "對應欄位",
+        "Mapped": "已對應",
+        "Select All": "全選",
+        "Unmap fields": "取消欄位對應",
+        "Unmapped": "取消對應"
+    },
+    "FormConfig": {
+        "Field rules": "欄位規則",
+        "Required field": "必填欄位",
+        "Ascending": "升序",
+        "Default": "預設值",
+        "Descending": "降序",
+        "Field Format": "欄位格式",
+        "Field Rules": "欄位規則",
+        "Horizontal": "水平",
+        "Options Alignment": "選項對齊方式",
+        "Options Sort Order": "選項排序方式",
+        "Radio": "單選按鈕",
+        "Select": "選擇",
+        "Vertical": "垂直"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "某些必填欄位尚未對應",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "要使用此小工具，請從右側的建立面板中對應所有非選填欄位。",
+        "Some required columns are hidden by access rules": "某些必填欄位因存取規則而被隱藏",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "若要使用此小工具，所有對應的欄位必須可見。請聯絡文件擁有者或修改存取規則。"
+    },
+    "FormContainer": {
+        "Powered by": "驅動於",
+        "Build your own form": "建立自己的表單",
+        "Powered by Grist": "Powered by Grist"
+    },
+    "FormErrorPage": {
+        "Error": "錯誤"
+    },
+    "FormModel": {
+        "Oops! This form is no longer published.": "哎呀！此表單已不再公開。",
+        "There was a problem loading the form.": "載入表單時發生問題。",
+        "You don't have access to this form.": "您無權存取此表單。",
+        "Oops! The form you're looking for doesn't exist.": "哎呀！找不到您要的表單。"
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "提交表單時發生錯誤，請再試一次。"
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "表單已提交",
+        "Thank you! Your response has been recorded.": "感謝您！您的回覆已被記錄.",
+        "Submit new response": "提交新的回覆"
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "最近 30 天",
+        "Last 7 days": "最近 7 天",
+        "Last Week": "上週",
+        "Next 7 days": "未來 7 天",
+        "This month": "本月",
+        "This week": "本週",
+        "This year": "本年",
+        "Today": "今天"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "清除",
+        "Map fields": "對應欄位",
+        "Mapped": "已對應",
+        "Select All": "全選",
+        "Unmap fields": "取消欄位對應",
+        "Unmapped": "已取消對應"
+    },
+    "Section": {
+        "Insert section above": "在上方插入區塊",
+        "Insert section below": "在下方插入區塊",
+        "## **Header**": "## **標頭**",
+        "Description": "敘述"
+    },
+    "CreateTeamModal": {
+        "Cancel": "取消",
+        "Choose a name and url for your team site": "為您的團隊網站選擇名稱和網址",
+        "Create site": "建立網站",
+        "Domain name is invalid": "網域名稱無效",
+        "Domain name is required": "必須填寫網域名稱",
+        "Go to your site": "前往您的網站",
+        "Team name": "團隊名稱",
+        "Team name is required": "需要填寫團隊名稱",
+        "Team site created": "已建立團隊網站",
+        "Team url": "團隊網址",
+        "Work as a Team": "團隊協作",
+        "Billing is not supported in grist-core": "grist-core 不支援帳務功能"
+    },
+    "ToggleEnterpriseModel": {
+        "Timed out on waiting for the Grist backend to restart": "等待 Grist 後端重啟時逾時"
+    },
+    "AdminPanel": {
+        "Admin Panel": "管理平台"
     }
 }
