@@ -1,5 +1,6 @@
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {testId} from 'app/client/ui2018/cssVars';
+import {tokens} from 'app/common/ThemePrefs';
 import {dom, MultiHolder, Observable, styled} from 'grainjs';
 
 
@@ -15,6 +16,7 @@ export function createBottomBarDoc(owner: MultiHolder, pageModel: DocPageModel, 
 }
 
 const cssPageName = styled('div', `
+  color: ${tokens.body};
   margin: 0 10px;
   white-space: nowrap;
   overflow: hidden;
