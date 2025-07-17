@@ -1352,7 +1352,9 @@
         "Creator panel (right panel)": "Creator panel (right panel)",
         "Document header": "Document header",
         "Main content": "Main content",
-        "Main navigation and document settings (left panel)": "Main navigation and document settings (left panel)"
+        "Main navigation and document settings (left panel)": "Main navigation and document settings (left panel)",
+        "Close navigation panel (left panel)": "Close navigation panel (left panel)",
+        "Open navigation panel (left panel)": "Open navigation panel (left panel)"
     },
     "ColumnTitle": {
         "Add description": "Add description",
