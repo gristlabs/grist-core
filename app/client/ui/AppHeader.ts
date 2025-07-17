@@ -273,7 +273,7 @@ export function productPill(org: Organization|null, options: {large?: boolean} =
 }
 
 
-const cssAppHeader = styled('div._cssAppHeader', `
+const cssAppHeader = styled('header._cssAppHeader', `
   width: 100%;
   height: 100%;
   background-color: ${theme.leftPanelBg};
