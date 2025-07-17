@@ -147,6 +147,8 @@ export const cssPageEntry = styled('div', `
 `);
 
 const cssPageAction = `
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   height: 32px;
@@ -156,7 +158,7 @@ const cssPageAction = `
   cursor: pointer;
   outline-offset: -3px;
   width: 100%;
-  &, &:hover, &:focus {
+  &, &:hover, &:focus, & a, & a:hover, & a:focus {
     text-decoration: none;
     outline: none;
     color: inherit;
@@ -170,6 +172,8 @@ const cssPageAction = `
 `;
 
 export const cssPageLink = styled('a', cssPageAction);
+
+export const cssPageLinkContainer = styled('div', cssPageAction);
 
 export const cssPageButton = styled(unstyledButton, cssPageAction);
 
@@ -239,6 +243,8 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
 `);
 
 export const cssMenuTrigger = styled(unstyledButton, `
+  position: relative;
+  z-index: 2;
   margin: 0 4px 0 auto;
   height: 24px;
   width: 24px;
@@ -247,7 +253,11 @@ export const cssMenuTrigger = styled(unstyledButton, `
   border-radius: 3px;
   cursor: default;
   display: none;
-  .${cssPageLink.className}:hover > &, .${cssPageLink.className}:focus-within > &, &.weasel-popup-open {
+  .${cssPageLinkContainer.className}:hover > &,
+  .${cssPageLinkContainer.className}:focus-within > &,
+  .${cssPageLink.className}:hover > &,
+  .${cssPageLink.className}:focus-within > &,
+  &.weasel-popup-open {
     display: block;
   }
   &:hover, &.weasel-popup-open {
