@@ -587,10 +587,22 @@ export class ApiServer {
     // POST /service-accounts/
     // Creates a new service account attached to the user making the api call.
     this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
+      const msg = "Please save your api key. It's the only time you will see it.";
       const userId = getAuthorizedUserId(req);
       const {label, description, endOfLife} = req.body;
-      const apiKey: any = await this._dbManager.createServiceAccount(userId, label, description, endOfLife);
-      return sendOkReply(req, res, apiKey);
+      const data: any = await this._dbManager.createServiceAccount(userId, label, description, endOfLife);
+      const {serviceAccount, serviceUser, login} = data;
+      const resp = {
+        login: login,
+        key: serviceUser.apiKey,
+        msg,
+        label: serviceAccount.label,
+        description: serviceAccount.description,
+        endOfLife: serviceAccount.end_of_life,
+        hasValidKey: true
+      };
+
+      return sendOkReply(req, res, resp);
     }));
 
     // GET /service-accounts/
@@ -610,20 +622,46 @@ export class ApiServer {
       const userId = getAuthorizedUserId(req);
       const serviceAccountLogin = req.params.said;
       const data = await this._dbManager.getServiceAccount(serviceAccountLogin, userId);
-      return sendOkReply(req, res, data);
+      const {serviceAccount, serviceUser} = data;
+      if (serviceAccount == null) {
+         throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
+      }
+      const hasValidKey = !(serviceUser.apiKey == null);
+      const resp = {
+        login: serviceAccountLogin,
+        label: serviceAccount.label,
+        description: serviceAccount.description,
+        endOfLife: serviceAccount.end_of_life,
+        hasValidKey
+      };
+      return sendOkReply(req, res, resp);
     }));
 
     // PATCH /service-accounts/:said
     // Modifies one particular service account of the user making the api call.
     this._app.patch('/api/service-accounts/:said', expressWrap(async (req, res) => {
+      const authorizedPatchKeys = ["label", "description", "endOfLife"];
+
       const userId = getAuthorizedUserId(req);
       const serviceAccountLogin = req.params.said;
       const partial = req.body;
-      const respData = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, partial);
-      if (respData.affected == 0){
+
+      for (const key in partial) {
+        if (!authorizedPatchKeys.includes(key)) {
+          throw new ApiError(`invalid key ${key}`, 400);
+        }
+      }
+      if (typeof partial.label != 'undefined' && typeof partial.label != 'string') {
+        throw new ApiError(`invalid value for label. Must be a string`, 400);
+      }
+      if (typeof partial.endOfLife != 'undefined') {
+        partial.endOfLife = await this._dbManager.sanitizeDateString(partial.endOfLife);
+      }
+      const resp = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, partial);
+      if (resp.affected == 0){
         throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
       }
-      return sendOkReply(req, res, respData);
+      return sendOkReply(req, res, resp);
     }));
 
     // DELETE /service-accounts/:said
@@ -631,20 +669,37 @@ export class ApiServer {
     this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const serviceAccountLogin = req.params.said;
-      const respData = await this._dbManager.deleteServiceAccount(serviceAccountLogin, userId);
-      if (respData.affected == 0){
+      const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, userId);
+      if (resp.affected == 0){
         throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
       }
-      return sendOkReply(req, res, respData);
+      return sendOkReply(req, res, resp);
     }));
 
     // POST /service-accounts/:said/key/regenerate
     // Regenerate and return the apikey of a given Service Account
     this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
+      const msg = "Please save your api key. It's the only time you will see it.";
       const userId = getAuthorizedUserId(req);
       const serviceAccountLogin = req.params.said;
-      const respData = await this._dbManager.rotateServiceAccountApiKey(serviceAccountLogin, userId);
-      return sendOkReply(req, res, respData);
+      const data = await this._dbManager.rotateServiceAccountApiKey(serviceAccountLogin, userId);
+      const {serviceAccount, serviceUser} = data;
+      if (serviceAccount == null) {
+        throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountLogin}`, 404);
+      }
+      if (serviceUser == null) {
+        throw new ApiError(`Service User linked to service Account ${serviceAccountLogin} no longer exists`, 500);
+      }
+      const resp = {
+        login: serviceAccountLogin,
+        key: serviceUser.apiKey,
+        msg,
+        label: serviceAccount.label,
+        description: serviceAccount.description,
+        endOfLife: serviceAccount.end_of_life,
+        hasValidKey: true
+      };
+      return sendOkReply(req, res, resp);
     }));
 
     // POST /service-accounts/:said/key/revoke
@@ -652,8 +707,15 @@ export class ApiServer {
     this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const serviceAccountLogin = req.params.said;
-      const respData = await this._dbManager.revokeServiceAccountApiKey(serviceAccountLogin, userId);
-      return sendOkReply(req, res, respData);
+      const data = await this._dbManager.revokeServiceAccountApiKey(serviceAccountLogin, userId);
+      const {serviceAccount, serviceUser} = data;
+      if (serviceUser == null) {
+        throw new ApiError(`Can't revoke api key of non existing service account User ${serviceAccountLogin}`, 404);
+      }
+      if (serviceAccount == null) {
+        throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountLogin}`, 404);
+      }
+      return sendOkReply(req, res);
     }));
   }
 

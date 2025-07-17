@@ -7,9 +7,6 @@ import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
 
 export class ServiceAccountsManager {
 
-  private _msg = "Please save your api key. It's the only time you will see it.";
-
-
   private get _connection () {
     return this._homeDb.connection;
   }
@@ -46,16 +43,12 @@ export class ServiceAccountsManager {
       newServiceAccount.service_user_id = serviceUser.id;
       newServiceAccount.label = label ? label : "";
       newServiceAccount.description = description ? description : "";
-      newServiceAccount.end_of_life = this._sanitizeDateString(endOfLife);
+      newServiceAccount.end_of_life = this.sanitizeDateString(endOfLife);
       const serviceAccount = await manager.save(newServiceAccount);
       return {
+        serviceAccount,
+        serviceUser: serviceUserWithkey,
         login: login,
-        key: serviceUserWithkey.apiKey,
-        msg: this._msg,
-        label: serviceAccount.label,
-        description: serviceAccount.description,
-        endOfLife: serviceAccount.end_of_life,
-        hasValidKey: true
       };
     });
   }
@@ -71,16 +64,9 @@ export class ServiceAccountsManager {
         ServiceAccount,
         {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
       );
-      if (serviceAccount == null) {
-         throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
-      }
-      const hasValidKey = !(serviceUser.apiKey == null);
       return {
-        login: serviceAccountLogin,
-        label: serviceAccount.label,
-        description: serviceAccount.description,
-        endOfLife: serviceAccount.end_of_life,
-        hasValidKey
+        serviceUser,
+        serviceAccount,
       };
     });
   }
@@ -101,18 +87,6 @@ export class ServiceAccountsManager {
     ownerId: number,
     partial: any,
   ) {
-    const authorizedPatchKeys = ["label", "description", "endOfLife"];
-    for (const key in partial) {
-      if (!authorizedPatchKeys.includes(key)) {
-        throw new ApiError(`invalid key ${key}`, 400);
-      }
-    }
-    if (typeof partial.label != 'undefined' && typeof partial.label != 'string') {
-        throw new ApiError(`invalid value for label. Must be a string`, 400);
-    }
-    if (typeof partial.endOfLife != 'undefined') {
-      partial.endOfLife = this._sanitizeDateString(partial.endOfLife);
-    }
     return await this._connection.transaction(async manager => {
       const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
       return await manager.update(
@@ -147,20 +121,15 @@ export class ServiceAccountsManager {
         {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
       );
       if (serviceAccount == null) {
-        throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountLogin}`, 404);
+        return { serviceAccount };
       }
       if (serviceUser == null) {
-        throw new ApiError(`Service User linked to service Account ${serviceAccount.id} no longer exists`, 500);
+        return { serviceUser };
       }
       const updatedServiceUser = await this._homeDb.createApiKey(serviceUser.id, true, manager);
       return {
-        login: serviceAccountLogin,
-        key: updatedServiceUser.apiKey,
-        msg: this._msg,
-        label: serviceAccount.label,
-        description: serviceAccount.description,
-        endOfLife: serviceAccount.end_of_life,
-        hasValidKey: true
+        serviceUser: updatedServiceUser,
+        serviceAccount,
       };
     });
   }
@@ -172,17 +141,20 @@ export class ServiceAccountsManager {
     return await this._connection.transaction(async manager => {
       const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
       if (serviceUser == null) {
-        throw new ApiError(`Can't revoke api key of non existing service account User ${serviceAccountLogin}`, 404);
+        return { serviceUser };
       }
       const serviceAccount = await manager.findOne(
         ServiceAccount,
         {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
       );
       if (serviceAccount == null) {
-        throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountLogin}`, 404);
+        return { serviceAccount };
       }
       await this._homeDb.deleteApiKey(serviceUser.id, manager);
-      return;
+      return {
+        serviceAccount,
+        serviceUser
+      };
     });
   }
 
@@ -208,7 +180,7 @@ export class ServiceAccountsManager {
     });
   }
 
-  private _sanitizeDateString(dateString: string = new Date().toISOString()): string {
+  public sanitizeDateString(dateString: string = new Date().toISOString()): string {
     try {
       // We want an empty dateString to set the endOfLife to
       // previous midnight so the key is outdated at creation

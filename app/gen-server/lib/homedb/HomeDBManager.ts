@@ -3328,6 +3328,10 @@ export class HomeDBManager {
     return this._serviceAccountsManager.isAliveServiceAccount(serviceLogin);
   }
 
+  public async sanitizeDateString(dateString: string) {
+    return this._serviceAccountsManager.sanitizeDateString(dateString);
+  }
+
   public async getApiKey(userId: number) {
     return this._usersManager.getApiKey(userId);
   }
