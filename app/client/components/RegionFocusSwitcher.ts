@@ -129,7 +129,11 @@ export class RegionFocusSwitcher extends Disposable {
 
   public panelAttrs(id: Panel, ariaLabel: string) {
     return [
-      dom.attr('role', 'region'),
+      dom.attr('role', id === 'main'
+        ? 'main'
+        : id === 'top'
+          ? 'banner'
+          : 'region'),
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
       dom.cls('kb-focus-highlighter-group', use => {
