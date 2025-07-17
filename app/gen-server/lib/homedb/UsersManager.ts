@@ -895,12 +895,12 @@ export class UsersManager {
     return await this._runInTransaction(transaction, async manager => {
       const user = await manager.findOne(User, {where: {id: userId}});
       if (!user) {
-        throw new Error("user not known");
+        throw new ApiError("user not known", 404);
       }
       if (!user.apiKey || force) {
         return await this._updateApiKeyWithRetry(manager, user);
       } else {
-        throw new Error("An apikey is already set, use `{force: true}` to override it.");
+        throw new ApiError("An apikey is already set, use `{force: true}` to override it.", 400);
       }
     });
   }
