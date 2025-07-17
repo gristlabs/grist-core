@@ -261,7 +261,7 @@ export class CustomView extends Disposable {
         this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId()
       ], ([_hide, _mode, _url, _access, _widgetId, _pluginId]: string[]) =>
         _mode === "url" ?
-          dom("div.flexauto",
+          dom("div.flexauto.custom_view_content",
             kd.style("display", _hide ? "none" : "flex"),
             this._buildIFrame({
               baseUrl: _url,
