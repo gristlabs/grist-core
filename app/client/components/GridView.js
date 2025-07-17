@@ -296,6 +296,8 @@ GridView.selectionCommands = {
 
 // TODO: move commands with modifications to gridEditCommands and use a single guard for
 // readonly state.
+// GridView commands, enabled when the view is the active one.
+// See BaseView.commonCommands for more details.
 GridView.gridCommands = {
   fillSelectionDown: function() { tableUtil.fillSelectionDown(this.getSelection(), this.tableModel); },
   selectAll: function() { this.selectAll(); },
@@ -346,6 +348,7 @@ GridView.gridCommands = {
 };
 
 // These commands are enabled only when the grid is the user-focused region.
+// See BaseView.commonCommands and BaseView.commonFocusedCommands for more details.
 GridView.gridFocusedCommands = {
   cursorDown: function() {
     if (this.cursor.rowIndex() === this.viewData.peekLength - 1) {

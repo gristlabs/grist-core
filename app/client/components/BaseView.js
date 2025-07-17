@@ -236,7 +236,22 @@ _.extend(Base.prototype, BackboneEvents);
 /**
  * These commands are common to GridView and DetailView.
  *
- * They work when the view is the currently active one.
+ * They work when the view is the currently active one, but not necessarily user-focused.
+ *
+ * That means the user can be focusing a button in the creator panel and run these commands:
+ * they will apply to the active view.
+ * When a command from here is executed, keyboard focus is set back to the view.
+ *
+ * There is no strict rule for which command goes here and which goes in the commonFocusedCommands list.
+ * The goal of the distinction is to:
+ *   1) allow users to run most commands easily, without having to think about actually focusing an active view,
+ *   2) make sure command keyboard shortcuts don't interfere with user keyboard navigation when the user is
+ *      focused on something else.
+ * The main thing to watch out for is the 2) point. When adding a command, ask yourself if "blocking" the kb shortcut
+ * when not focusing the view is risky: is the shortcut so generic that it's likely to be used outside of the view,
+ * for example for navigation? If so, the command should go in the "focused" list.
+ * Most commands triggered by arrow keys, Tab, Enter, pagination keys, should usually go in the focused list.
+ * Most commands with relatively hard or specific triggers should usually go in the normal list.
  */
 BaseView.commonCommands = {
   input: function(init) {
@@ -258,7 +273,7 @@ BaseView.commonCommands = {
  * These commands are common to GridView and DetailView.
  *
  * They are enabled only when the user is actually focusing the view, meaning
- * they don't work when the view is the active one but the user is focused on the creator panel.
+ * they don't work when the view is the active one but the user is focused on something else, like the creator panel.
  */
 BaseView.commonFocusedCommands = {
   editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
