@@ -91,6 +91,7 @@ describe('TokenField', function() {
     await gu.waitForServer();
 
     // Add two films.
+    await gu.sendKeys(Key.ESCAPE); // First ESCAPE to get out of select/panel focus.
     await gu.sendKeys(Key.ENTER);
     await gu.sendKeys('Toy', Key.ENTER);
     await gu.sendKeys('Alien', Key.ENTER);

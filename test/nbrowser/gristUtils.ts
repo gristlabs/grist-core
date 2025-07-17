@@ -687,7 +687,6 @@ export async function enterCell(...keys: string[]) {
   }
   await driver.sendKeys(...keys);
   await waitForServer();    // Wait for the value to be saved
-  await waitAppFocus();     // Wait for the cell editor to be closed (maybe unnecessary)
 }
 
 /**
@@ -1091,7 +1090,6 @@ export async function docMenuImport(filePath: string) {
   });
 }
 
-
 /**
  * Wait for the focus to return to the main application, i.e. the special .copypaste element that
  * normally has it (as opposed to an open cell editor, or a focus in some input or menu). Specify
@@ -1099,6 +1097,13 @@ export async function docMenuImport(filePath: string) {
  */
 export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
   await driver.wait(async () => (await driver.find('.copypaste').hasFocus()) === yesNo, 5000);
+}
+
+/**
+ * Wait for the focus to be on the first element matching given selector.
+ */
+export async function waitForFocus(selector: string): Promise<void> {
+  await driver.wait(async () => (await driver.find(selector).hasFocus()), 1000);
 }
 
 export async function waitForLabelInput(): Promise<void> {
