@@ -21,6 +21,7 @@ import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
 import {RecordCardPopup} from 'app/client/components/RecordCardPopup';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
+import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
@@ -181,6 +182,7 @@ export interface GristDoc extends DisposableWithEvents {
   attachmentTransfer: Observable<AttachmentTransferStatus | null>;
   canShowRawData: Observable<boolean>;
   currentUser: Observable<ExtendedUser|null>;
+  regionFocusSwitcher?: RegionFocusSwitcher;
 
   docId(): string;
   openDocPage(viewId: IDocPage): Promise<void>;
@@ -224,6 +226,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public isReadonly = this.docPageModel.isReadonly;
   public isReadonlyKo = toKo(ko, this.isReadonly);
   public comparison: DocStateComparison | null;
+  public regionFocusSwitcher?: RegionFocusSwitcher;
   // component for keeping track of latest cursor position
   public cursorMonitor: CursorMonitor;
   // component for keeping track of a cell that is being edited

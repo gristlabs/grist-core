@@ -34,6 +34,7 @@ const {markAsSeen} = require('app/client/models/UserPrefs');
 const {buildConfirmDelete, reportUndo} = require('app/client/components/modals');
 const {buildReassignModal} = require('app/client/ui/buildReassignModal');
 const {MutedError} = require('app/client/models/errors');
+const {viewCommands} = require('app/client/components/RegionFocusSwitcher');
 
 
 /**
@@ -128,7 +129,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.listenTo(this.viewSection.events, 'rowHeightChange', this.onResize );
 
   // Create a command group for keyboard shortcuts common to all views.
-  this.autoDispose(commands.createGroup(BaseView.commonCommands, this, this.viewSection.enableCommands));
+  this.autoDispose(commands.createGroup(viewCommands(BaseView.commonCommands, this), this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(BaseView.commonFocusedCommands, this, this.viewSection.hasRegionFocus));
 
   //--------------------------------------------------
   // Prepare logic for linking with other sections.
@@ -233,30 +235,39 @@ _.extend(Base.prototype, BackboneEvents);
 
 /**
  * These commands are common to GridView and DetailView.
+ *
+ * They work when the view is the currently active one.
  */
 BaseView.commonCommands = {
   input: function(init) {
     this.scrollToCursor(true).catch(reportError);
     this.activateEditorAtCursor({init});
   },
-  editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
-
-  insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
-  insertRecordAfter: function() { this.insertRow(this.cursor.rowIndex() + 1); },
-
-  insertCurrentDate: function() { this.insertCurrentDate(false); },
-  insertCurrentDateTime: function() { this.insertCurrentDate(true); },
-
   copyLink: function() { this.copyLink().catch(reportError); },
-
-  deleteRecords: function(source) { this.deleteRecords(source); },
-
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
   duplicateRows: function() { this._duplicateRows().catch(reportError); },
   openDiscussion: function(ev, payload) {
     const state = typeof payload === 'object' && payload ? payload : null;
     this._openDiscussionAtCursor(state);
   },
+  insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
+  insertRecordAfter: function() { this.insertRow(this.cursor.rowIndex() + 1); },
+};
+
+/**
+ * These commands are common to GridView and DetailView.
+ *
+ * They are enabled only when the user is actually focusing the view, meaning
+ * they don't work when the view is the active one but the user is focused on the creator panel.
+ */
+BaseView.commonFocusedCommands = {
+  editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
+
+  insertCurrentDate: function() { this.insertCurrentDate(false); },
+  insertCurrentDateTime: function() { this.insertCurrentDate(true); },
+
+  deleteRecords: function(source) { this.deleteRecords(source); },
+
   viewAsCard: function() {
     /* Overridden by subclasses.
      *

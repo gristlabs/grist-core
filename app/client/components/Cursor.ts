@@ -112,7 +112,7 @@ export class Cursor extends Disposable {
 
     this.fieldIndex = baseView.viewSection.viewFields().makeLiveIndex(optCursorPos.fieldIndex || 0);
 
-    this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.enableCommands));
+    this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.hasRegionFocus));
 
     // RowId might diverge from the one stored in _rowId when the data changes (it is filtered out). So here
     // we will calculate rowId based on rowIndex (so in reverse order), to have a proper value.
