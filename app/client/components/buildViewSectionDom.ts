@@ -96,6 +96,7 @@ export function buildViewSectionDom(options: {
     cssViewLeaf.cls(''),
     cssViewLeafInactive.cls('', (use) => !vs.isDisposed() && !use(vs.hasVisibleFocus)),
     dom.cls('active_section', vs.hasFocus),
+    dom.cls('active_section--no-focus', (use) => !vs.isDisposed() && use(vs.hasFocus) && !use(vs.hasRegionFocus)),
     dom.cls('active_section--no-indicator', (use) => !focusable || (!vs.isDisposed() && !use(vs.hasVisibleFocus))),
     dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
       cssDragIcon('DragDrop',

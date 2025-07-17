@@ -81,6 +81,7 @@ export const tokensCssMapping = {
   primaryMuted: 'primary-muted',
   primaryDim: 'primary-dim',
   primaryEmphasis: 'primary-emphasis',
+  primaryTransparent: 'primary-transparent',
 
   white: 'white',
   black: 'black',
@@ -260,6 +261,7 @@ export const componentsCssMapping = {
   widgetBg: 'widget-bg',
   widgetBorder: 'widget-border',
   widgetActiveBorder: 'widget-active-border',
+  widgetActiveNonFocusedBorder: 'widget-active-non-focused-border',
   widgetInactiveStripesLight: 'widget-inactive-stripes-light',
   widgetInactiveStripesDark: 'widget-inactive-stripes-dark',
   pinnedDocFooterBg: 'pinned-doc-footer-bg',
@@ -801,6 +803,11 @@ export interface SpecificThemeTokens {
    */
   primaryEmphasis: Token;
 
+  /**
+   * primary color with around 50% opacity
+   */
+  primaryTransparent: Token;
+
   controlBorderRadius: Token;
 
   /**
@@ -1103,6 +1110,7 @@ export interface BaseThemeTokens {
     widgetBg: Token;
     widgetBorder: Token;
     widgetActiveBorder: Token;
+    widgetActiveNonFocusedBorder: Token;
     widgetInactiveStripesLight: Token;
     pinnedDocFooterBg: Token;
     pinnedDocBorder: Token;
