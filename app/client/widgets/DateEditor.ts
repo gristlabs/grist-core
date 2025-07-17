@@ -136,7 +136,7 @@ export class DateEditor extends NTextEditor {
       if (datepickerElem) {
         dom.update(datepickerElem,
           dom.attr('tabIndex', '0'),      // allows datepicker to gain focus
-          dom.cls('clipboard_focus')      // tells clipboard to not steal focus from us
+          dom.cls('clipboard_allow_focus')      // tells clipboard to not steal focus from us
         );
       }
 

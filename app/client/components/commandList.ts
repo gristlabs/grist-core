@@ -43,8 +43,9 @@ export type CommandName =
   | 'openDocumentList'
   | 'nextPage'
   | 'prevPage'
-  | 'nextSection'
-  | 'prevSection'
+  | 'nextRegion'
+  | 'prevRegion'
+  | 'creatorPanel'
   | 'shiftDown'
   | 'shiftUp'
   | 'shiftRight'
@@ -127,6 +128,10 @@ export interface CommandDef {
   keys: string[];
   desc: string | null;
   bindKeys?: boolean;
+  /**
+   * When true, the command is always enabled, even in form inputs.
+   */
+  alwaysOn?: boolean;
   deprecated?: boolean;
 }
 
@@ -374,13 +379,20 @@ export const groups: CommendGroupDef[] = [{
       keys: ['Alt+Up'],
       desc: 'Open previous page'
     }, {
-      name: 'nextSection',
+      name: 'nextRegion',
       keys: ['Mod+o'],
-      desc: 'Activate next page widget',
+      desc: 'Focus next page panel or widget',
+      alwaysOn: true,
     }, {
-      name: 'prevSection',
+      name: 'prevRegion',
       keys: ['Mod+Shift+O'],
-      desc: 'Activate previous page widget',
+      desc: 'Focus previous page panel or widget',
+      alwaysOn: true,
+    }, {
+      name: 'creatorPanel',
+      keys: ['Mod+Alt+o'],
+      desc: 'Toggle creator panel keyboard focus',
+      alwaysOn: true,
     }
   ],
 }, {

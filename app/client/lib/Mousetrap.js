@@ -28,12 +28,19 @@ if (typeof window === 'undefined') {
   var MousetrapProtype = Mousetrap.prototype;
   var origStopCallback = MousetrapProtype.stopCallback;
 
+  var alwaysOnCallbacks = {};
+
   /**
    * Enhances Mousetrap's stopCallback filter. Normally, mousetrap ignores key events in input
    * fields and textareas. This replacement allows individual CommandGroups to be activated in such
    * elements. See also 'attach' method of commands.CommandGroup.
    */
   MousetrapProtype.stopCallback = function(e, element, combo, sequence) {
+    // If the keyboard shortcut is meant to be always active, we never stop it.
+    if (alwaysOnCallbacks[combo] || alwaysOnCallbacks[sequence]) {
+      return false;
+    }
+
     if (mousetrapBindingsPaused) {
       return true;
     }
@@ -72,6 +79,25 @@ if (typeof window === 'undefined') {
   Mousetrap.setCustomStopCallback = function(element, callback) {
     customStopCallbacks.set(element, callback);
   };
+
+  /**
+   * Binds an "always-on" keyboard shortcut that triggers even when document.activeElement is an input or textarea.
+   *
+   * Alternative to having to handle a custom stop callback for specific elements.
+   */
+  Mousetrap.prototype.bindAlwaysOn = function(keys, callback, action) {
+    var self = this;
+    self.bind(keys, callback, action);
+    if (keys instanceof Array) {
+        for (var i = 0; i < keys.length; i++) {
+            alwaysOnCallbacks[keys[i]] = true;
+        }
+        return;
+    }
+    alwaysOnCallbacks[keys] = true;
+  };
+
+  Mousetrap.init();
 
   module.exports = Mousetrap;
 }

@@ -184,5 +184,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     contentTop: buildDocumentBanners(pageModel),
     contentBottom: dom.create(createBottomBarDoc, pageModel, leftPanelOpen, rightPanelOpen),
     banner: dom.create(ViewAsBanner, pageModel),
+  }, {
+    gristDoc: pageModel.gristDoc,
   });
 }

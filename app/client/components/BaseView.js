@@ -128,7 +128,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.listenTo(this.viewSection.events, 'rowHeightChange', this.onResize );
 
   // Create a command group for keyboard shortcuts common to all views.
-  this.autoDispose(commands.createGroup(BaseView.commonCommands, this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(BaseView.commonCommands, this, this.viewSection.enableCommands));
 
   //--------------------------------------------------
   // Prepare logic for linking with other sections.
