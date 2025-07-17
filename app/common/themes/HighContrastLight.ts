@@ -16,6 +16,7 @@ export const HighContrastLight: ThemeTokens = {
   primary: '#0f7b51',
   primaryMuted: '#196C47',
   primaryDim: '#196C47',
+  primaryTransparent: 'rgba(15, 123, 81, 0.5)',
 
   components: {
     ...GristLight.components,
