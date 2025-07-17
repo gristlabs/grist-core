@@ -53,32 +53,6 @@ export const allCommands: { [key in CommandName]: Command } = {} as any;
  */
 const _allKeys: Record<string, CommandGroup[]> = {};
 
-interface CommandHistoryEntry {
-  name: string;
-  timestamp: number;
-}
-let commandsHistory: CommandHistoryEntry[] = [];
-const addToHistory = (commandName: string) => {
-  commandsHistory = [
-    {name: commandName, timestamp: Date.now()},
-    ...commandsHistory
-  ];
-  if (commandsHistory.length > 15) {
-    commandsHistory.pop();
-  }
-};
-/**
- * Get the (maximum 15) command names last keypressed by the user.
- *
- * Optionally pass a timestamp in milliseconds to filter commands only since that time.
- */
-export const getCommandsHistory = (sinceMs?: number) => {
-  const filtered = sinceMs
-    ? commandsHistory.filter(entry => entry.timestamp > sinceMs)
-    : commandsHistory;
-  return [...filtered.map(entry => entry.name)];
-};
-
 /**
  * Populate allCommands from those provided, or listed in commandList.js. Also populates the
  * globally exposed `cmd` object whose properties invoke commands: e.g. typing `cmd.cursorDown` in
@@ -259,7 +233,7 @@ export class Command implements CommandDef {
           if (this.alwaysOn) {
             Mousetrap.markAlwaysOnShortcut(key);
           }
-          Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName], commandName));
+          Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName]));
         } else {
           Mousetrap.unbind(key);
         }
@@ -273,14 +247,11 @@ export class Command implements CommandDef {
 }
 
 /**
- * Helper for mousetrap callbacks:
- *  - returns a version of the callback that by default stops the propagation of the keyboard event
- *    (unless the callback returns a true value).
- *  - adds the command name in the command history stack.
+ * Helper for mousetrap callbacks, which returns a version of the callback that by default stops
+ * the propagation of the keyboard event (unless the callback returns a true value).
  */
-function wrapKeyCallback(callback: Func, commandName: string) {
+function wrapKeyCallback(callback: Func) {
   return function() {
-    addToHistory(commandName);
     return callback(...arguments) || false;
   };
 }
