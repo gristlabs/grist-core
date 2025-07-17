@@ -74,8 +74,7 @@ export class AuditLogsPage extends Disposable {
       headerMain: this._buildHeader(),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildContent(),
-    }, {
-      regionFocusSwitcher: this._appObj.regionFocusSwitcher,
+      app: this._appObj,
     });
   }
 

@@ -16,6 +16,7 @@ import once from 'lodash/once';
 import {SessionObs} from 'app/client/lib/sessionObs';
 import debounce from 'lodash/debounce';
 import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
+import {App} from 'app/client/ui/App';
 
 const t = makeT('PagePanels');
 
@@ -46,16 +47,11 @@ export interface PageContents {
   testId?: TestId;
   contentTop?: DomElementArg;
   contentBottom?: DomElementArg;
+
+  app?: App;
 }
 
-interface PagePanelsOptions {
-  regionFocusSwitcher?: RegionFocusSwitcher;
-}
-
-export function pagePanels(
-  page: PageContents,
-  options: PagePanelsOptions = { }
-) {
+export function pagePanels(page: PageContents) {
   const testId = page.testId || noTestId;
   const left = page.leftPanel;
   const right = page.rightPanel;
@@ -65,7 +61,7 @@ export function pagePanels(
   const bannerHeight = Observable.create(null, 0);
   const isScreenResizingObs = isScreenResizing();
 
-  const regionFocusSwitcher = options.regionFocusSwitcher;
+  const appObj = page.app;
 
   let lastLeftOpen = left.panelOpen.get();
   let lastRightOpen = right?.panelOpen.get() || false;
@@ -74,6 +70,11 @@ export function pagePanels(
   let mainHeaderDom: HTMLElement;
   let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
+
+  const regionFocusSwitcher = RegionFocusSwitcher.create(null, appObj);
+  if (appObj) {
+    appObj.regionFocusSwitcher = regionFocusSwitcher;
+  }
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
   // last desktop state.
@@ -128,6 +129,7 @@ export function pagePanels(
     dom.autoDispose(sub2),
     dom.autoDispose(commandsGroup),
     dom.autoDispose(leftOverlap),
+    dom.autoDispose(regionFocusSwitcher),
     dom('div', testId('top-panel'), page.contentTop, elem => { contentTopDom = elem; }),
     dom.maybe(page.banner, () => {
       let elem: HTMLElement;
@@ -145,7 +147,7 @@ export function pagePanels(
     }),
     cssContentMain(
       (el) => {
-        regionFocusSwitcher?.init(el);
+        regionFocusSwitcher?.onPageDomLoaded(el);
       },
       leftPaneDom = cssLeftPane(
         testId('left-panel'),

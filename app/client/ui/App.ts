@@ -58,6 +58,7 @@ export class AppImpl extends DisposableWithEvents implements App {
   // Track the most recently created DocPageModel, for some error handling.
   public pageModel?: DocPageModel;
 
+  // Track the RegionFocusSwitcher created by pagePanels, so that the codebase can access it.
   public regionFocusSwitcher?: RegionFocusSwitcher;
 
   private _settings: ko.Observable<{features?: ISupportedFeatures}>;
@@ -83,7 +84,6 @@ export class AppImpl extends DisposableWithEvents implements App {
     KeyboardFocusHighlighter.create(this);
 
     if (isDesktop()) {
-      this.regionFocusSwitcher = RegionFocusSwitcher.create(this, this);
       this.autoDispose(Clipboard.create(this));
     } else {
       // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted

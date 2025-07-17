@@ -128,8 +128,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
     contentMain: createDocMenu(pageModel),
     contentTop: buildHomeBanners(appModel),
     testId,
-  }, {
-    regionFocusSwitcher: app.regionFocusSwitcher,
+    app,
   });
 }
 
@@ -139,7 +138,6 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   // DocPageModel available as a global variable.
   (window as any).gristDocPageModel = pageModel;
   appObj.pageModel = pageModel;
-  appObj.regionFocusSwitcher?.onAppPageModelUpdate();
 
   const leftPanelOpen = createSessionObs<boolean>(owner, "leftPanelOpen", true, isBoolean);
   const rightPanelOpen = createSessionObs<boolean>(owner, "rightPanelOpen", false, isBoolean);
@@ -188,7 +186,6 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     contentTop: buildDocumentBanners(pageModel),
     contentBottom: dom.create(createBottomBarDoc, pageModel, leftPanelOpen, rightPanelOpen),
     banner: dom.create(ViewAsBanner, pageModel),
-  }, {
-    regionFocusSwitcher: appObj.regionFocusSwitcher,
+    app: appObj,
   });
 }
