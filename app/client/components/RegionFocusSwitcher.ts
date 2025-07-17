@@ -157,49 +157,33 @@ export class RegionFocusSwitcher extends Disposable {
         }
         return isSpecialPage(gristDoc);
       }),
-      dom.cls('clipboard_group_focus', use => {
+      dom.cls(use => {
         const initiated = use(this._initiated);
         if (!initiated) {
-          return false;
+          return '';
         }
 
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
         if (!gristDoc) {
-          return true;
+          return 'clipboard_group_focus';
         }
-        const current = use(this._state).region;
+
         // on a grist doc, panel content is focusable only if it's the current region
+        const current = use(this._state).region;
         if (current?.type === 'panel' && current.id === id) {
-          return true;
+          return 'clipboard_group_focus';
         }
         if (gristDoc) {
           use(gristDoc.activeViewId);
         }
         // on a grist doc, main panel is focusable only if we are not the actual document view
-        return isSpecialPage(gristDoc);
-      }),
-      dom.cls('clipboard_forbid_focus', use => {
-        const initiated = use(this._initiated);
-        if (!initiated) {
-          return false;
+        if (id === "main") {
+          return isSpecialPage(gristDoc)
+            ? 'clipboard_group_focus'
+            : 'clipboard_forbid_focus';
         }
-
-        // forbid focus only on the main panel when on an actual document view (and not a special page)
-        if (id !== 'main') {
-          return false;
-        }
-        const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
-        if (!gristDoc) {
-          return false;
-        }
-        if (gristDoc) {
-          use(gristDoc.activeViewId);
-        }
-        if (isSpecialPage(gristDoc)) {
-          return false;
-        }
-        return true;
+        return '';
       }),
       dom.cls(`${cssFocusedPanel.className}-focused`, use => {
         const initiated = use(this._initiated);
