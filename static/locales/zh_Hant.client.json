@@ -1689,6 +1689,9 @@
         "Timed out on waiting for the Grist backend to restart": "等待 Grist 後端重啟時逾時"
     },
     "AdminPanel": {
-        "Admin Panel": "管理平台"
+        "Admin Panel": "管理平台",
+        "Help us make Grist better": "幫助我們改進 Grist",
+        "Home": "首頁",
+        "Sponsor": "贊助"
     }
 }
