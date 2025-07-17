@@ -356,7 +356,7 @@ export class FormView extends Disposable {
       editField: keyboardActions.edit,
       deleteFields: keyboardActions.clearValues,
       hideFields: keyboardActions.hideFields,
-    }, this, this.viewSection.enableCommands));
+    }, this, this.viewSection.hasRegionFocus));
 
     this._previewUrl = Computed.create(this, use => {
       const doc = use(this.gristDoc.docPageModel.currentDoc);

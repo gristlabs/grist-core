@@ -7,6 +7,7 @@ import * as commands from 'app/client/components/commands';
 import {triggerFocusGrab} from 'app/client/components/Clipboard';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {theme} from 'app/client/ui2018/cssVars';
+import BaseView from 'app/client/components/BaseView';
 
 const t = makeT('RegionFocusSwitcher');
 
@@ -53,6 +54,7 @@ export class RegionFocusSwitcher extends Disposable {
     if (this._gristDocObs && this._gristDocObs.get() === null) {
       this._gristDocObs.addListener((doc, prevDoc) => {
         if (doc && prevDoc === null) {
+          doc.regionFocusSwitcher = this;
           this.init(pageContainer);
         }
       });
@@ -93,6 +95,13 @@ export class RegionFocusSwitcher extends Disposable {
 
     this._currentUpdateInitiator = options.initiator;
     this.current.set(region);
+  }
+
+  public focusActiveSection() {
+    const gristDoc = this._getGristDoc();
+    if (gristDoc) {
+      this.focusRegion({type: 'section', id: gristDoc.viewModel.activeSectionId()});
+    }
   }
 
   public reset(initiator?: UpdateInitiator) {
@@ -339,6 +348,21 @@ export class RegionFocusSwitcher extends Disposable {
   }
 }
 
+/**
+ * Helper to declare view commands that should also focus current view.
+ *
+ * Used by a view when registering command groups.
+ */
+export const viewCommands = (commandsObject: Record<string, Function>, context: BaseView) => {
+  return Object.keys(commandsObject).reduce<Record<string, Function>>((acc, key) => {
+    const originalCommand = commandsObject[key];
+    acc[key] = function(...args: any[]) {
+      context.gristDoc.regionFocusSwitcher?.focusActiveSection();
+      return originalCommand.apply(context, args);
+    };
+    return acc;
+  }, {});
+};
 
 const ATTRS = {
   regionId: 'data-grist-region-id',

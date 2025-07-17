@@ -18,6 +18,7 @@ const selector      = require('./CellSelector');
 const {CopySelection} = require('./CopySelection');
 const RecordLayout  = require('./RecordLayout');
 const commands      = require('./commands');
+const {viewCommands} = require('./RegionFocusSwitcher');
 const tableUtil     = require('../lib/tableUtil');
 const {CardContextMenu} = require('../ui/CardContextMenu');
 const {FieldContextMenu} = require('../ui/FieldContextMenu');
@@ -127,8 +128,8 @@ function DetailView(gristDoc, viewSectionModel) {
 
   //--------------------------------------------------
   // Instantiate CommandGroups for the different modes.
-  this.autoDispose(commands.createGroup(DetailView.generalCommands, this, this.viewSection.enableCommands));
-  this.autoDispose(commands.createGroup(DetailView.fieldCommands, this, this.viewSection.enableCommands));
+  this.autoDispose(commands.createGroup(viewCommands(DetailView.detailCommands, this), this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(DetailView.detailFocusedCommands, this, this.viewSection.hasRegionFocus));
   const hasSelection = this.autoDispose(ko.pureComputed(() =>
     !this.cellSelector.isCurrentSelectType('') || this.copySelection()));
   this.autoDispose(commands.createGroup(DetailView.selectionCommands, this, hasSelection));
@@ -154,31 +155,33 @@ DetailView.prototype._updateFloatingRow = function() {
 };
 
 /**
- * DetailView commands.
+ * DetailView commands, enabled when the view is the active one.
  */
-DetailView.generalCommands = {
-  cursorUp: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() - 1); },
-  cursorDown: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() + 1); },
-  pageUp: function() { this.cursor.rowIndex(this.cursor.rowIndex() - 1); },
-  pageDown: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
-  copy: function() { return this.copy(this.getSelection()); },
-  cut: function() { return this.cut(this.getSelection()); },
-  paste: function(pasteObj, cutCallback) {
-    return this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
-  },
-
+DetailView.detailCommands = {
   editLayout: function() {
     if (this.scrolly()) {
       this.scrolly().scrollRowIntoView(this.cursor.rowIndex());
     }
     this.recordLayout.editLayout(this.cursor.rowIndex());
   },
+  hideCardFields: function() { this._hideCardFields(); },
+  copy: function() { return this.copy(this.getSelection()); },
+  cut: function() { return this.cut(this.getSelection()); },
+  paste: function(pasteObj, cutCallback) {
+    return this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
+  },
 };
 
-DetailView.fieldCommands = {
+/**
+ * DetailView commands, enabled when the view is user-focused.
+ */
+DetailView.detailFocusedCommands = {
+  cursorUp: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() - 1); },
+  cursorDown: function() { this.cursor.fieldIndex(this.cursor.fieldIndex() + 1); },
+  pageUp: function() { this.cursor.rowIndex(this.cursor.rowIndex() - 1); },
+  pageDown: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
   clearValues: function() { this._clearCardFields(); },
-  hideCardFields: function() { this._hideCardFields(); },
-};
+}
 
 DetailView.selectionCommands = {
   clearCopySelection: function() { this._clearCopySelection(); },
