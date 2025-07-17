@@ -4,9 +4,10 @@ import * as sinon from 'sinon';
 import {delay} from 'app/common/delay';
 import {Role} from 'app/common/roles';
 import {ParseFileResult} from 'app/plugin/FileParserAPI';
+import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
-import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {Client} from 'app/server/lib/Client';
+import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {DocPluginManager} from 'app/server/lib/DocPluginManager';
 import {DocSession, DocSessionPrecursor, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {createDocTools, createUpload} from 'test/server/docTools';
@@ -308,5 +309,89 @@ return c
       + Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging RemoveTransformColumns action on shutdown
       + 1000;   // Hard-coded extra time NSandbox takes to kill an unresponsive process
     assert.closeTo(totalMsec, expectedTime, 500);
+  });
+
+  describe("_onInactive", function () {
+
+    async function prepareVacuumableDoc() {
+      const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+      const docSession = docTools.createFakeSession('owners');
+
+      // Remove the tables
+      await adoc.applyUserActions(docSession, [
+        ["RemoveTable", "City"],
+        ["RemoveTable", "CountryLanguage"],
+        ["RemoveTable", "Country"]
+      ]);
+
+      const hist = new ActionHistoryImpl(adoc.docStorage);
+      // Don't use deleteActions and use .wipe() instead so no VACUUM is requested.
+      await hist.wipe();
+      await hist.clearLocalActions();
+
+      return adoc;
+    }
+
+    it("should VACUUM a document before closing it", async function () {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      const sizeBeforeShrink = await storageManager.getFsFileSize(adoc.docName);
+      await storageManager.flushDoc(adoc.docName);
+
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      const sizeAfterShrink = await storageManager.getFsFileSize(adoc.docName);
+      assert.isBelow(sizeAfterShrink, sizeBeforeShrink / 2, "The new size should have drastically decreased");
+      sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
+    });
+
+    it("should not mark as changed if VACUUM does not reduce size significantly", async function () {
+      // Open a doc, do nothing particular and close it
+      const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+      const storageManager = docTools.getStorageManager();
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      sinon.assert.notCalled(markAsChangedSpy);
+    });
+
+    it('should close the document anyway if the VACUUM fails', async function () {
+      const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+      const isDocOpen = async () => Boolean(await docTools.getDocManager().getActiveDoc(adoc.docName));
+      assert.isTrue(await isDocOpen(), 'doc should be open');
+
+      const storageManager = docTools.getStorageManager();
+      const error = new Error('whatever');
+      (error as any).code = "ENOENT";
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      sandbox.stub(storageManager, 'getFsFileSize').rejects(error);
+      const onInactivePromise = (adoc as any)._onInactive();
+      await testUtils.captureLog('warn', (messages) => {
+        return waitForIt(() => testUtils.assertMatchArray(messages, [/Vacuum on inactive.*no longer available/]),
+          10_000, 100);
+      });
+      await onInactivePromise;
+
+      sinon.assert.notCalled(markAsChangedSpy);
+      assert.isFalse(await isDocOpen(), 'doc should be closed');
+    });
+
+    it('should successfully vacuum when other long queries are still running', async function () {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+      const longQuery = `
+        WITH recursive recur(n)
+        AS (SELECT 1
+        UNION ALL
+        SELECT n + 1
+        FROM recur where n < 1000000
+        )
+        SELECT n FROM recur;
+      `;
+      void(adoc.docStorage.getDB().all(longQuery)); // let's run this long query without awaiting it to finish
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
+    });
   });
 });
