@@ -253,7 +253,7 @@ describe("RegionFocusSwitcher", function () {
     assert.isTrue(await isClipboardFocused());
   });
 
-  it.skip("should focus a panel-region when clicking an input child element", async function() {
+  it("should focus a panel-region when clicking an input child element", async function() {
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
 
@@ -268,7 +268,7 @@ describe("RegionFocusSwitcher", function () {
     assert.isTrue(await isClipboardFocused());
   });
 
-  it.skip("should focus a section-region when clicking on it", async function() {
+  it("should focus a section-region when clicking on it", async function() {
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
 
