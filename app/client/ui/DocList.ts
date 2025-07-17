@@ -20,6 +20,8 @@ import {
 } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon as cssIcon } from "app/client/ui2018/icons";
+import { unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { menu, menuItem, select } from "app/client/ui2018/menus";
 import { confirmModal, saveModal } from "app/client/ui2018/modals";
 import { HomePageTab } from "app/common/gristUrls";
@@ -98,6 +100,7 @@ export class DocList extends Disposable {
 
   private _buildHeader() {
     return cssHeader(
+      visuallyHidden(unstyledH2(t("Documents list"))),
       buildTabs(this._tabs, this._tab),
       this._buildViewSettings()
     );
@@ -136,92 +139,96 @@ export class DocList extends Disposable {
           docs = sortAndFilterDocs(docs, { sort, tab });
           if (docs.length === 0) {
             return cssNoDocsMessage(
-              cssNoDocsImage({ src: "img/create-document.svg" }),
+              cssNoDocsImage({ alt: '', width: '150', height: '140', src: "img/create-document.svg" }),
               dom("div", cssParagraph(t("No documents to show."))),
               testId("no-docs-message")
             );
           }
 
           return [
+            // the aria-hidden attributes are there to prevent screen reader annoucements,
+            // as they are not relevant in that case
             cssDocHeaderRow(
               dom.hide(isNarrowScreenObs()),
-              cssNameColumn(t("Name")),
-              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace)),
-              cssEditedAtColumn(t("Last edited")),
+              cssNameColumn(t("Name"), {'aria-hidden': 'true'}),
+              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), {'aria-hidden': 'true'}),
+              cssEditedAtColumn(t("Last edited"), {'aria-hidden': 'true'}),
               cssOptionsColumn()
             ),
-            dom.forEach(docs, (doc) => {
-              return cssDocRow(
-                cssDoc(
-                  urlState().setLinkUrl(docUrl(doc)),
-                  cssDoc.cls("-no-access", !roles.canView(doc.access)),
-                  cssDocIconAndName(
-                    buildDocIcon(
-                      {
-                        docId: doc.id,
-                        docName: doc.name,
-                        icon: doc.options?.appearance?.icon,
-                      },
-                      testId("doc-icon")
+            unstyledUl(
+              dom.forEach(docs, (doc) => {
+                return cssDocRow(
+                  cssDoc(
+                    urlState().setLinkUrl(docUrl(doc)),
+                    cssDoc.cls("-no-access", !roles.canView(doc.access)),
+                    cssDocIconAndName(
+                      buildDocIcon(
+                        {
+                          docId: doc.id,
+                          docName: doc.name,
+                          icon: doc.options?.appearance?.icon,
+                        },
+                        testId("doc-icon")
+                      ),
+                      cssDocNameAndBadges(
+                        cssDocName(
+                          stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
+                          testId("doc-name")
+                        ),
+                        cssDocBadges(
+                          !doc.isPinned
+                            ? null
+                            : cssPinIcon("Pin2", testId("doc-pinned")),
+                          !doc.public
+                            ? null
+                            : cssWorldIcon("World", testId("doc-public"))
+                        )
+                      )
                     ),
-                    cssDocNameAndBadges(
-                      cssDocName(
-                        stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
-                        testId("doc-name")
+                    cssDocWorkspace(
+                      dom.show(this._showWorkspace),
+                      workspaceName(this._home.app, doc.workspace),
+                      testId("doc-workspace")
+                    ),
+                    cssDocEditedAt(
+                      t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) }),
+                      testId("doc-edited-at")
+                    ),
+                    cssDocDetailsCompact(
+                      cssDocName(stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))),
+                      cssDocEditedAt(
+                        t("Edited {{at}}", {
+                          at: getTimeFromNow(doc.updatedAt),
+                        })
                       ),
                       cssDocBadges(
                         !doc.isPinned
                           ? null
-                          : cssPinIcon("Pin2", testId("doc-pinned")),
+                          : cssPinIcon("Pin2"),
                         !doc.public
                           ? null
-                          : cssWorldIcon("World", testId("doc-public"))
+                          : cssWorldIcon("World")
                       )
-                    )
-                  ),
-                  cssDocWorkspace(
-                    dom.show(this._showWorkspace),
-                    workspaceName(this._home.app, doc.workspace),
-                    testId("doc-workspace")
-                  ),
-                  cssDocEditedAt(
-                    t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) }),
-                    testId("doc-edited-at")
-                  ),
-                  cssDocDetailsCompact(
-                    cssDocName(stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))),
-                    cssDocEditedAt(
-                      t("Edited {{at}}", {
-                        at: getTimeFromNow(doc.updatedAt),
-                      })
                     ),
-                    cssDocBadges(
-                      !doc.isPinned
-                        ? null
-                        : cssPinIcon("Pin2"),
-                      !doc.public
-                        ? null
-                        : cssWorldIcon("World")
-                    )
-                  ),
-                  cssDocOptions(
-                    cssDotsIcon("Dots"),
-                    menu(() => makeDocOptionsMenu(this._home, doc), {
-                      placement: "bottom-start",
+                    cssDocOptions(
+                      cssDotsIcon("Dots"),
+                      menu(() => makeDocOptionsMenu(this._home, doc), {
+                        placement: "bottom-start",
+                        // Keep the document highlighted while the menu is open.
+                        parentSelectorToMark: "." + cssDocRow.className,
+                      }),
+                      dom.on("click", (ev) => stopEvent(ev)),
+                      testId("doc-options")
+                    ),
+                    contextMenu(() => makeDocOptionsMenu(this._home, doc), {
                       // Keep the document highlighted while the menu is open.
                       parentSelectorToMark: "." + cssDocRow.className,
                     }),
-                    dom.on("click", (ev) => stopEvent(ev)),
-                    testId("doc-options")
-                  ),
-                  contextMenu(() => makeDocOptionsMenu(this._home, doc), {
-                    // Keep the document highlighted while the menu is open.
-                    parentSelectorToMark: "." + cssDocRow.className,
-                  }),
-                  testId("doc")
-                )
-              );
-            }),
+                    testId("doc")
+                  )
+                );
+              }),
+            ),
           ];
         }
       ),
@@ -489,7 +496,7 @@ const cssOptionsColumn = styled("div", `
   display: flex;
 `);
 
-const cssDocRow = styled("div", `
+const cssDocRow = styled("li", `
   position: relative;
   border-radius: 3px;
   font-size: 14px;
