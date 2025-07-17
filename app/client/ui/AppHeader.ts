@@ -2,7 +2,6 @@ import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import * as version from 'app/common/version';
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {commonUrls} from 'app/common/gristUrls';
 import {getOrgName, isTemplatesOrg, Organization} from 'app/common/UserAPI';
@@ -108,18 +107,13 @@ export class AppHeader extends Disposable {
                           ? null
                           : image();
 
-    const title = `Version ${version.version}` +
-          ((version.gitcommit as string) !== 'unknown' ? ` (${version.gitcommit})` : '');
+    const altText = t('{{ organizationName }} - Back to home', { organizationName: this._appLogoOrg.get().name });
 
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', productFlavor.wideLogo || false),
       cssAppHeaderBox(
         dom.domComputed(this._appLogoOrgLink, orgLink => cssAppLogo(
-          // Show version when hovering over the application icon.
-          // Include gitcommit when known. Cast version.gitcommit since, depending
-          // on how Grist is compiled, tsc may believe it to be a constant and
-          // believe that testing it is unnecessary.
-          {title},
+          {'aria-label': altText},
           this._setHomePageUrl(orgLink),
           content(),
           testId('logo'),
