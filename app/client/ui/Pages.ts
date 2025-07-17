@@ -55,7 +55,10 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
   }, null, true));
 
   // dom
-  return dom('div', dom.create(TreeViewComponent, model, {isOpen, selected, isReadonly: activeDoc.isReadonly}));
+  return dom('nav',
+    {'aria-label': t("Document pages")},
+    dom.create(TreeViewComponent, model, {isOpen, selected, isReadonly: activeDoc.isReadonly})
+  );
 }
 
 const testId = makeTestId('test-removepage-');
