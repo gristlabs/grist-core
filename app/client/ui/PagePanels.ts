@@ -309,6 +309,7 @@ export function pagePanels(
         ),
 
         cssContentMainPane(
+          testId('main-content'),
           regionFocusSwitcher?.panelAttrs('main', t('Main content')),
           page.contentMain,
         ),
