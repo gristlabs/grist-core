@@ -22,6 +22,11 @@ export const unstyledButton = styled('button', `
   appearance: button;
 `);
 
+export const unstyledUl = styled('ul', `
+  ${base}
+  list-style: none;
+`);
+
 const unstyledHeadings = `
   ${base}
   font-size: inherit;
