@@ -78,6 +78,7 @@ declare module "app/client/components/BaseView" {
     public getAnchorLinkForSection(sectionId: number): IGristUrlState;
     public viewSelectedRecordAsCard(): void;
     public isRecordCardDisabled(): boolean;
+    public insertRow(): Promise<number>;
   }
   export = BaseView;
 }
