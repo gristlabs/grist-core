@@ -97,7 +97,6 @@ export class RegionFocusSwitcher extends Disposable {
 
   public panelAttrs(id: Panel, ariaLabel: string) {
     return [
-      dom.attr('tabindex', '-1'),
       dom.attr('role', 'region'),
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
@@ -132,7 +131,7 @@ export class RegionFocusSwitcher extends Disposable {
         if (isSpecialPage(gristDoc)) {
           return false;
         }
-        return id === 'main';
+        return true;
       }),
       dom.cls(`${cssFocusedPanel.className}-focused`, use => {
         const current = use(this.current);
@@ -208,6 +207,7 @@ export class RegionFocusSwitcher extends Disposable {
       // If user presses escape again, we also want to focus the panel.
       || (document.activeElement === document.body && panelElement)
     ) {
+      panelElement?.setAttribute('tabindex', '-1');
       panelElement?.focus();
       return;
     }
@@ -243,6 +243,7 @@ export class RegionFocusSwitcher extends Disposable {
     const mouseEvent = this._currentUpdateInitiator instanceof MouseEvent ? this._currentUpdateInitiator : undefined;
 
     removeFocusRings();
+    removeTabIndexes();
     if (!mouseEvent) {
       this._savePrevElementState(prev);
       if (prev?.type === 'panel') {
@@ -328,6 +329,11 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   }
   // No child to focus found: just focus the panel
   if (!child || child === panelElement || !child.isConnected) {
+    // tabindex is dynamically set instead of always there for a reason:
+    // if we happen to just click on a non-focusable element inside the panel,
+    // browser default behavior is to make document.activeElement the closest focusable parent (the panel).
+    // We don't want this behavior, so we add/remove the tabindex attribute as needed.
+    panelElement.setAttribute('tabindex', '-1');
     panelElement.focus();
   }
 
@@ -466,6 +472,12 @@ const isFocusableElement = (el: EventTarget | null): boolean => {
 const removeFocusRings = () => {
   document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach(el => {
     el.removeAttribute(ATTRS.focusedElement);
+  });
+};
+
+const removeTabIndexes = () => {
+  document.querySelectorAll(`[${ATTRS.regionId}]`).forEach(el => {
+    el.removeAttribute('tabindex');
   });
 };
 
