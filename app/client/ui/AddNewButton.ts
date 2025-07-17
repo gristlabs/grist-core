@@ -1,6 +1,7 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {makeT} from 'app/client/lib/localization';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/buttons';
 import {dom, DomElementArg, Observable, styled} from "grainjs";
 
 const t = makeT(`AddNewButton`);
@@ -31,7 +32,7 @@ export function addNewButton(
   );
 }
 
-export const cssAddNewButton = styled('div', `
+export const cssAddNewButton = styled(unstyledButton, `
   display: flex;
   align-items: center;
   margin: 22px 0px 22px 0px;
@@ -45,6 +46,10 @@ export const cssAddNewButton = styled('div', `
   font-size: ${vars.bigControlFontSize};
   font-weight: bold;
   overflow: hidden;
+
+  /* make sure keyboard highlight is not glued to the button,
+  as it is the same color as the button background */
+  outline-offset: 2px;
 
   --circle-color: ${theme.addNewCircleSmallBg};
 
