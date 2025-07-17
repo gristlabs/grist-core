@@ -237,6 +237,10 @@ export async function selectAll() {
   await driver.executeScript('document.activeElement.select()');
 }
 
+export async function getActiveElement() {
+  return await driver.executeScript<WebElement>('return document.activeElement');
+}
+
 /**
  * Detaches section from the layout. Used for manipulating sections in the layout.
  */
@@ -1089,6 +1093,10 @@ export async function docMenuImport(filePath: string) {
   });
 }
 
+export async function hasFocus(selector: string): Promise<boolean> {
+  return await driver.find(selector).hasFocus();
+}
+
 /**
  * Wait for the focus to return to the main application, i.e. the special .copypaste element that
  * normally has it (as opposed to an open cell editor, or a focus in some input or menu). Specify
@@ -1102,7 +1110,7 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
  * Wait for the focus to be on the first element matching given selector.
  */
 export async function waitForFocus(selector: string): Promise<void> {
-  await driver.wait(async () => (await driver.find(selector).hasFocus()), 1000);
+  await driver.wait(async () => (await hasFocus(selector)), 1000);
 }
 
 export async function waitForLabelInput(): Promise<void> {
