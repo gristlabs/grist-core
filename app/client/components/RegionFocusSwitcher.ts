@@ -1,4 +1,4 @@
-import {Disposable, dom, Observable, styled} from 'grainjs';
+import {Disposable, dom, Observable, styled, UseCBOwner} from 'grainjs';
 import {mod} from 'app/common/gutil';
 import {SpecialDocPage} from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
@@ -114,17 +114,9 @@ export class RegionFocusSwitcher extends Disposable {
       dom.attr(ATTRS.regionId, id),
       dom.cls('kb-focus-highlighter-group', use => {
         // highlight focused elements everywhere except in the grist doc views
-        if (id !== 'main') {
-          return true;
-        }
-        const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
-        if (!gristDoc) {
-          return true;
-        }
-        if (gristDoc) {
-          use(gristDoc.activeViewId);
-        }
-        return isSpecialPage(gristDoc);
+        return id !== 'main'
+          ? true
+          : this._canTabThroughMainRegion(use);
       }),
       dom.cls('clipboard_group_focus', use => {
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
@@ -132,18 +124,14 @@ export class RegionFocusSwitcher extends Disposable {
         if (!gristDoc) {
           return true;
         }
-
         // on a grist doc, panel content is focusable only if it's the current region
         const current = use(this._state).region;
         if (current?.type === 'panel' && current.id === id) {
           return true;
         }
-        if (gristDoc) {
-          use(gristDoc.activeViewId);
-        }
         // on a grist doc, main panel is focusable only if we are not the actual document view
         if (id === "main") {
-          return isSpecialPage(gristDoc);
+          return this._canTabThroughMainRegion(use);
         }
         return false;
       }),
@@ -344,6 +332,17 @@ export class RegionFocusSwitcher extends Disposable {
     }
     commands.allCommands.rightPanelOpen.run();
     return this.focusRegion({type: 'panel', id: 'right'}, {initiator: {type: 'cycle'}});
+  }
+
+  private _canTabThroughMainRegion(use: UseCBOwner) {
+    const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
+    if (!gristDoc) {
+      return true;
+    }
+    if (gristDoc) {
+      use(gristDoc.activeViewId);
+    }
+    return isSpecialPage(gristDoc);
   }
 
   /**
