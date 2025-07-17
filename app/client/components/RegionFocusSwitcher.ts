@@ -4,6 +4,7 @@ import {SpecialDocPage} from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
 import {makeT} from 'app/client/lib/localization';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
+import {trapTabKey} from 'app/client/lib/trapTabKey';
 import * as commands from 'app/client/components/commands';
 import {App} from 'app/client/ui/App';
 import {GristDoc} from 'app/client/components/GristDoc';
@@ -292,6 +293,7 @@ export class RegionFocusSwitcher extends Disposable {
       ? current.initiator.event
       : undefined;
 
+    disableFocusLock();
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
@@ -456,6 +458,7 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   if (!panelElement) {
     return;
   }
+  enableFocusLock(panelElement);
 
   // Child element found: focus it
   if (child && child !== panelElement && child.isConnected) {
@@ -576,6 +579,30 @@ const blurPanelChild = (panel: PanelRegion) => {
   if (containsActiveElement(panelElement)) {
     (document.activeElement as HTMLElement).blur();
   }
+};
+
+let _focusLocked: {el: HTMLElement | null, cb: ((event: KeyboardEvent) => void) | null} = {el: null, cb: null};
+
+const disableFocusLock = () => {
+  const {el, cb} = _focusLocked;
+  if (el && cb) {
+    el.removeEventListener('keydown', cb);
+    _focusLocked = {el: null, cb: null};
+  }
+};
+
+const enableFocusLock = (panelElement: HTMLElement) => {
+  disableFocusLock();
+  const focusTrap = (event: KeyboardEvent) => {
+    if (event.key === 'Tab') {
+      trapTabKey(panelElement, event);
+    }
+  };
+  panelElement.addEventListener('keydown', focusTrap);
+  _focusLocked = {
+    el: panelElement,
+    cb: focusTrap
+  };
 };
 
 const getPanelElement = (id: Panel): HTMLElement | null => {
