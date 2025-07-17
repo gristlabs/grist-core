@@ -126,28 +126,26 @@ export class RegionFocusSwitcher extends Disposable {
         }
         return isSpecialPage(gristDoc);
       }),
-      dom.cls(use => {
+      dom.cls('clipboard_group_focus', use => {
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
         if (!gristDoc) {
-          return 'clipboard_group_focus';
+          return true;
         }
 
         // on a grist doc, panel content is focusable only if it's the current region
         const current = use(this._state).region;
         if (current?.type === 'panel' && current.id === id) {
-          return 'clipboard_group_focus';
+          return true;
         }
         if (gristDoc) {
           use(gristDoc.activeViewId);
         }
         // on a grist doc, main panel is focusable only if we are not the actual document view
         if (id === "main") {
-          return isSpecialPage(gristDoc)
-            ? 'clipboard_group_focus'
-            : 'clipboard_forbid_focus';
+          return isSpecialPage(gristDoc);
         }
-        return '';
+        return false;
       }),
       cssFocusedPanel.cls('-focused', use => {
         const current = use(this._state);
