@@ -1339,7 +1339,9 @@
     },
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
-        "Open Creator Panel": "Open Creator Panel"
+        "Open Creator Panel": "Open Creator Panel",
+        "Close navigation panel (left panel)": "Close navigation panel (left panel)",
+        "Open navigation panel (left panel)": "Open navigation panel (left panel)"
     },
     "ColumnTitle": {
         "Add description": "Add description",
