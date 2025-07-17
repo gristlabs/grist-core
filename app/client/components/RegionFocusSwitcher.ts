@@ -1,10 +1,11 @@
-import {Disposable, dom, Observable, styled} from 'grainjs';
+import {Disposable, dom, Listener, Observable, styled} from 'grainjs';
 import {mod} from 'app/common/gutil';
 import {SpecialDocPage} from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
 import {makeT} from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
 import {triggerFocusGrab} from 'app/client/components/Clipboard';
+import {App} from 'app/client/ui/App';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {theme} from 'app/client/ui2018/cssVars';
 import BaseView from 'app/client/components/BaseView';
@@ -31,7 +32,8 @@ type UpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
 export class RegionFocusSwitcher extends Disposable {
   // Currently focused region
   public readonly current: Observable<Region | undefined>;
-  private readonly _gristDocObs?: Observable<GristDoc | null>;
+
+  private _gristDocObs: Observable<GristDoc | null>;
   private _currentUpdateInitiator?: UpdateInitiator;
   // Previously focused elements for each panel (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
@@ -41,18 +43,30 @@ export class RegionFocusSwitcher extends Disposable {
     main: null,
   };
 
-  constructor(gristDocObs?: Observable<GristDoc | null>) {
+  private _initiated: Observable<boolean>;
+  private _initListener?: Listener;
+
+  constructor(private _app: App) {
     super();
     this.current = Observable.create(this, undefined);
-    if (gristDocObs) {
-      this._gristDocObs = gristDocObs;
-    }
+    this._initiated = Observable.create(this, false);
   }
 
   public init(pageContainer: HTMLElement) {
-    // if we have a grist doc, wait for the current grist doc to be ready before doing anything
+    if (this._initiated.get()) {
+      if (this._initListener && !this._initListener.isDisposed()) {
+        this._initListener.dispose();
+      }
+      return;
+    }
+
+    if (this._app.pageModel?.gristDoc) {
+      this._gristDocObs = this._app.pageModel.gristDoc;
+    }
+
+    // if we have a grist doc, wait for it to be ready before doing anything
     if (this._gristDocObs && this._gristDocObs.get() === null) {
-      this._gristDocObs.addListener((doc, prevDoc) => {
+      this._initListener = this._gristDocObs.addListener((doc, prevDoc) => {
         if (doc && prevDoc === null) {
           doc.regionFocusSwitcher = this;
           this.init(pageContainer);
@@ -70,11 +84,17 @@ export class RegionFocusSwitcher extends Disposable {
 
     this.autoDispose(this.current.addListener(this._onCurrentUpdate.bind(this)));
 
+    const focusActiveSection = () => this.focusActiveSection();
+    this._app.on('clipboard_focus', focusActiveSection);
+    this.onDispose(() => this._app.off('clipboard_focus', focusActiveSection));
+
     if (this._gristDocObs) {
       const onClick = this._onClick.bind(this);
       pageContainer.addEventListener('mouseup', onClick);
       this.onDispose(() => pageContainer.removeEventListener('mouseup', onClick));
     }
+
+    this._initiated.set(true);
   }
 
   public focusRegion(
@@ -114,6 +134,7 @@ export class RegionFocusSwitcher extends Disposable {
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
       dom.cls('kb-focus-highlighter-group', use => {
+        use(this._initiated);
         // highlight focused elements everywhere except in the grist doc views
         if (id !== 'main') {
           return true;
@@ -128,6 +149,7 @@ export class RegionFocusSwitcher extends Disposable {
         return isSpecialPage(gristDoc);
       }),
       dom.cls('clipboard_group_focus', use => {
+        use(this._initiated);
         const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
         // if we are not on a grist doc, whole page is always focusable
         if (!gristDoc) {
@@ -145,6 +167,7 @@ export class RegionFocusSwitcher extends Disposable {
         return isSpecialPage(gristDoc);
       }),
       dom.cls('clipboard_forbid_focus', use => {
+        use(this._initiated);
         // forbid focus only on the main panel when on an actual document view (and not a special page)
         if (id !== 'main') {
           return false;
@@ -162,6 +185,7 @@ export class RegionFocusSwitcher extends Disposable {
         return true;
       }),
       dom.cls(`${cssFocusedPanel.className}-focused`, use => {
+        use(this._initiated);
         const current = use(this.current);
         return this._currentUpdateInitiator?.type === 'cycle' && current?.type === 'panel' && current.id === id;
       }),
