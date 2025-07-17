@@ -453,7 +453,11 @@ export function upgradableMenuItem(needUpgrade: boolean, action: () => void, ...
 export function upgradeText(needUpgrade: boolean, onClick: () => void) {
   if (!needUpgrade) { return null; }
   return menuText(dom('span', t("* Workspaces are available on team plans. "),
-    cssUpgradeTextButton(t("Upgrade now"), dom.on('click', () => onClick()))));
+    cssUpgradeTextButton(
+      t("Upgrade now"),
+      textButton.cls('-hover-bg-padding-sm'),
+      dom.on('click', () => onClick())
+    )));
 }
 
 /**

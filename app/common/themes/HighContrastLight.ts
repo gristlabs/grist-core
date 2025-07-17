@@ -35,5 +35,6 @@ export const HighContrastLight: ThemeTokens = {
     rightPanelTabBorder: tokens.decoration,
     rightPanelSubtabFg: tokens.secondary,
     formulaIcon: tokens.decoration,
+    textButtonHoverBorder: 'currentColor',
   }
 };

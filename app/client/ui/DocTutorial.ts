@@ -519,7 +519,7 @@ const cssTextButton = styled(textButton, `
   display: flex;
   align-items: center;
   column-gap: 4px;
-  padding: 0 16px;
+  margin: 0 16px;
 `);
 
 const cssRestartIcon = styled(icon, `
