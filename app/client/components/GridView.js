@@ -266,7 +266,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
 
   //--------------------------------------------------
   // Command group implementing all grid level commands (except cancel)
-  this.autoDispose(commands.createGroup(GridView.gridCommands, this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(GridView.gridCommands, this, this.viewSection.enableCommands));
   // Cancel command is registered conditionally, only when there is an active
   // cell selection. This command is also used by Raw Data Views, to close the Grid popup.
   const hasSelection = this.autoDispose(ko.pureComputed(() =>
