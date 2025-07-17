@@ -152,6 +152,7 @@ export const cssPageLink = styled('a', `
   padding-left: 24px;
   outline: none;
   cursor: pointer;
+  outline-offset: -3px;
   &, &:hover, &:focus {
     text-decoration: none;
     outline: none;
