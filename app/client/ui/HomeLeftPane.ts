@@ -26,6 +26,7 @@ import {
 import {newDocMethods} from 'app/client/ui/NewDocMethods';
 import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
+import * as version from 'app/common/version';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -40,6 +41,13 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
   const isAnonymous = !home.app.currentValidUser;
   const {enableAnonPlayground, templateOrg, onboardingTutorialDocId} = getGristConfig();
   const canCreate = !isAnonymous || enableAnonPlayground;
+
+  // Show version when hovering over the application icon.
+  // Include gitcommit when known. Cast version.gitcommit since, depending
+  // on how Grist is compiled, tsc may believe it to be a constant and
+  // believe that testing it is unnecessary.
+  const appVersion = `Version ${version.version}` +
+    ((version.gitcommit as string) !== 'unknown' ? ` (${version.gitcommit})` : '');
 
   return cssContent(
     dom.autoDispose(creating),
@@ -122,7 +130,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       )),
       cssHomeTools(
         cssSectionHeader(
-          cssPageColorIcon('GristLogo'),
+          cssPageColorIcon('GristLogo', {title: appVersion}),
           cssSectionHeaderText(t("Grist Resources"))
         ),
         cssPageEntry(
