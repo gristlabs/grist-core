@@ -20,7 +20,8 @@ import {
 } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon as cssIcon } from "app/client/ui2018/icons";
-import { unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
+import { unstyledButton, unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
+import { stretchedLink } from "app/client/ui2018/stretchedLink";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { menu, menuItem, select } from "app/client/ui2018/menus";
 import { confirmModal, saveModal } from "app/client/ui2018/modals";
@@ -159,7 +160,6 @@ export class DocList extends Disposable {
               dom.forEach(docs, (doc) => {
                 return cssDocRow(
                   cssDoc(
-                    urlState().setLinkUrl(docUrl(doc)),
                     cssDoc.cls("-no-access", !roles.canView(doc.access)),
                     cssDocIconAndName(
                       buildDocIcon(
@@ -168,10 +168,12 @@ export class DocList extends Disposable {
                           docName: doc.name,
                           icon: doc.options?.appearance?.icon,
                         },
-                        testId("doc-icon")
+                        testId("doc-icon"),
+                        {'aria-hidden': 'true'},
                       ),
                       cssDocNameAndBadges(
                         cssDocName(
+                          urlState().setLinkUrl(docUrl(doc)),
                           stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
                           testId("doc-name")
                         ),
@@ -187,7 +189,10 @@ export class DocList extends Disposable {
                     ),
                     cssDocWorkspace(
                       dom.show(this._showWorkspace),
-                      workspaceName(this._home.app, doc.workspace),
+                      dom('span',
+                        visuallyHidden(t("Workspace")),
+                        workspaceName(this._home.app, doc.workspace)
+                      ),
                       testId("doc-workspace")
                     ),
                     cssDocEditedAt(
@@ -218,6 +223,7 @@ export class DocList extends Disposable {
                         parentSelectorToMark: "." + cssDocRow.className,
                       }),
                       dom.on("click", (ev) => stopEvent(ev)),
+                      {'aria-label': t("Document options - {{- documentName }}", {documentName: `"${doc.name}"`})},
                       testId("doc-options")
                     ),
                     contextMenu(() => makeDocOptionsMenu(this._home, doc), {
@@ -508,18 +514,13 @@ const cssDocRow = styled("li", `
   }
 `);
 
-const cssDoc = styled("a", `
+const cssDoc = styled("div", `
   display: flex;
+  position: relative;
   align-items: center;
   border-radius: 3px;
   outline: none;
   padding: 8px;
-
-  &, &:hover, &:focus {
-    text-decoration: none;
-    outline: none;
-    color: inherit;
-  }
 
   &-no-access, &-no-access:hover, &-no-access:focus {
     color: ${theme.disabledText};
@@ -587,7 +588,7 @@ const noAccessStyles = `
   }
 `;
 
-const cssDocName = styled("div", `
+const cssDocName = styled(stretchedLink, `
   font-size: 14px;
   flex: 0 1 auto;
   white-space: nowrap;
@@ -595,6 +596,17 @@ const cssDocName = styled("div", `
   text-overflow: ellipsis;
   color: ${theme.text};
   font-weight: 600;
+
+  &, &:hover, &:focus {
+    text-decoration: none;
+    outline: none;
+    color: inherit;
+  }
+
+  &:focus-visible {
+    outline-offset: -3px;
+    padding: 5px;
+  }
 
   ${noAccessStyles}
 
@@ -660,7 +672,9 @@ const cssDocEditedAt = styled(cssEditedAtColumn, `
   }
 `);
 
-const cssDocOptions = styled("div", `
+const cssDocOptions = styled(unstyledButton, `
+  position: relative;
+  z-index: 2; /* make sure this is above the stretched link row */
   flex: none;
   display: flex;
   justify-content: center;
