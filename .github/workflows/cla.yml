@@ -27,3 +27,4 @@ jobs:
           path-to-document: 'https://github.com/gristlabs/grist-core/blob/main/.github/cla/individual-cla.md'
           branch: 'main'
           allowlist: github-actions[bot],dependabot[bot]
+          lock-pullrequest-aftermerge: false
