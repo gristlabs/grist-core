@@ -1,6 +1,7 @@
 import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { AppModel, reportError } from "app/client/models/AppModel";
+import { App } from "app/client/ui/App";
 import { AuditLogsModel } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { AppHeader } from "app/client/ui/AppHeader";
@@ -40,7 +41,7 @@ export class AuditLogsPage extends Disposable {
     (_use, s) => s.auditLogs
   );
 
-  constructor(private _appModel: AppModel) {
+  constructor(private _appModel: AppModel, private _appObj: App) {
     super();
     this._setTitle();
   }
@@ -73,6 +74,8 @@ export class AuditLogsPage extends Disposable {
       headerMain: this._buildHeader(),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildContent(),
+    }, {
+      regionFocusSwitcher: this._appObj.regionFocusSwitcher,
     });
   }
 

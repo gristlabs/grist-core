@@ -16,7 +16,6 @@ import once from 'lodash/once';
 import {SessionObs} from 'app/client/lib/sessionObs';
 import debounce from 'lodash/debounce';
 import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
-import {GristDoc} from 'app/client/components/GristDoc';
 
 const t = makeT('PagePanels');
 
@@ -50,10 +49,7 @@ export interface PageContents {
 }
 
 interface PagePanelsOptions {
-  /**
-   * If provided, the region kb focus switcher will also cycle through the given doc's widgets.
-   */
-  gristDoc?: Observable<GristDoc | null>;
+  regionFocusSwitcher?: RegionFocusSwitcher;
 }
 
 export function pagePanels(
@@ -69,6 +65,8 @@ export function pagePanels(
   const bannerHeight = Observable.create(null, 0);
   const isScreenResizingObs = isScreenResizing();
 
+  const regionFocusSwitcher = options.regionFocusSwitcher;
+
   let lastLeftOpen = left.panelOpen.get();
   let lastRightOpen = right?.panelOpen.get() || false;
   let leftPaneDom: HTMLElement;
@@ -76,10 +74,6 @@ export function pagePanels(
   let mainHeaderDom: HTMLElement;
   let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
-
-  const regionFocusSwitcher = RegionFocusSwitcher.create(null, options.gristDoc);
-  // @ts-expect-error just dirty code to check an idea. To remove later.
-  window.gristRegionFocusSwitcher = regionFocusSwitcher;
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
   // last desktop state.
@@ -103,7 +97,7 @@ export function pagePanels(
     if (narrow) {
       left.panelOpen.set(false);
     }
-    regionFocusSwitcher.reset();
+    regionFocusSwitcher?.reset();
   });
 
   const pauseSavingLeft = (yesNo: boolean) => {
@@ -151,11 +145,11 @@ export function pagePanels(
     }),
     cssContentMain(
       (el) => {
-        regionFocusSwitcher.init(el);
+        regionFocusSwitcher?.init(el);
       },
       leftPaneDom = cssLeftPane(
         testId('left-panel'),
-        regionFocusSwitcher.panelAttrs('left', t('Main navigation and document settings (left panel)')),
+        regionFocusSwitcher?.panelAttrs('left', t('Main navigation and document settings (left panel)')),
         cssOverflowContainer(
           contentWrapper = cssLeftPanelContainer(
             cssLeftPaneHeader(
@@ -292,7 +286,7 @@ export function pagePanels(
       cssMainPane(
         mainHeaderDom = cssTopHeader(
           testId('top-header'),
-          regionFocusSwitcher.panelAttrs('top', t('Document header')),
+          regionFocusSwitcher?.panelAttrs('top', t('Document header')),
           (left.hideOpener ? null :
             cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
               testId('left-opener'),
@@ -315,7 +309,7 @@ export function pagePanels(
         ),
 
         cssContentMainPane(
-          regionFocusSwitcher.panelAttrs('main', t('Main content')),
+          regionFocusSwitcher?.panelAttrs('main', t('Main content')),
           page.contentMain,
         ),
 
@@ -332,7 +326,7 @@ export function pagePanels(
 
         rightPaneDom = cssRightPane(
           testId('right-panel'),
-          regionFocusSwitcher.panelAttrs('right', t('Creator panel (right panel)')),
+          regionFocusSwitcher?.panelAttrs('right', t('Creator panel (right panel)')),
           cssRightPaneHeader(
             right.header,
             dom.style('margin-bottom', use => use(bannerHeight) + 'px')
