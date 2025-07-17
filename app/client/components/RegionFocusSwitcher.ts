@@ -48,12 +48,12 @@ export class RegionFocusSwitcher extends Disposable {
     }
   }
 
-  public init() {
+  public init(pageContainer: HTMLElement) {
     // if we have a grist doc, wait for the current grist doc to be ready before doing anything
     if (this._gristDocObs && this._gristDocObs.get() === null) {
       this._gristDocObs.addListener((doc, prevDoc) => {
         if (doc && prevDoc === null) {
-          this.init();
+          this.init(pageContainer);
         }
       });
       return;
@@ -70,8 +70,8 @@ export class RegionFocusSwitcher extends Disposable {
 
     if (this._gristDocObs) {
       const onClick = this._onClick.bind(this);
-      document.addEventListener('mouseup', onClick);
-      this.onDispose(() => document.removeEventListener('mouseup', onClick));
+      pageContainer.addEventListener('mouseup', onClick);
+      this.onDispose(() => pageContainer.removeEventListener('mouseup', onClick));
     }
   }
 
@@ -185,22 +185,24 @@ export class RegionFocusSwitcher extends Disposable {
       return;
     }
 
+    const focusPanel = () => {
+      this.focusRegion(
+        {type: 'panel', id: targetRegionId as Panel},
+        {initiator: {type: 'mouse', event}}
+      );
+    };
+
     // When not targeting the main panel, we don't always want to focus the given region _on click_.
     // We only do it if clicking an empty area in the panel, or a focusable element like an input.
     // Otherwise, we assume clicks are on elements like buttons or links,
     // and we don't want to lose focus of current section in this case.
     // For example I don't want to focus out current table if just click the "undo" button in the header.
-    if (!targetsMain
-      && (
-        !currentlyInSection
-        || (isFocusableElement(event.target) || getPanelElement(targetRegionId as Panel) === event.target)
-      )
-    ) {
-      this.focusRegion(
-        {type: 'panel', id: targetRegionId as Panel},
-        {initiator: {type: 'mouse', event}}
-      );
-      return;
+    if (!targetsMain && isFocusableElement(event.target)) {
+      focusPanel();
+    }
+
+    if (!targetsMain && getPanelElement(targetRegionId as Panel) === event.target) {
+      focusPanel();
     }
   }
 
