@@ -111,7 +111,7 @@ describe('TextEditor.ntest', function() {
     await autoCompleteSelect({input: 'foobar3', keys: [$.UP]});
     await gu.sendKeys($.ESCAPE);
     await gu.waitForServer();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
     await $(".viewsection_title:contains(TABLE1)").click();
     assert.equal(await gu.getCellRC(6, 0).text(), "");
 
