@@ -140,7 +140,7 @@ describe('NumericEditor', function() {
           // separator would open with a "." decimal separator, and get saved back incorrectly).
           await gu.sendKeys(Key.ENTER);
           await gu.waitForServer();
-          await gu.waitAppFocus(true);
+          await gu.waitAppFocus();
           assert.equal(await gu.getCell({rowNum: 1, col: Number(i)}).getText(), entry.expect);
         }
       });
