@@ -1,7 +1,7 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {makeT} from 'app/client/lib/localization';
 import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/buttons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {dom, DomElementArg, Observable, styled} from "grainjs";
 
 const t = makeT(`AddNewButton`);
