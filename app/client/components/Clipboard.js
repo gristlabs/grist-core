@@ -319,18 +319,6 @@ function allowFocus(elem) {
 
 Clipboard.allowFocus = allowFocus;
 
-/**
- * Helper to manually refocus the main app focus grab element.
- */
-function triggerFocusGrab() {
-  const elem = document.querySelector('textarea.copypaste.mousetrap');
-  if (elem) {
-    elem.focus();
-  }
-}
-
-Clipboard.triggerFocusGrab = triggerFocusGrab;
-
 function showUnavailableMenuCommandModal(action) {
   let keys;
   switch (action) {
