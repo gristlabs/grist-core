@@ -22,7 +22,7 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
   // RegionFocusSwitcher updates this so that the view knows the current state of focused regions:
   // - 'out' means the view region is not focused
   // - 'in' means the view region is focused
-  // - 'related' means the currently focused region is not the view, but is something related to it
+  // - 'related' means the currently focused region is not the view but something related to it (e.g. the creator panel)
   focusedRegionState: ko.Observable<'out' | 'in' | 'related'>;
 
   // Saved collapsed sections.
