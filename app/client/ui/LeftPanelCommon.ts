@@ -18,6 +18,7 @@ import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {colorIcon, icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/buttons';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, Observable, styled} from 'grainjs';
@@ -231,7 +232,7 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
   }
 `);
 
-export const cssMenuTrigger = styled('div', `
+export const cssMenuTrigger = styled(unstyledButton, `
   margin: 0 4px 0 auto;
   height: 24px;
   width: 24px;
@@ -240,7 +241,7 @@ export const cssMenuTrigger = styled('div', `
   border-radius: 3px;
   cursor: default;
   display: none;
-  .${cssPageLink.className}:hover > &, &.weasel-popup-open {
+  .${cssPageLink.className}:hover > &, .${cssPageLink.className}:focus-within > &, &.weasel-popup-open {
     display: block;
   }
   &:hover, &.weasel-popup-open {
