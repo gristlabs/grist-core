@@ -494,5 +494,8 @@ export const Base: BaseThemeTokens = {
     /* Text Button */
     textButtonHoverBg: 'transparent',
     textButtonHoverBorder: 'transparent',
+
+    /* Keyboard Focus Highlighter */
+    kbFocusHighlight: tokens.primary,
   }
 };

@@ -580,6 +580,7 @@ export const componentsCssMapping = {
   formulaIcon: 'formula-icon',
   textButtonHoverBg: 'text-button-hover-bg',
   textButtonHoverBorder: 'text-button-hover-border',
+  kbFocusHighlight: 'kb-focus-highlight',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -1304,6 +1305,7 @@ export interface BaseThemeTokens {
     formulaIcon: Token;
     textButtonHoverBg: Token;
     textButtonHoverBorder: Token;
+    kbFocusHighlight: Token;
   };
 }
 
