@@ -238,10 +238,6 @@ export async function selectAll() {
   await driver.executeScript('document.activeElement.select()');
 }
 
-export async function getActiveElement() {
-  return await driver.executeScript<WebElement>('return document.activeElement');
-}
-
 /**
  * Detaches section from the layout. Used for manipulating sections in the layout.
  */

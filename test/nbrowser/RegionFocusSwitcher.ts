@@ -8,7 +8,7 @@ const isClipboardFocused = () => {
 };
 
 const isNormalElementFocused = async (containerSelector?: string) => {
-  const activeElement = await gu.getActiveElement();
+  const activeElement = await driver.switchTo().activeElement();
   const isException = await activeElement.matches(
     '.test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, textarea.copypaste.mousetrap'
   );
