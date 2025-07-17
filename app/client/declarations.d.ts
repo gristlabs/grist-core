@@ -63,6 +63,7 @@ declare module "app/client/components/BaseView" {
     public tableModel: DataTableModel;
     public selectionSummary?: SelectionSummary;
     public currentEditingColumnIndex: ko.Observable<number>;
+    public enableAddRow: ko.Computed<boolean>;
 
     constructor(gristDoc: GristDoc, viewSectionModel: any, options?: {addNewRow?: boolean, isPreview?: boolean});
     public setCursorPos(cursorPos: CursorPos): void;
@@ -78,6 +79,7 @@ declare module "app/client/components/BaseView" {
     public getAnchorLinkForSection(sectionId: number): IGristUrlState;
     public viewSelectedRecordAsCard(): void;
     public isRecordCardDisabled(): boolean;
+    public onNewRecordRequest?(): void;
   }
   export = BaseView;
 }

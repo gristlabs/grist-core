@@ -517,15 +517,15 @@ export class FormView extends Disposable {
             dom('div',
               style.cssParagraph(
                 t(
-                  'Publishing your form will generate a share link. Anyone with the link can ' +
-                  'see the empty form and submit a response.'
+                  'Publishing your form will generate a share link. Anyone with the link can \
+see the empty form and submit a response.'
                 ),
               ),
               style.cssParagraph(
                 t(
-                  'Users are limited to submitting ' +
-                  'entries (records in your table) and reading pre-set values in designated ' +
-                  'fields, such as reference and choice columns.'
+                  'Users are limited to submitting \
+entries (records in your table) and reading pre-set values in designated \
+fields, such as reference and choice columns.'
                 ),
               ),
             )
@@ -609,8 +609,8 @@ export class FormView extends Disposable {
             dom('div',
               style.cssParagraph(
                 t(
-                  'Unpublishing the form will disable the share link so that users accessing ' +
-                  'your form via that link will see an error.'
+                  'Unpublishing the form will disable the share link so that users accessing \
+your form via that link will see an error.'
                 ),
               ),
             )
@@ -901,8 +901,8 @@ export class FormView extends Disposable {
       return style.cssSwitcherMessage(
         style.cssSwitcherMessageBody(
           t(
-            'Your form is published. Every change is live and visible to users ' +
-            'with access to the form. If you want to make changes in draft, unpublish the form.'
+            'Your form is published. Every change is live and visible to users \
+with access to the form. If you want to make changes in draft, unpublish the form.'
           ),
         ),
         style.cssSwitcherMessageDismissButton(

@@ -316,7 +316,8 @@
         "Learn more": "Узнать больше",
         "download attachments": "скачать вложения",
         "Download full document and history": "Скачать полный документ и историю",
-        "Download an archive of all the attachments present in this document.": "Загрузите архив всех вложений, присутствующих в этом документе."
+        "Download an archive of all the attachments present in this document.": "Загрузите архив всех вложений, присутствующих в этом документе.",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Вложения являются внешними и не включены в эту загрузку. При загрузке документа в другую инсталляцию Grist вам также потребуется {{downloadLink}} отдельно. "
     },
     "ShareMenu": {
         "Back to Current": "Вернуться к текущему",
@@ -548,7 +549,8 @@
         "Start transfer": "Начать передачу",
         "Upload": "Загрузить",
         "Upload missing attachments": "Загрузите недостающие вложения",
-        "Uploading...": "Загрузка..."
+        "Uploading...": "Загрузка...",
+        "Document type": "Тип документа"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -560,7 +562,8 @@
         "Enter recovery mode": "Войти в режим восстановления",
         "Error accessing document": "Ошибка доступа к документу",
         "Sorry, access to this document has been denied. [{{error}}]": "Извините, в доступе к этому документу было отказано. [{{error}}]",
-        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Вы можете попробовать перезагрузить документ или использовать режим восстановления. Режим восстановления открывает документ, чтобы он был полностью доступен для владельцев и недоступен для других. Это также отключает формулы. [{{error}}]"
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Вы можете попробовать перезагрузить документ или использовать режим восстановления. Режим восстановления открывает документ, чтобы он был полностью доступен для владельцев и недоступен для других. Это также отключает формулы. [{{error}}]",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Пожалуйста, перезагрузите документ, и если ошибка сохраняется, свяжитесь с владельцами документов, чтобы попытаться восстановить документ. [{{error}}]"
     },
     "DocumentUsage": {
         "Data Size": "Размер данных",
@@ -740,7 +743,8 @@
         "Import from file": "Импорт из файла",
         "Added new linked section to view {{viewName}}": "Добавлен новый связанный раздел в представление {{viewName}}",
         "Saved linked section {{title}} in view {{name}}": "Сохраненный связанный раздел {{title}} в представлении {{name}}",
-        "go to webhook settings": "перейти к настройкам webhook"
+        "go to webhook settings": "перейти к настройкам webhook",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Новые изменения временно приостановлены. Очередь Webhooks переполнена. Пожалуйста, проверьте настройки webhooks, удалите недопустимые webhooks и очистите очередь."
     },
     "Importer": {
         "Merge rows that match these fields:": "Объедините строки, соответствующие этим полям:",
@@ -871,7 +875,8 @@
         "Delete": "Удалить",
         "Delete data and this page.": "Удалить данные и эту страницу.",
         "The following tables will no longer be visible_other": "Следующие таблицы больше не будут видны",
-        "The following tables will no longer be visible_one": "Следующая таблица больше не будет видна"
+        "The following tables will no longer be visible_one": "Следующая таблица больше не будет видна",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Сохраните данные и удалите страницу. Таблица останется доступной в {{rawDataLink}}"
     },
     "RecordLayoutEditor": {
         "Save Layout": "Сохранить макет",
@@ -1309,7 +1314,12 @@
         "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ",
         "Manage users and resources in a Grist installation.": "Управляйте пользователями и ресурсами напрямую в Grist.",
         "Summary tables can only contain formula columns.": "Сводные таблицы могут содержать только столбцы формул.",
-        "The new Grist Assistant is here!": "Новый Ассистент Grist здесь!"
+        "The new Grist Assistant is here!": "Новый Ассистент Grist здесь!",
+        "Formulas support many Excel functions and full Python syntax.": "Формулы поддерживают множество функций Excel и полный синтаксис Python.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Внутреннее хранилище означает, что все вложения хранятся в файле документа SQLite, в то время как внешнее хранилище означает, что все вложения хранятся в одном и том же внешнем хранилище.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Это позволяет добавлять вложения, отсутствующие во внешнем хранилище, например, в импортированном документе. Здесь можно загрузить только архивы вложений .tar, загруженные из Grist.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Разбирайтесь в своих данных и формулах, изменяйте их и работайте с ними с помощью нового AI Ассистента Grist!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Эта форма создана пользователем Grist и не одобрена Grist Labs. Не отправляйте пароли через эту форму и будьте осторожны со ссылками в ней. Сообщите о вредоносных формах в [{{mail}}](mailto:{{mail}})."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"

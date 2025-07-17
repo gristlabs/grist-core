@@ -692,11 +692,12 @@ class AssistantConversation extends Disposable {
       case "ContextLimitExceeded": {
         return dom("div",
           t(
-            "The conversation has become too long and I can no longer " +
-            "respond effectively. Please {{startANewChatButton}} to continue " +
-            "receiving assistance.",
+            "The conversation has become too long and I can no longer \
+respond effectively. Please {{startANewChatButton}} to continue \
+receiving assistance.",
             {
               startANewChatButton: textButton(
+                textButton.cls('-hover-bg-padding-sm'),
                 t("start a new chat"),
                 dom.on("click", () => this._options.onClearConversation()),
               )
