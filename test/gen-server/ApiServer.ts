@@ -2551,13 +2551,11 @@ if trying to update service Account user', async function() {
     });
 
     it('Service user MUSN\'T log into the app', async function() {
-      assert.fail();
-      // TODO put it in the same test file that the on that test user login
-      // from front
-      // In my mind it should not as login is performed throu SAML or login Forward.
+      // In my mind it should not as login is performed through SAML or login Forward.
       // The service account user created identified by XXXXXX@serviceaccount.local should
       // never exist in Identity provider.
       // SCIM should exclude users of type service
+      // and never be able to recieve a connection mail
     });
   });
 
