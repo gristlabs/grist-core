@@ -139,6 +139,8 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   // DocPageModel available as a global variable.
   (window as any).gristDocPageModel = pageModel;
   appObj.pageModel = pageModel;
+  appObj.regionFocusSwitcher?.onAppPageModelUpdate();
+
   const leftPanelOpen = createSessionObs<boolean>(owner, "leftPanelOpen", true, isBoolean);
   const rightPanelOpen = createSessionObs<boolean>(owner, "rightPanelOpen", false, isBoolean);
   const leftPanelWidth = createSessionObs<number>(owner, "leftPanelWidth", 240, isNumber);
