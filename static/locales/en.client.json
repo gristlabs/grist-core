@@ -729,7 +729,8 @@
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
         "The following tables will no longer be visible_other": "The following tables will no longer be visible",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Keep data and delete page. Table will remain available in {{rawDataLink}}",
-        "raw data page": "raw data page"
+        "raw data page": "raw data page",
+        "Document pages": "Document pages"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",

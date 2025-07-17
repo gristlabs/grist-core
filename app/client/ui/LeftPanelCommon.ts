@@ -85,7 +85,8 @@ export const cssScrollPane = styled('div', `
   flex-direction: column;
 `);
 
-export const cssTools = styled('div', `
+
+export const cssTools = styled('nav', `
   flex: none;
   margin-top: auto;
   padding: 16px 0 16px 0;
