@@ -78,7 +78,6 @@ export function pagePanels(
   let onLeftTransitionFinish = noop;
 
   const regionFocusSwitcher = RegionFocusSwitcher.create(null, options.gristDoc);
-  regionFocusSwitcher.init();
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
   // last desktop state.
@@ -149,6 +148,9 @@ export function pagePanels(
       );
     }),
     cssContentMain(
+      (el) => {
+        regionFocusSwitcher.init(el);
+      },
       leftPaneDom = cssLeftPane(
         testId('left-panel'),
         regionFocusSwitcher.panelAttrs('left', t('Main navigation and document settings (left panel)')),
