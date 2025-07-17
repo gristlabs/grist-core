@@ -226,7 +226,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public isReadonly = this.docPageModel.isReadonly;
   public isReadonlyKo = toKo(ko, this.isReadonly);
   public comparison: DocStateComparison | null;
-  public regionFocusSwitcher?: RegionFocusSwitcher;
+  public get regionFocusSwitcher() { return this.app.regionFocusSwitcher; }
   // component for keeping track of latest cursor position
   public cursorMonitor: CursorMonitor;
   // component for keeping track of a cell that is being edited
