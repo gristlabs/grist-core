@@ -22,6 +22,7 @@ import {ICellContextMenu} from 'app/client/ui/CellContextMenu';
 import {IPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {IRowContextMenu} from 'app/client/ui/RowContextMenu';
 import {WidgetType} from 'app/client/widgets/UserType';
+import {Experiments} from 'app/client/ui/Experiments';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import type {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -902,8 +903,10 @@ class InMemoryApp extends DisposableWithEvents implements App {
   public comm = this.autoDispose(Comm.create());
   public clientScope = this.autoDispose(ClientScope.create());
   public features = ko.computed(() => ({} as ISupportedFeatures));
+  public experiments: Experiments;
   constructor(public topAppModel: TopAppModel) {
     super();
+    this.experiments = this.autoDispose(Experiments.create(this, this.topAppModel));
   }
 }
 

@@ -1575,6 +1575,10 @@ GridView.prototype.buildDom = function() {
   }
 };
 
+GridView.prototype.onNewRecordRequest = function() {
+  this.insertRow();
+};
+
 /** @inheritdoc */
 GridView.prototype.onResize = function() {
   const activeFieldBuilder = this.activeFieldBuilder();
