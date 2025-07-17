@@ -630,7 +630,7 @@
         "Tutorial": "Tutorial",
         "Terms of service": "Terms of service",
         "Grist Resources": "Grist Resources",
-        "{{ workspaceName }} - workspace options": "{{ workspaceName }} - workspace options"
+        "Workspace options - {{- workspaceName }}": "Workspace options - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",

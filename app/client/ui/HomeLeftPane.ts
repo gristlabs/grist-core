@@ -9,6 +9,7 @@ import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
 import {transientInput} from 'app/client/ui/transientInput';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {stretchedLink} from 'app/client/ui2018/stretchedLink';
 import {
   createHelpTools,
   cssHomeTools,
@@ -19,6 +20,7 @@ import {
   cssPageEntry,
   cssPageIcon,
   cssPageLink,
+  cssPageLinkContainer,
   cssScrollPane,
   cssSectionHeader,
   cssSectionHeaderText
@@ -93,9 +95,12 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
             dom.autoDispose(isTrivial),
             dom.hide(isTrivial),
             cssPageEntry.cls('-selected', (use) => use(home.currentWSId) === ws.id),
-            cssPageLink(cssPageIcon('Folder'), cssLinkText(workspaceName(home.app, ws)),
+            cssPageLinkContainer(cssPageIcon('Folder'),
+              stretchedLink(
+                cssLinkText(workspaceName(home.app, ws)),
+                urlState().setLinkUrl({ws: ws.id}),
+              ),
               dom.hide(isRenaming),
-              urlState().setLinkUrl({ws: ws.id}),
               // Don't show menu if workspace is personal and shared by another user; we could
               // be a bit more nuanced here, but as of today the menu isn't particularly useful
               // as all the menu options are disabled.
@@ -105,7 +110,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
 
                 // Clicks on the menu trigger shouldn't follow the link that it's contained in.
                 dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-                {'aria-label': t("{{ workspaceName }} - workspace options", {workspaceName: ws.name})},
+                {'aria-label': t("Workspace options - {{- workspaceName }}", {workspaceName: `"${ws.name}"`})},
                 testId('dm-workspace-options'),
               ),
               testId('dm-workspace'),
