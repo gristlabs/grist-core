@@ -256,8 +256,10 @@ export class Command implements CommandDef {
           // Command name might be different from this.name in case we are deactivating a command, and
           // the previous meaning of the key points to a different command.
           const commandName = commandGroup.knownKeys[key];
-          const bind = this.alwaysOn ? Mousetrap.bindAlwaysOn : Mousetrap.bind;
-          bind(key, wrapKeyCallback(commandGroup.commands[commandName], commandName));
+          if (this.alwaysOn) {
+            Mousetrap.markAlwaysOnShortcut(key);
+          }
+          Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName], commandName));
         } else {
           Mousetrap.unbind(key);
         }
