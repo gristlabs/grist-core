@@ -7,7 +7,7 @@ import {commonUrls} from 'app/common/gristUrls';
 import {getOrgName, isTemplatesOrg, Organization} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/buttons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import * as roles from 'app/common/roles';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';

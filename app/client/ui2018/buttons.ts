@@ -144,20 +144,6 @@ export const textButton = styled(cssButton, `
   }
 `);
 
-// Button without any style, used as a base for building specific buttons
-export const unstyledButton = styled('button', `
-  margin: 0;
-  padding: 0;
-  border: 0 solid;
-  font: inherit;
-  letter-spacing: inherit;
-  color: inherit;
-  border-radius: 0;
-  background-color: transparent;
-  opacity: 1;
-  appearance: button;
-`);
-
 const cssButtonLink = styled('a', `
   display: inline-block;
   &, &:hover, &:focus {
