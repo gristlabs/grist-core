@@ -2040,6 +2040,7 @@
         "Sort by name": "Sort by name",
         "Unpin": "Unpin",
         "Workspace": "Workspace",
+        "Document options - {{- documentName }}": "Document options - {{- documentName }}",
         "Documents list": "Documents list"
     },
     "RenameDocModal": {
