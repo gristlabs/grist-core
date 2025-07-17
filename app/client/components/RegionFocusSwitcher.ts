@@ -19,7 +19,7 @@ interface PanelRegion {
 }
 interface SectionRegion {
   type: 'section',
-  id: any // this matches a grist document view section id
+  id: number // this matches a grist document view section id
 }
 type Region = PanelRegion | SectionRegion;
 type StateUpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
@@ -37,7 +37,7 @@ export class RegionFocusSwitcher extends Disposable {
   // State with currently focused region
   private readonly _state: Observable<State>;
 
-  private _gristDocObs: Observable<GristDoc | null>;
+  private _gristDocObs?: Observable<GristDoc | null>;
   // Previously focused elements for each panel (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
     left: null,
@@ -185,7 +185,7 @@ export class RegionFocusSwitcher extends Disposable {
         }
         return '';
       }),
-      dom.cls(`${cssFocusedPanel.className}-focused`, use => {
+      cssFocusedPanel.cls('-focused', use => {
         const initiated = use(this._initiated);
         if (!initiated) {
           return false;
@@ -239,8 +239,6 @@ export class RegionFocusSwitcher extends Disposable {
     const current = this._state.get().region;
     const currentlyInSection = current?.type === 'section';
 
-    console.log('mhl onClick', {event, closestRegion, targetRegionId, current, currentlyInSection});
-
     if (targetsMain && !currentlyInSection) {
       this.focusRegion(
         {type: 'section', id: gristDoc.viewModel.activeSectionId()},
@@ -270,6 +268,13 @@ export class RegionFocusSwitcher extends Disposable {
     }
   }
 
+  /**
+   * This is registered as a `cancel` command when the RegionFocusSwitcher is created.
+   *
+   * That means this is called when pressing Escape in no particular setting.
+   * Any `cancel` command registered by other code after loading the page will take precedence over this one.
+   * So, this doesn't get called when in a modal, a popup menu, etc., as those have their own cancel callback.
+   */
   private _onEscapeKeypress() {
     const {region: current, initiator} = this._state.get();
     // Do nothing if we are not focused on a panel
@@ -278,19 +283,28 @@ export class RegionFocusSwitcher extends Disposable {
     }
     const comesFromKeyboard = initiator?.type === 'cycle';
     const panelElement = getPanelElement(current.id);
+    if (!panelElement) {
+      return;
+    }
+
+    // …Reset region focus switch if already on the panel itself
+    if (document.activeElement === panelElement) {
+      this.reset();
+      return;
+    }
+
     const activeElement = document.activeElement;
-    const activeElementIsInPanel = panelElement?.contains(activeElement) && activeElement !== panelElement;
+    const activeElementIsInPanel = containsActiveElement(panelElement);
 
     if (
       // Focus back the panel element itself if currently focused element is a child
       activeElementIsInPanel
       // Specific case: when we escape inputs from panels, this isn't called, and focus switches back to body.
       // If user presses escape again, we also want to focus the panel.
-      || (activeElement === document.body && panelElement)
+      || (activeElement === document.body)
     ) {
       if (comesFromKeyboard) {
-        panelElement?.setAttribute('tabindex', '-1');
-        panelElement?.focus();
+        focusPanelElement(panelElement);
         if (activeElementIsInPanel) {
           this._prevFocusedElements[current.id] = null;
         }
@@ -298,11 +312,6 @@ export class RegionFocusSwitcher extends Disposable {
         this.reset();
       }
       return;
-    }
-
-    // …Reset region focus switch if already on the panel itself
-    if (document.activeElement === panelElement) {
-      this.reset();
     }
   }
 
@@ -315,8 +324,7 @@ export class RegionFocusSwitcher extends Disposable {
       return;
     }
     const prevPanelElement = getPanelElement(prev.id);
-    const isChildOfPanel = prevPanelElement?.contains(document.activeElement)
-      && document.activeElement !== prevPanelElement;
+    const isChildOfPanel = containsActiveElement(prevPanelElement);
     if (!isChildOfPanel) {
       return;
     }
@@ -343,32 +351,30 @@ export class RegionFocusSwitcher extends Disposable {
     }
 
     const isPanel = current?.region?.type === 'panel';
-    const panelElement = isPanel && current.region?.id && getPanelElement(current.region.id);
+    const panelElement = isPanel && current.region?.id && getPanelElement((current.region as PanelRegion).id);
 
-    // actually focus panel element if using keyboard
+    // if kb-focusing a panel: actually focus panel element
     if (!mouseEvent && isPanel && panelElement && current.region) {
       focusPanel(
         current.region as PanelRegion,
         this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
         gristDoc
       );
-    }
 
-    // just make sure view layout commands are disabled if we click on a panel
-    if (mouseEvent && isPanel && panelElement && gristDoc) {
+    // if clicking on a panel: just make sure view layout commands are disabled
+    } else if (mouseEvent && isPanel && panelElement && gristDoc) {
       escapeViewLayout(gristDoc, !!(mouseEvent.target as Element)?.closest(`[${ATTRS.regionId}="right"]`));
-    }
 
-    if (current?.region?.type === 'section' && gristDoc) {
+    // if clicking or kb-focusing a section: focus the section
+    } else if (current?.region?.type === 'section' && gristDoc) {
       focusSection(current.region, gristDoc);
-    }
-
-    if (current === undefined && gristDoc) {
-      focusViewLayout(gristDoc);
     }
 
     // if we reset the focus switch, clean all necessary state
     if (current === undefined) {
+      if (gristDoc) {
+        focusViewLayout(gristDoc);
+      }
       this._prevFocusedElements = {
         left: null,
         top: null,
@@ -438,15 +444,6 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   if (!panelElement) {
     return;
   }
-  // No child to focus found: just focus the panel
-  if (!child || child === panelElement || !child.isConnected) {
-    // tabindex is dynamically set instead of always there for a reason:
-    // if we happen to just click on a non-focusable element inside the panel,
-    // browser default behavior is to make document.activeElement the closest focusable parent (the panel).
-    // We don't want this behavior, so we add/remove the tabindex attribute as needed.
-    panelElement.setAttribute('tabindex', '-1');
-    panelElement.focus();
-  }
 
   // Child element found: focus it
   if (child && child !== panelElement && child.isConnected) {
@@ -457,12 +454,25 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
       child.removeAttribute(ATTRS.focusedElement);
     }, {once: true});
     child.focus?.();
+  } else {
+    // No child to focus found: just focus the panel
+    focusPanelElement(panelElement);
   }
 
   if (gristDoc) {
     // Creator panel is a special case "related to the view"
     escapeViewLayout(gristDoc, panel.id === 'right');
   }
+};
+
+const focusPanelElement = (panelElement: HTMLElement) => {
+  // tabindex is set here and removed later with removeTabIndexes(), instead of
+  // directly set on the element on creation, for a reason:
+  // if we happen to just click on a non-focusable element inside a panel,
+  // browser default behavior is to make document.activeElement the closest focusable parent (the panel).
+  // We don't want this behavior, so we add/remove the tabindex attribute as needed.
+  panelElement.setAttribute('tabindex', '-1');
+  panelElement.focus();
 };
 
 const focusViewLayout = (gristDoc: GristDoc) => {
@@ -551,7 +561,7 @@ const getSibling = (
  */
 const blurPanelChild = (panel: PanelRegion) => {
   const panelElement = getPanelElement(panel.id);
-  if (panelElement?.contains(document.activeElement) && document.activeElement !== panelElement) {
+  if (containsActiveElement(panelElement)) {
     (document.activeElement as HTMLElement).blur();
   }
 };
@@ -575,6 +585,13 @@ const isFocusableElement = (el: EventTarget | null): boolean => {
     return true;
   }
   return false;
+};
+
+/**
+ * Check if the document.activeElement is a child of the given element.
+ */
+const containsActiveElement = (el: HTMLElement | null): boolean => {
+  return el?.contains(document.activeElement) && document.activeElement !== el || false;
 };
 
 /**
