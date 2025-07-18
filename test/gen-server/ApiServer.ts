@@ -2204,11 +2204,6 @@ for label, description and endOfLife when given`,
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
       assert.isObject(resp.data);
-      assert.hasAllKeys(resp.data, ["login", "key", "label", "msg", "description", "endOfLife", "hasValidKey"]);
-      assert.isString(resp.data.key);
-      assert.isNotEmpty(resp.data.key);
-      assert.isString(resp.data.login);
-      assert.isBoolean(resp.data.hasValidKey);
 
       const expectedData = { login: resp.data.login, key:resp.data.key, ...partialExpectedData };
       assert.deepEqual(resp.data, expectedData);

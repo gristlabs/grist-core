@@ -62,7 +62,7 @@ import {
   WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
-import { ServiceAccountsManager } from 'app/gen-server/lib/homedb/ServiceAccountsManager';
+import {ServiceAccountsManager} from 'app/gen-server/lib/homedb/ServiceAccountsManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
@@ -96,8 +96,8 @@ import {
   ObjectLiteral,
   SelectQueryBuilder,
   WhereExpressionBuilder
-} from "typeorm";
-import {v4 as uuidv4} from "uuid";
+} from 'typeorm';
+import {v4 as uuidv4} from 'uuid';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
