@@ -70,7 +70,7 @@ export class ServiceAccounts1751350685797 implements MigrationInterface {
       'service_accounts',
       new TableIndex({
         name: 'service_account__owner',
-        columnNames: ['service_accounts_owner', 'user_id'],
+        columnNames: ['owner_id', 'user_id'],
       })
     );
   }
