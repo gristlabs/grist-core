@@ -217,7 +217,7 @@ const isFocusable = (el: HTMLElement) => {
   // button. Our library should behave the same way.
   if (el.shadowRoot?.delegatesFocus) { return false; }
 
-  return el.matches(focusableSelectors.join(',')) && !isHidden(el);
+  return el.matches(focusableSelectorsString) && !isHidden(el);
 };
 
 const notInert = ':not([inert]):not([inert] *)';
@@ -242,3 +242,5 @@ const focusableSelectors = [
   `[contenteditable]${notInert}${notNegTabIndex}`,
   `[tabindex]${notInert}${notNegTabIndex}`,
 ];
+
+const focusableSelectorsString = focusableSelectors.join(',');

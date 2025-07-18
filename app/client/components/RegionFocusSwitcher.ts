@@ -1,4 +1,4 @@
-import {Disposable, dom, Observable, styled, UseCBOwner} from 'grainjs';
+import {Disposable, dom, Holder, Observable, styled, UseCBOwner} from 'grainjs';
 import {mod} from 'app/common/gutil';
 import {SpecialDocPage} from 'app/common/gristUrls';
 import isEqual from 'lodash/isEqual';
@@ -87,6 +87,12 @@ export class RegionFocusSwitcher extends Disposable {
     });
   }
 
+  /**
+   * This is expected to be called by an external component responsible for rendering the page.
+   *
+   * When calling this, we register the required dom event listeners on the page container when it's loaded.
+   * @param el - the element containing the page contents.
+   */
   public onPageDomLoaded(el: HTMLElement) {
     if (this._gristDocObs) {
       const onClick = this._onClick.bind(this);
@@ -197,32 +203,25 @@ export class RegionFocusSwitcher extends Disposable {
     const current = this._state.get().region;
     const currentlyInSection = current?.type === 'section';
 
-    if (targetsMain && !currentlyInSection) {
-      this.focusRegion(
-        {type: 'section', id: gristDoc.viewModel.activeSectionId()},
-        {initiator: {type: 'mouse', event}}
-      );
-      return;
-    }
-
-    const focusPanel = () => {
-      this.focusRegion(
-        {type: 'panel', id: targetRegionId as Panel},
-        {initiator: {type: 'mouse', event}}
-      );
-    };
-
-    // When not targeting the main panel, we don't always want to focus the given region _on click_.
-    // We only do it if clicking an empty area in the panel, or a focusable element like an input.
-    // Otherwise, we assume clicks are on elements like buttons or links,
-    // and we don't want to lose focus of current section in this case.
-    // For example I don't want to focus out current table if just click the "undo" button in the header.
-    if (!targetsMain && isFocusableElement(event.target)) {
-      focusPanel();
-    }
-
-    if (!targetsMain && getPanelElement(targetRegionId as Panel) === event.target) {
-      focusPanel();
+    if (targetsMain) {
+      if (!currentlyInSection) {
+        this.focusRegion(
+          {type: 'section', id: gristDoc.viewModel.activeSectionId()},
+          {initiator: {type: 'mouse', event}}
+        );
+      }
+    } else {
+      // When not targeting the main panel, we don't always want to focus the given region _on click_.
+      // We only do it if clicking an empty area in the panel, or a focusable element like an input.
+      // Otherwise, we assume clicks are on elements like buttons or links,
+      // and we don't want to lose focus of current section in this case.
+      // For example I don't want to focus out current table if just click the "undo" button in the header.
+      if (isFocusableElement(event.target) || closestRegion === event.target) {
+        this.focusRegion(
+          {type: 'panel', id: targetRegionId as Panel},
+          {initiator: {type: 'mouse', event}}
+        );
+      }
     }
   }
 
@@ -299,7 +298,7 @@ export class RegionFocusSwitcher extends Disposable {
       ? current.initiator.event
       : undefined;
 
-    disableFocusLock();
+    clearCurrentFocusLock();
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
@@ -587,28 +586,23 @@ const blurPanelChild = (panel: PanelRegion) => {
   }
 };
 
-let _focusLocked: {el: HTMLElement | null, cb: ((event: KeyboardEvent) => void) | null} = {el: null, cb: null};
 
-const disableFocusLock = () => {
-  const {el, cb} = _focusLocked;
-  if (el && cb) {
-    el.removeEventListener('keydown', cb);
-    _focusLocked = {el: null, cb: null};
-  }
-};
+const _focusLockHolder = Holder.create(null);
 
+const clearCurrentFocusLock = () => _focusLockHolder.clear();
+
+/**
+ * Trap the tab key inside the given panel element.
+ *
+ * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the panel.
+ */
 const enableFocusLock = (panelElement: HTMLElement) => {
-  disableFocusLock();
-  const focusTrap = (event: KeyboardEvent) => {
+  clearCurrentFocusLock();
+  _focusLockHolder.autoDispose(dom.onElem(panelElement, 'keydown', (event, elem) => {
     if (event.key === 'Tab') {
-      trapTabKey(panelElement, event);
+      trapTabKey(elem, event);
     }
-  };
-  panelElement.addEventListener('keydown', focusTrap);
-  _focusLocked = {
-    el: panelElement,
-    cb: focusTrap
-  };
+  }));
 };
 
 const getPanelElement = (id: Panel): HTMLElement | null => {
