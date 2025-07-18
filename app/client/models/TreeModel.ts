@@ -63,7 +63,7 @@ export interface TreeTableData {
 }
 
 // describes a function that builds dom for a particular record
-type DomBuilder = (id: number, hidden: boolean) => HTMLElement;
+type DomBuilder = (id: number, hidden: boolean, hasChildren: boolean) => HTMLElement;
 
 
 // Returns a list of the records from table that is suitable to build the tree model, ie: records
@@ -113,7 +113,7 @@ export function fromTableData(table: TreeTableData, buildDom: DomBuilder, oldMod
     item.hidden = rec.hidden;
     item.collapsed = rec.collapsed;
     item.init(storage, index, reverse(children));
-    item.buildDom = () => buildDom(rec.id, rec.hidden);
+    item.buildDom = () => buildDom(rec.id, rec.hidden, children.length > 0);
     siblings.push(item);
   });
   return new TreeModelRecord(storage, reverse(indentations[0] || []));

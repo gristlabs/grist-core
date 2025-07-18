@@ -13,7 +13,7 @@ import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/ch
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssLink} from 'app/client/ui2018/links';
 import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
-import {buildCensoredPage, buildPageDom, PageActions} from 'app/client/ui2018/pages';
+import {buildCensoredPage, buildPageDom, PageOptions} from 'app/client/ui2018/pages';
 import {mod} from 'app/common/gutil';
 import {Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
 
@@ -61,7 +61,13 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
 
 const testId = makeTestId('test-removepage-');
 
-function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: GristDoc, pageId: number, hidden: boolean) {
+function buildDomFromTable(
+  pagesTable: MetaTableModel<PageRec>,
+  activeDoc: GristDoc,
+  pageId: number,
+  hidden: boolean,
+  hasSubPages: boolean
+) {
 
   if (hidden) {
     return buildCensoredPage();
@@ -73,21 +79,21 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
   const pageName = viewRec.name;
   const viewId = viewRec.id.peek();
 
-  const actions: PageActions = {
+  const options: PageOptions = {
     onRename: (newName: string) => newName.length && pageName.saveOnly(newName),
     onRemove: () => removeView(activeDoc, viewId, pageName.peek()),
     onDuplicate: () => buildDuplicatePageDialog(activeDoc, pageId),
     // Can't remove last visible page
     isRemoveDisabled: () => activeDoc.docModel.visibleDocPages.peek().length <= 1,
     isReadonly,
-    saveCollapsedLabel: () =>
-      pageRec.isCollapsed.get()
-        ? t("Collapse by default")
-        : t("Expand by default"),
-    onSaveCollapsed: () => pageRec.saveCollapsed(),
+    isCollapsed: pageRec.isCollapsed,
+    onCollapse: (value) => pageRec.isCollapsed.set(value),
+    isCollapsedByDefault: pageRec.isCollapsedByDefault,
+    onCollapseByDefault: (value) => pageRec.setAndSaveCollapsed(value),
+    hasSubPages,
   };
 
-  return buildPageDom(fromKo(pageName), actions, urlState().setLinkUrl({docPage: viewId}));
+  return buildPageDom(fromKo(pageName), options, urlState().setLinkUrl({docPage: viewId}));
 }
 
 function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
