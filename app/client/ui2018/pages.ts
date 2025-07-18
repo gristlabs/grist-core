@@ -22,7 +22,7 @@ export interface PageOptions {
   onCollapse: (value: boolean) => void;
   isCollapsedByDefault: Computed<boolean>;
   onCollapseByDefault: (value: boolean) => Promise<void>;
-  hasSubPages: boolean;
+  hasSubPages: () => boolean;
 }
 
 function isTargetSelected(target: HTMLElement) {
@@ -104,7 +104,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
       ],
       {},
       t("Expand/Collapse..."),
-      dom.show(hasSubPages),
+      dom.show(hasSubPages()),
       testId("expand-collapse")
     ),
     dom.maybe(options.isReadonly, () =>

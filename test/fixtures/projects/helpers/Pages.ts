@@ -77,7 +77,7 @@ function buildDom(id: number) {
   const onCollapse = () => {};
   const isCollapsedByDefault = Computed.create(null, () => false);
   const onCollapseByDefault = async () => {};
-  const hasSubPages = false;
+  const hasSubPages = () => false;
   return buildPageDom(
     page.name,
     {

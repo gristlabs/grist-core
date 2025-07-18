@@ -61,13 +61,7 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
 
 const testId = makeTestId('test-removepage-');
 
-function buildDomFromTable(
-  pagesTable: MetaTableModel<PageRec>,
-  activeDoc: GristDoc,
-  pageId: number,
-  hidden: boolean,
-  hasSubPages: boolean
-) {
+function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: GristDoc, pageId: number, hidden: boolean) {
 
   if (hidden) {
     return buildCensoredPage();
@@ -78,19 +72,20 @@ function buildDomFromTable(
   const viewRec = pageRec.view.peek();
   const pageName = viewRec.name;
   const viewId = viewRec.id.peek();
+  const {docModel} = activeDoc;
 
   const options: PageOptions = {
     onRename: (newName: string) => newName.length && pageName.saveOnly(newName),
     onRemove: () => removeView(activeDoc, viewId, pageName.peek()),
     onDuplicate: () => buildDuplicatePageDialog(activeDoc, pageId),
     // Can't remove last visible page
-    isRemoveDisabled: () => activeDoc.docModel.visibleDocPages.peek().length <= 1,
+    isRemoveDisabled: () => docModel.visibleDocPages.peek().length <= 1,
     isReadonly,
     isCollapsed: pageRec.isCollapsed,
     onCollapse: (value) => pageRec.isCollapsed.set(value),
     isCollapsedByDefault: pageRec.isCollapsedByDefault,
     onCollapseByDefault: (value) => pageRec.setAndSaveCollapsed(value),
-    hasSubPages,
+    hasSubPages: () => !docModel.leafPageIds.peek().has(pageRec.getRowId()),
   };
 
   return buildPageDom(fromKo(pageName), options, urlState().setLinkUrl({docPage: viewId}));
