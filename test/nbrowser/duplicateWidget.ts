@@ -25,10 +25,9 @@ describe("duplicateWidget", function() {
       await gu.renameSection(allSections[0], 'Widget 1');
 
       await gu.getCell('A', 1).click();
-      await driver.sendKeys(Key.ENTER + testCellContent + Key.ENTER);
       await gu.waitAppFocus();
-      await driver.sendKeys(Key.ENTER + testCellContent2 + Key.ENTER);
-
+      await gu.enterCell(testCellContent);
+      await gu.enterCell(testCellContent2);
 
       // Set as many properties on the widget as possible that we can check when duplicating.
       // Filters happen before widget change, as the gristUtils helpers are better for tables.
