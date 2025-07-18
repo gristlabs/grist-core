@@ -12,12 +12,12 @@ hljs.registerLanguage('python', require('highlight.js/lib/languages/python'));
 const t = makeT('CodeEditorPanel');
 
 export class CodeEditorPanel extends DisposableWithEvents {
-  private _schema = Observable.create(this, '');
+  private _code = Observable.create(this, '');
   private _denied = Observable.create(this, false);
   constructor(private _gristDoc: GristDoc) {
     super();
-    this.listenTo(_gristDoc, 'schemaUpdateAction', this._onSchemaAction.bind(this));
-    this._onSchemaAction().catch(reportError); // Fetch the schema to initialize
+    this.listenTo(_gristDoc, 'schemaUpdateAction', this._onSchemaUpdateAction.bind(this));
+    this._onSchemaUpdateAction().catch(reportError); // Fetch the code to initialize
   }
 
   public buildDom() {
@@ -31,11 +31,11 @@ export class CodeEditorPanel extends DisposableWithEvents {
         dom('h2', dom.text(t("Access denied"))),
         dom('div', dom.text(t("Code View is available only when you have full document access."))),
       )),
-      dom.maybe(this._schema, (schema) => {
-        // The reason to scope and rebuild instead of using `kd.text(schema)` is because
+      dom.maybe(this._code, (code) => {
+        // The reason to scope and rebuild instead of using `kd.text(code)` is because
         // hljs.highlightBlock(elem) replaces `elem` with a whole new dom tree.
         const elem = dom('code.g-code-viewer',
-          dom.text(schema),
+          dom.text(code),
           dom.hide(true)
         );
         setTimeout(() => {
@@ -47,11 +47,11 @@ export class CodeEditorPanel extends DisposableWithEvents {
     );
   }
 
-  private async _onSchemaAction() {
+  private async _onSchemaUpdateAction() {
     try {
-      const schema = await this._gristDoc.docComm.fetchTableSchema();
+      const code = await this._gristDoc.docComm.fetchPythonCode();
       if (!this.isDisposed()) {
-        this._schema.set(schema);
+        this._code.set(code);
         this._denied.set(false);
       }
     } catch (err) {
@@ -59,7 +59,7 @@ export class CodeEditorPanel extends DisposableWithEvents {
         throw err;
       }
       if (!this.isDisposed()) {
-        this._schema.set('');
+        this._code.set('');
         this._denied.set(true);
       }
     }
