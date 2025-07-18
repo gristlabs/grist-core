@@ -131,6 +131,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       // the UI will either break, throw errors, or both, due to it temporarily being in an invalid
       // state (referencing non-existent fields).
       await removeViewFields(gristDoc, autoCreatedViewFieldIds);
+
     },
     // If called from duplicatePage (or similar), we don't want to start a new bundle.
     {nestInActiveBundle: true}
@@ -261,17 +262,23 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
   const [first, ...rest] = viewSections.map(toPageWidget);
 
   // Passing a viewId of 0 will create a new view.
-  const firstResult = await gristDoc.docData.sendAction(newViewSectionAction(first, viewId));
+  const createdViewSectionResults = [
+    await gristDoc.docData.sendAction(newViewSectionAction(first, viewId))
+  ];
+  const targetViewRef = createdViewSectionResults[0].viewRef;
 
-  const otherResult = await gristDoc.docData.sendActions(
-    // other view section are added to the newly created view
-    rest.map((widget) => newViewSectionAction(widget, firstResult.viewRef))
-  );
+  // Other view sections are added to the newly created view.
+  const otherViewSectionActions = rest.map((widget) => newViewSectionAction(widget, targetViewRef));
+
+  // Avoid sending an empty list of actions - it causes a bug in the bundling code that results
+  // in the bundle being split into two bundles (2025-07-18).
+  if (otherViewSectionActions.length > 0) {
+    createdViewSectionResults.push(...(await gristDoc.docData.sendActions(otherViewSectionActions)));
+  }
 
   // Technically a race condition can here, where the viewSections model isn't up to date with the
   // backend. In practice, this typically won't occur, and a more correct solution would require major work.
   // Either moving duplicate to the backend, or not using viewSection models at all (only ids).
-  const createdViewSectionResults = [firstResult, ...otherResult];
   const newViewSections = createdViewSectionResults.map(
     result => gristDoc.docModel.viewSections.rowModels[result.sectionRef]
   );
@@ -284,7 +291,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
     viewSectionIdMap: fromPairs(duplicatedViewSections.map((
       { srcViewSection, destViewSection }) => [srcViewSection.getRowId(), destViewSection.getRowId()]
     )),
-    viewRef: firstResult.viewRef,
+    viewRef: targetViewRef,
   };
 }
 
