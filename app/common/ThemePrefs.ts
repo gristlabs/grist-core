@@ -81,7 +81,7 @@ export const tokensCssMapping = {
   primaryMuted: 'primary-muted',
   primaryDim: 'primary-dim',
   primaryEmphasis: 'primary-emphasis',
-  primaryTransparent: 'primary-transparent',
+  primaryTranslucent: 'primary-translucent',
 
   white: 'white',
   black: 'black',
@@ -806,7 +806,7 @@ export interface SpecificThemeTokens {
   /**
    * primary color with around 50% opacity
    */
-  primaryTransparent: Token;
+  primaryTranslucent: Token;
 
   controlBorderRadius: Token;
 

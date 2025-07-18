@@ -98,7 +98,7 @@ export function pagePanels(page: PageContents) {
     if (narrow) {
       left.panelOpen.set(false);
     }
-    regionFocusSwitcher?.reset();
+    regionFocusSwitcher.reset();
   });
 
   const pauseSavingLeft = (yesNo: boolean) => {
