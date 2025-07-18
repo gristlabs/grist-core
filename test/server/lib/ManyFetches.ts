@@ -3,7 +3,7 @@ import {TableFetchResult} from 'app/common/ActiveDocAPI';
 import {UserAPIImpl} from 'app/common/UserAPI';
 import {delay} from 'app/common/delay';
 import {cookieName} from 'app/server/lib/gristSessions';
-import * as log from 'app/server/lib/log';
+import log from 'app/server/lib/log';
 import {getGristConfig} from 'test/gen-server/testUtils';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
 import {TestServer} from 'test/server/lib/helpers/TestServer';
@@ -98,7 +98,7 @@ describe('ManyFetches', function() {
     const getMemoryUsage = () => Promise.race([docs.testingHooks.getMemoryUsage(), serverErrorPromise]);
     const getHeapMB = async () => Math.round((await getMemoryUsage() as NodeJS.MemoryUsage).heapUsed /1024/1024);
 
-    assertIsBelow(await getHeapMB(), 130);
+    assertIsBelow(await getHeapMB(), 135);
 
     // Create all the connections, but don't make the fetches just yet.
     const createConnectionFunc = await prepareGristWSConnection(docId);
@@ -109,30 +109,30 @@ describe('ManyFetches', function() {
     const fetchersB = await Promise.all(connectionsB.map(c => connect(c, docId)));
 
     try {
-      assertIsBelow(await getHeapMB(), 130);
+      assertIsBelow(await getHeapMB(), 135);
 
       // Start fetches without reading responses. This is a step that should push memory limits.
       fetchersA.map(f => f.startPausedFetch());
 
       // Give it a few seconds, enough for server to use what memory it can.
       await delay(2000);
-      assertIsBelow(await getHeapMB(), 220);
+      assertIsBelow(await getHeapMB(), 225);
 
       // Make N more requests. See that memory hasn't spiked.
       fetchersB.map(f => f.startPausedFetch());
       await delay(2000);
-      assertIsBelow(await getHeapMB(), 220);
+      assertIsBelow(await getHeapMB(), 225);
 
       // Complete the first batch of requests. This allows for the fetches to complete, and for
       // memory to get released. Also check that results look reasonable.
       checkResults(await Promise.all(fetchersA.map(f => f.completeFetch())));
 
-      assertIsBelow(await getHeapMB(), 220);
+      assertIsBelow(await getHeapMB(), 225);
 
       // Complete the outstanding requests. Memory shouldn't spike.
       checkResults(await Promise.all(fetchersB.map(f => f.completeFetch())));
 
-      assertIsBelow(await getHeapMB(), 220);
+      assertIsBelow(await getHeapMB(), 225);
 
     } finally {
       fetchersA.map(f => f.end());

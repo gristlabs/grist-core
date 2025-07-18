@@ -256,6 +256,22 @@ class StorageAdapter extends Disposable implements Storage {
   }
 }
 
+/**
+ * Shows a notification to the user that they can undo discard of cell edit (or any other edit action).
+ */
+export function showUndoDiscardNotification(doc: GristDoc, onClick: () => void) {
+  const notifier = doc.app.topAppModel.notifier;
+  const notification = notifier.createUserMessage(t("Undo discard"), {
+    key: 'undo-discard',
+    message: () =>
+      discardNotification(
+        dom.on("click", onClick)
+      )
+    }
+  );
+  return notification;
+}
+
 class NotificationAdapter extends Disposable implements Notification {
   public readonly pressed: Signal;
   public readonly disappeared: Signal;
@@ -272,15 +288,9 @@ class NotificationAdapter extends Disposable implements Notification {
     this._holder.clear();
   }
   public showUndoDiscard() {
-    const notifier = this._doc.app.topAppModel.notifier;
-    const notification = notifier.createUserMessage(t("Undo discard"), {
-      message: () =>
-        discardNotification(
-          dom.on("click", () => {
-            this._hadAction = true;
-            this.pressed.emit();
-          })
-        )
+    const notification = showUndoDiscardNotification(this._doc, () => {
+      this._hadAction = true;
+      this.pressed.emit();
     });
     notification.onDispose(() => {
       if (!this._hadAction) {

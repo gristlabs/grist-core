@@ -1,3 +1,4 @@
+import {version as installedVersion} from "app/common/version";
 import {getAppRoot} from 'app/server/lib/places';
 import {fromCallback, listenPromise} from 'app/server/lib/serverUtils';
 import express from 'express';
@@ -91,4 +92,76 @@ export class Defer {
   public reject(err: any) {
     this._reject(err);
   }
+}
+
+export async function startFakeUpdateServer() {
+  let mutex: Defer|null = null;
+  const API: FakeUpdateServer = {
+    latestVersion: bumpVersion(installedVersion),
+    isCritical: false,
+    failNext: false,
+    payload: null,
+    close: async () => {
+      mutex?.resolve();
+      mutex = null;
+      await server?.shutdown();
+      server = null;
+    },
+    pause: () => {
+      mutex = new Defer();
+    },
+    resume: () => {
+      mutex?.resolve();
+      mutex = null;
+    },
+    url: () => {
+      return server!.url;
+    },
+    bumpVersion: () => {
+      API.latestVersion = bumpVersion(API.latestVersion);
+    },
+  };
+
+  let server: Serving|null = await serveSomething((app) => {
+    app.use(express.json());
+    app.post('/version', async (req, res, next) => {
+      API.payload = req.body;
+      try {
+        await mutex;
+        if (API.failNext) {
+          res.status(500).json({error: 'some error'});
+          API.failNext = false;
+          return;
+        }
+        res.json({
+          latestVersion: API.latestVersion,
+          isCritical: API.isCritical,
+        });
+      } catch(ex) {
+        next(ex);
+      }
+    });
+  });
+
+  return API;
+}
+
+function bumpVersion(version: string) {
+  const parts = version.split('.').map((part) => {
+    return Number(part.replace(/\D/g, ''));
+  });
+  parts[parts.length - 1] += 1;
+  return parts.join('.');
+}
+
+export interface FakeUpdateServer {
+  latestVersion: string;
+  isCritical: boolean;
+  failNext: boolean;
+  payload: any;
+  close: () => Promise<void>;
+  pause: () => void;
+  resume: () => void;
+  url: () => string;
+  bumpVersion: () => void;
 }

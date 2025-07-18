@@ -383,7 +383,11 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Novo nahrané prílohy budú umiestnené do Interného úložiska.",
         "Preferred storage for this document": "Preferované úložisko pre tento dokument",
         "No external stores available": "Nie je k dispozícii žiadne externé úložisko",
-        "Start transfer": "Začať prenos"
+        "Start transfer": "Začať prenos",
+        "Upload": "Nahrať",
+        "Upload missing attachments": "Nahrať chýbajúce prílohy",
+        "Uploading...": "Nahrávanie...",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Niektoré existujúce prílohy sú stále [external]({{externalLink}})**."
     },
     "DocumentUsage": {
         "Attachments Size": "Veľkosť Príloh",
@@ -611,7 +615,15 @@
         "To save your changes, please sign up, then reload this page.": "Ak chcete uložiť zmeny, zaregistrujte sa a potom znova načítajte túto stránku.",
         "Update": "Aktualizovať",
         "Update Original": "Aktualizovať Originál",
-        "Workspace": "Pracovný priestor"
+        "Workspace": "Pracovný priestor",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "Stiahnuť si archív všetkých príloh prítomných v tomto dokumente.",
+        ".tar (recommended)": ".tar (odporúča sa)",
+        "Download attachments": "Stiahnuť prílohy",
+        "Download full document and history": "Stiahnuť si celý dokument a históriu",
+        "Format:": "Formát:",
+        "Learn more": "Zistiť viac",
+        "download attachments": "stiahnuť prílohy"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Pridaná nová prepojená sekcia na zobrazenie {{viewName}}",
@@ -783,7 +795,10 @@
         "Original": "Originál",
         "Return to {{termToUse}}": "Späť na {{termToUse}}",
         "Save Copy": "Uložiť kópiu",
-        "Save Document": "Uložiť Dokument"
+        "Save Document": "Uložiť Dokument",
+        "Exporting is only available from document pages. Please select a document page and try again.": "Export je dostupný iba zo stránok dokumentov. Vyberte stránku dokumentu a skúste to znova.",
+        "Download attachments...": "Stiahnite si prílohy...",
+        "Download document...": "Stiahnuť dokument..."
     },
     "Tools": {
         "Delete document tour?": "Chcete odstrániť Prehliadku?",
@@ -841,7 +856,9 @@
         "Edit Card Layout": "Upraviť Rozloženie Karty",
         "Form": "Formulár",
         "Section: ": "Sekcia: ",
-        "Unmark On-Demand": "Odobrať označenie On-Demand"
+        "Unmark On-Demand": "Odobrať označenie On-Demand",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Tabuľky na požiadanie boli zastarané z dôvodu nedostatku funkčnosti a problémov s použiteľnosťou.",
+        "⚠️ Deprecated Feature": "⚠️ Zastaraná funkcia"
     },
     "ViewLayoutMenu": {
         "Widget options": "Možnosti miniaplikácie",
@@ -963,7 +980,8 @@
         "Are you sure you want to delete this record?": "Naozaj chcete odstrániť tento záznam?",
         "Don't ask again.": "Už sa nepýtať.",
         "Don't show again.": "Už nezobrazovať.",
-        "Don't show tips": "Nezobrazovať tipy"
+        "Don't show tips": "Nezobrazovať tipy",
+        "Confirm": "Potvrdiť"
     },
     "NTextBox": {
         "Lines": "Linie",
@@ -1012,7 +1030,9 @@
         "Show resolved comments": "Zobraziť vyriešené komentáre",
         "Showing last {{nb}} comments": "Zobrazujú sa posledné {{nb}} komentáre",
         "Started discussion": "Začať diskusiu",
-        "Write a comment": "Napísať komentár"
+        "Write a comment": "Napísať komentár",
+        "Remove thread": "Odstrániť vlákno",
+        "updated": "aktualizované"
     },
     "FieldBuilder": {
         "Changing column type": "Zmena typu stĺpca",
@@ -1138,7 +1158,11 @@
         "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Toto obmedzenie nastáva, keď je jedna strana obojsmernej referencie nakonfigurovaná ako jedna referencia.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Toto obmedzenie nastáva, keď jeden stĺpec v obojsmernej referencii má typ referencie.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Ak chcete povoliť viacero priradení, zmeňte typ odkazovaného stĺpca na Referenčný zoznam.",
-        "The preview below this header shows how the selected user will see this document": "Náhľad pod touto hlavičkou ukazuje, ako bude vybraný používateľ vidieť tento dokument"
+        "The preview below this header shows how the selected user will see this document": "Náhľad pod touto hlavičkou ukazuje, ako bude vybraný používateľ vidieť tento dokument",
+        "Manage users and resources in a Grist installation.": "Spravujte používateľov a zdroje v inštalácii Gristu.",
+        "[Learn more.]({{link}})": "[Zistiť viac.]({{link}})",
+        "Summary tables can only contain formula columns.": "Súhrnné tabuľky môžu obsahovať len stĺpce vzorcov.",
+        "The new Grist Assistant is here!": "Nový Grist Asistent je tu!"
     },
     "ColumnTitle": {
         "Add description": "Pridať popis",
@@ -1180,7 +1204,8 @@
         "Webhook Id": "Webhook ID",
         "Table": "Tabuľka",
         "Filter for changes in these columns (semicolon-separated ids)": "Filtrovať zmeny v týchto stĺpcoch (identifikátory oddelené bodkočiarkou)",
-        "Header Authorization": "Autorizácia Hlavičky"
+        "Header Authorization": "Autorizácia Hlavičky",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooky sú nedostupné v Neuložených Kópiách Dokumentov"
     },
     "FormulaAssistant": {
         "Capabilities": "Schopnosti",
@@ -1383,7 +1408,8 @@
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} viac",
         "New, Enterprise": "Nové, Enterprise",
         "Off": "Vypnúť",
-        "On": "Zapnúť"
+        "On": "Zapnúť",
+        "Grist Instance": "Inštancia Grist"
     },
     "TimingPage": {
         "Table ID": "ID Tabuľky",
@@ -1478,7 +1504,9 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "Niektoré povinné stĺpce nie sú namapované",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Ak chcete použiť túto miniaplikáciu, namapujte všetky nepovinné stĺpce z panela tvorcov vpravo."
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Ak chcete použiť túto miniaplikáciu, namapujte všetky nepovinné stĺpce z panela tvorcov vpravo.",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Ak chcete použiť tento widget, všetky mapované stĺpce musia byť viditeľné. Kontaktujte vlastníka dokumentu alebo upravte pravidlá prístupu.",
+        "Some required columns are hidden by access rules": "Niektoré požadované stĺpce sú skryté pravidlami prístupu"
     },
     "Field": {
         "No values in show column of referenced table": "V zobrazenom stĺpci referenčnej tabuľky nie sú žiadne hodnoty",
@@ -1668,7 +1696,8 @@
     },
     "FormContainer": {
         "Build your own form": "Vytvorte si vlastný formulár",
-        "Powered by": "Poháňaný"
+        "Powered by": "Poháňaný",
+        "Powered by Grist": "Poháňaný Gristom"
     },
     "FormErrorPage": {
         "Error": "Chyba"
@@ -1765,7 +1794,12 @@
         "Copy to clipboard": "Kopírovať do schránky",
         "Learn more in our [Help Center]({{helpCenter}}).": "Zistite viac v našom [Centre Pomoci] ({{helpCenter}}).",
         "Paste your activation key": "Vložiť Váš aktivačný kľúč",
-        "Plan name": "Názov plánu"
+        "Plan name": "Názov plánu",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Vaša inštancia bude v **read-only** móde **{{days}}** dní.",
+        "You are currently trialing Grist Enterprise.": "Momentálne skúšate Grist Enterprise.",
+        "You do not have an active subscription.": "Nemáte aktívne predplatné.",
+        "Your activation key has expired due to exceeding limits.": "Platnosť vášho aktivačného kľúča vypršala z dôvodu prekročenia limitov.",
+        "Your subscription expired on {{date}}.": "Platnosť vášho predplatného vypršala dňa {{date}}."
     },
     "ViewLayout": {
         "Delete": "Odstrániť",
@@ -1918,5 +1952,20 @@
         "Name": "Názov",
         "Rename and set icon": "Premenovať a nastaviť ikonu",
         "Reset icon": "Obnoviť ikonu"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Buďte opatrní s neznámymi vlastnými miniaplikáciami",
+        "Please review the following before adding a new custom widget.": "Pred pridaním nového vlastného widgetu skontrolujte nasledujúce.",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Vlastné widgety sú **výkonné**! Môžu byť schopné čítať a zapisovať údaje vášho dokumentu a posielať ich inde.",
+        "Are you sure you **trust the resource** at this URL?": "Ste si istý, že **dôverujete zdroju** na tejto adrese URL?",
+        "Do you **trust the person** who shared this link?": "Veríte **osobe**, ktorá zdieľala tento odkaz?"
+    },
+    "RightPanelUtils": {
+        "Series_one": "Série",
+        "Series_other": "Série",
+        "Fields_other": "Polia",
+        "Fields_one": "Polia",
+        "Columns_one": "Stĺpce",
+        "Columns_other": "Stĺpce"
     }
 }

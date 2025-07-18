@@ -1,14 +1,13 @@
 import * as css from 'app/client/components/FormRendererCss';
+import {bindMarkdown} from 'app/client/components/Forms/styles';
 import {makeT} from 'app/client/lib/localization';
 import {FormField} from 'app/client/ui/FormAPI';
-import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
 import {isXSmallScreenObs} from 'app/client/ui2018/cssVars';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {CellValue} from 'app/plugin/GristData';
 import {Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable} from 'grainjs';
-import {marked} from 'marked';
 import {IPopupOptions, PopupControl} from 'popweasel';
 
 const testId = makeTestId('test-form-');
@@ -142,11 +141,7 @@ class ParagraphRenderer extends FormRenderer {
   public render() {
     return css.paragraph(
       css.paragraph.cls(`-alignment-${this.layoutNode.alignment || 'left'}`),
-      el => {
-        el.innerHTML = sanitizeHTML(marked(this.layoutNode.text || '**Lorem** _ipsum_ dolor', {
-          async: false,
-        }));
-      },
+      bindMarkdown(this.layoutNode.text || '')
     );
   }
 }
@@ -898,6 +893,30 @@ class RefRenderer extends BaseFieldRenderer {
   }
 }
 
+class AttachmentsRenderer extends BaseFieldRenderer {
+  protected inputType = 'file';
+  private _value = Observable.create<File[]>(this, []);
+
+  public input() {
+    return css.attachmentInput(
+      dom.cls('field_clip'),
+      {
+        type: this.inputType,
+        name: this.name(),
+        id: this.id(),
+        required: this.field.options.formRequired,
+      },
+      dom.prop('value', this._value),
+      dom.prop('multiple', true),
+      testId('attachment-input')
+    );
+  }
+
+  public resetInput(): void {
+    this._value.set([]);
+  }
+}
+
 const FieldRenderers = {
   'Text': TextRenderer,
   'Numeric': NumericRenderer,
@@ -909,6 +928,7 @@ const FieldRenderers = {
   'DateTime': DateTimeRenderer,
   'Ref': RefRenderer,
   'RefList': RefListRenderer,
+  'Attachments': AttachmentsRenderer,
 };
 
 const FormRenderers = {

@@ -33,6 +33,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   home.addApiMiddleware();
   home.addJsonSupport();
   await home.addLandingPages();
+  home.addWidgetRepository();
   home.addHomeApi();
   home.addAuditLogger();
   home.addScimApi();
@@ -42,7 +43,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   home.addApiErrorHandlers();
   home.finalizeEndpoints();
   await home.finalizePlugins(null);
-  home.ready();
+  home.setReady(true);
   serverUrl = home.getOwnUrl();
 }
 
@@ -55,6 +56,7 @@ const fixtures: {[docName: string]: string|null} = {
 };
 
 describe('Authorizer', function() {
+  this.timeout(3000);
 
   testUtils.setTmpLogLevel('fatal');
 

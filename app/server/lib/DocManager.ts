@@ -16,24 +16,31 @@ import {tbind} from 'app/common/tbind';
 import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
-        RequestWithLogin} from 'app/server/lib/Authorizer';
-import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {DocAuthorizer, DocAuthorizerImpl, DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
+import {
+  getConfiguredStandardAttachmentStore,
+  IAttachmentStoreProvider
+} from 'app/server/lib/AttachmentStoreProvider';
 import {Client} from 'app/server/lib/Client';
-import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {DocSessionPrecursor,
+        makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
 import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
 import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
-import {SQLiteDB} from 'app/server/lib/SQLiteDB';
+import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
+import isDeepEqual = require('lodash/isEqual')
 import merge = require('lodash/merge');
 import noop = require('lodash/noop');
+import {DocumentSettings, DocumentSettingsChecker} from 'app/common/DocumentSettings';
+import {safeJsonParse} from 'app/common/gutil';
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
 // but is a bit of a burden under heavy traffic.
@@ -56,6 +63,11 @@ export class DocManager extends EventEmitter {
    * will be long since resolved, with the resulting document cached.
    */
   private _activeDocs: Map<string, Promise<ActiveDoc>> = new Map();
+
+  /**
+   * Maps ActiveDoc to memory used in MB.
+   */
+  private _memoryUsedMB: Map<ActiveDoc, number> = new Map();
 
   /**
    * Maps docName to the SQLiteDB object, if available. The db may be
@@ -315,10 +327,11 @@ export class DocManager extends EventEmitter {
     if (typeof options === 'string') {
       throw new Error('openDoc call with outdated parameter type');
     }
+
     const openMode: OpenDocMode = options?.openMode || 'default';
     const linkParameters = options?.linkParameters || {};
     const originalUrlId = options?.originalUrlId;
-    let auth: Authorizer;
+    let auth: DocAuthorizer;
     const dbManager = this._homeDbManager;
     if (!isSingleUserMode()) {
       if (!dbManager) { throw new Error("HomeDbManager not available"); }
@@ -330,7 +343,7 @@ export class DocManager extends EventEmitter {
       // right doc when we re-query the DB over the life of the websocket.
       const useShareUrlId = Boolean(originalUrlId && parseUrlId(originalUrlId).shareKey);
       const urlId = useShareUrlId ? originalUrlId! : docId;
-      auth = new DocAuthorizer({dbManager, urlId, openMode, linkParameters, authSession: client.authSession});
+      auth = new DocAuthorizerImpl({dbManager, urlId, openMode, authSession: client.authSession});
       await auth.assertAccess('viewers');
       const docAuth = auth.getCachedAuth();
       if (docAuth.docId !== docId) {
@@ -343,15 +356,14 @@ export class DocManager extends EventEmitter {
       auth = new DummyAuthorizer('owners', docId);
     }
 
-    // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
-    const docSessionPrecursor = makeOptDocSession(client);
-    docSessionPrecursor.authorizer = auth;
+    const docSessionPrecursor: DocSessionPrecursor = new DocSessionPrecursor(client, auth, {linkParameters});
 
+    // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
     return this._withUnmutedDoc(docSessionPrecursor, docId, async () => {
       const activeDoc: ActiveDoc = await this.fetchDoc(docSessionPrecursor, docId);
 
       // Get a fresh DocSession object.
-      const docSession = activeDoc.addClient(client, auth);
+      const docSession = activeDoc.addClient(client, docSessionPrecursor);
 
       // If opening in (pre-)fork mode, check if it is appropriate to treat the user as
       // an owner for granular access purposes.
@@ -420,15 +432,24 @@ export class DocManager extends EventEmitter {
   }
 
   /**
-   * Shut down all open docs. This is called, in particular, on server shutdown.
+   * Shut down all open docs.
    */
-  public async shutdownAll() {
+  public async shutdownDocs() {
     await Promise.all(Array.from(
       this._activeDocs.values(),
       adocPromise => adocPromise.then(async adoc => {
-        log.debug('DocManager.shutdownAll starting activeDoc shutdown', adoc.docName);
+        log.debug('DocManager.shutdownDocs starting activeDoc shutdown', adoc.docName);
         await adoc.shutdown();
       })));
+  }
+
+  /**
+   * Shut down all open docs, including doc storage and any related timers.
+   *
+   * This is called, in particular, on server shutdown.
+   */
+  public async shutdownAll() {
+    await this.shutdownDocs();
     try {
       await this.storageManager.closeStorage();
     } catch (err) {
@@ -477,6 +498,7 @@ export class DocManager extends EventEmitter {
   public removeActiveDoc(activeDoc: ActiveDoc): void {
     this.unregisterSQLiteDB(activeDoc.docName);
     this._activeDocs.delete(activeDoc.docName);
+    this._memoryUsedMB.delete(activeDoc);
   }
 
   public async renameDoc(client: Client, oldName: string, newName: string): Promise<void> {
@@ -541,6 +563,18 @@ export class DocManager extends EventEmitter {
   public isAnonymous(userId: number): boolean {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
     return userId === this._homeDbManager.getAnonymousUserId();
+  }
+
+  public setMemoryUsedMB(activeDoc: ActiveDoc, memoryUsedMB: number) {
+    this._memoryUsedMB.set(activeDoc, memoryUsedMB);
+  }
+
+  public getTotalMemoryUsedMB(): number {
+    let result = 0;
+    for (const value of this._memoryUsedMB.values()) {
+      result += value;
+    }
+    return result;
   }
 
   /**
@@ -692,6 +726,7 @@ export class DocManager extends EventEmitter {
         const srcDocPath = uploadInfo.files[0].absPath;
         await checkAllegedGristDoc(docSession, srcDocPath);
         await docUtils.copyFile(srcDocPath, docPath);
+        await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
         // Go ahead and claim this document. If we wanted to serve it
         // from a potentially different worker, we'd call addToStorage(docName)
         // instead (we used to do this). The upload should already be happening
@@ -732,4 +767,66 @@ export class DocManager extends EventEmitter {
 // when the basename is empty or starts with a period.
 function extname(fpath: string): string {
   return path.extname("X" + fpath);
+}
+
+async function updateDocumentAttachmentStoreSettingToValidValue(fname: string, provider: IAttachmentStoreProvider) {
+  return updateDocumentSettingsInPlace(fname, (oldSettings) => {
+    const attachmentStoreId = oldSettings?.attachmentStoreId;
+    if (!attachmentStoreId || provider.storeExists(attachmentStoreId)) {
+      return oldSettings;
+    }
+    const newStoreLabel = getConfiguredStandardAttachmentStore();
+    const newStoreId = newStoreLabel && provider.getStoreIdFromLabel(newStoreLabel);
+
+    return {
+      ...oldSettings,
+      attachmentStoreId: newStoreId,
+    };
+  });
+}
+
+// Updates the document's settings (_grist_DocInfo.docSettings) without loading the document.
+async function updateDocumentSettingsInPlace(
+  fname: string,
+  makeChanges: (oldSettings: DocumentSettings | undefined) => DocumentSettings | undefined
+) {
+  const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_EXISTING);
+  try {
+    const columns = await db.all("PRAGMA table_info(_grist_DocInfo)");
+    // This protects against errors with old Grist document versions, before this column was introduced.
+    if (!columns.some(column => column.name === 'documentSettings')) {
+      return;
+    }
+    const docInfoRow = await db.get('SELECT id, schemaVersion, documentSettings FROM _grist_DocInfo');
+    // This is an edge case that shouldn't happen. If it does, our only options are to error or do nothing.
+    // Do nothing and log for now, so that we can track if this ever comes up.
+    if (!docInfoRow) {
+      log.warn("Doc has no rows in _grist_DocInfo - cannot update document settings.");
+      return;
+    }
+
+    const parsedSettings: unknown = safeJsonParse(docInfoRow.documentSettings, undefined);
+
+    const isValidSettingsObject = DocumentSettingsChecker.test(parsedSettings);
+    // Throw if there's something expected in the settings object.
+    // This shouldn't occur unless there's a bug or a malformed doc, as DocSettings is backwards compatible.
+    if (parsedSettings && !isValidSettingsObject) {
+      DocumentSettingsChecker.check(parsedSettings);
+    }
+
+    const settings = parsedSettings && isValidSettingsObject ? parsedSettings : undefined;
+    const newSettings = makeChanges(settings);
+
+    // Avoid unnecessary DB updates
+    if (isDeepEqual(settings, newSettings)) {
+      return;
+    }
+
+    await db.run('UPDATE _grist_DocInfo SET documentSettings = ? WHERE id = ?',
+      JSON.stringify(newSettings),
+      docInfoRow.id
+    );
+  } finally {
+    await db.close();
+  }
 }

@@ -25,11 +25,13 @@ import {
 } from "app/server/lib/IAssistant";
 import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
+import { agents } from 'app/server/lib/ProxyAgent';
+
 import fetch from "node-fetch";
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
-export const DEPS = { fetch, delayTime: 1000 };
+export const DEPS = { fetch, delayTime: 1000, agents };
 
 /**
  * A flavor of assistant for use with the OpenAI chat completion endpoint
@@ -162,7 +164,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         version: 1,
         conversationId: request.conversationId,
         context: request.context,
-        message: {
+        response: {
           index: messages.length - 1,
           content: completion,
         },
@@ -207,6 +209,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
             }
           : undefined),
       }),
+      ...(DEPS.agents.trusted ? { agent: DEPS.agents.trusted } : {})
     });
     const resultText = await apiResponse.text();
     const result = JSON.parse(resultText);
@@ -343,8 +346,6 @@ export class OpenAIAssistantV1 implements AssistantV1 {
 
 /**
  * Test assistant that mimics ChatGPT and just returns the input.
- *
- * @deprecated since version 2 of the AI assistant.
  */
 export class EchoAssistantV1 implements AssistantV1 {
   public static readonly VERSION = 1;
@@ -356,6 +357,9 @@ export class EchoAssistantV1 implements AssistantV1 {
   ): Promise<AssistanceResponseV1> {
     if (request.text === "ERROR") {
       throw new Error("ERROR");
+    }
+    if (request.text === "SLOW") {
+      await new Promise(r => setTimeout(r, 1000));
     }
 
     const messages = request.state?.messages || [];

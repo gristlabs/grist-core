@@ -4,6 +4,7 @@
 import {assert, driver} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
+import * as testUtils from "test/server/testUtils";
 
 import {toTableDataAction} from 'app/common/DocActions';
 import {schema} from 'app/common/schema';
@@ -12,6 +13,10 @@ import {DocAPI, UserAPI} from 'app/common/UserAPI';
 
 describe("LinkingErrors", function() {
   this.timeout(20000);
+
+  // Sandboxing disrupts timing a bit.
+  testUtils.withoutSandboxing();
+
   const cleanup = setupTestSuite();
   let session: gu.Session;
   let api: UserAPI;

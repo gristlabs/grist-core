@@ -57,6 +57,8 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
   // release existing assignments.
   setWorkerAvailability(workerId: string, available: boolean): Promise<void>;
 
+  setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void>;
+
   isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean>;
 
   // Releases doc from worker, freeing it to be assigned elsewhere.

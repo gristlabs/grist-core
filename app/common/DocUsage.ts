@@ -23,8 +23,20 @@ export interface DocUsageSummary extends DocUsageOrPending {
   dataLimitInfo: DataLimitInfo;
 }
 
-// Count of non-removed documents in an org, grouped by data limit status.
-export type OrgUsageSummary = Record<NonNullable<DataLimitStatus>, number>;
+// Aggregate usage stats for an org.
+export interface OrgUsageSummary {
+  // Count of non-removed documents in an org, grouped by data limit status.
+  countsByDataLimitStatus: Record<NonNullable<DataLimitStatus>, number>;
+  // Stats for aggregate attachment usage.
+  attachments: {
+    totalBytes: number;
+    limitExceeded?: boolean;
+  }
+}
+
+export interface UsageRecommendations {
+  recommendExternal?: boolean;
+}
 
 type FilteredDocUsage = {
   [Metric in keyof DocUsageOrPending]: DocUsageOrPending[Metric] | 'hidden'
@@ -32,38 +44,21 @@ type FilteredDocUsage = {
 
 export interface FilteredDocUsageSummary extends FilteredDocUsage {
   dataLimitInfo: DataLimitInfo;
-}
-
-// Ratio of usage at which we start telling users that they're approaching limits.
-export const APPROACHING_LIMIT_RATIO = 0.9;
-
-/**
- * Computes a ratio of `usage` to `limit`, if possible. Returns 0 if `usage` or `limit`
- * is invalid or undefined.
- */
-export function getUsageRatio(usage: number | undefined, limit: number | undefined): number {
-  if (!isEnforceableLimit(limit) || usage === undefined || usage < 0) {
-    // Treat undefined or invalid values as having 0 usage.
-    return 0;
-  }
-
-  return usage / limit;
+  usageRecommendations: UsageRecommendations;
 }
 
 /**
  * Returns an empty org usage summary with values initialized to 0.
  */
  export function createEmptyOrgUsageSummary(): OrgUsageSummary {
-  return {
-    approachingLimit: 0,
-    gracePeriod: 0,
-    deleteOnly: 0,
+   return {
+     countsByDataLimitStatus: {
+       approachingLimit: 0,
+       gracePeriod: 0,
+       deleteOnly: 0,
+     },
+     attachments: {
+       totalBytes: 0,
+     }
   };
-}
-
-/**
- * Returns true if `limit` is defined and is a valid, positive number.
- */
-function isEnforceableLimit(limit: number | undefined): limit is number {
-  return limit !== undefined && limit > 0;
 }

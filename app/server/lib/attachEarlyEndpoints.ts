@@ -24,7 +24,7 @@ import {
   stringParam,
 } from "app/server/lib/requestUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
-import { checkForUpdates } from "app/server/lib/updateChecker";
+import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 import {
   Application,
   json,
@@ -86,16 +86,24 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.post(
     "/api/admin/restart",
-    expressWrap(async (_, res) => {
+    expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const meta = {
+        host: mreq.get('host'),
+        path: mreq.path,
+        email: mreq.user?.loginEmail,
+      };
+      log.rawDebug(`Restart[${mreq.method}] starting:`, meta);
       res.on("finish", () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
-        if (process.send) {
+        log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
+        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+          log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
         }
       });
-
       if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
@@ -104,6 +112,8 @@ export function attachEarlyEndpoints(options: AttachOptions) {
             "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
         });
       }
+      // We're going down, so we're no longer ready to serve requests.
+      gristServer.setReady(false);
       return res.status(200).send({ msg: "ok" });
     })
   );
@@ -113,12 +123,13 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/prefs",
     expressWrap(async (_req, res) => {
       const activation = await gristServer.getActivations().current();
-
-      return sendOkReply(null, res, {
-        telemetry: await getTelemetryPrefs(
+      const telemetryPrefs = await getTelemetryPrefs(
           gristServer.getHomeDBManager(),
           activation
-        ),
+      );
+      return sendOkReply(null, res, {
+        telemetry: telemetryPrefs,
+        checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
       });
     })
   );
@@ -149,7 +160,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/updates",
     expressWrap(async (_req, res) => {
       try {
-        const updateData = await checkForUpdates(gristServer);
+        const updateData = await updateGristServerLatestVersion(gristServer, true);
         res.json(updateData);
       } catch (error) {
         res.status(error.status);

@@ -1,77 +1,35 @@
-import { domAsync } from 'app/client/lib/domAsync';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { buildCodeHighlighter } from 'app/client/ui/CodeHighlight';
-import { renderer } from 'app/client/ui/MarkdownCellRenderer';
-import { sanitizeHTML } from 'app/client/ui/sanitizeHTML';
+import { renderCellMarkdown } from 'app/client/ui/MarkdownCellRenderer';
 import { theme, vars } from 'app/client/ui2018/cssVars';
 import { handleGristLinkClick } from 'app/client/ui2018/links';
-import { gristThemeObs } from 'app/client/ui2018/theme';
 import { NTextBox } from 'app/client/widgets/NTextBox';
-import { AsyncCreate } from 'app/common/AsyncCreate';
-import { dom, styled, subscribeElem } from 'grainjs';
-import { Marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import markedLinkifyIt from 'marked-linkify-it';
+import { dom, styled } from 'grainjs';
 
 /**
  * Creates a widget for displaying Markdown-formatted text.
  */
 export class MarkdownTextBox extends NTextBox {
-  private static _marked?: AsyncCreate<Marked>;
-
   constructor(field: ViewFieldRec) {
     super(field);
-
-    if (!MarkdownTextBox._marked) {
-      MarkdownTextBox._marked = new AsyncCreate(async () => {
-        const highlight = await buildCodeHighlighter({ maxLines: 60 });
-        return new Marked(
-          markedHighlight({
-            highlight: (code) => highlight(code),
-          }),
-          markedLinkifyIt()
-        );
-      });
-    }
   }
 
   public buildDom(row: DataRowModel) {
-    const value = row.cells[this.field.colId()];
+    const valueObs = row.cells[this.field.colId()];
+
     return dom(
       "div.field_clip",
-      domAsync(
-        MarkdownTextBox._marked!.get().then(({ parse }) => {
-          const renderMarkdown = (el: HTMLElement) => {
-            el.innerHTML = sanitizeHTML(
-              parse(String(value.peek()), {
-                async: false,
-                gfm: false,
-                renderer,
-              })
-            );
-          };
-
-          return cssMarkdown(
-            cssMarkdown.cls("-text-wrap", this.wrapping),
-            dom.style("text-align", this.alignment),
-            dom.on("contextmenu", (ev) => {
-              // Disable Grist cell context menu on links.
-              if ((ev.target as HTMLElement).closest("a")) {
-                ev.stopPropagation();
-              }
-            }),
-            dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
-            (el) => {
-              subscribeElem(el, value, () => renderMarkdown(el));
-              // Picking up theme changes currently requires a re-render.
-              // If we switch to using a custom Ace theme with CSS variables
-              // from `cssVars.ts`, we can remove this.
-              subscribeElem(el, gristThemeObs(), () => renderMarkdown(el));
-              this.field.viewSection().events.trigger("rowHeightChange");
-            },
-          );
-        })
+      cssMarkdown(
+        cssMarkdown.cls("-text-wrap", this.wrapping),
+        dom.style("text-align", this.alignment),
+        dom.on("contextmenu", (ev) => {
+          // Disable Grist cell context menu on links.
+          if ((ev.target as HTMLElement).closest("a")) {
+            ev.stopPropagation();
+          }
+        }),
+        dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
+        dom.domComputed(valueObs, value => renderCellMarkdown(String(value))),
       )
     );
   }

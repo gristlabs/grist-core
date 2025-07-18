@@ -1,7 +1,9 @@
+import {getSingleAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {UserAPI} from 'app/common/UserAPI';
 import {DocManager} from 'app/server/lib/DocManager';
-import {CellData, getSingleAction, GranularAccess} from 'app/server/lib/GranularAccess';
+import {CellData} from 'app/server/lib/CellDataAccess';
+import {GranularAccess} from 'app/server/lib/GranularAccess';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {GristClient, openClient} from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
@@ -29,6 +31,11 @@ describe('CommentAccess', function() {
   async function getGranularAccess(): Promise<GranularAccess> {
     const doc = await docManager.getActiveDoc(docId);
     return (doc as any)._granularAccess;
+  }
+
+  function getColRef(docData: DocData, tableId: string, colId: string) {
+    const parentId = docData.getMetaTable('_grist_Tables').findRow('tableId', tableId);
+    return docData.getMetaTable('_grist_Tables_column').findMatchingRowId({parentId, colId});
   }
 
   before(async function() {
@@ -361,66 +368,68 @@ describe('CommentAccess', function() {
     await send(owner, "Public", "Second");
     await send(owner, "Censored", "Third");
     const access = await getGranularAccess();
-    const helper = new CellData((access as any)._docData);
+    const docData: DocData = (access as any)._docData;
+    const helper = new CellData(docData);
+    const chatPublicColRef = getColRef(docData, 'Chat', 'Public');
 
     // First test some basic helpers.
     deepEqual(helper.getCell(1), {
-      "tableId": "Chat", "colId": "Private", "rowId": 1, "userRef": ownerRef, "id": 1
+      "tableId": "Chat", "colId": "Private", "rowId": 1, "userRef": ownerRef, "id": 1, content: 'First',
     });
     assert.isNull(helper.getCell(400));
     assert.equal(helper.getColId(6), "Public");
-    assert.equal(helper.getColRef(2, 'Public'), 6);
-    assert.isUndefined(helper.getColRef(1, 'Public2'));
-    assert.isUndefined(helper.getColRef(22, 'Public'));
     assert.isUndefined(helper.getColId(20));
     assert.equal(helper.getTableId(2), "Chat");
     assert.isUndefined(helper.getTableId(20));
     assert.isUndefined(helper.getTableRef('Chat2'));
     assert.equal(helper.getTableRef('Chat'), 2);
 
+    const firstComment = {tableId: "Chat", colId: "Private", rowId: 1, userRef: ownerRef, id: 1, content: "First"};
+    const secondComment = {tableId: "Chat", colId: "Public", rowId: 1, userRef: ownerRef, id: 2, content: "Second"};
+
     // Test method that converts docActions for _grist_Cells to a list of cells.
     deepEqual(helper.convertToCells(['RemoveColumn', 'Table1', 'Test']), []);
     // Single cell extractions from docData
     deepEqual(helper.convertToCells(['UpdateRecord', '_grist_Cells', 1, {}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['AddRecord', '_grist_Cells', 1, {tableRef: 10}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['RemoveRecord', '_grist_Cells', 1]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['BulkRemoveRecord', '_grist_Cells', [1]]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['BulkAddRecord', '_grist_Cells', [1], {}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     deepEqual(helper.convertToCells(['BulkUpdateRecord', '_grist_Cells', [1], {}]),
-      [{"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1}]
+      [firstComment]
     );
     // Multiple doc extractions from docData
     deepEqual(helper.convertToCells(['BulkUpdateRecord', '_grist_Cells', [1, 2], {}]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 2}
+        firstComment,
+        secondComment
       ]
     );
     deepEqual(helper.convertToCells(['BulkAddRecord', '_grist_Cells', [1, 2], {}]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 2}
+        firstComment,
+        secondComment
       ]
     );
     deepEqual(helper.convertToCells(['BulkRemoveRecord', '_grist_Cells', [1, 2]]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 2}
+        firstComment,
+        secondComment
       ]
     );
     deepEqual(helper.convertToCells(['BulkRemoveRecord', '_grist_Cells', [1, 10]]),
       [
-        {"tableId": "Chat", "colId": "Private", "rowId": 1, userRef: ownerRef, "id": 1},
+        firstComment,
         // 10 is not a valid cell id
       ]
     );
@@ -429,7 +438,7 @@ describe('CommentAccess', function() {
     deepEqual(helper.convertToCells(['AddRecord', '_grist_Cells', 44, {
       tableRef: helper.getTableRef('Chat')!,
       rowId: 1,
-      colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+      colRef: chatPublicColRef,
       userRef: ownerRef
     }]),
       [
@@ -439,7 +448,7 @@ describe('CommentAccess', function() {
     deepEqual(helper.convertToCells(['UpdateRecord', '_grist_Cells', 44, {
       tableRef: helper.getTableRef('Chat')!,
       rowId: 1,
-      colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+      colRef: chatPublicColRef,
       userRef: ownerRef
     }]),
       [
@@ -449,7 +458,7 @@ describe('CommentAccess', function() {
     deepEqual(helper.convertToCells(['BulkUpdateRecord', '_grist_Cells', [44], {
       tableRef: [helper.getTableRef('Chat')!],
       rowId: [1],
-      colRef: [helper.getColRef(helper.getTableRef('Chat')!, 'Public')!],
+      colRef: [chatPublicColRef],
       userRef: [ownerRef!]
     }]),
       [
@@ -476,19 +485,19 @@ describe('CommentAccess', function() {
     assert.equal(helper.hasCellInfo(['AddRecord', '_grist_Cells', 1, {
       tableRef: helper.getTableRef('Chat')!,
       rowId: 1,
-      colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+      colRef: chatPublicColRef,
       userRef: ownerRef
     }]), true);
 
     assert.equal(helper.hasCellInfo(['AddRecord', '_grist_Cells', 1, {
       rowId: 1,
-      colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+      colRef: chatPublicColRef,
       userRef: ownerRef
     }]), false);
 
     assert.equal(helper.hasCellInfo(['AddRecord', '_grist_Cells', 1, {
       tableRef: helper.getTableRef('Chat')!,
-      colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+      colRef: chatPublicColRef,
       userRef: ownerRef
     }]), false);
 
@@ -500,7 +509,7 @@ describe('CommentAccess', function() {
 
     assert.equal(helper.hasCellInfo(['AddRecord', '_grist_Cells', 1, {
       tableRef: helper.getTableRef('Chat')!,
-      colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+      colRef: chatPublicColRef,
       rowId: 1,
     }]), false);
 
@@ -521,18 +530,20 @@ describe('CommentAccess', function() {
     await send(owner, "Public", "Second");
     await send(owner, "Censored", "Third");
     const access = await getGranularAccess();
-    const helper = new CellData((access as any)._docData);
+    const docData: DocData = (access as any)._docData;
+    const helper = new CellData(docData);
+    const chatPublicColRef = getColRef(docData, 'Chat', 'Public');
 
     deepEqual(helper.generatePatch([
       ['AddRecord', '_grist_Cells', 1, {
         tableRef: helper.getTableRef('Chat')!,
         rowId: 1,
-        colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+        colRef: chatPublicColRef,
       }],
       ['AddRecord', '_grist_Cells', 2, {
         tableRef: helper.getTableRef('Chat')!,
         rowId: 1,
-        colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+        colRef: chatPublicColRef,
       }],
       ['AddRecord', 'Chat', 3, {}]
     ]), [
@@ -554,12 +565,12 @@ describe('CommentAccess', function() {
       ['AddRecord', '_grist_Cells', 1, {
         tableRef: helper.getTableRef('Chat')!,
         rowId: 1,
-        colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+        colRef: chatPublicColRef,
       }],
       ['AddRecord', '_grist_Cells', 2, {
         tableRef: helper.getTableRef('Chat')!,
         rowId: 1,
-        colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+        colRef: chatPublicColRef,
       }],
       ['RemoveRecord', 'Chat', 1],
       ['RemoveRecord', '_grist_Cells', 1],
@@ -571,7 +582,7 @@ describe('CommentAccess', function() {
       ['AddRecord', '_grist_Cells', 1, {
         tableRef: helper.getTableRef('Chat')!,
         rowId: 1,
-        colRef: helper.getColRef(helper.getTableRef('Chat')!, 'Public')!,
+        colRef: chatPublicColRef,
       }],
       ['RemoveRecord', 'Chat', 1],
       ['RemoveRecord', '_grist_Cells', 1],

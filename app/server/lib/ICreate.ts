@@ -15,6 +15,7 @@ import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IAssistant} from 'app/server/lib/IAssistant';
 import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {EmptyBilling, IBilling} from 'app/server/lib/IBilling';
+import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
@@ -69,7 +70,7 @@ export interface ICreate {
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
   AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
-  Assistant(): IAssistant|undefined;
+  Assistant(gristConfig: GristServer): IAssistant|undefined;
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
@@ -94,6 +95,7 @@ export interface ICreate {
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   areAdminControlsAvailable(): boolean;
+  createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined;
 }
 
 export interface ICreateActiveDocOptions {
@@ -152,7 +154,7 @@ export class BaseCreate implements ICreate {
   public Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry {
     return createDummyTelemetry();
   }
-  public Assistant(): IAssistant|undefined {
+  public Assistant(gristConfig: GristServer): IAssistant|undefined {
     return undefined;
   }
   public NSandbox(options: ISandboxCreationOptions): ISandbox {
@@ -179,7 +181,7 @@ export class BaseCreate implements ICreate {
   public getExtraHeadHtml() {
     const elements: string[] = [];
     if (process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true') {
-      elements.push('<link id="grist-custom-css" rel="stylesheet" href="custom.css">');
+      elements.push('<link id="grist-custom-css" rel="stylesheet" href="custom.css" crossorigin="anonymous">');
     }
     elements.push(getThemeBackgroundSnippet());
     return elements.join('\n');
@@ -234,4 +236,7 @@ export class BaseCreate implements ICreate {
   }
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
   public areAdminControlsAvailable(): boolean { return false; }
+  public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined {
+    return undefined;
+  }
 }

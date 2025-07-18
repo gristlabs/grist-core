@@ -1,7 +1,12 @@
+import { getSetMapValue } from 'app/common/gutil';
 import { makeId } from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
-import { Queue, Worker } from 'bullmq';
+import { Job as BullMQJob, JobsOptions, Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
+
+// Name of the queue for doc-notification emails. Let's define queue names in this file, to ensure
+// that different users of GristJobs don't accidentally use conflicting queue names.
+export const docEmailsQueue = 'deq';
 
 /**
  *
@@ -33,9 +38,7 @@ export interface GristJobs {
    * Set obliterate flag to destroy jobs even if they are
    * stored externally (useful for testing).
    */
-  stop(options?: {
-    obliterate?: boolean,
-  }): Promise<void>;
+  stop(options?: StopOptions): Promise<void>;
 }
 
 /**
@@ -62,23 +65,20 @@ export interface GristQueueScope {
    * to specify what happens to jobs not matching expected
    * names.
    */
-  handleName(name: string,
-             callback: (job: GristJob) => Promise<any>): void;
+  handleName(name: string, callback: JobHandler): void;
 
   /**
    * Shut everything down that we're responsible for.
    * Set obliterate flag to destroy jobs even if they are
    * stored externally (useful for testing).
    */
-  stop(options?: {
-    obliterate?: boolean,
-  }): Promise<void>;
+  stop(options?: StopOptions): Promise<void>;
 }
 
 /**
  * The type of a function for handling jobs on a queue.
  */
-export type JobHandler = (job: GristJob) => Promise<any>;
+export type JobHandler<Job extends GristJob = GristJob> = (job: Job) => Promise<any>;
 
 /**
  * The name used for a queue if no specific name is given.
@@ -88,7 +88,7 @@ export const DEFAULT_QUEUE_NAME = 'default';
 /**
  * BullMQ jobs are a string name, and then a data object.
  */
-interface GristJob {
+export interface GristJob {
   name: string;
   data: any;
 }
@@ -104,131 +104,148 @@ interface JobAddOptions {
   }
 }
 
+interface StopOptions {
+  obliterate?: boolean;
+}
+
+export function createGristJobs(): GristJobs {
+  const connection = getRedisConnection();
+  return connection ? new GristBullMQJobs(connection) : new GristInMemoryJobs();
+}
+
+abstract class GristJobsBase<QS extends GristQueueScope> {
+  private _queues = new Map<string, QS>();
+  public queue(queueName: string = DEFAULT_QUEUE_NAME): QS {
+    return getSetMapValue(this._queues, queueName, () => this.createQueueScope(queueName));
+  }
+  public async stop(options: StopOptions = {}) {
+    await Promise.all(Array.from(this._queues.values(), q => q.stop(options)));
+    this._queues.clear();
+  }
+  protected abstract createQueueScope(queueName: string): QS;
+}
+
+class GristInMemoryJobs extends GristJobsBase<GristInMemoryQueueScope> implements GristJobs {
+  protected createQueueScope(queueName: string) { return new GristInMemoryQueueScope(queueName); }
+}
+
 /**
  * Implementation for job functionality across the application.
  * Will use BullMQ, with an in-memory fallback if Redis is
  * unavailable.
  */
-export class GristBullMQJobs implements GristJobs {
-  private _connection?: IORedis;
-  private _checkedForConnection: boolean = false;
-  private _queues = new Map<string, GristQueueScope>();
+export class GristBullMQJobs extends GristJobsBase<GristBullMQQueueScope> implements GristJobs {
+  constructor(private _connection: IORedis) {
+    super();
+  }
 
   /**
    * Get BullMQ-compatible options for the queue.
    */
   public getQueueOptions() {
-    // Following BullMQ, queue options contain the connection
-    // to redis, if any.
-    if (!this._checkedForConnection) {
-      this._connect();
-      this._checkedForConnection = true;
-    }
-    if (!this._connection) {
-      return {};
-    }
     return {
       connection: this._connection,
       maxRetriesPerRequest: null,
     };
   }
 
-  /**
-   * Get an interface scoped to a particular queue by name.
-   */
-  public queue(queueName: string = DEFAULT_QUEUE_NAME): GristQueueScope {
-    if (!this._queues.get(queueName)) {
-      this._queues.set(
-        queueName,
-        new GristBullMQQueueScope(queueName, this),
-      );
-    }
-    return this._queues.get(queueName)!;
+  public async stop(options: { obliterate?: boolean, } = {}) {
+    await super.stop();
+    this._connection.disconnect();
   }
 
-  public async stop(options: {
-    obliterate?: boolean,
-  } = {}) {
-    for (const q of this._queues.values()) {
-      await q.stop(options);
-    }
-    this._queues.clear();
-    this._connection?.disconnect();
+  protected createQueueScope(queueName: string) { return new GristBullMQQueueScope(queueName, this); }
+}
+
+/**
+ * Connect to Redis if available.
+ */
+function getRedisConnection(): IORedis|undefined {
+  // Connect to Redis for use with BullMQ, if REDIS_URL is set.
+  const urlTxt = process.env.REDIS_URL || process.env.TEST_REDIS_URL;
+  if (!urlTxt) {
+    log.warn('Using in-memory queues, Redis is unavailable');
+    return;
+  }
+  const url = new URL(urlTxt);
+  const conn = new IORedis({
+    host: url.hostname,
+    port: url.port ? parseInt(url.port, 10) : undefined,
+    db: (url.pathname.charAt(0) === '/') ?
+    parseInt(url.pathname.substring(1), 10) : undefined,
+    maxRetriesPerRequest: null,
+  });
+  log.info('Storing queues externally in Redis');
+  return conn;
+}
+
+interface IWorker {
+  close(): Promise<void>;
+}
+
+abstract class GristQueueScopeBase<Worker extends IWorker, Job extends GristJob = GristJob> {
+  protected _worker: Worker|undefined;
+  private _namedProcessors: Record<string, JobHandler<Job>> = {};
+
+  public constructor(public readonly queueName: string) {}
+
+  public getWorker(): Worker|undefined { return this._worker; }
+
+  public handleDefault(defaultCallback: JobHandler<Job>): void {
+    // The default callback passes any recognized named jobs to
+    // processors added with handleName(), then, if there is no
+    // specific processor, calls the defaultCallback.
+    const callback = async (job: Job) => {
+      const processor = this._namedProcessors[job.name] || defaultCallback;
+      return processor(job);
+    };
+    this._worker = this.createWorker(this.queueName, callback);
   }
 
-  /**
-   * Connect to Redis if available.
-   */
-  private _connect() {
-    // Connect to Redis for use with BullMQ, if REDIS_URL is set.
-    const urlTxt = process.env.REDIS_URL || process.env.TEST_REDIS_URL;
-    if (!urlTxt) {
-      this._connection = undefined;
-      log.warn('Using in-memory queues, Redis is unavailable');
-      return;
+  public handleName(name: string, callback: (data: Job) => Promise<any>) {
+    this._namedProcessors[name] = callback;
+  }
+
+  public async stop(options: StopOptions = {}) {
+    await this._worker?.close();
+    if (options.obliterate) {
+      await this.obliterate();
     }
-    const url = new URL(urlTxt);
-    const conn = new IORedis({
-      host: url.hostname,
-      port: url.port ? parseInt(url.port, 10) : undefined,
-      db: (url.pathname.charAt(0) === '/') ?
-          parseInt(url.pathname.substring(1), 10) : undefined,
-      maxRetriesPerRequest: null,
-    });
-    this._connection = conn;
-    log.info('Storing queues externally in Redis');
+  }
+
+  protected abstract obliterate(): Promise<void>;
+  protected abstract createWorker(queueName: string, callback: JobHandler<Job>): Worker;
+}
+
+class GristInMemoryQueueScope extends GristQueueScopeBase<GristWorker> implements GristQueueScope {
+  public async add(name: string, data: any, options?: JobAddOptions) {
+    // If in memory, we hand a job directly to the single worker for their
+    // queue. This is very crude.
+    if (!this._worker) {
+      throw new Error(`no handler yet for ${this.queueName}`);
+    }
+    await this._worker.add(name, data, options);
+  }
+  protected override async obliterate(): Promise<void> {
+    await this._worker?.obliterate();
+  }
+  protected override createWorker(queueName: string, callback: JobHandler): GristWorker {
+    return new GristWorker(this.queueName, callback);
   }
 }
 
 /**
  * Work with a particular named queue.
  */
-export class GristBullMQQueueScope implements GristQueueScope {
-  private _queue: Queue|GristWorker|undefined;
-  private _worker: Worker|GristWorker|undefined;
-  private _namedProcessors: Record<string, JobHandler> = {};
+export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob> implements GristQueueScope {
+  private _queue: Queue|undefined;
 
-  public constructor(public readonly queueName: string,
-                     private _owner: GristBullMQJobs) {}
+  public constructor(queueName: string, private _owner: GristBullMQJobs) { super(queueName); }
 
-  public handleDefault(defaultCallback: JobHandler) {
-    // The default callback passes any recognized named jobs to
-    // processors added with handleName(), then, if there is no
-    // specific processor, calls the defaultCallback.
-    const callback = async (job: GristJob) => {
-      const processor = this._namedProcessors[job.name] || defaultCallback;
-      return processor(job);
-    };
-    const options = this._owner.getQueueOptions();
-    if (!options.connection) {
-      // If Redis isn't available, we go our own way, not
-      // using BullMQ.
-      const worker = new GristWorker(this.queueName, callback);
-      this._worker = worker;
-      return worker;
-    }
-    const worker = new Worker(this.queueName, callback, options);
-    this._worker = worker;
-    return worker;
-  }
+  public getQueue(): Queue|undefined { return this._queue; }
 
-  public handleName(name: string,
-                    callback: (job: GristJob) => Promise<any>) {
-    this._namedProcessors[name] = callback;
-  }
-
-  public async stop(options: {
-    obliterate?: boolean,
-  } = {}) {
-    await this._worker?.close();
-    if (options.obliterate) {
-      await this._queue?.obliterate({force: true});
-    }
-  }
-
-  public async add(name: string, data: any, options?: JobAddOptions) {
+  public async add(name: string, data: any, options?: JobsOptions) {
     await this._getQueue().add(name, data, {
-      ...options,
       // These settings are quite arbitrary, and should be
       // revised when it matters, or made controllable.
       removeOnComplete: {
@@ -238,37 +255,26 @@ export class GristBullMQQueueScope implements GristQueueScope {
       removeOnFail: {
         age: 24 * 3600, // keep up to 24 hours
       },
+      ...options,
     });
   }
 
-  private _getQueue(): Queue|GristWorker {
-    if (this._queue) { return this._queue; }
-    const queue = this._pickQueueImplementation();
-    this._queue = queue;
-    return queue;
+  public getJobRedisKey(jobId: string): string {
+    // This isn't a well-documented method, so this was confirmed empirically.
+    return this._getQueue().toKey(jobId);
   }
 
-  private _pickQueueImplementation() {
-    const name = this.queueName;
-    const queueOptions = this._owner.getQueueOptions();
-    // If we have Redis, get a proper BullMQ interface.
-    // Otherwise, make do.
-    if (queueOptions.connection) {
-      return new Queue(name, queueOptions);
-    }
-    // If in memory, we hand a job directly to the single worker for their
-    // queue. This is very crude.
-    const worker = this._worker;
-    if (!worker) {
-      throw new Error(`no handler yet for ${this.queueName}`);
-    }
-    // We only access workers directly when working in-memory, to
-    // hand jobs directly to them.
-    if (isBullMQWorker(worker)) {
-      // Not expected! Somehow we have a BullMQ worker.
-      throw new Error(`wrong kind of worker for ${this.queueName}`);
-    }
-    return worker;
+  protected override async obliterate() {
+    await this._getQueue().obliterate({force: true});
+  }
+
+  protected createWorker(queueName: string, callback: JobHandler<BullMQJob>): Worker {
+    const options = this._owner.getQueueOptions();
+    return new Worker(this.queueName, callback, options);
+  }
+
+  private _getQueue(): Queue {
+    return this._queue || (this._queue = new Queue(this.queueName, this._owner.getQueueOptions()));
   }
 }
 
@@ -329,11 +335,4 @@ class GristWorker {
     clearTimeout(job);
     this._jobs.delete(id);
   }
-}
-
-/**
- * Check if a worker is a real BullMQ worker, or just pretend.
- */
-function isBullMQWorker(worker: Worker|GristWorker): worker is Worker {
-  return 'isNextJob' in worker;
 }

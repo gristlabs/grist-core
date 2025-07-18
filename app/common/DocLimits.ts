@@ -1,17 +1,7 @@
-import {ApiError} from 'app/common/ApiError';
-import {APPROACHING_LIMIT_RATIO, DataLimitInfo, DataLimitStatus,
-        DocumentUsage, getUsageRatio} from 'app/common/DocUsage';
+import {DataLimitInfo, DataLimitStatus, DocumentUsage} from 'app/common/DocUsage';
 import {Features} from 'app/common/Features';
+import {APPROACHING_LIMIT_RATIO, getUsageRatio} from 'app/common/Limits';
 import moment from 'moment-timezone';
-
-/**
- * Error class indicating failure due to limits being exceeded.
- */
-export class LimitExceededError extends ApiError {
-  constructor(message: string) {
-    super(message, 413);
-  }
-}
 
 export interface GetDataLimitStatusParams {
   docUsage: DocumentUsage | null;
@@ -45,7 +35,7 @@ export function getDataLimitInfo(params: GetDataLimitStatusParams): DataLimitInf
 
 /**
  * Given `docUsage` and `productFeatures`, returns the highest usage ratio
- * across all data-related limits (currently only row count and data size).
+ * across all data-related limits (currently only row count, data size and attachment size).
  */
 export function getDataLimitRatio(
   docUsage: DocumentUsage | null,
@@ -53,12 +43,14 @@ export function getDataLimitRatio(
 ): number {
   if (!docUsage) { return 0; }
 
-  const {rowCount, dataSizeBytes} = docUsage;
+  const {rowCount, dataSizeBytes, attachmentsSizeBytes} = docUsage;
   const maxRows = productFeatures?.baseMaxRowsPerDocument;
   const maxDataSize = productFeatures?.baseMaxDataSizePerDocument;
+  const maxAttachmentsSizeBytes = productFeatures?.baseMaxAttachmentsBytesPerDocument;
   const rowRatio = getUsageRatio(rowCount?.total, maxRows);
   const dataSizeRatio = getUsageRatio(dataSizeBytes, maxDataSize);
-  return Math.max(rowRatio, dataSizeRatio);
+  const attachmentSizeRatio = getUsageRatio(attachmentsSizeBytes, maxAttachmentsSizeBytes);
+  return Math.max(rowRatio, dataSizeRatio, attachmentSizeRatio);
 }
 
 /**

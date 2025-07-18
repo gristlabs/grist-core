@@ -1,3 +1,4 @@
+import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import {
   AssistanceContextV1,
   AssistanceMessage,
@@ -104,7 +105,7 @@ export interface AssistanceSchemaPromptV1Context
   colId: string;
 }
 
-interface AssistanceFormulaEvaluationResult {
+export interface AssistanceFormulaEvaluationResult {
   /**
    * True if an exception was raised.
    */
@@ -127,8 +128,9 @@ interface AssistanceFormulaEvaluationResult {
 export interface OpenAIChatCompletion {
   choice: {
     message: {
-      content: string;
-      tool_calls: OpenAIToolCall[];
+      content: string | null;
+      refusal?: string;
+      tool_calls?: OpenAIToolCall[];
     };
     finish_reason: string;
   };
@@ -144,40 +146,92 @@ interface OpenAIToolCall {
   };
 }
 
-export interface OpenAITool {
+export type OpenAITool = OpenAIFunction;
+
+interface OpenAIFunction {
   type: "function";
   function: {
+    /**
+     * The function's name (e.g. `get_weather`).
+     */
     name: string;
+    /**
+     * Details on when and how to use the function.
+     */
     description?: string;
-    parameters?: {
-      type: "object";
-      properties?: Record<string, ParameterProperties>;
-      required?: string[];
-      additionalProperties?: boolean;
-    };
-    strict?: boolean | null;
+    /**
+     * JSON schema defining the function's input arguments.
+     */
+    parameters?: JSONSchema;
+    /**
+     * Whether to enforce strict mode for the function call.
+     *
+     * https://platform.openai.com/docs/guides/function-calling?api-mode=responses#strict-mode.
+     */
+    strict?: boolean;
   };
 }
 
-interface ParameterProperties {
-  type: string | string[];
+/**
+ * Subset of JSON Schema supported by OpenAI for Structured Outputs.
+ *
+ * https://platform.openai.com/docs/guides/structured-outputs?api-mode=responses#supported-schemas
+ */
+interface JSONSchema {
+  /**
+   * The property types(s) (e.g. `"string"`, `"null"`, `"array"`).
+   */
+  type?: string | string[];
+  /**
+   * Description of the property.
+   */
   description?: string;
-  items?: {
-    type?: string | string[];
-    description?: string;
-    properties?: Record<string, ParameterProperties>;
-    required?: string[];
-  };
+  /**
+   * Minimum value for numeric properties.
+   */
+  minimum?: number;
+  /**
+   * Maximum value for numeric properties.
+   */
+  maximum?: number;
+  /**
+   * Allowed values (e.g. `["error", "warning"]`).
+   */
+  enum?: any[];
+  /**
+   * Schema for array items.
+   *
+   * Required if `type` is `"array"`.
+   */
+  items?: JSONSchema;
+  /**
+   * Schema for sub-properties.
+   */
+  properties?: Record<string, JSONSchema>;
+  /**
+   * Names of required sub-properties.
+   *
+   * Required if `type` is `"object"`.
+   */
+  required?: string[];
+  /**
+   * Whether to allow properties not listed in `properties`.
+   */
+  additionalProperties?: boolean;
 }
 
-export type FunctionCallResult = FunctionCallSuccess | FunctionCallFailure;
+interface BaseFunctionCallResult {
+  appliedActions: ApplyUAResult[];
+}
 
-export interface FunctionCallSuccess {
+export interface FunctionCallSuccess extends BaseFunctionCallResult {
   ok: true;
   result: any;
 }
 
-interface FunctionCallFailure {
+interface FunctionCallFailure extends BaseFunctionCallResult {
   ok: false;
   error: string;
 }
+
+export type FunctionCallResult = FunctionCallSuccess | FunctionCallFailure;

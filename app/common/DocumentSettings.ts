@@ -1,3 +1,6 @@
+import {CheckerT, createCheckers} from 'ts-interface-checker';
+import DocumentSettingsTI from 'app/common/DocumentSettings-ti';
+
 export interface DocumentSettings {
   locale: string;
   currency?: string;
@@ -13,7 +16,10 @@ export interface DocumentSettings {
 }
 
 /**
- * The back-end will for now support at most two engines, a pynbox-backed python2 and
+ * The back-end will for now support one engine,
  * a gvisor-backed python3.
  */
-export type EngineCode = 'python2' | 'python3';
+export type EngineCode = 'python3';
+
+const checkers = createCheckers(DocumentSettingsTI);
+export const DocumentSettingsChecker = checkers.DocumentSettings as CheckerT<DocumentSettings>;

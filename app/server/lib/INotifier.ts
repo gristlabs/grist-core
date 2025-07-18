@@ -7,6 +7,7 @@ import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { UserChange, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { SendGridConfig, SendGridMailWithTemplateId, TwoFactorEvent } from 'app/gen-server/lib/NotifierTypes';
+import { DocNotificationEvent } from 'app/gen-server/lib/NotifierTypes';
 
 /**
  *
@@ -42,6 +43,12 @@ export interface INotifier {
    * A slightly different kind of event that is lurking around.
    */
   streamingDestinationsChange(orgId: number | null): Promise<void>;
+
+  /**
+   * Deliver notification of a doc change or comment. Other code is responsible for preparing the
+   * payload; this method only needs to deliver it.
+   */
+  docNotification(event: DocNotificationEvent, userId: number, templateData: object): Promise<void>;
 
   /**
    * This is a bit confusing. It isn't a notification, but
@@ -89,6 +96,7 @@ export class BaseNotifier implements INotifier {
   public async twoFactorStatusChanged(_event: TwoFactorEvent, _userId: number,
                                       _method?: 'TOTP' | 'SMS'): Promise<void> {}
 
+  public async docNotification(event: DocNotificationEvent, userId: number, templateData: object): Promise<void> {}
   public async deleteUser(_userId: number) {}
 }
 

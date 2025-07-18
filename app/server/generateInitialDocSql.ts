@@ -39,6 +39,7 @@ export async function main(baseName: string) {
         create,
         getAuditLogger() { return createNullAuditLogger(); },
         getTelemetry() { return createDummyTelemetry(); },
+        getDocNotificationManager() { return undefined; },
       } as any
     );
     const activeDoc = new ActiveDoc(docManager, baseName);

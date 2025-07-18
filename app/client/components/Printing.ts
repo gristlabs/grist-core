@@ -37,6 +37,10 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
   }
 
   function prepareToPrint(onOff: boolean) {
+    // Make it known to other code that we are printing. This is currently only relied on for a
+    // workaround to a Chrome printing bug in sanitizeHTML.ts.
+    (window as any).isCurrentlyPrinting = onOff;
+
     // window.print() is a blocking call, which means our listener for the
     // `prefers-color-scheme: dark` media feature will not receive any updates for the
     // duration that the print dialog is shown. This proves problematic since an event is

@@ -31,6 +31,7 @@ export interface UserManagerModel {
   isOrg: boolean;                              // Indicates if the UserManager is for an org
   annotations: Observable<ShareAnnotations>;   // More information about shares, keyed by email.
   isPersonal: boolean;                         // If user access info/control is restricted to self.
+  hasOverview: boolean;                         // If user access contains readonly info about other users.
   isPublicMember: boolean;                     // Indicates if current user is a public member.
 
   activeUser: FullUser|null;                   // Populated if current user is logged in.
@@ -142,7 +143,12 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public annotations = this.autoDispose(observable({users: new Map()}));
 
-  public isPersonal = this.initData.personal ?? false;
+  public isPersonal = Boolean(this.initData.personal);
+
+  // If current user is owner of some parent resource, the access data will contain not only the user
+  // but also other members (and guest) of that resource. In that case we still show the personal dialog, but
+  // with bottom section that will list those users.
+  public hasOverview = Boolean(this.initData.personal && this.initData.users.length > 1);
 
   public isPublicMember = this.initData.public ?? false;
 

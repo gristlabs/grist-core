@@ -3,13 +3,11 @@ import {OpenDocMode} from 'app/common/DocListAPI';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {ActivationState} from 'app/common/gristUrls';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
-import {canEdit, canView, getWeakestRole, Role} from 'app/common/roles';
+import {canEdit, canView, getWeakestRole} from 'app/common/roles';
 import {UserOptions} from 'app/common/UserAPI';
-import {Document} from 'app/gen-server/entity/Document';
 import {User} from 'app/gen-server/entity/User';
-import {HomeDBAuth} from 'app/gen-server/lib/homedb/Interfaces';
-import {DocAuthKey, DocAuthResult, HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import type {AuthSession} from 'app/server/lib/AuthSession';
+import {DocAuthResult, HomeDBAuth} from 'app/gen-server/lib/homedb/Interfaces';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
         SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -550,90 +548,6 @@ export interface ResourceSummary {
   kind: 'doc';
   id: string|number;
 }
-
-/**
- *
- * Handle authorization for a single document accessed by a given user.
- *
- */
-export interface Authorizer {
-  // get any link parameters in place when accessing the resource.
-  getLinkParameters(): Record<string, string>;
-
-  // Fetch the doc metadata from HomeDBManager.
-  getDoc(): Promise<Document>;
-
-  // Check access, throw error if the requested level of access isn't available.
-  assertAccess(role: 'viewers'|'editors'|'owners'): Promise<void>;
-
-  // Get the lasted access information calculated for the doc.  This is useful
-  // for logging - but access control itself should use assertAccess() to
-  // ensure the data is fresh.
-  getCachedAuth(): DocAuthResult;
-}
-
-interface DocAuthorizerOptions {
-  dbManager: HomeDBManager;
-  urlId: string;
-  openMode: OpenDocMode;
-  linkParameters: Record<string, string>;
-  authSession: AuthSession;
-}
-
-/**
- *
- * Handle authorization for a single document and user.
- *
- */
-export class DocAuthorizer implements Authorizer {
-  public readonly openMode: OpenDocMode;
-  public readonly linkParameters: Record<string, string>;
-  private _key: DocAuthKey;
-  private _docAuth?: DocAuthResult;
-  constructor(
-    private _options: DocAuthorizerOptions
-  ) {
-    this.openMode = _options.openMode;
-    this.linkParameters = _options.linkParameters;
-    const {dbManager, authSession} = _options;
-    const userId = authSession.userId || dbManager.getAnonymousUserId();
-    this._key = {urlId: _options.urlId, userId, org: authSession.org || ""};
-  }
-
-  public getLinkParameters(): Record<string, string> {
-    return this.linkParameters;
-  }
-
-  public async getDoc(): Promise<Document> {
-    return this._options.dbManager.getDoc(this._key);
-  }
-
-  public async assertAccess(role: 'viewers'|'editors'|'owners'): Promise<void> {
-    const docAuth = await this._options.dbManager.getDocAuthCached(this._key);
-    this._docAuth = docAuth;
-    assertAccess(role, docAuth, {openMode: this.openMode});
-  }
-
-  public getCachedAuth(): DocAuthResult {
-    if (!this._docAuth) { throw Error('no cached authentication'); }
-    return this._docAuth;
-  }
-}
-
-export class DummyAuthorizer implements Authorizer {
-  constructor(public role: Role|null, public docId: string) {}
-  public getLinkParameters() { return {}; }
-  public async getDoc(): Promise<Document> { throw new Error("Not supported in standalone"); }
-  public async assertAccess() { /* noop */ }
-  public getCachedAuth(): DocAuthResult {
-    return {
-      access: this.role,
-      docId: this.docId,
-      removed: false,
-    };
-  }
-}
-
 
 export function assertAccess(
   role: 'viewers'|'editors'|'owners', docAuth: DocAuthResult, options: {

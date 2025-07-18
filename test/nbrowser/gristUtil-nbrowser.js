@@ -160,7 +160,7 @@ const gu = {
   },
 
   async getGridLabels(sectionName) {
-    return gu.getSection(sectionName).findAll('[data-test-id="GridView_columnLabel"] .kf_elabel_text',
+    return gu.getSection(sectionName).findAll('[data-test-id="GridView_columnLabel"] .test-column-title-text',
                                               label => label.getText());
   },
 

@@ -29,6 +29,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {INITIAL_FIELDS_COUNT} from 'app/common/Forms';
 import {isOwner} from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
 import * as ko from 'knockout';
@@ -139,14 +140,21 @@ export class FormView extends Disposable {
       return fields.filter(f => {
         const column = use(f.column);
         return (
-          use(column.pureType) !== 'Attachments' &&
           !(use(column.isRealFormula) && !use(column.colId).startsWith('gristHelper_Transform'))
         );
       });
     });
 
     this._layoutSpec = jsonObservable(this.viewSection.layoutSpec, (layoutSpec: FormLayoutNode|null) => {
-      return layoutSpec ?? buildDefaultFormLayout(this._formFields.get());
+      // Sometimes the layout spec is not a form layout, but a layout from another type of widget
+      // This used to cause the document to crash (see: https://github.com/gristlabs/grist-core/issues/1677)
+      if (layoutSpec?.type === "Layout") {
+        // This is already a form layout. Let's keep it.
+        return layoutSpec;
+      } else {
+        // Overwrite old layout with a clean form layout
+        return buildDefaultFormLayout(this._formFields.get());
+      }
     });
 
     this._layout = Computed.create(this, use => {
@@ -427,6 +435,7 @@ export class FormView extends Disposable {
       testId('editor'),
       this._formEditorBodyElement = style.cssFormEditBody(
         style.cssFormContainer(
+          style.cssFormContainer.cls('-border', getGristConfig().formFraming === 'border'),
           dom('div', testId('content'), dom.forEach(this._root.children, (child) => {
             if (!child) {
               return dom('div', 'Empty node');
@@ -508,15 +517,15 @@ export class FormView extends Disposable {
             dom('div',
               style.cssParagraph(
                 t(
-                  'Publishing your form will generate a share link. Anyone with the link can ' +
-                  'see the empty form and submit a response.'
+                  'Publishing your form will generate a share link. Anyone with the link can \
+see the empty form and submit a response.'
                 ),
               ),
               style.cssParagraph(
                 t(
-                  'Users are limited to submitting ' +
-                  'entries (records in your table) and reading pre-set values in designated ' +
-                  'fields, such as reference and choice columns.'
+                  'Users are limited to submitting \
+entries (records in your table) and reading pre-set values in designated \
+fields, such as reference and choice columns.'
                 ),
               ),
             )
@@ -600,8 +609,8 @@ export class FormView extends Disposable {
             dom('div',
               style.cssParagraph(
                 t(
-                  'Unpublishing the form will disable the share link so that users accessing ' +
-                  'your form via that link will see an error.'
+                  'Unpublishing the form will disable the share link so that users accessing \
+your form via that link will see an error.'
                 ),
               ),
             )
@@ -892,8 +901,8 @@ export class FormView extends Disposable {
       return style.cssSwitcherMessage(
         style.cssSwitcherMessageBody(
           t(
-            'Your form is published. Every change is live and visible to users ' +
-            'with access to the form. If you want to make changes in draft, unpublish the form.'
+            'Your form is published. Every change is live and visible to users \
+with access to the form. If you want to make changes in draft, unpublish the form.'
           ),
         ),
         style.cssSwitcherMessageDismissButton(

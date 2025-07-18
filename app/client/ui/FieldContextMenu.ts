@@ -2,6 +2,7 @@ import {allCommands} from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {menuDivider, menuItemCmd} from 'app/client/ui2018/menus';
+import {COMMENTS} from 'app/client/models/features';
 import {dom} from 'grainjs';
 
 const t = makeT('FieldContextMenu');
@@ -27,6 +28,9 @@ export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
     menuItemCmd(allCommands.clearValues, t('Clear field'), disableForReadonlyColumn),
     menuItemCmd(allCommands.hideCardFields, t('Hide field'), disableForReadonlyColumn),
     menuDivider(),
+    menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (
+      isReadonly || isVirtual
+    )), dom.hide(use => !use(COMMENTS()))),
     menuItemCmd(allCommands.copyLink, t('Copy anchor link'), disabledForVirtual),
   ];
 }

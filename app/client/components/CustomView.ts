@@ -260,14 +260,17 @@ export class CustomView extends Disposable {
       kd.scope(() => [
         this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId()
       ], ([_hide, _mode, _url, _access, _widgetId, _pluginId]: string[]) =>
-        _mode === "url" && !_hide ?
-          this._buildIFrame({
-            baseUrl: _url,
-            access: builtInSettings.accessLevel || (_access as AccessLevel || AccessLevel.none),
-            showAfterReady: showAfterReady(),
-            widgetId: builtInSettings.widgetId || _widgetId,
-            pluginId: _pluginId,
-          })
+        _mode === "url" ?
+          dom("div.flexauto.custom_view_content",
+            kd.style("display", _hide ? "none" : "flex"),
+            this._buildIFrame({
+              baseUrl: _url,
+              access: builtInSettings.accessLevel || (_access as AccessLevel || AccessLevel.none),
+              showAfterReady: showAfterReady(),
+              widgetId: builtInSettings.widgetId || _widgetId,
+              pluginId: _pluginId,
+            })
+          )
           : null
       ),
       kd.maybe(showPluginNotification, () => buildNotification('Plugin ',

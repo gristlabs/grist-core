@@ -11,8 +11,6 @@ import datetime
 import logging
 import re
 import moment # TODO grist internal libraries might not be available to plugins in the future.
-import six
-from six.moves import zip, xrange
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.WARNING)
@@ -59,7 +57,7 @@ class BaseConverter(object):
     raise NotImplementedError()
 
 
-numeric_types = six.integer_types + (float, complex, type(None))
+numeric_types = (int, float, complex, type(None))
 
 class NumericConverter(BaseConverter):
   """Handles the Grist Numeric type"""
@@ -123,7 +121,7 @@ class AnyConverter(BaseConverter):
   def convert(cls, value):
     if value is None:
       return u''
-    return six.text_type(value)
+    return str(value)
 
   @classmethod
   def get_grist_column(cls, values):
@@ -154,7 +152,7 @@ class ColumnDetector(object):
 
   def add_value(self, value):
     self._count_total += 1
-    if value is None or (type(value) in (str, six.text_type) and self._junk_re.match(value)):
+    if value is None or (type(value) in (str,) and self._junk_re.match(value)):
       return
 
     self._data.append(value)
@@ -173,7 +171,7 @@ class ColumnDetector(object):
 
 
 def _guess_basic_types(rows, num_columns):
-  column_detectors = [ColumnDetector() for i in xrange(num_columns)]
+  column_detectors = [ColumnDetector() for i in range(num_columns)]
   for row in rows:
     for cell, detector in zip(row, column_detectors):
       detector.add_value(cell)
@@ -199,7 +197,7 @@ class ColumnConverter(object):
 
     # Integer values sometimes show up as ints (from Excel), sometimes as floats (from Google).
     # Make them consistently ints; this avoid addition of ".0" suffix when converting to text.
-    if type(value) == float and value.is_integer():
+    if type(value) is float and value.is_integer():
       value = int(value)
 
     try:
@@ -208,7 +206,7 @@ class ColumnConverter(object):
       self._converted_indices.append(len(self._all_col_values))
       self._all_col_values.append(None)
     except Exception:
-      self._all_col_values.append(six.text_type(value))
+      self._all_col_values.append(str(value))
 
   def get_grist_column(self):
     """

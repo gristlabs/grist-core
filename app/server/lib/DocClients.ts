@@ -6,9 +6,8 @@
 import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {Authorizer} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {DocSession, DocSessionPrecursor, OptDocSession} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
@@ -34,8 +33,8 @@ export class DocClients {
   /**
    * Adds a client's open file to the list of connected clients.
    */
-  public addClient(client: Client, authorizer: Authorizer): DocSession {
-    const docSession = client.addDocSession(this.activeDoc, authorizer);
+  public addClient(client: Client, docSessionPrecursor: DocSessionPrecursor): DocSession {
+    const docSession = client.addDocSession(this.activeDoc, docSessionPrecursor);
     this._docSessions.push(docSession);
     this._log.debug(docSession, "now %d clients; new client is %s (fd %s)",
       this._docSessions.length, client.clientId, docSession.fd);

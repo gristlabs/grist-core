@@ -333,8 +333,8 @@ function showUnavailableMenuCommandModal(action) {
     {
       explanation: cssModalContent(
         t(
-          'The {{action}} menu command is not available in this browser. You can still {{action}}' +
-          ' by using the keyboard shortcut {{shortcut}}.',
+          'The {{action}} menu command is not available in this browser. You can still {{action}} \
+by using the keyboard shortcut {{shortcut}}.',
           {
             action,
             shortcut: ShortcutKey(ShortcutKeyContent(getHumanKey(keys, isMac))),

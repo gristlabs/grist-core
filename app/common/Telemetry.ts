@@ -163,8 +163,8 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'The context in which the assistant is open (e.g. column id).',
         dataType: 'object',
       },
-      message: {
-        description: 'The content and index of the message received from the AI Assistant.',
+      response: {
+        description: 'The content and index of the response received from the AI Assistant.',
         dataType: 'object',
       },
       suggestedFormula: {

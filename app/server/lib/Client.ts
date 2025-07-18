@@ -3,10 +3,9 @@ import {CommClientConnect, CommMessage, CommResponse, CommResponseError} from 'a
 import {delay} from 'app/common/delay';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {Authorizer} from 'app/server/lib/Authorizer';
 import {AuthSession} from 'app/server/lib/AuthSession';
 import type {Comm} from 'app/server/lib/Comm';
-import {DocSession} from 'app/server/lib/DocSession';
+import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {GristServerSocket} from 'app/server/lib/GristServerSocket';
 import log from 'app/server/lib/log';
 import {LogMethods} from 'app/server/lib/LogMethods';
@@ -155,9 +154,9 @@ export class Client {
   }
 
   // Adds a new DocSession to this Client, and returns the new FD for it.
-  public addDocSession(activeDoc: ActiveDoc, authorizer: Authorizer): DocSession {
+  public addDocSession(activeDoc: ActiveDoc, docSessionPrecursor: DocSessionPrecursor): DocSession {
     const fd = this._getNextDocFD();
-    const docSession = new DocSession(activeDoc, this, fd, authorizer);
+    const docSession = new DocSession(docSessionPrecursor, activeDoc, fd);
     this._docFDs[fd] = docSession;
     return docSession;
   }

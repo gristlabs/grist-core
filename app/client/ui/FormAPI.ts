@@ -2,6 +2,7 @@ import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {CellValue, ColValues} from 'app/common/DocActions';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 
+
 /**
  * Form and associated field metadata from a Grist view section.
  *
@@ -90,36 +91,37 @@ export type FormOptionsSortOrder = 'default' | 'ascending' | 'descending';
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;
   createRecord(options: CreateRecordOptions): Promise<void>;
+  createAttachments(options: CreateAttachmentOptions): Promise<number[]>;
 }
+
+interface FormTargetWithDocId {
+  docId: string;
+}
+
+interface FormTargetWithShareKey {
+  shareKey: string;
+}
+
+type FormTarget = FormTargetWithDocId | FormTargetWithShareKey;
 
 interface GetFormCommonOptions {
   vsId: number;
 }
 
-interface GetFormWithDocIdOptions extends GetFormCommonOptions {
-  docId: string;
-}
-
-interface GetFormWithShareKeyOptions extends GetFormCommonOptions {
-  shareKey: string;
-}
-
-type GetFormOptions = GetFormWithDocIdOptions | GetFormWithShareKeyOptions;
+type GetFormOptions = GetFormCommonOptions & FormTarget;
 
 interface CreateRecordCommonOptions {
   tableId: string;
   colValues: ColValues;
 }
 
-interface CreateRecordWithDocIdOptions extends CreateRecordCommonOptions {
-  docId: string;
+type CreateRecordOptions = CreateRecordCommonOptions & FormTarget;
+
+interface CreateAttachmentCommonOptions {
+  upload: File[];
 }
 
-interface CreateRecordWithShareKeyOptions extends CreateRecordCommonOptions {
-  shareKey: string;
-}
-
-type CreateRecordOptions = CreateRecordWithDocIdOptions | CreateRecordWithShareKeyOptions;
+type CreateAttachmentOptions = CreateAttachmentCommonOptions & FormTarget;
 
 export class FormAPIImpl extends BaseAPI implements FormAPI {
   constructor(private _homeUrl: string, options: IOptions = {}) {
@@ -127,31 +129,53 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {
-    if ('docId' in options) {
-      const {docId, vsId} = options;
-      return this.requestJson(`${this._url}/api/docs/${docId}/forms/${vsId}`, {method: 'GET'});
-    } else {
-      const {shareKey, vsId} = options;
-      return this.requestJson(`${this._url}/api/s/${shareKey}/forms/${vsId}`, {method: 'GET'});
-    }
+    const {vsId} = options;
+    const url = this._getUrl(options, `forms/${vsId}`);
+    return this.requestJson(url.toString(), {method: 'GET'});
   }
 
   public async createRecord(options: CreateRecordOptions): Promise<void> {
-    if ('docId' in options) {
-      const {docId, tableId, colValues} = options;
-      return this.requestJson(`${this._url}/api/docs/${docId}/tables/${tableId}/records`, {
-        method: 'POST',
-        body: JSON.stringify({records: [{fields: colValues}]}),
-      });
-    } else {
-      const {shareKey, tableId, colValues} = options;
-      const url = new URL(`${this._url}/api/s/${shareKey}/tables/${tableId}/records`);
-      url.searchParams.set('utm_source', 'grist-forms');
-      return this.requestJson(url.href, {
-        method: 'POST',
-        body: JSON.stringify({records: [{fields: colValues}]}),
-      });
+    const {tableId, colValues} = options;
+    const url = this._getUrl(options, `tables/${tableId}/records`);
+    return this.requestJson(url.toString(), {
+      method: 'POST',
+      body: JSON.stringify({records: [{fields: colValues}]}),
+    });
+  }
+
+  public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
+    const url = this._getUrl(options, 'attachments');
+
+    const upload = options.upload.filter(f => f.size > 0);
+    if (upload.length === 0) {
+      return [];
     }
+
+    const formData = new FormData();
+    for (const file of upload) {
+      formData.append('upload', file);
+    }
+
+    const result = await this.fetch(url.toString(), {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
+
+    return result.json();
+  }
+
+  private _getUrl(target: FormTarget, path: string): URL {
+    const url = new URL(this._url);
+    if ('docId' in target) {
+      url.pathname = `/api/docs/${target.docId}/${path}`;
+    } else {
+      url.searchParams.set('utm_source', 'grist-forms');
+      url.pathname = `/api/s/${target.shareKey}/${path}`;
+    }
+    return url;
   }
 
   private get _url(): string {

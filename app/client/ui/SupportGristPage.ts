@@ -68,8 +68,8 @@ export class SupportGristPage extends Disposable {
         } else {
           return [
             cssParagraph(t(
-              'Support Grist by opting in to telemetry, which helps us understand how the product ' +
-              'is used, so that we can prioritize future improvements.'
+              'Support Grist by opting in to telemetry, which helps us understand how the product \
+is used, so that we can prioritize future improvements.'
             )),
             cssParagraph(
               t('We only collect usage statistics, as detailed in our {{link}}, never document contents.', {
@@ -123,22 +123,22 @@ export class SupportGristPage extends Disposable {
     return cssSection(
       cssParagraph(
         t(
-          'Grist software is developed by Grist Labs, which offers free and paid ' +
-          'hosted plans. We also make Grist code available under a standard free ' +
-          'and open OSS license (Apache 2.0) on {{link}}.',
+          'Grist software is developed by Grist Labs, which offers free and paid \
+hosted plans. We also make Grist code available under a standard free \
+and open OSS license (Apache 2.0) on {{link}}.',
           {link: gristCoreLink()},
         ),
       ),
       cssParagraph(
         t(
-          'You can support Grist open-source development by sponsoring ' +
-          'us on our {{link}}.',
+          'You can support Grist open-source development by sponsoring \
+us on our {{link}}.',
           {link: sponsorGristLink()},
         ),
       ),
       cssParagraph(t(
-        'We are a small and determined team. Your support matters a lot to us. ' +
-        'It also shows to others that there is a determined community behind this product.'
+        'We are a small and determined team. Your support matters a lot to us. \
+It also shows to others that there is a determined community behind this product.'
       )),
       cssSponsorButton(
         cssButtonIconAndText(icon('Heart'), cssButtonText(t('Manage Sponsorship'))),

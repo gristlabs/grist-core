@@ -1,7 +1,10 @@
 import { assert } from 'mocha-webdriver';
 import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
+import { withoutSandboxing } from 'test/server/testUtils';
 
 describe('UndoJumps.ntest', function() {
+  withoutSandboxing();
+
   const cleanup = test.setupTestSuite(this);
 
   before(async function() {

@@ -1,4 +1,5 @@
 import {cssBannerLink} from 'app/client/components/Banner';
+import {getExternalStorageRecommendation} from 'app/client/components/ExternalAttachmentBanner';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
@@ -7,9 +8,10 @@ import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
-import {APPROACHING_LIMIT_RATIO, DataLimitInfo} from 'app/common/DocUsage';
+import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Features, isFreePlan} from 'app/common/Features';
 import {capitalizeFirstWord} from 'app/common/gutil';
+import {APPROACHING_LIMIT_RATIO} from 'app/common/Limits';
 import {canUpgradeOrg} from 'app/common/roles';
 import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
@@ -39,10 +41,6 @@ export class DocumentUsage extends Disposable {
 
   // TODO: Update this whenever the rest of the UI is internationalized.
   private readonly _rowCountFormatter = new Intl.NumberFormat('en-US');
-
-  private readonly _dataLimitInfo = Computed.create(this, this._currentDocUsage, (_use, usage) => {
-    return usage?.dataLimitInfo;
-  });
 
   private readonly _rowCount = Computed.create(this, this._currentDocUsage, (_use, usage) => {
     return usage?.rowCount;
@@ -158,22 +156,28 @@ export class DocumentUsage extends Disposable {
       const org = use(this._currentOrg);
       const product = use(this._currentProduct);
       const features = use(this._currentFeatures);
-      const usageInfo = use(this._dataLimitInfo);
-      if (!org || !usageInfo?.status) { return null; }
+      const usageInfo = use(this._currentDocUsage);
+      if (!org || !usageInfo) { return null; }
 
-      return buildMessage([
-        buildLimitStatusMessage(usageInfo, features, {
-          disableRawDataLink: true
-        }),
-        (product && isFreePlan(product.name)
-          ? [' ', buildUpgradeMessage(
-            canUpgradeOrg(org),
-            'long',
-            () =>  this._docPageModel.appModel.showUpgradeModal()
-          )]
-          : null
-        ),
-      ]);
+      return [
+        // Pass on external storage recommendation if there is one.
+        usageInfo.usageRecommendations.recommendExternal ? buildMessage(getExternalStorageRecommendation()) : null,
+
+        // If usage limits have kicked in, say so.
+        usageInfo?.dataLimitInfo?.status ? buildMessage([
+          buildLimitStatusMessage(usageInfo, features, {
+            disableRawDataLink: true
+          }),
+          (product && isFreePlan(product.name)
+            ? [' ', buildUpgradeMessage(
+              canUpgradeOrg(org),
+              'long',
+              () =>  this._docPageModel.appModel.showUpgradeModal()
+            )]
+            : null
+          ),
+        ]) : null
+      ];
     });
   }
 
@@ -196,14 +200,14 @@ export class DocumentUsage extends Disposable {
 }
 
 export function buildLimitStatusMessage(
-  usageInfo: NonNullable<DataLimitInfo>,
+  usageInfo: NonNullable<Pick<FilteredDocUsageSummary, 'dataLimitInfo'>>,
   features?: Features|null,
   options: {
     disableRawDataLink?: boolean;
   } = {}
 ) {
   const {disableRawDataLink = false} = options;
-  const {status, daysRemaining} = usageInfo;
+  const {status, daysRemaining} = usageInfo.dataLimitInfo;
   switch (status) {
     case 'approachingLimit': {
       return [

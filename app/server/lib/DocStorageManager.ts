@@ -263,6 +263,10 @@ export class DocStorageManager implements IDocStorageManager {
     throw new Error('replacement not implemented');
   }
 
+  public async getFsFileSize(docName: string): Promise<number> {
+      return (await fse.stat(this.getPath(docName))).size;
+  }
+
   /**
    * Returns a promise for the list of docNames for all docs in the given directory.
    * @returns {Promise:Array<Object>} Promise for an array of objects with `name`, `size`,

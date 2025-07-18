@@ -50,16 +50,14 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {getDataLimitInfo, getDataLimitRatio, getSeverity, LimitExceededError} from 'app/common/DocLimits';
+import {getDataLimitInfo, getDataLimitRatio, getSeverity} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
-  APPROACHING_LIMIT_RATIO,
   DataLimitInfo,
   DocumentUsage,
   DocUsageSummary,
   FilteredDocUsageSummary,
-  getUsageRatio,
   RowCounts,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
@@ -69,6 +67,7 @@ import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
+import {APPROACHING_LIMIT_RATIO, getUsageRatio, LimitExceededError} from 'app/common/Limits';
 import {normalizedDateTimeString} from 'app/common/normalizedDateTimeString';
 import {
   compilePredicateFormula,
@@ -104,10 +103,13 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
-import {AssistanceSchemaPromptV1Context} from 'app/server/lib/IAssistant';
+import {
+  AssistanceFormulaEvaluationResult,
+  AssistanceSchemaPromptV1Context,
+} from 'app/server/lib/IAssistant';
 import {AssistanceContextV1} from 'app/common/Assistance';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
-import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
@@ -122,6 +124,7 @@ import {LogMethods} from 'app/server/lib/LogMethods';
 import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
+import {SandboxError} from 'app/server/lib/sandboxUtil';
 import {
   getDocSessionAccess,
   getDocSessionAccessOrNull,
@@ -144,7 +147,6 @@ import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import stream from 'node:stream';
 import path from 'path';
-import {createClient, RedisClient} from 'redis';
 import tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
@@ -154,18 +156,19 @@ import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileMa
 import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
-import {DocSession, makeExceptionalDocSession, OptDocSession} from './DocSession';
+import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
 import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getPubSubPrefix} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
 import merge = require('lodash/merge');
 import pick = require('lodash/pick');
 import sum = require('lodash/sum');
+import throttle = require('lodash/throttle');
 import without = require('lodash/without');
 
 bluebird.promisifyAll(tmp);
@@ -181,7 +184,7 @@ const DEFAULT_LOCALE = process.env.GRIST_DEFAULT_LOCALE || "en-US";
 const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
 
 // We'll wait this long between re-measuring sandbox memory.
-const MEMORY_MEASUREMENT_INTERVAL_MS = 60 * 1000;
+const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
 
 // Apply the UpdateCurrentTime user action every hour
 const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
@@ -265,14 +268,24 @@ export class ActiveDoc extends EventEmitter {
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
   private _tableMetadataLoader: TableMetadataLoader;
-  private _muted: boolean = false;  // If set, changes to this document should not propagate
-                                    // to outside world
-  private _migrating: number = 0;   // If positive, a migration is in progress
+  /**
+   * If set, changes to this document should not propagate to outside world
+   */
+  private _muted: boolean = false;
+  /**
+   * If positive, a migration is in progress
+   */
+  private _migrating: number = 0;
+  /**
+   * If set, wait on this to be sure the ActiveDoc is fully
+   * initialized.  True on success.
+   */
   private _initializationPromise: Promise<void>|null = null;
-                                    // If set, wait on this to be sure the ActiveDoc is fully
-                                    // initialized.  True on success.
-  private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
-  private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
+  /**
+   * Becomes true once all columns are loaded/computed.
+   */
+  private _fullyLoaded: boolean = false;
+  private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
@@ -285,7 +298,7 @@ export class ActiveDoc extends EventEmitter {
   private _attachmentFileManager: AttachmentFileManager;
 
   // Client watching for 'product changed' event published by Billing to update usage
-  private _redisSubscriber?: RedisClient;
+  private _pubSubUnsubscribe?: () => void;
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => {
@@ -300,6 +313,17 @@ export class ActiveDoc extends EventEmitter {
 
   // Size of the last _rawPyCall() response in bytes.
   private _lastPyCallResponseSize: number|undefined;
+
+  private _reportDataEngineMemoryThrottled:
+    | ((() => Promise<void>) & Cancelable)
+    | null = throttle(
+    this._reportDataEngineMemory.bind(this),
+    MEMORY_MEASUREMENT_THROTTLE_WAIT_MS,
+    {
+      leading: true,
+      trailing: true,
+    }
+  );
 
   constructor(
     private readonly _docManager: DocManager,
@@ -355,24 +379,14 @@ export class ActiveDoc extends EventEmitter {
       this._product = billingAccount?.product;
       this._gracePeriodStart = gracePeriodStart;
 
-      if (process.env.REDIS_URL && billingAccount) {
-        const prefix = getPubSubPrefix();
-        const channel = `${prefix}-billingAccount-${billingAccount.id}-product-changed`;
-        this._redisSubscriber = createClient(process.env.REDIS_URL);
-        this._redisSubscriber.subscribe(channel);
-        this._redisSubscriber.on("message", async () => {
-          // A product change has just happened in Billing.
-          // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
-          this._log.debug(null, 'reload after product change');
-          await this.reloadDoc();
-        });
-        this._redisSubscriber.on("error", async (error) => {
-          this._log.error(
-            null,
-            `encountered error while subscribed to channel ${channel}`,
-            error
-          );
-        });
+      if (billingAccount) {
+        this._pubSubUnsubscribe = this._docManager.gristServer.getPubSubManager()
+          .subscribe(`billingAccount-${billingAccount.id}-product-changed`, async () => {
+            // A product change has just happened in Billing.
+            // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
+            this._log.debug(null, 'reload after product change');
+            await this.reloadDoc();
+          });
       }
 
       if (!(this.isFork || this._isSnapshot)) {
@@ -430,7 +444,7 @@ export class ActiveDoc extends EventEmitter {
       .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
-    // corresponding to one process for pynbox, more for gvisor).
+    // corresponding to many processes for gvisor).
     // The data engine runs user-defined python code including formula calculations.
     // It maintains all document data and metadata, and applies translates higher-level UserActions
     // into lower-level DocActions.
@@ -438,8 +452,8 @@ export class ActiveDoc extends EventEmitter {
     // Creation of the data engine needs to be deferred since we need to look at the document to
     // see what kind of engine it needs. This doesn't delay loading the document, but could delay
     // first calculation and modification.
-    // TODO: consider caching engine requirement for doc in home db - or running python2
-    // in gvisor (but would still need to look at doc to know what process to start in sandbox)
+    // TODO: consider caching engine requirement for doc in home db
+    // (but would still need to look at doc to know what process to start in sandbox)
 
     this._activeDocImport = new ActiveDocImport(this);
 
@@ -584,11 +598,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Adds a client of this doc to the list of connected clients.
    * @param client: The client object maintaining the websocket connection.
-   * @param authorizer: The authorizer for the client/doc combination.
+   * @param docSessionPrecursor: The incomplete docSession, to be filled in and turned into real DocSession.
    * @returns docSession
    */
-  public addClient(client: Client, authorizer: Authorizer): DocSession {
-    const docSession: DocSession = this.docClients.addClient(client, authorizer);
+  public addClient(client: Client, docSessionPrecursor: DocSessionPrecursor): DocSession {
+    const docSession: DocSession = this.docClients.addClient(client, docSessionPrecursor);
 
     // If we had a shutdown scheduled, unschedule it.
     if (this._inactivityTimer.isEnabled()) {
@@ -604,14 +618,26 @@ export class ActiveDoc extends EventEmitter {
    * is completely shut down but before it is removed from the DocManager, ensuring
    * that the operation will not overlap with a new ActiveDoc starting up for the
    * same document.
+   *
+   * @param [options] Options to customize the shutdown process.
+   * @param [options.beforeShutdown] A function to call before shutdown.
+   * NOTE: If a shutdown is already in progress, this callback will be ignored (it would be too late, obviously).
+   * In other words, the first call to this function determines the `beforeShutdown` callback to use
+   * (or none if not provided).
+   *
+   * @param [options.afterShutdown] A function to call after shutdown.
+   * NOTE: Unlike `beforeShutdown`, providing an `afterShutdown` callback will set or overwrite
+   * the callback to be called after the shutdown, **even if** it is already in progress.
+   * In other words, the last call to this function determines the `afterShutdown` callback to use when provided.
    */
   public async shutdown(options: {
+    beforeShutdown?: () => Promise<void>,
     afterShutdown?: () => Promise<void>
   } = {}): Promise<void> {
     if (options.afterShutdown) {
       this._afterShutdownCallback = options.afterShutdown;
     }
-    this._doShutdown ||= this._doShutdownImpl();
+    this._doShutdown ||= this._doShutdownImpl({beforeShutdown: options.beforeShutdown});
     await this._doShutdown;
   }
 
@@ -1038,6 +1064,8 @@ export class ActiveDoc extends EventEmitter {
       unused: 0,
     };
 
+    const sizesToUpdate = new Map<string, number>();
+
     await unpackTarArchive(tarFile, async (file) => {
       try {
         const fileIdent = archiveFilePathToAttachmentIdent(file.path);
@@ -1047,6 +1075,7 @@ export class ActiveDoc extends EventEmitter {
           fallbackStoreId,
         );
         if (isAdded) {
+          sizesToUpdate.set(fileIdent, file.size);
           results.added += 1;
         } else {
           results.unused += 1;
@@ -1059,6 +1088,11 @@ export class ActiveDoc extends EventEmitter {
         this._log.error(docSession, `Failed to upload attachment: ${err}`);
       }
     });
+
+    // This updates _grist_Attachments.fileSize with the size of the uploaded files.
+    // This prevents a loophole where a user has altered `fileSize`, imported the altered document,
+    // then restored the originals.
+    await this._updateAttachmentFileSizesUsingFileIdent(docSession, sizesToUpdate);
 
     return results;
   }
@@ -1546,7 +1580,7 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceFormulaTweak(txt: string) {
+  public assistanceFormulaTweak(txt: string): Promise<string> {
     return this._pyCall('convert_formula_completion', txt);
   }
 
@@ -1557,7 +1591,9 @@ export class ActiveDoc extends EventEmitter {
    *
    * Only used by version 1 of the AI assistant.
    */
-  public assistanceEvaluateFormula(options: AssistanceContextV1) {
+  public assistanceEvaluateFormula(
+    options: AssistanceContextV1
+  ): Promise<AssistanceFormulaEvaluationResult> {
     if (!options.evaluateCurrentFormula) {
       throw new Error('evaluateCurrentFormula must be true');
     }
@@ -1624,13 +1660,9 @@ export class ActiveDoc extends EventEmitter {
     const isAnonymous = this._docManager.isAnonymous(userId);
 
     // Get fresh document metadata (the cached metadata doesn't include the urlId).
-    let doc: Document | undefined;
-    if (docSession.authorizer) {
-      doc = await docSession.authorizer.getDoc();
-    } else if (docSession.req) {
-      doc = await dbManager.getDoc(docSession.req);
-    }
-    if (!doc) { throw new Error('Document not found'); }
+    const reqOrScope = docSession.authorizer?.getAuthKey() || docSession.req;
+    if (!reqOrScope) { throw new Error('Document not found'); }
+    const doc = await dbManager.getDoc(reqOrScope);
 
     // Don't allow creating forks of forks (for now).
     if (doc.trunkId) { throw new ApiError("Cannot fork a document that's already a fork", 400); }
@@ -1858,7 +1890,7 @@ export class ActiveDoc extends EventEmitter {
       if (requests) {
         this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
       }
-      await this._reportDataEngineMemory();
+      await this._reportDataEngineMemoryThrottled?.();
     } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
       sandboxActionBundle = createEmptySandboxActionBundle();
@@ -2177,6 +2209,14 @@ export class ActiveDoc extends EventEmitter {
     return await this._pyCall('get_timings');
   }
 
+  public getMemoryUsedMB(): number {
+    return this._memoryUsedMB;
+  }
+
+  public async notifySubscribers(docSession: OptDocSession, accessControl: GranularAccessForBundle): Promise<void> {
+    return this._server.getDocNotificationManager()?.notifySubscribers(docSession, this._docName, accessControl);
+  }
+
   /**
    * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
    * metadata.
@@ -2294,7 +2334,7 @@ export class ActiveDoc extends EventEmitter {
     return result;
   }
 
-  private async _doShutdownImpl(): Promise<void> {
+  private async _doShutdownImpl(options: {beforeShutdown?: () => Promise<void>}): Promise<void> {
     const docSession = makeExceptionalDocSession('system');
     this._log.debug(docSession, "shutdown starting");
 
@@ -2312,6 +2352,10 @@ export class ActiveDoc extends EventEmitter {
 
       this.setMuted();
       this._inactivityTimer.disable();
+
+      // No timeout on this callback: if it hangs, it will make the document unusable.
+      await options.beforeShutdown?.();
+
       if (this.docClients.clientCount() > 0) {
         this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
         await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
@@ -2325,14 +2369,17 @@ export class ActiveDoc extends EventEmitter {
       await safeCallAndWait('attachmentFileManager',
         this._attachmentFileManager.shutdown.bind(this._attachmentFileManager));
 
-      this._redisSubscriber?.quitAsync()
-        .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));
+      // Clear the pubsub subscription to billing account changes.
+      this._pubSubUnsubscribe?.();
 
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
 
       await Promise.all(this._intervals.map(interval =>
         safeCallAndWait("interval.disableAndFinish", () => interval.disableAndFinish())));
+
+      this._reportDataEngineMemoryThrottled?.cancel();
+      this._reportDataEngineMemoryThrottled = null;
 
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
@@ -2433,13 +2480,7 @@ export class ActiveDoc extends EventEmitter {
     const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
     const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
     const documentSettings: DocumentSettings = { locale };
-    const pythonVersion = process.env.PYTHON_VERSION_ON_CREATION;
-    if (pythonVersion) {
-      if (pythonVersion !== '2' && pythonVersion !== '3') {
-        throw new Error(`PYTHON_VERSION_ON_CREATION must be 2 or 3, not: ${pythonVersion}`);
-      }
-      documentSettings.engine = (pythonVersion === '2') ? 'python2' : 'python3';
-    }
+    documentSettings.engine = 'python3';
     await this.docStorage.run('UPDATE _grist_DocInfo SET timezone = ?, documentSettings = ?',
                               timezone, JSON.stringify(documentSettings));
   }
@@ -2593,6 +2634,45 @@ export class ActiveDoc extends EventEmitter {
     }];
   }
 
+  private async _updateAttachmentFileSizesUsingFileIdent(docSession: OptDocSession,
+                                                         newFileSizesByFileIdent: Map<string, number>): Promise<void> {
+    const rowIdsToUpdate: number[] = [];
+    const newFileSizesForRows: CellValue[] = [];
+    const attachments = this.docData?.getMetaTable("_grist_Attachments").getRecords();
+    for (const attachmentRec of attachments ?? []) {
+      const newSize = newFileSizesByFileIdent.get(attachmentRec.fileIdent);
+      if (newSize && newSize !== attachmentRec.fileSize) {
+        rowIdsToUpdate.push(attachmentRec.id);
+        newFileSizesForRows.push(newSize);
+      }
+    }
+
+    if (rowIdsToUpdate.length === 0) {
+      return;
+    }
+
+    const action: BulkUpdateRecord = ['BulkUpdateRecord', '_grist_Attachments', rowIdsToUpdate, {
+      fileSize: newFileSizesForRows
+    }];
+
+    try {
+      await this._applyUserActionsWithExtendedOptions(
+        docSession,
+        [action],
+        {attachment: true},
+      );
+    } catch (e) {
+      if (e instanceof SandboxError) {
+        this._log.error(null, "Attachment sizes could not be updated due to a sandbox error: ", e);
+        throw new Error("Attachment sizes could not be updated due to a sandbox error", { cause: e });
+      }
+      throw e;
+    }
+
+    // Updates doc's overall attachment usage to reflect any changes to file sizes.
+    await this._updateAttachmentsSize();
+  }
+
   /**
    * If the software is newer than the document, migrate the document by fetching all tables, and
    * giving them to the sandbox so that it can produce migration actions.
@@ -2701,6 +2781,10 @@ export class ActiveDoc extends EventEmitter {
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
+        // Report preliminary usage. The "Calculate" action below also reports usage, but
+        // since it may take a while to complete, it's helpful to report an early measurement.
+        await this._reportDataEngineMemoryThrottled?.();
+
         if (this.isTimingOn) {
           await this._doStartTiming();
         }
@@ -2708,7 +2792,6 @@ export class ActiveDoc extends EventEmitter {
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
         await this._applyUserActionsAsSystem([['Calculate']]);
-        await this._reportDataEngineMemory();
       }
 
       this._fullyLoaded = true;
@@ -2932,14 +3015,14 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _reportDataEngineMemory() {
-    const now = Date.now();
-    if (now >= this._lastMemoryMeasurement + MEMORY_MEASUREMENT_INTERVAL_MS) {
-      this._lastMemoryMeasurement = now;
-      if (this._dataEngine && !this._shuttingDown) {
-        const dataEngine = await this._getEngine();
-        await dataEngine.reportMemoryUsage();
-      }
+    if (!this._dataEngine || this._shuttingDown) {
+      return;
     }
+
+    const dataEngine = await this._getEngine();
+    const memoryUsedBytes = await dataEngine.reportMemoryUsage();
+    this._memoryUsedMB = memoryUsedBytes / (1024 * 1024);
+    this._docManager.setMemoryUsedMB(this, this._memoryUsedMB);
   }
 
   private async _initializeDocUsage(docSession: OptDocSession) {
@@ -3061,16 +3144,6 @@ export class ActiveDoc extends EventEmitter {
     return docSettings;
   }
 
-  private async _getDocumentSettingsIfPresent(): Promise<DocumentSettings|undefined> {
-    try {
-      return this._getDocumentSettings();
-    } catch (e) {
-      // If called before docData is initialized, pick up docSettings directly from SQLite.
-      const docInfo = await this.docStorage.get('SELECT documentSettings FROM _grist_DocInfo').catch(() => undefined);
-      return safeJsonParse(docInfo?.documentSettings || '', undefined);
-    }
-  }
-
   private async _updateDocumentSettings(docSessions: OptDocSession, settings: DocumentSettings): Promise<void> {
     const docInfo = this.docData?.docInfo();
     if (!docInfo) {
@@ -3084,23 +3157,7 @@ export class ActiveDoc extends EventEmitter {
 
   private async _makeEngine(): Promise<ISandbox> {
     // Figure out what kind of engine we need for this document.
-    let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '2' ? '2' : '3';
-
-    // Careful, migrations may not have run on this document and it may not have a
-    // documentSettings column.  Failures are treated as lack of an engine preference.
-    const docSettings = await this._getDocumentSettingsIfPresent();
-    if (docSettings) {
-      const engine = docSettings.engine;
-      if (engine) {
-        if (engine === 'python2') {
-          preferredPythonVersion = '2';
-        } else if (engine === 'python3') {
-          preferredPythonVersion = '3';
-        } else {
-          throw new Error(`engine type not recognized: ${engine}`);
-        }
-      }
-    }
+    const preferredPythonVersion = '3';
     return createSandbox({
       server: this._server,
       docId: this._docName,
@@ -3202,7 +3259,31 @@ export class ActiveDoc extends EventEmitter {
 
   private async _onInactive() {
     if (Deps.ACTIVEDOC_TIMEOUT_ACTION === 'shutdown') {
-      await this.shutdown();
+      await this.shutdown({
+        beforeShutdown: async () => {
+          // from sqlite official doc :
+          // The VACUUM command works by copying the contents of the
+          // database into a temporary database file and then overwriting
+          // the original with the contents of the temporary file.
+          // When overwriting the original, a rollback journal or write-ahead
+          // log WAL file is used just as it would be for any other database
+          // transaction. This means that when VACUUMing a database,
+          // as much as twice the size of the original database file is
+          // required in free disk space.
+          // ---
+          // The temporary copy and rollback machanisms must avoid any document
+          // corruption.
+          try {
+            await this.docStorage.vacuum();
+          } catch (err) {
+            if (err.code === "ENOENT") {
+              this._log.warn(null, `Vacuum on inactive: Doc ${this.docName} is no longer available`);
+            } else {
+              this._log.warn(null, `Vacuum on inactive: Doc ${this.docName}\n ${err}`);
+            }
+          }
+        }
+      });
     }
   }
 
@@ -3327,7 +3408,7 @@ export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions
 export function createSandbox(options: {
   server: GristServer,
   docId: string,
-  preferredPythonVersion: '2' | '3' | undefined,
+  preferredPythonVersion: '3',
   sandboxOptions?: Partial<ISandboxOptions>,
 }) {
   const {docId, preferredPythonVersion, sandboxOptions, server} = options;

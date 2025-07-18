@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long
 import logging
-import six
 
 import testutil
 import test_engine
@@ -442,13 +441,13 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [13, 14, 16, 19],
          {"numeric": [0, 1, 8, None]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Int"}],
-      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0}]],  # Only in Python 2 due to integer division,
+      ],
       "undo": [
         ["BulkUpdateRecord", "Types", [13, 14, 16, 19],
           {"numeric": [False, True, 8.153, ""]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
-      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0.5}]],  # Only in Python 2 due to integer division
+      ]
     })
 
     # Test Int -> Int conversion
@@ -541,13 +540,13 @@ class TestTypes(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "Types", [15, 16, 17, 18, 19, 20],
           {"numeric": [True, True, False, True, False, False]}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Bool"}],
-      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0}]],  # Only in Python 2 due to integer division,
+      ],
       "undo": [
         ["BulkUpdateRecord", "Types", [15, 16, 17, 18, 19, 20],
           {"numeric": [1509556595.0, 8.153, 0.0, 1.0, "", None]}],
         ["ModifyColumn", "Types", "numeric", {"type": "Numeric"}],
         ["UpdateRecord", "_grist_Tables_column", 22, {"type": "Numeric"}],
-      ] + six.PY2 * [["UpdateRecord", "Formulas", 1, {"division": 0.5}]],  # Only in Python 2 due to integer division
+      ]
     })
 
     # Test Int -> Bool conversion

@@ -58,7 +58,7 @@ import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {invokePrompt} from 'app/client/ui2018/modals';
 import {AssistantPopup} from 'app/client/widgets/AssistantPopup';
-import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
+import {CommentMonitor, DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
@@ -75,7 +75,7 @@ import type {UserOrgPrefs} from 'app/common/Prefs';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {getGristConfig} from 'app/common/urlUtils';
-import {AttachmentTransferStatus, DocAPI, DocStateComparison} from 'app/common/UserAPI';
+import {AttachmentTransferStatus, DocAPI, DocStateComparison, ExtendedUser} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType} from 'app/common/widgetTypes';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {
@@ -98,6 +98,7 @@ import {
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
+import pick = require('lodash/pick');
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
 
@@ -163,6 +164,7 @@ export interface GristDoc extends DisposableWithEvents {
   comparison: DocStateComparison | null;
   cursorMonitor: CursorMonitor;
   editorMonitor?: EditorMonitor;
+  commentMonitor?: CommentMonitor;
   hasCustomNav: Observable<boolean>;
   resizeEmitter: Emitter;
   fieldEditorHolder: Holder<IDisposable>;
@@ -178,6 +180,7 @@ export interface GristDoc extends DisposableWithEvents {
   isTimingOn: Observable<boolean>;
   attachmentTransfer: Observable<AttachmentTransferStatus | null>;
   canShowRawData: Observable<boolean>;
+  currentUser: Observable<ExtendedUser|null>;
 
   docId(): string;
   openDocPage(viewId: IDocPage): Promise<void>;
@@ -227,6 +230,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public editorMonitor?: EditorMonitor;
   // component for keeping track of a cell that is being edited
   public draftMonitor: Drafts;
+  // component for keeping track of discarded comments.
+  public commentMonitor: CommentMonitor;
   // will document perform its own navigation (from anchor link)
   public hasCustomNav: Observable<boolean>;
   // Emitter triggered when the main doc area is resized.
@@ -287,6 +292,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
    * Extracted to single computed as it is used here and in menus.
    */
   public canShowRawData: Computed<boolean>;
+  public currentUser: Observable<ExtendedUser|null>;
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -342,6 +348,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.
     this.docInfo = this.docModel.docInfoRow;
+
+    this.currentUser = Computed.create(this, use => {
+      return use(this.app.topAppModel.appObs)?.currentUser ?? null;
+    });
 
     const defaultViewId = this.docInfo.newDefaultViewId;
 
@@ -400,8 +410,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     }));
 
     // Subscribe to URL state, and navigate to anchor or open a popup if necessary.
+    // If state.hash.anchor is set, we use it as a "normal" non-disappearing link hash,
+    // useful to linking to more normal, more web-like and less app-like pages.
     this.autoDispose(subscribe(urlState().state, async (use, state) => {
-      if (!state.hash) {
+      if (!state.hash || state.hash.anchor) {
         return;
       }
 
@@ -412,6 +424,22 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           // Navigate to an anchor if one is present in the url hash.
           const cursorPos = this._getCursorPosFromHash(state.hash);
           await this.recursiveMoveToCursorPos(cursorPos, true);
+
+          if (state.hash.comments) {
+            const section = this.viewModel.activeSection.peek();
+            // Wait for the view to load and be rendered (which is async operation already scheduled at 0).
+            this._waitForView(section).then(async () => {
+              // Sanity check that section is still there.
+              if (section.isDisposed() || !section.hasFocus.peek()) { return; }
+              // And the cursor position wasn't changed (it shouldn't as we were loaded by hash, so Grist
+              // should keep the position no matter what).
+              const current = this._getCursorPos();
+              const cell = (pos: CursorPos) => pick(pos, ['rowId', 'fieldId']);
+              if (!isEqual(cell(cursorPos), cell(current))) { return; }
+              // Open up the discussion panel.
+              commands.allCommands.openDiscussion.run();
+            }).catch(reportError);
+          }
         }
 
         const isTourOrTutorialActive = isTourActive() || this.docModel.isTutorial();
@@ -689,6 +717,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.draftMonitor = Drafts.create(this, this);
     this.cursorMonitor = CursorMonitor.create(this, this);
     this.editorMonitor = EditorMonitor.create(this, this);
+    this.commentMonitor = CommentMonitor.create(this, this);
 
     // When active section is changed to a chart or custom widget, change the tab in the creator
     // panel to the table.
@@ -802,6 +831,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       ]),
     );
   }
+
 
   // Open the given page. Note that links to pages should use <a> elements together with setLinkUrl().
   public openDocPage(viewId: IDocPage) {
@@ -1246,8 +1276,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     if (message.data.webhooks) {
       if (message.data.webhooks.type == 'webhookOverflowError') {
         this.trigger('webhookOverflowError',
-          t('New changes are temporarily suspended. Webhooks queue overflowed.' +
-            ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
+          t('New changes are temporarily suspended. Webhooks queue overflowed. \
+Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
       } else {
         this.trigger('webhooks', message.data.webhooks);
       }
@@ -1779,6 +1809,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       filter: filterInfo.filter()
     }));
     const linkingFilter: FilterColValues = activeSection.linkingFilter();
+    const userOverride = this.docPageModel.userOverride.get();
 
     return {
       viewSection: this.viewModel.activeSectionId(),
@@ -1786,6 +1817,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       activeSortSpec: JSON.stringify(activeSection.activeSortSpec()),
       filters: JSON.stringify(filters),
       linkingFilter: JSON.stringify(linkingFilter),
+      ...(userOverride ? {aclAsUser_: userOverride.user?.email} : {}),
     };
   }
 

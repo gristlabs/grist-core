@@ -24,6 +24,8 @@ describe('PagePanels', function() {
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
     await driver.get(`${server.getHost()}/PagePanels`);
+    // Wait for some element to load
+    await driver.findWait('.test-pp-addNew', 100);
   });
 
   function dragByX(x: number) {

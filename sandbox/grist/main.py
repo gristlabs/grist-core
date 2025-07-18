@@ -5,6 +5,7 @@ and starts the grist sandbox. See engine.py for the API documentation.
 import os
 import random
 import sys
+import time
 
 from timing import DummyTiming, Timing
 sys.path.append('thirdparty')
@@ -13,8 +14,6 @@ sys.path.append('thirdparty')
 import logging
 import marshal
 import functools
-
-import six
 
 import actions
 import engine
@@ -56,7 +55,7 @@ def _decode_db_value(value):
   # marshalling certain types and storing as BLOBs (received in Python as binary strings, as
   # opposed to text which is received as unicode). See also encodeValue() in DocStorage.js
   t = type(value)
-  if t == six.binary_type:
+  if t is bytes:
     return objtypes.decode_object(marshal.loads(value))
   else:
     return value
@@ -108,7 +107,7 @@ def run(sandbox):
   @export
   def fetch_meta_tables(formulas=True):
     return {table_id: actions.get_action_repr(table_data)
-            for (table_id, table_data) in six.iteritems(eng.fetch_meta_tables(formulas))}
+            for (table_id, table_data) in eng.fetch_meta_tables(formulas).items()}
 
   @export
   def load_meta_tables(meta_tables, meta_columns):
@@ -126,7 +125,7 @@ def run(sandbox):
   @export
   def create_migrations(all_tables, metadata_only=False):
     doc_actions = migrations.create_migrations(
-      {t: table_data_from_db(t, data) for t, data in six.iteritems(all_tables)}, metadata_only)
+      {t: table_data_from_db(t, data) for t, data in all_tables.items()}, metadata_only)
     return [actions.get_action_repr(action) for action in doc_actions]
 
   @export
@@ -172,6 +171,59 @@ def run(sandbox):
   @export
   def get_timings():
     return eng._timing.get(False)
+
+  # Echo input for testing
+  @export
+  def test_echo(msg):
+    return msg
+
+  # Throw an expection for testing
+  @export
+  def test_fail(msg):
+    raise Exception(msg)
+
+  # File read/write methods for testing
+  @export
+  def test_write_file(filename, contents):
+    with open(filename, "a") as f:
+      f.write(contents)
+
+  @export
+  def test_read_file(filename):
+    with open(filename) as f:
+      return f.read()
+
+  @export
+  def test_get_sandbox_root():
+    return os.path.realpath(os.path.join(__file__, '..'))
+
+  @export
+  def test_list_files(path, include_files=True):
+    paths = []
+    for root, _, fnames in os.walk(path):
+      paths.append(root)
+      if include_files:
+        for fname in sorted(fnames):
+          paths.append(fname)
+    return paths
+
+  # Some sundry operations for tests only
+  @export
+  def test_operation(delay, operation, *inputs):
+    if delay != 0:
+      # We don't have time.sleep() available in the sandbox, so wait with a busy loop.
+      end = time.time() + delay
+      while time.time() < end:
+        pass
+    if operation == 'uppercase':
+      return inputs[0].upper()
+    if operation == 'triple':
+      return inputs[0] * 3
+    if operation == 'bigToSmall':
+      return len(inputs[0])
+    if operation == 'smallToBig':
+      return '*' * inputs[0]
+    raise Exception('unrecognized operation')
 
   export(parse_predicate_formula)
   export(eng.load_empty)

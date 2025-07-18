@@ -8,9 +8,12 @@
   flex-basis: 0px;
 }
 
+.custom_view_content {
+  height: 100%;
+}
+
 iframe.custom_view {
   border: none;
-  height: 100%;
   flex: auto;
 }
 

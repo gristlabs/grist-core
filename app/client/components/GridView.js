@@ -10,7 +10,6 @@ const {Sort} = require('app/common/SortSpec');
 
 const dom           = require('../lib/dom');
 const kd            = require('../lib/koDom');
-const kf            = require('../lib/koForm');
 const koDomScrolly  = require('../lib/koDomScrolly');
 const tableUtil     = require('../lib/tableUtil');
 const {addToSort, sortBy}   = require('../lib/sortUtil');
@@ -49,11 +48,11 @@ const {
 } = require('app/client/ui/GridViewMenus');
 const {mouseDragMatchElem} = require('app/client/ui/mouseDrag');
 const {menuToggle} = require('app/client/ui/MenuToggle');
-const {descriptionInfoTooltip, showTooltip} = require('app/client/ui/tooltips');
+const {showTooltip} = require('app/client/ui/tooltips');
 const {parsePasteForView} = require("./BaseView2");
 const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
-const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
+const {buildRenameColumn, columnHeaderWithInfo} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
 const {isList} = require('app/common/gristTypes');
 const identity = require('lodash/identity');
@@ -1325,11 +1324,12 @@ GridView.prototype.buildDom = function() {
                   if (btn) { btn.click(); }
                 }),
                 dom('div.g-column-label',
-                  kd.scope(field.description, desc => desc ? descriptionInfoTooltip(desc, "column") : null),
+                  columnHeaderWithInfo(
+                    self.isPreview ? field.label : field.displayLabel,
+                    field.description,
+                    "column"
+                  ),
                   dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true),
-                  // We are using editableLabel here, but we don't use it for editing.
-                  kf.editableLabel(self.isPreview ? field.label : field.displayLabel, ko.observable(false)),
-                  kd.scope(field.description, desc => desc ? dom('div.g-column-label-spacer') : null),
                   buildRenameColumn({
                     field,
                     isEditing: isEditingLabel,
@@ -1573,6 +1573,10 @@ GridView.prototype.buildDom = function() {
       )
     );
   }
+};
+
+GridView.prototype.onNewRecordRequest = function() {
+  this.insertRow();
 };
 
 /** @inheritdoc */

@@ -49,6 +49,7 @@ import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {components} from 'app/common/ThemePrefs';
 import {isFullReferencingType} from "app/common/gristTypes";
 import {not} from 'app/common/gutil';
 import {StringUnion} from 'app/common/StringUnion';
@@ -389,14 +390,18 @@ export class RightPanel extends Disposable {
         cssSubTab(t("Configuration"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'widget'),
           dom.on('click', () => this._subTab.set("widget")),
+          // the data-text attribute is necessary for a css trick to work (see cssSubTab)
+          dom.attr('data-text', t("Configuration")),
           testId('config-widget')),
         cssSubTab(t("Submission"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'submission'),
           dom.on('click', () => this._subTab.set("submission")),
+          dom.attr('data-text', t("Submission")),
           testId('config-submission')),
         cssSubTab(t("Data"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'data'),
           dom.on('click', () => this._subTab.set("data")),
+          dom.attr('data-text', t("Data")),
           testId('config-data')),
       ),
     ];
@@ -408,14 +413,18 @@ export class RightPanel extends Disposable {
         cssSubTab(t("Widget"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'widget'),
           dom.on('click', () => this._subTab.set("widget")),
+          // the data-text attribute is necessary for a css trick to work (see cssSubTab)
+          dom.attr('data-text', t("Widget")),
           testId('config-widget')),
         cssSubTab(t("Sort & Filter"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'sortAndFilter'),
           dom.on('click', () => this._subTab.set("sortAndFilter")),
+          dom.attr('data-text', t("Sort & Filter")),
           testId('config-sortAndFilter')),
         cssSubTab(t("Data"),
           cssSubTab.cls('-selected', (use) => use(this._subTab) === 'data'),
           dom.on('click', () => this._subTab.set("data")),
+          dom.attr('data-text', t("Data")),
           testId('config-data')),
       ),
     ];
@@ -1218,9 +1227,10 @@ const cssHoverCircle = styled('div', `
   display: flex;
   align-items: center;
   justify-content: center;
-
+  cursor: pointer;
   &:hover {
     background-color: ${theme.rightPanelTabButtonHoverBg};
+    --icon-color: ${theme.iconButtonFg};
   }
 `);
 
@@ -1236,10 +1246,11 @@ const cssSubTabContainer = styled('div', `
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid ${components.pagePanelsBorder};
 `);
 
 const cssSubTab = styled('div', `
-  color: ${theme.rightPanelSubtabFg};
+  color: ${components.rightPanelSubtabFg};
   flex: auto;
   height: 100%;
   display: flex;
@@ -1247,21 +1258,30 @@ const cssSubTab = styled('div', `
   justify-content: flex-end;
   text-align: center;
   padding-bottom: 8px;
-  border-bottom: 1px solid ${theme.pagePanelsBorder};
   cursor: default;
+  border-bottom: 2px solid transparent;
 
   &-selected {
-    color: ${theme.rightPanelSubtabSelectedFg};
-    border-bottom: 1px solid ${theme.rightPanelSubtabSelectedUnderline};
+    font-weight: 600;
+    color: ${components.rightPanelSubtabSelectedFg};
+    border-bottom-color: ${components.rightPanelSubtabSelectedUnderline};
   }
   &:not(&-selected):hover {
-    color: ${theme.rightPanelSubtabHoverFg};
+    color: ${components.rightPanelSubtabHoverFg};
   }
   &:hover {
-    border-bottom: 1px solid ${theme.rightPanelSubtabHoverUnderline};
+    font-weight: 600;
   }
-  .${cssSubTabContainer.className}:hover > &-selected:not(:hover) {
-    border-bottom: 1px solid ${theme.pagePanelsBorder};
+
+  /* Trick to prevent text moving on hover because of font-weight change */
+  &::after {
+    content: attr(data-text);
+    content: attr(data-text) / "";
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    overflow: hidden;
   }
 `);
 

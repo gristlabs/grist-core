@@ -146,7 +146,34 @@
         "Create separate series for each value of the selected column.": "Создайте отдельные ряды для каждого значения выбранного столбца.",
         "selected new group data columns": "выбранные новые группы столбцов данных",
         "Pick a column": "Выберите столбец",
-        "Toggle chart aggregation": "Переключение агрегации диаграмм"
+        "Toggle chart aggregation": "Переключение агрегации диаграмм",
+        "LABEL": "ЯРЛЫК",
+        "Bar Chart": "Столбчатая диаграмма",
+        "Pie Chart": "Круговая диаграмма",
+        "Donut Chart": "Диаграмма пончик",
+        "Area Chart": "Диаграмма площади",
+        "Line Chart": "Линейный график",
+        "Scatter Plot": "Точечный график",
+        "Kaplan-Meier Plot": "Участок Каплана-Мейера",
+        "Split series": "Разделенная серия",
+        "Invert Y-axis": "Инвертировать ось Y",
+        "Orientation": "Ориентация",
+        "Horizontal": "Горизонтальная",
+        "Vertical": "Вертикальная",
+        "Hole Size": "Размер отверстия",
+        "Text Size": "Размер текста",
+        "Connect gaps": "Соедините зазоры",
+        "Show markers": "Показывать маркеры",
+        "Symmetric": "Симметрично",
+        "Remove": "Удалить",
+        "non-numeric column is not shown": "нечисловой столбец не отображается",
+        "Log scale Y-axis": "Логарифмическая шкала по оси Y",
+        "non-numeric columns are not shown": "нечисловые столбцы не отображаются",
+        "Show Total": "Показать общее количество",
+        "Add Series": "Добавить серию",
+        "Split Series": "Разделенная серия",
+        "X-AXIS": "X-ось",
+        "SERIES": "СЕРИИ"
     },
     "CodeEditorPanel": {
         "Access denied": "Доступ запрещен",
@@ -281,7 +308,16 @@
         "Download document and history": "Скачать полный документ и историю",
         "Download document without history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)",
         "Download": "Скачать",
-        "Download document": "Скачать документ"
+        "Download document": "Скачать документ",
+        ".tar (recommended)": ".tar (рекомендуемый)",
+        ".zip": ".zip",
+        "Download attachments": "Скачать вложения",
+        "Format:": "Формат:",
+        "Learn more": "Узнать больше",
+        "download attachments": "скачать вложения",
+        "Download full document and history": "Скачать полный документ и историю",
+        "Download an archive of all the attachments present in this document.": "Загрузите архив всех вложений, присутствующих в этом документе.",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Вложения являются внешними и не включены в эту загрузку. При загрузке документа в другую инсталляцию Grist вам также потребуется {{downloadLink}} отдельно. "
     },
     "ShareMenu": {
         "Back to Current": "Вернуться к текущему",
@@ -309,7 +345,10 @@
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
         "Tab Separated Values (.tsv)": "Значения, разделенные табуляцией (.tsv)",
         "DOO Separated Values (.dsv)": "DOO Разделенные значения (.dsv)",
-        "Export as...": "Экспортировать как..."
+        "Export as...": "Экспортировать как...",
+        "Exporting is only available from document pages. Please select a document page and try again.": "Экспорт доступен только на страницах документов. Пожалуйста, выберите страницу документа и попробуйте еще раз.",
+        "Download attachments...": "Загрузка вложений...",
+        "Download document...": "Загрузка документа..."
     },
     "SortConfig": {
         "Search Columns": "Поиск по столбцам",
@@ -507,7 +546,11 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Новые загруженные вложения будут помещены во Внутреннее хранилище.",
         "No external stores available": "Внешние хранилища недоступны",
         "Preferred storage for this document": "Предпочтительное место хранения для этого документа",
-        "Start transfer": "Начать передачу"
+        "Start transfer": "Начать передачу",
+        "Upload": "Загрузить",
+        "Upload missing attachments": "Загрузите недостающие вложения",
+        "Uploading...": "Загрузка...",
+        "Document type": "Тип документа"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -519,7 +562,8 @@
         "Enter recovery mode": "Войти в режим восстановления",
         "Error accessing document": "Ошибка доступа к документу",
         "Sorry, access to this document has been denied. [{{error}}]": "Извините, в доступе к этому документу было отказано. [{{error}}]",
-        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Вы можете попробовать перезагрузить документ или использовать режим восстановления. Режим восстановления открывает документ, чтобы он был полностью доступен для владельцев и недоступен для других. Это также отключает формулы. [{{error}}]"
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Вы можете попробовать перезагрузить документ или использовать режим восстановления. Режим восстановления открывает документ, чтобы он был полностью доступен для владельцев и недоступен для других. Это также отключает формулы. [{{error}}]",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Пожалуйста, перезагрузите документ, и если ошибка сохраняется, свяжитесь с владельцами документов, чтобы попытаться восстановить документ. [{{error}}]"
     },
     "DocumentUsage": {
         "Data Size": "Размер данных",
@@ -699,7 +743,8 @@
         "Import from file": "Импорт из файла",
         "Added new linked section to view {{viewName}}": "Добавлен новый связанный раздел в представление {{viewName}}",
         "Saved linked section {{title}} in view {{name}}": "Сохраненный связанный раздел {{title}} в представлении {{name}}",
-        "go to webhook settings": "перейти к настройкам webhook"
+        "go to webhook settings": "перейти к настройкам webhook",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Новые изменения временно приостановлены. Очередь Webhooks переполнена. Пожалуйста, проверьте настройки webhooks, удалите недопустимые webhooks и очистите очередь."
     },
     "Importer": {
         "Merge rows that match these fields:": "Объедините строки, соответствующие этим полям:",
@@ -830,7 +875,8 @@
         "Delete": "Удалить",
         "Delete data and this page.": "Удалить данные и эту страницу.",
         "The following tables will no longer be visible_other": "Следующие таблицы больше не будут видны",
-        "The following tables will no longer be visible_one": "Следующая таблица больше не будет видна"
+        "The following tables will no longer be visible_one": "Следующая таблица больше не будет видна",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Сохраните данные и удалите страницу. Таблица останется доступной в {{rawDataLink}}"
     },
     "RecordLayoutEditor": {
         "Save Layout": "Сохранить макет",
@@ -896,7 +942,9 @@
         "Plugin: ": "Плагин: ",
         "Edit Card Layout": "Редактирование шаблона карточки",
         "Blocks": "Блоками",
-        "Compact": "Компактная"
+        "Compact": "Компактная",
+        "⚠️ Deprecated Feature": "⚠️ Устаревшая функция",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Таблицы по запросу устарели из-за отсутствия функциональности и удобства использования."
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Расширенная Сортировка & Фильтрация",
@@ -993,7 +1041,8 @@
         "Show resolved comments": "Показать решенные комментарии",
         "Started discussion": "Начатое обсуждение",
         "Write a comment": "Написать комментарий",
-        "Reply to a comment": "Ответить на комментарий"
+        "Reply to a comment": "Ответить на комментарий",
+        "updated": "обновлено"
     },
     "NumericTextBox": {
         "Number Format": "Числовой формат",
@@ -1264,7 +1313,13 @@
         "[Learn more.]({{link}})": "[Подробнее.]({{link}})",
         "The preview below this header shows how the selected user will see this document": "Предварительный просмотр под этим заголовком показывает, как выбранный пользователь увидит этот документ",
         "Manage users and resources in a Grist installation.": "Управляйте пользователями и ресурсами напрямую в Grist.",
-        "Summary tables can only contain formula columns.": "Сводные таблицы могут содержать только столбцы формул."
+        "Summary tables can only contain formula columns.": "Сводные таблицы могут содержать только столбцы формул.",
+        "The new Grist Assistant is here!": "Новый Ассистент Grist здесь!",
+        "Formulas support many Excel functions and full Python syntax.": "Формулы поддерживают множество функций Excel и полный синтаксис Python.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Внутреннее хранилище означает, что все вложения хранятся в файле документа SQLite, в то время как внешнее хранилище означает, что все вложения хранятся в одном и том же внешнем хранилище.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Это позволяет добавлять вложения, отсутствующие во внешнем хранилище, например, в импортированном документе. Здесь можно загрузить только архивы вложений .tar, загруженные из Grist.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Разбирайтесь в своих данных и формулах, изменяйте их и работайте с ними с помощью нового AI Ассистента Grist!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Эта форма создана пользователем Grist и не одобрена Grist Labs. Не отправляйте пароли через эту форму и будьте осторожны со ссылками в ней. Сообщите о вредоносных формах в [{{mail}}](mailto:{{mail}})."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1313,7 +1368,8 @@
         "URL": "URL",
         "Webhook Id": "Вебхук Id",
         "Table": "Таблица",
-        "Header Authorization": "Заголовок для авторизации"
+        "Header Authorization": "Заголовок для авторизации",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks Недоступно в Несохраненных Копиях Документов"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Спроси у бота.",
@@ -1548,7 +1604,8 @@
     },
     "FormContainer": {
         "Build your own form": "Создайте свою собственную форму",
-        "Powered by": "Разработано"
+        "Powered by": "Разработано",
+        "Powered by Grist": "Разработано в Grist"
     },
     "FormModel": {
         "There was a problem loading the form.": "Возникла проблема с загрузкой формы.",
@@ -1648,7 +1705,8 @@
         "Off": "Выкл",
         "New, Enterprise": "Новый, Корпоративный",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} больше",
-        "On": "На"
+        "On": "На",
+        "Grist Instance": "Экземпляр Grist"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1960,6 +2018,32 @@
         "Learn more": "Изучить больше",
         "Orgs": "Организации",
         "Users": "Пользователи",
-        "Workspaces": "Рабочие пространства"
+        "Workspaces": "Рабочие пространства",
+        "Settings": "Настройки"
+    },
+    "Assistant": {
+        "What do you need help with?": "В чем вам нужна помощь?",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Зарегистрируйте бесплатную учетную запись Grist, чтобы начать использовать AI Ассистент.",
+        "You have {{numCredits}} remaining credits.": "У вас есть {{numCredits}} оставшиеся кредиты.",
+        "You have used all available credits.": "Вы использовали все доступные кредиты.",
+        "upgrade to the Pro Team plan": "обновить на Pro Team план",
+        "upgrade your plan": "Обновите свой план",
+        "For higher limits, {{upgradeNudge}}.": "Для увеличения лимитов, {{upgradeNudge}}.",
+        "Learn more.": "Изучить больше.",
+        "Apply": "Применить",
+        "Sign Up for Free": "Зарегистрироваться бесплатно",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Обновитесь до Grist Enterprise, чтобы опробовать новый инструмент Grist Ассистент. {{learnMoreLink}}",
+        "start a new chat": "начать новый чат",
+        "AI Assistant is only available for logged in users.": "AI Ассистент доступен только для зарегистрированных пользователей.",
+        "Press Enter to apply suggested formula.": "Нажмите Enter, чтобы применить предложенную формулу.",
+        "For higher limits, contact the site owner.": "Для увеличения лимитов, обратитесь к владельцу сайта."
+    },
+    "apiconsole": {
+        "Confirm Deletion": "Подтвердите удаление",
+        "Delete": "Удалить",
+        "Deletion was not confirmed, skipping.": "Удаление не было подтверждено, пропуск.",
+        "Type DELETE here if you wish to proceed.": "Введите DELETE здесь если вы хотите продолжить.",
+        "Are you sure you want to delete the following?": "Вы уверены, что хотите удалить следующее?",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Введите DELETE если вы уверены, что действительно хотите сделать это удаление.\nЕсли вы не уверены или не понимаете, что будет делать эта операция,\nбыло бы разумно отменить это."
     }
 }

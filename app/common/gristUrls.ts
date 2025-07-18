@@ -57,6 +57,10 @@ export type AdminPanelPage = typeof AdminPanelPage.type;
 export const AdminPanelTab = StringUnion('users', 'workspaces', 'docs', 'orgs', 'details');
 export type AdminPanelTab = typeof AdminPanelTab.type;
 
+export const PREFERRED_STORAGE_ANCHOR = 'preferredStorage';
+export const PersistentAnchor = StringUnion(PREFERRED_STORAGE_ANCHOR);
+export type PersistentAnchor = typeof PersistentAnchor.type;
+
 // Overall UI style.  "full" is normal, "singlePage" is a single page focused, panels hidden experience.
 export const InterfaceStyle = StringUnion('singlePage', 'full');
 export type InterfaceStyle = typeof InterfaceStyle.type;
@@ -71,6 +75,17 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
 // A prefix that identifies a urlId as a share key.
 // Important that this not be part of a valid docId.
 export const SHARE_KEY_PREFIX = 's.';
+
+/**
+ * Form framing is used to control the way forms are rendered in Grist.
+ * - 'border' adds a green border around the form, used to indicate that the forms can be created
+ *   by untrusted users and it makes phishing attacks harder.
+ * - 'minimal' doesn't show the border, used for trusted users.
+ *
+ * The default value is 'border', and it can be controlled by GRIST_FEATURE_FORM_FRAMING environment
+ * variable.
+ */
+export type FormFraming = 'border' | 'minimal';
 
 /**
  * Special ways to open a document, based on what the user intends to do.
@@ -106,6 +121,7 @@ export const commonUrls = {
   helpAPI: 'https://support.getgrist.com/api',
   helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
   helpAdminControls: "https://support.getgrist.com/admin-controls",
+  helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
@@ -369,28 +385,6 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   if (state.params?.details) {
     queryParams.details = 'true';
   }
-  const hashParts: string[] = [];
-  if (state.hash && (state.hash.rowId || state.hash.popup || state.hash.recordCard)) {
-    const hash = state.hash;
-    if (hash.recordCard) {
-      hashParts.push('a3');
-    } else if (hash.popup) {
-      hashParts.push('a2');
-    } else {
-      hashParts.push('a1');
-    }
-    for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
-      let enhancedRowId: string|undefined;
-      if (key === 'rowId' && hash.linkingRowIds?.length) {
-        enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");
-      }
-      const partValue = enhancedRowId ?? hash[key];
-      if (partValue) {
-        const partKey = key === 'rowId' && state.hash?.rickRow ? 'rr' : key[0];
-        hashParts.push(`${partKey}${partValue}`);
-      }
-    }
-  }
   const queryStr = encodeQueryParams(queryParams);
 
   url.pathname = parts.join('');
@@ -398,9 +392,11 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
 
   if (state.homePageTab) {
     url.hash = state.homePageTab;
+  } else if (state.hash && state.hash.anchor) {
+    url.hash = state.hash.anchor;
   } else if (state.hash) {
     // Project tests use hashes, so only set hash if there is an anchor.
-    url.hash = hashParts.join('.');
+    url.hash = makeAnchorLinkValue(state.hash);
   } else if (state.welcomeTour) {
     url.hash = 'repeat-welcome-tour';
   } else if (state.docTour) {
@@ -581,12 +577,11 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (sp.has('compare')) {
     state.params!.compare = sp.get('compare')!;
   }
-  for (const [k, v] of sp.entries()) {
-    if (k.endsWith('_')) {
-      if (!state.params!.linkParameters) { state.params!.linkParameters = {}; }
-      state.params!.linkParameters[k.slice(0, k.length - 1)] = v;
-    }
+  const linkParameters = decodeLinkParameters(sp);
+  if (linkParameters) {
+    state.params!.linkParameters = linkParameters;
   }
+
   if (location.hash) {
     const hash = location.hash;
     const hashParts = hash.split('.');
@@ -600,7 +595,12 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
     state.homePageTab = HomePageTab.parse(hashMap.get('#'));
     state.adminPanelTab = AdminPanelTab.parse(hashMap.get('#'));
-    if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
+    const anchor = PersistentAnchor.parse(hashMap.get('#'));
+    if (anchor) {
+      state.hash = {
+        anchor,
+      };
+    } else if (hashMap.has('#') && ['a1', 'a2', 'a3', 'a4'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [
         'sectionId',
@@ -631,6 +631,8 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         link.popup = true;
       } else if (hashMap.get('#') === 'a3') {
         link.recordCard = true;
+      } else if (hashMap.get('#') === 'a4') {
+        link.comments = true;
       }
       state.hash = link;
     }
@@ -641,6 +643,17 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.upgradeTeam = hashMap.get('#') === 'upgrade-team';
   }
   return state;
+}
+
+export function decodeLinkParameters(sp: URLSearchParams) {
+  let linkParameters: Record<string, string>|undefined = undefined;
+  for (const [k, v] of sp.entries()) {
+    if (k.endsWith('_')) {
+      if (!linkParameters) { linkParameters = {}; }
+      linkParameters[k.slice(0, k.length - 1)] = v;
+    }
+  }
+  return linkParameters;
 }
 
 // Returns a function suitable for user with makeUrl/setHref/etc, which updates aclAsUser*
@@ -743,6 +756,9 @@ export interface ActivationState {
 export interface LatestVersionAvailable {
   version: string;
   isNewer: boolean;
+  isCritical: boolean;
+  dateChecked: number;
+  releaseUrl?: string;
 }
 
 /**
@@ -861,7 +877,11 @@ export interface GristLoadConfig {
 
   activation?: ActivationState;
 
+  // Latest Grist release available
   latestVersionAvailable?: LatestVersionAvailable;
+
+  // Is automatic version checking allowed?
+  automaticVersionCheckingAllowed?: boolean;
 
   // List of enabled features.
   features?: IFeature[];
@@ -919,6 +939,11 @@ export interface GristLoadConfig {
 
   // Set on /admin pages only, when AdminControls are available and should be enabled in UI.
   adminControls?: boolean;
+
+  // TODO: remove once released (this is only expected to be released in enterprise edition)
+  featureNotifications?: boolean;
+
+  formFraming?: FormFraming;
 }
 
 export const Features = StringUnion(
@@ -931,6 +956,7 @@ export const Features = StringUnion(
   "sendToDrive",
   "tutorials",
   "supportGrist",
+  "themes",
 );
 export type IFeature = typeof Features.type;
 
@@ -1202,9 +1228,49 @@ export interface HashLink {
   rowId?: UIRowId;
   colRef?: number;
   popup?: boolean;
+  comments?: boolean; // Whether to show comments in the popup.
   rickRow?: boolean;
   recordCard?: boolean;
   linkingRowIds?: UIRowId[];
+  anchor?: string;
+}
+
+/**
+ * Encode a HashLink as a string to include as the URL fragment (hash prooperty). For example,
+ * in https://templates.getgrist.com/doc/lightweight-crm#a1.s1.r7.c2, the "a1.s1.r7.c2" portion is
+ * the anchor link. The parts have the following meaning:
+ *    a = identifies the type of link (1 is normal, 2 for popup, 3 for record-card)
+ *    s = sectionId (rowId of the page-widget)
+ *    r = rowId (of the actual row in the user table)
+ *    c = colRef (rowId of the column's metadata record)
+ */
+export function makeAnchorLinkValue(hash: HashLink): string {
+  const hashParts: string[] = [];
+  if (hash.rowId || hash.popup || hash.recordCard) {
+    if (hash.comments) {
+      hashParts.push('a4');
+    } else if (hash.recordCard) {
+      hashParts.push('a3');
+    } else if (hash.popup) {
+      hashParts.push('a2');
+    } else if (hash.anchor) {
+      hashParts.push(hash.anchor);
+    } else {
+      hashParts.push('a1');
+    }
+    for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
+      let enhancedRowId: string|undefined;
+      if (key === 'rowId' && hash.linkingRowIds?.length) {
+        enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");
+      }
+      const partValue = enhancedRowId ?? hash[key];
+      if (partValue) {
+        const partKey = key === 'rowId' && hash.rickRow ? 'rr' : key[0];
+        hashParts.push(`${partKey}${partValue}`);
+      }
+    }
+  }
+  return hashParts.join('.');
 }
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be

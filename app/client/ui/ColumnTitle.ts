@@ -8,12 +8,12 @@ import {ViewFieldRec} from 'app/client/models/DocModel';
 import {LIMITED_COLUMN_OPTIONS} from 'app/client/ui/FieldConfig';
 import {autoGrow} from 'app/client/ui/forms';
 import {cssInput, cssLabel, cssRenamePopup, cssTextArea} from 'app/client/ui/RenamePopupStyles';
-import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
+import {descriptionInfoTooltip, hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass} from 'app/client/ui2018/menus';
-import {Computed, dom, makeTestId, Observable, styled} from 'grainjs';
+import {Computed, dom, IKnockoutReadObservable, makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import {IOpenController, PopupControl, setPopupToCreateDom} from 'popweasel';
 
@@ -64,6 +64,25 @@ export function buildRenameColumn(options: IColumnTitleOptions) {
       boundaries: 'viewport',
     });
   };
+}
+
+/**
+ * Renders the 'label' observable as the column title. When tooltipContent is non-empty, also
+ * renders a tooltip icon just on the left of the title, taking care to keep the icon + title
+ * centered when it fits, with appropriate overflow when it doesn't.
+ */
+export function columnHeaderWithInfo(
+  label: IKnockoutReadObservable<string>|string,
+  tooltipContent: IKnockoutReadObservable<string>|string,
+  tooltipTestPrefix: string,
+) {
+  return [
+    dom.maybe(tooltipContent, content => [
+      descriptionInfoTooltip(content, tooltipTestPrefix),
+      cssColumnHeaderInfoPadding(),
+    ]),
+    cssColumnHeaderLabel(dom.text(label), testId('text')),
+  ];
 }
 
 function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOptions) {
@@ -235,8 +254,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         t("Add description"),
         dom.on('click', () => {
           showDesc.set(true);
-          descInput?.focus();
-          setTimeout(() => descInput?.focus(), 0);
+          setTimeout(() => { descInput?.focus(); descInput?.select(); }, 0);
         }),
         testId('add-description'),
       ),
@@ -341,4 +359,21 @@ const cssButtons = styled('div', `
   & button {
     min-width: calc(50 / 13 * 1em); /* Min 50px for 13px font size, to make Save and Close buttons equal width */
   }
+`);
+
+const cssColumnHeaderLabel = styled('div', `
+  padding-left: 1px;
+  padding-right: 1px;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`);
+
+// The padding is added when there is an icon, and goes on the right (thanks to the 'order'
+// property) to balance out the icon and keep things centered. But it shrinks very aggressively.
+const cssColumnHeaderInfoPadding = styled('div', `
+  width: 21px;
+  order: 100;
+  flex-shrink: 1e12;
 `);

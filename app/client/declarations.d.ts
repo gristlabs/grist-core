@@ -63,6 +63,7 @@ declare module "app/client/components/BaseView" {
     public tableModel: DataTableModel;
     public selectionSummary?: SelectionSummary;
     public currentEditingColumnIndex: ko.Observable<number>;
+    public enableAddRow: ko.Computed<boolean>;
 
     constructor(gristDoc: GristDoc, viewSectionModel: any, options?: {addNewRow?: boolean, isPreview?: boolean});
     public setCursorPos(cursorPos: CursorPos): void;
@@ -71,7 +72,6 @@ declare module "app/client/components/BaseView" {
     public buildTitleControls(): DomArg;
     public getLoadingDonePromise(): Promise<void>;
     public activateEditorAtCursor(options?: Options): void;
-    public openDiscussionAtCursor(discussionId?: number): boolean;
     public onResize(): void;
     public prepareToPrint(onOff: boolean): void;
     public moveEditRowToCursor(): DataRowModel;
@@ -79,8 +79,21 @@ declare module "app/client/components/BaseView" {
     public getAnchorLinkForSection(sectionId: number): IGristUrlState;
     public viewSelectedRecordAsCard(): void;
     public isRecordCardDisabled(): boolean;
+    public onNewRecordRequest?(): void;
   }
   export = BaseView;
+}
+
+declare module "app/client/components/DetailView" {
+  class DetailView extends BaseView {
+    public static create(...args: any[]): any;
+
+    public recordLayout: any;
+  }
+
+  namespace DetailView {}
+
+  export = DetailView;
 }
 
 declare module 'app/client/components/GridView' {

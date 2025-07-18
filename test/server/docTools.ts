@@ -2,7 +2,7 @@ import {Role} from 'app/common/roles';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {AttachmentStoreProvider, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {DummyAuthorizer} from 'app/server/lib/Authorizer';
+import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {create} from 'app/server/lib/create';
 import {DocManager} from 'app/server/lib/DocManager';
 import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';

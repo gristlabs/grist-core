@@ -1,3 +1,4 @@
+import DetailView from "app/client/components/DetailView";
 import { GristDoc } from "app/client/components/GristDoc";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from 'app/client/lib/koForm';
@@ -6,13 +7,14 @@ import * as tableUtil from 'app/client/lib/tableUtil';
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { getFieldType } from 'app/client/ui/RightPanelUtils';
 import { IWidgetType } from "app/common/widgetTypes";
-import { basicButton, cssButton, primaryButton } from 'app/client/ui2018/buttons';
+import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
 import * as checkbox from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
 import { icon } from "app/client/ui2018/icons";
 import * as gutil from 'app/common/gutil';
 import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe } from "grainjs";
+import ko from "knockout";
 import difference = require("lodash/difference");
 import isEqual = require("lodash/isEqual");
 
@@ -77,6 +79,15 @@ export class VisibleFieldsConfig extends Disposable {
 
   private _visibleFieldsSelection = new Set<number>();
   private _hiddenFieldsSelection = new Set<number>();
+
+  private _disabled = this.autoDispose(ko.computed(() => {
+    const view = this._section.viewInstance();
+    if (!view || !('recordLayout' in view)) {
+      return false;
+    }
+
+    return Boolean((view as DetailView).recordLayout.layoutEditor());
+  }));
 
   constructor(private _gristDoc: GristDoc,
               private _section: ViewSectionRec) {
@@ -175,6 +186,12 @@ export class VisibleFieldsConfig extends Disposable {
       }
     );
     kf.connectDraggableOneWay(hiddenFieldsDraggable, fieldsDraggable);
+
+    this.autoDispose(this._disabled.subscribe(() => {
+      this._setVisibleCheckboxes(fieldsDraggable, false);
+      this._setHiddenCheckboxes(hiddenFieldsDraggable, false);
+    }));
+
     return [fieldsDraggable, hiddenFieldsDraggable];
   }
 
@@ -202,16 +219,20 @@ export class VisibleFieldsConfig extends Disposable {
         dom.maybe(
           (use) => Boolean(use(use(this._section.viewFields).getObservable()).length),
           () => (
-            cssControlLabel(
+            cssIconButton(
               icon('Tick'),
               t("Select All"),
               dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, true)),
+              dom.prop('disabled', this._disabled),
               testId('visible-fields-select-all'),
             )
           )
         ),
       ),
-      dom.update(fieldsDraggable, testId('visible-fields')),
+      cssFieldsDraggable(
+        cssFieldsDraggable.cls('-disabled', this._disabled),
+        dom.update(fieldsDraggable, testId('visible-fields'))
+      ),
       dom.maybe(this._showVisibleBatchButtons, () =>
         cssRow(
           primaryButton(
@@ -228,22 +249,25 @@ export class VisibleFieldsConfig extends Disposable {
         ),
       ),
       cssHeader(
-        cssHeaderIcon(
-          'Dropdown',
-          dom.style('transform', (use) => use(this._collapseHiddenFields) ? 'rotate(-90deg)' : ''),
-          dom.style('cursor', 'pointer'),
-          dom.on('click', () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
-          testId('collapse-hidden'),
+        cssFlexCenter(
+          cssHeaderIcon(
+            'Dropdown',
+            dom.style('transform', (use) => use(this._collapseHiddenFields) ? 'rotate(-90deg)' : ''),
+            dom.style('cursor', 'pointer'),
+            dom.on('click', () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
+            testId('collapse-hidden'),
+          ),
+          // TODO: show `hidden column` only when some fields are hidden
+          cssFieldListHeader(dom.text((use) => t("Hidden {{label}}", {label: use(this._fieldLabel)})))
         ),
-        // TODO: show `hidden column` only when some fields are hidden
-        cssFieldListHeader(dom.text((use) => t("Hidden {{label}}", {label: use(this._fieldLabel)}))),
         dom.maybe(
           (use) => Boolean(use(this._hiddenFields.getObservable()).length && !use(this._collapseHiddenFields)),
           () => (
-            cssControlLabel(
+            cssIconButton(
               icon('Tick'),
               t("Select All"),
               dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, true)),
+              dom.prop('disabled', this._disabled),
               testId('hidden-fields-select-all'),
             )
           )
@@ -252,9 +276,12 @@ export class VisibleFieldsConfig extends Disposable {
       dom(
         'div',
         dom.hide(this._collapseHiddenFields),
-        dom.update(
-          hiddenFieldsDraggable,
-          testId('hidden-fields'),
+        cssFieldsDraggable(
+          cssFieldsDraggable.cls('-disabled', this._disabled),
+          dom.update(
+            hiddenFieldsDraggable,
+            testId('hidden-fields'),
+          )
         ),
         dom.maybe(this._showHiddenBatchButtons, () =>
           cssRow(
@@ -493,17 +520,8 @@ const cssFieldListHeader = styled('span', `
 const cssRow = styled('div', `
   display: flex;
   margin: 16px;
-  overflow: hidden;
+  gap: 8px;
   --icon-color: ${theme.lightText};
-  & > .${cssButton.className} {
-    margin-right: 8px;
-  }
-`);
-
-const cssControlLabel = styled('div', `
-  --icon-color: ${theme.controlFg};
-  color: ${theme.controlFg};
-  cursor: pointer;
 `);
 
 const cssHeader = styled(cssRow, `
@@ -512,8 +530,26 @@ const cssHeader = styled(cssRow, `
   margin-bottom: 12px;
 `);
 
+const cssIconButton = styled(textButton, `
+  &:disabled {
+    --icon-color: ${theme.controlPrimaryBg};
+  };
+`);
+
 const cssHeaderIcon = styled(icon, `
   --icon-color: ${theme.lightText};
   flex: none;
   margin-right: 4px;
+`);
+
+const cssFieldsDraggable = styled('div', `
+  &-disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+`);
+
+const cssFlexCenter = styled('div', `
+  display: flex;
+  align-items: center;
 `);

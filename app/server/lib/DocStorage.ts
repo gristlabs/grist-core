@@ -41,6 +41,8 @@ const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing
 
 const PENDING_VALUE = [GristObjCode.Pending];
 
+const SHRINK_RATIO_FOR_PUSH = 0.1;
+
 // Number of days that soft-deleted attachments are kept in file storage before being completely deleted.
 // Once a file is deleted it can't be restored by undo, so we want it to be impossible or at least extremely unlikely
 // that someone would delete a reference to an attachment and then undo that action this many days later.
@@ -661,7 +663,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   // ======================================================================
 
   public docPath: string; // path to document file on disk
-  private _db: SQLiteDB|null; // database handle
+  private _db: SQLiteDB|null|undefined; // database handle
 
   // Maintains { tableId: { colId: gristType } } mapping for all tables, including grist metadata
   // tables (obtained from auto-generated schema.js).
@@ -1385,7 +1387,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         -- to make LENGTH() quickly read the stored length instead of actually reading the blob data.
         -- We use LENGTH() in the first place instead of _grist_Attachments.fileSize because the latter can
         -- be changed by users.
-        SELECT MAX(LENGTH(files.data)) AS len
+        -- External attachments have no internal blob data, so we need to use fileSize for those.
+        -- To avoid tampering with fileSize in offline records, we update it whenever files are
+        -- uploaded or retrieved.
+        SELECT
+          CASE WHEN files.storageId IS NOT NULL
+            THEN MAX(meta.fileSize)
+            ELSE MAX(LENGTH(files.data))
+          END AS len
         FROM _gristsys_Files AS files
           JOIN _grist_Attachments AS meta
             ON meta.fileIdent = files.ident
@@ -1559,6 +1568,31 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   public requestVacuum(): Promise<boolean> {
     const db = this._getDB();
     return this._markAsChanged(db.requestVacuum());
+  }
+
+  /**
+   * Run a VACUUM on the document and mark it as changed only
+   * if the saved space is above the ratio defined in SHRINK_RATIO_FOR_PUSH.
+   * Therefore if the doc storage is a remote one (like S3), it would be pushed
+   * only when we meet this condition, otherwise it is assumed not to be necessary.
+   */
+  public async vacuum(): Promise<void> {
+    const db = this._getDB();
+
+    const initSize = await this.storageManager.getFsFileSize(this.docName);
+    log.rawInfo("Start Vacuum of doc ", { docId: this.docName });
+    await db.vacuum();
+    const size = await this.storageManager.getFsFileSize(this.docName);
+    if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH) ) {
+      log.rawInfo("Mark doc as changed because vacuuming saved more space than the minimal ratio.", {
+        docId: this.docName,
+        minimalRatio: SHRINK_RATIO_FOR_PUSH,
+        initSize,
+        currentSize: size,
+      });
+      this._cachedDataSize = null;
+      this.storageManager.markAsChanged(this.docName);
+    }
   }
 
   public async getPluginDataItem(pluginId: string, key: string): Promise<any> {
@@ -1817,7 +1851,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   private _getDB(): SQLiteDB {
     if (!this._db) {
-      throw new Error("Tried to use DocStorage database before it was opened");
+      if (this._db === undefined) {
+        throw new Error("Tried to use DocStorage database before it was opened");
+      } else {
+        throw new Error("Tried to use DocStorage database after it was closed");
+      }
     }
     return this._db;
   }

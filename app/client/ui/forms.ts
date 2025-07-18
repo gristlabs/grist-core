@@ -77,18 +77,18 @@ export function hasValue(formData: FormData, nameOrPrefix: string): boolean {
   }
 }
 
-function resize(el: HTMLTextAreaElement) {
+function resize(el: HTMLElement) {
   el.style.height = '5px'; // hack for triggering style update.
   const border = getComputedStyle(el, null).borderTopWidth || "0";
   el.style.height = `calc(${el.scrollHeight}px + 2 * ${border})`;
 }
 
-export function autoGrow(text: Observable<string>) {
+export function autoGrow(text: Observable<unknown>) {
    // If this should autogrow we need to monitor width of this element.
-  return (el: HTMLTextAreaElement) => {
+  return (el: HTMLElement) => {
     let width = 0;
     const resizeObserver = new ResizeObserver((entries) => {
-      const elem = entries[0].target as HTMLTextAreaElement;
+      const elem = entries[0].target as HTMLElement;
       if (elem.offsetWidth !== width && width) {
         resize(elem);
       }
@@ -97,7 +97,7 @@ export function autoGrow(text: Observable<string>) {
     resizeObserver.observe(el);
     dom.onDisposeElem(el, () => resizeObserver.disconnect());
     el.addEventListener('input', () => resize(el));
-    dom.autoDisposeElem(el, text.addListener(() => setImmediate(() => resize(el))));
+    dom.autoDisposeElem(el, text.addListener(() => setTimeout(() => resize(el), 0)));
     setTimeout(() => resize(el), 10);
     dom.autoDisposeElem(el, text.addListener(val => {
       // Changes to the text are not reflected by the input event (witch is used by the autoGrow)

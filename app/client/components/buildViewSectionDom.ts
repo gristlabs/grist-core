@@ -14,6 +14,7 @@ import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {Computed, dom, DomElementArg, Observable, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
 import {undef} from 'app/common/gutil';
+import {maybeShowNewRecordExperiment} from 'app/client/ui/NewRecordButton';
 
 const t = makeT('ViewSection');
 
@@ -131,7 +132,8 @@ export function buildViewSectionDom(options: {
           dom('div.viewsection_truncated', t('Not all data is shown'))
         ),
         dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
-        viewInstance.viewPane
+        viewInstance.viewPane,
+        maybeShowNewRecordExperiment(viewInstance)
       ),
       dom.maybe(use => !use(isNarrowScreenObs()), () => viewInstance.selectionSummary?.buildDom()),
     ]),

@@ -8,6 +8,7 @@ import {ObjObservable} from 'app/client/models/modelUtil';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
 import {cssIcon, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
 import {labeledLeftSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {textButton} from 'app/client/ui2018/buttons';
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {menu} from 'app/client/ui2018/menus';
@@ -222,7 +223,7 @@ export class SortConfig extends Disposable {
       dom.autoDispose(available),
       dom.domComputed(use => {
         const cols = use(available);
-        return cssTextBtn(
+        return textButton(
           t("Add Column"),
           dropdownWithSearch({
             popupOptions: menuOptions,
@@ -241,7 +242,7 @@ export class SortConfig extends Disposable {
   private _buildUpdateDataButton() {
     return dom.maybe(this._section.isSorted, () =>
       cssButtonRow(
-        cssTextBtn(t("Update Data"),
+        textButton(t("Update Data"),
           dom.on('click', () => updatePositions(this._gristDoc, this._section)),
           testId('update'),
           dom.show((use) => (
@@ -291,15 +292,6 @@ const cssSortRow = styled('div', `
   display: flex;
   align-items: center;
   width: 100%;
-`);
-
-const cssTextBtn = styled('div', `
-  color: ${theme.controlFg};
-  cursor: pointer;
-
-  &:hover {
-    color: ${theme.controlHoverFg};
-  }
 `);
 
 const cssSortIconBtn = styled(cssIcon, `

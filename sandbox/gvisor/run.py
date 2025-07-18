@@ -25,7 +25,7 @@ more_args = all_args[1] if len(all_args) > 1 else []    # args after the -- divi
 
 # Set up options.
 parser = argparse.ArgumentParser(description='Run something in gvisor (runsc).')
-parser.add_argument('command', choices=['bash', 'python2', 'python3'])
+parser.add_argument('command', choices=['bash', 'python3'])
 parser.add_argument('--dry-run', '-d', action='store_true',
                     help="print config")
 parser.add_argument('--env', '-E', action='append')
@@ -48,8 +48,6 @@ sys.stderr.write('run.py: ' + ' '.join(sys.argv) + "\n")
 sys.stderr.flush()
 
 include_bash = args.command == 'bash'
-include_python2 = args.command == 'python2'
-include_python3 = args.command == 'python3'
 
 # Basic settings for gvisor's runsc.  This follows the standard OCI specification:
 #   https://github.com/opencontainers/runtime-spec/blob/master/config.md
@@ -162,6 +160,13 @@ if include_bash or start:
 
 preserve("/usr/local/lib")
 
+# Support user-specific extra directories. This is handy if Python is
+# somewhere weird and there is a maze of soft links to get
+# through. And Python is so often somewhere weird.
+extra_dirs = os.environ.get('GVISOR_EXTRA_DIRS')
+if extra_dirs:
+  preserve(*extra_dirs.split(':'))
+
 # Do not attempt to include symlink directories, they are not supported
 # and will cause obscure failures. On debian bookworm /lib64 is a
 # symlink and we do not appear to need it, relative to debian buster
@@ -174,30 +179,20 @@ preserve("/usr/lib")
 
 # include python3 for bash and python3
 best = None
-if not include_python2:
-  # We expect python3 in /usr/bin or /usr/local/bin.
-  candidates = [
-    path
-    # Pick the most generic python if not matching python3.11.
-    # Sorry this is delicate because of restores, mounts, symlinks.
-    for pattern in ['python3.11', 'python3.10', 'python3.9', 'python3', 'python3*']
-    for root in ['/usr/local', '/usr']
-    for path in glob.glob(f'{root}/bin/{pattern}')
-    if os.path.exists(path)
-  ]
-  if not candidates:
-    raise Exception('could not find python3')
-  best = os.path.realpath(candidates[0])
-  preserve(best)
-
-# include python2 for bash and python2
-if not include_python3:
-  # Try to include python2 only if it is present or we were specifically asked for it.
-  # This is to facilitate testing on a python3-only container.
-  if os.path.exists("/usr/bin/python2.7") or include_python2:
-    preserve("/usr/bin/python2.7", short_failure=True)
-    best = "/usr/bin/python2.7"
-  preserve("/usr/lib")
+# We expect python3 in /usr/bin or /usr/local/bin.
+candidates = [
+  path
+  # Pick the most generic python if not matching python3.11.
+  # Sorry this is delicate because of restores, mounts, symlinks.
+  for pattern in ['python3.11', 'python3.10', 'python3.9', 'python3', 'python3*']
+  for root in ['/usr/local', '/usr']
+  for path in glob.glob(f'{root}/bin/{pattern}')
+  if os.path.exists(path)
+]
+if not candidates:
+  raise Exception('could not find python3')
+best = os.path.realpath(candidates[0])
+preserve(best)
 
 # Set up any specific shares requested.
 if args.mount:

@@ -67,6 +67,7 @@ export interface AssistanceResponseV1 extends BaseAssistanceResponse {
 
 export interface AssistanceResponseV2 extends BaseAssistanceResponse {
   appliedActions?: ApplyUAResult[];
+  confirmationRequired?: boolean;
 }
 
 /**

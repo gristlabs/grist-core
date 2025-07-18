@@ -119,7 +119,26 @@
         "selected new group data columns": "选定的新组数据列",
         "Pick a column": "选择一列",
         "Each Y series is followed by a series for the length of error bars.": "每个 Y 系列后跟一个误差条长度的系列。",
-        "Each Y series is followed by two series, for top and bottom error bars.": "每个 Y 系列后跟两个系列，用于顶部和底部误差线。"
+        "Each Y series is followed by two series, for top and bottom error bars.": "每个 Y 系列后跟两个系列，用于顶部和底部误差线。",
+        "Bar Chart": "条形图",
+        "Donut Chart": "环形图",
+        "Area Chart": "面积图",
+        "Scatter Plot": "散点图",
+        "Kaplan-Meier Plot": "Kaplan-Meier 图",
+        "Invert Y-axis": "反转 Y 轴",
+        "Log scale Y-axis": "对数标尺 Y 轴",
+        "Text Size": "字体大小",
+        "None": "无",
+        "Symmetric": "对称",
+        "X-AXIS": "X 轴",
+        "Aggregate values": "聚合值",
+        "non-numeric column is not shown": "非数字列不显示",
+        "LABEL": "标签",
+        "Pie Chart": "饼图",
+        "Line Chart": "折线图",
+        "Show Total": "显示总计",
+        "Show markers": "显示标记",
+        "non-numeric columns are not shown": "非数字列不显示"
     },
     "DataTables": {
         "Click to copy": "点击复制",
@@ -301,7 +320,7 @@
         "Compare to Previous": "与以前相比",
         "Open Snapshot": "打开快照",
         "Snapshots are unavailable.": "快照不可用。",
-        "Only owners have access to snapshots for documents with access rules.": "只有所有者才能访问有访问规则的文档快照。"
+        "Only owners have access to snapshots for documents with access rules.": "只有拥有者可以访问具有访问规则的文档快照。"
     },
     "WelcomeTour": {
         "Share": "分享",

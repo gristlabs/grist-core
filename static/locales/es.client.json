@@ -336,7 +336,10 @@
         "Transfer in progress": "Transferencia en curso",
         "**Some existing attachments are still [external]({{externalLink}})**.": "**Algunos archivos adjuntos existentes siguen siendo [externos]({{externalLink}})**.",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Algunos archivos adjuntos existentes siguen siendo [internos]({{internalLink}})** (almacenados en un archivo SQLite).",
-        "[Learn more.]({{learnLink}})": "[Más información.]({{learnLink}})"
+        "[Learn more.]({{learnLink}})": "[Más información.]({{learnLink}})",
+        "Upload": "Cargar",
+        "Upload missing attachments": "Cargar los archivos adjuntos que faltan",
+        "Uploading...": "Cargando..."
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -568,7 +571,15 @@
         "Download document structure only (no data, for template use)": "Elimine todos los datos pero mantenga la estructura para usarla como plantilla",
         "Download document without history (can significantly reduce file size)": "Eliminar el historial del documento (puede reducir significativamente el tamaño del archivo)",
         "Download": "Descargar",
-        "Download document": "Descargar el documento"
+        "Download document": "Descargar el documento",
+        "Format:": "Formato:",
+        "Learn more": "Más información",
+        "download attachments": "descargar archivos adjuntos",
+        ".tar (recommended)": ".tar (recomendado)",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "Descargue un archivo con todos los anexos presentes en este documento.",
+        "Download full document and history": "Descargar documento completo e historial",
+        "Download attachments": "Descargar archivos adjuntos"
     },
     "NTextBox": {
         "false": "falso",
@@ -715,7 +726,10 @@
         "DOO Separated Values (.dsv)": "Valores separados DOO (.dsv)",
         "Tab Separated Values (.tsv)": "Valores separados por tabulaciones (.tsv)",
         "Export as...": "Exportar como...",
-        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)"
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Download document...": "Descargar documento...",
+        "Exporting is only available from document pages. Please select a document page and try again.": "La exportación sólo está disponible desde las páginas de documentos. Seleccione una página de documento e inténtelo de nuevo.",
+        "Download attachments...": "Descargar archivos adjuntos..."
     },
     "SiteSwitcher": {
         "Create new team site": "Crear nuevo sitio de equipo",
@@ -928,7 +942,40 @@
         "Each Y series is followed by two series, for top and bottom error bars.": "Cada serie Y es seguida por dos series, para barras de error superior e inferior.",
         "Pick a column": "Elige una columna",
         "Toggle chart aggregation": "Alternar la agregación de gráficos",
-        "selected new group data columns": "nuevas columnas de datos de grupo seleccionadas"
+        "selected new group data columns": "nuevas columnas de datos de grupo seleccionadas",
+        "LABEL": "ETIQUETA",
+        "Connect gaps": "Conectar vacíos",
+        "Show markers": "Mostrar marcadores",
+        "Stack series": "Serie apilada",
+        "Error bars": "Barras de error",
+        "Split Series": "Serie dividida",
+        "X-AXIS": "EJE-X",
+        "Aggregate values": "Valores agregados",
+        "SERIES": "SERIE",
+        "Add Series": "Agregar serie",
+        "non-numeric columns are not shown": "columnas no numéricas no se muestran",
+        "non-numeric column is not shown": "columna no numérica no se muestra",
+        "selected new x-axis": "nuevo eje x seleccionado",
+        "Remove": "Quitar",
+        "Vertical": "Vertical",
+        "Line Chart": "Gráfico lineal",
+        "Area Chart": "Cuadro de áreas",
+        "Split series": "Serie dividida",
+        "Show Total": "Mostrar total",
+        "Pie Chart": "Gráfico circular",
+        "Kaplan-Meier Plot": "Gráfico de Kaplan-Meier",
+        "Invert Y-axis": "Invertir eje Y",
+        "Log scale Y-axis": "Escala logarítmica Eje Y",
+        "Text Size": "Tamaño del texto",
+        "Symmetric": "Simétrico",
+        "Above+Below": "Arriba+Abajo",
+        "Donut Chart": "Gráfico de donuts",
+        "None": "Ninguno",
+        "Scatter Plot": "Gráfico de dispersión",
+        "Horizontal": "Horizontal",
+        "Bar Chart": "Gráfico de barras",
+        "Orientation": "Orientación",
+        "Hole Size": "Tamaño del orificio"
     },
     "CodeEditorPanel": {
         "Access denied": "Acceso denegado",
@@ -972,7 +1019,9 @@
         "Make On-Demand": "Hacer a demanda",
         "Plugin: ": "Plugin: ",
         "Section: ": "Sección: ",
-        "Unmark On-Demand": "Desmarcar bajo demanda"
+        "Unmark On-Demand": "Desmarcar bajo demanda",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Las tablas de demanda han quedado obsoletas por falta de funcionalidad y problemas de usabilidad.",
+        "⚠️ Deprecated Feature": "⚠️ Función obsoleta"
     },
     "FilterBar": {
         "SearchColumns": "Buscar en columnas",
@@ -1164,7 +1213,9 @@
         "Comment": "Comentario",
         "Open": "Abrir",
         "Reply to a comment": "Responder a un comentario",
-        "Showing last {{nb}} comments": "Mostrando los últimos {{nb}} comentarios"
+        "Showing last {{nb}} comments": "Mostrando los últimos {{nb}} comentarios",
+        "Remove thread": "Quitar hilo",
+        "updated": "actualizado"
     },
     "EditorTooltip": {
         "Convert column to formula": "Convertir columna en fórmula"
@@ -1317,7 +1368,8 @@
         "The preview below this header shows how the selected user will see this document": "La vista previa debajo de este encabezado muestra cómo verá este documento el usuario seleccionado",
         "[Learn more.]({{link}})": "[Aprende más.]({{link}})",
         "Summary tables can only contain formula columns.": "Mesas de resumen sólo pueden contener columnas de fórmula.",
-        "Manage users and resources in a Grist installation.": "Gestionar usuarios y recursos en una instalación de Grist."
+        "Manage users and resources in a Grist installation.": "Gestionar usuarios y recursos en una instalación de Grist.",
+        "The new Grist Assistant is here!": "¡El nuevo asistente de Grist está aquí!"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1366,7 +1418,8 @@
         "Event Types": "Tipos de eventos",
         "Memo": "Memorándum",
         "Name": "Nombre",
-        "Header Authorization": "Encabezado de autorización"
+        "Header Authorization": "Encabezado de autorización",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks no disponibles en copias de documentos sin guardar"
     },
     "FormulaAssistant": {
         "Regenerate": "Regenerar",
@@ -1493,7 +1546,8 @@
         "You are about to remove your own access to this {{resourceType}}": "Usted está a punto de quitar su propio acceso a este {{resourceType}}",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "El usuario hereda los permisos de {{parent}}. Para eliminarlo, establece la opción \"Heredar el acceso\" en \"Ninguno\".",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "El usuario tiene acceso de visualización a {{resource}} como resultado del acceso configurado manualmente a los recursos que contiene. Si se elimina aquí, este usuario perderá el acceso a los recursos que contiene.",
-        "Inherit access: ": "Heredar acceso: "
+        "Inherit access: ": "Heredar acceso: ",
+        "Access overview": "Panorama general"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -2020,5 +2074,30 @@
         "Admin Controls": "Controles administrativos",
         "Settings": "Ajustes",
         "Workspaces": "Espacios de trabajo"
+    },
+    "Assistant": {
+        "Learn more.": "Más información.",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Regístrese para obtener una cuenta gratuita en Grist y empezar a utilizar el Asistente IA.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Actualice a Grist Enterprise para probar el nuevo Asistente de Grist. {{learnMoreLink}}",
+        "For higher limits, contact the site owner.": "Para límites superiores, ponte en contacto con el propietario del sitio.",
+        "Press Enter to apply suggested formula.": "Pulse Intro para aplicar la fórmula sugerida.",
+        "Sign Up for Free": "Regístrate gratis",
+        "You have {{numCredits}} remaining credits.": "Te quedan {{numCredits}} créditos.",
+        "Apply": "Aplicar",
+        "AI Assistant is only available for logged in users.": "El assistente IA sólo está disponible para usuarios conectados.",
+        "For higher limits, {{upgradeNudge}}.": "Para límites más altos, {{upgradeNudge}}.",
+        "start a new chat": "iniciar un nuevo chat",
+        "What do you need help with?": "¿Con qué necesitas ayuda?",
+        "upgrade to the Pro Team plan": "actualiza al plan Pro de Team",
+        "You have used all available credits.": "Has utilizado todos los créditos disponibles.",
+        "upgrade your plan": "amplía tu plan"
+    },
+    "apiconsole": {
+        "Deletion was not confirmed, skipping.": "La eliminación no fue confirmada, saltando.",
+        "Are you sure you want to delete the following?": "¿Estás seguro de que quieres borrar lo siguiente?",
+        "Confirm Deletion": "Confirmar borrado",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Escriba DELETE si está seguro de que desea hacer esta eliminación.\nSi usted no está seguro, o no entiende lo que esta operación hará,\nSería prudente cancelarlo.",
+        "Delete": "Borrar",
+        "Type DELETE here if you wish to proceed.": "Escriba DELETE aquí si desea continuar."
     }
 }

@@ -8,6 +8,9 @@ const path = require('path');
 // This is used in Electron packaging.
 const base = path.dirname(path.dirname(require.resolve('grainjs/package.json')));
 
+const extraModulePaths = (process.env.WEBPACK_EXTRA_MODULE_PATHS || '')
+  .split(path.delimiter).filter(Boolean);
+
 module.exports = {
   target: 'web',
   entry: {
@@ -52,6 +55,7 @@ module.exports = {
       path.resolve('./stubs'),
       path.resolve('./node_modules'),
       base,
+      ...extraModulePaths,
     ],
     fallback: {
       'path': require.resolve("path-browserify"),

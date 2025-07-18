@@ -10,7 +10,7 @@ import {AbortSignal} from 'node-abort-controller';
 import * as path from 'path';
 import {ConnectionOptions} from 'typeorm';
 import {v4 as uuidv4} from 'uuid';
-
+import range from 'lodash/range';
 // This method previously lived in this file. Re-export to avoid changing imports all over.
 export {timeoutReached} from 'app/common/gutil';
 
@@ -144,12 +144,8 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
 /**
  * Only offer choices of engine on experimental deployments (staging/dev).
  */
-export function getSupportedEngineChoices(): EngineCode[]|undefined {
-  if (process.env.GRIST_EXPERIMENTAL_PLUGINS === '1' ||
-      process.env.PYTHON_VERSION_ON_CREATION) {
-    return ['python2', 'python3'];
-  }
-  return undefined;
+export function getSupportedEngineChoices(): EngineCode[] {
+  return ['python3'];
 }
 
 /**
@@ -182,10 +178,118 @@ export async function delayAbort(msec: number, signal?: AbortSignal): Promise<vo
  */
 export function getPubSubPrefix(): string {
   const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) { return 'db-x'; }
+  if (!redisUrl) { return 'db-x-'; }
   const dbNumber = new URL(redisUrl).pathname.replace(/^\//, '');
   if (dbNumber.match(/[^0-9]/)) {
     throw new Error('REDIS_URL has an unexpected structure');
   }
-  return `db-${dbNumber}`;
+  return `db-${dbNumber}-`;
+}
+
+
+/**
+ * Calculates the period when the yearly subscription is expected to reset its usage. The period tells us
+ * where we expected the reset date to be. Start date is inclusive, end date is exclusive.
+ */
+export function expectedResetDate(startMs: number, endMs: number, now?: number): number|null {
+  const DAY = 24 * 60 * 60 * 1000;
+
+  const nowMs = now || new Date().getTime();
+
+  // Validate params.
+  if (startMs > endMs) {
+    return null; // start after end
+  }
+
+  // If now is outside the valid period we don't expect a reset at all.
+  const validPeriod = period(startMs, endMs);
+  if (!validPeriod.has(nowMs)) {
+    return null;
+  }
+
+  // Make sure it is a yearly period (more or less).
+  if ((endMs - startMs) < 360 * DAY) {
+    return null;
+  }
+
+  // Bind the calculation to the start date, this doesn't change.
+  const endOf = calcPeriodEnd.bind(null, startMs);
+
+  // Now find the period we are in. In a yearly subscription we have 12 periods. Generate each period
+  // align to the start and end date.
+  const periods = range(0, 12).map(nr => {
+    if (nr === 0) {
+      return period(startMs, endOf(nr));
+    } else if (nr !== 11) {
+      return period(endOf(nr - 1), endOf(nr));
+    } else {
+      return period(endOf(nr - 1), endMs);
+    }
+  });
+
+  // We expect the reset date only if we are after first period.
+  const current = periods.slice(1).find(p => p.has(nowMs));
+  return current?.[0] ?? null;
+
+
+  function period(start: number, end: number) {
+    return Object.assign([start, end] as [number, number], {
+      has(x: number) {
+        return x >= start && x < end;
+      }
+    });
+  }
+}
+
+/**
+ * It tries to do what Stripe does https://docs.stripe.com/billing/subscriptions/billing-cycle For
+ * reference:
+ * - A monthly subscription with a billing cycle anchor date of September 2 always bills on the 2nd
+ *   day of the month.
+ * - A monthly subscription with a billing cycle anchor date of January 31 bills the last day of the
+ *   month closest to the anchor date, so February 28 (or February 29 in a leap year), then March
+ *   31, April 30, and so on.
+ * - A weekly subscription with a billing cycle anchor date of Friday, June 3 bills every Friday
+ *   thereafter.
+ */
+function calcPeriodEnd(anchor: number, nr: number) {
+  // Extract parts of a date anchor component.
+  const calDay = new Date(anchor).getUTCDate();
+  const calMonth = new Date(anchor).getUTCMonth();
+  const calYear = new Date(anchor).getUTCFullYear();
+  const calHour = new Date(anchor).getUTCHours();
+  const calMinute = new Date(anchor).getUTCMinutes();
+  const calSecond = new Date(anchor).getUTCSeconds();
+
+  // We want to find a date in next month that is as close to the anchor date as possible.
+  // In practice we will shift from 31 to 28 maximum.
+  // Constructing a date this way can move the day across year boundaries.
+  const validNextMonthStart = new Date(Date.UTC(calYear, calMonth + nr + 1, 1));
+
+  let maxIterations = 40;
+
+  function iterate(shift = 0): number {
+    // Safe guard against infinite loops.
+    if (maxIterations-- < 0) {
+      throw new Error('Too many iterations in expectedResetDate');
+    }
+    // We start by building up a date in the next month in the same day as the anchor date.
+    const targetDate = new Date(Date.UTC(
+      validNextMonthStart.getUTCFullYear(),
+      validNextMonthStart.getUTCMonth(),
+      calDay + shift,
+      calHour,
+      calMinute,
+      calSecond,
+    ));
+
+    // If the month didn't change we are done.
+    if (targetDate.getUTCMonth() === validNextMonthStart.getUTCMonth()) {
+      return targetDate.getTime();
+    }
+    // Else shift one day earlier and try again.
+    return iterate(shift - 1);
+  }
+
+  return iterate();
 }

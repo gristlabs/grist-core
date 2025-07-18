@@ -1,5 +1,5 @@
 import {useBindable} from 'app/common/gutil';
-import {BindableValue, Computed, dom, IDisposableOwner, Observable, UseCB} from 'grainjs';
+import {BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB} from 'grainjs';
 
 /**
  * Version of makeTestId that can be appended conditionally.
@@ -87,19 +87,71 @@ export function domDispatch(element: Element, name: string, args?: any) {
   }));
 }
 
-// Helper binding function to handle click outside an element. Takes into account floating menus.
+/**
+ * Helper function to bind a click handler that will be called when the user clicks outside.
+ * NOTE: There is a similar mechanism available in GristDoc/App, which should be used when a
+ * component is tightly integrated with the one of the basic views.
+ * ```
+ * gristDoc.app.on('clipboard_focus', handler);
+ * ```
+ */
 export function onClickOutside(click: () => void) {
   return (content: HTMLElement) => {
-    const onClick = (evt: MouseEvent) => {
-      const target: Node | null = evt.target as Node;
-      if (target && !content.contains(target)) {
-        // Check if any parent of target has class grist-floating-menu, if so, don't close.
-        if (target.parentElement?.closest(".grist-floating-menu")) {
-          return;
-        }
-        click();
-      }
-    };
-    dom.autoDisposeElem(content, dom.onElem(document, 'click', onClick, {useCapture: true}));
+    dom.autoDisposeElem(content, onClickOutsideElem(content, click));
   };
+}
+
+/**
+ * Helper function to bind a click handler that will be called when the user clicks outside.
+ * NOTE: There is a similar mechanism available in GristDoc/App, which should be used when a
+ * component is tightly integrated with the one of the basic views.
+ * ```
+ * gristDoc.app.on('clipboard_focus', handler);
+ * ```
+ */
+export function onClickOutsideElem(elem: Node, click: () => void) {
+  const onClick = (evt: MouseEvent) => {
+    const target: Node | null = evt.target as Node;
+    if (target && !elem.contains(target)) {
+      // Check if any parent of target has class grist-floating-menu, if so, don't close.
+      if (target.parentElement?.closest(".grist-floating-menu")) {
+        return;
+      }
+      click();
+    }
+  };
+  return dom.onElem(document, 'click', onClick, {useCapture: true});
+}
+
+/**
+ * Helper function which returns the direct child of ancestor which is an ancestor of elem, or
+ * null if elem is not a descendant of ancestor.
+ */
+export function findAncestorChild(ancestor: Element, elem: Element|null): Element|null {
+  while (elem && elem.parentElement !== ancestor) {
+    elem = elem.parentElement;
+  }
+  return elem;
+}
+
+/**
+ * A version of dom.onElem('mouseover') that doesn't start firing until there is first a 'mousemove'.
+ * This way if an element is created under the mouse cursor (triggered by the keyboard, for
+ * instance) it's not immediately highlighted, but only when a user moves the mouse.
+ * Returns an object with a reset() method, which restarts the wait for mousemove.
+ */
+export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: EventCB<MouseEvent, T>) {
+  let lis: IDisposable|undefined;
+  function setListener(eventType: 'mouseover'|'mousemove', cb: EventCB<MouseEvent, T>) {
+    if (lis) { lis.dispose(); }
+    lis = dom.onElem(elem, eventType, cb);
+  }
+  function reset() {
+    setListener('mousemove', (ev, _elem) => {
+      setListener('mouseover', callback);
+      callback(ev, _elem);
+    });
+  }
+  reset();
+  return {reset};
 }

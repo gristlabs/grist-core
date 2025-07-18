@@ -365,7 +365,7 @@ describe('GridViewNewColumnMenu', function () {
       // check if tooltip is showing valid message
       const tooltipText = await tooltipContainer.getText();
       assert.include(tooltipText,
-        'Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.',
+        'Formulas support many Excel functions and full Python syntax.',
         'Tooltip is showing wrong message');
       // check if link in tooltip has a proper href
       const hrefAddress = await tooltipContainer.findWait('a',

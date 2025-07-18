@@ -1,26 +1,115 @@
-import {addToRepl, assert, driver} from 'mocha-webdriver';
-import {FormElement, formSchema, labels, question, questionType} from 'test/nbrowser/formTools';
+import {UserAPI} from 'app/common/UserAPI';
+import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
+import {element, FormElement, formSchema, labels, question, questionType} from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 describe('FormView2', function() {
   this.timeout('4m');
   gu.bigScreen();
 
   const cleanup = setupTestSuite();
+  let session: gu.Session;
+
+  let api: UserAPI;
 
   addToRepl('question', question);
   addToRepl('labels', labels);
   addToRepl('questionType', questionType);
 
   before(async function() {
-    const session = await gu.session().login();
-    await session.tempNewDoc(cleanup);
+    session = await gu.session().login();
+    api = session.createHomeApi();
   });
 
   gu.withClipboardTextArea();
 
+
+  it("should not allow html to escape the border", async function() {
+    // Add simple HTML to paragraph with fixed layout that should cover the whole screen.
+    await session.tempNewDoc(cleanup);
+    await gu.addNewPage('Form', 'Table1');
+
+    // Publish it.
+    await publish.wait();
+    await publish.click();
+    if (await confirm.isPresent()) {
+      await confirm.click();
+    }
+    await gu.waitForServer();
+
+    // Get the link to the form.
+    await share.click();
+    await gu.waitForServer();
+    const link = await driver.findWait('.test-forms-link', 100).getAttribute('value');
+
+    await gu.dbClick(await element('Paragraph', 1));
+    // Wait for the text area to appear.
+    const textArea = await element('Paragraph', 1).findWait('textarea', 1000);
+    await textArea.click();
+    // Add some HTML that should not escape the border.
+    await gu.sendKeys(
+      '<div style="width: 100vw; height: 100vh; background-color: red; inset: 0; position: fixed;" />'
+    );
+    await gu.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+
+    // Open the form.
+    await driver.get(link);
+    await form.wait();
+
+    // Make sure we can click the reset button.
+    await driver.find('.test-form-reset').click();
+  });
+
+  it('shows a border around a rendered form', async function() {
+    await session.tempNewDoc(cleanup);
+    await gu.addNewPage('Form', 'Table1');
+    // Publish it.
+    await publish.click();
+    if (await confirm.isPresent()) {
+      await confirm.click();
+    }
+    await gu.waitForServer();
+    await unpublish.wait();
+
+    // Open the form.
+    await share.click();
+    await gu.waitForServer();
+    const link = await driver.findWait('.test-forms-link', 100).getAttribute('value');
+    await driver.get(link);
+
+    // By default, the form framing should be set to 'border'.
+    await form.wait();
+    assert.equal(await framing(), 'border', 'Form framing should be set to border');
+
+    // Update the environment variable to turn off the border restriction.
+    const snap = new EnvironmentSnapshot();
+    process.env.GRIST_FEATURE_FORM_FRAMING = 'minimal';
+    try {
+      await session.loadDocMenu('/');
+      await server.restart();
+      await driver.get(link);
+      await form.wait();
+
+      // Verify that the form framing is now set to 'minimal'.
+      assert.equal(await framing(), 'minimal', 'Form framing should be set to minimal');
+    } finally {
+      // Restore the environment variable to its original state.
+      snap.restore();
+      await server.restart();
+    }
+    await driver.get(link);
+    await form.wait();
+
+    // Verify that the form framing is back to 'border'.
+    assert.equal(await framing(), 'border', 'Form framing should be set to border');
+  });
+
   it('duplicates default form', async function() {
+    session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup);
     // Create a default form for an empty table.
     await gu.addNewPage('Form', 'Table1');
     // Go to this page, to make sure we wait for it.
@@ -114,16 +203,12 @@ describe('FormView2', function() {
     await gu.openPage('Original');
     assert.deepEqual(origC, await formSchema());
     await revert();
-
   });
 
   it('clones default form without publishing', async function() {
     // Original form is not yet changed.
     // Publish it.
-    await publish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await unpublish.wait();
+    await publishForm();
 
     await gu.duplicatePage('Original', 'Cloned');
     await gu.openPage('Cloned');
@@ -133,16 +218,10 @@ describe('FormView2', function() {
     assert.isFalse(await unpublish.isPresent());
 
     // Now publish the clone also.
-    await publish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await unpublish.wait();
+    await publishForm();
 
     // And unpublish the clone to make sure the original is still published.
-    await unpublish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await publish.wait();
+    await unpublishForm();
 
     // Check original, should still be published.
     await gu.openPage('Original');
@@ -153,10 +232,7 @@ describe('FormView2', function() {
   it('can submit a form', async function() {
     // Publish the clone and open the form.
     await gu.openPage('Cloned');
-    await publish.click();
-    await confirm.click();
-    await gu.waitForServer();
-    await unpublish.wait();
+    await publishForm();
 
     await share.click();
     await gu.waitForServer();
@@ -164,7 +240,7 @@ describe('FormView2', function() {
     await driver.get(link);
 
     // Submit a record
-    await driver.findWait('input[name="A"]', 100).click();
+    await driver.findWait('input[name="A"]', 2000).click();
     await driver.findWait('input[name="A"]', 100).sendKeys('Hello');
     await driver.findWait('input[type="submit"]', 1000).click();
     await driver.findWait('.test-form-success-page-text', 1000);
@@ -174,6 +250,44 @@ describe('FormView2', function() {
     await gu.waitForDocToLoad();
     await gu.openPage('Table1');
     assert.deepEqual(await gu.getVisibleGridCellsFast('A', [1]), ['Hello']);
+  });
+
+  it('does not load preview if doc is soft-deleted', async function() {
+    const docId = await session.tempNewDoc(cleanup);
+    await gu.addNewPage('Form', 'Table1');
+    const formUrl = await driver.find('.test-forms-preview').getAttribute('href');
+    await session.loadDocMenu('/');
+    await api.softDeleteDoc(docId);
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
+      assert.equal(
+        await driver.find('.test-form-error-page-text').getText(),
+        "Oops! The form you're looking for doesn't exist."
+      );
+    });
+    await api.undeleteDoc(docId);
+  });
+
+  it('does not load published form if doc is soft-deleted', async function() {
+    const docId = await session.tempNewDoc(cleanup);
+    await session.loadDoc(`/doc/${docId}`);
+    await gu.addNewPage('Form', 'Table1');
+    await publishForm();
+    await share.click();
+    await gu.waitForServer();
+    const formUrl = await driver.findWait('.test-forms-link', 100).getAttribute('value');
+    await session.loadDocMenu('/');
+    await api.softDeleteDoc(docId);
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
+      assert.equal(
+        await driver.find('.test-form-error-page-text').getText(),
+        "Oops! The form you're looking for doesn't exist."
+      );
+    });
+    await api.undeleteDoc(docId);
   });
 });
 
@@ -185,13 +299,13 @@ function label(e: FormElement) {
   return e.label;
 }
 
-function button(selector: string) {
+function widget(selector: string) {
   return {
     async click() {
       await driver.findWait(selector, 1000).click();
     },
     async wait() {
-      await driver.findWait(selector, 1000);
+      await driver.findWait(selector, 5000);
     },
     async isDisplayed() {
       return await driver.find(selector).isDisplayed();
@@ -202,8 +316,36 @@ function button(selector: string) {
   };
 }
 
+const publish = widget('.test-forms-publish');
+const unpublish = widget('.test-forms-unpublish');
+const confirm = widget('.test-modal-confirm');
+const share = widget('.test-forms-share');
+const form = widget('.test-form-page');
 
-const publish = button('.test-forms-publish');
-const unpublish = button('.test-forms-unpublish');
-const confirm = button('.test-modal-confirm');
-const share = button('.test-forms-share');
+async function publishForm() {
+  await publish.wait();
+  await publish.click();
+  await confirm.wait();
+  await confirm.click();
+  await gu.waitForServer();
+  await unpublish.wait();
+}
+
+async function unpublishForm() {
+  await unpublish.wait();
+  await unpublish.click();
+  await confirm.wait();
+  await confirm.click();
+  await gu.waitForServer();
+  await publish.wait();
+}
+
+async function framing() {
+  const frame = await driver.find('.test-form-framing');
+  if (await frame.matches('[class*=-border]')) {
+    return 'border';
+  }
+  if (await frame.matches('[class*=-minimal]')) {
+    return 'minimal';
+  }
+}

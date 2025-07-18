@@ -336,7 +336,7 @@ const cssTitleContainer = styled('div', `
   flex: 1 1 0px;
   min-width: 0px;
   display: flex;
-  .info_toggle_icon {
+  & .info_toggle_icon {
     width: 13px;
     height: 13px;
   }

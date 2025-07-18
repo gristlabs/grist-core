@@ -15,7 +15,7 @@ export class NullSandbox implements ISandbox {
     throw new UnavailableSandboxMethodError('pyCall is not available');
   }
 
-  public async reportMemoryUsage() {
+  public async reportMemoryUsage(): Promise<never> {
     throw new UnavailableSandboxMethodError('reportMemoryUsage is not available');
   }
 

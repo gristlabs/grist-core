@@ -5,6 +5,7 @@ import {addFilterMenu} from 'app/client/ui/FilterBar';
 import {cssIcon, cssPinButton, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {textButton} from 'app/client/ui2018/buttons';
 import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
 import {IMenuOptions} from 'popweasel';
 
@@ -86,7 +87,7 @@ export class FilterConfig extends Disposable {
       cssRow(
         dom.domComputed((use) => {
           const filters = use(this._section.filters);
-          return cssTextBtn(
+          return textButton(
             t("Add Column"),
             addFilterMenu(filters, this._popupControls, {
               menuOptions: {
@@ -112,15 +113,6 @@ const cssLabel = styled('div', `
   text-overflow: ellipsis;
   overflow: hidden;
   flex-grow: 1;
-`);
-
-const cssTextBtn = styled('div', `
-  color: ${theme.controlFg};
-  cursor: pointer;
-
-  &:hover {
-    color: ${theme.controlHoverFg};
-  }
 `);
 
 const cssFilterIcon = styled(cssIcon, `

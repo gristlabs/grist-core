@@ -152,10 +152,43 @@
         "Copy with headers": "Copy with headers"
     },
     "ChartView": {
+        "LABEL": "LABEL",
+        "Bar Chart": "Bar Chart",
+        "Pie Chart": "Pie Chart",
+        "Donut Chart": "Donut Chart",
+        "Area Chart": "Area Chart",
+        "Line Chart": "Line Chart",
+        "Scatter Plot": "Scatter Plot",
+        "Kaplan-Meier Plot": "Kaplan-Meier Plot",
+        "Split series": "Split series",
+        "Invert Y-axis": "Invert Y-axis",
+        "Orientation": "Orientation",
+        "Vertical": "Vertical",
+        "Horizontal": "Horizontal",
+        "Log scale Y-axis": "Log scale Y-axis",
+        "Hole Size": "Hole Size",
+        "Show Total": "Show Total",
+        "Text Size": "Text Size",
+        "Connect gaps": "Connect gaps",
+        "Show markers": "Show markers",
+        "Stack series": "Stack series",
+        "Error bars": "Error bars",
+        "None": "None",
+        "Symmetric": "Symmetric",
+        "Above+Below": "Above+Below",
+        "Split Series": "Split Series",
+        "X-AXIS": "X-AXIS",
+        "Pick a column": "Pick a column",
+        "Aggregate values": "Aggregate values",
+        "SERIES": "SERIES",
+        "Add Series": "Add Series",
+        "non-numeric columns are not shown": "non-numeric columns are not shown",
+        "non-numeric column is not shown": "non-numeric column is not shown",
+        "selected new x-axis": "selected new x-axis",
+        "Remove": "Remove",
         "Create separate series for each value of the selected column.": "Create separate series for each value of the selected column.",
         "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
         "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
-        "Pick a column": "Pick a column",
         "Toggle chart aggregation": "Toggle chart aggregation",
         "selected new group data columns": "selected new group-data columns"
     },
@@ -294,7 +327,8 @@
         "Reload": "Reload",
         "Sorry, access to this document has been denied. [{{error}}]": "Sorry, access to this document has been denied. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]",
-        "You do not have edit access to this document": "You do not have edit access to this document"
+        "You do not have edit access to this document": "You do not have edit access to this document",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.",
@@ -389,7 +423,10 @@
         "[Learn more.]({{learnLink}})": "[Learn more.]({{learnLink}})",
         "Upload": "Upload",
         "Upload missing attachments": "Upload missing attachments",
-        "Uploading...": "Uploading..."
+        "Uploading...": "Uploading...",
+        "Default": "Default",
+        "Default, template, or tutorial": "Default, template, or tutorial",
+        "Document type": "Document type"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -543,7 +580,8 @@
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
         "Import from file": "Import from file",
         "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}",
-        "go to webhook settings": "go to webhook settings"
+        "go to webhook settings": "go to webhook settings",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue."
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -651,7 +689,8 @@
         "Download full document and history": "Download full document and history",
         "Format:": "Format:",
         "Learn more": "Learn more",
-        "download attachments": "download attachments"
+        "download attachments": "download attachments",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. "
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -686,7 +725,9 @@
         "Delete": "Delete",
         "Delete data and this page.": "Delete data and this page.",
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
-        "The following tables will no longer be visible_other": "The following tables will no longer be visible"
+        "The following tables will no longer be visible_other": "The following tables will no longer be visible",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Keep data and delete page. Table will remain available in {{rawDataLink}}",
+        "raw data page": "raw data page"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",
@@ -897,7 +938,9 @@
         "Make On-Demand": "Make On-Demand",
         "Plugin: ": "Plugin: ",
         "Section: ": "Section: ",
-        "Unmark On-Demand": "Unmark On-Demand"
+        "Unmark On-Demand": "Unmark On-Demand",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.",
+        "⚠️ Deprecated Feature": "⚠️ Deprecated Feature"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Advanced Sort & Filter",
@@ -1280,7 +1323,13 @@
         "[Learn more.]({{link}})": "[Learn more.]({{link}})",
         "Summary tables can only contain formula columns.": "Summary tables can only contain formula columns.",
         "Manage users and resources in a Grist installation.": "Manage users and resources in a Grist installation.",
-        "The new Grist Assistant is here!": "The new Grist Assistant is here!"
+        "The new Grist Assistant is here!": "The new Grist Assistant is here!",
+        "Formulas support many Excel functions and full Python syntax.": "Formulas support many Excel functions and full Python syntax.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}})."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1302,7 +1351,8 @@
     },
     "Clipboard": {
         "Got it": "Got it",
-        "Unavailable Command": "Unavailable Command"
+        "Unavailable Command": "Unavailable Command",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}."
     },
     "FieldContextMenu": {
         "Clear field": "Clear field",
@@ -1310,7 +1360,8 @@
         "Copy anchor link": "Copy anchor link",
         "Cut": "Cut",
         "Hide field": "Hide field",
-        "Paste": "Paste"
+        "Paste": "Paste",
+        "Comment": "Comment"
     },
     "WebhookPage": {
         "Clear Queue": "Clear Queue",
@@ -1368,7 +1419,10 @@
         "You have used all available credits.": "You have used all available credits.",
         "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
         "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\""
     },
     "GridView": {
         "Click to insert": "Click to insert"
@@ -1425,7 +1479,8 @@
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.",
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
         "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}",
-        "Inherit access: ": "Inherit access: "
+        "Inherit access: ": "Inherit access: ",
+        "Access overview": "Access overview"
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
@@ -1462,7 +1517,11 @@
         "You can opt out of telemetry at any time from this page.": "You can opt out of telemetry at any time from this page.",
         "You have opted in to telemetry. Thank you!": "You have opted in to telemetry. Thank you!",
         "You have opted out of telemetry.": "You have opted out of telemetry.",
-        "Sponsor": "Sponsor"
+        "Sponsor": "Sponsor",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "You can support Grist open-source development by sponsoring us on our {{link}}."
     },
     "buildViewSectionDom": {
         "No data": "No data",
@@ -1514,7 +1573,11 @@
         "Share this form": "Share this form",
         "View": "View",
         "# **Form Title**": "# **Form Title**",
-        "Your form description goes here.": "Your form description goes here."
+        "Your form description goes here.": "Your form description goes here.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form."
     },
     "Editor": {
         "Delete": "Delete"
@@ -1681,7 +1744,11 @@
         "Off": "Off",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more",
         "On": "On",
-        "Grist Instance": "Grist Instance"
+        "Grist Instance": "Grist Instance",
+        "Auto-check weekly": "Auto-check weekly",
+        "No record of last version check": "No record of last version check",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them."
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1775,7 +1842,8 @@
         "What is your role?": "What is your role?",
         "What organization are you with?": "What organization are you with?",
         "Your organization": "Your organization",
-        "Your role": "Your role"
+        "Your role": "Your role",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different."
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",
@@ -1871,7 +1939,8 @@
         "Table": "Table",
         "Two-way Reference": "Two-way Reference",
         "Delete two-way reference?": "Delete two-way reference?",
-        "Target table": "Target table"
+        "Target table": "Target table",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}."
     },
     "SupportGristButton": {
         "Admin Panel": "Admin Panel",
@@ -1880,7 +1949,9 @@
         "Opt in to Telemetry": "Opt in to Telemetry",
         "Opted In": "Opted In",
         "Support Grist": "Support Grist",
-        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu."
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu."
     },
     "buildReassignModal": {
         "Cancel": "Cancel",
@@ -1911,7 +1982,8 @@
         "Splunk": "Splunk",
         "Start streaming": "Start streaming",
         "Token": "Token",
-        "URL": "URL"
+        "URL": "URL",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}."
     },
     "AuditLogsPage": {
         "Audit Logs": "Audit Logs",
@@ -1920,7 +1992,9 @@
         "Home": "Home",
         "Log streaming": "Log streaming",
         "Only site owners may access audit logs.": "Only site owners may access audit logs.",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}."
     },
     "DocList": {
         "Access details": "Access details",
@@ -2000,7 +2074,8 @@
         "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
         "start a new chat": "start a new chat",
         "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
-        "upgrade your plan": "upgrade your plan"
+        "upgrade your plan": "upgrade your plan",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance."
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "Are you sure you want to delete the following?",
@@ -2009,5 +2084,37 @@
         "Deletion was not confirmed, skipping.": "Deletion was not confirmed, skipping.",
         "Type DELETE here if you wish to proceed.": "Type DELETE here if you wish to proceed.",
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it."
+    },
+    "MentionTextBox": {
+        "no access": "no access"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible."
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.",
+        "Set the document to use external storage.": "Set the document to use external storage."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Please wait for the previous operation to complete.",
+        "Timed out on waiting for the Grist backend to restart": "Timed out on waiting for the Grist backend to restart"
+    },
+    "Experiments": {
+        "Disable feature": "Disable feature",
+        "Don't worry, you can disable it later if needed.": "Don't worry, you can disable it later if needed.",
+        "Enable feature": "Enable feature",
+        "Experimental feature": "Experimental feature",
+        "New record button": "New record button",
+        "Reload the page": "Reload the page",
+        "Visit this URL at any time to stop using this feature: {{url}}": "Visit this URL at any time to stop using this feature: {{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "You are about to disable this experimental feature: {{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "You are about to enable this experimental feature: {{experiment}}",
+        "{{experiment}} disabled.": "{{experiment}} disabled.",
+        "{{experiment}} enabled.": "{{experiment}} enabled."
+    },
+    "NewRecordButton": {
+        "New card": "New card",
+        "New record": "New record"
     }
 }

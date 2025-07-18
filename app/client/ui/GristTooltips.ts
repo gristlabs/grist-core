@@ -8,6 +8,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
 import {BehavioralPrompt} from 'app/common/Prefs';
+import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, DomElementArg, styled} from 'grainjs';
 
 const t = makeT('GristTooltips');
@@ -70,6 +71,7 @@ export type Tooltip =
   | 'attachmentStorage'
   | 'uploadAttachments'
   | 'adminControls'
+  | 'formFraming'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -149,7 +151,7 @@ see or edit which parts of your document.')
     ...args,
   ),
   formulaColumn: (...args: DomElementArg[]) => cssTooltipContent(
-    dom('div', t('Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.')),
+    dom('div', t('Formulas support many Excel functions and full Python syntax.')),
     dom('div',
       cssLink({href: commonUrls.formulas, target: '_blank'}, t('Learn more.')),
     ),
@@ -191,8 +193,8 @@ see or edit which parts of your document.')
   ),
   twoWayReferences: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Creates a new Reference List column in the target table, with both this ' +
-        'and the target columns editable and synchronized.')
+      t('Creates a new Reference List column in the target table, with both this \
+and the target columns editable and synchronized.')
     ),
     ...args,
   ),
@@ -218,9 +220,9 @@ see or edit which parts of your document.')
   attachmentStorage: (...args: DomElementArg[]) => cssTooltipContent(
     cssMarkdownSpan(
       t(
-        "Internal storage means all attachments are stored in the document SQLite file, " +
-        "while external storage indicates all attachments are stored in the same " +
-        "external storage."
+        "Internal storage means all attachments are stored in the document SQLite file, \
+while external storage indicates all attachments are stored in the same \
+external storage."
       ) +
       "\n\n" +
       t(
@@ -238,10 +240,21 @@ see or edit which parts of your document.')
   uploadAttachments: (...args: DomElementArg[]) => cssTooltipContent(
     cssMarkdownSpan(
       t(
-        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. " +
-        "Only .tar attachment archives downloaded from Grist can be uploaded here."
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. \
+Only .tar attachment archives downloaded from Grist can be uploaded here."
       ),
     ),
+    ...args,
+  ),
+  formFraming: (...args: DomElementArg[]) => cssTooltipContent(
+    cssMarkdownSpan(
+      t(
+"This form is created by a Grist user, and is not endorsed by Grist Labs. \
+Do not submit passwords through this form, and be careful with links in \
+it. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
+        mail: getGristConfig().supportEmail
+      }
+    )),
     ...args,
   ),
 };
@@ -438,8 +451,8 @@ data.")),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
         t(
-          "Understand, modify and work with your data and formulas " +
-            "with the help of Grist's new AI Assistant!",
+          "Understand, modify and work with your data and formulas \
+with the help of Grist's new AI Assistant!",
         )
       ),
       dom('div',

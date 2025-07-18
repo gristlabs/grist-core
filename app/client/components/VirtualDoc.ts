@@ -31,7 +31,7 @@ import {DocDataCache} from 'app/common/DocDataCache';
 import {IDocPage} from 'app/common/gristUrls';
 import {useBindable} from 'app/common/gutil';
 import {VirtualId} from 'app/common/SortSpec';
-import {DocAPI} from 'app/common/UserAPI';
+import {DocAPI, ExtendedUser} from 'app/common/UserAPI';
 import type {ISupportedFeatures} from 'app/common/UserConfig';
 import {CursorPos} from 'app/plugin/GristAPI';
 import type {GristType, RowRecord} from 'app/plugin/GristData';
@@ -99,6 +99,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public attachmentTransfer = Observable.create(this, null);
   public canShowRawData = Observable.create(this, false);
   public activeSectionId: ko.Computed<number|string>;
+  public currentUser: Observable<ExtendedUser|null>;
   private _tables: Map<string, TableSpec> = new Map();
   constructor(public appModel: AppModel) {
     super();
@@ -112,6 +113,10 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
       // Otherwise, we create a new InMemoryApp, suitable for tests.
       this.app = this.autoDispose(new InMemoryApp(appModel.topAppModel));
     }
+
+    this.currentUser = Computed.create(this, use => {
+      return use(this.app.topAppModel.appObs)?.currentUser ?? null;
+    });
 
     // Create a true DocPageModel that just don't wires up url state transition (that normally is used to switch
     // docs without reloading)

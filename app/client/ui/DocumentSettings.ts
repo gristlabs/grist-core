@@ -16,6 +16,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
 import {openFilePicker} from 'app/client/ui/FileDialog';
+import {buildNotificationsConfig} from 'app/client/ui/Notifications';
 import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
@@ -28,7 +29,7 @@ import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'a
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
 import {EngineCode} from 'app/common/DocumentSettings';
-import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
+import {commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
@@ -61,28 +62,18 @@ export class DocSettingsPage extends Disposable {
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
-  private _engine: Computed<EngineCode|undefined> = Computed.create(this, (
-    use => use(this._docInfo.documentSettingsJson.prop('engine'))
-  ))
-    .onWrite(val => this._setEngine(val));
-
-  private _engines = getSupportedEngineChoices().map((engine) => ({
-    value: engine,
-    label: engine === 'python3' ? t(`python3 (recommended)`) : t(`python2 (legacy)`),
-  }));
 
   constructor(private _gristDoc: GristDoc) {
     super();
   }
 
   public buildDom() {
-    const canChangeEngine = getSupportedEngineChoices().length > 0;
     const docPageModel = this._gristDoc.docPageModel;
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
 
-    return cssContainer(
+    return cssContainer({tabIndex: '-1'},
       dom.create(AdminSection, t('Document Settings'), [
         dom.create(AdminSectionItem, {
           id: 'timezone',
@@ -107,8 +98,8 @@ export class DocSettingsPage extends Disposable {
         }),
         dom.create(AdminSectionItem, {
           id: 'templateMode',
-          name: t('Template mode'),
-          description: t('Change document type'),
+          name: t('Document type'),
+          description: t('Default, template, or tutorial'),
           value: cssDocTypeContainer(
             dom.create(
               displayCurrentType,
@@ -122,6 +113,8 @@ export class DocSettingsPage extends Disposable {
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
       ]),
+
+      dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),
 
       dom.create(AdminSection, t('Data Engine'), [
         dom.create(AdminSectionItem, {
@@ -150,9 +143,9 @@ export class DocSettingsPage extends Disposable {
             }
           }),
           expandedContent: dom('div', t(
-            'Once you start timing, Grist will measure the time it takes to evaluate each formula. ' +
-            'This allows diagnosing which formulas are responsible for slow performance when a ' +
-            'document is first opened, or when a document responds to changes.'
+            'Once you start timing, Grist will measure the time it takes to evaluate each formula. \
+This allows diagnosing which formulas are responsible for slow performance when a \
+document is first opened, or when a document responds to changes.'
           )),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
@@ -163,12 +156,6 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallButtonSettings(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
           disabled: isDocEditor ? false : t('Only available to document editors'),
         }),
-        canChangeEngine ? dom.create(AdminSectionItem, {
-          id: 'python',
-          name: t('Python'),
-          description: t('Python version used'),
-          value: cssSelect(this._engine, this._engines),
-        }) : null,
       ]),
 
       dom.create(AdminSection, t('API'), [
@@ -225,6 +212,7 @@ export class DocSettingsPage extends Disposable {
           name: t('Webhooks'),
           description: t('Notify other services on doc changes'),
           value: cssSmallLinkButtonSettings(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
+          disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
       ]),
 
@@ -301,7 +289,7 @@ export class DocSettingsPage extends Disposable {
 
     return dom.create(AdminSection, t('Attachment storage'), [
       dom.create(AdminSectionItem, {
-        id: 'preferredStorage',
+        id: PREFERRED_STORAGE_ANCHOR,
         name: withInfoTooltip(
           dom('span', t('Preferred storage for this document'), testId('transfer-header')),
           'attachmentStorage',
@@ -432,16 +420,12 @@ export class DocSettingsPage extends Disposable {
     }
     confirmModal(t('Reload data engine?'), t('Reload'), handler, {
       explanation: t(
-        'This will perform a hard reload of the data engine. This ' +
-        'may help if the data engine is stuck in an infinite loop, is ' +
-        'indefinitely processing the latest change, or has crashed. ' +
-        'No data will be lost, except possibly currently pending actions.'
+        'This will perform a hard reload of the data engine. This \
+may help if the data engine is stuck in an infinite loop, is \
+indefinitely processing the latest change, or has crashed. \
+No data will be lost, except possibly currently pending actions.'
       )
     });
-  }
-
-  private async _setEngine(val: EngineCode|undefined) {
-    confirmModal(t('Save and Reload'), t('Ok'), () => this._doSetEngine(val));
   }
 
   private async _startTiming() {
@@ -579,17 +563,17 @@ export class DocSettingsPage extends Disposable {
           dom.style('max-width', '400px'),
           docTypeOption({
             type: DocTypeOption.Regular,
-            label: t('Regular document'),
+            label: t('Default'),
             description: t('Normal document behavior. All users work on the same copy of the document.'),
             itemTestId: testId('doctype-modal-option-regular'),
           }),
           docTypeOption({
             type: DocTypeOption.Template,
             label: t('Template'),
-            description:  t('Document automatically opens in {{fiddleModeDocUrl}}. ' +
-              'Anyone may edit, which will create a new unsaved copy.',
+            description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
+Anyone may edit, which will create a new unsaved copy.',
               {
-                fiddleModeDocUrl: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('fiddle mode'))
+                fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode'))
               }
             ),
             itemTestId: testId('doctype-modal-option-template'),
@@ -615,13 +599,6 @@ export class DocSettingsPage extends Disposable {
         testId('doctype-modal'),
       ];
     });
-  }
-
-  private async _doSetEngine(val: EngineCode|undefined) {
-    if (this._engine.get() !== val) {
-      await this._docInfo.documentSettingsJson.prop('engine').saveOnly(val);
-      await this._gristDoc.docApi.forceReload();
-    }
   }
 }
 
@@ -809,7 +786,7 @@ const cssInput = styled('div', `
 `);
 
 const cssHoverWrapper = styled('div', `
-  max-width: 170px;
+  max-width: var(--admin-select-width);
   text-overflow: ellipsis;
   overflow: hidden;
   text-wrap: nowrap;
@@ -931,7 +908,7 @@ const cssCopyLink = styled(cssLink, `
 `);
 
 const cssAutoComplete = `
-  width: 172px;
+  width: var(--admin-select-width);
   cursor: pointer;
   & input {
     text-overflow: ellipsis;
@@ -956,7 +933,7 @@ const cssRedText = styled('span', `
 
 const cssDocTypeContainer = styled('div', `
   display: flex;
-  width: 172px;
+  width: var(--admin-select-width);
   align-items: center;
   justify-content: space-between;
   & > * {
@@ -976,10 +953,6 @@ const cssButton = styled(cssSmallButton, `
 
 const cssSmallSelect = styled(select, `
   width: 100%;
-`);
-
-const cssSelect = styled(select, `
-  min-width: 170px; /* to match the width of the timezone picker */
 `);
 
 const cssLoadingSpinner = styled(loadingSpinner, `

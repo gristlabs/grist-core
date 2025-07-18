@@ -13,10 +13,10 @@
  * // toggle popup
  * dom('input', dom.on('click', () => ctl.toggle()));
  */
-import { Disposable, dom, DomArg, Observable, styled } from "grainjs";
-import { cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption } from "popweasel";
-import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/autocomplete";
-import { menuCssClass, menuItem } from "app/client/ui2018/menus";
+import {attachMouseOverOnMove, findAncestorChild} from 'app/client/lib/domUtils';
+import {menuCssClass, menuItem} from 'app/client/ui2018/menus';
+import {Disposable, dom, DomArg, Observable, styled} from 'grainjs';
+import {cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption} from 'popweasel';
 
 export type { IOption, IOptionFull } from 'popweasel';
 export { getOptionFull } from 'popweasel';

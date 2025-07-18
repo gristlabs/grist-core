@@ -14,16 +14,16 @@
  * The script maintains a simple cache of all request to AI to save on the ai requests.
  *
  * USAGE:
- *  OPENAI_API_KEY=<my_openai_api_key> node core/test/formula-dataset/runCompletion.js
+ *  OPENAI_API_KEY=<my_openai_api_key> node test/assistant/v1/runCompletion.js
  * or
- *  ASSISTANT_CHAT_COMPLETION_ENDPOINT=http.... node core/test/formula-dataset/runCompletion.js
- * (see Assistance.ts for more options).
+ *  ASSISTANT_CHAT_COMPLETION_ENDPOINT=http.... node test/assistant/v1/runCompletion.js
+ * (see IAssistant.ts for more options).
  *
  *  # WITH VERBOSE:
- *  VERBOSE=1 OPENAI_API_KEY=<my_openai_api_key> node core/test/formula-dataset/runCompletion.js
+ *  VERBOSE=1 OPENAI_API_KEY=<my_openai_api_key> node test/assistant/v1/runCompletion.js
  *
  *  # to reset cache
- *  rm core/test/formula-dataset/data/cache.json
+ *  rm test/assistant/data/cache/*
  */
 
 
@@ -31,23 +31,23 @@ import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
 import log from 'app/server/lib/log';
 import { configureOpenAIAssistantV1 } from "app/server/lib/configureOpenAIAssistantV1";
 import { DEPS } from "app/server/lib/OpenAIAssistantV1";
-import crypto from 'crypto';
 import { parse } from 'csv-parse/sync';
-import fetch, {RequestInfo, RequestInit, Response} from 'node-fetch';
+import fetch from 'node-fetch';
 import * as fs from "fs";
 import JSZip from "jszip";
-import { isEqual, MapCache } from "lodash";
+import { isEqual } from "lodash";
 import path from 'path';
 import * as os from 'os';
 import { pipeline } from 'stream';
 import { createDocTools } from "test/server/docTools";
+import { CachedFetcher } from "test/server/utils/CachedFetcher";
 import { promisify } from 'util';
 import { AssistanceResponseV1, AssistanceState } from "app/common/Assistance";
 import { CellValue } from "app/plugin/GristData";
 
 const streamPipeline = promisify(pipeline);
 
-const DATA_PATH = process.env.DATA_PATH || path.join(__dirname, 'data');
+const DATA_PATH = process.env.DATA_PATH || path.join(path.dirname(__dirname), 'data');
 const PATH_TO_DOC = path.join(DATA_PATH, 'templates');
 const PATH_TO_RESULTS = path.join(DATA_PATH, 'results');
 const PATH_TO_CSV = path.join(DATA_PATH, 'formula-dataset-index.csv');
@@ -63,10 +63,6 @@ interface FormulaRec {
   doc_id: string;
   Description: string;
 }
-
-const _stats = {
-  callCount: 0,
-};
 
 const SIMULATE_CONVERSATION = true;
 const FOLLOWUP_EVALUATE = false;
@@ -131,11 +127,14 @@ export async function runCompletion() {
   let caseCount = 0;
   fs.mkdirSync(path.join(PATH_TO_RESULTS), {recursive: true});
 
+  const fetcher = new CachedFetcher(PATH_TO_CACHE);
+
   console.log('Testing AI assistance: ');
 
   try {
 
-    DEPS.fetch = fetchWithCache;
+    DEPS.fetch = ((info, init) =>
+      fetcher.fetch(info, init)) as typeof DEPS.fetch;
 
     let activeDoc: ActiveDoc|undefined;
     for (const rec of records) {
@@ -271,7 +270,7 @@ export async function runCompletion() {
   } finally {
     await docTools.after();
     log.transports.file.level = 'debug';
-    printStats();
+    console.log(`Ai assistance requests stats: ${fetcher.callCount} calls`);
     DEPS.fetch = oldFetch;
     console.log(
       `AI Assistance completed ${successCount} successful prompt on a total of ${records.length};`
@@ -289,76 +288,3 @@ export async function runCompletion() {
 export function main() {
   runCompletion().catch(console.error);
 }
-
-function printStats() {
-  console.log(`Ai assistance requests stats: ${_stats.callCount} calls`);
-}
-
-/**
- * Implements a simple cache that read/write from filesystem.
- */
-class JsonCache implements MapCache {
-  constructor() {
-    if (!fs.existsSync(PATH_TO_CACHE)) {
-      fs.mkdirSync(path.join(PATH_TO_CACHE), {recursive: true});
-    }
-  }
-
-  public get(key: string): any {
-    if (!this.has(key)) { return undefined; }
-    const content = JSON.parse(fs.readFileSync(this._path(key), 'utf8'));
-    return JSON.stringify(content.responseBody);
-  }
-
-  public has(key: string): boolean {
-    return fs.existsSync(this._path(key));
-  }
-
-  public set(key: string, value: any): JsonCache {
-    const content = {
-      requestBody: key,
-      responseBody: JSON.parse(value),
-    };
-    fs.writeFileSync(this._path(key), JSON.stringify(content));
-    return this;
-  }
-
-  public clear(): void {
-    throw new Error('not implemented');
-  }
-
-  public delete(_key: string): boolean {
-    throw new Error('not implemented');
-  }
-
-  private _path(key: string) {
-    return path.join(PATH_TO_CACHE, this._hash(key) + '.json');
-  }
-
-  private _hash(key: string) {
-    return crypto.createHash('md5').update(key).digest('hex');
-  }
-}
-
-/**
- * Calls fetch and uses caching.
- */
-const _cache = new JsonCache();
-const _queue = new Map<string, any>();
-async function fetchWithCache(rinfo: RequestInfo, init?: RequestInit): Promise<Response>
-async function fetchWithCache(rinfo: any, init?: RequestInit): Promise<Response> {
-  const url: string = rinfo.url || rinfo.href || rinfo;
-  const hash = JSON.stringify({url, body: init?.body});
-  if (_cache.has(hash)) { return new Response(_cache.get(hash), {status: 200}); }
-  if (_queue.has(hash)) { return new Response(await _queue.get(hash), {status: 200}); }
-  _queue.set(hash, fetch(url, init));
-  const response = await _queue.get(hash);
-  _stats.callCount++;
-  if (response.status === 200) {
-    _cache.set(hash, await response.clone().text()); // response cannot be read twice, hence clone
-  }
-  return response;
-}
-
-// ts expect this function
-fetchWithCache.isRedirect = fetch.isRedirect;

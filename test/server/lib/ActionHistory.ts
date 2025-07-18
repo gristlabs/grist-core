@@ -408,6 +408,9 @@ for (const version of versions) {
 }
 
 describe("ActionHistoryImpl only", function() {
+  // No sandboxing for quick tests.
+  testUtils.withoutSandboxing();
+
   // Comment this out to see debug-log output from PluginManager when debugging tests.
   testUtils.setTmpLogLevel('error');
 

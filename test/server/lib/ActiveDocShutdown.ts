@@ -1,21 +1,24 @@
 import {assert} from 'chai';
 import * as sinon from 'sinon';
+import * as sqlite3 from '@gristlabs/sqlite3';
 
 import {delay} from 'app/common/delay';
+import {Role} from 'app/common/roles';
 import {ParseFileResult} from 'app/plugin/FileParserAPI';
+import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
-import {Authorizer, DummyAuthorizer} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
+import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
 import {DocPluginManager} from 'app/server/lib/DocPluginManager';
-import {DocSession, makeExceptionalDocSession} from 'app/server/lib/DocSession';
+import {DocSession, DocSessionPrecursor, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {createDocTools, createUpload} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 
 // This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
 function _makeFakeClient(): Client {
-  const addDocSession = sinon.stub().callsFake(function(this: Client, adoc: ActiveDoc, auth: Authorizer) {
-    return new DocSession(adoc, this, 0, auth);
+  const addDocSession = sinon.stub().callsFake(function(adoc: ActiveDoc, optDocSession: DocSessionPrecursor) {
+    return new DocSession(optDocSession, adoc, 0);
   });
   const removeDocSession = sinon.spy();
   const getLogMeta = sinon.spy();
@@ -25,6 +28,7 @@ function _makeFakeClient(): Client {
 }
 
 describe('ActiveDocShutdown', function() {
+  testUtils.withoutSandboxing();
   this.timeout(10000);
 
   // Turn off logging for this test, and restore afterwards.
@@ -52,6 +56,11 @@ describe('ActiveDocShutdown', function() {
     await waitForIt(async () => assert.equal(docTools.getDocManager().numOpenDocs(), 0), 10 * timeout);
   });
 
+  function makeDummySession(client: Client, role: Role|null, docId: string) {
+    const authorizer = new DummyAuthorizer(role, docId);
+    return new DocSessionPrecursor(client, authorizer, {});
+  }
+
   it('should not close ActiveDoc while there are clients connected', async function() {
     const docName = 'active_doc_shutdown2';
     const adoc = await docTools.createDoc(docName);
@@ -59,7 +68,7 @@ describe('ActiveDocShutdown', function() {
 
     // Create and add one fake client.
     const fakeClient1 = _makeFakeClient();
-    const docSession1 = adoc.addClient(fakeClient1, new DummyAuthorizer('editors', 'doc'));
+    const docSession1 = adoc.addClient(fakeClient1, makeDummySession(fakeClient1, 'editors', 'doc'));
     assert.equal((fakeClient1.addDocSession as sinon.SinonSpy).callCount, 1);
 
     // Wait longer than the timeout and check that doc is still open.
@@ -69,7 +78,7 @@ describe('ActiveDocShutdown', function() {
 
     // Create and add a second fake client.
     const fakeClient2 = _makeFakeClient();
-    const docSession2 = adoc.addClient(fakeClient2, new DummyAuthorizer('editors', 'doc'));
+    const docSession2 = adoc.addClient(fakeClient2, makeDummySession(fakeClient2, 'editors', 'doc'));
     assert.equal((fakeClient2.addDocSession as sinon.SinonSpy).callCount, 1);
 
     // "Disconnect" the first client.
@@ -301,5 +310,107 @@ return c
       + Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging RemoveTransformColumns action on shutdown
       + 1000;   // Hard-coded extra time NSandbox takes to kill an unresponsive process
     assert.closeTo(totalMsec, expectedTime, 500);
+  });
+
+  describe("_onInactive", function () {
+
+    async function prepareVacuumableDoc() {
+      const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+      const docSession = docTools.createFakeSession('owners');
+
+      // Remove the tables
+      await adoc.applyUserActions(docSession, [
+        ["RemoveTable", "City"],
+        ["RemoveTable", "CountryLanguage"],
+        ["RemoveTable", "Country"]
+      ]);
+
+      const hist = new ActionHistoryImpl(adoc.docStorage);
+      // Don't use deleteActions and use .wipe() instead so no VACUUM is requested.
+      await hist.wipe();
+      await hist.clearLocalActions();
+
+      return adoc;
+    }
+
+    const LONG_QUERY = `
+      WITH recursive recur(n) AS (
+        SELECT 1
+        UNION ALL
+        SELECT n + 1
+        FROM recur where n < 1000000
+      )
+      SELECT n FROM recur;
+    `;
+
+    it("should VACUUM a document before closing it", async function () {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      const sizeBeforeShrink = await storageManager.getFsFileSize(adoc.docName);
+      await storageManager.flushDoc(adoc.docName);
+
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      const sizeAfterShrink = await storageManager.getFsFileSize(adoc.docName);
+      assert.isBelow(sizeAfterShrink, sizeBeforeShrink / 2, "The new size should have drastically decreased");
+      sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
+    });
+
+    it("should not mark as changed if VACUUM does not reduce size significantly", async function () {
+      // Open a doc, do nothing particular and close it
+      const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+      const storageManager = docTools.getStorageManager();
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      sinon.assert.notCalled(markAsChangedSpy);
+    });
+
+    it('should close the document anyway if the VACUUM fails', async function () {
+      const adoc = await docTools.loadFixtureDoc('World-v0.grist');
+      const isDocOpen = async () => Boolean(await docTools.getDocManager().getActiveDoc(adoc.docName));
+      assert.isTrue(await isDocOpen(), 'doc should be open');
+
+      const storageManager = docTools.getStorageManager();
+      const error = new Error('whatever');
+      (error as any).code = "ENOENT";
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      sandbox.stub(storageManager, 'getFsFileSize').rejects(error);
+      const onInactivePromise = (adoc as any)._onInactive();
+      await testUtils.captureLog('warn', (messages) => {
+        return waitForIt(() => testUtils.assertMatchArray(messages, [/Vacuum on inactive.*no longer available/]),
+          10_000, 100);
+      });
+      await onInactivePromise;
+
+      sinon.assert.notCalled(markAsChangedSpy);
+      assert.isFalse(await isDocOpen(), 'doc should be closed');
+    });
+
+    it('should successfully vacuum when other long queries are still running', async function () {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+      void(adoc.docStorage.getDB().all(LONG_QUERY)); // let's run the long query without awaiting it to finish
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
+    });
+
+    it('should successfully vacuum when other long queries are running while setting limit', async function () {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+      const waitStub = sandbox.stub(sqlite3.Database.prototype as any, 'wait');
+      waitStub.callsFake(function (this: sqlite3.Database, callback?: (param: null) => void) {
+        waitStub.wrappedMethod.call(this, callback);
+
+        // let's add the long query right after having invoked wait() and before configure()
+        void(adoc.docStorage.getDB().all(LONG_QUERY));
+        return this;
+      });
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
+    });
   });
 });

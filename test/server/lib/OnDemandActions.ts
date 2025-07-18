@@ -14,8 +14,10 @@ import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 
 describe('OnDemandActions', function() {
+  testUtils.withoutSandboxing();
+
   // The maxSQLiteVariables test gets slower in WAL mode.
-  this.timeout(15000);
+  this.timeout('1m');
 
   // Turn off logging for this test, and restore afterwards.
   testUtils.setTmpLogLevel('warn');
@@ -31,7 +33,7 @@ describe('OnDemandActions', function() {
   before(async function() {
     // The maxSQLiteVariables is a bit chonky, WAL mode tips
     // it over the threshold.
-    sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(10);
+    sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(30);
 
     const docName = 'docOnDemandActions';
     activeDoc1 = await docTools.createDoc(docName);

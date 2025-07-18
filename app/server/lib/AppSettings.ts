@@ -40,6 +40,22 @@ export class AppSettings {
   }
 
   /**
+   * Access the setting as an integer using parseFloat. Undefined if not set.
+   * Throws an error if not numberlike.
+   */
+  public getAsFloat(): number|undefined {
+    if (this._value === undefined) { return undefined; }
+    const datum = this._value?.valueOf();
+    if (typeof datum === 'number') {
+      return datum;
+    }
+    if (isNumber(String(datum))) {
+      return parseFloat(String(datum));
+    }
+    throw new Error(`${datum} does not look like a number`);
+  }
+
+  /**
    * Try to read the setting from the environment. Even if
    * we fail, we record information about how we tried to
    * find the setting, so we can report on that.
@@ -104,8 +120,19 @@ export class AppSettings {
   /**
    * As for readInt() but fail if nothing was found.
    */
-  public requireInt(query: AppSettingQueryInt): number {
+  public requireInt(query: AppSettingQueryNumber): number {
     const result = this.readInt(query);
+    if (result === undefined) {
+      throw new Error(`missing environment variable: ${query.envVar}`);
+    }
+    return result;
+  }
+
+  /**
+   * As for readFloat() but fail if nothing was found.
+   */
+  public requireFloat(query: AppSettingQueryNumber): number {
+    const result = this.readFloat(query);
     if (result === undefined) {
       throw new Error(`missing environment variable: ${query.envVar}`);
     }
@@ -125,11 +152,32 @@ export class AppSettings {
 
   /**
    * As for read() but type (and store, and report) the result as
-   * an integer (well, a number).
+   * an integer.
    */
-  public readInt(query: AppSettingQueryInt): number|undefined {
+  public readInt(query: AppSettingQueryNumber): number|undefined {
     this.readString(query);
     const result = this.getAsInt();
+
+    if (result !== undefined) {
+      if (query.minValue !== undefined && result < query.minValue) {
+        throw new Error(`value ${result} is less than minimum ${query.minValue}`);
+      }
+      if (query.maxValue !== undefined && result > query.maxValue) {
+        throw new Error(`value ${result} is greater than maximum ${query.maxValue}`);
+      }
+    }
+
+    this._value = result;
+    return result;
+  }
+
+  /**
+   * As for read() but type (and store, and report) the result as
+   * a float.
+   */
+  public readFloat(query: AppSettingQueryNumber): number|undefined {
+    this.readString(query);
+    const result = this.getAsFloat();
 
     if (result !== undefined) {
       if (query.minValue !== undefined && result < query.minValue) {
@@ -248,7 +296,7 @@ export interface AppSettingQuery {
   acceptedValues?: Array<JSONValue>;
 }
 
-export interface AppSettingQueryInt extends AppSettingQuery {
+export interface AppSettingQueryNumber extends AppSettingQuery {
   /**
    * Value to use if variable(s) unavailable.
    */

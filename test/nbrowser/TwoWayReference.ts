@@ -2,9 +2,14 @@ import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {Session} from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
+import * as testUtils from 'test/server/testUtils';
 
 describe('TwoWayReference', function() {
   this.timeout('3m');
+
+  // Sandboxing disrupts timing a bit.
+  testUtils.withoutSandboxing();
+
   let session: Session;
   let docId: string;
   let revert: () => Promise<void>;

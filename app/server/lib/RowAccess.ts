@@ -1,6 +1,4 @@
-import { AddRecord, BulkAddRecord, BulkRemoveRecord, BulkUpdateRecord,
-         DocAction, getTableId, RemoveRecord, ReplaceTableData,
-         TableDataAction, UpdateRecord } from "app/common/DocActions";
+import { DocAction, getRowIdsFromDocAction, getTableId } from "app/common/DocActions";
 import { getSetMapValue } from "app/common/gutil";
 
 /**
@@ -65,15 +63,4 @@ export function getRelatedRows(docActions: DocAction[]): ReadonlyArray<readonly 
   }
 
   return [...rowIds.entries()].map(([tableId, tracker]) => [tableId, tracker.ids] as const);
-}
-
-/**
- * Tiny helper to get the row ids mentioned in a record-related DocAction as a list
- * (even if the action is not a bulk action).
- */
-export function getRowIdsFromDocAction(docActions: RemoveRecord | BulkRemoveRecord | AddRecord |
-                                       BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
-                                       TableDataAction) {
-  const ids = docActions[2];
-  return (typeof ids === 'number') ? [ids] : ids;
 }

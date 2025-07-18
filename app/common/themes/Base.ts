@@ -259,10 +259,10 @@ export const Base: BaseThemeTokens = {
     rightPanelTabSelectedFg: tokens.body,
     rightPanelTabSelectedBg: tokens.bgSecondary,
     rightPanelTabSelectedIcon: tokens.primary,
-    rightPanelSubtabFg: tokens.primary,
+    rightPanelSubtabFg: tokens.secondary,
+    rightPanelSubtabHoverFg: tokens.body,
     rightPanelSubtabSelectedFg: tokens.body,
     rightPanelSubtabSelectedUnderline: tokens.primary,
-    rightPanelSubtabHoverUnderline: tokens.primary,
     rightPanelDisabledOverlay: tokens.bgSecondary,
     rightPanelToggleButtonEnabledFg: tokens.white,
     rightPanelToggleButtonEnabledBg: tokens.bgEmphasis,
@@ -488,5 +488,11 @@ export const Base: BaseThemeTokens = {
     /* Card Button */
     cardButtonBorderSelected: tokens.primary,
     cardButtonShadow: 'rgba(0,0,0,0.1)',
+
+    formulaIcon: '#D0D0D0',
+
+    /* Text Button */
+    textButtonHoverBg: 'transparent',
+    textButtonHoverBorder: 'transparent',
   }
 };

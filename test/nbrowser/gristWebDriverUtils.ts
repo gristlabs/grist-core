@@ -8,9 +8,15 @@
  * easily.
  */
 
-import { WebDriver, WebElement } from 'mocha-webdriver';
+import escapeRegExp = require('lodash/escapeRegExp');
+import { CommandName } from 'app/client/components/commandList';
+import { DocAction, UserAction } from 'app/common/DocActions';
+import { WebDriver, WebElement, WebElementPromise } from 'mocha-webdriver';
 
 type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom'|'Form';
+
+// it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
+export const noCleanup = Boolean(process.env.NO_CLEANUP);
 
 export class GristWebDriverUtils {
   public constructor(public driver: WebDriver) {
@@ -79,6 +85,12 @@ export class GristWebDriverUtils {
     return {width, height};
   }
 
+  /**
+   * Sets browser window dimensions.
+   */
+  public setWindowDimensions(width: number, height: number) {
+    return this.driver.manage().window().setRect({ width, height });
+  }
 
   // Add a new widget to the current page using the 'Add New' menu.
   public async addNewSection(
@@ -257,6 +269,209 @@ export class GristWebDriverUtils {
     await this.driver.navigate().refresh();
     await this.waitForDocToLoad();
   }
+
+  /**
+   * Sends UserActions using client api from the browser.
+   */
+  public async sendActions(actions: (DocAction | UserAction)[], optTimeout: number = 5000) {
+    await this.driver.manage().setTimeouts({
+      script: optTimeout, /* milliseconds */
+    });
+
+    // Make quick test that we have a list of actions not just a single action, by checking
+    // if the first element is an array.
+    if (actions.length && !Array.isArray(actions[0])) {
+      throw new Error('actions argument should be a list of actions, not a single action');
+    }
+
+    const result = await this.driver.executeAsyncScript(`
+    const done = arguments[arguments.length - 1];
+    const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
+    prom.then(() => done(null));
+    prom.catch((err) => done(String(err?.message || err)));
+  `);
+    if (result) {
+      throw new Error(result as string);
+    }
+    await this.waitForServer();
+  }
+
+  /**
+   * Runs a Grist command in the browser window.
+   */
+  public async sendCommand(name: CommandName, argument: any = null) {
+    await this.driver.executeAsyncScript((name: any, argument: any, done: any) => {
+      const result = (window as any).gristApp.allCommands[name].run(argument);
+      if (result?.finally) {
+        result.finally(done);
+      } else {
+        done();
+      }
+    }, name, argument);
+    await this.waitForServer();
+  }
+
+  public async openAccountMenu() {
+    await this.driver.findWait('.test-dm-account', 2000).click();
+    // Since the AccountWidget loads orgs and the user data asynchronously, the menu
+    // can expand itself causing the click to land on a wrong button.
+    await this.waitForServer();
+    await this.driver.findWait('.test-site-switcher-org', 2000);
+    await this.driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
+  }
+
+  public async openProfileSettingsPage(): Promise<ProfileSettingsPage> {
+    await this.openAccountMenu();
+    await this.driver.find('.grist-floating-menu .test-dm-account-settings').click();
+    //close alert if it is shown
+    if (await this.isAlertShown()) {
+      await this.acceptAlert();
+    }
+    await this.driver.findWait('.test-account-page-login-method', 5000);
+    await this.waitForServer();
+    return new ProfileSettingsPage(this);
+  }
+
+  /**
+   * Click the Undo button and wait for server. If optCount is given, click Undo that many times.
+   */
+  public async undo(optCount: number = 1, optTimeout?: number) {
+    await this.waitForServer(optTimeout);
+    for (let i = 0; i < optCount; ++i) {
+      await this.driver.find('.test-undo').doClick();
+      await this.waitForServer(optTimeout);
+    }
+  }
+
+  /**
+   * Changes browser window dimensions for the duration of a test suite.
+   */
+  public resizeWindowForSuite(width: number, height: number) {
+    let oldDimensions: WindowDimensions;
+    before(async () => {
+      oldDimensions = await this.getWindowDimensions();
+      await this.setWindowDimensions(width, height);
+    });
+    after(async () => {
+      if (noCleanup) { return; }
+      await this.setWindowDimensions(oldDimensions.width, oldDimensions.height);
+    });
+  }
+
+  /**
+   * Changes browser window dimensions to FullHd for a test suite.
+   */
+  public bigScreen() {
+    this.resizeWindowForSuite(1920, 1080);
+  }
+
+  /**
+   * Shrinks browser window dimensions to trigger mobile mode for a test suite.
+   */
+  public narrowScreen() {
+    this.resizeWindowForSuite(400, 750);
+  }
+
+  /**
+ * Returns visible cells of the GridView from a single column and one or more rows. Options may be
+ * given as arguments directly, or as an object.
+ * - col: column name, or 0-based column index
+ * - rowNums: array of 1-based row numbers, as visible in the row headers on the left of the grid.
+ * - section: optional name of the section to use; will use active section if omitted.
+ *
+ * If given by an object, then an array of columns is also supported. In this case, the return
+ * value is still a single array, listing all values from the first row, then the second, etc.
+ *
+ * Returns cell text by default. Mapper may be `identity` to return the cell objects.
+ */
+  public async getVisibleGridCells(col: number | string, rows: number[], section?: string): Promise<string[]>;
+  public async getVisibleGridCells<T = string>(options: IColSelect<T> | IColsSelect<T>): Promise<T[]>;
+  public async getVisibleGridCells<T>(
+    colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string
+  ): Promise<T[]> {
+
+    if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
+      const { rowNums, section, mapper } = colOrOptions;    // tslint:disable-line:no-shadowed-variable
+      const columns = await Promise.all(colOrOptions.cols.map((oneCol) =>
+        this.getVisibleGridCells({ col: oneCol, rowNums, section, mapper })));
+      // This zips column-wise data into a flat row-wise array of values.
+      return ([] as T[]).concat(...rowNums.map((_r, i) => columns.map((c) => c[i])));
+    }
+
+    const { col, rowNums, section, mapper = el => el.getText() }: IColSelect<any> = (
+      typeof colOrOptions === 'object' ? colOrOptions :
+        { col: colOrOptions, rowNums: _rowNums!, section: _section }
+    );
+
+    if (rowNums.includes(0)) {
+      // Row-numbers should be what the users sees: 0 is a mistake, so fail with a helpful message.
+      throw new Error('rowNum must not be 0');
+    }
+
+    const sectionElem = section ? await this.getSection(section) : await this.driver.findWait('.active_section', 4000);
+    const colIndex = (typeof col === 'number' ? col :
+      await sectionElem.findContent('.column_name', this.exactMatch(col)).index());
+
+    const visibleRowNums: number[] = await sectionElem.findAll('.gridview_data_row_num',
+      async (el) => parseInt(await el.getText(), 10));
+
+    const selector = `.gridview_data_scroll .record:not(.column_names) .field:nth-child(${colIndex + 1})`;
+    const fields = mapper ? await sectionElem.findAll(selector, mapper) : await sectionElem.findAll(selector);
+    return rowNums.map((n) => fields[visibleRowNums.indexOf(n)]);
+  }
+
+  /**
+   * Returns a visible GridView cell. Options may be given as arguments directly, or as an object.
+   * - col: column name, or 0-based column index
+   * - rowNum: 1-based row numbers, as visible in the row headers on the left of the grid.
+   * - section: optional name of the section to use; will use active section if omitted.
+   */
+  public getCell(col: number | string, rowNum: number, section?: string): WebElementPromise;
+  public getCell(options: ICellSelect): WebElementPromise;
+  public getCell(colOrOptions: number | string | ICellSelect, rowNum?: number, section?: string): WebElementPromise {
+    const mapper = async (el: WebElement) => el;
+    const options: IColSelect<WebElement> = (typeof colOrOptions === 'object' ?
+      { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
+      { col: colOrOptions, rowNums: [rowNum!], section, mapper });
+    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then((elems) => elems[0]));
+  }
+
+  /**
+   * Returns a WebElementPromise for the .viewsection_content element for the section which contains
+   * the given text (case insensitive) content.
+   */
+  public getSection(sectionOrTitle: string | WebElement): WebElement | WebElementPromise {
+    if (typeof sectionOrTitle !== 'string') { return sectionOrTitle; }
+    return this.driver.findContent(`.test-viewsection-title`, new RegExp("^" + escapeRegExp(sectionOrTitle) + "$", 'i'))
+      .findClosest('.viewsection_content');
+  }
+
+  /**
+   * Helper for exact string matches using interfaces that expect a RegExp. E.g.
+   *    driver.findContent('.selector', exactMatch("Foo"))
+   *
+   * TODO It would be nice if mocha-webdriver allowed exact string match in findContent() (it now
+   * supports a substring match, but we still need a helper for an exact match).
+   */
+  public exactMatch(value: string, flags?: string): RegExp {
+    return new RegExp(`^${escapeRegExp(value)}$`, flags);
+  }
+
+  /**
+   * Click into a section without disrupting cursor positions.
+   */
+  public async selectSectionByTitle(title: string | RegExp) {
+    try {
+      if (typeof title === 'string') {
+        title = new RegExp("^" + escapeRegExp(title) + "$", 'i');
+      }
+      // .test-viewsection is a special 1px width element added for tests only.
+      await this.driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
+    } catch (e) {
+      // We might be in mobile view.
+      await this.driver.findContent(`.test-viewsection-title`, title).findClosest(".view_leaf").click();
+    }
+  }
 }
 
 export interface WindowDimensions {
@@ -276,4 +491,40 @@ export interface PageWidgetPickerOptions {
   dismissTips?: boolean;
   /** Optional pattern of custom widget name to select in the gallery. */
   customWidget?: RegExp|string;
+}
+
+export class ProfileSettingsPage {
+  private _driver: WebDriver;
+  private _gu: GristWebDriverUtils;
+
+  constructor(gu: GristWebDriverUtils) {
+    this._gu = gu;
+    this._driver = gu.driver;
+  }
+
+  public async setLanguage(language: string) {
+    await this._driver.findWait('.test-account-page-language .test-select-open', 100).click();
+    await this._driver.findContentWait('.test-select-menu li', language, 100).click();
+    await this._gu.waitForServer();
+  }
+}
+
+export interface IColsSelect<T = WebElement> {
+  cols: Array<number|string>;
+  rowNums: number[];
+  section?: string|WebElement;
+  mapper?: (e: WebElement) => Promise<T>;
+}
+
+export interface IColSelect<T = WebElement> {
+  col: number|string;
+  rowNums: number[];
+  section?: string|WebElement;
+  mapper?: (e: WebElement) => Promise<T>;
+}
+
+export interface ICellSelect {
+  col: number|string;
+  rowNum: number;
+  section?: string|WebElement;
 }

@@ -31,7 +31,9 @@
         "Workspaces": "工作區",
         "Workspace will be moved to Trash.": "工作區將被移至垃圾桶。",
         "Examples & Templates": "範本",
-        "Delete": "刪除"
+        "Delete": "刪除",
+        "Terms of service": "服務條款",
+        "Grist Resources": "Grist 資源"
     },
     "RowContextMenu": {
         "Insert row": "插入列",
@@ -40,7 +42,9 @@
         "Copy anchor link": "複製錨點連結",
         "Duplicate rows_one": "複製列",
         "Duplicate rows_other": "複製列",
-        "Insert row above": "在上方插入列"
+        "Insert row above": "在上方插入列",
+        "View as card": "以卡片方式檢視",
+        "Use as table headers": "用作表格標頭"
     },
     "Drafts": {
         "Undo discard": "撤銷丟棄",
@@ -82,7 +86,10 @@
         "Need help? Our AI assistant can help.": "需要幫忙？我們的 AI 幫手可以幫忙。",
         "AI Assistant": "AI 幫手",
         "For higher limits, {{upgradeNudge}}.": "如需更高的限制，{{upgradeNudge}}。",
-        "There are some things you should know when working with me:": "與我一起工作時，有些事情您應該知道："
+        "There are some things you should know when working with me:": "與我一起工作時，有些事情您應該知道：",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "如需更多公式相關協助，請參閱我們的 {{functionList}} 和 {{formulaCheatSheet}}，或造訪 {{community}} 尋求更多幫助。",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "當您與我互動時，您的問題與文件結構（可在 {{codeView}} 中查看）會傳送至 OpenAI。{{learnMore}}。",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "像與真人對話一樣與我互動，無需特別說明資料表和欄位名稱。例如，您可以這樣問：「請幫我計算發票總金額。」"
     },
     "GridViewMenus": {
         "Unfreeze {{count}} columns_one": "解凍此欄位",
@@ -134,7 +141,27 @@
         "Adding duplicates column": "新增重複欄位",
         "Hide {{count}} columns_one": "隱藏欄位",
         "Insert column to the left": "在左側插入欄位",
-        "Sorted (#{{count}})_other": "已排序 (#{{count}})"
+        "Sorted (#{{count}})_other": "已排序 (#{{count}})",
+        "Add column with type": "新增欄位並指定類型",
+        "Add formula column": "新增公式欄位",
+        "Add column": "新增欄位",
+        "Created at": "建立於",
+        "Created by": "由…建立",
+        "Detect duplicates in...": "偵測重複項目於...",
+        "Last updated at": "最後更新於",
+        "Last updated by": "最後由...更新",
+        "Any": "任何",
+        "Numeric": "數字",
+        "Text": "文字",
+        "Integer": "整數",
+        "Toggle": "切換",
+        "Date": "日期",
+        "DateTime": "日期時間",
+        "Choice": "選擇",
+        "Choice List": "選擇清單",
+        "Reference": "引用",
+        "Reference List": "引用清單",
+        "Attachment": "附件"
     },
     "DocMenu": {
         "This service is not available right now": "此服務目前無法使用",
@@ -175,15 +202,52 @@
         "Restore": "還原",
         "Move {{name}} to workspace": "將 {{name}} 移至工作區",
         "Document will be moved to Trash.": "文件將被移至垃圾桶。",
-        "Permanently Delete \"{{name}}\"?": "永久刪除 \"{{name}}\"？"
+        "Permanently Delete \"{{name}}\"?": "永久刪除 \"{{name}}\"？",
+        "Any documents created in this site will appear here.": "在此網站建立的所有文件都會顯示在此處.",
+        "Create my first document": "創立我的第一份文件",
+        "You have read-only access to this site. Currently there are no documents.": "您只有此網站的唯讀存取權限。目前沒有文件。",
+        "personal site": "個人網站"
     },
     "ChartView": {
-        "Each Y series is followed by a series for the length of error bars.": "每個 Y 系列後面都接著一個表示誤差棒長度的系列。",
+        "Each Y series is followed by a series for the length of error bars.": "每個 Y 數列後面都接著一個表示誤差棒長度的系列。",
         "Pick a column": "選擇一欄",
         "Toggle chart aggregation": "切換圖表聚合",
-        "Each Y series is followed by two series, for top and bottom error bars.": "每個 Y 系列後面都接著兩個系列，分別表示上方和下方的誤差棒。",
-        "Create separate series for each value of the selected column.": "為所選欄位的每個值建立單獨的系列。",
-        "selected new group data columns": "選擇新的群組資料欄位"
+        "Each Y series is followed by two series, for top and bottom error bars.": "每個 Y 數列後面都接著兩個數列，分別表示上方和下方的誤差棒。",
+        "Create separate series for each value of the selected column.": "為所選欄位的每個值建立單獨的數列。",
+        "selected new group data columns": "選擇新的群組資料欄位",
+        "LABEL": "標籤",
+        "Bar Chart": "長條圖",
+        "Pie Chart": "圓餅圖",
+        "Donut Chart": "環狀圖",
+        "Area Chart": "面積圖",
+        "Line Chart": "折線圖",
+        "Scatter Plot": "散布圖",
+        "Kaplan-Meier Plot": "Kaplan-Meier 圖",
+        "Invert Y-axis": "反轉 Y 軸",
+        "Orientation": "方向",
+        "Vertical": "垂直",
+        "Horizontal": "水平",
+        "Log scale Y-axis": "Y 軸對數刻度",
+        "Show Total": "顯示總計",
+        "Text Size": "字體大小",
+        "Show markers": "顯示標記",
+        "None": "無",
+        "Symmetric": "對稱",
+        "X-AXIS": "X 軸",
+        "Add Series": "增加數列",
+        "SERIES": "數列",
+        "non-numeric columns are not shown": "非數字欄不顯示",
+        "non-numeric column is not shown": "非數字欄不顯示",
+        "selected new x-axis": "選擇新 X 軸",
+        "Remove": "刪除",
+        "Split series": "拆分數列",
+        "Connect gaps": "連接間隔",
+        "Stack series": "堆疊數列",
+        "Error bars": "誤差線",
+        "Above+Below": "上下",
+        "Split Series": "拆分數列",
+        "Aggregate values": "彙總數值",
+        "Hole Size": "內圈尺寸"
     },
     "RightPanel": {
         "WIDGET TITLE": "小工具標題",
@@ -215,7 +279,29 @@
         "TRANSFORM": "轉換",
         "SELECTOR FOR": "選擇器用於",
         "Sort & Filter": "排序與篩選",
-        "Widget": "小工具"
+        "Widget": "小工具",
+        "Reset form": "重置表格",
+        "Configuration": "設定",
+        "Default field value": "欄位預設值",
+        "Display button": "顯示按鈕",
+        "Enter text": "輸入文字",
+        "Field rules": "欄位規則",
+        "Field title": "欄位標題",
+        "Hidden field": "隱藏的欄位",
+        "Layout": "版面配置",
+        "Redirect automatically after submission": "提交後自動重新導向",
+        "Redirection": "重新導向",
+        "Required field": "必填欄位",
+        "Submission": "提交",
+        "Submit another response": "提交另一個回應",
+        "Submit button label": "提交按鈕標籤",
+        "Success text": "成功顯示文字",
+        "Table column name": "表格欄位名稱",
+        "Enter redirect URL": "輸入重新導向的網址",
+        "No field selected": "未選擇欄位",
+        "Select a field in the form widget to configure.": "請選擇表單元件中的欄位以進行設定。",
+        "Submit": "提交",
+        "Thank you! Your response has been recorded.": "感謝您！您的回應已被記錄。"
     },
     "FloatingPopup": {
         "Maximize": "最大化",
@@ -247,7 +333,18 @@
         "However, it appears to be already identical.": "然而，它似乎已經完全相同。",
         "Update Original": "更新原始文件",
         "You do not have write access to this site": "您無法對此網站進行寫入",
-        "Download document and history": "下載完整文件和歷史"
+        "Download document and history": "下載完整文件和歷史",
+        "Download": "下載",
+        "Download document": "下載文件",
+        ".tar (recommended)": ".tar (建議)",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "下載包含此文件所有附件的歸檔檔案。",
+        "Download attachments": "下載附件",
+        "Download full document and history": "下載完整文件及歷史記錄",
+        "Format:": "格式:",
+        "Learn more": "了解更多",
+        "download attachments": "下載附件",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "附件為外部儲存，未包含在此次下載中。若要將此文件上傳至另一個 Grist 安裝環境，您會需要額外{{downloadLink}}。 "
     },
     "GristTooltips": {
         "They allow for one record to point (or refer) to another.": "它們允許一個記錄指向（或參考）另一個記錄。",
@@ -299,7 +396,33 @@
         "Pinning Filters": "固定篩選器",
         "Reference columns are the key to {{relational}} data in Grist.": "參考欄位是 Grist 中 {{relational}} 資料的關鍵。",
         "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "參考欄位中的儲存格總是識別該表格中的一個{{entire}}記錄，但您可以選擇從該記錄中顯示哪個欄位。",
-        "Use reference columns to relate data in different tables.": "使用參考欄位將不同表格中的資料相關聯。"
+        "Use reference columns to relate data in different tables.": "使用參考欄位將不同表格中的資料相關聯。",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "在 Grist 中直接建立簡易表單，並透過我們的新工具一鍵分享。{{learnMoreButton}}",
+        "Forms are here!": "表單功能上線了！",
+        "Learn more": "了解更多",
+        "These rules are applied after all column rules have been processed, if applicable.": "這些規則會在所有欄位規則處理完畢後套用（如適用）。",
+        "Example: {{example}}": "例:{{example}}",
+        "Filter displayed dropdown values with a condition.": "透過條件篩選下拉選單顯示內容.",
+        "Community widgets are created and maintained by Grist community members.": "社群小工具由 Grist 社群成員建立並維護。",
+        "Creates a reverse column in target table that can be edited from either end.": "在目標資料表中建立一個反向欄位，可從任一端進行編輯。",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "當雙向參照的一端被設定為單一參照時，會出現此限制。",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "若要允許多重指派，請將參照欄位的類型變更為參照清單。",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "當雙向參照中的其中一個欄位為參照類型時，會出現此限制。",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "若要允許多重指派，請將被參照欄位的類型變更為參照清單。",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "目前不支援在公式欄位或觸發公式欄位中使用雙向參照",
+        "The preview below this header shows how the selected user will see this document": "此標題下方的預覽顯示所選使用者查看此文件時的畫面",
+        "[Learn more.]({{link}})": "[了解更多]({{link}})",
+        "Summary tables can only contain formula columns.": "摘要表只能包含公式欄位。",
+        "Manage users and resources in a Grist installation.": "管理 Grist 安裝的使用者與資源。",
+        "The new Grist Assistant is here!": "全新的 Grist 助理上線了！",
+        "Formulas support many Excel functions and full Python syntax.": "公式支援多種 Excel 函數以及完整的 Python 語法。",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "在目標資料表中建立新的參照清單欄位，並可同步編輯此欄位與目標欄位的內容。",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "內部儲存表示所有附件都儲存在文件的 SQLite 檔案中，而外部儲存則表示所有附件都儲存在同一個外部儲存空間中。",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "這可讓您補充外部儲存中遺漏的附件，例如匯入的文件中所缺少的部分。此處僅接受從 Grist 下載的 .tar 附件壓縮檔上傳。",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "透過 Grist 全新的 AI 助理，協助您理解、修改並操作資料與公式！",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "此表單由 Grist 使用者建立，並未經 Grist Labs 認可。請勿透過此表單提交密碼，並留意其中的連結。如發現惡意表單，請回報至 [{{mail}}](mailto:{{mail}})。",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "您可以從下拉選單中選擇可用的小工具，或輸入完整的網址以嵌入您自己的小工具。",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "公式支援多種 Excel 函數、完整的 Python 語法，並內建實用的 AI 助手。"
     },
     "SortConfig": {
         "Add Column": "新增欄位",
@@ -311,7 +434,8 @@
     },
     "Clipboard": {
         "Unavailable Command": "無效的指令",
-        "Got it": "瞭解了"
+        "Got it": "瞭解了",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "此瀏覽器不支援 {{action}} 選單指令。您仍可使用鍵盤快捷鍵 {{shortcut}} 來執行 {{action}}。"
     },
     "SupportGristPage": {
         "You have opted out of telemetry.": "您已選擇不參與遙測。",
@@ -329,7 +453,12 @@
         "Opt in to Telemetry": "選擇參與遙測",
         "You have opted in to telemetry. Thank you!": "您已選擇參與遙測。謝謝您！",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "此實例已選擇參與遙測。只有網站管理員有權更改此設定。",
-        "GitHub": "GitHub"
+        "GitHub": "GitHub",
+        "Sponsor": "贊助",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist 軟體由 Grist Labs 開發，並提供免費與付費的雲端託管方案。我們也在 {{link}} 上以標準的自由開源軟體授權（Apache 2.0）提供 Grist 的原始碼。",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "透過啟用遙測功能來支持 Grist，這有助於我們了解產品的使用情況，從而優先改進未來功能。",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "我們是一個小而堅定的團隊，您的支持對我們意義重大。這也向其他人展現出，這個產品背後有一個充滿決心的社群。",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "您可以透過在我們的 {{link}} 上贊助，支持 Grist 的開源開發。"
     },
     "VisibleFieldsConfig": {
         "Show {{label}}": "顯示 {{label}}",
@@ -389,7 +518,8 @@
         "Snapshots": "快照",
         "Activity": "活動",
         "Compare to Previous": "與前一版本比較",
-        "Beta": "測試版"
+        "Beta": "測試版",
+        "Only owners have access to snapshots for documents with access rules.": "只有擁有者能存取具有存取規則的文件快照."
     },
     "UserManager": {
         "Anyone with link ": "任何持有連結的人 ",
@@ -434,7 +564,9 @@
         "Confirm": "確認",
         "On": "開啟",
         "Open Access Rules": "開啟存取規則",
-        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "無預設存取權限允許將存取權限授予個別文件或工作區，而不是整個團隊網站。"
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "無預設存取權限允許將存取權限授予個別文件或工作區，而不是整個團隊網站。",
+        "Inherit access: ": "繼承存取權限： ",
+        "Access overview": "存取權限總覽"
     },
     "WelcomeQuestions": {
         "Welcome to Grist!": "歡迎來到 Grist！",
@@ -459,7 +591,8 @@
         "go to webhook settings": "前往 webhook 設定",
         "Saved linked section {{title}} in view {{name}}": "已在檢視 {{name}} 中儲存連結區段 {{title}}",
         "Added new linked section to view {{viewName}}": "已新增新的連結區段到檢視 {{viewName}}",
-        "Import from file": "從檔案匯入"
+        "Import from file": "從檔案匯入",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "新變更已暫時暫停。Webhooks 佇列已溢出。請檢查 Webhooks 設定，移除無效的 Webhook，並清理佇列。"
     },
     "AccessRules": {
         "Permission to access the document in full when needed": "需要時存取整份文件的權限",
@@ -498,7 +631,8 @@
         "Save": "儲存",
         "Rules for table ": "表格規則 ",
         "Checking...": "正在檢查…",
-        "Special Rules": "特殊規則"
+        "Special Rules": "特殊規則",
+        "Add Table-wide Rule": "增加全表規則"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "不應該將一般資料值儲存到公式欄位",
@@ -551,7 +685,9 @@
         "Only my threads": "僅限我的討論串",
         "Edit": "編輯",
         "Resolve": "解決",
-        "Showing last {{nb}} comments": "顯示最後 {{nb}} 則評論"
+        "Showing last {{nb}} comments": "顯示最後 {{nb}} 則評論",
+        "Remove thread": "刪除討論串",
+        "updated": "已更新"
     },
     "CellContextMenu": {
         "Copy anchor link": "複製錨點鏈結",
@@ -576,7 +712,8 @@
         "Reset {{count}} columns_other": "重設 {{count}} 個欄位",
         "Reset {{count}} entire columns_one": "重設整欄",
         "Insert column to the left": "向左插入欄位",
-        "Paste": "貼上"
+        "Paste": "貼上",
+        "Copy with headers": "帶標頭複製"
     },
     "Importer": {
         "Merge rows that match these fields:": "將符合這些欄位條件的資料進行合併：",
@@ -652,7 +789,8 @@
         "Code View": "程式碼檢視",
         "Return to viewing as yourself": "返回以自己的身份檢視",
         "Raw Data": "原始資料",
-        "Document History": "文件歷史"
+        "Document History": "文件歷史",
+        "API Console": "API 控制台"
     },
     "menus": {
         "Reference List": "參考列表",
@@ -670,7 +808,11 @@
         "Any": "任何",
         "Numeric": "數值",
         "DateTime": "日期時間",
-        "Date": "日期"
+        "Date": "日期",
+        "By Name": "依名稱",
+        "By Date Modified": "依修改日期",
+        "Light": "日間",
+        "Custom": "自訂"
     },
     "DocPageModel": {
         "Sorry, access to this document has been denied. [{{error}}]": "抱歉，您被拒絕存取此文件。[{{error}}]",
@@ -682,7 +824,8 @@
         "Reload": "重新載入",
         "Error accessing document": "存取文件時發生錯誤",
         "Enter recovery mode": "進入復原模式",
-        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "您可以嘗試重新載入文件，或使用復原模式。復原模式將文件完全開放給擁有者，並對其他人設為不可存取。同時也會停用公式。[{{error}}]"
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "您可以嘗試重新載入文件，或使用復原模式。復原模式將文件完全開放給擁有者，並對其他人設為不可存取。同時也會停用公式。[{{error}}]",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "請重新載入文件，如果錯誤仍然存在，請聯絡文件擁有者以嘗試進行文件修復。［{{error}}］"
     },
     "DocumentSettings": {
         "Ok": "確定",
@@ -698,7 +841,85 @@
         "Engine (experimental {{span}} change at own risk):": "引擎（實驗性 {{span}} 自行承擔風險變更）：",
         "Document Settings": "文件設定",
         "Locale:": "語言環境：",
-        "This document's ID (for API use):": "此文件的 ID（供 API 使用）："
+        "This document's ID (for API use):": "此文件的 ID（供 API 使用）：",
+        "Manage webhooks": "管理 Webhooks",
+        "API Console": "API 控制介面",
+        "API URL copied to clipboard": "API 網址已複製到剪貼簿",
+        "API console": "API 控制介面",
+        "API documentation.": "API 技術文件.",
+        "Base doc URL: {{docApiUrl}}": "基本文件網址: {{docApiUrl}}",
+        "Coming soon": "敬請期待",
+        "Copy to clipboard": "複製到剪貼簿",
+        "Currency": "貨幣",
+        "Data Engine": "數據引擎",
+        "Default for DateTime columns": "DateTime 欄位的預設值",
+        "Document ID": "文件 ID",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "當 REST API 需要 {{docId}} 時，請使用此文件 ID。參見 {{apiURL}}",
+        "Find slow formulas": "尋找 slow 公式",
+        "For currency columns": "貨幣欄",
+        "For number and date formats": "數字和日期格式",
+        "Formula times": "公式乘法",
+        "Hard reset of data engine": "強制重置數據引擎",
+        "ID for API use": "API 專用 ID",
+        "Locale": "語言地區設定",
+        "Notify other services on doc changes": "在文件變更時通知其他服務",
+        "Python": "Python",
+        "Python version used": "Python 版本使用",
+        "Reload": "重新載入",
+        "Time Zone": "時區",
+        "Try API calls from the browser": "從瀏覽器嘗試發送 API 請求",
+        "python2 (legacy)": "python2 (舊版)",
+        "python3 (recommended)": "python3 (建議)",
+        "Cancel": "取消",
+        "Force reload the document while timing formulas, and show the result.": "在計算公式時間的同時強制重新載入文件，並顯示結果。",
+        "Reload data engine": "重新載入數據引擎",
+        "Reload data engine?": "重新載入數據引擎?",
+        "Start timing": "開始計時",
+        "Stop timing...": "停止計時...",
+        "Time reload": "重新載入時間",
+        "Timing is on": "計時啟用",
+        "You can make changes to the document, then stop timing to see the results.": "您可以先修改文件，然後停止計時以查看結果。",
+        "Only available to document editors": "僅限文件編輯者使用",
+        "Only available to document owners": "僅限文件擁有者使用",
+        "Template mode": "範本模式",
+        "Change document type": "變更文件類型",
+        "Edit": "編輯",
+        "Change nature of document": "修改文件屬性",
+        "Normal document behavior. All users work on the same copy of the document.": "一般文件行為：所有使用者在同一份文件副本上共同作業。",
+        "Template": "範本",
+        "Formula timer": "公式計時器",
+        "Document automatically opens in {{fiddleModeDocUrl}}. Anyone may edit, which will create a new unsaved copy.": "文件將自動在 {{fiddleModeDocUrl}} 中開啟。任何人都可以編輯，系統將建立一個新的未儲存副本。",
+        "fiddle mode": "沙盒模式",
+        "Tutorial": "教學",
+        "Document automatically opens as a user-specific copy.": "文件將自動開啟為個人專屬副本。",
+        "Confirm change": "確認修改",
+        "This will perform a hard reload of the data engine. This may help if the data engine is stuck in an infinite loop, is indefinitely processing the latest change, or has crashed. No data will be lost, except possibly currently pending actions.": "這將強制重新載入資料引擎。當資料引擎陷入無限迴圈、無限處理最近的變更，或已當機時，這可能有助於恢復。資料不會遺失，但當前尚未完成的操作可能會丟失。",
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "開始計時後，Grist 將會測量每個公式的運算時間。這有助於診斷在文件初次開啟或對變更做出回應時，哪些公式導致效能變慢。",
+        "**Some existing attachments are still external**.": "**部分現有的附件仍為外部檔案**.",
+        "**Some existing attachments are still internal** (stored in SQLite file).": "**部分現有的附件仍為外部檔案** (存於 SQLite 檔).",
+        "Attachment storage": "附件儲存空間",
+        "Being transfer": "傳輸中",
+        "Click \"Start transfer\" to transfer those to External storage.": "點擊「開始傳輸」以將這些檔案轉移至外部儲存空間。",
+        "Click \"Start transfer\" to transfer those to Internal storage (stored in the document SQLite file).": "點擊「開始傳輸」以將這些檔案轉移至內部儲存空間（儲存在文件的 SQLite 檔案中）.",
+        "Newly uploaded attachments will be placed in External storage.": "新上傳的附件將儲存在外部儲存空間中。",
+        "Newly uploaded attachments will be placed in Internal storage.": "新上傳的附件將儲存在內部儲存空間中。",
+        "No external stores available": "沒有可用的外部儲存空間",
+        "Preferred storage for this document": "文件偏好儲存空間",
+        "Start transfer": "開始傳輸",
+        "External": "外部",
+        "Internal": "內部",
+        "Transfer in progress": "傳輸進行中",
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**部分現有的附件仍為[外部儲存]({{externalLink}})**。",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**部分現有的附件仍為[內部儲存]({{internalLink}})**（儲存在 SQLite 檔案中）.",
+        "[Learn more.]({{learnLink}})": "[了解更多]({{learnLink}})",
+        "Upload": "上傳",
+        "Upload missing attachments": "上傳缺少的附件",
+        "Uploading...": "上傳中...",
+        "Default": "預設",
+        "Default, template, or tutorial": "預設, 範本, 或教學",
+        "Document type": "文件類型",
+        "Regular document": "普通文件",
+        "Regular": "普通"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "欄位 ID 已複製到剪貼簿",
@@ -721,7 +942,9 @@
         "Make On-Demand": "設為按需",
         "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "大型表格可以標記為「按需」，以避免將它們載入資料引擎。",
         "Plugin: ": "插件： ",
-        "Edit Card Layout": "編輯卡片佈局"
+        "Edit Card Layout": "編輯卡片佈局",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "因功能不足及可用性問題，隨選表格已被淘汰。",
+        "⚠️ Deprecated Feature": "⚠️ 已淘汰功能"
     },
     "FieldBuilder": {
         "Mixed format": "混合格式",
@@ -742,7 +965,9 @@
         "Help Center": "說明中心",
         "Opted In": "已選擇參與",
         "Contribute": "貢獻",
-        "Support Grist page": "支持 Grist 頁面"
+        "Support Grist page": "支持 Grist 頁面",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "感謝您！非常感激您的信任與支持。您可隨時透過使用者選單中的 {{link}} 取消參與。",
+        "Admin Panel": "後台管理"
     },
     "ValidationPanel": {
         "Update formula (Shift+Enter)": "更新公式 (Shift+Enter)",
@@ -782,7 +1007,8 @@
         "Show raw data": "顯示原始資料",
         "Delete widget": "刪除小工具",
         "Copy anchor link": "複製錨點連結",
-        "Download as CSV": "下載為 CSV"
+        "Download as CSV": "下載為 CSV",
+        "Create a form": "建立表單"
     },
     "ACUserManager": {
         "Invite new member": "邀請新成員",
@@ -814,7 +1040,9 @@
         "Sign up": "註冊",
         "Sprouts Program": "Sprouts 計劃",
         "To use Grist, please either sign up or sign in.": "要使用 Grist，請註冊或登入。",
-        "Welcome to Grist!": "歡迎來到 Grist！"
+        "Welcome to Grist!": "歡迎來到 Grist！",
+        "Learn more in our {{helpCenterLink}}.": "前往 {{helpCenterLink}} 了解更多.",
+        "Only show documents": "僅顯示文件"
     },
     "CustomSectionConfig": {
         "Open configuration": "開啟設定",
@@ -834,7 +1062,15 @@
         "Pick a column": "選擇一欄",
         "Clear selection": "清除選擇",
         "No document access": "無文件存取權限",
-        "Widget does not require any permissions.": "小工具不需要任何權限。"
+        "Widget does not require any permissions.": "小工具不需要任何權限。",
+        "ACCESS LEVEL": "權限等級",
+        "Accept": "接受",
+        "Custom URL": "自定義網址",
+        "Developer:": "開發者:",
+        "Last updated:": "最後更新:",
+        "Missing description and author information.": "缺少描述與作者資訊.",
+        "Reject": "拒絕",
+        "Widget": "小工具"
     },
     "WelcomeSitePicker": {
         "You have access to the following Grist sites.": "您可以存取以下的 Grist 網站。",
@@ -842,7 +1078,8 @@
         "You can always switch sites using the account menu.": "您可以隨時使用帳戶選單切換網站。"
     },
     "TopBar": {
-        "Manage Team": "管理團隊"
+        "Manage Team": "管理團隊",
+        "Manage team": "管理團隊"
     },
     "GridOptions": {
         "Horizontal Gridlines": "水平網格線",
@@ -882,7 +1119,15 @@
         "Manage Users": "管理使用者",
         "Unsaved": "未儲存",
         "Save Document": "儲存文件",
-        "Save Copy": "儲存副本"
+        "Save Copy": "儲存副本",
+        "Comma Separated Values (.csv)": "逗號分格值 (.csv)",
+        "DOO Separated Values (.dsv)": "DOO 分隔值 (.dsv)",
+        "Export as...": "匯出為...",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Tab Separated Values (.tsv)": "Tab 分隔值 (.tsv)",
+        "Exporting is only available from document pages. Please select a document page and try again.": "僅能從文件頁面進行匯出。請選擇一個文件頁面後再試一次。",
+        "Download attachments...": "下載附件...",
+        "Download document...": "下載文件..."
     },
     "UserManagerModel": {
         "View & Edit": "檢視與編輯",
@@ -922,7 +1167,8 @@
         "Copy": "複製",
         "Paste": "貼上",
         "Clear field": "清除欄位",
-        "Cut": "剪下"
+        "Cut": "剪下",
+        "Comment": "評論"
     },
     "WidgetTitle": {
         "Override widget title": "覆寫小工具標題",
@@ -951,7 +1197,9 @@
         "Tutorial: Analyze & Visualize": "教學：分析與視覺化"
     },
     "ViewAsBanner": {
-        "UnknownUser": "未知使用者"
+        "UnknownUser": "未知使用者",
+        "View as Yourself": "以自己角色查看",
+        "You are viewing this document as": "您目前以以下身份檢視此文件"
     },
     "PermissionsWidget": {
         "Deny All": "全部拒絕",
@@ -985,7 +1233,13 @@
         "Sign in again": "再次登入",
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "找不到請求的頁面。{{separator}}請檢查 URL 並再試一次。",
         "Sign in to access this organization's documents.": "登入以存取此組織的文件。",
-        "Contact support": "聯絡支援"
+        "Contact support": "聯絡支援",
+        "An unknown error occurred.": "發生未知錯誤。",
+        "Build your own form": "建立自己的表單",
+        "Form not found": "找不到表單",
+        "Powered by": "驅動於",
+        "Failed to log in.{{separator}}Please try again or contact support.": "登入失敗。{{separator}}請再試一次，或聯絡技術支援。",
+        "Sign-in failed{{suffix}}": "登入失敗{{suffix}}"
     },
     "RecordLayoutEditor": {
         "Show field {{- label}}": "顯示欄位 {{- label}}",
@@ -1009,10 +1263,12 @@
         "Row Style": "列樣式",
         "Add another rule": "新增其他規則",
         "Add conditional style": "新增條件樣式",
-        "Error in style rule": "樣式規則錯誤"
+        "Error in style rule": "樣式規則錯誤",
+        "Conditional Style": "條件格式",
+        "IF...": "如..."
     },
     "ColorSelect": {
-        "Apply": "應用",
+        "Apply": "套用",
         "Cancel": "取消",
         "Default cell style": "預設儲存格樣式"
     },
@@ -1047,14 +1303,32 @@
         "The following tables will no longer be visible_one": "以下的表格將不再顯示",
         "Delete": "刪除",
         "The following tables will no longer be visible_other": "以下的多個表格將不再顯示",
-        "Delete data and this page.": "刪除資料與此頁面。"
+        "Delete data and this page.": "刪除資料與此頁面。",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "保留資料並刪除頁面。資料表仍存在於 {{rawDataLink}}",
+        "raw data page": "原始資料頁面"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "描述"
     },
     "WebhookPage": {
         "Webhook Settings": "Webhook 設定",
-        "Clear Queue": "清除佇列"
+        "Clear Queue": "清除佇列",
+        "Cleared webhook queue.": "已清除 Webhook 佇列。",
+        "Columns to check when update (separated by ;)": "更新時要檢查的欄位（以 ; 分隔）",
+        "Enabled": "已啟用",
+        "Event Types": "活動類型",
+        "Memo": "備註",
+        "Name": "名稱",
+        "Ready Column": "就緒欄位",
+        "Removed webhook.": "已刪除的 webhook.",
+        "Sorry, not all fields can be edited.": "抱歉，並非所有欄位都可編輯。",
+        "Status": "狀態",
+        "URL": "URL",
+        "Webhook Id": "Webhook Id",
+        "Table": "表",
+        "Filter for changes in these columns (semicolon-separated ids)": "篩選這些欄位的變更（以分號分隔的 ID）",
+        "Header Authorization": "Header 授權",
+        "Webhooks Unavailable In Unsaved Document Copies": "未儲存的文件副本中無法使用 Webhook"
     },
     "TriggerFormulas": {
         "Close": "關閉",
@@ -1074,7 +1348,9 @@
         "Home Page": "首頁",
         "Team Site": "團隊網站",
         "Legacy": "傳統",
-        "Grist Templates": "Grist 範本"
+        "Grist Templates": "Grist 範本",
+        "Billing Account": "帳單帳戶",
+        "Manage Team": "管理團隊"
     },
     "ViewAsDropdown": {
         "View As": "檢視為",
@@ -1087,11 +1363,21 @@
         "You do not have edit access to this document": "您無法編輯此文件",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "刪除 {{formattedTableName}} 資料，並從所有頁面中移除？",
         "Click to copy": "點選複製",
-        "Table ID copied to clipboard": "表格 ID 已複製到剪貼簿"
+        "Table ID copied to clipboard": "表格 ID 已複製到剪貼簿",
+        "Edit Record Card": "編輯記錄卡",
+        "Record Card": "記錄卡",
+        "Record Card Disabled": "記錄卡已停用",
+        "Remove Table": "刪除資料表",
+        "Rename Table": "更改表格名稱",
+        "{{action}} Record Card": "{{action}} 記錄卡"
     },
     "NTextBox": {
         "false": "否",
-        "true": "是"
+        "true": "是",
+        "Field Format": "欄位格式",
+        "Lines": "行",
+        "Multi line": "多行",
+        "Single line": "單行"
     },
     "FilterBar": {
         "Search Columns": "搜尋欄位",
@@ -1108,7 +1394,11 @@
         "Decimals": "小數點",
         "Currency": "貨幣",
         "Default currency ({{defaultCurrency}})": "預設貨幣 ({{defaultCurrency}})",
-        "Number Format": "數字格式"
+        "Number Format": "數字格式",
+        "Field Format": "欄位格式",
+        "Text": "文字",
+        "max": "最大",
+        "min": "最小"
     },
     "App": {
         "Description": "描述",
@@ -1118,7 +1408,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "完成",
-        "Next": "下一步"
+        "Next": "下一步",
+        "Previous": "上一個"
     },
     "Reference": {
         "CELL FORMAT": "儲存格格式",
@@ -1160,7 +1451,7 @@
         "Revert": "還原"
     },
     "CodeEditorPanel": {
-        "Code View is available only when you have full document access.": "只有當您具有完整文件存取權限時，才能使用程式碼檢視。",
+        "Code View is available only when you have full document access.": "當您具有完整文件存取權限時，才能使用程式碼檢視。",
         "Access denied": "存取被拒"
     },
     "ACLUsers": {
@@ -1203,7 +1494,19 @@
     "modals": {
         "Save": "儲存",
         "Cancel": "取消",
-        "Ok": "確定"
+        "Ok": "確定",
+        "Are you sure you want to delete these records?": "您確定要刪除這些紀錄嗎？",
+        "Are you sure you want to delete this record?": "您確定要刪除這筆紀錄嗎？",
+        "Delete": "刪除",
+        "Dismiss": "忽略",
+        "Don't ask again.": "不再詢問.",
+        "Don't show again.": "不再顯示.",
+        "Don't show tips": "不顯示提示",
+        "Undo to restore": "按一下「復原」可還原",
+        "Got it": "明白了",
+        "Don't show again": "不再顯示",
+        "TIP": "提示",
+        "Confirm": "確認"
     },
     "SiteSwitcher": {
         "Switch Sites": "切換網站",
@@ -1230,5 +1533,162 @@
     },
     "sendToDrive": {
         "Sending file to Google Drive": "正在將檔案傳送到 Google 雲端硬碟"
+    },
+    "CardContextMenu": {
+        "Copy anchor link": "複製錨點連結",
+        "Delete card": "刪除卡片",
+        "Duplicate card": "複製卡片",
+        "Insert card": "插入卡片",
+        "Insert card above": "在上方插入卡片",
+        "Insert card below": "在下方插入卡片"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "隱藏欄位"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "免費諮詢通話",
+        "Maybe Later": "暫時先不用",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "在通話中，我們會花時間了解您的需求，並根據您的情況量身打造內容。我們可以介紹 Grist 的基本功能，或是直接使用您的資料，幫您建立所需的儀表板。",
+        "Schedule Call": "預約通話",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "安排與我們團隊成員的 {{freeCoachingCall}}。"
+    },
+    "FormView": {
+        "Publish": "發佈",
+        "Publish your form?": "要發佈表單嗎？",
+        "Unpublish": "取消發佈",
+        "Unpublish your form?": "要取消發佈表單嗎？",
+        "Anyone with the link below can see the empty form and submit a response.": "擁有以下連結的任何人都可以查看空白表單並提交回覆。",
+        "Are you sure you want to reset your form?": "您確定要重設表單嗎？",
+        "Code copied to clipboard": "程式碼已複製到剪貼簿",
+        "Copy code": "複製程式碼",
+        "Copy link": "複製連結",
+        "Embed this form": "嵌入此表單",
+        "Link copied to clipboard": "連結已複製到剪貼簿",
+        "Preview": "預覽",
+        "Reset": "重置",
+        "Reset form": "重置表單",
+        "Save your document to publish this form.": "請先儲存文件以發布此表單。",
+        "Share": "分享",
+        "Share this form": "分享此表單",
+        "View": "檢視",
+        "# **Form Title**": "# **表單標題**",
+        "Your form description goes here.": "請在此輸入表單描述.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "發布表單後將產生一個分享連結。擁有該連結的任何人都可以查看空白表單並提交回覆。",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "取消發布表單後，分享連結將會失效，透過該連結存取表單的使用者將會看到錯誤訊息。",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "使用者僅限提交項目（表格中的紀錄），以及閱讀指定欄位中的預設值，例如參照欄位和選項欄位。",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "您的表單已發布。所有變更都會即時生效，並對有權存取表單的使用者可見。如果您希望先進行草稿修改，請取消發布表單。"
+    },
+    "Editor": {
+        "Delete": "刪除"
+    },
+    "Menu": {
+        "Building blocks": "組件",
+        "Columns": "欄",
+        "Copy": "複製",
+        "Cut": "剪下",
+        "Insert question above": "在上方插入問題",
+        "Insert question below": "在下方插入問題",
+        "Paragraph": "段落",
+        "Paste": "貼上",
+        "Separator": "分隔線",
+        "Unmapped fields": "未對應的欄位",
+        "Header": "標頭",
+        "New question": "新的問題",
+        "More": "更多"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "清除",
+        "Map fields": "對應欄位",
+        "Mapped": "已對應",
+        "Select All": "全選",
+        "Unmap fields": "取消欄位對應",
+        "Unmapped": "取消對應"
+    },
+    "FormConfig": {
+        "Field rules": "欄位規則",
+        "Required field": "必填欄位",
+        "Ascending": "升序",
+        "Default": "預設值",
+        "Descending": "降序",
+        "Field Format": "欄位格式",
+        "Field Rules": "欄位規則",
+        "Horizontal": "水平",
+        "Options Alignment": "選項對齊方式",
+        "Options Sort Order": "選項排序方式",
+        "Radio": "單選按鈕",
+        "Select": "選擇",
+        "Vertical": "垂直"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "某些必填欄位尚未對應",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "要使用此小工具，請從右側的建立面板中對應所有非選填欄位。",
+        "Some required columns are hidden by access rules": "某些必填欄位因存取規則而被隱藏",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "若要使用此小工具，所有對應的欄位必須可見。請聯絡文件擁有者或修改存取規則。"
+    },
+    "FormContainer": {
+        "Powered by": "驅動於",
+        "Build your own form": "建立自己的表單",
+        "Powered by Grist": "Powered by Grist"
+    },
+    "FormErrorPage": {
+        "Error": "錯誤"
+    },
+    "FormModel": {
+        "Oops! This form is no longer published.": "哎呀！此表單已不再公開。",
+        "There was a problem loading the form.": "載入表單時發生問題。",
+        "You don't have access to this form.": "您無權存取此表單。",
+        "Oops! The form you're looking for doesn't exist.": "哎呀！找不到您要的表單。"
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "提交表單時發生錯誤，請再試一次。"
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "表單已提交",
+        "Thank you! Your response has been recorded.": "感謝您！您的回覆已被記錄.",
+        "Submit new response": "提交新的回覆"
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "最近 30 天",
+        "Last 7 days": "最近 7 天",
+        "Last Week": "上週",
+        "Next 7 days": "未來 7 天",
+        "This month": "本月",
+        "This week": "本週",
+        "This year": "本年",
+        "Today": "今天"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "清除",
+        "Map fields": "對應欄位",
+        "Mapped": "已對應",
+        "Select All": "全選",
+        "Unmap fields": "取消欄位對應",
+        "Unmapped": "已取消對應"
+    },
+    "Section": {
+        "Insert section above": "在上方插入區塊",
+        "Insert section below": "在下方插入區塊",
+        "## **Header**": "## **標頭**",
+        "Description": "敘述"
+    },
+    "CreateTeamModal": {
+        "Cancel": "取消",
+        "Choose a name and url for your team site": "為您的團隊網站選擇名稱和網址",
+        "Create site": "建立網站",
+        "Domain name is invalid": "網域名稱無效",
+        "Domain name is required": "必須填寫網域名稱",
+        "Go to your site": "前往您的網站",
+        "Team name": "團隊名稱",
+        "Team name is required": "需要填寫團隊名稱",
+        "Team site created": "已建立團隊網站",
+        "Team url": "團隊網址",
+        "Work as a Team": "團隊協作",
+        "Billing is not supported in grist-core": "grist-core 不支援帳務功能"
+    },
+    "ToggleEnterpriseModel": {
+        "Timed out on waiting for the Grist backend to restart": "等待 Grist 後端重啟時逾時"
+    },
+    "AdminPanel": {
+        "Admin Panel": "管理平台"
     }
 }

@@ -13,6 +13,8 @@ export const label = styled('div', `
 
 export const paragraph = styled('div', `
   overflow-wrap: break-word;
+  position: relative;
+  clip-path: inset(0px);
 
   &-alignment-left {
     text-align: left;
@@ -353,4 +355,40 @@ export const searchSelect = styled('div', `
 
 export const searchSelectIcon = styled(icon, `
   flex-shrink: 0;
+`);
+
+export const attachmentInput = styled('input', `
+  display: flex;
+  flex-wrap: wrap;
+  white-space: pre-wrap;
+  position: relative;
+  width: 100%;
+
+  &:focus {
+    outline-color: ${vars.primaryBgHover};
+  }
+
+  &::file-selector-button, &::-webkit-file-upload-button {
+    background-color: ${vars.primaryBg};
+    border: 1px solid ${vars.primaryBg};
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    line-height: inherit;
+    outline-color: ${vars.primaryBgHover};
+  }
+
+  &::file-selector-button:hover, &::-webkit-file-upload-button:hover {
+    border-color: ${vars.primaryBgHover};
+    background-color: ${vars.primaryBgHover};
+  }
+
+  &::file-selector-button:disabled, &::-webkit-file-upload-button:disabled {
+    cursor: not-allowed;
+    color: ${colors.light};
+    background-color: ${colors.slate};
+    border-color: ${colors.slate};
+  }
 `);

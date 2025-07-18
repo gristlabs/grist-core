@@ -430,6 +430,10 @@ DetailView.prototype.buildTitleControls = function() {
   );
 };
 
+DetailView.prototype.onNewRecordRequest = function() {
+  let addRowIndex = this.viewData.getRowIndex('new');
+  this.cursor.rowIndex(addRowIndex);
+};
 
 /** @inheritdoc */
 DetailView.prototype.onResize = function() {

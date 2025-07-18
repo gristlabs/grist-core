@@ -129,7 +129,12 @@ const cssBanner = styled('div', `
   display: flex;
   padding: 10px;
   gap: 16px;
-  color: white;
+  color: ${colors.light};
+
+  & a {
+    color: ${colors.light};
+    text-decoration: underline;
+  }
 
   &-info {
     color: ${colors.dark};

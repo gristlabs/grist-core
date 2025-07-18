@@ -661,13 +661,12 @@ describe('RawData', function () {
       await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
       gu.exactMatch('Continent')).isPresent()
     );
+    await driver.findContent('.test-edit-layout-controls button', 'Cancel').click();
     await gu.moveToHidden('Continent');
     assert.isFalse(
       await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
       gu.exactMatch('Continent')).isPresent()
     );
-    await driver.findContent('.test-edit-layout-controls button', 'Save').click();
-    await gu.waitForServer();
     await driver.find('.test-vconfigtab-detail-theme').click();
     await gu.findOpenMenuItem('.test-select-row', /Blocks/).click();
     await gu.waitForServer();

@@ -31,6 +31,7 @@ declare module "redis" {
   class RedisClient {
     public readonly connected: boolean;
     public eval(args: any[], callback?: (err: Error | null, res: any) => void): any;
+    public evalAsync(...args: any[]): Promise<any>;
 
     public subscribe(channel: string): void;
     public on(eventType: string, callback: (...args: any[]) => void): void;
@@ -61,6 +62,10 @@ declare module "redis" {
     public lrangeAsync(key: string, start: number, end: number): Promise<string[]>;
     public rpushAsync(key: string, ...vals: string[]): Promise<number>;
     public pingAsync(): Promise<string>;
+    public zaddAsync(key: string, ...args: any[]): Promise<'OK'>;
+    public zremAsync(key: string, val: string): Promise<'OK'>;
+    public zrangeAsync(key: string, ...args: any[]): Promise<string[]>;
+    public zscoreAsync(key: string, val: string): Promise<number>;
   }
 
   class Multi {
