@@ -2290,7 +2290,7 @@ describe('ApiServerAccess', function() {
       it('retries until the generated key is unique', async function() {
         apiKeyGeneratorReturns = ['api_key_for_charon', 'santa1'];
         resp = await axios.post(`${homeUrl}/api/profile/apikey`, {force: true}, kiwi);
-        assert.equal(resp.status, 200);
+        assert.equal(resp.status, 200, resp.data);
         assert.equal(resp.data, 'santa1');
         assert.equal(apiKeyGenerator.callCount, 2);
         apiKeyGenerator.resetHistory();
@@ -2298,7 +2298,7 @@ describe('ApiServerAccess', function() {
 
         apiKeyGeneratorReturns = ['api_key_for_charon', 'api_key_for_charon', 'santa2'];
         resp = await axios.post(`${homeUrl}/api/profile/apikey`, {force: true}, kiwi);
-        assert.equal(resp.status, 200);
+        assert.equal(resp.status, 200, resp.data);
         assert.equal(resp.data, 'santa2');
         assert.equal(apiKeyGenerator.callCount, 3);
         apiKeyGenerator.resetHistory();

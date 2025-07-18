@@ -925,6 +925,7 @@ export class UsersManager {
     const currentKey = user.apiKey;
     for (let i = 0; i < 5; ++i) {
       user.apiKey = Deps.apiKeyGenerator();
+      console.log("###########", i, currentKey, user.apiKey);
       try {
         // if new key is the same as the current, the db update won't fail so we check it here (very
         // unlikely to happen but but still better to handle)
