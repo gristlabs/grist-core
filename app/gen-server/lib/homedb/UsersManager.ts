@@ -934,6 +934,7 @@ export class UsersManager {
         }
         return await manager.save(User, user);
       } catch (e) {
+        console.log("@@@@@@@@@@@@@@", e);
         // swallow and retry
         log.warn(`updateApiKeyWithRetry: failed attempt ${i}/5, %s`, e);
       }
