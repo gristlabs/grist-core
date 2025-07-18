@@ -298,7 +298,7 @@ describe('CustomWidgetsConfig', function () {
     });
 
     // Make sure the widget is now visible.
-    assert.isTrue(await driver.find('.test-custom-widget-ready').isDisplayed());
+    assert.isTrue(await driver.findWait('.test-custom-widget-ready', 1000).isDisplayed());
 
     // And we see widget with info about mapped columns, Column to A.
     assert.deepEqual(await widget.onRecordsMappings(), {Column: 'A'});

@@ -71,7 +71,7 @@ function Clipboard(app) {
 
   FocusLayer.create(this, {
     defaultFocusElem: this.copypasteField,
-    allowFocus: allowFocus,
+    allowFocus,
     onDefaultFocus: () => {
       this.copypasteField.value = ' ';
       this.copypasteField.select();
@@ -294,14 +294,27 @@ async function getTextFromClipboardItem(clipboardItem, type) {
 }
 
 /**
- * Helper to determine if the currently active element deserves to keep its own focus, and capture
- * copy-paste events. Besides inputs and textareas, any element can be marked to be a valid
- * copy-paste target by adding 'clipboard_focus' class to it.
+ * Helper to determine if the currently active element deserves to keep its own focus, and capture copy-paste events.
+ *
+ * By default, focus is automatically allowed if:
+ *   - there is no clipboard commands registered,
+ *   - the element is an input, textarea, select or iframe,
+ *   - the element has a tabindex attribute
+ *
+ * You can explicitly allow focus by setting different classes:
+ *   - using the 'clipboard_allow_focus' class will allow focusing the element having the class,
+ *   - using the 'clipboard_group_focus' class will allow focusing any descendant element of the one having the class
  */
 function allowFocus(elem) {
-  return elem && (FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) ||
+  if (elem && elem.closest('.clipboard_group_focus')) {
+    return true;
+  }
+  const allow = elem && (
+    FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) ||
     elem.hasAttribute("tabindex") ||
-    elem.classList.contains('clipboard_focus'));
+    elem.classList.contains('clipboard_allow_focus')
+  );
+  return allow;
 }
 
 Clipboard.allowFocus = allowFocus;

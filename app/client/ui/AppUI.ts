@@ -83,15 +83,15 @@ function createMainPage(appModel: AppModel, appObj: App) {
     } else if (pageType === 'billing') {
       return domAsync(loadBillingPage().then(bp => dom.create(bp.BillingPage, appModel)));
     } else if (pageType === 'welcome') {
-      return dom.create(WelcomePage, appModel);
+      return dom.create(WelcomePage, appModel, appObj);
     } else if (pageType === 'account') {
-      return domAsync(loadAccountPage().then(ap => dom.create(ap.AccountPage, appModel)));
+      return domAsync(loadAccountPage().then(ap => dom.create(ap.AccountPage, appModel, appObj)));
     } else if (pageType === 'admin') {
-      return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel)));
+      return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel, appObj)));
     } else if (pageType === 'activation') {
       return domAsync(loadActivationPage().then(ap => dom.create(ap.getActivationPage(), appModel)));
     } else if (pageType === 'audit-logs') {
-      return domAsync(loadAuditLogsPage().then(m => dom.create(m.AuditLogsPage, appModel)));
+      return domAsync(loadAuditLogsPage().then(m => dom.create(m.AuditLogsPage, appModel, appObj)));
     } else {
       return dom.create(pagePanelsDoc, appModel, appObj);
     }
@@ -128,6 +128,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
     contentMain: createDocMenu(pageModel),
     contentTop: buildHomeBanners(appModel),
     testId,
+    app,
   });
 }
 
@@ -137,6 +138,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   // DocPageModel available as a global variable.
   (window as any).gristDocPageModel = pageModel;
   appObj.pageModel = pageModel;
+
   const leftPanelOpen = createSessionObs<boolean>(owner, "leftPanelOpen", true, isBoolean);
   const rightPanelOpen = createSessionObs<boolean>(owner, "rightPanelOpen", false, isBoolean);
   const leftPanelWidth = createSessionObs<number>(owner, "leftPanelWidth", 240, isNumber);
@@ -184,5 +186,6 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     contentTop: buildDocumentBanners(pageModel),
     contentBottom: dom.create(createBottomBarDoc, pageModel, leftPanelOpen, rightPanelOpen),
     banner: dom.create(ViewAsBanner, pageModel),
+    app: appObj,
   });
 }

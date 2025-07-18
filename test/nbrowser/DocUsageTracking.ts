@@ -54,6 +54,9 @@ describe('DocUsageTracking', function() {
       await gu.getPageItem('AttachmentsTable').click();
       await gu.addColumn("Attachments", "Attachment");
 
+      // Focus out of the creator panel
+      await driver.sendKeys(Key.ESCAPE, Key.ESCAPE);
+
       // Upload some files into the first row. (We're putting Grist docs in a Grist doc!)
       await driver.sendKeys(Key.ENTER);
       await gu.fileDialogUpload(
