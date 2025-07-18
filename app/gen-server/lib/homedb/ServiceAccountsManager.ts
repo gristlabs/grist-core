@@ -35,21 +35,20 @@ export class ServiceAccountsManager {
   ) {
     return await this._connection.transaction(async manager => {
       const uuid = uuidv4();
-      const login = `${uuid}@serviceaccounts.local`;
+      const login = `${uuid}@serviceaccounts.invalid`;
       const serviceUser = await this._homeDb.getUserByLogin(login, {manager}, 'service');
       const serviceUserWithkey = await this._homeDb.createApiKey(serviceUser.id, false, manager);
-      const newServiceAccount = new ServiceAccount();
-      newServiceAccount.owner_id = ownerId;
-      newServiceAccount.service_user_id = serviceUser.id;
-      newServiceAccount.label = label ? label : "";
-      newServiceAccount.description = description ? description : "";
-      newServiceAccount.end_of_life = this.sanitizeDateString(endOfLife);
+      const newServiceAccount = ServiceAccount.create({
+        ownerId,
+        serviceUserId: serviceUser.id,
+        label,
+        description,
+        endOfLife: this.sanitizeDateString(endOfLife)
+      });
       const serviceAccount = await manager.save(newServiceAccount);
-      return {
-        serviceAccount,
-        serviceUser: serviceUserWithkey,
-        login: login,
-      };
+      (serviceAccount as any).user = serviceUserWithkey;
+      (serviceAccount as any).login = login;
+      return serviceAccount;
     });
   }
 
@@ -59,15 +58,18 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ) {
     return await this._runInTransaction(transaction, async manager => {
-      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
+      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
+      if (serviceUser == null) {
+        return serviceUser;
+      }
       const serviceAccount = await manager.findOne(
         ServiceAccount,
-        {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
+        {where: {serviceUserId: serviceUser.id, ownerId}}
       );
-      return {
-        serviceUser,
-        serviceAccount,
-      };
+      if (serviceAccount !== null){
+        (serviceAccount as any).user = serviceUser;
+      }
+      return serviceAccount;
     });
   }
 
@@ -77,7 +79,7 @@ export class ServiceAccountsManager {
     return await this._connection.transaction(async manager => {
       return await manager.find(
         ServiceAccount,
-        {where: {owner_id: ownerId}}
+        {where: {ownerId}}
       );
     });
   }
@@ -88,10 +90,13 @@ export class ServiceAccountsManager {
     partial: any,
   ) {
     return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
+      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
+      if (serviceUser == null) {
+        return serviceUser;
+      }
       return await manager.update(
         ServiceAccount,
-        {service_user_id: serviceUser.id, owner_id: ownerId},
+        {serviceUserId: serviceUser.id, ownerId},
         partial
       );
     });
@@ -102,10 +107,13 @@ export class ServiceAccountsManager {
     ownerId: number,
   ) {
     return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
+      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
+      if (serviceUser == null) {
+        return serviceUser;
+      }
       return await manager.delete(
         ServiceAccount,
-        {service_user_id: serviceUser.id, owner_id: ownerId}
+        {serviceUserId: serviceUser.id, ownerId}
       );
     });
   }
@@ -115,22 +123,20 @@ export class ServiceAccountsManager {
     ownerId: number,
   ) {
     return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
+      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
+      if (serviceUser == null) {
+        return serviceUser;
+      }
       const serviceAccount = await manager.findOne(
         ServiceAccount,
-        {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
+        {where: {serviceUserId: serviceUser.id, ownerId}}
       );
       if (serviceAccount == null) {
-        return { serviceAccount };
-      }
-      if (serviceUser == null) {
-        return { serviceUser };
+        return serviceAccount;
       }
       const updatedServiceUser = await this._homeDb.createApiKey(serviceUser.id, true, manager);
-      return {
-        serviceUser: updatedServiceUser,
-        serviceAccount,
-      };
+      (serviceAccount as any).user = updatedServiceUser;
+      return serviceAccount;
     });
   }
 
@@ -139,28 +145,26 @@ export class ServiceAccountsManager {
     ownerId: number,
   ) {
     return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
+      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
       if (serviceUser == null) {
-        return { serviceUser };
+        return serviceUser;
       }
       const serviceAccount = await manager.findOne(
         ServiceAccount,
-        {where: {service_user_id: serviceUser.id, owner_id: ownerId}}
+        {where: {serviceUserId: serviceUser.id, ownerId}}
       );
       if (serviceAccount == null) {
-        return { serviceAccount };
+        return serviceAccount;
       }
       await this._homeDb.deleteApiKey(serviceUser.id, manager);
-      return {
-        serviceAccount,
-        serviceUser
-      };
+      (serviceAccount as any).user = serviceUser;
+      return serviceAccount;
     });
   }
 
   public async isAliveServiceAccount(serviceAccountLogin: string) {
     return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getUserByLogin(serviceAccountLogin, {manager}, 'service');
+      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
       if (serviceUser == null) {
         throw new ApiError(`User don't exists`, 404);
       }
@@ -169,12 +173,12 @@ export class ServiceAccountsManager {
       }
       const serviceAccount = await manager.findOne(
         ServiceAccount,
-        {where: {service_user_id: serviceUser.id}}
+        {where: {serviceUserId: serviceUser.id}}
       );
       if (serviceAccount == null) {
         throw new ApiError(`This Service Account no longer exists`, 404);
       }
-      const endOfLife = new Date(serviceAccount.end_of_life);
+      const endOfLife = new Date(serviceAccount.endOfLife);
       const currentDate = new Date();
       return endOfLife > currentDate;
     });

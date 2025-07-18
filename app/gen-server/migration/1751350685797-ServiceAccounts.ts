@@ -35,10 +35,14 @@ export class ServiceAccounts1751350685797 implements MigrationInterface {
           {
             name: 'label',
             type: 'varchar',
+            isNullable: false,
+            default: "''",
           },
           {
             name: 'description',
             type: 'varchar',
+            isNullable: false,
+            default: "''",
           },
           {
             name: 'end_of_life',

@@ -2273,7 +2273,7 @@ for label, description and endOfLife when given`,
     });
 
     it('Endpoint GET /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
-      const resp = await axios.get(`${homeUrl}/api/service-accounts/1`, chimpy);
+      const resp = await axios.get(`${homeUrl}/api/service-accounts/hexaltation`, chimpy);
       assert.equal(resp.status, 404);
     });
 
