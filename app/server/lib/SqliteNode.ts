@@ -116,9 +116,20 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
     // Work around node-sqlite3 bug when `.configure()` is called while a
     // query is running.
     // See this issue upstream: https://github.com/TryGhost/node-sqlite3/issues/1838
-    await new Promise(resolve => (this._db as any).wait(resolve));
-    // Cast because types out of date.
-    (this._db as any).configure('limit', SQLITE_LIMIT_ATTACHED, maxAttach);
+    await new Promise<void>((resolve) => {
+      (this._db as any).wait(() => {
+        // Do call `configure()` here in the callback. According to the node-sqlite3's code, we are sure
+        // that the internal `Database::pending` attribute equals to 0 [^1],
+        // making sure that the `Database::Configure()` function's call to `Database.Process()`[^2] dequeues
+        // and applies the new limit immediately.
+        // [^1]: https://github.com/TryGhost/node-sqlite3/blob/528e15ae605bac7aab8de60dd7c46e9fdc1fffd0/src/database.cc#L651
+        // [^2]: https://github.com/TryGhost/node-sqlite3/blob/528e15ae605bac7aab8de60dd7c46e9fdc1fffd0/src/database.cc#L390
+        //
+        // Also cast because types are out of date.
+        (this._db as any).configure('limit', SQLITE_LIMIT_ATTACHED, maxAttach);
+        resolve();
+      });
+    });
   }
 }
 

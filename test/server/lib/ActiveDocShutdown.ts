@@ -1,5 +1,6 @@
 import {assert} from 'chai';
 import * as sinon from 'sinon';
+import * as sqlite3 from '@gristlabs/sqlite3';
 
 import {delay} from 'app/common/delay';
 import {Role} from 'app/common/roles';
@@ -332,6 +333,16 @@ return c
       return adoc;
     }
 
+    const LONG_QUERY = `
+      WITH recursive recur(n) AS (
+        SELECT 1
+        UNION ALL
+        SELECT n + 1
+        FROM recur where n < 1000000
+      )
+      SELECT n FROM recur;
+    `;
+
     it("should VACUUM a document before closing it", async function () {
       const adoc = await prepareVacuumableDoc();
       const storageManager = docTools.getStorageManager();
@@ -379,16 +390,24 @@ return c
       const adoc = await prepareVacuumableDoc();
       const storageManager = docTools.getStorageManager();
       await storageManager.flushDoc(adoc.docName);
-      const longQuery = `
-        WITH recursive recur(n)
-        AS (SELECT 1
-        UNION ALL
-        SELECT n + 1
-        FROM recur where n < 1000000
-        )
-        SELECT n FROM recur;
-      `;
-      void(adoc.docStorage.getDB().all(longQuery)); // let's run this long query without awaiting it to finish
+      void(adoc.docStorage.getDB().all(LONG_QUERY)); // let's run the long query without awaiting it to finish
+      const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
+      await (adoc as any)._onInactive();
+      sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
+    });
+
+    it('should successfully vacuum when other long queries are running while setting limit', async function () {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+      const waitStub = sandbox.stub(sqlite3.Database.prototype as any, 'wait');
+      waitStub.callsFake(function (this: sqlite3.Database, callback?: (param: null) => void) {
+        waitStub.wrappedMethod.call(this, callback);
+
+        // let's add the long query right after having invoked wait() and before configure()
+        void(adoc.docStorage.getDB().all(LONG_QUERY));
+        return this;
+      });
       const markAsChangedSpy = sandbox.spy(storageManager, 'markAsChanged');
       await (adoc as any)._onInactive();
       sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
