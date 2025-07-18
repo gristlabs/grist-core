@@ -66,6 +66,22 @@ describe("duplicateWidget", function() {
       assert.deepEqual(hiddenColumns, ['B']);
     });
 
+    it('can hide columns without affecting other widgets', async function() {
+      await gu.openWidgetPanel('widget');
+      await gu.moveToVisible('B');
+      assert.includeMembers(await gu.getVisibleColumns(), ['A', 'B', 'C']);
+      assert.deepEqual(await gu.getHiddenColumns(), []);
+
+      await gu.getSection('Widget 1').click();
+      const widget1VisibleColumns = await gu.getVisibleColumns();
+      const widget1HiddenColumns = await gu.getHiddenColumns();
+      assert.includeMembers(widget1VisibleColumns, ['A', 'C']);
+      assert.notIncludeMembers(widget1VisibleColumns, ['B']);
+
+      assert.includeMembers(widget1HiddenColumns, ['B']);
+      assert.notIncludeMembers(widget1HiddenColumns, ['A', 'C']);
+    });
+
     it('preserves saved sorts', async function() {
       await gu.openSectionMenu('sortAndFilter', 'Widget 2');
       const sortColumns = await gu.getSortColumns();
