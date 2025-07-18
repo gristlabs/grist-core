@@ -31,6 +31,7 @@ import {
   AttachmentStoreProvider,
   checkAvailabilityAttachmentStoreOptions,
   getConfiguredAttachmentStoreConfigs,
+  getConfiguredVirusScanProviders,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
@@ -101,6 +102,7 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from 'serve-static';
+import { IAttachmentVirusScanProvider } from './AttachmentVirusScanProvider';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -160,6 +162,7 @@ export class FlexServer implements GristServer {
   private _installAdmin: InstallAdmin;
   private _instanceRoot: string;
   private _attachmentStoreProvider: IAttachmentStoreProvider;
+  private _virusScanProviders: IAttachmentVirusScanProvider[];
   private _docManager: DocManager;
   private _docWorker: DocWorker;
   private _hosts: Hosts;
@@ -1489,10 +1492,12 @@ export class FlexServer implements GristServer {
       await getConfiguredAttachmentStoreConfigs(),
       (await this.getActivations().current()).id,
     );
+    this._virusScanProviders = this._virusScanProviders || getConfiguredVirusScanProviders();
     this._docManager = this._docManager || new DocManager(this._storageManager,
       pluginManager,
       this._dbManager,
       this._attachmentStoreProvider,
+      this._virusScanProviders,
       this);
     const docManager = this._docManager;
 

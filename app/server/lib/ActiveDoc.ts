@@ -154,6 +154,7 @@ import {ActionHistoryImpl} from './ActionHistoryImpl';
 import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
 import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileManager';
 import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
+import {IAttachmentVirusScanProvider} from './AttachmentVirusScanProvider';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
 import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from './DocSession';
@@ -319,6 +320,7 @@ export class ActiveDoc extends EventEmitter {
     private readonly _docManager: DocManager,
     private _docName: string,
     private _attachmentStoreProvider?: IAttachmentStoreProvider,
+    _virusScanProviders?: IAttachmentVirusScanProvider[],
     private _options?: ICreateActiveDocOptions
   ) {
     super();
@@ -420,6 +422,7 @@ export class ActiveDoc extends EventEmitter {
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
       _attachmentStoreProvider,
+      _virusScanProviders,
       forkId ? { id: forkId, trunkId, } : { id: trunkId, trunkId: undefined },
     );
 
