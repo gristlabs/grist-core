@@ -3,6 +3,7 @@ import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTai
 import * as gutil from 'app/common/gutil';
 import {DocScope, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {RequestWithGrist} from 'app/server/lib/GristServer';
@@ -13,8 +14,11 @@ import {IncomingMessage} from 'http';
 import {Writable} from 'stream';
 import {TLSSocket} from 'tls';
 
-// log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
-const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
+const shouldLogApiDetails = appSettings.section("log").flag("apiDetails").readBool({
+  envVar: ["GRIST_LOG_API_DETAILS", "GRIST_HOSTED_VERSION"],
+  preferredEnvVar: "GRIST_LOG_API_DETAILS",
+  defaultValue: false
+});
 
 // Offset to https ports in dev/testing environment.
 export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?

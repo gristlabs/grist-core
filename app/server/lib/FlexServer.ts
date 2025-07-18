@@ -62,7 +62,7 @@ import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmptyNotifier, INotifier, TestSendGridExtensions} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
-import log from 'app/server/lib/log';
+import log, {logAsJson} from 'app/server/lib/log';
 import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
@@ -543,7 +543,7 @@ export class FlexServer implements GristServer {
         altSessionId: req.altSessionId,
       });
     }
-    this.app.use(morganLogger(process.env.GRIST_HOSTED_VERSION ? outputJson : msg, {
+    this.app.use(morganLogger(logAsJson ? outputJson : msg, {
       skip: this._shouldSkipRequestLogging.bind(this)
     }));
   }
