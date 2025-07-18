@@ -41,6 +41,8 @@ const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing
 
 const PENDING_VALUE = [GristObjCode.Pending];
 
+const SHRINK_RATIO_FOR_PUSH = 0.1;
+
 // Number of days that soft-deleted attachments are kept in file storage before being completely deleted.
 // Once a file is deleted it can't be restored by undo, so we want it to be impossible or at least extremely unlikely
 // that someone would delete a reference to an attachment and then undo that action this many days later.
@@ -1566,6 +1568,31 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   public requestVacuum(): Promise<boolean> {
     const db = this._getDB();
     return this._markAsChanged(db.requestVacuum());
+  }
+
+  /**
+   * Run a VACUUM on the document and mark it as changed only
+   * if the saved space is above the ratio defined in SHRINK_RATIO_FOR_PUSH.
+   * Therefore if the doc storage is a remote one (like S3), it would be pushed
+   * only when we meet this condition, otherwise it is assumed not to be necessary.
+   */
+  public async vacuum(): Promise<void> {
+    const db = this._getDB();
+
+    const initSize = await this.storageManager.getFsFileSize(this.docName);
+    log.rawInfo("Start Vacuum of doc ", { docId: this.docName });
+    await db.vacuum();
+    const size = await this.storageManager.getFsFileSize(this.docName);
+    if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH) ) {
+      log.rawInfo("Mark doc as changed because vacuuming saved more space than the minimal ratio.", {
+        docId: this.docName,
+        minimalRatio: SHRINK_RATIO_FOR_PUSH,
+        initSize,
+        currentSize: size,
+      });
+      this._cachedDataSize = null;
+      this.storageManager.markAsChanged(this.docName);
+    }
   }
 
   public async getPluginDataItem(pluginId: string, key: string): Promise<any> {
