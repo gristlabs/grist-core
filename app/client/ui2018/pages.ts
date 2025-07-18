@@ -5,7 +5,7 @@ import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
-import { menu, menuItem, menuItemAsync, menuItemSubmenu, menuText } from "app/client/ui2018/menus";
+import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
 import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
 const t = makeT('pages');
@@ -68,45 +68,40 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
       dom.cls("disabled", isReadonly),
       testId("duplicate")
     ),
-    menuItemSubmenu(
-      () => [
-        menuItemAsync(
-          () => onCollapse(false),
-          t("Expand {{maybeDefault}}", {
-            maybeDefault: dom.maybe(
-              (use) => !use(isCollapsedByDefault),
-              () => t("(default)")
-            ),
-          }),
-          dom.cls("disabled", (use) => !use(isCollapsed)),
-          testId("expand")
-        ),
-        menuItemAsync(
-          () => onCollapse(true),
-          t("Collapse {{maybeDefault}}", {
-            maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
-          }),
-          dom.cls("disabled", isCollapsed),
-          testId("collapse")
-        ),
-        menuItemAsync(
-          async () => { await onCollapseByDefault(true); },
-          t("Collapse by default"),
-          dom.show((use) => !use(isCollapsedByDefault)),
-          testId("collapse-by-default")
-        ),
-        menuItemAsync(
-          async () => { await onCollapseByDefault(false); },
-          t("Expand by default"),
-          dom.show(isCollapsedByDefault),
-          testId("expand-by-default")
-        ),
-      ],
-      {},
-      t("Expand/Collapse..."),
-      dom.show(hasSubPages()),
-      testId("expand-collapse")
-    ),
+    dom.maybe(hasSubPages(), () => [
+      menuDivider(),
+      menuItemAsync(
+        () => onCollapse(false),
+        t("Expand {{maybeDefault}}", {
+          maybeDefault: dom.maybe(
+            (use) => !use(isCollapsedByDefault),
+            () => t("(default)")
+          ),
+        }),
+        dom.cls("disabled", (use) => !use(isCollapsed)),
+        testId("expand")
+      ),
+      menuItemAsync(
+        () => onCollapse(true),
+        t("Collapse {{maybeDefault}}", {
+          maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
+        }),
+        dom.cls("disabled", isCollapsed),
+        testId("collapse")
+      ),
+      menuItemAsync(
+        async () => { await onCollapseByDefault(true); },
+        t("Collapse by default"),
+        dom.show((use) => !use(isCollapsedByDefault)),
+        testId("collapse-by-default")
+      ),
+      menuItemAsync(
+        async () => { await onCollapseByDefault(false); },
+        t("Expand by default"),
+        dom.show(isCollapsedByDefault),
+        testId("expand-by-default")
+      ),
+    ]),
     dom.maybe(options.isReadonly, () =>
       menuText(t("You do not have edit access to this document"))
     ),

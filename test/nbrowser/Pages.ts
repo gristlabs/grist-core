@@ -371,7 +371,6 @@ describe('Pages', function() {
     await driver.findContent('.test-treeview-itemHeader', /Interactions/).find('.test-treeview-itemArrow').doClick();
     assert.deepEqual(await gu.getPageNames(), ['Interactions', '', 'People', 'User & Leads', 'Overview']);
     await gu.openPageMenu('Interactions');
-    await driver.findWait('.test-docpage-expand-collapse', 100).mouseMove();
     await gu.findOpenMenuItem('.test-docpage-collapse-by-default', 'Collapse by default').click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getPageNames(), ['Interactions', '', 'People', 'User & Leads', 'Overview']);
@@ -390,7 +389,6 @@ describe('Pages', function() {
     await driver.findContent('.test-treeview-itemHeader', /Interactions/).find('.test-treeview-itemArrow').doClick();
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
     await gu.openPageMenu('Interactions');
-    await driver.findWait('.test-docpage-expand-collapse', 100).mouseMove();
     await gu.findOpenMenuItem('.test-docpage-expand-by-default', 'Expand by default').click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
