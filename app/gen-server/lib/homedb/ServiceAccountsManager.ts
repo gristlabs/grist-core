@@ -35,6 +35,9 @@ export class ServiceAccountsManager {
   ) {
     return await this._connection.transaction(async manager => {
       const uuid = uuidv4();
+      // We use .invalid as tld following RFC 2606
+      // as we don't ever want service user to be able to recieve any email
+      // and then be able to connect via link in email
       const login = `${uuid}@serviceaccounts.invalid`;
       const serviceUser = await this._homeDb.getUserByLogin(login, {manager}, 'service');
       const serviceUserWithkey = await this._homeDb.createApiKey(serviceUser.id, false, manager);
