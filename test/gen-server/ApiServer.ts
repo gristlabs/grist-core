@@ -45,6 +45,7 @@ describe('ApiServer', function() {
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEMPLATE_ORG = 'templates';
+    process.env.GRIST_SERVICE_ACCOUNTS = 'true';
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
     dbManager = server.dbManager;
@@ -2159,7 +2160,6 @@ describe('ApiServer', function() {
   });
 
   describe('Service Accounts', function() {
-
     afterEach(async ()=>{
       await dbManager.deleteAllServiceAccounts();
     });

@@ -584,6 +584,7 @@ export class ApiServer {
       return sendReply(req, res, result);
     }));
 
+  if (process.env.GRIST_SERVICE_ACCOUNTS){
     // POST /service-accounts/
     // Creates a new service account attached to the user making the api call.
     this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
@@ -708,6 +709,7 @@ export class ApiServer {
       return sendOkReply(req, res);
     }));
   }
+}
 
   private async _getFullUser(req: Request, options: {includePrefs?: boolean} = {}): Promise<FullUser> {
     const mreq = req as RequestWithLogin;
