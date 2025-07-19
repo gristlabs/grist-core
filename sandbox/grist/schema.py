@@ -13,7 +13,7 @@ from collections import OrderedDict, namedtuple
 
 import actions
 
-SCHEMA_VERSION = 43
+SCHEMA_VERSION = 44
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -166,6 +166,7 @@ def schema_create_actions():
       make_column("indentation", "Int"),
       make_column("pagePos", "PositionNumber"),
       make_column("shareRef", "Ref:_grist_Shares"),
+      make_column("options", "Text"),
     ]),
 
     # All user views.

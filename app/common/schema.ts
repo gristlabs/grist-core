@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 43;
+export const SCHEMA_VERSION = 44;
 
 export const schema = {
 
@@ -94,6 +94,7 @@ export const schema = {
     indentation         : "Int",
     pagePos             : "PositionNumber",
     shareRef            : "Ref:_grist_Shares",
+    options             : "Text",
   },
 
   "_grist_Views": {
@@ -318,6 +319,7 @@ export interface SchemaTypes {
     indentation: number;
     pagePos: number;
     shareRef: number;
+    options: string;
   };
 
   "_grist_Views": {

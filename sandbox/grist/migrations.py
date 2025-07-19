@@ -1322,3 +1322,12 @@ def migration43(tdset):
   """
   return tdset.apply_doc_actions([
     add_column('_grist_Tables_column', 'reverseCol', 'Ref:_grist_Tables_column')])
+
+@migration(schema_version=44)
+def migration44(tdset):
+  """
+  Add an options column to _grist_Pages.
+  """
+  return tdset.apply_doc_actions([
+    add_column('_grist_Pages', 'options', 'Text')
+  ])
