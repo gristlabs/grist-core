@@ -158,7 +158,6 @@ export class DocModel extends Disposable {
   public menuPages: ko.Computed<PageRec[]>;
   // Excludes pages hidden by ACL rules or other reasons (e.g. doc-tour)
   public visibleDocPages: ko.Computed<PageRec[]>;
-  public leafPageIds: ko.Computed<Set<number>>;
 
   // Flag for tracking whether document is in formula-editing mode
   public editingFormula: ko.Observable<boolean> = ko.observable(false);
@@ -225,13 +224,8 @@ export class DocModel extends Disposable {
     // Get a list of only the visible pages.
     const allPages = this.autoDispose(this.pages.createAllRowsModel('pagePos'));
     this.allPages = this.autoDispose(ko.computed(() => allPages.all()));
-    const allPagesSorted = this.autoDispose(
-      ko.computed(() =>
-        this.allPages().sort((a, b) => a.pagePos() - b.pagePos())
-      )
-    );
     this.menuPages = this.autoDispose(ko.computed(() => {
-      const pagesToShow = allPagesSorted().filter(p => !p.isSpecial());
+      const pagesToShow = this.allPages().filter(p => !p.isSpecial()).sort((a, b) => a.pagePos() - b.pagePos());
       const parent = memoize((page: PageRec) => {
         const myIdentation = page.indentation();
         if (myIdentation === 0) { return null; }
@@ -249,18 +243,6 @@ export class DocModel extends Disposable {
       return pagesToShow.filter(p => !hidden(p));
     }));
     this.visibleDocPages = this.autoDispose(ko.computed(() => this.allPages().filter(p => !p.isHidden())));
-    this.leafPageIds = this.autoDispose(ko.computed(() => {
-      const leafPageIds = new Set<number>();
-      const pages = allPagesSorted();
-      for (let i = 0; i < pages.length; i++) {
-        const current = pages[i];
-        const next = pages[i + 1];
-        if (!next || next.indentation() <= current.indentation()) {
-          leafPageIds.add(current.getRowId());
-        }
-      }
-      return leafPageIds;
-    }));
 
     this.hasDocTour = this.autoDispose(ko.computed(() => this.visibleTableIds.all().includes('GristDocTour')));
 

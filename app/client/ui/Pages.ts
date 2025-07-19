@@ -61,9 +61,13 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
 
 const testId = makeTestId('test-removepage-');
 
-function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: GristDoc, pageId: number, hidden: boolean) {
-
-  if (hidden) {
+function buildDomFromTable(
+  pagesTable: MetaTableModel<PageRec>,
+  activeDoc: GristDoc,
+  pageId: number,
+  item: TreeItemRecord
+) {
+  if (item.hidden) {
     return buildCensoredPage();
   }
 
@@ -85,7 +89,7 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
     onCollapse: (value) => pageRec.isCollapsed.set(value),
     isCollapsedByDefault: pageRec.isCollapsedByDefault,
     onCollapseByDefault: (value) => pageRec.setAndSaveCollapsed(value),
-    hasSubPages: () => !docModel.leafPageIds.peek().has(pageRec.getRowId()),
+    hasSubPages: () => item.children().get().length > 0,
   };
 
   return buildPageDom(fromKo(pageName), options, urlState().setLinkUrl({docPage: viewId}));
