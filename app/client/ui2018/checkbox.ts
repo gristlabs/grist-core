@@ -49,6 +49,7 @@ export const cssCheckboxSquare = styled('input', `
   width: 16px;
   height: 16px;
   outline: none !important;
+  outline-offset: 2px;
 
   --radius: 3px;
 

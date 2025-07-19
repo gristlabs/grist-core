@@ -193,6 +193,7 @@ export const Base: BaseThemeTokens = {
     widgetBg: tokens.bg,
     widgetBorder: tokens.decoration,
     widgetActiveBorder: tokens.primary,
+    widgetActiveNonFocusedBorder: tokens.primaryTranslucent,
     widgetInactiveStripesLight: tokens.bgSecondary,
 
     /* Pinned Docs */
@@ -494,5 +495,8 @@ export const Base: BaseThemeTokens = {
     /* Text Button */
     textButtonHoverBg: 'transparent',
     textButtonHoverBorder: 'transparent',
+
+    /* Keyboard Focus Highlighter */
+    kbFocusHighlight: tokens.primary,
   }
 };
