@@ -76,6 +76,9 @@ export class User extends BaseEntity {
   @Column({name: 'created_at', default: () => 'CURRENT_TIMESTAMP'})
   public createdAt: Date;
 
+  @Column({name: 'deleted_at', nullable: true})
+  public deletedAt: Date;
+
   @Column({name: 'type', type: String, default: 'login'})
   public type: UserTypes | null;
 

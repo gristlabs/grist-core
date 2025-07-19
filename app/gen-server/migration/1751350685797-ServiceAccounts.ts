@@ -7,12 +7,19 @@ export class ServiceAccounts1751350685797 implements MigrationInterface {
     const dbType = queryRunner.connection.driver.options.type;
     const datetime = sqlUtils.datetime(dbType);
 
-    await queryRunner.addColumn('users', new TableColumn({
-      name: 'type',
-      type: 'varchar',
-      isNullable: false,
-      default: "'login'",
-    }));
+    await queryRunner.addColumns('users', [
+      new TableColumn({
+        name: 'type',
+        type: 'varchar',
+        isNullable: false,
+        default: "'login'",
+      }),
+      new TableColumn({
+        name: 'deleted_at',
+        type: datetime,
+        isNullable: true,
+      }),
+    ]);
     await queryRunner.createTable(
       new Table({
         name: 'service_accounts',
@@ -81,6 +88,7 @@ export class ServiceAccounts1751350685797 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.dropColumn('users', 'type');
+    await queryRunner.dropColumn('users', 'deletedAt');
     await queryRunner.dropTable('service_accounts');
   }
 }

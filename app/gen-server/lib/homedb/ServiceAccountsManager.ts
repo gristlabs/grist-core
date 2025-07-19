@@ -111,6 +111,11 @@ export class ServiceAccountsManager {
       if (serviceUser == null) {
         return serviceUser;
       }
+      // We perform a soft delete
+      // as we don't want a service user's apiKey to still work
+      serviceUser.apiKey = null;
+      serviceUser.deletedAt = new Date();
+      await manager.save(serviceUser);
       return await manager.delete(
         ServiceAccount,
         {serviceUserId: serviceUser.id, ownerId}
