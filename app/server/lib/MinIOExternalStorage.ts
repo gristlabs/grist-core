@@ -5,7 +5,7 @@ import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
 import * as stream from 'node:stream';
-import {IamAwsProvider} from 'minio/dist/main/IamAwsProvider.js';
+import {IamAwsProvider} from 'minio/dist/main/IamAwsProvider';
 
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
