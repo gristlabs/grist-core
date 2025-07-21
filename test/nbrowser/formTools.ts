@@ -7,37 +7,39 @@ export function element(type: string, index: number, parent?: WebElement): Extra
 export function element(type: string, arg1?: number | WebElement, arg2?: WebElement): ExtraElement {
   if (typeof arg1 === 'number') {
     if (arg1 === 1) {
-      return extra((arg2 ?? driver).find(`.test-forms-${type}`));
+      return extra((arg2 ?? driver).find(`.active_section .test-forms-${type}`));
     }
-    const nth = ((arg2 ?? driver).findAll(`.test-forms-${type}`).then(els => els[arg1 - 1])).then(el => {
-      if (!el) { throw new Error(`No element of type ${type} at index ${arg1}`); }
-      return el;
-    });
+    const nth = ((arg2 ?? driver).findAll(`.active_section .test-forms-${type}`)
+      .then(els => els[arg1 - 1]))
+      .then(el => {
+        if (!el) { throw new Error(`No element of type ${type} at index ${arg1}`); }
+        return el;
+      });
     return extra(new WebElementPromise(driver, nth));
   } else {
-    return extra((arg1 ?? driver).find(`.test-forms-${type}`));
+    return extra((arg1 ?? driver).find(`.active_section .test-forms-${type}`));
   }
 }
 
 export async function elementCount(type: string, parent?: WebElement) {
-  return await (parent ?? driver).findAll(`.test-forms-${type}`).then(els => els.length);
+  return await (parent ?? driver).findAll(`.active_section .test-forms-${type}`).then(els => els.length);
 }
 
 export async function labels() {
-  return await driver.findAll('.test-forms-question .test-forms-label', el => el.getText());
+  return await driver.findAll('.active_section .test-forms-question .test-forms-label', el => el.getText());
 }
 
 export function question(label: string) {
-  return extra(driver.findContent(`.test-forms-label`, new RegExp('^' + escapeRegExp(label) + '\\*?$'))
+  return extra(driver.findContent(`.active_section .test-forms-label`, new RegExp('^' + escapeRegExp(label) + '\\*?$'))
                      .findClosest('.test-forms-editor'));
 }
 
 export function questionDrag(label: string) {
-  return question(label).find('.test-forms-drag');
+  return question(label).find('.active_section .test-forms-drag');
 }
 
 export function questionType(label: string) {
-  return question(label).find('.test-forms-type').value();
+  return question(label).find('.active_section .test-forms-type').value();
 }
 
 export function plusButton(parent?: WebElement) {
@@ -45,7 +47,7 @@ export function plusButton(parent?: WebElement) {
 }
 
 export function drops() {
-  return driver.findAll('.test-forms-plus');
+  return driver.findAll('.active_section .test-forms-plus');
 }
 
 export async function clickMenu(label: string) {
@@ -58,16 +60,16 @@ export async function clickMenu(label: string) {
 }
 
 export async function isSelected() {
-  const els = await driver.findAll('.test-forms-field-editor-selected');
+  const els = await driver.findAll('.active_section .test-forms-field-editor-selected');
   return els.length > 0;
 }
 
 export function selected() {
-  return driver.find('.test-forms-field-editor-selected');
+  return driver.find('.active_section .test-forms-field-editor-selected');
 }
 
 export function selectedLabel() {
-  return selected().find('.test-forms-label-rendered').getText();
+  return selected().find('.active_section .test-forms-label-rendered').getText();
 }
 
 export function hiddenColumns() {
@@ -124,7 +126,7 @@ export async function arrow(key: string, times: number = 1) {
 }
 
 export async function elements() {
-  return await driver.findAll('.test-forms-element', el => el.getAttribute('data-box-model'));
+  return await driver.findAll('.active_section .test-forms-element', el => el.getAttribute('data-box-model'));
 }
 
 export interface FormElement {
