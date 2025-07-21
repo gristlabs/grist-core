@@ -1,6 +1,7 @@
 import {wrapWithKeyMappedStorage} from 'app/server/lib/ExternalStorage';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {MinIOExternalStorage} from 'app/server/lib/MinIOExternalStorage';
+import {IamAwsProvider} from 'minio/dist/main/IamAwsProvider.js';
 
 export function configureMinIOExternalStorage(purpose: 'doc'|'meta'|'attachments', extraPrefix: string) {
   const options = checkMinIOExternalStorage();
@@ -40,14 +41,15 @@ export function checkMinIOExternalStorage() {
   const useSSL = settings.flag('useSsl').read({
     envVar: ['GRIST_DOCS_MINIO_USE_SSL'],
   }).getAsBool();
-  const accessKey = settings.flag('accessKey').requireString({
+  const accessKey = settings.flag('accessKey').readString({
     envVar: ['GRIST_DOCS_MINIO_ACCESS_KEY'],
     censor: true,
   });
-  const secretKey = settings.flag('secretKey').requireString({
+  const secretKey = settings.flag('secretKey').readString({
     envVar: ['GRIST_DOCS_MINIO_SECRET_KEY'],
     censor: true,
   });
+  const credentialsProvider = new IamAwsProvider({});
   settings.flag('url').set(`minio://${bucket}/${prefix}`);
   settings.flag('active').set(true);
   return {
@@ -57,6 +59,7 @@ export function checkMinIOExternalStorage() {
     useSSL,
     accessKey,
     secretKey,
+    credentialsProvider,
     region
   };
 }

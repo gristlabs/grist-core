@@ -53,8 +53,10 @@ export class MinIOExternalStorage implements ExternalStorage {
       endPoint: string,
       port?: number,
       useSSL?: boolean,
-      accessKey: string,
-      secretKey: string,
+      accessKey?: string,
+      secretKey?: string,
+      credentialsProvider?: any,
+
       region: string
     },
     private _batchSize?: number,
