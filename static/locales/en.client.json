@@ -957,7 +957,8 @@
         "Widget options": "Widget options",
         "Add to page": "Add to page",
         "Collapse widget": "Collapse widget",
-        "Create a form": "Create a form"
+        "Create a form": "Create a form",
+        "Duplicate widget": "Duplicate widget"
     },
     "ViewSectionMenu": {
         "(customized)": "(customized)",
@@ -1336,7 +1337,11 @@
     },
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
-        "Open Creator Panel": "Open Creator Panel"
+        "Open Creator Panel": "Open Creator Panel",
+        "Creator panel (right panel)": "Creator panel (right panel)",
+        "Document header": "Document header",
+        "Main content": "Main content",
+        "Main navigation and document settings (left panel)": "Main navigation and document settings (left panel)"
     },
     "ColumnTitle": {
         "Add description": "Add description",
@@ -2116,5 +2121,12 @@
     "NewRecordButton": {
         "New card": "New card",
         "New record": "New record"
+    },
+    "RegionFocusSwitcher": {
+        "Trying to access the creator panel? Use {{key}}.": "Trying to access the creator panel? Use {{key}}."
+    },
+    "duplicateWidget": {
+        "Duplicate widget": "Duplicate widget",
+        "Duplicate widgets": "Duplicate widgets"
     }
 }
