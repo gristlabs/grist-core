@@ -82,6 +82,12 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
         testId("expand")
       ),
       menuItemAsync(
+        async () => { await onCollapseByDefault(false); },
+        t("Expand by default"),
+        dom.show(isCollapsedByDefault),
+        testId("expand-by-default")
+      ),
+      menuItemAsync(
         () => onCollapse(true),
         t("Collapse {{maybeDefault}}", {
           maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
@@ -94,12 +100,6 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
         t("Collapse by default"),
         dom.show((use) => !use(isCollapsedByDefault)),
         testId("collapse-by-default")
-      ),
-      menuItemAsync(
-        async () => { await onCollapseByDefault(false); },
-        t("Expand by default"),
-        dom.show(isCollapsedByDefault),
-        testId("expand-by-default")
       ),
     ]),
     dom.maybe(options.isReadonly, () =>
