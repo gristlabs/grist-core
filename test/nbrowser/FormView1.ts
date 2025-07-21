@@ -1093,7 +1093,8 @@ describe('FormView1', function() {
       await plusButton().click();
 
       // We have 1 unmapped menu item.
-      assert.equal(await elementCount('menu-unmapped'), 1);
+      const unmappedMenuItemCount = (await driver.findAll('.test-forms-menu-unmapped')).length;
+      assert.equal(unmappedMenuItemCount, 1);
 
       // Now move it to the form on B
       await driver.withActions(a =>
