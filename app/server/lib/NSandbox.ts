@@ -927,11 +927,11 @@ export function getInsertedEnv(options: ISandboxOptions) {
     env.DETERMINISTIC_MODE = '1';
   }
 
-  if  (process.env.GRIST_TRUTHY_VALUES) {
+  if (process.env.GRIST_TRUTHY_VALUES) {
     env.GRIST_TRUTHY_VALUES = process.env.GRIST_TRUTHY_VALUES;
   }
 
-  if  (process.env.GRIST_FALSY_VALUES) {
+  if (process.env.GRIST_FALSY_VALUES) {
     env.GRIST_FALSY_VALUES = process.env.GRIST_FALSY_VALUES;
   }
 
