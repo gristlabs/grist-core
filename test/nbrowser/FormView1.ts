@@ -1093,7 +1093,8 @@ describe('FormView1', function() {
       await plusButton().click();
 
       // We have 1 unmapped menu item.
-      assert.equal(await elementCount('menu-unmapped'), 1);
+      const unmappedMenuItemCount = (await driver.findAll('.test-forms-menu-unmapped')).length;
+      assert.equal(unmappedMenuItemCount, 1);
 
       // Now move it to the form on B
       await driver.withActions(a =>
@@ -1143,7 +1144,7 @@ describe('FormView1', function() {
 
       // Now unhide it using menu.
       await plusButton().click();
-      await element('menu-unmapped').click();
+      await driver.find('.test-forms-menu-unmapped').click();
       await gu.waitForServer();
 
       assert.deepEqual(await labels(), ['A', 'B', 'C', 'Choice']);

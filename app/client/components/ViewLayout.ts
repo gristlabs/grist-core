@@ -5,6 +5,7 @@ import * as commands from 'app/client/components/commands';
 import {CustomCalendarView} from "app/client/components/CustomCalendarView";
 import {CustomView} from 'app/client/components/CustomView';
 import * as DetailView from 'app/client/components/DetailView';
+import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
 import {FormView} from 'app/client/components/Forms/FormView';
 import * as GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
@@ -195,6 +196,9 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     const commandGroup = {
       deleteSection: () => { this.removeViewSection(this.viewModel.activeSectionId()).catch(reportError); },
+      duplicateSection: () => {
+        buildDuplicateWidgetModal(this.gristDoc, this.viewModel.activeSectionId()).catch(reportError);
+      },
       nextSection: () => { this._otherSection(+1); },
       prevSection: () => { this._otherSection(-1); },
       printSection: () => { printViewSection(this.layout, this.viewModel.activeSection()).catch(reportError); },

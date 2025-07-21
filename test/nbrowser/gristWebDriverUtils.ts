@@ -472,6 +472,24 @@ export class GristWebDriverUtils {
       await this.driver.findContent(`.test-viewsection-title`, title).findClosest(".view_leaf").click();
     }
   }
+
+  /**
+   * Click into a section without disrupting cursor positions.
+   */
+  public async selectSectionByIndex(index: number) {
+    const sections = await this.driver.findAll('.test-viewsection-title');
+    const section = sections.at(-1);
+    if (section === undefined) {
+      throw new Error(`No view section at index ${index}`);
+    }
+    try {
+      // .test-viewsection is a special 1px width element added for tests only.
+      await section.find(".test-viewsection-blank").click();
+    } catch (e) {
+      // We might be in mobile view.
+      await section.findClosest(".view_leaf").click();
+    }
+  }
 }
 
 export interface WindowDimensions {
