@@ -1144,7 +1144,7 @@ describe('FormView1', function() {
 
       // Now unhide it using menu.
       await plusButton().click();
-      await element('menu-unmapped').click();
+      await driver.find('.test-forms-menu-unmapped').click();
       await gu.waitForServer();
 
       assert.deepEqual(await labels(), ['A', 'B', 'C', 'Choice']);
