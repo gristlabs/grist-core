@@ -81,6 +81,7 @@ export const tokensCssMapping = {
   primaryMuted: 'primary-muted',
   primaryDim: 'primary-dim',
   primaryEmphasis: 'primary-emphasis',
+  primaryTranslucent: 'primary-translucent',
 
   white: 'white',
   black: 'black',
@@ -260,6 +261,7 @@ export const componentsCssMapping = {
   widgetBg: 'widget-bg',
   widgetBorder: 'widget-border',
   widgetActiveBorder: 'widget-active-border',
+  widgetActiveNonFocusedBorder: 'widget-active-non-focused-border',
   widgetInactiveStripesLight: 'widget-inactive-stripes-light',
   widgetInactiveStripesDark: 'widget-inactive-stripes-dark',
   pinnedDocFooterBg: 'pinned-doc-footer-bg',
@@ -580,6 +582,7 @@ export const componentsCssMapping = {
   formulaIcon: 'formula-icon',
   textButtonHoverBg: 'text-button-hover-bg',
   textButtonHoverBorder: 'text-button-hover-border',
+  kbFocusHighlight: 'kb-focus-highlight',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -799,6 +802,11 @@ export interface SpecificThemeTokens {
    * more pronounced primary color variant, rarely used
    */
   primaryEmphasis: Token;
+
+  /**
+   * primary color with around 50% opacity
+   */
+  primaryTranslucent: Token;
 
   controlBorderRadius: Token;
 
@@ -1102,6 +1110,7 @@ export interface BaseThemeTokens {
     widgetBg: Token;
     widgetBorder: Token;
     widgetActiveBorder: Token;
+    widgetActiveNonFocusedBorder: Token;
     widgetInactiveStripesLight: Token;
     pinnedDocFooterBg: Token;
     pinnedDocBorder: Token;
@@ -1304,6 +1313,7 @@ export interface BaseThemeTokens {
     formulaIcon: Token;
     textButtonHoverBg: Token;
     textButtonHoverBorder: Token;
+    kbFocusHighlight: Token;
   };
 }
 
