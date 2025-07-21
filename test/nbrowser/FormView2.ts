@@ -4,6 +4,7 @@ import {element, FormElement, formSchema, labels, question, questionType} from '
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {EnvironmentSnapshot} from 'test/server/testUtils';
+import {getSection, waitToPass} from 'test/nbrowser/gristUtils';
 
 describe('FormView2', function() {
   this.timeout('4m');
@@ -107,6 +108,18 @@ describe('FormView2', function() {
     assert.equal(await framing(), 'border', 'Form framing should be set to border');
   });
 
+  const originalWidgetTitle = 'Original Widget';
+  const clonedWidgetTitle = 'Cloned Widget';
+
+  async function duplicateForm(formWidgetTitle: string, pageTitle: string | undefined, newWidgetTitle: string) {
+    await gu.duplicateWidget(formWidgetTitle, pageTitle);
+    await gu.waitAppFocus();
+    await gu.selectSectionByIndex(-1);
+    await gu.renameActiveSection(newWidgetTitle);
+    // Reduces flakiness, where the next operation can sometimes fail to get the widget by title
+    await waitToPass(async () => { await getSection(newWidgetTitle); });
+  }
+
   it('duplicates default form', async function() {
     session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
@@ -115,14 +128,16 @@ describe('FormView2', function() {
     // Go to this page, to make sure we wait for it.
     await gu.openPage('New page');
     await gu.renamePage('New page', 'Original');
+    await gu.renameActiveSection(originalWidgetTitle);
+    // Reduces flakiness, where the next operation can sometimes fail to get the widget by title
+    await waitToPass(async () => { await getSection(originalWidgetTitle); });
     const revert = await gu.begin();
 
     // Read the schema overall.
     const origStruct1 = await formSchema();
     // Now duplicate it.
-    await gu.duplicatePage('Original', 'Cloned');
-    // Check that the new page has the same form.
-    await gu.openPage('Cloned');
+    await duplicateForm(originalWidgetTitle, undefined, clonedWidgetTitle);
+    await gu.selectSectionByTitle(clonedWidgetTitle);
     // Read the schema again.
     const cloned = await formSchema();
     assert.deepEqual(origStruct1, cloned);
@@ -130,7 +145,7 @@ describe('FormView2', function() {
     // Make sure that when changed the original form isn't changed.
     // Hide columns A and B
     assert.equal(cloned[2].children.length, 5);
-    assert.deepEqual(cloned[2].children.filter(isField).map(label), ['A', 'B', 'C']);
+    assert.deepEqual(allLabelsInFormSection(cloned[2]), ['A', 'B', 'C']);
     await question('A').hover();
     await question('A').remove();
     await gu.waitForServer();
@@ -141,19 +156,19 @@ describe('FormView2', function() {
     const clonedWithoutBC = await formSchema();
     assert.notDeepEqual(origStruct1, clonedWithoutBC);
     // Make sure we don't see those fields there.
-    assert.deepEqual(clonedWithoutBC[2].children.filter(isField).map(label), ['C']);
+    assert.deepEqual(allLabelsInFormSection(clonedWithoutBC[2]), ['C']);
 
     // Now go to the original page and make sure it still has all fields.
-    await gu.openPage('Original');
+    await gu.selectSectionByTitle(originalWidgetTitle);
     const origStruct2 = await formSchema();
     assert.deepEqual(origStruct1, origStruct2);
-    // No remove column C here, to make sure duplicate is not affected.
+    // Now remove column C here, to make sure duplicate is not affected.
     await question('C').hover();
     await question('C').remove();
     await gu.waitForServer();
-    await gu.openPage('Cloned');
 
     // Check that the new page has the same form.
+    await gu.selectSectionByTitle(clonedWidgetTitle);
     const cloneAfterRemoval2 = await formSchema();
     assert.deepEqual(clonedWithoutBC, cloneAfterRemoval2);
 
@@ -163,7 +178,7 @@ describe('FormView2', function() {
   it('duplicates modified form', async function() {
     const revert = await gu.begin();
 
-    await gu.openPage('Original');
+    await gu.selectSectionByTitle(originalWidgetTitle);
     // Hide column A
     await question('A').hover();
     await question('A').remove();
@@ -171,19 +186,17 @@ describe('FormView2', function() {
     // Read schema
     const origBC = await formSchema();
     // Sanity check.
-    assert.deepEqual(origBC[2].children.filter(isField).map(label), ['B', 'C']);
+    assert.deepEqual(allLabelsInFormSection(origBC[2]), ['B', 'C']);
     // Now duplicate it.
-    await gu.duplicatePage('Original', 'Cloned');
-    // Check that the new page has the same form.
-    await gu.openPage('Cloned');
-    // Read the schema again.
+    await duplicateForm(originalWidgetTitle, undefined, clonedWidgetTitle);
+    // Check that the new widget is the same form.
     const clonedBC = await formSchema();
     assert.deepEqual(origBC, clonedBC);
     // Sanity check.
     assert.deepEqual(clonedBC[2].children.filter(isField).map(label), ['B', 'C']);
 
     // Now remove column B from original, and make sure clone is not affected.
-    await gu.openPage('Original');
+    await gu.selectSectionByTitle(originalWidgetTitle);
     await question('B').hover();
     await question('B').remove();
     await gu.waitForServer();
@@ -191,7 +204,7 @@ describe('FormView2', function() {
     // Sanity check.
     assert.deepEqual(origC[2].children.filter(isField).map(label), ['C']);
     // Make sure clone is not affected.
-    await gu.openPage('Cloned');
+    await gu.selectSectionByTitle(clonedWidgetTitle);
     assert.deepEqual(clonedBC, await formSchema());
 
     // Cloned still has B and C, remove the C to make sure original is not affected.
@@ -200,7 +213,7 @@ describe('FormView2', function() {
     await gu.waitForServer();
 
     // Make sure original still has C
-    await gu.openPage('Original');
+    await gu.selectSectionByTitle(originalWidgetTitle);
     assert.deepEqual(origC, await formSchema());
     await revert();
   });
@@ -209,14 +222,13 @@ describe('FormView2', function() {
     // Original form is not yet changed.
     // Publish it.
     await publishForm();
-
-    await gu.duplicatePage('Original', 'Cloned');
-    await gu.openPage('Cloned');
+    await duplicateForm(originalWidgetTitle, undefined, clonedWidgetTitle);
 
     // Make sure we have publish button.
     assert.isTrue(await publish.isDisplayed());
     assert.isFalse(await unpublish.isPresent());
 
+    await gu.selectSectionByTitle(clonedWidgetTitle);
     // Now publish the clone also.
     await publishForm();
 
@@ -224,14 +236,14 @@ describe('FormView2', function() {
     await unpublishForm();
 
     // Check original, should still be published.
-    await gu.openPage('Original');
+    await gu.selectSectionByTitle(originalWidgetTitle);
     assert.isFalse(await publish.isPresent());
     assert.isTrue(await unpublish.isDisplayed());
   });
 
   it('can submit a form', async function() {
     // Publish the clone and open the form.
-    await gu.openPage('Cloned');
+    await gu.selectSectionByTitle(clonedWidgetTitle);
     await publishForm();
 
     await share.click();
@@ -299,6 +311,10 @@ function label(e: FormElement) {
   return e.label;
 }
 
+function allLabelsInFormSection(e: FormElement) {
+  return e.children.filter(isField).map(label);
+}
+
 function widget(selector: string) {
   return {
     async click() {
@@ -316,8 +332,8 @@ function widget(selector: string) {
   };
 }
 
-const publish = widget('.test-forms-publish');
-const unpublish = widget('.test-forms-unpublish');
+const publish = widget('.active_section .test-forms-publish');
+const unpublish = widget('.active_section .test-forms-unpublish');
 const confirm = widget('.test-modal-confirm');
 const share = widget('.test-forms-share');
 const form = widget('.test-form-page');

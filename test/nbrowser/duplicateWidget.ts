@@ -166,8 +166,8 @@ async function getCardListTheme(): Promise<typeof CardListTheme.type> {
 }
 
 async function renameLastWidget(newName: string) {
-  const allSections = await driver.findAll('.viewsection_content');
-  await allSections.at(-1)?.click();
+  // Can't use widget title to select, as the widgets have identical titles - need to use index
+  await gu.selectSectionByIndex(-1);
   await gu.renameActiveSection(newName);
   await gu.waitToPass(async () => { await gu.getSection(newName); });
 }
