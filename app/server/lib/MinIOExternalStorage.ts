@@ -5,6 +5,7 @@ import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
 import * as stream from 'node:stream';
+import {IamAwsProvider} from 'minio/dist/main/IamAwsProvider.js';
 
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
@@ -45,6 +46,8 @@ type RemoveObjectsResponse = null | undefined | {
  * will work with MinIO and other S3-compatible storage.
  */
 export class MinIOExternalStorage implements ExternalStorage {
+  private _s3: MinIOClient;
+
   // Specify bucket to use, and optionally the max number of keys to request
   // in any call to listObjectVersions (used for testing)
   constructor(
@@ -55,13 +58,15 @@ export class MinIOExternalStorage implements ExternalStorage {
       useSSL?: boolean,
       accessKey?: string,
       secretKey?: string,
-      credentialsProvider?: any,
-
+      credentialsProvider?: IamAwsProvider,
       region: string
     },
-    private _batchSize?: number,
-    private _s3 = new minio.Client(options) as unknown as MinIOClient
+    private _batchSize?: number
   ) {
+    if (!options.accessKey || !options.secretKey) {
+      options.credentialsProvider = new IamAwsProvider({});
+    }
+    this._s3 = new minio.Client(options) as unknown as MinIOClient;
   }
 
   public async exists(key: string, snapshotId?: string) {
