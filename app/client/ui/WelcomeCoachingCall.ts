@@ -6,9 +6,10 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
         cssPopupTitle} from 'app/client/ui2018/popups';
 import {icon} from 'app/client/ui2018/icons';
+import {cssLink} from 'app/client/ui2018/links';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, styled} from 'grainjs';
-import { commonUrls } from 'app/common/gristUrls';
+import {commonUrls} from 'app/common/gristUrls';
 
 const t = makeT('WelcomeCoachingCall');
 
@@ -92,6 +93,17 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
           dom('div',
             t("On the call, we'll take the time to understand your needs and tailor the call to you. \
 We can show you the Grist basics, or start working with your data right away to build the dashboards you need.")
+          ),
+          dom('div',
+            t("You may also check out {{ourWeeklyWebinars}} to learn more about Grist.",
+              {
+                ourWeeklyWebinars: cssLink(
+                  {href: commonUrls.webinars, target: '_blank'},
+                  t('our weekly webinars')
+                )
+              }
+            ),
+            testId('popup-body-webinar'),
           ),
         ),
         testId('popup-body'),
