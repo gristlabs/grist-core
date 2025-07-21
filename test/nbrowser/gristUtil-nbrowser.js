@@ -373,7 +373,7 @@ const gu = {
     await driver.sleep(1000);
     // For each value, type it, followed by Tab.
     for (const [i, value] of values.entries()) {
-      await gu.waitAppFocus(true);
+      await gu.waitAppFocus();
       await gu.sendKeys(value, $.TAB);
       await gu.waitForServer();
       if (i === 0) {

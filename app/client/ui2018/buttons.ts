@@ -39,6 +39,8 @@ export const cssButton = styled('button', `
 
   cursor: pointer;
 
+  outline-offset: 2px;
+
   &-large {
     font-weight: 500;
     padding: 10px 24px;
@@ -70,7 +72,6 @@ export const cssButton = styled('button', `
     background-color: ${theme.controlDisabledBg};
     border-color: ${theme.controlDisabledBg};
   }
-
 `);
 
 interface IButtonProps {

@@ -302,7 +302,7 @@ class IframeProcess extends ViewProcess {
     super.create(safeBrowser, rpc, src);
     this._themeInitialized = Observable.create(this, false);
     const iframe = this.element = this.autoDispose(
-      grainjsDom(`iframe.safe_browser_process.clipboard_focus`,
+      grainjsDom(`iframe.safe_browser_process.clipboard_allow_focus`,
         {src},
         grainjsDom.style('visibility', use => use(this._themeInitialized) ? 'visible' : 'hidden'),
       ) as HTMLIFrameElement
@@ -344,7 +344,7 @@ class IframeProcess extends ViewProcess {
 class WebviewProcess extends ViewProcess {
   public create(safeBrowser: SafeBrowser, rpc: Rpc, src: string) {
     super.create(safeBrowser, rpc, src);
-    const webview = this.element = this.autoDispose(dom('webview.safe_browser_process.clipboard_focus', {
+    const webview = this.element = this.autoDispose(dom('webview.safe_browser_process.clipboard_allow_focus', {
       src,
       allowpopups: '',
       // Requests with this partition get an extra header (see main.js) to get access to plugin content.

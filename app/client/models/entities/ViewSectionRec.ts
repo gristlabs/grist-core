@@ -162,7 +162,12 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Evaluates to an array of column models, which are not referenced by anything in viewFields.
   hiddenColumns: ko.Computed<ColumnRec[]>;
 
+  // True if the section is the active section.
   hasFocus: ko.Computed<boolean>;
+  // True if the section is the active section and if the user-focused page panel is the section or the creator panel.
+  hasVisibleFocus: ko.Computed<boolean>;
+  // True if the section is the active section and if the user-focused page panel is the section.
+  hasRegionFocus: ko.Computed<boolean>;
 
   // Section-linking affects table if linkSrcSection is set. The controller value of the
   // link is the value of srcCol at activeRowId of linkSrcSection, or activeRowId itself when
@@ -739,6 +744,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     read: () => !this.isDisposed() && this.view().activeSectionId() === this.id(),
     write: (val) => { this.view().activeSectionId(val ? this.id() : 0); }
   });
+  this.hasVisibleFocus = ko.pureComputed(() => {
+    if (this.isDisposed()) {
+      return false;
+    }
+    const region = this.view().focusedRegionState();
+    return this.hasFocus() && (region === 'in' || region === 'related');
+  });
+  this.hasRegionFocus = ko.pureComputed(() => this.hasFocus() && this.view().focusedRegionState() === 'in');
 
   // Section-linking affects this table if linkSrcSection is set. The controller value of the
   // link is the value of srcCol at activeRowId of linkSrcSection, or activeRowId itself when
