@@ -13,6 +13,7 @@ import {MetaTableData} from 'app/client/models/TableData';
 import { SingleCell } from 'app/common/TableData';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {UploadResult} from 'app/common/uploads';
+import {UIRowId} from 'app/plugin/GristAPI';
 import { GristObjCode } from 'app/plugin/GristData';
 import {Computed, dom, DomContents, fromKo, input, onElem, styled} from 'grainjs';
 import {extname} from 'path';
@@ -149,6 +150,9 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
   private async _uploadAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>,
         files: FileList): Promise<void> {
+    // Move the cursor here (note that this may involve switching active section when dragging
+    // into a cell of an inactive section).
+    commands.allCommands.setCursor.run(row, this.field);
     const uploadResult = await uploadFiles(Array.from(files),
                                            {docWorkerUrl: this._getDocComm().docWorkerUrl,
                                             sizeLimit: 'attachment'});
@@ -159,18 +163,35 @@ export class AttachmentsWidget extends NewAbstractWidget {
         uploadResult: UploadResult|null
   ): Promise<void> {
     if (!uploadResult) { return; }
+
+    // Add a row if one doesn't already exist.
+    let rowId = row.getRowId() as UIRowId;
+    if (rowId === "new") {
+      const viewSection = this.field.viewSection();
+      const view = viewSection.viewInstance();
+      if (!view) {
+        throw new Error(`Widget ${viewSection.getRowId()} not found`);
+      }
+
+      rowId = await view.insertRow();
+    }
+
+    // Upload the attachments.
     const rowIds = await this._getDocComm().addAttachments(uploadResult.uploadId);
+
+    const tableId = this.field.tableId();
+    const tableData = this._getDocData().getTable(tableId);
+    if (!tableData) {
+      throw new Error(`Table ${tableId} not found`);
+    }
+
+    // Save the attachment IDs to the cell.
     // Values should be saved with a leading "L" to fit Grist's list value encoding.
     const formatted: CellValue = value() ? value() : [GristObjCode.List];
     const newValue = (formatted as number[]).concat(rowIds) as CellValue;
-
-    // Move the cursor here (note that this may involve switching active section when dragging
-    // into a cell of an inactive section). Then send the 'input' command; it is normally used for
-    // key presses to open an editor; here the "typed text" is the new value. It is handled by
-    // AttachmentsEditor.skipEditor(), and makes the edit apply to editRow, which handles setting
-    // default values based on widget linking.
-    commands.allCommands.setCursor.run(row, this.field);
-    commands.allCommands.input.run(newValue);
+    await tableData.sendTableAction(["UpdateRecord", rowId, {
+        [this.field.colId()]: newValue,
+    }]);
   }
 }
 
