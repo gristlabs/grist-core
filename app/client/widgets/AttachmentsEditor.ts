@@ -10,7 +10,7 @@ import {DocData} from 'app/client/models/DocData';
 import {MetaTableData} from 'app/client/models/TableData';
 import {basicButton, basicButtonLink, cssButtonGroup} from 'app/client/ui2018/buttons';
 import {makeT} from 'app/client/lib/localization';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
@@ -342,11 +342,22 @@ const cssFullScreenModal = styled('div', `
 const cssHeader = styled('div', `
   padding: 16px 24px;
   position: fixed;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  @media ${mediaSmall} {
+    & {
+      align-items: flex-start;
+      flex-direction: column-reverse;
+      gap: 8px;
+      padding: 0 16px;
+    }
+  }
 `);
 
 const cssCloseButton = styled('div', `
@@ -359,6 +370,12 @@ const cssCloseButton = styled('div', `
   &:hover {
     background-color: ${theme.attachmentsEditorButtonHoverBg};
     --icon-color: ${theme.attachmentsEditorButtonHoverFg};
+  }
+
+  @media ${mediaSmall} {
+    & {
+      margin-left: auto;
+    }
   }
 `);
 
@@ -379,6 +396,12 @@ const cssTitle = styled('div', `
   &:focus-within {
     outline: 1px solid ${theme.controlFg};
   }
+
+  @media ${mediaSmall} {
+    & {
+      outline: 1px solid ${theme.lightText};
+    }
+  }
 `);
 
 const cssEditableLabel = styled(editableLabel, `
@@ -391,6 +414,11 @@ const cssFlexExpand = styled('div', `
   flex: 1;
   display: flex;
   align-items: center;
+  @media ${mediaSmall} {
+    & {
+      width: 100%;
+    }
+  }
 `);
 
 const cssLoading = styled('div', `
@@ -401,6 +429,13 @@ const cssLoading = styled('div', `
   & .${loadingSpinner.className} {
     --loader-fg: currentColor;
   }
+  @media ${mediaSmall} {
+    & .${loadingSpinner.className} {
+      width: 16px;
+      height: 16px;
+      border-width: 1px;
+    }
+  }
 `);
 
 const cssFileButtons = styled(cssButtonGroup, `
@@ -408,6 +443,13 @@ const cssFileButtons = styled(cssButtonGroup, `
   margin-right: 16px;
   height: 32px;
   flex: none;
+
+  @media ${mediaSmall} {
+    & {
+      margin-left: 0px;
+      margin-right: 0px;
+    }
+  }
 `);
 
 const cssButton = styled(basicButton, `
@@ -484,6 +526,12 @@ const cssContent = styled('div', `
   }
   .${cssDropping.className} > & {
     display: none;
+  }
+  @media ${mediaSmall} {
+    & {
+      margin-top: 102px;
+      height: calc(100% - 102px);
+    }
   }
 `);
 
