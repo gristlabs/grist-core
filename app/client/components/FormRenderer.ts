@@ -58,6 +58,8 @@ export interface FormRendererContext {
   rootLayoutNode: FormLayoutNode;
   /** Disables the Submit node if true. */
   disabled: Observable<boolean>;
+  /** Indicates the current form submission is taking longer than usual. */
+  slowSubmit: Observable<boolean>;
   /** Error to show above the Submit node. */
   error: Observable<string|null>;
 }
@@ -174,9 +176,12 @@ class SubmitRenderer extends FormRenderer {
       css.submitButtons(
         css.resetButton(
           t('Reset'),
-          dom.boolAttr('disabled', this.context.disabled),
+          dom.attr('aria-disabled', (use) => use(this.context.disabled) ? 'true' : 'false'),
           {type: 'button'},
-          dom.on('click', () => {
+          dom.on('click', (event) => {
+            if (this.context.disabled.get()) {
+              return event.preventDefault();
+            }
             return confirmModal(
               'Are you sure you want to reset your form?',
               'Reset',
@@ -186,13 +191,21 @@ class SubmitRenderer extends FormRenderer {
           testId('reset'),
         ),
         css.submitButton(
-          dom('input',
-            dom.boolAttr('disabled', this.context.disabled),
-            {
-              type: 'submit',
-              value: this.context.rootLayoutNode.submitText || t('Submit'),
-            },
-            dom.on('click', () => validateRequiredLists()),
+          dom('button',
+            dom.attr('aria-disabled', (use) => use(this.context.disabled) ? 'true' : 'false'),
+            {type: 'submit'},
+            dom.domComputed(use => {
+              const slowSubmit = use(this.context.slowSubmit);
+              return slowSubmit
+                ? [css.buttonLoadingSpinner(), t('Submitting…')]
+                : this.context.rootLayoutNode.submitText || t('Submit');
+            }),
+            dom.on('click', (event) => {
+              if (this.context.disabled.get()) {
+                return event.preventDefault();
+              }
+              return validateRequiredLists();
+            }),
           )
         ),
       ),

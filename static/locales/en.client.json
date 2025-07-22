@@ -1797,7 +1797,8 @@
         "Reset": "Reset",
         "Search": "Search",
         "Select...": "Select...",
-        "Submit": "Submit"
+        "Submit": "Submit",
+        "Submitting…": "Submitting…"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",

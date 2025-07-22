@@ -56,6 +56,7 @@ export class FormPage extends Disposable {
         fields: form.formFieldsById,
         rootLayoutNode,
         disabled: this._model.submitting,
+        slowSubmit: this._model.submittingSlow,
         error: this._error,
       });
 

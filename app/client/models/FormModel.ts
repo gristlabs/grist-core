@@ -6,7 +6,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {Form, FormAPI, FormAPIImpl} from 'app/client/ui/FormAPI';
 import {ApiError} from 'app/common/ApiError';
 import {safeJsonParse} from 'app/common/gutil';
-import {bundleChanges, Computed, Disposable, Observable} from 'grainjs';
+import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
 const t = makeT('FormModel');
 
@@ -14,6 +14,7 @@ export interface FormModel {
   readonly form: Observable<Form|null>;
   readonly formLayout: Computed<FormLayoutNode|null>;
   readonly submitting: Observable<boolean>;
+  readonly submittingSlow: Observable<boolean>;
   readonly submitted: Observable<boolean>;
   readonly error: Observable<string|null>;
   fetchForm(): Promise<void>;
@@ -34,13 +35,28 @@ export class FormModelImpl extends Disposable implements FormModel {
     return patchedLayout;
   });
   public readonly submitting = Observable.create<boolean>(this, false);
+  public readonly submittingSlow = Observable.create<boolean>(this, false);
   public readonly submitted = Observable.create<boolean>(this, false);
   public readonly error = Observable.create<string|null>(this, null);
 
   private readonly _formAPI: FormAPI = new FormAPIImpl(getHomeUrl());
+  private _submittingSlowTimeout: number | null = null;
 
   constructor() {
     super();
+
+    // we track in an observable when the submission is slow, allowing us to easily show user feedback in that case
+    this.autoDispose(subscribe(this.submitting, (use, submitting) => {
+      if (submitting) {
+        this._submittingSlowTimeout = window.setTimeout(() => !this.isDisposed() && this.submittingSlow.set(true), 750);
+      } else {
+        if (this._submittingSlowTimeout) {
+          window.clearTimeout(this._submittingSlowTimeout);
+          this._submittingSlowTimeout = null;
+        }
+        this.submittingSlow.set(false);
+      }
+    }));
   }
 
   public async fetchForm(): Promise<void> {
