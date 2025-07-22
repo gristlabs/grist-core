@@ -3,7 +3,7 @@
  */
 import { assert, driver } from 'mocha-webdriver';
 import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
-         findRuleSet, findTableWait, getRules, hasExtraAdd, removeRules,
+         findRuleSet, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
          removeTable } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
@@ -40,6 +40,7 @@ describe("AccessRules3", function() {
       await mainSession.loadDoc(`/doc/${docId}`);
       await driver.find('.test-tools-access-rules').click();
       await driver.findWait('.test-rule-set', 2000);
+      await gu.waitForServer();
 
       // Check seed rule checkbox is unselected.
       const seedRule = await driver.find('div.test-rule-special-SeedRule');
@@ -63,6 +64,7 @@ describe("AccessRules3", function() {
                        [{ formula: 'Everyone', perm: '', res: 'All' }]);
       await fin.find('.test-rule-table-menu-btn').click();
       await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+      await findRuleSetWait(/FinancialsTable/, 1).isPresent();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'Everyone', perm: '', res: '[Add Column]' },
                         { formula: 'Everyone', perm: '', res: 'All' + tooltipMarker }]);
@@ -71,6 +73,7 @@ describe("AccessRules3", function() {
 
       // Now check the box, and see we get the rule we expect.
       await checkbox.click();
+      await gu.waitForServer();
       await assertChanged();
       assert.deepEqual(await getRules(seedRule),
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
@@ -131,6 +134,7 @@ describe("AccessRules3", function() {
                         { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);
       await removeTable(/FinancialsTable/);
+      await gu.waitForServer();
 
       // Check that returning to the single OWNER rule gets us back to an uncomplicated
       // selected checkbox.

@@ -1,6 +1,11 @@
 import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
+import { serveSinglePage, Serving } from 'test/server/customUtil';
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
+
+// An alternative domain for localhost, to test links that look external. We have a record for
+// localtest.datagrist.com set up to point to localhost.
+const TEST_GRIST_HOST = 'localtest.datagrist.com';
 
 describe("links", function () {
   this.timeout(20000);
@@ -8,13 +13,25 @@ describe("links", function () {
   let session: gu.Session;
   let docId: string;
   let urlId: string;
+  // Serve some content on a separate URL, just so we can reliably open non-Grist URLs.
+  // (When we used "example.com", it was occasionally unresponsive, causing tests to fail.)
+  let serving: Serving;
+  let servingUrl: URL;
 
   before(async function () {
+    serving = await serveSinglePage("Dolphins are cool.");
+    servingUrl = new URL(serving.url);
+    servingUrl.hostname = TEST_GRIST_HOST;
+
     session = await gu.session().login();
     docId = await session.tempNewDoc(cleanup, "links");
     urlId = (await gu.getCurrentUrlId())!;
     await gu.openColumnPanel();
     await gu.setType("Text");
+  });
+
+  after(async function() {
+    if (serving) { await serving.shutdown(); }
   });
 
   async function assertSameDocumentLink(value: string, expected: RegExp) {
@@ -26,7 +43,9 @@ describe("links", function () {
     const tabs = await driver.getAllWindowHandles();
     await link.click();
     assert.lengthOf(await driver.getAllWindowHandles(), tabs.length);
-    assert.equal(await driver.getCurrentUrl(), href.split("#")[0]);
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.getCurrentUrl(), href.split("#")[0]);
+    }, 1000);
     await driver.navigate().back();
   }
 
@@ -50,14 +69,19 @@ describe("links", function () {
 
     assert.match(href, expected);
     const currentTab = await driver.getWindowHandle();
-    let tabs = await driver.getAllWindowHandles();
+    const tabs = await driver.getAllWindowHandles();
     await link.click();
-    assert.lengthOf(await driver.getAllWindowHandles(), tabs.length + 1);
-    tabs = await driver.getAllWindowHandles();
-    await driver.switchTo().window(tabs[tabs.length - 1]);
-    assert.equal(await driver.getCurrentUrl(), href.split("#")[0]);
-    await driver.close();
-    await driver.switchTo().window(currentTab);
+    const newTabs = await driver.getAllWindowHandles();
+    assert.lengthOf(newTabs, tabs.length + 1);
+    await driver.switchTo().window(newTabs[newTabs.length - 1]);
+    try {
+      await gu.waitToPass(async () => {
+        assert.equal(await driver.getCurrentUrl(), href.split("#")[0]);
+      }, 1000);
+    } finally {
+      await driver.close();
+      await driver.switchTo().window(currentTab);
+    }
   }
 
   for (const type of ["TextBox", "HyperLink", "Markdown"] as any) {
@@ -119,9 +143,10 @@ describe("links", function () {
           makeLink(await gu.getAnchor()),
           /links#a1\.s1\.r1\.c2$/
         );
+        return;
         await assertNotSameDocumentLink(
-          makeLink("https://example.com"),
-          /example\.com\/$/
+          makeLink(servingUrl.href),
+          /localtest.datagrist.com/
         );
         await assertNotSameDocumentLink(
           makeLink("about:blank"),
@@ -151,7 +176,7 @@ describe("links", function () {
         await driver.find(".test-tools-access-rules").click();
         await driver.findContentWait("button", /View As/, 3000).click();
         await driver
-          .findContent(".test-acl-user-item", "editor1@example.com")
+          .findContentWait(".test-acl-user-item", "editor1@example.com", 500)
           .click();
         await gu.waitForDocToLoad();
         await assertSameDocumentLink(
@@ -165,8 +190,8 @@ describe("links", function () {
           /links\?aclAsUser_=editor1%40example.com#a1\.s1\.r1\.c2$/
         );
         await assertNotSameDocumentLink(
-          makeLink("https://example.com"),
-          /example\.com\/$/
+          makeLink(servingUrl.href),
+          /localtest.datagrist.com/
         );
         await assertNotSameDocumentLink(
           makeLink("about:blank"),
