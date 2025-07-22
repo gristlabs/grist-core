@@ -14,6 +14,7 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {renderFileType} from 'app/client/widgets/AttachmentsWidget';
 import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from 'app/common/DocActions';
@@ -56,6 +57,7 @@ export class AttachmentsEditor extends NewBaseEditor {
 
   private _rowIds: MutableObsArray<number>;
   private _attachments: ObsArray<Attachment>;
+  private _isUploading: Observable<boolean>;
   private _index: LiveIndex;
   private _selected: Computed<Attachment|null>;
 
@@ -97,6 +99,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       const index = use(this._index);
       return index === null ? null : use(this._attachments)[index];
     }));
+    this._isUploading = Observable.create(null, false);
   }
 
   // This "attach" is not about "attachments", but about attaching this widget to the page DOM.
@@ -136,11 +139,15 @@ export class AttachmentsEditor extends NewBaseEditor {
   private _buildDom(ctl: IModalControl) {
     return [
       cssHeader(
-        cssFlexExpand(dom.text(use => {
+        cssFlexExpand(
+          dom.text(use => {
             const len = use(this._attachments).length;
             return len ? t('{{index}} of {{total}}', {index: (use(this._index) || 0) + 1, total: len}) : '';
           }),
-          testId('pw-counter')
+          testId('pw-counter'),
+          dom.maybe(this._isUploading, () =>
+            cssLoading(loadingSpinner(), t('Uploading…'))
+          ),
         ),
         dom.maybe(this._selected, selected =>
           cssTitle(
@@ -228,16 +235,41 @@ export class AttachmentsEditor extends NewBaseEditor {
   }
 
   private async _select(): Promise<void> {
-    const uploadResult = await selectFiles({docWorkerUrl: this._docComm.docWorkerUrl,
-                                            multiple: true, sizeLimit: 'attachment'});
-    return this._add(uploadResult);
+    try {
+      const uploadResult = await selectFiles({
+        docWorkerUrl: this._docComm.docWorkerUrl,
+        multiple: true,
+        sizeLimit: 'attachment'
+      }, (progress) => {
+      if (progress === 0) {
+        this._isUploading.set(true);
+        }
+      });
+      this._isUploading.set(false);
+      return this._add(uploadResult);
+    } catch (error) {
+      this._isUploading.set(false);
+      throw error;
+    }
   }
 
   private async _upload(files: FileList): Promise<void> {
-    const uploadResult = await uploadFiles(Array.from(files),
-                                           {docWorkerUrl: this._docComm.docWorkerUrl,
-                                            sizeLimit: 'attachment'});
-    return this._add(uploadResult);
+    try {
+      const uploadResult = await uploadFiles(
+        Array.from(files),
+        {docWorkerUrl: this._docComm.docWorkerUrl, sizeLimit: 'attachment'},
+        (progress) => {
+          if (progress === 0) {
+            this._isUploading.set(true);
+          }
+        }
+      );
+      this._isUploading.set(false);
+      return this._add(uploadResult);
+    } catch (error) {
+      this._isUploading.set(false);
+      throw error;
+    }
   }
 
   private async _add(uploadResult: UploadResult|null): Promise<void> {
@@ -358,6 +390,17 @@ const cssEditableLabel = styled(editableLabel, `
 const cssFlexExpand = styled('div', `
   flex: 1;
   display: flex;
+  align-items: center;
+`);
+
+const cssLoading = styled('div', `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+  & .${loadingSpinner.className} {
+    --loader-fg: currentColor;
+  }
 `);
 
 const cssFileButtons = styled(cssButtonGroup, `
