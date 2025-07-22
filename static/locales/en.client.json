@@ -2134,5 +2134,15 @@
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Uploading, please wait…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Add",
+        "Delete": "Delete",
+        "Download": "Download",
+        "Drop files here to attach": "Drop files here to attach",
+        "Drop files here to attach.": "Drop files here to attach.",
+        "No attachments": "No attachments",
+        "Preview not available.": "Preview not available.",
+        "{{index}} of {{total}}": "{{index}} of {{total}}"
     }
 }

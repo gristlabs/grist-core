@@ -9,6 +9,7 @@ import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {DocData} from 'app/client/models/DocData';
 import {MetaTableData} from 'app/client/models/TableData';
 import {basicButton, basicButtonLink, cssButtonGroup} from 'app/client/ui2018/buttons';
+import {makeT} from 'app/client/lib/localization';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
@@ -20,6 +21,8 @@ import {SingleCell} from 'app/common/TableData';
 import {clamp, encodeQueryParams} from 'app/common/gutil';
 import {UploadResult} from 'app/common/uploads';
 import * as mimeTypes from 'mime-types';
+
+const t = makeT('AttachmentsEditor');
 
 interface Attachment {
   rowId: number;
@@ -135,7 +138,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       cssHeader(
         cssFlexExpand(dom.text(use => {
             const len = use(this._attachments).length;
-            return len ? `${(use(this._index) || 0) + 1} of ${len}` : '';
+            return len ? t('{{index}} of {{total}}', {index: (use(this._index) || 0) + 1, total: len}) : '';
           }),
           testId('pw-counter')
         ),
@@ -150,7 +153,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         cssFlexExpand(
           cssFileButtons(
             dom.maybe(this._selected, selected =>
-              basicButtonLink(cssButton.cls(''), cssButtonIcon('Download'), 'Download',
+              basicButtonLink(cssButton.cls(''), cssButtonIcon('Download'), t('Download'),
                 dom.attr('href', selected.url),
                 dom.attr('target', '_blank'),
                 dom.attr('download', selected.filename),
@@ -158,12 +161,12 @@ export class AttachmentsEditor extends NewBaseEditor {
               ),
             ),
             this.options.readonly ? null : [
-              cssButton(cssButtonIcon('FieldAttachment'), 'Add',
+              cssButton(cssButtonIcon('FieldAttachment'), t('Add'),
                 dom.on('click', () => this._select()),
                 testId('pw-add')
               ),
               dom.maybe(this._selected, () =>
-                cssButton(cssButtonIcon('Remove'), 'Delete',
+                cssButton(cssButtonIcon('Remove'), t('Delete'),
                   dom.on('click', () => this._remove()),
                   testId('pw-remove')
                 ),
@@ -186,7 +189,7 @@ export class AttachmentsEditor extends NewBaseEditor {
 
       // Drag-over logic
       (elem: HTMLElement) => dragOverClass(elem, cssDropping.className),
-      cssDragArea(this.options.readonly ? null : cssWarning('Drop files here to attach')),
+      cssDragArea(this.options.readonly ? null : cssWarning(t('Drop files here to attach'))),
       this.options.readonly ? null : dom.on('drop', ev => this._upload(ev.dataTransfer!.files)),
       testId('pw-modal')
     ];
@@ -255,7 +258,11 @@ function isInEditor(ev: KeyboardEvent): boolean {
 function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
   const commonArgs = [cssContent.cls(''), testId('pw-attachment-content')];
   if (!att) {
-    return cssWarning('No attachments', readonly ? null : cssDetails('Drop files here to attach.'), ...commonArgs);
+    return cssWarning(
+      t('No attachments'),
+      readonly ? null : cssDetails(t('Drop files here to attach.')),
+      ...commonArgs
+    );
   } else if (att.hasPreview) {
     return dom('img', dom.attr('src', att.url), ...commonArgs);
   } else if (att.fileType.startsWith('video/')) {
@@ -267,12 +274,12 @@ function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
     // but probably not using object tag (which needs work to look acceptable).
     return dom('div', ...commonArgs,
       cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
-        cssDetails('Preview not available.')));
+        cssDetails(t('Preview not available.'))));
   } else {
     // Setting 'type' attribute is important to avoid a download prompt from Chrome.
     return dom('object', {type: att.fileType}, dom.attr('data', att.inlineUrl), ...commonArgs,
       cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
-        cssDetails('Preview not available.'))
+        cssDetails(t('Preview not available.')))
     );
   }
 }
