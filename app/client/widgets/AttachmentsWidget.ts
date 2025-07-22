@@ -3,8 +3,10 @@ import * as commands from 'app/client/components/commands';
 import {dragOverClass} from 'app/client/lib/dom';
 import {stopEvent} from 'app/client/lib/domUtils';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
+import {makeT} from "app/client/lib/localization";
 import {cssRow} from 'app/client/ui/RightPanelStyles';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {loadingSpinner} from "app/client/ui2018/loaders";
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {encodeQueryParams} from 'app/common/gutil';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
@@ -15,10 +17,11 @@ import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {UploadResult} from 'app/common/uploads';
 import {UIRowId} from 'app/plugin/GristAPI';
 import { GristObjCode } from 'app/plugin/GristData';
-import {Computed, dom, DomContents, fromKo, input, onElem, styled} from 'grainjs';
+import {Computed, dom, DomContents, fromKo, input, Observable, onElem, styled} from 'grainjs';
 import {extname} from 'path';
 import {FormFieldRulesConfig} from "app/client/components/Forms/FormConfig";
 
+const t = makeT('AttachmentsWidget');
 
 /**
  * AttachmentsWidget - A widget for displaying attachments as image previews.
@@ -27,6 +30,8 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
   private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _height: KoSaveableObservable<string>;
+  private _uploadingTimeouts: Record<number, number> = {};
+  private _uploadingStatesObs: Observable<Record<number, boolean>>;
 
   constructor(field: ViewFieldRec) {
     super(field);
@@ -36,6 +41,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     this._attachmentsTable = this._getDocData().getMetaTable('_grist_Attachments');
 
     this._height = this.options.prop('height');
+    this._uploadingStatesObs = Observable.create(null, {});
 
     this.autoDispose(this._height.subscribe(() => {
       this.field.viewSection().events.trigger('rowHeightChange');
@@ -51,6 +57,11 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
     const colId = this.field.colId();
     const tableId = this.field.column().table().tableId();
+
+    const isUploadingObs = Computed.create(null, this._uploadingStatesObs, (use, states) =>
+      states[row.getRowId()] || false
+    );
+
     return cssAttachmentWidget(
       dom.autoDispose(values),
 
@@ -70,6 +81,12 @@ export class AttachmentsWidget extends NewAbstractWidget {
             rowId, colId, tableId,
           }));
       }),
+      dom.maybe(isUploadingObs, () =>
+        cssSpinner(
+          cssSpinner.cls('-has-attachments', (use) => use(values).length > 0),
+          {title: t('Uploading, please wait…')}
+        )
+      ),
       dom.on('drop', ev => this._uploadAndSave(row, cellValue, ev.dataTransfer!.files)),
       testId('attachment-widget'),
     );
@@ -142,10 +159,43 @@ export class AttachmentsWidget extends NewAbstractWidget {
     });
   }
 
+  private _setUploadingState(row: DataRowModel, uploading: boolean): void {
+    const rowId = row.getRowId();
+    const timeouts = this._uploadingTimeouts;
+    const states = this._uploadingStatesObs.get();
+    if (timeouts[rowId]) {
+      clearTimeout(timeouts[rowId]);
+    }
+    if (uploading) {
+      timeouts[rowId] = window.setTimeout(() => {
+        states[rowId] = true;
+        this._uploadingStatesObs.set({...states});
+        // let the view know about the spinner so that it can expands the row height for it if needed
+        this.field.viewSection().viewInstance()?.onRowResize([row]);
+      }, 750);
+    } else {
+      states[rowId] = false;
+      this._uploadingStatesObs.set({...states});
+    }
+  }
+
   private async _selectAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>): Promise<void> {
-    const uploadResult = await selectFiles({docWorkerUrl: this._getDocComm().docWorkerUrl,
-                                            multiple: true, sizeLimit: 'attachment'});
-    return this._save(row, value, uploadResult);
+    try {
+      const uploadResult = await selectFiles({
+        docWorkerUrl: this._getDocComm().docWorkerUrl,
+        multiple: true,
+        sizeLimit: 'attachment',
+      }, (progress) => {
+        if (progress === 0) {
+          this._setUploadingState(row, true);
+        }
+      });
+      this._setUploadingState(row, false);
+      return this._save(row, value, uploadResult);
+    } catch (error) {
+      this._setUploadingState(row, false);
+      throw error;
+    }
   }
 
   private async _uploadAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>,
@@ -153,10 +203,22 @@ export class AttachmentsWidget extends NewAbstractWidget {
     // Move the cursor here (note that this may involve switching active section when dragging
     // into a cell of an inactive section).
     commands.allCommands.setCursor.run(row, this.field);
-    const uploadResult = await uploadFiles(Array.from(files),
-                                           {docWorkerUrl: this._getDocComm().docWorkerUrl,
-                                            sizeLimit: 'attachment'});
-    return this._save(row, value, uploadResult);
+    try {
+      const uploadResult = await uploadFiles(
+        Array.from(files),
+        {docWorkerUrl: this._getDocComm().docWorkerUrl, sizeLimit: 'attachment'},
+        (progress) => {
+          if (progress === 0) {
+            this._setUploadingState(row, true);
+          }
+        }
+      );
+      this._setUploadingState(row, false);
+      return this._save(row, value, uploadResult);
+    } catch (error) {
+      this._setUploadingState(row, false);
+      throw error;
+    }
   }
 
   private async _save(row: DataRowModel, value: KoSaveableObservable<CellValue>,
@@ -292,4 +354,17 @@ const cssFileType = styled('div', `
   &-small { font-size: ${vars.xxsmallFontSize}; }
   &-medium { font-size: ${vars.smallFontSize}; }
   &-large { font-size: ${vars.mediumFontSize}; }
+`);
+
+const cssSpinner = styled(loadingSpinner, `
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin-left: 23px;
+
+  &-has-attachments {
+    margin-left: 2px;
+    margin-top: 2px;
+    margin-bottom: 6px;
+  }
 `);

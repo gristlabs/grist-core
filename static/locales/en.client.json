@@ -2131,5 +2131,8 @@
     "duplicateWidget": {
         "Duplicate widget": "Duplicate widget",
         "Duplicate widgets": "Duplicate widgets"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Uploading, please wait…"
     }
 }

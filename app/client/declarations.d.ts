@@ -73,6 +73,7 @@ declare module "app/client/components/BaseView" {
     public getLoadingDonePromise(): Promise<void>;
     public activateEditorAtCursor(options?: Options): void;
     public onResize(): void;
+    public onRowResize(rowModels: BaseRowModel[]): void;
     public prepareToPrint(onOff: boolean): void;
     public moveEditRowToCursor(): DataRowModel;
     public scrollToCursor(sync: boolean): Promise<void>;
