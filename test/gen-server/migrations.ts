@@ -194,6 +194,7 @@ describe('migrations', function() {
       for (const org of (await getAllOrgs(runner))) { assertMembersGroup(org, true); }
 
       // Perform down TeamMembers migration with seed data and assert members groups are removed.
+      await (new GroupTypes()).down(runner);
       await (new TeamMembers()).down(runner);
       const downMigratedOrgs = await getAllOrgs(runner);
       for (const org of downMigratedOrgs) { assertMembersGroup(org, false); }
@@ -203,6 +204,7 @@ describe('migrations', function() {
 
       // Perform up TeamMembers migration with seed data and assert members groups are added.
       await (new TeamMembers()).up(runner);
+      await (new GroupTypes()).up(runner);
       for (const org of (await getAllOrgs(runner))) { assertMembersGroup(org, true); }
       // Assert that the correct number of ACLs and groups were re-added.
       assert.equal(await getAclRowCount(runner), initAclCount);

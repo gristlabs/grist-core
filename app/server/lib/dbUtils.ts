@@ -1,7 +1,7 @@
 import {synchronizeProducts} from 'app/gen-server/entity/Product';
 import {codeRoot} from 'app/server/lib/places';
 import {Mutex} from 'async-mutex';
-import {DataSource, DataSourceOptions} from 'typeorm';
+import {DatabaseType, DataSource, DataSourceOptions} from 'typeorm';
 
 // Summary of migrations found in database and in code.
 interface MigrationSummary {
@@ -126,13 +126,17 @@ export async function undoLastMigration(dataSource: DataSource) {
 export async function withSqliteForeignKeyConstraintDisabled<T>(
   dataSource: DataSource, cb: () => Promise<T>
 ): Promise<T> {
-  const sqlite = dataSource.driver.options.type === 'sqlite';
+  const sqlite = getDatabaseType(dataSource) === 'sqlite';
   if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
   try {
     return await cb();
   } finally {
     if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
   }
+}
+
+export function getDatabaseType(dataSource: DataSource): DatabaseType {
+  return dataSource.driver.options.type;
 }
 
 // Replace the old janky ormconfig.js file, which was always a source of
