@@ -146,7 +146,11 @@ export class AttachmentsEditor extends NewBaseEditor {
           }),
           testId('pw-counter'),
           dom.maybe(this._isUploading, () =>
-            cssLoading(loadingSpinner(), t('Uploading…'))
+            cssLoading(
+              loadingSpinner(),
+              t('Uploading…'),
+              testId('pw-spinner')
+            )
           ),
         ),
         dom.maybe(this._selected, selected =>

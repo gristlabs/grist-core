@@ -84,6 +84,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       dom.maybe(isUploadingObs, () =>
         cssSpinner(
           cssSpinner.cls('-has-attachments', (use) => use(values).length > 0),
+          testId('attachment-spinner'),
           {title: t('Uploading, please wait…')}
         )
       ),

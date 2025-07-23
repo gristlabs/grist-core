@@ -10,6 +10,7 @@
 import {DocComm} from 'app/client/components/DocComm';
 import {UserError} from 'app/client/models/errors';
 import {FileDialogOptions, openFilePicker} from 'app/client/ui/FileDialog';
+import {getTestState} from 'app/client/lib/testState';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {byteString, safeJsonParse} from 'app/common/gutil';
 import {FetchUrlOptions, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
@@ -54,6 +55,7 @@ export async function selectFiles(options: SelectFileOptions,
     const fileList = await selectPicker(options);
     // start the progress bar only after the user selected the files
     onProgress(0);
+    await maybeFakeSlowUploadsForTests();
     result = await uploadFiles(fileList, options, onProgress);
   }
   onProgress(100);
@@ -107,6 +109,8 @@ export async function uploadFiles(
   for (const file of fileList) {
     formData.append('upload', file);
   }
+
+  await maybeFakeSlowUploadsForTests();
 
   // Check for upload limits.
   const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
@@ -209,3 +213,11 @@ export function isDriveUrl(url: string) {
   const match = /^https:\/\/(docs|drive).google.com\/(spreadsheets|file)\/d\/([^/]*)/i.exec(url);
   return !!match;
 }
+
+const maybeFakeSlowUploadsForTests = (): Promise<void> => {
+  const fakeSlowUploads = getTestState().fakeSlowUploads;
+  if (fakeSlowUploads) {
+    return new Promise(resolve => setTimeout(resolve, 1200));
+  }
+  return Promise.resolve();
+};
