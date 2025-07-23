@@ -219,7 +219,8 @@
         "Add Empty Table": "வெற்று அட்டவணையைச் சேர்க்கவும்",
         "Error accessing document": "ஆவணத்தை அணுகுவதில் பிழை",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "ஆவணத்தை மீண்டும் ஏற்ற முயற்சி செய்யலாம் அல்லது மீட்பு பயன்முறையைப் பயன்படுத்தலாம். மீட்பு முறை உரிமையாளர்களுக்கு முழுமையாக அணுகக்கூடிய ஆவணத்தை திறக்கிறது, மற்றவர்களுக்கு அணுக முடியாதது. இது சூத்திரங்களையும் முடக்குகிறது. [{{error}}]",
-        "Sorry, access to this document has been denied. [{{error}}]": "மன்னிக்கவும், இந்த ஆவணத்திற்கான அணுகல் மறுக்கப்பட்டுள்ளது. [{{error}}]"
+        "Sorry, access to this document has been denied. [{{error}}]": "மன்னிக்கவும், இந்த ஆவணத்திற்கான அணுகல் மறுக்கப்பட்டுள்ளது. [{{error}}]",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "தயவுசெய்து ஆவணத்தை மீண்டும் ஏற்றவும், பிழை தொடர்ந்தால், ஆவண உரிமையாளர்களைத் தொடர்பு கொள்ளவும் ஆவண மீட்டெடுப்பு. [{{error}}]"
     },
     "DocumentSettings": {
         "Currency:": "நாணயம்:",
@@ -448,7 +449,8 @@
         "Saved linked section {{title}} in view {{name}}": "சேமிக்கப்பட்ட இணைக்கப்பட்ட பிரிவு {{title}} பார்வையில் {{name}}",
         "Added new linked section to view {{viewName}}": "{{viewName}} ஐக் காண புதிய இணைக்கப்பட்ட பகுதியைச் சேர்த்தது",
         "Import from file": "கோப்பிலிருந்து இறக்குமதி",
-        "go to webhook settings": "வெப்ஊக் அமைப்புகளுக்குச் செல்லவும்"
+        "go to webhook settings": "வெப்ஊக் அமைப்புகளுக்குச் செல்லவும்",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "புதிய மாற்றங்கள் தற்காலிகமாக இடைநிறுத்தப்படுகின்றன. வெப்ஊக்ச் வரிசை நிரம்பி வழிகிறது. தயவுசெய்து வெப்ஊக்ச் அமைப்புகளைச் சரிபார்த்து, தவறான வெப்ஊக்குகளை அகற்றி, வரிசையை தூய்மை செய்யுங்கள்."
     },
     "HomeLeftPane": {
         "Examples & Templates": "வார்ப்புருக்கள்",
@@ -524,7 +526,8 @@
         "Download full document and history": "முழு ஆவணத்தையும் வரலாற்றையும் பதிவிறக்கவும்",
         "Format:": "வடிவம்:",
         "Learn more": "மேலும் அறிக",
-        "download attachments": "இணைப்புகளைப் பதிவிறக்கவும்"
+        "download attachments": "இணைப்புகளைப் பதிவிறக்கவும்",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "இணைப்புகள் வெளிப்புறங்கள் மற்றும் இந்த பதிவிறக்கத்தில் சேர்க்கப்படவில்லை. ஆவணத்தை ஒரு தனி கிரிச்ட் நிறுவலில் பதிவேற்றினால், நீங்கள் தனித்தனியாக {{downloadLink}} வேண்டும். "
     },
     "NotifyUI": {
         "Ask for help": "உதவி கேட்க",
@@ -671,7 +674,8 @@
         "Show raw data": "மூல தரவைக் காட்டு",
         "Widget options": "விட்செட் விருப்பங்கள்",
         "Collapse widget": "சட்டை விட்செட்",
-        "Create a form": "ஒரு படிவத்தை உருவாக்கவும்"
+        "Create a form": "ஒரு படிவத்தை உருவாக்கவும்",
+        "Duplicate widget": "நகல் விட்செட்"
     },
     "WidgetTitle": {
         "Cancel": "ரத்துசெய்",
@@ -878,14 +882,24 @@
         "[Learn more.]({{link}})": "[மேலும் அறிக.] ({{link}})",
         "Summary tables can only contain formula columns.": "சுருக்க அட்டவணைகள் சூத்திர நெடுவரிசைகளை மட்டுமே கொண்டிருக்க முடியும்.",
         "Manage users and resources in a Grist installation.": "ஒரு கிரிச்ட் நிறுவலில் பயனர்களையும் வளங்களையும் நிர்வகிக்கவும்.",
-        "The new Grist Assistant is here!": "புதிய கிரிச்ட் உதவியாளர் இங்கே இருக்கிறார்!"
+        "The new Grist Assistant is here!": "புதிய கிரிச்ட் உதவியாளர் இங்கே இருக்கிறார்!",
+        "Formulas support many Excel functions and full Python syntax.": "சூத்திரங்கள் பல எக்செல் செயல்பாடுகள் மற்றும் முழு பைதான் தொடரியல் ஆகியவற்றை ஆதரிக்கின்றன.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "இலக்கு அட்டவணையில் புதிய குறிப்பு பட்டியல் நெடுவரிசையை உருவாக்குகிறது, இது மற்றும் இலக்கு நெடுவரிசைகள் திருத்தக்கூடிய மற்றும் ஒத்திசைக்கப்பட்டவை.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "உள் சேமிப்பிடம் என்றால் அனைத்து இணைப்புகளும் ஆவண SQLITE கோப்பில் சேமிக்கப்படுகின்றன, அதே நேரத்தில் வெளிப்புற சேமிப்பு அனைத்து இணைப்புகளும் ஒரே வெளிப்புற சேமிப்பகத்தில் சேமிக்கப்படுவதைக் குறிக்கிறது.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "வெளிப்புற சேமிப்பகத்திலிருந்து காணாமல் போன இணைப்புகளைச் சேர்க்க இது உங்களை அனுமதிக்கிறது, எ.கா. இறக்குமதி செய்யப்பட்ட ஆவணத்தில். .",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "கிரிச்டின் புதிய AI உதவியாளரின் உதவியுடன் உங்கள் தரவு மற்றும் சூத்திரங்களுடன் புரிந்து கொள்ளுங்கள், மாற்றியமைத்து வேலை செய்யுங்கள்!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "இந்த படிவம் ஒரு கிரிச்ட் பயனரால் உருவாக்கப்பட்டது, மேலும் இது கிரிச்ட் ஆய்வகங்களால் அங்கீகரிக்கப்படவில்லை. இந்த படிவத்தின் மூலம் கடவுச்சொற்களைச் சமர்ப்பிக்க வேண்டாம், அதில் உள்ள இணைப்புகளுடன் கவனமாக இருங்கள். தீங்கிழைக்கும் படிவங்களை [{{mail}}] (மெயில்டோ: {{mail}}) க்கு புகாரளிக்கவும்."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "விவரம்"
     },
     "PagePanels": {
         "Close Creator Panel": "படைப்பாளர் குழு மூடு",
-        "Open Creator Panel": "திறந்த கிரியேட்டர் பேனல்"
+        "Open Creator Panel": "திறந்த கிரியேட்டர் பேனல்",
+        "Creator panel (right panel)": "கிரியேட்டர் பேனல் (வலது குழு)",
+        "Document header": "ஆவண தலைப்பு",
+        "Main content": "முக்கிய உள்ளடக்கம்",
+        "Main navigation and document settings (left panel)": "முதன்மையான வழிசெலுத்தல் மற்றும் ஆவண அமைப்புகள் (இடது குழு)"
     },
     "FieldContextMenu": {
         "Copy": "நகலெடு",
@@ -952,7 +966,10 @@
         "You have used all available credits.": "கிடைக்கக்கூடிய அனைத்து வரவுகளையும் நீங்கள் பயன்படுத்தியுள்ளீர்கள்.",
         "You have {{numCredits}} remaining credits.": "உங்களிடம் {{numCredits}} மீதமுள்ள வரவு.",
         "upgrade to the Pro Team plan": "சார்பு குழு திட்டத்திற்கு மேம்படுத்தவும்",
-        "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்"
+        "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "ஃபார்முலாக்களுடன் கூடுதல் உதவிக்கு, எங்கள் {{functionList}}} மற்றும் {{formulaCheatSheet}} அல்லது கூடுதல் உதவிக்கு எங்கள் {{community}} பார்வையிடவும்.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "நீங்கள் என்னுடன் பேசும்போது, உங்கள் கேள்விகள் மற்றும் உங்கள் ஆவண அமைப்பு ({{codeView}} இல் தெரியும்) OpenAI க்கு அனுப்பப்படும். {{learnMore}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "ஒரு நபரைப் போல என்னுடன் பேசுங்கள். அட்டவணைகள் மற்றும் நெடுவரிசை பெயர்களைக் குறிப்பிட தேவையில்லை. எடுத்துக்காட்டாக, \"மொத்த விலைப்பட்டியல் தொகையைக் கணக்கிடுங்கள்\" என்று நீங்கள் கேட்கலாம்"
     },
     "WelcomeSitePicker": {
         "You can always switch sites using the account menu.": "கணக்கு மெனுவைப் பயன்படுத்தி நீங்கள் எப்போதும் தளங்களை மாற்றலாம்.",
@@ -1023,7 +1040,11 @@
         "Telemetry": "டெலிமெட்ரி",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "இந்த நிகழ்வு டெலிமெட்ரி தேர்வு செய்யப்படுகிறது. இதை மாற்ற தள நிர்வாகிக்கு மட்டுமே இசைவு உள்ளது.",
         "You have opted in to telemetry. Thank you!": "நீங்கள் டெலிமெட்ரி தேர்வு செய்துள்ளீர்கள். நன்றி!",
-        "You have opted out of telemetry.": "நீங்கள் டெலிமெட்ரியிலிருந்து விலகிவிட்டீர்கள்."
+        "You have opted out of telemetry.": "நீங்கள் டெலிமெட்ரியிலிருந்து விலகிவிட்டீர்கள்.",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "கிரிச்ட் மென்பொருளைக் கிரிச்ட் லேப்சால் உருவாக்கப்பட்டது, இது இலவச மற்றும் கட்டண புரவலன் திட்டங்களை வழங்குகிறது. {{link}} இல் நிலையான இலவச மற்றும் திறந்த OSS உரிமத்தின் (அப்பாச்சி 2.0) கீழ் கிரிச்ட் குறியீட்டை நாங்கள் கிடைக்கச் செய்கிறோம்.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "டெலிமெட்ரியைத் தேர்ந்தெடுப்பதன் மூலம் உதவி திருட்டு, இது தயாரிப்பு எவ்வாறு பயன்படுத்தப்படுகிறது என்பதைப் புரிந்துகொள்ள உதவுகிறது, இதன் மூலம் எதிர்கால மேம்பாடுகளுக்கு முன்னுரிமை அளிக்க முடியும்.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "நாங்கள் ஒரு சிறிய மற்றும் உறுதியான குழு. உங்கள் உதவி எங்களுக்கு நிறைய முக்கியமானது. இந்த தயாரிப்புக்கு பின்னால் ஒரு உறுதியான சமூகம் உள்ளது என்பதையும் இது மற்றவர்களுக்கு காட்டுகிறது.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "எங்கள் {{link}} இல் எங்களுக்கு நிதியுதவி செய்வதன் மூலம் கிரிச்ட் திறந்த-மூல வளர்ச்சியை நீங்கள் ஆதரிக்கலாம்."
     },
     "CardContextMenu": {
         "Insert card below": "கார்டை கீழே செருகவும்",
@@ -1063,7 +1084,11 @@
         "Reset form": "படிவத்தை மீட்டமை",
         "Save your document to publish this form.": "இந்த படிவத்தை வெளியிட உங்கள் ஆவணத்தை சேமிக்கவும்.",
         "# **Form Title**": "# ** படிவ தலைப்பு **",
-        "Your form description goes here.": "உங்கள் படிவ விளக்கம் இங்கே செல்கிறது."
+        "Your form description goes here.": "உங்கள் படிவ விளக்கம் இங்கே செல்கிறது.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "உங்கள் படிவத்தை வெளியிடுவது ஒரு பங்கு இணைப்பை உருவாக்கும். இணைப்பு உள்ள எவரும் வெற்று வடிவத்தைக் காணலாம் மற்றும் பதிலைச் சமர்ப்பிக்கலாம்.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "படிவத்தை வெளியிடுவது பங்கு இணைப்பை முடக்கும், இதனால் அந்த இணைப்பு வழியாக உங்கள் படிவத்தை அணுகும் பயனர்கள் பிழையைக் காண்பார்கள்.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "பயனர்கள் உள்ளீடுகளை சமர்ப்பிப்பதற்கும் (உங்கள் அட்டவணையில் பதிவுகள்) மற்றும் குறிப்பு மற்றும் தேர்வு நெடுவரிசைகள் போன்ற நியமிக்கப்பட்ட துறைகளில் முன் அமைக்கப்பட்ட மதிப்புகளைப் படிப்பதற்கும் மட்டுப்படுத்தப்பட்டவர்கள்.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "உங்கள் படிவம் வெளியிடப்பட்டது. ஒவ்வொரு மாற்றமும் நேரடி மற்றும் படிவத்தை அணுகக்கூடிய பயனர்களுக்கு தெரியும். வரைவில் மாற்றங்களைச் செய்ய விரும்பினால், படிவத்தை வெளியிடுங்கள்."
     },
     "Editor": {
         "Delete": "நீக்கு"
@@ -1166,7 +1191,11 @@
         "Off": "அணை",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} மேலும்",
         "On": "ஆன்",
-        "Grist Instance": "கிரிச்ட் நிகழ்வு"
+        "Grist Instance": "கிரிச்ட் நிகழ்வு",
+        "Auto-check weekly": "தானாக சரிபார்ப்பு வாராந்திர",
+        "No record of last version check": "கடைசி பதிப்பு காசோலையின் பதிவு இல்லை",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "நீங்கள் கிரிச்ட் எண்டர்பிரைசை இயக்கினால், கிரிச்டிலிருந்து வெளிப்புற பாதுகாப்பு செய்தி மற்றும் நிகழ்வு மேலாண்மை (SIEM) அமைப்புக்குத் தணிக்கை நிகழ்வுகளின் ச்ட்ரீமிங்கை அமைக்கலாம். {{contactUsLink}} மேலும் அறிய.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "தானியங்கி சோதனைகள் முடக்கப்பட்டுள்ளன. சுற்றுச்சூழல் மாறி grist_allow_automatic_version_chechking ஐ \"உண்மை\" என்று அமைக்கவும்."
     },
     "Toggle": {
         "Field Format": "புலம் வடிவம்",
@@ -1191,7 +1220,8 @@
         "Table": "அட்டவணை",
         "Two-way Reference": "இருவழி குறிப்பு",
         "Delete two-way reference?": "இரு வழி குறிப்பை நீக்கவா?",
-        "Target table": "இலக்கு அட்டவணை"
+        "Target table": "இலக்கு அட்டவணை",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "இது அட்டவணையில் {{refCol}}}}}}}}}}}}}}}}}}}}}}}}}}}}} ஐ நீக்கிவிடும். குறிப்பு நெடுவரிசை {{refTable}} தற்போதைய அட்டவணையில் {{myName}} இல் இருக்கும்."
     },
     "AuditLogStreamingConfig": {
         "Delete": "நீக்கு",
@@ -1212,7 +1242,8 @@
         "Splunk": "ச்ப்ளங்க்",
         "Start streaming": "ச்ட்ரீமிங் தொடங்கவும்",
         "Token": "கிள்ளாக்கு",
-        "URL": "முகவரி"
+        "URL": "முகவரி",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "கிரிச்ட்டில் இருந்து வெளிப்புற பாதுகாப்பு செய்தி மற்றும் நிகழ்வு மேலாண்மை (SIEM) அமைப்புக்கு தணிக்கை நிகழ்வுகளின் ச்ட்ரீமிங் ச்ப்ளங்க் போன்றவற்றை அமைக்கவும். {{learnMoreLink}}."
     },
     "OnboardingPage": {
         "Go hands-on with the Grist Basics tutorial": "கிரிச்ட் அடிப்படைகள் டுடோரியலுடன் கைகோர்த்துக் கொள்ளுங்கள்",
@@ -1229,7 +1260,8 @@
         "Your organization": "உங்கள் அமைப்பு",
         "Your role": "உங்கள் பங்கு",
         "Back": "பின்",
-        "Discover Grist in 3 minutes": "3 நிமிடங்களில் கிரிச்ட்டைக் கண்டறியவும்"
+        "Discover Grist in 3 minutes": "3 நிமிடங்களில் கிரிச்ட்டைக் கண்டறியவும்",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "கிரிச்ட் ஒரு விரிதாள் போல தோன்றலாம், ஆனால் அது எப்போதும் ஒன்றைப் போல செயல்படாது. கிரிச்ட்டை வேறுபடுத்துவதைக் கண்டறியவும்."
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "சோதனைக் காலத்திற்குப் பிறகு கிரிச்ட் நிறுவனத்தை இயக்க ஒரு செயல்படுத்தும் விசை பயன்படுத்தப்படுகிறது\n 30 நாட்கள் காலாவதியானது. [கிரிச்டுக்கு பதிவுபெறுவதன் மூலம் செயல்படுத்தும் விசையைப் பெறுங்கள்\n நிறுவன] ({{signupLink}}). இயக்க உங்களுக்கு செயல்படுத்தும் விசை தேவையில்லை\n கிரிச்ட் கோர்.\n\n எங்கள் [உதவி மையத்தில்] மேலும் அறிக ({{helpCenter}}).",
@@ -1323,7 +1355,9 @@
         "Opt in to Telemetry": "டெலிமெட்ரி தேர்வு செய்யவும்",
         "Opted In": "தேர்வு செய்யப்பட்டது",
         "Support Grist": "உதவி கிரிச்ட்",
-        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "நன்றி! உங்கள் நம்பிக்கையும் ஆதரவும் பெரிதும் பாராட்டப்படுகிறது. பயனர் பட்டியலில் {{link} இருந்து இலிருந்து எந்த நேரத்தையும் தேர்வு செய்யவும்."
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "நன்றி! உங்கள் நம்பிக்கையும் ஆதரவும் பெரிதும் பாராட்டப்படுகிறது. பயனர் பட்டியலில் {{link} இருந்து இலிருந்து எந்த நேரத்தையும் தேர்வு செய்யவும்.",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "தயாரிப்பு எவ்வாறு பயன்படுத்தப்படுகிறது என்பதைப் புரிந்துகொள்ள எங்களுக்கு உதவ டெலிமெட்ரியைத் தேர்வுசெய்க, இதன் மூலம் எதிர்கால மேம்பாடுகளுக்கு முன்னுரிமை அளிக்க முடியும்.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "எங்கள் {{helpCenterLink}} இல் விவரிக்கப்பட்டுள்ளபடி, பயன்பாட்டு புள்ளிவிவரங்களை மட்டுமே நாங்கள் சேகரிக்கிறோம், உள்ளடக்கங்களை ஒருபோதும் ஆவணப்படுத்த வேண்டாம். பயனர் பட்டியலில் {{supportGristLink} இருந்து இலிருந்து எந்த நேரத்தையும் தேர்வு செய்யவும்."
     },
     "ACUserManager": {
         "Enter email address": "மின்னஞ்சல் முகவரியை உள்ளிடவும்",
@@ -1454,7 +1488,9 @@
         "Home": "வீடு",
         "Log streaming": "பதிவு ச்ட்ரீமிங்",
         "Only site owners may access audit logs.": "தள உரிமையாளர்கள் மட்டுமே தணிக்கை பதிவுகளை அணுகலாம்.",
-        "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்"
+        "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "நீங்கள் கிரிச்ட் எண்டர்பிரைசை இயக்கினால், கிரிச்டிலிருந்து வெளிப்புற SIEM (பாதுகாப்பு செய்தி மற்றும் நிகழ்வு மேலாண்மை) அமைப்புக்கு தணிக்கை நிகழ்வுகளின் ச்ட்ரீமிங்கை அமைக்கலாம். {{contactUsLink} the மேலும் அறிய.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "நீங்கள் {{upgradePlanButton}} என்றால், கிரிச்டிலிருந்து வெளிப்புற SIEM (பாதுகாப்பு செய்தி மற்றும் நிகழ்வு மேலாண்மை) அமைப்புக்கு தணிக்கை நிகழ்வுகளின் ச்ட்ரீமிங் அமைக்கலாம்."
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "அட்டவணை கட்டமைப்பிற்கு கூடுதலாக எல்லா தரவையும் நகலெடுக்கவும்.",
@@ -1516,7 +1552,9 @@
         "Delete": "நீக்கு",
         "Delete data and this page.": "தரவையும் இந்த பக்கத்தையும் நீக்கு.",
         "The following tables will no longer be visible_one": "பின்வரும் அட்டவணை இனி தெரியாது",
-        "The following tables will no longer be visible_other": "பின்வரும் அட்டவணைகள் இனி தெரியாது"
+        "The following tables will no longer be visible_other": "பின்வரும் அட்டவணைகள் இனி தெரியாது",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "தரவை வைத்து பக்கத்தை நீக்கவும். அட்டவணை {{rawDataLink}} இல் கிடைக்கும்",
+        "raw data page": "மூல தரவு பக்கம்"
     },
     "PluginScreen": {
         "Import failed: ": "இறக்குமதி தோல்வியுற்றது: "
@@ -1797,7 +1835,8 @@
     },
     "Clipboard": {
         "Got it": "கிடைத்தது",
-        "Unavailable Command": "கிடைக்காத கட்டளை"
+        "Unavailable Command": "கிடைக்காத கட்டளை",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "{{action}} பட்டியல் கட்டளை இந்த உலாவியில் கிடைக்கவில்லை. விசைப்பலகை குறுக்குவழி {{action}} ஐப் பயன்படுத்துவதன் மூலம் நீங்கள் இன்னும் {{shortcut}}."
     },
     "GridView": {
         "Click to insert": "செருக சொடுக்கு செய்க"
@@ -2040,7 +2079,8 @@
         "You have {{numCredits}} remaining credits.": "உங்களிடம் {{numCredits}} மீதமுள்ள வரவுகளை வைத்திருக்கிறீர்கள்.",
         "start a new chat": "புதிய அரட்டையைத் தொடங்கவும்",
         "upgrade to the Pro Team plan": "சார்பு குழு திட்டத்திற்கு மேம்படுத்தவும்",
-        "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்"
+        "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "உரையாடல் மிக நீளமாகிவிட்டது, இனி என்னால் திறம்பட பதிலளிக்க முடியாது. தொடர்ந்து உதவியைப் பெறுவதற்கு {{startANewChatButton}}."
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "பின்வருவனவற்றை நீக்க விரும்புகிறீர்களா?",
@@ -2052,5 +2092,41 @@
     },
     "MentionTextBox": {
         "no access": "அணுகல் இல்லை"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "ஒரு முக்கியமான கிரிச்ட் புதுப்பிப்பு உள்ளது. \nபதிப்பு {{version} that க்கு மேம்படுத்துவதைக் கவனியுங்கள்.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "உங்கள் கிரிச்ட் பதிப்பு காலாவதியானது. \nபதிப்பு {{version} that க்கு மேம்படுத்துவதைக் கவனியுங்கள்."
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "பரிந்துரை: {{storageRecommendation}}} \nபெரிய இணைப்புகளை அல்லது அவற்றில் பலவற்றை சேமிக்கும்போது, நாங்கள் பரிந்துரைக்கிறோம் \nஅவற்றை வெளிப்புற சேமிப்பகத்தில் வைத்திருத்தல். இந்த ஆவணம் தற்போது உள்ளது \nஇணைப்புகளுக்கு உள் சேமிப்பிடத்தைப் பயன்படுத்துதல், அது வைத்திருக்கிறது \nதன்னிறைவான ஆனால் செயல்திறனைக் கட்டுப்படுத்தலாம்.",
+        "Set the document to use external storage.": "வெளிப்புற சேமிப்பிடத்தைப் பயன்படுத்த ஆவணத்தை அமைக்கவும்."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "முந்தைய செயல்பாடு முடிவடையும் வரை காத்திருங்கள்.",
+        "Timed out on waiting for the Grist backend to restart": "கிரிச்ட் பின்தளத்தில் மறுதொடக்கம் செய்ய காத்திருக்கும் நேரம் முடிந்தது"
+    },
+    "Experiments": {
+        "Disable feature": "அம்சத்தை முடக்கு",
+        "Don't worry, you can disable it later if needed.": "கவலைப்பட வேண்டாம், தேவைப்பட்டால் அதை முடக்கலாம்.",
+        "Enable feature": "அம்சத்தை இயக்கவும்",
+        "Experimental feature": "சோதனை நற்பொருத்தம்",
+        "New record button": "புதிய பதிவு பொத்தான்",
+        "Reload the page": "பக்கத்தை மீண்டும் ஏற்றவும்",
+        "Visit this URL at any time to stop using this feature: {{url}}": "இந்த அம்சத்தைப் பயன்படுத்துவதை நிறுத்த எந்த நேரத்திலும் இந்த முகவரி ஐப் பார்வையிடவும்: {{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "இந்த சோதனை அம்சத்தை நீங்கள் முடக்க உள்ளீர்கள்: {{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "இந்த சோதனை அம்சத்தை நீங்கள் இயக்க உள்ளீர்கள்: {{experiment}}",
+        "{{experiment}} disabled.": "{{experiment}} முடக்கப்பட்டது.",
+        "{{experiment}} enabled.": "{{experiment}} இயக்கப்பட்டது."
+    },
+    "NewRecordButton": {
+        "New card": "புதிய அட்டை",
+        "New record": "புதிய பதிவு"
+    },
+    "RegionFocusSwitcher": {
+        "Trying to access the creator panel? Use {{key}}.": "கிரியேட்டர் பேனலை அணுக முயற்சிக்கிறீர்களா? {{key}} ஐப் பயன்படுத்தவும்."
+    },
+    "duplicateWidget": {
+        "Duplicate widget": "நகல் விட்செட்",
+        "Duplicate widgets": "நகல் விட்செட்டுகள்"
     }
 }
