@@ -15,6 +15,7 @@ const tableUtil     = require('../lib/tableUtil');
 const {addToSort, sortBy}   = require('../lib/sortUtil');
 
 const commands      = require('./commands');
+const {viewCommands} = require('./RegionFocusSwitcher');
 const viewCommon    = require('./viewCommon');
 const Base          = require('./Base');
 const BaseView      = require('./BaseView');
@@ -265,8 +266,10 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.onEvent(this.scrollPane, 'scroll', this.onScroll);
 
   //--------------------------------------------------
-  // Command group implementing all grid level commands (except cancel)
-  this.autoDispose(commands.createGroup(GridView.gridCommands, this, this.viewSection.hasFocus));
+  // Command groups implementing all grid level commands (except cancel)
+  this.autoDispose(commands.createGroup(viewCommands(GridView.gridCommands, this), this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(GridView.gridFocusedCommands, this, this.viewSection.hasRegionFocus));
+
   // Cancel command is registered conditionally, only when there is an active
   // cell selection. This command is also used by Raw Data Views, to close the Grid popup.
   const hasSelection = this.autoDispose(ko.pureComputed(() =>
@@ -293,7 +296,60 @@ GridView.selectionCommands = {
 
 // TODO: move commands with modifications to gridEditCommands and use a single guard for
 // readonly state.
+// GridView commands, enabled when the view is the active one.
+// See BaseView.commonCommands for more details.
 GridView.gridCommands = {
+  fillSelectionDown: function() { tableUtil.fillSelectionDown(this.getSelection(), this.tableModel); },
+  selectAll: function() { this.selectAll(); },
+  insertFieldBefore: function(event) { this._insertField(event, this.cursor.fieldIndex()); },
+  insertFieldAfter: function(event) { this._insertField(event, this.cursor.fieldIndex() + 1); },
+  makeHeadersFromRow: function() { this.makeHeadersFromRow(this.getSelection()); },
+  renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
+  hideFields: function() { this.hideFields(this.getSelection()); },
+  deleteFields: function() { this._deleteFields(); },
+  clearColumns: function() { this._clearColumns(this.getSelection()); },
+  convertFormulasToData: function() { this._convertFormulasToData(this.getSelection()); },
+  sortAsc: function() {
+    sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
+  },
+  sortDesc: function() {
+    sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.DESC);
+  },
+  addSortAsc: function() {
+    addToSort(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
+  },
+  addSortDesc: function() {
+    addToSort(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.DESC);
+  },
+  toggleFreeze: function() {
+    // get column selection
+    const selection = this.getSelection();
+    // convert it menu option
+    const options = this._getColumnMenuOptions(selection);
+    // generate action that is available for freeze toggle
+    const action = freezeAction(options);
+    // if no action, do nothing
+    if (!action) { return; }
+    // if grist document is in readonly - simply change the value
+    // without saving
+    if (this.isReadonly) {
+      this.viewSection.rawNumFrozen(action.numFrozen);
+      return;
+    }
+    this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
+  },
+  copy: function() { return this.copy(this.getSelection()); },
+  cut: function() { return this.cut(this.getSelection()); },
+  paste: async function(pasteObj, cutCallback) {
+    if (this.gristDoc.isReadonly.get()) { return; }
+    await this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
+    await this.scrollToCursor(false);
+  },
+};
+
+// These commands are enabled only when the grid is the user-focused region.
+// See BaseView.commonCommands and BaseView.commonFocusedCommands for more details.
+GridView.gridFocusedCommands = {
   cursorDown: function() {
     if (this.cursor.rowIndex() === this.viewData.peekLength - 1) {
       // When the cursor is in the bottom row, the view may not be scrolled all the way to
@@ -334,58 +390,10 @@ GridView.gridCommands = {
   ctrlShiftUp: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'up'}); },
   ctrlShiftRight: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'right'}); },
   ctrlShiftLeft: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'left'}); },
-  fillSelectionDown: function() { tableUtil.fillSelectionDown(this.getSelection(), this.tableModel); },
-
-  selectAll: function() { this.selectAll(); },
-
   fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
   editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
-  insertFieldBefore: function(event) { this._insertField(event, this.cursor.fieldIndex()); },
-  insertFieldAfter: function(event) { this._insertField(event, this.cursor.fieldIndex() + 1); },
-  makeHeadersFromRow: function() { this.makeHeadersFromRow(this.getSelection()); },
-  renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
-  hideFields: function() { this.hideFields(this.getSelection()); },
-  deleteFields: function() { this._deleteFields(); },
   clearValues: function() { this.clearValues(this.getSelection()); },
-  clearColumns: function() { this._clearColumns(this.getSelection()); },
-  convertFormulasToData: function() { this._convertFormulasToData(this.getSelection()); },
-  copy: function() { return this.copy(this.getSelection()); },
-  cut: function() { return this.cut(this.getSelection()); },
-  paste: async function(pasteObj, cutCallback) {
-    if (this.gristDoc.isReadonly.get()) { return; }
-    await this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
-    await this.scrollToCursor(false);
-  },
-  sortAsc: function() {
-    sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
-  },
-  sortDesc: function() {
-    sortBy(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.DESC);
-  },
-  addSortAsc: function() {
-    addToSort(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.ASC);
-  },
-  addSortDesc: function() {
-    addToSort(this.viewSection.activeSortSpec, this.currentColumn().getRowId(), Sort.DESC);
-  },
-  toggleFreeze: function() {
-    // get column selection
-    const selection = this.getSelection();
-    // convert it menu option
-    const options = this._getColumnMenuOptions(selection);
-    // generate action that is available for freeze toggle
-    const action = freezeAction(options);
-    // if no action, do nothing
-    if (!action) { return; }
-    // if grist document is in readonly - simply change the value
-    // without saving
-    if (this.isReadonly) {
-      this.viewSection.rawNumFrozen(action.numFrozen);
-      return;
-    }
-    this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
-  },
   viewAsCard() {
     const selectedRows = this.selectedRows();
     if (selectedRows.length !== 1) { return; }

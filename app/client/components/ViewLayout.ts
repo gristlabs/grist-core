@@ -5,6 +5,7 @@ import * as commands from 'app/client/components/commands';
 import {CustomCalendarView} from "app/client/components/CustomCalendarView";
 import {CustomView} from 'app/client/components/CustomView';
 import * as DetailView from 'app/client/components/DetailView';
+import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
 import {FormView} from 'app/client/components/Forms/FormView';
 import * as GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
@@ -27,7 +28,6 @@ import {makeT} from 'app/client/lib/localization';
 import {urlState} from 'app/client/models/gristUrlState';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {cssLink} from 'app/client/ui2018/links';
-import {mod} from 'app/common/gutil';
 import {
   Computed,
   computedArray,
@@ -195,8 +195,9 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     const commandGroup = {
       deleteSection: () => { this.removeViewSection(this.viewModel.activeSectionId()).catch(reportError); },
-      nextSection: () => { this._otherSection(+1); },
-      prevSection: () => { this._otherSection(-1); },
+      duplicateSection: () => {
+        buildDuplicateWidgetModal(this.gristDoc, this.viewModel.activeSectionId()).catch(reportError);
+      },
       printSection: () => { printViewSection(this.layout, this.viewModel.activeSection()).catch(reportError); },
       sortFilterMenuOpen: (sectionId?: number) => { this._openSortFilterMenu(sectionId); },
       expandSection: () => { this._expandSection(); },
@@ -206,7 +207,11 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
         }
       }
     };
-    this.autoDispose(commands.createGroup(commandGroup, this, true));
+    this.autoDispose(commands.createGroup(
+      commandGroup,
+      this,
+      ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in')
+    ));
 
     this.maximized = fromKo(this.layout.maximizedLeaf) as any;
     this.autoDispose(this.maximized.addListener((sectionId, prev) => {
@@ -397,17 +402,6 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
         inst.onResize();
       }
     });
-  }
-
-  // Select another section in cyclic ordering of sections. Order is counter-clockwise if given a
-  // positive `delta`, clockwise otherwise.
-  private _otherSection(delta: number) {
-    const sectionIds = this.layout.getAllLeafIds();
-    const sectionId = this.viewModel.activeSectionId.peek();
-    const currentIndex = sectionIds.indexOf(sectionId);
-    const index = mod(currentIndex + delta, sectionIds.length);
-    // update the active section id
-    this.viewModel.activeSectionId(sectionIds[index]);
   }
 
   private _maybeFocusInSection()  {

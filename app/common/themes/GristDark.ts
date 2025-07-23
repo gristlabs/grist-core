@@ -25,6 +25,7 @@ export const GristDark: ThemeTokens = {
   primaryMuted: '#1da270',
   primaryDim: '#157a54',
   primaryEmphasis: '#13d78d',
+  primaryTranslucent: 'rgba(23, 179, 120, 0.5)',
 
   controlBorderRadius: '4px',
 

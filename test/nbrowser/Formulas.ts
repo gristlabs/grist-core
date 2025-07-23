@@ -270,7 +270,7 @@ return [
     await driver.sendKeys(Key.ENTER);
     await driver.findContentWait('.ace_content', /^MEDIAN\($/, 1000);
     await driver.sendKeys(Key.ESCAPE);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     // Check that this works also for table names ("fri" finds "Friends")
     await driver.sendKeys('=');
@@ -301,7 +301,7 @@ return [
     await driver.sendKeys(Key.DOWN, Key.DOWN, Key.ENTER);
     await driver.findContentWait('.ace_content', /^Friends\.lookupOne\($/, 1000);
     await driver.sendKeys(Key.ESCAPE, Key.ESCAPE);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     // Check that some built-in values are recognized in lowercase.
     async function testBuiltin(typedText: string, expectedCompletion: string) {
@@ -311,7 +311,7 @@ return [
       await gu.waitToPass(async () =>
         assert.include(await driver.findAll('.ace_autocomplete .ace_line', el => el.getText()), expectedCompletion));
       await driver.sendKeys(Key.ESCAPE, Key.ESCAPE);
-      await gu.waitAppFocus(true);
+      await gu.waitAppFocus();
     }
     await testBuiltin('tr', 'Tr\nue\n ');
     await testBuiltin('fa', 'Fa\nlse\n ');
@@ -349,7 +349,7 @@ return [
     await driver.findContent('.ace_autocomplete .ace_line span', /value/).click();
     await driver.findContentWait('.ace_content', /^MEDIAN\($/, 1000);
     await driver.sendKeys(Key.ESCAPE);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     // Check that this works also for table names ("fri" finds "Friends")
     await driver.sendKeys('=');
@@ -391,6 +391,6 @@ return [
     await driver.findContent('.ace_autocomplete .ace_line', /lookupRecords/).findContent('span', /Friends/).click();
     await driver.findContentWait('.ace_content', /^Friends\.lookupRecords\($/, 1000);
     await driver.sendKeys(Key.ESCAPE, Key.ESCAPE);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
   });
 });

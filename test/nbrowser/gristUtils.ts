@@ -112,6 +112,7 @@ export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
 export const getVisibleGridCells = webdriverUtils.getVisibleGridCells.bind(webdriverUtils);
 export const getCell = webdriverUtils.getCell.bind(webdriverUtils);
 export const selectSectionByTitle = webdriverUtils.selectSectionByTitle.bind(webdriverUtils);
+export const selectSectionByIndex = webdriverUtils.selectSectionByIndex.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -686,7 +687,6 @@ export async function enterCell(...keys: string[]) {
   }
   await driver.sendKeys(...keys);
   await waitForServer();    // Wait for the value to be saved
-  await waitAppFocus();     // Wait for the cell editor to be closed (maybe unnecessary)
 }
 
 /**
@@ -1090,6 +1090,9 @@ export async function docMenuImport(filePath: string) {
   });
 }
 
+export async function hasFocus(selector: string): Promise<boolean> {
+  return await driver.find(selector).hasFocus();
+}
 
 /**
  * Wait for the focus to return to the main application, i.e. the special .copypaste element that
@@ -1098,6 +1101,13 @@ export async function docMenuImport(filePath: string) {
  */
 export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
   await driver.wait(async () => (await driver.find('.copypaste').hasFocus()) === yesNo, 5000);
+}
+
+/**
+ * Wait for the focus to be on the first element matching given selector.
+ */
+export async function waitForFocus(selector: string): Promise<void> {
+  await driver.wait(async () => (await hasFocus(selector)), 1000);
 }
 
 export async function waitForLabelInput(): Promise<void> {
@@ -1573,6 +1583,24 @@ export async function toggleVisibleColumn(col: string) {
 }
 
 /**
+ * Lists all columns in the visible columns section.
+ */
+export async function getVisibleColumns() {
+  return await driver.findAll(".test-vfc-visible-fields .kf_draggable_content", async (row) => {
+    return row.getText();
+  });
+}
+
+/**
+ * Lists all columns in the hidden columns section.
+ */
+export async function getHiddenColumns() {
+  return await driver.findAll(".test-vfc-hidden-fields .kf_draggable_content", async (row) => {
+    return row.getText();
+  });
+}
+
+/**
  * Clicks `Hide Columns` button in visible columns section.
  */
 export async function hideVisibleColumns() {
@@ -1698,6 +1726,15 @@ export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', secti
   const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
   await sectionElem.find(`.test-section-menu-${which}`).click();
   return await findOpenMenu(100);
+}
+
+/**
+ * Closes the section menu for a section, or the active section if no section is given
+ */
+export async function closeSectionMenu(which: 'sortAndFilter'|'viewLayout', section?: string|WebElement) {
+  const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
+  await sectionElem.find(`.test-section-menu-${which}`).click();
+  return notPresent(`.grist-floating-menu`);
 }
 
 /**
@@ -2946,6 +2983,21 @@ export function findSortRow(colName: RegExp|string) {
   return driver.findContent(".test-sort-config-row", colName);
 }
 
+export async function getSortColumns() {
+  return await driver.findAll(".grist-floating-menu .test-sort-config-column", async (col) => {
+    const classes = await col.find('.test-sort-config-order').getAttribute("class");
+    const match = classes.match(/test-sort-config-sort-order-(\w+)/);
+    // Shouldn't happen - a sort should always have a direction.
+    if (!match) {
+      throw new Error("Sort element is missing direction");
+    }
+    return {
+      column: await col.getText(),
+      dir: match[1],
+    };
+  });
+}
+
 // Opens more sort options menu
 export async function openMoreSortOptions(colName: RegExp|string) {
   const row = await findSortRow(colName);
@@ -3119,6 +3171,7 @@ export async function openPinnedFilter(col: string) {
   const filterBar = driver.find('.active_section .test-filter-bar');
   const pinnedFilter = filterBar.findContent('.test-filter-field', col);
   await pinnedFilter.click();
+  await driver.findWait('.test-filter-menu-wrapper', 500);
   return {
     ...filterController,
     open: () => openPinnedFilter(col)
@@ -3955,6 +4008,26 @@ export async function deleteWidgetWithData(title?: string) {
   await driver.find('.test-modal-confirm').click();
   await waitForServer();
 }
+
+export async function duplicateWidget(title?: string, targetPageTitle?: string) {
+  const menu = await openSectionMenu('viewLayout', title);
+  await menu.findContent('.test-cmd-name', 'Duplicate widget').click();
+
+  if (targetPageTitle) {
+    const select = buildSelectComponent('.test-duplicate-widget-page-select');
+    const option = (await select.options()).find(option => option.startsWith(targetPageTitle));
+    if (!option) {
+      await driver.find('.test-modal-cancel').click();
+      throw new Error(`Unable to find page ${targetPageTitle} when duplicating widget`);
+    }
+    await select.select(option);
+  }
+
+  await driver.find('.test-modal-confirm').click();
+  await waitForServer();
+}
+
+
 
 export async function waitForTrue(check: () => Promise<boolean>, timeMs: number = 4000) {
   await waitToPass(async () => {

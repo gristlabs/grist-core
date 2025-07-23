@@ -76,6 +76,7 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
       } else {
         allCommands[c.name] = new Command(c.name, c.desc, c.keys, {
           bindKeys: c.bindKeys,
+          alwaysOn: c.alwaysOn,
           deprecated: c.deprecated,
         });
       }
@@ -124,6 +125,10 @@ export function getHumanKey(key: string, mac: boolean): string {
 export interface CommandOptions {
   bindKeys?: boolean;
   deprecated?: boolean;
+  /**
+   * When true, the command is always enabled, even in form inputs.
+   */
+  alwaysOn?: boolean;
 }
 
 /**
@@ -140,6 +145,7 @@ export class Command implements CommandDef {
   public humanKeys: string[];
   public keys: string[];
   public bindKeys: boolean;
+  public alwaysOn: boolean;
   public isActive: ko.Observable<boolean>;
   public deprecated: boolean;
   public run: (...args: any[]) => any;
@@ -152,6 +158,7 @@ export class Command implements CommandDef {
     this.humanKeys = keys.map(key => getHumanKey(key, isMac));
     this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, '+'); });
     this.bindKeys = options.bindKeys ?? true;
+    this.alwaysOn = options.alwaysOn ?? false;
     this.isActive = ko.observable(false);
     this._implGroupStack = [];
     this._activeFunc = _.noop; // The function to run when this command is invoked.
@@ -216,13 +223,16 @@ export class Command implements CommandDef {
 
     if (this.bindKeys) {
       // Now bind or unbind the affected key combinations.
-      this.keys.forEach(function(key) {
+      this.keys.forEach((key) => {
         const keyGroups = _allKeys[key];
         if (keyGroups && keyGroups.length > 0) {
           const commandGroup = _.last(keyGroups)!;
           // Command name might be different from this.name in case we are deactivating a command, and
           // the previous meaning of the key points to a different command.
           const commandName = commandGroup.knownKeys[key];
+          if (this.alwaysOn) {
+            Mousetrap.markAlwaysOnShortcut(key);
+          }
           Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName]));
         } else {
           Mousetrap.unbind(key);

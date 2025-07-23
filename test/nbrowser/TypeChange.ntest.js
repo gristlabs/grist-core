@@ -148,7 +148,7 @@ describe('TypeChange.ntest', function() {
     // Change type to reference column
     await gu.actions.viewSection('Table1').selectSection();
     await gu.getCellRC(0, 3).click();
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
     await gu.sendKeys('blue', $.ENTER);
     await gu.getCellRC(1, 3).click();
     await gu.sendKeys('green', $.ENTER);

@@ -244,6 +244,7 @@ export function modal(
 
       dialogDom = cssModalDialog(
         createFn(ctl, owner),
+        dom.cls('kb-focus-highlighter-group'),
         cssModalDialog.cls('-collapsing', variant === 'collapsing'),
         dom.on('click', (ev) => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),

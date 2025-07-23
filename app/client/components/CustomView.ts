@@ -129,7 +129,7 @@ export class CustomView extends Disposable {
 
     this.autoDispose(this.customDef.pluginId.subscribe(this._updatePluginInstance, this));
     this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
-    this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasFocus));
+    this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasRegionFocus));
 
     this._unmappedColumns = this.autoDispose(ko.pureComputed(() => {
       const columns = this.viewSection.columnsToMap();

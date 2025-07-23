@@ -1,5 +1,7 @@
 import {ClientScope} from 'app/client/components/ClientScope';
 import * as Clipboard from 'app/client/components/Clipboard';
+import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
+import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
 import {Comm} from 'app/client/components/Comm';
 import * as commandList from 'app/client/components/commandList';
 import * as commands from 'app/client/components/commands';
@@ -38,6 +40,7 @@ export interface App extends DisposableWithEvents {
   features: ko.Computed<ISupportedFeatures>;
   topAppModel: TopAppModel;
   pageModel?: DocPageModel;
+  regionFocusSwitcher?: RegionFocusSwitcher;
 }
 
 /**
@@ -54,6 +57,9 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   // Track the most recently created DocPageModel, for some error handling.
   public pageModel?: DocPageModel;
+
+  // Track the RegionFocusSwitcher created by pagePanels, so that the codebase can access it.
+  public regionFocusSwitcher?: RegionFocusSwitcher;
 
   private _settings: ko.Observable<{features?: ISupportedFeatures}>;
 
@@ -74,6 +80,8 @@ export class AppImpl extends DisposableWithEvents implements App {
     // Settings, initialized by initSettings event triggered by a server message.
     this._settings = ko.observable({});
     this.features = ko.computed(() => this._settings().features || {});
+
+    KeyboardFocusHighlighter.create(this);
 
     if (isDesktop()) {
       this.autoDispose(Clipboard.create(this));
