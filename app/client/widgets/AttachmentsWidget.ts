@@ -30,8 +30,8 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
   private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _height: KoSaveableObservable<string>;
-  private _uploadingTimeouts: Record<number, number> = {};
-  private _uploadingStatesObs: Observable<Record<number, boolean>>;
+  private _uploadingTimeouts: Partial<Record<UIRowId, number>> = {};
+  private _uploadingStatesObs: Observable<Partial<Record<UIRowId, boolean>>>;
 
   constructor(field: ViewFieldRec) {
     super(field);
@@ -160,8 +160,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     });
   }
 
-  private _setUploadingState(row: DataRowModel, uploading: boolean): void {
-    const rowId = row.getRowId();
+  private _setUploadingState(rowId: UIRowId, uploading: boolean): void {
     const timeouts = this._uploadingTimeouts;
     const states = this._uploadingStatesObs.get();
     if (timeouts[rowId]) {
@@ -172,7 +171,10 @@ export class AttachmentsWidget extends NewAbstractWidget {
         states[rowId] = true;
         this._uploadingStatesObs.set({...states});
         // let the view know about the spinner so that it can expands the row height for it if needed
-        this.field.viewSection().viewInstance()?.onRowResize([row]);
+        const rowModel = this.field.viewSection().viewInstance()?.viewData.getRowModel(rowId);
+        if (rowModel) {
+          this.field.viewSection().viewInstance()?.onRowResize([rowModel]);
+        }
       }, 750);
     } else {
       states[rowId] = false;
@@ -181,6 +183,9 @@ export class AttachmentsWidget extends NewAbstractWidget {
   }
 
   private async _selectAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>): Promise<void> {
+    // keep a copy of the row id at the beginning ; because the given row may change while uploading
+    // (example: user starts uploading in card 2/10, then switches to card 3/10, the upload must save to card 2/10)
+    const rowId = row.getRowId();
     try {
       const uploadResult = await selectFiles({
         docWorkerUrl: this._getDocComm().docWorkerUrl,
@@ -188,19 +193,22 @@ export class AttachmentsWidget extends NewAbstractWidget {
         sizeLimit: 'attachment',
       }, (progress) => {
         if (progress === 0) {
-          this._setUploadingState(row, true);
+          this._setUploadingState(rowId, true);
         }
       });
-      this._setUploadingState(row, false);
-      return this._save(row, value, uploadResult);
+      this._setUploadingState(rowId, false);
+      return this._save(rowId, value, uploadResult);
     } catch (error) {
-      this._setUploadingState(row, false);
+      this._setUploadingState(rowId, false);
       throw error;
     }
   }
 
   private async _uploadAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>,
         files: FileList): Promise<void> {
+    // keep a copy of the row id at the beginning ; because the given row may change while uploading
+    // (example: user starts uploading in card 2/10, then switches to card 3/10, the upload must save to card 2/10)
+    const rowId = row.getRowId();
     // Move the cursor here (note that this may involve switching active section when dragging
     // into a cell of an inactive section).
     commands.allCommands.setCursor.run(row, this.field);
@@ -210,25 +218,24 @@ export class AttachmentsWidget extends NewAbstractWidget {
         {docWorkerUrl: this._getDocComm().docWorkerUrl, sizeLimit: 'attachment'},
         (progress) => {
           if (progress === 0) {
-            this._setUploadingState(row, true);
+            this._setUploadingState(rowId, true);
           }
         }
       );
-      this._setUploadingState(row, false);
-      return this._save(row, value, uploadResult);
+      this._setUploadingState(rowId, false);
+      return this._save(rowId, value, uploadResult);
     } catch (error) {
-      this._setUploadingState(row, false);
+      this._setUploadingState(rowId, false);
       throw error;
     }
   }
 
-  private async _save(row: DataRowModel, value: KoSaveableObservable<CellValue>,
+  private async _save(rowId: UIRowId, value: KoSaveableObservable<CellValue>,
         uploadResult: UploadResult|null
   ): Promise<void> {
     if (!uploadResult) { return; }
 
     // Add a row if one doesn't already exist.
-    let rowId = row.getRowId() as UIRowId;
     if (rowId === "new") {
       const viewSection = this.field.viewSection();
       const view = viewSection.viewInstance();
