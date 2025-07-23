@@ -7,6 +7,7 @@ import {commonUrls} from 'app/common/gristUrls';
 import {getOrgName, isTemplatesOrg, Organization} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/buttons';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import * as roles from 'app/common/roles';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
@@ -80,7 +81,7 @@ export class AppHeader extends Disposable {
     // Check if we have a custom image.
     const customImage = this._appModel.currentOrg?.orgPrefs?.customLogoUrl;
 
-    const variant = () => [cssUserImage.cls('-border'), cssUserImage.cls('-square')];
+    const variant = () => [cssUserImage.cls('-border'), cssUserImage.cls('-square'), cssUserImage.cls('-inAppLogo')];
 
     // Personal avatar is shown only for logged in users.
     const personalAvatar = () => !this._appModel.currentValidUser
@@ -135,6 +136,7 @@ export class AppHeader extends Disposable {
       );
     } else {
       return cssOrg(
+        dom.cls('_cssOrg'),
         cssOrgName(dom.text(this._appLogoOrgName), testId('orgname')),
         productPill(this._currentOrg),
         dom.maybe(this._appLogoOrgName, () => [
@@ -324,7 +326,11 @@ const cssAppLogo = styled('a._cssAppLogo', `
   overflow: hidden;
   border-right-color: var(--middle-border-color, ${theme.appHeaderBorder});
 
-  outline-offset: -1px;
+  /* make sure keyboard highlight is visible
+  (it wouldn't be without the offset because of the overflow: hidden) */
+  outline-offset: -3px;
+  position: relative;
+  z-index: 1;
 
   &-grist-logo {
     background-image: var(--icon-GristLogo);
@@ -355,7 +361,7 @@ const cssAppLogo = styled('a._cssAppLogo', `
   }
 `);
 
-const cssOrg = styled('div._cssOrg', `
+const cssOrg = styled(unstyledButton, `
   display: none;
   flex-grow: 1;
   flex-basis: 0px;
@@ -370,6 +376,10 @@ const cssOrg = styled('div._cssOrg', `
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-left: 0px;
+
+  /* make sure keyboard highlight is visible
+  (it wouldn't be without the offset because of the overflow: hidden) */
+  outline-offset: -3px;
 
   &:hover {
     border-color: ${theme.appHeaderBorderHover};
