@@ -2172,13 +2172,20 @@ export class GranularAccess implements GranularAccessForBundle {
     // First figure out what rows in which tables are touched during the actions.
     const rows = new Map(getRelatedRows(applied ? [...undo].reverse() : docActions));
     // Populate a minimal in-memory version of the database with these rows.
+    // We need sufficient metadata to know column types, if there are any row additions.
+    // Otherwise we may assume a cell contains "null" when it should contain "false" for
+    // example (for a Bool column).
+    const metaData = {
+      _grist_Tables: this._docData.getMetaTable('_grist_Tables').getTableDataAction(),
+      _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction(),
+    };
     const docData = new DocData(
       async (tableId) => {
         return {
           tableData: await this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}})
         };
       },
-      null,
+      metaData,
     );
     // Load pre-existing rows touched by the bundle.
     await Promise.all([...rows.keys()].map(tableId => docData.syncTable(tableId)));

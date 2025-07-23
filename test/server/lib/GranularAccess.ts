@@ -4125,6 +4125,54 @@ describe('GranularAccess', function() {
       await assert.isFulfilled(owner.getDocAPI(docId).getRows('Table1'));
     });
   });
+
+  it('handles column types correctly when rows are created', async function() {
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ['AddTable', 'Data1', [{id: 'A'}, {id: 'B', type: 'Bool'}]],
+      ['AddRecord', 'Data1', null, {A: 12, B: true}],
+      ['AddRecord', 'Data1', null, {A: 13, B: false}],
+      ['AddRecord', 'Data1', null, {A: 14}],
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Data1', colIds: '*'}],
+      // This is a rule that will behave differently if a cell is unset versus
+      // set with its default value.
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'user.Access != OWNER and rec.B == False', permissionsText: 'none',
+      }],
+    ]);
+
+    // Check editor's view is limited, as expected.
+    assert.deepEqual(await editor.getDocAPI(docId).getRecords('Data1'), [
+      { id: 1, fields: { A: '12', B: true } },
+    ]);
+    cliEditor.flush();
+
+    // Add a record without specifying a value for the Bool column.
+    await owner.applyUserActions(docId, [
+      ['AddRecord', 'Data1', null, {A: 15}],
+    ]);
+    // Check editor sees correct records when enumerating them.
+    assert.deepEqual(await editor.getDocAPI(docId).getRecords('Data1'), [
+      { id: 1, fields: { A: '12', B: true } },
+    ]);
+
+    // A bad broadcast used to go out by this point, based on a Bool
+    // being null instead of false during rule evalation and not
+    // matching exact access rule check. Check that hasn't happened.
+    assert.equal(cliEditor.count(), 0);
+
+    // Check that if something should get broadcast, it does.
+    await owner.applyUserActions(docId, [
+      ['AddRecord', 'Data1', null, {A: 16, B: true}],
+    ]);
+    assert.deepEqual(await editor.getDocAPI(docId).getRecords('Data1'), [
+      { id: 1, fields: { A: '12', B: true } },
+      { id: 5, fields: { A: '16', B: true } },
+    ]);
+    assert.deepEqual((await cliEditor.readDocUserAction()), [
+      [ 'AddRecord', 'Data1', 5, { A: '16', B: true, manualSort: 5 } ]
+    ]);
+  });
 });
 
 async function closeClient(cli: GristClient) {

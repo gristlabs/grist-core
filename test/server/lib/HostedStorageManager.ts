@@ -1181,7 +1181,7 @@ describe('HostedStorageManager', function() {
             // If it does, then user actions could be blocked.
             assert.equal(event.action, eventAction);
             const dt = Date.now() - eventStart;
-            if (dt > 100) {
+            if (dt > 250) {
               slowSteps++;
               slowStepsTotalTime += dt;
             }

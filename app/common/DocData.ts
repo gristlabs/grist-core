@@ -12,6 +12,7 @@ import {ActionDispatcher} from './ActionDispatcher';
 import {TableFetchResult} from './ActiveDocAPI';
 import {
   BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
+  getColIdsFromDocAction,
   RowRecord, TableDataAction
 } from './DocActions';
 import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from './TableData';
@@ -109,12 +110,13 @@ export class DocData extends ActionDispatcher {
   }
 
   /**
-   * Fetches the data for tableId unconditionally, and without knowledge of its metadata.
-   * Columns will be assumed to have type 'Any'.
+   * Fetches the data for tableId unconditionally. If metadata for the table is not known,
+   * columns will be assumed to have type 'Any'.
    */
   public async syncTable(tableId: string): Promise<void> {
+    const meta = this._tables.get(tableId);  // Not required, but respected if available.
     const tableData = await this._fetchTableFunc(tableId);
-    const colTypes = fromPairs(Object.keys(tableData[3]).map(c => [c, 'Any']));
+    const colTypes = fromPairs((getColIdsFromDocAction(tableData) ?? []).map(c => [c, meta?.getColType(c) ?? 'Any']));
     colTypes.id = 'Any';
     this._tables.set(tableId, this.createTableData(tableId, tableData, colTypes));
   }

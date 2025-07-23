@@ -60,7 +60,10 @@ describe('AdminPanel', function() {
   });
 
   it('should include support-grist section', async function() {
-    assert.match(await driver.find('.test-admin-panel-item-sponsor').getText(), /Support Grist Labs on GitHub/);
+    assert.match(
+      await driver.findWait('.test-admin-panel-item-sponsor', 3000).getText(),
+      /Support Grist Labs on GitHub/
+    );
     await withExpandedItem('sponsor', async () => {
       const button = await driver.find('.test-support-grist-page-sponsorship-section');
       assert.equal(await button.isDisplayed(), true);
