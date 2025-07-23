@@ -99,7 +99,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       const index = use(this._index);
       return index === null ? null : use(this._attachments)[index];
     }));
-    this._isUploading = Observable.create(null, false);
+    this._isUploading = Observable.create(this, false);
   }
 
   // This "attach" is not about "attachments", but about attaching this widget to the page DOM.
@@ -245,10 +245,11 @@ export class AttachmentsEditor extends NewBaseEditor {
         multiple: true,
         sizeLimit: 'attachment'
       }, (progress) => {
-      if (progress === 0) {
-        this._isUploading.set(true);
+        if (progress === 0) {
+          this._isUploading.set(true);
+          }
         }
-      });
+      );
       this._isUploading.set(false);
       return this._add(uploadResult);
     } catch (error) {

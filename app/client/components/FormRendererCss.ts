@@ -69,7 +69,7 @@ export const resetButton = styled('button', `
     color: ${vars.primaryBgHover};
     border-color: ${vars.primaryBgHover};
   }
-  &:is(:disabled, [aria-disabled="true"]) {
+  &[aria-disabled="true"] {
     cursor: not-allowed;
     color: ${colors.light};
     background-color: ${colors.slate};
@@ -82,7 +82,7 @@ export const submitButton = styled('div', `
   justify-content: center;
   align-items: center;
 
-  & :is(input[type="submit"], button:not([type]), button[type="submit"]) {
+  & button[type="submit"] {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -97,11 +97,11 @@ export const submitButton = styled('div', `
     line-height: inherit;
     outline-color: ${vars.primaryBgHover};
   }
-  & :is(input[type="submit"], button:not([type]), button[type="submit"]):hover {
+  & button[type="submit"]):hover {
     border-color: ${vars.primaryBgHover};
     background-color: ${vars.primaryBgHover};
   }
-  & :is(input[type="submit"], button:not([type]), button[type="submit"]):is(:disabled, [aria-disabled="true"]) {
+  & button[type="submit"][aria-disabled="true"] {
     cursor: not-allowed;
     color: ${colors.light};
     background-color: ${colors.slate};

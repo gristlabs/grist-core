@@ -41,7 +41,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     this._attachmentsTable = this._getDocData().getMetaTable('_grist_Attachments');
 
     this._height = this.options.prop('height');
-    this._uploadingStatesObs = Observable.create(null, {});
+    this._uploadingStatesObs = Observable.create(this, {});
 
     this.autoDispose(this._height.subscribe(() => {
       this.field.viewSection().events.trigger('rowHeightChange');

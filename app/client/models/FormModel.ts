@@ -6,7 +6,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {Form, FormAPI, FormAPIImpl} from 'app/client/ui/FormAPI';
 import {ApiError} from 'app/common/ApiError';
 import {safeJsonParse} from 'app/common/gutil';
-import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
+import {bundleChanges, Computed, Disposable, Observable} from 'grainjs';
 
 const t = makeT('FormModel');
 
@@ -46,7 +46,7 @@ export class FormModelImpl extends Disposable implements FormModel {
     super();
 
     // we track in an observable when the submission is slow, allowing us to easily show user feedback in that case
-    this.autoDispose(subscribe(this.submitting, (use, submitting) => {
+    this.autoDispose(this.submitting.addListener((submitting) => {
       if (submitting) {
         this._submittingSlowTimeout = window.setTimeout(() => !this.isDisposed() && this.submittingSlow.set(true), 750);
       } else {
