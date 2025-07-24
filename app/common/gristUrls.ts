@@ -12,8 +12,8 @@ import {Document} from 'app/common/UserAPI';
 import {IAttachedCustomWidget} from "app/common/widgetTypes";
 import {Features as PlanFeatures} from 'app/common/Features';
 import {UIRowId} from 'app/plugin/GristAPI';
-import clone = require('lodash/clone');
-import pickBy = require('lodash/pickBy');
+import clone from 'lodash/clone';
+import pickBy from 'lodash/pickBy';
 import slugify from 'slugify';
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing');
@@ -999,76 +999,48 @@ export function isClient() {
   return (typeof window !== 'undefined') && window && window.location && window.location.hostname;
 }
 
+function getCustomizableValue(
+  clientSideConfigKey: keyof GristLoadConfig,
+  serverSideEnvVar: keyof NodeJS.ProcessEnv
+) {
+  return isClient() ? (window as any).gristConfig?.[clientSideConfigKey] : process.env[serverSideEnvVar];
+}
+
 /**
  * Returns a known org "subdomain" if Grist is configured in single-org mode
  * (GRIST_SINGLE_ORG=<org> on the server) or if the page includes an org in gristConfig.
  */
 export function getKnownOrg(): string|null {
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return (gristConfig && gristConfig.singleOrg) || null;
-  } else {
-    return process.env.GRIST_SINGLE_ORG || null;
-  }
+  return getCustomizableValue('singleOrg', "GRIST_SINGLE_ORG") || null;
 }
 
 export function getHelpCenterUrl(): string {
   const defaultUrl = "https://support.getgrist.com";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
-  } else {
-    return process.env.GRIST_HELP_CENTER || defaultUrl;
-  }
+  return getCustomizableValue('helpCenterUrl', "GRIST_HELP_CENTER") || defaultUrl;
 }
 
 export function getOnboardingVideoId(): string {
   const defaultId = "56AieR9rpww";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.onboardingTutorialVideoId || defaultId;
-  } else {
-    return process.env.GRIST_ONBOARDING_VIDEO_ID || defaultId;
-  }
+  return getCustomizableValue('onboardingTutorialVideoId', 'GRIST_ONBOARDING_VIDEO_ID') || defaultId;
 }
 
 export function getTermsOfServiceUrl(): string|undefined {
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.termsOfServiceUrl || undefined;
-  } else {
-    return process.env.GRIST_TERMS_OF_SERVICE_URL || undefined;
-  }
+  return getCustomizableValue('termsOfServiceUrl', "GRIST_TERMS_OF_SERVICE_URL") || undefined;
 }
 
 export function getFreeCoachingCallUrl(): string {
   const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.freeCoachingCallUrl || defaultUrl;
-  } else {
-    return process.env.FREE_COACHING_CALL_URL || defaultUrl;
-  }
+  return getCustomizableValue('freeCoachingCallUrl', "FREE_COACHING_CALL_URL") || defaultUrl;
 }
 
 export function getContactSupportUrl(): string {
   const defaultUrl = "https://www.getgrist.com/contact";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.contactSupportUrl || defaultUrl;
-  } else {
-    return process.env.GRIST_CONTACT_SUPPORT_URL || defaultUrl;
-  }
+  return getCustomizableValue('contactSupportUrl', 'GRIST_CONTACT_SUPPORT_URL') || defaultUrl;
 }
 
 export function getWebinarsUrl(): string {
   const defaultUrl = "https://www.getgrist.com/webinars";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.webinarsUrl || defaultUrl;
-  } else {
-    return process.env.GRIST_WEBINARS_URL || defaultUrl;
-  }
+  return getCustomizableValue('webinarsUrl', "GRIST_WEBINARS_URL") || defaultUrl;
 }
 
 /**
@@ -1078,12 +1050,7 @@ export function getWebinarsUrl(): string {
  * be set, but not gristConfig.singleOrg.
  */
 export function getSingleOrg(): string|null {
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return (gristConfig && gristConfig.singleOrg) || null;
-  } else {
-    return process.env.GRIST_SINGLE_ORG || null;
-  }
+  return getCustomizableValue("singleOrg", "GRIST_SINGLE_ORG") || null;
 }
 
 /**
@@ -1324,15 +1291,12 @@ export interface UrlTweaks {
 }
 
 function withAdminDefinedUrls<T extends Record<string, string|undefined>>(defaultUrls: T): T {
-  let adminDefinedUrlsStr: string | undefined;
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    adminDefinedUrlsStr = gristConfig?.adminDefinedUrls;
-  } else {
-    adminDefinedUrlsStr = process.env.GRIST_CUSTOM_COMMON_URLS;
+  const adminDefinedUrlsStr = getCustomizableValue('adminDefinedUrls', "GRIST_CUSTOM_COMMON_URLS");
+  if (!adminDefinedUrlsStr) {
+    return defaultUrls;
   }
 
-  const adminDefinedUrls = JSON.parse(adminDefinedUrlsStr || '{}', (key, val) => {
+  const adminDefinedUrls = JSON.parse(adminDefinedUrlsStr, (key, val) => {
     // Remove any non-string values
     // key is null-ish when it is the root object
     return (!key || typeof val === "string") ? val : null;
@@ -1341,7 +1305,7 @@ function withAdminDefinedUrls<T extends Record<string, string|undefined>>(defaul
     throw new Error("Unexpected format for GRIST_CUSTOM_COMMON_URLS. Expected to be a JSON object.");
   }
 
-  const filteredAdminDefinedUrls = adminDefinedUrlsStr && pickBy(
+  const filteredAdminDefinedUrls = pickBy(
     adminDefinedUrls,
     (value, key) => value !== null && defaultUrls.hasOwnProperty(key)
   );
