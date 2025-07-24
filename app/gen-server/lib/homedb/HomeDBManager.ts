@@ -34,7 +34,7 @@ import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
 import {BillingAccountManager} from 'app/gen-server/entity/BillingAccountManager';
 import {Config} from 'app/gen-server/entity/Config';
 import {DocPref} from 'app/gen-server/entity/DocPref';
-import {Document} from 'app/gen-server/entity/Document';
+import {Document, FilteredDocument} from 'app/gen-server/entity/Document';
 import {Group} from 'app/gen-server/entity/Group';
 import {Limit} from 'app/gen-server/entity/Limit';
 import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/entity/Organization';
@@ -1775,7 +1775,7 @@ export class HomeDBManager {
         return queryResult;
       }
       // Update the name and save.
-      const doc: Document = queryResult.data;
+      const doc = getDocResult(queryResult);
       const previous = structuredClone(doc);
       doc.checkProperties(props);
       doc.updateFromProperties(props);
@@ -1828,7 +1828,7 @@ export class HomeDBManager {
           // If the query for the fork failed, return the failure result.
           return queryResult;
         }
-        const fork: Document = queryResult.data;
+        const fork = getDocResult(queryResult);
         const data = structuredClone(fork);
         await manager.remove(fork);
         return {status: 200, data};
@@ -1847,7 +1847,7 @@ export class HomeDBManager {
           // If the query for the doc failed, return the failure result.
           return queryResult;
         }
-        const doc: Document = queryResult.data;
+        const doc = getDocResult(queryResult);
         const data = structuredClone(doc);
         const docGroups = doc.aclRules.map(docAcl => docAcl.group);
         // Delete the doc and doc ACLs/groups.
@@ -2460,7 +2460,7 @@ export class HomeDBManager {
         // If the query for the doc failed, return the failure result.
         return docQueryResult;
       }
-      const doc: Document = docQueryResult.data;
+      const doc = getDocResult(docQueryResult);
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -2568,7 +2568,7 @@ export class HomeDBManager {
         // If the query for the doc failed, return the failure result.
         return docQueryResult;
       }
-      const doc: Document = docQueryResult.data;
+      const doc = getDocResult(docQueryResult);
       if (doc.isPinned !== setPinned) {
         doc.isPinned = setPinned;
         // Forcibly remove the aliases relation from the document object, so that TypeORM
@@ -3940,10 +3940,15 @@ export class HomeDBManager {
     }
   }
 
-  private _docs(manager?: EntityManager) {
-    return (manager || this._connection).createQueryBuilder()
+  // If cte is provided, assume it is a common table
+  // expression that selects certain rows of docs, and
+  // substitute it in.
+  private _docs(manager?: EntityManager, cte?: string) {
+    const builder = (manager || this._connection).createQueryBuilder();
+    const docs = (cte ? builder.addCommonTableExpression(cte, 'filtered_docs') : builder)
       .select('docs')
-      .from(Document, 'docs');
+      .from(cte ? FilteredDocument : Document, 'docs');
+    return docs;
   }
 
   /**
@@ -3961,7 +3966,25 @@ export class HomeDBManager {
     // to support https://docs.getgrist.com/api/docs/<docid> for team
     // site documents.
     const mergedOrg = this.isMergedOrg(scope.org || null);
-    let query = this._docs(options.manager)
+    // OPTIMIZATION: we add a CTE to prefilter docs table for a union
+    // of matches on docs.id or on aliases. We observe the Postgres query
+    // planner having a hard time with the WHERE clause that does this
+    // filtering later with an OR.
+    // QUIRK: the :urlId parameter in the CTE relies on it being introduced
+    // later in the where clause. There's nowhere to add it in TypeORM's CTE
+    // interface.
+    let query = this._docs(options.manager, `
+  SELECT docs.*
+  FROM docs
+  WHERE docs.id = :urlId
+
+  UNION ALL
+
+  SELECT docs.*
+  FROM aliases
+  JOIN docs ON docs.id = aliases.doc_id
+  WHERE aliases.url_id = :urlId
+`)
       .leftJoinAndSelect('docs.workspace', 'workspaces')
       .leftJoinAndSelect('workspaces.org', 'orgs')
       .leftJoinAndSelect('docs.aliases', 'aliases')
@@ -5078,4 +5101,22 @@ function getUserAccessChanges({
     email: user.loginEmail,
     access: userIdDelta[user.id],
   }));
+}
+
+/**
+ * Extract a Document from a query result that is expected to
+ * contain one. If it is a FilteredDocument, reset the prototype
+ * to be Document - that class is just a tiny variant of Document
+ * with a different alias for use with CTEs as a hack around
+ * some TypeORM limitations.
+ * CAUTION: this modifies material in the queryResult.
+ */
+function getDocResult(queryResult: QueryResult<any>) {
+  const doc: Document = queryResult.data;
+  // The result may be a Document or a FilteredDocument,
+  // For our purposes they are the same.
+  if (Object.getPrototypeOf(doc) === FilteredDocument.prototype) {
+    Object.setPrototypeOf(doc, Document.prototype);
+  }
+  return doc;
 }
