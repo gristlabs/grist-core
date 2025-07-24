@@ -71,8 +71,10 @@ export function pagePanels(page: PageContents) {
   let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
 
-  const regionFocusSwitcher = RegionFocusSwitcher.create(null, appObj);
-  if (appObj) {
+  let regionFocusSwitcher: RegionFocusSwitcher|undefined;
+  // Create a RegionFocusSwitcher when we have a valid appObj (some tests don't include one).
+  if (appObj && appObj.topAppModel) {
+    regionFocusSwitcher = RegionFocusSwitcher.create(null, appObj);
     appObj.regionFocusSwitcher = regionFocusSwitcher;
   }
 
@@ -98,7 +100,7 @@ export function pagePanels(page: PageContents) {
     if (narrow) {
       left.panelOpen.set(false);
     }
-    regionFocusSwitcher.reset();
+    regionFocusSwitcher?.reset();
   });
 
   const pauseSavingLeft = (yesNo: boolean) => {
@@ -129,7 +131,7 @@ export function pagePanels(page: PageContents) {
     dom.autoDispose(sub2),
     dom.autoDispose(commandsGroup),
     dom.autoDispose(leftOverlap),
-    dom.autoDispose(regionFocusSwitcher),
+    regionFocusSwitcher ? dom.autoDispose(regionFocusSwitcher) : null,
     dom('div', testId('top-panel'), page.contentTop, elem => { contentTopDom = elem; }),
     dom.maybe(page.banner, () => {
       let elem: HTMLElement;

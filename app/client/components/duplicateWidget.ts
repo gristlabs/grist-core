@@ -17,7 +17,7 @@ import forEach from 'lodash/forEach';
 import {testId} from 'app/client/ui2018/cssVars';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import sortBy from 'lodash/sortBy';
-import {fromPairs} from 'lodash';
+import fromPairs from 'lodash/fromPairs';
 import ko from 'knockout';
 
 const t = makeT('duplicateWidget');

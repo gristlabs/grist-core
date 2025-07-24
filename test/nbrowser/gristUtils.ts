@@ -1530,7 +1530,7 @@ export async function getAppErrors() {
  */
 export async function openWidgetPanel(tab: 'widget'|'sortAndFilter'|'data' = 'widget') {
   await toggleSidePanel('right', 'open');
-  await driver.find('.test-right-tab-pagewidget').click();
+  await retryOnStale(() => driver.findWait('.test-right-tab-pagewidget', 100).click());
   await driver.find(`.test-config-${tab}`).click();
 }
 
