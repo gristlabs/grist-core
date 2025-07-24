@@ -1,8 +1,20 @@
-import {decodeUrl, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart} from 'app/common/gristUrls';
+import {
+  commonUrls, decodeUrl, getCommonUrls, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
+} from 'app/common/gristUrls';
 import {assert} from 'chai';
+import Sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
 describe('gristUrls', function() {
+  let sandbox: Sinon.SinonSandbox;
+
+  beforeEach(function () {
+    sandbox = Sinon.createSandbox();
+  });
+
+  afterEach(function () {
+    sandbox.restore();
+  });
 
   function assertUrlDecode(url: string, expected: Partial<IGristUrlState>) {
     const actual = decodeUrl({}, new URL(url));
@@ -117,12 +129,13 @@ describe('gristUrls', function() {
     });
 
     it('should interpret doc internal url as "native"', function() {
-      process.env.APP_DOC_INTERNAL_URL = 'https://doc-worker-123.internal/path';
+      sandbox.define(process.env, 'APP_DOC_INTERNAL_URL', 'https://doc-worker-123.internal/path');
       assert.equal(getHostType('doc-worker-123.internal', defaultOptions), 'native');
       assert.equal(getHostType('doc-worker-123.internal:8080', defaultOptions), 'custom');
       assert.equal(getHostType('doc-worker-124.internal', defaultOptions), 'custom');
 
-      process.env.APP_DOC_INTERNAL_URL = 'https://doc-worker-123.internal:8080/path';
+      sandbox.restore();
+      sandbox.define(process.env, 'APP_DOC_INTERNAL_URL', 'https://doc-worker-123.internal:8080/path');
       assert.equal(getHostType('doc-worker-123.internal:8080', defaultOptions), 'native');
       assert.equal(getHostType('doc-worker-123.internal', defaultOptions), 'custom');
       assert.equal(getHostType('doc-worker-124.internal:8080', defaultOptions), 'custom');
@@ -150,6 +163,90 @@ describe('gristUrls', function() {
       assert.strictEqual(getSlugIfNeeded({id, urlId, name: "Hélène's résumé"}), 'Helenes-resume');
       assert.strictEqual(getSlugIfNeeded({id, urlId, name: "Привіт, Їжак!"}), 'Privit-Yizhak');
       assert.strictEqual(getSlugIfNeeded({id, urlId, name: "S&P500 is ~$4,894.16"}), 'SandP500-is-dollar489416');
+    });
+  });
+
+  describe('getCommonUrls', function () {
+    it('should return the default URLs', function () {
+      const commonUrls = getCommonUrls();
+      assert.isObject(commonUrls);
+      assert.equal(commonUrls.help, "https://support.getgrist.com");
+    });
+
+    describe("with GRIST_CUSTOM_COMMON_URLS env var set", function () {
+      it('should return the values set by the GRIST_CUSTOM_COMMON_URLS env var', function () {
+        const customHelpCenterUrl = "http://custom.helpcenter";
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          `{"help": "${customHelpCenterUrl}"}`);
+        const commonUrls = getCommonUrls();
+        assert.isObject(commonUrls);
+        assert.equal(commonUrls.help, customHelpCenterUrl);
+        assert.equal(commonUrls.helpAccessRules, "https://support.getgrist.com/access-rules");
+      });
+
+      it('should omit keys that are missing from the default commonUrls object', function () {
+        const nonExistingKey = 'iDontExist';
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          `{"${nonExistingKey}": "foo", "help": "https://getgrist.com"}`);
+        const commonUrls = getCommonUrls();
+        assert.isObject(commonUrls);
+        assert.property(commonUrls, "help");
+        assert.notProperty(commonUrls, nonExistingKey);
+      });
+
+      it('should ignore keys that are not string', function () {
+        const regularKey = 'help';
+        const numberKey = 'helpAccessRules';
+        const objectKey = 'helpAssistant';
+        const arrayKey = 'helpAssistantDataUse';
+        const nullKey = 'helpFormulaAssistantDataUse';
+        const originalUrls = getCommonUrls();
+
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          JSON.stringify({
+            [regularKey]: "https://getgrist.com",
+            [numberKey]: 42,
+            [objectKey]: {"key": "value"},
+            [arrayKey]: ["foo"],
+            [nullKey]: null,
+          })
+        );
+        const overwrittenUrls = getCommonUrls();
+        assert.isObject(overwrittenUrls);
+        assert.equal(overwrittenUrls.help, "https://getgrist.com");
+        for (const key of [numberKey, objectKey, arrayKey, nullKey]) {
+          const typedKey = key as unknown as keyof typeof commonUrls;
+          assert.equal(overwrittenUrls[typedKey], originalUrls[typedKey]);
+        }
+      });
+
+      it("should raise an error when the JSON-parsed value of GRIST_CUSTOM_COMMON_URLS is not an object", function () {
+        sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "42");
+        assert.throws(getCommonUrls, /Unexpected/);
+        sandbox.restore();
+        sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "null");
+        assert.throws(getCommonUrls, /Unexpected/);
+      });
+    });
+
+    describe("client-side when customized by the admin", function () {
+      it("should read the admin-defined values gristConfig", function () {
+        sandbox.define(globalThis, 'window', {
+          gristConfig: {
+            adminDefinedUrls: JSON.stringify({
+              help: "https://getgrist.com"
+            })
+          },
+          // Fake location to make isClient() believe the code is executed client-side.
+          location: {
+            hostname: 'getgrist.com'
+          },
+        });
+        const commonUrls = getCommonUrls();
+        assert.isObject(commonUrls);
+        assert.equal(commonUrls.help, "https://getgrist.com");
+        assert.equal(commonUrls.helpAccessRules, "https://support.getgrist.com/access-rules");
+      });
     });
   });
 });
