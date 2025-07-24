@@ -108,6 +108,7 @@ import {
   AssistanceSchemaPromptV1Context,
 } from 'app/server/lib/IAssistant';
 import {AssistanceContextV1} from 'app/common/Assistance';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
@@ -198,6 +199,11 @@ const LOG_DOCUMENT_METRICS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 10
 // For items of work that need to happen at shutdown, timeout before aborting the wait for them.
 const SHUTDOWN_ITEM_TIMEOUT_MS = 5000;
 
+const MAX_INTERNAL_ATTACHMENTS_BYTES =
+    appSettings.section('externalStorage').flag('maxInternalBytes').readInt({
+      envVar: 'GRIST_MAX_INTERNAL_ATTACHMENTS_BYTES',
+    });
+
 // We keep a doc open while a user action is pending, but not longer than this. If it's pending
 // this long, the ACTIVEDOC_TIMEOUT will still kick in afterwards, and in the absence of other
 // activity, the doc would still get shut down, with the action's effect lost. This is to prevent
@@ -212,6 +218,7 @@ export const Deps = {
   UPDATE_CURRENT_TIME_DELAY,
   SHUTDOWN_ITEM_TIMEOUT_MS,
   KEEP_DOC_OPEN_TIMEOUT_MS,
+  MAX_INTERNAL_ATTACHMENTS_BYTES,
 };
 
 interface UpdateUsageOptions {
@@ -922,7 +929,7 @@ export class ActiveDoc extends EventEmitter {
             await this._updateAttachmentsSize({syncUsageToDatabase: false});
           } else {
             // No point in retrying if nothing changed.
-            throw new LimitExceededError("Exceeded attachments limit for document");
+            throw e;
           }
         }
       );
@@ -3182,23 +3189,28 @@ export class ActiveDoc extends EventEmitter {
     // Minor flaw: while we don't double-count existing duplicate files in the total size,
     // we don't check here if any of the uploaded files already exist and could be left out of the calculation.
     const uploadSizeBytes = sum(upload.files.map(f => f.size));
-    if (await this._isUploadSizeBelowLimit(uploadSizeBytes)) { return; }
-
-    // TODO probably want a nicer error message here.
-    throw new LimitExceededError("Exceeded attachments limit for document");
-  }
-
-  /**
-   * Returns true if an upload with size `uploadSizeBytes` won't cause attachment size
-   * limits to be exceeded.
-   */
-  private async _isUploadSizeBelowLimit(uploadSizeBytes: number): Promise<boolean> {
-    const maxSize = this._product?.features.baseMaxAttachmentsBytesPerDocument;
-    if (!maxSize) { return true; }
 
     let currentSize = this._docUsage?.attachmentsSizeBytes;
     currentSize = currentSize ?? await this._updateAttachmentsSize({syncUsageToDatabase: false});
-    return currentSize + uploadSizeBytes <= maxSize;
+    const futureSize = currentSize + uploadSizeBytes;
+
+    const productMaxSize = this._product?.features.baseMaxAttachmentsBytesPerDocument;
+
+    if (productMaxSize !== undefined && futureSize > productMaxSize) {
+      // TODO probably want a nicer error message here.
+      throw new LimitExceededError("Exceeded attachments limit for document");
+    }
+
+    // If not using external attachments, apply installation limit on size.
+    // Technically the attachmentStoreId being set doesn't mean all attachments
+    // are actually stored externally, and a determined person could
+    // work around this limit at the API level. That's fine, their
+    // reward will be pain.
+    if (Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
+        futureSize > Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
+        !this.docData?.docSettings().attachmentStoreId) {
+      throw new LimitExceededError("Exceeded internal attachments limit for document");
+    }
   }
 
   /**

@@ -6,7 +6,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import {CreatableArchiveFormats} from 'app/common/UserAPI';
 import {TableData} from 'app/common/TableData';
 import {GristObjCode} from 'app/plugin/GristData';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
   AttachmentStoreProvider,
@@ -1214,6 +1214,44 @@ describe('ActiveDoc', async function() {
         }
       }
     }
+
+
+    it('can enforce internal attachments limit', async function() {
+
+      // Add a tight limit, make sure adding attachments fails.
+      let stub = sandbox.stub(Deps, 'MAX_INTERNAL_ATTACHMENTS_BYTES').value(10);
+      const activeDoc = await docTools.createDoc('enforceInternalLimit');
+      try {
+        await assert.isRejected(
+          uploadAttachments(activeDoc, testAttachments),
+          /Exceeded internal attachments limit/
+        );
+
+        // Ease off, make sure adding attachments succeeds.
+        stub.restore();
+        await assert.isFulfilled(
+          uploadAttachments(activeDoc, testAttachments)
+        );
+
+        // Add limit again, make sure it works, then set the doc for external
+        // storage and see if adding attachments works now.
+        stub = sandbox.stub(Deps, 'MAX_INTERNAL_ATTACHMENTS_BYTES').value(10);
+        await assert.isRejected(
+          uploadAttachments(activeDoc, testAttachments),
+          /Exceeded internal attachments limit/
+        );
+        await activeDoc.setAttachmentStore(
+          makeExceptionalDocSession('system'),
+          docTools.getAttachmentStoreProvider().listAllStoreIds()[0],
+        );
+        await assert.isFulfilled(
+          uploadAttachments(activeDoc, testAttachments)
+        );
+      } finally {
+        stub.restore();
+        await activeDoc.shutdown();
+      }
+    });
 
     it('can pack attachments into an archive', async function() {
       const docName = 'attachment-archive';
