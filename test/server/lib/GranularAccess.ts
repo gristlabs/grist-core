@@ -3613,7 +3613,7 @@ describe('GranularAccess', function() {
     const i7 = await postAttachment(editor, docId, tokenResult.token, "content7", "7.txt");
     await assert.isFulfilled(getAttachment(owner, docId, i7));
     //await assert.isFulfilled(getAttachment(editor, docId, i7));
-    await editor.getDocAPI(docId).updateRows('Data1', {id: [1], Pics: [[GristObjCode.List, i7]]});
+    await editor.getDocAPI(docId).updateRows('Data1', {id: [1], Texts: [[GristObjCode.List, i7]]});
     await assert.isFulfilled(getAttachment(editor, docId, i7));
 
     // Attachment check is not applied for undos of actions by the same user.
