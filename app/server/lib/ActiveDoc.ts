@@ -1299,12 +1299,11 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Fetches the generated schema for a given table.
-   * @param {String} tableId: The string identifier of the table.
-   * @returns {Promise} Promise for a string representing the generated table schema.
+   * Fetches the generated Python code.
+   * @returns {Promise} Promise for a string representing the generated Python code.
    */
-  public async fetchTableSchema(docSession: DocSession): Promise<string> {
-    this._log.info(docSession, "fetchTableSchema(%s)", docSession);
+  public async fetchPythonCode(docSession: OptDocSession): Promise<string> {
+    this._log.info(docSession, "fetchPythonCode(%s)", docSession);
     // Permit code view if user can read everything, or can download/copy (perhaps
     // via an exceptional permission for sample documents)
     if (!(await this._granularAccess.canReadEverything(docSession) ||
