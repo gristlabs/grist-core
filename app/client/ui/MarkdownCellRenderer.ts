@@ -60,18 +60,10 @@ function domAsyncOrDirect(render: (markedObj: Marked) => DomContents) {
  *
  * The actual rendering will happen asynchronously on first use, while the markdown loads some
  * extensions (specifically, the code highlighter).
- * @options {inline} - If true, renders the markdown as inline text, otherwise as block text. Inline markdown doesn't
- *                     support block level elements, doesn't wrap text in <p> tags, preserves whitespace etc. Which is
- *                     more suitable for chat like elements.
- *
- * See more at https://marked.js.org/using_advanced#inline
  */
-export function renderCellMarkdown(markdownValue: string, options?: {
-  inline?: boolean;
-}): DomContents {
+export function renderCellMarkdown(markdownValue: string): DomContents {
   return domAsyncOrDirect((markedObj: Marked) => {
-    const parser = options?.inline ? markedObj.parseInline : markedObj.parse;
-    const source = parser(markdownValue, {
+    const source = markedObj.parse(markdownValue, {
       async: false,
       gfm: false,
       renderer,

@@ -35,7 +35,7 @@ export class MarkdownTextBox extends NTextBox {
   }
 }
 
-const cssMarkdown = styled('div', `
+export const cssMarkdown = styled('div', `
   white-space: nowrap;
 
   &-text-wrap {

@@ -4,11 +4,11 @@ import {makeTestId, onClickOutsideElem} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {autoGrow} from 'app/client/ui/forms';
-import {renderCellMarkdown} from 'app/client/ui/MarkdownCellRenderer';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssLink} from 'app/client/ui2018/links';
 import {gristFloatingMenuClass, menuCssClass} from 'app/client/ui2018/menus';
+import {splitTextWithMentions} from 'app/common/DocComments';
 import {canView} from 'app/common/roles';
 import {orderBy} from 'app/common/SortFunc';
 import {tokens} from 'app/common/ThemePrefs';
@@ -134,7 +134,7 @@ export function buildMentionTextBox(
     autoGrow(content),
     dom.attr('contentEditable', 'plaintext-only'),
     buildMentions(),
-    renderCellMarkdown(content.get().text || '', {inline: true}),
+    renderMarkdownForEditing(content.get().text || ''),
     // Since markdown is rendered asynchronously, we need to ensure that the mentions render by it, have
     // contentEditable set to false, so that they don't get edited.
     enforceNotEditableChildren,
@@ -149,6 +149,14 @@ export function buildMentionTextBox(
   );
 
   return element;
+}
+
+function renderMarkdownForEditing(text: string) {
+  return splitTextWithMentions(text).map(chunk =>
+    typeof chunk === 'string'
+      ? chunk
+      : cssLink({ 'data-userref': chunk.ref }, chunk.name, dom.cls('grist-mention'))
+  );
 }
 
 function enforceNotEditableChildren(element: HTMLElement) {
@@ -406,7 +414,6 @@ const cssContentEditable = styled('div', `
   border: 1px solid ${theme.inputBorder};
   outline: none;
   width: 100%;
-  max-height: 10em;
   overflow: auto;
   white-space: pre-line;
   &-comment, &-reply {
