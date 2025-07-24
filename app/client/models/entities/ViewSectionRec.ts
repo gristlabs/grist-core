@@ -19,7 +19,7 @@ import {
 import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
-import {LinkConfig} from 'app/client/ui/selectBy';
+import {LinkConfig} from 'app/client/ui/LinkConfig';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
