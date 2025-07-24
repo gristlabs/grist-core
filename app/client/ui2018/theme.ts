@@ -133,9 +133,17 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     syncWithOS = urlParams?.themeSyncWithOs;
   }
 
-  let themeName = themePrefs.colors[appearance];
+  // The themeName is stored both in themePrefs.colors.light and themePrefs.colors.dark
+  // (see app/common/ThemePrefs.ts#getDefaultThemePrefs for more info).
+  // So, it doesn't matter if we take the theme name from colors.light or colors.dark
+  let themeName = themePrefs.colors['light'];
   if (urlParams?.themeName) {
     themeName = urlParams?.themeName;
+  }
+  // User might set up the theme appearance in the url params, but not the theme name:
+  // make sure the theme is correctly set in that case
+  if (urlParams?.themeAppearance && !urlParams?.themeName) {
+    themeName = appearance === 'dark' ? 'GristDark' : 'GristLight';
   }
 
   if (syncWithOS) {

@@ -170,6 +170,17 @@ export class Document extends Resource {
   }
 }
 
+/**
+ * In a query optimization, we filter docs in a CTE. There's no
+ * direct way to tell TypeORM that this filtered version of docs
+ * has the same structure as the table. So we create a entity
+ * with a distinct name for this purpose. Does not exist in the
+ * database.
+ */
+@Entity({name: 'filtered_docs'})
+export class FilteredDocument extends Document {
+}
+
 // Check that icon points to an expected location.  This will definitely
 // need changing, it is just a placeholder as the icon feature is developed.
 function sanitizeIcon(icon: string|null) {
