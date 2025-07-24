@@ -95,7 +95,7 @@ export type FormFraming = 'border' | 'minimal';
  *           the original.
  */
 
-export const commonUrls = {
+export const getCommonUrls = () => withAdminDefinedUrls({
   help: getHelpCenterUrl(),
   helpAccessRules: "https://support.getgrist.com/access-rules",
   helpAssistant: "https://support.getgrist.com/assistant",
@@ -144,7 +144,9 @@ export const commonUrls = {
 
   versionCheck: 'https://api.getgrist.com/api/version',
   attachmentStorage: 'https://support.getgrist.com/document-settings/#external-attachments',
-};
+});
+
+export const commonUrls = getCommonUrls();
 
 
 /**
@@ -944,6 +946,8 @@ export interface GristLoadConfig {
   featureNotifications?: boolean;
 
   formFraming?: FormFraming;
+
+  adminDefinedUrls?: string;
 }
 
 export const Features = StringUnion(
@@ -1317,4 +1321,33 @@ export interface UrlTweaks {
   preDecode?(options: {
     url: URL,
   }): void;
+}
+
+function withAdminDefinedUrls<T extends Record<string, string|undefined>>(defaultUrls: T): T {
+  let adminDefinedUrlsStr: string | undefined;
+  if (isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    adminDefinedUrlsStr = gristConfig?.adminDefinedUrls;
+  } else {
+    adminDefinedUrlsStr = process.env.GRIST_CUSTOM_COMMON_URLS;
+  }
+
+  const adminDefinedUrls = JSON.parse(adminDefinedUrlsStr || '{}', (key, val) => {
+    // Remove any non-string values
+    // key is null-ish when it is the root object
+    return (!key || typeof val === "string") ? val : null;
+  });
+  if (adminDefinedUrls === null || typeof adminDefinedUrls !== "object") {
+    throw new Error("Unexpected format for GRIST_CUSTOM_COMMON_URLS. Expected to be a JSON object.");
+  }
+
+  const filteredAdminDefinedUrls = adminDefinedUrlsStr && pickBy(
+    adminDefinedUrls,
+    (value, key) => value !== null && defaultUrls.hasOwnProperty(key)
+  );
+
+  return {
+    ...defaultUrls,
+    ...(filteredAdminDefinedUrls || {})
+  };
 }
