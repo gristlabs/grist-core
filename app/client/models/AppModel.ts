@@ -295,8 +295,8 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly currentProduct = this.currentOrg?.billingAccount?.product ?? null;
   public readonly currentPriceId = this.currentOrg?.billingAccount?.stripePlanId ?? null;
   public readonly currentFeatures = mergedFeatures(
+    this.currentOrg?.billingAccount?.features ?? null,
     this.currentProduct?.features ?? null,
-    this.currentOrg?.billingAccount?.features ?? null
   );
 
   public readonly isPersonal = Boolean(this.currentOrg?.owner);

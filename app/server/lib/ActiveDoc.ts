@@ -61,7 +61,7 @@ import {
   RowCounts,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {Product} from 'app/common/Features';
+import {Features, Product} from 'app/common/Features';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
@@ -296,6 +296,7 @@ export class ActiveDoc extends EventEmitter {
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
+  private _features?: Features;
   private _gracePeriodStart: Date|null = null;
   private _isSnapshot: boolean;
   private _isForkOrSnapshot: boolean;
@@ -384,6 +385,7 @@ export class ActiveDoc extends EventEmitter {
       const { gracePeriodStart, workspace, usage } = _options.doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
+      this._features = billingAccount?.getFeatures();
       this._gracePeriodStart = gracePeriodStart;
 
       if (billingAccount) {
@@ -476,6 +478,8 @@ export class ActiveDoc extends EventEmitter {
 
   public get docName(): string { return this._docName; }
 
+  public get features(): Features|undefined { return this._features; }
+
   public get recoveryMode(): boolean { return this._recoveryMode; }
 
   public get isShuttingDown(): boolean { return this._shuttingDown; }
@@ -485,25 +489,25 @@ export class ActiveDoc extends EventEmitter {
   public get rowLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.rowCount?.total,
-      this._product?.features.baseMaxRowsPerDocument
+      this._features?.baseMaxRowsPerDocument
     );
   }
 
   public get dataSizeLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.dataSizeBytes,
-      this._product?.features.baseMaxDataSizePerDocument
+      this._features?.baseMaxDataSizePerDocument
     );
   }
 
   public get dataLimitRatio(): number {
-    return getDataLimitRatio(this._docUsage, this._product?.features);
+    return getDataLimitRatio(this._docUsage, this._features);
   }
 
   public get dataLimitInfo(): DataLimitInfo {
     return getDataLimitInfo({
       docUsage: this._docUsage,
-      productFeatures: this._product?.features,
+      productFeatures: this._features,
       gracePeriodStart: this._gracePeriodStart,
     });
   }

@@ -112,9 +112,15 @@ export interface Features {
 /**
  * Returns a merged set of features, combining the features of the given objects.
  * If all objects are null, returns null.
+ *
+ * Examples:
+ * // Use features from the billingAccount, for any missing features use product features.
+ * - mergedFeatures(billingAccount, product),
+ * // Use features from the document, for any missing features use billingAccount features and then product features.
+ * - mergedFeatures(document, billingAccount, product),
  */
-export function mergedFeatures(...features: (Features|null)[]): Features {
-  return features.filter(Boolean).reduce((acc: Features, f) => defaultsDeep(acc, f), {});
+export function mergedFeatures(resource: Features|null, ...defaults: (Features|null)[]): Features {
+  return [resource, ...defaults].filter(Boolean).reduce((acc: Features, f) => defaultsDeep(acc, f), {});
 }
 
 /**

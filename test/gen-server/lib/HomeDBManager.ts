@@ -1,6 +1,10 @@
-import {UserProfile} from 'app/common/LoginSessionAPI';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {FREE_PLAN, STUB_PLAN, TEAM_PLAN} from 'app/common/Features';
+import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
+import {UserProfile} from 'app/common/LoginSessionAPI';
+import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {getAnonymousFeatures, Product} from 'app/gen-server/entity/Product';
+import {Share} from 'app/gen-server/entity/Share';
+import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {assert} from 'chai';
 import {TestServer} from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
@@ -16,7 +20,6 @@ const teamOptions = {
 };
 
 describe('HomeDBManager', function() {
-
   let server: TestServer;
   let home: HomeDBManager;
   testUtils.setTmpLogLevel('error');
@@ -341,6 +344,76 @@ describe('HomeDBManager', function() {
       workspaces: true,
       vanityDomain: true,
     });
+  });
+
+  it('reads proper features for a doc', async function() {
+    // Add new product with a feature.
+    const product = new Product();
+    product.name = 'dummyProduct';
+    product.features = { maxDocsPerOrg: 2 };
+    await home.connection.manager.save(product);
+
+    // Add new org for chimpy with that product.
+    const user = await home.getUserByLogin('chimpy@getgrist.com');
+    const userId = user.id;
+    const orgId = (await home.addOrg(user, {name: 'features', domain: 'features'}, {
+      ...teamOptions, product: product.name
+    })).data!.id;
+
+    const ws = home.unwrapQueryResult(
+        await home.getOrgWorkspaces({userId}, 'features')
+      )[0];
+
+    // Add a doc to that org.
+    const addedDoc = (await home.addDocument({userId}, ws.id, {name: 'MyDoc1'})).data!;
+    const readDoc = await home.getDoc({userId, urlId: addedDoc.urlId!});
+
+    // Check that the doc has the expected features.
+    assert.equal(readDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 2);
+
+    // Add an override on the billing account level.
+    await home.updateBillingAccount({userId}, orgId, async (ba, tx) => {
+      ba.features = { maxDocsPerOrg: 3 };
+    });
+
+    // Reread the doc and check that it has the updated features.
+    const updatedDoc = await home.getDoc({userId, urlId: addedDoc.urlId!});
+    assert.equal(updatedDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
+
+    // Now open this document as fork.
+    const forkId = `${addedDoc.id}~${uuidv4()}~${userId}`;
+    const forkedRead = await home.getDoc({userId, urlId: forkId});
+
+    // Check that the forked document has the same features as the original.
+    assert.equal(forkedRead.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
+
+    // Create a new document using the NEW_DOCUMENT_CODE
+    const newId = `${NEW_DOCUMENT_CODE}~${uuidv4()}~${userId}`;
+    const newRead = await home.getDoc({userId, urlId: newId});
+    // Check that the new document has the same features as the original.
+    assert.deepEqual(newRead.workspace.org.billingAccount.getFeatures(), getAnonymousFeatures());
+
+
+    // Open document using share key.
+    const share = new Share();
+    share.docId = addedDoc.id;
+    share.key = 'shareKey';
+    share.linkId = 'shareLink';
+    share.options = {};
+    await home.connection.manager.save(share);
+
+    const shareRead = await home.getDoc({userId, urlId: `${SHARE_KEY_PREFIX}${share.key}`});
+    // Check that the share document has the same features as the original.
+    assert.equal(shareRead.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
+
+    // Remove the override.
+    await home.updateBillingAccount({userId}, orgId, async (ba, tx) => {
+      ba.features = null;
+    });
+
+    // Reread the doc and check that it has the original features.
+    const finalDoc = await home.getDoc({userId, urlId: addedDoc.urlId!});
+    assert.equal(finalDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 2);
   });
 
   it('can fork docs', async function() {

@@ -5,7 +5,14 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features, isFreePlan} from 'app/common/Features';
+import {
+  ANONYMOUS_PLAN,
+  canAddOrgMembers,
+  Features,
+  isFreePlan,
+  mergedFeatures,
+  PERSONAL_FREE_PLAN
+} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -39,7 +46,12 @@ import {Group} from 'app/gen-server/entity/Group';
 import {Limit} from 'app/gen-server/entity/Limit';
 import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/entity/Organization';
 import {Pref} from 'app/gen-server/entity/Pref';
-import {getDefaultProductNames, personalFreeFeatures, Product} from 'app/gen-server/entity/Product';
+import {
+  getAnonymousFeatures,
+  getDefaultProductNames,
+  personalFreeFeatures,
+  Product
+} from 'app/gen-server/entity/Product';
 import {Secret} from 'app/gen-server/entity/Secret';
 import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
@@ -84,7 +96,7 @@ import {getScope} from 'app/server/lib/requestUtils';
 import {expectedResetDate} from 'app/server/lib/serverUtils';
 import {WebHookSecret} from 'app/server/lib/Triggers';
 import {Request} from 'express';
-import {defaultsDeep, flatten, pick, size} from 'lodash';
+import {flatten, pick, size} from 'lodash';
 import moment from 'moment';
 import {
   Brackets,
@@ -896,6 +908,10 @@ export class HomeDBManager {
         .select('shares')
         .from(Share, 'shares')
         .leftJoinAndSelect('shares.doc', 'doc')
+        .leftJoinAndSelect('doc.workspace', 'workspace')
+        .leftJoinAndSelect('workspace.org', 'org')
+        .leftJoinAndSelect('org.billingAccount', 'billing_account')
+        .leftJoinAndSelect('billing_account.product', 'product')
         .where('key = :key', {key: shareKey})
         .andWhere('doc.removed_at IS NULL')
         .getOne();
@@ -910,16 +926,12 @@ export class HomeDBManager {
         updatedAt: new Date().toISOString(),
         isPinned: false,
         urlId: key.urlId,
-        // For the moment, I don't include a useful workspace.
-        // TODO: look up the document properly, perhaps delegating
-        // to the regular path through this method.
-        workspace: this.unwrapQueryResult<Workspace>(
-          await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
-                                   this._exampleWorkspaceId)),
+        workspace: res.doc.workspace,
         aliases: [],
         access: 'editors',  // a share may have view/edit access,
                             // need to check at granular level
       } as any;
+
       return doc;
     }
     const urlId = trunkId;
@@ -940,10 +952,16 @@ export class HomeDBManager {
         urlId: null,
         workspace: this.unwrapQueryResult<Workspace>(
           await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
-                                   this._exampleWorkspaceId)),
+                                   this._exampleWorkspaceId, transaction)),
         aliases: [],
         access
       } as any;
+
+      // Use free personal account features for documents opened this way.
+      doc.workspace.org.billingAccount = patch(new BillingAccount(), {
+        features: getAnonymousFeatures(),
+        product: patch(new Product(), {name: PERSONAL_FREE_PLAN})
+      });
     } else {
       // We can't delegate filtering of removed documents to the db, since we'll be
       // caching authentication.  But we also don't need to delegate filtering, since
@@ -961,7 +979,7 @@ export class HomeDBManager {
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
-      const features = doc.workspace.org.billingAccount.getFeatures();
+      const features = doc.workspace.org.billingAccount?.getFeatures() || {};
       if (features.readOnlyDocs || this.isReadonly()) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
@@ -2652,8 +2670,8 @@ export class HomeDBManager {
       .getOne() || undefined;
   }
 
-  public async getDocFeatures(docId: string): Promise<Features | undefined> {
-    const billingAccount = await this._connection.createQueryBuilder()
+  public async getDocFeatures(docId: string, transaction?: EntityManager): Promise<Features | undefined> {
+    const billingAccount = await (transaction || this._connection).createQueryBuilder()
       .select('account')
       .from(BillingAccount, 'account')
       .leftJoinAndSelect('account.product', 'product')
@@ -2667,7 +2685,7 @@ export class HomeDBManager {
       return undefined;
     }
 
-    return defaultsDeep(billingAccount.features, billingAccount.product.features);
+    return mergedFeatures(billingAccount.features, billingAccount.product.features);
   }
 
   public async getDocProduct(docId: string): Promise<Product | undefined> {
@@ -3442,19 +3460,19 @@ export class HomeDBManager {
 
         return existing;
       }
-      const product = await manager.createQueryBuilder()
-        .select('product')
-        .from(Product, 'product')
-        .innerJoinAndSelect('product.accounts', 'account')
-        .where('account.id = :accountId', {accountId})
+      const ba = await manager.createQueryBuilder()
+        .select('billing_accounts')
+        .from(BillingAccount, 'billing_accounts')
+        .leftJoinAndSelect('billing_accounts.product', 'products')
+        .where('billing_accounts.id = :accountId', {accountId})
         .getOne();
-      if (!product) {
+      if (!ba) {
         throw new Error(`getLimit: no product for account ${accountId}`);
       }
       existing = new Limit();
-      existing.billingAccountId = product.accounts[0].id;
+      existing.billingAccountId = ba.id;
       existing.type = limitType;
-      existing.limit = product.features.baseMaxAssistantCalls ?? 0;
+      existing.limit = ba.getFeatures().baseMaxAssistantCalls ?? 0;
       existing.usage = 0;
       await manager.save(existing);
       return existing;
@@ -5119,4 +5137,8 @@ function getDocResult(queryResult: QueryResult<any>) {
     Object.setPrototypeOf(doc, Document.prototype);
   }
   return doc;
+}
+
+function patch<T extends object>(obj: T, ...patches: Partial<T>[]): T {
+  return Object.assign(obj, ...patches);
 }
