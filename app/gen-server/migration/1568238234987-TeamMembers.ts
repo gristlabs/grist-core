@@ -15,8 +15,8 @@ export class TeamMembers1568238234987 implements MigrationInterface {
       .from(Organization, "orgs")
       .getMany();
     for (const org of orgs) {
-      // Don't use `manager.insert().into()` as the Group Entity contains properties that references columns
-      // that don't exist yet and `insert()` would like to set their values as well.
+      // Don't use `manager.insert().into()` as the Group Entity contains properties that reference columns
+      // (like `type`) that don't exist yet and `insert()` attempts to set their values as well.
       const groupInsertRes = await queryRunner.manager
         .query("INSERT into groups(name) values($1) RETURNING id", [ roles.MEMBER ]);
       const groupId = getDatabaseType(queryRunner.connection) === 'postgres' ?

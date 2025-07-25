@@ -54,7 +54,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
 
   /** @private */
   private static _ingress = (...args: any[]): Promise<any> => {
-    throw new SCIMMY.Types.Error(501, null!, "Method 'ingress' not implemented by resource 'User'");
+    throw new SCIMMY.Types.Error(501, null!, `Method 'ingress' not implemented by resource '${this.name}'`);
   };
 
   /** @private */
