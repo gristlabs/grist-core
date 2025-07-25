@@ -438,6 +438,10 @@ export class ActiveDoc extends EventEmitter {
       this.docStorage,
       _attachmentStoreProvider,
       forkId ? { id: forkId, trunkId, } : { id: trunkId, trunkId: undefined },
+      (extraBytes: number) => this._assertAttachmentSizeBelowLimit(extraBytes, {
+        checkInternal: true,
+        checkProduct: false,
+      }),
     );
 
     // Every time manager starts the transfer we need to notify clients about it.
@@ -917,7 +921,7 @@ export class ActiveDoc extends EventEmitter {
       // We'll assert that the upload won't cause limits to be exceeded, retrying once after
       // soft-deleting any unused attachments.
       await retryOnce(
-        () => this._assertUploadSizeBelowLimit(upload),
+        () => this._assertUploadInfoSizeBelowLimit(upload),
         async (e) => {
           if (!(e instanceof LimitExceededError)) { throw e; }
 
@@ -3185,18 +3189,27 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Throw an error if the provided upload would exceed the total attachment filesize limit for this document.
    */
-  private async _assertUploadSizeBelowLimit(upload: UploadInfo) {
+  private async _assertUploadInfoSizeBelowLimit(upload: UploadInfo) {
     // Minor flaw: while we don't double-count existing duplicate files in the total size,
     // we don't check here if any of the uploaded files already exist and could be left out of the calculation.
     const uploadSizeBytes = sum(upload.files.map(f => f.size));
+    await this._assertAttachmentSizeBelowLimit(uploadSizeBytes, {
+      checkProduct: true,
+      checkInternal: true,
+    });
+  }
 
+  private async _assertAttachmentSizeBelowLimit(uploadSizeBytes: number, options: {
+    checkProduct: boolean,
+    checkInternal: boolean,
+  }) {
     let currentSize = this._docUsage?.attachmentsSizeBytes;
     currentSize = currentSize ?? await this._updateAttachmentsSize({syncUsageToDatabase: false});
     const futureSize = currentSize + uploadSizeBytes;
 
     const productMaxSize = this._product?.features.baseMaxAttachmentsBytesPerDocument;
 
-    if (productMaxSize !== undefined && futureSize > productMaxSize) {
+    if (options.checkProduct && productMaxSize !== undefined && futureSize > productMaxSize) {
       // TODO probably want a nicer error message here.
       throw new LimitExceededError("Exceeded attachments limit for document");
     }
@@ -3206,7 +3219,7 @@ export class ActiveDoc extends EventEmitter {
     // are actually stored externally, and a determined person could
     // work around this limit at the API level. That's fine, their
     // reward will be pain.
-    if (Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
+    if (options.checkInternal && Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
         futureSize > Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
         !this.docData?.docSettings().attachmentStoreId) {
       throw new LimitExceededError("Exceeded internal attachments limit for document");
