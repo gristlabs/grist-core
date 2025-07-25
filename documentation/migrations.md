@@ -1,6 +1,6 @@
 # Migrations and schema changes
 
-Grist uses [two types of database](database.md):
+Grist uses [two types of databases](database.md):
 * The home database, which stores data for the entire Grist instance
 * Document databases, which each store data for an individual document
 
