@@ -50,11 +50,13 @@ _grist_Shares                     _gristsys_PluginData
 
 :warning: If you want to ensure that you will not alter a document's contents, make a backup copy beforehand.
 
+`_grist_*` tables are managed by the data engine. Their schema is defined in [`sandbox/grist/schema.py`](/sandbox/grist/schema.py).
+
+`_gristsys_*` tables are managed by the Node.js process. Their schema is defined in [`app/server/lib/DocStorage.ts`](/app/server/lib/DocStorage.ts).
+
 ### The migrations
 
-The migrations are handled in the Python sandbox in [`sandbox/grist/migrations.py`](../sandbox/grist/migrations.py).
-
-For more information, please consult [the documentation for migrations](./migrations.md).
+For information on document database migrations, please consult [the documentation for migrations](./migrations.md#document-database).
 
 ## The Home Database
 
@@ -292,4 +294,5 @@ Stores information related to the identification.
 
 ### The migrations
 
-The database migrations are handled by TypeORM ([documentation](https://typeorm.io/migrations)). The migration files are located at [`app/gen-server/migration`](../app/gen-server/migration) and are run at startup (so you don't have to worry about running them yourself).
+For information on home database migrations, please consult [the documentation for migrations](./migrations.md#home-database).
+
