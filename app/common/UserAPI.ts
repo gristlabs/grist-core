@@ -1322,6 +1322,11 @@ export interface AttachmentTransferStatus {
   status: {
     pendingTransferCount: number;
     isRunning: boolean;
+
+    // Count of failures and successes since starting a
+    // transfer of all files.
+    failures: number;
+    successes: number;
   };
   locationSummary: DocAttachmentsLocation;
 }

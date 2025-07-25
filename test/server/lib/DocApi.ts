@@ -2877,6 +2877,8 @@ function testDocApi(settings: {
           status: {
             pendingTransferCount: 0,
             isRunning: false,
+            successes: 0,
+            failures: 0,
           },
           locationSummary: "internal",
         });
@@ -2904,6 +2906,8 @@ function testDocApi(settings: {
           status: {
             pendingTransferCount: 2,
             isRunning: true,
+            successes: 0,
+            failures: 0,
           },
           locationSummary: "internal",
         });
