@@ -1162,6 +1162,44 @@ describe('ActiveDoc', async function() {
     }
   });
 
+  it('sandbox passes in truthy custom values', async function () {
+    const env = new EnvironmentSnapshot();
+    try {
+      process.env.GRIST_TRUTHY_VALUES = 'meep';
+      const activeDoc = new ActiveDoc(docTools.getDocManager(), 'truthyTest');
+      await activeDoc.createEmptyDoc(fakeSession);
+      await activeDoc.applyUserActions(fakeSession, [
+        ["AddTable", "Info", [{id: 'Flag', type: 'Bool'}]],
+        ["AddRecord", "Info", null, {Flag: 'meep'}],
+        ["AddRecord", "Info", null, {Flag: 'moop'}],
+      ]);
+      const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
+      assert.deepEqual(data.Flag, [true, 'moop'], "Expected 'meep' to be truthy");
+      await activeDoc.shutdown();
+    } finally {
+      env.restore();
+    }
+  });
+
+  it('sandbox passes in falsy custom values', async function () {
+    const env = new EnvironmentSnapshot();
+    try {
+      process.env.GRIST_FALSY_VALUES = 'moop';
+      const activeDoc = new ActiveDoc(docTools.getDocManager(), 'falsyTest');
+      await activeDoc.createEmptyDoc(fakeSession);
+      await activeDoc.applyUserActions(fakeSession, [
+        ["AddTable", "Info", [{id: 'Flag', type: 'Bool'}]],
+        ["AddRecord", "Info", null, {Flag: 'meep'}],
+        ["AddRecord", "Info", null, {Flag: 'moop'}],
+      ]);
+      const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
+      assert.deepEqual(data.Flag, ['meep', false], "Expected 'moop' to be falsy");
+      await activeDoc.shutdown();
+    } finally {
+      env.restore();
+    }
+  });
+
   describe('attachments', async function() {
     // Provides the fake userId `null`, so we can access uploaded files with hitting an
     // authorization errors.

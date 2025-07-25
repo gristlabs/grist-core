@@ -926,6 +926,15 @@ export function getInsertedEnv(options: ISandboxOptions) {
     // tells python to seed the random module
     env.DETERMINISTIC_MODE = '1';
   }
+
+  if (process.env.GRIST_TRUTHY_VALUES) {
+    env.GRIST_TRUTHY_VALUES = process.env.GRIST_TRUTHY_VALUES;
+  }
+
+  if (process.env.GRIST_FALSY_VALUES) {
+    env.GRIST_FALSY_VALUES = process.env.GRIST_FALSY_VALUES;
+  }
+
   return env;
 }
 

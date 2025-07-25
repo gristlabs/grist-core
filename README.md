@@ -399,7 +399,9 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_OIDC_... | optional. Environment variables used to configure OpenID authentification. See [OpenID Connect](https://support.getgrist.com/install/oidc/) documentation for full related list of environment variables. |
 | GRIST_SAML_... | optional. Environment variables used to configure SAML authentification. See [SAML](https://support.getgrist.com/install/saml/) documentation for full related list of environment variables. |
 | GRIST_IDP_EXTRA_PROPS | optional. If set, defines which extra fields returned by your identity provider will be stored in the users table of the home database (in the `options.ssoExtraInfo` object). Usage: 'onekey,anotherkey'. |
-| GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
+| GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
+| GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |
+| GRIST_FALSY_VALUES | optional. Comma-separated list of extra words that should be considered as falsy by the data engine beyond english defaults. Ex: "non,nein,no" |
 #### AI Formula Assistant related variables (all optional):
 
 Variable | Purpose
