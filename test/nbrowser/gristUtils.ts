@@ -665,7 +665,7 @@ async function catchNoSuchElem(query: () => any) {
   }
 }
 
-async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
+export async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
   try {
     return await query();
   } catch (err) {
@@ -1106,8 +1106,8 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 /**
  * Wait for the focus to be on the first element matching given selector.
  */
-export async function waitForFocus(selector: string): Promise<void> {
-  await driver.wait(async () => (await hasFocus(selector)), 1000);
+export async function waitForFocus(selector: string, yesNo: boolean = true, waitMs: number = 1000): Promise<void> {
+  await driver.wait(async () => (await hasFocus(selector) === yesNo), waitMs);
 }
 
 export async function waitForLabelInput(): Promise<void> {
@@ -2156,6 +2156,7 @@ export enum TestUserEnum {
   user3 = 'kiwi',
   user4 = 'ham',
   userz = 'userz',    // a user for old tests, that doesn't overlap with others.
+  fresh = 'fresh',    // user with no resources in seed.ts, safe to recreate as needed
   owner = 'chimpy',
   anon = 'anon',
   support = 'support',
@@ -2254,6 +2255,7 @@ export class Session {
                                 freshAccount?: boolean,
                                 isFirstLogin?: boolean,
                                 showTips?: boolean,
+                                showGristTour?: boolean,
                                 userName?: string,
                                 email?: string,
                                 retainExistingLogin?: boolean}) {
@@ -3384,20 +3386,21 @@ export async function getSectionTitles() {
 export async function renameSection(sectionTitle: string, name: string) {
   const renameWidget = driver.findContent(`.test-viewsection-title`, sectionTitle);
   await renameWidget.find(".test-widget-title-text").click();
-  await driver.findWait('.test-widget-title-popup', 100);
-  await driver.find(".test-widget-title-section-name-input").click();
-  await selectAll();
-  await driver.sendKeys(name || Key.DELETE, Key.ENTER);
-  await waitForServer();
+  await doRenameSection(name);
 }
 
 export async function renameActiveSection(name: string) {
   await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
+  await doRenameSection(name);
+}
+
+async function doRenameSection(name: string) {
   await driver.findWait('.test-widget-title-popup', 100);
   await driver.find(".test-widget-title-section-name-input").click();
   await selectAll();
   await driver.sendKeys(name || Key.DELETE, Key.ENTER);
   await waitForServer();
+  await notPresent(".test-widget-title-section-name-input");
 }
 
 /**
@@ -3958,21 +3961,6 @@ export const choicesEditor = {
     await driver.find(".test-choice-list-entry-cancel").click();
   }
 };
-
-export function findValue(selector: string, value: string|RegExp) {
-  const inner = async () => {
-    const all = await driver.findAll(selector);
-    const tested: string[] = [];
-    for(const el of all) {
-      const elValue = await el.value();
-      tested.push(elValue);
-      const found = typeof value === 'string' ? elValue === value : value.test(elValue);
-      if (found) { return el; }
-    }
-    throw new Error(`No element found matching ${selector}, tested ${tested.join(', ')}`);
-  };
-  return new WebElementPromise(driver, inner());
-}
 
 export async function switchUser(email: string) {
   await driver.findWait('.test-user-icon', 1000).click();

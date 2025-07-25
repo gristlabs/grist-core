@@ -200,16 +200,12 @@ export class RegionFocusSwitcher extends Disposable {
     }
     const targetRegionId = closestRegion.getAttribute(ATTRS.regionId);
     const targetsMain = targetRegionId === 'main';
-    const current = this._state.get().region;
-    const currentlyInSection = current?.type === 'section';
 
     if (targetsMain) {
-      if (!currentlyInSection) {
-        this.focusRegion(
-          {type: 'section', id: gristDoc.viewModel.activeSectionId()},
-          {initiator: {type: 'mouse', event}}
-        );
-      }
+      this.focusRegion(
+        {type: 'section', id: gristDoc.viewModel.activeSectionId()},
+        {initiator: {type: 'mouse', event}}
+      );
     } else {
       // When not targeting the main panel, we don't always want to focus the given region _on click_.
       // We only do it if clicking an empty area in the panel, or a focusable element like an input.

@@ -3,8 +3,10 @@ import { describe } from "mocha";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-const isClipboardFocused = () => {
-  return gu.hasFocus('textarea.copypaste.mousetrap');
+// Check that the focus is on the clipboard element, with a short wait in case it's not entirely
+// synchronous. You may set waitMs to 0.
+const expectClipboardFocus = (yesNo: boolean, waitMs: number = 100) => {
+  return gu.waitForFocus('textarea.copypaste.mousetrap', yesNo, waitMs);
 };
 
 const isNormalElementFocused = async (containerSelector?: string) => {
@@ -54,7 +56,7 @@ const assertPanelFocus = async (panel: 'left' | 'top' | 'right' | 'main', expect
 };
 
 const assertSectionFocus = async (sectionId: number, expected: boolean = true) => {
-  assert.equal(await isClipboardFocused(), expected);
+  await expectClipboardFocus(expected);
   assert.equal(await gu.getSectionId() === sectionId, expected);
 };
 
@@ -74,7 +76,7 @@ const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number }
     let sectionsCount = 0;
     while (sectionsCount < sections) {
       await cycle();
-      assert.isTrue(await isClipboardFocused());
+      await expectClipboardFocus(true);
       sectionsCount++;
     }
   } else {
@@ -89,7 +91,7 @@ const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number }
     let sectionsCount = 0;
     while (sectionsCount < sections) {
       await cycle('backward');
-      assert.isTrue(await isClipboardFocused());
+      await expectClipboardFocus(true);
       sectionsCount++;
     }
   } else {
@@ -122,14 +124,14 @@ describe("RegionFocusSwitcher", function () {
     const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, 'Hello.grist');
 
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true, 0);
     assert.equal(await gu.getActiveCell().getText(), 'hello');
     await driver.sendKeys(Key.TAB);
     // after pressing tab once, we should be on the [first row, second column]-cell
     const secondCellText = await gu.getCell(1, 1).getText();
     const activeCellText = await gu.getActiveCell().getText();
     assert.equal(activeCellText, secondCellText);
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true, 0);
   });
 
   it("should cycle through regions with (Shift+)Ctrl+O", async () => {
@@ -218,7 +220,7 @@ describe("RegionFocusSwitcher", function () {
 
     await toggleCreatorPanelFocus();
     await driver.sendKeys(Key.TAB);
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true);
   });
 
   it("should exit from a region when pressing Esc", async function() {
@@ -228,7 +230,7 @@ describe("RegionFocusSwitcher", function () {
     await cycle();
     await driver.sendKeys(Key.ESCAPE);
     await assertPanelFocus('left', false);
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true);
   });
 
   it("should remember the last focused element in a panel", async function() {
@@ -250,7 +252,7 @@ describe("RegionFocusSwitcher", function () {
 
     // … then reset the kb focus as usual
     await driver.sendKeys(Key.ESCAPE);
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true);
   });
 
   it("should focus a panel-region when clicking an input child element", async function() {
@@ -265,7 +267,7 @@ describe("RegionFocusSwitcher", function () {
     // in that case (mouse click) when pressing esc, we directly focus back to view section
     await driver.sendKeys(Key.ESCAPE);
     await assertPanelFocus('top', false);
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true, 0);
   });
 
   it("should focus a section-region when clicking on it", async function() {
@@ -279,7 +281,7 @@ describe("RegionFocusSwitcher", function () {
     await gu.getActiveCell().click();
 
     await assertPanelFocus('left', false);
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true, 0);
   });
 
   it("should keep the active section focused when clicking a link or button of a panel-region", async function() {
@@ -289,7 +291,7 @@ describe("RegionFocusSwitcher", function () {
     await gu.enterCell('test');
     await driver.find('.test-undo').click();
     await assertPanelFocus('top', false);
-    assert.isTrue(await isClipboardFocused());
+    await expectClipboardFocus(true, 0);
   });
 
   afterEach(() => gu.checkForErrors());

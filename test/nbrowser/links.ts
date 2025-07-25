@@ -1,11 +1,7 @@
 import { assert, driver, Key } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
-import { serveSinglePage, Serving } from 'test/server/customUtil';
+import { setupExternalSite } from 'test/server/customUtil';
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
-
-// An alternative domain for localhost, to test links that look external. We have a record for
-// localtest.datagrist.com set up to point to localhost.
-const TEST_GRIST_HOST = 'localtest.datagrist.com';
 
 describe("links", function () {
   this.timeout(20000);
@@ -13,25 +9,15 @@ describe("links", function () {
   let session: gu.Session;
   let docId: string;
   let urlId: string;
-  // Serve some content on a separate URL, just so we can reliably open non-Grist URLs.
-  // (When we used "example.com", it was occasionally unresponsive, causing tests to fail.)
-  let serving: Serving;
-  let servingUrl: URL;
+
+  const externalSite = setupExternalSite('Dolphins are cool.');
 
   before(async function () {
-    serving = await serveSinglePage("Dolphins are cool.");
-    servingUrl = new URL(serving.url);
-    servingUrl.hostname = TEST_GRIST_HOST;
-
     session = await gu.session().login();
     docId = await session.tempNewDoc(cleanup, "links");
     urlId = (await gu.getCurrentUrlId())!;
     await gu.openColumnPanel();
     await gu.setType("Text");
-  });
-
-  after(async function() {
-    if (serving) { await serving.shutdown(); }
   });
 
   async function assertSameDocumentLink(value: string, expected: RegExp) {
@@ -145,7 +131,7 @@ describe("links", function () {
         );
         return;
         await assertNotSameDocumentLink(
-          makeLink(servingUrl.href),
+          makeLink(externalSite.getUrl().href),
           /localtest.datagrist.com/
         );
         await assertNotSameDocumentLink(
@@ -190,7 +176,7 @@ describe("links", function () {
           /links\?aclAsUser_=editor1%40example.com#a1\.s1\.r1\.c2$/
         );
         await assertNotSameDocumentLink(
-          makeLink(servingUrl.href),
+          makeLink(externalSite.getUrl().href),
           /localtest.datagrist.com/
         );
         await assertNotSameDocumentLink(

@@ -142,7 +142,10 @@ describe('CustomWidgets', function () {
     // Start with 2 widgets.
     widgets = [widget1, widget2];
 
-    const session = await gu.session().login();
+    // Use a fresh profile, to avoid affecting profile of user used in other tests.
+    const session = await gu.session().user("fresh").login({
+      freshAccount: true, isFirstLogin: false, showTips: false, showGristTour: false
+    });
     await session.tempDoc(cleanup, 'Hello.grist');
 
     // Add custom section.
@@ -234,7 +237,7 @@ describe('CustomWidgets', function () {
     // We need to be sure that widget configuration panel is open all the time.
     await gu.toggleSidePanel('right', 'open');
     await recreatePanel();
-    await driver.findWait('.test-right-tab-pagewidget', 100).click();
+    await gu.retryOnStale(() => driver.findWait('.test-right-tab-pagewidget', 100).click());
   }
 
   describe('RightWidgetMenu', () => {
@@ -777,7 +780,7 @@ describe('CustomWidgets', function () {
       // We need to be sure that widget configuration panel is open all the time.
       await gu.toggleSidePanel('right', 'open');
       await recreatePanel();
-      await driver.findWait('.test-right-tab-pagewidget', 100).click();
+      await gu.retryOnStale(() => driver.findWait('.test-right-tab-pagewidget', 100).click());
     });
 
     afterEach(() => gu.checkForErrors());

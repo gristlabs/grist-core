@@ -1,6 +1,7 @@
 import {UserAPI} from 'app/common/UserAPI';
 import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import path from 'path';
+import { setupExternalSite } from 'test/server/customUtil';
 import {
   arrow,
   clickMenu,
@@ -23,8 +24,8 @@ import {setupTestSuite} from 'test/nbrowser/testUtils';
 import {fixturesRoot} from 'test/server/testUtils';
 
 describe('FormView1', function() {
-  this.timeout('4m');
-  gu.bigScreen();
+  this.timeout(20_000);   // Default for each test or hook.
+  gu.bigScreen('medium');
 
   let api: UserAPI;
   let docId: string;
@@ -155,6 +156,8 @@ describe('FormView1', function() {
     });
 
     gu.withClipboardTextArea();
+
+    const externalSite = setupExternalSite('Dolphins are cool.');
 
     it('updates creator panel when navigated away', async function() {
       // Add 2 new pages.
@@ -376,9 +379,11 @@ describe('FormView1', function() {
           await driver.findAll('select[name="D"] option', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
         );
         await driver.find('.test-form-search-select').click();
-        assert.deepEqual(
-          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
-        );
+        await gu.waitToPass(async () =>
+          assert.deepEqual(
+            await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
+          ),
+          500);
         await gu.sendKeys('Baz', Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), 'Baz');
         await driver.find('.test-form-reset').click();
@@ -388,8 +393,10 @@ describe('FormView1', function() {
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         // Check keyboard shortcuts work.
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Bar');
+        await driver.sleep(50);
         await gu.sendKeys(Key.BACK_SPACE);
-        assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
+        await gu.waitToPass(async () =>
+          assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...'), 500);
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         await driver.find('input[type="submit"]').click();
@@ -743,12 +750,12 @@ describe('FormView1', function() {
 
     it('redirects to valid URLs on submission', async function() {
       const url = await createFormWith('Text', {
-        redirectUrl: "https://example.com",
+        redirectUrl: externalSite.getUrl().href
       });
       await gu.onNewTab(async () => {
         await driver.get(url);
         await driver.findWait('input[type="submit"]', 2000).click();
-        await gu.waitForUrl(/example\.com/);
+        await gu.waitForUrl(/localtest\.datagrist\.com/);
       });
       await removeForm();
     });
@@ -1093,6 +1100,7 @@ describe('FormView1', function() {
       await plusButton().click();
 
       // We have 1 unmapped menu item.
+      await driver.findWait('.test-forms-menu-unmapped', 200);
       const unmappedMenuItemCount = (await driver.findAll('.test-forms-menu-unmapped')).length;
       assert.equal(unmappedMenuItemCount, 1);
 
