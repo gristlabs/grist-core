@@ -1062,7 +1062,9 @@
         "Maybe Later": "ஒருவேளை பின்னர்",
         "free coaching call": "இலவச பயிற்சி அழைப்பு",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "அழைப்பில், உங்கள் தேவைகளைப் புரிந்துகொள்வதற்கும் உங்களுக்கு அழைப்பைத் தக்கவைத்துக்கொள்வதற்கும் நாங்கள் நேரம் எடுப்போம். உங்களுக்கு தேவையான டாச்போர்டுகளை உருவாக்க உங்கள் தரவுத்தளங்களை நாங்கள் உங்களுக்குக் காண்பிக்கலாம், அல்லது உங்கள் தரவுகளுடன் இப்போதே பணியாற்றத் தொடங்கலாம்.",
-        "Schedule your {{freeCoachingCall}} with a member of our team.": "எங்கள் அணியின் உறுப்பினருடன் உங்கள் {{freeCoachingCall}} திட்டமிடவும்."
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "எங்கள் அணியின் உறுப்பினருடன் உங்கள் {{freeCoachingCall}} திட்டமிடவும்.",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "கிரிஸ்ட் பற்றி மேலும் அறிய {{ourWeeklyWebinars}} நீங்கள் பார்க்கலாம்.",
+        "our weekly webinars": "எங்கள் வாராந்திர வலைத்தளங்கள்"
     },
     "FormView": {
         "Share this form": "இந்த படிவத்தைப் பகிரவும்",
@@ -1216,12 +1218,12 @@
         "Add two-way reference": "இரு வழி குறிப்பைச் சேர்க்கவும்",
         "Delete": "நீக்கு",
         "Delete column {{column}} in table {{table}}?": "{{table}} அட்டவணையில் {{column}} இல் நெடுவரிசையை நீக்கவா?",
-        "It is the reverse of the reference column {{column}} in table {{table}}.": "இது அட்டவணையில் {{column}}}}}}}}}}}}}.",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "இது அட்டவணை {{table}}இல் உள்ள குறிப்பு நெடுவரிசை {{column}}இன் தலைகீழ் ஆகும்.",
         "Table": "அட்டவணை",
         "Two-way Reference": "இருவழி குறிப்பு",
         "Delete two-way reference?": "இரு வழி குறிப்பை நீக்கவா?",
         "Target table": "இலக்கு அட்டவணை",
-        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "இது அட்டவணையில் {{refCol}}}}}}}}}}}}}}}}}}}}}}}}}}}}} ஐ நீக்கிவிடும். குறிப்பு நெடுவரிசை {{refTable}} தற்போதைய அட்டவணையில் {{myName}} இல் இருக்கும்."
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "இது {{refTable}} அட்டவணையில் உள்ள {{refCol}} குறிப்பு நெடுவரிசையை நீக்கும். {{myName}} குறிப்பு நெடுவரிசை தற்போதைய {{myTable}} அட்டவணையிலேயே இருக்கும்."
     },
     "AuditLogStreamingConfig": {
         "Delete": "நீக்கு",
@@ -1355,9 +1357,9 @@
         "Opt in to Telemetry": "டெலிமெட்ரி தேர்வு செய்யவும்",
         "Opted In": "தேர்வு செய்யப்பட்டது",
         "Support Grist": "உதவி கிரிச்ட்",
-        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "நன்றி! உங்கள் நம்பிக்கையும் ஆதரவும் பெரிதும் பாராட்டப்படுகிறது. பயனர் பட்டியலில் {{link} இருந்து இலிருந்து எந்த நேரத்தையும் தேர்வு செய்யவும்.",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "நன்றி! உங்கள் நம்பிக்கையும் ஆதரவும் பெரிதும் பாராட்டப்படுகிறது. பயனர் பட்டியலில் {{link}} இலிருந்து எந்த நேரத்தையும் தேர்வு செய்யவும்.",
         "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "தயாரிப்பு எவ்வாறு பயன்படுத்தப்படுகிறது என்பதைப் புரிந்துகொள்ள எங்களுக்கு உதவ டெலிமெட்ரியைத் தேர்வுசெய்க, இதன் மூலம் எதிர்கால மேம்பாடுகளுக்கு முன்னுரிமை அளிக்க முடியும்.",
-        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "எங்கள் {{helpCenterLink}} இல் விவரிக்கப்பட்டுள்ளபடி, பயன்பாட்டு புள்ளிவிவரங்களை மட்டுமே நாங்கள் சேகரிக்கிறோம், உள்ளடக்கங்களை ஒருபோதும் ஆவணப்படுத்த வேண்டாம். பயனர் பட்டியலில் {{supportGristLink} இருந்து இலிருந்து எந்த நேரத்தையும் தேர்வு செய்யவும்."
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "எங்கள் {{helpCenterLink}} இல் விவரிக்கப்பட்டுள்ளபடி, பயன்பாட்டு புள்ளிவிவரங்களை மட்டுமே நாங்கள் சேகரிக்கிறோம், உள்ளடக்கங்களை ஒருபோதும் ஆவணப்படுத்த வேண்டாம். பயனர் பட்டியலில் {{supportGristLink}} இலிருந்து எந்த நேரத்தையும் தேர்வு செய்யவும்."
     },
     "ACUserManager": {
         "Enter email address": "மின்னஞ்சல் முகவரியை உள்ளிடவும்",
@@ -1365,7 +1367,7 @@
         "We'll email an invite to {{email}}": "{{email}} க்கு அழைப்பை மின்னஞ்சல் செய்வோம்"
     },
     "buildReassignModal": {
-        "Reassign to {{sourceTable}} record {{sourceName}}.": "{{sourceTable}} பதிவு {{sourceName} க்கு க்கு மறுசீரமைக்கவும்.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "{{sourceTable}} பதிவு {{sourceName}} க்கு மறுசீரமைக்கவும்.",
         "Record already assigned_one": "ஏற்கனவே ஒதுக்கப்பட்ட பதிவு",
         "Record already assigned_other": "ஏற்கனவே ஒதுக்கப்பட்ட பதிவு",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} பதிவு {{targetName}} ஏற்கனவே {{sourceTable}} பதிவுக்கு ஒதுக்கப்பட்டுள்ளது {{oldSourceName}}.",
@@ -1483,13 +1485,13 @@
     },
     "AuditLogsPage": {
         "Audit Logs": "தணிக்கை பதிவுகள்",
-        "Audit logs for {{siteName}}": "{{siteName} க்கு க்கான தணிக்கை பதிவுகள்",
+        "Audit logs for {{siteName}}": "{{siteName}} க்கான தணிக்கை பதிவுகள்",
         "Contact us": "எங்களை தொடர்புகொள்",
         "Home": "வீடு",
         "Log streaming": "பதிவு ச்ட்ரீமிங்",
         "Only site owners may access audit logs.": "தள உரிமையாளர்கள் மட்டுமே தணிக்கை பதிவுகளை அணுகலாம்.",
         "upgrade your plan": "உங்கள் திட்டத்தை மேம்படுத்தவும்",
-        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "நீங்கள் கிரிச்ட் எண்டர்பிரைசை இயக்கினால், கிரிச்டிலிருந்து வெளிப்புற SIEM (பாதுகாப்பு செய்தி மற்றும் நிகழ்வு மேலாண்மை) அமைப்புக்கு தணிக்கை நிகழ்வுகளின் ச்ட்ரீமிங்கை அமைக்கலாம். {{contactUsLink} the மேலும் அறிய.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "நீங்கள் கிரிச்ட் எண்டர்பிரைசை இயக்கினால், கிரிச்டிலிருந்து வெளிப்புற SIEM (பாதுகாப்பு செய்தி மற்றும் நிகழ்வு மேலாண்மை) அமைப்புக்குத் தணிக்கை நிகழ்வுகளின் ச்ட்ரீமிங்கை அமைக்கலாம். {{contactUsLink}} மேலும் அறிய.",
         "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "நீங்கள் {{upgradePlanButton}} என்றால், கிரிச்டிலிருந்து வெளிப்புற SIEM (பாதுகாப்பு செய்தி மற்றும் நிகழ்வு மேலாண்மை) அமைப்புக்கு தணிக்கை நிகழ்வுகளின் ச்ட்ரீமிங் அமைக்கலாம்."
     },
     "DuplicateTable": {
@@ -2008,7 +2010,7 @@
         "Delete": "நீக்கு",
         "Delete {{name}}": "{{name}} ஐ நீக்கு",
         "Document will be moved to Trash.": "ஆவணம் குப்பைக்கு நகர்த்தப்படும்.",
-        "Edited {{at}}": "}} At இல் திருத்தப்பட்டது",
+        "Edited {{at}}": "{{at}} திருத்தப்பட்டது",
         "Last edited": "கடைசியாக திருத்தப்பட்டது",
         "Manage users": "பயனர்களை நிர்வகிக்கவும்",
         "Move": "நகர்த்தவும்",
@@ -2022,7 +2024,7 @@
         "Requires edit permissions": "திருத்து அனுமதிகள் தேவை",
         "Sort by date": "தேதியால் வரிசைப்படுத்துங்கள்",
         "Sort by name": "பெயரால் வரிசைப்படுத்துங்கள்",
-        "Unpin": "Unpin",
+        "Unpin": "மூள்நீக்கு",
         "Workspace": "பணியிடம்"
     },
     "RenameDocModal": {
@@ -2058,7 +2060,7 @@
         "Docs": "கோப்புகள்",
         "Installation": "நிறுவல்",
         "Learn more": "மேலும் அறிக",
-        "Orgs": "Orgs",
+        "Orgs": "நிறுவனங்கள்",
         "Users": "பயனர்கள்",
         "Workspaces": "பணியிடங்கள்",
         "Admin Controls": "நிர்வாக கட்டுப்பாடுகள்",
@@ -2094,8 +2096,8 @@
         "no access": "அணுகல் இல்லை"
     },
     "VersionUpdateBanner": {
-        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "ஒரு முக்கியமான கிரிச்ட் புதுப்பிப்பு உள்ளது. \nபதிப்பு {{version} that க்கு மேம்படுத்துவதைக் கவனியுங்கள்.",
-        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "உங்கள் கிரிச்ட் பதிப்பு காலாவதியானது. \nபதிப்பு {{version} that க்கு மேம்படுத்துவதைக் கவனியுங்கள்."
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "ஒரு முக்கியமான கிரிச்ட் புதுப்பிப்பு உள்ளது. \nபதிப்பு {{version}} க்கு மேம்படுத்துவதைக் கவனியுங்கள்.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "உங்கள் கிரிச்ட் பதிப்பு காலாவதியானது. \nபதிப்பு {{version}} க்கு மேம்படுத்துவதைக் கவனியுங்கள்."
     },
     "ExternalAttachmentBanner": {
         "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "பரிந்துரை: {{storageRecommendation}}} \nபெரிய இணைப்புகளை அல்லது அவற்றில் பலவற்றை சேமிக்கும்போது, நாங்கள் பரிந்துரைக்கிறோம் \nஅவற்றை வெளிப்புற சேமிப்பகத்தில் வைத்திருத்தல். இந்த ஆவணம் தற்போது உள்ளது \nஇணைப்புகளுக்கு உள் சேமிப்பிடத்தைப் பயன்படுத்துதல், அது வைத்திருக்கிறது \nதன்னிறைவான ஆனால் செயல்திறனைக் கட்டுப்படுத்தலாம்.",
