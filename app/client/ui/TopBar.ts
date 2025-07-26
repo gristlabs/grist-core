@@ -115,7 +115,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       )
     ),
     cssFlexSpace(),
-    buildActiveUserList(),
+    dom.maybe(pageModel.gristDoc, (gristDoc) => buildActiveUserList(gristDoc.userPresenceModel)),
     // Don't show useless undo/redo buttons for sample docs, to leave more space for "Make copy".
     dom.maybe(pageModel.undoState, (state) => [
       topBarUndoBtn('Undo',
