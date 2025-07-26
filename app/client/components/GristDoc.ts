@@ -100,6 +100,7 @@ import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
 import pick = require('lodash/pick');
+import {UserPresenceModel, UserPresenceModelImpl} from 'app/client/models/UserPresenceModel';
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
 
@@ -154,6 +155,7 @@ export interface GristDoc extends DisposableWithEvents {
   docPageModel: DocPageModel;
   docModel: DocModel;
   viewModel: ViewRec;
+  userPresenceModel: UserPresenceModel;
   activeViewId: Observable<IDocPage>;
   currentPageName: Observable<string>;
   docData: DocData;
@@ -216,6 +218,7 @@ export interface GristDoc extends DisposableWithEvents {
 export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public docModel: DocModel;
   public viewModel: ViewRec;
+  public userPresenceModel: UserPresenceModel;
   public activeViewId: Observable<IDocPage>;
   public currentPageName: Observable<string>;
   public docData: DocData;
@@ -341,6 +344,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.isTimingOn.set(openDocResponse.isTimingOn);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = this.autoDispose(new DocModel(this.docData, this.docPageModel));
+    this.userPresenceModel = UserPresenceModelImpl.create(this);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
     this.docPluginManager = new DocPluginManager({
       plugins,

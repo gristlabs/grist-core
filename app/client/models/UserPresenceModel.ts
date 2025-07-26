@@ -1,9 +1,44 @@
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
+import {Disposable, Observable} from 'grainjs';
 
-export interface UserPresenceModel {
-
+interface PresentUserDetails {
+  name: string;
 }
 
-export class UserPresenceModel extends DisposableWithEvents implements UserPresenceModel {
+export interface UserPresenceModel {
+  userDetails: Observable<PresentUserDetails[]>;
+}
 
+export class UserPresenceModelImpl extends DisposableWithEvents implements UserPresenceModel {
+  public userDetails: Observable<PresentUserDetails[]>;
+
+  constructor() {
+    super();
+    this.userDetails = Observable.create<PresentUserDetails[]>(this, [
+      {
+        name: "Samwise Gamgee"
+      },
+      {
+        name: "Frodo Baggins"
+      },
+      {
+        name: "Frodo Baggins"
+      },
+      {
+        name: "Frodo Baggins"
+      },
+      {
+        name: "Frodo Baggins"
+      },
+    ]);
+  }
+}
+
+export class UserPresenceModelStub extends Disposable implements UserPresenceModel {
+  public userDetails: Observable<PresentUserDetails[]>;
+
+  constructor() {
+    super();
+    this.userDetails = Observable.create<PresentUserDetails[]>(this, []);
+  }
 }
