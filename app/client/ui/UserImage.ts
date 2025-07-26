@@ -89,6 +89,8 @@ export const cssUserImage = styled('div', `
   height: calc(var(--icon-size, 24px) - var(--border-size));
   line-height: 1em;
 
+  background-color: ${theme.topHeaderBg};
+
   &-small {
     --icon-size: 24px;
     font-size: 13.5px;
