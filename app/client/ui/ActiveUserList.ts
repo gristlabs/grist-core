@@ -1,22 +1,26 @@
-import {domComputed, styled} from 'grainjs';
+import {domComputed, DomElementMethod, styled} from 'grainjs';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
+import {menu} from 'app/client/ui2018/menus';
+import {hoverTooltip} from 'app/client/ui/tooltips';
+import {FullUser} from 'app/common/LoginSessionAPI';
+import {theme} from 'app/client/ui2018/cssVars';
 
-// TODO: Parameters. Will need a partial-user profile, so that dictates what info needs sharing.
+// TODO - Shrink this list on smaller screens
+// TODO - Dropdown with names
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userDetails, (users) => {
-    const usersToRender = users.slice(0, 4);
+    const usersToRender = users.slice(0, 3);
+    const remainingUsers = users.slice(3);
 
-    if (users.length > 4) {
-        usersToRender[usersToRender.length - 1] = {
-          // TODO - make this behave sensibly with many other users, this is a quick hack for now.
-          name: `+ ${users.length - (usersToRender.length - 1)}`,
-        };
-    }
-
-    const firstUserImage = usersToRender.length > 0 ? [createUserImage(usersToRender[0], 'medium')] : [];
-    const overlappingUserImages = usersToRender.slice(1).map(user => createOverlappingUserImage(user, 'medium'));
-    const userImages = firstUserImage.concat(overlappingUserImages);
+    const firstUserImage = usersToRender.length > 0 ? [createUserIndicator(usersToRender[0])] : [];
+    const overlappingUserImages = usersToRender.slice(1).map(user => createUserIndicator(user, { overlapLeft: true }));
+    const finalUserImage = remainingUsers.length === 0
+      ? []
+      : remainingUsers.length == 1
+        ? createUserIndicator(remainingUsers[0])
+        : createRemainingUsersIndicator(remainingUsers);
+    const userImages = firstUserImage.concat(overlappingUserImages, finalUserImage);
 
     // Reverses the order of user images, so that the z-index is automatically correct without manual CSS overrides.
     userImages.reverse();
@@ -25,6 +29,40 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
       ...userImages,
     );
   });
+}
+
+
+function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
+  const imageConstructor = options.overlapLeft ? createOverlappingUserImage : createUserImage;
+  return imageConstructor(user, 'medium', hoverTooltip(user.name));
+}
+
+function createRemainingUsersIndicator(users: Partial<FullUser>[]) {
+  return createOverlappingUserImage({
+      // TODO - make this behave sensibly with many other users
+      //        this is a quick hack for now and only works for single digits.
+      name: `+ ${users.length}`,
+    },
+    'medium',
+    hoverMenu(
+      () => users.map(user => remainingUsersMenuItem(
+        () => {},
+        createUserImage(user, 'medium'),
+        user.name,
+      )),
+    )
+  );
+}
+
+
+function hoverMenu(...args: Parameters<typeof menu>): DomElementMethod {
+  return (elem) => {
+    const options = args[1];
+    const newArgs: typeof args = [...args];
+    // Hover menu needs to be attached to the element itself, otherwise it closes when moused over.
+    newArgs[1] = { ...options, trigger: ['hover'], attach: elem, hideDelay: 100 };
+    return menu(...newArgs);
+  };
 }
 
 // Flex-direction is reversed to give us the correct overlaps without messing with z-indexes.
@@ -38,4 +76,13 @@ const cssActiveUserList = styled('div', `
 
 const createOverlappingUserImage = styled(createUserImage, `
   margin-left: -4px;
+`);
+
+export const remainingUsersMenuItem = styled(`div`, `
+  display: flex;
+  justify-content: flex-start;
+  padding: var(--weaseljs-menu-item-padding, 8px 24px);
+  align-items: center;
+  color: ${theme.menuItemFg};
+  --icon-color: ${theme.accentIcon};
 `);

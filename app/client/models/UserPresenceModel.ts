@@ -22,13 +22,13 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
         name: "Frodo Baggins"
       },
       {
-        name: "Frodo Baggins"
+        name: "Aragorn, Son of Arathorn"
       },
       {
-        name: "Frodo Baggins"
+        name: "Gandalf the Grey"
       },
       {
-        name: "Frodo Baggins"
+        name: "Meriadoc Brandybuck"
       },
     ]);
   }

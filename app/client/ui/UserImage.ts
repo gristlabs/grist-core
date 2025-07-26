@@ -87,6 +87,8 @@ export const cssUserImage = styled('div', `
   --border-size: 0px;
   width: calc(var(--icon-size, 24px) - var(--border-size));
   height: calc(var(--icon-size, 24px) - var(--border-size));
+  flex-shrink: 0;
+  flex-grow: 0;
   line-height: 1em;
 
   background-color: ${theme.topHeaderBg};
