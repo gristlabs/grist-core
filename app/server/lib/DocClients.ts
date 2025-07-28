@@ -74,9 +74,10 @@ export class DocClients {
     }
   }
 
-  public listVisibleUserProfiles(viewerRole: Role): VisibleUserProfile[] {
-    // TODO - Avoid sending the user, or find a way to filter them out.
-    return this._docSessions.map(s => getVisibleUserProfileFromDocSession(s, viewerRole));
+  public listVisibleUserProfiles(viewerRole: Role, omitClientIds: string[] = []): VisibleUserProfile[] {
+    return this._docSessions
+      .filter(s => !omitClientIds.includes(s.client.clientId))
+      .map(s => getVisibleUserProfileFromDocSession(s, viewerRole));
   }
 
   /**
@@ -162,6 +163,7 @@ function getVisibleUserProfileFromDocSession(session: DocSession, viewerRole: Ro
   const user = session.client.authSession.fullUser;
   const isAnonymous = !(session.client.authSession.userIsAuthorized && Boolean(user));
   return {
+    id: session.client.clientId,
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
     picture: user?.picture,
     isAnonymous,

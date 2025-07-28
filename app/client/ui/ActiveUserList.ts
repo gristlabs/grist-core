@@ -8,7 +8,9 @@ import {theme} from 'app/client/ui2018/cssVars';
 
 // TODO - Shrink this list on smaller screens
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
-  return domComputed(userPresenceModel.userProfiles, (users) => {
+  return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
+    // Need to delete id as it's incompatible with createUserImage's parameters.
+    const users = userProfiles.map(userProfile => ({...userProfile, id: undefined }));
     const usersToRender = users.slice(0, 3);
     const remainingUsers = users.slice(3);
 
