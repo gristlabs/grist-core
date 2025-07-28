@@ -253,6 +253,7 @@ export class AccessRules extends Disposable {
     this._tableRules.set(
       rules.getAllTableIds()
       .filter(tableId => (tableId !== SPECIAL_RULES_TABLE_ID))
+      .sort((a, b) => a.localeCompare(b))
       .map(tableId => TableRules.create(this._tableRules,
           tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
     );
