@@ -3,6 +3,7 @@ import {dom, DomElementArg, Observable, styled} from 'grainjs';
 
 interface ToggleSwitchOptions {
   label?: string;
+  enableTransitions?: Observable<boolean>;
   args?: DomElementArg[];
   inputArgs?: DomElementArg[];
   labelArgs?: DomElementArg[];
@@ -29,6 +30,7 @@ export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSw
       label,
       ...labelArgs,
     ),
+    dom.cls(`${cssToggleSwitch.className}--transitions`, options.enableTransitions || true),
     ...args,
   );
 }
@@ -74,8 +76,10 @@ const cssSwitchSlider = styled('div', `
   bottom: 0;
   background-color: ${theme.switchSliderFg};
   border-radius: 17px;
-  -webkit-transition: background-color .4s;
-  transition: background-color .4s;
+
+  &.${cssToggleSwitch.className}--transitions & {
+    transition: background-color .4s;
+  }
 
   .${cssInput.className}:focus + .${cssSwitch.className} > & {
     outline: 2px solid ${theme.controlPrimaryHoverBg};
@@ -97,12 +101,12 @@ const cssSwitchCircle = styled('div', `
   bottom: 2px;
   background-color: ${theme.switchCircleFg};
   border-radius: 17px;
-  -webkit-transition: transform .4s;
-  transition: transform .4s;
+
+  &.${cssToggleSwitch.className}--transitions & {
+    transition: transform .4s;
+  }
 
   .${cssInput.className}:checked + .${cssSwitch.className} > & {
-     -webkit-transform: translateX(13px);
-    -ms-transform: translateX(13px);
     transform: translateX(13px);
   }
 `);
