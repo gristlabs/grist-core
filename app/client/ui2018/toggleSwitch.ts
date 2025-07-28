@@ -8,17 +8,19 @@ interface ToggleSwitchOptions {
   labelArgs?: DomElementArg[];
 }
 
-export function toggleSwitch(value: Observable<boolean|null>, options: ToggleSwitchOptions = {}) {
+export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSwitchOptions = {}) {
   const {label, args = [], inputArgs = [], labelArgs = []} = options;
 
   return cssToggleSwitch(
-    cssInput(
-      {type: 'checkbox'},
-      dom.prop('checked', value),
-      dom.prop('value', use => use(value) ? '1' : '0'),
-      dom.on('change', (_e, elem) => value.set(elem.checked)),
-      ...inputArgs,
-    ),
+    value
+    ? cssInput(
+        {type: 'checkbox'},
+        dom.prop('checked', value),
+        dom.prop('value', use => use(value) ? '1' : '0'),
+        dom.on('change', (_e, elem) => value.set(elem.checked)),
+        ...inputArgs,
+      )
+    : cssInput({type: 'checkbox'}, ...inputArgs),
     cssSwitch(
       cssSwitchSlider(),
       cssSwitchCircle(),
