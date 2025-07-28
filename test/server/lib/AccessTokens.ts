@@ -116,6 +116,13 @@ describe('AccessTokens', function() {
     assert.equal(result.status, 401);
     result = await fetch(home.serverUrl + `/api/docs/${docId}/tables/Table1/records?auth=${token}`);
     assert.equal(result.status, 200);
+
+    // Token is not used outside of /api/docs/${docId}
+    // Anonymous access generates valid responses
+    result = await fetch(home.serverUrl + `/api/profile/user?auth=${token}`);
+    assert.equal(result.status, 200);
+    const payload = await result.json()
+    assert.equal(payload.anonymous, true);
   });
 
 });
