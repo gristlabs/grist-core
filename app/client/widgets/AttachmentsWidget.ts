@@ -171,9 +171,10 @@ export class AttachmentsWidget extends NewAbstractWidget {
         states[rowId] = true;
         this._uploadingStatesObs.set({...states});
         // let the view know about the spinner so that it can expands the row height for it if needed
-        const rowModel = this.field.viewSection().viewInstance()?.viewData.getRowModel(rowId);
+        const viewInstance = this.field.viewSection().viewInstance();
+        const rowModel = viewInstance?.viewData.getRowModel(rowId);
         if (rowModel) {
-          this.field.viewSection().viewInstance()?.onRowResize([rowModel]);
+          viewInstance?.onRowResize([rowModel]);
         }
       }, 750);
     } else {
