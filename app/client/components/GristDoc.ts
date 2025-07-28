@@ -652,6 +652,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     this.listenTo(app.comm, 'docChatter', this._onDocChatter);
 
+    this.docComm.listActiveUserProfiles()
+      .then((profiles) => console.log(profiles))
+      .catch(reportError);
+
     this._handleTriggerQueueOverflowMessage();
 
     this.rightPanelTool = Computed.create(this, (use) => this._getToolContent(use(this._rightPanelTool)));

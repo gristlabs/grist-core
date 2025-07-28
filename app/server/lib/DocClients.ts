@@ -5,10 +5,12 @@
 
 import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
+import {Role} from 'app/common/roles';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Client} from 'app/server/lib/Client';
 import {DocSession, DocSessionPrecursor, OptDocSession} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
 export const Deps = {
@@ -70,6 +72,11 @@ export class DocClients {
     for (const docSession of this._docSessions) {
       docSession.client.interruptConnection();
     }
+  }
+
+  public listVisibleUserProfiles(viewerRole: Role): VisibleUserProfile[] {
+    // TODO - Avoid sending the user, or find a way to filter them out.
+    return this._docSessions.map(s => getVisibleUserProfileFromDocSession(s, viewerRole));
   }
 
   /**
@@ -146,4 +153,17 @@ export class DocClients {
       }
     }
   }
+}
+
+function getVisibleUserProfileFromDocSession(session: DocSession, viewerRole: Role): VisibleUserProfile {
+  if (viewerRole == "viewers") {
+    // TODO - Permissions handling
+  }
+  const user = session.client.authSession.fullUser;
+  const isAnonymous = !(session.client.authSession.userIsAuthorized && Boolean(user));
+  return {
+    name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
+    picture: user?.picture,
+    isAnonymous,
+  };
 }

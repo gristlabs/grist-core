@@ -7,7 +7,6 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import {theme} from 'app/client/ui2018/cssVars';
 
 // TODO - Shrink this list on smaller screens
-// TODO - Dropdown with names
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userDetails, (users) => {
     const usersToRender = users.slice(0, 3);

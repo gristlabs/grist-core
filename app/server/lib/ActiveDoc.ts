@@ -20,7 +20,7 @@ import {
   ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
-  DataSourceTransformed,
+  DataSourceTransformed, VisibleUserProfile,
   ForkResult,
   FormulaTimingInfo,
   ImportOptions,
@@ -621,6 +621,13 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.disable();
     }
     return docSession;
+  }
+
+  public listActiveUserProfiles(docSession: DocSession): VisibleUserProfile[] {
+    return this.docClients.listVisibleUserProfiles(
+      // TODO - Assess if guests is a reasonable default here
+      docSession.authorizer.getCachedAuth().access ?? "guests"
+    );
   }
 
   /**
