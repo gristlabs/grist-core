@@ -8,7 +8,7 @@ import {theme} from 'app/client/ui2018/cssVars';
 
 // TODO - Shrink this list on smaller screens
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
-  return domComputed(userPresenceModel.userDetails, (users) => {
+  return domComputed(userPresenceModel.userProfiles, (users) => {
     const usersToRender = users.slice(0, 3);
     const remainingUsers = users.slice(3);
 

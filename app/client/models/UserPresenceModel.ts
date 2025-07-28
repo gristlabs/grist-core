@@ -1,44 +1,35 @@
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {Disposable, Observable} from 'grainjs';
-
-interface PresentUserDetails {
-  name: string;
-}
+import {DocComm} from 'app/client/components/DocComm';
+import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 
 export interface UserPresenceModel {
-  userDetails: Observable<PresentUserDetails[]>;
+  userProfiles: Observable<VisibleUserProfile[]>;
+
+  initialize(): Promise<void>;
 }
 
 export class UserPresenceModelImpl extends DisposableWithEvents implements UserPresenceModel {
-  public userDetails: Observable<PresentUserDetails[]>;
+  public userProfiles: Observable<VisibleUserProfile[]>;
 
-  constructor() {
+  constructor(private _docComm: DocComm) {
     super();
-    this.userDetails = Observable.create<PresentUserDetails[]>(this, [
-      {
-        name: "Samwise Gamgee"
-      },
-      {
-        name: "Frodo Baggins"
-      },
-      {
-        name: "Aragorn, Son of Arathorn"
-      },
-      {
-        name: "Gandalf the Grey"
-      },
-      {
-        name: "Meriadoc Brandybuck"
-      },
-    ]);
+    this.userProfiles = Observable.create<VisibleUserProfile[]>(this, []);
+  }
+
+  public async initialize(): Promise<void> {
+    const userProfiles = await this._docComm.listActiveUserProfiles();
+    this.userProfiles.set(userProfiles);
   }
 }
 
 export class UserPresenceModelStub extends Disposable implements UserPresenceModel {
-  public userDetails: Observable<PresentUserDetails[]>;
+  public userProfiles: Observable<VisibleUserProfile[]>;
 
   constructor() {
     super();
-    this.userDetails = Observable.create<PresentUserDetails[]>(this, []);
+    this.userProfiles = Observable.create<VisibleUserProfile[]>(this, []);
   }
+
+  public async initialize(): Promise<void> {}
 }

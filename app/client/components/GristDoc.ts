@@ -344,7 +344,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.isTimingOn.set(openDocResponse.isTimingOn);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = this.autoDispose(new DocModel(this.docData, this.docPageModel));
-    this.userPresenceModel = UserPresenceModelImpl.create(this);
+    this.userPresenceModel = UserPresenceModelImpl.create(this, this.docComm);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
     this.docPluginManager = new DocPluginManager({
       plugins,
@@ -646,15 +646,13 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       activateAssistant: this._activateAssistant.bind(this),
     }, this, true));
 
+    this.userPresenceModel.initialize().catch(reportError);
+
     this.listenTo(app.comm, 'docUserAction', this._onDocUserAction);
 
     this.listenTo(app.comm, 'docUsage', this._onDocUsageMessage);
 
     this.listenTo(app.comm, 'docChatter', this._onDocChatter);
-
-    this.docComm.listActiveUserProfiles()
-      .then((profiles) => console.log(profiles))
-      .catch(reportError);
 
     this._handleTriggerQueueOverflowMessage();
 
