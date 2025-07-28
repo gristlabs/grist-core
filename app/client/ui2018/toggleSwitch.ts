@@ -8,7 +8,7 @@ interface ToggleSwitchOptions {
   labelArgs?: DomElementArg[];
 }
 
-export function toggleSwitch(value: Observable<boolean>, options: ToggleSwitchOptions = {}) {
+export function toggleSwitch(value: Observable<boolean|null>, options: ToggleSwitchOptions = {}) {
   const {label, args = [], inputArgs = [], labelArgs = []} = options;
 
   return cssToggleSwitch(
