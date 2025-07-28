@@ -122,7 +122,7 @@ describe("AccessTokens", function() {
     // Anonymous access generates valid responses
     result = await fetch(home.serverUrl + `/api/profile/user?auth=${token}`);
     assert.equal(result.status, 200);
-    const payload = await result.json()
+    const payload = await result.json();
     assert.equal(payload.anonymous, true);
   });
 });
