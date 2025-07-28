@@ -290,12 +290,6 @@ export const cssToggle = styled('div', `
   --grist-actual-cell-color: ${colors.lightGreen};
 `);
 
-export const cssWidgetSwitch = styled('div.widget_switch', `
-  &-hidden {
-    opacity: 0.6;
-  }
-`);
-
 export const cssWarningMessage = styled('div', `
   margin-top: 8px;
   display: flex;
