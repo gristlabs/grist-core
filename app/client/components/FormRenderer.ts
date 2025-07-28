@@ -58,8 +58,6 @@ export interface FormRendererContext {
   rootLayoutNode: FormLayoutNode;
   /** Disables the Submit node if true. */
   disabled: Observable<boolean>;
-  /** Indicates the current form submission is taking longer than usual. */
-  slowSubmit: Observable<boolean>;
   /** Error to show above the Submit node. */
   error: Observable<string|null>;
 }
@@ -195,8 +193,7 @@ class SubmitRenderer extends FormRenderer {
             dom.attr('aria-disabled', (use) => use(this.context.disabled) ? 'true' : 'false'),
             {type: 'submit'},
             dom.domComputed(use => {
-              const slowSubmit = use(this.context.slowSubmit);
-              return slowSubmit
+              return use(this.context.disabled)
                 ? [css.buttonLoadingSpinner(), t('Submitting…')]
                 : this.context.rootLayoutNode.submitText || t('Submit');
             }),

@@ -14,7 +14,6 @@ export interface FormModel {
   readonly form: Observable<Form|null>;
   readonly formLayout: Computed<FormLayoutNode|null>;
   readonly submitting: Observable<boolean>;
-  readonly submittingSlow: Observable<boolean>;
   readonly submitted: Observable<boolean>;
   readonly error: Observable<string|null>;
   fetchForm(): Promise<void>;
@@ -35,28 +34,13 @@ export class FormModelImpl extends Disposable implements FormModel {
     return patchedLayout;
   });
   public readonly submitting = Observable.create<boolean>(this, false);
-  public readonly submittingSlow = Observable.create<boolean>(this, false);
   public readonly submitted = Observable.create<boolean>(this, false);
   public readonly error = Observable.create<string|null>(this, null);
 
   private readonly _formAPI: FormAPI = new FormAPIImpl(getHomeUrl());
-  private _submittingSlowTimeout: number | null = null;
 
   constructor() {
     super();
-
-    // we track in an observable when the submission is slow, allowing us to easily show user feedback in that case
-    this.autoDispose(this.submitting.addListener((submitting) => {
-      if (submitting) {
-        this._submittingSlowTimeout = window.setTimeout(() => !this.isDisposed() && this.submittingSlow.set(true), 750);
-      } else {
-        if (this._submittingSlowTimeout) {
-          window.clearTimeout(this._submittingSlowTimeout);
-          this._submittingSlowTimeout = null;
-        }
-        this.submittingSlow.set(false);
-      }
-    }));
   }
 
   public async fetchForm(): Promise<void> {
@@ -108,11 +92,16 @@ export class FormModelImpl extends Disposable implements FormModel {
     const colValues = typedFormDataToJson(formData);
     try {
       this.submitting.set(true);
-      await this._formAPI.createRecord({
-        ...this._getDocIdOrShareKeyParam(),
-        tableId: form.formTableId,
-        colValues,
-      });
+      // we virtually wait for at a second to actually consider the form submitted;
+      // this makes for a tiny bit of a delay allowing users to see the "submitting…" state of the FormRenderer
+      await Promise.all([
+        this._formAPI.createRecord({
+          ...this._getDocIdOrShareKeyParam(),
+            tableId: form.formTableId,
+            colValues,
+          }),
+        new Promise((resolve) => setTimeout(resolve, 1000)),
+      ]);
     } finally {
       this.submitting.set(false);
     }
