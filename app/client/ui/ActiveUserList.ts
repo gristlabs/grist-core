@@ -31,10 +31,9 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   });
 }
 
-
 function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
   const imageConstructor = options.overlapLeft ? createOverlappingUserImage : createUserImage;
-  return imageConstructor(user, 'medium', hoverTooltip(user.name));
+  return imageConstructor(user, 'medium', hoverTooltip(user.name, { openDelay: 0, closeDelay: 0 }));
 }
 
 function createRemainingUsersIndicator(users: Partial<FullUser>[]) {
@@ -85,4 +84,9 @@ export const remainingUsersMenuItem = styled(`div`, `
   align-items: center;
   color: ${theme.menuItemFg};
   --icon-color: ${theme.accentIcon};
+  text-transform: none;
+
+  & > :first-child {
+    margin-right: 5px;
+  }
 `);
