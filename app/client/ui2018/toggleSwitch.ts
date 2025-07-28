@@ -1,4 +1,5 @@
 import {theme} from 'app/client/ui2018/cssVars';
+import {components} from 'app/common/ThemePrefs';
 import {dom, DomElementArg, Observable, styled} from 'grainjs';
 
 interface ToggleSwitchOptions {
@@ -37,8 +38,8 @@ export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSw
 
 const cssToggleSwitch = styled('label', `
   position: relative;
-  display: inline-flex;
-  margin-top: 8px;
+  display: flex;
+  width: fit-content;
   cursor: pointer;
 `);
 
@@ -49,6 +50,7 @@ const cssInput = styled('input', `
   top: 1px;
   left: 4px;
   margin: 0;
+  opacity: 0;
 
   &::before, &::after {
     height: 1px;
@@ -63,8 +65,13 @@ const cssSwitch = styled('div', `
   position: relative;
   width: 30px;
   height: 17px;
-  display: inline-block;
   flex: none;
+  margin: 0 auto;
+  border-radius: 13px;
+
+  &:hover {
+    box-shadow: 0 0 2px ${components.switchHoverShadow};
+  }
 `);
 
 const cssSwitchSlider = styled('div', `
@@ -74,40 +81,74 @@ const cssSwitchSlider = styled('div', `
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${theme.switchSliderFg};
-  border-radius: 17px;
+  background-color: ${components.switchInactiveSlider};
+  border-radius: 13px;
 
-  &.${cssToggleSwitch.className}--transitions & {
+  .${cssToggleSwitch.className}--transitions & {
     transition: background-color .4s;
   }
 
-  .${cssInput.className}:focus + .${cssSwitch.className} > & {
-    outline: 2px solid ${theme.controlPrimaryHoverBg};
+  /* border for inactive sliders, implemented like this to mitigate
+  pixel-perfect positioning issues between slider and circle */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 0 1px ${components.switchInactivePill};
+    border-radius: 13px;
+  }
+
+  .${cssInput.className}:focus-visible + .${cssSwitch.className} > & {
+    outline: 2px solid ${components.kbFocusHighlight};
     outline-offset: 1px;
   }
 
   .${cssInput.className}:checked + .${cssSwitch.className} > & {
-    background-color: ${theme.controlPrimaryBg};
+    background-color: ${components.switchActiveSlider};
+  }
+
+  .${cssInput.className}:checked + .${cssSwitch.className} > &::after {
+    box-shadow: none;
   }
 `);
 
 const cssSwitchCircle = styled('div', `
   position: absolute;
+  z-index: 1;
   cursor: pointer;
   content: "";
-  height: 13px;
-  width: 13px;
-  left: 2px;
-  bottom: 2px;
-  background-color: ${theme.switchCircleFg};
-  border-radius: 17px;
+  height: 11px;
+  width: 11px;
+  left: 3.5px;
+  top: 0;
+  bottom: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+  background-color: ${components.switchInactivePill};
+  border-radius: 100%;
 
-  &.${cssToggleSwitch.className}--transitions & {
+  .${cssToggleSwitch.className}--transitions & {
     transition: transform .4s;
   }
 
   .${cssInput.className}:checked + .${cssSwitch.className} > & {
-    transform: translateX(13px);
+    transform: translateX(12px);
+    background-color: ${components.switchActivePill};
+    height: 13px;
+    width: 13px;
+    box-shadow: none;
+  }
+
+  .${cssInput.className}:checked + .${cssSwitch.className} > &::after {
+    position: absolute;
+    z-index: 2;
+    content: "";
+    background-color: ${components.switchActiveSlider};
+    mask-image: var(--icon-TickSwitch);
+    mask-size: 10px;
+    mask-repeat: no-repeat;
+    mask-position: 1px center;
+    inset: 0;
   }
 `);
 

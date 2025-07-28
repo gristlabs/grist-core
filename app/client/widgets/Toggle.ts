@@ -11,7 +11,7 @@ import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
 import { theme } from 'app/client/ui2018/cssVars';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
-import { dom, DomContents, DomElementArg, fromKo, makeTestId } from 'grainjs';
+import { dom, DomContents, DomElementArg, fromKo, makeTestId, styled } from 'grainjs';
 
 const t = makeT('Toggle');
 
@@ -113,7 +113,11 @@ function buildSwitch(
   isTransitionEnabled: ko.Observable<boolean>,
   ...args: DomElementArg[]) {
   return toggleSwitch(fromKo(value), {
-    args,
+    args: [dom.cls(cssToggleSwitch.className), ...args],
     enableTransitions: fromKo(isTransitionEnabled),
   });
 }
+
+const cssToggleSwitch = styled('div', `
+  margin: -1px auto;
+`);

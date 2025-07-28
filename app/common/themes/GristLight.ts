@@ -276,9 +276,6 @@ export const GristLight: ThemeTokens = {
     /* Announcement Popups */
     announcementPopupBg: tokens.selectionOpaque,
 
-    /* Switches */
-    switchSliderFg: '#cccccc',
-
     /* Scroll Shadow */
     scrollShadow: tokens.bgTertiary,
 
