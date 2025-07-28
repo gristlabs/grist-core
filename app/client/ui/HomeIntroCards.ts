@@ -103,8 +103,7 @@ export function buildHomeIntroCards(
     cssWebinars(
       dom.show(isFeatureEnabled('helpCenter')),
       cssWebinarsImage({src: 'img/webinars.svg'}),
-      // the now unused `webinarsLinks` is kept to prevent breaking existing translation strings
-      unstyledH2(t('Learn more {{webinarsLinks}}', {webinarsLinks: ''})),
+      unstyledH2(t('Learn more')),
       cssWebinarsButton(
         t('Webinars'),
         {href: commonUrls.webinars, target: '_blank'},
@@ -114,8 +113,7 @@ export function buildHomeIntroCards(
     cssHelpCenter(
       dom.show(isFeatureEnabled('helpCenter')),
       cssHelpCenterImage({src: 'img/help-center.svg'}),
-      // the now unused `helpCenterLink` is kept to prevent breaking existing translation strings
-      unstyledH2(t('Find solutions and explore more resources {{helpCenterLink}}', {helpCenterLink: ''})),
+      unstyledH2(t('Find solutions and explore more resources')),
       cssHelpCenterButton(
         t('Help center'),
         {href: commonUrls.help, target: '_blank'},
