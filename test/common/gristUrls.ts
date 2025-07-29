@@ -1,6 +1,6 @@
 import {
-  commonUrls as defaultCommonUrls,
-  decodeUrl, getCommonUrls, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
+  decodeUrl, commonUrls as defaultCommonUrls, getCommonUrls,
+  getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
 } from 'app/common/gristUrls';
 import {assert} from 'chai';
 import Sinon from 'sinon';
