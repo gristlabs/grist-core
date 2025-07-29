@@ -201,7 +201,7 @@ describe('FormView1', function() {
       await gu.closeRawTable();
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[type="submit"]', 2000).click();
+        await driver.findWait('button[type="submit"]', 2000).click();
         await waitForConfirm();
       });
       await expectSingle('Hello from trigger');
@@ -218,7 +218,7 @@ describe('FormView1', function() {
         assert.isTrue(await driver.findWait('[aria-label="Powered by Grist"]', 2000).isDisplayed());
 
         await gu.sendKeys('Hello');
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
 
       });
@@ -240,7 +240,7 @@ describe('FormView1', function() {
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('Hello World');
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
@@ -266,7 +266,7 @@ describe('FormView1', function() {
         assert.equal(await driver.find('textarea[name="D"]').value(), '');
         await driver.find('textarea[name="D"]').click();
         await gu.sendKeys('Hello,', Key.ENTER, 'World');
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
@@ -289,7 +289,7 @@ describe('FormView1', function() {
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('1984');
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
@@ -321,7 +321,7 @@ describe('FormView1', function() {
         await driver.find('.test-numeric-spinner-decrement').click();
         assert.equal(await driver.find('input[name="D"]').value(), '1984');
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
@@ -344,7 +344,7 @@ describe('FormView1', function() {
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('01012000');
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
@@ -392,7 +392,7 @@ describe('FormView1', function() {
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectSingle('Bar');
@@ -433,7 +433,7 @@ describe('FormView1', function() {
         assert.equal(await driver.find('input[name="D"][value="Baz"]').getAttribute('checked'), null);
         await driver.find('input[name="D"][value="Bar"]').click();
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectSingle('Bar');
@@ -455,7 +455,7 @@ describe('FormView1', function() {
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('1984');
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
@@ -487,7 +487,7 @@ describe('FormView1', function() {
         await driver.find('.test-numeric-spinner-decrement').click();
         assert.equal(await driver.find('input[name="D"]').value(), '1984');
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
@@ -507,13 +507,13 @@ describe('FormView1', function() {
         assert.equal(await driver.find('input[name="D"]').getAttribute('checked'), null);
         await driver.find('input[name="D"]').findClosest("label").click();
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectSingle(true);
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[type="submit"]', 2000).click();
+        await driver.findWait('button[type="submit"]', 2000).click();
         await waitForConfirm();
       });
       await expectInD([true, false]);
@@ -539,13 +539,13 @@ describe('FormView1', function() {
         assert.equal(await driver.find('input[name="D"]').getAttribute('checked'), null);
         await driver.find('input[name="D"]').findClosest("label").click();
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectSingle(true);
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[type="submit"]', 2000).click();
+        await driver.findWait('button[type="submit"]', 2000).click();
         await waitForConfirm();
       });
       await expectInD([true, false]);
@@ -587,7 +587,7 @@ describe('FormView1', function() {
         await driver.find('input[name="D[]"][value="Foo"]').click();
         await driver.find('input[name="D[]"][value="Baz"]').click();
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectSingle(['L', 'Foo', 'Baz']);
@@ -636,7 +636,7 @@ describe('FormView1', function() {
         assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000 ).click();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectInD([0, 0, 0, 2]);
@@ -682,7 +682,7 @@ describe('FormView1', function() {
         assert.equal(await driver.find('label:has(input[name="D"][value="2"])').getText(), 'Bar');
         await driver.find('input[name="D"][value="2"]').click();
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectInD([0, 0, 0, 2]);
@@ -728,7 +728,7 @@ describe('FormView1', function() {
         await driver.find('input[name="D[]"][value="1"]').click();
         await driver.find('input[name="D[]"][value="2"]').click();
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       await expectInD([null, null, null, ['L', 2, 1]]);
@@ -747,7 +747,7 @@ describe('FormView1', function() {
       });
       await gu.onNewTab(async () => {
         await driver.get(url);
-        await driver.findWait('input[type="submit"]', 2000).click();
+        await driver.findWait('button[type="submit"]', 2000).click();
         await gu.waitForUrl(/example\.com/);
       });
       await removeForm();
@@ -759,7 +759,7 @@ describe('FormView1', function() {
       });
       await gu.onNewTab(async () => {
         await driver.get(url);
-        await driver.findWait('input[type="submit"]', 2000).click();
+        await driver.findWait('button[type="submit"]', 2000).click();
         await waitForConfirm();
         assert.isFalse(await gu.isAlertShown());
       });
@@ -792,7 +792,7 @@ describe('FormView1', function() {
         await driver.findWait('input[name="D"]', 2000).click();
         await gu.sendKeys('Hello World');
         assert.isFalse(await driver.find('input[name="A"]').isPresent());
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
 
@@ -835,7 +835,7 @@ describe('FormView1', function() {
         await attachmentInput.sendKeys(paths);
 
         await assertSubmitOnEnterIsDisabled();
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
 
@@ -1721,7 +1721,7 @@ describe('FormView1', function() {
         await driver.get(formUrl);
         await driver.findWait('input[name="D"]', 2000).click();
         await gu.sendKeys('Hello World');
-        await driver.find('input[type="submit"]').click();
+        await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
       // Make sure we see the new record.
