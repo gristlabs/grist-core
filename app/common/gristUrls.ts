@@ -3,18 +3,23 @@ import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
+import {ICommonUrls} from 'app/common/ICommonUrls';
+import ICommonUrlsTI from 'app/common/ICommonUrls-ti';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
 import {ThemeAppearance, themeAppearances, ThemeName, themeNames} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Document} from 'app/common/UserAPI';
-import {IAttachedCustomWidget} from "app/common/widgetTypes";
+import {Document} from 'app/common/UserAPI'; import {IAttachedCustomWidget} from "app/common/widgetTypes";
 import {Features as PlanFeatures} from 'app/common/Features';
 import {UIRowId} from 'app/plugin/GristAPI';
+
 import clone from 'lodash/clone';
 import pickBy from 'lodash/pickBy';
 import slugify from 'slugify';
+import * as t from "ts-interface-checker";
+
+const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -1290,28 +1295,18 @@ export interface UrlTweaks {
   }): void;
 }
 
-function withAdminDefinedUrls<T extends Record<string, string|undefined>>(defaultUrls: T): T {
+function withAdminDefinedUrls(defaultUrls: ICommonUrls): ICommonUrls {
   const adminDefinedUrlsStr = getCustomizableValue('adminDefinedUrls', "GRIST_CUSTOM_COMMON_URLS");
   if (!adminDefinedUrlsStr) {
     return defaultUrls;
   }
 
-  const adminDefinedUrls = JSON.parse(adminDefinedUrlsStr, (key, val) => {
-    // Remove any non-string values
-    // key is null-ish when it is the root object
-    return (!key || typeof val === "string") ? val : null;
-  });
-  if (adminDefinedUrls === null || typeof adminDefinedUrls !== "object") {
-    throw new Error("Unexpected format for GRIST_CUSTOM_COMMON_URLS. Expected to be a JSON object.");
-  }
+  const adminDefinedUrls = JSON.parse(adminDefinedUrlsStr);
 
-  const filteredAdminDefinedUrls = pickBy(
-    adminDefinedUrls,
-    (value, key) => value !== null && defaultUrls.hasOwnProperty(key)
-  );
-
-  return {
+  const merged = {
     ...defaultUrls,
-    ...(filteredAdminDefinedUrls || {})
+    ...(adminDefinedUrls)
   };
+  ICommonUrlsChecker.strictCheck(merged);
+  return merged;
 }
