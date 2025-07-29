@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import fetch from 'node-fetch';
 import { TestServer } from 'test/gen-server/apiUtils';
-import { TcpForwarder } from 'test/server/tcpForwarder';
+import { RedisForwarder } from 'test/server/tcpForwarder';
 import * as testUtils from 'test/server/testUtils';
 import { waitForIt } from 'test/server/wait';
 
@@ -12,22 +12,14 @@ describe('HealthCheck', function() {
     describe(serverType, function() {
       let server: TestServer;
       let oldEnv: testUtils.EnvironmentSnapshot;
-      let redisForwarder: TcpForwarder;
+      let redisForwarder: RedisForwarder;
 
       before(async function() {
         oldEnv = new testUtils.EnvironmentSnapshot();
 
-        // We set up Redis via a TcpForwarder, so that we can simulate disconnects.
-        if (!process.env.TEST_REDIS_URL) {
-          throw new Error("TEST_REDIS_URL is expected");
-        }
-        const redisUrl = new URL(process.env.TEST_REDIS_URL);
-        const redisPort = parseInt(redisUrl.port, 10) || 6379;
-        redisForwarder = new TcpForwarder(redisPort, redisUrl.host);
-        const forwarderPort = await redisForwarder.pickForwarderPort();
-        await redisForwarder.connect();
-
-        process.env.REDIS_URL = `redis://localhost:${forwarderPort}`;
+        // We set up Redis via a forwarder, so that we can simulate disconnects.
+        redisForwarder = await RedisForwarder.create();
+        process.env.REDIS_URL = `redis://localhost:${redisForwarder.port}`;
         server = new TestServer(this);
         await server.start([serverType]);
       });

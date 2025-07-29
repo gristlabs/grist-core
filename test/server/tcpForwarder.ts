@@ -59,3 +59,21 @@ async function destroySock(sock: Socket): Promise<void> {
       sock.on('close', resolve).destroy());
   }
 }
+
+export class RedisForwarder extends TcpForwarder {
+  public static async create() {
+    if (!process.env.TEST_REDIS_URL) {
+      throw new Error("TEST_REDIS_URL is expected");
+    }
+
+    const url = new URL(process.env.TEST_REDIS_URL);
+    const port = parseInt(url.port, 10) || 6379;
+    const forwarder = new RedisForwarder(port, url.hostname);
+    await forwarder.pickForwarderPort();
+    await forwarder.connect();
+    forwarder.redisUrl = `redis://localhost:${forwarder.port}${url.pathname}`;
+    return forwarder;
+  }
+
+  public redisUrl: string;
+}
