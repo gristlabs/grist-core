@@ -3,7 +3,7 @@ import {EmptyRecordView, RecordView} from 'app/common/RecordView';
 import {Role} from 'app/common/roles';
 
 /**
- * User type to distinguish beetween Users and service accounts
+ * User type to distinguish between Users and service accounts
  */
 export type UserTypes = 'login' | 'service';
 
