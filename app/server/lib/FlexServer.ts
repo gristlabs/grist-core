@@ -101,6 +101,7 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from 'serve-static';
+import { HealthChecker } from './HealthChecker';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -213,6 +214,7 @@ export class FlexServer implements GristServer {
   private _emitNotifier = new EmitNotifier();
   private _testPendingNotifications: number = 0;
   private _latestVersionAvailable?: LatestVersionAvailable;
+  private _healthChecker: HealthChecker;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -273,6 +275,8 @@ export class FlexServer implements GristServer {
       log.debug('FlexServer: setting latest version', latestVersionAvailable);
       this.setLatestVersionAvailable(latestVersionAvailable);
     });
+
+    this._healthChecker = new HealthChecker(this);
 
     // The electron build is not supported at this time, but this stub
     // implementation of electronServerMethods is present to allow kicking
@@ -599,6 +603,9 @@ export class FlexServer implements GristServer {
       }
       if (isParameterOn(req.query.ready)) {
         checks.set('ready', this._isReady);
+      }
+      if (isParameterOn(req.query.allInstancesReady)) {
+        checks.set('allInstancesReady', this._healthChecker.allServersOkay(timeout, true));
       }
       let extra = '';
       let ok = true;
@@ -1059,6 +1066,7 @@ export class FlexServer implements GristServer {
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
     if (this._jobs)       { await this._jobs.stop(); }
+    await this._healthChecker.close();
     await this._shutdown();
     if (this._accessTokens) { await this._accessTokens.close(); }
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.
