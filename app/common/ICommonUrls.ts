@@ -2,7 +2,7 @@ export interface ICommonUrls {
   // Link to the help center.
   help: string;
 
-  // Various links to support poges:
+  // Various links to support pages:
   helpAccessRules: string;
   helpAssistant: string;
   helpAssistantDataUse: string;
