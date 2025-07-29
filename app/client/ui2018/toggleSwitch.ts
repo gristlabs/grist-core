@@ -1,4 +1,4 @@
-import {theme} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {components} from 'app/common/ThemePrefs';
 import {dom, DomElementArg, Observable, styled} from 'grainjs';
 
@@ -24,7 +24,7 @@ export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSw
       )
     : cssInput({type: 'checkbox'}, ...inputArgs),
     cssSwitch(
-      cssSwitchSlider(),
+      cssSwitchSlider(testId('toggle-switch-slider')),
       cssSwitchCircle(),
     ),
     !label ? null : cssLabel(
@@ -33,6 +33,7 @@ export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSw
     ),
     dom.cls(`${cssToggleSwitch.className}--transitions`, options.enableTransitions || true),
     ...args,
+    testId('toggle-switch'),
   );
 }
 
