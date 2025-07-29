@@ -110,6 +110,8 @@ export class AttachmentFileManager extends EventEmitter {
   // Maps file identifiers to their desired store. This may be the same as their current store,
   // in which case nothing will happen. Map ensures new requests override older pending transfers.
   private _pendingFileTransfers: Map<string, AttachmentStoreId | undefined> = new Map();
+  private _successes: number = 0;
+  private _failures: number = 0;
   private _transferJob?: TransferJob;
   private _loopAbortController: AbortController = new AbortController();
   private _loopAbort = this._loopAbortController?.signal as globalThis.AbortSignal;
@@ -125,6 +127,7 @@ export class AttachmentFileManager extends EventEmitter {
     private _docStorage: DocStorage,
     private _storeProvider: IAttachmentStoreProvider | undefined,
     _docInfo: AttachmentStoreDocInfo | undefined,
+    private _assertInternalStorageAvailable?: (extraBytes: number) => Promise<void>,
   ) {
     super();
     this._docName = _docStorage.docName;
@@ -136,6 +139,8 @@ export class AttachmentFileManager extends EventEmitter {
       throw new Error("shutdown already in progress");
     }
     this._pendingFileTransfers.clear();
+    this._successes = 0;
+    this._failures = 0;
     this._loopAbortController.abort();
     await this._transferJob?.catch(reason => this._log.error({}, `Error during shutdown: ${reason}`));
   }
@@ -257,6 +262,8 @@ export class AttachmentFileManager extends EventEmitter {
     if (this._loopAbort.aborted) {
       throw new Error("AttachmentFileManager was shut down");
     }
+    this._successes = 0;
+    this._failures = 0;
     // Take a "snapshot" of the files we want to transfer, and schedule those files for transfer.
     // It's possibly that other code will modify the file statuses / list during this process.
     // As a consequence, after this process completes, some files may still be in their original
@@ -343,7 +350,9 @@ export class AttachmentFileManager extends EventEmitter {
   public transferStatus() {
     return {
       pendingTransferCount: this._pendingFileTransfers.size,
-      isRunning: this._transferJob !== undefined
+      isRunning: this._transferJob !== undefined,
+      successes: this._successes,
+      failures: this._failures,
     };
   }
 
@@ -374,7 +383,9 @@ export class AttachmentFileManager extends EventEmitter {
             if (process.env.GRIST_TEST_TRANSFER_DELAY) {
               await new Promise(resolve => setTimeout(resolve, Number(process.env.GRIST_TEST_TRANSFER_DELAY)));
             }
+            this._successes++;
           } catch (e) {
+            this._failures++;
             this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
           } finally {
             // If a transfer request comes in mid-transfer, it will need re-running.
@@ -590,6 +601,7 @@ export class AttachmentFileManager extends EventEmitter {
   // Uploads the file to local storage, overwriting the current DB record for the file.
   private async _storeFileInLocalStorage(fileIdent: string, fileData: Buffer): Promise<AddFileResult> {
     // Insert (or overwrite) the entry for this file in the document database.
+    await this._assertInternalStorageAvailable?.(fileData.byteLength);
     const isNewFile = await this._docStorage.attachOrUpdateFile(fileIdent, fileData, undefined);
 
     return {

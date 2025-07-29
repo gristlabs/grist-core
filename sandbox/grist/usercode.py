@@ -19,6 +19,30 @@ import datetime, math, re     # modules commonly needed in formulas
 
 
 @grist.UserTable
+class Address:
+  city = grist.Text()
+  state = grist.Text()
+
+  def _default_country(rec, table, value, user):
+    return 'US'
+  country = grist.Text()
+
+  def region(rec, table):
+    return {'US': 'North America', 'UK': 'Europe'}.get(rec.country, 'N/A')
+
+  def badSyntax(rec, table):
+    # for a in
+    # 10
+    raise SyntaxError('invalid syntax', ('usercode', 1, 9, u'for a in'))
+
+
+@grist.UserTable
+class Schools:
+  name = grist.Text()
+  address = grist.Reference('Address')
+
+
+@grist.UserTable
 class Students:
   firstName = grist.Text()
   lastName = grist.Text()
@@ -40,29 +64,5 @@ class Students:
   @grist.formulaType(grist.Reference('Schools'))
   def school2(rec, table):
     return Schools.lookupFirst(name=rec.school.name)
-
-
-@grist.UserTable
-class Schools:
-  name = grist.Text()
-  address = grist.Reference('Address')
-
-
-@grist.UserTable
-class Address:
-  city = grist.Text()
-  state = grist.Text()
-
-  def _default_country(rec, table, value, user):
-    return 'US'
-  country = grist.Text()
-
-  def region(rec, table):
-    return {'US': 'North America', 'UK': 'Europe'}.get(rec.country, 'N/A')
-
-  def badSyntax(rec, table):
-    # for a in
-    # 10
-    raise SyntaxError('invalid syntax', ('usercode', 1, 9, u'for a in'))
 ======================================================================
 """

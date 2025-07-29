@@ -94,7 +94,7 @@ namespace gristUtils {
       await part.findWait('.test-rule-acl-formula .ace_editor', 500);
       await part.find('.test-rule-acl-formula').doClick();
       await driver.findWait('.test-rule-acl-formula .ace_focus', 500);
-      await gu.sendKeys(Key.HOME, Key.chord(Key.SHIFT, Key.END), Key.DELETE);     // Clear formula
+      await gu.clearInput();     // Clear formula
       await gu.sendKeys(aclFormula, Key.ENTER);
     }
     if (typeof permissions === 'string') {
@@ -140,7 +140,7 @@ namespace gristUtils {
       await part.findWait('.test-rule-acl-formula .ace_editor', 500);
       await part.find('.test-rule-acl-formula').doClick();
       await driver.findWait('.test-rule-acl-formula .ace_focus', 500);
-      await gu.sendKeys(Key.HOME, Key.chord(Key.SHIFT, Key.END), Key.DELETE);     // Clear formula
+      await gu.clearInput();    // Clear formula
       await gu.sendKeysSlowly(aclFormula);
       await driver.findWait('.ace_completion-highlight', 1000);
     }

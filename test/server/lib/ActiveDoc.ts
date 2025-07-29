@@ -6,7 +6,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import {CreatableArchiveFormats} from 'app/common/UserAPI';
 import {TableData} from 'app/common/TableData';
 import {GristObjCode} from 'app/plugin/GristData';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {ActiveDoc, Deps} from 'app/server/lib/ActiveDoc';
 import {getDocPoolIdFromDocInfo} from 'app/server/lib/AttachmentStore';
 import {
   AttachmentStoreProvider,
@@ -29,7 +29,7 @@ import * as child_process from 'child_process';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
 import * as stream from 'node:stream';
-import path,  /*path,*/ {resolve} from 'path';
+import path, {resolve} from 'path';
 import * as sinon from 'sinon';
 import {createDocTools} from 'test/server/docTools';
 import {makeTestingFilesystemStoreConfig} from 'test/server/lib/FilesystemAttachmentStore';
@@ -1162,6 +1162,44 @@ describe('ActiveDoc', async function() {
     }
   });
 
+  it('sandbox passes in truthy custom values', async function () {
+    const env = new EnvironmentSnapshot();
+    try {
+      process.env.GRIST_TRUTHY_VALUES = 'meep';
+      const activeDoc = new ActiveDoc(docTools.getDocManager(), 'truthyTest');
+      await activeDoc.createEmptyDoc(fakeSession);
+      await activeDoc.applyUserActions(fakeSession, [
+        ["AddTable", "Info", [{id: 'Flag', type: 'Bool'}]],
+        ["AddRecord", "Info", null, {Flag: 'meep'}],
+        ["AddRecord", "Info", null, {Flag: 'moop'}],
+      ]);
+      const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
+      assert.deepEqual(data.Flag, [true, 'moop'], "Expected 'meep' to be truthy");
+      await activeDoc.shutdown();
+    } finally {
+      env.restore();
+    }
+  });
+
+  it('sandbox passes in falsy custom values', async function () {
+    const env = new EnvironmentSnapshot();
+    try {
+      process.env.GRIST_FALSY_VALUES = 'moop';
+      const activeDoc = new ActiveDoc(docTools.getDocManager(), 'falsyTest');
+      await activeDoc.createEmptyDoc(fakeSession);
+      await activeDoc.applyUserActions(fakeSession, [
+        ["AddTable", "Info", [{id: 'Flag', type: 'Bool'}]],
+        ["AddRecord", "Info", null, {Flag: 'meep'}],
+        ["AddRecord", "Info", null, {Flag: 'moop'}],
+      ]);
+      const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
+      assert.deepEqual(data.Flag, ['meep', false], "Expected 'moop' to be falsy");
+      await activeDoc.shutdown();
+    } finally {
+      env.restore();
+    }
+  });
+
   describe('attachments', async function() {
     // Provides the fake userId `null`, so we can access uploaded files with hitting an
     // authorization errors.
@@ -1214,6 +1252,61 @@ describe('ActiveDoc', async function() {
         }
       }
     }
+
+
+    it('can enforce internal attachments limit', async function() {
+
+      // Add a tight limit, make sure adding attachments fails.
+      let stub = sandbox.stub(Deps, 'MAX_INTERNAL_ATTACHMENTS_BYTES').value(10);
+      const activeDoc = await docTools.createDoc('enforceInternalLimit');
+      try {
+        await assert.isRejected(
+          uploadAttachments(activeDoc, testAttachments),
+          /Exceeded internal attachments limit/
+        );
+
+        // Ease off, make sure adding attachments succeeds.
+        stub.restore();
+        await assert.isFulfilled(
+          uploadAttachments(activeDoc, testAttachments)
+        );
+
+        // Add limit again, make sure it works, then set the doc for external
+        // storage and see if adding attachments works now.
+        stub = sandbox.stub(Deps, 'MAX_INTERNAL_ATTACHMENTS_BYTES').value(10);
+        await assert.isRejected(
+          uploadAttachments(activeDoc, testAttachments),
+          /Exceeded internal attachments limit/
+        );
+        await activeDoc.setAttachmentStore(
+          makeExceptionalDocSession('system'),
+          docTools.getAttachmentStoreProvider().listAllStoreIds()[0],
+        );
+        await assert.isFulfilled(
+          uploadAttachments(activeDoc, testAttachments)
+        );
+
+        await activeDoc.startTransferringAllAttachmentsToDefaultStore();
+        await activeDoc.allAttachmentTransfersCompleted();
+        let transfer = await activeDoc.attachmentTransferStatus();
+        assert.equal(transfer.status.failures, 0);
+        assert.equal(transfer.status.successes, 2);
+        // Now transfer attachments back and see if limit is
+        // respected.
+        await activeDoc.setAttachmentStore(
+          makeExceptionalDocSession('system'),
+          undefined
+        );
+        await activeDoc.startTransferringAllAttachmentsToDefaultStore();
+        await activeDoc.allAttachmentTransfersCompleted();
+        transfer = await activeDoc.attachmentTransferStatus();
+        assert.equal(transfer.status.failures, 2);
+        assert.equal(transfer.status.successes, 0);
+      } finally {
+        stub.restore();
+        await activeDoc.shutdown();
+      }
+    });
 
     it('can pack attachments into an archive', async function() {
       const docName = 'attachment-archive';

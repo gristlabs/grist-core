@@ -573,11 +573,56 @@ describe("AttachmentsWidget", function () {
     await gu.sendKeys(Key.ESCAPE);
   });
 
+  it("should show a loading indicator when uploading via the attachment icon", async function () {
+    const cell = await gu.getCell({ col: 0, rowNum: 3 });
+    await driver.executeScript("window.testGrist = {fakeSlowUploads: true}");
+    const thumbnailsCount = (await cell.findAll(".test-pw-thumbnail"))?.length || 0;
+
+    await cell.click();
+    await gu.fileDialogUpload("uploads/image_with_script.svg", () =>
+      cell.find(".test-attachment-icon").click()
+    );
+
+    // the spinner should show up after a small delay, wait for 1 second tops
+    await driver.findWait('.test-attachment-spinner', 1000);
+    // then wait for the spinner to disappear
+    await driver.wait(async () => !(await cell.find('.test-attachment-spinner').isPresent()), 2000);
+
+    // check the upload was successful by comparing the number of thumbnails
+    const newThumbnailsCount = (await cell.findAll(".test-pw-thumbnail"))?.length || 0;
+    assert.equal(newThumbnailsCount, thumbnailsCount + 1);
+    await gu.clearTestState();
+  });
+
+  it("should show a loading indicator when uploading via the attachment editor", async function () {
+    const cell = await gu.getCell({ col: 0, rowNum: 3 });
+    await driver.executeScript("window.testGrist = {fakeSlowUploads: true}");
+    await gu.fileDialogUpload("uploads/grist.png", async () => {
+      await cell.click();
+      await driver.sendKeys(Key.ENTER);
+      await driver.sleep(500);
+      await driver.find(".test-pw-add").click();
+    });
+
+    // the spinner should show up directly
+    await driver.findWait('.test-pw-spinner', 500);
+    // wait for the spinner to disappear
+    await driver.wait(async () => !(await cell.find('.test-pw-spinner').isPresent()), 2000);
+
+    // check the upload was successful by checking the final counter
+    await driver.findContentWait(".test-pw-counter", /of 2/, 3000);
+    // exit the editor
+    await driver.sendKeys(Key.ESCAPE);
+    await gu.clearTestState();
+  });
+
   it("should allow uploading from card view", async function () {
     // This was a little broken - the click event on the upload icon would
     // trigger an edit action on the field if the field had focus prior
     // to the click, causing both the file picker and the editor to be
     // shown at the same time.
+    const cell = await gu.getCell({ col: 0, rowNum: 2 });
+    await cell.click();
     await gu.changeWidget("Card");
     const field = await gu.getCardCell("A");
     await field.click();

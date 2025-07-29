@@ -218,6 +218,7 @@ class TestGenCode(unittest.TestCase):
     #             when the tuple is for a column name.
     # col_id:     None when tuple is for a table name; col_id when the tuple is for a column name.
     expected_names = [
+      (('Address', 'region'), 48, 'Address', 'country'),
       (('Students', 'fullName'), 4, 'Students', 'firstName'),
       (('Students', 'fullName'), 26, 'Students', 'lastName'),
       (('Students', 'fullNameLen'), 8, 'Students', 'fullName'),
@@ -231,7 +232,6 @@ class TestGenCode(unittest.TestCase):
       (('Students', 'school2'), 0, 'Schools', None),
       (('Students', 'school2'), 36, 'Schools', 'name'),
       (('Students', 'school2'), 29, 'Students', 'school'),
-      (('Address', 'region'), 48, 'Address', 'country'),
     ]
     self.assertEqual(gcode.grist_names(), expected_names)
 
@@ -240,10 +240,10 @@ class TestGenCode(unittest.TestCase):
     self.schema['Address'].columns['testcol'] = schema.SchemaColumn(
       'testcol', 'Any', True, 'foo(bar=$region) or max(Students.all, key=lambda n: -n)', None)
     gcode.make_module(self.schema)
-    self.assertEqual(gcode.grist_names(), expected_names + [
+    self.assertEqual(gcode.grist_names(), [expected_names[0]] + [
       (('Address', 'testcol'), 9, 'Address', 'region'),
       (('Address', 'testcol'), 24, 'Students', None),
-    ])
+    ] + expected_names[1:])
 
 
 if __name__ == "__main__":

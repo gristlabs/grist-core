@@ -260,7 +260,7 @@ describe('FormView2', function() {
       // Submit a record
       await driver.findWait('input[name="A"]', 2000).click();
       await driver.findWait('input[name="A"]', 100).sendKeys('Hello');
-      await driver.findWait('input[type="submit"]', 1000).click();
+      await driver.findWait('button[type="submit"]', 1000).click();
       await driver.findWait('.test-form-success-page-text', 1000);
 
       // Check that the record was added to the table.

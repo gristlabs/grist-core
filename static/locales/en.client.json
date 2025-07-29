@@ -1797,7 +1797,8 @@
         "Reset": "Reset",
         "Search": "Search",
         "Select...": "Select...",
-        "Submit": "Submit"
+        "Submit": "Submit",
+        "Submitting…": "Submitting…"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",
@@ -2130,5 +2131,18 @@
     "duplicateWidget": {
         "Duplicate widget": "Duplicate widget",
         "Duplicate widgets": "Duplicate widgets"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Uploading, please wait…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Add",
+        "Delete": "Delete",
+        "Download": "Download",
+        "Drop files here to attach": "Drop files here to attach",
+        "Drop files here to attach.": "Drop files here to attach.",
+        "No attachments": "No attachments",
+        "Preview not available.": "Preview not available.",
+        "{{index}} of {{total}}": "{{index}} of {{total}}"
     }
 }

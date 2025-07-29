@@ -175,7 +175,7 @@ class GenCode(object):
                  "from functions import *       # global uppercase functions\n" +
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
     userparts = fullparts[:]
-    for table_info in schema.values():
+    for table_info in sorted(schema.values(), key=lambda t: t.tableId):
       fullparts.append("\n\n")
       fullparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId)))
       if not (
