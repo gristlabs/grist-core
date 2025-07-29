@@ -206,7 +206,7 @@ export class MergedServer {
       await this.flexServer.finalizePlugins(this.hasComponent("home") ? checkUserContentPort() : null);
       this.flexServer.checkOptionCombinations();
       this.flexServer.summary();
-      this.flexServer.setReady(true);
+      this.flexServer.ready = true;
 
       if (this._options.extraWorkers) {
         if (!process.env.REDIS_URL) {
