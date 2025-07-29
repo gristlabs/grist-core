@@ -163,7 +163,7 @@ function getVisibleUserProfileFromDocSession(session: DocSession, viewerRole: Ro
   const user = session.client.authSession.fullUser;
   const isAnonymous = !(session.client.authSession.userIsAuthorized && Boolean(user));
   return {
-    id: session.client.clientId,
+    id: session.client.publicClientId,
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
     picture: user?.picture,
     isAnonymous,
