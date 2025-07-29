@@ -1302,7 +1302,12 @@ function withAdminDefinedUrls(defaultUrls: ICommonUrls): ICommonUrls {
     return defaultUrls;
   }
 
-  const adminDefinedUrls = JSON.parse(adminDefinedUrlsStr);
+  let adminDefinedUrls;
+  try {
+    adminDefinedUrls = JSON.parse(adminDefinedUrlsStr);
+  } catch(e) {
+    throw new Error("The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed");
+  }
 
   const merged = {
     ...defaultUrls,
