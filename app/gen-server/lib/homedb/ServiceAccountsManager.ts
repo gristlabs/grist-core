@@ -4,6 +4,7 @@ import { ApiError } from 'app/common/ApiError';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
+import { UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 
 export class ServiceAccountsManager {
 
@@ -13,6 +14,7 @@ export class ServiceAccountsManager {
 
   public constructor(
     private readonly _homeDb: HomeDBManager,
+    private _usersManager: UsersManager,
     private _runInTransaction: RunInTransaction
   ) {}
 
@@ -57,22 +59,20 @@ export class ServiceAccountsManager {
 
   public async readServiceAccount(
     serviceAccountLogin: string,
-    ownerId: number,
     transaction?: EntityManager
   ) {
     return await this._runInTransaction(transaction, async manager => {
-      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
-      if (serviceUser == null) {
-        return serviceUser;
+      // Take advantage of buildExistingUsersByLoginRequest (especially for normalizing the passed email)
+      const serviceUserQuery = this._usersManager.buildExistingUsersByLoginRequest([serviceAccountLogin], transaction);
+      const user = await serviceUserQuery
+        .innerJoinAndSelect("user.serviceAccount", "serviceAccount")
+        .getOne();
+
+      if (user?.serviceAccount) {
+        user.serviceAccount.serviceUser = user;
       }
-      const serviceAccount = await manager.findOne(
-        ServiceAccount,
-        {where: {serviceUserId: serviceUser.id, ownerId}}
-      );
-      if (serviceAccount !== null){
-        (serviceAccount as any).user = serviceUser;
-      }
-      return serviceAccount;
+
+      return user?.serviceAccount;
     });
   }
 

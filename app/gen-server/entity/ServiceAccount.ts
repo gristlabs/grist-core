@@ -1,5 +1,5 @@
 import {User} from 'app/gen-server/entity/User';
-import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity({name: 'service_accounts'})
 export class ServiceAccount extends BaseEntity {
@@ -10,14 +10,14 @@ export class ServiceAccount extends BaseEntity {
   @Column({type: Number, name: 'owner_id'})
   public ownerId: number;
 
-  @ManyToOne(type => User)
+  @ManyToOne(() => User)
   @JoinColumn({name: 'owner_id'})
   public owner: User;
 
   @Column({type: Number, name: 'service_user_id'})
   public serviceUserId: number;
 
-  @ManyToOne(type => User)
+  @OneToOne(() => User, user => user.serviceAccount)
   @JoinColumn({name: 'service_user_id'})
   public serviceUser: User;
 

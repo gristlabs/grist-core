@@ -60,13 +60,11 @@ export class User extends BaseEntity {
   @Column({name: 'connect_id', type: String, nullable: true})
   public connectId: string | null;
 
-  @OneToMany(type => User, user => user.serviceAccounts)
-  @JoinTable({
-    name: 'service_account_user',
-    joinColumn: {name: 'user_id'},
-    inverseJoinColumn: {name: 'service_account_id'}
-  })
-  public serviceAccounts: ServiceAccount[];
+  @OneToMany(() => ServiceAccount, sa => sa.owner)
+  public serviceAccountsOwner: ServiceAccount[];
+
+  @OneToOne(() => ServiceAccount, sa => sa.serviceUser)
+  public serviceAccount: ServiceAccount;
   /**
    * Unique reference for this user. Primarily used as an ownership key in a cell metadata (comments).
    */

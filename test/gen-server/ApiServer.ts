@@ -2272,6 +2272,18 @@ for label, description and endOfLife when given`,
       assert.deepEqual(resp2.data, {login:serviceLogin, ...expectedBody});
     });
 
+    it('Endpoint GET /api/service-accounts/{saId} returns 403 for non-owned service accounts {saId}', async function() {
+      const body = {
+        label: "A small service for the chimpy",
+        description: "A big service for robotkind",
+        endOfLife:"2042-07-21",
+      };
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      const serviceLogin = resp.data.login;
+      const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, kiwi);
+      assert.equal(resp2.status, 403);
+    });
+
     it('Endpoint GET /api/service-accounts/{saId} returns 404 on non-existing {saId}', async function() {
       const resp = await axios.get(`${homeUrl}/api/service-accounts/hexaltation`, chimpy);
       assert.equal(resp.status, 404);

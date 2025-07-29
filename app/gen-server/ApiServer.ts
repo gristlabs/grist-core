@@ -608,12 +608,12 @@ export class ApiServer {
     // GET /service-accounts/
     // Reads all service accounts attached to the user making the api call.
     this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
-        const userId = getAuthorizedUserId(req);
-        const data = await this._dbManager.getAllServiceAccounts(userId);
-        if (Array.isArray(data) && data.length === 0){
-          throw new ApiError('no service accounts', 404);
-        }
-        return sendOkReply(req, res, data);
+      const userId = getAuthorizedUserId(req);
+      const data = await this._dbManager.getAllServiceAccounts(userId);
+      if (Array.isArray(data) && data.length === 0){
+        throw new ApiError('no service accounts', 404);
+      }
+      return sendOkReply(req, res, data);
     }));
 
     // GET /service-accounts/:said
@@ -621,11 +621,14 @@ export class ApiServer {
     this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const serviceAccountLogin = req.params.said;
-      const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountLogin, userId);
-      if (serviceAccount == null) {
+      const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountLogin);
+      if (!serviceAccount) {
          throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
       }
-      const hasValidKey = !((serviceAccount as any).user.apiKey == null);
+      if (serviceAccount.ownerId !== userId) {
+        throw new ApiError(`Unauthorized access to service account ${serviceAccountLogin}`, 403);
+      }
+      const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
       const resp = {
         login: serviceAccountLogin,
         label: serviceAccount.label,

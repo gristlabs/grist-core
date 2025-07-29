@@ -272,7 +272,9 @@ export type BillingOptions = Partial<Pick<BillingAccount,
 export class HomeDBManager {
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
-  private _serviceAccountsManager = new ServiceAccountsManager(this, this.runInTransaction.bind(this));
+  private _serviceAccountsManager = new ServiceAccountsManager(
+    this, this._usersManager, this.runInTransaction.bind(this)
+  );
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -3304,8 +3306,8 @@ export class HomeDBManager {
     return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
   }
 
-  public async getServiceAccount(serviceLogin: string, ownerId: number) {
-    return this._serviceAccountsManager.readServiceAccount(serviceLogin, ownerId);
+  public async getServiceAccount(serviceLogin: string) {
+    return this._serviceAccountsManager.readServiceAccount(serviceLogin);
   }
 
   public async updateServiceAccount(serviceLogin: string, ownerId: any, partial: any) {

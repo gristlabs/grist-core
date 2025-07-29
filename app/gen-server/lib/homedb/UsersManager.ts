@@ -355,7 +355,7 @@ export class UsersManager {
     email: string,
     manager?: EntityManager
   ): Promise<User|undefined> {
-    return await this._buildExistingUsersByLoginRequest([email], manager)
+    return await this.buildExistingUsersByLoginRequest([email], manager)
       .getOne() || undefined;
   }
 
@@ -369,7 +369,7 @@ export class UsersManager {
     if (emails.length === 0){
       return [];
     }
-    return await this._buildExistingUsersByLoginRequest(emails, manager)
+    return await this.buildExistingUsersByLoginRequest(emails, manager)
       .getMany();
   }
 
@@ -916,6 +916,18 @@ export class UsersManager {
     });
   }
 
+  public buildExistingUsersByLoginRequest(
+    emails: string[],
+    manager?: EntityManager
+  ) {
+    const normalizedEmails = emails.map(email=> normalizeEmail(email));
+    return (manager || this._connection).createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .leftJoinAndSelect('user.logins', 'logins')
+      .where('email IN (:...emails)', {emails: normalizedEmails});
+  }
+
   /**
    *
    * Get the id of a special user, creating that user if it is not already present.
@@ -959,17 +971,5 @@ export class UsersManager {
       users[key] = users[key] ? roles.getStrongestRole(users[key], role) : role;
     }
     delta.users = users;
-  }
-
-  private _buildExistingUsersByLoginRequest(
-    emails: string[],
-    manager?: EntityManager
-  ) {
-    const normalizedEmails = emails.map(email=> normalizeEmail(email));
-    return (manager || this._connection).createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .leftJoinAndSelect('user.logins', 'logins')
-      .where('email IN (:...emails)', {emails: normalizedEmails});
   }
 }
