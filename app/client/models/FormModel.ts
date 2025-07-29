@@ -92,7 +92,7 @@ export class FormModelImpl extends Disposable implements FormModel {
     const colValues = typedFormDataToJson(formData);
     try {
       this.submitting.set(true);
-      // we virtually wait for at a second to actually consider the form submitted;
+      // we virtually wait for at least a second to actually consider the form submitted;
       // this makes for a tiny bit of a delay allowing users to see the "submitting…" state of the FormRenderer
       await Promise.all([
         this._formAPI.createRecord({

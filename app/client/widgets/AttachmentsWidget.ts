@@ -46,6 +46,10 @@ export class AttachmentsWidget extends NewAbstractWidget {
     this.autoDispose(this._height.subscribe(() => {
       this.field.viewSection().events.trigger('rowHeightChange');
     }));
+
+    this.onDispose(() => {
+      Object.values(this._uploadingTimeouts).forEach(timeout => clearTimeout(timeout));
+    });
   }
 
   public buildDom(row: DataRowModel) {
@@ -64,6 +68,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
     return cssAttachmentWidget(
       dom.autoDispose(values),
+      dom.autoDispose(isUploadingObs),
 
       dom.cls('field_clip'),
       dragOverClass('attachment_drag_over'),
@@ -168,6 +173,9 @@ export class AttachmentsWidget extends NewAbstractWidget {
     }
     if (uploading) {
       timeouts[rowId] = window.setTimeout(() => {
+        if (this.isDisposed()) {
+          return;
+        }
         states[rowId] = true;
         this._uploadingStatesObs.set({...states});
         // let the view know about the spinner so that it can expands the row height for it if needed

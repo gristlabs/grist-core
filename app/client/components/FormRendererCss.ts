@@ -97,7 +97,7 @@ export const submitButton = styled('div', `
     line-height: inherit;
     outline-color: ${vars.primaryBgHover};
   }
-  & button[type="submit"]):hover {
+  & button[type="submit"]:hover {
     border-color: ${vars.primaryBgHover};
     background-color: ${vars.primaryBgHover};
   }
