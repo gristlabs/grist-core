@@ -262,11 +262,6 @@ export const cssTextArea = styled('textarea', `
 
 export const cssSpinner = styled(numericSpinner, `
   height: 29px;
-
-  &-hidden {
-    color: ${theme.inputDisabledFg};
-    background-color: ${theme.inputDisabledBg};
-  }
 `);
 
 export const cssSelect = styled('select', `
