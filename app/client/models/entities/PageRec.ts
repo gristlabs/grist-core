@@ -1,5 +1,7 @@
 import {DocModel, IRowModel, refRecord, ViewRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
+import * as modelUtil from 'app/client/models/modelUtil';
+import {Computed, Observable} from 'grainjs';
 import * as ko from 'knockout';
 
 // Represents a page entry in the tree of pages.
@@ -9,6 +11,9 @@ export interface PageRec extends IRowModel<"_grist_Pages"> {
   isCensored: ko.Computed<boolean>;
   isSpecial: ko.Computed<boolean>;
   share: ko.Computed<ShareRec>;
+  isCollapsedByDefault: Computed<boolean>;
+  isCollapsed: Observable<boolean>;
+  setAndSaveCollapsed(value: boolean): Promise<void>;
 }
 
 export function createPageRec(this: PageRec, docModel: DocModel): void {
@@ -39,4 +44,16 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
     return this.isCensored() || this.isSpecial();
   });
   this.share = refRecord(docModel.shares, this.shareRef);
+  const options = modelUtil.jsonObservable(
+    this.options,
+    (obj: any) => obj || {}
+  );
+  this.isCollapsedByDefault = Computed.create(this, (use) =>
+    Boolean(use(options).collapsed)
+  );
+  this.isCollapsed = Observable.create(this, this.isCollapsedByDefault.get());
+  this.setAndSaveCollapsed = async (value: boolean) => {
+    this.isCollapsed.set(value);
+    await options.setAndSave({ ...options.peek(), collapsed: value });
+  };
 }

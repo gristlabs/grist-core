@@ -5,20 +5,24 @@ import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
-import { menu, menuItem, menuText } from "app/client/ui2018/menus";
+import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
 import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
 const t = makeT('pages');
 
 const testId = makeTestId('test-docpage-');
 
-// the actions a page can do
-export interface PageActions {
+export interface PageOptions {
   onRename: (name: string) => Promise<void>|any;
   onRemove: () => void;
   onDuplicate: () => void;
   isRemoveDisabled: () => boolean;
   isReadonly: Observable<boolean>;
+  isCollapsed: Observable<boolean>;
+  onCollapse: (value: boolean) => void;
+  isCollapsedByDefault: Computed<boolean>;
+  onCollapseByDefault: (value: boolean) => Promise<void>;
+  hasSubPages: () => boolean;
 }
 
 function isTargetSelected(target: HTMLElement) {
@@ -29,19 +33,78 @@ function isTargetSelected(target: HTMLElement) {
 // build the dom for a document page entry. It shows an icon (for now the first letter of the name,
 // but later we'll support user selected icon), the name and a dots menu containing a "Rename" and
 // "Remove" entries. Clicking "Rename" turns the page name into an editable input, which then call
-// the actions.onRename callback with the new name. Setting actions.onRemove to undefined disables
+// the options.onRename callback with the new name. Setting options.onRemove to undefined disables
 // the item in the menu.
-export function buildPageDom(name: Observable<string>, actions: PageActions, ...args: DomElementArg[]) {
-
+export function buildPageDom(name: Observable<string>, options: PageOptions, ...args: DomElementArg[]) {
+  const {
+    onRename,
+    onRemove,
+    onDuplicate,
+    isRemoveDisabled,
+    isReadonly,
+    isCollapsed,
+    onCollapse,
+    isCollapsedByDefault,
+    onCollapseByDefault,
+    hasSubPages,
+  } = options;
   const isRenaming = observable(false);
   const pageMenu = () => [
-    menuItem(() => isRenaming.set(true), t("Rename"), testId('rename'),
-            dom.cls('disabled', actions.isReadonly)),
-    menuItem(actions.onRemove, t("Remove"), testId('remove'),
-             dom.cls('disabled', (use) => use(actions.isReadonly) || actions.isRemoveDisabled())),
-    menuItem(actions.onDuplicate, t("Duplicate Page"), testId('duplicate'),
-             dom.cls('disabled', actions.isReadonly)),
-    dom.maybe(actions.isReadonly, () => menuText(t("You do not have edit access to this document"))),
+    menuItem(
+      () => isRenaming.set(true),
+      t("Rename"),
+      dom.cls("disabled", isReadonly),
+      testId("rename")
+    ),
+    menuItem(
+      onRemove,
+      t("Remove"),
+      dom.cls("disabled", (use) => use(isReadonly) || isRemoveDisabled()),
+      testId("remove")
+    ),
+    menuItem(
+      onDuplicate,
+      t("Duplicate Page"),
+      dom.cls("disabled", isReadonly),
+      testId("duplicate")
+    ),
+    dom.maybe(hasSubPages(), () => [
+      menuDivider(),
+      menuItemAsync(
+        () => onCollapse(false),
+        t("Expand {{maybeDefault}}", {
+          maybeDefault: dom.maybe(
+            (use) => !use(isCollapsedByDefault),
+            () => t("(default)")
+          ),
+        }),
+        dom.cls("disabled", (use) => !use(isCollapsed)),
+        testId("expand")
+      ),
+      menuItemAsync(
+        () => onCollapse(true),
+        t("Collapse {{maybeDefault}}", {
+          maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
+        }),
+        dom.cls("disabled", isCollapsed),
+        testId("collapse")
+      ),
+      menuItemAsync(
+        async () => { await onCollapseByDefault(true); },
+        t("Set default: Collapse"),
+        dom.show((use) => !use(isCollapsedByDefault)),
+        testId("collapse-by-default")
+      ),
+      menuItemAsync(
+        async () => { await onCollapseByDefault(false); },
+        t("Set default: Expand"),
+        dom.show(isCollapsedByDefault),
+        testId("expand-by-default")
+      ),
+    ]),
+    dom.maybe(options.isReadonly, () =>
+      menuText(t("You do not have edit access to this document"))
+    ),
   ];
   let pageElem: HTMLElement;
 
@@ -72,7 +135,7 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
             cssEditorInput(
               {
                 initialValue: name.get() || '',
-                save: (val) => actions.onRename(val),
+                save: (val) => onRename(val),
                 close: () => isRenaming.set(false)
               },
               testId('editor'),

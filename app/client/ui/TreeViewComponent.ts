@@ -287,7 +287,7 @@ export class TreeViewComponent extends Disposable {
   }
 
   private _buildTreeItemDom(treeItem: TreeItem, ...args: DomArg[]): Element {
-    const collapsed = observable(false);
+    const collapsed = treeItem.collapsed ?? observable(false);
     const dragged = observable(false);
     // vertical distance in px the user is dragging the item
     const deltaY = observable(0);

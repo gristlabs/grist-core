@@ -14,7 +14,7 @@
 
 import { BulkColValues, UserAction } from "app/common/DocActions";
 import { nativeCompare } from "app/common/gutil";
-import { obsArray, ObsArray } from "grainjs";
+import { obsArray, ObsArray, Observable } from "grainjs";
 import forEach = require("lodash/forEach");
 import forEachRight = require("lodash/forEachRight");
 import reverse = require("lodash/reverse");
@@ -25,6 +25,7 @@ import reverse = require("lodash/reverse");
  */
 export interface TreeNode {
   hidden?: boolean;
+  collapsed?: Observable<boolean>;
   // Returns an observable array of children. Or null if the node does not accept children.
   children(): ObsArray<TreeItem>|null;
 
@@ -62,7 +63,7 @@ export interface TreeTableData {
 }
 
 // describes a function that builds dom for a particular record
-type DomBuilder = (id: number, hidden: boolean) => HTMLElement;
+type DomBuilder = (id: number, item: TreeItemRecord) => HTMLElement;
 
 
 // Returns a list of the records from table that is suitable to build the tree model, ie: records
@@ -110,8 +111,9 @@ export function fromTableData(table: TreeTableData, buildDom: DomBuilder, oldMod
     delete indentations[rec.indentation + 1];
     const item = oldItems[rec.id] || new TreeItemRecord();
     item.hidden = rec.hidden;
+    item.collapsed = rec.collapsed;
     item.init(storage, index, reverse(children));
-    item.buildDom = () => buildDom(rec.id, rec.hidden);
+    item.buildDom = () => buildDom(rec.id, item);
     siblings.push(item);
   });
   return new TreeModelRecord(storage, reverse(indentations[0] || []));
@@ -126,6 +128,7 @@ interface Storage {
 // TreeNode implementation that uses a grist table.
 export class TreeNodeRecord implements TreeNode {
   public hidden: boolean = false;
+  public collapsed?: Observable<boolean>;
   public storage: Storage;
   public index: number|"root";
   public children: () => ObsArray<TreeItemRecord>;
@@ -188,8 +191,9 @@ export class TreeNodeRecord implements TreeNode {
       // let's transpose [{key1: "val1", ...}, ...] to {key1: ["val1", ...], ...}
       forEach(update[0], (val, key) => values[key] = update.map(rec => rec[key]));
       const rowIds = values.id;
-      delete values.id;
-      delete values.hidden;
+      for (const key of ["id", "hidden", "collapsed"]) {
+        delete values[key];
+      }
       userActions.push(["BulkUpdateRecord", rowIds, values]);
     }
 
