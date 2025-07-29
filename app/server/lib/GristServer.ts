@@ -52,6 +52,7 @@ export interface StorageCoordinator {
 export interface GristServer extends StorageCoordinator {
   readonly create: ICreate;
   readonly testPending: boolean;
+  ready: boolean;
   settings?: IGristCoreConfig;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
@@ -103,7 +104,6 @@ export interface GristServer extends StorageCoordinator {
   isRestrictedMode(): boolean;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
-  setReady(value: boolean): void;
 }
 
 export interface GristLoginSystem {
@@ -163,6 +163,7 @@ export function createDummyGristServer(): GristServer {
   return {
     create,
     testPending: false,
+    ready: true,
     settings: loadGristCoreConfig(),
     getHost() { return 'localhost:4242'; },
     getHomeUrl() { return 'http://localhost:4242'; },
@@ -214,7 +215,6 @@ export function createDummyGristServer(): GristServer {
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },
-    setReady() { /* do nothing */ },
   };
 }
 
