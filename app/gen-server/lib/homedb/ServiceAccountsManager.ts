@@ -90,11 +90,11 @@ export class ServiceAccountsManager {
   public async updateServiceAccount(
     serviceAccountLogin: string,
     ownerId: number,
-    partial: any,
+    partial: Partial<ServiceAccount>,
   ) {
     return await this._connection.transaction(async manager => {
       const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
-      if (serviceUser == null) {
+      if (!serviceUser) {
         return serviceUser;
       }
       return await manager.update(

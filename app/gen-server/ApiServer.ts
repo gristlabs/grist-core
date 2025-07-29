@@ -5,6 +5,7 @@ import {Request} from 'express';
 import pick from 'lodash/pick';
 
 import {ApiError} from 'app/common/ApiError';
+import {isAffirmative} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
 import {DOCTYPE_NORMAL,
@@ -584,7 +585,7 @@ export class ApiServer {
       return sendReply(req, res, result);
     }));
 
-  if (process.env.GRIST_SERVICE_ACCOUNTS){
+  if (isAffirmative(process.env.GRIST_SERVICE_ACCOUNTS)) {
     // POST /service-accounts/
     // Creates a new service account attached to the user making the api call.
     this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
