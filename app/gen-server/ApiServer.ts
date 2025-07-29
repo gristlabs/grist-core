@@ -20,6 +20,7 @@ import {Workspace} from 'app/gen-server/entity/Workspace';
 import {BillingOptions, HomeDBManager, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {DocumentAccessChanges, OrgAccessChanges, PreviousAndCurrent,
         QueryResult, WorkspaceAccessChanges} from 'app/gen-server/lib/homedb/Interfaces';
+import {Permissions} from 'app/gen-server/lib/Permissions';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -193,10 +194,20 @@ export class ApiServer {
     // DELETE /api/orgs/:oid
     // Delete the specified org and all included workspaces and docs.
     this._app.delete('/api/orgs/:oid', expressWrap(async (req, res) => {
-      const org = getOrgKey(req);
-      const {data, ...result} = await this._dbManager.deleteOrg(getScope(req), org);
-      if (data) { this._logDeleteSiteEvents(req, data); }
-      return sendReply(req, res, {...result, data: data?.id});
+      const orgKey = getOrgKey(req);
+      const org = this._dbManager.unwrapQueryResult(
+        await this._dbManager.getOrg(getScope(req), orgKey, undefined,
+                                     { requirePermissions: Permissions.REMOVE })
+      );
+      const doom = await this._gristServer.getDoomTool();
+      try {
+        await doom.deleteOrg(org.id);
+        this._logDeleteSiteEvents(req, org);
+        return sendReply(req, res, {status: 200, data: org.id});
+      } catch (e) {
+        this._logDeleteSiteEvents(req, org, String(e));
+        throw e;
+      }
     }));
 
     // POST /api/orgs/:oid/workspaces
@@ -223,9 +234,8 @@ export class ApiServer {
     // Delete the specified workspace and all included docs.
     this._app.delete('/api/workspaces/:wid', expressWrap(async (req, res) => {
       const wsId = integerParam(req.params.wid, 'wid');
-      const {data, ...result} = await this._dbManager.deleteWorkspace(getScope(req), wsId);
-      if (data) { this._logDeleteWorkspaceEvents(req, data); }
-      return sendReply(req, res, {...result, data: data?.id});
+      await this._hardDeleteWorkspace(req, wsId);
+      return sendReply(req, res, {status: 200, data: wsId});
     }));
 
     // POST /api/workspaces/:wid/remove
@@ -234,9 +244,8 @@ export class ApiServer {
     this._app.post('/api/workspaces/:wid/remove', expressWrap(async (req, res) => {
       const wsId = integerParam(req.params.wid, 'wid');
       if (isParameterOn(req.query.permanent)) {
-        const {data, ...result} = await this._dbManager.deleteWorkspace(getScope(req), wsId);
-        if (data) { this._logDeleteWorkspaceEvents(req, data); }
-        return sendReply(req, res, {...result, data: data?.id});
+        await this._hardDeleteWorkspace(req, wsId);
+        return sendReply(req, res, {status: 200, data: wsId});
       } else {
         const {data} = await this._dbManager.softDeleteWorkspace(getScope(req), wsId);
         if (data) { this._logRemoveWorkspaceEvents(req, data); }
@@ -645,6 +654,22 @@ export class ApiServer {
     return result;
   }
 
+  private async _hardDeleteWorkspace(req: Request, wsId: number) {
+    const ws = this._dbManager.unwrapQueryResult(
+      await this._dbManager.getWorkspace(getScope(req), wsId, undefined,
+                                         { requirePermissions: Permissions.REMOVE })
+    );
+    try {
+      const doom = await this._gristServer.getDoomTool();
+      await doom.deleteWorkspace(ws.id);
+      this._logDeleteWorkspaceEvents(req, ws);
+    } catch (error) {
+      this._logDeleteWorkspaceEvents(req, ws, error);
+      throw error;
+    }
+    return ws;
+  }
+
   private _logCreateDocumentEvents(req: Request, document: Document) {
     const mreq = req as RequestWithLogin;
     this._gristServer.getAuditLogger().logEvent(mreq, {
@@ -882,7 +907,7 @@ export class ApiServer {
     });
   }
 
-  private _logDeleteWorkspaceEvents(req: Request, workspace: Workspace) {
+  private _logDeleteWorkspaceEvents(req: Request, workspace: Workspace, error?: string) {
     const mreq = req as RequestWithLogin;
     this._gristServer.getAuditLogger().logEvent(mreq, {
       action: "workspace.delete",
@@ -891,6 +916,7 @@ export class ApiServer {
       },
       details: {
         workspace: pick(workspace, "id", "name"),
+        error,
       },
     });
     this._gristServer.getTelemetry().logEvent(mreq, 'deletedWorkspace', {
@@ -964,11 +990,13 @@ export class ApiServer {
     });
   }
 
-  private _logDeleteSiteEvents(req: Request, org: Organization) {
+  private _logDeleteSiteEvents(req: Request, org: Organization,
+                               error?: string) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "site.delete",
       details: {
         site: pick(org, "id", "name", "domain"),
+        error,
       },
     });
   }
