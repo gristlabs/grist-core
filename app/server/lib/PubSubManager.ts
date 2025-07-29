@@ -31,6 +31,7 @@ export interface IPubSubManager {
   subscribe(channel: string, callback: Callback): UnsubscribeCallbackPromise;
   publish(channel: string, message: string): Promise<void>;
   publishBatch(batch: Array<{channel: string, message: string}>): Promise<void>;
+  getClient(): IORedis|undefined;
 }
 
 export type Callback = (message: string) => void;
@@ -106,6 +107,8 @@ abstract class PubSubManagerBase implements IPubSubManager {
    */
   public abstract publishBatch(batch: Array<{channel: string, message: string}>): Promise<void>;
 
+  public abstract getClient(): IORedis|undefined;
+
   protected abstract _redisSubscribe(channel: string): Promise<void>;
   protected abstract _redisUnsubscribe(channel: string): Promise<void>;
 
@@ -133,6 +136,7 @@ class PubSubManagerNoRedis extends PubSubManagerBase {
   public async publishBatch(batch: Array<{channel: string, message: string}>) {
     batch.forEach(({channel, message}) => this._deliverMessage(channel, message));
   }
+  public getClient(): IORedis|undefined { return; }
   protected async _redisSubscribe(channel: string): Promise<void> {}
   protected async _redisUnsubscribe(channel: string): Promise<void> {}
 }
@@ -180,6 +184,12 @@ class PubSubManagerRedis extends PubSubManagerBase {
       pipeline = pipeline.publish(this._prefixChannel(channel), message);
     }
     await pipeline.exec();
+  }
+
+  public getClient(): IORedis|undefined {
+    // The redisSub client is already tied listening to a channel, but
+    // the redisPub is "free" for the client to mess around with.
+    return this._redisPub;
   }
 
   protected async _redisSubscribe(channel: string): Promise<void> {
