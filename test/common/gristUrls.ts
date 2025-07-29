@@ -192,7 +192,12 @@ describe('gristUrls', function() {
         assert.throws(() => getCommonUrls(), `value.${nonExistingKey} is extraneous`);
       });
 
-      it('should throws when keys has unexpected type', function () {
+      it('should throw when the passed JSON is malformed', function () {
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS', '{"malformed": 42');
+        assert.throws(() => getCommonUrls(), 'The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed');
+      });
+
+      it('should throw when keys has unexpected type', function () {
         const regularValueKey = 'help';
         const numberValueKey = 'helpAccessRules';
         const objectValueKey = 'helpAssistant';
@@ -222,8 +227,7 @@ describe('gristUrls', function() {
         assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(nullValueKey));
       });
 
-      it("should return the default URLs when the JSON-parsed value "
-        + "of GRIST_CUSTOM_COMMON_URLS is not an object", function () {
+      it("should return the default URLs when the parsed value is not an object", function () {
         sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "42");
         assert.deepEqual(getCommonUrls(), defaultCommonUrls);
         sandbox.restore();
