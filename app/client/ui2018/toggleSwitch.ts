@@ -1,39 +1,71 @@
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {components} from 'app/common/ThemePrefs';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import {dom, DomElementArg, Observable, styled, UseCBOwner} from 'grainjs';
 
 interface ToggleSwitchOptions {
   label?: string;
+  /**
+   * By default, the toggle switch internally uses a hidden input checkbox element,
+   * that is checked/unchecked when the toggle switch is clicked and that updates
+   * the passed value observable accordingly.
+   *
+   * If `false`, the toggle switch doesn't generate an input element and doesn't respond
+   * to clicks or keyboard focuses. If you specifically need an interactive switch that doesn't
+   * generate a hidden input, you can pass additional dom `args` to do what you want.
+   */
+  useHiddenInput?: boolean;
   enableTransitions?: Observable<boolean>;
+  /**
+   * grainjs dom args to apply on the wrapping element.
+   */
   args?: DomElementArg[];
+  /**
+   * grainjs dom args to apply on the hidden input element.
+   */
   inputArgs?: DomElementArg[];
+  /**
+   * grainjs dom args to apply on the label element.
+   */
   labelArgs?: DomElementArg[];
 }
 
+/**
+ * Renders a toggle switch with an optional label.
+ *
+ * @param value - The value of the toggle switch.
+ *                If not provided, the toggle renders in "toggled off" state and
+ *                internally sets options.useHiddenInput to false.
+ * @param options - see ToggleSwitchOptions
+ */
 export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSwitchOptions = {}) {
-  const {label, args = [], inputArgs = [], labelArgs = []} = options;
+  const {label, useHiddenInput = true, args = [], inputArgs = [], labelArgs = []} = options;
 
+  const useInput = useHiddenInput && value;
   return cssToggleSwitch(
-    value
-    ? cssInput(
-        {type: 'checkbox'},
-        dom.prop('checked', value),
-        dom.prop('value', use => use(value) ? '1' : '0'),
-        dom.on('change', (_e, elem) => value.set(elem.checked)),
-        ...inputArgs,
-      )
-    : cssInput({type: 'checkbox'}, ...inputArgs),
+    useInput && (value
+        ? cssInput(
+            {type: 'checkbox'},
+            dom.prop('checked', value),
+            dom.prop('value', use => use(value) ? '1' : '0'),
+            dom.on('change', (_e, elem) => value.set(elem.checked)),
+            ...inputArgs,
+          )
+        : cssInput({type: 'checkbox'}, ...inputArgs)
+    ) || undefined,
+    dom.cls(`${cssToggleSwitch.className}--checked`, (use: UseCBOwner): boolean => {
+      if (value) {
+        return !!use(value);
+      }
+      return false;
+    }),
     cssSwitch(
       cssSwitchSlider(testId('toggle-switch-slider')),
       cssSwitchCircle(),
     ),
-    !label ? null : cssLabel(
-      label,
-      ...labelArgs,
-    ),
+    label ? cssLabel(label, ...labelArgs) : null,
     dom.cls(`${cssToggleSwitch.className}--transitions`, options.enableTransitions || true),
-    ...args,
     testId('toggle-switch'),
+    ...args,
   );
 }
 
@@ -104,11 +136,11 @@ const cssSwitchSlider = styled('div', `
     outline-offset: 1px;
   }
 
-  .${cssInput.className}:checked + .${cssSwitch.className} > & {
+  .${cssToggleSwitch.className}--checked .${cssSwitch.className} > & {
     background-color: ${components.switchActiveSlider};
   }
 
-  .${cssInput.className}:checked + .${cssSwitch.className} > &::after {
+  .${cssToggleSwitch.className}--checked .${cssSwitch.className} > &::after {
     box-shadow: none;
   }
 `);
@@ -132,7 +164,7 @@ const cssSwitchCircle = styled('div', `
     transition: transform .4s;
   }
 
-  .${cssInput.className}:checked + .${cssSwitch.className} > & {
+  .${cssToggleSwitch.className}--checked .${cssSwitch.className} > & {
     transform: translateX(12px);
     background-color: ${components.switchActivePill};
     height: 13px;
@@ -140,7 +172,7 @@ const cssSwitchCircle = styled('div', `
     box-shadow: none;
   }
 
-  .${cssInput.className}:checked + .${cssSwitch.className} > &::after {
+  .${cssToggleSwitch.className}--checked .${cssSwitch.className} > &::after {
     position: absolute;
     z-index: 2;
     content: "";

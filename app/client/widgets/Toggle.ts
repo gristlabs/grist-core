@@ -114,6 +114,7 @@ function buildSwitch(
   ...args: DomElementArg[]) {
   return toggleSwitch(fromKo(value), {
     args: [dom.cls(cssToggleSwitch.className), ...args],
+    useHiddenInput: false,
     enableTransitions: fromKo(isTransitionEnabled),
   });
 }
