@@ -457,7 +457,7 @@ describe('CellColor', function() {
   });
 
   const toggleDefaultColor = 'rgba(96, 96, 96, 1)';
-  const switchDefaultColor = 'rgba(44, 176, 175, 1)';
+  const switchDefaultColor = 'rgba(0, 144, 88, 1)';
   const getPickerCurrentTextColor = () => driver.find('.test-text-color-square').getCssValue('background-color');
 
   it('should handle correctly default text color', async function() {

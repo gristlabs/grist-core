@@ -10,6 +10,7 @@ import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
 import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
 import { theme } from 'app/client/ui2018/cssVars';
+import { components } from 'app/common/ThemePrefs';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
 import { dom, DomContents, DomElementArg, fromKo, makeTestId, styled } from 'grainjs';
 
@@ -81,6 +82,12 @@ export class ToggleCheckBox extends ToggleBase {
 }
 
 export class ToggleSwitch extends ToggleBase {
+  constructor(field: ViewFieldRec, _options: Options = {}) {
+    super(field, {
+      defaultTextColor: components.switchActiveSlider.getRawValue()
+    });
+  }
+
   public override buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
     return dom('div.field_clip',
@@ -119,6 +126,8 @@ function buildSwitch(
   });
 }
 
+/* user can define a color in the column config: expose it to the switch component */
 const cssToggleSwitch = styled('div', `
   margin: -1px auto;
+  --grist-theme-switch-active-slider: var(--grist-actual-cell-color, ${components.switchActiveSlider.getRawValue()});
 `);
