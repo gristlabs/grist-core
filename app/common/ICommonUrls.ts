@@ -1,0 +1,50 @@
+export interface ICommonUrls {
+  help: string;
+  helpAccessRules: string;
+  helpAssistant: string;
+  helpAssistantDataUse: string;
+  helpFormulaAssistantDataUse: string;
+  helpColRefs: string;
+  helpConditionalFormatting: string;
+  helpFilterButtons: string;
+  helpLinkingWidgets: string;
+  helpRawData: string;
+  helpUnderstandingReferenceColumns: string;
+  helpTriggerFormulas: string;
+  helpTryingOutChanges: string;
+  helpCustomWidgets: string;
+  helpInstallAuditLogs: string;
+  helpTeamAuditLogs: string;
+  helpTelemetryLimited: string;
+  helpEnterpriseOptIn: string;
+  helpCalendarWidget: string;
+  helpLinkKeys: string;
+  helpFilteringReferenceChoices: string;
+  helpSandboxing: string;
+  helpAPI: string;
+  helpSummaryFormulas: string;
+  helpAdminControls: string;
+  helpFiddleMode: string;
+  freeCoachingCall: string;
+  contactSupport: string;
+  termsOfService: string | undefined;
+  onboardingTutorialVideoId: string;
+  plans: string;
+  contact: string;
+  templates: string;
+  webinars: string;
+  community: string;
+  functions: string;
+  formulaSheet: string;
+  formulas: string;
+  forms: string;
+  openGraphPreviewImage: string;
+
+  gristLabsCustomWidgets: string;
+  gristLabsWidgetRepository: string;
+  githubGristCore: string;
+  githubSponsorGristLabs: string;
+
+  versionCheck: string;
+  attachmentStorage: string;
+}

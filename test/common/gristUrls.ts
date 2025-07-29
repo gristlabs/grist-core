@@ -1,5 +1,6 @@
 import {
-  commonUrls, decodeUrl, getCommonUrls, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
+  commonUrls as defaultCommonUrls,
+  decodeUrl, getCommonUrls, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
 } from 'app/common/gristUrls';
 import {assert} from 'chai';
 import Sinon from 'sinon';
@@ -184,48 +185,50 @@ describe('gristUrls', function() {
         assert.equal(commonUrls.helpAccessRules, "https://support.getgrist.com/access-rules");
       });
 
-      it('should omit keys that are missing from the default commonUrls object', function () {
+      it('should throw when keys extraneous to the ICommonUrls interface are added', function () {
         const nonExistingKey = 'iDontExist';
         sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
           `{"${nonExistingKey}": "foo", "help": "https://getgrist.com"}`);
-        const commonUrls = getCommonUrls();
-        assert.isObject(commonUrls);
-        assert.property(commonUrls, "help");
-        assert.notProperty(commonUrls, nonExistingKey);
+        assert.throws(() => getCommonUrls(), `value.${nonExistingKey} is extraneous`);
       });
 
-      it('should ignore keys that are not string', function () {
-        const regularKey = 'help';
-        const numberKey = 'helpAccessRules';
-        const objectKey = 'helpAssistant';
-        const arrayKey = 'helpAssistantDataUse';
-        const nullKey = 'helpFormulaAssistantDataUse';
-        const originalUrls = getCommonUrls();
+      it('should throws when keys has unexpected type', function () {
+        const regularValueKey = 'help';
+        const numberValueKey = 'helpAccessRules';
+        const objectValueKey = 'helpAssistant';
+        const arrayValueKey = 'helpAssistantDataUse';
+        const nullValueKey = 'helpFormulaAssistantDataUse';
 
         sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
           JSON.stringify({
-            [regularKey]: "https://getgrist.com",
-            [numberKey]: 42,
-            [objectKey]: {"key": "value"},
-            [arrayKey]: ["foo"],
-            [nullKey]: null,
+            [regularValueKey]: "https://getgrist.com",
+            [numberValueKey]: 42,
+            [objectValueKey]: {"key": "value"},
+            [arrayValueKey]: ["foo"],
           })
         );
-        const overwrittenUrls = getCommonUrls();
-        assert.isObject(overwrittenUrls);
-        assert.equal(overwrittenUrls.help, "https://getgrist.com");
-        for (const key of [numberKey, objectKey, arrayKey, nullKey]) {
-          const typedKey = key as unknown as keyof typeof commonUrls;
-          assert.equal(overwrittenUrls[typedKey], originalUrls[typedKey]);
-        }
+        const buildExpectedErrRegEx = (...keys: string[]) => new RegExp(
+          keys.map(key => `value\\.${key}`).join('.*'),
+          'ms'
+        );
+        assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(numberValueKey, objectValueKey, arrayValueKey));
+        sandbox.restore();
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          JSON.stringify({
+            [regularValueKey]: "https://getgrist.com",
+            [nullValueKey]: null,
+          })
+        );
+        assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(nullValueKey));
       });
 
-      it("should raise an error when the JSON-parsed value of GRIST_CUSTOM_COMMON_URLS is not an object", function () {
+      it("should return the default URLs when the JSON-parsed value "
+        + "of GRIST_CUSTOM_COMMON_URLS is not an object", function () {
         sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "42");
-        assert.throws(getCommonUrls, /Unexpected/);
+        assert.deepEqual(getCommonUrls(), defaultCommonUrls);
         sandbox.restore();
         sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "null");
-        assert.throws(getCommonUrls, /Unexpected/);
+        assert.deepEqual(getCommonUrls(), defaultCommonUrls);
       });
     });
 
