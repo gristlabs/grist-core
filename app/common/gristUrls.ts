@@ -10,7 +10,8 @@ import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
 import {ThemeAppearance, themeAppearances, ThemeName, themeNames} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Document} from 'app/common/UserAPI'; import {IAttachedCustomWidget} from "app/common/widgetTypes";
+import {Document} from 'app/common/UserAPI';
+import {IAttachedCustomWidget} from "app/common/widgetTypes";
 import {Features as PlanFeatures} from 'app/common/Features';
 import {UIRowId} from 'app/plugin/GristAPI';
 
