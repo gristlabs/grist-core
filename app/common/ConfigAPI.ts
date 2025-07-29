@@ -26,7 +26,7 @@ export class ConfigAPI extends BaseAPI {
   }
 
   public async healthcheck(): Promise<void> {
-    const resp = await this.request(`${this._homeUrl}/status?ready=1`);
+    const resp = await this.request(`${this._homeUrl}/status?allInstancesReady=1`);
     if (!resp.ok) {
       throw new Error(await resp.text());
     }
