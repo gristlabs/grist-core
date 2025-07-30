@@ -5,6 +5,7 @@ import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
+import { unstyledButton, unstyledLink } from 'app/client/ui2018/unstyled';
 import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
 import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
@@ -23,6 +24,7 @@ export interface PageOptions {
   isCollapsedByDefault: Computed<boolean>;
   onCollapseByDefault: (value: boolean) => Promise<void>;
   hasSubPages: () => boolean;
+  href: DomElementArg;
 }
 
 function isTargetSelected(target: HTMLElement) {
@@ -47,6 +49,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     isCollapsedByDefault,
     onCollapseByDefault,
     hasSubPages,
+    href
   } = options;
   const isRenaming = observable(false);
   const pageMenu = () => [
@@ -147,18 +150,22 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
             // firefox.
           ) :
           cssPageItem(
-            cssPageInitial(
-              testId('initial'),
-              dom.text((use) => use(splitName).initial),
-              cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
-            ),
-            cssPageName(
-              dom.text((use) => use(splitName).displayName),
-              testId('label'),
-              dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
-              overflowTooltip(),
+            cssPageLink(
+              href,
+              cssPageInitial(
+                testId('initial'),
+                dom.text((use) => use(splitName).initial),
+                cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
+              ),
+              cssPageName(
+                dom.text((use) => use(splitName).displayName),
+                testId('label'),
+                dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+                overflowTooltip(),
+              ),
             ),
             cssPageMenuTrigger(
+              dom.attr('aria-label', (use) => t("context menu - {{- pageName }}", {pageName: use(name)})),
               cssPageMenuIcon('Dots'),
               menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
@@ -210,7 +217,8 @@ export function splitPageInitial(name: string): {initial: string, displayName: s
   }
 }
 
-const cssPageItem = styled('a', `
+const cssPageItem = styled('div', `
+  position: relative;
   display: flex;
   flex-direction: row;
   height: 28px;
@@ -225,6 +233,13 @@ const cssPageItem = styled('a', `
     outline: none;
     color: inherit;
   }
+`);
+
+const cssPageLink = styled(unstyledLink, `
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex-grow: 1;
 `);
 
 const cssPageInitial = styled('div', `
@@ -286,7 +301,9 @@ function onHoverSupport(yesNo: boolean) {
   }
 }
 
-const cssPageMenuTrigger = styled('div', `
+const cssPageMenuTrigger = styled(unstyledButton, `
+  position: relative;
+  z-index: 2;
   cursor: default;
   display: none;
   margin-right: 4px;
@@ -300,7 +317,7 @@ const cssPageMenuTrigger = styled('div', `
   .${treeViewContainer.className}-close & {
     display: none !important;
   }
-  &.weasel-popup-open {
+  .${cssPageItem.className}:focus-within &, &.weasel-popup-open {
     display: block;
   }
   @media ${onHoverSupport(true)} {
