@@ -14,6 +14,7 @@ import {
   cssPageEntrySmall,
   cssPageIcon,
   cssPageLink,
+  cssPageLinkContainer,
   cssSectionHeader,
   cssSectionHeaderText,
   cssSpacer,
@@ -23,6 +24,7 @@ import {
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
+import {stretchedLink} from 'app/client/ui2018/stretchedLink';
 import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
@@ -59,19 +61,19 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           // info by opening acl page, so let's silently fail here.
             .catch(noop);
         }
-        return cssPageLink(
+        return cssPageLinkContainer(
           cssPageIcon('EyeShow'),
-          cssLinkText(t("Access Rules")),
-          _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+          stretchedLink(
+            cssLinkText(t("Access Rules")),
+            _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+          ),
           cssMenuTrigger(
             icon('Dots'),
             aclUsers.menu({
               placement: 'bottom-start',
               parentSelectorToMark: '.' + cssPageEntry.className
             }),
-
-            // Clicks on the menu trigger shouldn't follow the link that it's contained in.
-            dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+            {'aria-label': t("context menu - Access Rules")},
             testId('access-rules-trigger'),
             dom.show(use => use(aclUsers.isInitialized) && _canViewAccessRules),
           ),
