@@ -26,6 +26,7 @@ import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {stretchedLink} from 'app/client/ui2018/stretchedLink';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
@@ -116,9 +117,15 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       const ex = buildExamples().find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }
       return cssPageEntry(
-        cssPageLink(cssPageIcon('Page'), cssLinkText(t("How-to Tutorial")), testId('tutorial'),
-          {href: ex.tutorialUrl, target: '_blank'},
+        cssPageLinkContainer(
+          cssPageIcon('Page'),
+          dom('a',
+            cssLinkText(t("How-to Tutorial")),
+            testId('tutorial'),
+            {href: ex.tutorialUrl, target: '_blank'},
+          ),
           cssExampleCardOpener(
+            {'aria-label': t("Preview the tutorial")},
             icon('TypeDetails'),
             testId('welcome-opener'),
             automaticHelpTool(
@@ -214,7 +221,7 @@ export interface AutomaticHelpToolInfo {
   markAsSeen: () => void;
 }
 
-const cssExampleCardOpener = styled('div', `
+const cssExampleCardOpener = styled(unstyledButton, `
   cursor: pointer;
   margin-right: 4px;
   margin-left: auto;
@@ -226,6 +233,7 @@ const cssExampleCardOpener = styled('div', `
   line-height: 0px;
   --icon-color: ${theme.iconButtonFg};
   background-color: ${theme.iconButtonPrimaryBg};
+  outline-offset: 2px;
   &:hover {
     background-color: ${theme.iconButtonPrimaryHoverBg};
   }
