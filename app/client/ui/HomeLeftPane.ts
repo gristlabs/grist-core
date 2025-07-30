@@ -11,6 +11,7 @@ import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {stretchedLink} from 'app/client/ui2018/stretchedLink';
 import {
+  createAccessibilityTools,
   createHelpTools,
   cssHomeTools,
   cssLeftPanel,
@@ -176,6 +177,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ) : null
         ),
         createHelpTools(home.app),
+        createAccessibilityTools(),
         (commonUrls.termsOfService ?
           cssPageEntry(
             cssPageLink(cssPageIcon('Memo'), cssLinkText(t("Terms of service")),
