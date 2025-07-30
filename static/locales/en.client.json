@@ -630,7 +630,7 @@
         "Tutorial": "Tutorial",
         "Terms of service": "Terms of service",
         "Grist Resources": "Grist Resources",
-        "Workspace options - {{- workspaceName }}": "Workspace options - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -2040,7 +2040,7 @@
         "Sort by name": "Sort by name",
         "Unpin": "Unpin",
         "Workspace": "Workspace",
-        "Document options - {{- documentName }}": "Document options - {{- documentName }}",
+        "context menu - {{- documentName }}": "context menu - {{- documentName }}",
         "Documents list": "Documents list"
     },
     "RenameDocModal": {

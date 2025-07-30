@@ -110,7 +110,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
 
                 // Clicks on the menu trigger shouldn't follow the link that it's contained in.
                 dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-                {'aria-label': t("Workspace options - {{- workspaceName }}", {workspaceName: `"${ws.name}"`})},
+                {'aria-label': t("context menu - {{- workspaceName }}", {workspaceName: `"${ws.name}"`})},
                 testId('dm-workspace-options'),
               ),
               testId('dm-workspace'),

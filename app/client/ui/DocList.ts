@@ -223,7 +223,7 @@ export class DocList extends Disposable {
                         parentSelectorToMark: "." + cssDocRow.className,
                       }),
                       dom.on("click", (ev) => stopEvent(ev)),
-                      {'aria-label': t("Document options - {{- documentName }}", {documentName: `"${doc.name}"`})},
+                      {'aria-label': t("context menu - {{- documentName }}", {documentName: `"${doc.name}"`})},
                       testId("doc-options")
                     ),
                     contextMenu(() => makeDocOptionsMenu(this._home, doc), {
