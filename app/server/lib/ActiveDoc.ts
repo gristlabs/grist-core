@@ -623,16 +623,8 @@ export class ActiveDoc extends EventEmitter {
     return docSession;
   }
 
-  public listActiveUserProfiles(docSession: DocSession): VisibleUserProfile[] {
-    return this.docClients.listVisibleUserProfiles(
-      // TODO - Assess if guests is a reasonable default here
-      docSession.authorizer.getCachedAuth().access ?? "guests",
-      // TODO - Consider if this is needed, if we use clientId or publicClientId in the profile
-      //        It's nice that it's currently just an arbitrary string, so I'm inclined to keep this
-      //        if clientId ends up being the id, so we don't have a weird dependency on clientId.
-      // Omit the requesting client from the results
-      [docSession.client.clientId],
-    );
+  public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
+    return this.docClients.listVisibleUserProfiles(docSession);
   }
 
   /**

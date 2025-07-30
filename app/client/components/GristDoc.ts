@@ -344,7 +344,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.isTimingOn.set(openDocResponse.isTimingOn);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = this.autoDispose(new DocModel(this.docData, this.docPageModel));
-    this.userPresenceModel = UserPresenceModelImpl.create(this, this.docComm);
+    this.userPresenceModel = UserPresenceModelImpl.create(this, this.docComm, this.app.comm);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
     this.docPluginManager = new DocPluginManager({
       plugins,

@@ -3,14 +3,13 @@
  * open, and what FD they are using.
  */
 
+import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
-import {Role} from 'app/common/roles';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Client} from 'app/server/lib/Client';
-import {DocSession, DocSessionPrecursor, OptDocSession} from 'app/server/lib/DocSession';
+import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
-import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
 export const Deps = {
@@ -40,6 +39,7 @@ export class DocClients {
     this._docSessions.push(docSession);
     this._log.debug(docSession, "now %d clients; new client is %s (fd %s)",
       this._docSessions.length, client.clientId, docSession.fd);
+    this._broadcastUserPresenceSessionUpdate(docSession);
     return docSession;
   }
 
@@ -54,6 +54,8 @@ export class DocClients {
     if (arrayRemove(this._docSessions, docSession)) {
       this._log.debug(docSession, "now %d clients", this._docSessions.length);
     }
+
+    this._broadcastUserPresenceSessionRemoval(docSession);
   }
 
   /**
@@ -64,6 +66,7 @@ export class DocClients {
     const docSessions = this._docSessions.splice(0);
     for (const docSession of docSessions) {
       docSession.client.removeDocSession(docSession.fd);
+      this._broadcastUserPresenceSessionRemoval(docSession);
     }
   }
 
@@ -74,10 +77,13 @@ export class DocClients {
     }
   }
 
-  public listVisibleUserProfiles(viewerRole: Role, omitClientIds: string[] = []): VisibleUserProfile[] {
-    return this._docSessions
-      .filter(s => !omitClientIds.includes(s.client.clientId))
-      .map(s => getVisibleUserProfileFromDocSession(s, viewerRole));
+  // TODO - See if we make DocSession more specific, when everything is working.
+  public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
+    const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
+    const userProfiles = await Promise.all(
+      otherDocSessions.map(s => getVisibleUserProfileFromDocSession(s, viewingDocSession))
+    );
+    return userProfiles.filter((s?: VisibleUserProfile): s is VisibleUserProfile => s !== undefined);
   }
 
   /**
@@ -89,7 +95,7 @@ export class DocClients {
    * @param {Object} filterMessage: Optional callback to filter message per client.
    */
   public async broadcastDocMessage(client: Client|null, type: CommDocEventType, messageData: any,
-                                   filterMessage?: (docSession: OptDocSession,
+                                   filterMessage?: (docSession: DocSession,
                                                     messageData: any) => Promise<any>): Promise<void> {
     const send = async (target: DocSession) => {
       const msg = await this._prepareMessage(target, type, messageData, filterMessage);
@@ -118,7 +124,7 @@ export class DocClients {
    */
   private async _prepareMessage(
     target: DocSession, type: CommDocEventType, messageData: any,
-    filterMessage?: (docSession: OptDocSession, messageData: any) => Promise<any>
+    filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>
   ): Promise<{type: CommDocEventType, data: unknown}|undefined> {
     try {
       // Make sure user still has view access.
@@ -154,18 +160,84 @@ export class DocClients {
       }
     }
   }
+
+  private _broadcastUserPresenceSessionUpdate(originSession: DocSession) {
+    this.broadcastDocMessage(
+      originSession.client,
+      "docUserPresenceUpdate",
+      undefined,
+      // TODO - This being async means we've got a potential linear sequence of DB queries for every client.
+      async (destSession: DocSession, messageData: any) => {
+        // TODO - If a user has their access removed, they need to refresh their own user list
+        const profile = await getVisibleUserProfileFromDocSession(originSession, destSession);
+        if (!profile) { return Promise.resolve(); }
+        return {
+          id: getVisibleUserProfileId(originSession),
+          profile
+        };
+      }
+    ).catch(err => {
+      this._log.error(originSession, "failed to broadcast user presence session update: %s", err);
+    });
+  }
+
+  private _broadcastUserPresenceSessionRemoval(originSession: DocSession) {
+    this.broadcastDocMessage(
+      originSession.client,
+      "docUserPresenceUpdate",
+      undefined,
+      async (destSession: DocSession, messageData: any) => {
+        return {
+          id: getVisibleUserProfileId(originSession),
+          profile: undefined,
+        };
+      }
+    ).catch(err => {
+      this._log.error(originSession, "failed to broadcast user presence session removal: %s", err);
+    });
+  }
 }
 
-function getVisibleUserProfileFromDocSession(session: DocSession, viewerRole: Role): VisibleUserProfile {
-  if (viewerRole == "viewers") {
-    // TODO - Permissions handling
+// TODO - It would be nice to decrease the abstraction level on these parameters when this is working,
+//        and make them more specific.
+async function getVisibleUserProfileFromDocSession(
+  session: DocSession, viewingSession: DocSession
+): Promise<VisibleUserProfile | undefined> {
+  // TODO - I'm not sure we actually expose enough information anywhere in the auth code
+  //        to know if a user is explicitly added to the document or not - specifically the
+  //        "logged in, but not added to the doc" case.
+  //        Ideally this would be cached in the DocAuthorizer!!
+  //        `getDocAccess` could be an expensive workaround that needs removing before release!
+  const isPublic = !viewingSession.client.authSession.userIsAuthorized;
+
+  // Viewers without explicit access to the document (either directly or via orgs/groups/etc) can't
+  // see other users.
+  if (isPublic) {
+    return undefined;
   }
+
+  // Only owners and editors can see others.
+  try {
+    // TODO - It would be better to not be relying on an exception here as essential control flow...
+    // TODO - If we could rely on cached auth here, or pre-cache the auth higher up,
+    //        we could make this whole function non-async.
+    await viewingSession.authorizer.assertAccess('editors');
+  } catch (e) {
+    return undefined;
+  }
+
+  // TODO - If session has a logged in user who isn't explicitly added, they should show as anonymous.
+  //        That's not something we readily have access to here right now.
   const user = session.client.authSession.fullUser;
   const isAnonymous = !(session.client.authSession.userIsAuthorized && Boolean(user));
   return {
-    id: session.client.publicClientId,
+    id: getVisibleUserProfileId(session),
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
     picture: user?.picture,
     isAnonymous,
   };
+}
+
+function getVisibleUserProfileId(session: DocSession): string {
+  return session.client.publicClientId;
 }
