@@ -1097,7 +1097,8 @@
         "Collapse {{maybeDefault}}": "Collapse {{maybeDefault}}",
         "Expand {{maybeDefault}}": "Expand {{maybeDefault}}",
         "Set default: Collapse": "Set default: Collapse",
-        "Set default: Expand": "Set default: Expand"
+        "Set default: Expand": "Set default: Expand",
+        "context menu - {{- pageName }}": "context menu - {{- pageName }}"
     },
     "search": {
         "Find Next ": "Find Next ",
