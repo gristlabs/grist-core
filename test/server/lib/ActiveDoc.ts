@@ -1166,6 +1166,9 @@ describe('ActiveDoc', async function() {
     const env = new EnvironmentSnapshot();
     try {
       process.env.GRIST_TRUTHY_VALUES = 'meep';
+      // If using GVisor, ignore any checkpoint prepared earlier (since
+      // env variable wasn't set then).
+      delete process.env.GRIST_CHECKPOINT;
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'truthyTest');
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
@@ -1185,6 +1188,7 @@ describe('ActiveDoc', async function() {
     const env = new EnvironmentSnapshot();
     try {
       process.env.GRIST_FALSY_VALUES = 'moop';
+      delete process.env.GRIST_CHECKPOINT;
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'falsyTest');
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
