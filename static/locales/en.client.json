@@ -890,7 +890,8 @@
         "Validate Data": "Validate Data",
         "Settings": "Settings",
         "API Console": "API Console",
-        "context menu - Access Rules": "context menu - Access Rules"
+        "context menu - Access Rules": "context menu - Access Rules",
+        "Delete document tour": "Delete document tour"
     },
     "TopBar": {
         "Manage Team": "Manage Team",
