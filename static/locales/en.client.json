@@ -1088,7 +1088,12 @@
         "Duplicate Page": "Duplicate Page",
         "Remove": "Remove",
         "Rename": "Rename",
-        "You do not have edit access to this document": "You do not have edit access to this document"
+        "You do not have edit access to this document": "You do not have edit access to this document",
+        "(default)": "(default)",
+        "Collapse {{maybeDefault}}": "Collapse {{maybeDefault}}",
+        "Expand {{maybeDefault}}": "Expand {{maybeDefault}}",
+        "Set default: Collapse": "Set default: Collapse",
+        "Set default: Expand": "Set default: Expand"
     },
     "search": {
         "Find Next ": "Find Next ",
@@ -2143,6 +2148,7 @@
         "Drop files here to attach.": "Drop files here to attach.",
         "No attachments": "No attachments",
         "Preview not available.": "Preview not available.",
-        "{{index}} of {{total}}": "{{index}} of {{total}}"
+        "{{index}} of {{total}}": "{{index}} of {{total}}",
+        "Uploading…": "Uploading…"
     }
 }
