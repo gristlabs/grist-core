@@ -9,6 +9,7 @@ import {
   createHelpTools,
   cssLinkText,
   cssMenuTrigger,
+  cssPageButton,
   cssPageEntry,
   cssPageEntryMain,
   cssPageEntrySmall,
@@ -91,7 +92,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       )
     ),
     cssPageEntry(
-      cssPageLink(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
+      cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     cssPageEntry(
