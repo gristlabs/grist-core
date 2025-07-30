@@ -1,0 +1,163 @@
+import {dom, makeTestId, Observable, styled} from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
+import {isFeatureEnabled} from 'app/common/gristUrls';
+import {urlState} from 'app/client/models/gristUrlState';
+import {tokens} from 'app/common/ThemePrefs';
+import {allCommands} from 'app/client/components/commands';
+import {AppModel} from 'app/client/models/AppModel';
+import {cssModalBody,
+  cssModalButtons,
+  cssModalSubheading,
+  cssModalTitle,
+  cssModalWidth,
+  IModalControl,
+  modal
+} from 'app/client/ui2018/modals';
+import {bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
+import {cssLink} from 'app/client/ui2018/links';
+import {markdown} from 'app/client/lib/markdown';
+
+const t = makeT('OpenAccessibilityModal');
+
+const testId = makeTestId('test-accessibility-modal-');
+
+/**
+ * Opens a modal containing accessibility options.
+ */
+export function openAccessibilityModal(appObs: Observable<AppModel | null>) {
+  const showHighContrastTheme = isFeatureEnabled('themes');
+
+  return modal(
+    (ctl) => {
+      return [
+        cssModalWidth('fixed-wide'),
+        cssModalTitle(
+          t(`Accessibility`),
+          {role: "heading", "aria-level": 1},
+          testId('title'),
+        ),
+        cssModalBody(
+          showHighContrastTheme ? highContrastThemeSection(appObs, ctl) : null,
+          keyboardSection(),
+        ),
+        cssModalButtons(
+          bigPrimaryButton(t(`Close`),
+            dom.on('click', () => ctl.close()),
+            testId('confirm'),
+          ),
+        )
+      ];
+    }
+  );
+}
+
+const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IModalControl) => {
+  const themePrefs = appObs.get()?.themePrefs;
+  return cssSection(
+    cssModalSubheading(t("High contrast theme"), {role: "heading", "aria-level": 2}),
+    dom.domComputed(use => {
+      const isHighContrast = themePrefs ? use(themePrefs).colors.light === 'HighContrastLight' : false;
+      if (isHighContrast) {
+        return dom('p',
+          t("You are currently using the high contrast theme."),
+          {id: 'a11y-modal-high-contrast-theme-enabled', tabindex: -1},
+        );
+      }
+      return dom('div',
+        markdown(t("You are currently **not using** the high contrast theme.")),
+        dom('p', cssButton(
+          t("Use the high contrast theme (light appearance)"),
+          dom.on('click', () => {
+            themePrefs?.set({
+              ...themePrefs.get(),
+              colors: {light: 'HighContrastLight', dark: 'HighContrastLight'},
+              appearance: 'light',
+              syncWithOS: false,
+            });
+            // after clicking the button, it disappears. Focus the text element above that confirms the change.
+            setTimeout(() => {
+              const element = document.getElementById('a11y-modal-high-contrast-theme-enabled');
+              if (element) {
+                element.focus();
+              }
+            }, 100);
+          }),
+        )),
+      );
+    }),
+    dom('p', t("To see other available themes, go to your {{profileSettingsLink}}.", {
+      profileSettingsLink: cssLink(
+        // close the modal when clicking the profile settings link, in case we already are on the profile settings page.
+        dom.on('click', () => ctl.close()),
+        urlState().setLinkUrl({account: 'account'}),
+        t("profile settings"),
+      )
+    }))
+  );
+};
+
+const keyboardSection = () => {
+  const nextRegionShortcut = dom('span', getCssKeys(allCommands.nextRegion.humanKeys));
+  const prevRegionShortcut = dom('span', getCssKeys(allCommands.prevRegion.humanKeys));
+  const creatorPanelShortcut = dom('span', getCssKeys(allCommands.creatorPanel.humanKeys));
+  const shortcutsModal = dom('span', getCssKeys(allCommands.shortcuts.humanKeys));
+  const accessibilityModal = dom('span', getCssKeys(allCommands.accessibility.humanKeys));
+  return cssSection(
+    cssModalSubheading(t("Keyboard navigation"), {role: "heading", "aria-level": 2}),
+    dom('p', t("On a document page, keyboard navigation is first locked on the current widget.")),
+    dom('p', t("Focus other parts of the user interface using the following shortcuts:")),
+    dom('ul',
+      cssShortcutRow(t("{{nextRegionShortcut}} Focus the next region", {nextRegionShortcut})),
+      cssShortcutRow(t("{{prevRegionShortcut}} Focus the previous region", {prevRegionShortcut})),
+      cssShortcutRow(t("{{creatorPanelShortcut}} Focus to and from the creator panel", {creatorPanelShortcut})),
+    ),
+    dom('p', t("\"Regions\" are what we call the different parts of the user interface:")),
+    dom('ul',
+      dom('li', t("the left panel, where the main navigation is,")),
+      dom('li', t("the top panel, being the document header,")),
+      dom('li', t("on document pages, each widget is a region that can be focused on its own,")),
+      dom('li', t("on non-document pages, the main content area is a region,")),
+      dom('li', t("and the right panel, which is the creator panel. It is only available \
+        through its own shortcut and is not included in the next and previous region cycle.")),
+    ),
+    cssModalSubheading(t("Other important keyboard shortcuts"), {role: "heading", "aria-level": 2}),
+    dom('ul',
+      cssShortcutRow(t("{{shortcutsModal}} Show the complete list of keyboard shortcuts", {shortcutsModal})),
+      cssShortcutRow(t("{{accessibilityModal}} Show the accessibility options (this modal)", {accessibilityModal})),
+    ),
+  );
+};
+
+const getCssKeys = (keys: string[]) => {
+  return keys.map((k, i) => i === keys.length - 1 ? cssKey(k) : [cssKey(k), t(" or ")]);
+};
+
+const cssSection = styled('div', `
+  margin-bottom: 32px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`);
+
+const cssKey = styled('span', `
+  display: inline-block;
+  font-family: ${tokens.fontFamilyData};
+  color: ${tokens.body};
+  background-color: ${tokens.bgSecondary};
+  border: 1px solid ${tokens.decoration};
+  border-bottom: 3px solid ${tokens.decoration};
+  padding: 0.2em 0.4em;
+  border-radius: 0.2em;
+`);
+
+const cssShortcutRow = styled('li', `
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+
+  & > span:first-child {
+    text-align: right;
+    min-width: 110px;
+  }
+`);

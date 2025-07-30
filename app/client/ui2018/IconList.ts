@@ -42,6 +42,7 @@ export const IconList = [
   "GoogleLogo",
   "GristLogo",
   "ThumbPreview",
+  "Accessibility",
   "AddUser",
   "ArrowLeft",
   "ArrowRight",
