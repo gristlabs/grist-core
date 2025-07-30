@@ -1,6 +1,6 @@
 # see bundle_as_wheel.sh
 
-from distutils.core import setup
+from setuptools import setup
 import glob
 
 files = glob.glob('grist/*.py') + glob.glob('grist/**/*.py')
