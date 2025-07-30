@@ -10,6 +10,7 @@ import {transientInput} from 'app/client/ui/transientInput';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {
+  createAccessibilityTools,
   createHelpTools,
   cssHomeTools,
   cssLeftPanel,
@@ -157,6 +158,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ) : null
         ),
         createHelpTools(home.app),
+        createAccessibilityTools(),
         (commonUrls.termsOfService ?
           cssPageEntry(
             cssPageLink(cssPageIcon('Memo'), cssLinkText(t("Terms of service")),
