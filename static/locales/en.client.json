@@ -891,7 +891,8 @@
         "Settings": "Settings",
         "API Console": "API Console",
         "context menu - Access Rules": "context menu - Access Rules",
-        "Delete document tour": "Delete document tour"
+        "Delete document tour": "Delete document tour",
+        "Preview the tutorial": "Preview the tutorial"
     },
     "TopBar": {
         "Manage Team": "Manage Team",
