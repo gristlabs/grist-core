@@ -656,8 +656,15 @@ export class ApiServer {
 
   private async _hardDeleteWorkspace(req: Request, wsId: number) {
     const ws = this._dbManager.unwrapQueryResult(
-      await this._dbManager.getWorkspace(getScope(req), wsId, undefined,
-                                         { requirePermissions: Permissions.REMOVE })
+      await this._dbManager.getWorkspace(
+        {
+          ...getScope(req),
+          showAll: true,  // fine to hard-delete a soft-deleted workspace
+        },
+        wsId, undefined,
+        {
+          requirePermissions: Permissions.REMOVE
+        })
     );
     try {
       const doom = await this._gristServer.getDoomTool();
