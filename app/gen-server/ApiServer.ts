@@ -3,11 +3,14 @@ import * as express from 'express';
 import * as cookie from 'cookie';
 import {Request} from 'express';
 import pick from 'lodash/pick';
+import * as t from "ts-interface-checker";
 
 import {ApiError} from 'app/common/ApiError';
 import {isAffirmative} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
+import * as SATypes from 'app/common/ServiceAccount';
+import ServiceAccountTI from 'app/common/ServiceAccount-ti';
 import {DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
@@ -29,6 +32,28 @@ import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
+import log from 'app/server/lib/log';
+
+const {PatchServiceAccount} = t.createCheckers(ServiceAccountTI);
+
+for (const checker of [PatchServiceAccount]) {
+  checker.setReportedPath("body");
+}
+
+/**
+ * Middleware for validating request's body with a Checker instance.
+ */
+function validateStrict(checker: t.Checker): express.RequestHandler {
+  return (req, res, next) => {
+    try {
+      checker.strictCheck(req.body);
+    } catch(err) {
+      log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
+      throw new ApiError('Invalid payload', 400, {userError: String(err)});
+    }
+    next();
+  };
+}
 
 // Fetch the org this request was made for, or null if it isn't tied to a particular org.
 // Early middleware should have put the org in the request object for us.
@@ -642,30 +667,23 @@ export class ApiServer {
 
     // PATCH /service-accounts/:said
     // Modifies one particular service account of the user making the api call.
-    this._app.patch('/api/service-accounts/:said', expressWrap(async (req, res) => {
-      const authorizedPatchKeys = ["label", "description", "endOfLife"];
+    this._app.patch('/api/service-accounts/:said', validateStrict(PatchServiceAccount), expressWrap(
+        async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountLogin = req.params.said;
+        const partial = req.body as SATypes.PatchServiceAccount;
 
-      const userId = getAuthorizedUserId(req);
-      const serviceAccountLogin = req.params.said;
-      const partial = req.body;
-
-      for (const key in partial) {
-        if (!authorizedPatchKeys.includes(key)) {
-          throw new ApiError(`invalid key ${key}`, 400);
+        if (partial.endOfLife !== undefined) {
+          partial.endOfLife = await this._dbManager.sanitizeDateString(partial.endOfLife);
         }
-      }
-      if (typeof partial.label != 'undefined' && typeof partial.label != 'string') {
-        throw new ApiError(`invalid value for label. Must be a string`, 400);
-      }
-      if (typeof partial.endOfLife != 'undefined') {
-        partial.endOfLife = await this._dbManager.sanitizeDateString(partial.endOfLife);
-      }
-      const resp = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, partial);
-      if (resp == null){
-        throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
-      }
-      return sendOkReply(req, res, resp);
-    }));
+
+        const resp = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, partial);
+        if (!resp) {
+          throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+        }
+        return sendOkReply(req, res, resp);
+      })
+    );
 
     // DELETE /service-accounts/:said
     // Deletes one particular service account of the user making the api call.

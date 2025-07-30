@@ -2170,6 +2170,12 @@ describe('ApiServer', function() {
       endOfLife:"2042-07-21",
     };
 
+    async function createServiceAccount(body = SERVICE_ACCOUNT_BODY) {
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      assert.equal(resp.status, 200);
+      return resp.data;
+    }
+
     describe('Endpoint POST/api/service-accounts', function () {
       it('is operational', async function() {
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
@@ -2277,23 +2283,25 @@ describe('ApiServer', function() {
     });
 
     describe('Endpoint PATCH /api/service-accounts/{saId}', function () {
+      const SERVICE_ACCOUNT_BODY_PATCH = {
+        label: "All thing must change",
+        description: "from a start",
+        endOfLife:"2042-07-21",
+      };
+
       it('is operational', async function() {
-        const body = {
-          label: "All thing must change",
-          description: "from a start",
-          endOfLife:"2042-07-21",
-        };
+        await createServiceAccount(SERVICE_ACCOUNT_BODY_PATCH);
         const newDescription = "to an end";
         const patch = {
           description: newDescription
         };
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY_PATCH, chimpy);
         const serviceLogin = resp.data.login;
         const expectedBody = {
-          ...body,
+          ...SERVICE_ACCOUNT_BODY_PATCH,
           login: serviceLogin,
           description: newDescription,
-          endOfLife: `${body.endOfLife}T00:00:00.000Z`,
+          endOfLife: `${SERVICE_ACCOUNT_BODY_PATCH.endOfLife}T00:00:00.000Z`,
           hasValidKey: true
         };
         const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
@@ -2315,63 +2323,35 @@ describe('ApiServer', function() {
       });
 
       it('returns 400 on non valid label', async function() {
-        const body = {
-          label: "All thing must change",
-          description: "from a start",
-          endOfLife:"2042-07-21",
-        };
+        const {login: serviceLogin} = await createServiceAccount(SERVICE_ACCOUNT_BODY_PATCH);
         const patch = {
           label: null
         };
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-        const serviceLogin = resp.data.login;
-        const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
-        assert.equal(resp2.status, 400);
+        const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
+        assert.equal(resp.status, 400);
       });
 
       it('returns 400 on invalid endOfLife', async function() {
-        const body = {
-          label: "All thing must change",
-          description: "from a start",
-          endOfLife:"2042-07-21",
-        };
+        const {login: serviceLogin} = await createServiceAccount(SERVICE_ACCOUNT_BODY_PATCH);
         const patch = {
           endOfLife: "something"
         };
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-        const serviceLogin = resp.data.login;
-        const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
-        assert.equal(resp2.status, 400);
+        const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
+        assert.equal(resp.status, 400);
       });
 
-      it('returns 400 if trying to update owner', async function() {
-        const body = {
-          label: "All thing must change",
-          description: "from a start",
-          endOfLife:"2042-07-21",
-        };
+      it('returns 400 if trying to update the owner', async function() {
+        const {login: serviceLogin} = await createServiceAccount(SERVICE_ACCOUNT_BODY_PATCH);
         const patch = {
+          ownerId: 1,
           owner_id: 1,
+          serviceOwnerId: "something",
         };
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-        const serviceLogin = resp.data.login;
-        const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
-        assert.equal(resp2.status, 400);
-      });
-
-      it('returns 400 if trying to update service Account user', async function() {
-        const body = {
-          label: "All thing must change",
-          description: "from a start",
-          endOfLife:"2042-07-21",
-        };
-        const patch = {
-          "service_owner_id": "something"
-        };
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-        const serviceLogin = resp.data.login;
-        const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
-        assert.equal(resp2.status, 400);
+        const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
+        assert.equal(resp.status, 400);
+        for (const key in patch) {
+          assert.include(resp.data.details.userError, `${key} is extraneous`);
+        }
       });
     });
 
