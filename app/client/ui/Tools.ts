@@ -142,7 +142,8 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           ),
         ),
         !isDocOwner ? null : cssPageEntrySmall(
-          cssPageLink(cssPageIcon('Remove'),
+          cssPageButton(cssPageIcon('Remove'),
+            {'aria-label': t("Delete document tour")},
             dom.on('click', () => confirmModal(t("Delete document tour?"), t("Delete"), () =>
               gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))
             ),
