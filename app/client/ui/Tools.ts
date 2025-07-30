@@ -6,6 +6,7 @@ import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {showExampleCard} from 'app/client/ui/ExampleCard';
 import {buildExamples} from 'app/client/ui/ExampleInfo';
 import {
+  createAccessibilityTools,
   createHelpTools,
   cssLinkText,
   cssMenuTrigger,
@@ -43,8 +44,9 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
   updateCanViewAccessRules();
   return cssTools(
+    {'aria-labelledby': 'grist-tools-heading'},
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
-    cssSectionHeader(cssSectionHeaderText(t("TOOLS"))),
+    cssSectionHeader(cssSectionHeaderText(t("TOOLS"), {id: 'grist-tools-heading'})),
     buildOpenAssistantButton(gristDoc, testId('assistant')),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
@@ -148,6 +150,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       ),
     ),
     createHelpTools(docPageModel.appModel),
+    createAccessibilityTools(),
   );
 }
 

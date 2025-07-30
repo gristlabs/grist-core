@@ -26,6 +26,7 @@ import {dom} from 'grainjs';
 import * as ko from 'knockout';
 import {makeT} from 'app/client/lib/localization';
 import { onClickOutside } from 'app/client/lib/domUtils';
+import { openAccessibilityModal } from './OpenAccessibilityModal';
 
 const t = makeT('App');
 
@@ -139,6 +140,7 @@ export class AppImpl extends DisposableWithEvents implements App {
     this.autoDispose(commands.createGroup({
       help() { G.window.open('help', '_blank').focus(); },
       shortcuts() { isHelpPaneVisible(true); },
+      accessibility() { openAccessibilityModal(this.topAppModel.appObs); },
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },
     }, this, true));

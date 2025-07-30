@@ -120,7 +120,8 @@
         "Team Site": "Team Site",
         "Grist Templates": "Grist Templates",
         "Billing Account": "Billing Account",
-        "Manage Team": "Manage Team"
+        "Manage Team": "Manage Team",
+        "{{ organizationName }} - Back to home": "{{ organizationName }} - Back to home"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
@@ -628,7 +629,8 @@
         "Workspaces": "Workspaces",
         "Tutorial": "Tutorial",
         "Terms of service": "Terms of service",
-        "Grist Resources": "Grist Resources"
+        "Grist Resources": "Grist Resources",
+        "Workspace options - {{- workspaceName }}": "Workspace options - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -651,7 +653,8 @@
         "Source column": "Source column"
     },
     "LeftPanelCommon": {
-        "Help Center": "Help Center"
+        "Help Center": "Help Center",
+        "Accessibility": "Accessibility"
     },
     "MakeCopyMenu": {
         "As Template": "As Template",
@@ -727,7 +730,8 @@
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
         "The following tables will no longer be visible_other": "The following tables will no longer be visible",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Keep data and delete page. Table will remain available in {{rawDataLink}}",
-        "raw data page": "raw data page"
+        "raw data page": "raw data page",
+        "Document pages": "Document pages"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",
@@ -1341,7 +1345,9 @@
         "Creator panel (right panel)": "Creator panel (right panel)",
         "Document header": "Document header",
         "Main content": "Main content",
-        "Main navigation and document settings (left panel)": "Main navigation and document settings (left panel)"
+        "Main navigation and document settings (left panel)": "Main navigation and document settings (left panel)",
+        "Close navigation panel (left panel)": "Close navigation panel (left panel)",
+        "Open navigation panel (left panel)": "Open navigation panel (left panel)"
     },
     "ColumnTitle": {
         "Add description": "Add description",
@@ -1928,11 +1934,11 @@
     "HomeIntroCards": {
         "3 minute video tour": "3 minute video tour",
         "Blank document": "Blank document",
-        "Find solutions and explore more resources {{helpCenterLink}}": "Find solutions and explore more resources {{helpCenterLink}}",
+        "Find solutions and explore more resources": "Find solutions and explore more resources",
         "Finish our basics tutorial": "Finish our basics tutorial",
         "Help center": "Help center",
         "Import file": "Import file",
-        "Learn more {{webinarsLinks}}": "Learn more {{webinarsLinks}}",
+        "Learn more": "Learn more",
         "Start a new document": "Start a new document",
         "Templates": "Templates",
         "Tutorial": "Tutorial",
@@ -2026,7 +2032,9 @@
         "Sort by date": "Sort by date",
         "Sort by name": "Sort by name",
         "Unpin": "Unpin",
-        "Workspace": "Workspace"
+        "Workspace": "Workspace",
+        "Document options - {{- documentName }}": "Document options - {{- documentName }}",
+        "Documents list": "Documents list"
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
@@ -2144,5 +2152,31 @@
         "No attachments": "No attachments",
         "Preview not available.": "Preview not available.",
         "{{index}} of {{total}}": "{{index}} of {{total}}"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " or ",
+        "\"Regions\" are what we call the different parts of the user interface:": "\"Regions\" are what we call the different parts of the user interface:",
+        "Accessibility": "Accessibility",
+        "Close": "Close",
+        "Focus other parts of the user interface using the following shortcuts:": "Focus other parts of the user interface using the following shortcuts:",
+        "High contrast theme": "High contrast theme",
+        "Keyboard navigation": "Keyboard navigation",
+        "On a document page, keyboard navigation is first locked on the current widget.": "On a document page, keyboard navigation is first locked on the current widget.",
+        "Other important keyboard shortcuts": "Other important keyboard shortcuts",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "To see other available themes, go to your {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Use the high contrast theme (light appearance)",
+        "You are currently **not using** the high contrast theme.": "You are currently **not using** the high contrast theme.",
+        "You are currently using the high contrast theme.": "You are currently using the high contrast theme.",
+        "and the right panel, which is the creator panel. It is only available         through its own shortcut and is not included in the next and previous region cycle.": "and the right panel, which is the creator panel. It is only available         through its own shortcut and is not included in the next and previous region cycle.",
+        "on document pages, each widget is a region that can be focused on its own,": "on document pages, each widget is a region that can be focused on its own,",
+        "on non-document pages, the main content area is a region,": "on non-document pages, the main content area is a region,",
+        "profile settings": "profile settings",
+        "the left panel, where the main navigation is,": "the left panel, where the main navigation is,",
+        "the top panel, being the document header,": "the top panel, being the document header,",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Show the accessibility options (this modal)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Focus to and from the creator panel",
+        "{{nextRegionShortcut}} Focus the next region": "{{nextRegionShortcut}} Focus the next region",
+        "{{prevRegionShortcut}} Focus the previous region": "{{prevRegionShortcut}} Focus the previous region",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Show the complete list of keyboard shortcuts"
     }
 }
