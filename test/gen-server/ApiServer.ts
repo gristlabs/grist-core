@@ -2299,7 +2299,7 @@ describe('ApiServer', function() {
         assert.equal(resp2.status, 404, "patch 404");
       });
 
-      it('returns 400 on non valid label', async function() {
+      it('returns 400 on invalid label', async function() {
         const {login: serviceLogin} = await createServiceAccount(SERVICE_ACCOUNT_BODY_PATCH);
         const patch = {
           label: null
@@ -2317,7 +2317,7 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 400);
       });
 
-      it('returns 400 if trying to update the owner', async function() {
+      it('returns 400 if trying to update the owner or the service account', async function() {
         const {login: serviceLogin} = await createServiceAccount(SERVICE_ACCOUNT_BODY_PATCH);
         const patch = {
           ownerId: 1,
@@ -2329,6 +2329,22 @@ describe('ApiServer', function() {
         for (const key in patch) {
           assert.include(resp.data.details.userError, `${key} is extraneous`);
         }
+      });
+
+      it('returns 403 for non-owned service accounts {saId}', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.patch(
+          `${homeUrl}/api/service-accounts/${serviceLogin}`, SERVICE_ACCOUNT_BODY_PATCH, kiwi
+        );
+        assert.equal(resp.status, 403);
+      });
+
+      it('is rejected when requested by an anonymous user', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.patch(
+          `${homeUrl}/api/service-accounts/${serviceLogin}`, SERVICE_ACCOUNT_BODY_PATCH, nobody
+        );
+        assert.equal(resp.status, 401);
       });
     });
 
@@ -2357,6 +2373,22 @@ describe('ApiServer', function() {
         const resp = await axios.delete(`${homeUrl}/api/service-accounts/1`, chimpy);
         assert.equal(resp.status, 404);
       });
+
+      it.skip('returns 403 for non-owned service accounts {saId}', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.delete(
+          `${homeUrl}/api/service-accounts/${serviceLogin}`, kiwi
+        );
+        assert.equal(resp.status, 403);
+      });
+
+      it('is rejected when requested by an anonymous user', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.delete(
+          `${homeUrl}/api/service-accounts/${serviceLogin}`, nobody
+        );
+        assert.equal(resp.status, 401);
+      });
     });
 
     describe('Endpoint POST /api/service-accounts/{saId}/key/regenerate', function () {
@@ -2379,6 +2411,22 @@ describe('ApiServer', function() {
         const inexistingKeyId = 42;
         const resp = await axios.post(`${homeUrl}/api/service-accounts/${inexistingKeyId}/key/regenerate`, {}, chimpy);
         assert.equal(resp.status, 404);
+      });
+
+      it.skip('returns 403 for non-owned service accounts {saId}', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.post(
+          `${homeUrl}/api/service-accounts/${serviceLogin}/key/regenerate`, {}, kiwi
+        );
+        assert.equal(resp.status, 403);
+      });
+
+      it('is rejected when requested by an anonymous user', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.post(
+          `${homeUrl}/api/service-accounts/${serviceLogin}/key/regenerate`, {}, nobody
+        );
+        assert.equal(resp.status, 401);
       });
     });
 
@@ -2409,6 +2457,22 @@ describe('ApiServer', function() {
         const unexistingKeyId = 42;
         const resp = await axios.post(`${homeUrl}/api/service-accounts/${unexistingKeyId}/key/revoke`, {}, chimpy);
         assert.equal(resp.status, 404);
+      });
+
+      it.skip('returns 403 for non-owned service accounts {saId}', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.post(
+          `${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, kiwi
+        );
+        assert.equal(resp.status, 403);
+      });
+
+      it('is rejected when requested by an anonymous user', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await axios.post(
+          `${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, nobody
+        );
+        assert.equal(resp.status, 401);
       });
     });
 
@@ -2483,7 +2547,7 @@ describe('ApiServer', function() {
         const body = {
           label: "A small service for the chimpy",
           description: "A big service for robotkind",
-          endOfLife:"",
+          endOfLife: new Date(0).toISOString(),
         };
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
         const key = resp.data.key;

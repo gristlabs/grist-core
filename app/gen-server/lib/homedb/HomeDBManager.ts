@@ -3311,8 +3311,10 @@ export class HomeDBManager {
     return this._serviceAccountsManager.readServiceAccount(serviceLogin);
   }
 
-  public async updateServiceAccount(serviceLogin: string, ownerId: number, partial: Partial<ServiceAccount>) {
-    return this._serviceAccountsManager.updateServiceAccount(serviceLogin, ownerId, partial);
+  public async updateServiceAccount(
+    serviceLogin: string, partial: Partial<ServiceAccount>, options: { expectedOwnerId?: number } = {}
+  ) {
+    return this._serviceAccountsManager.updateServiceAccount(serviceLogin, partial, options);
   }
 
   public async deleteServiceAccount(serviceLogin: string, ownerId: number) {

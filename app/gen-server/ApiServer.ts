@@ -673,12 +673,15 @@ export class ApiServer {
         async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
-        const partial = req.body as SATypes.PatchServiceAccount;
+        const payload = req.body as SATypes.PatchServiceAccount;
+        const updateProps = {
+          ...payload,
+          endOfLife: payload.endOfLife !== undefined ? new Date(payload.endOfLife) : undefined,
+        };
 
-        const resp = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, {
-          ...partial,
-          endOfLife: partial.endOfLife !== undefined ? new Date(partial.endOfLife) : undefined,
-        });
+        const resp = await this._dbManager.updateServiceAccount(
+          serviceAccountLogin, updateProps, { expectedOwnerId: userId }
+        );
         if (!resp) {
           throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
         }

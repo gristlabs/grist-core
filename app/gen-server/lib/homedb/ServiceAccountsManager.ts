@@ -63,12 +63,10 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ) {
     return await this._runInTransaction(transaction, async manager => {
-      // Take advantage of buildExistingUsersByLoginRequest (especially for normalizing the passed email).
-      const serviceUserQuery = this._usersManager.buildExistingUsersByLoginRequest([serviceAccountLogin], transaction);
-      const user = await serviceUserQuery
-        .innerJoinAndSelect("user.serviceAccount", "serviceAccount")
-        .getOne();
+      const user = await this._getServiceAccountUserByLogin(serviceAccountLogin, manager);
 
+      // Make a backward reference of the user. It's OK for most cases,
+      // but improper for updates as TypeORM can't handle circular references.
       if (user?.serviceAccount) {
         user.serviceAccount.serviceUser = user;
       }
@@ -90,19 +88,20 @@ export class ServiceAccountsManager {
 
   public async updateServiceAccount(
     serviceAccountLogin: string,
-    ownerId: number,
     partial: Partial<ServiceAccount>,
+    options: {expectedOwnerId?: number} = {},
   ) {
+    const { expectedOwnerId } = options;
     return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
-      if (!serviceUser) {
-        return serviceUser;
+      const { serviceAccount } = await this._getServiceAccountUserByLogin(serviceAccountLogin, manager) ?? {};
+      if (!serviceAccount) {
+        return serviceAccount;
       }
-      return await manager.update(
-        ServiceAccount,
-        {serviceUserId: serviceUser.id, ownerId},
-        partial
-      );
+      if (expectedOwnerId !== undefined && expectedOwnerId !== serviceAccount.ownerId) {
+        throw new ApiError("Operation not allowed", 403);
+      }
+      ServiceAccount.merge(serviceAccount, partial);
+      return await manager.save(serviceAccount);
     });
   }
 
@@ -191,5 +190,13 @@ export class ServiceAccountsManager {
       const currentDate = new Date();
       return endOfLife > currentDate;
     });
+  }
+
+  private async _getServiceAccountUserByLogin(serviceAccountLogin: string, transaction?: EntityManager) {
+    // Take advantage of buildExistingUsersByLoginRequest (especially for normalizing the passed email).
+    const serviceUserQuery = this._usersManager.buildExistingUsersByLoginRequest([serviceAccountLogin], transaction);
+    return await serviceUserQuery
+      .innerJoinAndSelect("user.serviceAccount", "serviceAccount")
+      .getOne();
   }
 }
