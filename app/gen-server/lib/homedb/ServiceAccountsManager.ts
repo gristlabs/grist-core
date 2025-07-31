@@ -33,7 +33,7 @@ export class ServiceAccountsManager {
     ownerId: number,
     label?: string,
     description?: string,
-    endOfLife?: string,
+    endOfLife?: Date,
   ) {
     return await this._connection.transaction(async manager => {
       const uuid = uuidv4();
@@ -41,19 +41,20 @@ export class ServiceAccountsManager {
       // as we don't ever want service user to be able to recieve any email
       // and then be able to connect via link in email
       const login = `${uuid}@serviceaccounts.invalid`;
+      // Using getUserByLogin will create the user... Yeah, please don't blame us.
       const serviceUser = await this._homeDb.getUserByLogin(login, {manager}, 'service');
-      const serviceUserWithkey = await this._homeDb.createApiKey(serviceUser.id, false, manager);
+
+      await this._homeDb.createApiKey(serviceUser.id, false, manager);
+
       const newServiceAccount = ServiceAccount.create({
         ownerId,
         serviceUserId: serviceUser.id,
         label,
         description,
-        endOfLife: this.sanitizeDateString(endOfLife)
+        endOfLife
       });
-      const serviceAccount = await manager.save(newServiceAccount);
-      (serviceAccount as any).user = serviceUserWithkey;
-      (serviceAccount as any).login = login;
-      return serviceAccount;
+      await manager.save(newServiceAccount);
+      return (await this.readServiceAccount(login, manager))!;
     });
   }
 
@@ -62,7 +63,7 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ) {
     return await this._runInTransaction(transaction, async manager => {
-      // Take advantage of buildExistingUsersByLoginRequest (especially for normalizing the passed email)
+      // Take advantage of buildExistingUsersByLoginRequest (especially for normalizing the passed email).
       const serviceUserQuery = this._usersManager.buildExistingUsersByLoginRequest([serviceAccountLogin], transaction);
       const user = await serviceUserQuery
         .innerJoinAndSelect("user.serviceAccount", "serviceAccount")
@@ -190,20 +191,5 @@ export class ServiceAccountsManager {
       const currentDate = new Date();
       return endOfLife > currentDate;
     });
-  }
-
-  public sanitizeDateString(dateString: string = new Date().toISOString()): string {
-    try {
-      // We want an empty dateString to set the endOfLife to
-      // previous midnight so the key is outdated at creation
-      // however an empty string is not a valid string to initialize a
-      // date.
-      if (dateString === ""){
-        return new Date().toISOString().split('T')[0];
-      }
-      return new Date(dateString).toISOString().split('T')[0];
-    } catch (e) {
-      throw new ApiError(`Bad Request: endOfLife ${dateString} is not a valid date.\n ${e}`, 400);
-    }
   }
 }

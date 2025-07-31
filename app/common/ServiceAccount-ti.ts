@@ -4,16 +4,21 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
-export const PostServiceAccount = t.iface([], {
+export const ServiceAccountAllOptional = t.iface([], {
   "label": t.union("string", "undefined"),
   "description": t.union("string", "undefined"),
   "endOfLife": t.union("string", "undefined"),
 });
 
-export const PatchServiceAccount = t.name("PostServiceAccount");
+export const PatchServiceAccount = t.name("ServiceAccountAllOptional");
+
+export const PostServiceAccount = t.iface(["ServiceAccountAllOptional"], {
+  "endOfLife": "string",
+});
 
 const exportedTypeSuite: t.ITypeSuite = {
-  PostServiceAccount,
+  ServiceAccountAllOptional,
   PatchServiceAccount,
+  PostServiceAccount,
 };
 export default exportedTypeSuite;

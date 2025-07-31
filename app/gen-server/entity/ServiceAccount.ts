@@ -1,5 +1,8 @@
+import {ApiError} from 'app/common/ApiError';
 import {User} from 'app/gen-server/entity/User';
-import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import {
+  BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn
+} from "typeorm";
 
 @Entity({name: 'service_accounts'})
 export class ServiceAccount extends BaseEntity {
@@ -28,6 +31,13 @@ export class ServiceAccount extends BaseEntity {
   public description: string;
 
   @Column({type: Date, nullable: false, name: 'end_of_life'})
-  public endOfLife: string;
-}
+  public endOfLife: Date;
 
+  @BeforeUpdate()
+  @BeforeInsert()
+  public checkEndOfLife() {
+    if (Number.isNaN(this.endOfLife.getTime())) {
+      throw new ApiError("Invalid endOfLife", 400);
+    }
+  }
+}

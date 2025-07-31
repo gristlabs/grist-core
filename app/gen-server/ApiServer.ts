@@ -34,9 +34,9 @@ import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
 import {getCookieDomain} from 'app/server/lib/gristSessions';
 import log from 'app/server/lib/log';
 
-const {PatchServiceAccount} = t.createCheckers(ServiceAccountTI);
+const {PatchServiceAccount, PostServiceAccount} = t.createCheckers(ServiceAccountTI);
 
-for (const checker of [PatchServiceAccount]) {
+for (const checker of [PatchServiceAccount, PostServiceAccount]) {
   checker.setReportedPath("body");
 }
 
@@ -613,14 +613,16 @@ export class ApiServer {
   if (isAffirmative(process.env.GRIST_SERVICE_ACCOUNTS)) {
     // POST /service-accounts/
     // Creates a new service account attached to the user making the api call.
-    this._app.post('/api/service-accounts', expressWrap(async (req, res) => {
+    this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
       const msg = "Please save your api key. It's the only time you will see it.";
-      const userId = getAuthorizedUserId(req);
-      const {label, description, endOfLife} = req.body;
-      const serviceAccount = await this._dbManager.createServiceAccount(userId, label, description, endOfLife);
+      const ownerId = getAuthorizedUserId(req);
+      const {label, description, endOfLife} = req.body as SATypes.PostServiceAccount;
+      const serviceAccount = await this._dbManager.createServiceAccount(
+        ownerId, label, description, new Date(endOfLife)
+      );
       const resp = {
-        login: (serviceAccount as any).login,
-        key: (serviceAccount as any).user.apiKey,
+        login: serviceAccount.serviceUser.loginEmail,
+        key: serviceAccount.serviceUser.apiKey,
         msg,
         label: serviceAccount.label,
         description: serviceAccount.description,
@@ -673,11 +675,10 @@ export class ApiServer {
         const serviceAccountLogin = req.params.said;
         const partial = req.body as SATypes.PatchServiceAccount;
 
-        if (partial.endOfLife !== undefined) {
-          partial.endOfLife = await this._dbManager.sanitizeDateString(partial.endOfLife);
-        }
-
-        const resp = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, partial);
+        const resp = await this._dbManager.updateServiceAccount(serviceAccountLogin, userId, {
+          ...partial,
+          endOfLife: partial.endOfLife !== undefined ? new Date(partial.endOfLife) : undefined,
+        });
         if (!resp) {
           throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
         }
@@ -720,7 +721,7 @@ export class ApiServer {
     }));
 
     // POST /service-accounts/:said/key/revoke
-    // Revokes the apikey of a given Service Account by deleting it
+    // Revokes the apikey of a given Service Account by deleting the key
     this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const serviceAccountLogin = req.params.said;

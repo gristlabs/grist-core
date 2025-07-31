@@ -42,6 +42,7 @@ import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/e
 import {Pref} from 'app/gen-server/entity/Pref';
 import {getDefaultProductNames, personalFreeFeatures, Product} from 'app/gen-server/entity/Product';
 import {Secret} from 'app/gen-server/entity/Secret';
+import {ServiceAccount} from 'app/gen-server/entity/ServiceAccount';
 import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
@@ -3297,7 +3298,7 @@ export class HomeDBManager {
     ownerId: number,
     label?: string,
     description?: string,
-    endOfLife?: string
+    endOfLife?: Date
   ) {
     return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
   }
@@ -3310,7 +3311,7 @@ export class HomeDBManager {
     return this._serviceAccountsManager.readServiceAccount(serviceLogin);
   }
 
-  public async updateServiceAccount(serviceLogin: string, ownerId: any, partial: any) {
+  public async updateServiceAccount(serviceLogin: string, ownerId: number, partial: Partial<ServiceAccount>) {
     return this._serviceAccountsManager.updateServiceAccount(serviceLogin, ownerId, partial);
   }
 
@@ -3328,10 +3329,6 @@ export class HomeDBManager {
 
   public async isAliveServiceAccount(serviceLogin: string) {
     return this._serviceAccountsManager.isAliveServiceAccount(serviceLogin);
-  }
-
-  public async sanitizeDateString(dateString: string) {
-    return this._serviceAccountsManager.sanitizeDateString(dateString);
   }
 
   public async getApiKey(userId: number) {

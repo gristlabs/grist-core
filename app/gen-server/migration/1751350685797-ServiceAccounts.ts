@@ -77,6 +77,7 @@ export class ServiceAccounts1751350685797 implements MigrationInterface {
         onDelete: 'CASCADE',
       })
     );
+    // Useful?
     await queryRunner.createIndex(
       'service_accounts',
       new TableIndex({

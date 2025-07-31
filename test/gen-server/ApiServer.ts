@@ -2176,7 +2176,7 @@ describe('ApiServer', function() {
       return resp.data;
     }
 
-    describe('Endpoint POST/api/service-accounts', function () {
+    describe('Endpoint POST /api/service-accounts', function () {
       it('is operational', async function() {
         const data = await createServiceAccount();
         assert.isObject(data);
@@ -2187,7 +2187,7 @@ describe('ApiServer', function() {
           label: SERVICE_ACCOUNT_BODY.label,
           msg: "Please save your api key. It's the only time you will see it.",
           description: SERVICE_ACCOUNT_BODY.description,
-          endOfLife: SERVICE_ACCOUNT_BODY.endOfLife,
+          endOfLife: new Date(SERVICE_ACCOUNT_BODY.endOfLife).toISOString(),
           hasValidKey: true,
         };
         assert.deepEqual(data, expectedData);
@@ -2198,22 +2198,14 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 401);
       });
 
-      it('returns default values on empty body', async function() {
-        const body = {
-        };
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
-        assert.equal(resp.status, 200);
-        assert.isObject(resp.data);
-        assert.isEmpty(resp.data.label);
-        assert.isEmpty(resp.data.description);
-        assert.isTrue(resp.data.endOfLife < new Date().toISOString());
-      });
-
       it('returns 400 when wrong endOfLife is given', async function() {
         const body = {
           endOfLife: 'tutu',
         };
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+        let resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+        assert.equal(resp.status, 400);
+        const emptyBody = {};
+        resp = await axios.post(`${homeUrl}/api/service-accounts/`, emptyBody, chimpy);
         assert.equal(resp.status, 400);
       });
     });
