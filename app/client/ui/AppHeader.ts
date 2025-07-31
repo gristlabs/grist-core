@@ -2,12 +2,12 @@ import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import * as version from 'app/common/version';
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
 import {commonUrls} from 'app/common/gristUrls';
 import {getOrgName, isTemplatesOrg, Organization} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import * as roles from 'app/common/roles';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
@@ -81,7 +81,7 @@ export class AppHeader extends Disposable {
     // Check if we have a custom image.
     const customImage = this._appModel.currentOrg?.orgPrefs?.customLogoUrl;
 
-    const variant = () => [cssUserImage.cls('-border'), cssUserImage.cls('-square')];
+    const variant = () => [cssUserImage.cls('-border'), cssUserImage.cls('-square'), cssUserImage.cls('-inAppLogo')];
 
     // Personal avatar is shown only for logged in users.
     const personalAvatar = () => !this._appModel.currentValidUser
@@ -108,18 +108,13 @@ export class AppHeader extends Disposable {
                           ? null
                           : image();
 
-    const title = `Version ${version.version}` +
-          ((version.gitcommit as string) !== 'unknown' ? ` (${version.gitcommit})` : '');
+    const altText = t('{{ organizationName }} - Back to home', { organizationName: this._appLogoOrg.get().name });
 
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', productFlavor.wideLogo || false),
       cssAppHeaderBox(
         dom.domComputed(this._appLogoOrgLink, orgLink => cssAppLogo(
-          // Show version when hovering over the application icon.
-          // Include gitcommit when known. Cast version.gitcommit since, depending
-          // on how Grist is compiled, tsc may believe it to be a constant and
-          // believe that testing it is unnecessary.
-          {title},
+          {'aria-label': altText},
           this._setHomePageUrl(orgLink),
           content(),
           testId('logo'),
@@ -141,6 +136,7 @@ export class AppHeader extends Disposable {
       );
     } else {
       return cssOrg(
+        dom.cls('_cssOrg'),
         cssOrgName(dom.text(this._appLogoOrgName), testId('orgname')),
         productPill(this._currentOrg),
         dom.maybe(this._appLogoOrgName, () => [
@@ -277,7 +273,7 @@ export function productPill(org: Organization|null, options: {large?: boolean} =
 }
 
 
-const cssAppHeader = styled('div._cssAppHeader', `
+const cssAppHeader = styled('header._cssAppHeader', `
   width: 100%;
   height: 100%;
   background-color: ${theme.leftPanelBg};
@@ -330,7 +326,11 @@ const cssAppLogo = styled('a._cssAppLogo', `
   overflow: hidden;
   border-right-color: var(--middle-border-color, ${theme.appHeaderBorder});
 
-  outline-offset: -1px;
+  /* make sure keyboard highlight is visible
+  (it wouldn't be without the offset because of the overflow: hidden) */
+  outline-offset: -3px;
+  position: relative;
+  z-index: 1;
 
   &-grist-logo {
     background-image: var(--icon-GristLogo);
@@ -361,7 +361,7 @@ const cssAppLogo = styled('a._cssAppLogo', `
   }
 `);
 
-const cssOrg = styled('div._cssOrg', `
+const cssOrg = styled(unstyledButton, `
   display: none;
   flex-grow: 1;
   flex-basis: 0px;
@@ -376,6 +376,10 @@ const cssOrg = styled('div._cssOrg', `
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-left: 0px;
+
+  /* make sure keyboard highlight is visible
+  (it wouldn't be without the offset because of the overflow: hidden) */
+  outline-offset: -3px;
 
   &:hover {
     border-color: ${theme.appHeaderBorderHover};

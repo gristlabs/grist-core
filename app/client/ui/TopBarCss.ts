@@ -1,8 +1,9 @@
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {styled} from 'grainjs';
 
-export const cssHoverCircle = styled('div', `
+export const cssHoverCircle = styled(unstyledButton, `
   width: 32px;
   height: 32px;
   background: none;
