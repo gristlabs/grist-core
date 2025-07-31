@@ -15,7 +15,8 @@
  *
  *   - It the operation you care about involves the database, check
  *     that "allowSpecialPermit" is enabled for it in HomeDBManager
- *     (currently only deletion of docs/workspaces has this enabled).
+ *     (currently only deletion of docs, and deleting/viewing workspaces
+ *     has this enabled).
  *
  *   - Save the permit in the permit store, with setPermit, noting its
  *     generated key.
