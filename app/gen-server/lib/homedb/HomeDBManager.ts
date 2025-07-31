@@ -759,10 +759,21 @@ export class HomeDBManager {
     },
   ): Promise<QueryResult<Workspace>> {
     const {userId} = scope;
+    if (scope.specialPermit && scope.specialPermit.workspaceId === wsId) {
+      const effectiveUserId = this._usersManager.getPreviewerUserId();
+      scope = {...scope};
+      scope.userId = effectiveUserId;
+      delete scope.users;
+      options = {
+        ...options,
+        requirePermissions: Permissions.VIEW,
+      };
+    }
     let queryBuilder = this._workspace(scope, wsId, {
       manager: transaction,
       ...(options?.requirePermissions ? {
         markPermissions: options.requirePermissions,
+        allowSpecialPermit: true,
       } : undefined),
     })
       // Nest the docs within the workspace object
