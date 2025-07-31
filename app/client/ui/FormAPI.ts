@@ -130,22 +130,23 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
 
   public async getForm(options: GetFormOptions): Promise<Form> {
     const {vsId} = options;
-    const url = this._getUrl(options, `forms/${vsId}`);
-    return this.requestJson(url.toString(), {method: 'GET'});
+    return this.requestJson(this._docOrShareUrl(`/forms/${vsId}`, options), {
+      method: "GET",
+    });
   }
 
   public async createRecord(options: CreateRecordOptions): Promise<void> {
     const {tableId, colValues} = options;
-    const url = this._getUrl(options, `tables/${tableId}/records`);
-    return this.requestJson(url.toString(), {
-      method: 'POST',
-      body: JSON.stringify({records: [{fields: colValues}]}),
-    });
+    return this.requestJson(
+      this._docOrShareUrl(`/tables/${tableId}/records`, options),
+      {
+        method: "POST",
+        body: JSON.stringify({ records: [{ fields: colValues }] }),
+      }
+    );
   }
 
   public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
-    const url = this._getUrl(options, 'attachments');
-
     const upload = options.upload.filter(f => f.size > 0);
     if (upload.length === 0) {
       return [];
@@ -156,29 +157,26 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
       formData.append('upload', file);
     }
 
-    const result = await this.fetch(url.toString(), {
-      method: 'POST',
+    return this.requestJson(this._docOrShareUrl("/attachments", options), {
+      method: "POST",
+      headers: { ...this.defaultHeadersWithoutContentType() },
       body: formData,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-      },
     });
-
-    return result.json();
   }
 
-  private _getUrl(target: FormTarget, path: string): URL {
-    const url = new URL(this._url);
-    if ('docId' in target) {
-      url.pathname = `/api/docs/${target.docId}/${path}`;
-    } else {
-      url.searchParams.set('utm_source', 'grist-forms');
-      url.pathname = `/api/s/${target.shareKey}/${path}`;
-    }
-    return url;
-  }
-
-  private get _url(): string {
+  private get _baseUrl(): string {
     return addCurrentOrgToPath(this._homeUrl);
+  }
+
+  private _docOrShareUrl(path: string, target: FormTarget): string {
+    const base =
+      "docId" in target
+        ? `${this._baseUrl}/api/docs/${target.docId}`
+        : `${this._baseUrl}/api/s/${target.shareKey}`;
+    const url = new URL(`${base}${path}`);
+    if ("shareKey" in target) {
+      url.searchParams.set("utm_source", "grist-forms");
+    }
+    return url.href;
   }
 }
