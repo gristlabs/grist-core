@@ -129,31 +129,21 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {
-    if ('docId' in options) {
-      const {docId, vsId} = options;
-      return this.requestJson(`${this._url}/api/docs/${docId}/forms/${vsId}`, {method: 'GET'});
-    } else {
-      const {shareKey, vsId} = options;
-      return this.requestJson(`${this._url}/api/s/${shareKey}/forms/${vsId}`, {method: 'GET'});
-    }
+    const {vsId} = options;
+    return this.requestJson(this._docOrShareUrl(`/forms/${vsId}`, options), {
+      method: "GET",
+    });
   }
 
   public async createRecord(options: CreateRecordOptions): Promise<void> {
-    if ('docId' in options) {
-      const {docId, tableId, colValues} = options;
-      return this.requestJson(`${this._url}/api/docs/${docId}/tables/${tableId}/records`, {
-        method: 'POST',
-        body: JSON.stringify({records: [{fields: colValues}]}),
-      });
-    } else {
-      const {shareKey, tableId, colValues} = options;
-      const url = new URL(`${this._url}/api/s/${shareKey}/tables/${tableId}/records`);
-      url.searchParams.set('utm_source', 'grist-forms');
-      return this.requestJson(url.href, {
-        method: 'POST',
-        body: JSON.stringify({records: [{fields: colValues}]}),
-      });
-    }
+    const {tableId, colValues} = options;
+    return this.requestJson(
+      this._docOrShareUrl(`/tables/${tableId}/records`, options),
+      {
+        method: "POST",
+        body: JSON.stringify({ records: [{ fields: colValues }] }),
+      }
+    );
   }
 
   public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
@@ -167,24 +157,26 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
       formData.append('upload', file);
     }
 
-    if ('docId' in options) {
-      const {docId} = options;
-      return this.requestJson(`${this._url}/api/docs/${docId}/attachments`, {
-        method: 'POST',
-        headers: {...this.defaultHeadersWithoutContentType()},
-        body: formData,
-      });
-    } else {
-      const {shareKey} = options;
-      return this.requestJson(`${this._url}/api/s/${shareKey}/attachments`, {
-        method: 'POST',
-        headers: {...this.defaultHeadersWithoutContentType()},
-        body: formData,
-      });
-    }
+    return this.requestJson(this._docOrShareUrl("/attachments", options), {
+      method: "POST",
+      headers: { ...this.defaultHeadersWithoutContentType() },
+      body: formData,
+    });
   }
 
-  private get _url(): string {
+  private get _baseUrl(): string {
     return addCurrentOrgToPath(this._homeUrl);
+  }
+
+  private _docOrShareUrl(path: string, target: FormTarget): string {
+    const base =
+      "docId" in target
+        ? `${this._baseUrl}/api/docs/${target.docId}`
+        : `${this._baseUrl}/api/s/${target.shareKey}`;
+    const url = new URL(`${base}${path}`);
+    if ("shareKey" in target) {
+      url.searchParams.set("utm_source", "grist-forms");
+    }
+    return url.href;
   }
 }
