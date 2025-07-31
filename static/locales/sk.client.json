@@ -154,7 +154,18 @@
         "Toggle chart aggregation": "Prepnúť združovanie grafu",
         "selected new group data columns": "vybrať nové stĺpce skupiny dát",
         "Each Y series is followed by a series for the length of error bars.": "Po každej sérii Y nasleduje séria dlhých chybových pruhov.",
-        "Each Y series is followed by two series, for top and bottom error bars.": "Po každej sérii Y nasledujú dve série pre horný a dolný chybový pruh."
+        "Each Y series is followed by two series, for top and bottom error bars.": "Po každej sérii Y nasledujú dve série pre horný a dolný chybový pruh.",
+        "LABEL": "MENOVKA",
+        "Bar Chart": "Stĺpcový Graf",
+        "Pie Chart": "Kruhový Graf",
+        "Donut Chart": "Vencový Graf",
+        "Area Chart": "Plošný Graf",
+        "Line Chart": "Línyiový Graf",
+        "Scatter Plot": "Diagram Rozptylu",
+        "Kaplan-Meier Plot": "Kaplan-Meier Diagram",
+        "Split series": "Rozdeliť sériu",
+        "Invert Y-axis": "Invertovať osu Y",
+        "Orientation": "Orientácia"
     },
     "ColumnFilterMenu": {
         "All Shown": "Všetko zobrazené",
