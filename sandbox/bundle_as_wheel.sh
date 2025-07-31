@@ -10,7 +10,7 @@ set -e
 rm -rf dist foo.egg-info grist.egg-info build
 
 # Go ahead and run packaging again.
-python setup.py bdist_wheel
+python3 setup.py bdist_wheel
 
 echo ""
 echo "Result is in the dist directory:"
