@@ -1,8 +1,21 @@
-import {decodeUrl, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart} from 'app/common/gristUrls';
+import {
+  decodeUrl, commonUrls as defaultCommonUrls, getCommonUrls,
+  getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
+} from 'app/common/gristUrls';
 import {assert} from 'chai';
+import Sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
 describe('gristUrls', function() {
+  let sandbox: Sinon.SinonSandbox;
+
+  beforeEach(function () {
+    sandbox = Sinon.createSandbox();
+  });
+
+  afterEach(function () {
+    sandbox.restore();
+  });
 
   function assertUrlDecode(url: string, expected: Partial<IGristUrlState>) {
     const actual = decodeUrl({}, new URL(url));
@@ -117,12 +130,13 @@ describe('gristUrls', function() {
     });
 
     it('should interpret doc internal url as "native"', function() {
-      process.env.APP_DOC_INTERNAL_URL = 'https://doc-worker-123.internal/path';
+      sandbox.define(process.env, 'APP_DOC_INTERNAL_URL', 'https://doc-worker-123.internal/path');
       assert.equal(getHostType('doc-worker-123.internal', defaultOptions), 'native');
       assert.equal(getHostType('doc-worker-123.internal:8080', defaultOptions), 'custom');
       assert.equal(getHostType('doc-worker-124.internal', defaultOptions), 'custom');
 
-      process.env.APP_DOC_INTERNAL_URL = 'https://doc-worker-123.internal:8080/path';
+      sandbox.restore();
+      sandbox.define(process.env, 'APP_DOC_INTERNAL_URL', 'https://doc-worker-123.internal:8080/path');
       assert.equal(getHostType('doc-worker-123.internal:8080', defaultOptions), 'native');
       assert.equal(getHostType('doc-worker-123.internal', defaultOptions), 'custom');
       assert.equal(getHostType('doc-worker-124.internal:8080', defaultOptions), 'custom');
@@ -150,6 +164,96 @@ describe('gristUrls', function() {
       assert.strictEqual(getSlugIfNeeded({id, urlId, name: "Hélène's résumé"}), 'Helenes-resume');
       assert.strictEqual(getSlugIfNeeded({id, urlId, name: "Привіт, Їжак!"}), 'Privit-Yizhak');
       assert.strictEqual(getSlugIfNeeded({id, urlId, name: "S&P500 is ~$4,894.16"}), 'SandP500-is-dollar489416');
+    });
+  });
+
+  describe('getCommonUrls', function () {
+    it('should return the default URLs', function () {
+      const commonUrls = getCommonUrls();
+      assert.isObject(commonUrls);
+      assert.equal(commonUrls.help, "https://support.getgrist.com");
+    });
+
+    describe("with GRIST_CUSTOM_COMMON_URLS env var set", function () {
+      it('should return the values set by the GRIST_CUSTOM_COMMON_URLS env var', function () {
+        const customHelpCenterUrl = "http://custom.helpcenter";
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          `{"help": "${customHelpCenterUrl}"}`);
+        const commonUrls = getCommonUrls();
+        assert.isObject(commonUrls);
+        assert.equal(commonUrls.help, customHelpCenterUrl);
+        assert.equal(commonUrls.helpAccessRules, "https://support.getgrist.com/access-rules");
+      });
+
+      it('should throw when keys extraneous to the ICommonUrls interface are added', function () {
+        const nonExistingKey = 'iDontExist';
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          `{"${nonExistingKey}": "foo", "help": "https://getgrist.com"}`);
+        assert.throws(() => getCommonUrls(), `value.${nonExistingKey} is extraneous`);
+      });
+
+      it('should throw when the passed JSON is malformed', function () {
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS', '{"malformed": 42');
+        assert.throws(() => getCommonUrls(), 'The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed');
+      });
+
+      it('should throw when keys has unexpected type', function () {
+        const regularValueKey = 'help';
+        const numberValueKey = 'helpAccessRules';
+        const objectValueKey = 'helpAssistant';
+        const arrayValueKey = 'helpAssistantDataUse';
+        const nullValueKey = 'helpFormulaAssistantDataUse';
+
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          JSON.stringify({
+            [regularValueKey]: "https://getgrist.com",
+            [numberValueKey]: 42,
+            [objectValueKey]: {"key": "value"},
+            [arrayValueKey]: ["foo"],
+          })
+        );
+        const buildExpectedErrRegEx = (...keys: string[]) => new RegExp(
+          keys.map(key => `value\\.${key}`).join('.*'),
+          'ms'
+        );
+        assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(numberValueKey, objectValueKey, arrayValueKey));
+        sandbox.restore();
+        sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
+          JSON.stringify({
+            [regularValueKey]: "https://getgrist.com",
+            [nullValueKey]: null,
+          })
+        );
+        assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(nullValueKey));
+      });
+
+      it("should return the default URLs when the parsed value is not an object", function () {
+        sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "42");
+        assert.deepEqual(getCommonUrls(), defaultCommonUrls);
+        sandbox.restore();
+        sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "null");
+        assert.deepEqual(getCommonUrls(), defaultCommonUrls);
+      });
+    });
+
+    describe("client-side when customized by the admin", function () {
+      it("should read the admin-defined values gristConfig", function () {
+        sandbox.define(globalThis, 'window', {
+          gristConfig: {
+            adminDefinedUrls: JSON.stringify({
+              help: "https://getgrist.com"
+            })
+          },
+          // Fake location to make isClient() believe the code is executed client-side.
+          location: {
+            hostname: 'getgrist.com'
+          },
+        });
+        const commonUrls = getCommonUrls();
+        assert.isObject(commonUrls);
+        assert.equal(commonUrls.help, "https://getgrist.com");
+        assert.equal(commonUrls.helpAccessRules, "https://support.getgrist.com/access-rules");
+      });
     });
   });
 });
