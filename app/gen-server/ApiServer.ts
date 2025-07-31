@@ -610,132 +610,133 @@ export class ApiServer {
       return sendReply(req, res, result);
     }));
 
-  if (isAffirmative(process.env.GRIST_SERVICE_ACCOUNTS)) {
-    // POST /service-accounts/
-    // Creates a new service account attached to the user making the api call.
-    this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
-      const msg = "Please save your api key. It's the only time you will see it.";
-      const ownerId = getAuthorizedUserId(req);
-      const {label, description, endOfLife} = req.body as SATypes.PostServiceAccount;
-      const serviceAccount = await this._dbManager.createServiceAccount(
-        ownerId, label, description, new Date(endOfLife)
-      );
-      const resp = {
-        login: serviceAccount.serviceUser.loginEmail,
-        key: serviceAccount.serviceUser.apiKey,
-        msg,
-        label: serviceAccount.label,
-        description: serviceAccount.description,
-        endOfLife: serviceAccount.endOfLife,
-        hasValidKey: true
-      };
-
-      return sendOkReply(req, res, resp);
-    }));
-
-    // GET /service-accounts/
-    // Reads all service accounts attached to the user making the api call.
-    this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
-      const userId = getAuthorizedUserId(req);
-      const data = await this._dbManager.getAllServiceAccounts(userId);
-      if (Array.isArray(data) && data.length === 0){
-        throw new ApiError('no service accounts', 404);
-      }
-      return sendOkReply(req, res, data);
-    }));
-
-    // GET /service-accounts/:said
-    // Reads one particular service account of the user making the api call.
-    this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
-      const userId = getAuthorizedUserId(req);
-      const serviceAccountLogin = req.params.said;
-      const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountLogin);
-      if (!serviceAccount) {
-         throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
-      }
-      if (serviceAccount.ownerId !== userId) {
-        throw new ApiError(`Unauthorized access to service account ${serviceAccountLogin}`, 403);
-      }
-      const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
-      const resp = {
-        login: serviceAccountLogin,
-        label: serviceAccount.label,
-        description: serviceAccount.description,
-        endOfLife: serviceAccount.endOfLife,
-        hasValidKey
-      };
-      return sendOkReply(req, res, resp);
-    }));
-
-    // PATCH /service-accounts/:said
-    // Modifies one particular service account of the user making the api call.
-    this._app.patch('/api/service-accounts/:said', validateStrict(PatchServiceAccount), expressWrap(
-        async (req, res) => {
-        const userId = getAuthorizedUserId(req);
-        const serviceAccountLogin = req.params.said;
-        const payload = req.body as SATypes.PatchServiceAccount;
-        const updateProps = {
-          ...payload,
-          endOfLife: payload.endOfLife !== undefined ? new Date(payload.endOfLife) : undefined,
+    if (isAffirmative(process.env.GRIST_SERVICE_ACCOUNTS)) {
+      // POST /service-accounts/
+      // Creates a new service account attached to the user making the api call.
+      this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
+        const msg = "Please save your api key. It's the only time you will see it.";
+        const ownerId = getAuthorizedUserId(req);
+        const {label, description, endOfLife} = req.body as SATypes.PostServiceAccount;
+        const serviceAccount = await this._dbManager.createServiceAccount(
+          ownerId, label, description, new Date(endOfLife)
+        );
+        const resp = {
+          login: serviceAccount.serviceUser.loginEmail,
+          key: serviceAccount.serviceUser.apiKey,
+          msg,
+          label: serviceAccount.label,
+          description: serviceAccount.description,
+          endOfLife: serviceAccount.endOfLife,
+          hasValidKey: true
         };
 
-        const resp = await this._dbManager.updateServiceAccount(
-          serviceAccountLogin, updateProps, { expectedOwnerId: userId }
-        );
-        if (!resp) {
+        return sendOkReply(req, res, resp);
+      }));
+
+      // GET /service-accounts/
+      // Reads all service accounts attached to the user making the api call.
+      this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const data = await this._dbManager.getAllServiceAccounts(userId);
+        // Unusual, should probably be removed.
+        if (Array.isArray(data) && data.length === 0){
+          throw new ApiError('no service accounts', 404);
+        }
+        return sendOkReply(req, res, data);
+      }));
+
+      // GET /service-accounts/:said
+      // Reads one particular service account of the user making the api call.
+      this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountLogin = req.params.said;
+        const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountLogin);
+        if (!serviceAccount) {
+          throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
+        }
+        if (serviceAccount.ownerId !== userId) {
+          throw new ApiError(`Unauthorized access to service account ${serviceAccountLogin}`, 403);
+        }
+        const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
+        const resp = {
+          login: serviceAccountLogin,
+          label: serviceAccount.label,
+          description: serviceAccount.description,
+          endOfLife: serviceAccount.endOfLife,
+          hasValidKey
+        };
+        return sendOkReply(req, res, resp);
+      }));
+
+      // PATCH /service-accounts/:said
+      // Modifies one particular service account of the user making the api call.
+      this._app.patch('/api/service-accounts/:said', validateStrict(PatchServiceAccount), expressWrap(
+        async (req, res) => {
+          const userId = getAuthorizedUserId(req);
+          const serviceAccountLogin = req.params.said;
+          const payload = req.body as SATypes.PatchServiceAccount;
+          const updateProps = {
+            ...payload,
+            endOfLife: payload.endOfLife !== undefined ? new Date(payload.endOfLife) : undefined,
+          };
+
+          const resp = await this._dbManager.updateServiceAccount(
+            serviceAccountLogin, updateProps, { expectedOwnerId: userId }
+          );
+          if (!resp) {
+            throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+          }
+          return sendOkReply(req, res, resp);
+        })
+      );
+
+      // DELETE /service-accounts/:said
+      // Deletes one particular service account of the user making the api call.
+      this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountLogin = req.params.said;
+        const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, userId);
+        if (resp == null){
           throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
         }
         return sendOkReply(req, res, resp);
-      })
-    );
+      }));
 
-    // DELETE /service-accounts/:said
-    // Deletes one particular service account of the user making the api call.
-    this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
-      const userId = getAuthorizedUserId(req);
-      const serviceAccountLogin = req.params.said;
-      const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, userId);
-      if (resp == null){
-        throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
-      }
-      return sendOkReply(req, res, resp);
-    }));
+      // POST /service-accounts/:said/key/regenerate
+      // Regenerate and return the apikey of a given Service Account
+      this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
+        const msg = "Please save your api key. It's the only time you will see it.";
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountLogin = req.params.said;
+        const serviceAccount = await this._dbManager.rotateServiceAccountApiKey(serviceAccountLogin, userId);
+        if (serviceAccount == null) {
+          throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountLogin}`, 404);
+        }
+        const resp = {
+          login: serviceAccountLogin,
+          key: (serviceAccount as any).user.apiKey,
+          msg,
+          label: serviceAccount.label,
+          description: serviceAccount.description,
+          endOfLife: serviceAccount.endOfLife,
+          hasValidKey: true
+        };
+        return sendOkReply(req, res, resp);
+      }));
 
-    // POST /service-accounts/:said/key/regenerate
-    // Regenerate and return the apikey of a given Service Account
-    this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
-      const msg = "Please save your api key. It's the only time you will see it.";
-      const userId = getAuthorizedUserId(req);
-      const serviceAccountLogin = req.params.said;
-      const serviceAccount = await this._dbManager.rotateServiceAccountApiKey(serviceAccountLogin, userId);
-      if (serviceAccount == null) {
-        throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountLogin}`, 404);
-      }
-      const resp = {
-        login: serviceAccountLogin,
-        key: (serviceAccount as any).user.apiKey,
-        msg,
-        label: serviceAccount.label,
-        description: serviceAccount.description,
-        endOfLife: serviceAccount.endOfLife,
-        hasValidKey: true
-      };
-      return sendOkReply(req, res, resp);
-    }));
-
-    // POST /service-accounts/:said/key/revoke
-    // Revokes the apikey of a given Service Account by deleting the key
-    this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
-      const userId = getAuthorizedUserId(req);
-      const serviceAccountLogin = req.params.said;
-      const serviceAccount = await this._dbManager.revokeServiceAccountApiKey(serviceAccountLogin, userId);
-      if (serviceAccount == null) {
-        throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountLogin}`, 404);
-      }
-      return sendOkReply(req, res);
-    }));
+      // POST /service-accounts/:said/key/revoke
+      // Revokes the apikey of a given Service Account by deleting the key
+      this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountLogin = req.params.said;
+        const serviceAccount = await this._dbManager.revokeServiceAccountApiKey(serviceAccountLogin, userId);
+        if (serviceAccount == null) {
+          throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountLogin}`, 404);
+        }
+        return sendOkReply(req, res);
+      }));
+    }
   }
-}
 
   private async _getFullUser(req: Request, options: {includePrefs?: boolean} = {}): Promise<FullUser> {
     const mreq = req as RequestWithLogin;
