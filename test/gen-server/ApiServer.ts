@@ -2227,9 +2227,9 @@ describe('ApiServer', function() {
         assert.lengthOf(resp.data, 2);
       });
 
-      it("returns 404 when user don't own any service account", async function() {
-        const resp = await axios.get(`${homeUrl}/api/service-accounts`, chimpy);
-        assert.equal(resp.status, 404);
+      it("returns 401 when user is anonymous", async function() {
+        const resp = await axios.get(`${homeUrl}/api/service-accounts`, nobody);
+        assert.equal(resp.status, 401);
       });
     });
 

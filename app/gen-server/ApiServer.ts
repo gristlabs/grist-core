@@ -638,10 +638,6 @@ export class ApiServer {
       this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const data = await this._dbManager.getAllServiceAccounts(userId);
-        // Unusual, should probably be removed.
-        if (Array.isArray(data) && data.length === 0){
-          throw new ApiError('no service accounts', 404);
-        }
         return sendOkReply(req, res, data);
       }));
 
