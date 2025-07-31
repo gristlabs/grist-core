@@ -241,6 +241,10 @@ export class DocStorageManager implements IDocStorageManager {
     // nothing to do
   }
 
+  public async wipeCache(): Promise<void> {
+    // nothing to do
+  }
+
   public async getCopy(docName: string): Promise<string> {
     return this._safeCopy(docName, {
       postfix: uuidv4(),
