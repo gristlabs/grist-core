@@ -6,10 +6,15 @@
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
+import * as roles from 'app/common/roles';
+import {getRealAccess} from 'app/common/UserAPI';
+import {DocScope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Client} from 'app/server/lib/Client';
 import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
+
+import {fromPairs} from 'lodash';
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
 export const Deps = {
@@ -80,8 +85,9 @@ export class DocClients {
   // TODO - See if we make DocSession more specific, when everything is working.
   public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
     const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
+    const docUserRoles = await this._getDocUserRoles();
     const userProfiles = await Promise.all(
-      otherDocSessions.map(s => getVisibleUserProfileFromDocSession(s, viewingDocSession))
+      otherDocSessions.map(s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles))
     );
     return userProfiles.filter((s?: VisibleUserProfile): s is VisibleUserProfile => s !== undefined);
   }
@@ -168,8 +174,10 @@ export class DocClients {
       undefined,
       // TODO - This being async means we've got a potential linear sequence of DB queries for every client.
       async (destSession: DocSession, messageData: any) => {
+        // TODO - Remove this TODO when the cached version has been implemented, this is nasty right now.
+        const docUserRoles = await this._getDocUserRoles();
         // TODO - If a user has their access removed, they need to refresh their own user list
-        const profile = await getVisibleUserProfileFromDocSession(originSession, destSession);
+        const profile = await getVisibleUserProfileFromDocSession(originSession, destSession, docUserRoles);
         if (!profile) { return Promise.resolve(); }
         return {
           id: getVisibleUserProfileId(originSession),
@@ -196,40 +204,49 @@ export class DocClients {
       this._log.error(originSession, "failed to broadcast user presence session removal: %s", err);
     });
   }
+
+  // TODO - Make this use the cached version from HomeDBManager when possible.
+  private async _getDocUserRoles(): Promise<UserIdRoleMap> {
+    const homeDb = this.activeDoc.getHomeDbManager();
+    const docId = this.activeDoc.doc?.id;
+
+    // Not enough information - no useful data to be had here.
+    // TODO - Do we need to issue a warning that we've hit this case?
+    if (!homeDb || !docId) {
+      return {};
+    }
+
+    const bypassScope: DocScope = {userId: homeDb.getPreviewerUserId(), urlId: docId};
+    const queryResult = await homeDb.getDocAccess(bypassScope, {flatten: true, excludeUsersWithoutAccess: true});
+    const { users, maxInheritedRole } = homeDb.unwrapQueryResult(queryResult);
+
+    return fromPairs(users.map(user => [user.id, getRealAccess(user, { maxInheritedRole })]));
+  }
+}
+
+interface UserIdRoleMap {
+  [id: string]: roles.Role | null
 }
 
 // TODO - It would be nice to decrease the abstraction level on these parameters when this is working,
 //        and make them more specific.
 async function getVisibleUserProfileFromDocSession(
-  session: DocSession, viewingSession: DocSession
+  session: DocSession, viewingSession: DocSession, docUserRoles: UserIdRoleMap,
 ): Promise<VisibleUserProfile | undefined> {
-  // TODO - I'm not sure we actually expose enough information anywhere in the auth code
-  //        to know if a user is explicitly added to the document or not - specifically the
-  //        "logged in, but not added to the doc" case.
-  //        Ideally this would be cached in the DocAuthorizer!!
-  //        `getDocAccess` could be an expensive workaround that needs removing before release!
-  const isPublic = !viewingSession.client.authSession.userIsAuthorized;
-
-  // Viewers without explicit access to the document (either directly or via orgs/groups/etc) can't
-  // see other users.
-  if (isPublic) {
+  // To see other users, you need to be a non-public user (i.e. added to the document), and have
+  // at least editor permissions.
+  if (!viewingSession.client.authSession.userId) {
     return undefined;
   }
 
-  // Only owners and editors can see others.
-  try {
-    // TODO - It would be better to not be relying on an exception here as essential control flow...
-    // TODO - If we could rely on cached auth here, or pre-cache the auth higher up,
-    //        we could make this whole function non-async.
-    await viewingSession.authorizer.assertAccess('editors');
-  } catch (e) {
+  const viewerRole = docUserRoles[viewingSession.client.authSession.userId];
+  if (!roles.canEdit(viewerRole)) {
     return undefined;
   }
 
-  // TODO - If session has a logged in user who isn't explicitly added, they should show as anonymous.
-  //        That's not something we readily have access to here right now.
   const user = session.client.authSession.fullUser;
-  const isAnonymous = !(session.client.authSession.userIsAuthorized && Boolean(user));
+  const userId = session.client.authSession.userId;
+  const isAnonymous = !(userId && docUserRoles[userId]);
   return {
     id: getVisibleUserProfileId(session),
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
