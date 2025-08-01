@@ -47,7 +47,9 @@ describe('DocTour', function () {
     const docTour = await driver.executeScript('return window._gristDocTour()');
     assert.deepEqual(docTour, [
       {
-        body: 'General Kenobi!',
+        body: '<div>' +
+          '<p>General Kenobi!</p>\n' +
+          '</div>',
         placement: 'bottom',
         selector: '.active_cursor',
         showHasModal: false,
@@ -55,7 +57,9 @@ describe('DocTour', function () {
         urlState: {colRef: 2, rowId: 2, sectionId: 1}
       },
       {
-        body: 'no title',
+        body: '<div>' +
+          '<p>no title</p>\n' +
+          '</div>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
@@ -64,7 +68,7 @@ describe('DocTour', function () {
       },
       {
         body: '<div>' +
-          '<p></p>' +
+          '<div></div>' +
           '<p><div class="_grainXXX_">' +
           '<a href="https://www.getgrist.com/" target="_blank" class="_grainXXX_ _grainXXX_">' +
           '<div class="_grainXXX_ _grainXXX_" style="mask-image: var(--icon-Page);"></div>' +
@@ -79,8 +83,8 @@ describe('DocTour', function () {
         urlState: {colRef: 4, rowId: 4, sectionId: 1}
       },
       {
-        body: '<div>' +
-          '<p>Good riddance</p>' +
+        body: '<div><div>' +
+          '<p>Good riddance</p>\n</div>' +
           '<p><div class="_grainXXX_">' +
           '<a href="https://xkcd.com/" target="_blank" class="_grainXXX_ _grainXXX_">' +
           'Test link here' +
@@ -92,6 +96,113 @@ describe('DocTour', function () {
         showHasModal: true,
         title: 'Bye',
         urlState: null,
+      },
+      {
+        body: '<div><p>' +
+          '<strong>bold</strong>' +
+          ' <em>italicized</em>' +
+          ' <code>code</code>' +
+          ' <del>strikethrough</del>' +
+          '</p>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown formating',
+        urlState: null,
+      },
+      {
+        body: '<div><p></p>' +
+          '<div class="doc-tutorial-popup-thumbnail">\n' +
+          '  <img title="" src="https://example.com/image.jpg">\n' +
+          '  <div class="doc-tutorial-popup-thumbnail-icon-wrapper">\n' +
+          '    <div class="doc-tutorial-popup-thumbnail-icon"></div>\n' +
+          '  </div>\n</div><p></p>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown image',
+        urlState: {
+            "colRef": 8,
+            "rowId": 8,
+            "sectionId": 1
+          },
+      },
+      {
+        body: '<div>' +
+          '<h1>H1</h1>\n<h2>H2</h2>\n<h3>H3</h3>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown headings',
+        urlState: null,
+      },
+      {
+        body: '<div>' +
+          '<ol>\n<li>First item</li>\n<li>Second item</li>\n<li>Third item</li>\n</ol>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown ordered list',
+        urlState: {
+            "colRef": 10,
+            "rowId": 10,
+            "sectionId": 1
+          },
+      },
+      {
+        body: '<div>' +
+          '<ul>\n<li>First item</li>\n<li>Second item</li>\n<li>Third item</li>\n</ul>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown unordered list',
+        urlState: null,
+      },
+      {
+        body: '<div>' +
+          '<blockquote>\n<p>blockquote</p>\n</blockquote>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown quote',
+        urlState: {
+            "colRef": 12,
+            "rowId": 12,
+            "sectionId": 1
+          },
+      },
+      {
+        body: '<div>' +
+          '<pre><code>{\n  ' +
+          '"firstName": "John",\n  "lastName": "Smith",\n  "age": 25\n' +
+          '}\n' +
+          '</code></pre>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown code block',
+        urlState: null,
+      },
+      {
+        body: '<div>' +
+          '<p><a href="https://www.example.com">title</a></p>\n' +
+          '</div>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown link',
+        urlState: {
+            "colRef": 14,
+            "rowId": 14,
+            "sectionId": 1
+          },
       }
     ]);
   });
@@ -154,7 +265,9 @@ describe('DocTour', function () {
 
   async function checkDocTourPresent() {
     // Check the expected message.
-    assert.match(await driver.findWait('.test-onboarding-popup', 500).getText(), /General Kenobi/);
+     assert.isFalse(await driver.findWait('.test-onboarding-popup', 500)
+       .findContent('p', 'General Kenobi!').isPresent());
+
     // Check that there is only one popup, and no errors.
     assert.lengthOf(await driver.findAll('.test-onboarding-popup'), 1);
     await gu.checkForErrors();
