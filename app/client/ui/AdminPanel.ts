@@ -19,9 +19,9 @@ import {ToggleEnterpriseWidget} from 'app/client/ui/ToggleEnterpriseWidget';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
-import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
+import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
 import {AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl} from 'app/common/InstallAPI';
@@ -148,7 +148,11 @@ Please log in as an administrator.`)),
           id: 'telemetry',
           name: t('Telemetry'),
           description: t('Help us make Grist better'),
-          value: dom.create(HidableToggle, this._supportGrist.getTelemetryOptInObservable()),
+          value: dom.create(
+            HidableToggle,
+            this._supportGrist.getTelemetryOptInObservable(),
+            {labelId: 'admin-panel-item-description-telemetry'}
+          ),
           expandedContent: this._supportGrist.buildTelemetrySection(),
         }),
         dom.create(AdminSectionItem, {
@@ -218,7 +222,11 @@ Please log in as an administrator.`)),
       return null;
     }
 
-    let makeToggle = () => dom.create(HidableToggle, this._toggleEnterprise.getEnterpriseToggleObservable());
+    let makeToggle = () => dom.create(
+      HidableToggle,
+      this._toggleEnterprise.getEnterpriseToggleObservable(),
+      {labelId: 'admin-panel-item-description-enterprise'}
+    );
 
     // If the enterprise edition is forced, we don't show the toggle.
     if (getGristConfig().forceEnableEnterprise) {
@@ -527,8 +535,11 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         )),
         dom.domComputed(allowAutomaticVersionChecking, (allowAutomaticChecks) =>
           allowAutomaticChecks ? cssExpandedContent(
-            dom('span', t('Auto-check weekly')),
-            dom( 'div', toggle(enabledController, testId('admin-panel-updates-auto-check')))
+            dom('label', t('Auto-check weekly'), {for: 'admin-panel-updates-auto-check-switch'}),
+            dom( 'div', toggleSwitch(enabledController, {
+              args: [testId('admin-panel-updates-auto-check')],
+              inputArgs: [{id: 'admin-panel-updates-auto-check-switch'}],
+            }))
           ) :
           cssExpandedContent(
             dom('span', t('Automatic checks are disabled. \

@@ -17,8 +17,8 @@ import {
 } from 'app/client/ui/FormAPI';
 import {autoGrow} from 'app/client/ui/forms';
 import {cssCheckboxSquare, cssLabel, squareCheckbox} from 'app/client/ui2018/checkbox';
-import {colors} from 'app/client/ui2018/cssVars';
 import {cssRadioInput} from 'app/client/ui2018/radio';
+import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {isBlankValue} from 'app/common/gristTypes';
 import {Constructor, not} from 'app/common/gutil';
 import {
@@ -487,12 +487,7 @@ class BoolModel extends Question {
   }
 
   private _renderSwitchInput() {
-    return css.cssWidgetSwitch(
-      dom.style('--grist-actual-cell-color', colors.lightGreen.toString()),
-      dom.cls('switch_transition'),
-      dom('div.switch_slider'),
-      dom('div.switch_circle'),
-    );
+    return toggleSwitch();
   }
 
   private _renderCheckboxInput() {

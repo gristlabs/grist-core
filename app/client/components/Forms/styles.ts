@@ -262,11 +262,6 @@ export const cssTextArea = styled('textarea', `
 
 export const cssSpinner = styled(numericSpinner, `
   height: 29px;
-
-  &-hidden {
-    color: ${theme.inputDisabledFg};
-    background-color: ${theme.inputDisabledBg};
-  }
 `);
 
 export const cssSelect = styled('select', `
@@ -288,12 +283,6 @@ export const cssToggle = styled('div', `
   margin-top: 12px;
   gap: 8px;
   --grist-actual-cell-color: ${colors.lightGreen};
-`);
-
-export const cssWidgetSwitch = styled('div.widget_switch', `
-  &-hidden {
-    opacity: 0.6;
-  }
 `);
 
 export const cssWarningMessage = styled('div', `

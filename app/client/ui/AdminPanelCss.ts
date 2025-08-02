@@ -1,12 +1,19 @@
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {transition} from 'app/client/ui/transitions';
-import {toggle} from 'app/client/ui2018/checkbox';
+import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled} from 'grainjs';
 
-export function HidableToggle(owner: IDisposableOwner, value: Observable<boolean|null>) {
-  return toggle(value, dom.hide((use) => use(value) === null));
+export function HidableToggle(
+  owner: IDisposableOwner,
+  value: Observable<boolean|null>,
+  options: {labelId?: string} = {}
+) {
+  return toggleSwitch(value, {
+    args: [dom.hide((use) => use(value) === null)],
+    inputArgs: [options.labelId ? {"aria-labelledby": options.labelId} : undefined],
+  });
 }
 
 export function AdminSection(owner: IDisposableOwner, title: DomContents, items: DomElementArg[]) {
@@ -51,7 +58,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
         }, 0);
       },
     ),
-    cssItemDescription(options.description),
+    cssItemDescription(options.description, {id: `admin-panel-item-description-${options.id}`}),
     cssItemValue(options.value,
       testId(`admin-panel-item-value-${options.id}`),
       dom.on('click', ev => ev.stopPropagation())),
