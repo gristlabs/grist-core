@@ -536,7 +536,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         dom.domComputed(allowAutomaticVersionChecking, (allowAutomaticChecks) =>
           allowAutomaticChecks ? cssExpandedContent(
             dom('label', t('Auto-check weekly'), {for: 'admin-panel-updates-auto-check-switch'}),
-            dom( 'div', toggleSwitch(enabledController, {
+            dom('div', toggleSwitch(enabledController, {
               args: [testId('admin-panel-updates-auto-check')],
               inputArgs: [{id: 'admin-panel-updates-auto-check-switch'}],
             }))

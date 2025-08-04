@@ -1,6 +1,6 @@
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {components} from 'app/common/ThemePrefs';
-import {dom, DomElementArg, Observable, styled, UseCBOwner} from 'grainjs';
+import {dom, DomElementArg, Observable, styled} from 'grainjs';
 
 interface ToggleSwitchOptions {
   label?: string;
@@ -32,7 +32,8 @@ interface ToggleSwitchOptions {
 /**
  * Renders a toggle switch with an optional label.
  *
- * @param value - The value of the toggle switch.
+ * @param value - An observable that can contain a boolean or null value that is linked to the toggle switch.
+ *                When the observed value changes, the toggle switch UI updates.
  *                If not provided, the toggle renders in "toggled off" state and
  *                internally sets options.useHiddenInput to false.
  * @param options - see ToggleSwitchOptions
@@ -42,28 +43,22 @@ export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSw
 
   const useInput = useHiddenInput && value;
   return cssToggleSwitch(
-    useInput && (value
-        ? cssInput(
-            {type: 'checkbox'},
-            dom.prop('checked', value),
-            dom.prop('value', use => use(value) ? '1' : '0'),
-            dom.on('change', (_e, elem) => value.set(elem.checked)),
-            ...inputArgs,
-          )
-        : cssInput({type: 'checkbox'}, ...inputArgs)
-    ) || undefined,
-    dom.cls(`${cssToggleSwitch.className}--checked`, (use: UseCBOwner): boolean => {
-      if (value) {
-        return !!use(value);
-      }
-      return false;
-    }),
+    useInput
+      ? cssInput(
+        {type: 'checkbox'},
+        dom.prop('checked', value),
+        dom.prop('value', use => use(value) ? '1' : '0'),
+        dom.on('change', (_e, elem) => value.set(elem.checked)),
+        ...inputArgs,
+      )
+      : undefined,
+    value ? dom.cls(`${cssToggleSwitch.className}--checked`, use => !!use(value)) : undefined,
     cssSwitch(
       cssSwitchSlider(testId('toggle-switch-slider')),
       cssSwitchCircle(),
     ),
     label ? cssLabel(label, ...labelArgs) : null,
-    dom.cls(`${cssToggleSwitch.className}--transitions`, options.enableTransitions || true),
+    dom.cls(`${cssToggleSwitch.className}--transitions`, options.enableTransitions ?? true),
     testId('toggle-switch'),
     ...args,
   );
