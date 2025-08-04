@@ -11,7 +11,7 @@ default:
 	echo "setup  # get pyodide node package, and python packages"
 
 fetch_packages:
-	node ./packages.js https://s3.amazonaws.com/grist-pynbox/pyodide/packages/v$(GRIST_PYODIDE_VERSION)/ _build/packages/
+	node ./preparePackages.js https://s3.amazonaws.com/grist-pynbox/pyodide/packages/v$(GRIST_PYODIDE_VERSION)/ _build/packages/
 
 build_packages:
 	./build_packages.sh
