@@ -86,8 +86,8 @@ export class DocClients {
   public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
     const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
     const docUserRoles = await this._getDocUserRoles();
-    const userProfiles = await Promise.all(
-      otherDocSessions.map(s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles))
+    const userProfiles = otherDocSessions.map(
+      s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles)
     );
     return userProfiles.filter((s?: VisibleUserProfile): s is VisibleUserProfile => s !== undefined);
   }
@@ -168,25 +168,27 @@ export class DocClients {
   }
 
   private _broadcastUserPresenceSessionUpdate(originSession: DocSession) {
-    this.broadcastDocMessage(
-      originSession.client,
-      "docUserPresenceUpdate",
-      undefined,
-      // TODO - This being async means we've got a potential linear sequence of DB queries for every client.
-      async (destSession: DocSession, messageData: any) => {
-        // TODO - Remove this TODO when the cached version has been implemented, this is nasty right now.
-        const docUserRoles = await this._getDocUserRoles();
-        // TODO - If a user has their access removed, they need to refresh their own user list
-        const profile = await getVisibleUserProfileFromDocSession(originSession, destSession, docUserRoles);
-        if (!profile) { return Promise.resolve(); }
-        return {
-          id: getVisibleUserProfileId(originSession),
-          profile
-        };
-      }
-    ).catch(err => {
-      this._log.error(originSession, "failed to broadcast user presence session update: %s", err);
-    });
+    // Loading the doc user roles first allows the callback to be quick + synchronous,
+    // avoiding a potentially linear series of async calls.
+    // TODO - Remove this TODO when the cached version has been implemented, this is nasty right now.
+    this._getDocUserRoles()
+      .then(docUserRoles => this.broadcastDocMessage(
+        originSession.client,
+        "docUserPresenceUpdate",
+        undefined,
+        async (destSession: DocSession, messageData: any) => {
+          // TODO - If a user has their access removed, they need to refresh their own user list
+          const profile = getVisibleUserProfileFromDocSession(originSession, destSession, docUserRoles);
+          if (!profile) { return; }
+          return {
+            id: getVisibleUserProfileId(originSession),
+            profile
+          };
+        }
+      ))
+      .catch(err => {
+        this._log.error(originSession, "failed to broadcast user presence session update: %s", err);
+      });
   }
 
   private _broadcastUserPresenceSessionRemoval(originSession: DocSession) {
@@ -230,9 +232,9 @@ interface UserIdRoleMap {
 
 // TODO - It would be nice to decrease the abstraction level on these parameters when this is working,
 //        and make them more specific.
-async function getVisibleUserProfileFromDocSession(
+function getVisibleUserProfileFromDocSession(
   session: DocSession, viewingSession: DocSession, docUserRoles: UserIdRoleMap,
-): Promise<VisibleUserProfile | undefined> {
+): VisibleUserProfile | undefined {
   // To see other users, you need to be a non-public user (i.e. added to the document), and have
   // at least editor permissions.
   if (!viewingSession.client.authSession.userId) {
@@ -246,7 +248,10 @@ async function getVisibleUserProfileFromDocSession(
 
   const user = session.client.authSession.fullUser;
   const userId = session.client.authSession.userId;
-  const isAnonymous = !(userId && docUserRoles[userId]);
+  const explicitUserRole = userId ? docUserRoles[userId] : null;
+  // Only signed-in users that have explicit document access or are a member of the org / workspace
+  // have visible details by default.
+  const isAnonymous = !explicitUserRole;
   return {
     id: getVisibleUserProfileId(session),
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
