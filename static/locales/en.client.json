@@ -2164,5 +2164,9 @@
         "Preview not available.": "Preview not available.",
         "{{index}} of {{total}}": "{{index}} of {{total}}",
         "Uploading…": "Uploading…"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Collapse",
+        "Expand": "Expand"
     }
 }
