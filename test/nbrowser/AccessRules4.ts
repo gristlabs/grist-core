@@ -1,15 +1,21 @@
 /**
  * Test of the UI for Granular Access Control, part 3.
  */
-import { assert } from 'mocha-webdriver';
+import {ITestingHooks} from 'app/server/lib/ITestingHooks';
+import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe("AccessRules4", function() {
-  this.timeout('20s');
+  this.timeout(process.env.DEBUG ? '20m' : '20s');
   const cleanup = setupTestSuite();
+  let testingHooks: ITestingHooks;
 
   afterEach(() => gu.checkForErrors());
+
+  before(async () => {
+    testingHooks = await server.getTestingHooks();
+  });
 
   it('allows editor to toggle a column', async function() {
     const ownerSession = await gu.session().teamSite.user('user1').login();
@@ -86,4 +92,115 @@ describe("AccessRules4", function() {
     assert.equal(await gu.getCell('User_Access', 1).getText(), gu.translateUser('user2').email);
     assert.isTrue(await gu.getCell('Toggle', 1).find('.widget_checkmark').isDisplayed());
   });
+
+  it('pretends that example user does not exist', async function() {
+    const session = await gu.session().personalSite.user('user1').login();
+    await session.tempNewDoc(cleanup);
+
+    // Create a user with that email address.
+    const email = 'john@example.com';
+    const db = await server.getDatabase();
+    const john = await db.getUserByLogin(email);
+
+    // Add user table with this user.
+    await gu.sendActions([
+      ['AddTable', 'Users', [
+        {id: 'Email', type: 'Text'}
+      ]],
+      ['AddRecord', 'Users', -1, {Email: email}],
+    ]);
+
+    await gu.openPage('Users');
+    assert.deepEqual(await gu.getSectionTitles(), ['USERS']);
+
+    // Add this table as an attribute.
+    await driver.findWait('.test-tools-access-rules', 100).click();
+    await driver.findContentWait('button', /Add User Attributes/, 2000).click();
+    const userAttrRule = await driver.find('.test-rule-userattr');
+    await userAttrRule.find('.test-rule-userattr-name').click();
+    await driver.sendKeys('Custom', Key.ENTER);
+    await userAttrRule.find('.test-rule-userattr-attr').click();
+    await driver.sendKeys('Email', Key.ENTER);
+    await userAttrRule.find('.test-rule-userattr-table').click();
+    await gu.findOpenMenuItem('li', 'Users').click();
+    await userAttrRule.find('.test-rule-userattr-col').click();
+    await gu.findOpenMenu();
+    await driver.sendKeys('Email', Key.ENTER);
+    await driver.find('.test-rules-save').click();
+    await gu.checkForErrors();
+    await gu.waitForServer();
+    await gu.openPage('Users');
+
+    // Login as john
+    await testingHooks.flushAuthorizerCache();
+    await gu.reloadDoc();
+    await viewAs("john (Editor)");
+
+    // Now we should see a table, even though John has no access to the document.
+    assert.deepEqual(await gu.getSectionTitles(), ['USERS']);
+
+    // Remove this user.
+    await db.deleteUser({userId: john.id}, john.id);
+  });
+
+  it('unknown access defaults to public', async function() {
+    const session = await gu.session().personalSite.user('user1').login();
+    await session.tempNewDoc(cleanup);
+
+    // Make this document public.
+    await driver.find('.test-tb-share').click();
+    await driver.findContentWait('.test-tb-share-option', /Manage Users/, 100).doClick();
+    await driver.findWait('.test-um-public-access', 3000).click();
+    await driver.findContentWait('.test-um-public-option', 'On', 100).click();
+    await gu.saveAcls();
+    await testingHooks.flushAuthorizerCache();
+    await gu.reloadDoc();
+
+    // Now view as as Unknown User.
+    await viewAs("Unknown User");
+
+    // And make sure we can see the document.
+    await gu.openPage('Table1');
+
+    // There should be a proper role in the banner.
+    assert.equal(
+      await driver.find('.test-view-as-banner .test-select-open').getText(),
+      'Unknown User(Viewer)'
+    );
+
+    await driver.find('.test-view-as-banner .test-revert').click();
+    await gu.waitForDocToLoad();
+
+    // Now make the public editor.
+    await driver.find('.test-tb-share').click();
+    await driver.findContentWait('.test-tb-share-option', /Manage Users/, 100).doClick();
+    await driver.findWait('.test-um-public-member .test-um-member-role', 100).click();
+    await driver.findContentWait('.test-um-role-option', /Editor/, 100).click();
+    await gu.saveAcls();
+    await gu.openPage('Table1');
+    await testingHooks.flushAuthorizerCache();
+    await gu.reloadDoc();
+
+    // Now view as as Unknown User.
+    await viewAs("Unknown User");
+
+    assert.equal(
+      await driver.find('.test-view-as-banner .test-select-open').getText(),
+      'Unknown User(Editor)'
+    );
+
+    // And try to add a new record.
+    await gu.openPage('Table1');
+    await gu.sendActions([['AddRecord', 'Table1', -1, {A: 'New record'}]]);
+    assert.equal(await gu.getCell('A', 1).getText(), 'New record');
+  });
 });
+
+
+async function viewAs(user: string) {
+  await gu.openAccessRulesDropdown();
+  // Menu is loaded asynchronously, and we often get a stale element reference error.
+  await gu.waitToPass(() => driver.findContentWait('.grist-floating-menu a', user, 100).click());
+  await gu.waitForDocToLoad();
+  await driver.findWait('.test-view-as-banner', 1000);
+}

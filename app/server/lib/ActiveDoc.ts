@@ -1835,10 +1835,11 @@ export class ActiveDoc extends EventEmitter {
     if (!userId) { throw new Error('Cannot determine user'); }
 
     const parsed = parseUrlId(this.docName);
+    const db = this.getHomeDbManager();
+
     // If this is not a temporary document (i.e. created by anonymous user).
     if (parsed.trunkId !== NEW_DOCUMENT_CODE) {
       // Collect users the document is shared with.
-      const db = this.getHomeDbManager();
       if (db) {
         const access = db.unwrapQueryResult(
           await db.getDocAccess({userId, urlId: this.docName}, {
@@ -1863,6 +1864,17 @@ export class ActiveDoc extends EventEmitter {
 
     // Add some example users.
     result.exampleUsers = this._granularAccess.getExampleViewAsUsers();
+
+    // If there are example users with no access, use the public access level.
+    const publicUsers = result.exampleUsers.filter(u => !u.access);
+    if (publicUsers.length && db) {
+      const docAuth = await db.getDocAuthCached({
+        urlId: this.docName,
+        userId: db.getAnonymousUserId(),
+      });
+      publicUsers.forEach(u => u.access = docAuth.access);
+    }
+
     return result;
   }
 

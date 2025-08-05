@@ -115,12 +115,14 @@ namespace gristUtils {
       }
     }
     if (memo) {
-      const memoEditorPromise = ruleSet.find(`.test-rule-part-and-memo:nth-child(${partNum}) .test-rule-memo-editor`);
+      const editorSelector = `.test-rule-part-and-memo:nth-child(${partNum}) .test-rule-memo-editor`;
+      const memoEditorPromise = ruleSet.find(editorSelector);
       if (await memoEditorPromise.isPresent()) {
         await memoEditorPromise.click();
         await gu.clearInput();
       } else {
         await part.find('.test-rule-memo-add').click();
+        await ruleSet.findWait(editorSelector, 100).click();
       }
       await gu.sendKeys(memo, Key.ENTER);
     }
@@ -215,8 +217,10 @@ namespace gristUtils {
    * saved.
    */
   export async function assertSaved() {
-    assert.equal(await driver.find('.test-rules-non-save').getText(), 'Saved');
-    assert.equal(await driver.find('.test-rules-save').getText(), '');
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.find('.test-rules-non-save').getText(), 'Saved');
+      assert.equal(await driver.find('.test-rules-save').getText(), '');
+    }, 200);
   }
 
   /**
@@ -224,8 +228,10 @@ namespace gristUtils {
    * changed.
    */
   export async function assertChanged() {
-    assert.equal(await driver.find('.test-rules-save').getText(), 'Save');
-    assert.equal(await driver.find('.test-rules-non-save').getText(), '');
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.find('.test-rules-save').getText(), 'Save');
+      assert.equal(await driver.find('.test-rules-non-save').getText(), '');
+    }, 200);
   }
 } // end of namespace aclTestUtils
 

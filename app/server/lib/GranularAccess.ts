@@ -2056,19 +2056,41 @@ export class GranularAccess implements GranularAccessForBundle {
     const dbUser = linkParameters.aclAsUserId ?
       (await this._homeDbManager?.getUser(integerParam(linkParameters.aclAsUserId, 'aclAsUserId'))) :
       (await this._homeDbManager?.getExistingUserByLogin(linkParameters.aclAsUser));
-    // If this is one of example users we will pretend that it doesn't exist, otherwise we would
-    // end up using permissions of the real user.
-    const isExampleUser = this.getExampleViewAsUsers().some(e => e.email === dbUser?.loginEmail);
-    const userExists = dbUser && !isExampleUser;
-    if (!userExists && linkParameters.aclAsUser) {
+
+    const dbAccess = dbUser ? await this._homeDbManager?.getDocAuthCached({
+      urlId: this._docId,
+      userId: dbUser.id
+    }) : null;
+
+    // If we want to preview as an existing user who has access to the document, we will use users' real
+    // access level.
+    if (dbUser && dbAccess?.access) {
+      return {
+        access: dbAccess.access,
+        user: this._homeDbManager?.makeFullUser(dbUser) || null
+      };
+    } else if (linkParameters.aclAsUser) {
       // Look further for the user, in user attribute tables or examples.
       const otherUsers = (await this.collectViewAsUsersFromUserAttributeTables())
-        .concat(this.getExampleViewAsUsers());
+                          .concat(this.getExampleViewAsUsers());
       const email = normalizeEmail(linkParameters.aclAsUser);
       const dummyUser = otherUsers.find(user => normalizeEmail(user?.email || '') === email);
-      if (dummyUser) {
+      if (!dummyUser) {
+        // Make sure the user is in the table or examples, otherwise we return no access.
+        return {access: null, user: null};
+      } else {
+        let access = dummyUser.access || null;
+        if (!access) {
+          // In case the dummy user has no access to the document, check if the document
+          // is shared publicly, and there is a default access for anonymous users.
+          const docAuth =  await this._homeDbManager?.getDocAuthCached({
+            urlId: this._docId,
+            userId: this._homeDbManager.getAnonymousUserId(),
+          });
+          access = docAuth?.access || null;
+        }
         return {
-          access: dummyUser.access || null,
+          access,
           user: {
             id: -1,
             email: dummyUser.email!,
@@ -2076,14 +2098,9 @@ export class GranularAccess implements GranularAccessForBundle {
           }
         };
       }
+    } else {
+      return {access: null, user: null};
     }
-    const docAuth = userExists ? await this._homeDbManager?.getDocAuthCached({
-      urlId: this._docId,
-      userId: dbUser.id
-    }) : null;
-    const access = docAuth?.access || null;
-    const user = userExists ? this._homeDbManager?.makeFullUser(dbUser) : null;
-    return { access, user: user || null };
   }
 
   /**
