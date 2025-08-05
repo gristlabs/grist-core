@@ -2170,5 +2170,9 @@
         "Expand all rows to this height": "Expand all rows to this height",
         "Max height": "Max height",
         "Max row height": "Max row height"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Collapse",
+        "Expand": "Expand"
     }
 }
