@@ -91,9 +91,10 @@ function buildDom(id: number) {
       isCollapsedByDefault,
       onCollapseByDefault,
       hasSubPages,
+      href: '#'
     },
     testId("page"),
-    dom.on("click", () => {
+    dom.onMatch('.test-docpage-link', 'click', () => {
       const item = find(pagesModel.get(), (i: any) => i.record.id === id);
       selected.set(item || null);
     })

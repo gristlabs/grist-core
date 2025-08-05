@@ -151,6 +151,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
           ) :
           cssPageItem(
             cssPageLink(
+              testId('link'),
               href,
               cssPageInitial(
                 testId('initial'),
