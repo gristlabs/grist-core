@@ -691,7 +691,7 @@ export class ApiServer {
       this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
-        const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, userId);
+        const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, {expectedOwnerId: userId});
         if (resp == null){
           throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
         }

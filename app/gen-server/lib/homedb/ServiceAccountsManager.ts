@@ -4,7 +4,7 @@ import { ApiError } from 'app/common/ApiError';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
-import { UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
+import { normalizeEmail } from 'app/common/emails';
 
 export class ServiceAccountsManager {
 
@@ -14,7 +14,6 @@ export class ServiceAccountsManager {
 
   public constructor(
     private readonly _homeDb: HomeDBManager,
-    private _usersManager: UsersManager,
     private _runInTransaction: RunInTransaction
   ) {}
 
@@ -63,22 +62,21 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ) {
     return await this._runInTransaction(transaction, async manager => {
-      const user = await this._getServiceAccountUserByLogin(serviceAccountLogin, manager);
-
-      // Make a backward reference of the user. It's OK for most cases,
-      // but improper for updates as TypeORM can't handle circular references.
-      if (user?.serviceAccount) {
-        user.serviceAccount.serviceUser = user;
-      }
-
-      return user?.serviceAccount;
+      return await manager.createQueryBuilder()
+        .select("serviceAccount")
+        .from(ServiceAccount, "serviceAccount")
+        .innerJoinAndSelect("serviceAccount.serviceUser", "serviceUser")
+        .innerJoinAndSelect("serviceUser.logins", "logins")
+        .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)})
+        .getOne();
     });
   }
 
   public async readAllServiceAccounts(
     ownerId: number,
+    transaction?: EntityManager
   ) {
-    return await this._connection.transaction(async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       return await manager.find(
         ServiceAccount,
         {where: {ownerId}}
@@ -89,16 +87,16 @@ export class ServiceAccountsManager {
   public async updateServiceAccount(
     serviceAccountLogin: string,
     partial: Partial<ServiceAccount>,
-    options: {expectedOwnerId?: number} = {},
+    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ) {
     const { expectedOwnerId } = options;
-    return await this._connection.transaction(async manager => {
-      const { serviceAccount } = await this._getServiceAccountUserByLogin(serviceAccountLogin, manager) ?? {};
+    return await this._runInTransaction(options.transaction, async manager => {
+      const serviceAccount = await this.readServiceAccount(serviceAccountLogin, manager);
       if (!serviceAccount) {
         return serviceAccount;
       }
       if (expectedOwnerId !== undefined && expectedOwnerId !== serviceAccount.ownerId) {
-        throw new ApiError("Operation not allowed", 403);
+        throw new ApiError("Cannot update non-owned service account: " + serviceAccountLogin, 403);
       }
       ServiceAccount.merge(serviceAccount, partial);
       return await manager.save(serviceAccount);
@@ -107,25 +105,28 @@ export class ServiceAccountsManager {
 
   public async deleteServiceAccount(
     serviceAccountLogin: string,
-    ownerId: number,
+    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ) {
-    return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
-      if (serviceUser == null) {
-        return serviceUser;
+    return await this._runInTransaction(options.transaction, async manager => {
+      const serviceAccount = await this.readServiceAccount(serviceAccountLogin, manager);
+      if (serviceAccount === null) {
+        return null;
       }
+      if (options.expectedOwnerId !== undefined && serviceAccount.ownerId !== options.expectedOwnerId) {
+        throw new ApiError("Cannot delete non-owned service account: " + serviceAccountLogin, 403);
+      }
+      const { serviceUser } = serviceAccount;
       // We perform a soft delete
       // as we don't want a service user's apiKey to still work
       serviceUser.apiKey = null;
       serviceUser.deletedAt = new Date();
       await manager.save(serviceUser);
-      return await manager.delete(
-        ServiceAccount,
-        {serviceUserId: serviceUser.id, ownerId}
-      );
+      await serviceAccount.remove();
+      return serviceAccount;
     });
   }
 
+  // FIXME: Pass a transaction.
   public async rotateServiceAccountApiKey(
     serviceAccountLogin: string,
     ownerId: number,
@@ -148,6 +149,7 @@ export class ServiceAccountsManager {
     });
   }
 
+  // FIXME: Pass a transaction
   public async revokeServiceAccountApiKey(
     serviceAccountLogin: string,
     ownerId: number,
@@ -170,6 +172,7 @@ export class ServiceAccountsManager {
     });
   }
 
+  // FIXME: Function not used.
   public async isAliveServiceAccount(serviceAccountLogin: string) {
     return await this._connection.transaction(async manager => {
       const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
@@ -190,13 +193,5 @@ export class ServiceAccountsManager {
       const currentDate = new Date();
       return endOfLife > currentDate;
     });
-  }
-
-  private async _getServiceAccountUserByLogin(serviceAccountLogin: string, transaction?: EntityManager) {
-    // Take advantage of buildExistingUsersByLoginRequest (especially for normalizing the passed email).
-    const serviceUserQuery = this._usersManager.buildExistingUsersByLoginRequest([serviceAccountLogin], transaction);
-    return await serviceUserQuery
-      .innerJoinAndSelect("user.serviceAccount", "serviceAccount")
-      .getOne();
   }
 }

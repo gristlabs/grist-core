@@ -2374,7 +2374,7 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 404);
       });
 
-      it.skip('returns 403 for non-owned service accounts {saId}', async function() {
+      it('returns 403 for non-owned service accounts {saId}', async function() {
         const {login: serviceLogin} = await createServiceAccount();
         const resp = await axios.delete(
           `${homeUrl}/api/service-accounts/${serviceLogin}`, kiwi

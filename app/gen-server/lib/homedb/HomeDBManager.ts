@@ -274,7 +274,7 @@ export class HomeDBManager {
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
   private _serviceAccountsManager = new ServiceAccountsManager(
-    this, this._usersManager, this.runInTransaction.bind(this)
+    this, this.runInTransaction.bind(this)
   );
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
@@ -3317,8 +3317,8 @@ export class HomeDBManager {
     return this._serviceAccountsManager.updateServiceAccount(serviceLogin, partial, options);
   }
 
-  public async deleteServiceAccount(serviceLogin: string, ownerId: number) {
-    return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, ownerId);
+  public async deleteServiceAccount(serviceLogin: string, options: { expectedOwnerId?: number } = {}){
+    return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, options);
   }
 
   public async rotateServiceAccountApiKey(serviceLogin: string, ownerId: number) {
