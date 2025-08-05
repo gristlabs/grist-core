@@ -126,48 +126,36 @@ export class ServiceAccountsManager {
     });
   }
 
-  // FIXME: Pass a transaction.
-  public async rotateServiceAccountApiKey(
+  public async regenerateServiceAccountApiKey(
     serviceAccountLogin: string,
-    ownerId: number,
+    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ) {
-    return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
-      if (serviceUser == null) {
-        return serviceUser;
-      }
-      const serviceAccount = await manager.findOne(
-        ServiceAccount,
-        {where: {serviceUserId: serviceUser.id, ownerId}}
-      );
-      if (serviceAccount == null) {
+    return await this._runInTransaction(options.transaction, async manager => {
+      const serviceAccount = await this.readServiceAccount(serviceAccountLogin, manager);
+      if (serviceAccount === null) {
         return serviceAccount;
       }
-      const updatedServiceUser = await this._homeDb.createApiKey(serviceUser.id, true, manager);
-      (serviceAccount as any).user = updatedServiceUser;
+      if (options.expectedOwnerId !== undefined && serviceAccount.ownerId !== options.expectedOwnerId) {
+        throw new ApiError("Cannot regenerate api key non-owned service account: " + serviceAccountLogin, 403);
+      }
+      serviceAccount.serviceUser = await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
       return serviceAccount;
     });
   }
 
-  // FIXME: Pass a transaction
   public async revokeServiceAccountApiKey(
     serviceAccountLogin: string,
-    ownerId: number,
+    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ) {
-    return await this._connection.transaction(async manager => {
-      const serviceUser = await this._homeDb.getExistingUserByLogin(serviceAccountLogin, manager);
-      if (serviceUser == null) {
-        return serviceUser;
+    return await this._runInTransaction(options.transaction, async manager => {
+      const serviceAccount = await this.readServiceAccount(serviceAccountLogin, manager);
+      if (serviceAccount === null) {
+        return null;
       }
-      const serviceAccount = await manager.findOne(
-        ServiceAccount,
-        {where: {serviceUserId: serviceUser.id, ownerId}}
-      );
-      if (serviceAccount == null) {
-        return serviceAccount;
+      if (options.expectedOwnerId !== undefined && serviceAccount.ownerId !== options.expectedOwnerId) {
+        throw new ApiError("Cannot revoke api key non-owned service account: " + serviceAccountLogin, 403);
       }
-      await this._homeDb.deleteApiKey(serviceUser.id, manager);
-      (serviceAccount as any).user = serviceUser;
+      serviceAccount.serviceUser = await this._homeDb.deleteApiKey(serviceAccount.serviceUser.id, manager);
       return serviceAccount;
     });
   }

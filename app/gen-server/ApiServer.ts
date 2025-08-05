@@ -704,13 +704,15 @@ export class ApiServer {
         const msg = "Please save your api key. It's the only time you will see it.";
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
-        const serviceAccount = await this._dbManager.rotateServiceAccountApiKey(serviceAccountLogin, userId);
-        if (serviceAccount == null) {
+        const serviceAccount = await this._dbManager.regenerateServiceAccountApiKey(
+          serviceAccountLogin, {expectedOwnerId: userId}
+        );
+        if (serviceAccount === null) {
           throw new ApiError(`Can't rotate api key of non existing service account ${serviceAccountLogin}`, 404);
         }
         const resp = {
           login: serviceAccountLogin,
-          key: (serviceAccount as any).user.apiKey,
+          key: serviceAccount.serviceUser.apiKey,
           msg,
           label: serviceAccount.label,
           description: serviceAccount.description,
@@ -725,7 +727,9 @@ export class ApiServer {
       this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
-        const serviceAccount = await this._dbManager.revokeServiceAccountApiKey(serviceAccountLogin, userId);
+        const serviceAccount = await this._dbManager.revokeServiceAccountApiKey(
+          serviceAccountLogin, {expectedOwnerId: userId}
+        );
         if (serviceAccount == null) {
           throw new ApiError(`Can't revoke api key of non existing service account ${serviceAccountLogin}`, 404);
         }

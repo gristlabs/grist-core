@@ -3321,12 +3321,12 @@ export class HomeDBManager {
     return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, options);
   }
 
-  public async rotateServiceAccountApiKey(serviceLogin: string, ownerId: number) {
-    return this._serviceAccountsManager.rotateServiceAccountApiKey(serviceLogin, ownerId);
+  public async regenerateServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.regenerateServiceAccountApiKey(serviceLogin, options);
   }
 
-  public async revokeServiceAccountApiKey(serviceLogin: string, ownerId: number) {
-    return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceLogin, ownerId);
+  public async revokeServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceLogin, options);
   }
 
   public async isAliveServiceAccount(serviceLogin: string) {

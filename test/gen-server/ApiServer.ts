@@ -2293,10 +2293,8 @@ describe('ApiServer', function() {
         const patch = {
           description: "A description"
         };
-        const resp = await axios.get(`${homeUrl}/api/service-accounts/1`, chimpy);
-        assert.equal(resp.status, 404, "get 404");
-        const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/1`, patch, chimpy);
-        assert.equal(resp2.status, 404, "patch 404");
+        const resp = await axios.patch(`${homeUrl}/api/service-accounts/1`, patch, chimpy);
+        assert.equal(resp.status, 404);
       });
 
       it('returns 400 on invalid label', async function() {
@@ -2413,7 +2411,7 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 404);
       });
 
-      it.skip('returns 403 for non-owned service accounts {saId}', async function() {
+      it('returns 403 for non-owned service accounts {saId}', async function() {
         const {login: serviceLogin} = await createServiceAccount();
         const resp = await axios.post(
           `${homeUrl}/api/service-accounts/${serviceLogin}/key/regenerate`, {}, kiwi
@@ -2459,7 +2457,7 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 404);
       });
 
-      it.skip('returns 403 for non-owned service accounts {saId}', async function() {
+      it('returns 403 for non-owned service accounts {saId}', async function() {
         const {login: serviceLogin} = await createServiceAccount();
         const resp = await axios.post(
           `${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, kiwi
