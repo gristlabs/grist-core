@@ -47,17 +47,15 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       return String(tableData.getValue(rowId, colId) || "");
     }
     const title = getValue("Title");
-    const bodyHtmlContent =  sanitizeTourHTML(marked.parse(getValue("Body"), {
-      async: false, renderer
-    }));
+    const bodyValue = getValue("Body");
 
-    if (!title && !bodyHtmlContent) {
+    if (!title && !(bodyValue.trim()) ) {
       return null;
     }
-
-    const element = dom('div', (el) => {
-      el.innerHTML = bodyHtmlContent;
-    });
+    //const bodyHtmlContent
+    const element = sanitizeTourHTML(marked.parse(bodyValue, {
+      async: false, renderer
+    }));
 
     const linkText = getValue("Link_Text");
     const linkUrl = getValue("Link_URL");
@@ -77,11 +75,12 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       validLinkUrl = false;
     }
 
-    let body: HTMLElement = element;
+    let body: HTMLElement = dom('div', element);
+
     if (validLinkUrl && linkText) {
       body = dom(
         'div',
-        element,
+        body,
         dom('p',
           cssButtons(cssLinkBtn(
             IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
