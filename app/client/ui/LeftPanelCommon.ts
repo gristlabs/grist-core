@@ -144,7 +144,9 @@ export const cssPageEntry = styled('div', `
   }
 `);
 
-export const cssPageLink = styled('a', `
+const cssPageAction = `
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   height: 32px;
@@ -153,7 +155,8 @@ export const cssPageLink = styled('a', `
   outline: none;
   cursor: pointer;
   outline-offset: -3px;
-  &, &:hover, &:focus {
+  width: 100%;
+  &, &:hover, &:focus, & a, & a:hover, & a:focus {
     text-decoration: none;
     outline: none;
     color: inherit;
@@ -164,7 +167,11 @@ export const cssPageLink = styled('a', `
   .${cssTools.className}-collapsed & {
     padding-left: 16px;
   }
-`);
+`;
+
+export const cssPageLink = styled('a', cssPageAction);
+
+export const cssPageButton = styled(unstyledButton, cssPageAction);
 
 export const cssLinkText = styled('span', `
   white-space: nowrap;
