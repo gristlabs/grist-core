@@ -26,11 +26,17 @@ export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
   }
 }
 
-export function sanitizeTourHTML(source: string | Node): string {
+export function sanitizeTourHTML(source: string | Node): DocumentFragment {
   return tourPurifier.sanitize(source, {
-    ADD_TAGS: ['iframe'],
-    ADD_ATTR: ['allowFullscreen'],
+    RETURN_DOM_FRAGMENT: true,
+    ALLOWED_TAGS: [
+      'p', 'div', 'span', 'h1', 'h2', 'h3', 'h4',  'table', 'tr', 'td',
+      'strong', 'em', 'bold', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'del',
+      'br', 'img', 'iframe', 'a'
+      ],
+    ADD_ATTR: ['allowFullscreen']
   });
+
 }
 
 export function sanitizeTutorialHTML(source: string | Node): string {
