@@ -6,6 +6,7 @@ import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {showExampleCard} from 'app/client/ui/ExampleCard';
 import {buildExamples} from 'app/client/ui/ExampleInfo';
 import {
+  createAccessibilityTools,
   createHelpTools,
   cssLinkText,
   cssMenuTrigger,
@@ -148,6 +149,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       ),
     ),
     createHelpTools(docPageModel.appModel),
+    createAccessibilityTools(),
   );
 }
 
