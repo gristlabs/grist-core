@@ -5,7 +5,6 @@ import {
 } from 'app/server/lib/AttachmentStore';
 import {getCoreLoginSystem} from 'app/server/lib/coreLogins';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
-import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {IAttachmentStore} from 'app/server/lib/AttachmentStore';
 import {DocStorageManager} from 'app/server/lib/DocStorageManager';
@@ -96,13 +95,6 @@ export interface ICreate {
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   areAdminControlsAvailable(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined;
-}
-
-export interface ICreateActiveDocOptions {
-  safeMode?: boolean;
-  docUrl?: string;
-  docApiUrl?: string;
-  doc?: Document;
 }
 
 export interface ICreateStorageOptions {

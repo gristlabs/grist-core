@@ -116,7 +116,6 @@ import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';
 import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
-import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
@@ -220,6 +219,13 @@ export const Deps = {
   KEEP_DOC_OPEN_TIMEOUT_MS,
   MAX_INTERNAL_ATTACHMENTS_BYTES,
 };
+
+interface ActiveDocOptions {
+  safeMode?: boolean;
+  docUrl?: string;
+  docApiUrl?: string;
+  doc?: Document;
+}
 
 interface UpdateUsageOptions {
   // Whether usage should be synced to the home database. Defaults to true.
@@ -337,7 +343,7 @@ export class ActiveDoc extends EventEmitter {
     private readonly _docManager: DocManager,
     private _docName: string,
     private _attachmentStoreProvider?: IAttachmentStoreProvider,
-    private _options?: ICreateActiveDocOptions
+    private _options?: ActiveDocOptions
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
@@ -389,13 +395,14 @@ export class ActiveDoc extends EventEmitter {
       this._gracePeriodStart = gracePeriodStart;
 
       if (billingAccount) {
-        this._pubSubUnsubscribe = this._docManager.gristServer.getPubSubManager()
+        this._pubSubUnsubscribe = this._server.getPubSubManager()
           .subscribe(`billingAccount-${billingAccount.id}-product-changed`, async () => {
             // A product change has just happened in Billing.
             // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
             this._log.debug(null, 'reload after product change');
             await this.reloadDoc();
-          });
+          })
+          .unsubscribeCB;
       }
 
       if (!(this.isFork || this._isSnapshot)) {
@@ -2156,7 +2163,7 @@ export class ActiveDoc extends EventEmitter {
     event: TelemetryEvent,
     metadata?: TelemetryMetadataByLevel
   ) {
-    this._docManager.gristServer.getTelemetry().logEvent(docSession, event, merge(
+    this._server.getTelemetry().logEvent(docSession, event, merge(
       this._getTelemetryMeta(docSession),
       metadata,
     ));

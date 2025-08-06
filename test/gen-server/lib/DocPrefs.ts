@@ -102,6 +102,16 @@ describe('DocPrefs', function() {
           [users.owner.id, samplePrefs(2)],
           [users.viewer.id, samplePrefs(3)],
         ]);
+
+        assert.deepEqual(Array.from(await dbManager.getDocPrefsForUsers(docs[docName], [users.editor.id])), [
+          [null, samplePrefs(1)], // doc defaults
+        ]);
+
+        assert.deepEqual(Array.from(await dbManager.getDocPrefsForUsers(docs[docName], 'any')), [
+          [null, samplePrefs(1)], // doc defaults
+          [users.owner.id, samplePrefs(2)],
+          [users.viewer.id, samplePrefs(3)],
+        ]);
       });
 
       it('should check access for prefs', async function() {

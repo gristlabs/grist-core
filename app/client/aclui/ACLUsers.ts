@@ -33,12 +33,12 @@ export class ACLUsersPopup extends Disposable {
   private _currentUser: FullUser|null = null;
 
   constructor(public pageModel: DocPageModel,
-              public fetch: () => Promise<PermissionDataWithExtraUsers|null> = () => this._fetchData()) {
+              private _fetch: () => Promise<PermissionDataWithExtraUsers|null> = () => this._fetchData()) {
     super();
   }
 
   public async load() {
-    const permissionData = await this.fetch();
+    const permissionData = await this._fetch();
     if (this.isDisposed()) { return; }
     this.init(permissionData);
   }

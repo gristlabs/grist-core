@@ -167,14 +167,12 @@ function getRedisConnection(): IORedis|undefined {
     log.warn('Using in-memory queues, Redis is unavailable');
     return;
   }
-  const url = new URL(urlTxt);
-  const conn = new IORedis({
-    host: url.hostname,
-    port: url.port ? parseInt(url.port, 10) : undefined,
-    db: (url.pathname.charAt(0) === '/') ?
-    parseInt(url.pathname.substring(1), 10) : undefined,
+  const conn = new IORedis(urlTxt, {
     maxRetriesPerRequest: null,
+    // Back off faster and retry more slowly than the default, to avoid filling up logs needlessly.
+    retryStrategy: (times) => Math.min((times ** 2) * 50, 10000),
   });
+  conn.on('error', (err) => log.error('GristJobs: Redis connection error:', String(err)));
   log.info('Storing queues externally in Redis');
   return conn;
 }

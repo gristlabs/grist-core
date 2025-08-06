@@ -268,7 +268,7 @@ export class FlexServer implements GristServer {
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
 
     // We don't bother unsubscribing because that's automatic when we close this._pubSubManager.
-    this.getPubSubManager().subscribe(latestVersionChannel, (message) => {
+    void this.getPubSubManager().subscribe(latestVersionChannel, (message) => {
       const latestVersionAvailable: LatestVersionAvailable = JSON.parse(message);
       log.debug('FlexServer: setting latest version', latestVersionAvailable);
       this.setLatestVersionAvailable(latestVersionAvailable);
@@ -870,7 +870,7 @@ export class FlexServer implements GristServer {
 
   public async initHomeDBManager() {
     if (this._check('homedb')) { return; }
-    this._dbManager = new HomeDBManager(this, this._emitNotifier);
+    this._dbManager = new HomeDBManager(this, this._emitNotifier, this._pubSubManager);
     this._dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
     await this._dbManager.connect();
     await this._dbManager.initializeSpecialIds();
@@ -1054,9 +1054,7 @@ export class FlexServer implements GristServer {
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
     this._emitNotifier.removeAllListeners();
-    if (this._dbManager) {
-      this._dbManager.flushDocAuthCache();
-    }
+    this._dbManager?.clearCaches();
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }

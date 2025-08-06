@@ -79,15 +79,18 @@ class CaptureTransport extends winston.Transport {
   }
 }
 
+type CaptureFunc = (level: string, msg: string, meta: any) => void;
 
 /**
  * When used inside a test suite (inside describe()), changes the log level to the given one
- * before tests, restoring it back afterwards. In addition, if optCaptureFunc is given, it will be
- * called as optCaptureFunc(level, msg) with every message logged (including those suppressed).
+ * before tests, restoring it back afterwards. In addition, if optCaptureTo is given, it can be
+ * a function, called as optCaptureTo(level, msg) with every message logged (including those
+ * suppressed), or it may be the name of a file where to record the log (which will be created in
+ * a per-test-suite directory).
  *
  * This should be called at the suite level (i.e. inside describe()).
  */
-export function setTmpLogLevel(level: string, optCaptureFunc?: (level: string, msg: string, meta: any) => void) {
+export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string) {
   // If verbose is set in the environment, sabotage all reductions in logging level.
   // Handier than modifying the setTmpLogLevel line and then remembering to set it back
   // before committing.
@@ -98,20 +101,32 @@ export function setTmpLogLevel(level: string, optCaptureFunc?: (level: string, m
   let prevLogLevel: string|undefined = undefined;
   const name = _.uniqueId('CaptureLog');
 
-  before(function() {
+  before(async function() {
     if (this.runnable().parent?.root) {
       throw new Error("setTmpLogLevel should be called at suite level, not at root level");
     }
 
     prevLogLevel = log.transports.file.level;
     log.transports.file.level = level;
-    if (optCaptureFunc) {
-      log.add(CaptureTransport as any, { captureFunc: optCaptureFunc, name });  // typing is off.
+    if (optCaptureTo instanceof Function) {
+      log.add(CaptureTransport as any, { captureFunc: optCaptureTo, name });  // typing is off.
+    } else if (optCaptureTo) {
+      const suiteName = this.test?.parent?.title || 'unknown-suite';
+      const testDir = await createTestDir(suiteName);
+      const logPath = path.join(testDir, optCaptureTo);
+      const stream = fse.createWriteStream(logPath, {flags: 'a'});
+      log.add(winston.transports.File, {
+        name,
+        stream,
+        level: 'debug',
+        timestamp: true,
+        json: false
+      });
     }
   });
 
   after(function() {
-    if (optCaptureFunc) {
+    if (optCaptureTo) {
       log.remove(name);
     }
     log.transports.file.level = prevLogLevel;
@@ -337,13 +352,19 @@ export class EnvironmentSnapshot {
   }
 }
 
+const createdInThisRun = new Set<string>();
+
 export async function createTestDir(suiteName: string): Promise<string> {
   const tmpRootDir = process.env.TESTDIR || tmpdir();
   const workerIdText = process.env.MOCHA_WORKER_ID || '0';
   const username = process.env.USER || "nobody";
   const testDir = path.join(tmpRootDir, `grist_test_${username}_${suiteName}_${workerIdText}`);
-  // Remove any previous tmp dir, and create the new one.
-  await fse.remove(testDir);
+  // Remove any previous tmp dir, and create the new one. But don't clobber the previous directory
+  // if it was created in this same run, e.g. if different code called createTestDir().
+  if (!createdInThisRun.has(testDir)) {
+    await fse.remove(testDir);
+  }
+  createdInThisRun.add(testDir);
   await fse.mkdirs(testDir);
   log.warn(`Test logs and data are at: ${testDir}/`);
   return testDir;
