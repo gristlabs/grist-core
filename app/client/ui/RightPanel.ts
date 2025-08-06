@@ -49,6 +49,8 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
+import {ariaTab, ariaTabList, ariaTabPanel} from 'app/client/ui2018/ariaTabs';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {components} from 'app/common/ThemePrefs';
 import {isFullReferencingType} from "app/common/gristTypes";
@@ -211,14 +213,23 @@ export class RightPanel extends Disposable {
       const widgetInfo = getWidgetTypes(type);
       const fieldInfo = getFieldType(type);
       return [
-        cssTopBarItem(cssTopBarIcon(widgetInfo.icon), widgetInfo.getLabel(),
-          cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'pageWidget'),
-          dom.on('click', () => this._topTab.set("pageWidget")),
-          testId('right-tab-pagewidget')),
-        cssTopBarItem(cssTopBarIcon(fieldInfo.icon), fieldInfo.label,
-          cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'field'),
-          dom.on('click', () => this._topTab.set("field")),
-          testId('right-tab-field')),
+        cssTopBarTabList(
+          ariaTabList(),
+          cssTopBarItem(
+            ariaTab('pageWidget', this._topTab),
+            cssTopBarIcon(widgetInfo.icon),
+            widgetInfo.getLabel(),
+            cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'pageWidget'),
+            testId('right-tab-pagewidget')
+          ),
+          cssTopBarItem(
+            ariaTab('field', this._topTab),
+            cssTopBarIcon(fieldInfo.icon),
+            fieldInfo.label,
+            cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'field'),
+            testId('right-tab-field')
+          )
+        )
       ];
     });
   }
@@ -231,26 +242,33 @@ export class RightPanel extends Disposable {
       const isForm = use(this._isForm);
 
       const topTab = use(this._topTab);
-      if (topTab === 'field') {
-        if (isForm) {
-          return dom.create(this._buildQuestionContent.bind(this));
-        } else {
-          return dom.create(this._buildFieldContent.bind(this));
-        }
-      } else if (topTab === 'pageWidget') {
-        if (isForm) {
-          return [
-            dom.create(this._buildPageFormHeader.bind(this)),
-            dom.create(this._buildPageWidgetContent.bind(this)),
-          ];
-        } else if (use(this._hasActiveWidget)) {
-          return [
-            dom.create(this._buildPageWidgetHeader.bind(this)),
-            dom.create(this._buildPageWidgetContent.bind(this)),
-          ];
-        }
-      }
-      return null;
+
+      return [
+        dom('div',
+          ariaTabPanel('pageWidget'),
+          topTab === 'pageWidget'
+            ? isForm
+              ? [
+                dom.create(this._buildPageFormHeader.bind(this)),
+                dom.create(this._buildPageWidgetContent.bind(this)),
+              ]
+              : use(this._hasActiveWidget)
+                ? [
+                  dom.create(this._buildPageWidgetHeader.bind(this)),
+                  dom.create(this._buildPageWidgetContent.bind(this)),
+                ]
+                : null
+            : null
+        ),
+        dom('div',
+          ariaTabPanel('field'),
+          topTab === 'field'
+            ? isForm
+              ? dom.create(this._buildQuestionContent.bind(this))
+              : dom.create(this._buildFieldContent.bind(this))
+            : null
+        )
+      ];
     });
   }
 
@@ -1174,7 +1192,12 @@ const cssIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-const cssTopBarItem = styled('div', `
+const cssTopBarTabList = styled('div', `
+  display: flex;
+  width: 100%;
+`);
+
+const cssTopBarItem = styled(unstyledButton, `
   flex: 1 1 0px;
   height: 100%;
   background-color: ${theme.rightPanelTabBg};
@@ -1187,6 +1210,7 @@ const cssTopBarItem = styled('div', `
   display: flex;
   align-items: center;
   cursor: default;
+  outline-offset: -6px;
   &:first-child {
     border-left: 0;
   }
