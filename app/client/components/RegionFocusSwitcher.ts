@@ -13,7 +13,7 @@ import {components} from 'app/common/ThemePrefs';
 
 const t = makeT('RegionFocusSwitcher');
 
-type Panel = 'left' | 'top' | 'right' | 'main';
+export type Panel = 'left' | 'top' | 'right' | 'main';
 interface PanelRegion {
   type: 'panel',
   id: Panel // this matches a dom element id
@@ -101,38 +101,6 @@ export class RegionFocusSwitcher extends Disposable {
     }
   }
 
-  public focusRegion(
-    region: Region | undefined,
-    options: {initiator?: StateUpdateInitiator} = {}
-  ) {
-    if (region?.type === 'panel' && !getPanelElement(region.id)) {
-      return;
-    }
-
-    const gristDoc = this._getGristDoc();
-    if (gristDoc && region?.type === 'panel' && region?.id === 'main') {
-      console.error('main panel is not supported when a view layout is rendered');
-      return;
-    }
-    if (!gristDoc && region?.type === 'section') {
-      console.error('view section id is not supported when no view layout is rendered');
-      return;
-    }
-
-    this._state.set({region, initiator: options.initiator});
-  }
-
-  public focusActiveSection() {
-    const gristDoc = this._getGristDoc();
-    if (gristDoc) {
-      this.focusRegion({type: 'section', id: gristDoc.viewModel.activeSectionId()});
-    }
-  }
-
-  public reset() {
-    this.focusRegion(undefined);
-  }
-
   public panelAttrs(id: Panel, ariaLabel: string) {
     return [
       dom.attr('role', id === 'main'
@@ -172,10 +140,84 @@ export class RegionFocusSwitcher extends Disposable {
     ];
   }
 
+  /**
+   * Get a normalized region id for the given region (or the current region if none given).
+   *
+   * Note: an active section, which is a grist doc view section, is exposed as the 'main' region.
+   */
+  public getRegionId(region?: Region) {
+    const state = region ?? this._state.get().region;
+    if (state?.type === 'panel') {
+      return state.id;
+    }
+    return 'main';
+  }
+
+  /**
+   * Focus a given region by id.
+   *
+   * If we want to focus the 'main' region on a grist doc, we actually focus the active view section.
+   */
+  public focusRegion(id: Panel) {
+    const gristDoc = this._getGristDoc();
+    if (gristDoc && id === 'main') {
+      this.focusActiveSection();
+      return;
+    }
+    this._focusRegion({type: 'panel', id});
+  }
+
+  /**
+   * Focus the active section of the current grist doc.
+   *
+   * Difference with `focusRegion('main')` is that focus won't change if don't detect any active section.
+   */
+  public focusActiveSection() {
+    const gristDoc = this._getGristDoc();
+    if (gristDoc) {
+      this._focusRegion({type: 'section', id: gristDoc.viewModel.activeSectionId()});
+    }
+  }
+
+  /**
+   * Add a listener to the current region change.
+   * Exposes only the normalized region ids (current and previous)
+   */
+  public addListener(listener: (regionId: Panel, prevRegionId: Panel) => void) {
+    return this._state.addListener((state, prev) => {
+      listener(this.getRegionId(state.region), this.getRegionId(prev.region));
+    });
+  }
+
+  public reset() {
+    this._focusRegion(undefined);
+  }
+
+  private _focusRegion(
+    region: Region | undefined,
+    options: {initiator?: StateUpdateInitiator} = {}
+  ) {
+    if (region?.type === 'panel' && !getPanelElement(region.id)) {
+      return;
+    }
+
+    const gristDoc = this._getGristDoc();
+    if (gristDoc && region?.type === 'panel' && region?.id === 'main') {
+      console.error('main panel is not supported when a view layout is rendered');
+      return;
+    }
+    if (!gristDoc && region?.type === 'section') {
+      console.error('view section id is not supported when no view layout is rendered');
+      return;
+    }
+
+    this._state.set({region, initiator: options.initiator});
+  }
+
   private _cycle(direction: 'next' | 'prev') {
     const gristDoc = this._getGristDoc();
     const cycleRegions = getCycleRegions(gristDoc);
-    this.focusRegion(getSibling(
+    this._focusRegion(getSibling(
       this._state.get().region,
       cycleRegions,
       direction,
@@ -202,18 +244,27 @@ export class RegionFocusSwitcher extends Disposable {
     const targetsMain = targetRegionId === 'main';
 
     if (targetsMain) {
-      this.focusRegion(
+      this._focusRegion(
         {type: 'section', id: gristDoc.viewModel.activeSectionId()},
         {initiator: {type: 'mouse', event}}
       );
     } else {
       // When not targeting the main panel, we don't always want to focus the given region _on click_.
+      //
       // We only do it if clicking an empty area in the panel, or a focusable element like an input.
-      // Otherwise, we assume clicks are on elements like buttons or links,
+      // Because we kind of expect these behaviors usually on the web: I click on
+      // an empty space, and I can start using Tab to navigate around the area I clicked ;
+      // I click inside an input, and I can use Tab to navigate to the following ones.
+      //
+      // Otherwise, we assume[*] clicks are on elements like buttons or links,
       // and we don't want to lose focus of current section in this case.
       // For example I don't want to focus out current table if just click the "undo" button in the header.
-      if (isFocusableElement(event.target) || closestRegion === event.target) {
-        this.focusRegion(
+      //
+      // [*]: for now, we "assume" because lots of interactive elements in Grist are divs with click handlers.
+      // So we can't reliably consider that clicking on a div is clicking on a "empty area".
+      // Ideally (WIP) we'd have a more reliable way to detect "buttons" and this code could be simplified.
+      if (isGristFocusableElement(event.target) || closestRegion === event.target) {
+        this._focusRegion(
           {type: 'panel', id: targetRegionId as Panel},
           {initiator: {type: 'mouse', event}}
         );
@@ -342,14 +393,14 @@ export class RegionFocusSwitcher extends Disposable {
     const current = this._state.get().region;
     const gristDoc = this._getGristDoc();
     if (current?.type === 'panel' && current.id === 'right') {
-      return this.focusRegion(gristDoc
+      return this._focusRegion(gristDoc
         ? {type: 'section', id: gristDoc.viewModel.activeSectionId()}
         : {type: 'panel', id: 'main'},
         {initiator: {type: 'cycle'}}
       );
     }
     commands.allCommands.rightPanelOpen.run();
-    return this.focusRegion({type: 'panel', id: 'right'}, {initiator: {type: 'cycle'}});
+    return this._focusRegion({type: 'panel', id: 'right'}, {initiator: {type: 'cycle'}});
   }
 
   private _canTabThroughMainRegion(use: UseCBOwner) {
@@ -609,7 +660,7 @@ const getPanelElementId = (id: Panel): string => {
   return `[${ATTRS.regionId}="${id}"]`;
 };
 
-const isFocusableElement = (el: EventTarget | null): boolean => {
+const isGristFocusableElement = (el: EventTarget | null): boolean => {
   if (!el) {
     return false;
   }
