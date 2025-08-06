@@ -213,7 +213,7 @@
     "slugify": "1.6.6",
     "swagger-ui-dist": "5.11.0",
     "tar-stream": "^3.1.7",
-    "tmp": "0.0.33",
+    "tmp": "0.2.4",
     "tmp-promise": "1.0.5",
     "ts-interface-checker": "1.0.2",
     "typeorm": "0.3.17",
