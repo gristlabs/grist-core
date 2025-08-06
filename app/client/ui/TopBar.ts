@@ -135,7 +135,10 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     ]),
     dom.domComputed((use) => {
       const model = use(searchModelObs);
-      return model && use(moduleObs)?.searchBar(model, makeTestId('test-tb-search-'));
+      return model && use(moduleObs)?.searchBar(
+        model, makeTestId('test-tb-search-'),
+        pageModel.gristDoc.get()?.regionFocusSwitcher,
+      );
     }),
     dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
       buildShareMenuButton(pageModel),
