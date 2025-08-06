@@ -74,7 +74,7 @@ describe('AdminPanel', function() {
   it('supports opting in to telemetry from the page', async function() {
     await assertTelemetryLevel('off');
 
-    let toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
+    let toggle = driver.find('.test-admin-panel-item-value-telemetry .test-toggle-switch');
     assert.equal(await isEnabled(toggle), false);
 
     await withExpandedItem('telemetry', async () => {
@@ -95,7 +95,7 @@ describe('AdminPanel', function() {
     // Reload the page and check that the Grist config indicates telemetry is set to "limited".
     await driver.navigate().refresh();
     await gu.waitForAdminPanel();
-    toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
+    toggle = driver.find('.test-admin-panel-item-value-telemetry .test-toggle-switch');
     assert.equal(await isEnabled(toggle), true);
     await toggleItem('telemetry');
     await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt out of Telemetry/, 2000);
@@ -110,7 +110,7 @@ describe('AdminPanel', function() {
     await driver.findContent('.test-support-grist-page-telemetry-section button', /Opt out of Telemetry/).click();
     await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt in to Telemetry/, 2000);
     assert.isFalse(await driver.find('.test-support-grist-page-telemetry-section-message').isPresent());
-    let toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
+    let toggle = driver.find('.test-admin-panel-item-value-telemetry .test-toggle-switch');
     assert.equal(await isEnabled(toggle), false);
 
     // Reload the page and check that the Grist config indicates telemetry is set to "off".
@@ -120,12 +120,12 @@ describe('AdminPanel', function() {
     await driver.findContentWait('.test-support-grist-page-telemetry-section button', /Opt in to Telemetry/, 2000);
     assert.isFalse(await driver.find('.test-support-grist-page-telemetry-section-message').isPresent());
     await assertTelemetryLevel('off');
-    toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
+    toggle = driver.find('.test-admin-panel-item-value-telemetry .test-toggle-switch');
     assert.equal(await isEnabled(toggle), false);
   });
 
   it('supports toggling telemetry from the toggle in the top line', async function() {
-    const toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
+    const toggle = driver.find('.test-admin-panel-item-value-telemetry .test-toggle-switch');
     assert.equal(await isEnabled(toggle), false);
     await toggle.click();
     await gu.waitForServer();
@@ -148,7 +148,7 @@ describe('AdminPanel', function() {
     // Check that the Support Grist page reports telemetry is enabled.
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
-    const toggle = driver.find('.test-admin-panel-item-value-telemetry .widget_switch');
+    const toggle = driver.find('.test-admin-panel-item-value-telemetry .test-toggle-switch');
     assert.equal(await isEnabled(toggle), true);
     await toggleItem('telemetry');
     assert.equal(
@@ -412,16 +412,16 @@ export async function withExpandedItem(itemId: string, callback: () => Promise<v
 }
 
 export async function clickSwitch(name: string) {
-  const toggle = driver.find(`.test-admin-panel-item-value-${name} .widget_switch`);
+  const toggle = driver.find(`.test-admin-panel-item-value-${name} .test-toggle-switch`);
   await toggle.click();
   await gu.waitForServer();
 }
 
-export function isEnabled(switchElem: WebElement|string) {
+export async function isEnabled(switchElem: WebElement|string) {
   if (typeof switchElem === 'string') {
-    switchElem = driver.find(`.test-admin-panel-item-value-${switchElem} .widget_switch`);
+    switchElem = driver.find(`.test-admin-panel-item-value-${switchElem} .test-toggle-switch`);
   }
-  return switchElem.matches('[class*=switch_on]');
+  return (await switchElem.find('input').getAttribute('checked')) === null ? false : true;
 }
 
 async function currentVersion() {

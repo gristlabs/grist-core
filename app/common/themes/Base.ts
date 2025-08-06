@@ -1,4 +1,4 @@
-import { BaseThemeTokens, tokens } from "app/common/ThemePrefs";
+import { BaseThemeTokens, components, tokens } from "app/common/ThemePrefs";
 
 /**
  * Base theme tokens that can be used as a starting point for any theme.
@@ -476,7 +476,11 @@ export const Base: BaseThemeTokens = {
     announcementPopupFg: tokens.emphasis,
 
     /* Switches */
-    switchCircleFg: tokens.veryLight,
+    switchInactiveSlider: tokens.bgSecondary,
+    switchInactivePill: tokens.secondary,
+    switchActiveSlider: tokens.primaryMuted,
+    switchActivePill: tokens.bg,
+    switchHoverShadow: components.switchActiveSlider,
 
     /* Custom Widget Gallery */
     widgetGalleryBorderSelected: tokens.primary,
