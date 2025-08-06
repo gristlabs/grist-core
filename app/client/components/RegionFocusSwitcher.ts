@@ -5,6 +5,7 @@ import isEqual from 'lodash/isEqual';
 import {makeT} from 'app/client/lib/localization';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {trapTabKey} from 'app/client/lib/trapTabKey';
+import {isFocusable} from 'app/client/lib/isFocusable';
 import * as commands from 'app/client/components/commands';
 import {App} from 'app/client/ui/App';
 import {GristDoc} from 'app/client/components/GristDoc';
@@ -503,8 +504,8 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   }
   enableFocusLock(panelElement);
 
-  // Child element found: focus it
-  if (child && child !== panelElement && child.isConnected) {
+  // Child element found: focus it if we actually can
+  if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
     // Visually highlight the element with similar styles than panel focus,
     // only for this time. This is here just to help the user better see the visual change when he switches panels.
     child.setAttribute(ATTRS.focusedElement, 'true');
