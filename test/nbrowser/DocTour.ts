@@ -265,8 +265,8 @@ describe('DocTour', function () {
 
   async function checkDocTourPresent() {
     // Check the expected message.
-     assert.isFalse(await driver.findWait('.test-onboarding-popup', 500)
-       .findContent('p', 'General Kenobi!').isPresent());
+     assert.isTrue(await driver.findWait('.test-onboarding-popup', 500)
+       .findContent('div', 'General Kenobi!').isPresent());
 
     // Check that there is only one popup, and no errors.
     assert.lengthOf(await driver.findAll('.test-onboarding-popup'), 1);
