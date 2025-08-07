@@ -8,13 +8,13 @@ export const ariaTabList = () => ({role: "tablist"});
  * @param tabId - The id of the tab. It matches the value representing the tab in the state.
  * @param state - The observable that gets updated when tab changes
  */
-export const ariaTab = (tabId: string, state: Observable<string>) => {
+export const ariaTab = (context: string, tabId: string, state: Observable<string>) => {
   return [
     {
-      id: `aria-tab-${tabId}`,
+      id: `aria-tab-${context}-${tabId}`,
       role: "tab",
       "data-tab-id": tabId,
-      "aria-controls": `aria-tabpanel-${tabId}`,
+      "aria-controls": `aria-tabpanel-${context}-${tabId}`,
     },
     dom.attr("aria-selected", (use) => use(state) === tabId ? "true" : "false"),
     dom.attr("tabindex", (use) => use(state) === tabId ? "0" : "-1"),
@@ -26,11 +26,11 @@ export const ariaTab = (tabId: string, state: Observable<string>) => {
   ];
 };
 
-export const ariaTabPanel = (tabId: string) => {
+export const ariaTabPanel = (context: string, tabId: string) => {
   return {
-    id: `aria-tabpanel-${tabId}`,
+    id: `aria-tabpanel-${context}-${tabId}`,
     role: "tabpanel",
-    "aria-labelledby": `aria-tab-${tabId}`,
+    "aria-labelledby": `aria-tab-${context}-${tabId}`,
   };
 };
 
