@@ -17,7 +17,7 @@ import * as path from 'path';
 import * as fse from 'fs-extra';
 import clone = require('lodash/clone');
 import * as tmp from 'tmp-promise';
-import {Options as TmpOptions} from 'tmp';
+import {FileOptions as TmpOptions} from 'tmp';
 import * as winston from 'winston';
 import { serialize } from 'winston/lib/winston/common';
 
