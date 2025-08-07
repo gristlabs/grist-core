@@ -1,4 +1,5 @@
-import { setupTestSuite } from 'test/nbrowser/testUtils'; import * as gu from 'test/nbrowser/gristUtils';
+import { setupTestSuite } from 'test/nbrowser/testUtils';
+import * as gu from 'test/nbrowser/gristUtils';
 import { UserAPIImpl } from 'app/common/UserAPI';
 
 import { assert } from 'chai';
@@ -27,7 +28,6 @@ describe('UserManager', function() {
   }
 
   async function findUserAndGetRole(userEmail: string, options?: {invited: boolean}) {
-    // await gu.currentDriver().sleep(60_000);
     const emailElementSelector = options?.invited ? '.test-um-member-name' : '.test-um-member-email';
 
     const userElement = await gu.currentDriver().findContentWait(emailElementSelector, userEmail, 5000);
