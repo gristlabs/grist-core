@@ -27,8 +27,14 @@ describe('UserManager', function() {
     });
   }
 
-  async function findUserAndGetRole(userEmail: string, options?: {invited: boolean}) {
-    const emailElementSelector = options?.invited ? '.test-um-member-name' : '.test-um-member-email';
+  async function findUserAndGetRole(userEmail: string) {
+    // When running locally and only running this test, the user account may not be created yet.
+    // But if other tests have been run before, the account may exist at this point.
+    // Anyway, the email is displayed in this element, selecting either these elements will work.
+    const SELECTOR_FOR_EXISTING_USER = '.test-um-member-email';
+    const SELECTOR_FOR_NEW_USER = '.test-um-member-name';
+
+    const emailElementSelector = `${SELECTOR_FOR_EXISTING_USER}, ${SELECTOR_FOR_NEW_USER}`;
 
     const userElement = await gu.currentDriver().findContentWait(emailElementSelector, userEmail, 5000);
     return userElement.findClosest(".test-um-member").findWait(".test-um-member-role", 5000).getText();
@@ -59,8 +65,8 @@ describe('UserManager', function() {
     await gu.editDocAcls();
 
     assert.include(await findUserAndGetRole(user1.email), 'Owner');
-    assert.include(await findUserAndGetRole(user2.email, {invited: true}), 'Editor');
-    assert.include(await findUserAndGetRole(user3.email, {invited: true}), 'Viewer');
+    assert.include(await findUserAndGetRole(user2.email), 'Editor');
+    assert.include(await findUserAndGetRole(user3.email), 'Viewer');
 
     await driver.sendKeys(Key.ESCAPE);
     await driver.wait(async () => !await driver.find('.test-um-members').isPresent(), 500);
