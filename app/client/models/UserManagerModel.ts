@@ -6,6 +6,7 @@ import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
+import {ResourceType} from 'app/common/ResourceTypes';
 import {getGristConfig} from 'app/common/urlUtils';
 import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
         PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
@@ -56,8 +57,6 @@ export interface UserManagerModel {
   // Returns whether we are enabling public sharing.
   goingToSharePublicly(): boolean;
 }
-
-export type ResourceType = 'organization'|'workspace'|'document';
 
 export type Resource = Organization|Workspace|Document;
 

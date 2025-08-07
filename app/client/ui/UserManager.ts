@@ -28,7 +28,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
         Resource} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
-import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
+import {getResourceParent} from 'app/client/models/UserManagerModel';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {createUserImage} from 'app/client/ui/UserImage';
@@ -43,6 +43,7 @@ import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
         IModalControl, modal} from 'app/client/ui2018/modals';
+import {ResourceType} from 'app/common/ResourceTypes';
 
 const t = makeT('UserManager');
 
