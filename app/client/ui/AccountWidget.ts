@@ -7,6 +7,7 @@ import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
 import {bigPrimaryButtonLink, primaryButtonLink} from 'app/client/ui2018/buttons';
 import {mediaDeviceNotSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {icon} from 'app/client/ui2018/icons';
 import {
   menu,
@@ -280,7 +281,7 @@ const cssAccountWidget = styled('div', `
   white-space: nowrap;
 `);
 
-export const cssUserIcon = styled('div', `
+export const cssUserIcon = styled(unstyledButton, `
   height: 48px;
   width: 48px;
   padding: 8px;
