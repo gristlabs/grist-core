@@ -74,12 +74,13 @@ const someColors = [
 ];
 
 export const cssUserImage = styled('div', `
+  --text-color: white;
   position: relative;
   text-align: center;
   text-transform: uppercase;
   user-select: none;
   -moz-user-select: none;
-  color: white;
+  color: var(--text-color);
   border-radius: 100px;
   display: flex;
   align-items: center;
@@ -87,7 +88,11 @@ export const cssUserImage = styled('div', `
   --border-size: 0px;
   width: calc(var(--icon-size, 24px) - var(--border-size));
   height: calc(var(--icon-size, 24px) - var(--border-size));
+  flex-shrink: 0;
+  flex-grow: 0;
   line-height: 1em;
+
+  background-color: ${theme.topHeaderBg};
 
   &-small {
     --icon-size: 24px;
@@ -101,13 +106,13 @@ export const cssUserImage = styled('div', `
   }
   &-border {
     --border-size: 2px;
+    border: var(--border-size) solid rgba(255,255,255,0.25);
   }
   &-large {
     --icon-size: 40px;
     font-size: 22.5px;
     --reduced-font-size: 20px;
   }
-
   &-anon {
     border: 1px solid ${colors.slate};
     color: ${colors.slate};
