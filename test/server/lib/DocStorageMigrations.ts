@@ -7,7 +7,7 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import * as testUtils from 'test/server/testUtils';
 import {assert} from 'test/server/testUtils';
-import * as tmp from 'tmp';
+import * as tmp from 'tmp-promise';
 
 tmp.setGracefulCleanup();
 const execFileAsync = promisify(child_process.execFile);
@@ -20,7 +20,7 @@ describe('DocStorageMigrations', function() {
 
   before(async function() {
     // Set Grist home to a temporary directory, and wipe it out on exit.
-    let tmpDir = await tmp.dirAsync({ prefix: 'grist_test_', unsafeCleanup: true });
+    let tmpDir = (await tmp.dir({ prefix: 'grist_test_', unsafeCleanup: true })).path;
     tmpDir = await fse.realpath(tmpDir);
     docStorageManager = new DocStorageManager(tmpDir);
   });

@@ -12,7 +12,7 @@ import log from 'app/server/lib/log';
 import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as path from "path";
-import * as tmp from "tmp";
+import * as tmp from "tmp-promise";
 
 export async function upgradeDocuments(docPaths: string[]): Promise<void> {
   const docTools = createDocTools();
@@ -31,7 +31,7 @@ export async function upgradeDocuments(docPaths: string[]): Promise<void> {
 }
 
 export async function upgradeDocumentsDocStorageOnly(paths: string[]): Promise<void> {
-  let tmpDir = await tmp.dirAsync({ prefix: 'grist_migrate_', unsafeCleanup: true });
+  let tmpDir = (await tmp.dir({ prefix: 'grist_migrate_', unsafeCleanup: true })).path;
   tmpDir = await fse.realpath(tmpDir);
   const docStorageManager = new DocStorageManager(tmpDir);
 

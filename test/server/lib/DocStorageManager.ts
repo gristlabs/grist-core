@@ -3,7 +3,7 @@
 import {assert} from 'chai';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import * as tmp from 'tmp';
+import * as tmp from 'tmp-promise';
 
 import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import * as docUtils from 'app/server/lib/docUtils';
@@ -17,7 +17,7 @@ describe('DocStorageManager', function() {
   let docsRoot: string;
   let docStorageManager: DocStorageManager;
   before(async function() {
-    const tmpDir = await tmp.dirAsync({ prefix: 'grist_test_', unsafeCleanup: true });
+    const tmpDir = (await tmp.dir({ prefix: 'grist_test_', unsafeCleanup: true })).path;
     docsRoot = fse.realpathSync(tmpDir);
     docStorageManager = new DocStorageManager(docsRoot);
   });
