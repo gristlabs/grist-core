@@ -76,7 +76,7 @@ import {
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
-import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
+import {applyPatch, maybePrepareStatement} from 'app/gen-server/lib/TypeORMPatches';
 import {
   bitOr,
   getRawAndEntities,
@@ -153,6 +153,11 @@ export const Deps = {
         minValue: 1,
       }),
   },
+  usePreparedStatements: appSettings.section('db').section('postgres').flag('usePreparedStatements')
+    .readBool({
+      envVar: 'GRIST_POSTGRES_USE_PREPARED_STATEMENTS',
+      defaultValue: false
+    }),
 };
 
 // Name of a special workspace with examples in it.
@@ -4222,9 +4227,10 @@ export class HomeDBManager {
 
   private _withAccess(qb: SelectQueryBuilder<any>, users: AvailableUsers,
                       table: 'orgs'|'workspaces'|'docs',
-                      accessStyle: AccessStyle = 'open') {
+                      accessStyle: AccessStyle = 'open',
+                      variableNamePrefix?: string) {
     return qb
-      .addSelect(this._markIsPermitted(table, users, accessStyle, null), `${table}_permissions`);
+      .addSelect(this._markIsPermitted(table, users, accessStyle, null, variableNamePrefix), `${table}_permissions`);
   }
 
   /**
@@ -4362,6 +4368,10 @@ export class HomeDBManager {
       scope?: Scope,
     } = {}
   ): Promise<QueryResult<T[]>> {
+    if (Deps.usePreparedStatements) {
+      const sql = options.rawQueryBuilder?.getSql() || queryBuilder.getSql();
+      maybePrepareStatement(sql);
+    }
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
@@ -4541,7 +4551,8 @@ export class HomeDBManager {
     resType: 'orgs'|'workspaces'|'docs',
     users: AvailableUsers,
     accessStyle: AccessStyle,
-    permissions: Permissions|null = Permissions.VIEW
+    permissions: Permissions|null = Permissions.VIEW,
+    variableNamePrefix?: string,
   ): (qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any> {
     const idColumn = resType.slice(0, -1) + "_id";
     return qb => {
@@ -4598,10 +4609,10 @@ export class HomeDBManager {
           );
         }
         q = q.from('acl_rules', 'acl_rules');
-        q = this._getUsersAcls(q, users, accessStyle);
+        q = this._getUsersAcls(q, users, accessStyle, variableNamePrefix);
         q = q.andWhere(`acl_rules.${idColumn} = ${resType}.id`);
         if (permissions !== null) {
-          q = q.andWhere(`(acl_rules.permissions & ${permissions}) = ${permissions}`).limit(1);
+          q = q.andWhere(`(acl_rules.permissions & :permissions) = :permissions`, {permissions}).limit(1);
         } else if (!UsersManager.isSingleUser(users)) {
           q = q.addSelect('profiles.id');
           q = q.addSelect('profiles.display_email');
@@ -4633,7 +4644,7 @@ export class HomeDBManager {
   // for implementing something like teams in the future.  It has no measurable effect on
   // speed.
   private _getUsersAcls(qb: SelectQueryBuilder<any>, users: AvailableUsers,
-                        accessStyle: AccessStyle) {
+                        accessStyle: AccessStyle, variableNamePrefix: string = 'acls') {
     // Every acl_rule is associated with a single group.  A user may
     // be a direct member of that group, via the group_users table.
     // Or they may be a member of a group that is a member of that
@@ -4641,6 +4652,8 @@ export class HomeDBManager {
     // removed.  We unroll to a fixed number of steps, and use joins
     // rather than a recursive query, since we need this step to be as
     // fast as possible.
+    const userIdVariable = `${variableNamePrefix}UserId`;
+    const permissionsVariable = `${variableNamePrefix}Permissions`;
     qb = qb
       // filter for the specified user being a direct or indirect member of the acl_rule's group
       .where(new Brackets(cond => {
@@ -4649,7 +4662,8 @@ export class HomeDBManager {
           // didn't, we'd need to use distinct parameter names, since
           // we may include this code with different user ids in the
           // same query
-          cond = cond.where(`${users} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
+          cond = cond.where(`:${userIdVariable} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`,
+                            {[userIdVariable]: users});
           // Support public access via the special "everyone" user, except for 'openStrict' mode.
           if (accessStyle !== 'openNoPublic') {
             const everyoneId = this._usersManager.getEveryoneUserId();
@@ -4666,8 +4680,8 @@ export class HomeDBManager {
           const previewerId = this._usersManager.getSpecialUserId(PREVIEWER_EMAIL);
           if (users === previewerId) {
             // All acl_rules granting view access are available to previewer user.
-            cond = cond.orWhere('acl_rules.permissions = :permission',
-                                {permission: Permissions.VIEW});
+            cond = cond.orWhere(`acl_rules.permissions = :${permissionsVariable}`,
+                                {[permissionsVariable]: Permissions.VIEW});
           }
         } else {
           cond = cond.where(`profiles.id IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
@@ -4747,7 +4761,7 @@ export class HomeDBManager {
     }
     if (limit.users || limit.userId) {
       for (const res of resources) {
-        qb = this._withAccess(qb, limit.users || limit.userId, res, accessStyle);
+        qb = this._withAccess(qb, limit.users || limit.userId, res, accessStyle, 'limit');
       }
     }
     if (resources.includes('docs') && resources.includes('workspaces') && !limit.showAll) {
@@ -5096,6 +5110,10 @@ async function verifyEntity(
   queryBuilder: SelectQueryBuilder<any>,
   options: { skipPermissionCheck?: boolean } = {}
 ): Promise<QueryResult<any>> {
+  if (Deps.usePreparedStatements) {
+    const sql = queryBuilder.getSql();
+    maybePrepareStatement(sql);
+  }
   const results = await queryBuilder.getRawAndEntities();
   if (results.entities.length === 0) {
     return {
@@ -5122,7 +5140,9 @@ async function verifyEntity(
 // Extract a human-readable name for the type of entity being selected.
 function getFrom(queryBuilder: SelectQueryBuilder<any>): string {
   const alias = queryBuilder.expressionMap.mainAlias;
-  return (alias && alias.metadata && alias.metadata.name.toLowerCase()) || 'resource';
+  const name = (alias && alias.metadata && alias.metadata.name.toLowerCase()) || 'resource';
+  if (name === 'filtereddocument') { return 'document'; }
+  return name;
 }
 
 // Flatten a map of users per role into a simple list of users.

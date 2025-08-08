@@ -5,11 +5,13 @@ import {configForUser, configWithPermit, getRowCounts as getRowCountsForDb} from
 import * as testUtils from 'test/server/testUtils';
 
 import {createEmptyOrgUsageSummary, OrgUsageSummary} from 'app/common/DocUsage';
+import {isAffirmative} from 'app/common/gutil';
 import {DOCTYPE_NORMAL, DOCTYPE_TEMPLATE, DOCTYPE_TUTORIAL, Document, Workspace} from 'app/common/UserAPI';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {TestServer} from 'test/gen-server/apiUtils';
+import {testGetPreparedStatementCount, testResetPreparedStatements} from 'app/gen-server/lib/TypeORMPatches';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
 
 const assert = chai.assert;
@@ -59,6 +61,8 @@ describe('ApiServer', function() {
       userCountUpdates[org.id] = userCountUpdates[org.id] || [];
       userCountUpdates[org.id].push(countAfter);
     });
+
+    testResetPreparedStatements();
   });
 
   afterEach(async function() {
@@ -2372,6 +2376,28 @@ describe('ApiServer', function() {
     const resp = await axios.get(`${homeUrl}/api/templates`, nobody);
     // Assert that the response status is 404 because the templates org doesn't exist.
     assert.equal(resp.status, 404);
+  });
+
+  // Please keep this as the last test. Could go in after(), but
+  // then it is a little harder to tell in logs if it wasn't skipped.
+  describe('Prepared Statements', async function() {
+    it('creates prepared statements', async function() {
+      if (dbManager.connection.driver.options.type !== 'postgres' ||
+          !isAffirmative(process.env.GRIST_POSTGRES_USE_PREPARED_STATEMENTS)) {
+        this.skip();
+      }
+      // Check that the number of prepared statements looks sane.
+      // Basically, we shouldn't be getting variants for each
+      // user id or something like that, which could happen if the
+      // id is embedded in the query and not passed as a parameter.
+      // There are quite a few variants of similar looking queries
+      // for different situations though, and no doubt this will
+      // grow, so this number going up won't be surprising.
+      const count = testGetPreparedStatementCount();
+      assert.equal(count.usedCount, count.preparedCount);
+      assert.isAbove(count.usedCount, 30);
+      assert.isBelow(count.usedCount, 40);
+    });
   });
 });
 

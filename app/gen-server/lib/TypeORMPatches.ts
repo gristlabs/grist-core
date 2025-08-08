@@ -19,6 +19,8 @@ import log from 'app/server/lib/log';
 import {Mutex, MutexInterface} from 'async-mutex';
 import isEqual = require('lodash/isEqual');
 import {EntityManager, QueryRunner} from 'typeorm';
+import {PostgresDriver} from 'typeorm/driver/postgres/PostgresDriver';
+import {PostgresQueryRunner} from 'typeorm/driver/postgres/PostgresQueryRunner';
 import {SqliteDriver} from 'typeorm/driver/sqlite/SqliteDriver';
 import {SqliteQueryRunner} from 'typeorm/driver/sqlite/SqliteQueryRunner';
 import {
@@ -29,9 +31,10 @@ import {QueryBuilder} from 'typeorm/query-builder/QueryBuilder';
 // Print a warning for transactions that take longer than this.
 const SLOW_TRANSACTION_MS = 5000;
 
-/**********************
+/*************************************************************
  * Patch 1
- **********************/
+ * Make transactions work with SQLite.
+ *************************************************************/
 
 // A singleton mutex for all sqlite transactions.
 const mutex = new Mutex();
@@ -195,9 +198,11 @@ async function callWithRetry<T>(op: () => Promise<T>, options: {
 }
 
 
-/**********************
+/*************************************************************
  * Patch 2
- **********************/
+ * Watch out for parameter collisions, shout loudly if they
+ * happen.
+ *************************************************************/
 
 // Augment the interface globally
 declare module 'typeorm/query-builder/QueryBuilder' {
@@ -230,3 +235,121 @@ abstract class QueryBuilderPatched<T> extends QueryBuilder<T> {
 
 (QueryBuilder.prototype as any).setParameter = (QueryBuilderPatched.prototype as any).setParameter;
 (QueryBuilder.prototype as any).chain = (QueryBuilderPatched.prototype as any).chain;
+
+
+/*************************************************************
+ * Patch 3
+ * Allow use of PREPAREd statements with Postgres.
+ *************************************************************/
+
+const preparedSqlToName = new Map<string, string>();
+const preparedNameToSql = new Map<string, string>();
+const usedNames = new Set<string>();
+
+/**
+ * Return true if a query is worth preparing. This would probably
+ * be best judged by hand, but there's not much downside to
+ * preparing any longish queries, as long as we don't end up with
+ * too many of them. That could happen if queries contain embedded
+ * parameters in their text.
+ */
+function worthPreparing(sql: string) {
+  return sql.length > 120;
+}
+
+/**
+ * Give a label to a query. We can't call PREPARE directly, or
+ * pass statement names through TypeORM, so we have to do some
+ * hijinks.
+ */
+export function setPreparedStatement(name: string, sql: string) {
+  if (preparedNameToSql.has(name)) { return; }
+  preparedSqlToName.set(sql, name);
+  preparedNameToSql.set(name, sql);
+}
+
+/**
+ * If a query looks to be worth preparing and we haven't already,
+ * plan on doing so.
+ */
+export function maybePrepareStatement(sql: string) {
+  if (worthPreparing(sql) && !preparedSqlToName.has(sql)) {
+    const key = pickStatementName(sql);
+    setPreparedStatement(key, sql);
+  }
+}
+
+const prefixCounts = new Map<string, number>();
+
+/**
+ * Pick a name for a statement.
+ */
+export function pickStatementName(query: string): string {
+  const prefix = query.toLowerCase().replace(/["']/g, '').replace(/[^a-z0-9]/g, '_').slice(0, 16);
+  const count = (prefixCounts.get(prefix) || 0) + 1;
+  prefixCounts.set(prefix, count);
+  return `prep_${prefix}_${count}`;
+}
+
+/**
+ * A test function for checking how many statements are getting
+ * prepared and if they are properly used.
+ */
+export function testGetPreparedStatementCount() {
+  return {
+    preparedCount: preparedNameToSql.size,
+    usedCount: usedNames.size,
+  };
+}
+
+/**
+ * Reset bookwork for tracking prepared statements.
+ */
+export function testResetPreparedStatements() {
+  preparedSqlToName.clear();
+  preparedNameToSql.clear();
+  usedNames.clear();
+}
+
+/**
+ * Patch typeorm postgres driver to use pg library "name"
+ * feature for recognized queries.
+ */
+export class PostgresQueryRunnerPatched extends PostgresQueryRunner {
+  public async connect() {
+    const result = await super.connect();
+    const client = this.databaseConnection;
+    if (!client._preparedWrapped) {
+      const originalQuery = client.query.bind(client);
+      client.query = async (text: any, values?: any[]) => {
+        if (typeof text === "string" && worthPreparing(text) && preparedSqlToName.size) {
+          const name = preparedSqlToName.get(text);
+          if (name) {
+            if (!usedNames.has(name)) {
+              usedNames.add(name);
+              log.rawDebug(`used a new prepared statement`, {
+                name,
+                usedCount: usedNames.size,
+                preparedCount: preparedNameToSql.size,
+              });
+            }
+            return originalQuery({
+              name, text, values
+            });
+          }
+        }
+        return originalQuery(text, values);
+      };
+      client._preparedWrapped = true;
+    }
+    return result;
+  }
+}
+
+export class PostgresDriverPatched extends PostgresDriver {
+  public createQueryRunner(mode: 'master' | 'slave'): QueryRunner {
+    return new PostgresQueryRunnerPatched(this, mode);
+  }
+}
+
+PostgresDriver.prototype.createQueryRunner = PostgresDriverPatched.prototype.createQueryRunner;
