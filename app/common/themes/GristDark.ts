@@ -357,5 +357,8 @@ export const GristDark: ThemeTokens = {
 
     /* Card Button */
     cardButtonBorder: tokens.decorationTertiary,
+
+    /* Active User List */
+    userListRemainingUsersBg: '#8e8ea0',
   }
 };

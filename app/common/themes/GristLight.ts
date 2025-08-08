@@ -305,5 +305,8 @@ export const GristLight: ThemeTokens = {
 
     /* Card Button */
     cardButtonBorder: tokens.decoration,
+
+    /* Active User List */
+    userListRemainingUsersBg: tokens.secondary,
   }
 };

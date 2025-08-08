@@ -97,6 +97,7 @@ const createOverlappingUserListImage = styled(createUserListImage, `
 
 const cssRemainingUsersImage = styled(cssUserImage, `
   margin-left: -4px;
+  background-color: ${components.userListRemainingUsersBg};
 `);
 
 export const remainingUsersMenuItem = styled(`div`, `
