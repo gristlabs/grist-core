@@ -3,7 +3,7 @@
 import {assert} from 'chai';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import * as tmp from 'tmp';
+import * as tmp from 'tmp-promise';
 
 import {DocStorageManager} from 'app/server/lib/DocStorageManager';
 import * as docUtils from 'app/server/lib/docUtils';
@@ -16,12 +16,10 @@ describe('DocStorageManager', function() {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   let docsRoot: string;
   let docStorageManager: DocStorageManager;
-  before(function() {
-    return tmp.dirAsync({ prefix: 'grist_test_', unsafeCleanup: true })
-    .then(tmpDir => {
-      docsRoot = fse.realpathSync(tmpDir);
-      docStorageManager = new DocStorageManager(docsRoot);
-    });
+  before(async function() {
+    const tmpDir = (await tmp.dir({ prefix: 'grist_test_', unsafeCleanup: true })).path;
+    docsRoot = fse.realpathSync(tmpDir);
+    docStorageManager = new DocStorageManager(docsRoot);
   });
 
   describe('getPath', function() {
@@ -81,7 +79,7 @@ describe('DocStorageManager', function() {
       // First create a doc, one under docsRoot, one outside; and include an attachment.
       fse.writeFileSync(doc1, "this is a test");
       const doc2 = tmp.fileSync({
-        prefix: 'DeleteTest2', postfix: '.grist', unsafeCleanup: true,
+        prefix: 'DeleteTest2', postfix: '.grist',
         discardDescriptor: true
       }).name;
       // Check that items got created as we expect.

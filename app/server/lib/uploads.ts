@@ -401,7 +401,7 @@ interface TmpDirResult {
  * Helper to create a temporary directory. It's a simple wrapper around tmp.dir, but replaces the
  * cleanup callback with an asynchronous version.
  */
-export async function createTmpDir(options: tmp.Options): Promise<TmpDirResult> {
+export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResult> {
   const fullOptions = {prefix: 'grist-upload-', unsafeCleanup: true, ...options};
 
   const [tmpDir, tmpCleanup]: [string, CleanupCB] = await fromCallback(

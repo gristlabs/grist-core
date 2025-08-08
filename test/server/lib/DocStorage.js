@@ -1,12 +1,10 @@
 const assert  = require('chai').assert;
 const child_process = require('child_process');
 const fs      = require('fs');
-const tmp     = require('tmp');
 
 const Promise = require('bluebird');
 Promise.promisifyAll(child_process);
 Promise.promisifyAll(fs);
-Promise.promisifyAll(tmp);
 
 const {ActionHistoryImpl} = require('app/server/lib/ActionHistoryImpl');
 const {DocStorage}        = require('app/server/lib/DocStorage');
@@ -14,8 +12,6 @@ const docUtils            = require('app/server/lib/docUtils');
 const marshal             = require('app/common/marshal');
 const {createDocTools}    = require('test/server/docTools');
 const testUtils           = require('test/server/testUtils');
-
-tmp.setGracefulCleanup();
 
 describe('DocStorage', function() {
 

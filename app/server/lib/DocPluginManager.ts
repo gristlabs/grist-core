@@ -16,13 +16,9 @@ import { GristServer } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import { SafePythonComponent } from 'app/server/lib/SafePythonComponent';
 import { UnsafeNodeComponent } from 'app/server/lib/UnsafeNodeComponent';
-import { promisifyAll } from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import tmp from 'tmp';
-
-
-promisifyAll(tmp);
+import * as tmp from 'tmp-promise';
 
 /**
  * Implements GristDocAPI interface.
@@ -196,7 +192,7 @@ export class DocPluginManager {
   }
 
   private async _initialize(): Promise<void> {
-    this._tmpDir = await tmp.dirAsync({ prefix: 'grist-tmp-', unsafeCleanup: true });
+    this._tmpDir = (await tmp.dir({ prefix: 'grist-tmp-', unsafeCleanup: true })).path;
     for (const plugin of this._localPlugins) {
       try {
         // todo: once Comm has been replaced by grain-rpc, pluginInstance.rpc should forward '*' to client

@@ -2,7 +2,7 @@ import {assert} from 'chai';
 import * as fse from 'fs-extra';
 import {map, noop} from 'lodash';
 import {join as pathJoin} from 'path';
-import * as tmp from 'tmp';
+import * as tmp from 'tmp-promise';
 
 import {delay} from 'app/common/delay';
 import {OpenMode, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';
@@ -13,17 +13,18 @@ tmp.setGracefulCleanup();
 
 describe('SQLiteDB', function() {
   let tmpDir: string;
+  let cleanup: () => void;
 
   // Turn off logging for this test, and restore afterwards.
   testUtils.setTmpLogLevel('warn');
 
   before(async function() {
     // Create a temporary directory, and wipe it out on exit.
-    tmpDir = await tmp.dirAsync({ prefix: 'grist_test_SQLiteDB_', unsafeCleanup: true });
+    ({path: tmpDir, cleanup} = await tmp.dir({ prefix: 'grist_test_SQLiteDB_', unsafeCleanup: true }));
   });
 
-  after(async function() {
-    await fse.remove(tmpDir);
+  after(function() {
+    cleanup();
   });
 
   // Convenience helpers to make tests more concise and readable.
