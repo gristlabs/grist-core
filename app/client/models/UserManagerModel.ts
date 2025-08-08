@@ -6,6 +6,7 @@ import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
 import {normalizeEmail} from 'app/common/emails';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
+import {ResourceType} from 'app/common/ResourceTypes';
 import {getGristConfig} from 'app/common/urlUtils';
 import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
         PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
@@ -53,9 +54,9 @@ export interface UserManagerModel {
   isActiveUser(member: IEditableMember): boolean;
   // Returns the PermissionDelta reflecting the current unsaved changes in the model.
   getDelta(): PermissionDelta;
+  // Returns whether we are enabling public sharing.
+  goingToSharePublicly(): boolean;
 }
-
-export type ResourceType = 'organization'|'workspace'|'document';
 
 export type Resource = Organization|Workspace|Document;
 
@@ -305,6 +306,12 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       }
     }
     return delta;
+  }
+
+  public goingToSharePublicly(): boolean {
+    // We want to detect when the original access for the public member did not exist
+    // and has just been defined.
+    return Boolean(this.publicMember?.access.get() && !this.publicMember?.origAccess);
   }
 
   private _buildAllMembers(): IEditableMember[] {
