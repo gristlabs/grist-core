@@ -1,10 +1,10 @@
-import {domComputed, DomElementArg, DomElementMethod, styled} from 'grainjs';
-import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
+import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
+import {isXSmallScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {menu} from 'app/client/ui2018/menus';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {FullUser} from 'app/common/LoginSessionAPI';
-import {theme} from 'app/client/ui2018/cssVars';
+import {dom, domComputed, DomElementArg, DomElementMethod, styled} from 'grainjs';
 
 // TODO - Hide this list on smaller screens
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
@@ -77,7 +77,7 @@ const cssActiveUserList = styled('div', `
 `);
 
 const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
-  createUserImage(user, 'medium', cssUserImage.cls("-border"), ...args);
+  createUserImage(user, 'medium', cssUserImage.cls("-border"), dom.hide(isXSmallScreenObs()), ...args);
 
 const createOverlappingUserListImage = styled(createUserListImage, `
   margin-left: -4px;
