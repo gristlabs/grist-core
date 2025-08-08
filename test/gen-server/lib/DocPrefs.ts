@@ -29,7 +29,7 @@ describe('DocPrefs', function() {
 
   before(async function setUp(this: Mocha.Context) {
     server = new TestServer(this);
-    await server.start();
+    await server.start(['home', 'docs']);
     dbManager = server.dbManager;
 
     // Fill in user info, to use throughout the test.
