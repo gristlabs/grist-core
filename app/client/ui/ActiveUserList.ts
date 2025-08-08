@@ -3,14 +3,19 @@ import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {isXSmallScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {menu} from 'app/client/ui2018/menus';
 import {hoverTooltip} from 'app/client/ui/tooltips';
+import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {FullUser} from 'app/common/LoginSessionAPI';
+import {components} from 'app/common/ThemePrefs';
 import {dom, domComputed, DomElementArg, DomElementMethod, styled} from 'grainjs';
 
 // TODO - Hide this list on smaller screens
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
     // Need to delete id as it's incompatible with createUserImage's parameters.
-    const users = userProfiles.map(userProfile => ({...userProfile, id: undefined }));
+    const users = userProfiles
+      .slice()
+      .sort(compareUserProfiles)
+      .map(userProfile => ({...userProfile, id: undefined }));
     const usersToRender = users.slice(0, 3);
     const remainingUsers = users.slice(3);
 
@@ -20,7 +25,8 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
       ? []
       : remainingUsers.length == 1
         ? createUserIndicator(remainingUsers[0])
-        : createRemainingUsersIndicator(remainingUsers);
+        // The dropdown menu should show the full user list, but only show unlisted users in the counter
+        : createRemainingUsersIndicator(users, remainingUsers.length);
     const userImages = firstUserImage.concat(overlappingUserImages, finalUserImage);
 
     // Reverses the order of user images, so that the z-index is automatically correct without manual CSS overrides.
@@ -40,22 +46,21 @@ function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: f
   );
 }
 
-function createRemainingUsersIndicator(users: Partial<FullUser>[]) {
-  return createOverlappingUserListImage({
-      // TODO - make this behave sensibly with many other users
-      //        this is a quick hack for now and only works for single digits.
-      name: `+ ${users.length}`,
-    },
+function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: number) {
+  const count = userCount ?? users.length;
+  return cssRemainingUsersImage(
+    `+${count}`,
+    cssUserImage.cls("-medium"),
+    cssUserImage.cls("-border"),
+    dom.style("font-size", "12px"),
     hoverMenu(
       () => users.map(user => remainingUsersMenuItem(
-        () => {},
         createUserImage(user, 'medium'),
         user.name,
       )),
-    )
+    ),
   );
 }
-
 
 function hoverMenu(...args: Parameters<typeof menu>): DomElementMethod {
   return (elem) => {
@@ -77,9 +82,20 @@ const cssActiveUserList = styled('div', `
 `);
 
 const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
-  createUserImage(user, 'medium', cssUserImage.cls("-border"), dom.hide(isXSmallScreenObs()), ...args);
+  createUserImage(
+    user,
+    'medium',
+    cssUserImage.cls("-border"),
+    cssUserImage.cls('-reduced'),
+    dom.hide(isXSmallScreenObs()),
+    ...args
+  );
 
 const createOverlappingUserListImage = styled(createUserListImage, `
+  margin-left: -4px;
+`);
+
+const cssRemainingUsersImage = styled(cssUserImage, `
   margin-left: -4px;
 `);
 
@@ -96,3 +112,20 @@ export const remainingUsersMenuItem = styled(`div`, `
     margin-right: 5px;
   }
 `);
+
+function compareUserProfiles(a: VisibleUserProfile, b: VisibleUserProfile) {
+  if (!a.isAnonymous && b.isAnonymous) {
+    return -1;
+  }
+
+  if (a.isAnonymous && !b.isAnonymous) {
+    return 1;
+  }
+
+  // If both have the same anonymity, compare based on name
+  if (a.name === b.name) {
+    return 0;
+  }
+
+  return (a.name < b.name) ? -1 : 1;
+}

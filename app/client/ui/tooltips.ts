@@ -225,7 +225,7 @@ export function setHoverTooltip(
   let mouseGrabbed = false;
   function grabMouse(tip: Element) {
     mouseGrabbed = true;
-    const listener = dom.onElem(window, 'mouseup', () => {
+    const listener = dom.onElem(window, 'pointerup', () => {
       mouseGrabbed = false;
       if (timer === POSTPONED) {
         scheduleCloseIfOpen(1400);
@@ -259,9 +259,9 @@ export function setHoverTooltip(
     clearTimer();
     tipControl = showTooltip(refElem, ctl => tipContentFunc({...ctl, close}), options);
     const tipDom = tipControl.getDom();
-    dom.onElem(tipDom, 'mouseenter', clearTimer);
-    dom.onElem(tipDom, 'mouseleave', () => scheduleCloseIfOpen());
-    dom.onElem(tipDom, 'mousedown', grabMouse.bind(null, tipDom));
+    dom.onElem(tipDom, 'pointerenter', clearTimer);
+    dom.onElem(tipDom, 'pointerleave', () => scheduleCloseIfOpen());
+    dom.onElem(tipDom, 'pointerdown', grabMouse.bind(null, tipDom));
     dom.onDisposeElem(tipDom, () => close());
     if (timeoutMs) { resetTimer(close, timeoutMs); }
   }
@@ -273,7 +273,7 @@ export function setHoverTooltip(
   }
 
   // We simulate hover effect by handling mouseenter/mouseleave.
-  dom.onElem(refElem, 'mouseenter', () => {
+  dom.onElem(refElem, 'pointerenter', () => {
     if (options.hidden?.get()) { return; }
 
     if (overflowOnly && (refElem as HTMLElement).offsetWidth >= refElem.scrollWidth) {
@@ -290,7 +290,7 @@ export function setHoverTooltip(
     }
   });
 
-  dom.onElem(refElem, 'mouseleave', () => scheduleCloseIfOpen());
+  dom.onElem(refElem, 'pointerleave', () => scheduleCloseIfOpen());
 
   if (openOnClick) {
     // If requested, re-open on click.

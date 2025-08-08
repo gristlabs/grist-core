@@ -105,8 +105,8 @@ export const cssUserImage = styled('div', `
     --reduced-font-size: 16px;
   }
   &-border {
-    --border-size: 1px;
-    border: var(--border-size) solid var(--text-color);
+    --border-size: 2px;
+    border: var(--border-size) solid rgba(255,255,255,0.25);
   }
   &-large {
     --icon-size: 40px;
