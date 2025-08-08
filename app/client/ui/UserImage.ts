@@ -74,12 +74,13 @@ const someColors = [
 ];
 
 export const cssUserImage = styled('div', `
+  --text-color: white;
   position: relative;
   text-align: center;
   text-transform: uppercase;
   user-select: none;
   -moz-user-select: none;
-  color: white;
+  color: var(--text-color);
   border-radius: 100px;
   display: flex;
   align-items: center;
@@ -104,14 +105,14 @@ export const cssUserImage = styled('div', `
     --reduced-font-size: 16px;
   }
   &-border {
-    --border-size: 2px;
+    --border-size: 1px;
+    border: var(--border-size) solid var(--text-color);
   }
   &-large {
     --icon-size: 40px;
     font-size: 22.5px;
     --reduced-font-size: 20px;
   }
-
   &-anon {
     border: 1px solid ${colors.slate};
     color: ${colors.slate};

@@ -1,12 +1,12 @@
-import {domComputed, DomElementMethod, styled} from 'grainjs';
-import {createUserImage} from 'app/client/ui/UserImage';
+import {domComputed, DomElementArg, DomElementMethod, styled} from 'grainjs';
+import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
 import {menu} from 'app/client/ui2018/menus';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {theme} from 'app/client/ui2018/cssVars';
 
-// TODO - Shrink this list on smaller screens
+// TODO - Hide this list on smaller screens
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
     // Need to delete id as it's incompatible with createUserImage's parameters.
@@ -33,17 +33,19 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
 }
 
 function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
-  const imageConstructor = options.overlapLeft ? createOverlappingUserImage : createUserImage;
-  return imageConstructor(user, 'medium', hoverTooltip(user.name, { openDelay: 0, closeDelay: 0 }));
+  const imageConstructor = options.overlapLeft ? createOverlappingUserListImage : createUserListImage;
+  return imageConstructor(
+    user,
+    hoverTooltip(user.name, { openDelay: 0, closeDelay: 0 })
+  );
 }
 
 function createRemainingUsersIndicator(users: Partial<FullUser>[]) {
-  return createOverlappingUserImage({
+  return createOverlappingUserListImage({
       // TODO - make this behave sensibly with many other users
       //        this is a quick hack for now and only works for single digits.
       name: `+ ${users.length}`,
     },
-    'medium',
     hoverMenu(
       () => users.map(user => remainingUsersMenuItem(
         () => {},
@@ -74,7 +76,10 @@ const cssActiveUserList = styled('div', `
   flex-direction: row-reverse;
 `);
 
-const createOverlappingUserImage = styled(createUserImage, `
+const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
+  createUserImage(user, 'medium', cssUserImage.cls("-border"), ...args);
+
+const createOverlappingUserListImage = styled(createUserListImage, `
   margin-left: -4px;
 `);
 
