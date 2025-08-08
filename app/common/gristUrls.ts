@@ -1,20 +1,26 @@
+import ICommonUrlsTI from 'app/common/ICommonUrls-ti';
 import {AssistantConfig} from 'app/common/Assistant';
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
-import {OpenDocMode} from 'app/common/DocListAPI';
-import {EngineCode} from 'app/common/DocumentSettings';
+import {Document} from 'app/common/UserAPI';
 import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
+import {EngineCode} from 'app/common/DocumentSettings';
+import {Features as PlanFeatures} from 'app/common/Features';
+import {getGristConfig} from 'app/common/urlUtils';
+import {IAttachedCustomWidget} from "app/common/widgetTypes";
+import {ICommonUrls} from 'app/common/ICommonUrls';
 import {LocalPlugin} from 'app/common/plugin';
+import {OpenDocMode} from 'app/common/DocListAPI';
 import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
 import {ThemeAppearance, themeAppearances, ThemeName, themeNames} from 'app/common/ThemePrefs';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Document} from 'app/common/UserAPI';
-import {IAttachedCustomWidget} from "app/common/widgetTypes";
-import {Features as PlanFeatures} from 'app/common/Features';
 import {UIRowId} from 'app/plugin/GristAPI';
-import clone = require('lodash/clone');
-import pickBy = require('lodash/pickBy');
+
+import clone from 'lodash/clone';
+import pickBy from 'lodash/pickBy';
 import slugify from 'slugify';
+import * as t from "ts-interface-checker";
+
+const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -95,7 +101,7 @@ export type FormFraming = 'border' | 'minimal';
  *           the original.
  */
 
-export const commonUrls = {
+export const getCommonUrls = () => withAdminDefinedUrls({
   help: getHelpCenterUrl(),
   helpAccessRules: "https://support.getgrist.com/access-rules",
   helpAssistant: "https://support.getgrist.com/assistant",
@@ -144,7 +150,9 @@ export const commonUrls = {
 
   versionCheck: 'https://api.getgrist.com/api/version',
   attachmentStorage: 'https://support.getgrist.com/document-settings/#external-attachments',
-};
+});
+
+export const commonUrls = getCommonUrls();
 
 
 /**
@@ -944,6 +952,8 @@ export interface GristLoadConfig {
   featureNotifications?: boolean;
 
   formFraming?: FormFraming;
+
+  adminDefinedUrls?: string;
 }
 
 export const Features = StringUnion(
@@ -995,76 +1005,48 @@ export function isClient() {
   return (typeof window !== 'undefined') && window && window.location && window.location.hostname;
 }
 
+function getCustomizableValue(
+  clientSideConfigKey: keyof GristLoadConfig,
+  serverSideEnvVar: keyof NodeJS.ProcessEnv
+) {
+  return isClient() ? (window as any).gristConfig?.[clientSideConfigKey] : process.env[serverSideEnvVar];
+}
+
 /**
  * Returns a known org "subdomain" if Grist is configured in single-org mode
  * (GRIST_SINGLE_ORG=<org> on the server) or if the page includes an org in gristConfig.
  */
 export function getKnownOrg(): string|null {
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return (gristConfig && gristConfig.singleOrg) || null;
-  } else {
-    return process.env.GRIST_SINGLE_ORG || null;
-  }
+  return getCustomizableValue('singleOrg', "GRIST_SINGLE_ORG") || null;
 }
 
 export function getHelpCenterUrl(): string {
   const defaultUrl = "https://support.getgrist.com";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
-  } else {
-    return process.env.GRIST_HELP_CENTER || defaultUrl;
-  }
+  return getCustomizableValue('helpCenterUrl', "GRIST_HELP_CENTER") || defaultUrl;
 }
 
 export function getOnboardingVideoId(): string {
   const defaultId = "56AieR9rpww";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.onboardingTutorialVideoId || defaultId;
-  } else {
-    return process.env.GRIST_ONBOARDING_VIDEO_ID || defaultId;
-  }
+  return getCustomizableValue('onboardingTutorialVideoId', 'GRIST_ONBOARDING_VIDEO_ID') || defaultId;
 }
 
 export function getTermsOfServiceUrl(): string|undefined {
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.termsOfServiceUrl || undefined;
-  } else {
-    return process.env.GRIST_TERMS_OF_SERVICE_URL || undefined;
-  }
+  return getCustomizableValue('termsOfServiceUrl', "GRIST_TERMS_OF_SERVICE_URL") || undefined;
 }
 
 export function getFreeCoachingCallUrl(): string {
   const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.freeCoachingCallUrl || defaultUrl;
-  } else {
-    return process.env.FREE_COACHING_CALL_URL || defaultUrl;
-  }
+  return getCustomizableValue('freeCoachingCallUrl', "FREE_COACHING_CALL_URL") || defaultUrl;
 }
 
 export function getContactSupportUrl(): string {
   const defaultUrl = "https://www.getgrist.com/contact";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.contactSupportUrl || defaultUrl;
-  } else {
-    return process.env.GRIST_CONTACT_SUPPORT_URL || defaultUrl;
-  }
+  return getCustomizableValue('contactSupportUrl', 'GRIST_CONTACT_SUPPORT_URL') || defaultUrl;
 }
 
 export function getWebinarsUrl(): string {
   const defaultUrl = "https://www.getgrist.com/webinars";
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.webinarsUrl || defaultUrl;
-  } else {
-    return process.env.GRIST_WEBINARS_URL || defaultUrl;
-  }
+  return getCustomizableValue('webinarsUrl', "GRIST_WEBINARS_URL") || defaultUrl;
 }
 
 /**
@@ -1074,12 +1056,7 @@ export function getWebinarsUrl(): string {
  * be set, but not gristConfig.singleOrg.
  */
 export function getSingleOrg(): string|null {
-  if (isClient()) {
-    const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return (gristConfig && gristConfig.singleOrg) || null;
-  } else {
-    return process.env.GRIST_SINGLE_ORG || null;
-  }
+  return getCustomizableValue("singleOrg", "GRIST_SINGLE_ORG") || null;
 }
 
 /**
@@ -1317,4 +1294,25 @@ export interface UrlTweaks {
   preDecode?(options: {
     url: URL,
   }): void;
+}
+
+function withAdminDefinedUrls(defaultUrls: ICommonUrls): ICommonUrls {
+  const adminDefinedUrlsStr = getCustomizableValue('adminDefinedUrls', "GRIST_CUSTOM_COMMON_URLS");
+  if (!adminDefinedUrlsStr) {
+    return defaultUrls;
+  }
+
+  let adminDefinedUrls;
+  try {
+    adminDefinedUrls = JSON.parse(adminDefinedUrlsStr);
+  } catch(e) {
+    throw new Error("The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed");
+  }
+
+  const merged = {
+    ...defaultUrls,
+    ...(adminDefinedUrls)
+  };
+  ICommonUrlsChecker.strictCheck(merged);
+  return merged;
 }
