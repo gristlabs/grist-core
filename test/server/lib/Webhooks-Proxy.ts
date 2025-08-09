@@ -166,6 +166,7 @@ describe('Webhooks-Proxy', function () {
       // Create couple of promises that can be used to monitor
       // if the endpoint was called.
       const successCalled = signal();
+      const createdCalled = signal();
       const notFoundCalled = signal();
 
 
@@ -221,6 +222,11 @@ describe('Webhooks-Proxy', function () {
           app.post('/200', ({body}, res) => {
             successCalled.emit(body[0].A);
             res.sendStatus(200);
+            res.end();
+          });
+          app.post('/201', ({body}, res) => {
+            createdCalled.emit(body[0].A);
+            res.sendStatus(201);
             res.end();
           });
           app.post('/404', ({body}, res) => {
@@ -285,11 +291,13 @@ describe('Webhooks-Proxy', function () {
 
         // Subscribe a valid webhook endpoint.
         cleanup.push(await autoSubscribe('200', docId));
+        cleanup.push(await autoSubscribe('201', docId));
         // Subscribe an invalid webhook endpoint.
         cleanup.push(await autoSubscribe('404', docId));
 
         // Prepare signals, we will be waiting for those two to be called.
         successCalled.reset();
+        createdCalled.reset();
         notFoundCalled.reset();
         // Trigger both events.
         await doc.addRows("Table1", {
@@ -299,6 +307,7 @@ describe('Webhooks-Proxy', function () {
 
         // Wait for both of them to be called (this is correct order)
         await successCalled.waitAndReset();
+        await createdCalled.waitAndReset();
         await notFoundCalled.waitAndReset();
 
         // Broken endpoint will be called multiple times here, and any subsequent triggers for working
@@ -307,6 +316,7 @@ describe('Webhooks-Proxy', function () {
 
         // But the working endpoint won't be called more then once.
         successCalled.assertNotCalled();
+        createdCalled.assertNotCalled();
 
         //Cleanup all
         await Promise.all(cleanup.map(fn => fn())).finally(() => cleanup.length = 0);
