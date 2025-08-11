@@ -20,7 +20,7 @@ import {
   ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
-  DataSourceTransformed,
+  DataSourceTransformed, VisibleUserProfile,
   ForkResult,
   FormulaTimingInfo,
   ImportOptions,
@@ -622,6 +622,10 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.disable();
     }
     return docSession;
+  }
+
+  public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
+    return this.docClients.listVisibleUserProfiles(docSession);
   }
 
   /**

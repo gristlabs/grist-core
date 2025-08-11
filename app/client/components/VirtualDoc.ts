@@ -55,6 +55,7 @@ import {
 import * as ko from 'knockout';
 import difference from 'lodash/difference';
 import omit from 'lodash/omit';
+import {UserPresenceModel, UserPresenceModelStub} from 'app/client/models/UserPresenceModel';
 
 /**
  * Minimal implementation of the GristDoc interface that is suitable for virtual tables. The GristDoc created
@@ -79,6 +80,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public docInfo: DocInfoRec = {timezone: Observable.create(null, 'UTC')} as any;
   public docModel: DocModel;
   public viewModel: ViewRec;
+  public userPresenceModel: UserPresenceModel = new UserPresenceModelStub();
   public activeViewId = Observable.create(this, 0);
   public currentPageName: Observable<string>;
   public docPluginManager: DocPluginManager;

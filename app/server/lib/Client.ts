@@ -74,7 +74,10 @@ void(MESSAGE_TYPES_NO_AUTH);
  * @param methods: a mapping from method names to server methods (must return promises)
  */
 export class Client {
+  // Confidential to the backend and client themselves - should not be shared
   public readonly clientId: string;
+  // Can be distributed as a unique identifier for this client
+  public readonly publicClientId: string;
 
   public browserSettings: BrowserSettings = {};
 
@@ -103,6 +106,7 @@ export class Client {
     i18Instance?: i18n,
   ) {
     this.clientId = generateClientId();
+    this.publicClientId = generateClientId();
     this._i18Instance = i18Instance?.cloneInstance({
       lng: this._locale,
     });
