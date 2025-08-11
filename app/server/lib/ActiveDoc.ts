@@ -2421,8 +2421,8 @@ export class ActiveDoc extends EventEmitter {
         if (this._dataEngine && this._fullyLoaded) {
           // Note that this must happen before `this._shuttingDown = true` because of this line in Sharing.ts:
           //     if (this._activeDoc.isShuttingDown && isCalculate) {
-          await safeCallAndWait("removeTransformColumns",
-            () => this.applyUserActions(docSession, [["RemoveTransformColumns"]])
+          await safeCallAndWait("RemoveStaleObjects",
+            () => this.applyUserActions(docSession, [["RemoveStaleObjects"]])
           );
         }
 

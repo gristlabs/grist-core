@@ -204,8 +204,8 @@ export const SYSTEM_ACTIONS = new Set([
   'UpdateCurrentTime',
   // Part of the formula calculation process for formulas that use the `REQUEST` function.
   'RespondToRequests',
-  // Performed at shutdown to clean up temporary helper columns.
-  'RemoveTransformColumns'
+  // Performed at shutdown to clean up temporary helper columns and tables.
+  'RemoveStaleObjects'
 ]);
 
 export function getNumRows(action: DocAction): number {
