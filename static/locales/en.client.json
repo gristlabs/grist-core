@@ -926,7 +926,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Unknown User",
         "View as Yourself": "View as Yourself",
-        "You are viewing this document as": "You are viewing this document as"
+        "You are viewing this document as": "You are viewing this document as",
+        "You're seeing what this user would see if given access": "You're seeing what this user would see if given access"
     },
     "ViewConfigTab": {
         "Advanced settings": "Advanced settings",
@@ -1116,7 +1117,9 @@
     "ACLUsers": {
         "Example Users": "Example Users",
         "Users from table": "Users from table",
-        "View As": "View As"
+        "View As": "View As",
+        "Other users from table": "Other users from table",
+        "Shared users": "Shared users"
     },
     "TypeTransform": {
         "Apply": "Apply",
