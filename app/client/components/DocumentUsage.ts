@@ -9,7 +9,7 @@ import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Features, isFreePlan} from 'app/common/Features';
+import {displayPlanName, Features, isFreePlan} from 'app/common/Features';
 import {capitalizeFirstWord} from 'app/common/gutil';
 import {APPROACHING_LIMIT_RATIO} from 'app/common/Limits';
 import {canUpgradeOrg} from 'app/common/roles';
@@ -93,7 +93,7 @@ export class DocumentUsage extends Disposable {
 
   private readonly _attachmentsSizeMetricOptions: Computed<MetricOptions> =
     Computed.create(this, this._currentFeatures, this._attachmentsSizeBytes, (_use, features, attachmentsSize) => {
-      const maxSize = features?.baseMaxAttachmentsBytesPerDocument;
+      const maxSize: number|undefined = features?.baseMaxAttachmentsBytesPerDocument;
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
@@ -158,6 +158,8 @@ export class DocumentUsage extends Disposable {
       const features = use(this._currentFeatures);
       const usageInfo = use(this._currentDocUsage);
       if (!org || !usageInfo) { return null; }
+      const productName = use(this._currentProduct)?.name || '';
+      const planLabel = displayPlanName[productName] || productName;
 
       return [
         // Pass on external storage recommendation if there is one.
@@ -165,7 +167,7 @@ export class DocumentUsage extends Disposable {
 
         // If usage limits have kicked in, say so.
         usageInfo?.dataLimitInfo?.status ? buildMessage([
-          buildLimitStatusMessage(usageInfo, features, {
+          buildLimitStatusMessage(planLabel, usageInfo, features, {
             disableRawDataLink: true
           }),
           (product && isFreePlan(product.name)
@@ -200,6 +202,7 @@ export class DocumentUsage extends Disposable {
 }
 
 export function buildLimitStatusMessage(
+  planName: string,
   usageInfo: NonNullable<Pick<FilteredDocUsageSummary, 'dataLimitInfo'>>,
   features?: Features|null,
   options: {
@@ -213,7 +216,7 @@ export function buildLimitStatusMessage(
       return [
         'This document is ',
         disableRawDataLink ? 'approaching' : buildRawDataPageLink('approaching'),
-        ' free plan limits.'
+        ` ${planName} plan limits.`
       ];
     }
     case 'gracePeriod': {
@@ -236,7 +239,7 @@ export function buildLimitStatusMessage(
       return [
         'This document ',
         disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-        ' free plan limits and is now read-only, but you can delete rows.'
+        ` ${planName} plan limits and is now read-only, but you can delete rows.`
       ];
     }
   }

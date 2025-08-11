@@ -252,7 +252,9 @@ export const displayPlanName: { [key: string]: string } = {
   [SUSPENDED_PLAN]: 'Suspended',
   [ANONYMOUS_PLAN]: 'Anonymous',
   [FREE_PLAN]: 'Free',
-  [TEAM_PLAN]: 'Pro'
+  [TEAM_PLAN]: 'Pro',
+  'teamPro': 'Pro', // Plans available at getgrist.com
+  'business': 'Business', // Business plan, available at getgrist.com
 } as const;
 
 // Returns true if `planName` is for a legacy product.

@@ -1152,11 +1152,14 @@ export async function hideBanners() {
     document.head.appendChild(style);`);
 }
 
-export async function assertBannerText(text: string | null) {
+export async function assertBannerText(text: string | null | RegExp) {
   if (text === null) {
     assert.isFalse(await driver.find('.test-banner-element').isPresent());
   } else {
-    assert.equal(await driver.findWait('.test-doc-usage-banner-text', 2000).getText(), text);
+    assert.match(
+      await driver.findWait('.test-doc-usage-banner-text', 2000).getText(),
+      typeof text === 'string' ? exactMatch(text) : text
+    );
   }
 }
 
@@ -1968,7 +1971,7 @@ export async function editOrgAcls(): Promise<void> {
 
 export async function addUser(email: string|string[], role?: 'Owner'|'Viewer'|'Editor'): Promise<void> {
   await driver.findWait('.test-user-icon', 5000).click();
-  await driver.find('.test-dm-org-access').click();
+  await driver.findWait('.test-dm-org-access', 200).click();
   await driver.findWait('.test-um-members', 500);
   const orgInput = await driver.find('.test-um-member-new input');
 
