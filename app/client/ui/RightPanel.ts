@@ -38,6 +38,7 @@ import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/P
 import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
 import {cssConfigContainer, cssLabel, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {buildConfigContainer, getFieldType} from 'app/client/ui/RightPanelUtils';
+import {rowHeightConfigTable} from 'app/client/ui/RowHeightConfig';
 import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widgetTypesMap";
@@ -507,6 +508,7 @@ export class RightPanel extends Disposable {
         return [
           cssSeparator(),
           cssLabel(t("ROW STYLE")),
+          dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
             dom.create(ViewPane.ConditionalStyle, t("Row Style"), activeSection, this._gristDoc)
           ))

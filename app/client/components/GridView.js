@@ -54,6 +54,7 @@ const {parsePasteForView} = require("./BaseView2");
 const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn, columnHeaderWithInfo} = require('app/client/ui/ColumnTitle');
+const {applyRowHeightLimit} = require('app/client/ui/RowHeightConfig');
 const {makeT} = require('app/client/lib/localization');
 const {isList} = require('app/common/gristTypes');
 const identity = require('lodash/identity');
@@ -1234,6 +1235,8 @@ GridView.prototype.buildDom = function() {
       kd.style('top', function() { return (self.dragY() - self.rowShadowAdjust) + 'px'; })
     ),
 
+    applyRowHeightLimit(v),
+
     self.scrollPane =
     dom('div.grid_view_data.gridview_data_scroll.show_scrollbar',
       kd.scrollChildIntoView(self.visibleRowIndex),
@@ -1509,6 +1512,7 @@ GridView.prototype.buildDom = function() {
         kd.toggleClass('record-zebra', vZebraStripes),
         // even by 1-indexed rownum, so +1 (makes more sense for user-facing display stuff)
         kd.toggleClass('record-even', () => (row._index()+1) % 2 === 0 ),
+
         dom.on("mouseleave", (ev) => {
           // Leave only when leaving record row.
           if (!ev.relatedTarget || !ev.relatedTarget.classList.contains("record")){

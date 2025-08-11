@@ -213,31 +213,31 @@ declare module "app/client/models/modelUtil" {
     obs: ko.Observable<T>|ko.Computed<T>,
     saveFunc: (value: T) => Promise<void>): KoSaveableObservable<T>;
 
-  interface ObjObservable<T> extends ko.Observable<T> {
+  interface ObjObservable<T extends object> extends ko.Observable<T> {
     update(obj: T): void;
-    prop(propName: string): ko.Observable<any>;
+    prop<Key extends keyof T>(propName: Key): KoSaveableObservable<T[Key]>;
   }
 
-  interface SaveableObjObservable<T> extends ko.Observable<T>, SaveInterface<T> {
+  interface SaveableObjObservable<T extends object> extends ko.Observable<T>, SaveInterface<T> {
     update(obj: T): void;
-    prop(propName: string): KoSaveableObservable<any>;
+    prop<Key extends keyof T>(propName: Key): KoSaveableObservable<T[Key]>;
   }
 
   function objObservable<T>(obs: ko.KoSaveableObservable<T>): SaveableObjObservable<T>;
   function objObservable<T>(obs: ko.Observable<T>): ObjObservable<T>;
-  function jsonObservable(obs: KoSaveableObservable<string>,
+  function jsonObservable(obs: KoSaveableObservable<string|undefined>,
                           modifierFunc?: any, optContext?: any): SaveableObjObservable<any>;
   function jsonObservable(obs: ko.Observable<string>|ko.Computed<string>,
                           modifierFunc?: any, optContext?: any): ObjObservable<any>;
 
-  function fieldWithDefault<T>(fieldObs: KoSaveableObservable<T>, defaultOrFunc: T | (() => T)):
+  function fieldWithDefault<T>(fieldObs: KoSaveableObservable<T|undefined>, defaultOrFunc: T | (() => T)):
     KoSaveableObservable<T>;
 
   function customValue<T>(obs: KoSaveableObservable<T>): CustomComputed<T>;
 
   function savingComputed<T>(options: {
     read: () => T,
-    write: (setter: (obs: ko.Observable<T>, val: T) => void, val: T) => void;
+    write: (setter: (obs: ko.Observable<T|undefined>, val: T) => void, val: T) => void;
   }): KoSaveableObservable<T>;
 
   function customComputed<T>(options: {

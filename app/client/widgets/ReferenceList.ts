@@ -122,6 +122,8 @@ export class ReferenceList extends Reference {
 const cssRefIcon = styled(icon, `
   --icon-color: ${theme.lightText};
   flex-shrink: 0;
+  position: absolute;
+  left: 4px;
 
   &-view-as-card {
     cursor: pointer;
@@ -132,8 +134,8 @@ const cssRefIcon = styled(icon, `
 `);
 
 const cssRefIconAndLabel = styled('div', `
-  display: flex;
-  align-items: center;
+  position: relative;
+  padding-left: 20px;
 `);
 
 const cssLabel = styled('div', `
