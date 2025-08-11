@@ -16,7 +16,7 @@ export class DocRequests {
   // and only as long as needed to finish calculating all formulas.
   // When _numPending reaches 0 again, _cacheDir is deleted.
   private _numPending: number = 0;
-  private _cacheDir: tmp.SynchrounousResult | null = null;
+  private _cacheDir: tmp.DirResult | null = null;
 
   constructor(private readonly _activeDoc: ActiveDoc) {}
 
