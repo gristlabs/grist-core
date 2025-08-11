@@ -4140,6 +4140,37 @@ export async function selectTab(name: string|RegExp) {
   await driver.findContentWait('.test-component-tabs-tab', name, 100).click();
 }
 
+/**
+ * Resize browser window more reliably by setting the viewport size.
+ */
+export async function setViewportDimensions(targetWidth: number, targetHeight: number) {
+  // Step 1: Set fixed size of the window to ensure consistent outer dimensions, and prevent maximized
+  // state which gives different outer dimensions.
+  await driver.manage().window().setRect({ width: 1000, height: 800 });
+
+  // Step 2: Get outer vs inner difference
+  const sizeDiff: {widthDiff: number, heightDiff: number} = await driver.executeScript(() => {
+    return {
+      widthDiff: window.outerWidth - window.innerWidth,
+      heightDiff: window.outerHeight - window.innerHeight,
+    };
+  });
+
+  const width = targetWidth + sizeDiff.widthDiff;
+  const height = targetHeight + sizeDiff.heightDiff;
+
+  // Step 3: Set outer window size to match desired viewport
+  await driver.manage().window().setRect({ width, height });
+}
+
+export async function getViewportDimensions(): Promise<WindowDimensions> {
+  return await driver.executeScript(() => {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  });
+}
 
 } // end of namespace gristUtils
 

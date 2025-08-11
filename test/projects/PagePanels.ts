@@ -133,12 +133,12 @@ describe('PagePanels', function() {
     let oldDimensions: gu.WindowDimensions;
 
     before(async () => {
-      oldDimensions = await gu.getWindowDimensions();
+      oldDimensions = await gu.getViewportDimensions();
     });
 
     after(async () => {
       const {width, height} = oldDimensions;
-      await gu.setWindowDimensions(width, height);
+      await gu.setViewportDimensions(width, height);
     });
 
     it('should show bottom bar if narrow screen', async function() {
@@ -148,7 +148,7 @@ describe('PagePanels', function() {
       assert.equal(await driver.find('.test-pp-bottom-footer').isPresent(), false);
 
       // shrink window <768px and check the bottom bar is displayed
-      await gu.setWindowDimensions(760, oldDimensions.height);
+      await gu.setViewportDimensions(760, oldDimensions.height);
       assert.equal(await driver.find('.test-pp-bottom-footer').isDisplayed(), true);
 
       // check that only openers for narrow screen (-ns) shows.
@@ -158,7 +158,7 @@ describe('PagePanels', function() {
       assert.equal(await driver.find('.test-pp-right-opener-ns').isDisplayed(), true);
 
       // enlarge window >768px and check the bottom bar is not displayed
-      await gu.setWindowDimensions(770, oldDimensions.height);
+      await gu.setViewportDimensions(770, oldDimensions.height);
       assert.equal(await driver.find('.test-pp-bottom-footer').isPresent(), false);
 
       // check that only regular openers shows.
@@ -168,7 +168,7 @@ describe('PagePanels', function() {
       assert.equal(await driver.find('.test-pp-right-opener-ns').isPresent(), false);
 
       // shrink window again
-      await gu.setWindowDimensions(760, oldDimensions.height);
+      await gu.setViewportDimensions(760, oldDimensions.height);
     });
 
     it('should allow collapsing left panel', async function() {
@@ -201,13 +201,13 @@ describe('PagePanels', function() {
       assert.equal(await driver.find('.test-pp-overlay').isDisplayed(), true);
 
       // resize window
-      await gu.setWindowDimensions(770, oldDimensions.height);
+      await gu.setViewportDimensions(770, oldDimensions.height);
 
       // Check that the overlay is not present
       assert.equal(await driver.find('.test-pp-overlay').isDisplayed(), false);
 
       // shrink window again
-      await gu.setWindowDimensions(760, oldDimensions.height);
+      await gu.setViewportDimensions(760, oldDimensions.height);
 
       // Panel should get closed, and overlay should be absent.
       assert.equal(await isSidePanelOpen('left'), false);
@@ -293,11 +293,11 @@ describe('PagePanels', function() {
       assert.equal(await driver.find('.test-pp-overlay').isDisplayed(), true);
 
       // resize window and check that the overlay disappears
-      await gu.setWindowDimensions(770, oldDimensions.height);
+      await gu.setViewportDimensions(770, oldDimensions.height);
       assert.equal(await driver.find('.test-pp-overlay').isDisplayed(), false);
 
       // shrink window again
-      await gu.setWindowDimensions(760, oldDimensions.height);
+      await gu.setViewportDimensions(760, oldDimensions.height);
 
       // Check that left and right are closed
       assert.equal(await isSidePanelOpen('left'), false);
@@ -320,7 +320,7 @@ describe('PagePanels', function() {
       assert.equal(await driver.find('.test-pp-right-resizer').isDisplayed(), false);
 
       // revert to old size
-      await gu.setWindowDimensions(oldDimensions.width, oldDimensions.height);
+      await gu.setViewportDimensions(oldDimensions.width, oldDimensions.height);
 
       // Ensure right panel is open (it depends on its state when the window was large previously).
       if (!await isSidePanelOpen('right')) {
@@ -336,7 +336,7 @@ describe('PagePanels', function() {
 
     it('should closes side bars when tapping content area', async function() {
       // shrink window again
-      await gu.setWindowDimensions(760, oldDimensions.height);
+      await gu.setViewportDimensions(760, oldDimensions.height);
 
       await driver.find('.test-pp-right-opener-ns').click();
       await driver.sleep(500);
@@ -390,6 +390,7 @@ describe('PagePanels', function() {
     it('should trigger properly from the add new menu', async () => {
       // open picker from the add new menu
       await driver.find('.test-pp-addNew').doClick();
+      await gu.findOpenMenu();
       await driver.find('.test-pp-addNewPage').doClick();
 
       // check that the menu closed and the picker is visible
@@ -420,6 +421,7 @@ describe('PagePanels', function() {
     it('should allow save on Enter, cancel on escape', async () => {
       // open Add new menu then set focus on 'Page' and press Enter
       await driver.find('.test-pp-addNew').doClick();
+      await gu.findOpenMenu();
       await driver.executeScript(`document.querySelector('.test-pp-addNewPage').focus();`);
       await driver.sendKeys(Key.ENTER);
 
@@ -434,6 +436,7 @@ describe('PagePanels', function() {
 
       // re-open the picker, select 'New Table' press enter
       await driver.find('.test-pp-addNew').doClick();
+      await gu.findOpenMenu();
       await driver.find('.test-pp-addNewPage').doClick();
       await waitAssertPickerShown();
       await driver.findContent('.test-wselect-table', /New Table/).doClick();
