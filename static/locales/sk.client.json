@@ -165,7 +165,29 @@
         "Kaplan-Meier Plot": "Kaplan-Meier Diagram",
         "Split series": "Rozdeliť sériu",
         "Invert Y-axis": "Invertovať osu Y",
-        "Orientation": "Orientácia"
+        "Orientation": "Orientácia",
+        "Vertical": "Vertikálne",
+        "Horizontal": "Horizontálne",
+        "Hole Size": "Veľkosť otvoru",
+        "Show Total": "Zobraziť Celok",
+        "Text Size": "Veľkosť Textu",
+        "Connect gaps": "Pripojiť medzery",
+        "Show markers": "Zobraziť značky",
+        "Stack series": "Séria Zásobníkov",
+        "Error bars": "Chybové úsečky",
+        "None": "Žiadne",
+        "Symmetric": "Symetrické",
+        "Above+Below": "Hore+Dole",
+        "Split Series": "Rozdeliť Série",
+        "X-AXIS": "OS-X",
+        "Aggregate values": "Súhrnné hodnoty",
+        "SERIES": "SÉRIE",
+        "Add Series": "Pridať Sériu",
+        "non-numeric columns are not shown": "nečíselné stĺpce sa nezobrazujú",
+        "non-numeric column is not shown": "nečíselný stĺpec sa nezobrazuje",
+        "selected new x-axis": "vybraná nová os-x",
+        "Remove": "Odstrániť",
+        "Log scale Y-axis": "Logaritmická stupnica osi Y"
     },
     "ColumnFilterMenu": {
         "All Shown": "Všetko zobrazené",
@@ -305,7 +327,8 @@
         "Document owners can attempt to recover the document. [{{error}}]": "Vlastníci dokumentu sa môžu pokúsiť dokument obnoviť. {{chyba}}",
         "Sorry, access to this document has been denied. [{{error}}]": "Ľutujeme, prístup k tomuto dokumentu bol odmietnutý. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Môžete skúsiť znova načítať dokument alebo použiť režim obnovenia. Režim obnovenia otvorí dokument tak, aby bol plne prístupný pre vlastníkov a neprístupný pre ostatných. Zakáže tiež vzorce. [{{error}}]",
-        "You do not have edit access to this document": "Nemáte prístup k úpravám tohto dokumentu"
+        "You do not have edit access to this document": "Nemáte prístup k úpravám tohto dokumentu",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Dokument znova načítajte a ak chyba pretrváva, obráťte sa na vlastníkov dokumentu a pokúste sa o obnovenie dokumentu. [{{chyba}}]"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Nie je možné vytvoriť prehliadku dokumentu z údajov v tomto dokumente. Uistite sa, že existuje tabuľka s názvom GristDocTour so stĺpcami Title, Body, Placement a Location.",
@@ -398,7 +421,10 @@
         "Upload": "Nahrať",
         "Upload missing attachments": "Nahrať chýbajúce prílohy",
         "Uploading...": "Nahrávanie...",
-        "**Some existing attachments are still [external]({{externalLink}})**.": "**Niektoré existujúce prílohy sú stále [external]({{externalLink}})**."
+        "**Some existing attachments are still [external]({{externalLink}})**.": "**Niektoré existujúce prílohy sú stále [external]({{externalLink}})**.",
+        "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Niektoré existujúce prílohy sú stále [internal]({{internalLink}})** (uložené v súbore SQLite).",
+        "Default": "Predvolené",
+        "Document type": "Typ dokumentu"
     },
     "DocumentUsage": {
         "Attachments Size": "Veľkosť Príloh",
@@ -634,13 +660,15 @@
         "Download full document and history": "Stiahnuť si celý dokument a históriu",
         "Format:": "Formát:",
         "Learn more": "Zistiť viac",
-        "download attachments": "stiahnuť prílohy"
+        "download attachments": "stiahnuť prílohy",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Prílohy sú externé a nie sú súčasťou tohto sťahovania. Ak dokument nahráte do samostatnej inštalácie Grist, budete musieť tiež samostatne stiahnuť {{downloadLink}}. "
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Pridaná nová prepojená sekcia na zobrazenie {{viewName}}",
         "Import from file": "Importovať zo súboru",
         "Saved linked section {{title}} in view {{name}}": "Uložená prepojená sekcia {{title}} v zobrazení {{name}}",
-        "go to webhook settings": "prejsť na nastavenia webhooku"
+        "go to webhook settings": "prejsť na nastavenia webhooku",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Nové zmeny sú dočasne pozastavené. Front webhookov je preplnený. Skontrolujte nastavenia webhookov, odstráňte neplatné webhooky a vyčistite front."
     },
     "HomeLeftPane": {
         "Access Details": "Podrobnosti Prístupu",
@@ -694,7 +722,9 @@
         "The following tables will no longer be visible_one": "Nasledujúca tabuľka už nebude zobraziteľná",
         "The following tables will no longer be visible_other": "Nasledujúce tabuľky už nebudú zobraziteľné",
         "Delete": "Odstrániť",
-        "Delete data and this page.": "Odstrániť údaje a túto stránku."
+        "Delete data and this page.": "Odstrániť údaje a túto stránku.",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Uložiť údaje a odstrániť stránku. Tabuľka zostane k dispozícii v {{rawDataLink}}",
+        "raw data page": "stránka surových údajov"
     },
     "PermissionsWidget": {
         "Deny All": "Odmietnuť Všetko",
@@ -886,7 +916,8 @@
         "Show raw data": "Zobraziť nespracované údaje",
         "Collapse widget": "Zbaliť miniaplikáciu",
         "Create a form": "Vytvoriť formulár",
-        "Add to page": "Pridať na stránku"
+        "Add to page": "Pridať na stránku",
+        "Duplicate widget": "Duplikovať miniaplikáciu"
     },
     "ViewSectionMenu": {
         "SORT": "TRIEDIŤ",
@@ -1173,7 +1204,9 @@
         "Manage users and resources in a Grist installation.": "Spravujte používateľov a zdroje v inštalácii Gristu.",
         "[Learn more.]({{link}})": "[Zistiť viac.]({{link}})",
         "Summary tables can only contain formula columns.": "Súhrnné tabuľky môžu obsahovať len stĺpce vzorcov.",
-        "The new Grist Assistant is here!": "Nový Grist Asistent je tu!"
+        "The new Grist Assistant is here!": "Nový Grist Asistent je tu!",
+        "Formulas support many Excel functions and full Python syntax.": "Vzorce podporujú mnoho funkcií Excel-u a úplnú syntax jazyka Python.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Vytvorí nový stĺpec Referenčný zoznam v cieľovej tabuľke, pričom tento stĺpec aj cieľové stĺpce sú upraviteľné a synchronizované."
     },
     "ColumnTitle": {
         "Add description": "Pridať popis",
@@ -1584,7 +1617,12 @@
         "Duplicate Page": "Duplikovať stránku",
         "Remove": "Odobrať",
         "Rename": "Premenovať",
-        "You do not have edit access to this document": "Nemáte prístup k úpravám tohto dokumentu"
+        "You do not have edit access to this document": "Nemáte prístup k úpravám tohto dokumentu",
+        "(default)": "(predvolené)",
+        "Collapse {{maybeDefault}}": "Zložiť {{maybeDefault}}",
+        "Expand {{maybeDefault}}": "Rozbaliť {{maybeDefault}}",
+        "Set default: Collapse": "Predvolené: Zložiť",
+        "Set default: Expand": "Predvolené: Rozbaliť"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Skopírované do schránky"

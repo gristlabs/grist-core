@@ -961,7 +961,8 @@
         "Widget options": "Параметры виджета",
         "Add to page": "Добавить на страницу",
         "Collapse widget": "Свернуть виджет",
-        "Create a form": "Создать форму"
+        "Create a form": "Создать форму",
+        "Duplicate widget": "Дублировать виджет"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Должно быть невозможно сохранить значение простых данных в столбце формулы",
@@ -1407,7 +1408,8 @@
         "You have used all available credits.": "Вы использовали все доступные кредиты.",
         "upgrade your plan": "обновите свой тавиф",
         "You have {{numCredits}} remaining credits.": "У вас осталось {{numCredits}} кредитов.",
-        "For higher limits, {{upgradeNudge}}.": "Для увеличения лимитов, {{upgradeNudge}}."
+        "For higher limits, {{upgradeNudge}}.": "Для увеличения лимитов, {{upgradeNudge}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Общайтесь со мной как с человеком. Не нужно указывать названия таблиц и столбцов. Например, вы можете попросить \"Пожалуйста, подсчитайте общую сумму счета.\""
     },
     "GridView": {
         "Click to insert": "Нажмите для вставки"
@@ -1491,7 +1493,11 @@
         "Sponsor Grist Labs on GitHub": "Спонсор Grist Labs на GitHub",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "В этом экземпляре включена телеметрия. Только администратор сайта может изменить это.",
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Мы собираем только статистику использования, как описано в {{link}} и никогда не собираем содержимое документов.",
-        "Sponsor": "Спонсор"
+        "Sponsor": "Спонсор",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Программное обеспечение Grist разработано компанией Grist Labs, которая предлагает бесплатные и платные хостинговые планы. Мы также предоставляем код Grist под стандартной бесплатной лицензией open OSS (Apache 2.0) на {{link}}.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Поддержите Grist, выбрав телеметрию, которая помогает нам понять, как используется продукт, и определить приоритеты будущих улучшений.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "Мы - небольшая и целеустремленная команда. Ваша поддержка очень важна для нас. Это также показывает другим, что за этим продуктом стоит сплоченное сообщество.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "Вы можете поддержать разработку Grist с открытым исходным кодом, спонсируя нас на нашем сайте. {{link}}."
     },
     "buildViewSectionDom": {
         "No data": "Нет данных",
@@ -1569,14 +1575,19 @@
         "Reset": "Сброс",
         "Reset form": "Сброс формы",
         "# **Form Title**": "# **Заголовок формы**",
-        "Your form description goes here.": "Описание формы."
+        "Your form description goes here.": "Описание формы.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "После публикации вашей формы будет создана ссылка для обмена. Любой, у кого есть ссылка, может просмотреть пустую форму и отправить ответ.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Отмена публикации формы приведет к отключению ссылки \"Поделиться\", и пользователи, имеющие доступ к вашей форме по этой ссылке, увидят сообщение об ошибке.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ваша форма опубликована. Все изменения доступны пользователям, имеющим доступ к форме. Если вы хотите внести комплексные изменения, отмените публикацию формы."
     },
     "WelcomeCoachingCall": {
         "free coaching call": "бесплатный коуч-звонок",
         "Maybe Later": "Возможно позже",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Во время звонка мы уделяем время тому, чтобы понять ваши потребности и адаптировать звонок под ваши нужды. Мы можем показать вам основы Grist или сразу начать работать с вашими данными, чтобы создать нужные вам информационные панели.",
         "Schedule Call": "Запланировать звонок",
-        "Schedule your {{freeCoachingCall}} with a member of our team.": "Запланируйте свой {{freeCoachingCall}} с членом нашей команды."
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Запланируйте свой {{freeCoachingCall}} с членом нашей команды.",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Вы также можете проверить {{ourWeeklyWebinars}} чтобы узнать больше о Grist.",
+        "our weekly webinars": "наши еженедельные вебинары"
     },
     "Editor": {
         "Delete": "Удалить"
@@ -1706,7 +1717,11 @@
         "New, Enterprise": "Новый, Корпоративный",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} больше",
         "On": "На",
-        "Grist Instance": "Экземпляр Grist"
+        "Grist Instance": "Экземпляр Grist",
+        "Auto-check weekly": "Еженедельная автоматическая проверка",
+        "No record of last version check": "Нет записей о последней проверке версии",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Вы можете настроить потоковую передачу событий аудита из Grist во внешнюю систему управления информацией о безопасности и событиями (SIEM), если вы включили Grist Enterprise. {{contactUsLink}} чтобы узнать больше.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Автоматические проверки отключены. Чтобы включить их, установите environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING значение \"true\"."
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1781,7 +1796,8 @@
         "Reset": "Сброс",
         "Search": "Поиск",
         "Select...": "Выбрать...",
-        "Submit": "Отправить"
+        "Submit": "Отправить",
+        "Submitting…": "Отправка…"
     },
     "DocTutorial": {
         "Click to expand": "Нажмите, чтобы развернуть",
@@ -1814,7 +1830,8 @@
         "Go to the tutorial!": "Перейти к обучению!",
         "Next step": "Следующий шаг",
         "Skip step": "Пропустить шаг",
-        "Skip tutorial": "Пропустить обучение"
+        "Skip tutorial": "Пропустить обучение",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist может выглядеть как электронная таблица, но это не всегда так. Узнайте, чем отличается Grist от других приложений."
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ключ активации используется для запуска Grist Enterprise после окончания\n30 дневного пробного периода. Получите ключ активации по [подписавшись на Grist\nEnterprise]({{signupLink}}). Для запуска Grist Core вам не нужен ключ активации.\n\nУзнайте больше в нашем [Центр помощи]({{helpCenter}}).",
@@ -1898,7 +1915,8 @@
         "Close": "Закрыть",
         "Opt in to Telemetry": "Включите телеметрию",
         "Opted In": "Включено",
-        "Support Grist": "Поддержать Grist"
+        "Support Grist": "Поддержать Grist",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Подключитесь к телеметрии, чтобы помочь нам понять, как используется продукт, и определить приоритеты будущих улучшений."
     },
     "AdminPanelName": {
         "Admin Panel": "Панель администратора"
@@ -2045,5 +2063,23 @@
         "Type DELETE here if you wish to proceed.": "Введите DELETE здесь если вы хотите продолжить.",
         "Are you sure you want to delete the following?": "Вы уверены, что хотите удалить следующее?",
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Введите DELETE если вы уверены, что действительно хотите сделать это удаление.\nЕсли вы не уверены или не понимаете, что будет делать эта операция,\nбыло бы разумно отменить это."
+    },
+    "MentionTextBox": {
+        "no access": "нет доступа"
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Пожалуйста, дождитесь завершения предыдущей операции.",
+        "Timed out on waiting for the Grist backend to restart": "Истек срок ожидания перезапуска серверной части Grist"
+    },
+    "Experiments": {
+        "Don't worry, you can disable it later if needed.": "Не волнуйтесь, вы можете отключить его позже, если понадобится.",
+        "Reload the page": "Перезагрузите страницу"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Загрузка, пожалуйста, подождите…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Добавить",
+        "Uploading…": "Загрузка…"
     }
 }

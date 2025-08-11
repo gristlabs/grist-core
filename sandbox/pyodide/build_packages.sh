@@ -29,4 +29,4 @@ echo "###############################################################"
 echo "## Copy out python packages"
 
 rm -rf _build/packages/
-node ./packages.js _build/pyodide/grist-packages/ _build/packages/
+node ./preparePackages.js _build/pyodide/grist-packages/ _build/packages/
