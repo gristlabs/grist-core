@@ -1016,7 +1016,7 @@ function getCustomizableValue(
  * Returns a known org "subdomain" if Grist is configured in single-org mode
  * (GRIST_SINGLE_ORG=<org> on the server) or if the page includes an org in gristConfig.
  */
-export function getKnownOrg(): string|null {
+export function getSingleOrg(): string|null {
   return getCustomizableValue('singleOrg', 'GRIST_SINGLE_ORG') || null;
 }
 
@@ -1050,16 +1050,6 @@ export function getWebinarsUrl(): string {
 }
 
 /**
- * Like getKnownOrg, but respects singleOrg/GRIST_SINGLE_ORG strictly.
- * The main difference in behavior would be for orgs with custom domains
- * served from a shared pool of servers, for which gristConfig.org would
- * be set, but not gristConfig.singleOrg.
- */
-export function getSingleOrg(): string|null {
-  return getCustomizableValue('singleOrg', 'GRIST_SINGLE_ORG') || null;
-}
-
-/**
  * Returns true if org must be encoded in path, not in domain.  Determined from
  * gristConfig on the client.  On the server, returns true if the host is
  * supplied and is 'localhost', or if GRIST_ORG_IN_PATH is set to 'true'.
@@ -1077,7 +1067,7 @@ export function isOrgInPathOnly(host?: string): boolean {
 // Extract an organization name from the host.  Returns null if an organization name
 // could not be recovered.  Organization name may be overridden by server configuration.
 export function getOrgFromHost(reqHost: string): string|null {
-  const singleOrg = getKnownOrg();
+  const singleOrg = getSingleOrg();
   if (singleOrg) { return singleOrg; }
   if (isOrgInPathOnly()) { return null; }
   return parseSubdomain(reqHost).org || null;
@@ -1093,7 +1083,7 @@ export function getOrgFromHost(reqHost: string): string|null {
  * subdomain will be null, and mismatch will be true.
  */
 export function extractOrgParts(reqHost: string|undefined, reqPath: string): OrgParts {
-  let orgFromHost: string|null = getKnownOrg();
+  let orgFromHost: string|null = getSingleOrg();
 
   if (!orgFromHost && reqHost) {
     orgFromHost = getOrgFromHost(reqHost);
