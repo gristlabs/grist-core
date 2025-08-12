@@ -286,6 +286,7 @@ export const cssUserIcon = styled(unstyledButton, `
   width: 48px;
   padding: 8px;
   cursor: pointer;
+  outline-offset: -3px;
 `);
 
 const cssUserInfo = styled('div', `
