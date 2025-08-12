@@ -2,4 +2,7 @@ import {createPage} from 'app/client/ui/createPage';
 import {FormPage} from 'app/client/ui/FormPage';
 import {dom} from 'grainjs';
 
-createPage(() => dom.create(FormPage), {disableTheme: true});
+createPage(() => {
+  document.documentElement.setAttribute('data-grist-form', '');
+  return dom.create(FormPage);
+}, {disableTheme: true});
