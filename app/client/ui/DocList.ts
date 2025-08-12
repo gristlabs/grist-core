@@ -557,7 +557,7 @@ const cssDocDetailsCompact = styled("div", `
 const cssDocIconAndName = styled(cssNameColumn, `
   display: flex;
   align-items: center;
-  column-gap: 16px;
+  column-gap: 11px;
   overflow: hidden;
 
   @media ${mediaMedium} {
@@ -573,7 +573,7 @@ const cssDocNameAndBadges = styled("div", `
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin-right: 40px;
+  margin-right: 35px;
   overflow: hidden;
 
   @media ${mediaMedium} {
@@ -594,6 +594,7 @@ const noAccessStyles = `
 const cssDocName = styled(stretchedLink, `
   font-size: 14px;
   flex: 0 1 auto;
+  padding: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -608,10 +609,17 @@ const cssDocName = styled(stretchedLink, `
 
   &:focus-visible {
     outline-offset: -3px;
-    padding: 5px;
   }
 
   ${noAccessStyles}
+
+  .${cssDocDetailsCompact.className} & {
+    padding: 0;
+  }
+
+  .${cssDocDetailsCompact.className} &:focus-visible {
+    outline-offset: 3px;
+  }
 
   @media ${mediaMedium} {
     & {
