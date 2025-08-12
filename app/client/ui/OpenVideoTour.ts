@@ -1,7 +1,7 @@
 import {makeT} from 'app/client/lib/localization';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getMainOrgUrl} from 'app/client/models/gristUrlState';
-import {cssLinkText, cssPageEntryMain, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
+import {cssLinkText, cssPageButton, cssPageEntry, cssPageIcon} from 'app/client/ui/LeftPanelCommon';
 import {YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -83,8 +83,8 @@ export function createVideoTourToolsButton(): HTMLDivElement | null {
 
   let iconElement: HTMLElement;
 
-  return cssPageEntryMain(
-    cssPageLink(
+  return cssPageEntry(
+    cssPageButton(
       iconElement = cssPageIcon('Video'),
       cssLinkText(t("Video Tour")),
       dom.cls('tour-help-center'),

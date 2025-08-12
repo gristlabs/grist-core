@@ -662,7 +662,7 @@ const isSpecialPage = (doc: GristDoc | null) => {
   return false;
 };
 
-const cssFocusedPanel = styled('div', `
+export const cssFocusedPanel = styled('div', `
   &-focused:focus {
     outline: 3px solid ${components.kbFocusHighlight} !important;
     outline-offset: -3px !important;

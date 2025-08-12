@@ -120,7 +120,8 @@
         "Team Site": "Team Site",
         "Grist Templates": "Grist Templates",
         "Billing Account": "Billing Account",
-        "Manage Team": "Manage Team"
+        "Manage Team": "Manage Team",
+        "{{ organizationName }} - Back to home": "{{ organizationName }} - Back to home"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
@@ -628,7 +629,8 @@
         "Workspaces": "Workspaces",
         "Tutorial": "Tutorial",
         "Terms of service": "Terms of service",
-        "Grist Resources": "Grist Resources"
+        "Grist Resources": "Grist Resources",
+        "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -727,7 +729,8 @@
         "The following tables will no longer be visible_one": "The following table will no longer be visible",
         "The following tables will no longer be visible_other": "The following tables will no longer be visible",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Keep data and delete page. Table will remain available in {{rawDataLink}}",
-        "raw data page": "raw data page"
+        "raw data page": "raw data page",
+        "Document pages": "Document pages"
     },
     "PermissionsWidget": {
         "Allow All": "Allow All",
@@ -1349,7 +1352,9 @@
         "Creator panel (right panel)": "Creator panel (right panel)",
         "Document header": "Document header",
         "Main content": "Main content",
-        "Main navigation and document settings (left panel)": "Main navigation and document settings (left panel)"
+        "Main navigation and document settings (left panel)": "Main navigation and document settings (left panel)",
+        "Close navigation panel (left panel)": "Close navigation panel (left panel)",
+        "Open navigation panel (left panel)": "Open navigation panel (left panel)"
     },
     "ColumnTitle": {
         "Add description": "Add description",
@@ -1936,11 +1941,11 @@
     "HomeIntroCards": {
         "3 minute video tour": "3 minute video tour",
         "Blank document": "Blank document",
-        "Find solutions and explore more resources {{helpCenterLink}}": "Find solutions and explore more resources {{helpCenterLink}}",
+        "Find solutions and explore more resources": "Find solutions and explore more resources",
         "Finish our basics tutorial": "Finish our basics tutorial",
         "Help center": "Help center",
         "Import file": "Import file",
-        "Learn more {{webinarsLinks}}": "Learn more {{webinarsLinks}}",
+        "Learn more": "Learn more",
         "Start a new document": "Start a new document",
         "Templates": "Templates",
         "Tutorial": "Tutorial",
@@ -2034,7 +2039,9 @@
         "Sort by date": "Sort by date",
         "Sort by name": "Sort by name",
         "Unpin": "Unpin",
-        "Workspace": "Workspace"
+        "Workspace": "Workspace",
+        "context menu - {{- documentName }}": "context menu - {{- documentName }}",
+        "Documents list": "Documents list"
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
