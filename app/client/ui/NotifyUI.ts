@@ -10,7 +10,7 @@ import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IconName} from "app/client/ui2018/IconList";
 import {menuCssClass} from 'app/client/ui2018/menus';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
 import {cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 
@@ -28,7 +28,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
           appModel.showUpgradeModal()));
       } else {
         return dom('a', cssToastAction.cls(''), t("Upgrade Plan"), {target: '_blank'},
-          {href: commonUrls.plans});
+          {href: window.gristConfig.commonUrls.plans});
       }
     case 'manage':
       if (urlState().state.get().billing === 'billing') { return null; }

@@ -3,7 +3,6 @@ import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
-import {commonUrls} from 'app/common/gristUrls';
 import {getOrgName, isTemplatesOrg, Organization} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
@@ -131,7 +130,7 @@ export class AppHeader extends Disposable {
       // When signed out and on the templates site (in SaaS Grist), link to the templates page.
       return cssOrgLink(
         cssOrgName(dom.text(this._appLogoOrgName), testId('orgname')),
-        {href: commonUrls.templates},
+        {href: window.gristConfig.commonUrls.templates},
         testId('org'),
       );
     } else {
@@ -228,7 +227,7 @@ export class AppHeader extends Disposable {
         name: t('Grist Templates'),
         link: {
           type: 'href',
-          href: commonUrls.templates,
+          href: window.gristConfig.commonUrls.templates,
         },
       };
     }

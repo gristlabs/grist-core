@@ -8,7 +8,7 @@ import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {modal} from 'app/client/ui2018/modals';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, Disposable, dom, DomContents, Observable, styled} from 'grainjs';
 
@@ -51,7 +51,7 @@ export class SupportGristButton extends Disposable {
       return cssContributeButton(
         elemType(cssHeartIcon('💛 '), t('Support Grist'),
           (which === 'link' ?
-            {href: commonUrls.githubSponsorGristLabs, target: '_blank'} :
+            {href: window.gristConfig.commonUrls.githubSponsorGristLabs, target: '_blank'} :
             dom.on('click', () => this._buildNudgeModal())
           ),
 
@@ -152,7 +152,7 @@ document contents. Opt out any time from the {{supportGristLink}} in the user me
 function helpCenterLink() {
   return cssLink(
     t('Help Center'),
-    {href: commonUrls.helpTelemetryLimited, target: '_blank'},
+    {href: window.gristConfig.commonUrls.helpTelemetryLimited, target: '_blank'},
   );
 }
 

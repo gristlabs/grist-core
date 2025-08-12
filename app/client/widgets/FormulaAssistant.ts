@@ -15,7 +15,6 @@ import {menu, menuItem} from 'app/client/ui2018/menus';
 import {Assistant, cssAiImage, cssAiMessage, cssAvatar} from 'app/client/widgets/Assistant';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {AssistanceState} from 'app/common/Assistance';
-import {commonUrls} from 'app/common/gristUrls';
 import {TelemetryEvent, TelemetryMetadata} from 'app/common/Telemetry';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Disposable, dom, DomElementArg, makeTestId, Observable, styled} from 'grainjs';
@@ -577,7 +576,7 @@ are sent to OpenAI. {{learnMore}}.",
                       urlState().setLinkUrl({ docPage: "code" })
                     ),
                     learnMore: cssLink(t("Learn more"), {
-                      href: commonUrls.helpFormulaAssistantDataUse,
+                      href: window.gristConfig.commonUrls.helpFormulaAssistantDataUse,
                       target: "_blank",
                     }),
                   }
@@ -592,15 +591,15 @@ are sent to OpenAI. {{learnMore}}.",
 or visit our {{community}} for more help.",
           {
             functionList: cssLink(t("Function List"), {
-              href: commonUrls.functions,
+              href: window.gristConfig.commonUrls.functions,
               target: "_blank",
             }),
             formulaCheatSheet: cssLink(t("Formula Cheat Sheet"), {
-              href: commonUrls.formulaSheet,
+              href: window.gristConfig.commonUrls.formulaSheet,
               target: "_blank",
             }),
             community: cssLink(t("Community"), {
-              href: commonUrls.community,
+              href: window.gristConfig.commonUrls.community,
               target: "_blank",
             }),
           }

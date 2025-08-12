@@ -12,7 +12,6 @@ import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
 import {AccessLevel, ICustomWidget, matchWidget, WidgetAuthor} from 'app/common/CustomWidget';
 import {userTrustsCustomWidget} from 'app/client/ui/userTrustsCustomWidget';
-import {commonUrls} from 'app/common/gristUrls';
 import {bundleChanges, Computed, Disposable, dom, makeTestId, Observable, styled} from 'grainjs';
 import escapeRegExp from 'lodash/escapeRegExp';
 
@@ -138,7 +137,7 @@ class CustomWidgetGallery extends Disposable {
       cssFooter(
         dom('div',
           cssHelpLink(
-            {href: commonUrls.helpCustomWidgets, target: '_blank'},
+            {href: window.gristConfig.commonUrls.helpCustomWidgets, target: '_blank'},
             cssHelpIcon('Question'),
             t('Learn more about Custom Widgets'),
           ),
