@@ -134,6 +134,7 @@ const mediaSmall = `(max-width: ${828 - 0.02}px)`;
 const cssHomeIntroCards = styled('div', `
   display: grid;
   gap: 24px;
+  margin-top: 4px;
   margin-bottom: 24px;
   display: grid;
   grid-template-columns: 239px minmax(0, 437px) minmax(196px, 1fr) minmax(196px, 1fr);
