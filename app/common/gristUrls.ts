@@ -1017,36 +1017,36 @@ function getCustomizableValue(
  * (GRIST_SINGLE_ORG=<org> on the server) or if the page includes an org in gristConfig.
  */
 export function getKnownOrg(): string|null {
-  return getCustomizableValue('singleOrg', "GRIST_SINGLE_ORG") || null;
+  return getCustomizableValue('singleOrg', 'GRIST_SINGLE_ORG') || null;
 }
 
 export function getHelpCenterUrl(): string {
-  const defaultUrl = "https://support.getgrist.com";
-  return getCustomizableValue('helpCenterUrl', "GRIST_HELP_CENTER") || defaultUrl;
+  const defaultUrl = 'https://support.getgrist.com';
+  return getCustomizableValue('helpCenterUrl', 'GRIST_HELP_CENTER') || defaultUrl;
 }
 
 export function getOnboardingVideoId(): string {
-  const defaultId = "56AieR9rpww";
+  const defaultId = '56AieR9rpww';
   return getCustomizableValue('onboardingTutorialVideoId', 'GRIST_ONBOARDING_VIDEO_ID') || defaultId;
 }
 
 export function getTermsOfServiceUrl(): string|undefined {
-  return getCustomizableValue('termsOfServiceUrl', "GRIST_TERMS_OF_SERVICE_URL") || undefined;
+  return getCustomizableValue('termsOfServiceUrl', 'GRIST_TERMS_OF_SERVICE_URL') || undefined;
 }
 
 export function getFreeCoachingCallUrl(): string {
-  const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
-  return getCustomizableValue('freeCoachingCallUrl', "FREE_COACHING_CALL_URL") || defaultUrl;
+  const defaultUrl = 'https://calendly.com/grist-team/grist-free-coaching-call';
+  return getCustomizableValue('freeCoachingCallUrl', 'FREE_COACHING_CALL_URL') || defaultUrl;
 }
 
 export function getContactSupportUrl(): string {
-  const defaultUrl = "https://www.getgrist.com/contact";
+  const defaultUrl = 'https://www.getgrist.com/contact';
   return getCustomizableValue('contactSupportUrl', 'GRIST_CONTACT_SUPPORT_URL') || defaultUrl;
 }
 
 export function getWebinarsUrl(): string {
-  const defaultUrl = "https://www.getgrist.com/webinars";
-  return getCustomizableValue('webinarsUrl', "GRIST_WEBINARS_URL") || defaultUrl;
+  const defaultUrl = 'https://www.getgrist.com/webinars';
+  return getCustomizableValue('webinarsUrl', 'GRIST_WEBINARS_URL') || defaultUrl;
 }
 
 /**
@@ -1056,7 +1056,7 @@ export function getWebinarsUrl(): string {
  * be set, but not gristConfig.singleOrg.
  */
 export function getSingleOrg(): string|null {
-  return getCustomizableValue("singleOrg", "GRIST_SINGLE_ORG") || null;
+  return getCustomizableValue('singleOrg', 'GRIST_SINGLE_ORG') || null;
 }
 
 /**
