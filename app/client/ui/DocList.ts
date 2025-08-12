@@ -200,7 +200,10 @@ export class DocList extends Disposable {
                       testId("doc-edited-at")
                     ),
                     cssDocDetailsCompact(
-                      cssDocName(stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))),
+                      cssDocName(
+                        urlState().setLinkUrl(docUrl(doc)),
+                        stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))
+                      ),
                       cssDocEditedAt(
                         t("Edited {{at}}", {
                           at: getTimeFromNow(doc.updatedAt),
