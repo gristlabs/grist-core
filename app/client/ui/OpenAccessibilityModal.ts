@@ -91,6 +91,7 @@ const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IMod
               }
             }, 100);
           }),
+          testId('high-contrast-theme-button'),
         )),
       );
     }),

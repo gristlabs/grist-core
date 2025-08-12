@@ -68,8 +68,12 @@ export function createAccessibilityTools(): DomContents {
       visuallyHidden(t("Accessibility")),
       // hide the visible text from screen readers to prevent duplicate labels with the visually hidden one
       cssLinkText(t("Accessibility"), {"aria-hidden": "true"}),
-      cssKeyboardShortcut('F4'),
+      cssKeyboardShortcut(
+        'F4',
+        testId('accessibility-shortcut-keys'),
+      ),
       dom.on('click', () => allCommands.accessibility.run()),
+      testId('accessibility-shortcut'),
     ),
   );
 }
