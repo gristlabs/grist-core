@@ -1,6 +1,6 @@
 import { ApiError } from 'app/common/ApiError';
 import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
-import { extractOrgParts, getHostType, getKnownOrg } from 'app/common/gristUrls';
+import { extractOrgParts, getHostType, getSingleOrg } from 'app/common/gristUrls';
 import { isAffirmative } from 'app/common/gutil';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -86,7 +86,7 @@ export class Hosts {
     const parts = extractOrgParts(hostname, urlPath);
 
     // If the server is configured to serve a single hard-wired org, respect that.
-    const singleOrg = getKnownOrg();
+    const singleOrg = getSingleOrg();
     if (singleOrg) {
       return {org: singleOrg, url: parts.pathRemainder, isCustomHost: false};
     }

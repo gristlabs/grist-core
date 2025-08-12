@@ -1,4 +1,3 @@
-import ICommonUrlsTI from 'app/common/ICommonUrls-ti';
 import {AssistantConfig} from 'app/common/Assistant';
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {Document} from 'app/common/UserAPI';
@@ -18,9 +17,6 @@ import {UIRowId} from 'app/plugin/GristAPI';
 import clone from 'lodash/clone';
 import pickBy from 'lodash/pickBy';
 import slugify from 'slugify';
-import * as t from "ts-interface-checker";
-
-const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -100,59 +96,6 @@ export type FormFraming = 'border' | 'minimal';
  *           permitted, those edits should go to a copy of the document rather than
  *           the original.
  */
-
-export const getCommonUrls = () => withAdminDefinedUrls({
-  help: getHelpCenterUrl(),
-  helpAccessRules: "https://support.getgrist.com/access-rules",
-  helpAssistant: "https://support.getgrist.com/assistant",
-  helpAssistantDataUse: "https://support.getgrist.com/assistant/#data-use-policy",
-  helpFormulaAssistantDataUse: "https://support.getgrist.com/ai-assistant/#data-use-policy",
-  helpColRefs: "https://support.getgrist.com/col-refs",
-  helpConditionalFormatting: "https://support.getgrist.com/conditional-formatting",
-  helpFilterButtons: "https://support.getgrist.com/search-sort-filter/#filter-buttons",
-  helpLinkingWidgets: "https://support.getgrist.com/linking-widgets",
-  helpRawData: "https://support.getgrist.com/raw-data",
-  helpUnderstandingReferenceColumns: "https://support.getgrist.com/col-refs/#understanding-reference-columns",
-  helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
-  helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
-  helpCustomWidgets: "https://support.getgrist.com/widget-custom",
-  helpInstallAuditLogs: "https://support.getgrist.com/install/audit-logs",
-  helpTeamAuditLogs: "https://support.getgrist.com/teams/audit-logs",
-  helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
-  helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-activate-grist-enterprise",
-  helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
-  helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
-  helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
-  helpSandboxing: "https://support.getgrist.com/self-managed/#how-do-i-sandbox-documents",
-  helpAPI: 'https://support.getgrist.com/api',
-  helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
-  helpAdminControls: "https://support.getgrist.com/admin-controls",
-  helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
-  freeCoachingCall: getFreeCoachingCallUrl(),
-  contactSupport: getContactSupportUrl(),
-  termsOfService: getTermsOfServiceUrl(),
-  onboardingTutorialVideoId: getOnboardingVideoId(),
-  plans: "https://www.getgrist.com/pricing",
-  contact: "https://www.getgrist.com/contact",
-  templates: 'https://www.getgrist.com/templates',
-  webinars: getWebinarsUrl(),
-  community: 'https://community.getgrist.com',
-  functions: 'https://support.getgrist.com/functions',
-  formulaSheet: 'https://support.getgrist.com/formula-cheat-sheet',
-  formulas: 'https://support.getgrist.com/formulas',
-  forms: 'https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer',
-  openGraphPreviewImage: 'https://grist-static.com/icons/opengraph-preview-image.png',
-
-  gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',
-  gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',
-  githubGristCore: 'https://github.com/gristlabs/grist-core',
-  githubSponsorGristLabs: 'https://github.com/sponsors/gristlabs',
-
-  versionCheck: 'https://api.getgrist.com/api/version',
-  attachmentStorage: 'https://support.getgrist.com/document-settings/#external-attachments',
-});
-
-export const commonUrls = getCommonUrls();
 
 
 /**
@@ -953,6 +896,7 @@ export interface GristLoadConfig {
 
   formFraming?: FormFraming;
 
+  commonUrls: ICommonUrls;
   adminDefinedUrls?: string;
 }
 
@@ -1013,43 +957,6 @@ function getCustomizableValue(
 }
 
 /**
- * Returns a known org "subdomain" if Grist is configured in single-org mode
- * (GRIST_SINGLE_ORG=<org> on the server) or if the page includes an org in gristConfig.
- */
-export function getKnownOrg(): string|null {
-  return getCustomizableValue('singleOrg', 'GRIST_SINGLE_ORG') || null;
-}
-
-export function getHelpCenterUrl(): string {
-  const defaultUrl = 'https://support.getgrist.com';
-  return getCustomizableValue('helpCenterUrl', 'GRIST_HELP_CENTER') || defaultUrl;
-}
-
-export function getOnboardingVideoId(): string {
-  const defaultId = '56AieR9rpww';
-  return getCustomizableValue('onboardingTutorialVideoId', 'GRIST_ONBOARDING_VIDEO_ID') || defaultId;
-}
-
-export function getTermsOfServiceUrl(): string|undefined {
-  return getCustomizableValue('termsOfServiceUrl', 'GRIST_TERMS_OF_SERVICE_URL') || undefined;
-}
-
-export function getFreeCoachingCallUrl(): string {
-  const defaultUrl = 'https://calendly.com/grist-team/grist-free-coaching-call';
-  return getCustomizableValue('freeCoachingCallUrl', 'FREE_COACHING_CALL_URL') || defaultUrl;
-}
-
-export function getContactSupportUrl(): string {
-  const defaultUrl = 'https://www.getgrist.com/contact';
-  return getCustomizableValue('contactSupportUrl', 'GRIST_CONTACT_SUPPORT_URL') || defaultUrl;
-}
-
-export function getWebinarsUrl(): string {
-  const defaultUrl = 'https://www.getgrist.com/webinars';
-  return getCustomizableValue('webinarsUrl', 'GRIST_WEBINARS_URL') || defaultUrl;
-}
-
-/**
  * Like getKnownOrg, but respects singleOrg/GRIST_SINGLE_ORG strictly.
  * The main difference in behavior would be for orgs with custom domains
  * served from a shared pool of servers, for which gristConfig.org would
@@ -1077,7 +984,7 @@ export function isOrgInPathOnly(host?: string): boolean {
 // Extract an organization name from the host.  Returns null if an organization name
 // could not be recovered.  Organization name may be overridden by server configuration.
 export function getOrgFromHost(reqHost: string): string|null {
-  const singleOrg = getKnownOrg();
+  const singleOrg = getSingleOrg();
   if (singleOrg) { return singleOrg; }
   if (isOrgInPathOnly()) { return null; }
   return parseSubdomain(reqHost).org || null;
@@ -1093,7 +1000,7 @@ export function getOrgFromHost(reqHost: string): string|null {
  * subdomain will be null, and mismatch will be true.
  */
 export function extractOrgParts(reqHost: string|undefined, reqPath: string): OrgParts {
-  let orgFromHost: string|null = getKnownOrg();
+  let orgFromHost: string|null = getSingleOrg();
 
   if (!orgFromHost && reqHost) {
     orgFromHost = getOrgFromHost(reqHost);
@@ -1294,25 +1201,4 @@ export interface UrlTweaks {
   preDecode?(options: {
     url: URL,
   }): void;
-}
-
-function withAdminDefinedUrls(defaultUrls: ICommonUrls): ICommonUrls {
-  const adminDefinedUrlsStr = getCustomizableValue('adminDefinedUrls', "GRIST_CUSTOM_COMMON_URLS");
-  if (!adminDefinedUrlsStr) {
-    return defaultUrls;
-  }
-
-  let adminDefinedUrls;
-  try {
-    adminDefinedUrls = JSON.parse(adminDefinedUrlsStr);
-  } catch(e) {
-    throw new Error("The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed");
-  }
-
-  const merged = {
-    ...defaultUrls,
-    ...(adminDefinedUrls)
-  };
-  ICommonUrlsChecker.strictCheck(merged);
-  return merged;
 }
