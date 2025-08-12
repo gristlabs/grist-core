@@ -176,7 +176,9 @@ document is first opened, or when a document responds to changes.'
           expandedContent: dom('div',
             cssWrap(
               t('Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}', {
-                apiURL: cssLink({href: window.gristConfig.commonUrls.helpAPI, target: '_blank'}, t('API documentation.')),
+                apiURL: cssLink(
+                  {href: window.gristConfig.commonUrls.helpAPI, target: '_blank'}, t('API documentation.')
+                ),
                 docId: dom('code', 'docId')
               })
             ),
@@ -573,7 +575,9 @@ No data will be lost, except possibly currently pending actions.'
             description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
 Anyone may edit, which will create a new unsaved copy.',
               {
-                fiddleModeDocUrl: cssLink({href: window.gristConfig.commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode'))
+                fiddleModeDocUrl: cssLink(
+                  {href: window.gristConfig.commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode')
+                )
               }
             ),
             itemTestId: testId('doctype-modal-option-template'),

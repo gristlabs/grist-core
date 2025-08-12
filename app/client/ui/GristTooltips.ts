@@ -318,7 +318,9 @@ record in that table, but you may select which column from that record to show.'
           entire: cssItalicizedText(t('entire'))
         })),
       dom('div',
-        cssLink({href: window.gristConfig.commonUrls.helpUnderstandingReferenceColumns, target: '_blank'}, t('Learn more.')),
+        cssLink(
+          {href: window.gristConfig.commonUrls.helpUnderstandingReferenceColumns, target: '_blank'}, t('Learn more.')
+        ),
       ),
       ...args,
     ),
