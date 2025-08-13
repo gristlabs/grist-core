@@ -1220,6 +1220,7 @@ const cssTopBarItem = styled(unstyledButton, `
   &:last-child {
     border-right: 0;
   }
+  /* the -selected class is used when the topbar item is not a tab */
   &-selected, &[aria-selected="true"] {
     background-color: ${theme.rightPanelTabSelectedBg};
     font-weight: ${vars.headerControlTextWeight};
@@ -1229,7 +1230,7 @@ const cssTopBarItem = styled(unstyledButton, `
     border-left-color: ${theme.rightPanelTabBorder};
     border-right-color: ${theme.rightPanelTabBorder};
   }
-  &:not(&-selected):hover, &:not(&[aria-selected="true"]):hover {
+  &:not(&-selected, &[aria-selected="true"]):hover {
     background-color: ${theme.rightPanelTabHoverBg};
     border-left-color: ${theme.rightPanelTabHoverBg};
     border-right-color: ${theme.rightPanelTabHoverBg};
@@ -1285,18 +1286,19 @@ const cssSubTab = styled(unstyledButton, `
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  align-items: center;
   text-align: center;
   padding-bottom: 8px;
   cursor: default;
   border-bottom: 2px solid transparent;
   outline-offset: -3px;
 
-  &-selected, &[aria-selected="true"] {
+  &[aria-selected="true"] {
     font-weight: 600;
     color: ${components.rightPanelSubtabSelectedFg};
     border-bottom-color: ${components.rightPanelSubtabSelectedUnderline};
   }
-  &:not(&-selected):hover, &:not(&[aria-selected="true"]):hover {
+  &:not(&[aria-selected="true"]):hover {
     color: ${components.rightPanelSubtabHoverFg};
   }
   &:hover {
