@@ -49,6 +49,8 @@ export const ariaTab = (tabListId: string, tabId: string, state: Observable<stri
     },
     dom.attr("aria-selected", (use) => use(state) === tabId ? "true" : "false"),
     dom.attr("tabindex", (use) => use(state) === tabId ? "0" : "-1"),
+    // this is important to bypass default handling of tabindex in the RegionFocusSwitcher and Clipboard
+    dom.cls("ignore_tabindex"),
     dom.on('click', () => state.set(tabId)),
     dom.onKeyDown({
       // Only horizontal tabs are currently implemented.

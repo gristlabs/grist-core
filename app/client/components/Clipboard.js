@@ -299,22 +299,27 @@ async function getTextFromClipboardItem(clipboardItem, type) {
  * By default, focus is automatically allowed if:
  *   - there is no clipboard commands registered,
  *   - the element is an input, textarea, select or iframe,
- *   - the element has a tabindex attribute
+ *   - the element has a tabindex attribute[*]
+ *
+ * [*] tabindex automatic focus allowance can be bypassed by setting the 'ignore_tabindex' class on the element.
+ *   This is useful when finetuning keyboard behavior of specific components, where you might endup
+ *   needing to use tabindex but without wanting to interfer with the Clipboard or RegionFocusSwitcher.
  *
  * You can explicitly allow focus by setting different classes:
  *   - using the 'clipboard_allow_focus' class will allow focusing the element having the class,
  *   - using the 'clipboard_group_focus' class will allow focusing any descendant element of the one having the class
  */
 function allowFocus(elem) {
-  if (elem && elem.closest('.clipboard_group_focus')) {
+  if (!elem) {
+    return false;
+  }
+  if (elem.closest('.clipboard_group_focus') || elem.classList.contains('clipboard_allow_focus')) {
     return true;
   }
-  const allow = elem && (
-    FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) ||
-    elem.hasAttribute("tabindex") ||
-    elem.classList.contains('clipboard_allow_focus')
-  );
-  return allow;
+  if (elem.hasAttribute("tabindex") && elem.classList.contains('ignore_tabindex')) {
+    return false;
+  }
+  return FOCUS_TARGET_TAGS.hasOwnProperty(elem.tagName) || elem.hasAttribute("tabindex");
 }
 
 Clipboard.allowFocus = allowFocus;
