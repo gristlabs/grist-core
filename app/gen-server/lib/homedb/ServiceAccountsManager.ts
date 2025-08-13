@@ -95,12 +95,7 @@ export class ServiceAccountsManager {
     const { expectedOwnerId } = options;
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
-      if (!serviceAccount) {
-        return serviceAccount;
-      }
-      if (expectedOwnerId !== undefined && expectedOwnerId !== serviceAccount.ownerId) {
-        throw new ApiError("Cannot update non-owned service account: " + serviceAccountLogin, 403);
-      }
+      this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
       ServiceAccount.merge(serviceAccount, partial);
       return await manager.save(serviceAccount);
     });
@@ -112,12 +107,7 @@ export class ServiceAccountsManager {
   ) {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
-      if (serviceAccount === null) {
-        throw new ApiError(`This Service Account does not exist`, 404);
-      }
-      if (options.expectedOwnerId !== undefined && serviceAccount.ownerId !== options.expectedOwnerId) {
-        throw new ApiError("Cannot delete non-owned service account: " + serviceAccountLogin, 403);
-      }
+      this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       const { serviceUser } = serviceAccount;
       // We perform a soft delete
       // as we don't want a service user's apiKey to still work
@@ -135,12 +125,7 @@ export class ServiceAccountsManager {
   ) {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
-      if (serviceAccount === null) {
-        throw new ApiError(`This Service Account does not exist`, 404);
-      }
-      if (options.expectedOwnerId !== undefined && serviceAccount.ownerId !== options.expectedOwnerId) {
-        throw new ApiError("Cannot regenerate api key non-owned service account: " + serviceAccountLogin, 403);
-      }
+      this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       serviceAccount.serviceUser = await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
       return serviceAccount;
     });
@@ -152,12 +137,7 @@ export class ServiceAccountsManager {
   ) {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
-      if (serviceAccount === null) {
-        throw new ApiError(`This Service Account does not exist`, 404);
-      }
-      if (options.expectedOwnerId !== undefined && serviceAccount.ownerId !== options.expectedOwnerId) {
-        throw new ApiError("Cannot revoke api key non-owned service account: " + serviceAccountLogin, 403);
-      }
+      this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       serviceAccount.serviceUser = await this._homeDb.deleteApiKey(serviceAccount.serviceUser.id, manager);
       return serviceAccount;
     });
@@ -166,12 +146,25 @@ export class ServiceAccountsManager {
   public async isServiceAccountAlive(serviceAccountLogin: string) {
     return await this._connection.transaction(async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
-      if (serviceAccount === null) {
-        throw new ApiError(`This Service Account does not exist`, 404);
-      }
+      this._assertExisting(serviceAccount);
       const expiresAt = new Date(serviceAccount.expiresAt);
       const currentDate = new Date();
       return expiresAt > currentDate;
     });
+  }
+
+  private _assertExistingAndOwned(
+    serviceAccount: ServiceAccount|null, expectedOwnerId: number|undefined
+  ): asserts serviceAccount is ServiceAccount {
+    this._assertExisting(serviceAccount);
+    if (expectedOwnerId !== undefined && serviceAccount.ownerId !== expectedOwnerId) {
+      throw new ApiError("Cannot access non-owned service account", 403);
+    }
+  }
+
+  private _assertExisting(serviceAccount: ServiceAccount|null): asserts serviceAccount is ServiceAccount {
+    if (serviceAccount === null) {
+      throw new ApiError("This Service Account does not exist", 404);
+    }
   }
 }
