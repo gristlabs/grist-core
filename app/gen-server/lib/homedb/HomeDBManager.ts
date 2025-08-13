@@ -563,7 +563,9 @@ export class HomeDBManager {
    * null, the user's personal organization is returned.
    */
   public async getOrg(scope: Scope, orgKey: string|number|null,
-                      transaction?: EntityManager): Promise<QueryResult<Organization>> {
+                      transaction?: EntityManager, options?: {
+                        requirePermissions: Permissions,
+                      }): Promise<QueryResult<Organization>> {
     const {userId} = scope;
     // Anonymous access to the merged org is a special case.  We return an
     // empty organization, not backed by the database, and which can contain
@@ -594,6 +596,9 @@ export class HomeDBManager {
       return { status: 200, data: anonOrg as any };
     }
     let qb = this.org(scope, orgKey, {
+      ...(options?.requirePermissions ? {
+        markPermissions: options.requirePermissions,
+      } : undefined),
       manager: transaction,
       needRealOrg: true
     });
@@ -616,7 +621,9 @@ export class HomeDBManager {
     // ordering (Sqlite does support NULL LAST syntax now, but not on our fork yet).
     qb = qb.addOrderBy('coalesce(prefs.org_id, 0)', 'DESC');
     qb = qb.addOrderBy('coalesce(prefs.user_id, 0)', 'DESC');
-    const result: QueryResult<any> = await this._verifyAclPermissions(qb);
+    const result: QueryResult<any> = await this._verifyAclPermissions(qb, {
+      markedPermissions: options?.requirePermissions !== undefined
+    });
     if (result.status === 200) {
       // Return the only org.
       result.data = result.data[0];
@@ -733,11 +740,29 @@ export class HomeDBManager {
   public async getWorkspace(
     scope: Scope,
     wsId: number,
-    transaction?: EntityManager
+    transaction?: EntityManager,
+    options?: {
+      requirePermissions: Permissions,
+    },
   ): Promise<QueryResult<Workspace>> {
     const {userId} = scope;
-    let queryBuilder = this._workspaces(transaction)
-      .where('workspaces.id = :wsId', {wsId})
+    if (scope.specialPermit && scope.specialPermit.workspaceId === wsId) {
+      const effectiveUserId = this._usersManager.getPreviewerUserId();
+      scope = {...scope};
+      scope.userId = effectiveUserId;
+      delete scope.users;
+      options = {
+        ...options,
+        requirePermissions: Permissions.VIEW,
+      };
+    }
+    let queryBuilder = this._workspace(scope, wsId, {
+      manager: transaction,
+      ...(options?.requirePermissions ? {
+        markPermissions: options.requirePermissions,
+        allowSpecialPermit: true,
+      } : undefined),
+    })
       // Nest the docs within the workspace object
       .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
       .leftJoinAndSelect('workspaces.org', 'orgs')
@@ -749,7 +774,10 @@ export class HomeDBManager {
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
     queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs'], 'list');
-    const result: QueryResult<any> = await this._verifyAclPermissions(queryBuilder, { scope });
+    const result: QueryResult<any> = await this._verifyAclPermissions(queryBuilder, {
+      scope,
+      markedPermissions: options?.requirePermissions !== undefined,
+    });
     // Return a single workspace.
     if (result.status === 200) {
       result.data = result.data[0];
@@ -1370,6 +1398,11 @@ export class HomeDBManager {
   // Checks that the user has REMOVE permissions to the given org. If not, throws an
   // error. Otherwise deletes the given org. Returns a query result with status 200
   // on success.
+  //
+  // This method only cleans up the database, and not any documents associated
+  // with the site. So it shouldn't be made available directly to users.
+  // Instead use Doom.deleteOrg which is aware of the world outside the
+  // database.
   public async deleteOrg(
     scope: Scope,
     orgKey: string|number,
@@ -4319,11 +4352,21 @@ export class HomeDBManager {
       rawQueryBuilder?: SelectQueryBuilder<any>,
       emptyAllowed?: boolean,
       scope?: Scope,
+      // If permissions have been marked, check them
+      markedPermissions?: boolean,
     } = {}
   ): Promise<QueryResult<T[]>> {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
+    if (options.markedPermissions) {
+      if (!results.raw.every(entry => entry.is_permitted)) {
+        return {
+          status: 403,
+          errMessage: "access denied"
+        };
+      }
+    }
     if (results.entities.length === 0 ||
         (results.entities.length === 1 && results.entities[0].filteredOut)) {
       if (options.emptyAllowed) { return {status: 200, data: []}; }
