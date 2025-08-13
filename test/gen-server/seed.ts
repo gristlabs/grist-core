@@ -334,14 +334,10 @@ class Seed {
   }
 
   public async createGroups(parent?: Organization|Workspace): Promise<Groups> {
-    const owners = new Group();
-    owners.name = 'owners';
-    const editors = new Group();
-    editors.name = 'editors';
-    const viewers = new Group();
-    viewers.name = 'viewers';
-    const guests = new Group();
-    guests.name = 'guests';
+    const owners = Group.create({name: 'owners', type: Group.ROLE_TYPE});
+    const editors = Group.create({name: 'editors', type: Group.ROLE_TYPE});
+    const viewers = Group.create({name: 'viewers', type: Group.ROLE_TYPE});
+    const guests = Group.create({name: 'guests', type: Group.ROLE_TYPE});
 
     if (parent) {
       // Nest the parent groups inside the new groups
@@ -355,8 +351,7 @@ class Seed {
 
     if (!parent) {
       // Add the members group for orgs.
-      const members = new Group();
-      members.name = 'members';
+      const members = Group.create({name: 'members', type: Group.ROLE_TYPE});
       await this.groupRepository.save(members);
       return {
         owners,
