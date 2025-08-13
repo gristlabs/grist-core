@@ -1581,7 +1581,17 @@ export async function selectAllVisibleColumns() {
  * Toggle checkbox for a column in visible columns section.
  */
 export async function toggleVisibleColumn(col: string) {
-  const row = await driver.findContent(".test-vfc-visible-fields .kf_draggable_content", exactMatch(col));
+  await openWidgetPanel('widget');
+  const row = await driver.findContent(".test-vfc-visible-field", exactMatch(col));
+  await row.find('input').click();
+}
+
+/**
+ * Toggle checkbox for a column in hidden columns section.
+ */
+export async function toggleHiddenColumn(col: string) {
+  await openWidgetPanel('widget');
+  const row = await driver.findContent(".test-vfc-hidden-field", exactMatch(col));
   await row.find('input').click();
 }
 
@@ -1589,7 +1599,7 @@ export async function toggleVisibleColumn(col: string) {
  * Lists all columns in the visible columns section.
  */
 export async function getVisibleColumns() {
-  return await driver.findAll(".test-vfc-visible-fields .kf_draggable_content", async (row) => {
+  return await driver.findAll(".test-vfc-visible-field", async (row) => {
     return row.getText();
   });
 }
@@ -1598,7 +1608,7 @@ export async function getVisibleColumns() {
  * Lists all columns in the hidden columns section.
  */
 export async function getHiddenColumns() {
-  return await driver.findAll(".test-vfc-hidden-fields .kf_draggable_content", async (row) => {
+  return await driver.findAll(".test-vfc-hidden-field", async (row) => {
     return row.getText();
   });
 }
@@ -1606,8 +1616,13 @@ export async function getHiddenColumns() {
 /**
  * Clicks `Hide Columns` button in visible columns section.
  */
-export async function hideVisibleColumns() {
+export async function hideColumns() {
   await driver.find('.test-vfc-visible-hide').click();
+  await waitForServer();
+}
+
+export async function showColumns() {
+  await driver.find('.test-vfc-hidden-show').click();
   await waitForServer();
 }
 

@@ -37,7 +37,7 @@ describe('LinkingSelector', function() {
     await gu.openWidgetPanel();
     await gu.selectAllVisibleColumns();
     await gu.toggleVisibleColumn('Start_Date');
-    await gu.hideVisibleColumns();
+    await gu.hideColumns();
 
     // Make sure we see the same date.
     await gu.getCell('Start_Date', 1, 'CLASSES').click();
@@ -61,7 +61,7 @@ describe('LinkingSelector', function() {
     await gu.openWidgetPanel();
     await gu.selectAllVisibleColumns();
     await gu.toggleVisibleColumn('Start_Date');
-    await gu.hideVisibleColumns();
+    await gu.hideColumns();
 
     // Rename it to list.
     await gu.renameActiveSection('List');
@@ -73,7 +73,7 @@ describe('LinkingSelector', function() {
     await gu.renameActiveSection('Card');
     await gu.selectAllVisibleColumns();
     await gu.toggleVisibleColumn('Start_Date');
-    await gu.hideVisibleColumns();
+    await gu.hideColumns();
 
     // Select the second row.
     await gu.selectSectionByTitle('List');

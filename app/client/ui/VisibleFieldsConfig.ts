@@ -371,6 +371,7 @@ export class VisibleFieldsConfig extends Disposable {
     const selection = this._hiddenFieldsSelection;
 
     return cssFieldEntry(
+      testId('hidden-field'),
       cssFieldLabel(dom.text(column.label)),
       cssHideIcon('EyeShow',
         dom.on('click', () => this.addField(column)),
@@ -391,6 +392,7 @@ export class VisibleFieldsConfig extends Disposable {
     const selection = this._visibleFieldsSelection;
 
     return cssFieldEntry(
+      testId('visible-field'),
       cssFieldLabel(dom.text(field.label)),
       // TODO: we need a "cross-out eye" icon here.
       cssHideIcon('EyeHide',
